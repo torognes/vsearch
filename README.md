@@ -39,6 +39,29 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 * **Indexing options:** Only continuous seeds are supported.
 * **Gap penalties:** Only standard gap open and extension penalties are supported. Specific left/interior/right/end/query/target gap penalties are not supported.
 
+## Command line options supported
+
+Required options:
+
+* `--usearch_global <filename>`
+* `--db <filename>`
+* `--alnout <filename>`
+* `--id <real>`
+* `--strand <plus|both>` (Currently only plus strand supported)
+
+Optional options:
+
+* `--threads <int>` (Default 1) (Currently only one thread supported)
+* `--rowlen <int>` (Default 64)
+* `--maxaccepts <int>` (Default 1)
+* `--maxrejects <int>` (Default 16)
+* `--wordlength <int>` (Default 8)
+* `--match <int>` (Default 1)
+* `--mismatch <int>` (Default -2)
+* `--gapopen <int>` (Default 10)
+* `--gapext <int>` (Default 1)
+* `--fulldp` (Default)
+
 
 ## License
 
