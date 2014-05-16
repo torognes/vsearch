@@ -8,7 +8,7 @@ The aim of the project is to create an alternative to the USEARCH tool. The new 
 * open source code with an appropriate open source license
 * 64-bit design that handles very large databases and more than 4GB of memory
 
-A tool called VSEARCH has been implemented. Exactly the same option names as USEARCH has been used in order to make it possible to make VSEARCH almost a drop-in replacement. The basic usearch_global algorithm for global alignments using nucleotide sequences is implemented. At this stage it does not support amino acid sequences, local alignments, clustering etc. No uclust/uchime/uparse/ublast. It currently does not use pthreads.
+A tool called VSEARCH has been implemented. Exactly the same option names as USEARCH has been used in order to make it possible to make VSEARCH almost a drop-in replacement. The basic usearch\_global algorithm for global alignments using nucleotide sequences is implemented. At this stage it does not support amino acid sequences, local alignments, clustering etc. No uclust/uchime/uparse/ublast. It currently does not use pthreads.
 
 In the example below, VSEARCH will identify sequences in database.fsa at least 90% identical to the query sequences in queries.fsa and write the results to alnout.txt.
 
