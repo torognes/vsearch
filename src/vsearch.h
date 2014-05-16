@@ -40,7 +40,7 @@
 #endif
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.1"
+#define PROG_VERSION "v0.0.2"
 
 #define KMERLENGTH 4
 #define KMERVECTORBITS (1<<(2*KMERLENGTH))
