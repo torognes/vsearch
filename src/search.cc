@@ -99,7 +99,7 @@ void search_showresults(struct hit * hits, int accepts,
 	  fprintf(alnoutfile," Query %ldnt >%s\n", qseqlen, query_head);
 	  fprintf(alnoutfile,"Target %ldnt >%s\n", dseqlen, thead);
 	  
-#if 1
+#if 0
 	  fprintf(alnoutfile,"\nCIGAR: %s\n", nwalignment);
 #endif
 
