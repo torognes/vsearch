@@ -12,7 +12,7 @@ Options (partially) supported by VSEARCH are in bold type.
 
 Command line example:
 
-	./usearch7.0.959_i86osx32 `--usearch_global q1000.fas `--db big_file.fas `--strand plus `--id 0.9 `--alnout alnout.aln
+	./usearch7.0.959_i86osx32 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln
 
 
 ## Basic options
