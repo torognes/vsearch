@@ -8,7 +8,7 @@ Both single (-) and double dash (--) in front of options are allowed.
 
 Defaults are indicated in parentheses.
 
-Options (partially) supported by VSEARCH are in bold type.
+Options (partially) supported by VSEARCH are in **bold** type.
 
 Command line example:
 
