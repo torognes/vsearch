@@ -22,7 +22,7 @@
 #include "vsearch.h"
 
 /*                                                                                       
-   Unable to get the Mac gcc compiler v 4.2.1 produce the real                           
+   Unable to get the Mac gcc compiler v 4.2.1 to produce the real                           
    popcnt instruction. Therefore resorting to assembly code.                             
 */
 
