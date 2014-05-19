@@ -119,22 +119,6 @@ void cpu_features_show()
 }
 
 
-void args_getstring(int i, int argc, char **argv, char ** result, char * error)
-{
-  if (i+1 < argc)
-    *result = argv[i+1];
-  else
-    fatal(error);
-}
-
-void args_getnum(int i, int argc, char **argv, long * result, char * error)
-{
-  if (i+1 < argc)
-    *result = atol(argv[i+1]);
-  else
-    fatal(error);
-}
-
 void args_usage()
 {
   /*               0         1         2         3         4         5         6         7          */
@@ -147,17 +131,18 @@ void args_usage()
   fprintf(stderr, "  --usearch_global FILENAME  search for global alignments with given query\n");
   fprintf(stderr, "  --id REAL                  minimum sequence identity accepted\n");
   fprintf(stderr, "  --alnout FILENAME          alignment output filename\n");
+  fprintf(stderr, "  --strand plus|both         search plus strand or both\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "  --maxaccepts INT           maximum number of hits to show (1)\n");
   fprintf(stderr, "  --maxrejects INT           number of non-matching hits to consider (32)\n");
   fprintf(stderr, "  --match INT                score for match (1)\n");
   fprintf(stderr, "  --mismatch INT             score for mismatch (-2)\n");
-  fprintf(stderr, "  --wordlength\n");
+  fprintf(stderr, "  --gapopen INT              penalty for gap opening (10)\n");
+  fprintf(stderr, "  --gapext INT               penalty for gap extension (1)\n");
+  fprintf(stderr, "  --wordlength INT           length of words (kmers) used for database index (8)\n");
   fprintf(stderr, "  --fulldp                   full dynamic programming for all alignments\n");
-  /* currently unsupported (plus, 1)
-  fprintf(stderr, "  --strand plus/both         search plus strand or both\n");
-  fprintf(stderr, "  --threads INT              number of threads to use\n");
-  */
+  fprintf(stderr, "  --threads INT              number of threads to use (1)\n");
+  fprintf(stderr, "  --rowlen INT               width of sequence alignment lines (64)\n");
 }
 
 void show_header()
@@ -165,6 +150,16 @@ void show_header()
   char title[] = PROG_NAME " " PROG_VERSION;
   char ref[] = "Copyright (C) 2014 Torbjorn Rognes";
   fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
+}
+
+long args_getint(char * optarg)
+{
+  int len = 0;
+  long temp = 0;
+  int ret = sscanf(optarg, "%ld%n", &temp, &len);
+  if ((ret == 0) || (len < strlen(optarg)))
+    fatal("Illegal option argument");
+  return temp;
 }
 
 void args_init(int argc, char **argv)
@@ -216,7 +211,7 @@ void args_init(int argc, char **argv)
   int option_index = 0;
   int c;
   
-  while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) != -1)
+  while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
   {
     switch(option_index)
     {
@@ -254,27 +249,27 @@ void args_init(int argc, char **argv)
 
     case 6:
       /* maxaccepts */
-      maxaccepts = atol(optarg);
+      maxaccepts = args_getint(optarg);
       break;
 
     case 7:
       /* maxrejects */
-      maxrejects = atol(optarg);
+      maxrejects = args_getint(optarg);
       break;
 
     case 8:
       /* wordlength */
-      wordlength = atol(optarg);
+      wordlength = args_getint(optarg);
       break;
 
     case 9:
       /* match */
-      match_score = atol(optarg);
+      match_score = args_getint(optarg);
       break;
 
     case 10:
       /* mismatch */
-      mismatch_score = atol(optarg);
+      mismatch_score = args_getint(optarg);
       break;
 
     case 11:
@@ -291,22 +286,22 @@ void args_init(int argc, char **argv)
 
     case 13:
       /* threads */
-      threads = atol(optarg);
+      threads = args_getint(optarg);
       break;
 
     case 14:
       /* gapopen */
-      gapopen_penalty = atol(optarg);
+      gapopen_penalty = args_getint(optarg);
       break;
 
     case 15:
       /* gapext */
-      gapextend_penalty = atol(optarg);
+      gapextend_penalty = args_getint(optarg);
       break;
 
     case 16:
       /* rowlen */
-      rowlen = atol(optarg);
+      rowlen = args_getint(optarg);
       break;
 
     default:
@@ -315,6 +310,9 @@ void args_init(int argc, char **argv)
       break;
     }
   }
+  
+  if (c != -1)
+    exit(1);
   
   if (!queryfilename)
     fatal("Query filename not specified with --usearch_global");

@@ -8,8 +8,6 @@ Both single (-) and double dash (--) in front of options are allowed.
 
 Defaults are indicated in parentheses.
 
-Options (partially) supported by VSEARCH are in **bold** type.
-
 Command line example:
 
 	./usearch7.0.959_i86osx32 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln
@@ -17,13 +15,13 @@ Command line example:
 
 ## Basic options
 
-**`--usearch_global <filename>`**
+`--usearch_global <filename>`
 
-**`--db <filename>`**
+`--db <filename>`
 
-**`--strand <plus|both>`**
+`--strand <plus|both>`
 
-**`--threads <integer>`**
+`--threads <integer>`
 
 `--cluster_smallmem <filename>`
 
@@ -36,9 +34,9 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/output_files.html)
 
-**`--alnout <filename>`**
+`--alnout <filename>`
 
-**`--rowlen <integer(64)>`**
+`--rowlen <integer(64)>`
 
 `--userout <filename>`
 
@@ -77,7 +75,7 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/accept_options.html)
 
-**`--id <real>`**
+`--id <real>`
 
 `--evalue <real>`
 
@@ -130,9 +128,9 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/termination_options.html)
 
-**`--maxaccepts <integer (1)>`**
+`--maxaccepts <integer (1)>`
 
-**`--maxrejects <integer (32)>`**
+`--maxrejects <integer (32)>`
 
 
 ## Weak hits options
@@ -148,7 +146,7 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/indexing_options.html)
 
-**`--wordlength <integer (8)>`**
+`--wordlength <integer (8)>`
 
 `--pattern <bitpattern (11111111)>`
 
@@ -178,13 +176,13 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/aln_params.html)
 
-**`--match <real (1.0)>`**
+`--match <real (1.0)>`
 
-**`--mismatch <real (-2.0)>`**
+`--mismatch <real (-2.0)>`
 
-**`--gapopen <real[LRIEQT] (10.0)>`**
+`--gapopen <real[LRIEQT] (10.0)>`
 
-**`--gapext <real[LRIEQT] (1.0)>`**
+`--gapext <real[LRIEQT] (1.0)>`
 
 `--matrix <filename (blosum62 (aa), +1/-2 (nt))>`
 
@@ -197,7 +195,7 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/aln_heuristics.html)
 
-**`--fulldp`**
+`--fulldp`
 
 `--hspw <integer (5 (nt), 3 (aa))>`
 
