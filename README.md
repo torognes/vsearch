@@ -25,19 +25,8 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 **Performance:** The speed appears comparable to USEARCH when USEARCH is run with the `--fulldp` option, but sometimes considerably slower and sometimes considerably faster. The accuracy also seems comparable but very variable relative to USEARCH. More testing remains.
 
-**Command line options:** I have made a list of all the options that usearch\_global supports. I have indicated the options currently supported by VSEARCH in bold. Please see the file usearch\_options.md
+**Command line options:** I have made a list of all the options that usearch\_global supports. Please see the file usearch\_options.md. The options currently supported by VSEARCH is indicated below. 
 
-
-## Main limitations
-
-* **Commands:** Only usearch_global is supported.
-* **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
-* **Strands:** Only the plus strand is searched.
-* **Threads:** Threads are currently not supported.
-* **Output:** Only the `--alnout` type of output (human readable alignments) is currently supported.
-* **Accept options**: Only the `--id` accept option is supported.
-* **Indexing options:** Only continuous seeds are supported.
-* **Gap penalties:** Only standard gap open and extension penalties are supported. Specific left/interior/right/end/query/target gap penalties are not supported.
 
 ## Command line options supported
 
@@ -58,9 +47,21 @@ Optional options:
 * `--wordlength <int>` (Default 8)
 * `--match <int>` (Default 1)
 * `--mismatch <int>` (Default -2)
-* `--gapopen <int>` (Default 10)
-* `--gapext <int>` (Default 1)
+* `--gapopen <int>` (Default 10) (Only one common gap opening penalty supported)
+* `--gapext <int>` (Default 1) (Only one common gap extension penalty supported)
 * `--fulldp` (Default)
+
+
+## Main limitations
+
+* **Commands:** Only usearch_global is supported.
+* **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
+* **Strands:** Only the plus strand is searched.
+* **Threads:** Threads are currently not supported.
+* **Output:** Only the `--alnout` type of output (human readable alignments) is currently supported.
+* **Accept options**: Only the `--id` accept option is supported.
+* **Indexing options:** Only continuous seeds are supported.
+* **Gap penalties:** Only standard gap open and extension penalties are supported. Specific left/interior/right/end/query/target gap penalties are not supported.
 
 
 ## License
