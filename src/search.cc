@@ -145,6 +145,9 @@ struct hit * hits = 0;
 
 unsigned int hit_distr[MAXSAMPLES+1];
 
+unsigned int * targetlist = 0;
+unsigned int targetcount = 0;
+
 unsigned int search_topscores(unsigned int samples,
 			      unsigned int seqcount, 
 			      unsigned int tophits)
@@ -168,19 +171,89 @@ unsigned int search_topscores(unsigned int samples,
   
   unsigned int s = samples;
 
+
+  /* compute total hits */
+
+  unsigned int totalhits = 0;
+
   for(unsigned int i=0; s && (i<count_kmers_gethashsize()); i++)
     if (kmercounthash[i].count == 1)
       {
 	unsigned int kmer = kmercounthash[i].kmer;
-	unsigned int * a = kmerindex + kmerhash[kmer];
-	unsigned int * b = kmerindex + kmerhash[kmer+1];
-
-	for(unsigned int * j=a; j<b; j++)
-	  hitcount[*j]++;
-
+	totalhits += kmerhash[kmer+1] - kmerhash[kmer];
 	s--;
       }
+
+  double hitspertarget = totalhits * 1.0 / seqcount;
+
+#if 0
+  printf("Total hits: %u SeqCount: %u Hits/Target: %.2f\n", 
+	 totalhits, seqcount, hitspertarget);
+#endif
+
   
+  s = samples;
+
+  targetcount = 0;
+
+  unsigned int sparse;
+
+  if (hitspertarget < 0.5)
+    sparse = 1;
+  else
+    sparse = 0;
+
+  //  sparse = 1;
+
+  if (! sparse)
+    {
+      /* dense hit distribution - check all targets - no need for a list*/
+
+      for(unsigned int i=0; s && (i<count_kmers_gethashsize()); i++)
+	if (kmercounthash[i].count == 1)
+	  {
+	    unsigned int kmer = kmercounthash[i].kmer;
+	    unsigned int * a = kmerindex + kmerhash[kmer];
+	    unsigned int * b = kmerindex + kmerhash[kmer+1];
+	    
+	    for(unsigned int * j=a; j<b; j++)
+	      hitcount[*j]++;
+	    
+	    s--;
+	  }
+    }
+  else
+    {
+      /* sparse hits - check only a list of targets */
+      sparse = 1;
+      
+      /* create list with targets (no duplications) */
+
+      for(unsigned int i=0; s && (i<count_kmers_gethashsize()); i++)
+	if (kmercounthash[i].count == 1)
+	  {
+	    unsigned int kmer = kmercounthash[i].kmer;
+	    unsigned int * a = kmerindex + kmerhash[kmer];
+	    unsigned int * b = kmerindex + kmerhash[kmer+1];
+	    
+	    for(unsigned int * j=a; j<b; j++)
+	      {
+		/* append to target list */
+		if (hitcount[*j] == 0)
+		  targetlist[targetcount++] = *j;
+		
+		hitcount[*j]++;
+	      }
+
+	    s--;
+	  }
+
+#if 0
+      printf("Unique targets: %u\n", targetcount);
+#endif
+
+    }
+
   unsigned int topcount = 0;
 
 
@@ -193,12 +266,19 @@ unsigned int search_topscores(unsigned int samples,
   for(unsigned int i=0; i <= samples; i++)
     hit_distr[i] = 0;
 
-  unsigned char * p = hitcount;
-  unsigned char * e = p + seqcount;
-  while (p < e)
-    hit_distr[*p++]++;
+  if (sparse)
+    {
+      hit_distr[0] = seqcount - targetcount;
+      for(unsigned int i=0; i<targetcount; i++)
+	hit_distr[hitcount[targetlist[i]]]++;
+    }
+  else
+    {
+      for(unsigned int i=0; i < seqcount; i++)
+	hit_distr[hitcount[i]]++;
+    }
 
-#if 1
+#if 0
   printf("Kmer count distribution:\n");
   for (unsigned int i=0; i <= samples; i++)
     printf("%u: %u\n", i, hit_distr[i]);
@@ -208,48 +288,95 @@ unsigned int search_topscores(unsigned int samples,
 #endif
   
 
-
-  for(unsigned int i=0; i < seqcount; i++)
+  if (sparse)
     {
-      unsigned int count = hitcount[i];
-      
-      
-      /* find insertion point */
-      
-      unsigned int p = topcount;
-      
-      while ((p > 0) && (count > topscores[p-1].count))
-	p--;
-      
-      
-      /* p = index in array where new data should be placed */
-      
-      if (p < tophits)
+      for(unsigned int z=0; z < targetcount; z++)
 	{
-	  
-	  /* find new bottom of list */
-	  
-	  int bottom = topcount;
-	  if (topcount == tophits)
-	    bottom--;
+	  unsigned int i = targetlist[z];
+
+	  unsigned int count = hitcount[i];
 	  
 	  
-	  /* shift lower counts down */
+	  /* find insertion point */
 	  
-	  for(unsigned int j = bottom; j > p; j--)
-	    topscores[j] = topscores[j-1];
+	  unsigned int p = topcount;
+	  
+	  while ((p > 0) && (count > topscores[p-1].count))
+	    p--;
 	  
 	  
-	  /* insert or overwrite */
+	  /* p = index in array where new data should be placed */
 	  
-	  topscores[p].count = count;
-	  topscores[p].seqno = i;
-	  
-	  if (topcount < tophits)
-	    topcount++;
+	  if (p < tophits)
+	    {
+	      
+	      /* find new bottom of list */
+	      
+	      int bottom = topcount;
+	      if (topcount == tophits)
+		bottom--;
+	      
+	      
+	      /* shift lower counts down */
+	      
+	      for(unsigned int j = bottom; j > p; j--)
+		topscores[j] = topscores[j-1];
+	      
+	      
+	      /* insert or overwrite */
+	      
+	      topscores[p].count = count;
+	      topscores[p].seqno = i;
+	      
+	      if (topcount < tophits)
+		topcount++;
+	    }
 	}
     }
-
+  else
+    {
+      for(unsigned int i=0; i < seqcount; i++)
+	{
+	  unsigned int count = hitcount[i];
+	  
+	  
+	  /* find insertion point */
+	  
+	  unsigned int p = topcount;
+	  
+	  while ((p > 0) && (count > topscores[p-1].count))
+	    p--;
+	  
+	  
+	  /* p = index in array where new data should be placed */
+	  
+	  if (p < tophits)
+	    {
+	      
+	      /* find new bottom of list */
+	      
+	      int bottom = topcount;
+	      if (topcount == tophits)
+		bottom--;
+	      
+	      
+	      /* shift lower counts down */
+	      
+	      for(unsigned int j = bottom; j > p; j--)
+		topscores[j] = topscores[j-1];
+	      
+	      
+	      /* insert or overwrite */
+	      
+	      topscores[p].count = count;
+	      topscores[p].seqno = i;
+	      
+	      if (topcount < tophits)
+		topcount++;
+	    }
+	}
+    }
+  
   return topcount;
 }
 
@@ -414,6 +541,7 @@ void search()
   hitcount = (unsigned char *) xmalloc(seqcount);
   topscores = (struct topscore *) xmalloc(sizeof(struct topscore) * tophits);
   hits = (struct hit *) xmalloc(sizeof(struct hit) * maxaccepts);
+  targetlist = (unsigned int*) xmalloc(sizeof(unsigned int)*seqcount);
 
   while(1)
     {
@@ -443,6 +571,7 @@ void search()
 	break;
     }
   
+  free(targetlist);
   free(hits);
   free(topscores);
   free(hitcount);
