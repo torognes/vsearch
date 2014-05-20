@@ -19,13 +19,13 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 **Algorithm:** VSEARCH indexes the unique kmers in the database in the same way as USEARCH, but is currently limited to continuous words (non-spaced seeds). It currently pseudo-randomly picks a certain number of unique kmers from each query sequence and identifies the database sequences with the largest number of kmer matches.  It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those that satisfy the sequence identity fraction criteria specified using the `--id` option are accepted. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching databases considered, respectively. Please see the USEARCH paper and supplementary for details.
 
-**Kmer selection:** How many and which unique kmers USEARCH chooses from the query sequence is not well documented, but our procedure seems to give results approximately equal to USEARCH. In VSEARCH, *x* of the unique kmers in the query are chosen pseudo-randomly, where *x* is chosen so as to expect 8 or more matches with the targets satisfying the accept criteria. It appears that USEARCH chooses a similar number of unique kmers by sampling at equal distances along the query sequence. We should probably switch to sampling at equal distances too. The choice of *x* must be looked further into.
+**Kmer selection:** How many and which unique kmers USEARCH chooses from the query sequence is not well documented, but our procedure seems to give results approximately equal to USEARCH. In VSEARCH, *x* of the unique kmers in the query are sampled uniformly along the query sequence, where *x* is chosen so as to expect 18 matches with the targets satisfying the accept criteria. USEARCH seems to do a similar thing but the exact procedure is unknown. The choice of *x* must be looked further into.
 
 **Alignment:** The VSEARCH tool currently uses a non-vectorized full dynamic programming Needleman-Wunsch-Sellers algorithm for the alignments (similar to USEARCH with `--fulldp`) instead of the procedure involving seeding, extension and banded dynamic programming. This could be replaced by a parallel variant using SIMD. A banded SIMD variant could also be valuable. Pre-screening the matches using a kmer vector approach (as in SWARM) is performed and has a small positive impact in some cases.
 
 **Performance:** The speed appears comparable to USEARCH when USEARCH is run with the `--fulldp` option, but sometimes considerably slower and sometimes considerably faster. The accuracy also seems comparable but very variable relative to USEARCH. More testing remains.
 
-**Command line options:** I have made a list of all the options that usearch\_global supports. Please see the file usearch\_options.md. The options currently supported by VSEARCH is indicated below. 
+**Command line options:** A list of all the options that usearch\_global supports is available in the doc folder. Please see the file usearch\_options.md. The options currently supported by VSEARCH is indicated below.
 
 
 ## Command line options supported
@@ -66,7 +66,7 @@ Optional options:
 
 ## License
 
-I would like the code to be licensed under the GNU Affero General Public License version 3. But we can of course discuss this.
+The code is currently licensed under the GNU Affero General Public License version 3. The ordinary GNU GPL is one alternative. We should discuss this.
 
 
 ## Code
@@ -97,7 +97,7 @@ Some issues to work on:
 
 * testing
 * performance comparison
-* improving identifying and selection of unique kmers
+* Understand how many unique kmers from the query USEARCH chooses
 * improving the kmer match counting and target prioritization during searching
 * parallelisation with pthreads
 * parallelisation with SIMD-based global alignment
