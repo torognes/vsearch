@@ -110,7 +110,7 @@ void query_close()
 }
 
 int query_getnext(char ** head, long * head_len,
-		  char ** seq, long * seq_len, long * qno)
+                  char ** seq, long * seq_len, long * qno)
 {
   if(query_line[0])
     {
@@ -123,10 +123,10 @@ int query_getnext(char ** head, long * head_len,
       query_head_len = headerlen;
 
       if (headerlen + 1 > query_head_alloc)
-	{
-	  query_head_alloc = headerlen + 1;
-	  query_head = (char *) xrealloc(query_head, query_head_alloc);
-	}
+        {
+          query_head_alloc = headerlen + 1;
+          query_head = (char *) xrealloc(query_head, query_head_alloc);
+        }
 
       memcpy(query_head, query_line + 1, headerlen);
       query_head[headerlen] = 0;
@@ -143,30 +143,30 @@ int query_getnext(char ** head, long * head_len,
       query_seq_len = 0;
 
       while (query_line[0] && (query_line[0] != '>'))
-	{
-	  char c;
-	  char m;
+        {
+          char c;
+          char m;
 
-	  char * p = query_line;
+          char * p = query_line;
 
-	  while((c = *p++))
-	    if ((m = map_nt[(int)c]) >= 0)
-	    {
-	      if (query_seq_len + 1 > query_seq_alloc)
-	      {
-		query_seq_alloc += MEMCHUNK;
-		query_seq = (char *) xrealloc(query_seq, query_seq_alloc);
-	      }
+          while((c = *p++))
+            if ((m = map_nt[(int)c]) >= 0)
+            {
+              if (query_seq_len + 1 > query_seq_alloc)
+              {
+                query_seq_alloc += MEMCHUNK;
+                query_seq = (char *) xrealloc(query_seq, query_seq_alloc);
+              }
 
-	      *(query_seq + query_seq_len) = m;
-	      query_seq_len++;
-	    }
-	    else if (c != '\n')
-	      fatal("Illegal character in sequence.");
+              *(query_seq + query_seq_len) = m;
+              query_seq_len++;
+            }
+            else if (c != '\n')
+              fatal("Illegal character in sequence.");
 
-	  query_line[0] = 0;
-	  fgets(query_line, LINEALLOC, query_fp);
-	}
+          query_line[0] = 0;
+          fgets(query_line, LINEALLOC, query_fp);
+        }
 
       query_no++;
 

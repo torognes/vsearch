@@ -94,54 +94,54 @@ void dbindex_build()
       db_getsequenceandlength(seqno, & sequence, & seqlen);
 
       if (wordlength > 9)
-	{
-	  count_kmers(k, sequence, seqlen);
-	  for(unsigned int i=0; i< count_kmers_gethashsize(); i++)
-	    if (kmercounthash[i].count == 1)
-	      kmercount[kmercounthash[i].kmer]++;
-	}
+        {
+          count_kmers(k, sequence, seqlen);
+          for(unsigned int i=0; i< count_kmers_gethashsize(); i++)
+            if (kmercounthash[i].count == 1)
+              kmercount[kmercounthash[i].kmer]++;
+        }
       else
-	{
+        {
 
-	  memset(kmerstatus, 0, kmerhashsize * sizeof(unsigned char));
+          memset(kmerstatus, 0, kmerhashsize * sizeof(unsigned char));
 
-	  unsigned int kmer = 0;
-	  unsigned int mask = kmerhashsize - 1;
-	  unsigned int i = 0;
-	  
-	  char * s = sequence + i;
-	  char * e1 = sequence + k - 1;
-	  char * e2 = sequence + seqlen;
-	  if (e2 < e1)
-	    e1 = e2;
-	  
-	  while (s < e1)
-	    {
-	      kmer <<= 2;
-	      kmer |= *s++;
-	    }
-	  
-	  while (s < e2)
-	    {
-	      kmer <<= 2;
-	      kmer |= *s++;
-	      kmer &= mask;
-	      
-	      if (kmerstatus[kmer] == 0)
-		{
-		  /* first occurence */
-		  kmerstatus[kmer] = 1;
-		  kmercount[kmer]++;
-		}
-	      else if (kmerstatus[kmer] == 1)
-		{
-		  /* second occurence - not unique */
-		  kmerstatus[kmer] = 2;
-		  /* correct the count of unique kmers */
-		  kmercount[kmer]--;
-		}
-	    }
-	}
+          unsigned int kmer = 0;
+          unsigned int mask = kmerhashsize - 1;
+          unsigned int i = 0;
+          
+          char * s = sequence + i;
+          char * e1 = sequence + k - 1;
+          char * e2 = sequence + seqlen;
+          if (e2 < e1)
+            e1 = e2;
+          
+          while (s < e1)
+            {
+              kmer <<= 2;
+              kmer |= *s++;
+            }
+          
+          while (s < e2)
+            {
+              kmer <<= 2;
+              kmer |= *s++;
+              kmer &= mask;
+              
+              if (kmerstatus[kmer] == 0)
+                {
+                  /* first occurence */
+                  kmerstatus[kmer] = 1;
+                  kmercount[kmer]++;
+                }
+              else if (kmerstatus[kmer] == 1)
+                {
+                  /* second occurence - not unique */
+                  kmerstatus[kmer] = 2;
+                  /* correct the count of unique kmers */
+                  kmercount[kmer]--;
+                }
+            }
+        }
     }
   
 
@@ -180,68 +180,67 @@ void dbindex_build()
       db_getsequenceandlength(seqno, & sequence, & seqlen);
 
       if (wordlength > 9)
-	{
-	  count_kmers(k, sequence, seqlen);
-	  for(unsigned int i=0; i<count_kmers_gethashsize(); i++)
-	    if (kmercounthash[i].count == 1)
-	      kmerindex[kmerhash[kmercounthash[i].kmer]++] = seqno;
-	}
+        {
+          count_kmers(k, sequence, seqlen);
+          for(unsigned int i=0; i<count_kmers_gethashsize(); i++)
+            if (kmercounthash[i].count == 1)
+              kmerindex[kmerhash[kmercounthash[i].kmer]++] = seqno;
+        }
       else
-	{
+        {
 
-	  /* count kmers */
-	  
-	  memset(kmerstatus, 0, kmerhashsize * sizeof(unsigned char));
-	  
-	  unsigned int kmer = 0;
-	  unsigned int mask = kmerhashsize - 1;
-	  unsigned int i = 0;
-	  
-	  char * s = sequence + i;
-	  char * e1 = sequence + k - 1;
-	  char * e2 = sequence + seqlen;
-	  if (e2 < e1)
-	    e1 = e2;
-	  
-	  while (s < e1)
-	    {
-	      kmer <<= 2;
-	      kmer |= *s++;
-	    }
-	  
-	  while (s < e2)
-	    {
-	      kmer <<= 2;
-	      kmer |= *s++;
-	      kmer &= mask;
-	      
-	      if (kmerstatus[kmer] == 0)
-		{
-		  /* first occurence */
-		  if (kmercount[kmer] > 0)
-		    {
-		      /* list not already full */
-		      kmerstatus[kmer] = 1;
-		      kmerindex[kmerhash[kmer]] = seqno;
-		      kmerhash[kmer]++;
-		      kmercount[kmer]--;
-		    }
-		  else
-		    {
-		      /* already full - cannot be unique */
-		      kmerstatus[kmer] = 2;
-		    }
-		}
-	      else if (kmerstatus[kmer] == 1)
-		{
-		  /* second occurence */
-		  /* not unique after all - adjust counts */
-		  kmerstatus[kmer] = 2;
-		  kmerhash[kmer]--;
-		  kmercount[kmer]++;
-		}
-	    }
-	}
+          /* count kmers */
+          
+          memset(kmerstatus, 0, kmerhashsize * sizeof(unsigned char));
+          
+          unsigned int kmer = 0;
+          unsigned int mask = kmerhashsize - 1;
+          unsigned int i = 0;
+          
+          char * s = sequence + i;
+          char * e1 = sequence + k - 1;
+          char * e2 = sequence + seqlen;
+          if (e2 < e1)
+            e1 = e2;
+          
+          while (s < e1)
+            {
+              kmer <<= 2;
+              kmer |= *s++;
+            }
+          
+          while (s < e2)
+            {
+              kmer <<= 2;
+              kmer |= *s++;
+              kmer &= mask;
+              
+              if (kmerstatus[kmer] == 0)
+                {
+                  /* first occurence */
+                  if (kmercount[kmer] > 0)
+                    {
+                      /* list not already full */
+                      kmerstatus[kmer] = 1;
+                      kmerindex[kmerhash[kmer]++] = seqno;
+                      kmercount[kmer]--;
+                    }
+                  else
+                    {
+                      /* already full - cannot be unique */
+                      kmerstatus[kmer] = 2;
+                    }
+                }
+              else if (kmerstatus[kmer] == 1)
+                {
+                  /* second occurence */
+                  /* not unique after all - adjust counts */
+                  kmerstatus[kmer] = 2;
+                  kmerhash[kmer]--;
+                  kmercount[kmer]++;
+                }
+            }
+        }
     }
   
   free(kmercount);
@@ -267,10 +266,10 @@ void dbindex_build()
     {
       unsigned int kmer = i;
       for(unsigned int j=0; j<k; j++)
-	putchar(sym_nt[1+((kmer >> 2*(k-1-j)) & 3)]);
+        putchar(sym_nt[1+((kmer >> 2*(k-1-j)) & 3)]);
       fprintf(stderr,":");
       for(unsigned int j = kmerhash[i]; j < kmerhash[i+1]; j++)
-	fprintf(stderr," %d", kmerindex[j]);
+        fprintf(stderr," %d", kmerindex[j]);
       fprintf(stderr,"\n");
     }
 
