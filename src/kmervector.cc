@@ -34,7 +34,7 @@ void printkmers(unsigned char * kmervector)
 }
 
 void findkmers(unsigned char * seq, unsigned long seqlen, 
-	       unsigned char * kmervector)
+               unsigned char * kmervector)
 {
   /* set kmer bit vector by xoring occurrences of kmers in sequence */
   /* 64 bit version */
@@ -61,7 +61,7 @@ void findkmers(unsigned char * seq, unsigned long seqlen,
 }
 
 void findkmers_8(unsigned char * seq, unsigned long seqlen, 
-		   unsigned char * kmervector)
+                   unsigned char * kmervector)
 {
   /* set kmer bit vector by xoring occurrences of kmers in sequence */
 
@@ -186,7 +186,7 @@ unsigned long comparekmervectors(unsigned char * a, unsigned char * b)
 unsigned long kmer_diff(unsigned long a, unsigned long b)
 {
   unsigned long diffkmers = comparekmervectors(db_getkmervector(a),
-						 db_getkmervector(b));
+                                                 db_getkmervector(b));
   unsigned long mindiff = (diffkmers + 2*KMERLENGTH - 1)/(2*KMERLENGTH);
   return mindiff;
 }

@@ -128,20 +128,20 @@ void nw_exit()
 
 
 void nw_align(char * dseq,
-	      char * dend,
-	      char * qseq,
-	      char * qend,
-	      long * score_matrix,
-	      unsigned long gapopen,
-	      unsigned long gapextend,
-	      unsigned long * nwscore,
-	      unsigned long * nwdiff,
-	      unsigned long * nwgaps,
-	      unsigned long * nwindels,
-	      unsigned long * nwalignmentlength,
-	      char ** nwalignment,
-	      unsigned long queryno,
-	      unsigned long dbseqno)
+              char * dend,
+              char * qseq,
+              char * qend,
+              long * score_matrix,
+              unsigned long gapopen,
+              unsigned long gapextend,
+              unsigned long * nwscore,
+              unsigned long * nwdiff,
+              unsigned long * nwgaps,
+              unsigned long * nwindels,
+              unsigned long * nwalignmentlength,
+              char ** nwalignment,
+              unsigned long queryno,
+              unsigned long dbseqno)
 {
 
   long h, n, e, f;
@@ -253,10 +253,10 @@ void nw_align(char * dseq,
       score += gapextend;
       indels++;
       if (op != 'I')
-	{
-	  score += gapopen;
-	  gaps++;
-	}
+        {
+          score += gapopen;
+          gaps++;
+        }
       j--;
       pushop('I', &cigarend, &op, &count);
     }
@@ -265,10 +265,10 @@ void nw_align(char * dseq,
       score += gapextend;
       indels++;
       if (op != 'D')
-	{
-	  score += gapopen;
-	  gaps++;
-	}
+        {
+          score += gapopen;
+          gaps++;
+        }
       i--;
       pushop('D', &cigarend, &op, &count);
     }
@@ -276,7 +276,7 @@ void nw_align(char * dseq,
     {
       score += score_matrix[(dseq[j-1] << 5) + qseq[i-1]];
       if (qseq[i-1] == dseq[j-1])
-	matches++;
+        matches++;
       i--;
       j--;
       pushop('M', &cigarend, &op, &count);
@@ -290,8 +290,8 @@ void nw_align(char * dseq,
     indels++;
     if (op != 'D')
       {
-	score += gapopen;
-	gaps++;
+        score += gapopen;
+        gaps++;
       }
     i--;
     pushop('D', &cigarend, &op, &count);
@@ -304,8 +304,8 @@ void nw_align(char * dseq,
     indels++;
     if (op != 'I')
       {
-	score += gapopen;
-	gaps++;
+        score += gapopen;
+        gaps++;
       }
     j--;
     pushop('I', &cigarend, &op, &count);

@@ -35,12 +35,12 @@
 
 /* constants */
 
+#define PROG_NAME "vsearch"
+#define PROG_VERSION "v0.0.4"
+
 #ifndef LINE_MAX
 #define LINE_MAX 2048
 #endif
-
-#define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.3"
 
 #define KMERLENGTH 4
 #define KMERVECTORBITS (1<<(2*KMERLENGTH))
@@ -151,9 +151,9 @@ unsigned long comparekmervectors(unsigned char * a, unsigned char * b);
 unsigned long kmer_diff(unsigned long a, unsigned long b);
 
 void kmer_diff_parallel(unsigned long seed,
-			 unsigned long listlen,
-			 unsigned long * amplist,
-			 unsigned long * difflist);
+                         unsigned long listlen,
+                         unsigned long * amplist,
+                         unsigned long * difflist);
 
 
 /* functions in db.cc */
@@ -173,8 +173,8 @@ char * db_getsequence(unsigned long seqno);
 unsigned long db_getsequencelen(unsigned long seqno);
 
 void db_getsequenceandlength(unsigned long seqno,
-			     char ** address,
-			     long * length);
+                             char ** address,
+                             long * length);
 
 char * db_getheader(unsigned long seqno);
 unsigned long db_getheaderlen(unsigned long seqno);
@@ -198,7 +198,7 @@ inline unsigned char * db_getkmervector(unsigned long seqno)
 void query_open(const char * filename);
 
 int query_getnext(char ** header, long * header_length,
-		  char ** seq, long * seq_length, long * query_no);
+                  char ** seq, long * seq_length, long * query_no);
 
 void query_close();
 
@@ -216,20 +216,20 @@ void nw_init();
 void nw_exit();
 
 void nw_align(char * dseq,
-	      char * dend,
-	      char * qseq,
-	      char * qend,
-	      long * score_matrix,
-	      unsigned long gapopen,
-	      unsigned long gapextend,
-	      unsigned long * nwscore,
-	      unsigned long * nwdiff,
-	      unsigned long * nwgaps,
-	      unsigned long * nwindels,
-	      unsigned long * nwalignmentlength,
-	      char ** nwalignment,
-	      unsigned long queryno,
-	      unsigned long dbseqno);
+              char * dend,
+              char * qseq,
+              char * qend,
+              long * score_matrix,
+              unsigned long gapopen,
+              unsigned long gapextend,
+              unsigned long * nwscore,
+              unsigned long * nwdiff,
+              unsigned long * nwgaps,
+              unsigned long * nwindels,
+              unsigned long * nwalignmentlength,
+              char ** nwalignment,
+              unsigned long queryno,
+              unsigned long dbseqno);
 
 
 /* functions in kmercount.cc */
@@ -246,6 +246,9 @@ void count_kmers_init();
 void count_kmers_exit();
 unsigned int count_kmers_gethashsize();
 void count_kmers(unsigned int k, char * seq, unsigned int seqlen);
+unsigned int count_kmers_unique();
+
+unsigned int count_kmers_getcount(unsigned int wordlength, unsigned kmer);
 
 
 /* functions in dbindex.cc */
@@ -256,6 +259,7 @@ extern unsigned int * kmerindex;
 extern unsigned int kmerhashsize;
 extern unsigned int kmerindexsize;
 
+void fprint_kmer(FILE * f, unsigned int k, unsigned long kmer);
 void dbindex_build();
 void dbindex_free();
 int dbindex_getkmermatchcount(int kmer);
@@ -270,13 +274,13 @@ void search();
 /* functions in showalign.cc */
 
 void showalign(FILE * f,
-	       char * seq1,
-	       long seq1len,
-	       const char * seq1name,
-	       char * seq2,
-	       long seq2len,
-	       const char * seq2name,
-	       char * cigar,
-	       int numwidth,
-	       int namewidth,
-	       int alignwidth);
+               char * seq1,
+               long seq1len,
+               const char * seq1name,
+               char * seq2,
+               long seq2len,
+               const char * seq2name,
+               char * cigar,
+               int numwidth,
+               int namewidth,
+               int alignwidth);

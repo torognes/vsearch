@@ -117,7 +117,7 @@ void db_read(const char * filename)
     {
       fp = fopen(filename, "r");
       if (!fp)
-	fatal("Error: Unable to open database file (%s)", filename);
+        fatal("Error: Unable to open database file (%s)", filename);
     }
   else
     fp = stdin;
@@ -138,15 +138,15 @@ void db_read(const char * filename)
       headerchars += headerlen;
 
       if (headerlen > longestheader)
-	longestheader = headerlen;
+        longestheader = headerlen;
 
 
       /* store the header */
 
       while (datalen + headerlen + 1 + 4 > dataalloc)
       {
-	dataalloc += MEMCHUNK;
-	datap = (char *) xrealloc(datap, dataalloc);
+        dataalloc += MEMCHUNK;
+        datap = (char *) xrealloc(datap, dataalloc);
       }
 
       *(unsigned int*)(datap + datalen) = headerlen;
@@ -170,35 +170,35 @@ void db_read(const char * filename)
 
       while (datalen + 4 > dataalloc)
       {
-	dataalloc += MEMCHUNK;
-	datap = (char *) xrealloc(datap, dataalloc);
+        dataalloc += MEMCHUNK;
+        datap = (char *) xrealloc(datap, dataalloc);
       }
 
       * (unsigned int*)(datap + datalen) = 0;
       datalen += 4;
 
       while (line[0] && (line[0] != '>'))
-	{
-	  char m;
-	  char c;
-	  char * p = line;
-	  while((c = *p++))
-	    if ((m = map_nt[(int)c]) >= 0)
-	    {
-	      while (datalen >= dataalloc)
-	      {
-		dataalloc += MEMCHUNK;
-		datap = (char *) xrealloc(datap, dataalloc);
-	      }
+        {
+          char m;
+          char c;
+          char * p = line;
+          while((c = *p++))
+            if ((m = map_nt[(int)c]) >= 0)
+            {
+              while (datalen >= dataalloc)
+              {
+                dataalloc += MEMCHUNK;
+                datap = (char *) xrealloc(datap, dataalloc);
+              }
 
-	      *(datap+datalen) = m;
-	      datalen++;
-	    }
-	    else if (c != '\n')
-	      fatal("Illegal character in sequence.");
-	  line[0] = 0;
-	  fgets(line, LINEALLOC, fp);
-	}
+              *(datap+datalen) = m;
+              datalen++;
+            }
+            else if (c != '\n')
+              fatal("Illegal character in sequence.");
+          line[0] = 0;
+          fgets(line, LINEALLOC, fp);
+        }
       
       long length = datalen - seqbegin - 4;
 
@@ -209,10 +209,10 @@ void db_read(const char * filename)
       nucleotides += length;
 
       if (length > longest)
-	longest = length;
+        longest = length;
 
       if (length < shortest)
-	shortest = length;
+        shortest = length;
 
       /*
       *(datap+datalen) = 0;
@@ -251,12 +251,12 @@ void db_read(const char * filename)
   }
 
   fprintf(stderr,
-	  "%'ld nt in %'ld seqs, from %'ld to %'ld nt (avg %'.0f)\n", 
-	  db_getnucleotidecount(),
-	  db_getsequencecount(),
-	  db_getshortestsequence(),
-	  db_getlongestsequence(),
-	  db_getnucleotidecount() * 1.0 / db_getsequencecount());
+          "%'ld nt in %'ld seqs, from %'ld to %'ld nt (avg %'.0f)\n", 
+          db_getnucleotidecount(),
+          db_getsequencecount(),
+          db_getshortestsequence(),
+          db_getlongestsequence(),
+          db_getnucleotidecount() * 1.0 / db_getsequencecount());
 
 }
 
@@ -296,8 +296,8 @@ char * db_getsequence(unsigned long seqno)
 }
 
 void db_getsequenceandlength(unsigned long seqno,
-			     char ** address,
-			     long * length)
+                             char ** address,
+                             long * length)
 {
   *address = seqindex[seqno].seq;
   *length = (long)(seqindex[seqno].seqlen);

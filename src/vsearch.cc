@@ -60,9 +60,9 @@ unsigned long dbsequencecount = 0;
 
 FILE * alnoutfile;
 
-#define cpuid(f,a,b,c,d)						\
-  __asm__ __volatile__ ("cpuid":					\
-			"=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (f));
+#define cpuid(f,a,b,c,d)                                                \
+  __asm__ __volatile__ ("cpuid":                                        \
+                        "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (f));
 
 void cpu_features_detect()
 {
@@ -231,7 +231,7 @@ void args_init(int argc, char **argv)
       /* alnout */
       alnoutfilename = optarg;
       break;
-	  
+          
     case 3:
       /* usearch_global */
       queryfilename = optarg;
@@ -279,9 +279,9 @@ void args_init(int argc, char **argv)
     case 12:
       /* strand */
       if (strcasecmp(optarg, "plus") == 0)
-	strand = 1;
+        strand = 1;
       else if (strcasecmp(optarg, "both") == 0)
-	strand = 2;
+        strand = 2;
       break;
 
     case 13:

@@ -39,10 +39,32 @@ void count_kmers_init()
   kmercounthash = 0;
 }
 
+
 void count_kmers_exit()
 {
   free(kmercounthash);
   kmercounthash = 0;
+}
+
+unsigned int count_kmers_getcount(unsigned int wordlength, unsigned kmer)
+{
+  unsigned long j = hash_fnv_1a_64((unsigned char*) & kmer,
+                                   (wordlength+3)/4) % kmercounthashsize;
+  
+  while((kmercounthash[j].count) && (kmercounthash[j].kmer != kmer))
+    j = (j + 1) % kmercounthashsize;
+  
+  return kmercounthash[j].count;
+}
+
+
+unsigned int count_kmers_unique()
+{
+  unsigned int unique = 0;
+  for(unsigned int i=0; i<kmercounthashsize; i++)
+    if (kmercounthash[i].count == 1)
+      unique++;
+  return unique;
 }
 
 void count_kmers(unsigned int k, char * seq, unsigned int seqlen)
@@ -51,10 +73,10 @@ void count_kmers(unsigned int k, char * seq, unsigned int seqlen)
 
   if (kmercounthashsize > kmercounthash_alloc)
     {
-      /* resize memory fro hash if necessary */
+      /* allocate more memory for hash if necessary */
       kmercounthash_alloc = kmercounthashsize;
       kmercounthash = (struct kmercountelem *) 
-	xrealloc(kmercounthash, sizeof(struct kmercountelem) * kmercounthashsize);
+        xrealloc(kmercounthash, sizeof(struct kmercountelem) * kmercounthashsize);
     }
 
   memset(kmercounthash, 0, sizeof(struct kmercountelem) * kmercounthashsize);
@@ -80,10 +102,10 @@ void count_kmers(unsigned int k, char * seq, unsigned int seqlen)
       kmer &= mask;
 
       unsigned long j = hash_fnv_1a_64((unsigned char*)&kmer,
-				       (k+3)/4) % kmercounthashsize;
+                                       (k+3)/4) % kmercounthashsize;
       
       while((kmercounthash[j].count) && (kmercounthash[j].kmer != kmer))
-	j = (j + 1) % kmercounthashsize;
+        j = (j + 1) % kmercounthashsize;
 
       kmercounthash[j].kmer = kmer;
       kmercounthash[j].count++;
