@@ -32,6 +32,10 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#ifdef HAVE_BZLIB_H
+#include <bzlib.h>
+#endif
+
 
 /* constants */
 
@@ -45,6 +49,17 @@
 #define KMERLENGTH 4
 #define KMERVECTORBITS (1<<(2*KMERLENGTH))
 #define KMERVECTORBYTES (KMERVECTORBITS/8)
+
+#ifdef HAVE_BZLIB_H
+#define BZ_VERBOSE_0 0
+#define BZ_VERBOSE_1 1
+#define BZ_VERBOSE_2 2
+#define BZ_VERBOSE_3 3
+#define BZ_VERBOSE_4 4
+
+#define BZ_MORE_MEM 0  /* faster decompression using more memory */
+#define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
+#endif
 
 /* structures and data types */
 
@@ -202,6 +217,15 @@ int query_getnext(char ** header, long * header_length,
 
 void query_close();
 
+
+/* functions in bzquery.cc */
+
+void query_bz_open(const char * filename);
+
+int query_bz_getnext(char ** header, long * header_length,
+                  char ** seq, long * seq_length, long * query_no);
+
+void query_bz_close();
 
 /* functions in popcount.cc */
 
