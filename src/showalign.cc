@@ -127,17 +127,56 @@ inline void putop(char c, long len)
     }
 }
 
-void showalign(FILE * f,
-               char * seq1,
-               long seq1len,
-               const char * seq1name,
-               char * seq2,
-               long seq2len,
-               const char * seq2name,
-               char * cigar,
-               int numwidth,
-               int namewidth,
-               int alignwidth)
+char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
+{
+  char * row = (char*) xmalloc(alignlen+1);
+  char * r = row;
+  char * p = cigar;
+  char * s = seq;
+
+  while(*p)
+    {
+      long len;
+      int n;
+      if (!sscanf(p, "%ld%n", & len, & n))
+        {
+          n = 0;
+	  len = 1;
+        }
+      p += n;
+      char op = *p++;
+      
+      if ((op == 'M') || 
+	  ((op == 'D') && (origin == 0)) ||
+	  ((op == 'I') && (origin == 1)))
+	{
+	  /* copy len chars from seq */
+	  for(long i=0; i < len; i++)
+	    *r++ = (sym_nt[(int)(*s++)] & 0x1F) | 0x40;
+	}
+      else
+	{
+	  /* insert len gap symbols */
+	  for(long i = 0; i < len; i++)
+	    *r++ = '-';
+	}
+    }
+
+  *r = 0;
+  return row;
+}
+
+void align_show(FILE * f,
+		char * seq1,
+		long seq1len,
+		const char * seq1name,
+		char * seq2,
+		long seq2len,
+		const char * seq2name,
+		char * cigar,
+		int numwidth,
+		int namewidth,
+		int alignwidth)
 {
   out = f;
 

@@ -37,7 +37,7 @@ CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
 PROG=vsearch
 
 OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
-	kmercount.o kmervector.o popcount.o
+	kmercount.o userfields.o results.o
 
 DEPS=vsearch.h Makefile
 

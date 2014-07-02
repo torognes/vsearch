@@ -24,9 +24,13 @@
 /* ARGUMENTS AND THEIR DEFAULTS */
 
 char * progname;
-char * alnoutfilename;
 char * databasefilename;
 char * queryfilename;
+
+char * alnoutfilename;
+char * useroutfilename;
+char * blast6outfilename;
+char * ucfilename;
 
 int wordlength;
 int maxrejects;
@@ -42,6 +46,20 @@ int mismatch_cost;
 int gapopen_cost;
 int gapextend_cost;
 int rowlen;
+int opt_self;
+
+int opt_gap_open_query_left;
+int opt_gap_open_target_left;
+int opt_gap_open_query_interior;
+int opt_gap_open_target_interior;
+int opt_gap_open_query_right;
+int opt_gap_open_target_right;
+int opt_gap_extension_query_left;
+int opt_gap_extension_target_left;
+int opt_gap_extension_query_interior;
+int opt_gap_extension_target_interior;
+int opt_gap_extension_query_right;
+int opt_gap_extension_target_right;
 
 /* Other variables */
 
@@ -59,6 +77,9 @@ long avx2_present = 0;
 unsigned long dbsequencecount = 0;
 
 FILE * alnoutfile;
+FILE * useroutfile;
+FILE * blast6outfile;
+FILE * ucfile;
 
 #define cpuid(f,a,b,c,d)                                                \
   __asm__ __volatile__ ("cpuid":                                        \
@@ -119,6 +140,14 @@ void cpu_features_show()
 }
 
 
+void show_header()
+{
+  char title[] = PROG_NAME " " PROG_VERSION;
+  char ref[] = "Copyright (C) 2014 Torbjorn Rognes";
+  fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
+}
+
+
 void args_usage()
 {
   /*               0         1         2         3         4         5         6         7          */
@@ -128,11 +157,15 @@ void args_usage()
   fprintf(stderr, "  --help                     display this help and exit\n");
   fprintf(stderr, "  --version                  display version information and exit\n");
   fprintf(stderr, "\n");
-  fprintf(stderr, "  --usearch_global FILENAME  search for global alignments with given query\n");
+  fprintf(stderr, "  --usearch_global FILENAME  query filename (FASTA) for global alignment search\n");
+  fprintf(stderr, "  --db FILENAME              database filename (FASTA)\n");
   fprintf(stderr, "  --id REAL                  minimum sequence identity accepted\n");
   fprintf(stderr, "  --alnout FILENAME          alignment output filename\n");
+  fprintf(stderr, "  --userout FILENAME         user-defined tab-separated output filename\n");
+  fprintf(stderr, "  --userfields STRINGS       fields to output to file specified with --userout\n");
+  fprintf(stderr, "  --blast6out FILENAME       blast6-like output filename\n");
+  fprintf(stderr, "  --uc FILENAME              UCLUST-like output filename\n");
   fprintf(stderr, "  --strand plus|both         search plus strand or both\n");
-  fprintf(stderr, "\n");
   fprintf(stderr, "  --maxaccepts INT           maximum number of hits to show (1)\n");
   fprintf(stderr, "  --maxrejects INT           number of non-matching hits to consider (32)\n");
   fprintf(stderr, "  --match INT                score for match (1)\n");
@@ -143,21 +176,171 @@ void args_usage()
   fprintf(stderr, "  --fulldp                   full dynamic programming for all alignments\n");
   fprintf(stderr, "  --threads INT              number of threads to use (1)\n");
   fprintf(stderr, "  --rowlen INT               width of sequence alignment lines (64)\n");
+  fprintf(stderr, "  --self                     ignore hits with identical label as the query\n");
 }
 
-void show_header()
+void args_get_gap_penalty_string(char * optarg, int is_open)
 {
-  char title[] = PROG_NAME " " PROG_VERSION;
-  char ref[] = "Copyright (C) 2014 Torbjorn Rognes";
-  fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
+  /* See http://www.drive5.com/usearch/manual/aln_params.html
+     
+     --gapopen *E/10I/1E/2L/3RQ/4RT/1IQ
+     
+     integer or *
+     followed by I, E, L, R, Q or T characters
+     separated by /
+     * means infinitely high (disallow)        
+     E=end
+     I=interior
+     L=left
+     R=right
+     Q=query
+     T=target
+
+     E cannot be combined with L or R
+     
+     We do not support floating point values. Therefore,
+     all default score and penalties are multiplied by 2.
+
+  */
+  
+  char *p = optarg;
+
+  while (*p)
+    {
+      int skip = 0;
+      int pen = 0;
+
+      if (sscanf(p, "%d%n", &pen, &skip) == 1)
+	{
+	  p += skip;
+	}
+      else if (*p == '*')
+	{
+	  pen = 1000;
+	  p++;
+	}
+      else
+	fatal("Invalid gap open penalty argument");
+
+      char * q = p;
+
+      int set_E = 0;
+      int set_I = 0;
+      int set_L = 0;
+      int set_R = 0;
+      int set_Q = 0;
+      int set_T = 0;
+
+      while(*p)
+	{
+	  switch(*p)
+	    {
+	    case 'E':
+	      set_E = 1;
+	      break;
+	    case 'I':
+	      set_I = 1;
+	      break;
+	    case 'L':
+	      set_L = 1;
+	      break;
+	    case 'R':
+	      set_R = 1;
+	      break;
+	    case 'Q':
+	      set_Q = 1;
+	      break;
+	    case 'T':
+	      set_T = 1;
+	      break;
+	    case '\0':
+	    case '/':
+	      break;
+	    default:
+	      fatal("Invalid char '%.1s' in gap penalty string", p);
+	      break;
+	    }
+	  p++;
+	}
+      
+      if (set_E && (set_L || set_R))
+	fatal("Invalid gap penalty string (E and L or R) '%s'", q);
+      
+      if (set_E)
+	{
+	  set_L = 1;
+	  set_R = 1;
+	}
+
+      /* if neither L, I, R nor E is specified, it applies to all */
+
+      if ((!set_L) && (!set_I) && (!set_R))
+	{
+	  set_L = 1;
+	  set_I = 1;
+	  set_R = 1;
+	}
+
+      /* if neither Q nor T is specified, it applies to both */
+
+      if ((!set_Q) && (!set_T))
+	{
+	  set_Q = 1;
+	  set_T = 1;
+	}
+
+      if (is_open)
+	{
+	  if (set_Q)
+	    {
+	      if (set_L)
+		opt_gap_open_query_left = pen;
+	      if (set_I)
+		opt_gap_open_query_interior = pen;
+	      if (set_R)
+		opt_gap_open_query_right = pen;
+	    }
+	  if (set_T)
+	    {
+	      if (set_L)
+		opt_gap_open_target_left = pen;
+	      if (set_I)
+		opt_gap_open_target_interior = pen;
+	      if (set_R)
+		opt_gap_open_target_right = pen;
+	    }	  
+	}
+      else
+	{
+	  if (set_Q)
+	    {
+	      if (set_L)
+		opt_gap_extension_query_left = pen;
+	      if (set_I)
+		opt_gap_extension_query_interior = pen;
+	      if (set_R)
+		opt_gap_extension_query_right = pen;
+	    }
+	  if (set_T)
+	    {
+	      if (set_L)
+		opt_gap_extension_target_left = pen;
+	      if (set_I)
+		opt_gap_extension_target_interior = pen;
+	      if (set_R)
+		opt_gap_extension_target_right = pen;
+	    }	  
+	}
+    }
 }
+
 
 long args_getint(char * optarg)
 {
   int len = 0;
   long temp = 0;
   int ret = sscanf(optarg, "%ld%n", &temp, &len);
-  if ((ret == 0) || (len < strlen(optarg)))
+  if ((ret == 0) || (((unsigned int)(len)) < strlen(optarg)))
     fatal("Illegal option argument");
   return temp;
 }
@@ -170,6 +353,7 @@ void args_init(int argc, char **argv)
 
   databasefilename = NULL;
   alnoutfilename = NULL;
+  useroutfilename = NULL;
   queryfilename = NULL;
   
   wordlength = 8;
@@ -183,6 +367,7 @@ void args_init(int argc, char **argv)
   gapopen_penalty = 10;
   gapextend_penalty = 1;
   rowlen = 64;
+  opt_self = 0;
 
   opterr = 1;
 
@@ -205,6 +390,11 @@ void args_init(int argc, char **argv)
     {"gapopen",               required_argument, 0, 0 },
     {"gapext",                required_argument, 0, 0 },
     {"rowlen",                required_argument, 0, 0 },
+    {"userfields",            required_argument, 0, 0 },
+    {"userout",               required_argument, 0, 0 },
+    {"self",                  no_argument,       0, 0 },
+    {"blast6out",             required_argument, 0, 0 },
+    {"uc",                    required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -304,6 +494,32 @@ void args_init(int argc, char **argv)
       rowlen = args_getint(optarg);
       break;
 
+    case 17:
+      /* userfields */
+      if (!parse_userfields_arg(optarg))
+	fatal("Unrecognized userfield argument");
+      break;
+
+    case 18:
+      /* userout */
+      useroutfilename = optarg;
+      break;
+      
+    case 19:
+      /* self */
+      opt_self = 1;
+      break;
+      
+    case 20:
+      /* blast6out */
+      blast6outfilename = optarg;
+      break;
+      
+    case 21:
+      /* uc */
+      ucfilename = optarg;
+      break;
+      
     default:
       args_usage();
       exit(1);
@@ -320,13 +536,10 @@ void args_init(int argc, char **argv)
   if (!databasefilename)
     fatal("Database filename not specified with --db");
 
-  if (!alnoutfilename)
-    fatal("Alignment output filename not specified with --alnout");
-
-  alnoutfile = fopen(alnoutfilename, "w");
-  if (! alnoutfile)
-    fatal("Unable to open alignment output file for writing");
-
+  if ((!alnoutfilename) && (!useroutfilename) &&
+      (!ucfilename) && (!blast6outfilename))
+    fatal("No output files specified");
+  
   if ((identity < 0.0) || (identity > 100.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
   
@@ -381,7 +594,39 @@ int main(int argc, char** argv)
     fatal("This program requires a processor with SSE2 and POPCNT instructions.\n");
   */
   
+
   args_init(argc, argv);
+
+
+  /* open output files */
+
+  if (alnoutfilename)
+    {
+      alnoutfile = fopen(alnoutfilename, "w");
+      if (! alnoutfile)
+	fatal("Unable to open alignment output file for writing");
+    }
+
+  if (useroutfilename)
+    {
+      useroutfile = fopen(useroutfilename, "w");
+      if (! useroutfile)
+	fatal("Unable to open user-defined output file for writing");
+    }
+
+  if (blast6outfilename)
+    {
+      blast6outfile = fopen(blast6outfilename, "w");
+      if (! blast6outfile)
+	fatal("Unable to open blast6-like output file for writing");
+    }
+
+  if (ucfilename)
+    {
+      ucfile = fopen(ucfilename, "w");
+      if (! ucfile)
+	fatal("Unable to open uclust-like output file for writing");
+    }
 
   show_header();
   
@@ -397,7 +642,6 @@ int main(int argc, char** argv)
   mismatch_cost /= cost_factor;
   gapopen_cost /= cost_factor;
   gapextend_cost /= cost_factor;
-
 
   if (rowlen == 0)
     rowlen = 60;
@@ -417,16 +661,31 @@ int main(int argc, char** argv)
   start_time = getusec();
 
   dbindex_build();
+
   search();
+
   dbindex_free();
 
   stop_time = getusec();
 
   difference = stop_time - start_time;
 
+
   query_close();
 
   db_free();
+
+
+  /* close output files */
+
+  if (ucfilename)
+    fclose(ucfile);
+
+  if (blast6outfilename)
+    fclose(blast6outfile);
+
+  if (useroutfilename)
+    fclose(useroutfile);
 
   if (alnoutfilename)
     fclose(alnoutfile);

@@ -79,6 +79,13 @@ char * xstrchrnul(char *s, int c)
 
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
 {
+  /*
+    This is the Fowler Noll Vo (FNV) hash function,
+    version 1a (FNV-1a), 64 bit
+    https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function
+    It is in the public domain.
+  */
+
   const unsigned long fnv_offset = 14695981039346656037UL;
   const unsigned long fnv_prime = 1099511628211;
 
