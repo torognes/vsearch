@@ -1,4 +1,4 @@
-# USEARCH command line options supported in VSEARCH
+# Supported command line options in VSEARCH
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/usearch_algo.html)
 
