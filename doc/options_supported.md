@@ -17,221 +17,221 @@ Command line example:
 
 - [x] `--usearch_global <filename>`
 
-`--db <filename>`
+- [x] `--db <filename>`
 
-`--strand <plus|both>`
+- [ ] `--strand <plus|both>`
 
-`--threads <integer>`
+- [ ] `--threads <integer>`
 
-`--cluster_smallmem <filename>`
+- [ ] `--cluster_smallmem <filename>`
 
-`--cluster_fast <filename>`
+- [ ] `--cluster_fast <filename>`
 
-`--sizein <int>`
+- [ ] `--sizein <int>`
 
 
 ## Output options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/output_files.html)
 
-`--alnout <filename>`
+- [x] `--alnout <filename>`
 
-`--rowlen <integer(64)>`
+- [x] `--rowlen <integer(64)>`
 
-`--userout <filename>`
+- [ ] `--userout <filename>`
 
-`--fastapairs <filename>`
+- [ ] `--fastapairs <filename>`
 
-`--blast6out <filename>`
+- [ ] `--blast6out <filename>`
 
-`--matched <filename>`
+- [ ] `--matched <filename>`
 
-`--notmatched <filename>`
+- [ ] `--notmatched <filename>`
 
-`--dbmatched <filename>`
+- [ ] `--dbmatched <filename>`
 
-`--dbnotmatched <filename>`
+- [ ] `--dbnotmatched <filename>`
 
-`--maxhits <integer (0)>`
+- [ ] `--maxhits <integer (0)>`
 
-`--top_hits_only`
+- [ ] `--top_hits_only`
 
-`--output_no_hits`
+- [ ] `--output_no_hits`
 
-`--sizeout`
+- [ ] `--sizeout`
 
-`--centroids <filename>`
+- [ ] `--centroids <filename>`
 
-`--consout <filename>`
+- [ ] `--consout <filename>`
 
-`--clusters <filename>`
+- [ ] `--clusters <filename>`
 
-`--msaout <filename>`
+- [ ] `--msaout <filename>`
 
-`--uc <filename>`
+- [ ] `--uc <filename>`
 
 
 ## Accept options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/accept_options.html)
 
-`--id <real>`
+- [x] `--id <real>`
 
-`--evalue <real>`
+- [ ] `--evalue <real>`
 
-`--query_cov <real>`
+- [ ] `--query_cov <real>`
 
-`--target_cov <real>`
+- [ ] `--target_cov <real>`
 
-`--idprefix <string>`
+- [ ] `--idprefix <string>`
 
-`--idsuffix <string>`
+- [ ] `--idsuffix <string>`
 
-`--minqt <real>`
+- [ ] `--minqt <real>`
 
-`--maxqt <real>`
+- [ ] `--maxqt <real>`
 
-`--minsl <real>`
+- [ ] `--minsl <real>`
 
-`--maxsl <real>`
+- [ ] `--maxsl <real>`
 
-`--leftjust`
+- [ ] `--leftjust`
 
-`--rightjust`
+- [ ] `--rightjust`
 
-`--self`
+- [ ] `--self`
 
-`--selfid`
+- [ ] `--selfid`
 
-`--maxid <real>`
+- [ ] `--maxid <real>`
 
-`--minsizeratio <real>`
+- [ ] `--minsizeratio <real>`
 
-`--maxsizeratio <real>`
+- [ ] `--maxsizeratio <real>`
 
-`--maxdiffs <integer>`
+- [ ] `--maxdiffs <integer>`
 
-`--maxsubs <integer>`
+- [ ] `--maxsubs <integer>`
 
-`--maxgaps <integer>`
+- [ ] `--maxgaps <integer>`
 
-`--mincols <integer>`
+- [ ] `--mincols <integer>`
 
-`--maxqsize <integer>`
+- [ ] `--maxqsize <integer>`
 
-`--mintsize <integer>`
+- [ ] `--mintsize <integer>`
 
-`--mid <real>`
+- [ ] `--mid <real>`
 
 
 ## Termination options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/termination_options.html)
 
-`--maxaccepts <integer (1)>`
+- [x] `--maxaccepts <integer (1)>`
 
-`--maxrejects <integer (32)>`
+- [x] `--maxrejects <integer (32)>`
 
 
 ## Weak hits options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/weak_hits.html)
 
-`--weak_id <real>`
+- [ ] `--weak_id <real>`
 
-`--weak_evalue <real>`
+- [ ] `--weak_evalue <real>`
 
 
 ## Indexing options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/indexing_options.html)
 
-`--wordlength <integer (8)>`
+- [x] `--wordlength <integer (8)>`
 
-`--pattern <bitpattern (11111111)>`
+- [ ] `--pattern <bitpattern (11111111)>`
 
-`--alpha <nt|aa>`
+- [ ] `--alpha <nt|aa>`
 
-`--dbstep <integer (1)>`
+- [ ] `--dbstep <integer (1)>`
 
-`--dbaccelpct <real (1.0)>`
+- [ ] `--dbaccelpct <real (1.0)>`
 
-`--dbmask <method (fastnucleo)>`
+- [ ] `--dbmask <method (fastnucleo)>`
 
-`--slots <integer (65536)>`
+- [ ] `--slots <integer (65536)>`
 
 
 ## Masking options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/masking_options.html)
 
-`--qmask <fastamino|fastnucleo|seg|dust|none|soft>`
+- [ ] `--qmask <fastamino|fastnucleo|seg|dust|none|soft>`
 
-`--dbmask <fastamino|fastnucleo|seg|dust|none|soft>`
+- [ ] `--dbmask <fastamino|fastnucleo|seg|dust|none|soft>`
 
-`--hardmask`
+- [ ] `--hardmask`
 
 
 ## Alignment parameters
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/aln_params.html)
 
-`--match <real (1.0)>`
+- [x] `--match <real (1.0)>`
 
-`--mismatch <real (-2.0)>`
+- [x] `--mismatch <real (-2.0)>`
 
-`--gapopen <real[LRIEQT] (10.0)>`
+- [x] `--gapopen <real[LRIEQT] (10.0)>`
 
-`--gapext <real[LRIEQT] (1.0)>`
+- [x] `--gapext <real[LRIEQT] (1.0)>`
 
-`--matrix <filename (blosum62 (aa), +1/-2 (nt))>`
+- [ ] `--matrix <filename (blosum62 (aa), +1/-2 (nt))>`
 
-`--lopen <real (10.0)`
+- [ ] `--lopen <real (10.0)`
 
-`--lext <real (1.0)`
+- [ ] `--lext <real (1.0)`
 
 
 ## Alignment heuristics options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/aln_heuristics.html)
 
-`--fulldp`
+- [x] `--fulldp`
 
-`--hspw <integer (5 (nt), 3 (aa))>`
+- [ ] `--hspw <integer (5 (nt), 3 (aa))>`
 
-`--xdrop_u <real (16.0)>`
+- [ ] `--xdrop_u <real (16.0)>`
 
-`--xdrop_g <real (32.0)>`
+- [ ] `--xdrop_g <real (32.0)>`
 
-`--xdrop_nw <real (16.0)>`
+- [ ] `--xdrop_nw <real (16.0)>`
 
-`--minhsp <integer (16)>`
+- [ ] `--minhsp <integer (16)>`
 
-`--band <integer (16)>`
+- [ ] `--band <integer (16)>`
 
 
 ## Karlin Altschul statistics parameters
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/karlin_altschul.html)
 
-`--ka_gapped_lambda <real>`
+- [ ] `--ka_gapped_lambda <real>`
 
-`--ka_ungapped_lambda <real>`
+- [ ] `--ka_ungapped_lambda <real>`
 
-`--ka_gapped_k <real>`
+- [ ] `--ka_gapped_k <real>`
 
-`--ka_ungapped_k <real>`
+- [ ] `--ka_ungapped_k <real>`
 
-`--ka_dbsize <integer>`
+- [ ] `--ka_dbsize <integer>`
 
 
 ## Special options
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/opt_maxseqlength.html)
 
-`--maxseqlength <integer>`
+- [ ] `--maxseqlength <integer>`
 
 
 ## Clustering options
 
-`--cons_truncate`
+- [ ] `--cons_truncate`
