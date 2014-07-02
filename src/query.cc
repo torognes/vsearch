@@ -67,6 +67,18 @@ unsigned long query_seq_len = 0;
 unsigned long query_head_alloc = 0;
 unsigned long query_seq_alloc = 0;
 
+long query_filesize = 0;
+
+long query_getfilesize()
+{
+  return query_filesize;
+};
+
+long query_getfilepos()
+{
+  return ftell(query_fp);
+};
+
 void query_open(const char * filename)
 {
   /* allocate space */
@@ -91,6 +103,14 @@ void query_open(const char * filename)
   query_fp = fopen(filename, "r");
   if (!query_fp)
     fatal("Error: Unable to open query file (%s)", filename);
+
+  if (fseek(query_fp, 0, SEEK_END))
+    fatal("Error: Unable to seek in query file (%s)", filename);
+
+  query_filesize = ftell(query_fp);
+  
+  if (fseek(query_fp, 0, SEEK_SET))
+    fatal("Error: Unable to seek in query file (%s)", filename);
 
   query_line[0] = 0;
   fgets(query_line, LINEALLOC, query_fp);

@@ -82,7 +82,7 @@ seqinfo_t * seqindex = 0;
 char * datap = 0;
 
 #define MEMCHUNK 1048576
-#define LINEALLOC LINE_MAX
+#define LINEALLOC 1048576
 
 void showseq(char * seq)
 {
@@ -133,13 +133,22 @@ void db_read(const char * filename)
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
       
-      long headerlen = xstrchrnul(line+1, '\n') - (line+1);
+      /* terminate header at first space or end of line */
+
+      char * z0 = line + 1;
+      char * z = z0;
+      while (1)
+	{
+	  if ((*z == ' ') || (*z == '\n') || (!*z))
+	    break;
+	  z++;
+	}
+      long headerlen = z - z0;
 
       headerchars += headerlen;
 
       if (headerlen > longestheader)
         longestheader = headerlen;
-
 
       /* store the header */
 

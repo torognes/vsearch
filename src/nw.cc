@@ -132,8 +132,18 @@ void nw_align(char * dseq,
               char * qseq,
               char * qend,
               long * score_matrix,
-              unsigned long gapopen,
-              unsigned long gapextend,
+	      unsigned long gapopen_q_left,
+	      unsigned long gapopen_q_internal,
+	      unsigned long gapopen_q_right,
+	      unsigned long gapopen_t_left,
+	      unsigned long gapopen_t_internal,
+	      unsigned long gapopen_t_right,
+	      unsigned long gapextend_q_left,
+	      unsigned long gapextend_q_internal,
+	      unsigned long gapextend_q_right,
+	      unsigned long gapextend_t_left,
+	      unsigned long gapextend_t_internal,
+	      unsigned long gapextend_t_right,
               unsigned long * nwscore,
               unsigned long * nwdiff,
               unsigned long * nwgaps,
@@ -141,10 +151,10 @@ void nw_align(char * dseq,
               unsigned long * nwalignmentlength,
               char ** nwalignment,
               unsigned long queryno,
-              unsigned long dbseqno)
+	      unsigned long dbseqno)
 {
 
-  long h, n, e, f;
+  long h, n, e, f, h_e, h_f;
   long unsigned *hep;
 
   long qlen = qend - qseq;
@@ -168,16 +178,17 @@ void nw_align(char * dseq,
 
   for(i=0; i<qlen; i++)
   {
-    hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
-    hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
+    hearray[2*i]   = 1 * gapopen_q_left + (i+1) * gapextend_q_left; // H (N)
+    hearray[2*i+1] = 2 * gapopen_q_left + (i+2) * gapextend_q_left; // E
   }
 
   for(j=0; j<dlen; j++)
   {
+
     hep = hearray;
-    f = 2 * gapopen + (j+2) * gapextend;
-    h = (j == 0) ? 0 : (gapopen + j * gapextend);
-    
+    f = 2 * gapopen_t_left + (j+2) * gapextend_t_left;
+    h = (j == 0) ? 0 : (gapopen_t_left + j * gapextend_t_left);
+
     for(i=0; i<qlen; i++)
     {
       unsigned char * d = dir + qlen*j+i;
@@ -193,14 +204,33 @@ void nw_align(char * dseq,
 
       *hep = h;
       
-      h += gapopen + gapextend;
-      e += gapextend;
-      f += gapextend;
+      if (i < qlen-1)
+	{
+	  h_f = h + gapopen_t_internal + gapextend_t_internal;
+	  f += gapextend_t_internal;
+	}
+      else
+	{
+	  h_f = h + gapopen_t_right + gapextend_t_right;
+	  f += gapextend_t_right;
+	}
+
+      if (j < dlen-1)
+	{
+	  h_e = h + gapopen_q_internal + gapextend_q_internal;
+	  e += gapextend_q_internal;
+	}
+      else
+	{
+	  h_e = h + gapopen_q_right + gapextend_q_right;
+	  e += gapextend_q_right;
+	}
       
-      *d |= (f < h ? maskextup : 0);
-      *d |= (e < h ? maskextleft : 0);
-      f = MIN(h,f);
-      e = MIN(h,e);
+      *d |= (f < h_f ? maskextup : 0);
+      *d |= (e < h_e ? maskextleft : 0);
+
+      f = MIN(h_f,f);
+      e = MIN(h_e,e);
       
       *(hep+1) = e;
       h = n;
@@ -230,31 +260,36 @@ void nw_align(char * dseq,
 
   while ((i>0) && (j>0))
   {
+    long gapopen_q   = i < qlen-1 ? gapopen_q_internal   : gapopen_q_right;
+    long gapextend_q = i < qlen-1 ? gapextend_q_internal : gapextend_q_right;
+    long gapopen_t   = j < dlen-1 ? gapopen_t_internal   : gapopen_t_right;
+    long gapextend_t = j < dlen-1 ? gapextend_t_internal : gapextend_t_right;
+
     int d = dir[qlen*(j-1)+(i-1)];
 
     alength++;
 
     if ((op == 'I') && (d & maskextleft))
     {
-      score += gapextend;
+      score += gapextend_q;
       indels++;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
     else if ((op == 'D') && (d & maskextup))
     {
-      score += gapextend;
+      score += gapextend_t;
       indels++;
       i--;
       pushop('D', &cigarend, &op, &count);
     }
     else if (d & maskleft)
     {
-      score += gapextend;
+      score += gapextend_q;
       indels++;
       if (op != 'I')
         {
-          score += gapopen;
+          score += gapopen_q;
           gaps++;
         }
       j--;
@@ -262,11 +297,11 @@ void nw_align(char * dseq,
     }
     else if (d & maskup)
     {
-      score += gapextend;
+      score += gapextend_t;
       indels++;
       if (op != 'D')
         {
-          score += gapopen;
+          score += gapopen_t;
           gaps++;
         }
       i--;
@@ -286,11 +321,11 @@ void nw_align(char * dseq,
   while(i>0)
   {
     alength++;
-    score += gapextend;
+    score += gapextend_t_left;
     indels++;
     if (op != 'D')
       {
-        score += gapopen;
+        score += gapopen_t_left;
         gaps++;
       }
     i--;
@@ -300,11 +335,11 @@ void nw_align(char * dseq,
   while(j>0)
   {
     alength++;
-    score += gapextend;
+    score += gapextend_q_left;
     indels++;
     if (op != 'I')
       {
-        score += gapopen;
+        score += gapopen_q_left;
         gaps++;
       }
     j--;

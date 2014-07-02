@@ -40,15 +40,11 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.4"
+#define PROG_VERSION "v0.0.5"
 
 #ifndef LINE_MAX
 #define LINE_MAX 2048
 #endif
-
-#define KMERLENGTH 4
-#define KMERVECTORBITS (1<<(2*KMERLENGTH))
-#define KMERVECTORBYTES (KMERVECTORBITS/8)
 
 #ifdef HAVE_BZLIB_H
 #define BZ_VERBOSE_0 0
@@ -70,17 +66,12 @@ typedef BYTE VECTOR[16];
 
 struct seqinfo_s
 {
-  /* 16 byte alignment of kmervector required for SSE4 version of kmerdiff */
-  unsigned char kmervector[KMERVECTORBYTES];
-
   char * header;
   char * seq;
   unsigned long headerlen;
   unsigned long headeridlen;
   unsigned long seqlen;
   unsigned long dummy;
-
-  /* 32 + 6*8 = 80 bytes */
 };
 
 typedef struct seqinfo_s seqinfo_t;
@@ -97,6 +88,40 @@ struct queryinfo
 typedef struct queryinfo queryinfo_t;
 
 
+struct hit
+{
+  long target;
+  char strand;
+  long count; /* number of word matches */
+
+  long matches;
+  long mismatches;
+
+  /* info for global alignment, entire sequences */
+
+  long nwscore;
+  long nwdiff; /* indels and mismatches in global alignment */
+  long nwgaps; /* gaps in global alignment */
+  long nwindels; /* indels in global alignment */
+  long nwalignmentlength; /* length of global alignment */
+  double nwid; /* percent identity of global alignment */
+  char * nwalignment; /* alignment string (cigar) of global alignment */
+
+  /* info for semi-global alignment, excluding gaps at ends */
+
+  long internal_alignmentlength;
+  long internal_gaps;
+  long internal_indels;
+  double internal_id;
+
+  long trim_q_left;
+  long trim_q_right;
+  long trim_t_left;
+  long trim_t_right;
+};
+
+
+
 /* macros */
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -109,6 +134,9 @@ extern char * matrixname;
 
 extern char * databasefilename;
 extern char * alnoutfilename;
+extern char * useroutfilename;
+extern char * blast6outfilename;
+extern char * ucfilename;
 
 extern int wordlength;
 extern int maxrejects;
@@ -120,8 +148,12 @@ extern int mismatch_cost;
 extern int gapopen_cost;
 extern int gapextend_cost;
 extern int rowlen;
+extern int opt_self;
 
 extern FILE * alnoutfile;
+extern FILE * useroutfile;
+extern FILE * blast6outfile;
+extern FILE * ucfile;
 
 extern long mmx_present;
 extern long sse_present;
@@ -152,23 +184,6 @@ char * xstrchrnul(char *s, int c);
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
 long getusec(void);
 void show_rusage();
-
-
-/* functions in kmer.cc */
-
-void printkmers(unsigned char * kmervector);
-
-void findkmers(unsigned char * seq, unsigned long seqlen,
-                unsigned char * kmervector);
-
-unsigned long comparekmervectors(unsigned char * a, unsigned char * b);
-
-unsigned long kmer_diff(unsigned long a, unsigned long b);
-
-void kmer_diff_parallel(unsigned long seed,
-                         unsigned long listlen,
-                         unsigned long * amplist,
-                         unsigned long * difflist);
 
 
 /* functions in db.cc */
@@ -202,11 +217,6 @@ void db_free();
 
 void db_putseq(long seqno);
 
-inline unsigned char * db_getkmervector(unsigned long seqno)
-{
-  return seqindex[seqno].kmervector;
-}
-
 
 /* functions in query.cc */
 
@@ -217,6 +227,10 @@ int query_getnext(char ** header, long * header_length,
 
 void query_close();
 
+long query_getfilesize();
+
+long query_getfilepos();
+
 
 /* functions in bzquery.cc */
 
@@ -226,11 +240,6 @@ int query_bz_getnext(char ** header, long * header_length,
                   char ** seq, long * seq_length, long * query_no);
 
 void query_bz_close();
-
-/* functions in popcount.cc */
-
-unsigned long popcount(unsigned long x);
-unsigned long popcount_128(__m128i x);
 
 
 /* functions in nw.cc */
@@ -244,8 +253,18 @@ void nw_align(char * dseq,
               char * qseq,
               char * qend,
               long * score_matrix,
-              unsigned long gapopen,
-              unsigned long gapextend,
+	      unsigned long gapopen_q_left,
+	      unsigned long gapopen_q_internal,
+	      unsigned long gapopen_q_right,
+	      unsigned long gapopen_t_left,
+	      unsigned long gapopen_t_internal,
+	      unsigned long gapopen_t_right,
+	      unsigned long gapextend_q_left,
+	      unsigned long gapextend_q_internal,
+	      unsigned long gapextend_q_right,
+	      unsigned long gapextend_t_left,
+	      unsigned long gapextend_t_internal,
+	      unsigned long gapextend_t_right,
               unsigned long * nwscore,
               unsigned long * nwdiff,
               unsigned long * nwgaps,
@@ -253,7 +272,7 @@ void nw_align(char * dseq,
               unsigned long * nwalignmentlength,
               char ** nwalignment,
               unsigned long queryno,
-              unsigned long dbseqno);
+	      unsigned long dbseqno);
 
 
 /* functions in kmercount.cc */
@@ -297,14 +316,42 @@ void search();
 
 /* functions in showalign.cc */
 
-void showalign(FILE * f,
-               char * seq1,
-               long seq1len,
-               const char * seq1name,
-               char * seq2,
-               long seq2len,
-               const char * seq2name,
-               char * cigar,
-               int numwidth,
-               int namewidth,
-               int alignwidth);
+char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
+
+void align_show(FILE * f,
+		char * seq1,
+		long seq1len,
+		const char * seq1name,
+		char * seq2,
+		long seq2len,
+		const char * seq2name,
+		char * cigar,
+		int numwidth,
+		int namewidth,
+		int alignwidth);
+
+/* functions in userfields.cc */
+
+extern int * userfields_requested;
+extern int userfields_requested_count;
+
+int parse_userfields_arg(char * arg);
+
+/* functions in results.cc */
+
+void results_show_blast6out(struct hit * hits, int accepts,
+			   char * query_head,
+			   char * qsequence, long qseqlen);
+
+void results_show_uc(struct hit * hits, int accepts,
+		    char * query_head,
+		    char * qsequence, long qseqlen,
+		    int allhits);
+
+void results_show_userout(struct hit * hits, int accepts,
+			 char * query_head,
+			 char * qsequence, long qseqlen);
+
+void results_show_alnout(struct hit * hits, int accepts,
+                        char * query_head,
+                        char * qsequence, long qseqlen);
