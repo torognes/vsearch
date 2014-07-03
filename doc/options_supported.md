@@ -38,11 +38,11 @@ Command line example:
 
 - [x] `--rowlen <integer(64)>`
 
-- [ ] `--userout <filename>`
+- [x] `--userout <filename>`
 
 - [ ] `--fastapairs <filename>`
 
-- [ ] `--blast6out <filename>`
+- [x] `--blast6out <filename>`
 
 - [ ] `--matched <filename>`
 
@@ -68,7 +68,7 @@ Command line example:
 
 - [ ] `--msaout <filename>`
 
-- [ ] `--uc <filename>`
+- [x] `--uc <filename>`
 
 
 ## Accept options
@@ -99,7 +99,7 @@ Command line example:
 
 - [ ] `--rightjust`
 
-- [ ] `--self`
+- [x] `--self`
 
 - [ ] `--selfid`
 
