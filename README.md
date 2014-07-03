@@ -91,7 +91,7 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **util.cc** - Various common utility functions
 * **results.cc** - Output results in various formats (alnout, userout, blast6, uc)
 * **derepl.cc** - Code for dereplication (very rudimentary at the moment)
-* **userfields.cc* - Code for parsing the userfields option argument
+* **userfields.cc** - Code for parsing the userfields option argument
 
 
 ## Bugs
