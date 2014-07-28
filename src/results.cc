@@ -21,6 +21,20 @@
 
 #include "vsearch.h"
 
+/* Other output files to be supported:
+   --fastapairs
+   --matched
+   --notmatched
+   --dbmatched
+   --dbnotmatched
+   
+   Other output options:
+   --maxhits
+   --top_hits_only
+   --output_no_hits
+   --sizeout
+*/
+
 void results_show_uncompressed_alignment(FILE * f, char * cigar)
 {
   char * p = cigar;
@@ -50,27 +64,42 @@ void results_show_blast6out(struct hit * hits, int accepts,
 			   char * qsequence, long qseqlen)
 {
 
-  /* http://www.drive5.com/usearch/manual/blast6out.html */
-
+  /* 
+     http://www.drive5.com/usearch/manual/blast6out.html
+  
+     query label
+     target label
+     percent identity
+     alignment length
+     number of mismatches
+     number of gap opens
+     1-based position of start in query
+     1-based position of end in query
+     1-based position of start in target
+     1-based position of end in target
+     E-value
+     bit score
+  */
+  
   for(int t = 0; t < accepts; t++)
     {
       struct hit * hp = hits + t;
 	  
-      /*
-	query label
-	target label
-	percent identity
-	alignment length
-	number of mismatches
-	number of gap opens
-	1-based position of start in query
-	1-based position of end in query
-	1-based position of start in target
-	1-based position of end in target
-	E-value
-	bit score
-      */
-	     
+      long qstart, qend;
+
+      if (hp->strand)
+	{
+	  /* minus strand */
+	  qstart = qseqlen;
+	  qend = 1;
+	}
+      else
+	{
+	  /* plus strand */
+	  qstart = 1;
+	  qend = qseqlen;
+	}
+
       fprintf(blast6outfile,
 	      "%s\t%s\t%.1f\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t*\t*\n",
 	      query_head,
@@ -79,20 +108,32 @@ void results_show_blast6out(struct hit * hits, int accepts,
 	      hp->internal_alignmentlength,
 	      hp->mismatches,
 	      hp->internal_gaps,
-	      hp->trim_q_left + 1,
-	      qseqlen - hp->trim_q_right,
-	      hp->trim_t_left + 1,
-	      db_getsequencelen(hp->target) - hp->trim_t_right);
+	      qstart,
+	      qend,
+	      1L,
+	      db_getsequencelen(hp->target));
     }
 }
 
 void results_show_uc(struct hit * hits, int accepts,
 		    char * query_head,
-		    char * qsequence, long qseqlen,
-		    int allhits)
+		    char * qsequence, long qseqlen)
 {
 
-  /* http://www.drive5.com/usearch/manual/ucout.html */
+  /*
+    http://www.drive5.com/usearch/manual/ucout.html
+
+    H/N
+    cluster no (0-based) (target sequence no)
+    sequence length (query)
+    percent identity
+    strand: + or -
+    0
+    0
+    compressed alignment, e.g. 9I92M14D
+    query label
+    target label
+  */
 
   if (accepts == 0)
     {
@@ -100,33 +141,18 @@ void results_show_uc(struct hit * hits, int accepts,
     }
   else
     {
-      int limit = 1;
-      if (allhits)
-	limit = accepts;
+      int limit = opt_uc_allhits ? accepts : 1;
 
       for(int t = 0; t < limit; t++)
 	{
 	  struct hit * hp = hits + t;
-	  
-	  /*
-	    H
-	    cluster no (0-based) (target sequence no)
-	    sequence length (query)
-	    percent identity
-	    strand: + or -
-	    0
-	    0
-	    compressed alignment, e.g. 9I92M14D
-	    query label
-	    target label
-	  */
 	     
 	  fprintf(ucfile,
 		  "H\t%ld\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
 		  hp->target,
 		  qseqlen,
 		  hp->internal_id,
-		  hp->strand,
+		  hp->strand ? '-' : '+',
 		  hp->nwalignment,
 		  query_head,
 		  db_getheader(hp->target));
@@ -142,6 +168,8 @@ void results_show_userout(struct hit * hits, int accepts,
 
   /* http://drive5.com/usearch/manual/userout.html */
 
+  char * rc = reverse_complement(qsequence, qseqlen);
+  
   for(int t = 0; t < accepts; t++)
     {
       struct hit * hp = hits + t;
@@ -161,13 +189,6 @@ void results_show_userout(struct hit * hits, int accepts,
 
 	  char * qrow;
 	  char * trow;
-
-	  /*
-	    some modifications necessary:
-	    - gaps at both ends of the alignment must be removed
-	    - counting of gaps must be updated accordingly
-	    - testing
-	  */
 
 	  switch (field)
 	    {
@@ -244,13 +265,13 @@ void results_show_userout(struct hit * hits, int accepts,
 	      fprintf(useroutfile, "%s", hp->nwalignment);
 	      break;
 	    case 24: /* qstrand */
-	      fprintf(useroutfile, "%c", hp->strand);
+	      fprintf(useroutfile, "%c", hp->strand ? '-' : '+');
 	      break;
 	    case 25: /* tstrand */
 	      fprintf(useroutfile, "%c", '+');
 	      break;
 	    case 26: /* qrow */
-	      qrow = align_getrow(qsequence,
+	      qrow = align_getrow(hp->strand ? rc : qsequence,
 				  hp->nwalignment,
 				  hp->nwalignmentlength,
 				  0);
@@ -293,6 +314,8 @@ void results_show_userout(struct hit * hits, int accepts,
 	}
       fprintf(useroutfile, "\n");
     }
+
+  free(rc);
 }
 
 
@@ -303,6 +326,8 @@ void results_show_alnout(struct hit * hits, int accepts,
 
   /* http://drive5.com/usearch/manual/alnout.html */
 
+  char * rc = reverse_complement(qsequence, qseqlen);
+  
   if (accepts > 0)
     {
       fprintf(alnoutfile,"Query >%s\n", query_head);
@@ -318,50 +343,54 @@ void results_show_alnout(struct hit * hits, int accepts,
       
       for(int t = 0; t < accepts; t++)
         {
-          unsigned int target = hits[t].target;
-          unsigned int count = hits[t].count;
+	  struct hit * hp = hits + t;
+
           char * dseq;
           long dseqlen;
+	  db_getsequenceandlength(hp->target, & dseq, & dseqlen);
           
-          db_getsequenceandlength(target, & dseq, & dseqlen);
-          
-          unsigned long nwscore = hits[t].nwscore;
-          unsigned long nwdiff = hits[t].nwdiff;
-          unsigned long nwgaps = hits[t].nwgaps;
-          unsigned long nwindels = hits[t].nwindels;
-          unsigned long nwalignmentlength = hits[t].nwalignmentlength;
-          char * nwalignment = hits[t].nwalignment;
-          double nwid = hits[t].nwid;
-          char * thead = db_getheader(target);
-              
-          fprintf(alnoutfile," Query %ldnt >%s\n", qseqlen, query_head);
-          fprintf(alnoutfile,"Target %ldnt >%s\n", dseqlen, thead);
+	  char dummy;
+	  int qlenlen = snprintf(&dummy, 1, "%ld", qseqlen);
+	  int tlenlen = snprintf(&dummy, 1, "%ld", dseqlen);
+	  int numwidth = MAX(qlenlen, tlenlen);
+	  	  
+          fprintf(alnoutfile," Query %*ldnt >%s\n", numwidth,
+		  qseqlen, query_head);
+          fprintf(alnoutfile,"Target %*ldnt >%s\n", numwidth,
+		  dseqlen, db_getheader(hp->target));
 
           align_show(alnoutfile,
 		     qsequence,
 		     qseqlen,
+		     hp->trim_q_left,
 		     "Qry",
 		     dseq,
 		     dseqlen,
+		     hp->trim_t_left,
 		     "Tgt",
-		     nwalignment,
+		     hp->nwalignment + hp->trim_aln_left,
+		     strlen(hp->nwalignment) 
+		     - hp->trim_aln_left - hp->trim_aln_right,
+		     numwidth,
 		     3,
-		     3,
-		     rowlen);
+		     rowlen,
+		     hp->strand);
               
           fprintf(alnoutfile,"\n%ld cols, %ld ids (%3.1f%%), %ld gaps (%3.1f%%)",
-                  nwalignmentlength,
-                  nwalignmentlength - nwdiff,
-                  nwid,
-                  nwindels,
-                  100.0 * nwindels / nwalignmentlength);
+                  hp->internal_alignmentlength,
+                  hp->matches,
+                  hp->internal_id,
+                  hp->internal_indels,
+                  100.0 * hp->internal_indels / hp->internal_alignmentlength);
 
-#if 1
-          fprintf(alnoutfile," [%u kmers, %lu costs, %lu gap opens]\n",
-                  count, nwscore, nwgaps);
+#if 0
+          fprintf(alnoutfile," [%ld kmers, %ld score, %ld gap opens]",
+                  hp->count, hp->nwscore, hp->nwgaps);
 #endif
           
-          fprintf(alnoutfile, "\n");
+          fprintf(alnoutfile, "\n\n");
 	}
     }
+
+  free(rc);
 }

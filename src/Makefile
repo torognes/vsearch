@@ -22,6 +22,7 @@
 COMMON=-g
 
 COMPILEOPT=-Wall -msse4.1 -mtune=core2
+#COMPILEOPT=-Weverything -msse4.1 -mtune=core2
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
@@ -37,7 +38,8 @@ CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
 PROG=vsearch
 
 OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
-	kmercount.o userfields.o results.o
+	kmercount.o userfields.o results.o sortbysize.o derep.o maps.o \
+	arch.o sortbylength.o
 
 DEPS=vsearch.h Makefile
 

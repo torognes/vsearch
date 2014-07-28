@@ -21,12 +21,14 @@
 
 #include "vsearch.h"
 
-int k;
+static int k;
 
 unsigned int * kmerhash;
 unsigned int * kmerindex;
 unsigned int kmerhashsize;
 unsigned int kmerindexsize;
+
+static char sym_nt[] = "ACGT";
 
 inline int dbindex_getkmermatchcount(int kmer)
 {
@@ -38,25 +40,24 @@ inline int dbindex_getkmermatch(int kmer, int matchno)
   return kmerindex[kmerhash[kmer]+matchno];
 }
 
-void fprint_kmer(FILE * f, unsigned int k, unsigned long kmer)
+void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
 {
   unsigned long x = kmer;
-  char sym[] = "ACGT";
-  for(unsigned int i=0; i<k; i++)
-    fprintf(f, "%c", sym[(x >> (2*(k-i-1))) & 3]);
+  for(unsigned int i=0; i<kk; i++)
+    fprintf(f, "%c", sym_nt[(x >> (2*(kk-i-1))) & 3]);
 }
 
-unsigned int extract_sequence_kmer(char * seq, unsigned int k, unsigned int pos)
+unsigned int extract_sequence_kmer(char * seq, unsigned int kk, unsigned int pos)
 {
   unsigned int kmer = 0;
-  unsigned int mask = (1<<(2*k)) - 1;
+  unsigned int mask = (1<<(2*kk)) - 1;
   char * s = seq + pos;
-  char * e = s + k;
+  char * e = s + kk;
 
   while (s < e)
     {
       kmer <<= 2;
-      kmer |= *s++;
+      kmer |= chrmap_2bit[(int)(*s++)];
     }
 
   kmer &= mask;
@@ -69,8 +70,6 @@ void dbindex_build()
   k = wordlength;
 
   show_rusage();
-
-  fprintf(stderr, "Performing first database pass - counting unique %u-mers: ", k);
 
   unsigned int seqcount = db_getsequencecount();
   
@@ -86,6 +85,8 @@ void dbindex_build()
   
   /* first scan, just count occurences */
   
+  progress_init("Counting unique k-mers", seqcount);
+
   for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
       char * sequence;
@@ -102,7 +103,6 @@ void dbindex_build()
         }
       else
         {
-
           memset(kmerstatus, 0, kmerhashsize * sizeof(unsigned char));
 
           unsigned int kmer = 0;
@@ -118,13 +118,13 @@ void dbindex_build()
           while (s < e1)
             {
               kmer <<= 2;
-              kmer |= *s++;
+	      kmer |= chrmap_2bit[(int)(*s++)];
             }
           
           while (s < e2)
             {
               kmer <<= 2;
-              kmer |= *s++;
+	      kmer |= chrmap_2bit[(int)(*s++)];
               kmer &= mask;
               
               if (kmerstatus[kmer] == 0)
@@ -142,8 +142,10 @@ void dbindex_build()
                 }
             }
         }
+      progress_update(seqno);
     }
-  
+ 
+  progress_done();
 
   /* hash setup */
 
@@ -162,13 +164,13 @@ void dbindex_build()
   kmerindexsize = sum;
   kmerhash[kmerhashsize] = sum;
 
-  fprintf(stderr,"%u\n", kmerindexsize);
+  fprintf(stderr, "Unique %u-mers: %u\n", k, kmerindexsize);
 
   kmerindex = (unsigned int *) xmalloc(kmerindexsize * sizeof(unsigned int));
 
   show_rusage();
 
-  fprintf(stderr,"Performing second database pass - filling index\n");
+  progress_init("Creating index of unique k-mers", seqcount);
 
   /* second scan, fill in actual index of the unique kmers */
 
@@ -206,13 +208,13 @@ void dbindex_build()
           while (s < e1)
             {
               kmer <<= 2;
-              kmer |= *s++;
+	      kmer |= chrmap_2bit[(int)(*s++)];
             }
           
           while (s < e2)
             {
               kmer <<= 2;
-              kmer |= *s++;
+	      kmer |= chrmap_2bit[(int)(*s++)];
               kmer &= mask;
               
               if (kmerstatus[kmer] == 0)
@@ -241,8 +243,11 @@ void dbindex_build()
                 }
             }
         }
+      progress_update(seqno);
     }
   
+  progress_done();
+
   free(kmercount);
   free(kmerstatus);
 
@@ -257,23 +262,6 @@ void dbindex_build()
       kmerhash[i] = temp;
       temp = next;
     }
-
-#if 0
-  
-  /* print kmer hash and index */
-
-  for(unsigned int i=0; i<kmerhashsize; i++)
-    {
-      unsigned int kmer = i;
-      for(unsigned int j=0; j<k; j++)
-        putchar(sym_nt[1+((kmer >> 2*(k-1-j)) & 3)]);
-      fprintf(stderr,":");
-      for(unsigned int j = kmerhash[i]; j < kmerhash[i+1]; j++)
-        fprintf(stderr," %d", kmerindex[j]);
-      fprintf(stderr,"\n");
-    }
-
-#endif
 
   show_rusage();
   count_kmers_exit();

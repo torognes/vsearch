@@ -22,39 +22,48 @@
 #include "vsearch.h"
 
 
-long line_pos;
+static long line_pos;
 
-char * q_seq;
-char * d_seq;
+static char * q_seq;
+static char * d_seq;
 
-long q_start;
-long d_start;
+static long q_start;
+static long d_start;
 
-long q_pos;
-long d_pos;
+static long q_pos;
+static long d_pos;
 
-long alignlen;
+static long q_strand;
 
-char * q_line;
-char * a_line;
-char * d_line;
+static long alignlen;
 
-char ntsymbols[] = "ACGT";
+static char * q_line;
+static char * a_line;
+static char * d_line;
 
-FILE * out;
+static FILE * out;
 
-int poswidth = 3;
-int headwidth = 5;
+static int poswidth = 3;
+static int headwidth = 5;
 
-const char * q_name;
-const char * d_name;
+static const char * q_name;
+static const char * d_name;
 
-long q_len;
-long d_len;
+static long q_len;
+static long d_len;
 
+inline int nt_identical(char a, char b)
+{
+  if (chrmap_4bit[(int)a] == chrmap_4bit[(int)b])
+    return 1;
+  else
+    return 0;
+}
 
 inline void putop(char c, long len)
 {
+  long delta = q_strand ? -1 : +1;
+
   long count = len;
   while(count)
     {
@@ -70,27 +79,31 @@ inline void putop(char c, long len)
       switch(c)
         {
         case 'M':
-          qs = q_seq[q_pos++];
-          ds = d_seq[d_pos++];
-          q_line[line_pos] = ntsymbols[(int)(qs)];
-          a_line[line_pos] = (qs == ds) ? '|' : ' ';
-          d_line[line_pos] = ntsymbols[(int)(ds)];
+          qs = q_strand ? 3 - q_seq[q_pos] : q_seq[q_pos];
+          ds = d_seq[d_pos];
+	  q_pos += delta;
+	  d_pos += 1;
+          q_line[line_pos] = toupper(qs);
+          a_line[line_pos] = nt_identical(qs, ds) ? '|' : ' ';
+          d_line[line_pos] = toupper(ds);
           line_pos++;
           break;
 
         case 'D':
-          qs = q_seq[q_pos++];
-          q_line[line_pos] = ntsymbols[(int)(qs)];
+          qs = q_strand ? 3 - q_seq[q_pos] : q_seq[q_pos];
+	  q_pos += delta;
+          q_line[line_pos] = toupper(qs);
           a_line[line_pos] = ' ';
           d_line[line_pos] = '-';
           line_pos++;
           break;
 
         case 'I':
-          ds = d_seq[d_pos++];
+          ds = d_seq[d_pos];
+	  d_pos += 1;
           q_line[line_pos] = '-';
           a_line[line_pos] = ' ';
-          d_line[line_pos] = ntsymbols[(int)(ds)];
+          d_line[line_pos] = toupper(ds);
           line_pos++;
           break;
         }
@@ -105,7 +118,7 @@ inline void putop(char c, long len)
           if (q1 > q_len)
             q1 = q_len;
 
-          long q2 = q_pos;
+          long q2 = q_strand ? q_pos +2 : q_pos;
 
           long d1 = d_start + 1;
           if (d1 > d_len)
@@ -114,12 +127,12 @@ inline void putop(char c, long len)
           long d2 = d_pos;
 
           fprintf(out, "\n");
-          fprintf(out, "%*s %*ld + %s %ld\n", headwidth, q_name, poswidth,
-                  q1, q_line, q2);
+          fprintf(out, "%*s %*ld %c %s %ld\n", headwidth, q_name, poswidth,
+                  q1, q_strand ? '-' : '+', q_line, q2);
           fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                   "", a_line);
-          fprintf(out, "%*s %*ld + %s %ld\n", headwidth, d_name, poswidth,
-                  d1, d_line, d2);
+          fprintf(out, "%*s %*ld %c %s %ld\n", headwidth, d_name, poswidth,
+                  d1, '+', d_line, d2);
 
           line_pos = 0;
         }
@@ -127,69 +140,35 @@ inline void putop(char c, long len)
     }
 }
 
-char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
-{
-  char * row = (char*) xmalloc(alignlen+1);
-  char * r = row;
-  char * p = cigar;
-  char * s = seq;
-
-  while(*p)
-    {
-      long len;
-      int n;
-      if (!sscanf(p, "%ld%n", & len, & n))
-        {
-          n = 0;
-	  len = 1;
-        }
-      p += n;
-      char op = *p++;
-      
-      if ((op == 'M') || 
-	  ((op == 'D') && (origin == 0)) ||
-	  ((op == 'I') && (origin == 1)))
-	{
-	  /* copy len chars from seq */
-	  for(long i=0; i < len; i++)
-	    *r++ = (sym_nt[(int)(*s++)] & 0x1F) | 0x40;
-	}
-      else
-	{
-	  /* insert len gap symbols */
-	  for(long i = 0; i < len; i++)
-	    *r++ = '-';
-	}
-    }
-
-  *r = 0;
-  return row;
-}
-
 void align_show(FILE * f,
 		char * seq1,
 		long seq1len,
+		long seq1off,
 		const char * seq1name,
 		char * seq2,
 		long seq2len,
+		long seq2off,
 		const char * seq2name,
 		char * cigar,
+		long cigarlen,
 		int numwidth,
 		int namewidth,
-		int alignwidth)
+		int alignwidth,
+		int strand)
 {
   out = f;
 
   q_seq = seq1;
   q_len = seq1len;
   q_name = seq1name;
+  q_strand = strand;
   
   d_seq = seq2;
   d_len = seq2len;
   d_name = seq2name;
   
   char * p = cigar;
-  char * e = p + strlen(p);
+  char * e = p + cigarlen;
   
   poswidth = numwidth;
   headwidth = namewidth;
@@ -199,8 +178,8 @@ void align_show(FILE * f,
   a_line = (char*) xmalloc(alignwidth+1);
   d_line = (char*) xmalloc(alignwidth+1);
 
-  q_pos = 0;
-  d_pos = 0;
+  q_pos = strand ? seq1len - 1 - seq1off : seq1off;
+  d_pos = seq2off;
   
   line_pos = 0;
 
@@ -225,3 +204,41 @@ void align_show(FILE * f,
   free(d_line);
 }
                
+char * align_getrow(char * seq, char * cigar, int alen, int origin)
+{
+  char * row = (char*) xmalloc(alen+1);
+  char * r = row;
+  char * p = cigar;
+  char * s = seq;
+
+  while(*p)
+    {
+      long len;
+      int n;
+      if (!sscanf(p, "%ld%n", & len, & n))
+        {
+          n = 0;
+	  len = 1;
+        }
+      p += n;
+      char op = *p++;
+      
+      if ((op == 'M') || 
+	  ((op == 'D') && (origin == 0)) ||
+	  ((op == 'I') && (origin == 1)))
+	{
+	  /* copy len chars from seq */
+	  for(long i=0; i < len; i++)
+	    *r++ = toupper(*s++);
+	}
+      else
+	{
+	  /* insert len gap symbols */
+	  for(long i = 0; i < len; i++)
+	    *r++ = '-';
+	}
+    }
+
+  *r = 0;
+  return row;
+}

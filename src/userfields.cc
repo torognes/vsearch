@@ -21,7 +21,7 @@
 
 #include "vsearch.h"
 
-const char * userfields_names[] =
+static const char * userfields_names[] =
   {
     "query",  // 0
     "target", // 1
@@ -76,12 +76,12 @@ int parse_userfields_arg(char * arg)
     if (*p++ == '+')
       userfields_requested_count++;	
 
-  userfields_requested = (int*) xmalloc(sizeof(int) * userfields_requested_count);
+  userfields_requested = (int*) xmalloc(sizeof(int) * (unsigned long)userfields_requested_count);
   
   p = arg;
 
   char * q;
-  unsigned int n;
+  unsigned long n;
 
   int fields = 0;
 
@@ -91,7 +91,7 @@ int parse_userfields_arg(char * arg)
       if (!q)
 	q = e;
       
-      n = q - p;
+      n = (unsigned long)(q - p);
 
       char ** u = (char**) userfields_names;
 
@@ -105,7 +105,7 @@ int parse_userfields_arg(char * arg)
       if (!*u)    // reached end of list -> unrecognized field
 	return 0; // bad argument
 
-      int i = ((const char**)u) - userfields_names;
+      int i = (int)(((const char**)u) - userfields_names);
       userfields_requested[fields++] = i;
 
       p = q;

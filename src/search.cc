@@ -25,6 +25,7 @@ struct topscore
 {
   unsigned int count;
   unsigned int seqno;
+  unsigned int length;
 };
       
 int hit_compare(const void * a, const void * b)
@@ -35,9 +36,9 @@ int hit_compare(const void * a, const void * b)
   // high id, then low id
   // early target, then late target
 
-  if (x->nwid > y->nwid)
+  if (x->internal_id > y->internal_id)
     return -1;
-  else if (x->nwid < y->nwid)
+  else if (x->internal_id < y->internal_id)
     return +1;
   else
     if (x->target < y->target)
@@ -48,27 +49,36 @@ int hit_compare(const void * a, const void * b)
       return 0;
 }
 
-long scorematrix[32][32];
-long tophits;
-
-unsigned char * hitcount = 0;
-struct topscore * topscores = 0;
-struct hit * hits = 0;
-
 #define MAXSAMPLES 255
 
-unsigned int hit_distr[MAXSAMPLES+1];
+static long scorematrix[16][16];
+static long tophits;
 
-unsigned int * targetlist = 0;
-unsigned int targetcount = 0;
+static unsigned char * hitcount = 0;
+static struct topscore * topscores = 0;
+static struct hit * hits = 0;
 
-unsigned int kmersample[256];
-unsigned int kmersamplecount;
+static unsigned int * targetlist = 0;
+static unsigned int targetcount = 0;
+
+static unsigned int kmersample[256];
+static unsigned int kmersamplecount;
+
+static unsigned long nwalignments = 0;
+
+FILE * alnoutfile;
+FILE * useroutfile;
+FILE * blast6outfile;
+FILE * ucfile;
+FILE * fp_matched;
+FILE * fp_notmatched;
+FILE * fp_dbmatched;
+FILE * fp_dbnotmatched;
 
 void search_get_query_samples(char * qsequence, unsigned int qseqlen, 
-                              unsigned int wordlength, unsigned int samples)
+                              unsigned int wl, unsigned int samples)
 {
-  count_kmers(wordlength, qsequence, qseqlen);
+  count_kmers(wl, qsequence, qseqlen);
   unsigned int unique = count_kmers_unique();
   kmersamplecount = 0;
 
@@ -76,9 +86,9 @@ void search_get_query_samples(char * qsequence, unsigned int qseqlen,
   unsigned int u = 0;
 
   unsigned int kmer = 0;
-  unsigned int mask = (1<<(2*wordlength)) - 1;
+  unsigned int mask = (1<<(2*wl)) - 1;
   char * s = qsequence;
-  char * e1 = s + wordlength - 1;
+  char * e1 = s + wl - 1;
   char * e2 = s + qseqlen;
   if (e2 < e1)
     e1 = e2;
@@ -86,9 +96,8 @@ void search_get_query_samples(char * qsequence, unsigned int qseqlen,
   while (s < e1)
     {
       kmer <<= 2;
-      kmer |= *s++;
+      kmer |= chrmap_2bit[(int)(*s++)];
     }
-
 
 #if 0
   fprintf(stderr, 
@@ -101,17 +110,17 @@ void search_get_query_samples(char * qsequence, unsigned int qseqlen,
   while (s < e2)
     {
       kmer <<= 2;
-      kmer |= *s++;
+      kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
 
-      if (count_kmers_getcount(wordlength, kmer) == 1)
+      if (count_kmers_getcount(wl, kmer) == 1)
         {
           if (z>=0)
             {
               kmersample[kmersamplecount++] = kmer;
 #if 0
               fprintf(stderr, "Query kmer sample %d at pos %d u %d: ", kmersamplecount, pos, u);
-              fprint_kmer(stderr, wordlength, kmer);
+              fprint_kmer(stderr, wl, kmer);
               fprintf(stderr, "\n");
 #endif
               z -= unique+1;
@@ -124,18 +133,17 @@ void search_get_query_samples(char * qsequence, unsigned int qseqlen,
 }
 
 
-unsigned int search_topscores(unsigned int samples,
-                              unsigned int seqcount, 
-                              unsigned int tophits)
+unsigned int search_topscores(unsigned int seqcount, 
+                              unsigned int th)
 {
   /*
     Count the kmer hits in each database sequence and
-    make a sorted list of a given number (tophits)
+    make a sorted list of a given number (th)
     of the database sequences with the highest number of matching kmers.
 
     These are stored in the topscores array.
     
-    The number to keep: tophits = min(seqcount, maxaccepts + maxrejects)
+    The number to keep: th = min(seqcount, maxaccepts + maxrejects)
 
     This is a partial sort.
   */
@@ -168,7 +176,7 @@ unsigned int search_topscores(unsigned int samples,
 
   unsigned int sparse;
 
-  if (hitspertarget < 0.5)
+  if (hitspertarget < 0.1)
     sparse = 1;
   else
     sparse = 0;
@@ -217,38 +225,7 @@ unsigned int search_topscores(unsigned int samples,
     }
 
   unsigned int topcount = 0;
-
   
-#if 0
-  /* Start Experimental code */
-
-  /* start by finding the distribution of kmer hits */
-
-  for(unsigned int i=0; i <= samples; i++)
-    hit_distr[i] = 0;
-
-  if (sparse)
-    {
-      hit_distr[0] = seqcount - targetcount;
-      for(unsigned int i=0; i<targetcount; i++)
-        hit_distr[hitcount[targetlist[i]]]++;
-    }
-  else
-    {
-      for(unsigned int i=0; i < seqcount; i++)
-        hit_distr[hitcount[i]]++;
-    }
-
-#if 0
-  printf("Kmer count distribution:\n");
-  for (unsigned int i=0; i <= samples; i++)
-    printf("%u: %u\n", i, hit_distr[i]);
-#endif
-
-  /* End Experimental alternative code */
-#endif
-  
-
   if (sparse)
     {
       for(unsigned int z=0; z < targetcount; z++)
@@ -256,25 +233,35 @@ unsigned int search_topscores(unsigned int samples,
           unsigned int i = targetlist[z];
 
           unsigned int count = hitcount[i];
-          
+
+	  unsigned long seqlen = db_getsequencelen(i);
           
           /* find insertion point */
           
           unsigned int p = topcount;
           
-          while ((p > 0) && (count > topscores[p-1].count))
+#if 0
+          while ((p > 0) &&
+		 ((count > topscores[p-1].count) ||
+		  ((count == topscores[p-1].count) &&
+		   (seqlen < topscores[p-1].length))))
             p--;
+#else
+          while ((p > 0) &&
+		 (count >= topscores[p-1].count))
+            p--;
+#endif
           
           
           /* p = index in array where new data should be placed */
           
-          if (p < tophits)
+          if (p < th)
             {
               
               /* find new bottom of list */
               
               int bottom = topcount;
-              if (topcount == tophits)
+              if (topcount == th)
                 bottom--;
               
               
@@ -286,10 +273,11 @@ unsigned int search_topscores(unsigned int samples,
               
               /* insert or overwrite */
               
-              topscores[p].count = count;
-              topscores[p].seqno = i;
+              topscores[p].count  = count;
+              topscores[p].seqno  = i;
+              topscores[p].length = seqlen;
               
-              if (topcount < tophits)
+              if (topcount < th)
                 topcount++;
             }
         }
@@ -299,25 +287,34 @@ unsigned int search_topscores(unsigned int samples,
       for(unsigned int i=0; i < seqcount; i++)
         {
           unsigned int count = hitcount[i];
+	  unsigned long seqlen = db_getsequencelen(i);
           
           
           /* find insertion point */
           
           unsigned int p = topcount;
           
-          while ((p > 0) && (count > topscores[p-1].count))
+#if 0
+          while ((p > 0) &&
+		 ((count > topscores[p-1].count) ||
+		  ((count == topscores[p-1].count) &&
+		   (seqlen < topscores[p-1].length))))
             p--;
-          
+#else
+          while ((p > 0) &&
+		 (count >= topscores[p-1].count))
+            p--;
+#endif
           
           /* p = index in array where new data should be placed */
           
-          if (p < tophits)
+          if (p < th)
             {
               
               /* find new bottom of list */
               
               int bottom = topcount;
-              if (topcount == tophits)
+              if (topcount == th)
                 bottom--;
               
               
@@ -331,8 +328,9 @@ unsigned int search_topscores(unsigned int samples,
               
               topscores[p].count = count;
               topscores[p].seqno = i;
+              topscores[p].length = seqlen;
               
-              if (topcount < tophits)
+              if (topcount < th)
                 topcount++;
             }
         }
@@ -342,215 +340,352 @@ unsigned int search_topscores(unsigned int samples,
 }
 
 
-int search_onequery(char * query_head, long query_head_len,
-                    char * qsequence, long qseqlen, long query_no)
+int search_onequery(char * query_head, char * qsequence, 
+		    long qseqlen, long query_no)
 {
   int seqcount = db_getsequencecount();
-
 
 
   /* compute necessary number of samples */
 
   unsigned int minsamples = 1;
   unsigned int maxsamples = MIN(qseqlen-wordlength+1, MAXSAMPLES);
-  double default_samples = 8.0;
+  //  double default_samples = 32.0;
+  double default_samples = 255.0;
   unsigned int samples;
 
-  samples = ceil(default_samples * exp(wordlength * (1.0 - identity)));
+  //samples = ceil(default_samples * exp(wordlength * (1.0 - identity)));
+  samples = round(default_samples);
 
   if (samples < minsamples)
     samples = minsamples;
   if (samples > maxsamples)
     samples = maxsamples;
 
-  // printf("seqlen: %ld samples: %d\n", qseqlen, samples);
+  //  printf("seqlen: %ld samples: %d\n", qseqlen, samples);
 
-
-  /* extract unique kmer samples from query*/
-
-  search_get_query_samples(qsequence, qseqlen, wordlength, samples);
+  int hit_count = 0;
   
-  
-  /* find database sequences with the most kmer hits */
-  
-  unsigned int topcount = search_topscores(samples, seqcount, tophits);
-
-  
-  /* analyse targets with the highest number of kmer hits */
-
-  int accepts = 0;
-  int rejects = 0;
-
-  for(unsigned int t = 0; (accepts < maxaccepts) && (rejects <= maxrejects) && (t<topcount); t++)
+  for(int s = 0; s < opt_strand; s++)
     {
-      unsigned int target = topscores[t].seqno;
-      char * dlabel = db_getheader(target);
-      
-      if ((opt_self) && (strcmp(query_head, dlabel) == 0))
-	{
-	  rejects++;
-	}
+      /* check plus or both strands*/
+      /* s=0: plus; s=1: minus */
+
+      char * qseq;
+
+      if (s)
+	qseq = reverse_complement(qsequence, qseqlen);
       else
+	qseq = qsequence;
+
+      
+      /* extract unique kmer samples from query*/
+      
+      search_get_query_samples(qseq, qseqlen, wordlength, samples);
+  
+      
+      /* find database sequences with the most kmer hits */
+      
+      unsigned int topcount = search_topscores(seqcount, tophits);
+      
+      //  printf("topcount: %u\n", topcount);
+  
+      /* analyse targets with the highest number of kmer hits */
+
+      int accepts = 0;
+      int rejects = 0;
+
+      for(unsigned int t = 0; (accepts < maxaccepts) && (rejects <= maxrejects) && (t<topcount); t++)
 	{
-	  unsigned int count = topscores[t].count;
-	  char * dseq;
-	  long dseqlen;
+	  unsigned int target = topscores[t].seqno;
+	  char * dlabel = db_getheader(target);
       
-	  db_getsequenceandlength(target, & dseq, & dseqlen);
-      
-	  /* compute global alignment */
-      
-	  unsigned long nwscore;
-	  unsigned long nwdiff;
-	  unsigned long nwgaps;
-	  unsigned long nwindels;
-	  unsigned long nwalignmentlength;
-	  char * nwalignment;
-	      
-	  nw_align(dseq,
-		   dseq + dseqlen,
-		   qsequence,
-		   qsequence + qseqlen,
-		   (long*) scorematrix,
-		   gapopen_cost,
-		   gapopen_cost,
-		   gapopen_cost,
-		   gapopen_cost,
-		   gapopen_cost,
-		   gapopen_cost,
-		   gapextend_cost,
-		   gapextend_cost,
-		   gapextend_cost,
-		   gapextend_cost,
-		   gapextend_cost,
-		   gapextend_cost,
-		   & nwscore,
-		   & nwdiff,
-		   & nwgaps,
-		   & nwindels,
-		   & nwalignmentlength,
-		   & nwalignment,
-		   query_no,
-		   target);
-	      
-	  double nwid = (nwalignmentlength - nwdiff) * 100.0 / nwalignmentlength;
+	  /* Test these accept/reject criteria without alignment:
+	     --idprefix
+	     --idsuffix
+	     --minqt
+	     --maxqt
+	     --minsl
+	     --maxsl
+	     --self (implemented)
+	     --selfid
+	     --minsizeratio
+	     --maxsizeratio
+	     --maxqsize
+	     --mintsize
+	  */
 
-	  /* info for semi-global alignment (without gaps at ends) */
-	  
-	  long trim_aln_left = 0;
-	  long trim_q_left = 0;
-	  long trim_t_left = 0;
-	  long trim_aln_right = 0;
-	  long trim_q_right = 0;
-	  long trim_t_right = 0;
-
-
-	  /* left trim alignment */
-	  
-	  char * p = nwalignment;
-	  long run = 1;
-	  int scanlength = 0;
-	  sscanf(p, "%ld%n", &run, &scanlength);
-	  char op = *(p+scanlength);
-	  if (op != 'M')
+	  if ((opt_self) && (strcmp(query_head, dlabel) == 0))
 	    {
-	      trim_aln_left = 1 + scanlength;
-	      if (op == 'D')
-		trim_q_left = run;
-	      else
-		trim_t_left = run;
-	    }
-
-	  /* right trim alignment */
-	  
-	  char * e = nwalignment + strlen(nwalignment);
-	  p = e - 1;
-	  op = *p;
-	  if (op != 'M')
-	    {
-	      while (*(p-1) <= '9')
-		p--;
-	      run = 1;
-	      sscanf(p, "%ld", &run);
-	      trim_aln_right = e - p;
-	      if (op == 'D')
-		trim_q_right = run;
-	      else
-		trim_t_right = run;
-	    }
-
-#if 0
-	  printf("Alignment string: %s\n", nwalignment);
-	  printf("Trim aln: %ld,%ld q: %ld,%ld t: %ld,%ld\n",
-		 trim_aln_left, trim_aln_right,
-		 trim_q_left, trim_q_right,
-		 trim_t_left, trim_t_right);
-#endif
-
-	  long mismatches = nwdiff - nwindels;
-	  long matches = nwalignmentlength - nwdiff;
-	  long internal_alignmentlength = nwalignmentlength - 
-	    - trim_q_left - trim_t_left - trim_q_right - trim_t_right;
-	  long internal_gaps = nwgaps
-	    - (trim_q_left  + trim_t_left  > 0 ? 1 : 0)
-	    - (trim_q_right + trim_t_right > 0 ? 1 : 0);
-	  long internal_indels = nwindels
-	    - trim_q_left - trim_t_left - trim_q_right - trim_t_right;
-	  double internal_id = 100.0 * matches / internal_alignmentlength;
-
-	  if (internal_id >= 100.0 * identity)
-	    {
-	      hits[accepts].target = target;
-	      hits[accepts].count = count;
-	      hits[accepts].nwscore = nwscore;
-	      hits[accepts].nwdiff = nwdiff;
-	      hits[accepts].nwgaps = nwgaps;
-	      hits[accepts].nwindels = nwindels;
-	      hits[accepts].nwalignmentlength = nwalignmentlength;
-	      hits[accepts].nwalignment = nwalignment;
-	      hits[accepts].nwid = nwid;
-	      hits[accepts].strand = '+';
-	      hits[accepts].matches = matches;
-	      hits[accepts].mismatches = mismatches;
-	      hits[accepts].trim_q_left = trim_q_left;
-	      hits[accepts].trim_q_right = trim_q_right;
-	      hits[accepts].trim_t_left = trim_t_left;
-	      hits[accepts].trim_t_right = trim_t_right;
-	      hits[accepts].internal_alignmentlength = internal_alignmentlength;
-	      hits[accepts].internal_gaps = internal_gaps;
-	      hits[accepts].internal_indels = internal_indels;
-	      hits[accepts].internal_id = internal_id;
-
-	      accepts++;
+	      rejects++;
 	    }
 	  else
 	    {
-	      free(nwalignment);
-	      rejects++;
-	    }
-	}
-    }
-  
-  
-  /* sort accepted targets */
-  
-  qsort(hits, accepts, sizeof(struct hit), hit_compare);
-  
-  
-  return accepts;
 
+	      int count = topscores[t].count;
+
+	      char * dseq;
+	      long dseqlen;
+      
+	      db_getsequenceandlength(target, & dseq, & dseqlen);
+      
+	      /* compute global alignment */
+      
+	      long nwscore;
+	      long nwdiff;
+	      long nwgaps;
+	      long nwindels;
+	      long nwalignmentlength;
+	      char * nwalignment;
+	  
+	      nw_align(dseq,
+		       dseq + dseqlen,
+		       qseq,
+		       qseq + qseqlen,
+		       (long*) scorematrix,
+		       opt_gap_open_query_left,
+		       opt_gap_open_query_interior,
+		       opt_gap_open_query_right,
+		       opt_gap_open_target_left,
+		       opt_gap_open_target_interior,
+		       opt_gap_open_target_right,
+		       opt_gap_extension_query_left,
+		       opt_gap_extension_query_interior,
+		       opt_gap_extension_query_right,
+		       opt_gap_extension_target_left,
+		       opt_gap_extension_target_interior,
+		       opt_gap_extension_target_right,
+		       & nwscore,
+		       & nwdiff,
+		       & nwgaps,
+		       & nwindels,
+		       & nwalignmentlength,
+		       & nwalignment,
+		       query_no,
+		       target);
+
+	      nwalignments++;
+	      
+	      double nwid = (nwalignmentlength - nwdiff) * 100.0 / nwalignmentlength;
+
+	      /* info for semi-global alignment (without gaps at ends) */
+	  
+	      long trim_aln_left = 0;
+	      long trim_q_left = 0;
+	      long trim_t_left = 0;
+	      long trim_aln_right = 0;
+	      long trim_q_right = 0;
+	      long trim_t_right = 0;
+
+
+	      /* left trim alignment */
+	  
+	      char * p = nwalignment;
+	      long run = 1;
+	      int scanlength = 0;
+	      sscanf(p, "%ld%n", &run, &scanlength);
+	      char op = *(p+scanlength);
+	      if (op != 'M')
+		{
+		  trim_aln_left = 1 + scanlength;
+		  if (op == 'D')
+		    trim_q_left = run;
+		  else
+		    trim_t_left = run;
+		}
+
+	      /* right trim alignment */
+	  
+	      char * e = nwalignment + strlen(nwalignment);
+	      p = e - 1;
+	      op = *p;
+	      if (op != 'M')
+		{
+		  while (*(p-1) <= '9')
+		    p--;
+		  run = 1;
+		  sscanf(p, "%ld", &run);
+		  trim_aln_right = e - p;
+		  if (op == 'D')
+		    trim_q_right = run;
+		  else
+		    trim_t_right = run;
+		}
+
+#if 0
+	      printf("Alignment string: %s\n", nwalignment);
+	      printf("Trim aln: %ld,%ld q: %ld,%ld t: %ld,%ld\n",
+		     trim_aln_left, trim_aln_right,
+		     trim_q_left, trim_q_right,
+		     trim_t_left, trim_t_right);
+#endif
+
+	      long mismatches = nwdiff - nwindels;
+	      long matches = nwalignmentlength - nwdiff;
+	      long internal_alignmentlength = nwalignmentlength
+		- trim_q_left - trim_t_left - trim_q_right - trim_t_right;
+	      long internal_gaps = nwgaps
+		- (trim_q_left  + trim_t_left  > 0 ? 1 : 0)
+		- (trim_q_right + trim_t_right > 0 ? 1 : 0);
+	      long internal_indels = nwindels
+		- trim_q_left - trim_t_left - trim_q_right - trim_t_right;
+	      double internal_id = 100.0 * matches / internal_alignmentlength;
+
+	      /* test these accept/reject criteria
+		 --id (implemented)
+		 --query_cov
+		 --target_cov
+		 --leftjust
+		 --rightjust
+		 --maxid
+		 --maxdiffs
+		 --maxsubs
+		 --maxgaps
+		 --mincols
+		 --mid
+
+		 Weak hits:
+		 --weak_id
+	      */
+
+	      if(s)
+		{
+		  //		  printf("ID: %.2lf%%\n", internal_id);
+		}
+
+	      if (internal_id >= 100.0 * opt_weak_id)
+		{
+		  hits[hit_count].target = target;
+		  hits[hit_count].count = count;
+		  hits[hit_count].nwscore = nwscore;
+		  hits[hit_count].nwdiff = nwdiff;
+		  hits[hit_count].nwgaps = nwgaps;
+		  hits[hit_count].nwindels = nwindels;
+		  hits[hit_count].nwalignmentlength = nwalignmentlength;
+		  hits[hit_count].nwalignment = nwalignment;
+		  hits[hit_count].nwid = nwid;
+		  hits[hit_count].strand = s;
+		  hits[hit_count].matches = matches;
+		  hits[hit_count].mismatches = mismatches;
+		  hits[hit_count].trim_q_left = trim_q_left;
+		  hits[hit_count].trim_q_right = trim_q_right;
+		  hits[hit_count].trim_t_left = trim_t_left;
+		  hits[hit_count].trim_t_right = trim_t_right;
+		  hits[hit_count].trim_aln_left = trim_aln_left;
+		  hits[hit_count].trim_aln_right = trim_aln_right;
+		  hits[hit_count].internal_alignmentlength = internal_alignmentlength;
+		  hits[hit_count].internal_gaps = internal_gaps;
+		  hits[hit_count].internal_indels = internal_indels;
+		  hits[hit_count].internal_id = internal_id;
+		  hit_count++;
+		  
+		  if (internal_id >= 100.0 * identity)
+		    accepts++;
+		}
+	      else
+		{
+		  free(nwalignment);
+		  rejects++;
+		}
+	    }
+	}  
+      
+      if (s)
+	free(qseq);
+    }
+    
+  /* sort and return hits */
+  
+  qsort(hits, hit_count, sizeof(struct hit), hit_compare);
+
+  return hit_count;
 }
 
 void search()
 {
-  fprintf(stderr,"Searching\n");
+  /* check options */
 
-  for(int i=0; i<32; i++)
-    for(int j=0; j<32; j++)
+  if ((!alnoutfilename) && (!useroutfilename) &&
+      (!ucfilename) && (!blast6outfilename) &&
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_dbmatched) && (!opt_dbnotmatched))
+    fatal("No output files specified");
+
+  if (!databasefilename)
+    fatal("Database filename not specified with --db");
+
+  if ((identity < 0.0) || (identity > 1.0))
+    fatal("Identity between 0.0 and 1.0 must be specified with --id");
+
+
+  /* open output files */
+
+  if (alnoutfilename)
+    {
+      alnoutfile = fopen(alnoutfilename, "w");
+      if (! alnoutfile)
+	fatal("Unable to open alignment output file for writing");
+    }
+
+  if (useroutfilename)
+    {
+      useroutfile = fopen(useroutfilename, "w");
+      if (! useroutfile)
+        fatal("Unable to open user-defined output file for writing");
+    }
+
+  if (blast6outfilename)
+    {
+      blast6outfile = fopen(blast6outfilename, "w");
+      if (! blast6outfile)
+        fatal("Unable to open blast6-like output file for writing");
+    }
+
+  if (ucfilename)
+    {
+      ucfile = fopen(ucfilename, "w");
+      if (! ucfile)
+        fatal("Unable to open uclust-like output file for writing");
+    }
+
+  if (opt_matched)
+    {
+      fp_matched = fopen(opt_matched, "w");
+      if (! fp_matched)
+        fatal("Unable to open matched output file for writing");
+    }
+
+  if (opt_notmatched)
+    {
+      fp_notmatched = fopen(opt_notmatched, "w");
+      if (! fp_notmatched)
+        fatal("Unable to open notmatched output file for writing");
+    }
+
+  if (opt_dbmatched)
+    {
+      fp_dbmatched = fopen(opt_dbmatched, "w");
+      if (! fp_dbmatched)
+        fatal("Unable to open dbmatched output file for writing");
+    }
+
+  if (opt_dbnotmatched)
+    {
+      fp_dbnotmatched = fopen(opt_dbnotmatched, "w");
+      if (! fp_dbnotmatched)
+        fatal("Unable to open dbnotmatched output file for writing");
+    }
+
+  db_read(databasefilename);
+
+  dbindex_build();
+
+  for(int i=0; i<16; i++)
+    for(int j=0; j<16; j++)
       if (i==j)
-        scorematrix[i][j] = 0;
+        scorematrix[i][j] = match_score;
       else
-        scorematrix[i][j] = mismatch_cost;
+        scorematrix[i][j] = mismatch_score;
   
   int seqcount = db_getsequencecount();
   tophits = maxrejects + maxaccepts;
@@ -559,16 +694,13 @@ void search()
   if (maxaccepts > seqcount)
     maxaccepts = seqcount;
 
-  if (identity == 1.0)
-    maxrejects = 0;
-  
   nw_init();
 
   count_kmers_init();
 
   hitcount = (unsigned char *) xmalloc(seqcount);
   topscores = (struct topscore *) xmalloc(sizeof(struct topscore) * tophits);
-  hits = (struct hit *) xmalloc(sizeof(struct hit) * maxaccepts);
+  hits = (struct hit *) xmalloc(sizeof(struct hit) * (maxaccepts+maxrejects) * opt_strand);
   targetlist = (unsigned int*) xmalloc(sizeof(unsigned int)*seqcount);
 
   char * query_head;
@@ -577,7 +709,13 @@ void search()
   long qseqlen;
   long query_no;
   long qmatches = 0;
-  long query_filesize = query_getfilesize();
+
+  query_open(opt_usearch_global);
+
+  progress_init("Searching", query_getfilesize());
+
+  long * dbmatched = (long *) xmalloc(seqcount * sizeof(long));
+  memset(dbmatched, 0, seqcount * sizeof(long));
 
   while(query_getnext(& query_head, & query_head_len,
 		      & qsequence, & qseqlen,
@@ -586,49 +724,67 @@ void search()
       
       /* perform search */
       
-      int accepts = search_onequery(query_head, query_head_len, 
-				    qsequence, qseqlen, 
-				    query_no);
+      int hit_count = search_onequery(query_head,
+				      qsequence, qseqlen, 
+				      query_no);
       
-      if (accepts > 0)
+      if (hit_count > 0)
 	qmatches++;
 
       /* show results */
       
       if (alnoutfilename)
-	results_show_alnout(hits, accepts, query_head,
+	results_show_alnout(hits, hit_count, query_head,
 			   qsequence, qseqlen);
       
       if (useroutfilename)
-	results_show_userout(hits, accepts, query_head,
+	results_show_userout(hits, hit_count, query_head,
 			    qsequence, qseqlen);
       
       if (blast6outfilename)
-	results_show_blast6out(hits, accepts, query_head,
+	results_show_blast6out(hits, hit_count, query_head,
 			      qsequence, qseqlen);
       
       if (ucfilename)
-	results_show_uc(hits, accepts, query_head,
-		       qsequence, qseqlen, 1);
+	results_show_uc(hits, hit_count, query_head,
+		       qsequence, qseqlen);
+      
+      if (hit_count)
+	{
+	  if (opt_matched)
+	    {
+	      fprintf(fp_matched, ">%s\n", query_head);
+	      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen);
+	    }
+	}
+      else
+	{
+	  if (opt_notmatched)
+	    {
+	      fprintf(fp_notmatched, ">%s\n", query_head);
+	      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen);
+	    }
+	}
+
+
+      /* update matching db sequences */
+
+      for (long i=0; i<hit_count; i++)
+	if (hits[i].internal_id >= 100.0 * identity)
+	  dbmatched[hits[i].target]++;
       
       
       /* free memory for alignment strings */
       
-      for(int i=0; i<accepts; i++)
+      for(int i=0; i<hit_count; i++)
 	free(hits[i].nwalignment);
 
 
-      /* only once per second or so */
-
-      if ((query_no % 100) == 0)
-	{
-	  long pos = query_getfilepos();
-	  fprintf(stderr, "  \rSearching %.1f%%, %.1f%% matched", 100.0 * pos / query_filesize, 100.0 * qmatches / (query_no+1));
-	}
-
+      progress_update(query_getfilepos());
+    
     }
   
-  fprintf(stderr, "\n");
+  progress_done();
 
   free(targetlist);
   free(hits);
@@ -638,6 +794,58 @@ void search()
   count_kmers_exit();
 
   nw_exit();
+
+  if (opt_dbmatched || opt_dbnotmatched)
+    {
+      for(long i=0; i<seqcount; i++)
+	if (dbmatched[i])
+	  {
+	    if (opt_dbmatched)
+	      db_fprint_fasta(fp_dbmatched, i);
+	  }
+	else
+	  {
+	    if (opt_dbnotmatched)
+	      db_fprint_fasta(fp_dbnotmatched, i);
+	  }
+    }
+
+
+
+#if 1
+  fprintf(stderr, "Matching query sequences: %ld (%.1f%%)\n", qmatches, 100.0 * qmatches / (query_no+1));
+  fprintf(stderr, "Number of alignments computed: %ld\n", nwalignments);
+#endif
+
+  query_close();
+  dbindex_free();
+  db_free();
+
+  /* close output files */
+
+  if (opt_matched)
+    fclose(fp_matched);
+
+  if (opt_notmatched)
+    fclose(fp_notmatched);
+
+  if (opt_dbmatched)
+    fclose(fp_dbmatched);
+
+  if (opt_dbnotmatched)
+    fclose(fp_dbnotmatched);
+
+  if (ucfilename)
+    fclose(ucfile);
+
+  if (blast6outfilename)
+    fclose(blast6outfile);
+
+  if (useroutfilename)
+    fclose(useroutfile);
+
+  if (alnoutfilename)
+    fclose(alnoutfile);
 
   show_rusage();
 }

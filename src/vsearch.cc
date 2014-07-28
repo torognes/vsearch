@@ -23,30 +23,49 @@
 
 /* ARGUMENTS AND THEIR DEFAULTS */
 
-char * progname;
+static char * progname;
 char * databasefilename;
-char * queryfilename;
+char * opt_usearch_global;
 
 char * alnoutfilename;
 char * useroutfilename;
 char * blast6outfilename;
 char * ucfilename;
+char * opt_matched;
+char * opt_notmatched;
+char * opt_dbmatched;
+char * opt_dbnotmatched;
 
-int wordlength;
-int maxrejects;
-int maxaccepts;
-int match_score;
-int mismatch_score;
-int gapopen_penalty;
-int gapextend_penalty;
+static long threads;
+
+long wordlength;
+long maxrejects;
+long maxaccepts;
+long match_score;
+long mismatch_score;
 double identity;
-int strand;
-int threads;
-int mismatch_cost;
-int gapopen_cost;
-int gapextend_cost;
-int rowlen;
+long rowlen;
+
+double opt_weak_id;
+int opt_strand;
 int opt_self;
+int opt_uc_allhits;
+int opt_notrunclabels;
+char * opt_sortbysize;
+char * opt_sortbylength;
+char * opt_output;
+long opt_minsize;
+long opt_maxsize;
+char * opt_relabel;
+long opt_sizein;
+long opt_sizeout;
+char * opt_derep_fulllength;
+long opt_minseqlength;
+long opt_maxseqlength;
+long opt_minuniquesize;
+long opt_topn;
+long opt_help;
+long opt_version;
 
 int opt_gap_open_query_left;
 int opt_gap_open_target_left;
@@ -73,13 +92,6 @@ long sse42_present = 0;
 long popcnt_present = 0;
 long avx_present = 0;
 long avx2_present = 0;
-
-unsigned long dbsequencecount = 0;
-
-FILE * alnoutfile;
-FILE * useroutfile;
-FILE * blast6outfile;
-FILE * ucfile;
 
 #define cpuid(f,a,b,c,d)                                                \
   __asm__ __volatile__ ("cpuid":                                        \
@@ -142,48 +154,25 @@ void cpu_features_show()
 
 void show_header()
 {
-  char title[] = PROG_NAME " " PROG_VERSION;
-  char ref[] = "Copyright (C) 2014 Torbjorn Rognes";
-  fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
-}
-
-
-void args_usage()
-{
-  /*               0         1         2         3         4         5         6         7          */
-  /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
-
-  fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
-  fprintf(stderr, "  --help                     display this help and exit\n");
-  fprintf(stderr, "  --version                  display version information and exit\n");
+  char title[] = PROG_NAME " " PROG_VERSION "_" PROG_ARCH;
+  char ref[] = "Copyright (C) 2014 Torbjorn Rognes, all rights reserved. License: AGPL 3.0";
+  //  fprintf(stderr, "%s [%s %s]\n%s\n", title, __DATE__, __TIME__, ref);
+  fprintf(stderr, "%s, %ldMB RAM, %ld cores\n%s\n", 
+	  title,
+	  arch_get_memtotal() / 1024 / 1024,
+	  sysconf(_SC_NPROCESSORS_ONLN),
+	  ref);
+  fprintf(stderr, "https://github.com/torognes/vsearch\n");
   fprintf(stderr, "\n");
-  fprintf(stderr, "  --usearch_global FILENAME  query filename (FASTA) for global alignment search\n");
-  fprintf(stderr, "  --db FILENAME              database filename (FASTA)\n");
-  fprintf(stderr, "  --id REAL                  minimum sequence identity accepted\n");
-  fprintf(stderr, "  --alnout FILENAME          alignment output filename\n");
-  fprintf(stderr, "  --userout FILENAME         user-defined tab-separated output filename\n");
-  fprintf(stderr, "  --userfields STRINGS       fields to output to file specified with --userout\n");
-  fprintf(stderr, "  --blast6out FILENAME       blast6-like output filename\n");
-  fprintf(stderr, "  --uc FILENAME              UCLUST-like output filename\n");
-  fprintf(stderr, "  --strand plus|both         search plus strand or both\n");
-  fprintf(stderr, "  --maxaccepts INT           maximum number of hits to show (1)\n");
-  fprintf(stderr, "  --maxrejects INT           number of non-matching hits to consider (32)\n");
-  fprintf(stderr, "  --match INT                score for match (1)\n");
-  fprintf(stderr, "  --mismatch INT             score for mismatch (-2)\n");
-  fprintf(stderr, "  --gapopen INT              penalty for gap opening (10)\n");
-  fprintf(stderr, "  --gapext INT               penalty for gap extension (1)\n");
-  fprintf(stderr, "  --wordlength INT           length of words (kmers) used for database index (8)\n");
-  fprintf(stderr, "  --fulldp                   full dynamic programming for all alignments\n");
-  fprintf(stderr, "  --threads INT              number of threads to use (1)\n");
-  fprintf(stderr, "  --rowlen INT               width of sequence alignment lines (64)\n");
-  fprintf(stderr, "  --self                     ignore hits with identical label as the query\n");
 }
 
-void args_get_gap_penalty_string(char * optarg, int is_open)
+
+void args_get_gap_penalty_string(char * arg, int is_open)
 {
   /* See http://www.drive5.com/usearch/manual/aln_params.html
      
      --gapopen *E/10I/1E/2L/3RQ/4RT/1IQ
+     --gapext *E/10I/1E/2L/3RQ/4RT/1IQ
      
      integer or *
      followed by I, E, L, R, Q or T characters
@@ -203,7 +192,7 @@ void args_get_gap_penalty_string(char * optarg, int is_open)
 
   */
   
-  char *p = optarg;
+  char *p = arg;
 
   while (*p)
     {
@@ -216,11 +205,11 @@ void args_get_gap_penalty_string(char * optarg, int is_open)
 	}
       else if (*p == '*')
 	{
-	  pen = 1000;
+	  pen = 10000;
 	  p++;
 	}
       else
-	fatal("Invalid gap open penalty argument");
+	fatal("Invalid gap penalty argument (%s)", p);
 
       char * q = p;
 
@@ -231,7 +220,7 @@ void args_get_gap_penalty_string(char * optarg, int is_open)
       int set_Q = 0;
       int set_T = 0;
 
-      while(*p)
+      while((*p) && (*p != '/'))
 	{
 	  switch(*p)
 	    {
@@ -253,9 +242,6 @@ void args_get_gap_penalty_string(char * optarg, int is_open)
 	    case 'T':
 	      set_T = 1;
 	      break;
-	    case '\0':
-	    case '/':
-	      break;
 	    default:
 	      fatal("Invalid char '%.1s' in gap penalty string", p);
 	      break;
@@ -263,6 +249,9 @@ void args_get_gap_penalty_string(char * optarg, int is_open)
 	  p++;
 	}
       
+      if (*p == '/')
+	p++;
+
       if (set_E && (set_L || set_R))
 	fatal("Invalid gap penalty string (E and L or R) '%s'", q);
       
@@ -335,12 +324,12 @@ void args_get_gap_penalty_string(char * optarg, int is_open)
 }
 
 
-long args_getint(char * optarg)
+long args_getlong(char * arg)
 {
   int len = 0;
   long temp = 0;
-  int ret = sscanf(optarg, "%ld%n", &temp, &len);
-  if ((ret == 0) || (((unsigned int)(len)) < strlen(optarg)))
+  int ret = sscanf(arg, "%ld%n", &temp, &len);
+  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
     fatal("Illegal option argument");
   return temp;
 }
@@ -351,27 +340,67 @@ void args_init(int argc, char **argv)
 
   progname = argv[0];
 
-  databasefilename = NULL;
-  alnoutfilename = NULL;
-  useroutfilename = NULL;
-  queryfilename = NULL;
+  databasefilename = 0;
+  alnoutfilename = 0;
+  useroutfilename = 0;
+  opt_matched = 0;
+  opt_notmatched = 0;
+  opt_dbmatched = 0;
+  opt_dbnotmatched = 0;
   
   wordlength = 8;
+
   maxrejects = 32;
   maxaccepts = 1;
-  match_score = 1;
-  mismatch_score = -2;
+
   identity = -1.0;
-  strand = -1;
+  opt_weak_id = 10.0;
+  opt_strand = 1;
   threads = 1;
-  gapopen_penalty = 10;
-  gapextend_penalty = 1;
   rowlen = 64;
   opt_self = 0;
+  opt_uc_allhits = 0;
+  opt_notrunclabels = 0;
+
+  opt_help = 0;
+  opt_version = 0;
+  opt_usearch_global = 0;
+  opt_sortbysize = 0;
+  opt_sortbylength = 0;
+  opt_derep_fulllength = 0;
+
+  opt_output = 0;
+  opt_minsize = 0;
+  opt_maxsize = LONG_MAX;
+  opt_relabel = 0;
+  opt_sizein = 0;
+  opt_sizeout = 0;
+  opt_minseqlength = 0;
+  opt_maxseqlength = 50000;
+  opt_minuniquesize = 0;
+  opt_topn = LONG_MAX;
+
+  match_score = 2;
+  mismatch_score = -4;
+
+  opt_gap_open_query_left=2;
+  opt_gap_open_target_left=2;
+  opt_gap_open_query_interior=20;
+  opt_gap_open_target_interior=20;
+  opt_gap_open_query_right=2;
+  opt_gap_open_target_right=2;
+
+  opt_gap_extension_query_left=1;
+  opt_gap_extension_target_left=1;
+  opt_gap_extension_query_interior=2;
+  opt_gap_extension_target_interior=2;
+  opt_gap_extension_query_right=1;
+  opt_gap_extension_target_right=1;
 
   opterr = 1;
 
   static struct option long_options[] =
+
   {
     {"help",                  no_argument,       0, 0 },
     {"version",               no_argument,       0, 0 },
@@ -395,6 +424,26 @@ void args_init(int argc, char **argv)
     {"self",                  no_argument,       0, 0 },
     {"blast6out",             required_argument, 0, 0 },
     {"uc",                    required_argument, 0, 0 },
+    {"weak_id",               required_argument, 0, 0 },
+    {"uc_allhits",            no_argument,       0, 0 },
+    {"notrunclabels",         no_argument,       0, 0 },
+    {"sortbysize",            required_argument, 0, 0 },
+    {"output",                required_argument, 0, 0 },
+    {"minsize",               required_argument, 0, 0 },
+    {"maxsize",               required_argument, 0, 0 },
+    {"relabel",               required_argument, 0, 0 },
+    {"sizeout",               no_argument,       0, 0 },
+    {"derep_fulllength",      required_argument, 0, 0 },
+    {"minseqlength",          required_argument, 0, 0 },
+    {"minuniquesize",         required_argument, 0, 0 },
+    {"topn",                  required_argument, 0, 0 },
+    {"maxseqlength",          required_argument, 0, 0 },
+    {"sizein",                no_argument,       0, 0 },
+    {"sortbylength",          required_argument, 0, 0 },
+    {"matched",               required_argument, 0, 0 },
+    {"notmatched",            required_argument, 0, 0 },
+    {"dbmatched",             required_argument, 0, 0 },
+    {"dbnotmatched",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -407,14 +456,12 @@ void args_init(int argc, char **argv)
     {
     case 0:
       /* help */
-      args_usage();
-      exit(1);
+      opt_help = 1;
       break;
 
     case 1:
       /* version */
-      show_header();
-      exit(1);
+      opt_version = 1;
       break;
 
     case 2:
@@ -424,7 +471,7 @@ void args_init(int argc, char **argv)
           
     case 3:
       /* usearch_global */
-      queryfilename = optarg;
+      opt_usearch_global = optarg;
       break;
 
     case 4:
@@ -439,27 +486,27 @@ void args_init(int argc, char **argv)
 
     case 6:
       /* maxaccepts */
-      maxaccepts = args_getint(optarg);
+      maxaccepts = args_getlong(optarg);
       break;
 
     case 7:
       /* maxrejects */
-      maxrejects = args_getint(optarg);
+      maxrejects = args_getlong(optarg);
       break;
 
     case 8:
       /* wordlength */
-      wordlength = args_getint(optarg);
+      wordlength = args_getlong(optarg);
       break;
 
     case 9:
       /* match */
-      match_score = args_getint(optarg);
+      match_score = args_getlong(optarg);
       break;
 
     case 10:
       /* mismatch */
-      mismatch_score = args_getint(optarg);
+      mismatch_score = args_getlong(optarg);
       break;
 
     case 11:
@@ -469,29 +516,31 @@ void args_init(int argc, char **argv)
     case 12:
       /* strand */
       if (strcasecmp(optarg, "plus") == 0)
-        strand = 1;
+        opt_strand = 1;
       else if (strcasecmp(optarg, "both") == 0)
-        strand = 2;
+        opt_strand = 2;
+      else
+	opt_strand = 0;
       break;
 
     case 13:
       /* threads */
-      threads = args_getint(optarg);
+      threads = args_getlong(optarg);
       break;
 
     case 14:
       /* gapopen */
-      gapopen_penalty = args_getint(optarg);
+      args_get_gap_penalty_string(optarg, 1);
       break;
 
     case 15:
       /* gapext */
-      gapextend_penalty = args_getint(optarg);
+      args_get_gap_penalty_string(optarg, 0);
       break;
 
     case 16:
       /* rowlen */
-      rowlen = args_getint(optarg);
+      rowlen = args_getlong(optarg);
       break;
 
     case 17:
@@ -520,29 +569,140 @@ void args_init(int argc, char **argv)
       ucfilename = optarg;
       break;
       
-    default:
-      args_usage();
-      exit(1);
+    case 22:
+      /* weak_id */
+      opt_weak_id = atof(optarg);
       break;
+
+    case 23:
+      /* uc_allhits */
+      opt_uc_allhits = 1;
+      break;
+
+    case 24:
+      /* notrunclabels */
+      opt_notrunclabels = 1;
+      break;
+
+    case 25:
+      /* sortbysize */
+      opt_sortbysize = optarg;
+      break;
+
+    case 26:
+      /* output */
+      opt_output = optarg;
+      break;
+
+    case 27:
+      /* minsize */
+      opt_minsize = args_getlong(optarg);
+      break;
+
+    case 28:
+      /* maxsize */
+      opt_maxsize = args_getlong(optarg);
+      break;
+
+    case 29:
+      /* relabel */
+      opt_relabel = optarg;
+      break;
+
+    case 30:
+      /* sizeout */
+      opt_sizeout = 1;
+      break;
+
+    case 31:
+      /* derep_fulllength */
+      opt_derep_fulllength = optarg;
+      break;
+
+    case 32:
+      /* minseqlength */
+      opt_minseqlength = args_getlong(optarg);
+      break;
+
+    case 33:
+      /* minuniquesize */
+      opt_minuniquesize = args_getlong(optarg);
+      break;
+
+    case 34:
+      /* topn */
+      opt_topn = args_getlong(optarg);
+      break;
+
+    case 35:
+      /* maxseqlength */
+      opt_maxseqlength = args_getlong(optarg);
+      break;
+
+    case 36:
+      /* sizein */
+      opt_sizein = 1;
+      break;
+
+    case 37:
+      /* sortbylength */
+      opt_sortbylength = optarg;
+      break;
+
+    case 38:
+      /* matched */
+      opt_matched = optarg;
+      break;
+
+    case 39:
+      /* notmatched */
+      opt_notmatched = optarg;
+      break;
+
+    case 40:
+      /* dbmatched */
+      opt_dbmatched = optarg;
+      break;
+
+    case 41:
+      /* dbnotmatched */
+      opt_dbnotmatched = optarg;
+      break;
+
+    default:
+      fatal("Internal error in option parsing");
     }
   }
   
   if (c != -1)
     exit(1);
   
-  if (!queryfilename)
-    fatal("Query filename not specified with --usearch_global");
+  int commands = 0;
+  if (opt_usearch_global)
+    commands++;
+  if (opt_sortbysize)
+    commands++;
+  if (opt_sortbylength)
+    commands++;
+  if (opt_derep_fulllength)
+    commands++;
+  if (opt_help)
+    commands++;
+  if (opt_version)
+    commands++;
 
-  if (!databasefilename)
-    fatal("Database filename not specified with --db");
+  if (commands == 0)
+    opt_version = 1;
 
-  if ((!alnoutfilename) && (!useroutfilename) &&
-      (!ucfilename) && (!blast6outfilename))
-    fatal("No output files specified");
-  
-  if ((identity < 0.0) || (identity > 100.0))
-    fatal("Identity between 0.0 and 1.0 must be specified with --id");
-  
+  if (commands > 1)
+    fatal("More than one command specified");
+
+  if (opt_weak_id > identity)
+    opt_weak_id = identity;
+
+  if (opt_minseqlength < 0)
+    fatal("The argument to --minseqlength must be positive");
+
   if (maxaccepts < 0)
     fatal("The argument to --maxaccepts must not be negative");
 
@@ -555,15 +715,6 @@ void args_init(int argc, char **argv)
   if ((wordlength < 3) || (wordlength > 15))
     fatal("The argument to --wordlength must be in the range 3 to 15");
 
-  if (strand < 0)
-    fatal("The argument to required option --strand must be plus or both");
-
-  if (gapopen_penalty < 0)
-    fatal("The argument to --gapopen must not be negative");
-
-  if (gapextend_penalty < 0)
-    fatal("The argument to --gapext must not be negative");
-
   if (match_score <= 0)
     fatal("The argument to --match must be positive");
 
@@ -573,120 +724,167 @@ void args_init(int argc, char **argv)
   if(rowlen < 0)
     fatal("The argument to --rowlen must not be negative");
 
+  if (opt_strand < 1)
+    fatal("The argument to --strand must be plus or both");
+  
+  /* TODO: check valid range of gap penalties */
+
   /* currently unsupported option arguments */
   
   if (threads != 1)
     fatal("Only one thread is currently not supported");
 
-  if (strand != 1)
-    fatal("Searching on both strands currently not supported");
-}
 
+  /* adapt/adjust parameters */
 
-int main(int argc, char** argv)
-{
-  setlocale(LC_ALL, "en_US");
+#if 0
 
-  cpu_features_detect();
+  /* adjust gap open penalty according to convention */
 
-  /*
-  if (!(sse2_present && popcnt_present))
-    fatal("This program requires a processor with SSE2 and POPCNT instructions.\n");
-  */
+  opt_gap_open_query_left -= opt_gap_extension_query_left;
+  opt_gap_open_target_left -= opt_gap_extension_target_left;
+  opt_gap_open_query_interior -= opt_gap_extension_query_interior;
+  opt_gap_open_target_interior -= opt_gap_extension_target_interior;
+  opt_gap_open_query_right -= opt_gap_extension_query_right;
+  opt_gap_open_target_right -= opt_gap_extension_target_right;
+
+#endif
   
+  /* set default opt_minseqlength depending on command */
 
-  args_init(argc, argv);
-
-
-  /* open output files */
-
-  if (alnoutfilename)
+  if (opt_minseqlength == 0)
     {
-      alnoutfile = fopen(alnoutfilename, "w");
-      if (! alnoutfile)
-	fatal("Unable to open alignment output file for writing");
+      if (opt_sortbysize || opt_derep_fulllength)
+	opt_minseqlength = 32;
+      else
+	opt_minseqlength = 1;
     }
-
-  if (useroutfilename)
-    {
-      useroutfile = fopen(useroutfilename, "w");
-      if (! useroutfile)
-	fatal("Unable to open user-defined output file for writing");
-    }
-
-  if (blast6outfilename)
-    {
-      blast6outfile = fopen(blast6outfilename, "w");
-      if (! blast6outfile)
-	fatal("Unable to open blast6-like output file for writing");
-    }
-
-  if (ucfilename)
-    {
-      ucfile = fopen(ucfilename, "w");
-      if (! ucfile)
-	fatal("Unable to open uclust-like output file for writing");
-    }
-
-  show_header();
-  
-
-  /* convert score/penalty similary system to cost distance system (Sellers) */
-
-  mismatch_cost = match_score - mismatch_score;
-  gapopen_cost = gapopen_penalty;
-  gapextend_cost = match_score + gapextend_penalty;
-
-  int cost_factor = gcd(gcd(mismatch_cost, gapopen_cost), gapextend_cost);
-  
-  mismatch_cost /= cost_factor;
-  gapopen_cost /= cost_factor;
-  gapextend_cost /= cost_factor;
 
   if (rowlen == 0)
     rowlen = 60;
+}
 
 
-  //  cpu_features_show();
+void cmd_help()
+{
+  /*               0         1         2         3         4         5         6         7          */
+  /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  db_read(databasefilename);
+  fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
+  fprintf(stderr, "  --help                      display this help and exit\n");
+  fprintf(stderr, "  --version                   display version information and exit\n");
+  fprintf(stderr, "  --usearch_global FILENAME   query filename (FASTA) - global alignment search\n");
+  fprintf(stderr, "  --db FILENAME               database filename (FASTA)\n");
+  fprintf(stderr, "  --id REAL                   minimum sequence identity accepted\n");
+  fprintf(stderr, "  --weak_id REAL              show hits with this id, but do not terminate\n");
+  fprintf(stderr, "  --alnout FILENAME           alignment output filename\n");
+  fprintf(stderr, "  --userout FILENAME          user-defined tab-separated output filename\n");
+  fprintf(stderr, "  --userfields STRINGS        fields to output with --userout file\n");
+  fprintf(stderr, "  --blast6out FILENAME        filename for output similar to blast -m6 option\n");
+  fprintf(stderr, "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n");
+  fprintf(stderr, "  --uc_allhits                show all, not just top hit with uc output\n");
+  fprintf(stderr, "  --matched FILENAME          FASTA file for matching query sequences\n");
+  fprintf(stderr, "  --notmatched FILENAME       FASTA file for non-matching query sequences\n");
+  fprintf(stderr, "  --dbmatched FILENAME        FASTA file for matching database sequences\n");
+  fprintf(stderr, "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n");
+  fprintf(stderr, "  --strand plus|both          search plus strand or both\n");
+  fprintf(stderr, "  --maxaccepts INT            maximum number of hits to show (1)\n");
+  fprintf(stderr, "  --maxrejects INT            number of non-matching hits to consider (32)\n");
+  fprintf(stderr, "  --match INT                 score for match (2)\n");
+  fprintf(stderr, "  --mismatch INT              score for mismatch (-4)\n");
+  fprintf(stderr, "  --gapopen STRING            penalties for gap opening (20I/2E)\n");
+  fprintf(stderr, "  --gapext STRING             penalties for gap extension (2I/1E)\n");
+  fprintf(stderr, "  --wordlength INT            length of words (kmers) for database index (8)\n");
+  fprintf(stderr, "  --fulldp                    full dynamic programming for all alignments\n");
+  fprintf(stderr, "  --threads INT               number of threads to use (1)\n");
+  fprintf(stderr, "  --rowlen INT                width of alignment lines in alnout output(64)\n");
+  fprintf(stderr, "  --self                      ignore hits with identical label as the query\n");
+  fprintf(stderr, "  --notrunclabels             do not truncate labels at first space\n");
+  fprintf(stderr, "  --sortbysize FILENAME       abundance sort sequences in FASTA file specified\n");
+  fprintf(stderr, "  --output FILENAME           output FASTA file for abundance sort / derepl. \n");
+  fprintf(stderr, "  --minuniquesize INT         minimum abundance for output from dereplication\n");
+  fprintf(stderr, "  --minsize INT               minimum abundance for sortbysize\n");
+  fprintf(stderr, "  --maxsize INT               maximum abundance for sortbysize\n");
+  fprintf(stderr, "  --relabel STRING            relabel sequences with this prefix string\n");
+  fprintf(stderr, "  --sizein                    read abundance annotation from input\n");
+  fprintf(stderr, "  --sizeout                   add abundance annotation to output\n");
+  fprintf(stderr, "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n");
+  fprintf(stderr, "  --minseqlength INT          minimum sequence length for sort and derep\n");
+  fprintf(stderr, "  --maxseqlength INT          maximum sequence length (50000)\n");
+  fprintf(stderr, "  --topn INT                  output only most abundant sequences from derepl.\n");
 
-  dbsequencecount = db_getsequencecount();
+}
 
-  query_open(queryfilename);
+void cmd_usearch_global()
+{
+  /* check options */
 
+  if ((!alnoutfilename) && (!useroutfilename) &&
+      (!ucfilename) && (!blast6outfilename))
+    fatal("No output files specified");
+  
+  if (!databasefilename)
+    fatal("Database filename not specified with --db");
+  
+  if ((identity < 0.0) || (identity > 1.0))
+    fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-  long start_time, stop_time, difference;
-
-  start_time = getusec();
-
-  dbindex_build();
 
   search();
+}
 
-  dbindex_free();
+void cmd_sortbysize()
+{
+  if (!opt_output)
+    fatal("FASTA output file for sortbysize must be specified with --output");
 
-  stop_time = getusec();
+  sortbysize();
+}
 
-  difference = stop_time - start_time;
+void cmd_sortbylength()
+{
+  if (!opt_output)
+    fatal("FASTA output file for sortbylength must be specified with --output");
 
+  sortbylength();
+}
 
-  query_close();
+void cmd_derep_fulllength()
+{
+  if ((!opt_output) && (!ucfilename))
+    fatal("Output file for derepl_fulllength must be specified with --output or --uc");
+  
+  derep_fulllength();
+}
 
-  db_free();
+int main(int argc, char** argv)
+{
+  //  setlocale(LC_ALL, "en_US");
 
+  cpu_features_detect();
 
-  /* close output files */
+  args_init(argc, argv);
 
-  if (ucfilename)
-    fclose(ucfile);
+  show_header();
 
-  if (blast6outfilename)
-    fclose(blast6outfile);
-
-  if (useroutfilename)
-    fclose(useroutfile);
-
-  if (alnoutfilename)
-    fclose(alnoutfile);
+  if (opt_help)
+    {
+      cmd_help();
+    }
+  else if (opt_usearch_global)
+    {
+      cmd_usearch_global();
+    }
+  else if (opt_sortbysize)
+    {
+      cmd_sortbysize();
+    }
+  else if (opt_sortbylength)
+    {
+      cmd_sortbylength();
+    }
+  else if (opt_derep_fulllength)
+    {
+      cmd_derep_fulllength();
+    }
 }

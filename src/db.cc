@@ -21,83 +21,49 @@
 
 #include "vsearch.h"
 
-/*
+long stripped[256];
 
-char map_nt[256] =
-  {
-    // N = A
-
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  0, -1,  1, -1, -1, -1,  2, -1, -1, -1, -1, -1, -1,  0, -1,
-    -1, -1, -1, -1,  3,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  0, -1,  1, -1, -1, -1,  2, -1, -1, -1, -1, -1, -1,  0, -1,
-    -1, -1, -1, -1,  3,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
-
-*/
-
-char map_nt[256] =
-  {
-    // ARWMDHVN = 0, CYB = 1, GS = 2, TU = 3
-
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  0,  1,  1,  0, -1, -1,  2,  0, -1, -1,  0, -1,  0,  0, -1,
-    -1, -1,  0,  2,  3,  3,  0,  0, -1,  1, -1, -1, -1, -1, -1, -1,
-    -1,  0,  1,  1,  0, -1, -1,  2,  0, -1, -1,  0, -1,  0,  0, -1,
-    -1, -1,  0,  2,  3,  3,  0,  0, -1,  1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
-
-char sym_nt[] = "acgt";
-
-unsigned long sequences = 0;
-unsigned long nucleotides = 0;
-unsigned long headerchars = 0;
-int longest = 0;
-long shortest = LONG_MAX;
-int longestheader = 0;
+static unsigned long sequences = 0;
+static unsigned long nucleotides = 0;
+static unsigned long headerchars = 0;
+static int longest = 0;
+static long shortest = LONG_MAX;
+static int longestheader = 0;
 
 seqinfo_t * seqindex = 0;
-char * datap = 0;
+static char * datap = 0;
 
 #define MEMCHUNK 1048576
 #define LINEALLOC 1048576
 
-void showseq(char * seq)
-{
-  char * p = seq;
-  while (char c = *p++)
-  {
-    putchar(sym_nt[(unsigned int)c]);
-  }
-}
-
+regex_t db_regexp;
 
 void db_read(const char * filename)
 {
-  show_rusage();
-  fprintf(stderr, "Reading database: ");
+  if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+    fatal("Regular expression compilation failed");
+  
+  FILE * fp = NULL;
+  if (filename)
+    {
+      fp = fopen(filename, "r");
+      if (!fp)
+        fatal("Error: Unable to open database file (%s)", filename);
+    }
+  else
+    fp = stdin;
+
+
+  /* get file size */
+
+  if (fseek(fp, 0, SEEK_END))
+    fatal("Error: Unable to seek in database file (%s)", filename);
+
+  long filesize = ftell(fp);
+  
+  rewind(fp);
+
+  progress_init("Reading database file", filesize);
 
   /* allocate space */
 
@@ -112,23 +78,24 @@ void db_read(const char * filename)
   nucleotides = 0;
   headerchars = 0;
 
-  FILE * fp = NULL;
-  if (filename)
-    {
-      fp = fopen(filename, "r");
-      if (!fp)
-        fatal("Error: Unable to open database file (%s)", filename);
-    }
-  else
-    fp = stdin;
-
   char line[LINEALLOC];
   line[0] = 0;
   fgets(line, LINEALLOC, fp);
 
+  long lineno = 1;
+
+  long stripped_count = 0;
+  for(int i=0; i<256; i++)
+    stripped[i] = 0;
+
+  long discarded_short = 0;
+  long discarded_long = 0;
+
   while(line[0])
     {
       /* read header */
+
+      unsigned long hdrbegin = datalen;
 
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
@@ -137,9 +104,11 @@ void db_read(const char * filename)
 
       char * z0 = line + 1;
       char * z = z0;
-      while (1)
+      while (*z)
 	{
-	  if ((*z == ' ') || (*z == '\n') || (!*z))
+	  if ((!opt_notrunclabels) && (*z == ' '))
+	    break;
+	  if (*z == '\n')
 	    break;
 	  z++;
 	}
@@ -165,11 +134,11 @@ void db_read(const char * filename)
       *(datap + datalen + headerlen) = 0;
       datalen += headerlen + 1;
 
-
       /* get next line */
 
       line[0] = 0;
       fgets(line, LINEALLOC, fp);
+      lineno++;
 
       /* read sequence */
 
@@ -192,53 +161,156 @@ void db_read(const char * filename)
           char c;
           char * p = line;
           while((c = *p++))
-            if ((m = map_nt[(int)c]) >= 0)
-            {
-              while (datalen >= dataalloc)
-              {
-                dataalloc += MEMCHUNK;
-                datap = (char *) xrealloc(datap, dataalloc);
-              }
+	    {
+	      m = chrstatus[(int)c];
 
-              *(datap+datalen) = m;
-              datalen++;
-            }
-            else if (c != '\n')
-              fatal("Illegal character in sequence.");
+	      switch(m)
+		{
+		case 0:
+		  /* character to be stripped */
+		  stripped_count++;
+		  stripped[(int)c]++;
+		  break;
+
+		case 1:
+		  /* legal character */
+		  while (datalen >= dataalloc)
+		    {
+		      dataalloc += MEMCHUNK;
+		      datap = (char *) xrealloc(datap, dataalloc);
+		    }
+		  *(datap+datalen) = c;
+		  datalen++;
+		  break;
+
+		case 2:
+		  /* fatal character */
+		  char msg[200];
+		  if (c>=32)
+		    snprintf(msg, 200, "illegal character '%c' on line %ld in the database file", c, lineno);
+		  else
+		    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the database file", c, lineno);
+		  fatal(msg);
+		  break;
+
+		case 3:
+		  /* character to be stripped, silently */
+		  break;
+		}
+	    }
+
           line[0] = 0;
           fgets(line, LINEALLOC, fp);
+	  lineno++;
         }
       
+
       long length = datalen - seqbegin - 4;
-
-      /* store the length in designated space */
-
-      *(unsigned int*)(datap + seqbegin) = length;
-
-      nucleotides += length;
-
-      if (length > longest)
-        longest = length;
-
-      if (length < shortest)
-        shortest = length;
-
-      /*
-      *(datap+datalen) = 0;
-      datalen++;
-      */
       
-      sequences++;
+
+      /* discard sequence if too short or long */
+
+      if (length < opt_minseqlength)
+	{
+	  discarded_short++;
+	  datalen = hdrbegin;
+	}
+      else if (length > opt_maxseqlength)
+	{
+	  discarded_long++;
+	  datalen = hdrbegin;
+	}
+      else
+	{
+	  /* store the length in its designated space */
+	  
+	  *(unsigned int*)(datap + seqbegin) = length;
+	  
+	  
+	  /* add a zero after the sequence */
+	  
+	  while (datalen >= dataalloc)
+	    {
+	      dataalloc += MEMCHUNK;
+	      datap = (char *) xrealloc(datap, dataalloc);
+	    }
+	  *(datap+datalen) = 0;
+	  datalen++;
+	  
+
+	  /* update statistics */
+
+	  nucleotides += length;
+
+	  if (length > longest)
+	    longest = length;
+	  
+	  if (length < shortest)
+	    shortest = length;
+
+	  sequences++;
+	}
+
+      progress_update(ftell(fp));
     }
 
   fclose(fp);
 
-  /* create indices */
+  progress_done();
+
+  if (sequences > 0)
+    fprintf(stderr,
+	    "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n", 
+	    db_getnucleotidecount(),
+	    db_getsequencecount(),
+	    db_getshortestsequence(),
+	    db_getlongestsequence(),
+	    db_getnucleotidecount() * 1.0 / db_getsequencecount());
+  else
+    fprintf(stderr,
+	    "%'ld nt in %'ld seqs\n", 
+	    db_getnucleotidecount(),
+	    db_getsequencecount());
+
+  /* Warn about stripped chars */
+
+  if (stripped_count)
+    {
+      fprintf(stderr, "Warning: invalid characters stripped from sequence:");
+      for (int i=0; i<256;i++)
+	if (stripped[i])
+	  fprintf(stderr, " %c(%ld)", i, stripped[i]);
+      fprintf(stderr, "\n");
+    }
+
+
+  /* Warn about discarded sequences */
+
+  if (discarded_short)
+    fprintf(stderr,
+	    "Warning: %lu sequences shorter than %lu nucleotides discarded.\n",
+	    discarded_short, opt_minseqlength);
+  
+  if (discarded_long)
+    fprintf(stderr,
+	    "Warning: %lu sequences longer than %lu nucleotides discarded.\n",
+	    discarded_long, opt_maxseqlength);
+
+  show_rusage();
+  
+
+  progress_init("Indexing sequences", sequences);
+
+
+  /* Create index and parse abundance info, if specified */
 
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
   seqinfo_t * seqindex_p = seqindex;
 
   char * p = datap;
+
+  regmatch_t pmatch[4];
+  
   for(unsigned long i=0; i<sequences; i++)
   {
     seqindex_p->headerlen = * (unsigned int *) p;
@@ -254,19 +326,24 @@ void db_read(const char * filename)
     p += 4;
 
     seqindex_p->seq = p;
-    p += seqindex_p->seqlen;
+    p += seqindex_p->seqlen + 1;
+
+    seqindex_p->size = 1;
+
+    if (opt_sizein && !regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
+      {
+	unsigned long size = atol(seqindex_p->header + pmatch[2].rm_so);
+	if (size > 0)
+	  seqindex_p->size = size;
+	else
+	  fatal("size annotation zero");
+      }
 
     seqindex_p++;
+    progress_update(i);
   }
 
-  fprintf(stderr,
-          "%'ld nt in %'ld seqs, from %'ld to %'ld nt (avg %'.0f)\n", 
-          db_getnucleotidecount(),
-          db_getsequencecount(),
-          db_getshortestsequence(),
-          db_getlongestsequence(),
-          db_getnucleotidecount() * 1.0 / db_getsequencecount());
-
+  progress_done();
 }
 
 unsigned long db_getsequencecount()
@@ -292,48 +369,6 @@ unsigned long db_getlongestsequence()
 unsigned long db_getshortestsequence()
 {
   return shortest;
-}
-
-seqinfo_t * db_getseqinfo(unsigned long seqno)
-{
-  return seqindex+seqno;
-}
-
-char * db_getsequence(unsigned long seqno)
-{
-  return seqindex[seqno].seq;
-}
-
-void db_getsequenceandlength(unsigned long seqno,
-                             char ** address,
-                             long * length)
-{
-  *address = seqindex[seqno].seq;
-  *length = (long)(seqindex[seqno].seqlen);
-}
-
-unsigned long db_getsequencelen(unsigned long seqno)
-{
-  return seqindex[seqno].seqlen;
-}
-
-char * db_getheader(unsigned long seqno)
-{
-  return seqindex[seqno].header;
-}
-
-unsigned long db_getheaderlen(unsigned long seqno)
-{
-  return seqindex[seqno].headerlen;
-}
-
-void db_putseq(long seqno)
-{
-  char * seq;
-  long len;
-  db_getsequenceandlength(seqno, & seq, & len);
-  for(int i=0; i<len; i++)
-    putchar(sym_nt[(int)(seq[i])]);
 }
 
 void db_free()
