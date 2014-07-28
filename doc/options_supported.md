@@ -13,7 +13,7 @@ Command line example:
 `./vsearch-0.0.6-macosx-x86_64 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln`
 
 
-## Basic options
+## Commands
 
 - [x] `--usearch_global <filename>`
 
@@ -23,9 +23,17 @@ Command line example:
 
 - [x] `--sortbylength`
 
+- [x] `--version`
+
+- [x] `--help`
+
+- [ ] `--derep_prefix`
+
 - [ ] `--cluster_smallmem <filename>`
 
 - [ ] `--cluster_fast <filename>`
+
+- [ ] `--cluster_otus <filename>`
 
 
 ## General options
@@ -45,9 +53,15 @@ Command line example:
 
 - [x] `--alnout <filename>`
 
+- [x] `--blast6out <filename>`
+
 - [x] `--userout <filename>`
 
-- [x] `--blast6out <filename>`
+- [x] `--userfields <string>`
+
+- [x] `--uc <filename>`
+
+- [x] `--uc_allhits`
 
 - [x] `--matched <filename>`
 
@@ -59,21 +73,11 @@ Command line example:
 
 - [x] `--sizeout`
 
-- [x] `--uc <filename>`
-
 - [x] `--output <filename>`
-
-- [x] `--userfields <string>`
-
-- [x] `--uc_allhits`
 
 - [x] `--relabel <string>`
 
-- [x] `--sizeout`
-
 - [x] `--topn <integer>`
-
-- [x] `--minuniquesize <integer>`
 
 - [x] `--minseqlength <integer>`
 
@@ -96,6 +100,11 @@ Command line example:
 - [ ] `--clusters <filename>`
 
 - [ ] `--msaout <filename>`
+
+
+## Dereplication options
+
+- [x] `--minuniquesize <integer>`
 
 
 ## Search options
