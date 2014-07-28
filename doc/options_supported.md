@@ -10,7 +10,7 @@ Defaults are indicated in parentheses.
 
 Command line example:
 
-./vsearch-0.0.6-macosx-x86\_64 --usearch\_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln
+`./vsearch-0.0.6-macosx-x86\_64 --usearch\_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln`
 
 
 ## Basic options
