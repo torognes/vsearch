@@ -27,7 +27,7 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 **Performance:** Based on very limited testing, the VSEARCH speed appears to be about half that of USEARCH when USEARCH is run with the `--fulldp` option. The accuracy also seems comparable but very variable relative to USEARCH. This needs to be looked more into.
 
-**Command line options:** A list of all the options that usearch\_global supports is available in the doc folder. Please see the file usearch\_options.md. The options currently supported by VSEARCH is indicated below and also in the options_supported.md
+**Command line options:** A list of all the options supported is available in the doc folder. Please see the file usearch\_options.md. The options currently supported by VSEARCH is indicated below and also in the options_supported.md
 
 
 ## Command line options supported
