@@ -2,7 +2,7 @@
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/usearch_algo.html)
 
-Only options related to usearch_global and clustering included. Some options may be missing.
+Options related to chimera filtering not included. Other options may also be missing.
 
 Both single (-) and double dash (--) in front of options are allowed.
 
@@ -10,7 +10,7 @@ Defaults are indicated in parentheses.
 
 Command line example:
 
-	./usearch7.0.959_i86osx32 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln
+./vsearch_0.0.6_macosx_x86_64 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln
 
 
 ## Basic options
@@ -21,7 +21,7 @@ Command line example:
 
 - [x] `--strand <plus|both>`
 
-- [ ] `--threads <integer>`
+- [x] `--threads <integer>` (Option recognized but has no effect)
 
 - [ ] `--cluster_smallmem <filename>`
 
@@ -178,13 +178,15 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/aln_params.html)
 
-- [x] `--match <real (1.0)>`
+Only integer scores and penalties are allowed. The defaults are multiplied by two to compensate for this.
 
-- [x] `--mismatch <real (-2.0)>`
+- [x] `--match <integer (2)>`
 
-- [x] `--gapopen <real[LRIEQT] (10.0)>`
+- [x] `--mismatch <integer (-4)>`
 
-- [x] `--gapext <real[LRIEQT] (1.0)>`
+- [x] `--gapopen <integer[LRIEQT]/... (20I/2E)>`
+
+- [x] `--gapext <integer[LRIEQT]/... (2I/1E)>`
 
 - [ ] `--matrix <filename (blosum62 (aa), +1/-2 (nt))>`
 
