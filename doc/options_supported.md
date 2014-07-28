@@ -19,7 +19,7 @@ Command line example:
 
 - [x] `--db <filename>`
 
-- [ ] `--strand <plus|both>`
+- [x] `--strand <plus|both>`
 
 - [ ] `--threads <integer>`
 
@@ -27,7 +27,7 @@ Command line example:
 
 - [ ] `--cluster_fast <filename>`
 
-- [ ] `--sizein <int>`
+- [x] `--sizein <int>`
 
 
 ## Output options
@@ -44,13 +44,13 @@ Command line example:
 
 - [x] `--blast6out <filename>`
 
-- [ ] `--matched <filename>`
+- [x] `--matched <filename>`
 
-- [ ] `--notmatched <filename>`
+- [x] `--notmatched <filename>`
 
-- [ ] `--dbmatched <filename>`
+- [x] `--dbmatched <filename>`
 
-- [ ] `--dbnotmatched <filename>`
+- [x] `--dbnotmatched <filename>`
 
 - [ ] `--maxhits <integer (0)>`
 
@@ -58,7 +58,7 @@ Command line example:
 
 - [ ] `--output_no_hits`
 
-- [ ] `--sizeout`
+- [x] `--sizeout`
 
 - [ ] `--centroids <filename>`
 
@@ -137,7 +137,7 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/weak_hits.html)
 
-- [ ] `--weak_id <real>`
+- [x] `--weak_id <real>`
 
 - [ ] `--weak_evalue <real>`
 
@@ -229,7 +229,7 @@ Command line example:
 
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/opt_maxseqlength.html)
 
-- [ ] `--maxseqlength <integer>`
+- [x] `--maxseqlength <integer>`
 
 
 ## Clustering options
