@@ -70,6 +70,8 @@ Command line example:
 
 - [x] `--uc <filename>`
 
+- [x] `--output <filename>`
+
 
 ## Accept options
 
@@ -235,3 +237,36 @@ Command line example:
 ## Clustering options
 
 - [ ] `--cons_truncate`
+
+
+## Other options
+
+- [x] `--derep_fulllength`
+
+- [x] `--sortbysize`
+
+- [x] `--sortbylength`
+
+- [x] `--userfields <string>`
+
+- [x] `--uc_allhits`
+
+- [x] `--rowlen <integer>`
+
+- [x] `--notrunclabels`
+
+- [x] `--minuniquesize <integer>`
+
+- [x] `--minsize <integer>`
+
+- [x] `--maxsize <integer>`
+
+- [x] `--minseqlength <integer>`
+
+- [x] `--maxseqlength <integer>`
+
+- [x] `--relabel <string>`
+
+- [x] `--sizeout`
+
+- [x] `--topn <integer>`
