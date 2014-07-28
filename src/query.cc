@@ -21,63 +21,41 @@
 
 #include "vsearch.h"
 
-
-/*
-
-char map_nt[256] =
-  {
-    // N = A
-
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  0, -1,  1, -1, -1, -1,  2, -1, -1, -1, -1, -1, -1,  0, -1,
-    -1, -1, -1, -1,  3,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  0, -1,  1, -1, -1, -1,  2, -1, -1, -1, -1, -1, -1,  0, -1,
-    -1, -1, -1, -1,  3,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
-
-*/
-
 #define MEMCHUNK 4096
 #define LINEALLOC LINE_MAX
 
-extern char map_nt[256];
+extern unsigned int chrstatus[256];
 
-FILE * query_fp;
-char query_line[LINEALLOC];
+static FILE * query_fp;
+static char query_line[LINEALLOC];
 
-long query_no = -1;
+static long query_no = -1;
 
-char * query_head = 0;
-char * query_seq = 0;
+static char * query_head = 0;
+static char * query_seq = 0;
 
-unsigned long query_head_len = 0;
-unsigned long query_seq_len = 0;
+static long query_head_len = 0;
+static long query_seq_len = 0;
 
-unsigned long query_head_alloc = 0;
-unsigned long query_seq_alloc = 0;
+static long query_head_alloc = 0;
+static long query_seq_alloc = 0;
 
-long query_filesize = 0;
+static long query_filesize = 0;
+
+static long query_lineno;
+
+static long query_stripped_count;
+static long query_stripped[256];
 
 long query_getfilesize()
 {
   return query_filesize;
-};
+}
 
 long query_getfilepos()
 {
   return ftell(query_fp);
-};
+}
 
 void query_open(const char * filename)
 {
@@ -92,8 +70,8 @@ void query_open(const char * filename)
   query_head_alloc = MEMCHUNK;
   query_seq_alloc = MEMCHUNK;
 
-  query_head = (char *) xmalloc(query_head_alloc);
-  query_seq = (char *) xmalloc(query_seq_alloc);
+  query_head = (char *) xmalloc((size_t)query_head_alloc);
+  query_seq = (char *) xmalloc((size_t)query_seq_alloc);
 
   query_no = -1;
 
@@ -109,15 +87,32 @@ void query_open(const char * filename)
 
   query_filesize = ftell(query_fp);
   
-  if (fseek(query_fp, 0, SEEK_SET))
-    fatal("Error: Unable to seek in query file (%s)", filename);
+  rewind(query_fp);
 
   query_line[0] = 0;
   fgets(query_line, LINEALLOC, query_fp);
+  query_lineno = 1;
+
+  query_stripped_count = 0;
+  for(int i=0; i<256; i++)
+    query_stripped[i] = 0;
 }
 
 void query_close()
 {
+  /* Warn about stripped chars */
+
+  if (query_stripped_count)
+    {
+      fprintf(stderr, "Warning: invalid characters stripped from query:");
+      for (int i=0; i<256;i++)
+        if (query_stripped[i])
+          fprintf(stderr, " %c(%ld)", i, query_stripped[i]);
+      fprintf(stderr, "\n");
+    }
+
+
+  
   fclose(query_fp);
   
   if (query_seq)
@@ -129,26 +124,41 @@ void query_close()
   query_seq = 0;
 }
 
+
+char * reverse_complement(char * seq, long len)
+{
+  /* Return pointer to newly allocated memory
+     containing the reverse complementary sequence.
+     Memory must be deallocated by caller. */
+
+  char * rc = (char *) xmalloc((size_t)len);
+  for(long i=0; i<len; i++)
+    rc[i] = chrmap_complement[(int)(seq[len-1-i])];
+  return rc;
+}
+
+
+
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno)
 {
-  if(query_line[0])
+  while (query_line[0])
     {
       /* read header */
 
       if (query_line[0] != '>')
         fatal("Illegal header line in query fasta file");
       
-      unsigned long headerlen = xstrchrnul(query_line+1, '\n') - (query_line+1);
+      long headerlen = xstrchrnul(query_line+1, '\n') - (query_line+1);
       query_head_len = headerlen;
 
       if (headerlen + 1 > query_head_alloc)
         {
           query_head_alloc = headerlen + 1;
-          query_head = (char *) xrealloc(query_head, query_head_alloc);
+          query_head = (char *) xrealloc(query_head, (size_t)query_head_alloc);
         }
 
-      memcpy(query_head, query_line + 1, headerlen);
+      memcpy(query_head, query_line + 1, (size_t)headerlen);
       query_head[headerlen] = 0;
 
 
@@ -156,7 +166,7 @@ int query_getnext(char ** head, long * head_len,
 
       query_line[0] = 0;
       fgets(query_line, LINEALLOC, query_fp);
-
+      query_lineno++;
 
       /* read sequence */
 
@@ -166,30 +176,64 @@ int query_getnext(char ** head, long * head_len,
         {
           char c;
           char m;
-
           char * p = query_line;
 
           while((c = *p++))
-            if ((m = map_nt[(int)c]) >= 0)
-            {
-              if (query_seq_len + 1 > query_seq_alloc)
-              {
-                query_seq_alloc += MEMCHUNK;
-                query_seq = (char *) xrealloc(query_seq, query_seq_alloc);
-              }
+	    {
+	      m = chrstatus[(int)c];
+	      switch(m)
+                {
+                case 0:
+                  /* character to be stripped */
+                  query_stripped_count++;
+                  query_stripped[(int)c]++;
+                  break;
 
-              *(query_seq + query_seq_len) = m;
-              query_seq_len++;
-            }
-            else if (c != '\n')
-              fatal("Illegal character in sequence.");
+                case 1:
+                  /* legal character */
+		  if (query_seq_len + 1 > query_seq_alloc)
+		    {
+		      query_seq_alloc += MEMCHUNK;
+		      query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
+		    }
+		  *(query_seq + query_seq_len) = c;
+		  query_seq_len++;
+
+                  break;
+
+		case 2:
+		  /* fatal character */
+		  char msg[200];
+		  if (c>=32)
+		    snprintf(msg, 200, "illegal character '%c' on line %ld in the query file", c, query_lineno);
+		  else
+		    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the query file", c, query_lineno);
+		  fatal(msg);
+		  break;
+
+		case 3:
+		  /* silently stripped chars */
+		  break;
+
+                }
+	    }
 
           query_line[0] = 0;
           fgets(query_line, LINEALLOC, query_fp);
+	  query_lineno++;
         }
 
-      query_no++;
+      /* add zero after sequence */
 
+      if (query_seq_len + 1 > query_seq_alloc)
+	{
+	  query_seq_alloc += MEMCHUNK;
+	  query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
+	}
+      *(query_seq + query_seq_len) = 0;
+
+
+      query_no++;
       *head = query_head;
       *seq = query_seq;
       *head_len = query_head_len;
@@ -198,8 +242,8 @@ int query_getnext(char ** head, long * head_len,
 
       return 1;
     }
-  else
-    return 0;
+  
+  return 0;
 }
 
 

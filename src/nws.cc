@@ -34,7 +34,7 @@ inline void pushop(char newop, char ** cigarendp, char * op, int * count)
       char buf[25];
       int len = sprintf(buf, "%d", *count);
       *cigarendp -= len;
-      strncpy(*cigarendp, buf, (size_t)len);
+      strncpy(*cigarendp, buf, len);
     }
     *op = newop;
     *count = 1;
@@ -51,25 +51,25 @@ inline void finishop(char ** cigarendp, char * op, int * count)
       char buf[25];
       int len = sprintf(buf, "%d", *count);
       *cigarendp -= len;
-      strncpy(*cigarendp, buf, (size_t)len);
+      strncpy(*cigarendp, buf, len);
     }
     *op = 0;
     *count = 0;
   }
 }
 
-static const char maskup      =  1;
-static const char maskleft    =  2;
-static const char maskextup   =  4;
-static const char maskextleft =  8;
+const unsigned char maskup      =  1;
+const unsigned char maskleft    =  2;
+const unsigned char maskextup   =  4;
+const unsigned char maskextleft =  8;
 
 /*
 
-  Needleman-Wunsch aligner
+  Needleman/Wunsch/Sellers aligner
 
-  finds a global alignment with maximum score
-  positive score for matches; negative score mismatches
-  gap penalties are positive, but counts negatively
+  finds a global alignment with minimum cost
+  there should be positive costs/penalties for gaps and for mismatches
+  matches should have zero cost (0)
 
   alignment priority when backtracking (from lower right corner):
   1. left/insert/e (gap in query sequence (qseq))
@@ -85,13 +85,19 @@ static const char maskextleft =  8;
   gap open: 20
   gap extend: 2
 
+  corresponding costs:
+  match: 0
+  mismatch: 6
+  gapopen: 20
+  gapextend: 3
+
   input
 
   dseq: pointer to start of database sequence
   dend: pointer after database sequence
   qseq: pointer to start of query sequence
   qend: pointer after database sequence
-  score_matrix: 16x16 matrix of longs with scores for aligning two symbols
+  score_matrix: 32x32 matrix of longs with scores for aligning two symbols
   gapopen: positive number indicating penalty for opening a gap of length zero
   gapextend: positive number indicating penalty for extending a gap
 
@@ -104,11 +110,11 @@ static const char maskextleft =  8;
 
 */
 
-static long dir_alloc = 0;
-static long hearray_alloc = 0;
+long dir_alloc = 0;
+unsigned long hearray_alloc = 0;
 
-static char * dir;
-static long * hearray;
+unsigned char * dir;
+unsigned long * hearray;
 
 void nw_init()
 {
@@ -126,99 +132,86 @@ void nw_exit()
     free(hearray);
 }
 
-inline int nt_identical(char a, char b)
-{
-  if (chrmap_4bit[(int)a] == chrmap_4bit[(int)b])
-    return 1;
-  else
-    return 0;
-}
-
-inline long getscore(long * score_matrix, char a, char b)
-{
-  return score_matrix[(chrmap_4bit[(int)a]<<4) + chrmap_4bit[(int)b]];
-}
 
 void nw_align(char * dseq,
               char * dend,
               char * qseq,
               char * qend,
-	      long * score_matrix,
-	      long gapopen_q_left,
-	      long gapopen_q_internal,
-	      long gapopen_q_right,
-	      long gapopen_t_left,
-	      long gapopen_t_internal,
-	      long gapopen_t_right,
-	      long gapextend_q_left,
-	      long gapextend_q_internal,
-	      long gapextend_q_right,
-	      long gapextend_t_left,
-	      long gapextend_t_internal,
-	      long gapextend_t_right,
-              long * nwscore,
-              long * nwdiff,
-              long * nwgaps,
-              long * nwindels,
-              long * nwalignmentlength,
+              long * score_matrix,
+	      unsigned long gapopen_q_left,
+	      unsigned long gapopen_q_internal,
+	      unsigned long gapopen_q_right,
+	      unsigned long gapopen_t_left,
+	      unsigned long gapopen_t_internal,
+	      unsigned long gapopen_t_right,
+	      unsigned long gapextend_q_left,
+	      unsigned long gapextend_q_internal,
+	      unsigned long gapextend_q_right,
+	      unsigned long gapextend_t_left,
+	      unsigned long gapextend_t_internal,
+	      unsigned long gapextend_t_right,
+              unsigned long * nwscore,
+              unsigned long * nwdiff,
+              unsigned long * nwgaps,
+              unsigned long * nwindels,
+              unsigned long * nwalignmentlength,
               char ** nwalignment,
-              long queryno,
-	      long dbseqno)
+              unsigned long queryno,
+	      unsigned long dbseqno)
 {
 
   long h, n, e, f, h_e, h_f;
-  long *hep;
-  
+  long unsigned *hep;
+
   long qlen = qend - qseq;
   long dlen = dend - dseq;
 
   if (qlen * dlen > dir_alloc)
     {
       dir_alloc = qlen * dlen;
-      dir = (char *) xrealloc(dir, (size_t)dir_alloc);
+      dir = (unsigned char *) xrealloc(dir, dir_alloc);
     }
 
-  long need = 2 * qlen * (long) sizeof(long);
-  if (need > hearray_alloc)
+  if (2 * qlen * sizeof(long) > hearray_alloc)
     {
-      hearray_alloc = need;
-      hearray = (long *) xrealloc(hearray, (size_t)hearray_alloc);
+      hearray_alloc = 2 * qlen * sizeof(long);
+      hearray = (unsigned long *) xrealloc(hearray, hearray_alloc);
     }
 
-  memset(dir, 0, (size_t)(qlen*dlen));
+  memset(dir, 0, qlen*dlen);
 
   long i, j;
 
   for(i=0; i<qlen; i++)
   {
-    hearray[2*i]   = -gapopen_t_left - (i+1) * gapextend_t_left; // H (N)
-    hearray[2*i+1] = -100000; // E
+    hearray[2*i]   = 1 * gapopen_t_left + (i+1) * gapextend_t_left; // H (N)
+    hearray[2*i+1] = 10000; // 2 * gapopen_t_left + (i+2) * gapextend_t_left; // E
   }
 
   for(j=0; j<dlen; j++)
   {
 
     hep = hearray;
-    f = -100000;
-    h = (j == 0) ? 0 : (- gapopen_q_left - j * gapextend_q_left);
+    f = 10000; // 2 * gapopen_q_left + (j+2) * gapextend_q_left;
+    h = (j == 0) ? 0 : (gapopen_q_left + j * gapextend_q_left);
 
     for(i=0; i<qlen; i++)
     {
-      char * d = dir + qlen*j+i;
+      unsigned char * d = dir + qlen*j+i;
       
       n = *hep;
       e = *(hep+1);
-      h += getscore(score_matrix, dseq[j], qseq[i]);
+      h += score_matrix[(dseq[j]<<5) + qseq[i]];
       
       /* preference with equal score: diag, left, up */
 
-      if (e > h)
+      if (e < h)
 	{
 	  h = e;
 	  *d |= maskleft;
 	}
       
-      if (f > h)
+      if (f < h)
 	{  
 	  h = f;
 	  *d |= maskup;
@@ -228,27 +221,27 @@ void nw_align(char * dseq,
       
       if (i < qlen-1)
 	{
-	  h_e = h - gapopen_q_internal - gapextend_q_internal;
-	  e -= gapextend_q_internal;
+	  h_e = h + gapopen_q_internal + gapextend_q_internal;
+	  e += gapextend_q_internal;
 	}
       else
 	{
-	  h_e = h - gapopen_q_right - gapextend_q_right;
-	  e -= gapextend_q_right;
+	  h_e = h + gapopen_q_right + gapextend_q_right;
+	  e += gapextend_q_right;
 	}
       
       if (j < dlen-1)
 	{
-	  h_f = h - gapopen_t_internal - gapextend_t_internal;
-	  f -= gapextend_t_internal;
+	  h_f = h + gapopen_t_internal + gapextend_t_internal;
+	  f += gapextend_t_internal;
 	}
       else
 	{
-	  h_f = h - gapopen_t_right - gapextend_t_right;
-	  f -= gapextend_t_right;
+	  h_f = h + gapopen_t_right + gapextend_t_right;
+	  f += gapextend_t_right;
 	}
 
-      if (e > h_e)
+      if (e < h_e)
 	{
 	  *d |= maskextleft;
 	}
@@ -257,7 +250,7 @@ void nw_align(char * dseq,
 	  e = h_e;
 	}
 
-      if (f > h_f)
+      if (f < h_f)
 	{
 	  *d |= maskextup;
 	}
@@ -265,6 +258,7 @@ void nw_align(char * dseq,
 	{
 	  f = h_f;
 	}
+
 
       *(hep+1) = e;
       h = n;
@@ -282,7 +276,7 @@ void nw_align(char * dseq,
   long gaps = 0;
   long indels = 0;
 
-  char * cigar = (char *) xmalloc((size_t)(qlen + dlen + 1));
+  char * cigar = (char *) xmalloc(qlen + dlen + 1);
   char * cigarend = cigar+qlen+dlen+1;
 
   char op = 0;
@@ -305,25 +299,25 @@ void nw_align(char * dseq,
 
     if ((op == 'D') && (d & maskextup))
     {
-      score -= gapextend_t;
+      score += gapextend_t;
       indels++;
       i--;
       pushop('D', &cigarend, &op, &count);
     }
     else if ((op == 'I') && (d & maskextleft))
     {
-      score -= gapextend_q;
+      score += gapextend_q;
       indels++;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
     else if (d & maskup)
     {
-      score -= gapextend_t;
+      score += gapextend_t;
       indels++;
       if (op != 'D')
         {
-          score -= gapopen_t;
+          score += gapopen_t;
           gaps++;
         }
       i--;
@@ -331,11 +325,11 @@ void nw_align(char * dseq,
     }
     else if (d & maskleft)
     {
-      score -= gapextend_q;
+      score += gapextend_q;
       indels++;
       if (op != 'I')
         {
-          score -= gapopen_q;
+          score += gapopen_q;
           gaps++;
         }
       j--;
@@ -343,9 +337,9 @@ void nw_align(char * dseq,
     }
     else
     {
-      score += getscore(score_matrix, dseq[j-1], qseq[i-1]);
-      if (nt_identical(dseq[j-1], qseq[i-1]))
-	matches++;
+      score += score_matrix[(dseq[j-1] << 5) + qseq[i-1]];
+      if (qseq[i-1] == dseq[j-1])
+        matches++;
       i--;
       j--;
       pushop('M', &cigarend, &op, &count);
@@ -355,11 +349,11 @@ void nw_align(char * dseq,
   while(i>0)
   {
     alength++;
-    score -= gapextend_t_left;
+    score += gapextend_t_left;
     indels++;
     if (op != 'D')
       {
-        score -= gapopen_t_left;
+        score += gapopen_t_left;
         gaps++;
       }
     i--;
@@ -369,11 +363,11 @@ void nw_align(char * dseq,
   while(j>0)
   {
     alength++;
-    score -= gapextend_q_left;
+    score += gapextend_q_left;
     indels++;
     if (op != 'I')
       {
-        score -= gapopen_q_left;
+        score += gapopen_q_left;
         gaps++;
       }
     j--;
@@ -385,8 +379,8 @@ void nw_align(char * dseq,
   /* move and reallocate cigar */
 
   long cigarlength = cigar+qlen+dlen-cigarend;
-  memmove(cigar, cigarend, (size_t)(cigarlength+1));
-  cigar = (char*) xrealloc(cigar, (size_t)(cigarlength+1));
+  memmove(cigar, cigarend, cigarlength+1);
+  cigar = (char*) xrealloc(cigar, cigarlength+1);
 
   * nwscore = dist;
   * nwdiff = alength - matches;

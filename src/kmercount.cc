@@ -23,9 +23,9 @@
 
 struct kmercountelem * kmercounthash;
 
-unsigned int kmercounthashsize;
+static unsigned int kmercounthashsize;
 
-size_t kmercounthash_alloc;
+static size_t kmercounthash_alloc;
 
 unsigned int count_kmers_gethashsize()
 {
@@ -46,10 +46,10 @@ void count_kmers_exit()
   kmercounthash = 0;
 }
 
-unsigned int count_kmers_getcount(unsigned int wordlength, unsigned kmer)
+unsigned int count_kmers_getcount(unsigned int wl, unsigned kmer)
 {
   unsigned long j = hash_fnv_1a_64((unsigned char*) & kmer,
-                                   (wordlength+3)/4) % kmercounthashsize;
+                                   (wl+3)/4) % kmercounthashsize;
   
   while((kmercounthash[j].count) && (kmercounthash[j].kmer != kmer))
     j = (j + 1) % kmercounthashsize;
@@ -92,13 +92,13 @@ void count_kmers(unsigned int k, char * seq, unsigned int seqlen)
   while (s < e1)
     {
       kmer <<= 2;
-      kmer |= *s++;
+      kmer |= chrmap_2bit[(int)(*s++)];
     }
 
   while (s < e2)
     {
       kmer <<= 2;
-      kmer |= *s++;
+      kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
 
       unsigned long j = hash_fnv_1a_64((unsigned char*)&kmer,

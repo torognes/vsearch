@@ -8,7 +8,9 @@ The aim of the project is to create an alternative to the USEARCH tool. The new 
 * open source code with an appropriate open source license
 * 64-bit design that handles very large databases and more than 4GB of memory
 
-A tool called VSEARCH has been implemented. Exactly the same option names as USEARCH has been used in order to make it possible to make VSEARCH almost a drop-in replacement. The basic usearch\_global algorithm for global alignments using nucleotide sequences is implemented. At this stage it does not support amino acid sequences, local alignments, clustering, chimera detection etc. It currently does not use pthreads nor SIMD.
+A tool called VSEARCH has been implemented. Exactly the same option names as USEARCH has been used in order to make it possible to make VSEARCH almost a drop-in replacement.
+The basic usearch_global algorithm for global alignments using nucleotide sequences is implemented, as well as the derep_fulllength and the sortbysize and sortbylength commands.
+At this stage it does not support amino acid sequences, local alignments, clustering, chimera detection etc. It currently does not use pthreads nor SIMD.
 
 In the example below, VSEARCH will identify sequences in database.fsa at least 90% identical to the query sequences in queries.fsa and write the results to alnout.txt.
 
@@ -21,55 +23,78 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 **Kmer selection:** How many and which unique kmers USEARCH chooses from the query sequence is not well documented, but our procedure seems to give results approximately equal to USEARCH. In VSEARCH, *x* of the unique kmers in the query are sampled uniformly along the query sequence, where *x* is chosen so as to expect 8 matches with the targets satisfying the accept criteria (specified with the `--id` option). USEARCH seems to do a similar thing but the exact procedure is unknown. The choice of *x* should be looked further into.
 
-**Output formats:** The output can be written in four different formats specified with the `--alnout`, `--blast6out`, `--uc` and the flexible format specified with the `--userout` and `--userfields`.
+**Output formats:** The output can be written in four different formats specified with the `--alnout`, `--blast6out`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported.
 
 **Alignment:** VSEARCH currently uses a relatively slow non-vectorized full dynamic programming Needleman-Wunsch-Sellers algorithm for the alignments (similar to USEARCH with `--fulldp`) instead of the quicker (but possible less senstive) procedure involving seeding, extension and banded dynamic programming employed by USEARCH. This could be replaced by a vectorized variant using SIMD in VSEARCH to get up to comparable speed. A banded SIMD variant could also be valuable.
 
-**Performance:** Based on very limited testing, the VSEARCH speed appears to be about half that of USEARCH when USEARCH is run with the `--fulldp` option. The accuracy also seems comparable but very variable relative to USEARCH. This needs to be looked more into.
+**Performance:** Based on very limited testing, the VSEARCH speed appears to be about half that of USEARCH when USEARCH is run with the `--fulldp` option, but it depends a lot on the exact parameters and sequences. The accuracy also seems comparable but very variable relative to USEARCH. This needs to be looked more into. The dereplication and sorting commands seems to be considerably faster in VSEARCH.
 
 **Command line options:** A list of all the options supported is available in the doc folder. Please see the file usearch\_options.md. The options currently supported by VSEARCH is indicated below and also in the options_supported.md
 
 
 ## Command line options supported
 
-Required options:
+Command options:
 
 * `--usearch_global <filename>`
+* `--derep_fulllength <filename>`
+* `--sortbysize <filename>`
+* `--sortbylength <filename>`
+* `--help`
+* `--version`
+
+Search options:
+
 * `--db <filename>`
 * `--id <real>`
-* `--strand <plus|both>` (Currently only plus strand supported)
+* `--weak_id <real>`
+* `--strand <plus|both>` (required for search, optional for dereplication)
+* `--wordlength <int>`
+* `--alnout <filename>` (for search)
+* `--blast6out <filename>` (for search)
+* `--uc <filename>` and `--uc_allhits` (for search and dereplication)
+* `--userout <filename>` and `--userfields <list of fields separated by +>` (for search)
+* `--matched <filename>` (for search)
+* `--notmatched <filename>` (for search)
+* `--dbmatched <filename>` (for search)
+* `--dbnotmatched <filename>` (for search)
+* `--fulldp` (Always full dynamic programming alignments)
 
-Output options (at least one must be specified):
-* `--alnout <filename>`
-* `--blast6out <filename>`
-* `--uc <filename>`
-* `--userout <filename>` and `--userfields <list of fields separated by +>`
+Dereplication and sorting options:
+* `--output <filename>` (FASTA file for dereplication and sorting)
+* `--minuniquesize <int>`
+* `--topn`
+* `--sizeout`
+* `--minsize <int>`
+* `--maxsize <int>`
+* `--minseqlength <int>`
+* `--relabel`
+* `--sizein`
 
 Optional options:
 
+* `--maxseqlength <int>` (Default 50000)
 * `--maxaccepts <int>` (Default 1)
 * `--maxrejects <int>` (Default 16)
 * `--self`
+* `--notrunclabels`
 * `--wordlength <int>` (Default 8)
-* `--match <int>` (Default 1)
-* `--mismatch <int>` (Default -2)
-* `--gapopen <int>` (Default 10) (Only one common gap opening penalty supported)
-* `--gapext <int>` (Default 1) (Only one common gap extension penalty supported)
+* `--match <int>` (Default 2)
+* `--mismatch <int>` (Default -4)
+* `--gapopen <string>` (Default 20I/2E)
+* `--gapext <string>` (Default 2I/1E)
 * `--rowlen <int>` (Default 64)
-* `--fulldp` (Default)
 * `--threads <int>` (Default 1) (Currently only one thread supported)
 
 
 ## Main limitations
 
-* **Commands:** Only usearch_global is supported.
+* **Commands:** No clustering or chimera checking, yet.
 * **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
-* **Strands:** Only the plus strand is searched.
 * **Accept/reject options**: Only the `--id` and `--self` options is supported.
 * **Indexing options:** Only continuous seeds are supported.
-* **Gap penalties:** Only standard gap open and extension penalties are supported. Specific left/interior/right/end/query/target gap penalties are not supported.
 * **Speed:** Only non-vectorized full alignment, no parallelization. Threads are currently not supported.
-
+* **Gap penalties:** Only integer gap penalties are supported. The default match, mismatch and gap penalties have been doubled relative to USEARCH to give similar results.
 
 ## License
 
@@ -85,14 +110,18 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **query.cc** - reads the fasta file containing the query sequences.
 * **db.cc** - Handles the database file read, access etc
 * **dbindex.cc** - Indexes the database by identifying unique kmers in the sequences and make a database hash table
-* **nw.cc** - Needleman-Wunsch-Sellers global alignment, serial
+* **nw.cc** - New Needleman-Wunsch global alignment, serial
+* **nws.cc** - Old Needleman-Wunsch-Sellers global alignment, serial
 * **showalign.cc** - Output an alignment in a human-readable way given a CIGAR-string and the sequences
 * **search.cc** - search database
 * **util.cc** - Various common utility functions
 * **results.cc** - Output results in various formats (alnout, userout, blast6, uc)
-* **derepl.cc** - Code for dereplication (very rudimentary at the moment)
+* **derep.cc** - Code for dereplication
 * **userfields.cc** - Code for parsing the userfields option argument
-
+* **arch.cc** - Architecture specific code (Mac/Linux)
+* **maps.cc** - Various character mapping arrays
+* **sortbylength.cc** - Code for sorting by length
+* **sortbysize.cc** - Code for sorting by size (abundance)
 
 ## Bugs
 
@@ -103,13 +132,10 @@ At the moment VSEARCH is not well tested. How well it works on really large data
 
 Some issues to work on:
 
-* special gap penalties
-* search both strands
+* testing and debugging
 * precision and recall comparison with USEARCH
 * performance comparison with USEARCH
-* testing and debugging
 * understand how many and which unique kmers from the query USEARCH chooses
-* improving the kmer match counting and target prioritization during searching
 * parallelisation with pthreads
 * parallelisation with SIMD-based global alignment
 * clustering (i.e. uclust)
