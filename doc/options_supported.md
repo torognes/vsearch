@@ -17,17 +17,26 @@ Command line example:
 
 - [x] `--usearch_global <filename>`
 
-- [x] `--db <filename>`
+- [x] `--derep_fulllength`
 
-- [x] `--strand <plus|both>`
+- [x] `--sortbysize`
 
-- [x] `--threads <integer>` (Option recognized but has no effect)
+- [x] `--sortbylength`
 
 - [ ] `--cluster_smallmem <filename>`
 
 - [ ] `--cluster_fast <filename>`
 
+
+## General options
+
+- [x] `--threads <integer>` (Option recognized, but has no effect)
+
+- [x] `--strand <plus|both>`
+
 - [x] `--sizein <int>`
+
+- [x] `--notrunclabels`
 
 
 ## Output options
@@ -36,11 +45,7 @@ Command line example:
 
 - [x] `--alnout <filename>`
 
-- [x] `--rowlen <integer(64)>`
-
 - [x] `--userout <filename>`
-
-- [ ] `--fastapairs <filename>`
 
 - [x] `--blast6out <filename>`
 
@@ -52,15 +57,39 @@ Command line example:
 
 - [x] `--dbnotmatched <filename>`
 
+- [x] `--sizeout`
+
+- [x] `--uc <filename>`
+
+- [x] `--output <filename>`
+
+- [x] `--userfields <string>`
+
+- [x] `--uc_allhits`
+
+- [x] `--relabel <string>`
+
+- [x] `--sizeout`
+
+- [x] `--topn <integer>`
+
+- [x] `--minuniquesize <integer>`
+
+- [x] `--minseqlength <integer>`
+
+- [x] `--maxseqlength <integer>`
+
+- [x] `--rowlen <integer(64)>`
+
 - [ ] `--maxhits <integer (0)>`
 
 - [ ] `--top_hits_only`
 
 - [ ] `--output_no_hits`
 
-- [x] `--sizeout`
-
 - [ ] `--centroids <filename>`
+
+- [ ] `--fastapairs <filename>`
 
 - [ ] `--consout <filename>`
 
@@ -68,9 +97,10 @@ Command line example:
 
 - [ ] `--msaout <filename>`
 
-- [x] `--uc <filename>`
 
-- [x] `--output <filename>`
+## Search options
+
+- [x] `--db <filename>`
 
 
 ## Accept options
@@ -78,6 +108,8 @@ Command line example:
 [Link to official USEARCH documentation](http://www.drive5.com/usearch/manual/accept_options.html)
 
 - [x] `--id <real>`
+
+- [x] `--self`
 
 - [ ] `--evalue <real>`
 
@@ -100,8 +132,6 @@ Command line example:
 - [ ] `--leftjust`
 
 - [ ] `--rightjust`
-
-- [x] `--self`
 
 - [ ] `--selfid`
 
@@ -241,34 +271,8 @@ Only integer scores and penalties are allowed. The defaults are multiplied by tw
 - [ ] `--cons_truncate`
 
 
-## Other options
-
-- [x] `--derep_fulllength`
-
-- [x] `--sortbysize`
-
-- [x] `--sortbylength`
-
-- [x] `--userfields <string>`
-
-- [x] `--uc_allhits`
-
-- [x] `--rowlen <integer>`
-
-- [x] `--notrunclabels`
-
-- [x] `--minuniquesize <integer>`
+## Sorting options
 
 - [x] `--minsize <integer>`
 
 - [x] `--maxsize <integer>`
-
-- [x] `--minseqlength <integer>`
-
-- [x] `--maxseqlength <integer>`
-
-- [x] `--relabel <string>`
-
-- [x] `--sizeout`
-
-- [x] `--topn <integer>`
