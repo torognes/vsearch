@@ -85,6 +85,8 @@ Command line example:
 
 - [x] `--rowlen <integer(64)>`
 
+- [ ] `--fastapairs <filename>`
+
 - [ ] `--maxhits <integer (0)>`
 
 - [ ] `--top_hits_only`
@@ -92,8 +94,6 @@ Command line example:
 - [ ] `--output_no_hits`
 
 - [ ] `--centroids <filename>`
-
-- [ ] `--fastapairs <filename>`
 
 - [ ] `--consout <filename>`
 
