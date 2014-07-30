@@ -85,13 +85,13 @@ Command line example:
 
 - [x] `--rowlen <integer(64)>`
 
-- [ ] `--fastapairs <filename>`
+- [x] `--fastapairs <filename>`
 
-- [ ] `--maxhits <integer (0)>`
+- [x] `--maxhits <integer (0)>`
 
-- [ ] `--top_hits_only`
+- [x] `--top_hits_only`
 
-- [ ] `--output_no_hits`
+- [x] `--output_no_hits`
 
 - [ ] `--centroids <filename>`
 
