@@ -31,6 +31,7 @@ char * alnoutfilename;
 char * useroutfilename;
 char * blast6outfilename;
 char * ucfilename;
+char * opt_fastapairs;
 char * opt_matched;
 char * opt_notmatched;
 char * opt_dbmatched;
@@ -47,10 +48,10 @@ double identity;
 long rowlen;
 
 double opt_weak_id;
-int opt_strand;
-int opt_self;
-int opt_uc_allhits;
-int opt_notrunclabels;
+long opt_strand;
+long opt_self;
+long opt_uc_allhits;
+long opt_notrunclabels;
 char * opt_sortbysize;
 char * opt_sortbylength;
 char * opt_output;
@@ -66,6 +67,9 @@ long opt_minuniquesize;
 long opt_topn;
 long opt_help;
 long opt_version;
+long opt_output_no_hits;
+long opt_maxhits;
+long opt_top_hits_only;
 
 int opt_gap_open_query_left;
 int opt_gap_open_target_left;
@@ -92,6 +96,9 @@ long sse42_present = 0;
 long popcnt_present = 0;
 long avx_present = 0;
 long avx2_present = 0;
+
+static char progheader[80];
+static char * cmdline;
 
 #define cpuid(f,a,b,c,d)                                                \
   __asm__ __volatile__ ("cpuid":                                        \
@@ -151,20 +158,6 @@ void cpu_features_show()
   fprintf(stderr, "\n");
 }
 
-
-void show_header()
-{
-  char title[] = PROG_NAME " " PROG_VERSION "_" PROG_ARCH;
-  char ref[] = "Copyright (C) 2014 Torbjorn Rognes, all rights reserved. License: AGPL 3.0";
-  //  fprintf(stderr, "%s [%s %s]\n%s\n", title, __DATE__, __TIME__, ref);
-  fprintf(stderr, "%s, %ldMB RAM, %ld cores\n%s\n", 
-	  title,
-	  arch_get_memtotal() / 1024 / 1024,
-	  sysconf(_SC_NPROCESSORS_ONLN),
-	  ref);
-  fprintf(stderr, "https://github.com/torognes/vsearch\n");
-  fprintf(stderr, "\n");
-}
 
 
 void args_get_gap_penalty_string(char * arg, int is_open)
@@ -343,6 +336,7 @@ void args_init(int argc, char **argv)
   databasefilename = 0;
   alnoutfilename = 0;
   useroutfilename = 0;
+  opt_fastapairs = 0;
   opt_matched = 0;
   opt_notmatched = 0;
   opt_dbmatched = 0;
@@ -361,6 +355,7 @@ void args_init(int argc, char **argv)
   opt_self = 0;
   opt_uc_allhits = 0;
   opt_notrunclabels = 0;
+  opt_maxhits = LONG_MAX;
 
   opt_help = 0;
   opt_version = 0;
@@ -379,6 +374,8 @@ void args_init(int argc, char **argv)
   opt_maxseqlength = 50000;
   opt_minuniquesize = 0;
   opt_topn = LONG_MAX;
+  opt_output_no_hits = 0;
+  opt_top_hits_only = 0;
 
   match_score = 2;
   mismatch_score = -4;
@@ -444,6 +441,10 @@ void args_init(int argc, char **argv)
     {"notmatched",            required_argument, 0, 0 },
     {"dbmatched",             required_argument, 0, 0 },
     {"dbnotmatched",          required_argument, 0, 0 },
+    {"fastapairs",            required_argument, 0, 0 },
+    {"output_no_hits",        no_argument,       0, 0 },
+    {"maxhits",               required_argument, 0, 0 },
+    {"top_hits_only",         no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -669,6 +670,26 @@ void args_init(int argc, char **argv)
       opt_dbnotmatched = optarg;
       break;
 
+    case 42:
+      /* fastapairs */
+      opt_fastapairs = optarg;
+      break;
+
+    case 43:
+      /* sizein */
+      opt_output_no_hits = 1;
+      break;
+
+    case 44:
+      /* maxhits */
+      opt_maxhits = args_getlong(optarg);
+      break;
+
+    case 45:
+      /* top_hits_only */
+      opt_top_hits_only = 1;
+      break;
+
     default:
       fatal("Internal error in option parsing");
     }
@@ -737,7 +758,7 @@ void args_init(int argc, char **argv)
 
   /* adapt/adjust parameters */
 
-#if 0
+#if 1
 
   /* adjust gap open penalty according to convention */
 
@@ -767,52 +788,57 @@ void args_init(int argc, char **argv)
 
 void cmd_help()
 {
-  /*               0         1         2         3         4         5         6         7          */
-  /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
+  /*       0         1         2         3         4         5         6         7          */
+  /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
-  fprintf(stderr, "  --help                      display this help and exit\n");
-  fprintf(stderr, "  --version                   display version information and exit\n");
-  fprintf(stderr, "  --usearch_global FILENAME   query filename (FASTA) - global alignment search\n");
-  fprintf(stderr, "  --db FILENAME               database filename (FASTA)\n");
-  fprintf(stderr, "  --id REAL                   minimum sequence identity accepted\n");
-  fprintf(stderr, "  --weak_id REAL              show hits with this id, but do not terminate\n");
-  fprintf(stderr, "  --alnout FILENAME           alignment output filename\n");
-  fprintf(stderr, "  --userout FILENAME          user-defined tab-separated output filename\n");
-  fprintf(stderr, "  --userfields STRINGS        fields to output with --userout file\n");
-  fprintf(stderr, "  --blast6out FILENAME        filename for output similar to blast -m6 option\n");
-  fprintf(stderr, "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n");
-  fprintf(stderr, "  --uc_allhits                show all, not just top hit with uc output\n");
-  fprintf(stderr, "  --matched FILENAME          FASTA file for matching query sequences\n");
-  fprintf(stderr, "  --notmatched FILENAME       FASTA file for non-matching query sequences\n");
-  fprintf(stderr, "  --dbmatched FILENAME        FASTA file for matching database sequences\n");
-  fprintf(stderr, "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n");
-  fprintf(stderr, "  --strand plus|both          search plus strand or both\n");
-  fprintf(stderr, "  --maxaccepts INT            maximum number of hits to show (1)\n");
-  fprintf(stderr, "  --maxrejects INT            number of non-matching hits to consider (32)\n");
-  fprintf(stderr, "  --match INT                 score for match (2)\n");
-  fprintf(stderr, "  --mismatch INT              score for mismatch (-4)\n");
-  fprintf(stderr, "  --gapopen STRING            penalties for gap opening (20I/2E)\n");
-  fprintf(stderr, "  --gapext STRING             penalties for gap extension (2I/1E)\n");
-  fprintf(stderr, "  --wordlength INT            length of words (kmers) for database index (8)\n");
-  fprintf(stderr, "  --fulldp                    full dynamic programming for all alignments\n");
-  fprintf(stderr, "  --threads INT               number of threads to use (1)\n");
-  fprintf(stderr, "  --rowlen INT                width of alignment lines in alnout output(64)\n");
-  fprintf(stderr, "  --self                      ignore hits with identical label as the query\n");
-  fprintf(stderr, "  --notrunclabels             do not truncate labels at first space\n");
-  fprintf(stderr, "  --sortbysize FILENAME       abundance sort sequences in FASTA file specified\n");
-  fprintf(stderr, "  --output FILENAME           output FASTA file for abundance sort / derepl. \n");
-  fprintf(stderr, "  --minuniquesize INT         minimum abundance for output from dereplication\n");
-  fprintf(stderr, "  --minsize INT               minimum abundance for sortbysize\n");
-  fprintf(stderr, "  --maxsize INT               maximum abundance for sortbysize\n");
-  fprintf(stderr, "  --relabel STRING            relabel sequences with this prefix string\n");
-  fprintf(stderr, "  --sizein                    read abundance annotation from input\n");
-  fprintf(stderr, "  --sizeout                   add abundance annotation to output\n");
-  fprintf(stderr, "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n");
-  fprintf(stderr, "  --minseqlength INT          minimum sequence length for sort and derep\n");
-  fprintf(stderr, "  --maxseqlength INT          maximum sequence length (50000)\n");
-  fprintf(stderr, "  --topn INT                  output only most abundant sequences from derepl.\n");
-
+  fprintf(stderr, 
+	  "Usage: %s [OPTIONS] [filename]\n", progname);
+  fprintf(stderr, 
+	  "  --help                      display this help and exit\n"
+	  "  --version                   display version information and exit\n"
+	  "  --usearch_global FILENAME   query filename (FASTA) - global alignment search\n"
+	  "  --db FILENAME               database filename (FASTA)\n"
+	  "  --id REAL                   minimum sequence identity accepted\n"
+	  "  --weak_id REAL              show hits with this id, but do not terminate\n"
+	  "  --alnout FILENAME           alignment output filename\n"
+	  "  --userout FILENAME          user-defined tab-separated output filename\n"
+	  "  --userfields STRINGS        fields to output with --userout file\n"
+	  "  --blast6out FILENAME        filename for output similar to blast -m6 option\n"
+	  "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n"
+	  "  --uc_allhits                show all, not just top hit with uc output\n"
+	  "  --output_no_hits            output non-matching queries to output files\n"
+	  "  --matched FILENAME          FASTA file for matching query sequences\n"
+	  "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
+	  "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
+	  "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
+	  "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
+	  "  --strand plus|both          search plus strand or both\n"
+	  "  --maxaccepts INT            maximum number of hits to show (1)\n"
+	  "  --maxrejects INT            number of non-matching hits to consider (32)\n"
+	  "  --match INT                 score for match (2)\n"
+	  "  --mismatch INT              score for mismatch (-4)\n"
+	  "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
+	  "  --gapext STRING             penalties for gap extension (2I/1E)\n"
+	  "  --wordlength INT            length of words (kmers) for database index (8)\n"
+	  "  --fulldp                    full dynamic programming for all alignments\n"
+	  "  --threads INT               number of threads to use (1)\n"
+	  "  --rowlen INT                width of alignment lines in alnout output(64)\n"
+	  "  --self                      ignore hits with identical label as the query\n"
+	  "  --notrunclabels             do not truncate labels at first space\n"
+	  "  --sortbysize FILENAME       abundance sort sequences in FASTA file specified\n"
+	  "  --output FILENAME           output FASTA file for abundance sort / derepl. \n"
+	  "  --minuniquesize INT         minimum abundance for output from dereplication\n"
+	  "  --minsize INT               minimum abundance for sortbysize\n"
+	  "  --maxsize INT               maximum abundance for sortbysize\n"
+	  "  --relabel STRING            relabel sequences with this prefix string\n"
+	  "  --sizein                    read abundance annotation from input\n"
+	  "  --sizeout                   add abundance annotation to output\n"
+	  "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+	  "  --minseqlength INT          minimum sequence length for sort and derep\n"
+	  "  --maxseqlength INT          maximum sequence length (50000)\n"
+	  "  --topn INT                  output only most abundant sequences from derepl.\n"
+	  "  --maxhits INT               maximum number of hits to report\n"
+	  "  --top_hits_only             output only hits with identity equal to the best\n");
 }
 
 void cmd_usearch_global()
@@ -829,8 +855,7 @@ void cmd_usearch_global()
   if ((identity < 0.0) || (identity > 1.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-
-  search();
+  search(cmdline, progheader);
 }
 
 void cmd_sortbysize()
@@ -857,10 +882,43 @@ void cmd_derep_fulllength()
   derep_fulllength();
 }
 
+void fillheader()
+{
+  snprintf(progheader, 80, 
+	   "%s %s_%s, %.1fGB RAM, %ld cores",
+	   PROG_NAME, PROG_VERSION, PROG_ARCH,
+	   arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
+	   sysconf(_SC_NPROCESSORS_ONLN));
+}
+
+void getentirecommandline(int argc, char** argv)
+{
+  int len = 0;
+  for (int i=0; i<argc; i++)
+    len += strlen(argv[i]);
+
+  cmdline = (char*) xmalloc(len+argc+1);
+
+  for (int i=0; i<argc; i++)
+    {
+      strcat(cmdline, argv[i]);
+      strcat(cmdline, " ");
+    }
+}
+
+void show_header()
+{
+  fprintf(stderr, "%s\n", progheader);
+  //  fprintf(stderr, "%s\n", cmdline);
+  fprintf(stderr, "Copyright (C) 2014 Torbjorn Rognes, all rights reserved. License: AGPL 3.0\n");
+  fprintf(stderr, "https://github.com/torognes/vsearch\n");
+  fprintf(stderr, "\n");
+}
+
 int main(int argc, char** argv)
 {
-  //  setlocale(LC_ALL, "en_US");
-
+  fillheader();
+  getentirecommandline(argc, argv);
   cpu_features_detect();
 
   args_init(argc, argv);

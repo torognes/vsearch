@@ -25,7 +25,9 @@ struct topscore
 {
   unsigned int count;
   unsigned int seqno;
+#if 0
   unsigned int length;
+#endif
 };
       
 int hit_compare(const void * a, const void * b)
@@ -66,14 +68,15 @@ static unsigned int kmersamplecount;
 
 static unsigned long nwalignments = 0;
 
-FILE * alnoutfile;
-FILE * useroutfile;
-FILE * blast6outfile;
-FILE * ucfile;
-FILE * fp_matched;
-FILE * fp_notmatched;
-FILE * fp_dbmatched;
-FILE * fp_dbnotmatched;
+static FILE * fp_alnout = 0;
+static FILE * fp_userout = 0;
+static FILE * fp_blast6out = 0;
+static FILE * fp_uc = 0;
+static FILE * fp_fastapairs = 0;
+static FILE * fp_matched = 0;
+static FILE * fp_notmatched = 0;
+static FILE * fp_dbmatched = 0;
+static FILE * fp_dbnotmatched = 0;
 
 void search_get_query_samples(char * qsequence, unsigned int qseqlen, 
                               unsigned int wl, unsigned int samples)
@@ -234,7 +237,9 @@ unsigned int search_topscores(unsigned int seqcount,
 
           unsigned int count = hitcount[i];
 
+#if 0
 	  unsigned long seqlen = db_getsequencelen(i);
+#endif
           
           /* find insertion point */
           
@@ -275,7 +280,9 @@ unsigned int search_topscores(unsigned int seqcount,
               
               topscores[p].count  = count;
               topscores[p].seqno  = i;
+#if 0
               topscores[p].length = seqlen;
+#endif
               
               if (topcount < th)
                 topcount++;
@@ -287,8 +294,9 @@ unsigned int search_topscores(unsigned int seqcount,
       for(unsigned int i=0; i < seqcount; i++)
         {
           unsigned int count = hitcount[i];
+#if 0
 	  unsigned long seqlen = db_getsequencelen(i);
-          
+#endif
           
           /* find insertion point */
           
@@ -328,7 +336,9 @@ unsigned int search_topscores(unsigned int seqcount,
               
               topscores[p].count = count;
               topscores[p].seqno = i;
+#if 0
               topscores[p].length = seqlen;
+#endif
               
               if (topcount < th)
                 topcount++;
@@ -341,7 +351,7 @@ unsigned int search_topscores(unsigned int seqcount,
 
 
 int search_onequery(char * query_head, char * qsequence, 
-		    long qseqlen, long query_no)
+		    long qseqlen, long query_no, char * rc)
 {
   int seqcount = db_getsequencecount();
 
@@ -374,7 +384,7 @@ int search_onequery(char * query_head, char * qsequence,
       char * qseq;
 
       if (s)
-	qseq = reverse_complement(qsequence, qseqlen);
+	qseq = rc;
       else
 	qseq = qsequence;
 
@@ -531,8 +541,10 @@ int search_onequery(char * query_head, char * qsequence,
 		- trim_q_left - trim_t_left - trim_q_right - trim_t_right;
 	      double internal_id = 100.0 * matches / internal_alignmentlength;
 
-	      /* test these accept/reject criteria
-		 --id (implemented)
+	      /*
+
+		More accept criteria:
+
 		 --query_cov
 		 --target_cov
 		 --leftjust
@@ -543,15 +555,9 @@ int search_onequery(char * query_head, char * qsequence,
 		 --maxgaps
 		 --mincols
 		 --mid
+		 ...
 
-		 Weak hits:
-		 --weak_id
 	      */
-
-	      if(s)
-		{
-		  //		  printf("ID: %.2lf%%\n", internal_id);
-		}
 
 	      if (internal_id >= 100.0 * opt_weak_id)
 		{
@@ -589,9 +595,6 @@ int search_onequery(char * query_head, char * qsequence,
 		}
 	    }
 	}  
-      
-      if (s)
-	free(qseq);
     }
     
   /* sort and return hits */
@@ -601,7 +604,7 @@ int search_onequery(char * query_head, char * qsequence,
   return hit_count;
 }
 
-void search()
+void search(char * cmdline, char * progheader)
 {
   /* check options */
 
@@ -622,30 +625,37 @@ void search()
 
   if (alnoutfilename)
     {
-      alnoutfile = fopen(alnoutfilename, "w");
-      if (! alnoutfile)
+      fp_alnout = fopen(alnoutfilename, "w");
+      if (! fp_alnout)
 	fatal("Unable to open alignment output file for writing");
     }
 
   if (useroutfilename)
     {
-      useroutfile = fopen(useroutfilename, "w");
-      if (! useroutfile)
+      fp_userout = fopen(useroutfilename, "w");
+      if (! fp_userout)
         fatal("Unable to open user-defined output file for writing");
     }
 
   if (blast6outfilename)
     {
-      blast6outfile = fopen(blast6outfilename, "w");
-      if (! blast6outfile)
+      fp_blast6out = fopen(blast6outfilename, "w");
+      if (! fp_blast6out)
         fatal("Unable to open blast6-like output file for writing");
     }
 
   if (ucfilename)
     {
-      ucfile = fopen(ucfilename, "w");
-      if (! ucfile)
+      fp_uc = fopen(ucfilename, "w");
+      if (! fp_uc)
         fatal("Unable to open uclust-like output file for writing");
+    }
+
+  if (opt_fastapairs)
+    {
+      fp_fastapairs = fopen(opt_fastapairs, "w");
+      if (! fp_fastapairs)
+        fatal("Unable to open fastapairs output file for writing");
     }
 
   if (opt_matched)
@@ -674,6 +684,12 @@ void search()
       fp_dbnotmatched = fopen(opt_dbnotmatched, "w");
       if (! fp_dbnotmatched)
         fatal("Unable to open dbnotmatched output file for writing");
+    }
+
+  if (alnoutfilename)
+    {
+      fprintf(fp_alnout, "%s\n", cmdline);
+      fprintf(fp_alnout, "%s\n", progheader);
     }
 
   db_read(databasefilename);
@@ -717,44 +733,94 @@ void search()
   long * dbmatched = (long *) xmalloc(seqcount * sizeof(long));
   memset(dbmatched, 0, seqcount * sizeof(long));
 
+  long rc_seq_alloc = 50001;
+  char * rc = 0;
+
   while(query_getnext(& query_head, & query_head_len,
 		      & qsequence, & qseqlen,
 		      & query_no))
     {
-      
+
+      if (qseqlen + 1 > rc_seq_alloc)
+	{
+	  rc_seq_alloc += 10000;
+	  rc = (char *) xrealloc(rc, (size_t)rc_seq_alloc);
+	}
+
+      if (opt_strand > 1)
+	reverse_complement(rc, qsequence, qseqlen);
+
       /* perform search */
       
       int hit_count = search_onequery(query_head,
 				      qsequence, qseqlen, 
-				      query_no);
+				      query_no, rc);
       
       if (hit_count > 0)
 	qmatches++;
 
       /* show results */
       
-      if (alnoutfilename)
-	results_show_alnout(hits, hit_count, query_head,
-			   qsequence, qseqlen);
+      long toreport = MIN(opt_maxhits, hit_count);
+
+      if (toreport)
+	{
+	  if (fp_alnout)
+	    results_show_alnout(fp_alnout,
+				hits, toreport, query_head,
+				qsequence, qseqlen, rc);
       
-      if (useroutfilename)
-	results_show_userout(hits, hit_count, query_head,
-			    qsequence, qseqlen);
-      
-      if (blast6outfilename)
-	results_show_blast6out(hits, hit_count, query_head,
-			      qsequence, qseqlen);
-      
-      if (ucfilename)
-	results_show_uc(hits, hit_count, query_head,
-		       qsequence, qseqlen);
-      
+	  double top_hit_id = hits[0].internal_id;
+	  
+	  for(int t = 0; t < toreport; t++)
+	    {
+	      struct hit * hp = hits + t;
+	      
+	      if (opt_top_hits_only && (hp->internal_id < top_hit_id))
+		break;
+	      
+	      if (fp_fastapairs)
+		results_show_fastapairs_one(fp_fastapairs, hp, query_head,
+					    qsequence, qseqlen, rc);
+
+	      if (fp_uc)
+		results_show_uc_one(fp_uc, hp, query_head,
+				    qsequence, qseqlen, rc);
+	      
+	      if (fp_userout)
+		results_show_userout_one(fp_userout, hp, query_head, 
+					 qsequence, qseqlen, rc);
+	      
+	      if (fp_blast6out)
+		results_show_blast6out_one(fp_blast6out, hp, query_head,
+					   qsequence, qseqlen, rc);
+	    }
+	}
+      else
+	{
+	  if (fp_uc)
+	    results_show_uc_one(fp_uc, 0, query_head,
+				qsequence, qseqlen, rc);
+	  
+	  if (opt_output_no_hits)
+	    {
+	      if (fp_userout)
+		results_show_userout_one(fp_userout, 0, query_head, 
+					 qsequence, qseqlen, rc);
+	      
+	      if (fp_blast6out)
+		results_show_blast6out_one(fp_blast6out, 0, query_head,
+					   qsequence, qseqlen, rc);
+	    }
+	}
+
+
       if (hit_count)
 	{
 	  if (opt_matched)
 	    {
 	      fprintf(fp_matched, ">%s\n", query_head);
-	      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen);
+	      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen, 80);
 	    }
 	}
       else
@@ -762,7 +828,7 @@ void search()
 	  if (opt_notmatched)
 	    {
 	      fprintf(fp_notmatched, ">%s\n", query_head);
-	      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen);
+	      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen, 80);
 	    }
 	}
 
@@ -778,13 +844,16 @@ void search()
       
       for(int i=0; i<hit_count; i++)
 	free(hits[i].nwalignment);
-
-
+      
+      if(rc)
+	free(rc);
+      
       progress_update(query_getfilepos());
-    
     }
-  
   progress_done();
+
+  if (rc)
+    free(rc);
 
   free(targetlist);
   free(hits);
@@ -801,7 +870,7 @@ void search()
 	if (dbmatched[i])
 	  {
 	    if (opt_dbmatched)
-	      db_fprint_fasta(fp_dbmatched, i);
+	      db_fprint_fasta_with_size(fp_dbmatched, i, dbmatched[i]);
 	  }
 	else
 	  {
@@ -814,7 +883,7 @@ void search()
 
 #if 1
   fprintf(stderr, "Matching query sequences: %ld (%.1f%%)\n", qmatches, 100.0 * qmatches / (query_no+1));
-  fprintf(stderr, "Number of alignments computed: %ld\n", nwalignments);
+  fprintf(stderr, "Alignments computed: %ld\n", nwalignments);
 #endif
 
   query_close();
@@ -835,17 +904,20 @@ void search()
   if (opt_dbnotmatched)
     fclose(fp_dbnotmatched);
 
-  if (ucfilename)
-    fclose(ucfile);
+  if (opt_fastapairs)
+    fclose(fp_fastapairs);
 
-  if (blast6outfilename)
-    fclose(blast6outfile);
+  if (fp_uc)
+    fclose(fp_uc);
 
-  if (useroutfilename)
-    fclose(useroutfile);
+  if (fp_blast6out)
+    fclose(fp_blast6out);
 
-  if (alnoutfilename)
-    fclose(alnoutfile);
+  if (fp_userout)
+    fclose(fp_userout);
+
+  if (fp_alnout)
+    fclose(fp_alnout);
 
   show_rusage();
 }

@@ -23,7 +23,7 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 **Kmer selection:** How many and which unique kmers USEARCH chooses from the query sequence is not well documented, but our procedure seems to give results approximately equal to USEARCH. In VSEARCH, *x* of the unique kmers in the query are sampled uniformly along the query sequence, where *x* is chosen so as to expect 8 matches with the targets satisfying the accept criteria (specified with the `--id` option). USEARCH seems to do a similar thing but the exact procedure is unknown. The choice of *x* should be looked further into.
 
-**Output formats:** The output can be written in four different formats specified with the `--alnout`, `--blast6out`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported.
+**Output formats:** All the output options of usearch are supported. The output can be written in five different formats specified with the `--alnout`, `--blast6out`, `--fastapairs`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported.
 
 **Alignment:** VSEARCH currently uses a relatively slow non-vectorized full dynamic programming Needleman-Wunsch-Sellers algorithm for the alignments (similar to USEARCH with `--fulldp`) instead of the quicker (but possible less senstive) procedure involving seeding, extension and banded dynamic programming employed by USEARCH. This could be replaced by a vectorized variant using SIMD in VSEARCH to get up to comparable speed. A banded SIMD variant could also be valuable.
 
@@ -34,67 +34,85 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 ## Command line options supported
 
-Command options:
+General options:
 
-* `--usearch_global <filename>`
-* `--derep_fulllength <filename>`
-* `--sortbysize <filename>`
-* `--sortbylength <filename>`
 * `--help`
 * `--version`
+* `--threads <int>` (Default 1) (Currently only one thread supported)
+* `--maxseqlength <int>` (Default 50000)
+* `--notrunclabels`
 
 Search options:
 
-* `--db <filename>`
+* `--usearch_global <filename>`
 * `--id <real>`
-* `--weak_id <real>`
-* `--strand <plus|both>` (required for search, optional for dereplication)
-* `--wordlength <int>`
-* `--alnout <filename>` (for search)
-* `--blast6out <filename>` (for search)
-* `--uc <filename>` and `--uc_allhits` (for search and dereplication)
-* `--userout <filename>` and `--userfields <list of fields separated by +>` (for search)
-* `--matched <filename>` (for search)
-* `--notmatched <filename>` (for search)
-* `--dbmatched <filename>` (for search)
-* `--dbnotmatched <filename>` (for search)
-* `--fulldp` (Always full dynamic programming alignments)
-
-Dereplication and sorting options:
-* `--output <filename>` (FASTA file for dereplication and sorting)
-* `--minuniquesize <int>`
-* `--topn`
+* `--db <filename>`
+* `--strand <plus|both>`
+* `--maxhits`
+* `--top_hits_only`
+* `--output_no_hits`
+* `--alnout <filename>`
+* `--rowlen <int>` (Default 64)
+* `--userout <filename>`
+* `--userfields <string>`
+* `--uc <filename>` and `--uc_allhits`
+* `--fastapairs <filename>`
+* `--blast6out <filename>`
+* `--matched <filename>`
+* `--notmatched <filename>`
+* `--dbmatched <filename>`
 * `--sizeout`
-* `--minsize <int>`
-* `--maxsize <int>`
-* `--minseqlength <int>`
-* `--relabel`
-* `--sizein`
-
-Optional options:
-
-* `--maxseqlength <int>` (Default 50000)
+* `--dbnotmatched <filename>`
+* `--self`
+* `--weak_id <real>`
 * `--maxaccepts <int>` (Default 1)
 * `--maxrejects <int>` (Default 16)
-* `--self`
-* `--notrunclabels`
 * `--wordlength <int>` (Default 8)
 * `--match <int>` (Default 2)
 * `--mismatch <int>` (Default -4)
 * `--gapopen <string>` (Default 20I/2E)
 * `--gapext <string>` (Default 2I/1E)
-* `--rowlen <int>` (Default 64)
-* `--threads <int>` (Default 1) (Currently only one thread supported)
+* `--fulldp` (Always full dynamic programming alignments)
+* `--minseqlength <int>` (Default 1)
+
+Dereplication options:
+
+* `--derep_fulllength <filename>`
+* `--minseqlength <int>` (Default 32)
+* `--output <filename>`
+* `--uc <filename>` and `--uc_allhits`
+* `--sizein`
+* `--sizeout`
+* `--minuniquesize <int>`
+* `--strand <plus|both>`
+* `--topn <int>`
+
+Abundance sorting options:
+
+* `--sortbysize <filename>`
+* `--output <filename>`
+* `--minseqlength <int>` (Default 32)
+* `--minsize <int>` (Default 0)
+* `--maxsize <int>` (Default inf.)
+* `--relabel`
+* `--sizeout`
+
+Length sorting options:
+
+* `--sortbylength <filename>`
+* `--output <filename>`
+* `--minseqlength <int>` (Default 1)
+* `--relabel`
+* `--sizeout`
 
 
 ## Main limitations
 
 * **Commands:** No clustering or chimera checking, yet.
 * **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
-* **Accept/reject options**: Only the `--id` and `--self` options is supported.
+* **Accept options**: Only the `--id` and `--self` options are supported.
 * **Indexing options:** Only continuous seeds are supported.
 * **Speed:** Only non-vectorized full alignment, no parallelization. Threads are currently not supported.
-* **Gap penalties:** Only integer gap penalties are supported. The default match, mismatch and gap penalties have been doubled relative to USEARCH to give similar results.
 
 ## License
 
@@ -108,10 +126,11 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **vsearch.h** - C header file for entire project
 * **vsearch.cc** - Main program file, general initialization, reads arguments and parses options, writes info.
 * **query.cc** - reads the fasta file containing the query sequences.
+* **bzquery.cc** - reads compressed fasta query files. Not currently used.
 * **db.cc** - Handles the database file read, access etc
 * **dbindex.cc** - Indexes the database by identifying unique kmers in the sequences and make a database hash table
 * **nw.cc** - New Needleman-Wunsch global alignment, serial
-* **nws.cc** - Old Needleman-Wunsch-Sellers global alignment, serial
+* **nws.cc** - Old Needleman-Wunsch-Sellers global alignment, serial. Not used.
 * **showalign.cc** - Output an alignment in a human-readable way given a CIGAR-string and the sequences
 * **search.cc** - search database
 * **util.cc** - Various common utility functions
@@ -125,7 +144,7 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 
 ## Bugs
 
-At the moment VSEARCH is not well tested. How well it works on really large databases is not checked. There might be bugs related to crossing the 4GB memory space.
+VSEARCH has not been tested comprehensively. All bug reports are appreciated.
 
 
 ## Future work

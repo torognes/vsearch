@@ -125,18 +125,6 @@ void query_close()
 }
 
 
-char * reverse_complement(char * seq, long len)
-{
-  /* Return pointer to newly allocated memory
-     containing the reverse complementary sequence.
-     Memory must be deallocated by caller. */
-
-  char * rc = (char *) xmalloc((size_t)len);
-  for(long i=0; i<len; i++)
-    rc[i] = chrmap_complement[(int)(seq[len-1-i])];
-  return rc;
-}
-
 
 
 int query_getnext(char ** head, long * head_len,
