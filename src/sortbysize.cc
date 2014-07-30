@@ -114,7 +114,7 @@ void sortbysize()
       
       char * seq = db_getsequence(sortinfo[i].seqno);
       long len = db_getsequencelen(sortinfo[i].seqno);
-      fprint_fasta_seq_only(fp_output, seq, len);
+      fprint_fasta_seq_only(fp_output, seq, len, 80);
       progress_update(i);
     }
   progress_done();

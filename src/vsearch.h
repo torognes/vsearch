@@ -49,7 +49,8 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.6"
+#define PROG_VERSION "v0.0.7"
+
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
 #else
@@ -153,17 +154,24 @@ extern char chrmap_complement[256];
 
 extern char * queryname;
 
-extern char * databasefilename;
 extern char * opt_usearch_global;
+extern char * opt_derep_fulllength;
+extern char * opt_sortbysize;
+extern char * opt_sortbylength;
 
 extern char * alnoutfilename;
 extern char * useroutfilename;
 extern char * blast6outfilename;
 extern char * ucfilename;
+extern char * opt_fastapairs;
 extern char * opt_matched;
 extern char * opt_notmatched;
 extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
+
+extern char * databasefilename;
+extern char * opt_output;
+extern char * opt_relabel;
 
 extern long wordlength;
 extern long maxrejects;
@@ -174,23 +182,21 @@ extern double identity;
 extern long rowlen;
 
 extern double opt_weak_id;
-extern int opt_self;
-extern int opt_strand;
-extern int opt_uc_allhits;
-extern int opt_notrunclabels;
-extern char * opt_sortbysize;
-extern char * opt_sortbylength;
-extern char * opt_output;
+extern long opt_self;
+extern long opt_strand;
+extern long opt_uc_allhits;
+extern long opt_output_no_hits;
+extern long opt_notrunclabels;
 extern long opt_minsize;
 extern long opt_maxsize;
-extern char * opt_relabel;
 extern long opt_sizein;
 extern long opt_sizeout;
-extern char * opt_derep_fulllength;
 extern long opt_minseqlength;
 extern long opt_maxseqlength;
 extern long opt_minuniquesize;
 extern long opt_topn;
+extern long opt_maxhits;
+extern long opt_top_hits_only;
 
 extern int opt_gap_open_query_left;
 extern int opt_gap_open_target_left;
@@ -204,11 +210,6 @@ extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_target_interior;
 extern int opt_gap_extension_query_right;
 extern int opt_gap_extension_target_right;
-
-extern FILE * alnoutfile;
-extern FILE * useroutfile;
-extern FILE * blast6outfile;
-extern FILE * ucfile;
 
 extern long mmx_present;
 extern long sse_present;
@@ -245,9 +246,10 @@ unsigned long hash_fnv_1a_64_uc(char * s, unsigned long n);
 long getusec(void);
 void show_rusage();
 void fprint_fasta_hdr_only(FILE * fp, char * hdr);
-void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len);
+void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width);
 void db_fprint_fasta(FILE * fp, unsigned long seqno);
 void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size);
+void reverse_complement(char * rc, char * seq, long len);
 
 void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned long progress);
@@ -298,6 +300,7 @@ unsigned long db_getlongestheader();
 unsigned long db_getlongestsequence();
 unsigned long db_getshortestsequence();
 
+
 /* functions in query.cc */
 
 void query_open(const char * filename);
@@ -310,8 +313,6 @@ void query_close();
 long query_getfilesize();
 
 long query_getfilepos();
-
-char * reverse_complement(char * seq, long len);
 
 
 /* functions in bzquery.cc */
@@ -393,12 +394,14 @@ int dbindex_getkmermatch(int kmer, int matchno);
 
 /* functions in search.cc */
 
-void search();
+void search(char * cmdline, char * progheader);
 
 
 /* functions in showalign.cc */
 
 char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
+
+void align_fprint_uncompressed_alignment(FILE * f, char * cigar);
 
 void align_show(FILE * f,
 		char * seq1,
@@ -416,6 +419,7 @@ void align_show(FILE * f,
 		int alignwidth,
 		int strand);
 
+
 /* functions in userfields.cc */
 
 extern int * userfields_requested;
@@ -425,21 +429,41 @@ int parse_userfields_arg(char * arg);
 
 /* functions in results.cc */
 
-void results_show_blast6out(struct hit * hits, int accepts,
-			   char * query_head,
-			   char * qsequence, long qseqlen);
-
-void results_show_uc(struct hit * hits, int accepts,
-		     char * query_head,
-		     char * qsequence, long qseqlen);
-
-void results_show_userout(struct hit * hits, int accepts,
+void results_show_alnout(FILE * fp,
+			 struct hit * hits,
+			 int hitcount,
 			 char * query_head,
-			 char * qsequence, long qseqlen);
+			 char * qsequence,
+			 long qseqlen,
+			 char * rc);
 
-void results_show_alnout(struct hit * hits, int accepts,
-                        char * query_head,
-                        char * qsequence, long qseqlen);
+void results_show_blast6out_one(FILE * fp,
+				struct hit * hp,
+				char * query_head,
+				char * qsequence,
+				long qseqlen,
+				char * rc);
+
+void results_show_uc_one(FILE * fp,
+			 struct hit * hp,
+			 char * query_head,
+			 char * qsequence,
+			 long qseqlen,
+			 char * rc);
+
+void results_show_userout_one(FILE * fp,
+			      struct hit * hp,
+			      char * query_head,
+			      char * qsequence,
+			      long qseqlen,
+			      char * rc);
+
+void results_show_fastapairs_one(FILE * fp,
+				 struct hit * hp,
+				 char * query_head,
+				 char * qsequence,
+				 long qseqlen,
+				 char * rc);
 
 /* functions in sortbysize.cc */
 

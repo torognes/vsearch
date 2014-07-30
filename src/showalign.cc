@@ -242,3 +242,27 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
   *r = 0;
   return row;
 }
+
+void align_fprint_uncompressed_alignment(FILE * f, char * cigar)
+{
+  char * p = cigar;
+  while(*p)
+    {
+      if (*p > '9')
+	fprintf(f, "%c", *p++);
+      else
+	{
+	  int n = 0;
+	  char c = 0;
+	  int x = 0;
+	  if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
+	    {
+	      for(int i = 0; i<n; i++)
+		fprintf(f, "%c", c);
+	      p += x;
+	    }
+	  else
+	    fatal("bad alignment string");
+	}
+    }
+}

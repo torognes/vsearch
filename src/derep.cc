@@ -94,12 +94,16 @@ void derep_fulllength()
   long * nextseqtab = (long*) xmalloc(sizeof(long) * dbsequencecount);
   memset(nextseqtab, 0, sizeof(long) * dbsequencecount);
 
+  char * rc_seq = (char*) xmalloc(db_getlongestsequence() + 1);
+  
   progress_init("Dereplicating", dbsequencecount);
   for(long i=0; i<dbsequencecount; i++)
     {
       unsigned long seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
-      char * rc_seq = opt_strand > 1 ? reverse_complement(seq, seqlen) : 0;
+
+      if (opt_strand > 1)
+	reverse_complement(rc_seq, seq, seqlen);
 
       /*
 	Find free bucket or bucket for identical sequence.
@@ -122,8 +126,6 @@ void derep_fulllength()
 	    bp = hashtable;
 	}
 	  
-#if 1
-
       if ((opt_strand > 1) && !bp->size)
 	{
 	  /* no match on plus strand */
@@ -147,9 +149,6 @@ void derep_fulllength()
 	  if (rc_bp->size)
 	    bp = rc_bp;
 	}
-
-#endif
-
 
       long ab = db_getabundance(i); 
       sumsize += ab;
@@ -178,6 +177,8 @@ void derep_fulllength()
       progress_update(i);
     }
   progress_done();
+
+  free(rc_seq);
   
   show_rusage();
 
@@ -224,15 +225,15 @@ void derep_fulllength()
 	    db_fprint_fasta(fp_output, bp->seqno_first);
 	  progress_update(i);
 	}
-      fclose(fp_output);
       progress_done();
+      fclose(fp_output);
       show_rusage();
     }
   
   if (ucfilename)
     {
-      progress_init("Writing uc file, first part", bigclusters);
-      for (long i=0; i<bigclusters; i++)
+      progress_init("Writing uc file, first part", clusters);
+      for (long i=0; i<clusters; i++)
 	{
 	  struct bucket * bp = hashtable + i;
 	  char * h =  db_getheader(bp->seqno_first);
@@ -253,8 +254,8 @@ void derep_fulllength()
       progress_done();
       show_rusage();
       
-      progress_init("Writing uc file, second part", bigclusters);
-      for (long i=0; i<bigclusters; i++)
+      progress_init("Writing uc file, second part", clusters);
+      for (long i=0; i<clusters; i++)
 	{
 	  struct bucket * bp = hashtable + i;
 	  fprintf(fp_uc, "C\t%ld\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",

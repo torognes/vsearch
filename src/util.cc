@@ -21,6 +21,36 @@
 
 #include "vsearch.h"
 
+static const char * progress_prompt;
+static unsigned long progress_next;
+static unsigned long progress_size;
+static unsigned long progress_chunk;
+static const unsigned long progress_granularity = 200;
+
+void progress_init(const char * prompt, unsigned long size)
+{
+  progress_prompt = prompt;
+  progress_size = size;
+  progress_chunk = size < progress_granularity ? 
+    1 : size / progress_granularity;
+  progress_next = 0;
+  fprintf(stderr, "%s %.0f%%", prompt, 0.0);
+}
+
+void progress_update(unsigned long progress)
+{
+  if (progress >= progress_next)
+    {
+      fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
+	      100.0 * progress / progress_size);
+      progress_next = progress + progress_chunk;
+    }
+}
+
+void progress_done()
+{
+  fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+}
 
 long gcd(long a, long b)
 {
@@ -40,7 +70,8 @@ void  __attribute__((noreturn)) fatal(const char * msg)
   exit(1);
 }
 
-void  __attribute__((noreturn)) fatal(const char * format, const char * message)
+void  __attribute__((noreturn)) fatal(const char * format, 
+				      const char * message)
 {
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
@@ -138,52 +169,31 @@ void show_rusage()
   fprintf(stderr, " Memory: %luMB\n",  arch_get_memused() / 1024 / 1024);
 }
 
-
-static const char * progress_prompt;
-static unsigned long progress_next;
-static unsigned long progress_size;
-static unsigned long progress_chunk;
-
-void progress_init(const char * prompt, unsigned long size)
-{
-  progress_prompt = prompt;
-  progress_size = size;
-  progress_chunk = size < 2000 ? 1 : size / 2000;
-  progress_next = 0;
-  fprintf(stderr, "%s 0.0%%", prompt);
-}
-
-void progress_update(unsigned long progress)
-{
-  if (progress >= progress_next)
-    {
-      fprintf(stderr, "  \r%s %.1f%%", progress_prompt,
-	      100.0 * progress / progress_size);
-      progress_next = progress + progress_chunk;
-    }
-}
-
-void progress_done()
-{
-  fprintf(stderr, "  \r%s 100.0%%\n", progress_prompt);
-}
-
 void fprint_fasta_hdr_only(FILE * fp, char * hdr)
 {
   fprintf(fp, ">%s\n", hdr);
 }
 
-void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len)
+void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
 {
-  //#define LINEARIZE
-#define FASTALINELEN 80
+  /* 
+     The actual length of the sequence may be longer than "len", but only
+     "len" characters are printed.
+     
+     Specify width of lines - zero means linearize (all on one line).
+  */
 
-#ifdef LINEARIZE
-  fprintf(fp, "%s\n", seq);
-#else
-  for(unsigned long i=0; i<len; i += FASTALINELEN)
-    fprintf(fp, "%.*s\n", FASTALINELEN, seq+i);
-#endif
+  if (width == 0)
+    fprintf(fp, "%.*s\n", (int)(len), seq);
+  else
+    {
+      long rest = len;
+      for(unsigned long i=0; i<len; i += width)
+	{
+	  fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq+i);
+	  rest -= width;
+	}
+    }
 }
 
 void db_fprint_fasta(FILE * fp, unsigned long seqno)
@@ -193,7 +203,7 @@ void db_fprint_fasta(FILE * fp, unsigned long seqno)
   long seqlen = db_getsequencelen(seqno);
   
   fprint_fasta_hdr_only(fp, hdr);
-  fprint_fasta_seq_only(fp, seq, seqlen);
+  fprint_fasta_seq_only(fp, seq, seqlen, 80);
 }
 
 void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size)
@@ -232,5 +242,16 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
       fprintf(fp, ">%s;size=%lu;\n", hdr, size);
     }
 
-  fprint_fasta_seq_only(fp, seq, seqlen);
+  fprint_fasta_seq_only(fp, seq, seqlen, 80);
+}
+
+void reverse_complement(char * rc, char * seq, long len)
+{
+  /* Write the reverse complementary sequence to rc.
+     The memory for rc must be long enough for the rc of the sequence
+     (identical to the length of seq + 1. */
+
+  for(long i=0; i<len; i++)
+    rc[i] = chrmap_complement[(int)(seq[len-1-i])];
+  rc[len] = 0;
 }
