@@ -3,7 +3,7 @@
 
 ## Introduction
 
-The aim of the project is to create an alternative to the USEARCH tool. The new tool should have:
+The aim of the project is to create an alternative to the USEARCH tool developed by Robert Edgar. The new tool should have:
 
 * open source code with an appropriate open source license
 * 64-bit design that handles very large databases and more than 4GB of memory
@@ -12,14 +12,14 @@ A tool called VSEARCH has been implemented. Exactly the same option names as USE
 The basic usearch_global algorithm for global alignments using nucleotide sequences is implemented, as well as the derep_fulllength and the sortbysize and sortbylength commands.
 At this stage it does not support amino acid sequences, local alignments, clustering, chimera detection etc. It currently does not use pthreads nor SIMD.
 
-In the example below, VSEARCH will identify sequences in database.fsa at least 90% identical to the query sequences in queries.fsa and write the results to alnout.txt.
+In the example below, VSEARCH will identify sequences in database.fsa at least 90% identical on the plus strand to the query sequences in queries.fsa and write the results to alnout.txt.
 
-`./vsearch --usearch_global queries.fsa --db database.fsa --alnout alnout.txt --id 0.9 --strand plus --threads 1 --fulldp`
+`./vsearch-0.0.8-linux-x86_64 --usearch_global queries.fsa --db database.fsa --strand plus --id 0.9 --alnout alnout.txt`
 
 
 ## Implementation details
 
-**Algorithm:** VSEARCH indexes the unique kmers in the database in the same way as USEARCH, but is currently limited to continuous words (non-spaced seeds). It evenly samples a certain number of unique kmers from each query sequence and identifies the database sequences with the largest number of kmer matches. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those database sequences that satisfy the sequence identity fraction criteria specified using the `--id` and `--self` options are accepted. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching databases considered, respectively. Please see the USEARCH paper and supplementary for details.
+**Algorithm:** VSEARCH indexes the unique kmers in the database in the same way as USEARCH, but is currently limited to continuous words (non-spaced seeds). It evenly samples a certain number of unique kmers from each query sequence and identifies the database sequences with the largest number of kmer matches. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those database sequences that satisfy the all accept options are accepted others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching databases considered, respectively. Please see the USEARCH paper and supplementary for details.
 
 **Kmer selection:** How many and which unique kmers USEARCH chooses from the query sequence is not well documented, but our procedure seems to give results approximately equal to USEARCH. In VSEARCH, *x* of the unique kmers in the query are sampled uniformly along the query sequence, where *x* is chosen so as to expect 8 matches with the targets satisfying the accept criteria (specified with the `--id` option). USEARCH seems to do a similar thing but the exact procedure is unknown. The choice of *x* should be looked further into.
 
@@ -45,7 +45,6 @@ General options:
 Search options:
 
 * `--usearch_global <filename>`
-* `--id <real>`
 * `--db <filename>`
 * `--strand <plus|both>`
 * `--maxhits`
@@ -55,7 +54,8 @@ Search options:
 * `--rowlen <int>` (Default 64)
 * `--userout <filename>`
 * `--userfields <string>`
-* `--uc <filename>` and `--uc_allhits`
+* `--uc <filename>`
+* `--uc_allhits`
 * `--fastapairs <filename>`
 * `--blast6out <filename>`
 * `--matched <filename>`
@@ -63,8 +63,30 @@ Search options:
 * `--dbmatched <filename>`
 * `--sizeout`
 * `--dbnotmatched <filename>`
-* `--self`
+* `--id <real>`
 * `--weak_id <real>`
+* `--query_cov <real>`
+* `--target_cov <real>`
+* `--idprefix <int>`
+* `--idsuffix <int>`
+* `--minqt <real>`
+* `--maxqt <real>`
+* `--minsl <real>`
+* `--maxsl <real>`
+* `--leftjust`
+* `--rightjust`
+* `--self`
+* `--selfid`
+* `--maxid <real>`
+* `--minsizeratio <real>`
+* `--maxsizeratio <real>`
+* `--maxdiffs <int>`
+* `--maxsubs <int>`
+* `--maxgaps <int>`
+* `--mincols <int>`
+* `--maxqsize <int>`
+* `--mintsize <int>`
+* `--mid <real>`
 * `--maxaccepts <int>` (Default 1)
 * `--maxrejects <int>` (Default 16)
 * `--wordlength <int>` (Default 8)
@@ -80,14 +102,15 @@ Dereplication options:
 * `--derep_fulllength <filename>`
 * `--minseqlength <int>` (Default 32)
 * `--output <filename>`
-* `--uc <filename>` and `--uc_allhits`
+* `--uc <filename>`
+* `--uc_allhits`
 * `--sizein`
 * `--sizeout`
 * `--minuniquesize <int>`
 * `--strand <plus|both>`
 * `--topn <int>`
 
-Abundance sorting options:
+Abundance sort options:
 
 * `--sortbysize <filename>`
 * `--output <filename>`
@@ -97,7 +120,7 @@ Abundance sorting options:
 * `--relabel`
 * `--sizeout`
 
-Length sorting options:
+Length sort options:
 
 * `--sortbylength <filename>`
 * `--output <filename>`
@@ -109,10 +132,9 @@ Length sorting options:
 ## Main limitations
 
 * **Commands:** No clustering or chimera checking, yet.
-* **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
-* **Accept options**: Only the `--id` and `--self` options are supported.
-* **Indexing options:** Only continuous seeds are supported.
 * **Speed:** Only non-vectorized full alignment, no parallelization. Threads are currently not supported.
+* **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
+* **Indexing options:** Only continuous seeds are supported.
 
 ## License
 
@@ -153,11 +175,11 @@ Some issues to work on:
 
 * testing and debugging
 * precision and recall comparison with USEARCH
-* performance comparison with USEARCH
-* understand how many and which unique kmers from the query USEARCH chooses
+* performance (speed) comparison with USEARCH
+* optimize selection of unique kmers
+* optimize order of database sequence comparison
 * parallelisation with pthreads
 * parallelisation with SIMD-based global alignment
-* clustering (i.e. uclust)
+* clustering
 * chimera filtering
-* more accept options
 * masking

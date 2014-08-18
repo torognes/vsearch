@@ -108,7 +108,7 @@ char * xstrchrnul(char *s, int c)
     return (char *)s + strlen(s);
 }
 
-unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
+unsigned long hash_fnv_1a_64(char * s, unsigned long n)
 {
   /*
     This is the Fowler Noll Vo (FNV) hash function,
@@ -124,7 +124,7 @@ unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
 
   for(unsigned long i = 0; i < n; i++)
     {
-      unsigned char c = *s++;
+      unsigned char c = (unsigned char) *s++;
       hash = (hash ^ c) * fnv_prime;
     }
 
@@ -149,6 +149,11 @@ unsigned long hash_fnv_1a_64_uc(char * s, unsigned long n)
     }
 
   return hash;
+}
+
+unsigned long hash_cityhash64(char * s, unsigned long n)
+{
+  return CityHash64((const char*)s, n);
 }
 
 long getusec(void)
@@ -180,10 +185,10 @@ void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
      The actual length of the sequence may be longer than "len", but only
      "len" characters are printed.
      
-     Specify width of lines - zero means linearize (all on one line).
+     Specify width of lines - zero (or <1)  means linearize (all on one line).
   */
 
-  if (width == 0)
+  if (width < 1)
     fprintf(fp, "%.*s\n", (int)(len), seq);
   else
     {
@@ -203,7 +208,7 @@ void db_fprint_fasta(FILE * fp, unsigned long seqno)
   long seqlen = db_getsequencelen(seqno);
   
   fprint_fasta_hdr_only(fp, hdr);
-  fprint_fasta_seq_only(fp, seq, seqlen, 80);
+  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }
 
 void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size)
@@ -242,7 +247,7 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
       fprintf(fp, ">%s;size=%lu;\n", hdr, size);
     }
 
-  fprint_fasta_seq_only(fp, seq, seqlen, 80);
+  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }
 
 void reverse_complement(char * rc, char * seq, long len)

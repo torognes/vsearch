@@ -10,7 +10,7 @@ Defaults are indicated in parentheses.
 
 Command line example:
 
-`./vsearch-0.0.6-macosx-x86_64 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln`
+`./vsearch-0.0.8-macosx-x86_64 --usearch_global q1000.fas --db big_file.fas --strand plus --id 0.9 --alnout alnout.aln`
 
 
 ## Commands
@@ -85,13 +85,13 @@ Command line example:
 
 - [x] `--rowlen <integer(64)>`
 
-- [ ] `--fastapairs <filename>`
+- [x] `--fastapairs <filename>`
 
-- [ ] `--maxhits <integer (0)>`
+- [x] `--maxhits <integer (0)>`
 
-- [ ] `--top_hits_only`
+- [x] `--top_hits_only`
 
-- [ ] `--output_no_hits`
+- [x] `--output_no_hits`
 
 - [ ] `--centroids <filename>`
 
@@ -122,47 +122,47 @@ Command line example:
 
 - [ ] `--evalue <real>`
 
-- [ ] `--query_cov <real>`
+- [x] `--query_cov <real>`
 
-- [ ] `--target_cov <real>`
+- [x] `--target_cov <real>`
 
-- [ ] `--idprefix <string>`
+- [x] `--idprefix <string>`
 
-- [ ] `--idsuffix <string>`
+- [x] `--idsuffix <string>`
 
-- [ ] `--minqt <real>`
+- [x] `--minqt <real>`
 
-- [ ] `--maxqt <real>`
+- [x] `--maxqt <real>`
 
-- [ ] `--minsl <real>`
+- [x] `--minsl <real>`
 
-- [ ] `--maxsl <real>`
+- [x] `--maxsl <real>`
 
-- [ ] `--leftjust`
+- [x] `--leftjust`
 
-- [ ] `--rightjust`
+- [x] `--rightjust`
 
-- [ ] `--selfid`
+- [x] `--selfid`
 
-- [ ] `--maxid <real>`
+- [x] `--maxid <real>`
 
-- [ ] `--minsizeratio <real>`
+- [x] `--minsizeratio <real>`
 
-- [ ] `--maxsizeratio <real>`
+- [x] `--maxsizeratio <real>`
 
-- [ ] `--maxdiffs <integer>`
+- [x] `--maxdiffs <integer>`
 
-- [ ] `--maxsubs <integer>`
+- [x] `--maxsubs <integer>`
 
-- [ ] `--maxgaps <integer>`
+- [x] `--maxgaps <integer>`
 
-- [ ] `--mincols <integer>`
+- [x] `--mincols <integer>`
 
-- [ ] `--maxqsize <integer>`
+- [x] `--maxqsize <integer>`
 
-- [ ] `--mintsize <integer>`
+- [x] `--mintsize <integer>`
 
-- [ ] `--mid <real>`
+- [x] `--mid <real>`
 
 
 ## Termination options

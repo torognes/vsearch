@@ -21,6 +21,11 @@
 
 #include "vsearch.h"
 
+//#define BITMAP
+
+//#define HASH hash_fnv_1a_64_uc
+#define HASH hash_cityhash64
+
 struct bucket
 {
   unsigned long seqno_first;
@@ -28,6 +33,20 @@ struct bucket
   unsigned long hash;
   unsigned long size;
 };
+
+#ifdef BITMAP
+unsigned char * hash_occupied = 0;
+
+void hash_set_occupied(unsigned long hashindex)
+{
+  hash_occupied[(hashindex) >> 3] |= 1 << (hashindex & 7);
+}
+
+int hash_is_occupied(unsigned long hashindex)
+{
+  return hash_occupied[(hashindex) >> 3] & (1 << (hashindex & 7));
+}
+#endif
 
 int derep_compare(const void * a, const void * b)
 {
@@ -49,6 +68,14 @@ int derep_compare(const void * a, const void * b)
       return 0;
 }
 
+void string_locase(char * locase, char * s, unsigned long len)
+{
+  /* convert string to lower case, given all chars are in A-Za-z */
+  char * p = s;
+  char * q = locase;
+  for(unsigned long i=0; i<len; i++)
+    *q++ = *p++ | 0x20;
+}
 
 void derep_fulllength()
 {
@@ -76,12 +103,25 @@ void derep_fulllength()
 
   long dbsequencecount = db_getsequencecount();
   
-  long hashtablesize = dbsequencecount * 2;
+  long hashtablesize = 1;
+  int hash_shift = 0;
+  while (3 * dbsequencecount > 2 * hashtablesize)
+    {
+      hashtablesize <<= 1;
+      hash_shift++;
+    }
+  int hash_mask = hashtablesize - 1;
 
   struct bucket * hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
+
+#ifdef BITMAP
+  hash_occupied =
+    (unsigned char *) xmalloc(hashtablesize / 8);
+  memset(hash_occupied, 0, hashtablesize / 8);
+#endif
 
   long clusters = 0;
   long sumsize = 0;
@@ -94,7 +134,8 @@ void derep_fulllength()
   long * nextseqtab = (long*) xmalloc(sizeof(long) * dbsequencecount);
   memset(nextseqtab, 0, sizeof(long) * dbsequencecount);
 
-  char * rc_seq = (char*) xmalloc(db_getlongestsequence() + 1);
+  char * seq_lo = (char*) xmalloc(db_getlongestsequence() + 1);
+  char * rc_seq_lo = (char*) xmalloc(db_getlongestsequence() + 1);
   
   progress_init("Dereplicating", dbsequencecount);
   for(long i=0; i<dbsequencecount; i++)
@@ -102,8 +143,12 @@ void derep_fulllength()
       unsigned long seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
 
+      /* lower case sequence */
+      string_locase(seq_lo, seq, seqlen);
+
+      /* reverse complement if necessary */
       if (opt_strand > 1)
-	reverse_complement(rc_seq, seq, seqlen);
+	reverse_complement(rc_seq_lo, seq_lo, seqlen);
 
       /*
 	Find free bucket or bucket for identical sequence.
@@ -113,17 +158,28 @@ void derep_fulllength()
 	collision when the number of sequences is about 5e9.
       */
 
-      unsigned long hash = hash_fnv_1a_64_uc(seq, seqlen);
-      struct bucket * bp = hashtable + hash % hashtablesize;
-
-      while ((bp->size) &&
+      unsigned long hash = HASH(seq_lo, seqlen);
+      unsigned long j = hash & hash_mask;
+      struct bucket * bp = hashtable + j;
+      
+      while (
+#ifdef BITMAP
+	     (hash_is_occupied(j))
+#else
+	     (bp->size)
+#endif
+	     &&
 	     ((bp->hash != hash) ||
 	      (seqlen != db_getsequencelen(bp->seqno_first)) ||
-	      (strncasecmp(seq, db_getsequence(bp->seqno_first), seqlen))))
+	      (strncasecmp(seq_lo, db_getsequence(bp->seqno_first), seqlen))))
 	{
 	  bp++;
+	  j++;
 	  if (bp >= hashtable + hashtablesize)
-	    bp = hashtable;
+	    {
+	      bp = hashtable;
+	      j = 0;
+	    }
 	}
 	  
       if ((opt_strand > 1) && !bp->size)
@@ -131,23 +187,37 @@ void derep_fulllength()
 	  /* no match on plus strand */
 	  /* check minus strand as well */
 
-	  unsigned long rc_hash = hash_fnv_1a_64_uc(rc_seq, seqlen);
+	  unsigned long rc_hash = HASH(rc_seq_lo, seqlen);
 	  struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
+	  unsigned long k = rc_hash & hash_mask;
 	  
-	  while ((rc_bp->size) &&
+	  while (
+#ifdef BITMAP
+		 (hash_is_occupied(j))
+#else
+		 (rc_bp->size)
+#endif
+		 &&
 		 ((rc_bp->hash != rc_hash) ||
 		  (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
-		  (strncasecmp(rc_seq,
+		  (strncasecmp(rc_seq_lo,
 			       db_getsequence(rc_bp->seqno_first), 
 			       seqlen))))
 	    {
 	      rc_bp++;
+	      k++;
 	      if (rc_bp >= hashtable + hashtablesize)
-		rc_bp = hashtable;
+		{
+		  rc_bp = hashtable;
+		  k++;
+		}
 	    }
 
 	  if (rc_bp->size)
-	    bp = rc_bp;
+	    {
+	      bp = rc_bp;
+	      j = k;
+	    }
 	}
 
       long ab = db_getabundance(i); 
@@ -174,11 +244,16 @@ void derep_fulllength()
       if (bp->size > maxsize)
 	maxsize = bp->size;
 
+#ifdef BITMAP
+      hash_set_occupied(j);
+#endif
+
       progress_update(i);
     }
   progress_done();
 
-  free(rc_seq);
+  free(seq_lo);
+  free(rc_seq_lo);
   
   show_rusage();
 

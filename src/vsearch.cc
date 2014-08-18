@@ -44,12 +44,34 @@ long maxrejects;
 long maxaccepts;
 long match_score;
 long mismatch_score;
-double identity;
 long rowlen;
+
+double opt_id;
+double opt_query_cov;
+double opt_target_cov;
+long opt_idprefix;
+long opt_idsuffix;
+double opt_minqt;
+double opt_maxqt;
+double opt_minsl;
+double opt_maxsl;
+long opt_leftjust;
+long opt_rightjust;
+long opt_self;
+long opt_selfid;
+double opt_maxid;
+double opt_minsizeratio;
+double opt_maxsizeratio;
+long opt_maxdiffs;
+long opt_maxsubs;
+long opt_maxgaps;
+long opt_mincols;
+long opt_maxqsize;
+long opt_mintsize;
+double opt_mid;
 
 double opt_weak_id;
 long opt_strand;
-long opt_self;
 long opt_uc_allhits;
 long opt_notrunclabels;
 char * opt_sortbysize;
@@ -70,6 +92,7 @@ long opt_version;
 long opt_output_no_hits;
 long opt_maxhits;
 long opt_top_hits_only;
+long opt_fasta_width;
 
 int opt_gap_open_query_left;
 int opt_gap_open_target_left;
@@ -347,12 +370,10 @@ void args_init(int argc, char **argv)
   maxrejects = 32;
   maxaccepts = 1;
 
-  identity = -1.0;
   opt_weak_id = 10.0;
   opt_strand = 1;
   threads = 1;
   rowlen = 64;
-  opt_self = 0;
   opt_uc_allhits = 0;
   opt_notrunclabels = 0;
   opt_maxhits = LONG_MAX;
@@ -376,6 +397,31 @@ void args_init(int argc, char **argv)
   opt_topn = LONG_MAX;
   opt_output_no_hits = 0;
   opt_top_hits_only = 0;
+  opt_fasta_width = 80;
+
+  opt_id = -1.0;
+  opt_query_cov = 0.0;
+  opt_target_cov = 0.0;
+  opt_idprefix = 0;
+  opt_idsuffix = 0;
+  opt_minqt = 0.0;
+  opt_maxqt = 1.0e37;
+  opt_minsl = 0.0;
+  opt_maxsl = 1.0e37;
+  opt_leftjust = 0;
+  opt_rightjust = 0;
+  opt_self = 0;
+  opt_selfid = 0;
+  opt_maxid = 1.0;
+  opt_minsizeratio = 0.0;
+  opt_maxsizeratio = 1.0e37;
+  opt_maxdiffs = INT_MAX;
+  opt_maxsubs = INT_MAX;
+  opt_maxgaps = INT_MAX;
+  opt_mincols = 0;
+  opt_maxqsize = INT_MAX;
+  opt_mintsize = 0;
+  opt_mid = 0.0;
 
   match_score = 2;
   mismatch_score = -4;
@@ -445,6 +491,28 @@ void args_init(int argc, char **argv)
     {"output_no_hits",        no_argument,       0, 0 },
     {"maxhits",               required_argument, 0, 0 },
     {"top_hits_only",         no_argument,       0, 0 },
+    {"fasta_width",           required_argument, 0, 0 },
+    {"query_cov",             required_argument, 0, 0 },
+    {"target_cov",            required_argument, 0, 0 },
+    {"idprefix",              required_argument, 0, 0 },
+    {"idsuffix",              required_argument, 0, 0 },
+    {"minqt",                 required_argument, 0, 0 },
+    {"maxqt",                 required_argument, 0, 0 },
+    {"minsl",                 required_argument, 0, 0 },
+    {"maxsl",                 required_argument, 0, 0 },
+    {"leftjust",              no_argument,       0, 0 },
+    {"rightjust",             no_argument,       0, 0 },
+    {"selfid",                no_argument,       0, 0 },
+    {"maxid",                 required_argument, 0, 0 },
+    {"minsizeratio",          required_argument, 0, 0 },
+    {"maxsizeratio",          required_argument, 0, 0 },
+    {"maxdiffs",              required_argument, 0, 0 },
+    {"maxsubs",               required_argument, 0, 0 },
+    {"maxgaps",               required_argument, 0, 0 },
+    {"mincols",               required_argument, 0, 0 },
+    {"maxqsize",              required_argument, 0, 0 },
+    {"mintsize",              required_argument, 0, 0 },
+    {"mid",                   required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -482,7 +550,7 @@ void args_init(int argc, char **argv)
 
     case 5:
       /* id */
-      identity = atof(optarg);
+      opt_id = atof(optarg);
       break;
 
     case 6:
@@ -690,6 +758,116 @@ void args_init(int argc, char **argv)
       opt_top_hits_only = 1;
       break;
 
+    case 46:
+      /* fasta_width */
+      opt_fasta_width = args_getlong(optarg);
+      break;
+
+    case 47:
+      /* query_cov */
+      opt_query_cov = atof(optarg);
+      break;
+
+    case 48:
+      /* target_cov */
+      opt_target_cov = atof(optarg);
+      break;
+
+    case 49:
+      /* idprefix */
+      opt_idprefix = args_getlong(optarg);
+      break;
+
+    case 50:
+      /* idsuffix */
+      opt_idsuffix = args_getlong(optarg);
+      break;
+
+    case 51:
+      /* minqt */
+      opt_minqt = atof(optarg);
+      break;
+
+    case 52:
+      /* maxqt */
+      opt_maxqt = atof(optarg);
+      break;
+
+    case 53:
+      /* minsl */
+      opt_minsl = atof(optarg);
+      break;
+
+    case 54:
+      /* maxsl */
+      opt_maxsl = atof(optarg);
+      break;
+
+    case 55:
+      /* leftjust */
+      opt_leftjust = 1;
+      break;
+
+    case 56:
+      /* rightjust */
+      opt_rightjust = 1;
+      break;
+
+    case 57:
+      /* selfid */
+      opt_selfid = 1;
+      break;
+
+    case 58:
+      /* maxid */
+      opt_maxid = atof(optarg);
+      break;
+
+    case 59:
+      /* minsizeratio */
+      opt_minsizeratio = atof(optarg);
+      break;
+
+    case 60:
+      /* maxsizeratio */
+      opt_maxsizeratio = atof(optarg);
+      break;
+
+    case 61:
+      /* maxdiffs */
+      opt_maxdiffs = args_getlong(optarg);
+      break;
+
+    case 62:
+      /* maxsubs */
+      opt_maxsubs = args_getlong(optarg);
+      break;
+
+    case 63:
+      /* maxgaps */
+      opt_maxgaps = args_getlong(optarg);
+      break;
+
+    case 64:
+      /* mincols */
+      opt_mincols = args_getlong(optarg);
+      break;
+
+    case 65:
+      /* maxqsize */
+      opt_maxqsize = args_getlong(optarg);
+      break;
+
+    case 66:
+      /* mintsize */
+      opt_mintsize = args_getlong(optarg);
+      break;
+
+    case 67:
+      /* mid */
+      opt_mid = atof(optarg);
+      break;
+
     default:
       fatal("Internal error in option parsing");
     }
@@ -718,8 +896,8 @@ void args_init(int argc, char **argv)
   if (commands > 1)
     fatal("More than one command specified");
 
-  if (opt_weak_id > identity)
-    opt_weak_id = identity;
+  if (opt_weak_id > opt_id)
+    opt_weak_id = opt_id;
 
   if (opt_minseqlength < 0)
     fatal("The argument to --minseqlength must be positive");
@@ -812,6 +990,7 @@ void cmd_help()
 	  "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
 	  "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
 	  "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
+	  "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
 	  "  --strand plus|both          search plus strand or both\n"
 	  "  --maxaccepts INT            maximum number of hits to show (1)\n"
 	  "  --maxrejects INT            number of non-matching hits to consider (32)\n"
@@ -846,13 +1025,15 @@ void cmd_usearch_global()
   /* check options */
 
   if ((!alnoutfilename) && (!useroutfilename) &&
-      (!ucfilename) && (!blast6outfilename))
+      (!ucfilename) && (!blast6outfilename) &&
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_dbmatched) && (!opt_dbnotmatched))
     fatal("No output files specified");
   
   if (!databasefilename)
     fatal("Database filename not specified with --db");
   
-  if ((identity < 0.0) || (identity > 1.0))
+  if ((opt_id < 0.0) || (opt_id > 1.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
   search(cmdline, progheader);

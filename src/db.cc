@@ -330,7 +330,9 @@ void db_read(const char * filename)
 
     seqindex_p->size = 1;
 
-    if (opt_sizein && !regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
+    /* read sizein annotation if appropriate */
+    if (((!opt_derep_fulllength) || opt_sizein) && 
+	(!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0)))
       {
 	unsigned long size = atol(seqindex_p->header + pmatch[2].rm_so);
 	if (size > 0)

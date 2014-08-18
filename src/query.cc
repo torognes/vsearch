@@ -47,6 +47,8 @@ static long query_lineno;
 static long query_stripped_count;
 static long query_stripped[256];
 
+regex_t q_regexp;
+
 long query_getfilesize()
 {
   return query_filesize;
@@ -59,6 +61,9 @@ long query_getfilepos()
 
 void query_open(const char * filename)
 {
+  if (regcomp(&q_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+    fatal("Regular expression compilation failed");
+  
   /* allocate space */
 
   query_head = NULL;
@@ -110,8 +115,6 @@ void query_close()
           fprintf(stderr, " %c(%ld)", i, query_stripped[i]);
       fprintf(stderr, "\n");
     }
-
-
   
   fclose(query_fp);
   
@@ -128,7 +131,8 @@ void query_close()
 
 
 int query_getnext(char ** head, long * head_len,
-                  char ** seq, long * seq_len, long * qno)
+                  char ** seq, long * seq_len, long * qno,
+		  unsigned long * qsize)
 {
   while (query_line[0])
     {
@@ -149,6 +153,20 @@ int query_getnext(char ** head, long * head_len,
       memcpy(query_head, query_line + 1, (size_t)headerlen);
       query_head[headerlen] = 0;
 
+      /* read size/abundance annotation */
+
+      regmatch_t pmatch[4];
+
+      if (!regexec(&q_regexp, query_head, 4, pmatch, 0))
+	{
+	  unsigned long size = atol(query_head + pmatch[2].rm_so);
+	  if (size > 0)
+	    * qsize = size;
+	  else
+	    fatal("Size annotation zero in query sequence");
+	}
+      else
+	*qsize = 1;
 
       /* get next line */
 
@@ -219,6 +237,8 @@ int query_getnext(char ** head, long * head_len,
 	  query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
 	}
       *(query_seq + query_seq_len) = 0;
+
+
 
 
       query_no++;

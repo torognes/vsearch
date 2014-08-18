@@ -21,7 +21,7 @@
 #COMMON=-pg -g
 COMMON=-g
 
-COMPILEOPT=-Wall -msse4.1 -mtune=core2
+COMPILEOPT=-Wall -msse4.1 -mtune=core2 -Icityhash
 #COMPILEOPT=-Weverything -msse4.1 -mtune=core2
 
 LIBS=-lpthread
@@ -39,9 +39,9 @@ PROG=vsearch
 
 OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
 	kmercount.o userfields.o results.o sortbysize.o derep.o maps.o \
-	arch.o sortbylength.o
+	arch.o sortbylength.o cityhash/city.o
 
-DEPS=vsearch.h Makefile
+DEPS=vsearch.h Makefile cityhash/city.h cityhash/config.h
 
 
 .SUFFIXES:.o .cc
@@ -55,4 +55,4 @@ vsearch : $(OBJS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean :
-	rm -f *.o *~ $(PROG) gmon.out
+	rm -f *.o *~ $(PROG) gmon.out cityhash/*.o
