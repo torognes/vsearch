@@ -50,7 +50,7 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.8"
+#define PROG_VERSION "v0.0.9"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
