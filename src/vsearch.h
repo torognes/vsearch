@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <unistd.h>
+#include <city.h>
 
 #ifndef __APPLE__
 #include <sys/sysinfo.h>
@@ -49,7 +50,7 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.7"
+#define PROG_VERSION "v0.0.8"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -178,11 +179,33 @@ extern long maxrejects;
 extern long maxaccepts;
 extern long match_score;
 extern long mismatch_score;
-extern double identity;
 extern long rowlen;
 
-extern double opt_weak_id;
+extern double opt_id;
+extern double opt_query_cov;
+extern double opt_target_cov;
+extern long opt_idprefix;
+extern long opt_idsuffix;
+extern double opt_minqt;
+extern double opt_maxqt;
+extern double opt_minsl;
+extern double opt_maxsl;
+extern long opt_leftjust;
+extern long opt_rightjust;
 extern long opt_self;
+extern long opt_selfid;
+extern double opt_maxid;
+extern double opt_minsizeratio;
+extern double opt_maxsizeratio;
+extern long opt_maxdiffs;
+extern long opt_maxsubs;
+extern long opt_maxgaps;
+extern long opt_mincols;
+extern long opt_maxqsize;
+extern long opt_mintsize;
+extern double opt_mid;
+
+extern double opt_weak_id;
 extern long opt_strand;
 extern long opt_uc_allhits;
 extern long opt_output_no_hits;
@@ -197,6 +220,7 @@ extern long opt_minuniquesize;
 extern long opt_topn;
 extern long opt_maxhits;
 extern long opt_top_hits_only;
+extern long opt_fasta_width;
 
 extern int opt_gap_open_query_left;
 extern int opt_gap_open_target_left;
@@ -241,8 +265,9 @@ void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 char * xstrchrnul(char *s, int c);
-unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
+unsigned long hash_fnv_1a_64(char * s, unsigned long n);
 unsigned long hash_fnv_1a_64_uc(char * s, unsigned long n);
+unsigned long hash_cityhash64(char * s, unsigned long n);
 long getusec(void);
 void show_rusage();
 void fprint_fasta_hdr_only(FILE * fp, char * hdr);
@@ -305,8 +330,9 @@ unsigned long db_getshortestsequence();
 
 void query_open(const char * filename);
 
-int query_getnext(char ** header, long * header_length,
-                  char ** seq, long * seq_length, long * query_no);
+int query_getnext(char ** head, long * head_len,
+                  char ** seq, long * seq_len, long * qno,
+		  unsigned long * qsize);
 
 void query_close();
 

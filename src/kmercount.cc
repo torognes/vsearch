@@ -21,6 +21,8 @@
 
 #include "vsearch.h"
 
+#define HASH CityHash64
+
 struct kmercountelem * kmercounthash;
 
 static unsigned int kmercounthashsize;
@@ -48,8 +50,8 @@ void count_kmers_exit()
 
 unsigned int count_kmers_getcount(unsigned int wl, unsigned kmer)
 {
-  unsigned long j = hash_fnv_1a_64((unsigned char*) & kmer,
-                                   (wl+3)/4) % kmercounthashsize;
+  unsigned long j = HASH((char*) & kmer,
+			 (wl+3)/4) % kmercounthashsize;
   
   while((kmercounthash[j].count) && (kmercounthash[j].kmer != kmer))
     j = (j + 1) % kmercounthashsize;
@@ -101,8 +103,8 @@ void count_kmers(unsigned int k, char * seq, unsigned int seqlen)
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
 
-      unsigned long j = hash_fnv_1a_64((unsigned char*)&kmer,
-                                       (k+3)/4) % kmercounthashsize;
+      unsigned long j = HASH((char*)&kmer,
+			     (k+3)/4) % kmercounthashsize;
       
       while((kmercounthash[j].count) && (kmercounthash[j].kmer != kmer))
         j = (j + 1) % kmercounthashsize;

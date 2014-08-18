@@ -122,7 +122,8 @@ void search_get_query_samples(char * qsequence, unsigned int qseqlen,
             {
               kmersample[kmersamplecount++] = kmer;
 #if 0
-              fprintf(stderr, "Query kmer sample %d at pos %d u %d: ", kmersamplecount, pos, u);
+              fprintf(stderr, "Query kmer sample %d at pos %d u %d: ",
+		      kmersamplecount, pos, u);
               fprint_kmer(stderr, wl, kmer);
               fprintf(stderr, "\n");
 #endif
@@ -349,9 +350,17 @@ unsigned int search_topscores(unsigned int seqcount,
   return topcount;
 }
 
+int seqncmp(char * a, char * b, unsigned long n)
+{
+  for(unsigned int i = 0; i<n; i++)
+    if (chrmap_4bit[(int)(a[i])] != chrmap_4bit[(int)(b[i])])
+      return 1;
+  return 0;
+}
 
 int search_onequery(char * query_head, char * qsequence, 
-		    long qseqlen, long query_no, char * rc)
+		    long qseqlen, long query_no, char * rc,
+		    long qsize)
 {
   int seqcount = db_getsequencecount();
 
@@ -364,7 +373,7 @@ int search_onequery(char * query_head, char * qsequence,
   double default_samples = 255.0;
   unsigned int samples;
 
-  //samples = ceil(default_samples * exp(wordlength * (1.0 - identity)));
+  //samples = ceil(default_samples * exp(wordlength * (1.0 - opt_id)));
   samples = round(default_samples);
 
   if (samples < minsamples)
@@ -380,65 +389,76 @@ int search_onequery(char * query_head, char * qsequence,
     {
       /* check plus or both strands*/
       /* s=0: plus; s=1: minus */
-
       char * qseq;
-
       if (s)
 	qseq = rc;
       else
 	qseq = qsequence;
 
-      
       /* extract unique kmer samples from query*/
-      
       search_get_query_samples(qseq, qseqlen, wordlength, samples);
-  
       
       /* find database sequences with the most kmer hits */
-      
       unsigned int topcount = search_topscores(seqcount, tophits);
       
-      //  printf("topcount: %u\n", topcount);
-  
       /* analyse targets with the highest number of kmer hits */
-
       int accepts = 0;
       int rejects = 0;
 
-      for(unsigned int t = 0; (accepts < maxaccepts) && (rejects <= maxrejects) && (t<topcount); t++)
+      for(unsigned int t = 0;
+	  (accepts < maxaccepts) && (rejects <= maxrejects) && (t<topcount);
+	  t++)
 	{
 	  unsigned int target = topscores[t].seqno;
 	  char * dlabel = db_getheader(target);
-      
-	  /* Test these accept/reject criteria without alignment:
-	     --idprefix
-	     --idsuffix
-	     --minqt
-	     --maxqt
-	     --minsl
-	     --maxsl
-	     --self (implemented)
-	     --selfid
-	     --minsizeratio
-	     --maxsizeratio
-	     --maxqsize
-	     --mintsize
-	  */
-
-	  if ((opt_self) && (strcmp(query_head, dlabel) == 0))
+	  char * dseq = db_getsequence(target);
+	  long dseqlen = db_getsequencelen(target);
+	  long tsize = db_getabundance(target);
+	  
+	  /* Test these accept/reject criteria before alignment */
+	  
+	  if (
+	      /* maxqsize */
+	      (qsize > opt_maxqsize) ||
+	      /* mintsize */
+	      (tsize < opt_mintsize) ||
+	      /* minsizeratio */
+	      (qsize < opt_minsizeratio * tsize) ||
+	      /* maxsizeratio */
+	      (qsize > opt_maxsizeratio * tsize) ||
+	      /* minqt */
+	      (qseqlen < opt_minqt * dseqlen) ||
+	      /* maxqt */
+	      (qseqlen > opt_maxqt * dseqlen) ||
+	      /* minsl */
+	      (qseqlen < dseqlen ? 
+	       qseqlen < opt_minsl * dseqlen : 
+	       dseqlen < opt_minsl * qseqlen) ||
+	      /* maxsl */
+	      (qseqlen < dseqlen ? 
+	       qseqlen > opt_maxsl * dseqlen : 
+	       dseqlen > opt_maxsl * qseqlen) ||
+	      /* idprefix */
+	      ((qseqlen < opt_idprefix) || (dseqlen < opt_idprefix) ||
+	       (seqncmp(qseq,
+			dseq,
+			opt_idprefix))) ||
+	      /* idsuffix */
+	      ((qseqlen < opt_idsuffix) || (dseqlen < opt_idsuffix) ||
+	       (seqncmp(qseq+qseqlen-opt_idsuffix,
+			dseq+dseqlen-opt_idsuffix,
+			opt_idsuffix))) ||
+	      /* self */
+	      (opt_self && (strcmp(query_head, dlabel) == 0)) ||
+	      /* selfid */
+	      (opt_selfid && (qseqlen == dseqlen) && 
+	       (seqncmp(qseq, dseq, qseqlen) == 0))
+	      )
 	    {
 	      rejects++;
 	    }
 	  else
 	    {
-
-	      int count = topscores[t].count;
-
-	      char * dseq;
-	      long dseqlen;
-      
-	      db_getsequenceandlength(target, & dseq, & dseqlen);
-      
 	      /* compute global alignment */
       
 	      long nwscore;
@@ -476,7 +496,8 @@ int search_onequery(char * query_head, char * qsequence,
 
 	      nwalignments++;
 	      
-	      double nwid = (nwalignmentlength - nwdiff) * 100.0 / nwalignmentlength;
+	      double nwid = (nwalignmentlength - nwdiff) * 
+		100.0 / nwalignmentlength;
 
 	      /* info for semi-global alignment (without gaps at ends) */
 	  
@@ -541,28 +562,33 @@ int search_onequery(char * query_head, char * qsequence,
 		- trim_q_left - trim_t_left - trim_q_right - trim_t_right;
 	      double internal_id = 100.0 * matches / internal_alignmentlength;
 
-	      /*
+	      /* test accept/reject criteria after alignment */
 
-		More accept criteria:
-
-		 --query_cov
-		 --target_cov
-		 --leftjust
-		 --rightjust
-		 --maxid
-		 --maxdiffs
-		 --maxsubs
-		 --maxgaps
-		 --mincols
-		 --mid
-		 ...
-
-	      */
-
-	      if (internal_id >= 100.0 * opt_weak_id)
+	      if (
+		  /* weak_id */
+		  (internal_id >= 100.0 * opt_weak_id) &&
+		  /* maxsubs */
+		  (mismatches <= opt_maxsubs) &&
+		  /* maxgaps */
+		  (internal_gaps <= opt_maxgaps) &&
+		  /* mincols */
+		  (internal_alignmentlength >= opt_mincols) &&
+		  /* leftjust */
+		  ((!opt_leftjust) || (trim_q_left+trim_t_left == 0)) &&
+		  /* rightjust */
+		  ((!opt_rightjust) || (trim_q_right+trim_t_right == 0)) &&
+		  /* query_cov */
+		  (internal_alignmentlength >= opt_query_cov * qseqlen) &&
+		  /* target_cov */
+		  (internal_alignmentlength >= opt_target_cov * dseqlen) &&
+		  /* maxid */
+		  (internal_id <= 100.0 * opt_maxid) &&
+		  /* mid */
+		  (100.0 * matches / (matches + mismatches) >= opt_mid)
+		  )
 		{
 		  hits[hit_count].target = target;
-		  hits[hit_count].count = count;
+		  hits[hit_count].count = topscores[t].count;
 		  hits[hit_count].nwscore = nwscore;
 		  hits[hit_count].nwdiff = nwdiff;
 		  hits[hit_count].nwgaps = nwgaps;
@@ -579,13 +605,15 @@ int search_onequery(char * query_head, char * qsequence,
 		  hits[hit_count].trim_t_right = trim_t_right;
 		  hits[hit_count].trim_aln_left = trim_aln_left;
 		  hits[hit_count].trim_aln_right = trim_aln_right;
-		  hits[hit_count].internal_alignmentlength = internal_alignmentlength;
+		  hits[hit_count].internal_alignmentlength =
+		    internal_alignmentlength;
 		  hits[hit_count].internal_gaps = internal_gaps;
 		  hits[hit_count].internal_indels = internal_indels;
 		  hits[hit_count].internal_id = internal_id;
 		  hit_count++;
 		  
-		  if (internal_id >= 100.0 * identity)
+		  if ((internal_id >= 100.0 * opt_id) &&
+		      (mismatches + internal_indels <= opt_maxdiffs))
 		    accepts++;
 		}
 	      else
@@ -606,21 +634,6 @@ int search_onequery(char * query_head, char * qsequence,
 
 void search(char * cmdline, char * progheader)
 {
-  /* check options */
-
-  if ((!alnoutfilename) && (!useroutfilename) &&
-      (!ucfilename) && (!blast6outfilename) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_dbmatched) && (!opt_dbnotmatched))
-    fatal("No output files specified");
-
-  if (!databasefilename)
-    fatal("Database filename not specified with --db");
-
-  if ((identity < 0.0) || (identity > 1.0))
-    fatal("Identity between 0.0 and 1.0 must be specified with --id");
-
-
   /* open output files */
 
   if (alnoutfilename)
@@ -716,7 +729,8 @@ void search(char * cmdline, char * progheader)
 
   hitcount = (unsigned char *) xmalloc(seqcount);
   topscores = (struct topscore *) xmalloc(sizeof(struct topscore) * tophits);
-  hits = (struct hit *) xmalloc(sizeof(struct hit) * (maxaccepts+maxrejects) * opt_strand);
+  hits = (struct hit *) xmalloc
+    (sizeof(struct hit) * (maxaccepts+maxrejects) * opt_strand);
   targetlist = (unsigned int*) xmalloc(sizeof(unsigned int)*seqcount);
 
   char * query_head;
@@ -725,6 +739,7 @@ void search(char * cmdline, char * progheader)
   long qseqlen;
   long query_no;
   long qmatches = 0;
+  unsigned long qsize = 1;
 
   query_open(opt_usearch_global);
 
@@ -738,7 +753,7 @@ void search(char * cmdline, char * progheader)
 
   while(query_getnext(& query_head, & query_head_len,
 		      & qsequence, & qseqlen,
-		      & query_no))
+		      & query_no, & qsize))
     {
 
       if (qseqlen + 1 > rc_seq_alloc)
@@ -754,7 +769,7 @@ void search(char * cmdline, char * progheader)
       
       int hit_count = search_onequery(query_head,
 				      qsequence, qseqlen, 
-				      query_no, rc);
+				      query_no, rc, qsize);
       
       if (hit_count > 0)
 	qmatches++;
@@ -820,7 +835,8 @@ void search(char * cmdline, char * progheader)
 	  if (opt_matched)
 	    {
 	      fprintf(fp_matched, ">%s\n", query_head);
-	      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen, 80);
+	      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen,
+				    opt_fasta_width);
 	    }
 	}
       else
@@ -828,7 +844,8 @@ void search(char * cmdline, char * progheader)
 	  if (opt_notmatched)
 	    {
 	      fprintf(fp_notmatched, ">%s\n", query_head);
-	      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen, 80);
+	      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen,
+				    opt_fasta_width);
 	    }
 	}
 
@@ -836,7 +853,7 @@ void search(char * cmdline, char * progheader)
       /* update matching db sequences */
 
       for (long i=0; i<hit_count; i++)
-	if (hits[i].internal_id >= 100.0 * identity)
+	if (hits[i].internal_id >= 100.0 * opt_id)
 	  dbmatched[hits[i].target]++;
       
       
@@ -882,7 +899,8 @@ void search(char * cmdline, char * progheader)
 
 
 #if 1
-  fprintf(stderr, "Matching query sequences: %ld (%.1f%%)\n", qmatches, 100.0 * qmatches / (query_no+1));
+  fprintf(stderr, "Matching query sequences: %ld (%.1f%%)\n", 
+	  qmatches, 100.0 * qmatches / (query_no+1));
   fprintf(stderr, "Alignments computed: %ld\n", nwalignments);
 #endif
 
