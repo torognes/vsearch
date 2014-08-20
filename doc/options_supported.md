@@ -191,13 +191,11 @@ Command line example:
 
 - [ ] `--pattern <bitpattern (11111111)>`
 
-- [ ] `--alpha <nt|aa>`
-
 - [ ] `--dbstep <integer (1)>`
 
 - [ ] `--dbaccelpct <real (1.0)>`
 
-- [ ] `--dbmask <method (fastnucleo)>`
+- [ ] `--dbmask <fastamino|fastnucleo|seg|dust|none|soft (fastnucleo)>`
 
 - [ ] `--slots <integer (65536)>`
 
