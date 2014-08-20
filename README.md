@@ -3,7 +3,7 @@
 
 ## Introduction
 
-The aim of the project is to create an alternative to the USEARCH tool developed by Robert Edgar. The new tool should have:
+The aim of the project is to create an alternative to the USEARCH tool developed by Robert C. Edgar (2010). The new tool should have:
 
 * open source code with an appropriate open source license
 * 64-bit design that handles very large databases and more than 4GB of memory
@@ -183,3 +183,8 @@ Some issues to work on:
 * clustering
 * chimera filtering
 * masking
+
+
+## References
+
+Edgar, Robert C. (2010) Search and clustering orders of magnitude faster than BLAST. Bioinformatics, 26 (19): 2460-2461. doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
