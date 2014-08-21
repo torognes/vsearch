@@ -3,7 +3,7 @@
 
 ## Introduction
 
-The aim of the project is to create an alternative to the USEARCH tool developed by Robert C. Edgar (2010). The new tool should have:
+The aim of the project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should have:
 
 * open source code with an appropriate open source license
 * 64-bit design that handles very large databases and more than 4GB of memory
