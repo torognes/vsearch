@@ -21,91 +21,91 @@
 
 #include "vsearch.h"
 
-static struct sortinfo_s
+int * deck;
+
+long random_int(long n)
 {
-  unsigned long length;
-  int seqno;
-} * sortinfo;
+  /*
+    Generate a random integer in the range 0 to n-1, inclusive.
+    The random() function returns a random number in the range
+    0 to 2147483647 (=2^31-1=RAND_MAX), inclusive.
+    We should avoid some of the upper generated numbers to
+    avoid modulo bias.
+  */
 
-int sortbylength_compare(const void * a, const void * b)
-{
-  struct sortinfo_s * x = (struct sortinfo_s *) a;
-  struct sortinfo_s * y = (struct sortinfo_s *) b;
-
-  /* longest first, otherwize keep order */
-
-  if (x->length < y->length)
-    return +1;
-  else if (x->length > y->length)
-    return -1;
-  else
-    if (x->seqno < y->seqno)
-      return -1;
-    else if (x->seqno > y->seqno)
-      return +1;
-    else
-      return 0;
+  long random_max = RAND_MAX;
+  long limit = random_max - (random_max + 1) % n;
+  long r = random();
+  while (r > limit)
+    r = random();
+  return r % n;
 }
 
-void sortbylength()
+void shuffle()
 {
   FILE * fp_output = fopen(opt_output, "w");
   if (!fp_output)
-    fatal("Unable to open sortbylength output file for writing");
+    fatal("Unable to open shuffle output file for writing");
 
-  db_read(opt_sortbylength);
+  db_read(opt_shuffle);
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
-  sortinfo = (sortinfo_s*) xmalloc(dbsequencecount * sizeof(sortinfo_s));
+  deck = (int*) xmalloc(dbsequencecount * sizeof(int));
+
+  /* initialize random generator */
+
+  if (opt_seed > 0)
+    srandom(opt_seed);
+  else
+    arch_srandom_init();
+
+  for(int i=0; i<dbsequencecount; i++)
+    deck[i] = i;
 
   int passed = 0;
-
-  progress_init("Getting lengths", dbsequencecount);
-  for(int i=0; i<dbsequencecount; i++)
+  progress_init("Shuffling", dbsequencecount-1);
+  for(int i=dbsequencecount-1; i>0; i--)
     {
-      sortinfo[passed].seqno = i;
-      sortinfo[passed].length = db_getsequencelen(i);
+      /* generate a random number j in the range 0 to i, inclusive */
+      int j = random_int(i+1);
+
+      /* exchange elements i and j */
+      int t = deck[i];
+      deck[i] = deck[j];
+      deck[j] = t;
+
       passed++;
       progress_update(i);
     }
   progress_done();
   show_rusage();
 
-  progress_init("Sorting", 100);
-  qsort(sortinfo, passed, sizeof(sortinfo_s), sortbylength_compare);
-  progress_done();
-
-  double median = 0.0;
-  if (passed > 0)
-    {
-      if (passed % 2)
-        median = sortinfo[(passed-1)/2].length;
-      else
-        median = (sortinfo[(passed/2)-1].length +
-                  sortinfo[passed/2].length) / 2.0;
-    }
-  fprintf(stderr, "Median length: %.0f\n", median);
-  show_rusage();
-  
   passed = MIN(dbsequencecount, opt_topn);
 
   progress_init("Writing output", passed);
   for(int i=0; i<passed; i++)
     {
+#if 0
       if (opt_relabel)
 	{
 	  if (opt_sizeout)
 	    fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, db_getabundance(i));
 	  else
 	    fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
+
+	  char * seq = db_getsequence(deck[i]);
+	  long len = db_getsequencelen(deck[i]);
+	  fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
 	}
       else
-	fprintf(fp_output, ">%s\n", db_getheader(sortinfo[i].seqno));
-      
-      char * seq = db_getsequence(sortinfo[i].seqno);
-      int len = db_getsequencelen(sortinfo[i].seqno);
-      fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
+	{
+#endif
+	  db_fprint_fasta(fp_output, deck[i]);
+#if 0
+	}
+#endif
+
       progress_update(i);
     }
   progress_done();

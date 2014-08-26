@@ -24,7 +24,7 @@
 static struct sortinfo_s
 {
   unsigned long size;
-  unsigned long seqno;
+  int seqno;
 } * sortinfo;
 
 int sortbysize_compare(const void * a, const void * b)
@@ -57,16 +57,16 @@ void sortbysize()
 
   show_rusage();
 
-
-  unsigned long dbsequencecount = db_getsequencecount();
+  
+  int dbsequencecount = db_getsequencecount();
   
   progress_init("Getting sizes", dbsequencecount);
 
   sortinfo = (sortinfo_s*) xmalloc(dbsequencecount * sizeof(sortinfo_s));
 
-  unsigned long passed = 0;
+  int passed = 0;
 
-  for(unsigned int i=0; i<dbsequencecount; i++)
+  for(int i=0; i<dbsequencecount; i++)
     {
       long size = db_getabundance(i);
       
@@ -99,8 +99,10 @@ void sortbysize()
   fprintf(stderr, "Median abundance: %.0f\n", median);
   show_rusage();
   
+  passed = MIN(dbsequencecount, opt_topn);
+
   progress_init("Writing output", passed);
-  for(unsigned int i=0; i<passed; i++)
+  for(int i=0; i<passed; i++)
     {
       if (opt_relabel)
 	{
@@ -113,7 +115,7 @@ void sortbysize()
 	fprintf(fp_output, ">%s\n", db_getheader(sortinfo[i].seqno));
       
       char * seq = db_getsequence(sortinfo[i].seqno);
-      long len = db_getsequencelen(sortinfo[i].seqno);
+      int len = db_getsequencelen(sortinfo[i].seqno);
       fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
       progress_update(i);
     }

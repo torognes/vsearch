@@ -37,7 +37,7 @@ char * opt_notmatched;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
 
-static long threads;
+long opt_threads;
 
 long wordlength;
 long maxrejects;
@@ -93,6 +93,8 @@ long opt_output_no_hits;
 long opt_maxhits;
 long opt_top_hits_only;
 long opt_fasta_width;
+char * opt_shuffle;
+long opt_seed;
 
 int opt_gap_open_query_left;
 int opt_gap_open_target_left;
@@ -372,7 +374,7 @@ void args_init(int argc, char **argv)
 
   opt_weak_id = 10.0;
   opt_strand = 1;
-  threads = 1;
+  opt_threads = 0;
   rowlen = 64;
   opt_uc_allhits = 0;
   opt_notrunclabels = 0;
@@ -384,7 +386,9 @@ void args_init(int argc, char **argv)
   opt_sortbysize = 0;
   opt_sortbylength = 0;
   opt_derep_fulllength = 0;
+  opt_shuffle = 0;
 
+  opt_seed = 0;
   opt_output = 0;
   opt_minsize = 0;
   opt_maxsize = LONG_MAX;
@@ -513,6 +517,8 @@ void args_init(int argc, char **argv)
     {"maxqsize",              required_argument, 0, 0 },
     {"mintsize",              required_argument, 0, 0 },
     {"mid",                   required_argument, 0, 0 },
+    {"shuffle",               required_argument, 0, 0 },
+    {"seed",                  required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -594,7 +600,7 @@ void args_init(int argc, char **argv)
 
     case 13:
       /* threads */
-      threads = args_getlong(optarg);
+      opt_threads = args_getlong(optarg);
       break;
 
     case 14:
@@ -868,6 +874,16 @@ void args_init(int argc, char **argv)
       opt_mid = atof(optarg);
       break;
 
+    case 68:
+      /* shuffle */
+      opt_shuffle = optarg;
+      break;
+
+    case 69:
+      /* seed */
+      opt_seed = args_getlong(optarg);
+      break;
+
     default:
       fatal("Internal error in option parsing");
     }
@@ -889,6 +905,8 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_version)
     commands++;
+  if (opt_shuffle)
+    commands++;
 
   if (commands == 0)
     opt_version = 1;
@@ -908,8 +926,8 @@ void args_init(int argc, char **argv)
   if (maxrejects < 0)
     fatal("The argument to --maxrejects must not be negative");
 
-  if ((threads < 1) || (threads > 256))
-    fatal("The argument to --threads must be in the range 1 to 256");
+  if ((opt_threads < 0) || (opt_threads > 32))
+    fatal("The argument to --threads must be in the range 0 (default) to 32");
 
   if ((wordlength < 3) || (wordlength > 15))
     fatal("The argument to --wordlength must be in the range 3 to 15");
@@ -928,12 +946,6 @@ void args_init(int argc, char **argv)
   
   /* TODO: check valid range of gap penalties */
 
-  /* currently unsupported option arguments */
-  
-  if (threads != 1)
-    fatal("Only one thread is currently not supported");
-
-
   /* adapt/adjust parameters */
 
 #if 1
@@ -949,14 +961,17 @@ void args_init(int argc, char **argv)
 
 #endif
   
+  if (opt_threads == 0)
+    opt_threads = sysconf(_SC_NPROCESSORS_ONLN);
+
   /* set default opt_minseqlength depending on command */
 
   if (opt_minseqlength == 0)
     {
-      if (opt_sortbysize || opt_derep_fulllength)
-	opt_minseqlength = 32;
-      else
+      if (opt_sortbylength || opt_sortbysize || opt_shuffle)
 	opt_minseqlength = 1;
+      else
+	opt_minseqlength = 32;
     }
 
   if (rowlen == 0)
@@ -974,37 +989,38 @@ void cmd_help()
   fprintf(stderr, 
 	  "\n"
 	  "General options:\n"
-	  "  --help                      display this help and exit\n"
+	  "  --help                      display help information\n"
+	  "  --version                   display version information\n"
 	  "  --maxseqlength INT          maximum sequence length (50000)\n"
+	  "  --minseqlength INT          min seq length (sort/shuffle:1, search/derep: 32)\n"
 	  "  --notrunclabels             do not truncate labels at first space\n"
-	  "  --strand plus|both          search / dereplicate plus strand or both\n"
-	  "  --threads INT               number of threads to use (1)\n"
+	  "  --strand plus|both          search / dereplicate plus strand or both strands\n"
+	  "  --threads INT               number of threads to use, zero for all cores (0)\n"
 	  "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n"
 	  "  --uc_allhits                show all, not just top hit with uc output\n"
-	  "  --version                   display version information and exit\n"
 	  "\n"
 	  "Search options:\n"
-	  "  --usearch_global FILENAME   query filename (FASTA) - global alignment search\n"
-	  "  --alnout FILENAME           alignment output filename\n"
-	  "  --blast6out FILENAME        filename for output similar to blast -m6 option\n"
-	  "  --db FILENAME               database filename (FASTA)\n"
+	  "  --usearch_global FILENAME   filename of queries for global alignment search\n"
+	  "  --alnout FILENAME           filename for human-readable alignment output\n"
+	  "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
+	  "  --db FILENAME               filename for FASTA formatted database for search\n"
 	  "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
 	  "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
 	  "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
 	  "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
-	  "  --fulldp                    full dynamic programming for all alignments\n"
+	  "  --fulldp                    full dynamic programming alignment for all hits\n"
 	  "  --gapext STRING             penalties for gap extension (2I/1E)\n"
 	  "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
 	  "  --id REAL                   reject if identity lower\n"
-	  "  --idprefix INT              reject if first nucleotides do not match\n"
-	  "  --idsuffix INT              reject if last nucleotides do not match\n"
+	  "  --idprefix INT              reject if first n nucleotides do not match\n"
+	  "  --idsuffix INT              reject if last n nucleotides do not match\n"
 	  "  --leftjust                  reject if terminal gaps at alignment left end\n"
 	  "  --match INT                 score for match (2)\n"
 	  "  --matched FILENAME          FASTA file for matching query sequences\n"
-	  "  --maxaccepts INT            maximum number of hits to show (1)\n"
-	  "  --maxdiffs INT              reject if more substitutions and indels\n"
-	  "  --maxgaps INT               reject if more indels than this\n"
-	  "  --maxhits INT               maximum number of hits to report\n"
+	  "  --maxaccepts INT            number of hits to accept and show (1)\n"
+	  "  --maxdiffs INT              reject if more substitutions or indels\n"
+	  "  --maxgaps INT               reject if more indels\n"
+	  "  --maxhits INT               maximum number of hits to show\n"
 	  "  --maxid REAL                reject if identity higher\n"
 	  "  --maxqsize INT              reject if query abundance larger\n"
 	  "  --maxqt REAL                reject if query/target length ratio higher\n"
@@ -1028,24 +1044,25 @@ void cmd_help()
 	  "  --selfid                    reject if sequences identical\n"
 	  "  --target_cov REAL           reject if fraction of target aligned lower\n"
 	  "  --top_hits_only             output only hits with identity equal to the best\n"
-	  "  --userfields STRING         fields to output in --userout file\n"
-	  "  --userout FILENAME          user-defined tab-separated output filename\n"
+	  "  --userfields STRING         fields to output in userout file\n"
+	  "  --userout FILENAME          filename for user-defined tab-separated output\n"
 	  "  --weak_id REAL              show hits with at least this id; continue search\n"
 	  "  --wordlength INT            length of words (kmers) for database index (8)\n"
 	  "\n"
-	  "Dereplication and sorting options\n"
+	  "Dereplication, sorting and shuffling options\n"
 	  "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+	  "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
+	  "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
+	  "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
 	  "  --maxsize INT               maximum abundance for sortbysize\n"
-	  "  --minseqlength INT          minimum sequence length for sort and derep\n"
 	  "  --minsize INT               minimum abundance for sortbysize\n"
 	  "  --minuniquesize INT         minimum abundance for output from dereplication\n"
-	  "  --output FILENAME           output FASTA file for abundance sort / derepl. \n"
-	  "  --relabel STRING            relabel sequences with this prefix string\n"
+	  "  --output FILENAME           output FASTA file for derepl./sort/shuffle\n"
+	  "  --relabel STRING            relabel with this prefix string after sorting\n"
+	  "  --seed INT                  seed for shuffle; zero for random seed (0)\n"
 	  "  --sizein                    read abundance annotation from input\n"
 	  "  --sizeout                   add abundance annotation to output\n"
-	  "  --sortbylength FILENAME     sort sequences by length in FASTA file specified\n"
-	  "  --sortbysize FILENAME       abundance sort sequences in FASTA file specified\n"
-	  "  --topn INT                  output only most abundant sequences from derepl.\n"
+	  "  --topn INT                  output just top n seqs from derepl./shuffle/sort\n"
 	  );
 }
 
@@ -1092,6 +1109,14 @@ void cmd_derep_fulllength()
   derep_fulllength();
 }
 
+void cmd_shuffle()
+{
+  if (!opt_output)
+    fatal("Output file for randomization must be specified with --output");
+  
+  shuffle();
+}
+
 void fillheader()
 {
   snprintf(progheader, 80, 
@@ -1118,11 +1143,10 @@ void getentirecommandline(int argc, char** argv)
 
 void show_header()
 {
-  fprintf(stderr, "%s\n", progheader);
-  //  fprintf(stderr, "%s\n", cmdline);
-  fprintf(stderr, "Copyright (C) 2014 Torbjorn Rognes, all rights reserved. License: AGPL 3.0\n");
-  fprintf(stderr, "https://github.com/torognes/vsearch\n");
-  fprintf(stderr, "\n");
+  fprintf(stdout, "%s\n", progheader);
+  fprintf(stdout, "Copyright (C) 2014 Torbjorn Rognes. License: AGPL 3.0\n");
+  fprintf(stdout, "https://github.com/torognes/vsearch\n");
+  fprintf(stdout, "\n");
 }
 
 int main(int argc, char** argv)
@@ -1154,5 +1178,9 @@ int main(int argc, char** argv)
   else if (opt_derep_fulllength)
     {
       cmd_derep_fulllength();
+    }
+  else if (opt_shuffle)
+    {
+      cmd_shuffle();
     }
 }

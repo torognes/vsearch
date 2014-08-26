@@ -21,6 +21,10 @@
 
 #include "vsearch.h"
 
+static const char maskup      =  1;
+static const char maskleft    =  2;
+static const char maskextup   =  4;
+static const char maskextleft =  8;
 
 inline void pushop(char newop, char ** cigarendp, char * op, int * count)
 {
@@ -57,11 +61,6 @@ inline void finishop(char ** cigarendp, char * op, int * count)
     *count = 0;
   }
 }
-
-static const char maskup      =  1;
-static const char maskleft    =  2;
-static const char maskextup   =  4;
-static const char maskextleft =  8;
 
 /*
 
@@ -104,26 +103,23 @@ static const char maskextleft =  8;
 
 */
 
-static long dir_alloc = 0;
-static long hearray_alloc = 0;
-
-static char * dir;
-static long * hearray;
-
-void nw_init()
+struct nwinfo_s * nw_init()
 {
-  dir = 0;
-  dir_alloc = 0;
-  hearray = 0;
-  hearray_alloc = 0;
+  struct nwinfo_s * nw = (struct nwinfo_s *) xmalloc(sizeof(struct nwinfo_s));
+  nw->dir = 0;
+  nw->dir_alloc = 0;
+  nw->hearray = 0;
+  nw->hearray_alloc = 0;
+  return nw;
 }
 
-void nw_exit()
+void nw_exit(struct nwinfo_s * nw)
 {
-  if (dir)
-    free(dir);
-  if (hearray)
-    free(hearray);
+  if (nw->dir)
+    free(nw->dir);
+  if (nw->hearray)
+    free(nw->hearray);
+  free(nw);
 }
 
 inline int nt_identical(char a, char b)
@@ -163,7 +159,8 @@ void nw_align(char * dseq,
               long * nwalignmentlength,
               char ** nwalignment,
               long queryno,
-	      long dbseqno)
+	      long dbseqno,
+	      struct nwinfo_s * nw)
 {
 
   long h, n, e, f, h_e, h_f;
@@ -172,39 +169,39 @@ void nw_align(char * dseq,
   long qlen = qend - qseq;
   long dlen = dend - dseq;
 
-  if (qlen * dlen > dir_alloc)
+  if (qlen * dlen > nw->dir_alloc)
     {
-      dir_alloc = qlen * dlen;
-      dir = (char *) xrealloc(dir, (size_t)dir_alloc);
+      nw->dir_alloc = qlen * dlen;
+      nw->dir = (char *) xrealloc(nw->dir, (size_t)nw->dir_alloc);
     }
 
   long need = 2 * qlen * (long) sizeof(long);
-  if (need > hearray_alloc)
+  if (need > nw->hearray_alloc)
     {
-      hearray_alloc = need;
-      hearray = (long *) xrealloc(hearray, (size_t)hearray_alloc);
+      nw->hearray_alloc = need;
+      nw->hearray = (long *) xrealloc(nw->hearray, (size_t)nw->hearray_alloc);
     }
 
-  memset(dir, 0, (size_t)(qlen*dlen));
+  memset(nw->dir, 0, (size_t)(qlen*dlen));
 
   long i, j;
 
   for(i=0; i<qlen; i++)
   {
-    hearray[2*i]   = -gapopen_t_left - (i+1) * gapextend_t_left; // H (N)
-    hearray[2*i+1] = -100000; // E
+    nw->hearray[2*i]   = -gapopen_t_left - (i+1) * gapextend_t_left; // H (N)
+    nw->hearray[2*i+1] = -100000; // E
   }
 
   for(j=0; j<dlen; j++)
   {
 
-    hep = hearray;
+    hep = nw->hearray;
     f = -100000;
     h = (j == 0) ? 0 : (- gapopen_q_left - j * gapextend_q_left);
 
     for(i=0; i<qlen; i++)
     {
-      char * d = dir + qlen*j+i;
+      char * d = nw->dir + qlen*j+i;
       
       n = *hep;
       e = *(hep+1);
@@ -272,7 +269,7 @@ void nw_align(char * dseq,
     }
   }
   
-  long dist = hearray[2*qlen-2];
+  long dist = nw->hearray[2*qlen-2];
   
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -299,7 +296,7 @@ void nw_align(char * dseq,
     long gapopen_t   = (j < dlen) ? gapopen_t_internal   : gapopen_t_right;
     long gapextend_t = (j < dlen) ? gapextend_t_internal : gapextend_t_right;
   
-    int d = dir[qlen*(j-1)+(i-1)];
+    int d = nw->dir[qlen*(j-1)+(i-1)];
 
     alength++;
 

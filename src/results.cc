@@ -395,7 +395,7 @@ void results_show_alnout(FILE * fp,
 		  hp->internal_indels,
 		  100.0 * hp->internal_indels / hp->internal_alignmentlength);
 
-#if 0
+#if 1
 	  fprintf(fp," [%ld kmers, %ld score, %ld gap opens]",
 		  hp->count, hp->nwscore, hp->nwgaps);
 #endif

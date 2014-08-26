@@ -21,15 +21,63 @@
 
 #include "vsearch.h"
 
+#define MINMATCHSAMPLECOUNT 7
+#define MINMATCHSAMPLEFREQ 0.064
+
 struct topscore
 {
   unsigned int count;
   unsigned int seqno;
-#if 0
   unsigned int length;
-#endif
 };
-      
+     
+/* per thread data */
+static struct searchinfo_s
+{
+  pthread_t pthread;            /* pthread info */
+  long query_no;                /* query number, zero-based */
+  long qsize;                   /* query abundance */
+  long query_head_len;          /* query header length */
+  long query_head_alloc;        /* bytes allocated for the header */
+  char * query_head;            /* query header */
+  long qseqlen;                 /* query length */
+  long seq_alloc;               /* bytes allocated for the query sequence */
+  long rc_seq_alloc;            /* bytes allocated for reverse complement q */
+  char * qsequence;             /* query sequence */
+  char * rc;                    /* query sequence, reverse complement */
+  struct uhandle_s * uh;        /* unique kmer finder instance */
+  unsigned int kmersamplecount; /* number of kmer samples from query */
+  unsigned int * kmersample;    /* list of kmers sampled from query */
+  unsigned int * targetlist;    /* list of db seqs with >0 kmer match */
+  unsigned int * hitcount;      /* list of kmer counts for each db seq */
+  int topcount;                 /* number of db seqs with kmer matches kept */
+  struct topscore * topscores;  /* list of db seqs with most kmer matches*/
+  struct nwinfo_s * nw;         /* NW aligner instance */
+  struct hit * hits;            /* list of hits */
+} * sia;
+
+/* global constants/data, no need for synchronization */
+static long scorematrix[16][16];
+static int tophits; /* the maximum number of hits to keep */
+static int seqcount; /* number of database sequences */
+static pthread_attr_t attr;
+
+/* global data protected by mutex */
+static pthread_mutex_t mutex_input;
+static pthread_mutex_t mutex_output;
+static long qmatches;
+static long queries;
+static int * dbmatched;
+static FILE * fp_alnout = 0;
+static FILE * fp_userout = 0;
+static FILE * fp_blast6out = 0;
+static FILE * fp_uc = 0;
+static FILE * fp_fastapairs = 0;
+static FILE * fp_matched = 0;
+static FILE * fp_notmatched = 0;
+static FILE * fp_dbmatched = 0;
+static FILE * fp_dbnotmatched = 0;
+
 int hit_compare(const void * a, const void * b)
 {
   struct hit * x = (struct hit *) a;
@@ -51,123 +99,76 @@ int hit_compare(const void * a, const void * b)
       return 0;
 }
 
-#define MAXSAMPLES 255
-
-static long scorematrix[16][16];
-static long tophits;
-
-static unsigned char * hitcount = 0;
-static struct topscore * topscores = 0;
-static struct hit * hits = 0;
-
-static unsigned int * targetlist = 0;
-static unsigned int targetcount = 0;
-
-static unsigned int kmersample[256];
-static unsigned int kmersamplecount;
-
-static unsigned long nwalignments = 0;
-
-static FILE * fp_alnout = 0;
-static FILE * fp_userout = 0;
-static FILE * fp_blast6out = 0;
-static FILE * fp_uc = 0;
-static FILE * fp_fastapairs = 0;
-static FILE * fp_matched = 0;
-static FILE * fp_notmatched = 0;
-static FILE * fp_dbmatched = 0;
-static FILE * fp_dbnotmatched = 0;
-
-void search_get_query_samples(char * qsequence, unsigned int qseqlen, 
-                              unsigned int wl, unsigned int samples)
+void topscore_insert(int i, struct searchinfo_s * si)
 {
-  count_kmers(wl, qsequence, qseqlen);
-  unsigned int unique = count_kmers_unique();
-  kmersamplecount = 0;
+  /* the list of top scores should probably be converted into
+     a min-max heap (priority queue) or something else
+     for improved performance */
+  
+  unsigned int count = si->hitcount[i];
+  
+  /* ignore sequences with less than a given number of kmer matches */
+  if (count < MINMATCHSAMPLECOUNT)
+    return;
+  if (count < MINMATCHSAMPLEFREQ * si->kmersamplecount)
+    return;
 
-  unsigned int pos = 0;
-  unsigned int u = 0;
-
-  unsigned int kmer = 0;
-  unsigned int mask = (1<<(2*wl)) - 1;
-  char * s = qsequence;
-  char * e1 = s + wl - 1;
-  char * e2 = s + qseqlen;
-  if (e2 < e1)
-    e1 = e2;
-
-  while (s < e1)
+  unsigned long seqlen = db_getsequencelen(i);
+  
+  /* find insertion point */
+  int p = si->topcount;
+  while ((p > 0) &&
+	 ((count > si->topscores[p-1].count) ||
+	  ((count == si->topscores[p-1].count) &&
+	   (seqlen < si->topscores[p-1].length))))
+    p--;
+  
+  /* p = index in array where new data should be placed */
+  if (p < tophits)
     {
-      kmer <<= 2;
-      kmer |= chrmap_2bit[(int)(*s++)];
-    }
+      /* find new bottom of list */
+      int j = si->topcount;
+      if (si->topcount < tophits)
+	si->topcount++;
+      else
+	j--;
 
-#if 0
-  fprintf(stderr, 
-          "Sequence length: %d  Unique kmers: %d  Samples: %d\n", 
-          qseqlen, unique, samples);
-#endif
-
-  int z = 0;
-
-  while (s < e2)
-    {
-      kmer <<= 2;
-      kmer |= chrmap_2bit[(int)(*s++)];
-      kmer &= mask;
-
-      if (count_kmers_getcount(wl, kmer) == 1)
-        {
-          if (z>=0)
-            {
-              kmersample[kmersamplecount++] = kmer;
-#if 0
-              fprintf(stderr, "Query kmer sample %d at pos %d u %d: ",
-		      kmersamplecount, pos, u);
-              fprint_kmer(stderr, wl, kmer);
-              fprintf(stderr, "\n");
-#endif
-              z -= unique+1;
-            }
-          z += samples;
-          u++;
-        }
-      pos++;
+      /* shift lower counts down */
+      while(j>p)
+	{
+	  si->topscores[j] = si->topscores[j-1];
+	  j--;
+	}
+      
+      /* insert or overwrite */
+      si->topscores[p].count = count;
+      si->topscores[p].seqno = i;
+      si->topscores[p].length = seqlen;
     }
 }
 
 
-unsigned int search_topscores(unsigned int seqcount, 
-                              unsigned int th)
+void search_topscores(struct searchinfo_s * si)
 {
   /*
     Count the kmer hits in each database sequence and
     make a sorted list of a given number (th)
     of the database sequences with the highest number of matching kmers.
-
-    These are stored in the topscores array.
-    
-    The number to keep: th = min(seqcount, maxaccepts + maxrejects)
-
-    This is a partial sort.
+    These are stored in the si->topscores array.
   */
 
-
-  
-
   /* count kmer hits in the database sequences */
-  /* compute total hits */
-
-  memset(hitcount, 0, seqcount);
   
+  /* zero counts */
+  memset(si->hitcount, 0, seqcount * sizeof(unsigned int));
+  
+  /* count total humber of hits and compute hit density */
   unsigned int totalhits = 0;
-
-  for(unsigned int i=0; i<kmersamplecount; i++)
+  for(unsigned int i=0; i<si->kmersamplecount; i++)
     {
-      unsigned int kmer = kmersample[i];
+      unsigned int kmer = si->kmersample[i];
       totalhits += kmerhash[kmer+1] - kmerhash[kmer];
     }
-
   double hitspertarget = totalhits * 1.0 / seqcount;
 
 #if 0
@@ -175,179 +176,48 @@ unsigned int search_topscores(unsigned int seqcount,
          totalhits, seqcount, hitspertarget);
 #endif
 
-  
-  targetcount = 0;
-
-  unsigned int sparse;
-
-  if (hitspertarget < 0.1)
-    sparse = 1;
-  else
-    sparse = 0;
-
-  //  sparse = 1;
-
-  if (! sparse)
+  si->topcount = 0;
+  if (hitspertarget > 0.3)
     {
-      /* dense hit distribution - check all targets - no need for a list*/
+      /* dense hit distribution - check all targets - no need for a list */
 
-      for(unsigned int i=0; i<kmersamplecount; i++)
+      for(unsigned int i=0; i<si->kmersamplecount; i++)
         {
-          unsigned int kmer = kmersample[i];
+          unsigned int kmer = si->kmersample[i];
           unsigned int * a = kmerindex + kmerhash[kmer];
           unsigned int * b = kmerindex + kmerhash[kmer+1];
           for(unsigned int * j=a; j<b; j++)
-            hitcount[*j]++;
+            si->hitcount[*j]++;
         }
+
+      for(int i=0; i < seqcount; i++)
+	topscore_insert(i, si);
     }
   else
     {
       /* sparse hits - check only a list of targets */
-      
       /* create list with targets (no duplications) */
 
-      for(unsigned int i=0; i<kmersamplecount; i++)
+      unsigned int targetcount = 0;
+      for(unsigned int i=0; i<si->kmersamplecount; i++)
         {
-          unsigned int kmer = kmersample[i];
+          unsigned int kmer = si->kmersample[i];
           unsigned int * a = kmerindex + kmerhash[kmer];
           unsigned int * b = kmerindex + kmerhash[kmer+1];
           
           for(unsigned int * j=a; j<b; j++)
             {
               /* append to target list */
-              if (hitcount[*j] == 0)
-                targetlist[targetcount++] = *j;
-              
-              hitcount[*j]++;
+              if (si->hitcount[*j] == 0)
+                si->targetlist[targetcount++] = *j;
+
+	      si->hitcount[*j]++;
             }
         }
-      
-#if 0
-      printf("Unique targets: %u\n", targetcount);
-#endif
 
-    }
-
-  unsigned int topcount = 0;
-  
-  if (sparse)
-    {
       for(unsigned int z=0; z < targetcount; z++)
-        {
-          unsigned int i = targetlist[z];
-
-          unsigned int count = hitcount[i];
-
-#if 0
-	  unsigned long seqlen = db_getsequencelen(i);
-#endif
-          
-          /* find insertion point */
-          
-          unsigned int p = topcount;
-          
-#if 0
-          while ((p > 0) &&
-		 ((count > topscores[p-1].count) ||
-		  ((count == topscores[p-1].count) &&
-		   (seqlen < topscores[p-1].length))))
-            p--;
-#else
-          while ((p > 0) &&
-		 (count >= topscores[p-1].count))
-            p--;
-#endif
-          
-          
-          /* p = index in array where new data should be placed */
-          
-          if (p < th)
-            {
-              
-              /* find new bottom of list */
-              
-              int bottom = topcount;
-              if (topcount == th)
-                bottom--;
-              
-              
-              /* shift lower counts down */
-              
-              for(unsigned int j = bottom; j > p; j--)
-                topscores[j] = topscores[j-1];
-              
-              
-              /* insert or overwrite */
-              
-              topscores[p].count  = count;
-              topscores[p].seqno  = i;
-#if 0
-              topscores[p].length = seqlen;
-#endif
-              
-              if (topcount < th)
-                topcount++;
-            }
-        }
+	topscore_insert(si->targetlist[z], si);
     }
-  else
-    {
-      for(unsigned int i=0; i < seqcount; i++)
-        {
-          unsigned int count = hitcount[i];
-#if 0
-	  unsigned long seqlen = db_getsequencelen(i);
-#endif
-          
-          /* find insertion point */
-          
-          unsigned int p = topcount;
-          
-#if 0
-          while ((p > 0) &&
-		 ((count > topscores[p-1].count) ||
-		  ((count == topscores[p-1].count) &&
-		   (seqlen < topscores[p-1].length))))
-            p--;
-#else
-          while ((p > 0) &&
-		 (count >= topscores[p-1].count))
-            p--;
-#endif
-          
-          /* p = index in array where new data should be placed */
-          
-          if (p < th)
-            {
-              
-              /* find new bottom of list */
-              
-              int bottom = topcount;
-              if (topcount == th)
-                bottom--;
-              
-              
-              /* shift lower counts down */
-              
-              for(unsigned int j = bottom; j > p; j--)
-                topscores[j] = topscores[j-1];
-              
-              
-              /* insert or overwrite */
-              
-              topscores[p].count = count;
-              topscores[p].seqno = i;
-#if 0
-              topscores[p].length = seqlen;
-#endif
-              
-              if (topcount < th)
-                topcount++;
-            }
-        }
-    }
-  
-  return topcount;
 }
 
 int seqncmp(char * a, char * b, unsigned long n)
@@ -358,58 +228,39 @@ int seqncmp(char * a, char * b, unsigned long n)
   return 0;
 }
 
-int search_onequery(char * query_head, char * qsequence, 
-		    long qseqlen, long query_no, char * rc,
-		    long qsize)
+
+int search_onequery(struct searchinfo_s * si)
 {
-  int seqcount = db_getsequencecount();
-
-
-  /* compute necessary number of samples */
-
-  unsigned int minsamples = 1;
-  unsigned int maxsamples = MIN(qseqlen-wordlength+1, MAXSAMPLES);
-  //  double default_samples = 32.0;
-  double default_samples = 255.0;
-  unsigned int samples;
-
-  //samples = ceil(default_samples * exp(wordlength * (1.0 - opt_id)));
-  samples = round(default_samples);
-
-  if (samples < minsamples)
-    samples = minsamples;
-  if (samples > maxsamples)
-    samples = maxsamples;
-
-  //  printf("seqlen: %ld samples: %d\n", qseqlen, samples);
-
   int hit_count = 0;
-  
   for(int s = 0; s < opt_strand; s++)
     {
       /* check plus or both strands*/
       /* s=0: plus; s=1: minus */
       char * qseq;
       if (s)
-	qseq = rc;
+	qseq = si->rc;
       else
-	qseq = qsequence;
+	qseq = si->qsequence;
 
       /* extract unique kmer samples from query*/
-      search_get_query_samples(qseq, qseqlen, wordlength, samples);
+      unique_count(si->uh, wordlength, 
+		   si->qseqlen, qseq,
+		   & si->kmersamplecount, & si->kmersample);
       
       /* find database sequences with the most kmer hits */
-      unsigned int topcount = search_topscores(seqcount, tophits);
+      search_topscores(si);
       
       /* analyse targets with the highest number of kmer hits */
       int accepts = 0;
       int rejects = 0;
 
-      for(unsigned int t = 0;
-	  (accepts < maxaccepts) && (rejects <= maxrejects) && (t<topcount);
+      for(int t = 0;
+	  (accepts < maxaccepts) && 
+	    (rejects <= maxrejects) &&
+	    (t<si->topcount);
 	  t++)
 	{
-	  unsigned int target = topscores[t].seqno;
+	  unsigned int target = si->topscores[t].seqno;
 	  char * dlabel = db_getheader(target);
 	  char * dseq = db_getsequence(target);
 	  long dseqlen = db_getsequencelen(target);
@@ -419,40 +270,40 @@ int search_onequery(char * query_head, char * qsequence,
 	  
 	  if (
 	      /* maxqsize */
-	      (qsize > opt_maxqsize) ||
+	      (si->qsize > opt_maxqsize) ||
 	      /* mintsize */
 	      (tsize < opt_mintsize) ||
 	      /* minsizeratio */
-	      (qsize < opt_minsizeratio * tsize) ||
+	      (si->qsize < opt_minsizeratio * tsize) ||
 	      /* maxsizeratio */
-	      (qsize > opt_maxsizeratio * tsize) ||
+	      (si->qsize > opt_maxsizeratio * tsize) ||
 	      /* minqt */
-	      (qseqlen < opt_minqt * dseqlen) ||
+	      (si->qseqlen < opt_minqt * dseqlen) ||
 	      /* maxqt */
-	      (qseqlen > opt_maxqt * dseqlen) ||
+	      (si->qseqlen > opt_maxqt * dseqlen) ||
 	      /* minsl */
-	      (qseqlen < dseqlen ? 
-	       qseqlen < opt_minsl * dseqlen : 
-	       dseqlen < opt_minsl * qseqlen) ||
+	      (si->qseqlen < dseqlen ? 
+	       si->qseqlen < opt_minsl * dseqlen : 
+	       dseqlen < opt_minsl * si->qseqlen) ||
 	      /* maxsl */
-	      (qseqlen < dseqlen ? 
-	       qseqlen > opt_maxsl * dseqlen : 
-	       dseqlen > opt_maxsl * qseqlen) ||
+	      (si->qseqlen < dseqlen ? 
+	       si->qseqlen > opt_maxsl * dseqlen : 
+	       dseqlen > opt_maxsl * si->qseqlen) ||
 	      /* idprefix */
-	      ((qseqlen < opt_idprefix) || (dseqlen < opt_idprefix) ||
+	      ((si->qseqlen < opt_idprefix) || (dseqlen < opt_idprefix) ||
 	       (seqncmp(qseq,
 			dseq,
 			opt_idprefix))) ||
 	      /* idsuffix */
-	      ((qseqlen < opt_idsuffix) || (dseqlen < opt_idsuffix) ||
-	       (seqncmp(qseq+qseqlen-opt_idsuffix,
+	      ((si->qseqlen < opt_idsuffix) || (dseqlen < opt_idsuffix) ||
+	       (seqncmp(qseq+si->qseqlen-opt_idsuffix,
 			dseq+dseqlen-opt_idsuffix,
 			opt_idsuffix))) ||
 	      /* self */
-	      (opt_self && (strcmp(query_head, dlabel) == 0)) ||
+	      (opt_self && (strcmp(si->query_head, dlabel) == 0)) ||
 	      /* selfid */
-	      (opt_selfid && (qseqlen == dseqlen) && 
-	       (seqncmp(qseq, dseq, qseqlen) == 0))
+	      (opt_selfid && (si->qseqlen == dseqlen) && 
+	       (seqncmp(qseq, dseq, si->qseqlen) == 0))
 	      )
 	    {
 	      rejects++;
@@ -471,7 +322,7 @@ int search_onequery(char * query_head, char * qsequence,
 	      nw_align(dseq,
 		       dseq + dseqlen,
 		       qseq,
-		       qseq + qseqlen,
+		       qseq + si->qseqlen,
 		       (long*) scorematrix,
 		       opt_gap_open_query_left,
 		       opt_gap_open_query_interior,
@@ -491,11 +342,10 @@ int search_onequery(char * query_head, char * qsequence,
 		       & nwindels,
 		       & nwalignmentlength,
 		       & nwalignment,
-		       query_no,
-		       target);
+		       si->query_no,
+		       target,
+		       si->nw);
 
-	      nwalignments++;
-	      
 	      double nwid = (nwalignmentlength - nwdiff) * 
 		100.0 / nwalignmentlength;
 
@@ -578,7 +428,7 @@ int search_onequery(char * query_head, char * qsequence,
 		  /* rightjust */
 		  ((!opt_rightjust) || (trim_q_right+trim_t_right == 0)) &&
 		  /* query_cov */
-		  (internal_alignmentlength >= opt_query_cov * qseqlen) &&
+		  (internal_alignmentlength >= opt_query_cov * si->qseqlen) &&
 		  /* target_cov */
 		  (internal_alignmentlength >= opt_target_cov * dseqlen) &&
 		  /* maxid */
@@ -587,29 +437,29 @@ int search_onequery(char * query_head, char * qsequence,
 		  (100.0 * matches / (matches + mismatches) >= opt_mid)
 		  )
 		{
-		  hits[hit_count].target = target;
-		  hits[hit_count].count = topscores[t].count;
-		  hits[hit_count].nwscore = nwscore;
-		  hits[hit_count].nwdiff = nwdiff;
-		  hits[hit_count].nwgaps = nwgaps;
-		  hits[hit_count].nwindels = nwindels;
-		  hits[hit_count].nwalignmentlength = nwalignmentlength;
-		  hits[hit_count].nwalignment = nwalignment;
-		  hits[hit_count].nwid = nwid;
-		  hits[hit_count].strand = s;
-		  hits[hit_count].matches = matches;
-		  hits[hit_count].mismatches = mismatches;
-		  hits[hit_count].trim_q_left = trim_q_left;
-		  hits[hit_count].trim_q_right = trim_q_right;
-		  hits[hit_count].trim_t_left = trim_t_left;
-		  hits[hit_count].trim_t_right = trim_t_right;
-		  hits[hit_count].trim_aln_left = trim_aln_left;
-		  hits[hit_count].trim_aln_right = trim_aln_right;
-		  hits[hit_count].internal_alignmentlength =
+		  si->hits[hit_count].target = target;
+		  si->hits[hit_count].count = si->topscores[t].count;
+		  si->hits[hit_count].nwscore = nwscore;
+		  si->hits[hit_count].nwdiff = nwdiff;
+		  si->hits[hit_count].nwgaps = nwgaps;
+		  si->hits[hit_count].nwindels = nwindels;
+		  si->hits[hit_count].nwalignmentlength = nwalignmentlength;
+		  si->hits[hit_count].nwalignment = nwalignment;
+		  si->hits[hit_count].nwid = nwid;
+		  si->hits[hit_count].strand = s;
+		  si->hits[hit_count].matches = matches;
+		  si->hits[hit_count].mismatches = mismatches;
+		  si->hits[hit_count].trim_q_left = trim_q_left;
+		  si->hits[hit_count].trim_q_right = trim_q_right;
+		  si->hits[hit_count].trim_t_left = trim_t_left;
+		  si->hits[hit_count].trim_t_right = trim_t_right;
+		  si->hits[hit_count].trim_aln_left = trim_aln_left;
+		  si->hits[hit_count].trim_aln_right = trim_aln_right;
+		  si->hits[hit_count].internal_alignmentlength =
 		    internal_alignmentlength;
-		  hits[hit_count].internal_gaps = internal_gaps;
-		  hits[hit_count].internal_indels = internal_indels;
-		  hits[hit_count].internal_id = internal_id;
+		  si->hits[hit_count].internal_gaps = internal_gaps;
+		  si->hits[hit_count].internal_indels = internal_indels;
+		  si->hits[hit_count].internal_id = internal_id;
 		  hit_count++;
 		  
 		  if ((internal_id >= 100.0 * opt_id) &&
@@ -627,9 +477,247 @@ int search_onequery(char * query_head, char * qsequence,
     
   /* sort and return hits */
   
-  qsort(hits, hit_count, sizeof(struct hit), hit_compare);
+  qsort(si->hits, hit_count, sizeof(struct hit), hit_compare);
 
   return hit_count;
+}
+
+
+void search_thread_run(struct searchinfo_s * si)
+{
+  while (1)
+    {
+      pthread_mutex_lock(&mutex_input);
+
+      char * qhead;
+      char * qseq;
+
+      int r = query_getnext(& qhead, & si->query_head_len,
+			     & qseq, & si->qseqlen,
+			     & si->query_no, & si->qsize);
+
+      if (!r)
+	{
+	  pthread_mutex_unlock(&mutex_input);
+	  break;
+	}
+
+      /* allocate more memory for header and sequence, if necessary */
+      
+      if (si->query_head_len + 1 > si->query_head_alloc)
+	{
+	  si->query_head_alloc = si->query_head_len + 2001;
+	  si->query_head = (char*) xrealloc(si->query_head,
+					    (size_t)(si->query_head_alloc));
+	}
+      
+      if (si->qseqlen + 1 > si->seq_alloc)
+	{
+	  si->seq_alloc = si->qseqlen + 2001;
+	  si->qsequence = (char*) xrealloc(si->qsequence,
+					   (size_t)(si->seq_alloc));
+	}
+      
+      /* copy header and sequence */
+      strcpy(si->query_head, qhead);
+      strcpy(si->qsequence, qseq);
+    
+      /* let other threads read input */
+      pthread_mutex_unlock(&mutex_input);
+
+      /* compute reverse complement query sequence */
+      if (opt_strand > 1)
+	{
+	  if (si->qseqlen + 1 > si->rc_seq_alloc)
+	    {
+	      si->rc_seq_alloc = si->qseqlen + 2001;
+	      si->rc = (char *) xrealloc(si->rc, (size_t)(si->rc_seq_alloc));
+	    }
+	  reverse_complement(si->rc, si->qsequence, si->qseqlen);
+	}
+      
+      /* perform search */
+      int hit_count = search_onequery(si);
+      
+      /* show results */
+      long toreport = MIN(opt_maxhits, hit_count);
+      pthread_mutex_lock(&mutex_output);
+      queries++;
+      if (hit_count > 0)
+	qmatches++;
+      if (toreport)
+	{
+	  if (fp_alnout)
+	    results_show_alnout(fp_alnout,
+				si->hits, toreport, si->query_head,
+				si->qsequence, si->qseqlen, si->rc);
+      
+	  double top_hit_id = si->hits[0].internal_id;
+	  
+	  for(int t = 0; t < toreport; t++)
+	    {
+	      struct hit * hp = si->hits + t;
+	      
+	      if (opt_top_hits_only && (hp->internal_id < top_hit_id))
+		break;
+	      
+	      if (fp_fastapairs)
+		results_show_fastapairs_one(fp_fastapairs, hp, 
+					    si->query_head,
+					    si->qsequence,
+					    si->qseqlen,
+					    si->rc);
+
+	      if (fp_uc)
+		if (opt_uc_allhits || (t==0))
+		  results_show_uc_one(fp_uc, hp, si->query_head,
+				      si->qsequence, si->qseqlen, si->rc);
+	      
+	      if (fp_userout)
+		results_show_userout_one(fp_userout, hp, si->query_head, 
+					 si->qsequence, si->qseqlen, si->rc);
+	      
+	      if (fp_blast6out)
+		results_show_blast6out_one(fp_blast6out, hp, si->query_head,
+					   si->qsequence, si->qseqlen, si->rc);
+	    }
+	}
+      else
+	{
+	  if (fp_uc)
+	    results_show_uc_one(fp_uc, 0, si->query_head,
+				si->qsequence, si->qseqlen, si->rc);
+	  
+	  if (opt_output_no_hits)
+	    {
+	      if (fp_userout)
+		results_show_userout_one(fp_userout, 0, si->query_head, 
+					 si->qsequence, si->qseqlen, si->rc);
+	      
+	      if (fp_blast6out)
+		results_show_blast6out_one(fp_blast6out, 0, si->query_head,
+					   si->qsequence, si->qseqlen, si->rc);
+	    }
+	}
+
+      if (hit_count)
+	{
+	  if (opt_matched)
+	    {
+	      fprintf(fp_matched, ">%s\n", si->query_head);
+	      fprint_fasta_seq_only(fp_matched, si->qsequence, si->qseqlen,
+				    opt_fasta_width);
+	    }
+	}
+      else
+	{
+	  if (opt_notmatched)
+	    {
+	      fprintf(fp_notmatched, ">%s\n", si->query_head);
+	      fprint_fasta_seq_only(fp_notmatched, si->qsequence, si->qseqlen,
+				    opt_fasta_width);
+	    }
+	}
+
+      /* update matching db sequences */
+      for (long i=0; i<hit_count; i++)
+	if (si->hits[i].internal_id >= 100.0 * opt_id)
+	  dbmatched[si->hits[i].target]++;
+      
+      progress_update(query_getfilepos());
+
+      pthread_mutex_unlock(&mutex_output);
+
+      /* free memory for alignment strings */
+      for(int i=0; i<hit_count; i++)
+	free(si->hits[i].nwalignment);
+    }
+}
+
+void search_thread_init(struct searchinfo_s * si)
+{
+  /* thread specific initialiation */
+  si->uh = unique_init();
+  si->hitcount = (unsigned int *) xmalloc
+    (seqcount * sizeof(unsigned int));
+  si->topscores = (struct topscore *) xmalloc
+    (sizeof(struct topscore) * tophits);
+  si->targetlist = (unsigned int*) xmalloc
+    (sizeof(unsigned int)*seqcount);
+  si->hits = (struct hit *) xmalloc
+    (sizeof(struct hit) * (tophits) * opt_strand);
+  si->qsize = 1;
+  si->query_head_alloc = 0;
+  si->query_head = 0;
+  si->seq_alloc = 0;
+  si->qsequence = 0;
+  si->rc_seq_alloc = 0;
+  si->rc = 0;
+  si->nw = nw_init();
+}
+
+void search_thread_exit(struct searchinfo_s * si)
+{
+  /* thread specific clean up */
+  nw_exit(si->nw);
+  unique_exit(si->uh);
+  free(si->targetlist);
+  free(si->hits);
+  free(si->topscores);
+  free(si->hitcount);
+  if (si->query_head)
+    free(si->query_head);
+  if (si->qsequence)
+    free(si->qsequence);
+  if (si->rc)
+    free(si->rc);
+}
+
+void * search_thread_worker(void * vp)
+{
+  long t = (long) vp;
+  struct searchinfo_s * si = sia + t;
+  search_thread_run(si);
+  return 0;
+}
+
+void search_thread_worker_init()
+{
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  /* allocate memory for thread info */
+  sia = (struct searchinfo_s *) xmalloc(opt_threads * 
+                                        sizeof(struct searchinfo_s));
+  
+  /* init and create worker threads, put them into stand-by mode */
+  for(int t=0; t<opt_threads; t++)
+    {
+      struct searchinfo_s * si = sia + t;
+      search_thread_init(si);
+      if (pthread_create(&si->pthread, &attr, search_thread_worker,
+			 (void*)(long)t))
+        fatal("Cannot create thread");
+    }
+}
+
+void search_thread_worker_exit()
+{
+  /* finish and clean up worker threads */
+  for(int t=0; t<opt_threads; t++)
+    {
+      struct searchinfo_s * si = sia + t;
+      
+      /* wait for worker to quit */
+      if (pthread_join(si->pthread, NULL))
+        fatal("Cannot join thread");
+
+      search_thread_exit(si);
+    }
+
+  free(sia);
+
+  pthread_attr_destroy(&attr);
 }
 
 void search(char * cmdline, char * progheader)
@@ -709,6 +797,21 @@ void search(char * cmdline, char * progheader)
 
   dbindex_build();
 
+  seqcount = db_getsequencecount();
+
+  if ((maxrejects == 0) || (maxrejects > seqcount))
+    maxrejects = seqcount;
+
+  if (maxaccepts > seqcount)
+    maxaccepts = seqcount;
+
+  tophits = maxrejects + maxaccepts;
+  if (tophits > seqcount)
+    tophits = seqcount;
+  
+  qmatches = 0;
+  queries = 0;
+
   for(int i=0; i<16; i++)
     for(int j=0; j<16; j++)
       if (i==j)
@@ -716,171 +819,21 @@ void search(char * cmdline, char * progheader)
       else
         scorematrix[i][j] = mismatch_score;
   
-  int seqcount = db_getsequencecount();
-  tophits = maxrejects + maxaccepts;
-  if (tophits > seqcount)
-    tophits = seqcount;
-  if (maxaccepts > seqcount)
-    maxaccepts = seqcount;
-
-  nw_init();
-
-  count_kmers_init();
-
-  hitcount = (unsigned char *) xmalloc(seqcount);
-  topscores = (struct topscore *) xmalloc(sizeof(struct topscore) * tophits);
-  hits = (struct hit *) xmalloc
-    (sizeof(struct hit) * (maxaccepts+maxrejects) * opt_strand);
-  targetlist = (unsigned int*) xmalloc(sizeof(unsigned int)*seqcount);
-
-  char * query_head;
-  long query_head_len;
-  char * qsequence;
-  long qseqlen;
-  long query_no;
-  long qmatches = 0;
-  unsigned long qsize = 1;
-
   query_open(opt_usearch_global);
 
+  dbmatched = (int*) xmalloc(seqcount * sizeof(int*));
+  memset(dbmatched, 0, seqcount * sizeof(int*));
+
+  pthread_mutex_init(&mutex_input, NULL);
+  pthread_mutex_init(&mutex_output, NULL);
+
   progress_init("Searching", query_getfilesize());
-
-  long * dbmatched = (long *) xmalloc(seqcount * sizeof(long));
-  memset(dbmatched, 0, seqcount * sizeof(long));
-
-  long rc_seq_alloc = 50001;
-  char * rc = 0;
-
-  while(query_getnext(& query_head, & query_head_len,
-		      & qsequence, & qseqlen,
-		      & query_no, & qsize))
-    {
-
-      if (qseqlen + 1 > rc_seq_alloc)
-	{
-	  rc_seq_alloc += 10000;
-	  rc = (char *) xrealloc(rc, (size_t)rc_seq_alloc);
-	}
-
-      if (opt_strand > 1)
-	reverse_complement(rc, qsequence, qseqlen);
-
-      /* perform search */
-      
-      int hit_count = search_onequery(query_head,
-				      qsequence, qseqlen, 
-				      query_no, rc, qsize);
-      
-      if (hit_count > 0)
-	qmatches++;
-
-      /* show results */
-      
-      long toreport = MIN(opt_maxhits, hit_count);
-
-      if (toreport)
-	{
-	  if (fp_alnout)
-	    results_show_alnout(fp_alnout,
-				hits, toreport, query_head,
-				qsequence, qseqlen, rc);
-      
-	  double top_hit_id = hits[0].internal_id;
-	  
-	  for(int t = 0; t < toreport; t++)
-	    {
-	      struct hit * hp = hits + t;
-	      
-	      if (opt_top_hits_only && (hp->internal_id < top_hit_id))
-		break;
-	      
-	      if (fp_fastapairs)
-		results_show_fastapairs_one(fp_fastapairs, hp, query_head,
-					    qsequence, qseqlen, rc);
-
-	      if (fp_uc)
-		results_show_uc_one(fp_uc, hp, query_head,
-				    qsequence, qseqlen, rc);
-	      
-	      if (fp_userout)
-		results_show_userout_one(fp_userout, hp, query_head, 
-					 qsequence, qseqlen, rc);
-	      
-	      if (fp_blast6out)
-		results_show_blast6out_one(fp_blast6out, hp, query_head,
-					   qsequence, qseqlen, rc);
-	    }
-	}
-      else
-	{
-	  if (fp_uc)
-	    results_show_uc_one(fp_uc, 0, query_head,
-				qsequence, qseqlen, rc);
-	  
-	  if (opt_output_no_hits)
-	    {
-	      if (fp_userout)
-		results_show_userout_one(fp_userout, 0, query_head, 
-					 qsequence, qseqlen, rc);
-	      
-	      if (fp_blast6out)
-		results_show_blast6out_one(fp_blast6out, 0, query_head,
-					   qsequence, qseqlen, rc);
-	    }
-	}
-
-
-      if (hit_count)
-	{
-	  if (opt_matched)
-	    {
-	      fprintf(fp_matched, ">%s\n", query_head);
-	      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen,
-				    opt_fasta_width);
-	    }
-	}
-      else
-	{
-	  if (opt_notmatched)
-	    {
-	      fprintf(fp_notmatched, ">%s\n", query_head);
-	      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen,
-				    opt_fasta_width);
-	    }
-	}
-
-
-      /* update matching db sequences */
-
-      for (long i=0; i<hit_count; i++)
-	if (hits[i].internal_id >= 100.0 * opt_id)
-	  dbmatched[hits[i].target]++;
-      
-      
-      /* free memory for alignment strings */
-      
-      for(int i=0; i<hit_count; i++)
-	free(hits[i].nwalignment);
-      
-      if(rc)
-	free(rc);
-      
-      progress_update(query_getfilepos());
-    }
+  search_thread_worker_init();
+  search_thread_worker_exit();
   progress_done();
 
-  if (rc)
-    free(rc);
-
-  free(targetlist);
-  free(hits);
-  free(topscores);
-  free(hitcount);
-
-  count_kmers_exit();
-
-  nw_exit();
-
+  fprintf(stderr, "Matching query sequences: %ld of %ld (%.2f%%)\n", 
+	  qmatches, queries, 100.0 * qmatches / queries);
   if (opt_dbmatched || opt_dbnotmatched)
     {
       for(long i=0; i<seqcount; i++)
@@ -895,49 +848,30 @@ void search(char * cmdline, char * progheader)
 	      db_fprint_fasta(fp_dbnotmatched, i);
 	  }
     }
-
-
-
-#if 1
-  fprintf(stderr, "Matching query sequences: %ld (%.1f%%)\n", 
-	  qmatches, 100.0 * qmatches / (query_no+1));
-  fprintf(stderr, "Alignments computed: %ld\n", nwalignments);
-#endif
-
+  
+  /* clean up, global */
   query_close();
   dbindex_free();
   db_free();
-
-  /* close output files */
-
+  pthread_mutex_destroy(&mutex_output);
+  pthread_mutex_destroy(&mutex_input);
   if (opt_matched)
     fclose(fp_matched);
-
   if (opt_notmatched)
     fclose(fp_notmatched);
-
   if (opt_dbmatched)
     fclose(fp_dbmatched);
-
   if (opt_dbnotmatched)
     fclose(fp_dbnotmatched);
-
   if (opt_fastapairs)
     fclose(fp_fastapairs);
-
   if (fp_uc)
     fclose(fp_uc);
-
   if (fp_blast6out)
     fclose(fp_blast6out);
-
   if (fp_userout)
     fclose(fp_userout);
-
   if (fp_alnout)
     fclose(fp_alnout);
-
   show_rusage();
 }
-
-

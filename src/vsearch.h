@@ -19,6 +19,11 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -29,12 +34,9 @@
 #include <limits.h>
 #include <locale.h>
 #include <math.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <ctype.h>
 #include <regex.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <city.h>
 
@@ -50,7 +52,7 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.9"
+#define PROG_VERSION "v0.0.10"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -97,7 +99,6 @@ struct queryinfo
 };
 
 typedef struct queryinfo queryinfo_t;
-
 
 struct hit
 {
@@ -159,6 +160,7 @@ extern char * opt_usearch_global;
 extern char * opt_derep_fulllength;
 extern char * opt_sortbysize;
 extern char * opt_sortbylength;
+extern char * opt_shuffle;
 
 extern char * alnoutfilename;
 extern char * useroutfilename;
@@ -174,12 +176,15 @@ extern char * databasefilename;
 extern char * opt_output;
 extern char * opt_relabel;
 
+extern long opt_threads;
+
 extern long wordlength;
 extern long maxrejects;
 extern long maxaccepts;
 extern long match_score;
 extern long mismatch_score;
 extern long rowlen;
+extern long opt_seed;
 
 extern double opt_id;
 extern double opt_query_cov;
@@ -256,6 +261,7 @@ extern regex_t db_regexp;
 
 unsigned long arch_get_memused();
 unsigned long arch_get_memtotal();
+void arch_srandom_init();
 
 /* functions in util.cc */
 
@@ -332,7 +338,7 @@ void query_open(const char * filename);
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
-		  unsigned long * qsize);
+		  long * qsize);
 
 void query_close();
 
@@ -353,9 +359,17 @@ void query_bz_close();
 
 /* functions in nw.cc */
 
-void nw_init();
+struct nwinfo_s
+{
+  long dir_alloc;
+  long hearray_alloc;
+  char * dir;
+  long * hearray;
+};
 
-void nw_exit();
+struct nwinfo_s * nw_init();
+
+void nw_exit(struct nwinfo_s * nw);
 
 void nw_align(char * dseq,
               char * dend,
@@ -381,26 +395,37 @@ void nw_align(char * dseq,
               long * nwalignmentlength,
               char ** nwalignment,
               long queryno,
-	      long dbseqno);
+	      long dbseqno,
+	      struct nwinfo_s * nw);
 
 
-/* functions in kmercount.cc */
+/* functions in unique.cc */
 
-struct kmercountelem
+struct bucket_s
 {
   unsigned int kmer;
   unsigned int count;
 };
 
-extern struct kmercountelem * kmercounthash;
+struct uhandle_s
+{
+  struct bucket_s * hash;
+  unsigned int * list;
+  unsigned int hash_mask;
+  int size;
+  int alloc;
+};
 
-void count_kmers_init();
-void count_kmers_exit();
-unsigned int count_kmers_gethashsize();
-void count_kmers(unsigned int k, char * seq, unsigned int seqlen);
-unsigned int count_kmers_unique();
+struct uhandle_s * unique_init();
 
-unsigned int count_kmers_getcount(unsigned int wordlength, unsigned kmer);
+void unique_exit(struct uhandle_s * u);
+
+void unique_count(struct uhandle_s * uh, 
+		  int k,
+		  int seqlen,
+		  char * seq,
+		  unsigned int * listlen,
+		  unsigned int * * list);
 
 
 /* functions in dbindex.cc */
@@ -504,3 +529,8 @@ void sortbylength();
 /* functions in derep.cc */
 
 void derep_fulllength();
+
+
+/* functions in shuffle.cc */
+
+void shuffle();

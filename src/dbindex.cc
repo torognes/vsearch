@@ -78,7 +78,7 @@ void dbindex_build()
   unsigned int * kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
   memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
-  count_kmers_init();
+  struct uhandle_s * uh = unique_init();
 
   /* status of kmers for each sequence: 0 (zero), 1 (one) or 2 (two or more) */
   unsigned char * kmerstatus = (unsigned char *) xmalloc(kmerhashsize * sizeof(unsigned char));
@@ -96,10 +96,11 @@ void dbindex_build()
 
       if (wordlength > 9)
         {
-          count_kmers(k, sequence, seqlen);
-          for(unsigned int i=0; i< count_kmers_gethashsize(); i++)
-            if (kmercounthash[i].count == 1)
-              kmercount[kmercounthash[i].kmer]++;
+	  unsigned int uniquecount;
+	  unsigned int * uniquelist;
+	  unique_count(uh, k, seqlen, sequence, & uniquecount, & uniquelist);
+          for(unsigned int i=0; i<uniquecount; i++)
+	    kmercount[uniquelist[i]]++;
         }
       else
         {
@@ -183,10 +184,11 @@ void dbindex_build()
 
       if (wordlength > 9)
         {
-          count_kmers(k, sequence, seqlen);
-          for(unsigned int i=0; i<count_kmers_gethashsize(); i++)
-            if (kmercounthash[i].count == 1)
-              kmerindex[kmerhash[kmercounthash[i].kmer]++] = seqno;
+	  unsigned int uniquecount;
+	  unsigned int * uniquelist;
+	  unique_count(uh, k, seqlen, sequence, & uniquecount, & uniquelist);
+          for(unsigned int i=0; i<uniquecount; i++)
+	    kmerindex[kmerhash[uniquelist[i]]++] = seqno;
         }
       else
         {
@@ -264,7 +266,7 @@ void dbindex_build()
     }
 
   show_rusage();
-  count_kmers_exit();
+  unique_exit(uh);
 }
 
 void dbindex_free()

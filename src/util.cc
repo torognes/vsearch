@@ -165,6 +165,7 @@ long getusec(void)
 
 void show_rusage()
 {
+#if 0
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, & r_usage);
   
@@ -172,6 +173,7 @@ void show_rusage()
   fprintf(stderr, " %.3fs (sys)", r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6);
 
   fprintf(stderr, " Memory: %luMB\n",  arch_get_memused() / 1024 / 1024);
+#endif
 }
 
 void fprint_fasta_hdr_only(FILE * fp, char * hdr)
@@ -256,7 +258,17 @@ void reverse_complement(char * rc, char * seq, long len)
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1. */
 
+#if 0
+  printf("Sequence:\n");
+  fprint_fasta_seq_only(stdout, seq, len, 60);
+#endif
   for(long i=0; i<len; i++)
-    rc[i] = chrmap_complement[(int)(seq[len-1-i])];
+    {
+      rc[i] = chrmap_complement[(int)(seq[len-1-i])];
+    }
   rc[len] = 0;
+#if 0
+  printf("RC:\n");
+  fprint_fasta_seq_only(stdout, rc, len, 60);
+#endif
 }
