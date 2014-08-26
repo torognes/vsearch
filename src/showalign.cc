@@ -79,7 +79,7 @@ inline void putop(char c, long len)
       switch(c)
         {
         case 'M':
-          qs = q_strand ? 3 - q_seq[q_pos] : q_seq[q_pos];
+          qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
           ds = d_seq[d_pos];
 	  q_pos += delta;
 	  d_pos += 1;
@@ -90,7 +90,7 @@ inline void putop(char c, long len)
           break;
 
         case 'D':
-          qs = q_strand ? 3 - q_seq[q_pos] : q_seq[q_pos];
+          qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
 	  q_pos += delta;
           q_line[line_pos] = toupper(qs);
           a_line[line_pos] = ' ';

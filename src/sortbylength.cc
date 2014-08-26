@@ -24,7 +24,7 @@
 static struct sortinfo_s
 {
   unsigned long length;
-  unsigned long seqno;
+  int seqno;
 } * sortinfo;
 
 int sortbylength_compare(const void * a, const void * b)
@@ -56,13 +56,13 @@ void sortbylength()
   db_read(opt_sortbylength);
   show_rusage();
 
-  unsigned long dbsequencecount = db_getsequencecount();
+  int dbsequencecount = db_getsequencecount();
   sortinfo = (sortinfo_s*) xmalloc(dbsequencecount * sizeof(sortinfo_s));
 
-  unsigned long passed = 0;
+  int passed = 0;
 
   progress_init("Getting lengths", dbsequencecount);
-  for(unsigned int i=0; i<dbsequencecount; i++)
+  for(int i=0; i<dbsequencecount; i++)
     {
       sortinfo[passed].seqno = i;
       sortinfo[passed].length = db_getsequencelen(i);
@@ -88,8 +88,10 @@ void sortbylength()
   fprintf(stderr, "Median length: %.0f\n", median);
   show_rusage();
   
+  passed = MIN(dbsequencecount, opt_topn);
+
   progress_init("Writing output", passed);
-  for(unsigned int i=0; i<passed; i++)
+  for(int i=0; i<passed; i++)
     {
       if (opt_relabel)
 	{
@@ -102,7 +104,7 @@ void sortbylength()
 	fprintf(fp_output, ">%s\n", db_getheader(sortinfo[i].seqno));
       
       char * seq = db_getsequence(sortinfo[i].seqno);
-      long len = db_getsequencelen(sortinfo[i].seqno);
+      int len = db_getsequencelen(sortinfo[i].seqno);
       fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
       progress_update(i);
     }

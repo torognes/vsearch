@@ -21,6 +21,10 @@
 
 #include "vsearch.h"
 
+/* please note that these functions will return a pointer to a buffer
+   allocated here for the query header and sequence. This buffers will
+   be overwritten on the next call of query_getnext. */
+
 #define MEMCHUNK 4096
 #define LINEALLOC LINE_MAX
 
@@ -132,7 +136,7 @@ void query_close()
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
-		  unsigned long * qsize)
+		  long * qsize)
 {
   while (query_line[0])
     {

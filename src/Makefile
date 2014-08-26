@@ -18,31 +18,24 @@
 # PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
 # Profiling options
-#COMMON=-pg -g
-COMMON=-g
+#PROFILING=-g -pg
 
-COMPILEOPT=-Wall -msse4.1 -mtune=core2 -Icityhash
-#COMPILEOPT=-Weverything -msse4.1 -mtune=core2
+# Compiler warnings
+WARN=-Wall
+#WARN=-Weverything
 
-LIBS=-lpthread
-LINKFLAGS=$(COMMON)
-
-# Intel options
-#CXX=icpc
-#CXXFLAGS=$(COMPILEOPT) $(COMMON) -Wno-missing-declarations -fast
-
-# GNU options
 CXX=g++
-CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
+CXXFLAGS=-O3 -msse4.1 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
+LINKFLAGS=-g
+LIBS=-lpthread
 
 PROG=vsearch
 
-OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
-	kmercount.o userfields.o results.o sortbysize.o derep.o maps.o \
-	arch.o sortbylength.o cityhash/city.o
-
 DEPS=vsearch.h Makefile cityhash/city.h cityhash/config.h
 
+OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
+	unique.o userfields.o results.o sortbysize.o derep.o maps.o \
+	arch.o sortbylength.o shuffle.o cityhash/city.o
 
 .SUFFIXES:.o .cc
 
