@@ -156,7 +156,7 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **shuffle.cc** - Shuffle sequences
 * **sortbylength.cc** - Code for sorting by length
 * **sortbysize.cc** - Code for sorting by size (abundance)
-* **unique.cc* - Find unique kmers in a sequence
+* **unique.cc** - Find unique kmers in a sequence
 * **userfields.cc** - Code for parsing the userfields option argument
 * **util.cc** - Various common utility functions
 * **vsearch.cc** - Main program file, general initialization, reads arguments and parses options, writes info.
