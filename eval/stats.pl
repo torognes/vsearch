@@ -59,5 +59,5 @@ printf "False negative rate:        %10.2f%%\n", $fnr;
 printf "False discovery rate:       %10.2f%%\n", $fdr;
 printf "F-score:                    %10.2f%%\n", $fscore;
 printf "\n";
-printf "Matched (id>=70%;cov>=90%): %7d\n", $matched;
+printf "Matched (id>=70%%;cov>=90%%): %7d\n", $matched;
 printf "Matched percentage:         %10.2f%%\n", $matchedrate;
