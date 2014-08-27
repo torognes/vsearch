@@ -36,7 +36,7 @@ Please see the files in the `eval` folder for the scripts used for this assessme
 For the accuracy assessment searches in Rfam 11.0, VSEARCH took 60 seconds for 100 replicates of the same query sequences, whereas USEARCH without the `--fulldp` option needed 64 seconds and USEARCH with `--fulldp` needed 70 seconds. This includes time for loading and indexing the database (about 3 secs for VSEARCH, 6 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
-**Command line options:** The options currently supported by VSEARCH is indicated below. Please run vsearch with the `--help` option to see more information about the options.
+**Command line options:** The options currently supported by VSEARCH is indicated below. Please run VSEARCH with the `--help` option to see more information about the options.
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. A positive integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 Another extension implemented is that dereplication will honor the `--sizein` option and add together the abundances of the sequences that are merged.
