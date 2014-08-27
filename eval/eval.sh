@@ -29,7 +29,7 @@ fi
 
 echo Creating random test set
 
-../src/vsearch --shuffle $DB --output $DIR/temp.fsa --seed $SEED > /dev/null 2> /dev/null
+$VSEARCH --shuffle $DB --output $DIR/temp.fsa --seed $SEED > /dev/null 2> /dev/null
 ./select.pl $DIR/temp.fsa $DIR/q.fsa $DIR/db.fsa
 
 cat q.fsa > qq.fsa
