@@ -138,6 +138,8 @@ Dereplication, sorting and shuffling options:
 
 The code is currently licensed under the GNU Affero General Public License version 3.
 
+VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
+
 
 ## Code
 
