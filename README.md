@@ -18,27 +18,27 @@ In the example below, VSEARCH will identify sequences in database.fsa at least 9
 
 ## Implementation details
 
-**Algorithm:** VSEARCH indexes the unique kmers in the database in a way similar USEARCH, but is currently limited to continuous words (non-spaced seeds). It samples every unique kmer from each query sequence and identifies the database sequences with the largest number of kmer matches. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those database sequences that satisfy all accept options are accepted while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching databases considered, respectively. Please see the USEARCH paper and supplementary for details.
+**Algorithm:** VSEARCH indexes the unique kmers in the database in a way similar USEARCH, but is currently limited to continuous words (non-spaced seeds). It samples every unique kmer from each query sequence and identifies the number of kmer matches in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those database sequences that satisfy all accept options are accepted while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching databases considered, respectively. Please see the USEARCH paper and supplementary for details.
 
-**Kmer selection:** How many and which kmers USEARCH chooses from the query sequence is not well documented. It is also not known exactly which database sequences are examined, and in which order. We have therefore experimented with various possibilities in order to obtain good performance. Our procedure seems to give results equal to or better than USEARCH. 
-We have choosen to select all unique kmers from the query. At least 7 of these kmers must be present in the database sequence before it will be considered. Also, at least 1 of every 16 query kmers need to be present in the database sequence. Furthermore, if several database sequences have the same number of kmer matches, they will be examined in order of decreasing length.
+**Kmer selection:** How many and which kmers USEARCH chooses from the query sequence is not well documented. It is also not known exactly which database sequences are examined, and in which order. We have therefore experimented with various strategies in order to obtain good performance. Our procedure seems to give results equal to or better than USEARCH. 
+We have chosen to select all unique kmers from the query. At least 7 of these kmers must be present in the database sequence before it will be considered. Also, at least 1 out of 16 query kmers need to be present in the database sequence. Furthermore, if several database sequences have the same number of kmer matches, they will be examined in order of decreasing sequence length.
 
-**Output formats:** All the output options of usearch are supported. The output can be written in five different formats specified with the `--alnout`, `--blast6out`, `--fastapairs`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported.
+**Output formats:** All the output options of usearch are supported. The output can be written in different formats specified with the `--alnout`, `--blast6out`, `--fastapairs`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported.
 
-**Alignment:** VSEARCH currently uses a relatively slow non-vectorized full dynamic programming Needleman-Wunsch algorithm for the global alignments (similar to USEARCH with `--fulldp`) instead of the quicker (but less sensitive) default procedure involving seeding, extension and banded dynamic programming employed by USEARCH. This could be replaced by a vectorized variant using SIMD in VSEARCH to get up to comparable speed. A banded SIMD variant is also possible.
+**Alignment:** VSEARCH currently uses a relatively slow non-vectorized full dynamic programming algorithm (Needleman-Wunsch) for the global alignments (similar to USEARCH with `--fulldp`) instead of the quicker (but less sensitive) default procedure employed by USEARCH involving seeding, extension and banded dynamic programming. This will be replaced by a vectorized variant using SIMD in VSEARCH to increase speed without sacrificing accuracy. A banded SIMD variant is also possible.
 
 **Accuracy:** The accuracy of VSEARCH has been assessed and compared to USEARCH. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
-The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same familiy as the top hit was measured. Recall and precision was calculated. In most cases VSEARCH had slightly better recall and precision than USEARCH.
+The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same family as the top hit was measured. Recall and precision was calculated. In most cases VSEARCH had slightly better recall and precision than USEARCH.
 The recall of VSEARCH was usually about 92.3-93.5% and the precision was usually 93.0-94.1%. When run without the `--fulldp` option the recall of USEARCH was usually about 83.0-85.3% while precision was 98.5-99.0%. When run with the `--fulldp` option the recall of USEARCH was usually about 92.0-92.8% and the precision was about 92.2-93.0%.
 Please see the files in the `eval` folder for the scripts used for this assessment.
 
-**Speed:** The speed of VSEARCH appears to be slightly faster than USEARCH when USEARCH is run with the `--fulldp` option. When USEARCH is run without the `--fulldp` option, USEARCH may be considerable faster, but it is quite variable and depends on the option and sequences used. When many alignments need to be computed (occurs with a high identity threshold specified with `--id` combined with a high level of `--maxrejects`), USEARCH will probably be considerably faster without `--fulldp`. But running USEARCH without the `--fulldp` option also reduces recall.
-For the accuracy assessment searches in Rfam 11.0, VSEARCH took 60 seconds for 100 replicates of the same query sequences, while USEARCH without the `--fulldp` option needed 64 seconds and USEARCH with `--fulldp` needed 70 seconds. This includes time for loading and indexing the database (about 3 secs for VSEARCH, 6 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
+**Speed:** The speed of VSEARCH appears to be slightly faster than USEARCH when USEARCH is run with the `--fulldp` option. When USEARCH is run without the `--fulldp` option, USEARCH may be considerable faster, but it depends on the options and sequences used. When many alignments need to be computed (occurs with a high identity threshold specified with `--id` combined with a high level of `--maxrejects`), USEARCH will probably be considerably faster without `--fulldp`. But running USEARCH without the `--fulldp` option also reduces recall significantly.
+For the accuracy assessment searches in Rfam 11.0, VSEARCH took 60 seconds for 100 replicates of the same query sequences, whereas USEARCH without the `--fulldp` option needed 64 seconds and USEARCH with `--fulldp` needed 70 seconds. This includes time for loading and indexing the database (about 3 secs for VSEARCH, 6 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
 **Command line options:** The options currently supported by VSEARCH is indicated below. Please run vsearch with the `--help` option to see more information about the options.
 
-**Extensions:** A shuffle command has been added. By specifiying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. A positive integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
+**Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. A positive integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 Another extension implemented is that dereplication will honor the `--sizein` option and add together the abundances of the sequences that are merged.
 The width of FASTA formatted output files may be specified with the `--fasta_width` option.
 
@@ -129,7 +129,7 @@ Dereplication, sorting and shuffling options:
 ## Main limitations
 
 * **Commands:** No clustering or chimera checking, yet.
-* **Speed:** Only non-vectorized full alignment implemented. A vectorized version (SIMD) will be made. Otherwize VSEARCH is generally faster than USEARCH.
+* **Speed:** Only non-vectorized full alignment implemented. A vectorized version (SIMD) will be made. Otherwise VSEARCH is generally faster than USEARCH.
 * **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
 * **Indexing options:** Only continuous seeds are supported.
 
@@ -175,7 +175,7 @@ VSEARCH has not been tested comprehensively yet. All bug reports are highly appr
 Some issues to work on:
 
 * testing and debugging
-* parallelisation with SIMD-based global alignment
+* parallelization with SIMD-based global alignment
 * masking
 * clustering
 * chimera filtering
