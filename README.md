@@ -25,17 +25,20 @@ We have choosen to select all unique kmers from the query. At least 7 of these k
 
 **Output formats:** All the output options of usearch are supported. The output can be written in five different formats specified with the `--alnout`, `--blast6out`, `--fastapairs`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported.
 
-**Alignment:** VSEARCH currently uses a relatively slow non-vectorized full dynamic programming Needleman-Wunsch algorithm for the global alignments (similar to USEARCH with `--fulldp`) instead of the quicker (but possible less senstive) procedure involving seeding, extension and banded dynamic programming employed by USEARCH. This could be replaced by a vectorized variant using SIMD in VSEARCH to get up to comparable speed. A banded SIMD variant could also be valuable.
+**Alignment:** VSEARCH currently uses a relatively slow non-vectorized full dynamic programming Needleman-Wunsch algorithm for the global alignments (similar to USEARCH with `--fulldp`) instead of the quicker (but less sensitive) default procedure involving seeding, extension and banded dynamic programming employed by USEARCH. This could be replaced by a vectorized variant using SIMD in VSEARCH to get up to comparable speed. A banded SIMD variant is also possible.
 
-**Speed:** The speed of VSEARCH appears to be roughly equal to USEARCH when USEARCH is run with the `--fulldp` option. When USEARCH is run without the `--fulldp` option, it may be considerable faster, but it is quite variable and depends on several parameters. Running USEARCH without the `--fulldp` option also seems to results in reduced recall.
+**Accuracy:** The accuracy of VSEARCH has been assessed and compared to USEARCH. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
+The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same familiy as the top hit was measured. Recall and precision was calculated. In most cases VSEARCH had slightly better recall and precision than USEARCH.
+The recall of VSEARCH was usually about 92.3-93.5% and the precision was usually 93.0-94.1%. When run without the `--fulldp` option the recall of USEARCH was usually about 83.0-85.3% while precision was 98.5-99.0%. When run with the `--fulldp` option the recall of USEARCH was usually about 92.0-92.8% and the precision was about 92.2-93.0%.
+Please see the files in the `eval` folder for the scripts used for this assessment.
+
+**Speed:** The speed of VSEARCH appears to be slightly faster than USEARCH when USEARCH is run with the `--fulldp` option. When USEARCH is run without the `--fulldp` option, USEARCH may be considerable faster, but it is quite variable and depends on the option and sequences used. When many alignments need to be computed (occurs with a high identity threshold specified with `--id` combined with a high level of `--maxrejects`), USEARCH will probably be considerably faster without `--fulldp`. But running USEARCH without the `--fulldp` option also reduces recall.
+For the accuracy assessment searches in Rfam 11.0, VSEARCH took 60 seconds for 100 replicates of the same query sequences, while USEARCH without the `--fulldp` option needed 64 seconds and USEARCH with `--fulldp` needed 70 seconds. This includes time for loading and indexing the database (about 3 secs for VSEARCH, 6 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
-
-**Accuracy:** The accuracy of VSEARCH has been assessed and compared to USEARCH. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper with the Rfam 9.1 database.
-The database was initially shuffled. Then the first sequence from each of 2085 Rfam families with more than one member was selected. The ability of VSEARCH and USEARCH to select another member of the same familiy as the top hit was measured. Recall and precision was calculated. In most cases VSEARCH had somewhat better recall and precision than USEARCH. Please see the files in the `eval` folder for details.
 
 **Command line options:** The options currently supported by VSEARCH is indicated below. Please run vsearch with the `--help` option to see more information about the options.
 
-**Extensions:** A shuffle command has been added. By specifiying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences pseudo-randomly. A seed by be specified with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random generator will be initialized with pseudo-random data from the local machine.
+**Extensions:** A shuffle command has been added. By specifiying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. A positive integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 Another extension implemented is that dereplication will honor the `--sizein` option and add together the abundances of the sequences that are merged.
 The width of FASTA formatted output files may be specified with the `--fasta_width` option.
 
@@ -49,7 +52,7 @@ General options:
 * `--maxseqlength <int>` (Default 50000)
 * `--minseqlength <int>` (Default 1 for sort/shuffle or 32 for search/dereplicate)
 * `--notrunclabels`
-* `--strand <plus|both>`
+* `--strand <plus|both>` (Required for `search_global`)
 * `--threads <int>` (Default 0=available cores)
 * `--uc <filename>`
 * `--uc_allhits`
@@ -59,15 +62,15 @@ Search options:
 * `--usearch_global <filename>`
 * `--alnout <filename>`
 * `--blast6out <filename>`
-* `--db <filename>`
+* `--db <filename>` (Required)
 * `--dbmatched <filename>`
 * `--dbnotmatched <filename>`
 * `--fasta_width <int>` (Default 80)
 * `--fastapairs <filename>`
-* `--fulldp` (Always full dynamic programming alignments)
+* `--fulldp` (VSEARCH always computes full dynamic programming alignments)
 * `--gapext <string>` (Default 2I/1E)
 * `--gapopen <string>` (Default 20I/2E)
-* `--id <real>`
+* `--id <real>` (Required)
 * `--idprefix <int>`
 * `--idsuffix <int>`
 * `--leftjust`
@@ -114,7 +117,7 @@ Dereplication, sorting and shuffling options:
 * `--maxsize <int>` (Default inf.)
 * `--minsize <int>` (Default 0)
 * `--minuniquesize <int>`
-* `--output <filename>`
+* `--output <filename>` (Required for `shuffle`, `sortbylength` and `sortbysize`)
 * `--relabel`
 * `--seed <int>` (Default 0=randomize)
 * `--sizein`
