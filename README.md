@@ -49,6 +49,7 @@ General options:
 
 * `--help`
 * `--version`
+* `--fasta_width <int>` (Default 80)
 * `--maxseqlength <int>` (Default 50000)
 * `--minseqlength <int>` (Default 1 for sort/shuffle or 32 for search/dereplicate)
 * `--notrunclabels`
@@ -65,7 +66,6 @@ Search options:
 * `--db <filename>` (Required)
 * `--dbmatched <filename>`
 * `--dbnotmatched <filename>`
-* `--fasta_width <int>` (Default 80)
 * `--fastapairs <filename>`
 * `--fulldp` (VSEARCH always computes full dynamic programming alignments)
 * `--gapext <string>` (Default 2I/1E)
