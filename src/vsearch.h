@@ -44,7 +44,7 @@
 #include <sys/sysinfo.h>
 #endif
 
-#ifdef HAVE_BZLIB_H
+#ifdef HAVE_BZLIB
 #include <bzlib.h>
 #endif
 
@@ -64,7 +64,7 @@
 #define LINE_MAX 2048
 #endif
 
-#ifdef HAVE_BZLIB_H
+#ifdef HAVE_BZLIB
 #define BZ_VERBOSE_0 0
 #define BZ_VERBOSE_1 1
 #define BZ_VERBOSE_2 2
@@ -74,6 +74,11 @@
 #define BZ_MORE_MEM 0  /* faster decompression using more memory */
 #define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
 #endif
+
+#define FORMAT_PLAIN 1
+#define FORMAT_BZIP  2
+#define FORMAT_GZIP  3
+
 
 /* structures and data types */
 
@@ -286,6 +291,11 @@ void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned long progress);
 void progress_done();
 
+int detect_compress_format (FILE * fp);
+#ifdef HAVE_BZLIB
+char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
+                 int * bz_error_ptr, char * buf_internal, long * buf_internal_len);
+#endif
 
 /* functions in db.cc */
 
