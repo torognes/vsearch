@@ -58,6 +58,7 @@ void db_read(const char * filename)
   gzFile gz_fp = NULL;
 #endif
 
+  //__asm__ volatile("int $0x03");
   if (filename)
     {
       /* check if file is compressed */
@@ -96,7 +97,8 @@ void db_read(const char * filename)
 #ifdef HAVE_ZLIB
   if (db_format == FORMAT_GZIP)
    {
-     gz_fp = gzdopen(fileno(fp), "r");
+     fclose(fp);
+     gz_fp = gzopen(filename, "r");
      if (!gz_fp)
        fatal("Error: Unable to open query file (%s)", filename);
    }
@@ -367,6 +369,8 @@ void db_read(const char * filename)
 #endif
       progress_update(ftell(fp));
     }
+
+  /* close the database file */
 #ifdef HAVE_BZLIB
   if (db_format == FORMAT_BZIP)
     BZ2_bzReadClose(&bz_error, bz_fp);
@@ -375,7 +379,9 @@ void db_read(const char * filename)
   if (db_format == FORMAT_GZIP)
     gzclose(gz_fp);
 #endif
-  fclose(fp);
+  
+  if (db_format != FORMAT_GZIP)
+    fclose(fp);
 
   progress_done();
 
