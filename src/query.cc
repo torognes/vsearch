@@ -158,7 +158,8 @@ void query_open(const char * filename)
 #ifdef HAVE_ZLIB
   if (query_format == FORMAT_GZIP)
    {
-     gz_query_fp = gzdopen(fileno(query_fp), "r");
+     fclose(query_fp);
+     gz_query_fp = gzopen(filename, "r");
      if (!gz_query_fp)
        fatal("Error: Unable to open query file (%s)", filename);
    }
@@ -193,7 +194,9 @@ void query_close()
   if (query_format == FORMAT_GZIP)
     gzclose(gz_query_fp);
 #endif
-  fclose(query_fp);
+
+  if (query_format != FORMAT_GZIP)
+    fclose(query_fp);
   
   if (query_seq)
     free(query_seq);
