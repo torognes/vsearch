@@ -59,6 +59,10 @@ static char bz_buffer[LINEALLOC];
 static long bz_buffer_len = 0;
 #endif
 
+#ifdef HAVE_ZLIB
+gzFile gz_query_fp;
+#endif
+
 regex_t q_regexp;
 
 long query_getfilesize()
@@ -86,10 +90,13 @@ static char * FGETS(char * query_line, int size)
        fatal("Error: Query file seems to be BZIPx compressed, but %s was not compiled with BZLIB support", PROG_NAME);
 #endif
        break;
-#ifdef HAVE_ZLIB
      case FORMAT_GZIP:
-       fatal("Not implemented yet", NULL);
+#ifdef HAVE_ZLIB
+       gzgets(gz_query_fp, query_line, size);
        break;
+#else
+       fatal("Error: Database file seems to be GZIP compressed, but %s was not "
+             "compiled with ZLIB support", PROG_NAME);
 #endif
      default:
        fatal("Error: Unknown compression type detected");
@@ -120,8 +127,12 @@ void query_open(const char * filename)
 
   query_no = -1;
 
-  /* open query file */
+  /* detect compression type (if any) */
+  query_format = detect_compress_format(filename);
+  if (!query_format)
+    fatal("Error: Unable to read from query file (%s)", filename);
 
+  /* open query file */
   query_fp = NULL;
   query_fp = fopen(filename, "r");
   if (!query_fp)
@@ -134,21 +145,22 @@ void query_open(const char * filename)
   
   rewind(query_fp);
 
-  /* detect compression type (if any) */
-  query_format = detect_compress_format(query_fp);
-  if (!query_format)
-    fatal("Error: Unable to read from query file (%s)", filename);
-
-  rewind(query_fp);
-
 #ifdef HAVE_BZLIB
   /* open appropriate data steam if input file was compressed with bzip */
   if (query_format == FORMAT_BZIP)
    {
-       bz_query_fp = BZ2_bzReadOpen(&bz_error, query_fp, 
-                                    BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0);
-       if (!bz_query_fp)
-         fatal("Error: Unable to open query file (%s)", filename);
+     bz_query_fp = BZ2_bzReadOpen(&bz_error, query_fp, 
+                                  BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0);
+     if (!bz_query_fp)
+       fatal("Error: Unable to open query file (%s)", filename);
+   }
+#endif
+#ifdef HAVE_ZLIB
+  if (query_format == FORMAT_GZIP)
+   {
+     gz_query_fp = gzdopen(fileno(query_fp), "r");
+     if (!gz_query_fp)
+       fatal("Error: Unable to open query file (%s)", filename);
    }
 #endif
   
@@ -176,6 +188,10 @@ void query_close()
 #ifdef HAVE_BZLIB
   if (query_format == FORMAT_BZIP)
     BZ2_bzReadClose(&bz_error, bz_query_fp);
+#endif
+#ifdef HAVE_ZLIB
+  if (query_format == FORMAT_GZIP)
+    gzclose(gz_query_fp);
 #endif
   fclose(query_fp);
   

@@ -48,6 +48,9 @@
 #include <bzlib.h>
 #endif
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
 
 /* constants */
 
@@ -291,7 +294,7 @@ void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned long progress);
 void progress_done();
 
-int detect_compress_format (FILE * fp);
+int detect_compress_format (const char * filename);
 #ifdef HAVE_BZLIB
 char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
                  int * bz_error_ptr, char * buf_internal, long * buf_internal_len);

@@ -28,10 +28,10 @@ static unsigned long progress_chunk;
 static const unsigned long progress_granularity = 200;
 
 #ifdef HAVE_BZLIB
-static char magic_bzip[] = "\x42\x5a";
+static unsigned char magic_bzip[] = "\x42\x5a";
 #endif
 #ifdef HAVE_ZLIB
-static char magic_gzip[] = "\x1f\x8b";
+static unsigned char magic_gzip[] = "\x1f\x8b";
 #endif
 
 void progress_init(const char * prompt, unsigned long size)
@@ -313,21 +313,26 @@ char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
 }
 #endif
 
-int detect_compress_format (FILE * fp)
+int detect_compress_format (const char * filename)
 {
   /* check for magic numbers to detect file type */
-  char magic[2];
+  unsigned char magic[3];
   int cnt;
+  FILE * fp;
 
-  cnt = fread(magic, sizeof(char), 2, fp);
+  if (!(fp = fopen(filename, "r")))
+    fatal("Error: Unable to open database file (%s)", filename);
+
+  cnt = fread(magic, sizeof(unsigned char), 2, fp);
+  fclose(fp);
   if (cnt < 2) return (0); 
 
 #ifdef HAVE_BZLIB
-  if (!strncmp(magic, magic_bzip, 2)) return FORMAT_BZIP;
+  if (!memcmp(magic, magic_bzip, 2)) return FORMAT_BZIP;
 #endif
 
 #ifdef HAVE_ZLIB
-  if (!strncmp(magic, magic_zlib, 2)) return FORMAT_ZLIB;
+  if (!memcmp(magic, magic_gzip, 2)) return FORMAT_GZIP;
 #endif
 
   return FORMAT_PLAIN;
