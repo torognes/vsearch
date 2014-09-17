@@ -21,6 +21,14 @@
 
 #include "vsearch.h"
 
+struct nwinfo_s
+{
+  long dir_alloc;
+  long hearray_alloc;
+  char * dir;
+  long * hearray;
+};
+
 static const char maskup      =  1;
 static const char maskleft    =  2;
 static const char maskextup   =  4;
@@ -207,22 +215,22 @@ void nw_align(char * dseq,
       e = *(hep+1);
       h += getscore(score_matrix, dseq[j], qseq[i]);
       
-      /* preference with equal score: diag, left, up */
+      /* preference with equal score: diag, up, left */
 
-      if (e > h)
-	{
-	  h = e;
-	  *d |= maskleft;
-	}
-      
       if (f > h)
 	{  
 	  h = f;
 	  *d |= maskup;
 	}
       
+      if (e > h)
+	{
+	  h = e;
+	  *d |= maskleft;
+	}
+
       *hep = h;
-      
+
       if (i < qlen-1)
 	{
 	  h_e = h - gapopen_q_internal - gapextend_q_internal;
@@ -314,18 +322,6 @@ void nw_align(char * dseq,
       j--;
       pushop('I', &cigarend, &op, &count);
     }
-    else if (d & maskup)
-    {
-      score -= gapextend_t;
-      indels++;
-      if (op != 'D')
-        {
-          score -= gapopen_t;
-          gaps++;
-        }
-      i--;
-      pushop('D', &cigarend, &op, &count);
-    }
     else if (d & maskleft)
     {
       score -= gapextend_q;
@@ -338,6 +334,18 @@ void nw_align(char * dseq,
       j--;
       pushop('I', &cigarend, &op, &count);
     }
+    else if (d & maskup)
+    {
+      score -= gapextend_t;
+      indels++;
+      if (op != 'D')
+        {
+          score -= gapopen_t;
+          gaps++;
+        }
+      i--;
+      pushop('D', &cigarend, &op, &count);
+    }
     else
     {
       score += getscore(score_matrix, dseq[j-1], qseq[i-1]);
@@ -347,20 +355,6 @@ void nw_align(char * dseq,
       j--;
       pushop('M', &cigarend, &op, &count);
     }
-  }
-  
-  while(i>0)
-  {
-    alength++;
-    score -= gapextend_t_left;
-    indels++;
-    if (op != 'D')
-      {
-        score -= gapopen_t_left;
-        gaps++;
-      }
-    i--;
-    pushop('D', &cigarend, &op, &count);
   }
   
   while(j>0)
@@ -375,6 +369,20 @@ void nw_align(char * dseq,
       }
     j--;
     pushop('I', &cigarend, &op, &count);
+  }
+
+  while(i>0)
+  {
+    alength++;
+    score -= gapextend_t_left;
+    indels++;
+    if (op != 'D')
+      {
+        score -= gapopen_t_left;
+        gaps++;
+      }
+    i--;
+    pushop('D', &cigarend, &op, &count);
   }
 
   finishop(&cigarend, &op, &count);

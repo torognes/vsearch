@@ -52,7 +52,7 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.11"
+#define PROG_VERSION "v0.0.12"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -118,7 +118,7 @@ struct hit
   long nwalignmentlength; /* length of global alignment */
   double nwid; /* percent identity of global alignment */
   char * nwalignment; /* alignment string (cigar) of global alignment */
-
+  
   /* info for semi-global alignment, excluding gaps at ends */
 
   long internal_alignmentlength;
@@ -135,7 +135,6 @@ struct hit
 };
 
 
-
 /* macros */
 
 #ifndef MIN
@@ -148,11 +147,6 @@ struct hit
 
 
 /* common data */
-
-extern unsigned int chrstatus[256];
-extern unsigned int chrmap_2bit[256];
-extern unsigned int chrmap_4bit[256];
-extern char chrmap_complement[256];
 
 extern char * queryname;
 
@@ -177,6 +171,7 @@ extern char * opt_output;
 extern char * opt_relabel;
 
 extern long opt_threads;
+extern long opt_fulldp;
 
 extern long wordlength;
 extern long maxrejects;
@@ -256,6 +251,59 @@ extern unsigned long longestdbsequence;
 extern queryinfo_t query;
 
 extern regex_t db_regexp;
+
+
+/* search16.cc */
+
+typedef signed short CELL;
+typedef unsigned short WORD;
+typedef unsigned char BYTE;
+struct s16info_s;
+
+struct s16info_s *
+search16_init(CELL score_match,
+	      CELL score_mismatch,
+	      CELL penalty_gap_open_query_left,
+	      CELL penalty_gap_open_target_left,
+	      CELL penalty_gap_open_query_interior,
+	      CELL penalty_gap_open_target_interior,
+	      CELL penalty_gap_open_query_right,
+	      CELL penalty_gap_open_target_right,
+	      CELL penalty_gap_extension_query_left,
+	      CELL penalty_gap_extension_target_left,
+	      CELL penalty_gap_extension_query_interior,
+	      CELL penalty_gap_extension_target_interior,
+	      CELL penalty_gap_extension_query_right,
+	      CELL penalty_gap_extension_target_right);
+
+void
+search16_exit(s16info_s * s);
+
+void
+search16_qprep(s16info_s * s, char * qseq, int qlen);
+
+void
+search16(s16info_s * s,
+	 unsigned int sequences,
+	 unsigned int * seqnos,
+	 CELL * pscores,
+	 unsigned short * paligned,
+	 unsigned short * pmatches,
+	 unsigned short * pmismatches,
+	 unsigned short * pgaps,
+	 char * * pcigar);
+
+  
+/* maps.cc */
+
+extern char sym_nt_2bit[5];
+extern char sym_nt_4bit[17];
+
+extern unsigned int chrstatus[256];
+extern unsigned int chrmap_2bit[256];
+extern unsigned int chrmap_4bit[256];
+extern char chrmap_complement[256];
+
 
 /* functions in arch.cc */
 
@@ -359,13 +407,7 @@ void query_bz_close();
 
 /* functions in nw.cc */
 
-struct nwinfo_s
-{
-  long dir_alloc;
-  long hearray_alloc;
-  char * dir;
-  long * hearray;
-};
+struct nwinfo_s;
 
 struct nwinfo_s * nw_init();
 
@@ -401,20 +443,8 @@ void nw_align(char * dseq,
 
 /* functions in unique.cc */
 
-struct bucket_s
-{
-  unsigned int kmer;
-  unsigned int count;
-};
-
-struct uhandle_s
-{
-  struct bucket_s * hash;
-  unsigned int * list;
-  unsigned int hash_mask;
-  int size;
-  int alloc;
-};
+struct bucket_s;
+struct uhandle_s;
 
 struct uhandle_s * unique_init();
 

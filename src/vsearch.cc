@@ -38,7 +38,7 @@ char * opt_dbmatched;
 char * opt_dbnotmatched;
 
 long opt_threads;
-
+long opt_fulldp;
 long wordlength;
 long maxrejects;
 long maxaccepts;
@@ -368,6 +368,7 @@ void args_init(int argc, char **argv)
   opt_dbnotmatched = 0;
   
   wordlength = 8;
+  opt_fulldp = 0;
 
   maxrejects = 32;
   maxaccepts = 1;
@@ -586,6 +587,7 @@ void args_init(int argc, char **argv)
 
     case 11:
       /* fulldp */
+      opt_fulldp = 1;
       break;
 
     case 12:
@@ -950,7 +952,17 @@ void args_init(int argc, char **argv)
 
 #if 1
 
-  /* adjust gap open penalty according to convention */
+  /* 
+     Adjust gap open penalty according to convention.
+
+     The specified gap open penalties include the penalty for
+     a single nucleotide gap:
+
+     gap penalty = gap open penalty + (gap length - 1) * gap extension penalty
+
+     The rest of the code assumes the first nucleotide gap penalty is not
+     included in the gap opening penalty.
+  */
 
   opt_gap_open_query_left -= opt_gap_extension_query_left;
   opt_gap_open_target_left -= opt_gap_extension_target_left;
@@ -1133,6 +1145,7 @@ void getentirecommandline(int argc, char** argv)
     len += strlen(argv[i]);
 
   cmdline = (char*) xmalloc(len+argc+1);
+  cmdline[0] = 0;
 
   for (int i=0; i<argc; i++)
     {

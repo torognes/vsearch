@@ -23,6 +23,21 @@
 
 #define HASH CityHash64
 
+struct bucket_s
+{
+  unsigned int kmer;
+  unsigned int count;
+};
+
+struct uhandle_s
+{
+  struct bucket_s * hash;
+  unsigned int * list;
+  unsigned int hash_mask;
+  int size;
+  int alloc;
+};
+
 struct uhandle_s * unique_init()
 {
   uhandle_s * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
