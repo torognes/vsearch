@@ -38,21 +38,40 @@ static char * datap = 0;
 
 regex_t db_regexp;
 
+static int db_format = FORMAT_PLAIN;
+#ifdef HAVE_BZLIB
+static int bz_error;
+static char bz_buffer[LINEALLOC];
+static long bz_buffer_len = 0;
+#endif
+
 void db_read(const char * filename)
 {
   if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
     fatal("Regular expression compilation failed");
   
   FILE * fp = NULL;
+#ifdef HAVE_BZLIB
+  BZFILE * bz_fp = NULL;
+#endif
+#ifdef HAVE_ZLIB
+  gzFile gz_fp = NULL;
+#endif
+
+  //__asm__ volatile("int $0x03");
   if (filename)
     {
+      /* check if file is compressed */
+      db_format = detect_compress_format(filename);
+      if (!db_format)
+        fatal("Error: Unable to read from query file (%s)", filename);
+
       fp = fopen(filename, "r");
       if (!fp)
         fatal("Error: Unable to open database file (%s)", filename);
     }
   else
     fp = stdin;
-
 
   /* get file size */
 
@@ -64,6 +83,26 @@ void db_read(const char * filename)
   rewind(fp);
 
   progress_init("Reading database file", filesize);
+
+#ifdef HAVE_BZLIB
+  /* open appropriate data steam if input file was compressed with bzip */
+  if (db_format == FORMAT_BZIP)
+   {
+       bz_fp = BZ2_bzReadOpen(&bz_error, fp, 
+                              BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0);
+       if (!bz_fp)
+         fatal("Error: Unable to open query file (%s)", filename);
+   }
+#endif
+#ifdef HAVE_ZLIB
+  if (db_format == FORMAT_GZIP)
+   {
+     fclose(fp);
+     gz_fp = gzopen(filename, "r");
+     if (!gz_fp)
+       fatal("Error: Unable to open query file (%s)", filename);
+   }
+#endif
 
   /* allocate space */
 
@@ -80,7 +119,32 @@ void db_read(const char * filename)
 
   char line[LINEALLOC];
   line[0] = 0;
-  fgets(line, LINEALLOC, fp);
+
+  switch (db_format)
+   {
+     case FORMAT_PLAIN:
+       fgets(line, LINEALLOC, fp);
+       break;
+     case FORMAT_BZIP:
+#ifdef HAVE_BZLIB
+       bz_fgets(line, LINEALLOC, bz_fp, LINEALLOC,
+                &bz_error, bz_buffer, &bz_buffer_len);
+       break;
+#else
+       fatal("Error: Database file seems to be BZIPx compressed, but %s was not "
+             "compiled with BZLIB support", PROG_NAME);
+#endif
+     case FORMAT_GZIP:
+#ifdef HAVE_ZLIB
+       gzgets(gz_fp, line, LINEALLOC);
+       break;
+#else
+       fatal("Error: Database file seems to be GZIP compressed, but %s was not "
+             "compiled with ZLIB support", PROG_NAME);
+#endif
+     default:
+       fatal("Error: Unknown compression type detected");
+   }
 
   long lineno = 1;
 
@@ -137,7 +201,31 @@ void db_read(const char * filename)
       /* get next line */
 
       line[0] = 0;
-      fgets(line, LINEALLOC, fp);
+      switch (db_format)
+       {
+         case FORMAT_PLAIN:
+           fgets(line, LINEALLOC, fp);
+           break;
+         case FORMAT_BZIP:
+#ifdef HAVE_BZLIB
+           bz_fgets(line, LINEALLOC, bz_fp, LINEALLOC,
+                    &bz_error, bz_buffer, &bz_buffer_len);
+           break;
+#else
+           fatal("Error: Database file seems to be BZIPx compressed, but %s was not "
+                 "compiled with BZLIB support", PROG_NAME);
+#endif
+         case FORMAT_GZIP:
+#ifdef HAVE_ZLIB
+           gzgets(gz_fp, line, LINEALLOC);
+           break;
+#else
+           fatal("Error: Database file seems to be GZIP compressed, but %s was not "
+                 "compiled with ZLIB support", PROG_NAME);
+#endif
+         default:
+           fatal("Error: Unknown compression type detected");
+       }
       lineno++;
 
       /* read sequence */
@@ -200,7 +288,31 @@ void db_read(const char * filename)
 	    }
 
           line[0] = 0;
-          fgets(line, LINEALLOC, fp);
+          switch (db_format)
+           {
+             case FORMAT_PLAIN:
+               fgets(line, LINEALLOC, fp);
+               break;
+             case FORMAT_BZIP:
+#ifdef HAVE_BZLIB
+               bz_fgets(line, LINEALLOC, bz_fp, LINEALLOC,
+                        &bz_error, bz_buffer, &bz_buffer_len);
+               break;
+#else
+               fatal("Error: Database file seems to be BZIPx compressed, but %s was not "
+                     "compiled with BZLIB support", PROG_NAME);
+#endif
+             case FORMAT_GZIP:
+#ifdef HAVE_ZLIB
+               gzgets(gz_fp, line, LINEALLOC);
+               break;
+#else
+               fatal("Error: Database file seems to be GZIP compressed, but %s was not "
+                     "compiled with ZLIB support", PROG_NAME);
+#endif
+             default:
+               fatal("Error: Unknown compression type detected");
+           }
 	  lineno++;
         }
       
@@ -250,11 +362,26 @@ void db_read(const char * filename)
 
 	  sequences++;
 	}
-
+#ifdef HAVE_ZLIB
+      if (db_format == FORMAT_GZIP)
+        progress_update(gzoffset(gz_fp));
+      else
+#endif
       progress_update(ftell(fp));
     }
 
-  fclose(fp);
+  /* close the database file */
+#ifdef HAVE_BZLIB
+  if (db_format == FORMAT_BZIP)
+    BZ2_bzReadClose(&bz_error, bz_fp);
+#endif
+#ifdef HAVE_ZLIB
+  if (db_format == FORMAT_GZIP)
+    gzclose(gz_fp);
+#endif
+  
+  if (db_format != FORMAT_GZIP)
+    fclose(fp);
 
   progress_done();
 
