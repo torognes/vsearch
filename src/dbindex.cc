@@ -28,8 +28,6 @@ unsigned int * kmerindex;
 unsigned int kmerhashsize;
 unsigned int kmerindexsize;
 
-static char sym_nt[] = "ACGT";
-
 inline int dbindex_getkmermatchcount(int kmer)
 {
   return kmerhash[kmer+1] - kmerhash[kmer];
@@ -44,7 +42,7 @@ void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
 {
   unsigned long x = kmer;
   for(unsigned int i=0; i<kk; i++)
-    fprintf(f, "%c", sym_nt[(x >> (2*(kk-i-1))) & 3]);
+    fprintf(f, "%c", sym_nt_2bit[(x >> (2*(kk-i-1))) & 3]);
 }
 
 unsigned int extract_sequence_kmer(char * seq, unsigned int kk, unsigned int pos)
