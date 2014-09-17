@@ -45,11 +45,23 @@ static long query_head_alloc = 0;
 static long query_seq_alloc = 0;
 
 static long query_filesize = 0;
+static int query_format = FORMAT_PLAIN;
 
 static long query_lineno;
 
 static long query_stripped_count;
 static long query_stripped[256];
+
+#ifdef HAVE_BZLIB
+static BZFILE * bz_query_fp;
+static int bz_error;
+static char bz_buffer[LINEALLOC];
+static long bz_buffer_len = 0;
+#endif
+
+#ifdef HAVE_ZLIB
+gzFile gz_query_fp;
+#endif
 
 regex_t q_regexp;
 
@@ -63,11 +75,42 @@ long query_getfilepos()
   return ftell(query_fp);
 }
 
+static char * FGETS(char * query_line, int size)
+{
+  switch (query_format)
+   {
+     case FORMAT_PLAIN:
+       fgets(query_line, size, query_fp);
+       break;
+     case FORMAT_BZIP:
+#ifdef HAVE_BZLIB
+       bz_fgets(query_line, size, bz_query_fp, size,
+                &bz_error, bz_buffer, &bz_buffer_len);
+#else
+       fatal("Error: Query file seems to be BZIPx compressed, but %s was not compiled with BZLIB support", PROG_NAME);
+#endif
+       break;
+     case FORMAT_GZIP:
+#ifdef HAVE_ZLIB
+       gzgets(gz_query_fp, query_line, size);
+       break;
+#else
+       fatal("Error: Database file seems to be GZIP compressed, but %s was not "
+             "compiled with ZLIB support", PROG_NAME);
+#endif
+     default:
+       fatal("Error: Unknown compression type detected");
+   }
+  return query_line;
+}
+
+
 void query_open(const char * filename)
 {
   if (regcomp(&q_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
     fatal("Regular expression compilation failed");
   
+  //unsigned long query_line_len;
   /* allocate space */
 
   query_head = NULL;
@@ -84,8 +127,12 @@ void query_open(const char * filename)
 
   query_no = -1;
 
-  /* open fasta file */
+  /* detect compression type (if any) */
+  query_format = detect_compress_format(filename);
+  if (!query_format)
+    fatal("Error: Unable to read from query file (%s)", filename);
 
+  /* open query file */
   query_fp = NULL;
   query_fp = fopen(filename, "r");
   if (!query_fp)
@@ -98,8 +145,28 @@ void query_open(const char * filename)
   
   rewind(query_fp);
 
+#ifdef HAVE_BZLIB
+  /* open appropriate data steam if input file was compressed with bzip */
+  if (query_format == FORMAT_BZIP)
+   {
+     bz_query_fp = BZ2_bzReadOpen(&bz_error, query_fp, 
+                                  BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0);
+     if (!bz_query_fp)
+       fatal("Error: Unable to open query file (%s)", filename);
+   }
+#endif
+#ifdef HAVE_ZLIB
+  if (query_format == FORMAT_GZIP)
+   {
+     fclose(query_fp);
+     gz_query_fp = gzopen(filename, "r");
+     if (!gz_query_fp)
+       fatal("Error: Unable to open query file (%s)", filename);
+   }
+#endif
+  
   query_line[0] = 0;
-  fgets(query_line, LINEALLOC, query_fp);
+  FGETS(query_line, LINEALLOC);
   query_lineno = 1;
 
   query_stripped_count = 0;
@@ -119,8 +186,17 @@ void query_close()
           fprintf(stderr, " %c(%ld)", i, query_stripped[i]);
       fprintf(stderr, "\n");
     }
-  
-  fclose(query_fp);
+#ifdef HAVE_BZLIB
+  if (query_format == FORMAT_BZIP)
+    BZ2_bzReadClose(&bz_error, bz_query_fp);
+#endif
+#ifdef HAVE_ZLIB
+  if (query_format == FORMAT_GZIP)
+    gzclose(gz_query_fp);
+#endif
+
+  if (query_format != FORMAT_GZIP)
+    fclose(query_fp);
   
   if (query_seq)
     free(query_seq);
@@ -130,9 +206,6 @@ void query_close()
   query_head = 0;
   query_seq = 0;
 }
-
-
-
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
@@ -175,7 +248,7 @@ int query_getnext(char ** head, long * head_len,
       /* get next line */
 
       query_line[0] = 0;
-      fgets(query_line, LINEALLOC, query_fp);
+      FGETS(query_line, LINEALLOC);
       query_lineno++;
 
       /* read sequence */
@@ -229,7 +302,7 @@ int query_getnext(char ** head, long * head_len,
 	    }
 
           query_line[0] = 0;
-          fgets(query_line, LINEALLOC, query_fp);
+          FGETS(query_line, LINEALLOC);
 	  query_lineno++;
         }
 
