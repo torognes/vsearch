@@ -191,9 +191,9 @@ Some issues to work on:
 
 The following people have contributed to VSEARCH:
 
-* Torbjørn Rognes
-* Tomás Flouri
-* Frédéric Mahé
+* Torbj&oslash;rn Rognes
+* Tom&aacute;&scaron; Flouri
+* Fr&eacute;d&eacute;ric Mah&eacute;
 * Christopher Quince
 * Umer Zeeshan Ijaz
 
