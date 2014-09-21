@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014 Torbjorn Rognes & Tomas Flouri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -202,6 +202,8 @@ void query_close()
     free(query_seq);
   if (query_head)
     free(query_head);
+
+  regfree(&q_regexp);
 
   query_head = 0;
   query_seq = 0;

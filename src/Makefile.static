@@ -25,11 +25,12 @@ WARN=-Wall
 #WARN=-Weverything
 
 CXX=g++
-CXXFLAGS=-O3 -DHAVE_BZLIB -msse4.1 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
+CXXFLAGS=-O3 -DHAVE_ZLIB -DHAVE_BZLIB -msse4.1 -mtune=core2 -Icityhash \
+	-I../zlib -I../bzip2 $(WARN) $(PROFILING)
 LINKFLAGS=-g
-LIBS=-lpthread -lbz2
+LIBS=-lpthread ../zlib/libz.a ../bzip2/libbz2.a
 
-PROG=vsearch-bz
+PROG=vsearch
 
 DEPS=vsearch.h Makefile cityhash/city.h cityhash/config.h
 
@@ -44,7 +45,7 @@ OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
 
 all : $(PROG)
 
-vsearch-bz : $(OBJS)
+vsearch : $(OBJS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean :

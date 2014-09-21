@@ -973,6 +973,7 @@ void search(char * cmdline, char * progheader)
     }
   
   /* clean up, global */
+  free(dbmatched);
   query_close();
   dbindex_free();
   db_free();

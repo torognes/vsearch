@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014 Torbjorn Rognes & Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -1157,7 +1157,8 @@ void getentirecommandline(int argc, char** argv)
 void show_header()
 {
   fprintf(stdout, "%s\n", progheader);
-  fprintf(stdout, "Copyright (C) 2014 Torbjorn Rognes. License: AGPL 3.0\n");
+  fprintf(stdout, "Copyright (C) 2014 Torbjorn Rognes, Tomas Flouri & Frederic Mahe\n");
+  fprintf(stdout, "License: AGPL 3.0\n");
   fprintf(stdout, "https://github.com/torognes/vsearch\n");
   fprintf(stdout, "\n");
 }
@@ -1196,4 +1197,6 @@ int main(int argc, char** argv)
     {
       cmd_shuffle();
     }
+
+  free(cmdline);
 }
