@@ -29,7 +29,7 @@ We have chosen to select all unique kmers from the query. At least 6 of these km
 **Alignment:** VSEARCH currently uses a 8-way SIMD vectorized full dynamic programming algorithm (Needleman-Wunsch) for the global alignments instead of the less sensitive default procedure employed by USEARCH involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
 
 **Accuracy:** The accuracy of VSEARCH has been assessed and compared to USEARCH. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
-The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same family as the top hit was measured. Recall and precision was calculated. In most cases VSEARCH had slightly better recall and precision than USEARCH.
+The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same family as the top hit was measured. Recall and precision was calculated. When both programs were run without the `--fulldp` option, VSEARCH had much better recall than USEARCH, but the precision was lower. The [F-score](http://en.wikipedia.org/wiki/F1_score) was considerably higher for VSEARCH. When both programs were run with `--fulldp` VSEARCH had slightly better recall, precision and F-score than USEARCH.
 The recall of VSEARCH was usually about 92.3-93.5% and the precision was usually 93.0-94.1%. When run without the `--fulldp` option the recall of USEARCH was usually about 83.0-85.3% while precision was 98.5-99.0%. When run with the `--fulldp` option the recall of USEARCH was usually about 92.0-92.8% and the precision was about 92.2-93.0%.
 Please see the files in the `eval` folder for the scripts used for this assessment.
 
@@ -54,7 +54,7 @@ General options:
 * `--maxseqlength <int>` (Default 50000)
 * `--minseqlength <int>` (Default 1 for sort/shuffle or 32 for search/dereplicate)
 * `--notrunclabels`
-* `--strand <plus|both>` (Required for `search_global`)
+* `--strand <plus|both>`
 * `--threads <int>` (Default 0=available cores)
 * `--uc <filename>`
 * `--uc_allhits`
@@ -169,7 +169,7 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **util.cc** - Various common utility functions
 * **vsearch.cc** - Main program file, general initialization, reads arguments and parses options, writes info.
 
-VSEARCH may be compiled with zip or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
+VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
 
 
 ## Bugs
@@ -187,13 +187,13 @@ Some issues to work on:
 * chimera filtering
 
 
-## The VSEARCH Team
+## The VSEARCH team
 
 The following people have contributed to VSEARCH:
 
-* Torbjørn Rognes
-* Tomás Flouri
-* Frédéric Mahé
+* TorbjÃ¸rn Rognes
+* TomÃ¡s Flouri
+* FrÃ©dÃ©ric MahÃ©
 * Christopher Quince
 * Umer Zeeshan Ijaz
 
