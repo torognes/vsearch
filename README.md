@@ -10,7 +10,7 @@ The aim of the project is to create an alternative to the [USEARCH](http://www.d
 A tool called VSEARCH has been implemented. Exactly the same option names as USEARCH has been used in order to make it possible to make VSEARCH almost a drop-in replacement.
 The basic `usearch_global` algorithm for global alignments using nucleotide sequences is implemented, as well as the `derep_fulllength` and the `sortbysize` and `sortbylength` commands.
 At this stage it does not support amino acid sequences, local alignments, clustering, chimera detection etc.
-Searches have been parallelized with threads. VSEARCH includes a SIMD vectorized full global aligner, while USEARCH uses heuristic aligner.
+Searches have been parallelized using threads and SIMD. VSEARCH includes a SIMD vectorized full global aligner, while USEARCH uses heuristic aligner.
 
 In the example below, VSEARCH will identify sequences in database.fsa at least 90% identical on the plus strand to the query sequences in queries.fsa and write the results to alnout.txt.
 
@@ -140,6 +140,10 @@ The code is currently licensed under the GNU Affero General Public License versi
 
 VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
 
+VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler.
+
+VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward.
+
 
 ## Code
 
@@ -147,7 +151,6 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 
 * **vsearch.h** - C header file for entire project
 * **arch.cc** - Architecture specific code (Mac/Linux)
-* **bzquery.cc** - reads compressed fasta query files. Not currently used.
 * **db.cc** - Handles the database file read, access etc
 * **dbindex.cc** - Indexes the database by identifying unique kmers in the sequences and make a database hash table
 * **derep.cc** - Code for dereplication
@@ -155,7 +158,8 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **nw.cc** - New Needleman-Wunsch global alignment, serial. Only for testing.
 * **query.cc** - reads the fasta file containing the query sequences.
 * **results.cc** - Output results in various formats (alnout, userout, blast6, uc)
-* **search.cc** - search database
+* **search.cc** - Search database
+* **searchsimd.cc** - SIMD parallel global alignment of 1 query with 8 database sequences
 * **showalign.cc** - Output an alignment in a human-readable way given a CIGAR-string and the sequences
 * **shuffle.cc** - Shuffle sequences
 * **sortbylength.cc** - Code for sorting by length
@@ -164,6 +168,8 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **userfields.cc** - Code for parsing the userfields option argument
 * **util.cc** - Various common utility functions
 * **vsearch.cc** - Main program file, general initialization, reads arguments and parses options, writes info.
+
+VSEARCH may be compiled with zip or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
 
 
 ## Bugs

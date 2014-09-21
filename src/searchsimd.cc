@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2014 Torbjorn Rognes & Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -662,9 +662,11 @@ void search16_qprep(s16info_s * s, char * qseq, int qlen)
 	free(s->dir);
       s->dir = (unsigned short*) xmalloc(s->maxqlen * s->maxdlen *
 					 4 * sizeof(unsigned short));
+
       if (s->hearray)
 	free(s->hearray);
       s->hearray = (__m128i *) xmalloc(2 * s->maxqlen * sizeof(__m128i));
+      memset(s->hearray, 0, 2 * s->maxqlen * sizeof(__m128i));
 
       if (s->qtable)
 	free(s->qtable);
@@ -714,17 +716,16 @@ void search16(s16info_s * s,
   unsigned long d_offset[CHANNELS];
   BYTE * d_address[CHANNELS];
   unsigned long d_length[CHANNELS];
+  long seq_id[CHANNELS];
   
   __m128i dseqalloc[CDEPTH];
-  
   __m128i S[4];
 
   BYTE * dseq = (BYTE*) & dseqalloc;
-  BYTE zero;
+  BYTE zero = 0;
 
-  long seq_id[CHANNELS];
   unsigned long next_id = 0;
-  unsigned long done;
+  unsigned long done = 0;
   
   T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
 
@@ -748,21 +749,30 @@ void search16(s16info_s * s,
 				     s->penalty_gap_extension_target_interior);
   R_target_interior = _mm_set1_epi16(s->penalty_gap_extension_target_interior);
   
-  zero = 0;
-  done = 0;
-
   hep = (__m128i*) hearray;
   qp = (__m128i**) q_start;
 
   for (int c=0; c<CHANNELS; c++)
-  {
-    d_begin[c] = &zero;
-    d_end[c] = d_begin[c];
-    seq_id[c] = -1;
-  }
+    {
+      d_begin[c] = &zero;
+      d_end[c] = d_begin[c];
+      d_address[c] = 0;
+      d_offset[c] = 0;
+      d_length[c] = 0;
+      seq_id[c] = -1;
+    }
+  
+  for(int i=0; i<4; i++)
+    {
+      S[i] = _mm_setzero_si128();
+      dseqalloc[i] = _mm_setzero_si128();
+    }
   
   __m128i VECTOR_SHRT_MIN = _mm_set1_epi16(SHRT_MIN);
-  __m128i H0, H1, H2, H3;
+  __m128i H0 = _mm_setzero_si128();
+  __m128i H1 = _mm_setzero_si128();
+  __m128i H2 = _mm_setzero_si128();
+  __m128i H3 = _mm_setzero_si128();
   
   int easy = 0;
 
@@ -943,8 +953,11 @@ void search16(s16info_s * s,
 	    /* no more sequences, empty channel */
 
 	    seq_id[c] = -1;
+	    d_address[c] = 0;
 	    d_begin[c] = &zero;
 	    d_end[c] = d_begin[c];
+	    d_length[c] = 0;
+	    d_offset[c] = 0;
 	    for (int j=0; j<CDEPTH; j++)
 	      dseq[CHANNELS*j+c] = 0;
 	  }

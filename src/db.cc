@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014 Torbjorn Rognes & Tomas Flouri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -58,7 +58,6 @@ void db_read(const char * filename)
   gzFile gz_fp = NULL;
 #endif
 
-  //__asm__ volatile("int $0x03");
   if (filename)
     {
       /* check if file is compressed */
@@ -476,6 +475,7 @@ void db_read(const char * filename)
   }
 
   progress_done();
+  regfree(&db_regexp);
 }
 
 unsigned long db_getsequencecount()
