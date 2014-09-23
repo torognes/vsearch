@@ -28,16 +28,18 @@ We have chosen to select all unique kmers from the query. At least 6 of these km
 
 **Alignment:** VSEARCH currently uses a 8-way SIMD vectorized full dynamic programming algorithm (Needleman-Wunsch) for the global alignments instead of the less sensitive default procedure employed by USEARCH involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
 
-**Accuracy:** The accuracy of VSEARCH has been assessed and compared to USEARCH. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
-The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same family as the top hit was measured. Recall and precision was calculated. When both programs were run without the `--fulldp` option, VSEARCH had much better recall than USEARCH, but the precision was lower. The [F<sub>1</sub>-score](http://en.wikipedia.org/wiki/F1_score) was considerably higher for VSEARCH. When both programs were run with `--fulldp` VSEARCH had slightly better recall, precision and F-score than USEARCH.
+**Accuracy:** The accuracy of VSEARCH has been assessed and compared to USEARCH version 7.0.1090. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
+The database was initially shuffled. Then the first sequence from each of the 2085 Rfam families with at least two members was selected as queries while the rest was used as the database. The ability of VSEARCH and USEARCH to identify another member of the same family as the top hit was measured. Recall and precision was calculated. When USEARCH was run without the `--fulldp` option, VSEARCH had much better recall than USEARCH, but the precision was lower. The [F<sub>1</sub>-score](http://en.wikipedia.org/wiki/F1_score) was considerably higher for VSEARCH. When USEARCH was run with `--fulldp`, VSEARCH had slightly better recall, precision and F-score than USEARCH.
 The recall of VSEARCH was usually about 92.3-93.5% and the precision was usually 93.0-94.1%. When run without the `--fulldp` option the recall of USEARCH was usually about 83.0-85.3% while precision was 98.5-99.0%. When run with the `--fulldp` option the recall of USEARCH was usually about 92.0-92.8% and the precision was about 92.2-93.0%.
 Please see the files in the `eval` folder for the scripts used for this assessment.
 
 **Speed:** The speed of VSEARCH appears about equal to USEARCH when USEARCH is run without the `--fulldp` option. When USEARCH is run with the `--fulldp` option, VSEARCH may be considerable faster, but it depends on the options and sequences used.
-For the accuracy assessment searches in Rfam 11.0, VSEARCH took 71 seconds for 100 replicates of the same query sequences, whereas USEARCH without the `--fulldp` option needed 63 seconds and USEARCH with `--fulldp` needed 70 seconds. This includes time for loading and indexing the database (about 3 secs for VSEARCH, 6 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
+For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the query sequences, VSEARCH needed 57 seconds, whereas USEARCH needed 60 seconds without the `--fulldp` option and 70 seconds with `--fulldp`. This includes time for loading, masking and indexing the database (about 2 secs for VSEARCH, 5 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
 **Command line options:** The options currently supported by VSEARCH is indicated below. Please run VSEARCH with the `--help` option to see more information about the options.
+
+**Masking:** VSEARCH by default uses an optimzed reimplementation of the well-known DUST algorithm by Tatusov and Lipman to mask simple repeats and low-complexity regions in the sequences. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. A positive integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 Another extension implemented is that dereplication will honor the `--sizein` option and add together the abundances of the sequences that are merged.
@@ -65,12 +67,14 @@ Search options:
 * `--alnout <filename>`
 * `--blast6out <filename>`
 * `--db <filename>` (Required)
+* `--dbmask dust|none|soft` (Default dust)
 * `--dbmatched <filename>`
 * `--dbnotmatched <filename>`
 * `--fastapairs <filename>`
 * `--fulldp` (VSEARCH always computes full dynamic programming alignments)
 * `--gapext <string>` (Default 2I/1E)
 * `--gapopen <string>` (Default 20I/2E)
+* `--hardmask`
 * `--id <real>` (Required)
 * `--idprefix <int>`
 * `--idsuffix <int>`
@@ -97,6 +101,7 @@ Search options:
 * `--mismatch <int>` (Default -4)
 * `--notmatched <filename>`
 * `--output_no_hits`
+* `--qmask dust|none|soft` (Default dust)
 * `--query_cov <real>`
 * `--rightjust`
 * `--rowlen <int>` (Default 64)
@@ -109,9 +114,10 @@ Search options:
 * `--weak_id <real>`
 * `--wordlength <int>` (Default 8)
 
-Dereplication, sorting and shuffling options:
+Dereplication, masking, shuffling and sorting options:
 
 * `--derep_fulllength <filename>`
+* `--mask <filename>`
 * `--shuffle <filename>`
 * `--sortbylength <filename>`
 * `--sortbysize <filename>`
@@ -130,15 +136,16 @@ Dereplication, sorting and shuffling options:
 ## Main limitations
 
 * **Commands:** No clustering or chimera checking, yet.
-* **Masking:** Currently, VSEARCH does not mask the sequences while USEARCH performs masking by default.
 * **Indexing options:** Only continuous seeds are supported.
 
 
-## License
+## VSEARCH license and third party licenses
 
 The code is currently licensed under the GNU Affero General Public License version 3.
 
 VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
+
+VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in the public domain.
 
 VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler.
 
@@ -155,6 +162,7 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **dbindex.cc** - Indexes the database by identifying unique kmers in the sequences and make a database hash table
 * **derep.cc** - Code for dereplication
 * **maps.cc** - Various character mapping arrays
+* **mask.cc** - Masking (DUST)
 * **nw.cc** - New Needleman-Wunsch global alignment, serial. Only for testing.
 * **query.cc** - reads the fasta file containing the query sequences.
 * **results.cc** - Output results in various formats (alnout, userout, blast6, uc)
@@ -182,7 +190,6 @@ VSEARCH has not been tested comprehensively yet. All bug reports are highly appr
 Some issues to work on:
 
 * testing and debugging
-* masking
 * clustering
 * chimera filtering
 

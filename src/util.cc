@@ -115,49 +115,6 @@ char * xstrchrnul(char *s, int c)
     return (char *)s + strlen(s);
 }
 
-unsigned long hash_fnv_1a_64(char * s, unsigned long n)
-{
-  /*
-    This is the Fowler Noll Vo (FNV) hash function,
-    version 1a (FNV-1a), 64 bit
-    https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function
-    It is in the public domain.
-  */
-
-  const unsigned long fnv_offset = 14695981039346656037UL;
-  const unsigned long fnv_prime = 1099511628211;
-
-  unsigned long hash = fnv_offset;
-
-  for(unsigned long i = 0; i < n; i++)
-    {
-      unsigned char c = (unsigned char) *s++;
-      hash = (hash ^ c) * fnv_prime;
-    }
-
-  return hash;
-}
-
-unsigned long hash_fnv_1a_64_uc(char * s, unsigned long n)
-{
-  /*
-    compute hash of upper case string
-  */
-
-  const unsigned long fnv_offset = 14695981039346656037UL;
-  const unsigned long fnv_prime = 1099511628211;
-
-  unsigned long hash = fnv_offset;
-
-  for(unsigned long i = 0; i < n; i++)
-    {
-      unsigned char c = toupper(*s++);
-      hash = (hash ^ c) * fnv_prime;
-    }
-
-  return hash;
-}
-
 unsigned long hash_cityhash64(char * s, unsigned long n)
 {
   return CityHash64((const char*)s, n);

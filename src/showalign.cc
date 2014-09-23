@@ -83,16 +83,16 @@ inline void putop(char c, long len)
           ds = d_seq[d_pos];
 	  q_pos += delta;
 	  d_pos += 1;
-          q_line[line_pos] = toupper(qs);
+          q_line[line_pos] = qs;
           a_line[line_pos] = nt_identical(qs, ds) ? '|' : ' ';
-          d_line[line_pos] = toupper(ds);
+          d_line[line_pos] = ds;
           line_pos++;
           break;
 
         case 'D':
           qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
 	  q_pos += delta;
-          q_line[line_pos] = toupper(qs);
+          q_line[line_pos] = qs;
           a_line[line_pos] = ' ';
           d_line[line_pos] = '-';
           line_pos++;
@@ -103,7 +103,7 @@ inline void putop(char c, long len)
 	  d_pos += 1;
           q_line[line_pos] = '-';
           a_line[line_pos] = ' ';
-          d_line[line_pos] = toupper(ds);
+          d_line[line_pos] = ds;
           line_pos++;
           break;
         }
@@ -227,9 +227,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
 	  ((op == 'D') && (origin == 0)) ||
 	  ((op == 'I') && (origin == 1)))
 	{
-	  /* copy len chars from seq */
-	  for(long i=0; i < len; i++)
-	    *r++ = toupper(*s++);
+	  strncpy(r, s, len);
 	}
       else
 	{

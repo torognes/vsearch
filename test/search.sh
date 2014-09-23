@@ -1,26 +1,28 @@
 #!/bin/sh
 
+P=$1
+
 Q=../data/Rfam_9_1.fasta
 DB=../data/Rfam_9_1.fasta
 T=0
 ID=0.5
 MR=32
 
-/usr/bin/time ../src/vsearch \
-    --usearch_global $Q \
-    --db $DB \
-    --threads $T \
-    --strand plus \
-    --id $ID \
-    --match 2 \
-    --mismatch -4 \
-    --gapopen 20I/2E \
-    --gapext 2I/1E \
-    --maxaccepts 1 \
-    --maxrejects $MR \
-    --alnout alnout.v.txt
+USEARCH=$(which usearch)
+VSEARCH=../src/vsearch
 
-/usr/bin/time usearch \
+if [ "$P" == "u" ]; then
+    PROG=$USEARCH
+else
+    if [ "$P" == "v" ]; then
+        PROG=$VSEARCH
+    else
+        echo You must specify u or v as first argument
+        exit
+    fi
+fi
+
+/usr/bin/time $PROG \
     --usearch_global $Q \
     --db $DB \
     --threads $T \
@@ -32,4 +34,4 @@ MR=32
     --gapext 2I/1E \
     --maxaccepts 1 \
     --maxrejects $MR \
-    --alnout alnout.u.txt
+    --alnout alnout.$P.txt

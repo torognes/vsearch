@@ -45,7 +45,7 @@ static char bz_buffer[LINEALLOC];
 static long bz_buffer_len = 0;
 #endif
 
-void db_read(const char * filename)
+void db_read(const char * filename, int upcase)
 {
   if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
     fatal("Regular expression compilation failed");
@@ -266,6 +266,8 @@ void db_read(const char * filename)
 		      dataalloc += MEMCHUNK;
 		      datap = (char *) xrealloc(datap, dataalloc);
 		    }
+		  if (upcase)
+		    c &= 0xdf;
 		  *(datap+datalen) = c;
 		  datalen++;
 		  break;
@@ -476,6 +478,8 @@ void db_read(const char * filename)
 
   progress_done();
   regfree(&db_regexp);
+
+  show_rusage();
 }
 
 unsigned long db_getsequencecount()

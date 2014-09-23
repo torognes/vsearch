@@ -55,7 +55,7 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.12"
+#define PROG_VERSION "v0.0.13"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -82,6 +82,10 @@
 #define FORMAT_BZIP  2
 #define FORMAT_GZIP  3
 
+#define MASK_ERROR -1
+#define MASK_NONE 0
+#define MASK_DUST 1
+#define MASK_SOFT 2
 
 /* structures and data types */
 
@@ -163,6 +167,11 @@ extern char * opt_derep_fulllength;
 extern char * opt_sortbysize;
 extern char * opt_sortbylength;
 extern char * opt_shuffle;
+extern char * opt_mask;
+
+extern long opt_hardmask;
+extern long opt_qmask;
+extern long opt_dbmask;
 
 extern char * alnoutfilename;
 extern char * useroutfilename;
@@ -319,6 +328,7 @@ unsigned long arch_get_memused();
 unsigned long arch_get_memtotal();
 void arch_srandom_init();
 
+
 /* functions in util.cc */
 
 long gcd(long a, long b);
@@ -327,8 +337,6 @@ void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 char * xstrchrnul(char *s, int c);
-unsigned long hash_fnv_1a_64(char * s, unsigned long n);
-unsigned long hash_fnv_1a_64_uc(char * s, unsigned long n);
 unsigned long hash_cityhash64(char * s, unsigned long n);
 long getusec(void);
 void show_rusage();
@@ -343,20 +351,14 @@ void progress_update(unsigned long progress);
 void progress_done();
 
 int detect_compress_format (const char * filename);
+
 #ifdef HAVE_BZLIB
 char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
                  int * bz_error_ptr, char * buf_internal, long * buf_internal_len);
 #endif
 
-/* functions in db.cc */
 
-inline void db_getsequenceandlength(unsigned long seqno,
-				    char ** address,
-				    long * length)
-{
-  *address = seqindex[seqno].seq;
-  *length = (long)(seqindex[seqno].seqlen);
-}
+/* functions in db.cc */
 
 inline char * db_getheader(unsigned long seqno)
 {
@@ -383,7 +385,7 @@ inline unsigned long db_getheaderlen(unsigned long seqno)
   return seqindex[seqno].headerlen;
 }
 
-void db_read(const char * filename);
+void db_read(const char * filename, int upcase);
 void db_free();
 
 unsigned long db_getsequencecount();
@@ -399,23 +401,13 @@ void query_open(const char * filename);
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
-		  long * qsize);
+		  long * qsize, int upcase);
 
 void query_close();
 
 long query_getfilesize();
 
 long query_getfilepos();
-
-
-/* functions in bzquery.cc */
-
-void query_bz_open(const char * filename);
-
-int query_bz_getnext(char ** header, long * header_length,
-                  char ** seq, long * seq_length, long * query_no);
-
-void query_bz_close();
 
 
 /* functions in nw.cc */
@@ -577,3 +569,12 @@ void derep_fulllength();
 /* functions in shuffle.cc */
 
 void shuffle();
+
+
+/* functions in mask.cc */
+
+void mask();
+void dust(char * m, int len);
+void hardmask(char * m, int len);
+void dust_all();
+void hardmask_all();

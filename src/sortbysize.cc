@@ -53,7 +53,7 @@ void sortbysize()
   if (!fp_output)
     fatal("Unable to open sortbysize output file for writing");
 
-  db_read(opt_sortbysize);
+  db_read(opt_sortbysize, 0);
 
   show_rusage();
 

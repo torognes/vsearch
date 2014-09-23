@@ -37,6 +37,10 @@ char * opt_notmatched;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
 
+long opt_hardmask;
+long opt_qmask;
+long opt_dbmask;
+
 long opt_threads;
 long opt_fulldp;
 long wordlength;
@@ -94,6 +98,7 @@ long opt_maxhits;
 long opt_top_hits_only;
 long opt_fasta_width;
 char * opt_shuffle;
+char * opt_mask;
 long opt_seed;
 
 int opt_gap_open_query_left;
@@ -124,6 +129,7 @@ long avx2_present = 0;
 
 static char progheader[80];
 static char * cmdline;
+
 
 #define cpuid(f,a,b,c,d)                                                \
   __asm__ __volatile__ ("cpuid":                                        \
@@ -358,6 +364,10 @@ void args_init(int argc, char **argv)
 
   progname = argv[0];
 
+  opt_hardmask = 0;
+  opt_qmask = MASK_DUST;
+  opt_dbmask = MASK_DUST;
+
   databasefilename = 0;
   alnoutfilename = 0;
   useroutfilename = 0;
@@ -520,13 +530,18 @@ void args_init(int argc, char **argv)
     {"mid",                   required_argument, 0, 0 },
     {"shuffle",               required_argument, 0, 0 },
     {"seed",                  required_argument, 0, 0 },
+    {"mask",                  required_argument, 0, 0 },
+    {"hardmask",              no_argument,       0, 0 },
+    {"qmask",                 required_argument, 0, 0 },
+    {"dbmask",                required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
   int option_index = 0;
   int c;
   
-  while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
+  while ((c = getopt_long_only(argc, argv, "", long_options, 
+			       &option_index)) == 0)
   {
     switch(option_index)
     {
@@ -886,6 +901,40 @@ void args_init(int argc, char **argv)
       opt_seed = args_getlong(optarg);
       break;
 
+    case 70:
+      /* mask */
+      opt_mask = optarg;
+      break;
+
+    case 71:
+      /* hardmask */
+      opt_hardmask = 1;
+      break;
+
+    case 72:
+      /* qmask */
+      if (strcasecmp(optarg, "none") == 0)
+        opt_qmask = MASK_NONE;
+      else if (strcasecmp(optarg, "dust") == 0)
+        opt_qmask = MASK_DUST;
+      else if (strcasecmp(optarg, "soft") == 0)
+        opt_qmask = MASK_SOFT;
+      else
+        opt_qmask = MASK_ERROR;
+      break;
+
+    case 73:
+      /* dbmask */
+      if (strcasecmp(optarg, "none") == 0)
+        opt_dbmask = MASK_NONE;
+      else if (strcasecmp(optarg, "dust") == 0)
+        opt_dbmask = MASK_DUST;
+      else if (strcasecmp(optarg, "soft") == 0)
+        opt_dbmask = MASK_SOFT;
+      else
+        opt_dbmask = MASK_ERROR;
+      break;
+
     default:
       fatal("Internal error in option parsing");
     }
@@ -908,6 +957,8 @@ void args_init(int argc, char **argv)
   if (opt_version)
     commands++;
   if (opt_shuffle)
+    commands++;
+  if (opt_mask)
     commands++;
 
   if (commands == 0)
@@ -945,6 +996,12 @@ void args_init(int argc, char **argv)
 
   if (opt_strand < 1)
     fatal("The argument to --strand must be plus or both");
+  
+  if (opt_qmask == MASK_ERROR)
+    fatal("The argument to --qmask must be none, dust or soft");
+  
+  if (opt_dbmask == MASK_ERROR)
+    fatal("The argument to --dbmask must be none, dust or soft");
   
   /* TODO: check valid range of gap penalties */
 
@@ -1017,12 +1074,14 @@ void cmd_help()
 	  "  --alnout FILENAME           filename for human-readable alignment output\n"
 	  "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
 	  "  --db FILENAME               filename for FASTA formatted database for search\n"
+	  "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
 	  "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
 	  "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
 	  "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
 	  "  --fulldp                    full dynamic programming alignment for all hits\n"
 	  "  --gapext STRING             penalties for gap extension (2I/1E)\n"
 	  "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
+	  "  --hardmask                  mask by replacing with N instead of lower case\n"
 	  "  --id REAL                   reject if identity lower\n"
 	  "  --idprefix INT              reject if first n nucleotides do not match\n"
 	  "  --idsuffix INT              reject if last n nucleotides do not match\n"
@@ -1049,6 +1108,7 @@ void cmd_help()
 	  "  --mismatch INT              score for mismatch (-4)\n"
 	  "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
 	  "  --output_no_hits            output non-matching queries to output files\n"
+	  "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
 	  "  --query_cov REAL            reject if fraction of query aligned lower\n"
 	  "  --rightjust                 reject if terminal gaps at alignment right end\n"
 	  "  --rowlen INT                width of alignment lines in alnout output (64)\n"
@@ -1061,8 +1121,9 @@ void cmd_help()
 	  "  --weak_id REAL              show hits with at least this id; continue search\n"
 	  "  --wordlength INT            length of words (kmers) for database index (8)\n"
 	  "\n"
-	  "Dereplication, sorting and shuffling options\n"
+	  "Dereplication, masking, shuffling and sorting options\n"
 	  "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+	  "  --mask FILENAME             mask sequences in the given FASTA file\n"
 	  "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
 	  "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
 	  "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
@@ -1124,9 +1185,17 @@ void cmd_derep_fulllength()
 void cmd_shuffle()
 {
   if (!opt_output)
-    fatal("Output file for randomization must be specified with --output");
+    fatal("Output file for shuffling must be specified with --output");
   
   shuffle();
+}
+
+void cmd_mask()
+{
+  if (!opt_output)
+    fatal("Output file for masking must be specified with --output");
+  
+  mask();
 }
 
 void fillheader()
@@ -1196,6 +1265,10 @@ int main(int argc, char** argv)
   else if (opt_shuffle)
     {
       cmd_shuffle();
+    }
+  else if (opt_mask)
+    {
+      cmd_mask();
     }
 
   free(cmdline);

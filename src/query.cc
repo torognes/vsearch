@@ -211,7 +211,7 @@ void query_close()
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
-		  long * qsize)
+		  long * qsize, int upcase)
 {
   while (query_line[0])
     {
@@ -281,6 +281,8 @@ int query_getnext(char ** head, long * head_len,
 		      query_seq_alloc += MEMCHUNK;
 		      query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
 		    }
+		  if (upcase)
+		    c &= 0xdf;
 		  *(query_seq + query_seq_len) = c;
 		  query_seq_len++;
 
