@@ -23,7 +23,6 @@
 
 //#define BITMAP
 
-//#define HASH hash_fnv_1a_64_uc
 #define HASH hash_cityhash64
 
 struct bucket
@@ -68,13 +67,13 @@ int derep_compare(const void * a, const void * b)
       return 0;
 }
 
-void string_locase(char * locase, char * s, unsigned long len)
+void string_upcase(char * upcase, char * s, unsigned long len)
 {
-  /* convert string to lower case, given all chars are in A-Za-z */
+  /* convert string to upper case, given all chars are in A-Za-z */
   char * p = s;
-  char * q = locase;
+  char * q = upcase;
   for(unsigned long i=0; i<len; i++)
-    *q++ = *p++ | 0x20;
+    *q++ = *p++ & 0xdf;
 }
 
 void derep_fulllength()
@@ -96,7 +95,7 @@ void derep_fulllength()
 	fatal("Unable to open output (uc) file for writing");
     }
 
-  db_read(opt_derep_fulllength);
+  db_read(opt_derep_fulllength, 0);
 
   show_rusage();
 
@@ -134,8 +133,8 @@ void derep_fulllength()
   long * nextseqtab = (long*) xmalloc(sizeof(long) * dbsequencecount);
   memset(nextseqtab, 0, sizeof(long) * dbsequencecount);
 
-  char * seq_lo = (char*) xmalloc(db_getlongestsequence() + 1);
-  char * rc_seq_lo = (char*) xmalloc(db_getlongestsequence() + 1);
+  char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
+  char * rc_seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
   
   progress_init("Dereplicating", dbsequencecount);
   for(long i=0; i<dbsequencecount; i++)
@@ -143,12 +142,12 @@ void derep_fulllength()
       unsigned long seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
 
-      /* lower case sequence */
-      string_locase(seq_lo, seq, seqlen);
+      /* upper case sequence */
+      string_upcase(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
       if (opt_strand > 1)
-	reverse_complement(rc_seq_lo, seq_lo, seqlen);
+	reverse_complement(rc_seq_up, seq_up, seqlen);
 
       /*
 	Find free bucket or bucket for identical sequence.
@@ -158,7 +157,7 @@ void derep_fulllength()
 	collision when the number of sequences is about 5e9.
       */
 
-      unsigned long hash = HASH(seq_lo, seqlen);
+      unsigned long hash = HASH(seq_up, seqlen);
       unsigned long j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
       
@@ -171,7 +170,7 @@ void derep_fulllength()
 	     &&
 	     ((bp->hash != hash) ||
 	      (seqlen != db_getsequencelen(bp->seqno_first)) ||
-	      (strncasecmp(seq_lo, db_getsequence(bp->seqno_first), seqlen))))
+	      (strncasecmp(seq_up, db_getsequence(bp->seqno_first), seqlen))))
 	{
 	  bp++;
 	  j++;
@@ -187,7 +186,7 @@ void derep_fulllength()
 	  /* no match on plus strand */
 	  /* check minus strand as well */
 
-	  unsigned long rc_hash = HASH(rc_seq_lo, seqlen);
+	  unsigned long rc_hash = HASH(rc_seq_up, seqlen);
 	  struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
 	  unsigned long k = rc_hash & hash_mask;
 	  
@@ -200,7 +199,7 @@ void derep_fulllength()
 		 &&
 		 ((rc_bp->hash != rc_hash) ||
 		  (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
-		  (strncasecmp(rc_seq_lo,
+		  (strncasecmp(rc_seq_up,
 			       db_getsequence(rc_bp->seqno_first), 
 			       seqlen))))
 	    {
@@ -252,8 +251,8 @@ void derep_fulllength()
     }
   progress_done();
 
-  free(seq_lo);
-  free(rc_seq_lo);
+  free(seq_up);
+  free(rc_seq_up);
   
   show_rusage();
 

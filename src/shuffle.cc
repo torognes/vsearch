@@ -47,7 +47,7 @@ void shuffle()
   if (!fp_output)
     fatal("Unable to open shuffle output file for writing");
 
-  db_read(opt_shuffle);
+  db_read(opt_shuffle, 0);
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();

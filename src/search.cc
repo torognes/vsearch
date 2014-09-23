@@ -122,10 +122,11 @@ void topscore_insert(int i, struct searchinfo_s * si)
   unsigned int count = si->hitcount[i];
   
   /* ignore sequences with very few kmer matches */
-  if ((!opt_fulldp) &&
-      (count < 
-       MAX(MINMATCHSAMPLECOUNT, MINMATCHSAMPLEFREQ * si->kmersamplecount)))
+  if (count < MINMATCHSAMPLECOUNT)
     return;
+  if (count < MINMATCHSAMPLEFREQ * si->kmersamplecount)
+    return;
+
 
   unsigned long seqlen = db_getsequencelen(i);
   
@@ -592,9 +593,10 @@ void search_thread_run(struct searchinfo_s * si)
       char * qseq;
 
       int r = query_getnext(& qhead, & si->query_head_len,
-			     & qseq, & si->qseqlen,
-			     & si->query_no, & si->qsize);
-
+			    & qseq, & si->qseqlen,
+			    & si->query_no, & si->qsize,
+			    opt_qmask != MASK_SOFT);
+      
       if (!r)
 	{
 	  pthread_mutex_unlock(&mutex_input);
@@ -623,6 +625,16 @@ void search_thread_run(struct searchinfo_s * si)
     
       /* let other threads read input */
       pthread_mutex_unlock(&mutex_input);
+
+      /* mask query */
+      if (opt_qmask == MASK_DUST)
+	{
+	  dust(si->qsequence, si->qseqlen);
+	}
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+	{
+	  hardmask(si->qsequence, si->qseqlen);
+	}
 
       /* compute reverse complement query sequence */
       if (opt_strand > 1)
@@ -916,7 +928,14 @@ void search(char * cmdline, char * progheader)
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  db_read(databasefilename);
+  db_read(databasefilename, opt_dbmask != MASK_SOFT);
+
+  if (opt_dbmask == MASK_DUST)
+    dust_all();
+  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+    hardmask_all();
+
+  show_rusage();
 
   dbindex_build();
 
@@ -939,6 +958,8 @@ void search(char * cmdline, char * progheader)
     for(int j=0; j<16; j++)
       if (i==j)
         scorematrix[i][j] = match_score;
+      else if ((i>3) || (j>3))
+        scorematrix[i][j] = 0;
       else
         scorematrix[i][j] = mismatch_score;
   

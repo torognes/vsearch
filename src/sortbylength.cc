@@ -53,7 +53,7 @@ void sortbylength()
   if (!fp_output)
     fatal("Unable to open sortbylength output file for writing");
 
-  db_read(opt_sortbylength);
+  db_read(opt_sortbylength, 0);
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();

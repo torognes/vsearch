@@ -918,7 +918,10 @@ void search16(s16info_s * s,
 	      {
 		seq_id[c] = next_id;
 		seqno = seqnos[next_id];
-		db_getsequenceandlength(seqno, & address, & length);
+
+		address = db_getsequence(seqno);
+		length = db_getsequencelen(seqno);
+
 		next_id++;
 	      }
 

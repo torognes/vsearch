@@ -4,7 +4,7 @@ P=$1
 
 SEED=1
 THREADS=0
-DUPLICATES=10
+DUPLICATES=100
 DIR=.
 DB=../data/Rfam_11_0.fasta
 
