@@ -88,7 +88,7 @@ Search options:
 * `--maxid <real>`
 * `--maxqsize <int>`
 * `--maxqt <real>`
-* `--maxrejects <int>` (Default 16)
+* `--maxrejects <int>` (Default 32)
 * `--maxsizeratio <real>`
 * `--maxsl <real>`
 * `--maxsubs <int>`
