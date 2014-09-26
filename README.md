@@ -14,7 +14,7 @@ Searches have been parallelized using threads and SIMD. VSEARCH includes a SIMD 
 
 In the example below, VSEARCH will identify sequences in database.fsa at least 90% identical on the plus strand to the query sequences in queries.fsa and write the results to alnout.txt.
 
-`./vsearch-0.0.12-linux-x86_64 --usearch_global queries.fsa --db database.fsa --strand plus --id 0.9 --alnout alnout.txt`
+`./vsearch-0.0.14-linux-x86_64 --usearch_global queries.fsa --db database.fsa --strand plus --id 0.9 --alnout alnout.txt`
 
 
 ## Implementation details
@@ -163,6 +163,7 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 * **derep.cc** - Code for dereplication
 * **maps.cc** - Various character mapping arrays
 * **mask.cc** - Masking (DUST)
+* **minheap.cc** - A minheap implementation for the list of top kmer matches
 * **nw.cc** - New Needleman-Wunsch global alignment, serial. Only for testing.
 * **query.cc** - reads the fasta file containing the query sequences.
 * **results.cc** - Output results in various formats (alnout, userout, blast6, uc)

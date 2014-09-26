@@ -35,7 +35,8 @@ DEPS=vsearch.h Makefile cityhash/city.h cityhash/config.h
 
 OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
 	unique.o userfields.o results.o sortbysize.o derep.o maps.o \
-	arch.o sortbylength.o shuffle.o searchsimd.o mask.o cityhash/city.o
+	arch.o sortbylength.o shuffle.o searchsimd.o mask.o minheap.o \
+	cityhash/city.o
 
 .SUFFIXES:.o .cc
 

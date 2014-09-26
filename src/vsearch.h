@@ -55,7 +55,7 @@
 /* constants */
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.13"
+#define PROG_VERSION "v0.0.14"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -578,3 +578,38 @@ void dust(char * m, int len);
 void hardmask(char * m, int len);
 void dust_all();
 void hardmask_all();
+
+
+/* minheap.cc */
+
+typedef struct topscore
+{
+  unsigned int count;
+  unsigned int seqno;
+  unsigned int length;
+} elem_t;
+
+
+typedef struct minheap_s
+{
+  int alloc;
+  int count;
+  elem_t * array;
+} minheap_t;
+
+inline int minheap_isempty(minheap_t * m)
+{
+  return !m->count;
+}
+
+inline void minheap_empty(minheap_t * m)
+{
+  m->count = 0;
+}
+
+elem_t minheap_poplast(minheap_t * m);
+void minheap_sort(minheap_t * m);
+minheap_t * minheap_init(int size);
+void minheap_exit(minheap_t * m);
+void minheap_add(minheap_t * m, elem_t * n);
+elem_t minheap_pop(minheap_t * m);
