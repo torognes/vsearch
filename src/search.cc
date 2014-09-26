@@ -26,13 +26,6 @@
 
 //#define COMPARENONVECTORIZED
 
-struct topscore
-{
-  unsigned int count;
-  unsigned int seqno;
-  unsigned int length;
-};
-     
 /* per thread data */
 static struct searchinfo_s
 {
@@ -53,7 +46,6 @@ static struct searchinfo_s
   unsigned int * targetlist;    /* list of db seqs with >0 kmer match */
   unsigned int * hitcount;      /* list of kmer counts for each db seq */
   int topcount;                 /* number of db seqs with kmer matches kept */
-  struct topscore * topscores;  /* list of db seqs with most kmer matches*/
   struct nwinfo_s * nw;         /* NW aligner instance */
   struct hit * hits;            /* list of hits */
   int hit_count;                /* number of hits in the above list */
@@ -64,6 +56,7 @@ static struct searchinfo_s
   int candidatecount;
   int candidate_target[8];
   int candidate_kmercount[8];
+  minheap_t * m;
 } * sia;
 
 /* global constants/data, no need for synchronization */
@@ -127,39 +120,12 @@ void topscore_insert(int i, struct searchinfo_s * si)
   if (count < MINMATCHSAMPLEFREQ * si->kmersamplecount)
     return;
 
+  elem_t novel;
+  novel.seqno = i;
+  novel.count = count;
+  novel.length = db_getsequencelen(i);
 
-  unsigned long seqlen = db_getsequencelen(i);
-  
-  /* find insertion point */
-  int p = si->topcount;
-  while ((p > 0) &&
-	 ((count > si->topscores[p-1].count) ||
-	  ((count == si->topscores[p-1].count) &&
-	   (seqlen < si->topscores[p-1].length))))
-    p--;
-  
-  /* p = index in array where new data should be placed */
-  if (p < tophits)
-    {
-      /* find new bottom of list */
-      int j = si->topcount;
-      if (si->topcount < tophits)
-	si->topcount++;
-      else
-	j--;
-
-      /* shift lower counts down */
-      while(j>p)
-	{
-	  si->topscores[j] = si->topscores[j-1];
-	  j--;
-	}
-      
-      /* insert or overwrite */
-      si->topscores[p].count = count;
-      si->topscores[p].seqno = i;
-      si->topscores[p].length = seqlen;
-    }
+  minheap_add(si->m, & novel);
 }
 
 
@@ -190,6 +156,8 @@ void search_topscores(struct searchinfo_s * si)
   printf("Total hits: %u SeqCount: %u Hits/Target: %.2f\n", 
          totalhits, seqcount, hitspertarget);
 #endif
+
+  minheap_empty(si->m);
 
   si->topcount = 0;
   if (hitspertarget > 0.3)
@@ -501,13 +469,17 @@ int search_onequery(struct searchinfo_s * si)
 
       si->candidatecount = 0;
 
+      minheap_sort(si->m);
+
       for(int t = 0;
 	  (si->accepts < maxaccepts) && 
 	    (si->rejects <= maxrejects) &&
-	    (t < si->topcount);
+	    (!minheap_isempty(si->m));
 	  t++)
 	{
-	  unsigned int target = si->topscores[t].seqno;
+	  elem_t e = minheap_poplast(si->m);
+	  unsigned int target = e.seqno;
+	  unsigned int count = e.count;
 	  char * dlabel = db_getheader(target);
 	  char * dseq = db_getsequence(target);
 	  long dseqlen = db_getsequencelen(target);
@@ -558,7 +530,7 @@ int search_onequery(struct searchinfo_s * si)
 	  else
 	    {
 	      si->candidate_target[si->candidatecount] = target;
-	      si->candidate_kmercount[si->candidatecount] = si->topscores[t].count;
+	      si->candidate_kmercount[si->candidatecount] = count;
 	      si->candidatecount++;
 	      if (si->candidatecount == 8)
 		{
@@ -754,8 +726,7 @@ void search_thread_init(struct searchinfo_s * si)
   si->uh = unique_init();
   si->hitcount = (unsigned int *) xmalloc
     (seqcount * sizeof(unsigned int));
-  si->topscores = (struct topscore *) xmalloc
-    (sizeof(struct topscore) * tophits);
+  si->m = minheap_init(tophits);
   si->targetlist = (unsigned int*) xmalloc
     (sizeof(unsigned int)*seqcount);
   si->hits = (struct hit *) xmalloc
@@ -798,7 +769,7 @@ void search_thread_exit(struct searchinfo_s * si)
   unique_exit(si->uh);
   free(si->targetlist);
   free(si->hits);
-  free(si->topscores);
+  minheap_exit(si->m);
   free(si->hitcount);
   if (si->query_head)
     free(si->query_head);
