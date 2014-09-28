@@ -67,7 +67,7 @@ void dbindex_build()
       unsigned int * uniquelist;
       unique_count(uh, k, seqlen, sequence, & uniquecount, & uniquelist);
       for(unsigned int i=0; i<uniquecount; i++)
-	kmercount[uniquelist[i]]++;
+        kmercount[uniquelist[i]]++;
       progress_update(seqno);
     }
   progress_done();
@@ -102,7 +102,7 @@ void dbindex_build()
       unsigned int * uniquelist;
       unique_count(uh, k, seqlen, sequence, & uniquecount, & uniquelist);
       for(unsigned int i=0; i<uniquecount; i++)
-	kmerindex[kmerhash[uniquelist[i]]++] = seqno;
+        kmerindex[kmerhash[uniquelist[i]]++] = seqno;
       progress_update(seqno);
     }
   progress_done();

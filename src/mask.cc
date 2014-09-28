@@ -56,22 +56,22 @@ int wo(int len, const char *s, int *beg, int *end)
       
       for (int j = dust_word-1; j<len-i; j++)
         {
-	  word = words[i+j];
-	  int c = counts[word];
-	  if (c)
-	    {
-	      sum += c;
-	      int v = 10 * sum / j;
+          word = words[i+j];
+          int c = counts[word];
+          if (c)
+            {
+              sum += c;
+              int v = 10 * sum / j;
               
-	      if (v > bestv)
-		{
-		  bestv = v;
-		  besti = i;
-		  bestj = j;
-		}
-	    }
-	  counts[word]++;
-	}
+              if (v > bestv)
+                {
+                  bestv = v;
+                  besti = i;
+                  bestj = j;
+                }
+            }
+          counts[word]++;
+        }
     }
   
   *beg = besti;
@@ -95,15 +95,15 @@ void dust(char * m, int len)
       
       if (v > dust_level)
         {
-	  if (opt_hardmask)
-	    for(int j=a+i; j<=b+i; j++)
-	      m[j] = 'N';
-	  else
-	    for(int j=a+i; j<=b+i; j++)
-	      m[j] = s[j] | 0x20;
-	  
+          if (opt_hardmask)
+            for(int j=a+i; j<=b+i; j++)
+              m[j] = 'N';
+          else
+            for(int j=a+i; j<=b+i; j++)
+              m[j] = s[j] | 0x20;
+          
           if (b < dust_window2)
-	    i += dust_window2 - b;
+            i += dust_window2 - b;
         }
     }
 }
@@ -121,17 +121,17 @@ void * dust_all_worker(void * vp)
       pthread_mutex_lock(&mutex);
       int seqno = nextseq;
       if (seqno < seqcount)
-	{
-	  nextseq++;
-	  progress_update(seqno);
-	  pthread_mutex_unlock(&mutex);
-	  dust(db_getsequence(seqno), db_getsequencelen(seqno));
-	}
+        {
+          nextseq++;
+          progress_update(seqno);
+          pthread_mutex_unlock(&mutex);
+          dust(db_getsequence(seqno), db_getsequencelen(seqno));
+        }
       else
-	{
-	  pthread_mutex_unlock(&mutex);
-	  break;
-	}
+        {
+          pthread_mutex_unlock(&mutex);
+          break;
+        }
     }
   return 0;
 }

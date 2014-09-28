@@ -211,7 +211,7 @@ void query_close()
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
-		  long * qsize, int upcase)
+                  long * qsize, int upcase)
 {
   while (query_line[0])
     {
@@ -237,15 +237,15 @@ int query_getnext(char ** head, long * head_len,
       regmatch_t pmatch[4];
 
       if (!regexec(&q_regexp, query_head, 4, pmatch, 0))
-	{
-	  unsigned long size = atol(query_head + pmatch[2].rm_so);
-	  if (size > 0)
-	    * qsize = size;
-	  else
-	    fatal("Size annotation zero in query sequence");
-	}
+        {
+          unsigned long size = atol(query_head + pmatch[2].rm_so);
+          if (size > 0)
+            * qsize = size;
+          else
+            fatal("Size annotation zero in query sequence");
+        }
       else
-	*qsize = 1;
+        *qsize = 1;
 
       /* get next line */
 
@@ -264,9 +264,9 @@ int query_getnext(char ** head, long * head_len,
           char * p = query_line;
 
           while((c = *p++))
-	    {
-	      m = chrstatus[(int)c];
-	      switch(m)
+            {
+              m = chrstatus[(int)c];
+              switch(m)
                 {
                 case 0:
                   /* character to be stripped */
@@ -276,47 +276,47 @@ int query_getnext(char ** head, long * head_len,
 
                 case 1:
                   /* legal character */
-		  if (query_seq_len + 1 > query_seq_alloc)
-		    {
-		      query_seq_alloc += MEMCHUNK;
-		      query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
-		    }
-		  if (upcase)
-		    c &= 0xdf;
-		  *(query_seq + query_seq_len) = c;
-		  query_seq_len++;
+                  if (query_seq_len + 1 > query_seq_alloc)
+                    {
+                      query_seq_alloc += MEMCHUNK;
+                      query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
+                    }
+                  if (upcase)
+                    c &= 0xdf;
+                  *(query_seq + query_seq_len) = c;
+                  query_seq_len++;
 
                   break;
 
-		case 2:
-		  /* fatal character */
-		  char msg[200];
-		  if (c>=32)
-		    snprintf(msg, 200, "illegal character '%c' on line %ld in the query file", c, query_lineno);
-		  else
-		    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the query file", c, query_lineno);
-		  fatal(msg);
-		  break;
+                case 2:
+                  /* fatal character */
+                  char msg[200];
+                  if (c>=32)
+                    snprintf(msg, 200, "illegal character '%c' on line %ld in the query file", c, query_lineno);
+                  else
+                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the query file", c, query_lineno);
+                  fatal(msg);
+                  break;
 
-		case 3:
-		  /* silently stripped chars */
-		  break;
+                case 3:
+                  /* silently stripped chars */
+                  break;
 
                 }
-	    }
+            }
 
           query_line[0] = 0;
           FGETS(query_line, LINEALLOC);
-	  query_lineno++;
+          query_lineno++;
         }
 
       /* add zero after sequence */
 
       if (query_seq_len + 1 > query_seq_alloc)
-	{
-	  query_seq_alloc += MEMCHUNK;
-	  query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
-	}
+        {
+          query_seq_alloc += MEMCHUNK;
+          query_seq = (char *) xrealloc(query_seq, (size_t)query_seq_alloc);
+        }
       *(query_seq + query_seq_len) = 0;
 
 

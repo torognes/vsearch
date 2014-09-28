@@ -74,7 +74,7 @@ int parse_userfields_arg(char * arg)
   userfields_requested_count = 1;
   while(p<e)
     if (*p++ == '+')
-      userfields_requested_count++;	
+      userfields_requested_count++;     
 
   userfields_requested = (int*) xmalloc(sizeof(int) * (unsigned long)userfields_requested_count);
   
@@ -89,21 +89,21 @@ int parse_userfields_arg(char * arg)
     {
       q = strchr(p, '+');
       if (!q)
-	q = e;
+        q = e;
       
       n = (unsigned long)(q - p);
 
       char ** u = (char**) userfields_names;
 
       while (*u)
-	{
-	  if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
-	    break;
-	  u++;
-	}
+        {
+          if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
+            break;
+          u++;
+        }
 
       if (!*u)    // reached end of list -> unrecognized field
-	return 0; // bad argument
+        return 0; // bad argument
 
       int i = (int)(((const char**)u) - userfields_names);
       userfields_requested[fields++] = i;
@@ -111,16 +111,16 @@ int parse_userfields_arg(char * arg)
       p = q;
       
       if (p == e)  // reached end of argument
-	{
+        {
 #if 0
-	  printf("Userfields requested (%d):\n", userfields_requested_count);
-	  for(int j=0; j<userfields_requested_count; j++)
-	    {
-	      printf("Field: %d\n", userfields_requested[j]);
-	    }
+          printf("Userfields requested (%d):\n", userfields_requested_count);
+          for(int j=0; j<userfields_requested_count; j++)
+            {
+              printf("Field: %d\n", userfields_requested[j]);
+            }
 #endif
-	  return 1;  // ok
-	}
+          return 1;  // ok
+        }
 
       p++;
     }

@@ -168,13 +168,13 @@ void db_read(const char * filename, int upcase)
       char * z0 = line + 1;
       char * z = z0;
       while (*z)
-	{
-	  if ((!opt_notrunclabels) && (*z == ' '))
-	    break;
-	  if (*z == '\n')
-	    break;
-	  z++;
-	}
+        {
+          if ((!opt_notrunclabels) && (*z == ' '))
+            break;
+          if (*z == '\n')
+            break;
+          z++;
+        }
       long headerlen = z - z0;
 
       headerchars += headerlen;
@@ -248,45 +248,45 @@ void db_read(const char * filename, int upcase)
           char c;
           char * p = line;
           while((c = *p++))
-	    {
-	      m = chrstatus[(int)c];
+            {
+              m = chrstatus[(int)c];
 
-	      switch(m)
-		{
-		case 0:
-		  /* character to be stripped */
-		  stripped_count++;
-		  stripped[(int)c]++;
-		  break;
+              switch(m)
+                {
+                case 0:
+                  /* character to be stripped */
+                  stripped_count++;
+                  stripped[(int)c]++;
+                  break;
 
-		case 1:
-		  /* legal character */
-		  while (datalen >= dataalloc)
-		    {
-		      dataalloc += MEMCHUNK;
-		      datap = (char *) xrealloc(datap, dataalloc);
-		    }
-		  if (upcase)
-		    c &= 0xdf;
-		  *(datap+datalen) = c;
-		  datalen++;
-		  break;
+                case 1:
+                  /* legal character */
+                  while (datalen >= dataalloc)
+                    {
+                      dataalloc += MEMCHUNK;
+                      datap = (char *) xrealloc(datap, dataalloc);
+                    }
+                  if (upcase)
+                    c &= 0xdf;
+                  *(datap+datalen) = c;
+                  datalen++;
+                  break;
 
-		case 2:
-		  /* fatal character */
-		  char msg[200];
-		  if (c>=32)
-		    snprintf(msg, 200, "illegal character '%c' on line %ld in the database file", c, lineno);
-		  else
-		    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the database file", c, lineno);
-		  fatal(msg);
-		  break;
+                case 2:
+                  /* fatal character */
+                  char msg[200];
+                  if (c>=32)
+                    snprintf(msg, 200, "illegal character '%c' on line %ld in the database file", c, lineno);
+                  else
+                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the database file", c, lineno);
+                  fatal(msg);
+                  break;
 
-		case 3:
-		  /* character to be stripped, silently */
-		  break;
-		}
-	    }
+                case 3:
+                  /* character to be stripped, silently */
+                  break;
+                }
+            }
 
           line[0] = 0;
           switch (db_format)
@@ -314,7 +314,7 @@ void db_read(const char * filename, int upcase)
              default:
                fatal("Error: Unknown compression type detected");
            }
-	  lineno++;
+          lineno++;
         }
       
 
@@ -324,45 +324,45 @@ void db_read(const char * filename, int upcase)
       /* discard sequence if too short or long */
 
       if (length < opt_minseqlength)
-	{
-	  discarded_short++;
-	  datalen = hdrbegin;
-	}
+        {
+          discarded_short++;
+          datalen = hdrbegin;
+        }
       else if (length > opt_maxseqlength)
-	{
-	  discarded_long++;
-	  datalen = hdrbegin;
-	}
+        {
+          discarded_long++;
+          datalen = hdrbegin;
+        }
       else
-	{
-	  /* store the length in its designated space */
-	  
-	  *(unsigned int*)(datap + seqbegin) = length;
-	  
-	  
-	  /* add a zero after the sequence */
-	  
-	  while (datalen >= dataalloc)
-	    {
-	      dataalloc += MEMCHUNK;
-	      datap = (char *) xrealloc(datap, dataalloc);
-	    }
-	  *(datap+datalen) = 0;
-	  datalen++;
-	  
+        {
+          /* store the length in its designated space */
+          
+          *(unsigned int*)(datap + seqbegin) = length;
+          
+          
+          /* add a zero after the sequence */
+          
+          while (datalen >= dataalloc)
+            {
+              dataalloc += MEMCHUNK;
+              datap = (char *) xrealloc(datap, dataalloc);
+            }
+          *(datap+datalen) = 0;
+          datalen++;
+          
 
-	  /* update statistics */
+          /* update statistics */
 
-	  nucleotides += length;
+          nucleotides += length;
 
-	  if (length > longest)
-	    longest = length;
-	  
-	  if (length < shortest)
-	    shortest = length;
+          if (length > longest)
+            longest = length;
+          
+          if (length < shortest)
+            shortest = length;
 
-	  sequences++;
-	}
+          sequences++;
+        }
 #ifdef HAVE_ZLIB
       if (db_format == FORMAT_GZIP)
         progress_update(gzoffset(gz_fp));
@@ -388,17 +388,17 @@ void db_read(const char * filename, int upcase)
 
   if (sequences > 0)
     fprintf(stderr,
-	    "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n", 
-	    db_getnucleotidecount(),
-	    db_getsequencecount(),
-	    db_getshortestsequence(),
-	    db_getlongestsequence(),
-	    db_getnucleotidecount() * 1.0 / db_getsequencecount());
+            "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n", 
+            db_getnucleotidecount(),
+            db_getsequencecount(),
+            db_getshortestsequence(),
+            db_getlongestsequence(),
+            db_getnucleotidecount() * 1.0 / db_getsequencecount());
   else
     fprintf(stderr,
-	    "%'ld nt in %'ld seqs\n", 
-	    db_getnucleotidecount(),
-	    db_getsequencecount());
+            "%'ld nt in %'ld seqs\n", 
+            db_getnucleotidecount(),
+            db_getsequencecount());
 
   /* Warn about stripped chars */
 
@@ -406,8 +406,8 @@ void db_read(const char * filename, int upcase)
     {
       fprintf(stderr, "Warning: invalid characters stripped from sequence:");
       for (int i=0; i<256;i++)
-	if (stripped[i])
-	  fprintf(stderr, " %c(%ld)", i, stripped[i]);
+        if (stripped[i])
+          fprintf(stderr, " %c(%ld)", i, stripped[i]);
       fprintf(stderr, "\n");
     }
 
@@ -416,13 +416,13 @@ void db_read(const char * filename, int upcase)
 
   if (discarded_short)
     fprintf(stderr,
-	    "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n",
-	    discarded_short, opt_minseqlength);
+            "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n",
+            discarded_short, opt_minseqlength);
   
   if (discarded_long)
     fprintf(stderr,
-	    "WARNING: %lu sequences longer than %lu nucleotides discarded.\n",
-	    discarded_long, opt_maxseqlength);
+            "WARNING: %lu sequences longer than %lu nucleotides discarded.\n",
+            discarded_long, opt_maxseqlength);
 
   show_rusage();
   
@@ -460,16 +460,16 @@ void db_read(const char * filename, int upcase)
 
     /* read sizein annotation if appropriate */
     if ((opt_usearch_global || 
-	 opt_sortbysize ||
-	 (opt_sortbylength && opt_sizeout) ||
-	 (opt_derep_fulllength && opt_sizein)) && 
-	(!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0)))
+         opt_sortbysize ||
+         (opt_sortbylength && opt_sizeout) ||
+         (opt_derep_fulllength && opt_sizein)) && 
+        (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0)))
       {
-	unsigned long size = atol(seqindex_p->header + pmatch[2].rm_so);
-	if (size > 0)
-	  seqindex_p->size = size;
-	else
-	  fatal("size annotation zero");
+        unsigned long size = atol(seqindex_p->header + pmatch[2].rm_so);
+        if (size > 0)
+          seqindex_p->size = size;
+        else
+          fatal("size annotation zero");
       }
 
     seqindex_p++;

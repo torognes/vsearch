@@ -81,8 +81,8 @@ inline void putop(char c, long len)
         case 'M':
           qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
           ds = d_seq[d_pos];
-	  q_pos += delta;
-	  d_pos += 1;
+          q_pos += delta;
+          d_pos += 1;
           q_line[line_pos] = qs;
           a_line[line_pos] = nt_identical(qs, ds) ? '|' : ' ';
           d_line[line_pos] = ds;
@@ -91,7 +91,7 @@ inline void putop(char c, long len)
 
         case 'D':
           qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
-	  q_pos += delta;
+          q_pos += delta;
           q_line[line_pos] = qs;
           a_line[line_pos] = ' ';
           d_line[line_pos] = '-';
@@ -100,7 +100,7 @@ inline void putop(char c, long len)
 
         case 'I':
           ds = d_seq[d_pos];
-	  d_pos += 1;
+          d_pos += 1;
           q_line[line_pos] = '-';
           a_line[line_pos] = ' ';
           d_line[line_pos] = ds;
@@ -141,20 +141,20 @@ inline void putop(char c, long len)
 }
 
 void align_show(FILE * f,
-		char * seq1,
-		long seq1len,
-		long seq1off,
-		const char * seq1name,
-		char * seq2,
-		long seq2len,
-		long seq2off,
-		const char * seq2name,
-		char * cigar,
-		long cigarlen,
-		int numwidth,
-		int namewidth,
-		int alignwidth,
-		int strand)
+                char * seq1,
+                long seq1len,
+                long seq1off,
+                const char * seq1name,
+                char * seq2,
+                long seq2len,
+                long seq2off,
+                const char * seq2name,
+                char * cigar,
+                long cigarlen,
+                int numwidth,
+                int namewidth,
+                int alignwidth,
+                int strand)
 {
   out = f;
 
@@ -218,23 +218,23 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
       if (!sscanf(p, "%ld%n", & len, & n))
         {
           n = 0;
-	  len = 1;
+          len = 1;
         }
       p += n;
       char op = *p++;
       
       if ((op == 'M') || 
-	  ((op == 'D') && (origin == 0)) ||
-	  ((op == 'I') && (origin == 1)))
-	{
-	  strncpy(r, s, len);
-	}
+          ((op == 'D') && (origin == 0)) ||
+          ((op == 'I') && (origin == 1)))
+        {
+          strncpy(r, s, len);
+        }
       else
-	{
-	  /* insert len gap symbols */
-	  for(long i = 0; i < len; i++)
-	    *r++ = '-';
-	}
+        {
+          /* insert len gap symbols */
+          for(long i = 0; i < len; i++)
+            *r++ = '-';
+        }
     }
 
   *r = 0;
@@ -247,20 +247,20 @@ void align_fprint_uncompressed_alignment(FILE * f, char * cigar)
   while(*p)
     {
       if (*p > '9')
-	fprintf(f, "%c", *p++);
+        fprintf(f, "%c", *p++);
       else
-	{
-	  int n = 0;
-	  char c = 0;
-	  int x = 0;
-	  if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
-	    {
-	      for(int i = 0; i<n; i++)
-		fprintf(f, "%c", c);
-	      p += x;
-	    }
-	  else
-	    fatal("bad alignment string");
-	}
+        {
+          int n = 0;
+          char c = 0;
+          int x = 0;
+          if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
+            {
+              for(int i = 0; i<n; i++)
+                fprintf(f, "%c", c);
+              p += x;
+            }
+          else
+            fatal("bad alignment string");
+        }
     }
 }
