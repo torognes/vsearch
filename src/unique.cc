@@ -84,20 +84,20 @@ int unique_compare(const void * a, const void * b)
 
 
 void unique_count_bitmap(struct uhandle_s * uh, 
-			 int k,
-			 int seqlen,
-			 char * seq,
-			 unsigned int * listlen,
-			 unsigned int * * list)
+                         int k,
+                         int seqlen,
+                         char * seq,
+                         unsigned int * listlen,
+                         unsigned int * * list)
 {
   /* if necessary, reallocate list of unique kmers */
 
   if (uh->alloc < seqlen)
     {
       while (uh->alloc < seqlen)
-	uh->alloc *= 2;
+        uh->alloc *= 2;
       uh->list = (unsigned int *)
-	xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
+        xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
     }
   
   unsigned long size = 1UL << (k << 1UL);
@@ -141,20 +141,20 @@ void unique_count_bitmap(struct uhandle_s * uh,
       kmer <<= 2UL;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
-	  
+          
       if (!bad)
-	{
-	  unsigned long x = kmer >> 6UL;
-	  unsigned long y = 1UL << (kmer & 63UL);
-	      
-	  unsigned long uniq = uh->bitmap[2*x];
-	  unsigned long seen = uh->bitmap[2*x+1];
-	  
-	  uh->bitmap[2*x] = (uniq & ~y) | (y & ~seen);
-	  uh->bitmap[2*x+1] = seen | y;
-	  
-	  uh->list[candidates++] = kmer;
-	}
+        {
+          unsigned long x = kmer >> 6UL;
+          unsigned long y = 1UL << (kmer & 63UL);
+              
+          unsigned long uniq = uh->bitmap[2*x];
+          unsigned long seen = uh->bitmap[2*x+1];
+          
+          uh->bitmap[2*x] = (uniq & ~y) | (y & ~seen);
+          uh->bitmap[2*x+1] = seen | y;
+          
+          uh->list[candidates++] = kmer;
+        }
     }
       
   int unique = 0;
@@ -166,7 +166,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
       unsigned long y = 1UL << (kmer & 63UL);
       
       if (uh->bitmap[2*x] & y)
-	uh->list[unique++] = uh->list[i];
+        uh->list[unique++] = uh->list[i];
     }
   
   *listlen = unique;
@@ -174,11 +174,11 @@ void unique_count_bitmap(struct uhandle_s * uh,
 }
 
 void unique_count_hash(struct uhandle_s * uh, 
-		       int k,
-		       int seqlen,
-		       char * seq,
-		       unsigned int * listlen,
-		       unsigned int * * list)
+                       int k,
+                       int seqlen,
+                       char * seq,
+                       unsigned int * listlen,
+                       unsigned int * * list)
 {
   unsigned long unique;
 
@@ -187,11 +187,11 @@ void unique_count_hash(struct uhandle_s * uh,
   if (uh->alloc < 2*seqlen)
     {
       while (uh->alloc < 2*seqlen)
-	uh->alloc *= 2;
+        uh->alloc *= 2;
       uh->hash = (struct bucket_s *)
-	xrealloc(uh->hash, sizeof(struct bucket_s) * uh->alloc);
+        xrealloc(uh->hash, sizeof(struct bucket_s) * uh->alloc);
       uh->list = (unsigned int *)
-	xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
+        xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
     }
   
   /* hashtable variant */
@@ -231,17 +231,17 @@ void unique_count_hash(struct uhandle_s * uh,
       kmer <<= 2;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
-	  
+          
       if (!bad)
-	{
-	  /* find free appropriate bucket in hash */
-	  j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
-	  while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
-	    j = (j + 1) & uh->hash_mask;
-	      
-	  uh->hash[j].kmer = kmer;
-	  uh->hash[j].count++;
-	}
+        {
+          /* find free appropriate bucket in hash */
+          j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
+          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+            j = (j + 1) & uh->hash_mask;
+              
+          uh->hash[j].kmer = kmer;
+          uh->hash[j].count++;
+        }
     }
       
   unique = 0;
@@ -254,11 +254,11 @@ void unique_count_hash(struct uhandle_s * uh,
 }
 
 void unique_count(struct uhandle_s * uh, 
-		  int k,
-		  int seqlen,
-		  char * seq,
-		  unsigned int * listlen,
-		  unsigned int * * list)
+                  int k,
+                  int seqlen,
+                  char * seq,
+                  unsigned int * listlen,
+                  unsigned int * * list)
 {
   if (k<10)
     unique_count_bitmap(uh, k, seqlen, seq, listlen, list);

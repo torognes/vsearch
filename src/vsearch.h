@@ -279,19 +279,19 @@ struct s16info_s;
 
 struct s16info_s *
 search16_init(CELL score_match,
-	      CELL score_mismatch,
-	      CELL penalty_gap_open_query_left,
-	      CELL penalty_gap_open_target_left,
-	      CELL penalty_gap_open_query_interior,
-	      CELL penalty_gap_open_target_interior,
-	      CELL penalty_gap_open_query_right,
-	      CELL penalty_gap_open_target_right,
-	      CELL penalty_gap_extension_query_left,
-	      CELL penalty_gap_extension_target_left,
-	      CELL penalty_gap_extension_query_interior,
-	      CELL penalty_gap_extension_target_interior,
-	      CELL penalty_gap_extension_query_right,
-	      CELL penalty_gap_extension_target_right);
+              CELL score_mismatch,
+              CELL penalty_gap_open_query_left,
+              CELL penalty_gap_open_target_left,
+              CELL penalty_gap_open_query_interior,
+              CELL penalty_gap_open_target_interior,
+              CELL penalty_gap_open_query_right,
+              CELL penalty_gap_open_target_right,
+              CELL penalty_gap_extension_query_left,
+              CELL penalty_gap_extension_target_left,
+              CELL penalty_gap_extension_query_interior,
+              CELL penalty_gap_extension_target_interior,
+              CELL penalty_gap_extension_query_right,
+              CELL penalty_gap_extension_target_right);
 
 void
 search16_exit(s16info_s * s);
@@ -301,14 +301,14 @@ search16_qprep(s16info_s * s, char * qseq, int qlen);
 
 void
 search16(s16info_s * s,
-	 unsigned int sequences,
-	 unsigned int * seqnos,
-	 CELL * pscores,
-	 unsigned short * paligned,
-	 unsigned short * pmatches,
-	 unsigned short * pmismatches,
-	 unsigned short * pgaps,
-	 char * * pcigar);
+         unsigned int sequences,
+         unsigned int * seqnos,
+         CELL * pscores,
+         unsigned short * paligned,
+         unsigned short * pmatches,
+         unsigned short * pmismatches,
+         unsigned short * pgaps,
+         char * * pcigar);
 
   
 /* maps.cc */
@@ -401,7 +401,7 @@ void query_open(const char * filename);
 
 int query_getnext(char ** head, long * head_len,
                   char ** seq, long * seq_len, long * qno,
-		  long * qsize, int upcase);
+                  long * qsize, int upcase);
 
 void query_close();
 
@@ -422,19 +422,19 @@ void nw_align(char * dseq,
               char * dend,
               char * qseq,
               char * qend,
-	      long * score_matrix,
-	      long gapopen_q_left,
-	      long gapopen_q_internal,
-	      long gapopen_q_right,
-	      long gapopen_t_left,
-	      long gapopen_t_internal,
-	      long gapopen_t_right,
-	      long gapextend_q_left,
-	      long gapextend_q_internal,
-	      long gapextend_q_right,
-	      long gapextend_t_left,
-	      long gapextend_t_internal,
-	      long gapextend_t_right,
+              long * score_matrix,
+              long gapopen_q_left,
+              long gapopen_q_internal,
+              long gapopen_q_right,
+              long gapopen_t_left,
+              long gapopen_t_internal,
+              long gapopen_t_right,
+              long gapextend_q_left,
+              long gapextend_q_internal,
+              long gapextend_q_right,
+              long gapextend_t_left,
+              long gapextend_t_internal,
+              long gapextend_t_right,
               long * nwscore,
               long * nwdiff,
               long * nwgaps,
@@ -442,8 +442,8 @@ void nw_align(char * dseq,
               long * nwalignmentlength,
               char ** nwalignment,
               long queryno,
-	      long dbseqno,
-	      struct nwinfo_s * nw);
+              long dbseqno,
+              struct nwinfo_s * nw);
 
 
 /* functions in unique.cc */
@@ -456,11 +456,11 @@ struct uhandle_s * unique_init();
 void unique_exit(struct uhandle_s * u);
 
 void unique_count(struct uhandle_s * uh, 
-		  int k,
-		  int seqlen,
-		  char * seq,
-		  unsigned int * listlen,
-		  unsigned int * * list);
+                  int k,
+                  int seqlen,
+                  char * seq,
+                  unsigned int * listlen,
+                  unsigned int * * list);
 
 
 /* functions in dbindex.cc */
@@ -490,20 +490,20 @@ char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
 void align_fprint_uncompressed_alignment(FILE * f, char * cigar);
 
 void align_show(FILE * f,
-		char * seq1,
-		long seq1len,
-		long seq1off,
-		const char * seq1name,
-		char * seq2,
-		long seq2len,
-		long seq2off,
-		const char * seq2name,
-		char * cigar,
-		long cigarlen,
-		int numwidth,
-		int namewidth,
-		int alignwidth,
-		int strand);
+                char * seq1,
+                long seq1len,
+                long seq1off,
+                const char * seq1name,
+                char * seq2,
+                long seq2len,
+                long seq2off,
+                const char * seq2name,
+                char * cigar,
+                long cigarlen,
+                int numwidth,
+                int namewidth,
+                int alignwidth,
+                int strand);
 
 
 /* functions in userfields.cc */
@@ -516,40 +516,40 @@ int parse_userfields_arg(char * arg);
 /* functions in results.cc */
 
 void results_show_alnout(FILE * fp,
-			 struct hit * hits,
-			 int hitcount,
-			 char * query_head,
-			 char * qsequence,
-			 long qseqlen,
-			 char * rc);
+                         struct hit * hits,
+                         int hitcount,
+                         char * query_head,
+                         char * qsequence,
+                         long qseqlen,
+                         char * rc);
 
 void results_show_blast6out_one(FILE * fp,
-				struct hit * hp,
-				char * query_head,
-				char * qsequence,
-				long qseqlen,
-				char * rc);
+                                struct hit * hp,
+                                char * query_head,
+                                char * qsequence,
+                                long qseqlen,
+                                char * rc);
 
 void results_show_uc_one(FILE * fp,
-			 struct hit * hp,
-			 char * query_head,
-			 char * qsequence,
-			 long qseqlen,
-			 char * rc);
+                         struct hit * hp,
+                         char * query_head,
+                         char * qsequence,
+                         long qseqlen,
+                         char * rc);
 
 void results_show_userout_one(FILE * fp,
-			      struct hit * hp,
-			      char * query_head,
-			      char * qsequence,
-			      long qseqlen,
-			      char * rc);
+                              struct hit * hp,
+                              char * query_head,
+                              char * qsequence,
+                              long qseqlen,
+                              char * rc);
 
 void results_show_fastapairs_one(FILE * fp,
-				 struct hit * hp,
-				 char * query_head,
-				 char * qsequence,
-				 long qseqlen,
-				 char * rc);
+                                 struct hit * hp,
+                                 char * query_head,
+                                 char * qsequence,
+                                 long qseqlen,
+                                 char * rc);
 
 /* functions in sortbysize.cc */
 

@@ -49,7 +49,7 @@ void progress_update(unsigned long progress)
   if (progress >= progress_next)
     {
       fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
-	      100.0 * progress / progress_size);
+              100.0 * progress / progress_size);
       progress_next = progress + progress_chunk;
     }
 }
@@ -78,7 +78,7 @@ void  __attribute__((noreturn)) fatal(const char * msg)
 }
 
 void  __attribute__((noreturn)) fatal(const char * format, 
-				      const char * message)
+                                      const char * message)
 {
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
@@ -160,10 +160,10 @@ void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
     {
       long rest = len;
       for(unsigned long i=0; i<len; i += width)
-	{
-	  fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq+i);
-	  rest -= width;
-	}
+        {
+          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq+i);
+          rest -= width;
+        }
     }
 }
 
@@ -199,7 +199,7 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
 
       /* replace old size with ";" if not at any end */
       if ((pat_start > 0) && (pat_end < hdrlen))
-	fprintf(fp, ";");
+        fprintf(fp, ";");
 
       /* print remaining part */
       fprintf(fp, "%.*s", hdrlen - pat_end, hdr + pat_end);

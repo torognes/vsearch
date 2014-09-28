@@ -88,22 +88,22 @@ void shuffle()
     {
 #if 0
       if (opt_relabel)
-	{
-	  if (opt_sizeout)
-	    fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, db_getabundance(i));
-	  else
-	    fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
+        {
+          if (opt_sizeout)
+            fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, db_getabundance(i));
+          else
+            fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
 
-	  char * seq = db_getsequence(deck[i]);
-	  long len = db_getsequencelen(deck[i]);
-	  fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
-	}
+          char * seq = db_getsequence(deck[i]);
+          long len = db_getsequencelen(deck[i]);
+          fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
+        }
       else
-	{
+        {
 #endif
-	  db_fprint_fasta(fp_output, deck[i]);
+          db_fprint_fasta(fp_output, deck[i]);
 #if 0
-	}
+        }
 #endif
 
       progress_update(i);

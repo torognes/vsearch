@@ -224,16 +224,16 @@ void args_get_gap_penalty_string(char * arg, int is_open)
       int pen = 0;
 
       if (sscanf(p, "%d%n", &pen, &skip) == 1)
-	{
-	  p += skip;
-	}
+        {
+          p += skip;
+        }
       else if (*p == '*')
-	{
-	  pen = 10000;
-	  p++;
-	}
+        {
+          pen = 10000;
+          p++;
+        }
       else
-	fatal("Invalid gap penalty argument (%s)", p);
+        fatal("Invalid gap penalty argument (%s)", p);
 
       char * q = p;
 
@@ -245,105 +245,105 @@ void args_get_gap_penalty_string(char * arg, int is_open)
       int set_T = 0;
 
       while((*p) && (*p != '/'))
-	{
-	  switch(*p)
-	    {
-	    case 'E':
-	      set_E = 1;
-	      break;
-	    case 'I':
-	      set_I = 1;
-	      break;
-	    case 'L':
-	      set_L = 1;
-	      break;
-	    case 'R':
-	      set_R = 1;
-	      break;
-	    case 'Q':
-	      set_Q = 1;
-	      break;
-	    case 'T':
-	      set_T = 1;
-	      break;
-	    default:
-	      fatal("Invalid char '%.1s' in gap penalty string", p);
-	      break;
-	    }
-	  p++;
-	}
+        {
+          switch(*p)
+            {
+            case 'E':
+              set_E = 1;
+              break;
+            case 'I':
+              set_I = 1;
+              break;
+            case 'L':
+              set_L = 1;
+              break;
+            case 'R':
+              set_R = 1;
+              break;
+            case 'Q':
+              set_Q = 1;
+              break;
+            case 'T':
+              set_T = 1;
+              break;
+            default:
+              fatal("Invalid char '%.1s' in gap penalty string", p);
+              break;
+            }
+          p++;
+        }
       
       if (*p == '/')
-	p++;
+        p++;
 
       if (set_E && (set_L || set_R))
-	fatal("Invalid gap penalty string (E and L or R) '%s'", q);
+        fatal("Invalid gap penalty string (E and L or R) '%s'", q);
       
       if (set_E)
-	{
-	  set_L = 1;
-	  set_R = 1;
-	}
+        {
+          set_L = 1;
+          set_R = 1;
+        }
 
       /* if neither L, I, R nor E is specified, it applies to all */
 
       if ((!set_L) && (!set_I) && (!set_R))
-	{
-	  set_L = 1;
-	  set_I = 1;
-	  set_R = 1;
-	}
+        {
+          set_L = 1;
+          set_I = 1;
+          set_R = 1;
+        }
 
       /* if neither Q nor T is specified, it applies to both */
 
       if ((!set_Q) && (!set_T))
-	{
-	  set_Q = 1;
-	  set_T = 1;
-	}
+        {
+          set_Q = 1;
+          set_T = 1;
+        }
 
       if (is_open)
-	{
-	  if (set_Q)
-	    {
-	      if (set_L)
-		opt_gap_open_query_left = pen;
-	      if (set_I)
-		opt_gap_open_query_interior = pen;
-	      if (set_R)
-		opt_gap_open_query_right = pen;
-	    }
-	  if (set_T)
-	    {
-	      if (set_L)
-		opt_gap_open_target_left = pen;
-	      if (set_I)
-		opt_gap_open_target_interior = pen;
-	      if (set_R)
-		opt_gap_open_target_right = pen;
-	    }	  
-	}
+        {
+          if (set_Q)
+            {
+              if (set_L)
+                opt_gap_open_query_left = pen;
+              if (set_I)
+                opt_gap_open_query_interior = pen;
+              if (set_R)
+                opt_gap_open_query_right = pen;
+            }
+          if (set_T)
+            {
+              if (set_L)
+                opt_gap_open_target_left = pen;
+              if (set_I)
+                opt_gap_open_target_interior = pen;
+              if (set_R)
+                opt_gap_open_target_right = pen;
+            }     
+        }
       else
-	{
-	  if (set_Q)
-	    {
-	      if (set_L)
-		opt_gap_extension_query_left = pen;
-	      if (set_I)
-		opt_gap_extension_query_interior = pen;
-	      if (set_R)
-		opt_gap_extension_query_right = pen;
-	    }
-	  if (set_T)
-	    {
-	      if (set_L)
-		opt_gap_extension_target_left = pen;
-	      if (set_I)
-		opt_gap_extension_target_interior = pen;
-	      if (set_R)
-		opt_gap_extension_target_right = pen;
-	    }	  
-	}
+        {
+          if (set_Q)
+            {
+              if (set_L)
+                opt_gap_extension_query_left = pen;
+              if (set_I)
+                opt_gap_extension_query_interior = pen;
+              if (set_R)
+                opt_gap_extension_query_right = pen;
+            }
+          if (set_T)
+            {
+              if (set_L)
+                opt_gap_extension_target_left = pen;
+              if (set_I)
+                opt_gap_extension_target_interior = pen;
+              if (set_R)
+                opt_gap_extension_target_right = pen;
+            }     
+        }
     }
 }
 
@@ -541,7 +541,7 @@ void args_init(int argc, char **argv)
   int c;
   
   while ((c = getopt_long_only(argc, argv, "", long_options, 
-			       &option_index)) == 0)
+                               &option_index)) == 0)
   {
     switch(option_index)
     {
@@ -612,7 +612,7 @@ void args_init(int argc, char **argv)
       else if (strcasecmp(optarg, "both") == 0)
         opt_strand = 2;
       else
-	opt_strand = 0;
+        opt_strand = 0;
       break;
 
     case 13:
@@ -638,7 +638,7 @@ void args_init(int argc, char **argv)
     case 17:
       /* userfields */
       if (!parse_userfields_arg(optarg))
-	fatal("Unrecognized userfield argument");
+        fatal("Unrecognized userfield argument");
       break;
 
     case 18:
@@ -1038,9 +1038,9 @@ void args_init(int argc, char **argv)
   if (opt_minseqlength == 0)
     {
       if (opt_sortbylength || opt_sortbysize || opt_shuffle)
-	opt_minseqlength = 1;
+        opt_minseqlength = 1;
       else
-	opt_minseqlength = 32;
+        opt_minseqlength = 32;
     }
 
   if (rowlen == 0)
@@ -1054,89 +1054,89 @@ void cmd_help()
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
   fprintf(stderr, 
-	  "Usage: %s [OPTIONS] [filename]\n", progname);
+          "Usage: %s [OPTIONS] [filename]\n", progname);
   fprintf(stderr, 
-	  "\n"
-	  "General options:\n"
-	  "  --help                      display help information\n"
-	  "  --version                   display version information\n"
-	  "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
-	  "  --maxseqlength INT          maximum sequence length (50000)\n"
-	  "  --minseqlength INT          min seq length (sort/shuffle:1, search/derep: 32)\n"
-	  "  --notrunclabels             do not truncate labels at first space\n"
-	  "  --strand plus|both          search / dereplicate plus strand or both strands\n"
-	  "  --threads INT               number of threads to use, zero for all cores (0)\n"
-	  "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n"
-	  "  --uc_allhits                show all, not just top hit with uc output\n"
-	  "\n"
-	  "Search options:\n"
-	  "  --usearch_global FILENAME   filename of queries for global alignment search\n"
-	  "  --alnout FILENAME           filename for human-readable alignment output\n"
-	  "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
-	  "  --db FILENAME               filename for FASTA formatted database for search\n"
-	  "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
-	  "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
-	  "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
-	  "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
-	  "  --fulldp                    full dynamic programming alignment for all hits\n"
-	  "  --gapext STRING             penalties for gap extension (2I/1E)\n"
-	  "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
-	  "  --hardmask                  mask by replacing with N instead of lower case\n"
-	  "  --id REAL                   reject if identity lower\n"
-	  "  --idprefix INT              reject if first n nucleotides do not match\n"
-	  "  --idsuffix INT              reject if last n nucleotides do not match\n"
-	  "  --leftjust                  reject if terminal gaps at alignment left end\n"
-	  "  --match INT                 score for match (2)\n"
-	  "  --matched FILENAME          FASTA file for matching query sequences\n"
-	  "  --maxaccepts INT            number of hits to accept and show (1)\n"
-	  "  --maxdiffs INT              reject if more substitutions or indels\n"
-	  "  --maxgaps INT               reject if more indels\n"
-	  "  --maxhits INT               maximum number of hits to show\n"
-	  "  --maxid REAL                reject if identity higher\n"
-	  "  --maxqsize INT              reject if query abundance larger\n"
-	  "  --maxqt REAL                reject if query/target length ratio higher\n"
-	  "  --maxrejects INT            number of non-matching hits to consider (32)\n"
-	  "  --maxsizeratio REAL         reject if query/target abundance ratio higher\n"
-	  "  --maxsl REAL                reject if shorter/longer length ratio higher\n"
-	  "  --maxsubs INT               reject if more substitutions\n"
-	  "  --mid REAL                  reject if percent identity lower, ignoring gaps\n"
-	  "  --mincols INT               reject if alignment length shorter\n"
-	  "  --minqt REAL                reject if query/target length ratio lower\n"
-	  "  --minsizeratio REAL         reject if query/target abundance ratio lower\n"
-	  "  --minsl REAL                reject if shorter/longer length ratio lower\n"
-	  "  --mintsize INT              reject if target abundance lower\n"
-	  "  --mismatch INT              score for mismatch (-4)\n"
-	  "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
-	  "  --output_no_hits            output non-matching queries to output files\n"
-	  "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
-	  "  --query_cov REAL            reject if fraction of query aligned lower\n"
-	  "  --rightjust                 reject if terminal gaps at alignment right end\n"
-	  "  --rowlen INT                width of alignment lines in alnout output (64)\n"
-	  "  --self                      reject if labels identical\n"
-	  "  --selfid                    reject if sequences identical\n"
-	  "  --target_cov REAL           reject if fraction of target aligned lower\n"
-	  "  --top_hits_only             output only hits with identity equal to the best\n"
-	  "  --userfields STRING         fields to output in userout file\n"
-	  "  --userout FILENAME          filename for user-defined tab-separated output\n"
-	  "  --weak_id REAL              show hits with at least this id; continue search\n"
-	  "  --wordlength INT            length of words (kmers) for database index (8)\n"
-	  "\n"
-	  "Dereplication, masking, shuffling and sorting options\n"
-	  "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
-	  "  --mask FILENAME             mask sequences in the given FASTA file\n"
-	  "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
-	  "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
-	  "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
-	  "  --maxsize INT               maximum abundance for sortbysize\n"
-	  "  --minsize INT               minimum abundance for sortbysize\n"
-	  "  --minuniquesize INT         minimum abundance for output from dereplication\n"
-	  "  --output FILENAME           output FASTA file for derepl./sort/shuffle\n"
-	  "  --relabel STRING            relabel with this prefix string after sorting\n"
-	  "  --seed INT                  seed for shuffle; zero for random seed (0)\n"
-	  "  --sizein                    read abundance annotation from input\n"
-	  "  --sizeout                   add abundance annotation to output\n"
-	  "  --topn INT                  output just top n seqs from derepl./shuffle/sort\n"
-	  );
+          "\n"
+          "General options:\n"
+          "  --help                      display help information\n"
+          "  --version                   display version information\n"
+          "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
+          "  --maxseqlength INT          maximum sequence length (50000)\n"
+          "  --minseqlength INT          min seq length (sort/shuffle:1, search/derep: 32)\n"
+          "  --notrunclabels             do not truncate labels at first space\n"
+          "  --strand plus|both          search / dereplicate plus strand or both strands\n"
+          "  --threads INT               number of threads to use, zero for all cores (0)\n"
+          "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n"
+          "  --uc_allhits                show all, not just top hit with uc output\n"
+          "\n"
+          "Search options:\n"
+          "  --usearch_global FILENAME   filename of queries for global alignment search\n"
+          "  --alnout FILENAME           filename for human-readable alignment output\n"
+          "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
+          "  --db FILENAME               filename for FASTA formatted database for search\n"
+          "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
+          "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
+          "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
+          "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
+          "  --fulldp                    full dynamic programming alignment for all hits\n"
+          "  --gapext STRING             penalties for gap extension (2I/1E)\n"
+          "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
+          "  --hardmask                  mask by replacing with N instead of lower case\n"
+          "  --id REAL                   reject if identity lower\n"
+          "  --idprefix INT              reject if first n nucleotides do not match\n"
+          "  --idsuffix INT              reject if last n nucleotides do not match\n"
+          "  --leftjust                  reject if terminal gaps at alignment left end\n"
+          "  --match INT                 score for match (2)\n"
+          "  --matched FILENAME          FASTA file for matching query sequences\n"
+          "  --maxaccepts INT            number of hits to accept and show (1)\n"
+          "  --maxdiffs INT              reject if more substitutions or indels\n"
+          "  --maxgaps INT               reject if more indels\n"
+          "  --maxhits INT               maximum number of hits to show\n"
+          "  --maxid REAL                reject if identity higher\n"
+          "  --maxqsize INT              reject if query abundance larger\n"
+          "  --maxqt REAL                reject if query/target length ratio higher\n"
+          "  --maxrejects INT            number of non-matching hits to consider (32)\n"
+          "  --maxsizeratio REAL         reject if query/target abundance ratio higher\n"
+          "  --maxsl REAL                reject if shorter/longer length ratio higher\n"
+          "  --maxsubs INT               reject if more substitutions\n"
+          "  --mid REAL                  reject if percent identity lower, ignoring gaps\n"
+          "  --mincols INT               reject if alignment length shorter\n"
+          "  --minqt REAL                reject if query/target length ratio lower\n"
+          "  --minsizeratio REAL         reject if query/target abundance ratio lower\n"
+          "  --minsl REAL                reject if shorter/longer length ratio lower\n"
+          "  --mintsize INT              reject if target abundance lower\n"
+          "  --mismatch INT              score for mismatch (-4)\n"
+          "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
+          "  --output_no_hits            output non-matching queries to output files\n"
+          "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
+          "  --query_cov REAL            reject if fraction of query aligned lower\n"
+          "  --rightjust                 reject if terminal gaps at alignment right end\n"
+          "  --rowlen INT                width of alignment lines in alnout output (64)\n"
+          "  --self                      reject if labels identical\n"
+          "  --selfid                    reject if sequences identical\n"
+          "  --target_cov REAL           reject if fraction of target aligned lower\n"
+          "  --top_hits_only             output only hits with identity equal to the best\n"
+          "  --userfields STRING         fields to output in userout file\n"
+          "  --userout FILENAME          filename for user-defined tab-separated output\n"
+          "  --weak_id REAL              show hits with at least this id; continue search\n"
+          "  --wordlength INT            length of words (kmers) for database index (8)\n"
+          "\n"
+          "Dereplication, masking, shuffling and sorting options\n"
+          "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+          "  --mask FILENAME             mask sequences in the given FASTA file\n"
+          "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
+          "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
+          "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
+          "  --maxsize INT               maximum abundance for sortbysize\n"
+          "  --minsize INT               minimum abundance for sortbysize\n"
+          "  --minuniquesize INT         minimum abundance for output from dereplication\n"
+          "  --output FILENAME           output FASTA file for derepl./sort/shuffle\n"
+          "  --relabel STRING            relabel with this prefix string after sorting\n"
+          "  --seed INT                  seed for shuffle; zero for random seed (0)\n"
+          "  --sizein                    read abundance annotation from input\n"
+          "  --sizeout                   add abundance annotation to output\n"
+          "  --topn INT                  output just top n seqs from derepl./shuffle/sort\n"
+          );
 }
 
 void cmd_usearch_global()
@@ -1201,10 +1201,10 @@ void cmd_mask()
 void fillheader()
 {
   snprintf(progheader, 80, 
-	   "%s %s_%s, %.1fGB RAM, %ld cores",
-	   PROG_NAME, PROG_VERSION, PROG_ARCH,
-	   arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
-	   sysconf(_SC_NPROCESSORS_ONLN));
+           "%s %s_%s, %.1fGB RAM, %ld cores",
+           PROG_NAME, PROG_VERSION, PROG_ARCH,
+           arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
+           sysconf(_SC_NPROCESSORS_ONLN));
 }
 
 void getentirecommandline(int argc, char** argv)

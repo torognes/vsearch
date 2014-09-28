@@ -147,19 +147,19 @@ void nw_align(char * dseq,
               char * dend,
               char * qseq,
               char * qend,
-	      long * score_matrix,
-	      long gapopen_q_left,
-	      long gapopen_q_internal,
-	      long gapopen_q_right,
-	      long gapopen_t_left,
-	      long gapopen_t_internal,
-	      long gapopen_t_right,
-	      long gapextend_q_left,
-	      long gapextend_q_internal,
-	      long gapextend_q_right,
-	      long gapextend_t_left,
-	      long gapextend_t_internal,
-	      long gapextend_t_right,
+              long * score_matrix,
+              long gapopen_q_left,
+              long gapopen_q_internal,
+              long gapopen_q_right,
+              long gapopen_t_left,
+              long gapopen_t_internal,
+              long gapopen_t_right,
+              long gapextend_q_left,
+              long gapextend_q_internal,
+              long gapextend_q_right,
+              long gapextend_t_left,
+              long gapextend_t_internal,
+              long gapextend_t_right,
               long * nwscore,
               long * nwdiff,
               long * nwgaps,
@@ -167,8 +167,8 @@ void nw_align(char * dseq,
               long * nwalignmentlength,
               char ** nwalignment,
               long queryno,
-	      long dbseqno,
-	      struct nwinfo_s * nw)
+              long dbseqno,
+              struct nwinfo_s * nw)
 {
 
   long h, n, e, f, h_e, h_f;
@@ -218,58 +218,58 @@ void nw_align(char * dseq,
       /* preference with equal score: diag, up, left */
 
       if (f > h)
-	{  
-	  h = f;
-	  *d |= maskup;
-	}
+        {  
+          h = f;
+          *d |= maskup;
+        }
       
       if (e > h)
-	{
-	  h = e;
-	  *d |= maskleft;
-	}
+        {
+          h = e;
+          *d |= maskleft;
+        }
 
       *hep = h;
 
       if (i < qlen-1)
-	{
-	  h_e = h - gapopen_q_internal - gapextend_q_internal;
-	  e -= gapextend_q_internal;
-	}
+        {
+          h_e = h - gapopen_q_internal - gapextend_q_internal;
+          e -= gapextend_q_internal;
+        }
       else
-	{
-	  h_e = h - gapopen_q_right - gapextend_q_right;
-	  e -= gapextend_q_right;
-	}
+        {
+          h_e = h - gapopen_q_right - gapextend_q_right;
+          e -= gapextend_q_right;
+        }
       
       if (j < dlen-1)
-	{
-	  h_f = h - gapopen_t_internal - gapextend_t_internal;
-	  f -= gapextend_t_internal;
-	}
+        {
+          h_f = h - gapopen_t_internal - gapextend_t_internal;
+          f -= gapextend_t_internal;
+        }
       else
-	{
-	  h_f = h - gapopen_t_right - gapextend_t_right;
-	  f -= gapextend_t_right;
-	}
+        {
+          h_f = h - gapopen_t_right - gapextend_t_right;
+          f -= gapextend_t_right;
+        }
 
       if (e > h_e)
-	{
-	  *d |= maskextleft;
-	}
+        {
+          *d |= maskextleft;
+        }
       else
-	{
-	  e = h_e;
-	}
+        {
+          e = h_e;
+        }
 
       if (f > h_f)
-	{
-	  *d |= maskextup;
-	}
+        {
+          *d |= maskextup;
+        }
       else
-	{
-	  f = h_f;
-	}
+        {
+          f = h_f;
+        }
 
       *(hep+1) = e;
       h = n;
@@ -350,7 +350,7 @@ void nw_align(char * dseq,
     {
       score += getscore(score_matrix, dseq[j-1], qseq[i-1]);
       if (nt_identical(dseq[j-1], qseq[i-1]))
-	matches++;
+        matches++;
       i--;
       j--;
       pushop('M', &cigarend, &op, &count);

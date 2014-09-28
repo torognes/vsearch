@@ -174,7 +174,7 @@ void search_topscores(struct searchinfo_s * si)
         }
 
       for(int i=0; i < seqcount; i++)
-	topscore_insert(i, si);
+        topscore_insert(i, si);
     }
   else
     {
@@ -194,12 +194,12 @@ void search_topscores(struct searchinfo_s * si)
               if (si->hitcount[*j] == 0)
                 si->targetlist[targetcount++] = *j;
 
-	      si->hitcount[*j]++;
+              si->hitcount[*j]++;
             }
         }
 
       for(unsigned int z=0; z < targetcount; z++)
-	topscore_insert(si->targetlist[z], si);
+        topscore_insert(si->targetlist[z], si);
     }
 }
 
@@ -228,14 +228,14 @@ void align_candidates(struct searchinfo_s * si)
     target_list[i] = si->candidate_target[i];
   
   search16(si->s,
-	   si->candidatecount,
-	   target_list,
-	   nwscore_list,
-	   nwalignmentlength_list,
-	   nwmatches_list,
-	   nwmismatches_list,
-	   nwgaps_list,
-	   nwcigar_list);
+           si->candidatecount,
+           target_list,
+           nwscore_list,
+           nwalignmentlength_list,
+           nwmatches_list,
+           nwmismatches_list,
+           nwgaps_list,
+           nwcigar_list);
   
   for(int i = 0; i < si->candidatecount; i++)
     {
@@ -252,9 +252,9 @@ void align_candidates(struct searchinfo_s * si)
 
       char * qseq;
       if (si->strand)
-	qseq = si->rc;
+        qseq = si->rc;
       else
-	qseq = si->qsequence;
+        qseq = si->qsequence;
 
       char * dseq = db_getsequence(target);
       long dseqlen = db_getsequencelen(target);
@@ -267,41 +267,41 @@ void align_candidates(struct searchinfo_s * si)
       char * xnwcigar = 0;
 
       nw_align(dseq,
-	       dseq + dseqlen,
-	       qseq,
-	       qseq + si->qseqlen,
-	       (long*) scorematrix,
-	       opt_gap_open_query_left,
-	       opt_gap_open_query_interior,
-	       opt_gap_open_query_right,
-	       opt_gap_open_target_left,
-	       opt_gap_open_target_interior,
-	       opt_gap_open_target_right,
-	       opt_gap_extension_query_left,
-	       opt_gap_extension_query_interior,
-	       opt_gap_extension_query_right,
-	       opt_gap_extension_target_left,
-	       opt_gap_extension_target_interior,
-	       opt_gap_extension_target_right,
-	       & xnwscore,
-	       & xnwdiff,
-	       & xnwgaps,
-	       & xnwindels,
-	       & xnwalignmentlength,
-	       & xnwcigar,
-	       si->query_no,
-	       target,
-	       si->nw);
+               dseq + dseqlen,
+               qseq,
+               qseq + si->qseqlen,
+               (long*) scorematrix,
+               opt_gap_open_query_left,
+               opt_gap_open_query_interior,
+               opt_gap_open_query_right,
+               opt_gap_open_target_left,
+               opt_gap_open_target_interior,
+               opt_gap_open_target_right,
+               opt_gap_extension_query_left,
+               opt_gap_extension_query_interior,
+               opt_gap_extension_query_right,
+               opt_gap_extension_target_left,
+               opt_gap_extension_target_interior,
+               opt_gap_extension_target_right,
+               & xnwscore,
+               & xnwdiff,
+               & xnwgaps,
+               & xnwindels,
+               & xnwalignmentlength,
+               & xnwcigar,
+               si->query_no,
+               target,
+               si->nw);
 
       if ((xnwscore != nwscore) || (strcmp(xnwcigar, nwcigar) != 0))
-	{
-	  printf("Alignment error in channel %d:\n", i);
-	  printf("qlen, dlen: %ld, %ld\n",si->qseqlen, dseqlen);
-	  printf("qseq: [%s]\n", qseq);
-	  printf("dseq: [%s]\n", dseq);
-	  printf("Non-vectorized: %ld %s\n", xnwscore, xnwcigar);
-	  printf("Vectorized:     %d %s\n",   nwscore,  nwcigar);
-	}
+        {
+          printf("Alignment error in channel %d:\n", i);
+          printf("qlen, dlen: %ld, %ld\n",si->qseqlen, dseqlen);
+          printf("qseq: [%s]\n", qseq);
+          printf("dseq: [%s]\n", dseq);
+          printf("Non-vectorized: %ld %s\n", xnwscore, xnwcigar);
+          printf("Vectorized:     %d %s\n",   nwscore,  nwcigar);
+        }
       
       free(xnwcigar);
 
@@ -332,13 +332,13 @@ void align_candidates(struct searchinfo_s * si)
       sscanf(p, "%ld%n", &run, &scanlength);
       char op = *(p+scanlength);
       if (op != 'M')
-	{
-	  trim_aln_left = 1 + scanlength;
-	  if (op == 'D')
-	    trim_q_left = run;
-	  else
-	    trim_t_left = run;
-	}
+        {
+          trim_aln_left = 1 + scanlength;
+          if (op == 'D')
+            trim_q_left = run;
+          else
+            trim_t_left = run;
+        }
       
       /* right trim alignment */
       
@@ -346,93 +346,93 @@ void align_candidates(struct searchinfo_s * si)
       p = e - 1;
       op = *p;
       if (op != 'M')
-	{
-	  while (*(p-1) <= '9')
-	    p--;
-	  run = 1;
-	  sscanf(p, "%ld", &run);
-	  trim_aln_right = e - p;
-	  if (op == 'D')
-	    trim_q_right = run;
-	  else
-	    trim_t_right = run;
-	}
+        {
+          while (*(p-1) <= '9')
+            p--;
+          run = 1;
+          sscanf(p, "%ld", &run);
+          trim_aln_right = e - p;
+          if (op == 'D')
+            trim_q_right = run;
+          else
+            trim_t_right = run;
+        }
       
       long mismatches = nwdiff - nwindels;
       long matches = nwalignmentlength - nwdiff;
       long internal_alignmentlength = nwalignmentlength
-	- trim_q_left - trim_t_left - trim_q_right - trim_t_right;
+        - trim_q_left - trim_t_left - trim_q_right - trim_t_right;
       long internal_gaps = nwgaps
-	- (trim_q_left  + trim_t_left  > 0 ? 1 : 0)
-	- (trim_q_right + trim_t_right > 0 ? 1 : 0);
+        - (trim_q_left  + trim_t_left  > 0 ? 1 : 0)
+        - (trim_q_right + trim_t_right > 0 ? 1 : 0);
       long internal_indels = nwindels
-	- trim_q_left - trim_t_left - trim_q_right - trim_t_right;
+        - trim_q_left - trim_t_left - trim_q_right - trim_t_right;
       double internal_id = 100.0 * matches / internal_alignmentlength;
       
       /* test accept/reject criteria after alignment */
 
       if (/* weak_id */
-	  (internal_id >= 100.0 * opt_weak_id) &&
-	  /* maxsubs */
-	  (mismatches <= opt_maxsubs) &&
-	  /* maxgaps */
-	  (internal_gaps <= opt_maxgaps) &&
-	  /* mincols */
-	  (internal_alignmentlength >= opt_mincols) &&
-	  /* leftjust */
-	  ((!opt_leftjust) || (trim_q_left+trim_t_left == 0)) &&
-	  /* rightjust */
-	  ((!opt_rightjust) || (trim_q_right+trim_t_right == 0)) &&
-	  /* query_cov */
-	  (internal_alignmentlength >= opt_query_cov * si->qseqlen) &&
-	  /* target_cov */
-	  (internal_alignmentlength >= opt_target_cov *  
-	   db_getsequencelen(target)) &&
-	  /* maxid */
-	  (internal_id <= 100.0 * opt_maxid) &&
-	  /* mid */
-	  (100.0 * matches / (matches + mismatches) >= opt_mid) &&
-	  /* maxdiffs */
-	  (mismatches + internal_indels <= opt_maxdiffs))
-	{
-	  si->hits[si->hit_count].target = target;
-	  si->hits[si->hit_count].count = kmercount;
-	  si->hits[si->hit_count].nwscore = nwscore;
-	  si->hits[si->hit_count].nwdiff = nwdiff;
-	  si->hits[si->hit_count].nwgaps = nwgaps;
-	  si->hits[si->hit_count].nwindels = nwindels;
-	  si->hits[si->hit_count].nwalignmentlength = nwalignmentlength;
-	  si->hits[si->hit_count].nwalignment = nwalignment;
-	  si->hits[si->hit_count].nwid = nwid;
-	  si->hits[si->hit_count].strand = si->strand;
-	  si->hits[si->hit_count].matches = matches;
-	  si->hits[si->hit_count].mismatches = mismatches;
-	  si->hits[si->hit_count].trim_q_left = trim_q_left;
-	  si->hits[si->hit_count].trim_q_right = trim_q_right;
-	  si->hits[si->hit_count].trim_t_left = trim_t_left;
-	  si->hits[si->hit_count].trim_t_right = trim_t_right;
-	  si->hits[si->hit_count].trim_aln_left = trim_aln_left;
-	  si->hits[si->hit_count].trim_aln_right = trim_aln_right;
-	  si->hits[si->hit_count].internal_alignmentlength =
-	    internal_alignmentlength;
-	  si->hits[si->hit_count].internal_gaps = internal_gaps;
-	  si->hits[si->hit_count].internal_indels = internal_indels;
-	  si->hits[si->hit_count].internal_id = internal_id;
+          (internal_id >= 100.0 * opt_weak_id) &&
+          /* maxsubs */
+          (mismatches <= opt_maxsubs) &&
+          /* maxgaps */
+          (internal_gaps <= opt_maxgaps) &&
+          /* mincols */
+          (internal_alignmentlength >= opt_mincols) &&
+          /* leftjust */
+          ((!opt_leftjust) || (trim_q_left+trim_t_left == 0)) &&
+          /* rightjust */
+          ((!opt_rightjust) || (trim_q_right+trim_t_right == 0)) &&
+          /* query_cov */
+          (internal_alignmentlength >= opt_query_cov * si->qseqlen) &&
+          /* target_cov */
+          (internal_alignmentlength >= opt_target_cov *  
+           db_getsequencelen(target)) &&
+          /* maxid */
+          (internal_id <= 100.0 * opt_maxid) &&
+          /* mid */
+          (100.0 * matches / (matches + mismatches) >= opt_mid) &&
+          /* maxdiffs */
+          (mismatches + internal_indels <= opt_maxdiffs))
+        {
+          si->hits[si->hit_count].target = target;
+          si->hits[si->hit_count].count = kmercount;
+          si->hits[si->hit_count].nwscore = nwscore;
+          si->hits[si->hit_count].nwdiff = nwdiff;
+          si->hits[si->hit_count].nwgaps = nwgaps;
+          si->hits[si->hit_count].nwindels = nwindels;
+          si->hits[si->hit_count].nwalignmentlength = nwalignmentlength;
+          si->hits[si->hit_count].nwalignment = nwalignment;
+          si->hits[si->hit_count].nwid = nwid;
+          si->hits[si->hit_count].strand = si->strand;
+          si->hits[si->hit_count].matches = matches;
+          si->hits[si->hit_count].mismatches = mismatches;
+          si->hits[si->hit_count].trim_q_left = trim_q_left;
+          si->hits[si->hit_count].trim_q_right = trim_q_right;
+          si->hits[si->hit_count].trim_t_left = trim_t_left;
+          si->hits[si->hit_count].trim_t_right = trim_t_right;
+          si->hits[si->hit_count].trim_aln_left = trim_aln_left;
+          si->hits[si->hit_count].trim_aln_right = trim_aln_right;
+          si->hits[si->hit_count].internal_alignmentlength =
+            internal_alignmentlength;
+          si->hits[si->hit_count].internal_gaps = internal_gaps;
+          si->hits[si->hit_count].internal_indels = internal_indels;
+          si->hits[si->hit_count].internal_id = internal_id;
 
-	  si->hit_count++;
-	  
-	  if (internal_id >= 100.0 * opt_id)
-	    si->accepts++;
-	}
+          si->hit_count++;
+          
+          if (internal_id >= 100.0 * opt_id)
+            si->accepts++;
+        }
       else
-	{
-	  free(nwalignment);
-	  si->rejects++;
-	}
+        {
+          free(nwalignment);
+          si->rejects++;
+        }
       
 #if 0
       if ((si->accepts >= maxaccepts) || (si->rejects >= maxrejects))
-	return;
+        return;
 #endif
     }
 }
@@ -449,16 +449,16 @@ int search_onequery(struct searchinfo_s * si)
       /* s=0: plus; s=1: minus */
       char * qseq;
       if (s)
-	qseq = si->rc;
+        qseq = si->rc;
       else
-	qseq = si->qsequence;
+        qseq = si->qsequence;
 
       search16_qprep(si->s, qseq, si->qseqlen);
 
       /* extract unique kmer samples from query*/
       unique_count(si->uh, wordlength, 
-		   si->qseqlen, qseq,
-		   & si->kmersamplecount, & si->kmersample);
+                   si->qseqlen, qseq,
+                   & si->kmersamplecount, & si->kmersample);
       
       /* find database sequences with the most kmer hits */
       search_topscores(si);
@@ -472,79 +472,79 @@ int search_onequery(struct searchinfo_s * si)
       minheap_sort(si->m);
 
       for(int t = 0;
-	  (si->accepts < maxaccepts) && 
-	    (si->rejects <= maxrejects) &&
-	    (!minheap_isempty(si->m));
-	  t++)
-	{
-	  elem_t e = minheap_poplast(si->m);
-	  unsigned int target = e.seqno;
-	  unsigned int count = e.count;
-	  char * dlabel = db_getheader(target);
-	  char * dseq = db_getsequence(target);
-	  long dseqlen = db_getsequencelen(target);
-	  long tsize = db_getabundance(target);
-	  
-	  /* Test these accept/reject criteria before alignment */
-	  
-	  if (/* maxqsize */
-	      (si->qsize > opt_maxqsize) ||
-	      /* mintsize */
-	      (tsize < opt_mintsize) ||
-	      /* minsizeratio */
-	      (si->qsize < opt_minsizeratio * tsize) ||
-	      /* maxsizeratio */
-	      (si->qsize > opt_maxsizeratio * tsize) ||
-	      /* minqt */
-	      (si->qseqlen < opt_minqt * dseqlen) ||
-	      /* maxqt */
-	      (si->qseqlen > opt_maxqt * dseqlen) ||
-	      /* minsl */
-	      (si->qseqlen < dseqlen ? 
-	       si->qseqlen < opt_minsl * dseqlen : 
-	       dseqlen < opt_minsl * si->qseqlen) ||
-	      /* maxsl */
-	      (si->qseqlen < dseqlen ? 
-	       si->qseqlen > opt_maxsl * dseqlen : 
-	       dseqlen > opt_maxsl * si->qseqlen) ||
-	      /* idprefix */
-	      ((si->qseqlen < opt_idprefix) || 
-	       (dseqlen < opt_idprefix) ||
-	       (seqncmp(qseq,
-			dseq,
-			opt_idprefix))) ||
-	      /* idsuffix */
-	      ((si->qseqlen < opt_idsuffix) ||
-	       (dseqlen < opt_idsuffix) ||
-	       (seqncmp(qseq+si->qseqlen-opt_idsuffix,
-			dseq+dseqlen-opt_idsuffix,
-			opt_idsuffix))) ||
-	      /* self */
-	      (opt_self && (strcmp(si->query_head, dlabel) == 0)) ||
-	      /* selfid */
-	      (opt_selfid && (si->qseqlen == dseqlen) && 
-	       (seqncmp(qseq, dseq, si->qseqlen) == 0)))
-	    {
-	      si->rejects++;
-	    }
-	  else
-	    {
-	      si->candidate_target[si->candidatecount] = target;
-	      si->candidate_kmercount[si->candidatecount] = count;
-	      si->candidatecount++;
-	      if (si->candidatecount == 8)
-		{
-		  align_candidates(si);
-		  si->candidatecount = 0;
-		}
-	    }
-	}  
+          (si->accepts < maxaccepts) && 
+            (si->rejects <= maxrejects) &&
+            (!minheap_isempty(si->m));
+          t++)
+        {
+          elem_t e = minheap_poplast(si->m);
+          unsigned int target = e.seqno;
+          unsigned int count = e.count;
+          char * dlabel = db_getheader(target);
+          char * dseq = db_getsequence(target);
+          long dseqlen = db_getsequencelen(target);
+          long tsize = db_getabundance(target);
+          
+          /* Test these accept/reject criteria before alignment */
+          
+          if (/* maxqsize */
+              (si->qsize > opt_maxqsize) ||
+              /* mintsize */
+              (tsize < opt_mintsize) ||
+              /* minsizeratio */
+              (si->qsize < opt_minsizeratio * tsize) ||
+              /* maxsizeratio */
+              (si->qsize > opt_maxsizeratio * tsize) ||
+              /* minqt */
+              (si->qseqlen < opt_minqt * dseqlen) ||
+              /* maxqt */
+              (si->qseqlen > opt_maxqt * dseqlen) ||
+              /* minsl */
+              (si->qseqlen < dseqlen ? 
+               si->qseqlen < opt_minsl * dseqlen : 
+               dseqlen < opt_minsl * si->qseqlen) ||
+              /* maxsl */
+              (si->qseqlen < dseqlen ? 
+               si->qseqlen > opt_maxsl * dseqlen : 
+               dseqlen > opt_maxsl * si->qseqlen) ||
+              /* idprefix */
+              ((si->qseqlen < opt_idprefix) || 
+               (dseqlen < opt_idprefix) ||
+               (seqncmp(qseq,
+                        dseq,
+                        opt_idprefix))) ||
+              /* idsuffix */
+              ((si->qseqlen < opt_idsuffix) ||
+               (dseqlen < opt_idsuffix) ||
+               (seqncmp(qseq+si->qseqlen-opt_idsuffix,
+                        dseq+dseqlen-opt_idsuffix,
+                        opt_idsuffix))) ||
+              /* self */
+              (opt_self && (strcmp(si->query_head, dlabel) == 0)) ||
+              /* selfid */
+              (opt_selfid && (si->qseqlen == dseqlen) && 
+               (seqncmp(qseq, dseq, si->qseqlen) == 0)))
+            {
+              si->rejects++;
+            }
+          else
+            {
+              si->candidate_target[si->candidatecount] = target;
+              si->candidate_kmercount[si->candidatecount] = count;
+              si->candidatecount++;
+              if (si->candidatecount == 8)
+                {
+                  align_candidates(si);
+                  si->candidatecount = 0;
+                }
+            }
+        }  
 
       if (si->candidatecount > 0)
-	{
-	  align_candidates(si);
-	  si->candidatecount = 0;
-	}
+        {
+          align_candidates(si);
+          si->candidatecount = 0;
+        }
     }
     
   /* sort and return hits */
@@ -565,31 +565,31 @@ void search_thread_run(struct searchinfo_s * si)
       char * qseq;
 
       int r = query_getnext(& qhead, & si->query_head_len,
-			    & qseq, & si->qseqlen,
-			    & si->query_no, & si->qsize,
-			    opt_qmask != MASK_SOFT);
+                            & qseq, & si->qseqlen,
+                            & si->query_no, & si->qsize,
+                            opt_qmask != MASK_SOFT);
       
       if (!r)
-	{
-	  pthread_mutex_unlock(&mutex_input);
-	  break;
-	}
+        {
+          pthread_mutex_unlock(&mutex_input);
+          break;
+        }
 
       /* allocate more memory for header and sequence, if necessary */
       
       if (si->query_head_len + 1 > si->query_head_alloc)
-	{
-	  si->query_head_alloc = si->query_head_len + 2001;
-	  si->query_head = (char*) xrealloc(si->query_head,
-					    (size_t)(si->query_head_alloc));
-	}
+        {
+          si->query_head_alloc = si->query_head_len + 2001;
+          si->query_head = (char*) xrealloc(si->query_head,
+                                            (size_t)(si->query_head_alloc));
+        }
       
       if (si->qseqlen + 1 > si->seq_alloc)
-	{
-	  si->seq_alloc = si->qseqlen + 2001;
-	  si->qsequence = (char*) xrealloc(si->qsequence,
-					   (size_t)(si->seq_alloc));
-	}
+        {
+          si->seq_alloc = si->qseqlen + 2001;
+          si->qsequence = (char*) xrealloc(si->qsequence,
+                                           (size_t)(si->seq_alloc));
+        }
       
       /* copy header and sequence */
       strcpy(si->query_head, qhead);
@@ -600,24 +600,24 @@ void search_thread_run(struct searchinfo_s * si)
 
       /* mask query */
       if (opt_qmask == MASK_DUST)
-	{
-	  dust(si->qsequence, si->qseqlen);
-	}
+        {
+          dust(si->qsequence, si->qseqlen);
+        }
       else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
-	{
-	  hardmask(si->qsequence, si->qseqlen);
-	}
+        {
+          hardmask(si->qsequence, si->qseqlen);
+        }
 
       /* compute reverse complement query sequence */
       if (opt_strand > 1)
-	{
-	  if (si->qseqlen + 1 > si->rc_seq_alloc)
-	    {
-	      si->rc_seq_alloc = si->qseqlen + 2001;
-	      si->rc = (char *) xrealloc(si->rc, (size_t)(si->rc_seq_alloc));
-	    }
-	  reverse_complement(si->rc, si->qsequence, si->qseqlen);
-	}
+        {
+          if (si->qseqlen + 1 > si->rc_seq_alloc)
+            {
+              si->rc_seq_alloc = si->qseqlen + 2001;
+              si->rc = (char *) xrealloc(si->rc, (size_t)(si->rc_seq_alloc));
+            }
+          reverse_complement(si->rc, si->qsequence, si->qseqlen);
+        }
       
       /* perform search */
       int hit_count = search_onequery(si);
@@ -625,90 +625,90 @@ void search_thread_run(struct searchinfo_s * si)
       /* show results */
       long toreport = MIN(opt_maxhits, hit_count);
       if (opt_weak_id == opt_id)
-	toreport = MIN(toreport, maxaccepts);
+        toreport = MIN(toreport, maxaccepts);
 
       pthread_mutex_lock(&mutex_output);
       queries++;
       if (hit_count > 0)
-	qmatches++;
+        qmatches++;
       if (toreport)
-	{
-	  if (fp_alnout)
-	    results_show_alnout(fp_alnout,
-				si->hits, toreport, si->query_head,
-				si->qsequence, si->qseqlen, si->rc);
+        {
+          if (fp_alnout)
+            results_show_alnout(fp_alnout,
+                                si->hits, toreport, si->query_head,
+                                si->qsequence, si->qseqlen, si->rc);
       
-	  double top_hit_id = si->hits[0].internal_id;
-	  
-	  for(int t = 0; t < toreport; t++)
-	    {
-	      struct hit * hp = si->hits + t;
-	      
-	      if (opt_top_hits_only && (hp->internal_id < top_hit_id))
-		break;
-	      
-	      if (fp_fastapairs)
-		results_show_fastapairs_one(fp_fastapairs, hp, 
-					    si->query_head,
-					    si->qsequence,
-					    si->qseqlen,
-					    si->rc);
+          double top_hit_id = si->hits[0].internal_id;
+          
+          for(int t = 0; t < toreport; t++)
+            {
+              struct hit * hp = si->hits + t;
+              
+              if (opt_top_hits_only && (hp->internal_id < top_hit_id))
+                break;
+              
+              if (fp_fastapairs)
+                results_show_fastapairs_one(fp_fastapairs, hp, 
+                                            si->query_head,
+                                            si->qsequence,
+                                            si->qseqlen,
+                                            si->rc);
 
-	      if (fp_uc)
-		if (opt_uc_allhits || (t==0))
-		  results_show_uc_one(fp_uc, hp, si->query_head,
-				      si->qsequence, si->qseqlen, si->rc);
-	      
-	      if (fp_userout)
-		results_show_userout_one(fp_userout, hp, si->query_head, 
-					 si->qsequence, si->qseqlen, si->rc);
-	      
-	      if (fp_blast6out)
-		results_show_blast6out_one(fp_blast6out, hp, si->query_head,
-					   si->qsequence, si->qseqlen, si->rc);
-	    }
-	}
+              if (fp_uc)
+                if (opt_uc_allhits || (t==0))
+                  results_show_uc_one(fp_uc, hp, si->query_head,
+                                      si->qsequence, si->qseqlen, si->rc);
+              
+              if (fp_userout)
+                results_show_userout_one(fp_userout, hp, si->query_head, 
+                                         si->qsequence, si->qseqlen, si->rc);
+              
+              if (fp_blast6out)
+                results_show_blast6out_one(fp_blast6out, hp, si->query_head,
+                                           si->qsequence, si->qseqlen, si->rc);
+            }
+        }
       else
-	{
-	  if (fp_uc)
-	    results_show_uc_one(fp_uc, 0, si->query_head,
-				si->qsequence, si->qseqlen, si->rc);
-	  
-	  if (opt_output_no_hits)
-	    {
-	      if (fp_userout)
-		results_show_userout_one(fp_userout, 0, si->query_head, 
-					 si->qsequence, si->qseqlen, si->rc);
-	      
-	      if (fp_blast6out)
-		results_show_blast6out_one(fp_blast6out, 0, si->query_head,
-					   si->qsequence, si->qseqlen, si->rc);
-	    }
-	}
+        {
+          if (fp_uc)
+            results_show_uc_one(fp_uc, 0, si->query_head,
+                                si->qsequence, si->qseqlen, si->rc);
+          
+          if (opt_output_no_hits)
+            {
+              if (fp_userout)
+                results_show_userout_one(fp_userout, 0, si->query_head, 
+                                         si->qsequence, si->qseqlen, si->rc);
+              
+              if (fp_blast6out)
+                results_show_blast6out_one(fp_blast6out, 0, si->query_head,
+                                           si->qsequence, si->qseqlen, si->rc);
+            }
+        }
 
       if (hit_count)
-	{
-	  if (opt_matched)
-	    {
-	      fprintf(fp_matched, ">%s\n", si->query_head);
-	      fprint_fasta_seq_only(fp_matched, si->qsequence, si->qseqlen,
-				    opt_fasta_width);
-	    }
-	}
+        {
+          if (opt_matched)
+            {
+              fprintf(fp_matched, ">%s\n", si->query_head);
+              fprint_fasta_seq_only(fp_matched, si->qsequence, si->qseqlen,
+                                    opt_fasta_width);
+            }
+        }
       else
-	{
-	  if (opt_notmatched)
-	    {
-	      fprintf(fp_notmatched, ">%s\n", si->query_head);
-	      fprint_fasta_seq_only(fp_notmatched, si->qsequence, si->qseqlen,
-				    opt_fasta_width);
-	    }
-	}
+        {
+          if (opt_notmatched)
+            {
+              fprintf(fp_notmatched, ">%s\n", si->query_head);
+              fprint_fasta_seq_only(fp_notmatched, si->qsequence, si->qseqlen,
+                                    opt_fasta_width);
+            }
+        }
 
       /* update matching db sequences */
       for (long i=0; i<hit_count; i++)
-	if (si->hits[i].internal_id >= 100.0 * opt_id)
-	  dbmatched[si->hits[i].target]++;
+        if (si->hits[i].internal_id >= 100.0 * opt_id)
+          dbmatched[si->hits[i].target]++;
       
       progress_update(query_getfilepos());
 
@@ -716,7 +716,7 @@ void search_thread_run(struct searchinfo_s * si)
 
       /* free memory for alignment strings */
       for(int i=0; i<hit_count; i++)
-	free(si->hits[i].nwalignment);
+        free(si->hits[i].nwalignment);
     }
 }
 
@@ -744,19 +744,19 @@ void search_thread_init(struct searchinfo_s * si)
   si->nw = 0;
 #endif
   si->s = search16_init(match_score,
-			mismatch_score,
-			opt_gap_open_query_left,
-			opt_gap_open_target_left,
-			opt_gap_open_query_interior,
-			opt_gap_open_target_interior,
-			opt_gap_open_query_right,
-			opt_gap_open_target_right,
-			opt_gap_extension_query_left,
-			opt_gap_extension_target_left,
-			opt_gap_extension_query_interior,
-			opt_gap_extension_target_interior,
-			opt_gap_extension_query_right,
-			opt_gap_extension_target_right);
+                        mismatch_score,
+                        opt_gap_open_query_left,
+                        opt_gap_open_target_left,
+                        opt_gap_open_query_interior,
+                        opt_gap_open_target_interior,
+                        opt_gap_open_query_right,
+                        opt_gap_open_target_right,
+                        opt_gap_extension_query_left,
+                        opt_gap_extension_target_left,
+                        opt_gap_extension_query_interior,
+                        opt_gap_extension_target_interior,
+                        opt_gap_extension_query_right,
+                        opt_gap_extension_target_right);
 }
 
 void search_thread_exit(struct searchinfo_s * si)
@@ -802,7 +802,7 @@ void search_thread_worker_init()
       struct searchinfo_s * si = sia + t;
       search_thread_init(si);
       if (pthread_create(&si->pthread, &attr, search_thread_worker,
-			 (void*)(long)t))
+                         (void*)(long)t))
         fatal("Cannot create thread");
     }
 }
@@ -834,7 +834,7 @@ void search(char * cmdline, char * progheader)
     {
       fp_alnout = fopen(alnoutfilename, "w");
       if (! fp_alnout)
-	fatal("Unable to open alignment output file for writing");
+        fatal("Unable to open alignment output file for writing");
     }
 
   if (useroutfilename)
@@ -948,20 +948,20 @@ void search(char * cmdline, char * progheader)
   progress_done();
 
   fprintf(stderr, "Matching query sequences: %ld of %ld (%.2f%%)\n", 
-	  qmatches, queries, 100.0 * qmatches / queries);
+          qmatches, queries, 100.0 * qmatches / queries);
   if (opt_dbmatched || opt_dbnotmatched)
     {
       for(long i=0; i<seqcount; i++)
-	if (dbmatched[i])
-	  {
-	    if (opt_dbmatched)
-	      db_fprint_fasta_with_size(fp_dbmatched, i, dbmatched[i]);
-	  }
-	else
-	  {
-	    if (opt_dbnotmatched)
-	      db_fprint_fasta(fp_dbnotmatched, i);
-	  }
+        if (dbmatched[i])
+          {
+            if (opt_dbmatched)
+              db_fprint_fasta_with_size(fp_dbmatched, i, dbmatched[i]);
+          }
+        else
+          {
+            if (opt_dbnotmatched)
+              db_fprint_fasta(fp_dbnotmatched, i);
+          }
     }
   
   /* clean up, global */

@@ -71,11 +71,11 @@ void sortbysize()
       long size = db_getabundance(i);
       
       if((size >= opt_minsize) && (size <= opt_maxsize))
-	{
-	  sortinfo[passed].seqno = i;
-	  sortinfo[passed].size = size;
-	  passed++;
-	}
+        {
+          sortinfo[passed].seqno = i;
+          sortinfo[passed].size = size;
+          passed++;
+        }
       progress_update(i);
     }
 
@@ -105,14 +105,14 @@ void sortbysize()
   for(int i=0; i<passed; i++)
     {
       if (opt_relabel)
-	{
-	  if (opt_sizeout)
-	    fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, sortinfo[i].size);
-	  else
-	    fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
-	}
+        {
+          if (opt_sizeout)
+            fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, sortinfo[i].size);
+          else
+            fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
+        }
       else
-	fprintf(fp_output, ">%s\n", db_getheader(sortinfo[i].seqno));
+        fprintf(fp_output, ">%s\n", db_getheader(sortinfo[i].seqno));
       
       char * seq = db_getsequence(sortinfo[i].seqno);
       int len = db_getsequencelen(sortinfo[i].seqno);
