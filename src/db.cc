@@ -459,7 +459,7 @@ void db_read(const char * filename, int upcase)
     seqindex_p->size = 1;
 
     /* read sizein annotation if appropriate */
-    if ((opt_usearch_global || 
+    if ((opt_vsearch_global || 
          opt_sortbysize ||
          (opt_sortbylength && opt_sizeout) ||
          (opt_derep_fulllength && opt_sizein)) && 

@@ -24,12 +24,22 @@
 /* ARGUMENTS AND THEIR DEFAULTS */
 
 static char * progname;
-char * databasefilename;
-char * opt_usearch_global;
 
-char * alnoutfilename;
+char * opt_db;
+char * opt_vsearch_global;
+char * opt_cluster_smallmem;
+char * opt_cluster_fast;
+
+char * opt_centroids;
+char * opt_clusters;
+char * opt_consout;
+int opt_construncate;
+char * opt_msaout;
+int opt_usersort;
+
+char * opt_alnout;
 char * useroutfilename;
-char * blast6outfilename;
+char * opt_blast6out;
 char * ucfilename;
 char * opt_fastapairs;
 char * opt_matched;
@@ -43,12 +53,12 @@ long opt_dbmask;
 
 long opt_threads;
 long opt_fulldp;
-long wordlength;
+long opt_wordlength;
 long maxrejects;
 long maxaccepts;
 long match_score;
 long mismatch_score;
-long rowlen;
+long opt_rowlen;
 
 double opt_id;
 double opt_query_cov;
@@ -98,7 +108,7 @@ long opt_maxhits;
 long opt_top_hits_only;
 long opt_fasta_width;
 char * opt_shuffle;
-char * opt_mask;
+char * opt_maskfasta;
 long opt_seed;
 
 int opt_gap_open_query_left;
@@ -115,6 +125,8 @@ int opt_gap_extension_query_right;
 int opt_gap_extension_target_right;
 
 /* Other variables */
+
+/* cpu features available */
 
 long mmx_present = 0;
 long sse_present = 0;
@@ -364,12 +376,19 @@ void args_init(int argc, char **argv)
 
   progname = argv[0];
 
+  opt_centroids = 0;
+  opt_clusters = 0;
+  opt_consout = 0;
+  opt_construncate = 0;
+  opt_msaout = 0;
+  opt_usersort = 0;
+
   opt_hardmask = 0;
   opt_qmask = MASK_DUST;
   opt_dbmask = MASK_DUST;
 
-  databasefilename = 0;
-  alnoutfilename = 0;
+  opt_db = 0;
+  opt_alnout = 0;
   useroutfilename = 0;
   opt_fastapairs = 0;
   opt_matched = 0;
@@ -377,27 +396,29 @@ void args_init(int argc, char **argv)
   opt_dbmatched = 0;
   opt_dbnotmatched = 0;
   
-  wordlength = 8;
+  opt_wordlength = 8;
   opt_fulldp = 0;
 
-  maxrejects = 32;
+  maxrejects = -1;
   maxaccepts = 1;
 
   opt_weak_id = 10.0;
   opt_strand = 1;
   opt_threads = 0;
-  rowlen = 64;
+  opt_rowlen = 64;
   opt_uc_allhits = 0;
   opt_notrunclabels = 0;
   opt_maxhits = LONG_MAX;
 
   opt_help = 0;
   opt_version = 0;
-  opt_usearch_global = 0;
+  opt_vsearch_global = 0;
   opt_sortbysize = 0;
   opt_sortbylength = 0;
   opt_derep_fulllength = 0;
   opt_shuffle = 0;
+  opt_cluster_smallmem = 0;
+  opt_cluster_fast = 0;
 
   opt_seed = 0;
   opt_output = 0;
@@ -463,7 +484,7 @@ void args_init(int argc, char **argv)
     {"help",                  no_argument,       0, 0 },
     {"version",               no_argument,       0, 0 },
     {"alnout",                required_argument, 0, 0 },
-    {"usearch_global",        required_argument, 0, 0 },
+    {"vsearch_global",        required_argument, 0, 0 },
     {"db",                    required_argument, 0, 0 },
     {"id",                    required_argument, 0, 0 },
     {"maxaccepts",            required_argument, 0, 0 },
@@ -530,10 +551,19 @@ void args_init(int argc, char **argv)
     {"mid",                   required_argument, 0, 0 },
     {"shuffle",               required_argument, 0, 0 },
     {"seed",                  required_argument, 0, 0 },
-    {"mask",                  required_argument, 0, 0 },
+    {"maskfasta",             required_argument, 0, 0 },
     {"hardmask",              no_argument,       0, 0 },
     {"qmask",                 required_argument, 0, 0 },
     {"dbmask",                required_argument, 0, 0 },
+    {"cluster_smallmem",      required_argument, 0, 0 },
+    {"cluster_fast",          required_argument, 0, 0 },
+    {"centroids",             required_argument, 0, 0 },
+    {"clusters",              required_argument, 0, 0 },
+    {"consout",               required_argument, 0, 0 },
+    {"construncate",          no_argument,       0, 0 },
+    {"msaout",                required_argument, 0, 0 },
+    {"usersort",              no_argument,       0, 0 },
+    {"usearch_global",        required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -557,17 +587,17 @@ void args_init(int argc, char **argv)
 
     case 2:
       /* alnout */
-      alnoutfilename = optarg;
+      opt_alnout = optarg;
       break;
           
     case 3:
-      /* usearch_global */
-      opt_usearch_global = optarg;
+      /* vsearch_global */
+      opt_vsearch_global = optarg;
       break;
 
     case 4:
       /* db */
-      databasefilename = optarg;
+      opt_db = optarg;
       break;
 
     case 5:
@@ -587,7 +617,7 @@ void args_init(int argc, char **argv)
 
     case 8:
       /* wordlength */
-      wordlength = args_getlong(optarg);
+      opt_wordlength = args_getlong(optarg);
       break;
 
     case 9:
@@ -632,7 +662,7 @@ void args_init(int argc, char **argv)
 
     case 16:
       /* rowlen */
-      rowlen = args_getlong(optarg);
+      opt_rowlen = args_getlong(optarg);
       break;
 
     case 17:
@@ -653,7 +683,7 @@ void args_init(int argc, char **argv)
       
     case 20:
       /* blast6out */
-      blast6outfilename = optarg;
+      opt_blast6out = optarg;
       break;
       
     case 21:
@@ -903,7 +933,7 @@ void args_init(int argc, char **argv)
 
     case 70:
       /* mask */
-      opt_mask = optarg;
+      opt_maskfasta = optarg;
       break;
 
     case 71:
@@ -935,6 +965,54 @@ void args_init(int argc, char **argv)
         opt_dbmask = MASK_ERROR;
       break;
 
+    case 74:
+      /* cluster_smallmem */
+      opt_cluster_smallmem = optarg;
+      break;
+
+    case 75:
+      /* cluster_fast */
+      opt_cluster_fast = optarg;
+      break;
+
+    case 76:
+      /* centroids */
+      opt_centroids = optarg;
+      break;
+
+    case 77:
+      /* clusters */
+      opt_clusters = optarg;
+      break;
+
+    case 78:
+      /* consout */
+      fprintf(stderr, "WARNING: option --consout not implemented\n");
+      opt_consout = optarg;
+      break;
+
+    case 79:
+      /* construncate */
+      fprintf(stderr, "WARNING: option --construncate not implemented\n");
+      opt_construncate = 1;
+      break;
+
+    case 80:
+      /* msaout */
+      fprintf(stderr, "WARNING: option --msaout not implemented\n");
+      opt_msaout = optarg;
+      break;
+
+    case 81:
+      /* usersort */
+      opt_usersort = 1;
+      break;
+
+    case 82:
+      /* usearch_global */
+      opt_vsearch_global = optarg;
+      break;
+
     default:
       fatal("Internal error in option parsing");
     }
@@ -944,7 +1022,7 @@ void args_init(int argc, char **argv)
     exit(1);
   
   int commands = 0;
-  if (opt_usearch_global)
+  if (opt_vsearch_global)
     commands++;
   if (opt_sortbysize)
     commands++;
@@ -958,7 +1036,11 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_shuffle)
     commands++;
-  if (opt_mask)
+  if (opt_maskfasta)
+    commands++;
+  if (opt_cluster_smallmem)
+    commands++;
+  if (opt_cluster_fast)
     commands++;
 
   if (commands == 0)
@@ -969,6 +1051,14 @@ void args_init(int argc, char **argv)
 
   if (opt_weak_id > opt_id)
     opt_weak_id = opt_id;
+
+  if (maxrejects == -1)
+    {
+      if (opt_cluster_fast)
+        maxrejects = 8;
+      else
+        maxrejects = 32;
+    }
 
   if (opt_minseqlength < 0)
     fatal("The argument to --minseqlength must be positive");
@@ -982,7 +1072,7 @@ void args_init(int argc, char **argv)
   if ((opt_threads < 0) || (opt_threads > 32))
     fatal("The argument to --threads must be in the range 0 (default) to 32");
 
-  if ((wordlength < 3) || (wordlength > 15))
+  if ((opt_wordlength < 3) || (opt_wordlength > 15))
     fatal("The argument to --wordlength must be in the range 3 to 15");
 
   if (match_score <= 0)
@@ -991,7 +1081,7 @@ void args_init(int argc, char **argv)
   if (mismatch_score >= 0)
     fatal("The argument to --mismatch must be negative");
 
-  if(rowlen < 0)
+  if(opt_rowlen < 0)
     fatal("The argument to --rowlen must not be negative");
 
   if (opt_strand < 1)
@@ -1029,7 +1119,7 @@ void args_init(int argc, char **argv)
   opt_gap_open_target_right -= opt_gap_extension_target_right;
 
 #endif
-  
+
   if (opt_threads == 0)
     opt_threads = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -1043,8 +1133,8 @@ void args_init(int argc, char **argv)
         opt_minseqlength = 32;
     }
 
-  if (rowlen == 0)
-    rowlen = 60;
+  if (opt_rowlen == 0)
+    opt_rowlen = 60;
 }
 
 
@@ -1070,7 +1160,7 @@ void cmd_help()
           "  --uc_allhits                show all, not just top hit with uc output\n"
           "\n"
           "Search options:\n"
-          "  --usearch_global FILENAME   filename of queries for global alignment search\n"
+          "  --vsearch_global FILENAME   filename of queries for global alignment search\n"
           "  --alnout FILENAME           filename for human-readable alignment output\n"
           "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
           "  --db FILENAME               filename for FASTA formatted database for search\n"
@@ -1123,7 +1213,7 @@ void cmd_help()
           "\n"
           "Dereplication, masking, shuffling and sorting options\n"
           "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
-          "  --mask FILENAME             mask sequences in the given FASTA file\n"
+          "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
           "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
           "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
           "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
@@ -1136,20 +1226,30 @@ void cmd_help()
           "  --sizein                    read abundance annotation from input\n"
           "  --sizeout                   add abundance annotation to output\n"
           "  --topn INT                  output just top n seqs from derepl./shuffle/sort\n"
+          "\n"
+          "Clustering options\n"
+          "  --cluster_fast FILENAME     cluster sequences fast\n"
+          "  --cluster_smallmem FILENAME cluster sequences using a small amount of memory\n"
+          "  --centroids FILENAME        output centroid sequences to FASTA file\n"
+          "  --clusters STRING           output each cluster to a separate FASTA file\n"
+          "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
+          "  --construncate              do not ignore terminal gaps in MSA for consensus\n"
+          "  --msaout FILENAME           output MSA for each cluster to FASTA file\n"
+          "  --usersort                  indicate that input sequences are presorted\n"
           );
 }
 
-void cmd_usearch_global()
+void cmd_vsearch_global()
 {
   /* check options */
 
-  if ((!alnoutfilename) && (!useroutfilename) &&
-      (!ucfilename) && (!blast6outfilename) &&
+  if ((!opt_alnout) && (!useroutfilename) &&
+      (!ucfilename) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched))
     fatal("No output files specified");
   
-  if (!databasefilename)
+  if (!opt_db)
     fatal("Database filename not specified with --db");
   
   if ((opt_id < 0.0) || (opt_id > 1.0))
@@ -1190,12 +1290,42 @@ void cmd_shuffle()
   shuffle();
 }
 
-void cmd_mask()
+void cmd_maskfasta()
 {
   if (!opt_output)
     fatal("Output file for masking must be specified with --output");
   
-  mask();
+  maskfasta();
+}
+
+void cmd_cluster_fast()
+{
+  if ((!opt_alnout) && (!useroutfilename) &&
+      (!ucfilename) && (!opt_blast6out) &&
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_centroids) && (!opt_clusters) &&
+      (!opt_consout) && (!opt_msaout))
+    fatal("No output files specified");
+  
+  if ((opt_id < 0.0) || (opt_id > 1.0))
+    fatal("Identity between 0.0 and 1.0 must be specified with --id");
+
+  cluster_fast(cmdline, progheader);
+}
+
+void cmd_cluster_smallmem()
+{
+  if ((!opt_alnout) && (!useroutfilename) &&
+      (!ucfilename) && (!opt_blast6out) &&
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_centroids) && (!opt_clusters) &&
+      (!opt_consout) && (!opt_msaout))
+    fatal("No output files specified");
+  
+  if ((opt_id < 0.0) || (opt_id > 1.0))
+    fatal("Identity between 0.0 and 1.0 must be specified with --id");
+
+  cluster_smallmem(cmdline, progheader);
 }
 
 void fillheader()
@@ -1246,9 +1376,9 @@ int main(int argc, char** argv)
     {
       cmd_help();
     }
-  else if (opt_usearch_global)
+  else if (opt_vsearch_global)
     {
-      cmd_usearch_global();
+      cmd_vsearch_global();
     }
   else if (opt_sortbysize)
     {
@@ -1266,9 +1396,21 @@ int main(int argc, char** argv)
     {
       cmd_shuffle();
     }
-  else if (opt_mask)
+  else if (opt_maskfasta)
     {
-      cmd_mask();
+      cmd_maskfasta();
+    }
+  else if (opt_cluster_smallmem)
+    {
+      cmd_cluster_smallmem();
+    }
+  else if (opt_cluster_fast)
+    {
+      cmd_cluster_fast();
+    }
+  else if (!opt_version)
+    {
+      fatal("Command not implemented");
     }
 
   free(cmdline);

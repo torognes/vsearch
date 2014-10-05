@@ -45,7 +45,7 @@ struct uhandle_s * unique_init()
 {
   uhandle_s * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
 
-  uh->alloc = 512;
+  uh->alloc = 2048;
   uh->size = 0;
   uh->hash_mask = uh->alloc - 1;
   uh->hash = (struct bucket_s *) xmalloc(sizeof(struct bucket_s) * uh->alloc);

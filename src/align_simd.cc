@@ -24,6 +24,8 @@
 #define CHANNELS 8
 #define CDEPTH 4
 
+static long scorematrix[16][16];
+
 /*
   Using 16-bit signed values, from -32768 to +32767.
   match: positive
@@ -608,8 +610,31 @@ struct s16info_s * search16_init(CELL score_match,
 
   for(int i=0; i<16; i++)
     for(int j=0; j<16; j++)
-      ((CELL*)(&s->matrix))[16*i+j] = ((i==j) && (i>0) && (j>0)) ? 
-        score_match : score_mismatch;
+      {
+        CELL value;
+        if (i==j)
+          if ((i>=1) && (i<=4))
+            value = score_match;
+          else
+            value = 0;
+        else
+          value = score_mismatch;
+        ((CELL*)(&s->matrix))[16*i+j] = value;
+      }
+  
+  for(int i=0; i<16; i++)
+    for(int j=0; j<16; j++)
+      {
+        CELL value;
+        if (i==j)
+          value = match_score;
+        else if ((i==0) || (j==0) || (i>4) || (j>4))
+          value = 0;
+        else
+          value = mismatch_score;
+        scorematrix[i][j] = value;
+      }
+  
 
   s->penalty_gap_open_query_left = penalty_gap_open_query_left;
   s->penalty_gap_open_query_interior = penalty_gap_open_query_interior;
