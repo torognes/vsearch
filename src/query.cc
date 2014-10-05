@@ -25,6 +25,10 @@
    allocated here for the query header and sequence. This buffers will
    be overwritten on the next call of query_getnext. */
 
+#ifndef LINE_MAX
+#define LINE_MAX 2048
+#endif
+
 #define MEMCHUNK 4096
 #define LINEALLOC LINE_MAX
 

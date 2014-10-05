@@ -228,6 +228,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
           ((op == 'I') && (origin == 1)))
         {
           strncpy(r, s, len);
+          r += len;
         }
       else
         {

@@ -2,8 +2,10 @@
 
 P=$1
 
-Q=../data/Rfam_9_1.fasta
-DB=../data/Rfam_9_1.fasta
+#Q=../data/Rfam_9_1.fasta
+#DB=../data/Rfam_9_1.fasta
+Q=../data/BioMarKs50k.fsa
+DB=../data/BioMarKs50k.fsa
 T=0
 ID=0.5
 MR=32
@@ -34,4 +36,8 @@ fi
     --gapext 2I/1E \
     --maxaccepts 1 \
     --maxrejects $MR \
-    --alnout alnout.$P.txt
+    --alnout alnout.$P.txt \
+    --fastapairs fastapairs.$P.fsa \
+    --dbmatched dbmatched.$P.fsa \
+    --dbnotmatched dbnotmatched.$P.fsa
+

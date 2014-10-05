@@ -73,13 +73,15 @@ long gcd(long a, long b)
 
 void  __attribute__((noreturn)) fatal(const char * msg)
 {
-  fprintf(stderr, "Error: %s\n", msg);
+  fprintf(stderr, "\n\n");
+  fprintf(stderr, "Fatal error: %s\n", msg);
   exit(1);
 }
 
 void  __attribute__((noreturn)) fatal(const char * format, 
                                       const char * message)
 {
+  fprintf(stderr, "\n\n");
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
   exit(1);

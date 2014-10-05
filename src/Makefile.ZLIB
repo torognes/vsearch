@@ -1,4 +1,4 @@
-# Copyright (C) 2014 Torbjorn Rognes
+# Copyright (C) 2014 Torbjorn Rognes & Tomas Flouri
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -17,8 +17,9 @@
 # Department of Informatics, University of Oslo, 
 # PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
-# Profiling options
+# Profiling
 #PROFILING=-g -pg
+#PROFILING=-g -pg -fprofile-arcs -ftest-coverage
 
 # Compiler warnings
 WARN=-Wall
@@ -26,16 +27,22 @@ WARN=-Wall
 
 CXX=g++
 CXXFLAGS=-O3 -DHAVE_ZLIB -msse4.1 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
-LINKFLAGS=-g
+LINKFLAGS=$(PROFILING)
 LIBS=-lpthread -lz
 
 PROG=vsearch-gz
 
-DEPS=vsearch.h Makefile cityhash/city.h cityhash/config.h
+DEPS=Makefile cityhash/city.h cityhash/config.h \
+	align.h align_simd.h arch.h bitmap.h cluster.h db.h dbindex.h derep.h \
+	maps.h mask.h minheap.h query.h results.h search.h searchcore.h \
+	showalign.h shuffle.h sortbylength.h sortbysize.h unique.h \
+	userfields.h util.h vsearch.h
 
-OBJS=vsearch.o query.o db.o dbindex.o search.o nw.o showalign.o util.o \
+OBJS=vsearch.o query.o db.o dbindex.o vsearch_global.o align.o \
+	showalign.o util.o \
 	unique.o userfields.o results.o sortbysize.o derep.o maps.o \
-	arch.o sortbylength.o shuffle.o searchsimd.o mask.o minheap.o \
+	arch.o sortbylength.o shuffle.o align_simd.o mask.o minheap.o \
+	bitmap.o cluster.o searchcore.o \
 	cityhash/city.o
 
 .SUFFIXES:.o .cc
@@ -49,4 +56,4 @@ vsearch-gz : $(OBJS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean :
-	rm -f *.o *~ $(PROG) gmon.out cityhash/*.o
+	rm -f *~ *.{o,S,gcda,gcno,gcov} $(PROG) gmon.out cityhash/*.{o,S,gcda,gcno,gcov}

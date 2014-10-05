@@ -176,13 +176,13 @@ void hardmask_all()
     hardmask(db_getsequence(i), db_getsequencelen(i));
 }
 
-void mask()
+void maskfasta()
 {
   FILE * fp_output = fopen(opt_output, "w");
   if (!fp_output)
     fatal("Unable to open mask output file for writing");
 
-  db_read(opt_mask, opt_dbmask != MASK_SOFT);
+  db_read(opt_maskfasta, opt_dbmask != MASK_SOFT);
   show_rusage();
 
   if (opt_dbmask == MASK_DUST)

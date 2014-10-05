@@ -21,22 +21,17 @@
 
 #include "vsearch.h"
 
-static int k;
-
+unsigned int * kmercount;
 unsigned int * kmerhash;
 unsigned int * kmerindex;
+bitmap_t * * kmerbitmap;
+unsigned int * dbindex_map;
+
 unsigned int kmerhashsize;
 unsigned int kmerindexsize;
+unsigned int dbindex_count;
 
-inline int dbindex_getkmermatchcount(int kmer)
-{
-  return kmerhash[kmer+1] - kmerhash[kmer];
-}
-
-inline int dbindex_getkmermatch(int kmer, int matchno)
-{
-  return kmerindex[kmerhash[kmer]+matchno];
-}
+uhandle_s * dbindex_uh;
 
 void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
 {
@@ -45,37 +40,79 @@ void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
     fprintf(f, "%c", sym_nt_2bit[(x >> (2*(kk-i-1))) & 3]);
 }
 
-void dbindex_build()
+void dbindex_addsequence(unsigned int seqno)
 {
-  k = wordlength;
-  unsigned int seqcount = db_getsequencecount();
-  kmerhashsize = 1 << (2*k);
-  unsigned int * kmercount = (unsigned int *)
-    xmalloc(kmerhashsize * sizeof(unsigned int));
-  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
-  struct uhandle_s * uh = unique_init();
+#if 0
+  printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
+#endif
 
+  unsigned int uniquecount;
+  unsigned int * uniquelist;
+  unique_count(dbindex_uh, opt_wordlength,
+               db_getsequencelen(seqno), db_getsequence(seqno),
+               & uniquecount, & uniquelist);
+  dbindex_map[dbindex_count] = seqno;
+  for(unsigned int i=0; i<uniquecount; i++)
+    {
+      unsigned int kmer = uniquelist[i];
+      kmerindex[kmerhash[kmer]+(kmercount[kmer]++)] = dbindex_count;
+      if (kmerbitmap[kmer])
+        bitmap_set(kmerbitmap[kmer], dbindex_count);
+    }
+  dbindex_count++;
+}
+
+void dbindex_addallsequences()
+{
+  unsigned int seqcount = db_getsequencecount();
+  progress_init("Creating index of unique k-mers", seqcount);
+  for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
+    {
+      dbindex_addsequence(seqno);
+      progress_update(seqno);
+    }
+  progress_done();
+}
+
+void dbindex_prepare(int use_bitmap)
+{
+  dbindex_uh = unique_init();
+
+  unsigned int seqcount = db_getsequencecount();
+  kmerhashsize = 1 << (2 * opt_wordlength);
+
+  /* allocate memory for kmer count array */
+  kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
+  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
-  
   progress_init("Counting unique k-mers", seqcount);
   for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
-      char * sequence = db_getsequence(seqno);
-      long seqlen = db_getsequencelen(seqno);
       unsigned int uniquecount;
       unsigned int * uniquelist;
-      unique_count(uh, k, seqlen, sequence, & uniquecount, & uniquelist);
+      unique_count(dbindex_uh, opt_wordlength,
+                   db_getsequencelen(seqno), db_getsequence(seqno),
+                   & uniquecount, & uniquelist);
       for(unsigned int i=0; i<uniquecount; i++)
         kmercount[uniquelist[i]]++;
       progress_update(seqno);
     }
   progress_done();
 
+#if 0
+  /* dump kmer counts */
+  FILE * f = fopen("kmercounts.txt", "w");
+  for(unsigned int kmer=0; kmer < kmerhashsize; kmer++)
+    {
+      fprint_kmer(f, 8, kmer);
+      fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
+    }
+  fclose(f);
+#endif
 
   /* hash setup */
   /* convert hash counts to position in index */
-
   kmerhash = (unsigned int *) xmalloc((kmerhashsize+1) * sizeof(unsigned int));
   unsigned int sum = 0;
   for(unsigned int i = 0; i < kmerhashsize; i++)
@@ -85,45 +122,46 @@ void dbindex_build()
     }
   kmerindexsize = sum;
   kmerhash[kmerhashsize] = sum;
-  free(kmercount);
-  fprintf(stderr, "Unique %u-mers: %u\n", k, kmerindexsize);
+  fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
   show_rusage();
 
+  /* allocate and zero bitmap pointers */
+  kmerbitmap = (bitmap_t **) xmalloc(kmerhashsize * sizeof(bitmap_t *));
+  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t *));
 
-  /* second scan, fill in actual index of the unique kmers */
+  /* prepare bitmap for frequent kmers */
+  if (use_bitmap)
+    for(unsigned int kmer=0; kmer < kmerhashsize; kmer++)
+      if (kmercount[kmer] > seqcount / 8)
+        {
+          kmerbitmap[kmer] = bitmap_init(seqcount+127); // pad for xmm
+          bitmap_reset_all(kmerbitmap[kmer]);
+        }
+  
+  /* reset counts */
+  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
+  /* allocate space for actual data */
   kmerindex = (unsigned int *) xmalloc(kmerindexsize * sizeof(unsigned int));
-  progress_init("Creating index of unique k-mers", seqcount);
-  for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
-    {
-      char * sequence = db_getsequence(seqno);
-      long seqlen = db_getsequencelen(seqno);
-      unsigned int uniquecount;
-      unsigned int * uniquelist;
-      unique_count(uh, k, seqlen, sequence, & uniquecount, & uniquelist);
-      for(unsigned int i=0; i<uniquecount; i++)
-        kmerindex[kmerhash[uniquelist[i]]++] = seqno;
-      progress_update(seqno);
-    }
-  progress_done();
 
-
-  /* reset kmerhash pointers (move up) */
-
-  unsigned int temp = 0;
-  unsigned int next;
-  for(unsigned int i = 0; i < kmerhashsize; i++)
-    {
-      next = kmerhash[i];
-      kmerhash[i] = temp;
-      temp = next;
-    }
+  /* allocate space for mapping from indexno to seqno */
+  dbindex_map = (unsigned int *) xmalloc(seqcount * sizeof(unsigned int));
+  
+  dbindex_count = 0;
+  
   show_rusage();
-  unique_exit(uh);
 }
 
 void dbindex_free()
 {
   free(kmerhash);
   free(kmerindex);
+  free(kmercount);
+  free(dbindex_map);
+
+  for(unsigned int kmer=0; kmer<kmerhashsize; kmer++)
+    if (kmerbitmap[kmer])
+      bitmap_free(kmerbitmap[kmer]);
+  free(kmerbitmap);
+  unique_exit(dbindex_uh);
 }

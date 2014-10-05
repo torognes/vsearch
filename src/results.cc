@@ -385,7 +385,7 @@ void results_show_alnout(FILE * fp,
                      - hp->trim_aln_left - hp->trim_aln_right,
                      numwidth,
                      3,
-                     rowlen,
+                     opt_rowlen,
                      hp->strand);
               
           fprintf(fp,"\n%ld cols, %ld ids (%3.1f%%), %ld gaps (%3.1f%%)",
