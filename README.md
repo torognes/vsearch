@@ -2,28 +2,33 @@
 
 ## Introduction
 
-The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should:
+The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010).
+
+The new tool should:
 
 * have open source code with an appropriate open source license
-* be freely available, gratis
-* have a 64-bit design that handles very large databases and more than 4GB of memory
-* be as fast or faster than usearch
+* be free of charge, gratis
+* have a 64-bit design that handles very large databases and much more than 4GB of memory
 * be as accurate or more accurate than usearch
+* be as fast or faster than usearch
 
-A tool called VSEARCH has been implemented including the following commands: `usearch_global`, `cluster_smallmem`, `cluster_fast`, `derep_fulllength`, `sortbysize`, `sortbylength` and `maskfasta`.
+We have implemented a tool called VSEARCH which supports the following commands: `usearch_global`, `cluster_smallmem`, `cluster_fast`, `derep_fulllength`, `sortbysize`, `sortbylength` and `maskfasta`, as well as almost all their options.
 
-It does not support amino acid sequences, local alignments, or chimera detection.
+VSEARCH does not support amino acid sequences, local alignments, or chimera detection. These features may be added in the future.
 
-Searches have been parallelized using threads and SIMD. VSEARCH includes a SIMD vectorized full global aligner, while USEARCH uses a heuristic aligner.
+Searches have been parallelized using threads and SIMD. VSEARCH includes a SIMD vectorized full global aligner, while USEARCH uses a heuristic seed and extend aligner.
 
-Exactly the same option names as USEARCH version 7 has been used in order to make it possible to make VSEARCH almost a drop-in replacement.
+Exactly the same option names as USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
-In the example below, VSEARCH will identify sequences in database.fsa that are at least 90% identical on the plus strand to the query sequences in queries.fsa and write the results to alnout.txt.
+
+## Example
+
+In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
 `./vsearch-0.0.15-linux-x86_64 --usearch_global queries.fsa --db database.fsa --strand plus --id 0.9 --alnout alnout.txt`
 
 
-## Implementation details
+## Details
 
 **Algorithm:** VSEARCH indexes the unique kmers in the database in a way similar USEARCH, but is currently limited to continuous words (non-spaced seeds). It samples every unique kmer from each query sequence and identifies the number of matching kmers in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those database sequences that satisfy all accept options are accepted while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching databases considered, respectively. Please see the USEARCH paper and supplementary for details.
 
@@ -31,7 +36,7 @@ In the example below, VSEARCH will identify sequences in database.fsa that are a
 
 We have chosen to select all unique kmers from the query. At least 6 of these kmers must be present in the database sequence before it will be considered. Also, at least 1 out of 16 query kmers need to be present in the database sequence. Furthermore, if several database sequences have the same number of kmer matches, they will be examined in order of decreasing sequence length.
 
-It appears that there are differences in usearch between the searches performed by the `usearch_global` command and the clustering commands. Notably, it appears like `usearch_global` ignores the options `wordlength`, `slots` and `pattern`, while the clustering commands takes them into account.
+It appears that there are differences in usearch between the searches performed by the `usearch_global` command and the clustering commands. Notably, it appears like `usearch_global` simply ignores the options `wordlength`, `slots` and `pattern`, while the clustering commands takes them into account.
 
 **Output formats:** Almost all output options of usearch are supported. The output can be written in different formats specified with the `--alnout`, `--blast6out`, `--fastapairs`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported. The only exceptions are the `--consout`, `--construncate` and `--msaout` clustering output options which are not supported.
 
@@ -102,7 +107,7 @@ Clustering and searching options:
 * `--dbmatched <filename>`
 * `--dbnotmatched <filename>`
 * `--fastapairs <filename>`
-* `--fulldp` (VSEARCH always computes full dynamic programming alignments)
+* `--fulldp` (Ignored; VSEARCH always computes full dynamic programming alignments)
 * `--gapext <string>` (Default 2I/1E)
 * `--gapopen <string>` (Default 20I/2E)
 * `--hardmask`
@@ -168,7 +173,7 @@ Dereplication, masking, shuffling and sorting options:
 
 ## Main limitations
 
-* VSEARCH cannot perform chimera checking.
+* VSEARCH cannot perform chimera detection.
 
 
 ## VSEARCH license and third party licenses
@@ -186,31 +191,33 @@ VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library 
 
 ## Code
 
-The code is written in C++ but most of it is actually C with some C++ syntax conventions. The files are:
+The code is written in C++ but most of it is actually C with some C++ syntax conventions.
 
-* **align.cc** - New Needleman-Wunsch global alignment, serial. Only for testing.
-* **alignsimd.cc** - SIMD parallel global alignment of 1 query with 8 database sequences
-* **arch.cc** - Architecture specific code (Mac/Linux)
-* **bitmap.cc** - Implementation of bitmaps
-* **cluster.cc** - Clustering (cluster_fast and cluster_smallmem)
-* **db.cc** - Handles the database file read, access etc
-* **dbindex.cc** - Indexes the database by identifying unique kmers in the sequences and make a database hash table
-* **derep.cc** - Dereplication
-* **maps.cc** - Various character mapping arrays
-* **mask.cc** - Masking (DUST)
-* **minheap.cc** - A minheap implementation for the list of top kmer matches
-* **query.cc** - Reads the fasta file containing the query sequences.
-* **results.cc** - Output results in various formats (alnout, userout, blast6, uc)
-* **searchcore.cc** - Core search functions
-* **showalign.cc** - Output an alignment in a human-readable way given a CIGAR-string and the sequences
-* **shuffle.cc** - Shuffle sequences
-* **sortbylength.cc** - Code for sorting by length
-* **sortbysize.cc** - Code for sorting by size (abundance)
-* **unique.cc** - Find unique kmers in a sequence
-* **userfields.cc** - Code for parsing the userfields option argument
-* **util.cc** - Various common utility functions
-* **vsearch.cc** - Main program file, general initialization, reads arguments and parses options, writes info.
-* **vsearch_global.cc** - Implements search using global alignment
+    File     | Description
+-------------|------
+**align.cc** | New Needleman-Wunsch global alignment, serial. Only for testing.
+**alignsimd.cc** | SIMD parallel global alignment of 1 query with 8 database sequences
+**arch.cc** | Architecture specific code (Mac/Linux)
+**bitmap.cc** | Implementation of bitmaps
+**cluster.cc** | Clustering (cluster\_fast and cluster\_smallmem)
+**db.cc** | Handles the database file read, access etc
+**dbindex.cc** | Indexes the database by identifying unique kmers in the sequences and make a database hash table
+**derep.cc** | Dereplication
+**maps.cc** | Various character mapping arrays
+**mask.cc** | Masking (DUST)
+**minheap.cc** | A minheap implementation for the list of top kmer matches
+**query.cc** | Reads the fasta file containing the query sequences.
+**results.cc** | Output results in various formats (alnout, userout, blast6, uc)
+**searchcore.cc** | Core search functions
+**showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
+**shuffle.cc** | Shuffle sequences
+**sortbylength.cc** | Code for sorting by length
+**sortbysize.cc** | Code for sorting by size (abundance)
+**unique.cc** | Find unique kmers in a sequence
+**userfields.cc** | Code for parsing the userfields option argument
+**util.cc** | Various common utility functions
+**vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
+**vsearch_global.cc** | Implements search using global alignment
 
 VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
 
