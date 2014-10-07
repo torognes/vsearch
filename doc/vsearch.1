@@ -1,0 +1,218 @@
+.\" ============================================================================
+.TH vsearch 1 "October 5, 2014" "version 0.0.15" "USER COMMANDS"
+.\" ============================================================================
+.SH NAME
+vsearch \(em dereplicate, filter, sort, search, compare and clusterize
+amplicons from metagenomic projects
+.\" ============================================================================
+.SH SYNOPSIS
+.B vsearch
+[
+.I options
+]
+.I filename
+.\" ============================================================================
+.SH DESCRIPTION
+Environmental or clinical molecular studies generate large volumes of
+amplicons (e.g. SSU-rRNA sequences) that need to be filtered,
+dereplicated, searched, clustered or compared to sequences from other
+studies. The aim of \fBvsearch\fR is to offer a all-in-one open source
+tool to perform these tasks, using optimized algorithm implementations
+and harvesting the full potential of modern computers to guarantee the
+fastest and more accurate possible processing.
+.PP
+Nucleotidic sequence comparisons is at the core of \fBvsearch\fR. To
+speed up comparisons, \fBvsearch\fR implements \fIk\fR-mer filtering,
+and an extremely fast Needleman-Wunsch algorithm making use of the
+Streaming SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2
+instructions are not available, \fBvsearch\fR exits with an error
+message.
+.PP
+\fBvsearch\fR input is a fasta file containing one or several
+nucleotidic sequences. For each sequence, the sequence identifier is
+defined as the string comprised between the ">" symbol and the first
+space or the end of the line, whichever comes first. Additionally, if
+the line ends with the pattern ";size=\fIinteger\fR;", \fBvsearch\fR
+will interpret \fIinteger\fR as the abundance of the sequence (in a
+dereplicated fasta file for instance). The nucleotidic sequence is
+defined as a string of [acgt] or [acgu] symbols (case insensitive),
+starting after the end of the identifier line and ending before the
+next identifier line or the file end; \fBvsearch\fR exits with an
+error message if any other symbol is present in the
+sequence. Optionally, \fBvsearch\fR can be compiled to accepted
+compressed fasta files as input (gz and bzip2 formats).
+.\" ----------------------------------------------------------------------------
+.SS Options
+\fBvsearch\fR recognizes a large number of command-line options. For
+an easier navigation, options are grouped by theme (dereplication,
+filtering, sorting, searching, comparison, clustering). We start with
+general options that apply to all themes.
+.PP
+General options:
+.RS
+.TP 9
+.B --help
+display a short help and exit.
+.TP
+.B --version
+output version information and exit.
+.TP
+.BI --fasta_width\~ "positive integer"
+fasta files produced by \fBvsearch\fR are wrapped (sequences written
+on lines of \fIinteger\fR nucleotides, 80 by default). Set that value
+to 0 to eliminate the wrapping.
+.TP
+.BI --maxseqlength\~ "positive integer"
+all \fBvsearch\fR operations will discard sequences of length equal or
+greater than \fIinteger\fR (50,000 nucleotides by default).
+.TP
+.BI --minseqlength\~ "positive integer"
+all \fBvsearch\fR operations will discard sequences of length smaller
+than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
+32 nucleotides for dereplication or searching).
+.TP
+.B --notrunclabels
+do not truncate sequence labels at first space, use the full header.
+.TP
+.BI --strand\~ "plus|both"
+when searching or dereplicating, check the \fIplus\fR strand only
+(default) or check \fIboth\fR strands.
+.TP
+.BI --threads\~ "positive integer"
+number of computation threads to use. The number of threads should be
+lesser or equal to the number of available CPU cores. Default number
+of threads is 1, use 0 to launch a number of threads equal to the
+number of CPU cores.
+.TP
+.BI --uc \0filename
+when searching or dereplicating, output results in \fIfilename\fR
+using a uclust-like format.
+.TP
+.B --uc_allhits
+when searching or dereplicating, and when using the uclust-like format
+option, show all hits, not just top hit.
+
+.RE
+.\" ----------------------------------------------------------------------------
+Clustering options: (in progress)
+.\"   --cluster_fast FILENAME     cluster sequences fast
+.\"   --cluster_smallmem FILENAME cluster sequences using a small amount of memory
+.\"   --centroids FILENAME        output centroid sequences to FASTA file
+.\"   --clusters STRING           output each cluster to a separate FASTA file
+.\"   --consout FILENAME          output cluster consensus sequences to FASTA file
+.\"   --construncate              do not ignore terminal gaps in MSA for consensus
+.\"   --msaout FILENAME           output MSA for each cluster to FASTA file
+.\"   --usersort                  indicate that input sequences are presorted
+.\" .RS
+.\" .TP 9
+.\" .BI -m\fP,\fB\ --match-reward\~ "positive integer"
+.\" reward for a nucleotide match. Default is 5.
+.\" .TP
+.\" .BI -p\fP,\fB\ --mismatch-penalty\~ "positive integer"
+.\" penalty for a nucleotide mismatch. Default is 4.
+.\" .TP
+.\" .BI -g\fP,\fB\ --gap-opening-penalty\~ "positive integer"
+.\" gap open penalty. Default is 12.
+.\" .TP
+.\" .BI -e\fP,\fB\ --gap-extension-penalty\~ "positive integer"
+.\" gap extension penalty. Default is 4.
+.\" .LP
+.\" ----------------------------------------------------------------------------
+.\" Dereplication, masking, shuffling and sorting options:
+.\"     --derep_fulllength <filename>
+.\"     --maskfasta <filename>
+.\"     --shuffle <filename>
+.\"     --sortbylength <filename>
+.\"     --sortbysize <filename>
+.\"     --maxsize <int> (Default inf.)
+.\"     --minsize <int> (Default 0)
+.\"     --minuniquesize <int>
+.\"     --output <filename>
+.\"     --relabel
+.\"     --seed <int> (Default 0=randomize)
+.\"     --sizein
+.\"     --sizeout
+.\"     --strand <plus|both>
+.\"     --topn <int>
+.\" ============================================================================
+.SH EXAMPLES
+(in progress)
+.\" .B vsearch
+.\" -t 4 -o
+.\" .I myfile.vsearchs myfile.fasta
+.\" .br
+.\" Divide the data set \fImyfile.fasta\fR into vsearchs with the finest
+.\" resolution possible (1 difference) using 4 computation threads, and
+.\" write the results in the file \fImyfile.vsearchs\fR.
+.\" .PP
+.\" zcat file.fas.gz | \fBvsearch\fR | awk "{print NF}" | sort -n | uniq -c
+.\" .br
+.\" Use vsearch in a pipeline to read a compressed fasta file and to get its
+.\" vsearch size profile (with default parameters).
+.\" ============================================================================
+.SH LIMITATIONS
+\fBvsearch\fR does not perform chimera detection..
+.\" ============================================================================
+.SH AUTHORS
+Implementation by Torbjørn Rognes, documentation by Frédéric Mahé, .
+.\" ============================================================================
+.SH REPORTING BUGS
+Submit suggestions and bug-reports at
+<https://github.com/torognes/vsearch/issues>, send a pull request on
+<https://github.com/torognes/vsearch>, or compose a friendly or
+curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
+.\" ============================================================================
+.SH AVAILABILITY
+The software is available from <https://github.com/torognes/vsearch>
+.\" ============================================================================
+.SH COPYRIGHT
+Copyright (C) 2014 Torbjørn Rognes
+.PP
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+.PP
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Affero General Public License for more details.
+.PP
+You should have received a copy of the GNU Affero General Public
+License along with this program.  If not, see
+<http://www.gnu.org/licenses/>.
+.PP
+\fBvsearch\fR includes code from Google's CityHash project by Geoff
+Pike and Jyrki Alakuijala, providing some excellent hash functions
+available under a MIT license.
+.PP
+\fBvsearch\fR includes code derived from Tatusov and Lipman's DUST
+program that is in the public domain.
+.PP
+\fBvsearch\fR binaries may include code from the zlib library
+copyright Jean-loup Gailly and Mark Adler.
+.PP
+\fBvsearch\fR binaries may include code from the bzip2 library
+copyright Julian R. Seward.
+.\" ============================================================================
+.SH SEE ALSO
+\fBswipe\fR, an extremely fast Smith-Waterman database search tool by
+Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
+.\" ============================================================================
+.SH VERSION HISTORY
+New features and important modifications of \fBvsearch\fR (short lived
+or minor bug releases are not mentioned):
+.RS
+.TP
+.BR v1.0\~ "released November 1st, 2014"
+First public release
+.LP
+.\" ============================================================================
+.\" NOTES
+.\" visualize and output to pdf
+.\" man -l vsearch.1
+.\" man -t ./doc/vsearch.1 | ps2pdf - > ./doc/vsearch_manual.pdf
+.\"
+.\" INSTALL (sysadmin)
+.\" gzip -c vsearch.1 > vsearch.1.gz
+.\" mv vsearch.1.gz /usr/share/man/man1/
