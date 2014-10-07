@@ -94,28 +94,98 @@ option, show all hits, not just top hit.
 
 .RE
 .\" ----------------------------------------------------------------------------
-Clustering options: (in progress)
-.\"   --cluster_fast FILENAME     cluster sequences fast
-.\"   --cluster_smallmem FILENAME cluster sequences using a small amount of memory
-.\"   --centroids FILENAME        output centroid sequences to FASTA file
-.\"   --clusters STRING           output each cluster to a separate FASTA file
-.\"   --consout FILENAME          output cluster consensus sequences to FASTA file
-.\"   --construncate              do not ignore terminal gaps in MSA for consensus
-.\"   --msaout FILENAME           output MSA for each cluster to FASTA file
-.\"   --usersort                  indicate that input sequences are presorted
-.\" .RS
-.\" .TP 9
-.\" .BI -m\fP,\fB\ --match-reward\~ "positive integer"
-.\" reward for a nucleotide match. Default is 5.
-.\" .TP
-.\" .BI -p\fP,\fB\ --mismatch-penalty\~ "positive integer"
-.\" penalty for a nucleotide mismatch. Default is 4.
-.\" .TP
-.\" .BI -g\fP,\fB\ --gap-opening-penalty\~ "positive integer"
-.\" gap open penalty. Default is 12.
-.\" .TP
-.\" .BI -e\fP,\fB\ --gap-extension-penalty\~ "positive integer"
-.\" gap extension penalty. Default is 4.
+Clustering options:
+.RS
+.TP 9
+.BI --uc \0filename
+use the fast clustering algorithm and write the results to
+\fIfilename\fR.
+.TP
+.BI --cluster_smallmem \0filename
+use a slower clustering algorithm (consumes less memory) and write the
+results to \fIfilename\fR.
+.TP
+.BI --centroids \0filename
+output cluster centroid sequences to \fIfilename\fR file.
+.TP
+.BI --clusters \0string
+output each cluster to a separate fasta file using \fIstring\fR as
+prefix for the filenames.
+.TP
+.BI --consout \0filename
+output cluster consensus sequences to \fIfilename\fR file.
+.TP
+.B --construncate
+when using the consout option, do not ignore terminal gaps in the
+multiple sequence alignment when building the consensus sequence.
+.TP
+.BI --msaout \0filename
+output multiple sequence alignments to \fIfilename\fR.
+.TP
+.B --usersort
+conserve the initial input order of sequences, do not sort sequences
+by decreasing length.
+
+.RE
+.\" ----------------------------------------------------------------------------
+Dereplication, masking, shuffling and sorting options:
+.RS
+.TP 9
+.BI --derep_fulllength \0filename
+merge strictly identical sequences contained in
+\fIfilename\fR. Redundant sequences receive the header of the sequence
+of their group, and the number of occurrences (abundance) is indicated
+at the end of the fasta header using the pattern ";size=X;".
+.PP
+.BI --maskfasta \0filename
+mask sequences contained in \fIfilename\fR.
+.PP
+.BI --shuffle \0filename
+pseudo-randomly shuffle the order of sequences contained in
+\fIfilename\fR.
+.PP
+.BI --sortbylength \0filename
+sort by decreasing length the sequences contained in \fIfilename\fR.
+.PP
+.BI --sortbysize \0filename
+sort by decreasing abundance the sequences contained in \fIfilename\fR.
+.PP
+.BI --maxsize\~ "positive integer"
+when using --sortbysize, discard sequences with an abundance value
+greater than \fIinteger\fR.
+.PP
+.BI --minsize\~ "positive integer"
+when using --sortbysize, discard sequences with an abundance value
+smaller than \fIinteger\fR.
+.PP
+.BI --minuniquesize\~ "positive integer"
+when dereplicating, discard sequences with an abundance value
+smaller than \fIinteger\fR.
+.PP
+.BI --output \0filename
+when dereplicating, sorting or shuffling, write the results to
+\fIfilename\fR.
+.PP
+.BI --relabel \0string
+when sorting, relabel sequence headers using \fIstring\fR as suffix.
+.PP
+.BI --seed\~ "positive integer"
+when shuffling, use \fIinteger\fR as seed. Set to 0 to use a
+pseudo-random seed.
+.PP
+.B --sizein
+read abundance annotation from input
+.PP
+.B --sizeout
+add abundance annotation to output
+.PP
+.B --topn\~ "positive integer"
+when dereplicating, sorting or shuffling, output just the top
+\fIinteger\fR sequences.
+
+.RE
+.\" ----------------------------------------------------------------------------
+Searching options: (in progress)
 .\" .LP
 .\" ----------------------------------------------------------------------------
 .\" Dereplication, masking, shuffling and sorting options:
