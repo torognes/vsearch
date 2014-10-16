@@ -80,9 +80,8 @@ when searching or dereplicating, check the \fIplus\fR strand only
 .TP
 .BI --threads\~ "positive integer"
 number of computation threads to use. The number of threads should be
-lesser or equal to the number of available CPU cores. Default number
-of threads is 1, use 0 to launch a number of threads equal to the
-number of CPU cores.
+lesser or equal to the number of available CPU cores. The default is to 
+launch one thread per available CPU core.
 .TP
 .BI --uc \0filename
 when searching or dereplicating, output results in \fIfilename\fR
@@ -399,7 +398,7 @@ length of words (\fIk\fRmers) for database index. The default value is 8.
 \fBvsearch\fR does not yet perform chimera detection.
 .\" ============================================================================
 .SH AUTHORS
-Implementation by Torbjørn Rognes, documentation by Frédéric Mahé, .
+Implementation by Torbjørn Rognes and Tomas Flouri, documentation by Frédéric Mahé, .
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -411,7 +410,7 @@ curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 The software is available from <https://github.com/torognes/vsearch>
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014 Torbjørn Rognes
+Copyright (C) 2014 Torbjørn Rognes et al.
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
