@@ -84,12 +84,12 @@ lesser or equal to the number of available CPU cores. The default is to
 launch one thread per available CPU core.
 .TP
 .BI --uc \0filename
-when searching or dereplicating, output results in \fIfilename\fR
-using a uclust-like format.
+when searching, clustering or dereplicating, output results in
+\fIfilename\fR using a uclust-like format.
 .TP
 .B --uc_allhits
-when searching or dereplicating, and when using the uclust-like format
-option, show all hits, not just top hit.
+when searching, clustering or dereplicating, and when using the
+uclust-like format option, show all hits, not just top hit.
 
 .RE
 .\" ----------------------------------------------------------------------------
@@ -205,11 +205,11 @@ algorithms, or do not mask (\fInone\fR). The default is to mask using
 \fIdust\fR.
 .TP
 .BI --dbmatched \0filename
-write queries matching database subject sequences to \fIfilename\fR,
-in fasta format.
+write database subject sequences matching at least one query sequence
+to \fIfilename\fR, in fasta format.
 .TP
 .BI --dbnotmatched \0filename
-write queries that do not match database subject sequences to
+write database subject sequences not matching query sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --fastapairs \0filename
@@ -217,9 +217,8 @@ write pairs of query and subject sequences to \fIfilename\fR, in fasta
 format.
 .TP
 .B --fulldp
-use a full dynamic programming alignment on all hits. For each query,
-subject sequences that. That option increases the sensitivity of
-vsearch.
+uses a 8-way SIMD vectorized full dynamic programming algorithm
+(Needleman-Wunsch). That option increases the sensitivity of vsearch.
 .TP
 .BI --gapext \0string
 penalties for gap extension (2I/1E)
@@ -254,8 +253,8 @@ score assigned to a match (i.e. identical nucleotides) in the pairwise
 alignment. The default value is 2.
 .TP
 .BI --matched \0filename
-write database subject sequences matching queries to \fIfilename\fR,
-in fasta format.
+write query sequences matching database subject sequences to
+\fIfilename\fR, in fasta format.
 .TP
 .BI --maxaccepts\~ "positive integer"
 maximum number of hits to accept and show. The default value is 1.
@@ -323,7 +322,7 @@ score assigned to a mismatch (i.e. different nucleotides) in the
 pairwise alignment. The default value is -4.
 .TP
 .BI --notmatched \0filename
-write database subject sequences not matching queries to
+write query sequences not matching database subject sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --output_no_hits \0filename
@@ -361,10 +360,11 @@ output only hits with the highest percentage of identity with the
 query.
 .TP
 .BI --userfields \0string
-fields to output in userout file.
+when using the userout option, select the fields that are written to
+the file. \fB(list and document the fields)\fR
 .TP
 .BI --userout \0filename
-write user-defined tab-separated output to \fIfilename\fR.
+write user-defined tab-separated output to \fIfilename\fR. See "userfields".
 .TP
 .BI --vsearch_global \0filename
 \fIfilename\fR of queries for global alignment search.
@@ -381,6 +381,14 @@ length of words (\fIk\fRmers) for database index. The default value is 8.
 .\" ============================================================================
 .SH EXAMPLES
 (in progress)
+
+How to search queries in a reference database? (using fulldp to maximize sensitivity)
+
+.RS
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8 --fuldp
+.PP
+.RE
+How to search queries in a reference database? (using fulldp to maximize sensitivity)
 .\" .B vsearch
 .\" -t 4 -o
 .\" .I myfile.vsearchs myfile.fasta
