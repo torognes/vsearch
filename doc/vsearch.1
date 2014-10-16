@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 5, 2014" "version 0.0.15" "USER COMMANDS"
+.TH vsearch 1 "October 16, 2014" "version 0.0.15" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -97,16 +97,12 @@ option, show all hits, not just top hit.
 Clustering options:
 .RS
 .TP 9
-.BI --uc \0filename
-use the fast clustering algorithm and write the results to
-\fIfilename\fR.
+.BI --centroids \0filename
+output cluster centroid sequences to \fIfilename\fR file.
 .TP
 .BI --cluster_smallmem \0filename
 use a slower clustering algorithm (consumes less memory) and write the
 results to \fIfilename\fR.
-.TP
-.BI --centroids \0filename
-output cluster centroid sequences to \fIfilename\fR file.
 .TP
 .BI --clusters \0string
 output each cluster to a separate fasta file using \fIstring\fR as
@@ -122,6 +118,10 @@ multiple sequence alignment when building the consensus sequence.
 .BI --msaout \0filename
 output multiple sequence alignments to \fIfilename\fR.
 .TP
+.BI --uc \0filename
+use the fast clustering algorithm and write the results to
+\fIfilename\fR.
+.TP
 .B --usersort
 conserve the initial input order of sequences, do not sort sequences
 by decreasing length.
@@ -136,74 +136,249 @@ merge strictly identical sequences contained in
 \fIfilename\fR. Redundant sequences receive the header of the sequence
 of their group, and the number of occurrences (abundance) is indicated
 at the end of the fasta header using the pattern ";size=X;".
-.PP
+.TP
 .BI --maskfasta \0filename
 mask sequences contained in \fIfilename\fR.
-.PP
-.BI --shuffle \0filename
-pseudo-randomly shuffle the order of sequences contained in
-\fIfilename\fR.
-.PP
-.BI --sortbylength \0filename
-sort by decreasing length the sequences contained in \fIfilename\fR.
-.PP
-.BI --sortbysize \0filename
-sort by decreasing abundance the sequences contained in \fIfilename\fR.
-.PP
+.TP
 .BI --maxsize\~ "positive integer"
 when using --sortbysize, discard sequences with an abundance value
 greater than \fIinteger\fR.
-.PP
+.TP
 .BI --minsize\~ "positive integer"
 when using --sortbysize, discard sequences with an abundance value
 smaller than \fIinteger\fR.
-.PP
+.TP
 .BI --minuniquesize\~ "positive integer"
 when dereplicating, discard sequences with an abundance value
 smaller than \fIinteger\fR.
-.PP
+.TP
 .BI --output \0filename
 when dereplicating, sorting or shuffling, write the results to
 \fIfilename\fR.
-.PP
+.TP
 .BI --relabel \0string
 when sorting, relabel sequence headers using \fIstring\fR as suffix.
-.PP
+.TP
 .BI --seed\~ "positive integer"
 when shuffling, use \fIinteger\fR as seed. Set to 0 to use a
 pseudo-random seed.
-.PP
+.TP
 .B --sizein
 read abundance annotation from input
-.PP
+.TP
 .B --sizeout
 add abundance annotation to output
-.PP
+.TP
+.BI --shuffle \0filename
+pseudo-randomly shuffle the order of sequences contained in
+\fIfilename\fR.
+.TP
+.BI --sortbylength \0filename
+sort by decreasing length the sequences contained in \fIfilename\fR.
+.TP
+.BI --sortbysize \0filename
+sort by decreasing abundance the sequences contained in \fIfilename\fR.
+.TP
 .B --topn\~ "positive integer"
 when dereplicating, sorting or shuffling, output just the top
 \fIinteger\fR sequences.
 
 .RE
 .\" ----------------------------------------------------------------------------
-Searching options: (in progress)
-.\" .LP
-.\" ----------------------------------------------------------------------------
-.\" Dereplication, masking, shuffling and sorting options:
-.\"     --derep_fulllength <filename>
-.\"     --maskfasta <filename>
-.\"     --shuffle <filename>
-.\"     --sortbylength <filename>
-.\"     --sortbysize <filename>
-.\"     --maxsize <int> (Default inf.)
-.\"     --minsize <int> (Default 0)
-.\"     --minuniquesize <int>
-.\"     --output <filename>
-.\"     --relabel
-.\"     --seed <int> (Default 0=randomize)
-.\"     --sizein
-.\"     --sizeout
-.\"     --strand <plus|both>
-.\"     --topn <int>
+Searching options:
+.RS
+.TP 9
+.BI --alnout \0filename
+write pairwise global alignments to \fIfilename\fR using a
+human-readable format.
+.TP
+.BI --blast6out \0filename
+write search results to \fIfilename\fR using a blast-like
+tab-separated format.
+.TP
+.BI --db \0filename
+compare query sequences to the fasta-formatted subject sequences
+contained in \fIfilename\fR, using global pairwise alignment.
+.TP
+.BI --dbmask\~ "none|dust|soft"
+mask the subject database using with the \fIdust\fR or the \fIsoft\fR
+algorithms, or do not mask (\fInone\fR). The default is to mask using
+\fIdust\fR.
+.TP
+.BI --dbmatched \0filename
+write queries matching database subject sequences to \fIfilename\fR,
+in fasta format.
+.TP
+.BI --dbnotmatched \0filename
+write queries that do not match database subject sequences to
+\fIfilename\fR, in fasta format.
+.TP
+.BI --fastapairs \0filename
+write pairs of query and subject sequences to \fIfilename\fR, in fasta
+format.
+.TP
+.B --fulldp
+use a full dynamic programming alignment on all hits. For each query,
+subject sequences that. That option increases the sensitivity of
+vsearch.
+.TP
+.BI --gapext \0string
+penalties for gap extension (2I/1E)
+.TP
+.BI --gapopen \0string
+penalties for gap opening (20I/2E)
+.TP
+.B --hardmask
+mask low-complexity regions by replacing them with Ns instead of
+setting them to lower case.
+.TP
+.BI --id \0real
+reject the sequence match if the pairwise identity is lower than
+\fIreal\fR (value ranging from 0.0 to 1.0 included).
+.TP
+.BI --idprefix\~ "positive integer"
+reject the subject sequence if the first \fIinteger\fR nucleotides do
+not match the query sequence.
+.TP
+.BI --idsuffix\~ "positive integer"
+reject the subject sequence if the last \fIinteger\fR nucleotides do
+not match the query sequence.
+.TP
+.B --leftjust
+reject the subject sequence if the alignment begins with gaps.
+.TP
+.B --leftjust
+reject the subject sequence if the alignment begins with gaps.
+.TP
+.BI --match\~ "integer"
+score assigned to a match (i.e. identical nucleotides) in the pairwise
+alignment. The default value is 2.
+.TP
+.BI --matched \0filename
+write database subject sequences matching queries to \fIfilename\fR,
+in fasta format.
+.TP
+.BI --maxaccepts\~ "positive integer"
+maximum number of hits to accept and show. The default value is 1.
+.TP
+.BI --maxdiffs\~ "positive integer"
+reject the subject sequence if the alignment contains at least
+\fIinteger\fR substitutions, insertions or deletions.
+.TP
+.BI --maxgaps\~ "positive integer"
+reject the subject sequence if the alignment contains at least
+\fIinteger\fR insertions or deletions.
+.TP
+.BI --maxhits\~ "positive integer"
+maximum number of hits to show. The default value is 1.
+.TP
+.BI --maxid \0real
+reject the subject sequence if its percentage of identity with the
+query is equal or greater than \fIreal\fR.
+.TP
+.BI --maxqsize\~ "positive integer"
+reject query sequences with an abundance equal or greater than
+\fIinteger\fR.
+.TP
+.BI --maxqt \0real
+reject if the query/subject length ratio is equal or greater than
+\fIreal\fR.
+.TP
+.BI --maxrejects\~ "positive integer"
+maximum number of non-matching hits to consider. The default value is 32.
+.TP
+.BI --maxsizeratio \0real
+reject if the query/subject abundance ratio is equal or greater than
+\fIreal\fR.
+.TP
+.BI --maxsl \0real
+reject if the shorter/longer length ratio is equal or greater than
+\fIreal\fR.
+.TP
+.BI --maxsubs\~ "positive integer"
+reject the subject sequence if the alignment contains at least
+\fIinteger\fR substitutions.
+.TP
+.BI --mid \0real
+reject the subject sequence if its percentage of identity with the
+query is lower than \fIreal\fR (ignoring gaps).
+.TP
+.BI --mincols\~ "positive integer"
+reject the subject sequence if the alignment length is shorter than
+\fIinteger\fR.
+.TP
+.BI --minqt \0real
+reject if the query/subject length ratio is lower than \fIreal\fR.
+.TP
+.BI --minsizeratio \0real
+reject if the query/subject abundance ratio is lower than \fIreal\fR.
+.TP
+.BI --minsl \0real
+reject if the shorter/longer length ratio is lower than \fIreal\fR.
+.TP
+.BI --mintsize\~ "positive integer"
+reject subject sequences with an abundance lower than \fIinteger\fR.
+.TP
+.BI --mismatch\~ "integer"
+score assigned to a mismatch (i.e. different nucleotides) in the
+pairwise alignment. The default value is -4.
+.TP
+.BI --notmatched \0filename
+write database subject sequences not matching queries to
+\fIfilename\fR, in fasta format.
+.TP
+.BI --output_no_hits \0filename
+write both matching and non-matching queries to output
+files. Non-matching queries are labelled "no hit" \fB(to be
+verified)\fR.
+.TP
+.BI --qmask\~ "none|dust|soft"
+mask query sequences using with the \fIdust\fR or the \fIsoft\fR
+algorithms, or do not mask (\fInone\fR). The default is to mask using
+\fIdust\fR.
+.TP
+.BI --query_cov \0real
+reject if the fraction of the query aligned to the subject sequence is
+lower than \fIreal\fR.
+.TP
+.B --rightjust
+reject the subject sequence if the alignment ends with gaps.
+.TP
+.BI --rowlen\~ "positive integer"
+width of alignment lines in alnout output. The default value is 64.
+.TP
+.B --self
+reject the alignment if the query and subject labels are identical.
+.TP
+.B --selfid
+reject the alignment if the query and subject sequences are identical.
+.TP
+.BI --target_cov \0real
+reject if the fraction of the subject sequence aligned to the query
+sequence is lower than \fIreal\fR.
+.TP
+.B --top_hits_only
+output only hits with the highest percentage of identity with the
+query.
+.TP
+.BI --userfields \0string
+fields to output in userout file.
+.TP
+.BI --userout \0filename
+write user-defined tab-separated output to \fIfilename\fR.
+.TP
+.BI --vsearch_global \0filename
+\fIfilename\fR of queries for global alignment search.
+.TP
+.BI --weak_id \0real
+show hits with percentage of identity of at least \fIreal\fR; and
+continue the search. That option allows to report very weak sequence
+similarities.
+.TP
+.BI --wordlength\~ "positive integer"
+length of words (\fIk\fRmers) for database index. The default value is 8.
+
+.RE
 .\" ============================================================================
 .SH EXAMPLES
 (in progress)
@@ -221,7 +396,7 @@ Searching options: (in progress)
 .\" vsearch size profile (with default parameters).
 .\" ============================================================================
 .SH LIMITATIONS
-\fBvsearch\fR does not perform chimera detection..
+\fBvsearch\fR does not yet perform chimera detection.
 .\" ============================================================================
 .SH AUTHORS
 Implementation by Torbjørn Rognes, documentation by Frédéric Mahé, .
