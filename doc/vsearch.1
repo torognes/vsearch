@@ -27,7 +27,8 @@ and an extremely fast Needleman-Wunsch algorithm making use of the
 Streaming SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2
 instructions are not available, \fBvsearch\fR exits with an error
 message.
-.PP
+.\" ----------------------------------------------------------------------------
+.SS Input
 \fBvsearch\fR input is a fasta file containing one or several
 nucleotidic sequences. For each sequence, the sequence identifier is
 defined as the string comprised between the ">" symbol and the first
@@ -200,9 +201,9 @@ compare query sequences to the fasta-formatted subject sequences
 contained in \fIfilename\fR, using global pairwise alignment.
 .TP
 .BI --dbmask\~ "none|dust|soft"
-mask the subject database using with the \fIdust\fR or the \fIsoft\fR
-algorithms, or do not mask (\fInone\fR). The default is to mask using
-\fIdust\fR.
+mask simple repeats and low-complexity regions in subject database
+sequences using the \fIdust\fR or the \fIsoft\fR algorithms, or do not
+mask (\fInone\fR). The default is to mask using \fIdust\fR.
 .TP
 .BI --dbmatched \0filename
 write database subject sequences matching at least one query sequence
@@ -257,7 +258,15 @@ write query sequences matching database subject sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --maxaccepts\~ "positive integer"
-maximum number of hits to accept and show. The default value is 1.
+maximum number of hits to accept before stopping the search. The
+default value is 1. That option works in pair with maxrejects. The
+search process sorts subject sequences by decreasing number of kmers
+they have in common with the query sequence, using that information as
+a proxy for sequence similarity. If the first subject sequence passes
+the acceptation criteria, it is accepted as best hit and the search
+process stops for that query. If maxaccepts is set to a higher value,
+it accepts more hits. If maxaccepts and maxrejects are both set to 0,
+the complete database is searched.
 .TP
 .BI --maxdiffs\~ "positive integer"
 reject the subject sequence if the alignment contains at least
@@ -283,7 +292,16 @@ reject if the query/subject length ratio is equal or greater than
 \fIreal\fR.
 .TP
 .BI --maxrejects\~ "positive integer"
-maximum number of non-matching hits to consider. The default value is 32.
+maximum number of non-matching subject sequences to consider before
+stopping the search. The default value is 32. That option works in
+pair with maxaccepts. The search process sorts subject sequences by
+decreasing number of kmers they have in common with the query
+sequence, using that information as a proxy for sequence
+similarity. If none of the first 32 subject sequence pass the
+acceptation criteria, the search process stops for that query (no
+hit). If maxrejects is set to a higher value, more subject sequences
+will be considered. If maxaccepts and maxrejects are both set to 0,
+the complete database is searched.
 .TP
 .BI --maxsizeratio \0real
 reject if the query/subject abundance ratio is equal or greater than
@@ -331,9 +349,9 @@ files. Non-matching queries are labelled "no hit" \fB(to be
 verified)\fR.
 .TP
 .BI --qmask\~ "none|dust|soft"
-mask query sequences using with the \fIdust\fR or the \fIsoft\fR
-algorithms, or do not mask (\fInone\fR). The default is to mask using
-\fIdust\fR.
+mask simple repeats and low-complexity regions in query sequences
+using the \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
+(\fInone\fR). The default is to mask using \fIdust\fR.
 .TP
 .BI --query_cov \0real
 reject if the fraction of the query aligned to the subject sequence is
@@ -376,19 +394,24 @@ similarities.
 .TP
 .BI --wordlength\~ "positive integer"
 length of words (\fIk\fRmers) for database index. The default value is 8.
-
 .RE
 .\" ============================================================================
 .SH EXAMPLES
 (in progress)
 
-How to search queries in a reference database? (using fulldp to maximize sensitivity)
+Search queries in a reference database:
 
 .RS
 \fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8 --fuldp
-.PP
+
 .RE
-How to search queries in a reference database? (using fulldp to maximize sensitivity)
+search a sequence dataset against itself, ignoring self hits but getting all matches above a certain identity level, and collecting results in a blast-like format:
+
+.RS
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIqueries.fas\fR --strand plus --id 0.6 --alnout \fIresults.aln\fR --selfid --blast6out \fIresults.blast6\fR -maxaccepts 0 -maxrejects 0
+
+.RE
+
 .\" .B vsearch
 .\" -t 4 -o
 .\" .I myfile.vsearchs myfile.fasta
