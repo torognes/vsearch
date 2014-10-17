@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 16, 2014" "version 0.0.15" "USER COMMANDS"
+.TH vsearch 1 "October 17, 2014" "version 0.0.15" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -18,15 +18,15 @@ amplicons (e.g. SSU-rRNA sequences) that need to be filtered,
 dereplicated, searched, clustered or compared to sequences from other
 studies. The aim of \fBvsearch\fR is to offer a all-in-one open source
 tool to perform these tasks, using optimized algorithm implementations
-and harvesting the full potential of modern computers to guarantee the
-fastest and more accurate possible processing.
+and harvesting the full potential of modern computers to guarantee a
+fast and accurate data processing.
 .PP
 Nucleotidic sequence comparisons is at the core of \fBvsearch\fR. To
-speed up comparisons, \fBvsearch\fR implements \fIk\fR-mer filtering,
-and an extremely fast Needleman-Wunsch algorithm making use of the
-Streaming SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2
-instructions are not available, \fBvsearch\fR exits with an error
-message.
+speed up comparisons, \fBvsearch\fR implements an efficient
+\fIk\fR-mer filtering, and an extremely fast Needleman-Wunsch
+algorithm making use of the Streaming SIMD Extensions (SSE2) of modern
+x86-64 CPUs. If SSE2 instructions are not available, \fBvsearch\fR
+exits with an error message.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR input is a fasta file containing one or several
@@ -89,10 +89,10 @@ when searching, clustering or dereplicating, output results in
 \fIfilename\fR using a uclust-like format.
 .TP
 .B --uc_allhits
-when searching, clustering or dereplicating, and when using the
-uclust-like format option, show all hits, not just top hit.
-
+when searching, clustering or dereplicating, and when using the --uc
+option, show all hits, not just top hit.
 .RE
+
 .\" ----------------------------------------------------------------------------
 Clustering options:
 .RS
@@ -100,33 +100,41 @@ Clustering options:
 .BI --centroids \0filename
 output cluster centroid sequences to \fIfilename\fR file.
 .TP
+.BI --cluster_fast \0filename
+use the fast clustering algorithm and write the results to
+\fIfilename\fR.
+.TP
 .BI --cluster_smallmem \0filename
 use a slower clustering algorithm (consumes less memory) and write the
 results to \fIfilename\fR.
 .TP
 .BI --clusters \0string
-output each cluster to a separate fasta file using \fIstring\fR as
-prefix for the filenames.
+output each cluster to a separate fasta file using the prefix
+\fIstring\fR and a ticker (0, 1, 2, etc.) to construct the filenames.
 .TP
-.BI --consout \0filename
-output cluster consensus sequences to \fIfilename\fR file.
-.TP
-.B --construncate
-when using the consout option, do not ignore terminal gaps in the
-multiple sequence alignment when building the consensus sequence.
-.TP
-.BI --msaout \0filename
-output multiple sequence alignments to \fIfilename\fR.
-.TP
-.BI --uc \0filename
-use the fast clustering algorithm and write the results to
-\fIfilename\fR.
-.TP
+.\" .BI --consout \0filename
+.\" output cluster consensus sequences to \fIfilename\fR. For each
+.\" cluster, a multiple alignment is computed, and a consensus sequence is
+.\" constructed by taking the majority symbol (nucleotide or gap) from
+.\" each column of the alignment. Columns containing a majority of gaps
+.\" are skipped, except for terminal gaps. Use --construncate to take
+.\" terminal gaps into account.
+.\" .TP
+.\" .B --construncate
+.\" when using the --consout option to build consensus sequences, do not
+.\" ignore terminal gaps. That option skips terminal columns if they
+.\" contain a majority of gaps, yielding shorter consensus sequences than
+.\" when using --consout alone.
+.\" .TP
+.\" .BI --msaout \0filename
+.\" output multiple sequence alignments of each cluster to \fIfilename\fR.
+.\" .TP
 .B --usersort
-conserve the initial input order of sequences, do not sort sequences
-by decreasing length.
-
+when using --cluster_smallmem, conserve the initial input order of
+sequences, do not sort sequences by decreasing length before
+clustering.
 .RE
+
 .\" ----------------------------------------------------------------------------
 Dereplication, masking, shuffling and sorting options:
 .RS
@@ -182,8 +190,8 @@ sort by decreasing abundance the sequences contained in \fIfilename\fR.
 .B --topn\~ "positive integer"
 when dereplicating, sorting or shuffling, output just the top
 \fIinteger\fR sequences.
-
 .RE
+
 .\" ----------------------------------------------------------------------------
 Searching options:
 .RS
@@ -214,12 +222,13 @@ write database subject sequences not matching query sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --fastapairs \0filename
-write pairs of query and subject sequences to \fIfilename\fR, in fasta
-format.
+write pairwise alignments of query and subject sequences to
+\fIfilename\fR, in fasta format.
 .TP
 .B --fulldp
-uses a 8-way SIMD vectorized full dynamic programming algorithm
-(Needleman-Wunsch). That option increases the sensitivity of vsearch.
+dummy option. To maximize search sensitivity, vsearch uses a 8-way
+SIMD vectorized full dynamic programming algorithm (Needleman-Wunsch),
+whether or not --fulldp is specified.
 .TP
 .BI --gapext \0string
 penalties for gap extension (2I/1E)
@@ -265,8 +274,8 @@ they have in common with the query sequence, using that information as
 a proxy for sequence similarity. If the first subject sequence passes
 the acceptation criteria, it is accepted as best hit and the search
 process stops for that query. If maxaccepts is set to a higher value,
-it accepts more hits. If maxaccepts and maxrejects are both set to 0,
-the complete database is searched.
+more hits are accepted. If maxaccepts and maxrejects are both set to
+0, the complete database is searched.
 .TP
 .BI --maxdiffs\~ "positive integer"
 reject the subject sequence if the alignment contains at least
@@ -277,7 +286,9 @@ reject the subject sequence if the alignment contains at least
 \fIinteger\fR insertions or deletions.
 .TP
 .BI --maxhits\~ "positive integer"
-maximum number of hits to show. The default value is 1.
+maximum number of hits to show once the search is terminated (hits are
+sorted by decreasing identity). The default value is 1. Set to 0 to
+ignore the option.
 .TP
 .BI --maxid \0real
 reject the subject sequence if its percentage of identity with the
@@ -297,11 +308,11 @@ stopping the search. The default value is 32. That option works in
 pair with maxaccepts. The search process sorts subject sequences by
 decreasing number of kmers they have in common with the query
 sequence, using that information as a proxy for sequence
-similarity. If none of the first 32 subject sequence pass the
+similarity. If none of the first 32 subject sequences pass the
 acceptation criteria, the search process stops for that query (no
 hit). If maxrejects is set to a higher value, more subject sequences
-will be considered. If maxaccepts and maxrejects are both set to 0,
-the complete database is searched.
+are considered. If maxaccepts and maxrejects are both set to 0, the
+complete database is searched.
 .TP
 .BI --maxsizeratio \0real
 reject if the query/subject abundance ratio is equal or greater than
@@ -378,40 +389,63 @@ output only hits with the highest percentage of identity with the
 query.
 .TP
 .BI --userfields \0string
-when using the userout option, select the fields that are written to
-the file. \fB(list and document the fields)\fR
+when using --userout, select and order the fields written to the
+output file. See the next section for a complete list of fields.
 .TP
 .BI --userout \0filename
-write user-defined tab-separated output to \fIfilename\fR. See "userfields".
+write user-defined tab-separated output to \fIfilename\fR. See
+"userfields".
 .TP
 .BI --vsearch_global \0filename
 \fIfilename\fR of queries for global alignment search.
 .TP
 .BI --weak_id \0real
-show hits with percentage of identity of at least \fIreal\fR; and
-continue the search. That option allows to report very weak sequence
-similarities.
+show hits with percentage of identity of at least \fIreal\fR, without
+terminating the search. A normal search stops as soon as enough hits
+are found (as defined by --maxaccepts, --maxrejects, and --id). As
+--weak_id reports weak hits that are not deduced from --maxaccepts,
+high --id values can be used, hence preserving both speed and
+sensitivity. Logically, \fIreal\fR must be smaller than the value
+indicated by --id.
 .TP
 .BI --wordlength\~ "positive integer"
-length of words (\fIk\fRmers) for database index. The default value is 8.
+length of words (i.e. \fIk\fRmers) for database index. The default
+value is 8.
+.RE
+
+.\" ----------------------------------------------------------------------------
+Fields: (evalue and bits are not calculated for nucleotide sequences,
+as does usearch. Value is set to 0)
+.RS
+.TP 9
+.B --blabla
+vavavtat a  a a a  a a.
 .RE
 .\" ============================================================================
 .SH EXAMPLES
 (in progress)
 
-Search queries in a reference database:
+Search queries in a reference database, with a 80%-similarity threshold:
 
 .RS
-\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8 --fuldp
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8
 
 .RE
-search a sequence dataset against itself, ignoring self hits but getting all matches above a certain identity level, and collecting results in a blast-like format:
+search a sequence dataset against itself (ignore self hits), get all
+matches with at least 60% identity, and collect results in a
+blast-like tab-separated format:
 
 .RS
-\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIqueries.fas\fR --strand plus --id 0.6 --alnout \fIresults.aln\fR --selfid --blast6out \fIresults.blast6\fR -maxaccepts 0 -maxrejects 0
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIqueries.fas\fR --id 0.6 --alnout \fIresults.aln\fR --self --blast6out \fIresults.blast6\fR --maxaccepts 0 --maxrejects 0
 
 .RE
+clusterize with a 97% similarity threshold, collect cluster centroids,
+and write cluster descriptions using a uclust-like format:
 
+.RS
+\fBvsearch\fR --cluster_fast \fIqueries.fas\fR --id 0.97 --centroids \fIcentroids.fas\fR --uc \fIclusters.uc\fR
+
+.RE
 .\" .B vsearch
 .\" -t 4 -o
 .\" .I myfile.vsearchs myfile.fasta
