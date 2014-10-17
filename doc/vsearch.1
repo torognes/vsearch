@@ -82,7 +82,7 @@ when searching or dereplicating, check the \fIplus\fR strand only
 .BI --threads\~ "positive integer"
 number of computation threads to use. The number of threads should be
 lesser or equal to the number of available CPU cores. The default is to 
-launch one thread per available CPU core.
+launch one thread per available logical core.
 .TP
 .BI --uc \0filename
 when searching, clustering or dereplicating, output results in
@@ -202,7 +202,41 @@ human-readable format.
 .TP
 .BI --blast6out \0filename
 write search results to \fIfilename\fR using a blast-like
-tab-separated format.
+tab-separated format of twelve fields (see below), with one line per
+query-subject matching (or lack of matching if --output_no_hits is
+used). A similar output can be obtain with --userout \fIfilename\fR
+and --userfields
+query+target+id+alnlen+mism+opens+qlo+qhi+tlo+thi+evalue+bits. A
+complete list and description is available in the section "Fields".
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 12
+Query label.
+.IP \n+[step].
+Target (database sequence or cluster centroid) label.
+.IP \n+[step].
+Percent identity.
+.IP \n+[step].
+Alignment length.
+.IP \n+[step].
+Number of mismatches.
+.IP \n+[step].
+Number of gap opens.
+.IP \n+[step].
+1-based position of start in query.
+.IP \n+[step].
+1-based position of end in query.
+.IP \n+[step].
+1-based position of start in target.
+.IP \n+[step].
+1-based position of end in target.
+.IP \n+[step].
+E-value  (not computed for nucleotidic alignments).
+.IP \n+[step].
+Bit score (not computed for nucleotidic alignments).
+.RE
+.RE
 .TP
 .BI --db \0filename
 compare query sequences to the fasta-formatted subject sequences
@@ -354,9 +388,11 @@ pairwise alignment. The default value is -4.
 write query sequences not matching database subject sequences to
 \fIfilename\fR, in fasta format.
 .TP
-.BI --output_no_hits \0filename
-write both matching and non-matching queries to output
-files. Non-matching queries are labelled "no hit" \fB(to be
+.B --output_no_hits
+write both matching and non-matching queries to output files
+(--alnout, --blast6out, and --userout. Output files --uc and
+--uc_allhits always feature non-matching queries). Non-matching
+queries are labelled "no hit" in --alnout files \fB(to be
 verified)\fR.
 .TP
 .BI --qmask\~ "none|dust|soft"
@@ -372,7 +408,8 @@ lower than \fIreal\fR.
 reject the subject sequence if the alignment ends with gaps.
 .TP
 .BI --rowlen\~ "positive integer"
-width of alignment lines in alnout output. The default value is 64.
+width of alignment lines in alnout output. The default value is
+64. Set that value to 0 to eliminate the wrapping.
 .TP
 .B --self
 reject the alignment if the query and subject labels are identical.
@@ -385,7 +422,7 @@ reject if the fraction of the subject sequence aligned to the query
 sequence is lower than \fIreal\fR.
 .TP
 .B --top_hits_only
-output only hits with the highest percentage of identity with the
+output only the hits with the highest percentage of identity with the
 query.
 .TP
 .BI --userfields \0string
