@@ -70,7 +70,7 @@ greater than \fIinteger\fR (50,000 nucleotides by default).
 .BI --minseqlength\~ "positive integer"
 all \fBvsearch\fR operations will discard sequences of length smaller
 than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
-32 nucleotides for dereplication or searching).
+32 nucleotides for dereplication, clustering or searching).
 .TP
 .B --notrunclabels
 do not truncate sequence labels at first space, use the full header.
@@ -276,7 +276,8 @@ setting them to lower case.
 .TP
 .BI --id \0real
 reject the sequence match if the pairwise identity is lower than
-\fIreal\fR (value ranging from 0.0 to 1.0 included).
+\fIreal\fR (value ranging from 0.0 to 1.0 included). \fB(what is the
+formula?)\fR
 .TP
 .BI --idprefix\~ "positive integer"
 reject the subject sequence if the first \fIinteger\fR nucleotides do
@@ -451,13 +452,113 @@ value is 8.
 .RE
 
 .\" ----------------------------------------------------------------------------
-Fields: (evalue and bits are not calculated for nucleotide sequences,
-as does usearch. Value is set to 0)
+Fields:
 .RS
 .TP 9
-.B --blabla
-vavavtat a  a a a  a a.
+.B aln
+Print a string of M (match), D (delete, i.e. a gap in the query) and I
+(insert, i.e. a gap in the target) representing the pairwise
+alignment. Empty field if there is no alignment.
+.TP
+.B alnlen
+Print the length of the query-target alignment (number of
+columns). The field is set to 0 if there is no alignment.
+.B bits
+Bit score (not computed for nucleotidic alignments). Always set to 0.
+.TP
+.B caln
+Compact representation of the pairwise alignment using the CIGAR
+format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
+(deletion) and I (insertion).
+.TP
+.B evalue
+E-value (not computed for nucleotidic alignments). Always set to 0.
+.TP
+.B exts
+Number of columns containing a gap extension (zero or positive integer
+value).
+.TP
+.B gaps
+Number of columns containing a gap (zero or positive integer value).
+.TP
+.B id
+Percentage of identity (real value ranging from 0.0 to
+100.0). \fB(what is the formula?)\fR.
+.TP
+.B ids
+Number of columns containing identical nucleotides (zero or positive
+integer value).
+.TP
+.B mism
+Number of columns containing different nucleotides (zero or positive
+integer value).
+.TP
+.B opens
+Number of columns containing a gap opening (zero or positive integer
+value).
+.TP
+.B pairs
+Number of columns containing only nucleotides. That value corresponds
+to the length of the alignment minus the gap-containing columns (zero
+or positive integer value).
+.TP
+.B pctgaps
+Number of columns containing gaps expressed as a percentage of the
+alignment length (real value ranging from 0.0 to 100.0).
+.TP
+.B pctpv
+Percentage of positive columns. When working with nucleotidic
+sequences, this is equivalent to the percentage of matches (real value
+ranging from 0.0 to 100.0).
+.TP
+.B pv
+Number of positive columns. When working with nucleotidic sequences,
+this is equivalent to the number of matches (zero or positive integer
+value).
+.TP
+.B qcov
+Fraction of the query sequence that is aligned with the target
+sequence (real value ranging from 0.0 to 100.0).
+.TP
+.B qframe
+Query frame (-3 to +3).
+.TP
+.B qhi
+0-based end in query.
+.TP
+.B ql
+Query sequence length.
+
 .RE
+qlo 	  	0-based start in query.
+qrow 	  	Query row. Nucleotides of the query segment with gaps inserted as needed.
+qs 	  	Query segment length.
+qstrand 	  	Query strand (+ or - for nucleotides).
+query 	  	Query label.
+raw 	  	Raw score.
+target 	  	Target label.
+tcov 	  	Target coverage, fraction of query sequence that is aligned  (0.0 to 1.0).
+tframe 	  	Target frame (-3 to +3).
+thi 	  	0-based end in target.
+tl 	  	Target sequence length.
+tlo 	  	0-based start in target.
+trow 	  	Target row. Nucleotides of the target segment with gaps inserted as needed.
+ts 	  	Target segment length.
+tstrand 	  	Target strand (+ or - for nucleotides). This is currently always +, so reverse strand matches have tstrand + and qstrand -.
+
+.\" ============================================================================
+.SH DELIBERATE CHANGES
+If you are a usearch user, our objective is to make you feel at
+home. That's why vsearch was designed to behave like usearch, to some
+extend. Like any complex software, usearch is not free from quirks and
+inconsistencies. We decided not to reproduce some of them, and for
+complete transparency, to document here the deliberate changes we
+made.
+
+During a search with usearch, when using the options --blast6out and
+--output_no_hits, for queries with no match the number of fields
+reported is 13, where it should be 12. vsearch outputs 12 fields.
+
 .\" ============================================================================
 .SH EXAMPLES
 (in progress)
