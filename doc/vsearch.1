@@ -290,9 +290,6 @@ not match the query sequence.
 .B --leftjust
 reject the subject sequence if the alignment begins with gaps.
 .TP
-.B --leftjust
-reject the subject sequence if the alignment begins with gaps.
-.TP
 .BI --match\~ "integer"
 score assigned to a match (i.e. identical nucleotides) in the pairwise
 alignment. The default value is 2.
@@ -463,6 +460,7 @@ alignment. Empty field if there is no alignment.
 .B alnlen
 Print the length of the query-target alignment (number of
 columns). The field is set to 0 if there is no alignment.
+.TP
 .B bits
 Bit score (not computed for nucleotidic alignments). Always set to 0.
 .TP
@@ -518,33 +516,80 @@ value).
 .TP
 .B qcov
 Fraction of the query sequence that is aligned with the target
-sequence (real value ranging from 0.0 to 100.0).
+sequence (real value ranging from 0.0 to 100.0). \fB(what is the
+formula?)\fR.
 .TP
 .B qframe
-Query frame (-3 to +3).
+Query frame (-3 to +3). That field only concerns coding sequences and
+is not computed by vsearch. Always set to +0.
 .TP
 .B qhi
-0-based end in query.
+First nucleotide of the query aligned with the target. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
 .TP
 .B ql
 Query sequence length.
-
+.TP
+.B qlo
+Last nucleotide of the query aligned with the target. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
+.TP
+.B qrow
+Print the sequence of the query segment as seen in the pairwise
+alignment (i.e. with gap insertions if need be). Empty field if there
+is no alignment.
+.TP
+.B qs
+Query segment length. Always equal to query sequence length.
+.TP
+.B qstrand
+Query strand orientation (+ or - for nucleotidic sequences).
+.TP
+.B query
+Query label.
+.TP
+.B raw
+Raw score (not computed for nucleotidic alignments). Always set to 0.
+.TP
+.B target
+Target label.
+.TP
+.B tcov
+Fraction of the target sequence that is aligned with the query
+sequence (real value ranging from 0.0 to 100.0). \fB(what is the
+formula?)\fR.
+.TP
+.B tframe
+Target frame (-3 to +3). That field only concerns coding sequences and
+is not computed by vsearch. Always set to +0.
+.TP
+.B thi
+Last nucleotide of the target aligned with the query. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
+.TP
+.B tl
+Target sequence length.
+.TP
+.B tlo
+First nucleotide of the target aligned with the query. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
+.TP
+.B trow
+Print the sequence of the target segment as seen in the pairwise
+alignment (i.e. with gap insertions if need be). Empty field if there
+is no alignment.
+.TP
+.B ts
+Target segment length. Always equal to target sequence length.
+.TP
+.B tstrand
+Target strand orientation (+ or - for nucleotidic sequences). Always
+set to +, so reverse strand matches have tstrand + and qstrand -.
 .RE
-qlo 	  	0-based start in query.
-qrow 	  	Query row. Nucleotides of the query segment with gaps inserted as needed.
-qs 	  	Query segment length.
-qstrand 	  	Query strand (+ or - for nucleotides).
-query 	  	Query label.
-raw 	  	Raw score.
-target 	  	Target label.
-tcov 	  	Target coverage, fraction of query sequence that is aligned  (0.0 to 1.0).
-tframe 	  	Target frame (-3 to +3).
-thi 	  	0-based end in target.
-tl 	  	Target sequence length.
-tlo 	  	0-based start in target.
-trow 	  	Target row. Nucleotides of the target segment with gaps inserted as needed.
-ts 	  	Target segment length.
-tstrand 	  	Target strand (+ or - for nucleotides). This is currently always +, so reverse strand matches have tstrand + and qstrand -.
 
 .\" ============================================================================
 .SH DELIBERATE CHANGES
