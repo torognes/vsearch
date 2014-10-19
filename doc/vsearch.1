@@ -203,7 +203,7 @@ human-readable format.
 .BI --blast6out \0filename
 write search results to \fIfilename\fR using a blast-like
 tab-separated format of twelve fields (see below), with one line per
-query-subject matching (or lack of matching if --output_no_hits is
+query-target matching (or lack of matching if --output_no_hits is
 used). A similar output can be obtain with --userout \fIfilename\fR
 and --userfields
 query+target+id+alnlen+mism+opens+qlo+qhi+tlo+thi+evalue+bits. A
@@ -239,24 +239,24 @@ Bit score (not computed for nucleotidic alignments).
 .RE
 .TP
 .BI --db \0filename
-compare query sequences to the fasta-formatted subject sequences
+compare query sequences to the fasta-formatted target sequences
 contained in \fIfilename\fR, using global pairwise alignment.
 .TP
 .BI --dbmask\~ "none|dust|soft"
-mask simple repeats and low-complexity regions in subject database
+mask simple repeats and low-complexity regions in target database
 sequences using the \fIdust\fR or the \fIsoft\fR algorithms, or do not
 mask (\fInone\fR). The default is to mask using \fIdust\fR.
 .TP
 .BI --dbmatched \0filename
-write database subject sequences matching at least one query sequence
+write database target sequences matching at least one query sequence
 to \fIfilename\fR, in fasta format.
 .TP
 .BI --dbnotmatched \0filename
-write database subject sequences not matching query sequences to
+write database target sequences not matching query sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --fastapairs \0filename
-write pairwise alignments of query and subject sequences to
+write pairwise alignments of query and target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --fulldp
@@ -280,41 +280,41 @@ reject the sequence match if the pairwise identity is lower than
 formula?)\fR
 .TP
 .BI --idprefix\~ "positive integer"
-reject the subject sequence if the first \fIinteger\fR nucleotides do
+reject the target sequence if the first \fIinteger\fR nucleotides do
 not match the query sequence.
 .TP
 .BI --idsuffix\~ "positive integer"
-reject the subject sequence if the last \fIinteger\fR nucleotides do
+reject the target sequence if the last \fIinteger\fR nucleotides do
 not match the query sequence.
 .TP
 .B --leftjust
-reject the subject sequence if the alignment begins with gaps.
+reject the target sequence if the alignment begins with gaps.
 .TP
 .BI --match\~ "integer"
 score assigned to a match (i.e. identical nucleotides) in the pairwise
 alignment. The default value is 2.
 .TP
 .BI --matched \0filename
-write query sequences matching database subject sequences to
+write query sequences matching database target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --maxaccepts\~ "positive integer"
 maximum number of hits to accept before stopping the search. The
 default value is 1. That option works in pair with maxrejects. The
-search process sorts subject sequences by decreasing number of kmers
+search process sorts target sequences by decreasing number of \fIk\fR-mers
 they have in common with the query sequence, using that information as
-a proxy for sequence similarity. If the first subject sequence passes
+a proxy for sequence similarity. If the first target sequence passes
 the acceptation criteria, it is accepted as best hit and the search
 process stops for that query. If maxaccepts is set to a higher value,
 more hits are accepted. If maxaccepts and maxrejects are both set to
 0, the complete database is searched.
 .TP
 .BI --maxdiffs\~ "positive integer"
-reject the subject sequence if the alignment contains at least
+reject the target sequence if the alignment contains at least
 \fIinteger\fR substitutions, insertions or deletions.
 .TP
 .BI --maxgaps\~ "positive integer"
-reject the subject sequence if the alignment contains at least
+reject the target sequence if the alignment contains at least
 \fIinteger\fR insertions or deletions.
 .TP
 .BI --maxhits\~ "positive integer"
@@ -323,7 +323,7 @@ sorted by decreasing identity). The default value is 1. Set to 0 to
 ignore the option.
 .TP
 .BI --maxid \0real
-reject the subject sequence if its percentage of identity with the
+reject the target sequence if its percentage of identity with the
 query is equal or greater than \fIreal\fR.
 .TP
 .BI --maxqsize\~ "positive integer"
@@ -331,23 +331,23 @@ reject query sequences with an abundance equal or greater than
 \fIinteger\fR.
 .TP
 .BI --maxqt \0real
-reject if the query/subject length ratio is equal or greater than
+reject if the query/target length ratio is equal or greater than
 \fIreal\fR.
 .TP
 .BI --maxrejects\~ "positive integer"
-maximum number of non-matching subject sequences to consider before
+maximum number of non-matching target sequences to consider before
 stopping the search. The default value is 32. That option works in
-pair with maxaccepts. The search process sorts subject sequences by
-decreasing number of kmers they have in common with the query
+pair with maxaccepts. The search process sorts target sequences by
+decreasing number of \fIk\fR-mers they have in common with the query
 sequence, using that information as a proxy for sequence
-similarity. If none of the first 32 subject sequences pass the
+similarity. If none of the first 32 target sequences pass the
 acceptation criteria, the search process stops for that query (no
-hit). If maxrejects is set to a higher value, more subject sequences
+hit). If maxrejects is set to a higher value, more target sequences
 are considered. If maxaccepts and maxrejects are both set to 0, the
 complete database is searched.
 .TP
 .BI --maxsizeratio \0real
-reject if the query/subject abundance ratio is equal or greater than
+reject if the query/target abundance ratio is equal or greater than
 \fIreal\fR.
 .TP
 .BI --maxsl \0real
@@ -355,35 +355,35 @@ reject if the shorter/longer length ratio is equal or greater than
 \fIreal\fR.
 .TP
 .BI --maxsubs\~ "positive integer"
-reject the subject sequence if the alignment contains at least
+reject the target sequence if the alignment contains at least
 \fIinteger\fR substitutions.
 .TP
 .BI --mid \0real
-reject the subject sequence if its percentage of identity with the
+reject the target sequence if its percentage of identity with the
 query is lower than \fIreal\fR (ignoring gaps).
 .TP
 .BI --mincols\~ "positive integer"
-reject the subject sequence if the alignment length is shorter than
+reject the target sequence if the alignment length is shorter than
 \fIinteger\fR.
 .TP
 .BI --minqt \0real
-reject if the query/subject length ratio is lower than \fIreal\fR.
+reject if the query/target length ratio is lower than \fIreal\fR.
 .TP
 .BI --minsizeratio \0real
-reject if the query/subject abundance ratio is lower than \fIreal\fR.
+reject if the query/target abundance ratio is lower than \fIreal\fR.
 .TP
 .BI --minsl \0real
 reject if the shorter/longer length ratio is lower than \fIreal\fR.
 .TP
 .BI --mintsize\~ "positive integer"
-reject subject sequences with an abundance lower than \fIinteger\fR.
+reject target sequences with an abundance lower than \fIinteger\fR.
 .TP
 .BI --mismatch\~ "integer"
 score assigned to a mismatch (i.e. different nucleotides) in the
 pairwise alignment. The default value is -4.
 .TP
 .BI --notmatched \0filename
-write query sequences not matching database subject sequences to
+write query sequences not matching database target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --output_no_hits
@@ -399,24 +399,24 @@ using the \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
 (\fInone\fR). The default is to mask using \fIdust\fR.
 .TP
 .BI --query_cov \0real
-reject if the fraction of the query aligned to the subject sequence is
+reject if the fraction of the query aligned to the target sequence is
 lower than \fIreal\fR.
 .TP
 .B --rightjust
-reject the subject sequence if the alignment ends with gaps.
+reject the target sequence if the alignment ends with gaps.
 .TP
 .BI --rowlen\~ "positive integer"
 width of alignment lines in alnout output. The default value is
 64. Set that value to 0 to eliminate the wrapping.
 .TP
 .B --self
-reject the alignment if the query and subject labels are identical.
+reject the alignment if the query and target labels are identical.
 .TP
 .B --selfid
-reject the alignment if the query and subject sequences are identical.
+reject the alignment if the query and target sequences are identical.
 .TP
 .BI --target_cov \0real
-reject if the fraction of the subject sequence aligned to the query
+reject if the fraction of the target sequence aligned to the query
 sequence is lower than \fIreal\fR.
 .TP
 .B --top_hits_only
@@ -444,7 +444,7 @@ sensitivity. Logically, \fIreal\fR must be smaller than the value
 indicated by --id.
 .TP
 .BI --wordlength\~ "positive integer"
-length of words (i.e. \fIk\fRmers) for database index. The default
+length of words (i.e. \fIk\fR-mers) for database index. The default
 value is 8.
 .RE
 
@@ -554,12 +554,12 @@ Query label.
 Raw score (not computed for nucleotidic alignments). Always set to 0.
 .TP
 .B target
-Target label.
+Target label. The field is set to "*" if there is no alignment.
 .TP
 .B tcov
 Fraction of the target sequence that is aligned with the query
 sequence (real value ranging from 0.0 to 100.0). \fB(what is the
-formula?)\fR.
+formula?)\fR. The field is set to 0 if there is no alignment.
 .TP
 .B tframe
 Target frame (-3 to +3). That field only concerns coding sequences and
@@ -584,11 +584,13 @@ alignment (i.e. with gap insertions if need be). Empty field if there
 is no alignment.
 .TP
 .B ts
-Target segment length. Always equal to target sequence length.
+Target segment length. Always equal to target sequence length. The
+field is set to 0 if there is no alignment.
 .TP
 .B tstrand
 Target strand orientation (+ or - for nucleotidic sequences). Always
-set to +, so reverse strand matches have tstrand + and qstrand -.
+set to "+", so reverse strand matches have tstrand "+" and qstrand
+"-".
 .RE
 
 .\" ============================================================================
