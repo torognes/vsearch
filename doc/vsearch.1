@@ -35,13 +35,39 @@ defined as the string comprised between the ">" symbol and the first
 space or the end of the line, whichever comes first. Additionally, if
 the line ends with the pattern ";size=\fIinteger\fR;", \fBvsearch\fR
 will interpret \fIinteger\fR as the abundance of the sequence (in a
-dereplicated fasta file for instance). The nucleotidic sequence is
-defined as a string of [acgt] or [acgu] symbols (case insensitive),
-starting after the end of the identifier line and ending before the
-next identifier line or the file end; \fBvsearch\fR exits with an
-error message if any other symbol is present in the
-sequence. Optionally, \fBvsearch\fR can be compiled to accepted
-compressed fasta files as input (gz and bzip2 formats).
+dereplicated fasta file for instance).
+
+The nucleotidic sequence is defined as a string of IUPAC symbols
+(ACGTURYSWKMDBHVN), starting after the end of the identifier line and
+ending before the next identifier line or the file end. \fBvsearch\fR
+silently ignores ascii characters 9 to 13, exits with an error message
+if ascii characters 0 to 8, 14 to 31, "." and "-" are present. All
+other characters are stripped and complained about in a warning
+message (non-blocking).
+
+Dereplication, sorting and shuffling operations are case
+insensitive. Searching and clustering are case insensitive too, except
+when soft masking is activated. For the --vsearch_global,
+--cluster_fast, --cluster_smallmem and --maskfasta commands, the case
+is important if soft masking is used. Soft masking is specified with
+the options "--dbmask soft" (for all four options cited above) or
+"--qmask soft" (--vsearch_global only). When using soft masking, lower
+case letters indicate masked symbols, while upper case letters
+indicate regular symbols. Masked symbols are never included in the
+unique \fIk\fR-mers used in searching. When soft masking is not
+activated, all letters are converted to upper case internally and used
+in result files.
+
+When aligning sequences during searching and clustering, T and U are
+considered identical, regardless of their case. If two symbols are
+non-identical, their alignment will result in the negative mismatch
+score (default -4), except if one or both of the symbols are ambiguous
+(RYSWKMDBHVN) in which case the score is zero. Alignment of two
+identical ambiguous symbols (e.g. R vs R) is considered a match, and
+given a positive match score (+2).
+
+Optionally, \fBvsearch\fR can be compiled to accepted compressed fasta
+files as input (gz and bzip2 formats).
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBvsearch\fR recognizes a large number of command-line options. For
@@ -214,27 +240,40 @@ complete list and description is available in the section "Fields".
 .IP \n[step]. 12
 Query label.
 .IP \n+[step].
-Target (database sequence or cluster centroid) label.
+Target (database sequence or cluster centroid) label. The field is set
+to "*" if there is no alignment.
 .IP \n+[step].
-Percent identity.
+Percentage of identity (real value ranging from 0.0 to
+100.0). \fB(what is the formula?)\fR.
 .IP \n+[step].
-Alignment length.
+Length of the query-target alignment (number of columns). The field is
+set to 0 if there is no alignment.
 .IP \n+[step].
-Number of mismatches.
+Number of mismatches in the alignment (zero or positive
+integer value).
 .IP \n+[step].
-Number of gap opens.
+Number of columns containing a gap opening (zero or positive integer
+value).
 .IP \n+[step].
-1-based position of start in query.
+First nucleotide of the query aligned with the target. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
 .IP \n+[step].
-1-based position of end in query.
+Last nucleotide of the query aligned with the target. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
 .IP \n+[step].
-1-based position of start in target.
+First nucleotide of the target aligned with the query. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
 .IP \n+[step].
-1-based position of end in target.
+Last nucleotide of the target aligned with the query. Nucleotide
+numbering starts from 1. The field is set to 0 if there is no
+alignment.
 .IP \n+[step].
-E-value  (not computed for nucleotidic alignments).
+E-value  (not computed for nucleotidic alignments). Always set to 0.
 .IP \n+[step].
-Bit score (not computed for nucleotidic alignments).
+Bit score (not computed for nucleotidic alignments). Always set to 0.
 .RE
 .RE
 .TP
@@ -484,12 +523,11 @@ Percentage of identity (real value ranging from 0.0 to
 100.0). \fB(what is the formula?)\fR.
 .TP
 .B ids
-Number of columns containing identical nucleotides (zero or positive
-integer value).
+Number of matches in the alignment (zero or positive integer value).
 .TP
 .B mism
-Number of columns containing different nucleotides (zero or positive
-integer value).
+Number of mismatches in the alignment (zero or positive integer
+value).
 .TP
 .B opens
 Number of columns containing a gap opening (zero or positive integer
@@ -524,7 +562,7 @@ Query frame (-3 to +3). That field only concerns coding sequences and
 is not computed by vsearch. Always set to +0.
 .TP
 .B qhi
-First nucleotide of the query aligned with the target. Nucleotide
+Last nucleotide of the query aligned with the target. Nucleotide
 numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .TP
@@ -532,7 +570,7 @@ alignment.
 Query sequence length.
 .TP
 .B qlo
-Last nucleotide of the query aligned with the target. Nucleotide
+First nucleotide of the query aligned with the target. Nucleotide
 numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .TP
