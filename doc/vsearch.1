@@ -45,16 +45,15 @@ if ascii characters 0 to 8, 14 to 31, "." and "-" are present. All
 other characters are stripped and complained about in a warning
 message (non-blocking).
 
-Dereplication, sorting and shuffling operations are case
-insensitive. Searching and clustering are case insensitive too, except
-when soft masking is activated. For the --vsearch_global,
---cluster_fast, --cluster_smallmem and --maskfasta commands, the case
-is important if soft masking is used. Soft masking is specified with
-the options "--dbmask soft" (for all four options cited above) or
-"--qmask soft" (--vsearch_global only). When using soft masking, lower
-case letters indicate masked symbols, while upper case letters
-indicate regular symbols. Masked symbols are never included in the
-unique \fIk\fR-mers used in searching. When soft masking is not
+\fBvsearch\fR operations are case insensitive, except when soft masking is
+activated. For --vsearch_global (searching), --cluster_fast and
+--cluster_smallmem (clustering), and --maskfasta (masking) commands,
+the case is important if soft masking is used. Soft masking is
+specified with the options "--dbmask soft" (for searching) or "--qmask
+soft" (for searching, clustering and masking). When using soft
+masking, lower case letters indicate masked symbols, while upper case
+letters indicate regular symbols. Masked symbols are never included in
+the unique \fIk\fR-mers used in searching. When soft masking is not
 activated, all letters are converted to upper case internally and used
 in result files.
 
@@ -102,13 +101,13 @@ than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
 do not truncate sequence labels at first space, use the full header.
 .TP
 .BI --strand\~ "plus|both"
-when searching or dereplicating, check the \fIplus\fR strand only
-(default) or check \fIboth\fR strands.
+when searching, clustering or dereplicating, check the \fIplus\fR
+strand only (default) or check \fIboth\fR strands.
 .TP
 .BI --threads\~ "positive integer"
-number of computation threads to use. The number of threads should be
-lesser or equal to the number of available CPU cores. The default is to 
-launch one thread per available logical core.
+number of computation threads to use (1 to 256). The number of threads
+should be lesser or equal to the number of available CPU cores. The
+default is to launch one thread per available logical core.
 .TP
 .BI --uc \0filename
 when searching, clustering or dereplicating, output results in
@@ -155,6 +154,12 @@ output each cluster to a separate fasta file using the prefix
 .\" .BI --msaout \0filename
 .\" output multiple sequence alignments of each cluster to \fIfilename\fR.
 .\" .TP
+.BI --qmask\~ "none|dust|soft"
+mask simple repeats and low-complexity regions in sequences using the
+\fIdust\fR or the \fIsoft\fR algorithms, or do not mask
+(\fInone\fR). Warning, when using \fIsoft\fR masking, clustering
+becomes case sensitive. The default is to mask using \fIdust\fR.
+.TP
 .B --usersort
 when using --cluster_smallmem, conserve the initial input order of
 sequences, do not sort sequences by decreasing length before
@@ -228,23 +233,25 @@ human-readable format.
 .TP
 .BI --blast6out \0filename
 write search results to \fIfilename\fR using a blast-like
-tab-separated format of twelve fields (see below), with one line per
-query-target matching (or lack of matching if --output_no_hits is
+tab-separated format of twelve fields (listed below), with one line
+per query-target matching (or lack of matching if --output_no_hits is
 used). A similar output can be obtain with --userout \fIfilename\fR
 and --userfields
 query+target+id+alnlen+mism+opens+qlo+qhi+tlo+thi+evalue+bits. A
-complete list and description is available in the section "Fields".
+complete list and description is available in the section "Fields" of
+this manual.
 .RS
 .RS
 .nr step 1 1
-.IP \n[step]. 12
+.IP \n[step]. 4
 Query label.
 .IP \n+[step].
 Target (database sequence or cluster centroid) label. The field is set
 to "*" if there is no alignment.
 .IP \n+[step].
-Percentage of identity (real value ranging from 0.0 to
-100.0). \fB(what is the formula?)\fR.
+Percentage of identity (real value ranging from 0.0 to 100.0). The
+percentage identity is defined as 100 * (matching columns) /
+(alignment length - terminal gaps).
 .IP \n+[step].
 Length of the query-target alignment (number of columns). The field is
 set to 0 if there is no alignment.
@@ -284,7 +291,9 @@ contained in \fIfilename\fR, using global pairwise alignment.
 .BI --dbmask\~ "none|dust|soft"
 mask simple repeats and low-complexity regions in target database
 sequences using the \fIdust\fR or the \fIsoft\fR algorithms, or do not
-mask (\fInone\fR). The default is to mask using \fIdust\fR.
+mask (\fInone\fR). Warning, when using \fIsoft\fR masking search
+commands become case sensitive. The default is to mask using
+\fIdust\fR.
 .TP
 .BI --dbmatched \0filename
 write database target sequences matching at least one query sequence
@@ -299,7 +308,7 @@ write pairwise alignments of query and target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --fulldp
-dummy option. To maximize search sensitivity, vsearch uses a 8-way
+dummy option. To maximize search sensitivity, \fBvsearch\fR uses a 8-way
 SIMD vectorized full dynamic programming algorithm (Needleman-Wunsch),
 whether or not --fulldp is specified.
 .TP
@@ -315,8 +324,9 @@ setting them to lower case.
 .TP
 .BI --id \0real
 reject the sequence match if the pairwise identity is lower than
-\fIreal\fR (value ranging from 0.0 to 1.0 included). \fB(what is the
-formula?)\fR
+\fIreal\fR (value ranging from 0.0 to 1.0 included). The pairwise
+identity is defined as the number of (matching columns) / (alignment
+length - terminal gaps).
 .TP
 .BI --idprefix\~ "positive integer"
 reject the target sequence if the first \fIinteger\fR nucleotides do
@@ -435,7 +445,8 @@ verified)\fR.
 .BI --qmask\~ "none|dust|soft"
 mask simple repeats and low-complexity regions in query sequences
 using the \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
-(\fInone\fR). The default is to mask using \fIdust\fR.
+(\fInone\fR). Warning, when using \fIsoft\fR masking search commands
+become case sensitive. The default is to mask using \fIdust\fR.
 .TP
 .BI --query_cov \0real
 reject if the fraction of the query aligned to the target sequence is
@@ -483,7 +494,7 @@ sensitivity. Logically, \fIreal\fR must be smaller than the value
 indicated by --id.
 .TP
 .BI --wordlength\~ "positive integer"
-length of words (i.e. \fIk\fR-mers) for database index. The default
+length of words (i.e. \fIk\fR-mers) for database indexing. The default
 value is 8.
 .RE
 
@@ -509,7 +520,7 @@ format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
 (deletion) and I (insertion).
 .TP
 .B evalue
-E-value (not computed for nucleotidic alignments). Always set to 0.
+E-value (not computed for nucleotidic alignments). Always set to -1.
 .TP
 .B exts
 Number of columns containing a gap extension (zero or positive integer
@@ -519,8 +530,9 @@ value).
 Number of columns containing a gap (zero or positive integer value).
 .TP
 .B id
-Percentage of identity (real value ranging from 0.0 to
-100.0). \fB(what is the formula?)\fR.
+Percentage of identity (real value ranging from 0.0 to 100.0). The
+percentage identity is defined as 100 * (matching columns) /
+(alignment length - terminal gaps).
 .TP
 .B ids
 Number of matches in the alignment (zero or positive integer value).
@@ -559,7 +571,7 @@ formula?)\fR.
 .TP
 .B qframe
 Query frame (-3 to +3). That field only concerns coding sequences and
-is not computed by vsearch. Always set to +0.
+is not computed by \fBvsearch\fR. Always set to +0.
 .TP
 .B qhi
 Last nucleotide of the query aligned with the target. Nucleotide
@@ -589,7 +601,8 @@ Query strand orientation (+ or - for nucleotidic sequences).
 Query label.
 .TP
 .B raw
-Raw score (not computed for nucleotidic alignments). Always set to 0.
+Raw alignment score (not computed for nucleotidic alignments). Always
+set to 0.
 .TP
 .B target
 Target label. The field is set to "*" if there is no alignment.
@@ -601,7 +614,7 @@ formula?)\fR. The field is set to 0 if there is no alignment.
 .TP
 .B tframe
 Target frame (-3 to +3). That field only concerns coding sequences and
-is not computed by vsearch. Always set to +0.
+is not computed by \fBvsearch\fR. Always set to +0.
 .TP
 .B thi
 Last nucleotide of the target aligned with the query. Nucleotide
@@ -634,15 +647,26 @@ set to "+", so reverse strand matches have tstrand "+" and qstrand
 .\" ============================================================================
 .SH DELIBERATE CHANGES
 If you are a usearch user, our objective is to make you feel at
-home. That's why vsearch was designed to behave like usearch, to some
-extend. Like any complex software, usearch is not free from quirks and
-inconsistencies. We decided not to reproduce some of them, and for
-complete transparency, to document here the deliberate changes we
-made.
+home. That's why \fBvsearch\fR was designed to behave like usearch, to
+some extend. Like any complex software, usearch is not free from
+quirks and inconsistencies. We decided not to reproduce some of them,
+and for complete transparency, to document here the deliberate changes
+we made.
 
 During a search with usearch, when using the options --blast6out and
 --output_no_hits, for queries with no match the number of fields
-reported is 13, where it should be 12. vsearch outputs 12 fields.
+reported is 13, where it should be 12. This is corrected in
+\fBvsearch\fR.
+
+.\" ============================================================================
+.SH NOVELTIES
+\fBvsearch\fR introduces new options not present in usearch. These options
+are described in the "Options" section of this manual. Here is a short
+list:
+.IP \[bu] 2
+shuffle
+.IP \[bu]
+fasta_width
 
 .\" ============================================================================
 .SH EXAMPLES
@@ -740,6 +764,9 @@ or minor bug releases are not mentioned):
 First public release
 .LP
 .\" ============================================================================
+.\" TODO:
+.\" - define "terminal gaps",
+.\"
 .\" NOTES
 .\" visualize and output to pdf
 .\" man -l vsearch.1
