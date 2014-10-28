@@ -21,7 +21,7 @@
 
 #include "vsearch.h"
 
-long stripped[256];
+int stripped[256];
 
 static unsigned long sequences = 0;
 static unsigned long nucleotides = 0;
@@ -145,7 +145,7 @@ void db_read(const char * filename, int upcase)
        fatal("Error: Unknown compression type detected");
    }
 
-  long lineno = 1;
+  int lineno = 1;
 
   long stripped_count = 0;
   for(int i=0; i<256; i++)
@@ -276,9 +276,9 @@ void db_read(const char * filename, int upcase)
                   /* fatal character */
                   char msg[200];
                   if (c>=32)
-                    snprintf(msg, 200, "illegal character '%c' on line %ld in the database file", c, lineno);
+                    snprintf(msg, 200, "illegal character '%c' on line %d in the database file", c, lineno);
                   else
-                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the database file", c, lineno);
+                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %d in the database file", c, lineno);
                   fatal(msg);
                   break;
 
@@ -407,7 +407,7 @@ void db_read(const char * filename, int upcase)
       fprintf(stderr, "Warning: invalid characters stripped from sequence:");
       for (int i=0; i<256;i++)
         if (stripped[i])
-          fprintf(stderr, " %c(%ld)", i, stripped[i]);
+          fprintf(stderr, " %c(%d)", i, stripped[i]);
       fprintf(stderr, "\n");
     }
 
@@ -477,7 +477,6 @@ void db_read(const char * filename, int upcase)
   }
 
   progress_done();
-  regfree(&db_regexp);
 
   show_rusage();
 }
@@ -509,8 +508,52 @@ unsigned long db_getshortestsequence()
 
 void db_free()
 {
+  regfree(&db_regexp);
   if (datap)
     free(datap);
   if (seqindex)
     free(seqindex);
+}
+
+void db_fprint_fasta(FILE * fp, unsigned long seqno)
+{
+  char * hdr = db_getheader(seqno);
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+  
+  fprint_fasta_hdr_only(fp, hdr);
+  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
+}
+
+void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size)
+{
+  char * hdr = db_getheader(seqno);
+  int hdrlen = db_getheaderlen(seqno);
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+  
+  /* remove any previous size annotation */
+  /* regexp search for "(^|;)(\d+)(;|$)" */
+  /* replace by ';' if not at either end */
+
+  regmatch_t pmatch[1];
+
+  if (!regexec(&db_regexp, hdr, 1, pmatch, 0))
+    {
+      int pat_start = pmatch[0].rm_so;
+      int pat_end = pmatch[0].rm_eo;
+
+      fprintf(fp, ">%.*s%ssize=%lu%s%.*s\n",
+              pat_start, hdr,
+              pat_start > 0 ? ";" : "",
+              size,
+              pat_end < hdrlen ? ";" : "",
+              hdrlen - pat_end, hdr + pat_end);
+    }
+  else
+    {
+      fprintf(fp, ">%s;size=%lu\n", hdr, size);
+    }
+
+  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }

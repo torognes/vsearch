@@ -21,9 +21,9 @@
 
 void query_open(const char * filename);
 
-int query_getnext(char ** head, long * head_len,
-                  char ** seq, long * seq_len, long * qno,
-                  long * qsize, int upcase);
+int query_getnext(char ** head, int * head_len,
+                  char ** seq, int * seq_len, int * qno,
+                  int * qsize, int upcase);
 
 void query_close();
 

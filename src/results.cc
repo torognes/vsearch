@@ -78,11 +78,14 @@ void results_show_blast6out_one(FILE * fp,
      1-based position of end in target
      E-value
      bit score
+
+     Note that USEARCH shows 13 fields when there is no hit,
+     but only 12 when there is a hit. Fixed in VSEARCH.
   */
   
   if (hp)
     {
-      long qstart, qend;
+      int qstart, qend;
       
       if (hp->strand)
         {
@@ -98,21 +101,21 @@ void results_show_blast6out_one(FILE * fp,
         }
       
       fprintf(fp,
-              "%s\t%s\t%.1f\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t*\t*\n",
+              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%ld\t*\t*\n",
               query_head,
               db_getheader(hp->target),
-              hp->internal_id,
+              hp->id,
               hp->internal_alignmentlength,
               hp->mismatches,
               hp->internal_gaps,
               qstart,
               qend,
-              1L,
+              1,
               db_getsequencelen(hp->target));
     }
   else
     {
-        fprintf(fp, "%s\t*\t0\t0\t0\t0\t0\t0\t0\t0\t0\t*\t0\n", query_head);
+        fprintf(fp, "%s\t*\t0\t0\t0\t0\t0\t0\t0\t0\t*\t*\n", query_head);
     }
 }
 
@@ -141,10 +144,10 @@ void results_show_uc_one(FILE * fp,
 
   if (hp)
     fprintf(fp,
-            "H\t%ld\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
+            "H\t%d\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
             hp->target,
             qseqlen,
-            hp->internal_id,
+            hp->id,
             hp->strand ? '-' : '+',
             hp->nwalignment,
             query_head,
@@ -159,7 +162,10 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
                               char * rc)
 {
 
-  /* http://drive5.com/usearch/manual/userout.html */
+  /*
+    http://drive5.com/usearch/manual/userout.html
+    qlo, qhi, tlo, thi and raw are given more meaningful values here
+  */
 
   for (int c = 0; c < userfields_requested_count; c++)
     {
@@ -194,7 +200,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "-1");
           break;
         case 3: /* id */
-          fprintf(fp, "%.1f", hp ? hp->internal_id : 0.0);
+          fprintf(fp, "%.1f", hp ? hp->id : 0.0);
           break;
         case 4: /* pctpv */
           fprintf(fp, "%.1f", hp ? 100.0 * hp->matches / hp->internal_alignmentlength : 0.0);
@@ -203,25 +209,25 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%.1f", hp ? 100.0 * hp->internal_indels / hp->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
-          fprintf(fp, "%ld", hp ? hp->matches + hp->mismatches : 0);
+          fprintf(fp, "%d", hp ? hp->matches + hp->mismatches : 0);
           break;
         case 7: /* gaps */
-          fprintf(fp, "%ld", hp ? hp->internal_indels : 0);
+          fprintf(fp, "%d", hp ? hp->internal_indels : 0);
           break;
         case 8: /* qlo */
-          fprintf(fp, "%ld", hp ? 1L : 0L);
+          fprintf(fp, "%d", hp ? hp->trim_q_left + 1 : 0);
           break;
         case 9: /* qhi */
-          fprintf(fp, "%ld", hp ? qseqlen : 0);
+          fprintf(fp, "%ld", hp ? qseqlen - hp->trim_q_right : 0);
           break;
         case 10: /* tlo */
-          fprintf(fp, "%ld", hp ? 1L : 0L);
+          fprintf(fp, "%d", hp ? hp->trim_t_left + 1 : 0);
           break;
         case 11: /* thi */
-          fprintf(fp, "%ld", hp ? tseqlen : 0);
+          fprintf(fp, "%ld", hp ? tseqlen - hp->trim_t_right : 0);
           break;
         case 12: /* pv */
-          fprintf(fp, "%ld", hp ? hp->matches : 0);
+          fprintf(fp, "%d", hp ? hp->matches : 0);
           break;
         case 13: /* ql */
           fprintf(fp, "%ld", qseqlen);
@@ -236,19 +242,19 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%ld", hp ? tseqlen : 0);
           break;
         case 17: /* alnlen */
-          fprintf(fp, "%ld", hp ? hp->internal_alignmentlength : 0);
+          fprintf(fp, "%d", hp ? hp->internal_alignmentlength : 0);
           break;
         case 18: /* opens */
-          fprintf(fp, "%ld", hp ? hp->internal_gaps : 0);
+          fprintf(fp, "%d", hp ? hp->internal_gaps : 0);
           break;
         case 19: /* exts */
-          fprintf(fp, "%ld", hp ? hp->internal_indels - hp->internal_gaps : 0);
+          fprintf(fp, "%d", hp ? hp->internal_indels - hp->internal_gaps : 0);
           break;
         case 20: /* raw */
-          fprintf(fp, "%ld", 0L);
+          fprintf(fp, "%d", hp ? hp->nwscore : 0);
           break;
         case 21: /* bits */
-          fprintf(fp, "%ld", 0L);
+          fprintf(fp, "%d", 0);
           break;
         case 22: /* aln */ 
           if (hp)
@@ -299,10 +305,10 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "+0");
           break;
         case 30: /* mism */
-          fprintf(fp, "%ld", hp ? hp->mismatches : 0);
+          fprintf(fp, "%d", hp ? hp->mismatches : 0);
           break;
         case 31: /* ids */
-          fprintf(fp, "%ld", hp ? hp->matches : 0);
+          fprintf(fp, "%d", hp ? hp->matches : 0);
           break;
         case 32: /* qcov */
           fprintf(fp, "%.0f",
@@ -311,6 +317,21 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
         case 33: /* tcov */
           fprintf(fp, "%.0f",
                   hp ? 100.0 * (hp->matches + hp->mismatches) / tseqlen : 0.0);
+          break;
+        case 34: /* id0 */
+          fprintf(fp, "%.1f", hp ? hp->id0 : 0.0);
+          break;
+        case 35: /* id1 */
+          fprintf(fp, "%.1f", hp ? hp->id1 : 0.0);
+          break;
+        case 36: /* id2 */
+          fprintf(fp, "%.1f", hp ? hp->id2 : 0.0);
+          break;
+        case 37: /* id3 */
+          fprintf(fp, "%.1f", hp ? hp->id3 : 0.0);
+          break;
+        case 38: /* id4 */
+          fprintf(fp, "%.1f", hp ? hp->id4 : 0.0);
           break;
         }
     }
@@ -334,17 +355,17 @@ void results_show_alnout(FILE * fp,
       fprintf(fp,"Query >%s\n", query_head);
       fprintf(fp," %%Id   TLen  Target\n");
       
-      double top_hit_id = hits[0].internal_id;
+      double top_hit_id = hits[0].id;
 
       for(int t = 0; t < hitcount; t++)
         {
           struct hit * hp = hits + t;
           
-          if (opt_top_hits_only && (hp->internal_id < top_hit_id))
+          if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
 
           fprintf(fp,"%3.0f%% %6lu  %s\n",
-                  hp->internal_id,
+                  hp->id,
                   db_getsequencelen(hp->target),
                   db_getheader(hp->target));
         }
@@ -353,11 +374,12 @@ void results_show_alnout(FILE * fp,
         {
           struct hit * hp = hits + t;
           
-          if (opt_top_hits_only && (hp->internal_id < top_hit_id))
+          if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
 
           fprintf(fp,"\n");
           
+
           char * dseq = db_getsequence(hp->target);
           long dseqlen = db_getsequencelen(hp->target);
           
@@ -371,6 +393,8 @@ void results_show_alnout(FILE * fp,
           fprintf(fp,"Target %*ldnt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
           
+          int rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
+
           align_show(fp,
                      qsequence,
                      qseqlen,
@@ -385,21 +409,27 @@ void results_show_alnout(FILE * fp,
                      - hp->trim_aln_left - hp->trim_aln_right,
                      numwidth,
                      3,
-                     opt_rowlen,
+                     rowlen,
                      hp->strand);
-              
-          fprintf(fp,"\n%ld cols, %ld ids (%3.1f%%), %ld gaps (%3.1f%%)",
+          
+          fprintf(fp, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
                   hp->internal_alignmentlength,
                   hp->matches,
-                  hp->internal_id,
+                  hp->id,
                   hp->internal_indels,
                   100.0 * hp->internal_indels / hp->internal_alignmentlength);
 
 #if 0
-          fprintf(fp," [%ld kmers, %ld score, %ld gap opens]",
-                  hp->count, hp->nwscore, hp->nwgaps);
+          fprintf(fp, "%d kmers, %d score, %d gap opens. %s\n",
+                  hp->count, hp->nwscore, hp->nwgaps,
+                  hp->accepted ? "accepted" : "not accepted");
 #endif
-          fprintf(fp, "\n");
         }
+    }
+  else if (opt_output_no_hits)
+    {
+      fprintf(fp, "\n");
+      fprintf(fp,"Query >%s\n", query_head);
+      fprintf(fp,"No hits\n");
     }
 }

@@ -21,96 +21,43 @@
 
 #include "vsearch.h"
 
-/* ARGUMENTS AND THEIR DEFAULTS */
-
-static char * progname;
-
-char * opt_db;
-char * opt_vsearch_global;
-char * opt_cluster_smallmem;
-char * opt_cluster_fast;
-
+char * opt_alnout;
+char * opt_blast6out;
 char * opt_centroids;
+char * opt_cluster_fast;
+char * opt_cluster_smallmem;
 char * opt_clusters;
 char * opt_consout;
-int opt_construncate;
-char * opt_msaout;
-int opt_usersort;
-
-char * opt_alnout;
-char * useroutfilename;
-char * opt_blast6out;
-char * ucfilename;
-char * opt_fastapairs;
-char * opt_matched;
-char * opt_notmatched;
+char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
-
-long opt_hardmask;
-long opt_qmask;
-long opt_dbmask;
-
-long opt_threads;
-long opt_fulldp;
-long opt_wordlength;
-long maxrejects;
-long maxaccepts;
-long match_score;
-long mismatch_score;
-long opt_rowlen;
+char * opt_derep_fulllength;
+char * opt_fastapairs;
+char * opt_maskfasta;
+char * opt_matched;
+char * opt_msaout;
+char * opt_notmatched;
+char * opt_output;
+char * opt_relabel;
+char * opt_shuffle;
+char * opt_sortbylength;
+char * opt_sortbysize;
+char * opt_vsearch_global;
 
 double opt_id;
+double opt_maxid;
+double opt_maxqt;
+double opt_maxsizeratio;
+double opt_maxsl;
+double opt_mid;
+double opt_minqt;
+double opt_minsizeratio;
+double opt_minsl;
 double opt_query_cov;
 double opt_target_cov;
-long opt_idprefix;
-long opt_idsuffix;
-double opt_minqt;
-double opt_maxqt;
-double opt_minsl;
-double opt_maxsl;
-long opt_leftjust;
-long opt_rightjust;
-long opt_self;
-long opt_selfid;
-double opt_maxid;
-double opt_minsizeratio;
-double opt_maxsizeratio;
-long opt_maxdiffs;
-long opt_maxsubs;
-long opt_maxgaps;
-long opt_mincols;
-long opt_maxqsize;
-long opt_mintsize;
-double opt_mid;
-
 double opt_weak_id;
-long opt_strand;
-long opt_uc_allhits;
-long opt_notrunclabels;
-char * opt_sortbysize;
-char * opt_sortbylength;
-char * opt_output;
-long opt_minsize;
-long opt_maxsize;
-char * opt_relabel;
-long opt_sizein;
-long opt_sizeout;
-char * opt_derep_fulllength;
-long opt_minseqlength;
-long opt_maxseqlength;
-long opt_minuniquesize;
-long opt_topn;
-long opt_help;
-long opt_version;
-long opt_output_no_hits;
-long opt_maxhits;
-long opt_top_hits_only;
-long opt_fasta_width;
-char * opt_shuffle;
-char * opt_maskfasta;
-long opt_seed;
 
+int opt_construncate;
 int opt_gap_open_query_left;
 int opt_gap_open_target_left;
 int opt_gap_open_query_interior;
@@ -123,6 +70,54 @@ int opt_gap_extension_query_interior;
 int opt_gap_extension_target_interior;
 int opt_gap_extension_query_right;
 int opt_gap_extension_target_right;
+int opt_help;
+int opt_usersort;
+int opt_version;
+
+long opt_dbmask;
+long opt_fasta_width;
+long opt_fulldp;
+long opt_hardmask;
+long opt_iddef;
+long opt_idprefix;
+long opt_idsuffix;
+long opt_leftjust;
+long opt_maxdiffs;
+long opt_maxgaps;
+long opt_maxhits;
+long opt_maxqsize;
+long opt_maxseqlength;
+long opt_maxsize;
+long opt_maxsubs;
+long opt_mincols;
+long opt_minseqlength;
+long opt_minsize;
+long opt_mintsize;
+long opt_minuniquesize;
+long opt_notrunclabels;
+long opt_output_no_hits;
+long opt_qmask;
+long opt_rightjust;
+long opt_rowlen;
+long opt_seed;
+long opt_self;
+long opt_selfid;
+long opt_sizein;
+long opt_sizeout;
+long opt_strand;
+long opt_threads;
+long opt_top_hits_only;
+long opt_topn;
+long opt_uc_allhits;
+long opt_wordlength;
+
+char * ucfilename;
+char * useroutfilename;
+long match_score;
+long maxaccepts;
+long maxrejects;
+long mismatch_score;
+
 
 /* Other variables */
 
@@ -139,6 +134,7 @@ long popcnt_present = 0;
 long avx_present = 0;
 long avx2_present = 0;
 
+static char * progname;
 static char progheader[80];
 static char * cmdline;
 
@@ -438,6 +434,7 @@ void args_init(int argc, char **argv)
   opt_id = -1.0;
   opt_query_cov = 0.0;
   opt_target_cov = 0.0;
+  opt_iddef = 2;
   opt_idprefix = 0;
   opt_idsuffix = 0;
   opt_minqt = 0.0;
@@ -481,8 +478,8 @@ void args_init(int argc, char **argv)
   static struct option long_options[] =
 
   {
-    {"help",                  no_argument,       0, 0 },
-    {"version",               no_argument,       0, 0 },
+    {"help",                  no_argument,       & opt_help,    1 },
+    {"version",               no_argument,       & opt_version, 1 },
     {"alnout",                required_argument, 0, 0 },
     {"vsearch_global",        required_argument, 0, 0 },
     {"db",                    required_argument, 0, 0 },
@@ -564,6 +561,7 @@ void args_init(int argc, char **argv)
     {"msaout",                required_argument, 0, 0 },
     {"usersort",              no_argument,       0, 0 },
     {"usearch_global",        required_argument, 0, 0 },
+    {"iddef",                 required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -572,455 +570,460 @@ void args_init(int argc, char **argv)
   
   while ((c = getopt_long_only(argc, argv, "", long_options, 
                                &option_index)) == 0)
-  {
-    switch(option_index)
     {
-    case 0:
-      /* help */
-      opt_help = 1;
-      break;
+      switch(option_index)
+        {
+        case 0:
+          /* help */
+          // opt_help = 1;
+          break;
+              
+        case 1:
+          /* version */
+          // opt_version = 1;
+          break;
 
-    case 1:
-      /* version */
-      opt_version = 1;
-      break;
-
-    case 2:
-      /* alnout */
-      opt_alnout = optarg;
-      break;
+        case 2:
+          /* alnout */
+          opt_alnout = optarg;
+          break;
           
-    case 3:
-      /* vsearch_global */
-      opt_vsearch_global = optarg;
-      break;
+        case 3:
+          /* vsearch_global */
+          opt_vsearch_global = optarg;
+          break;
 
-    case 4:
-      /* db */
-      opt_db = optarg;
-      break;
+        case 4:
+          /* db */
+          opt_db = optarg;
+          break;
 
-    case 5:
-      /* id */
-      opt_id = atof(optarg);
-      break;
+        case 5:
+          /* id */
+          opt_id = atof(optarg);
+          break;
 
-    case 6:
-      /* maxaccepts */
-      maxaccepts = args_getlong(optarg);
-      break;
+        case 6:
+          /* maxaccepts */
+          maxaccepts = args_getlong(optarg);
+          break;
 
-    case 7:
-      /* maxrejects */
-      maxrejects = args_getlong(optarg);
-      break;
+        case 7:
+          /* maxrejects */
+          maxrejects = args_getlong(optarg);
+          break;
 
-    case 8:
-      /* wordlength */
-      opt_wordlength = args_getlong(optarg);
-      break;
+        case 8:
+          /* wordlength */
+          opt_wordlength = args_getlong(optarg);
+          break;
 
-    case 9:
-      /* match */
-      match_score = args_getlong(optarg);
-      break;
+        case 9:
+          /* match */
+          match_score = args_getlong(optarg);
+          break;
 
-    case 10:
-      /* mismatch */
-      mismatch_score = args_getlong(optarg);
-      break;
+        case 10:
+          /* mismatch */
+          mismatch_score = args_getlong(optarg);
+          break;
 
-    case 11:
-      /* fulldp */
-      opt_fulldp = 1;
-      break;
+        case 11:
+          /* fulldp */
+          opt_fulldp = 1;
+          break;
 
-    case 12:
-      /* strand */
-      if (strcasecmp(optarg, "plus") == 0)
-        opt_strand = 1;
-      else if (strcasecmp(optarg, "both") == 0)
-        opt_strand = 2;
-      else
-        opt_strand = 0;
-      break;
+        case 12:
+          /* strand */
+          if (strcasecmp(optarg, "plus") == 0)
+            opt_strand = 1;
+          else if (strcasecmp(optarg, "both") == 0)
+            opt_strand = 2;
+          else
+            opt_strand = 0;
+          break;
 
-    case 13:
-      /* threads */
-      opt_threads = args_getlong(optarg);
-      break;
+        case 13:
+          /* threads */
+          opt_threads = args_getlong(optarg);
+          break;
 
-    case 14:
-      /* gapopen */
-      args_get_gap_penalty_string(optarg, 1);
-      break;
+        case 14:
+          /* gapopen */
+          args_get_gap_penalty_string(optarg, 1);
+          break;
 
-    case 15:
-      /* gapext */
-      args_get_gap_penalty_string(optarg, 0);
-      break;
+        case 15:
+          /* gapext */
+          args_get_gap_penalty_string(optarg, 0);
+          break;
 
-    case 16:
-      /* rowlen */
-      opt_rowlen = args_getlong(optarg);
-      break;
+        case 16:
+          /* rowlen */
+          opt_rowlen = args_getlong(optarg);
+          break;
 
-    case 17:
-      /* userfields */
-      if (!parse_userfields_arg(optarg))
-        fatal("Unrecognized userfield argument");
-      break;
+        case 17:
+          /* userfields */
+          if (!parse_userfields_arg(optarg))
+            fatal("Unrecognized userfield argument");
+          break;
 
-    case 18:
-      /* userout */
-      useroutfilename = optarg;
-      break;
+        case 18:
+          /* userout */
+          useroutfilename = optarg;
+          break;
       
-    case 19:
-      /* self */
-      opt_self = 1;
-      break;
+        case 19:
+          /* self */
+          opt_self = 1;
+          break;
       
-    case 20:
-      /* blast6out */
-      opt_blast6out = optarg;
-      break;
+        case 20:
+          /* blast6out */
+          opt_blast6out = optarg;
+          break;
       
-    case 21:
-      /* uc */
-      ucfilename = optarg;
-      break;
+        case 21:
+          /* uc */
+          ucfilename = optarg;
+          break;
       
-    case 22:
-      /* weak_id */
-      opt_weak_id = atof(optarg);
-      break;
+        case 22:
+          /* weak_id */
+          opt_weak_id = atof(optarg);
+          break;
 
-    case 23:
-      /* uc_allhits */
-      opt_uc_allhits = 1;
-      break;
+        case 23:
+          /* uc_allhits */
+          opt_uc_allhits = 1;
+          break;
 
-    case 24:
-      /* notrunclabels */
-      opt_notrunclabels = 1;
-      break;
+        case 24:
+          /* notrunclabels */
+          opt_notrunclabels = 1;
+          break;
 
-    case 25:
-      /* sortbysize */
-      opt_sortbysize = optarg;
-      break;
+        case 25:
+          /* sortbysize */
+          opt_sortbysize = optarg;
+          break;
 
-    case 26:
-      /* output */
-      opt_output = optarg;
-      break;
+        case 26:
+          /* output */
+          opt_output = optarg;
+          break;
 
-    case 27:
-      /* minsize */
-      opt_minsize = args_getlong(optarg);
-      break;
+        case 27:
+          /* minsize */
+          opt_minsize = args_getlong(optarg);
+          break;
 
-    case 28:
-      /* maxsize */
-      opt_maxsize = args_getlong(optarg);
-      break;
+        case 28:
+          /* maxsize */
+          opt_maxsize = args_getlong(optarg);
+          break;
 
-    case 29:
-      /* relabel */
-      opt_relabel = optarg;
-      break;
+        case 29:
+          /* relabel */
+          opt_relabel = optarg;
+          break;
 
-    case 30:
-      /* sizeout */
-      opt_sizeout = 1;
-      break;
+        case 30:
+          /* sizeout */
+          opt_sizeout = 1;
+          break;
 
-    case 31:
-      /* derep_fulllength */
-      opt_derep_fulllength = optarg;
-      break;
+        case 31:
+          /* derep_fulllength */
+          opt_derep_fulllength = optarg;
+          break;
 
-    case 32:
-      /* minseqlength */
-      opt_minseqlength = args_getlong(optarg);
-      break;
+        case 32:
+          /* minseqlength */
+          opt_minseqlength = args_getlong(optarg);
+          break;
 
-    case 33:
-      /* minuniquesize */
-      opt_minuniquesize = args_getlong(optarg);
-      break;
+        case 33:
+          /* minuniquesize */
+          opt_minuniquesize = args_getlong(optarg);
+          break;
 
-    case 34:
-      /* topn */
-      opt_topn = args_getlong(optarg);
-      break;
+        case 34:
+          /* topn */
+          opt_topn = args_getlong(optarg);
+          break;
 
-    case 35:
-      /* maxseqlength */
-      opt_maxseqlength = args_getlong(optarg);
-      break;
+        case 35:
+          /* maxseqlength */
+          opt_maxseqlength = args_getlong(optarg);
+          break;
 
-    case 36:
-      /* sizein */
-      opt_sizein = 1;
-      break;
+        case 36:
+          /* sizein */
+          opt_sizein = 1;
+          break;
 
-    case 37:
-      /* sortbylength */
-      opt_sortbylength = optarg;
-      break;
+        case 37:
+          /* sortbylength */
+          opt_sortbylength = optarg;
+          break;
 
-    case 38:
-      /* matched */
-      opt_matched = optarg;
-      break;
+        case 38:
+          /* matched */
+          opt_matched = optarg;
+          break;
 
-    case 39:
-      /* notmatched */
-      opt_notmatched = optarg;
-      break;
+        case 39:
+          /* notmatched */
+          opt_notmatched = optarg;
+          break;
 
-    case 40:
-      /* dbmatched */
-      opt_dbmatched = optarg;
-      break;
+        case 40:
+          /* dbmatched */
+          opt_dbmatched = optarg;
+          break;
 
-    case 41:
-      /* dbnotmatched */
-      opt_dbnotmatched = optarg;
-      break;
+        case 41:
+          /* dbnotmatched */
+          opt_dbnotmatched = optarg;
+          break;
 
-    case 42:
-      /* fastapairs */
-      opt_fastapairs = optarg;
-      break;
+        case 42:
+          /* fastapairs */
+          opt_fastapairs = optarg;
+          break;
 
-    case 43:
-      /* sizein */
-      opt_output_no_hits = 1;
-      break;
+        case 43:
+          /* sizein */
+          opt_output_no_hits = 1;
+          break;
 
-    case 44:
-      /* maxhits */
-      opt_maxhits = args_getlong(optarg);
-      break;
+        case 44:
+          /* maxhits */
+          opt_maxhits = args_getlong(optarg);
+          break;
 
-    case 45:
-      /* top_hits_only */
-      opt_top_hits_only = 1;
-      break;
+        case 45:
+          /* top_hits_only */
+          opt_top_hits_only = 1;
+          break;
 
-    case 46:
-      /* fasta_width */
-      opt_fasta_width = args_getlong(optarg);
-      break;
+        case 46:
+          /* fasta_width */
+          opt_fasta_width = args_getlong(optarg);
+          break;
 
-    case 47:
-      /* query_cov */
-      opt_query_cov = atof(optarg);
-      break;
+        case 47:
+          /* query_cov */
+          opt_query_cov = atof(optarg);
+          break;
 
-    case 48:
-      /* target_cov */
-      opt_target_cov = atof(optarg);
-      break;
+        case 48:
+          /* target_cov */
+          opt_target_cov = atof(optarg);
+          break;
 
-    case 49:
-      /* idprefix */
-      opt_idprefix = args_getlong(optarg);
-      break;
+        case 49:
+          /* idprefix */
+          opt_idprefix = args_getlong(optarg);
+          break;
 
-    case 50:
-      /* idsuffix */
-      opt_idsuffix = args_getlong(optarg);
-      break;
+        case 50:
+          /* idsuffix */
+          opt_idsuffix = args_getlong(optarg);
+          break;
 
-    case 51:
-      /* minqt */
-      opt_minqt = atof(optarg);
-      break;
+        case 51:
+          /* minqt */
+          opt_minqt = atof(optarg);
+          break;
 
-    case 52:
-      /* maxqt */
-      opt_maxqt = atof(optarg);
-      break;
+        case 52:
+          /* maxqt */
+          opt_maxqt = atof(optarg);
+          break;
 
-    case 53:
-      /* minsl */
-      opt_minsl = atof(optarg);
-      break;
+        case 53:
+          /* minsl */
+          opt_minsl = atof(optarg);
+          break;
 
-    case 54:
-      /* maxsl */
-      opt_maxsl = atof(optarg);
-      break;
+        case 54:
+          /* maxsl */
+          opt_maxsl = atof(optarg);
+          break;
 
-    case 55:
-      /* leftjust */
-      opt_leftjust = 1;
-      break;
+        case 55:
+          /* leftjust */
+          opt_leftjust = 1;
+          break;
 
-    case 56:
-      /* rightjust */
-      opt_rightjust = 1;
-      break;
+        case 56:
+          /* rightjust */
+          opt_rightjust = 1;
+          break;
 
-    case 57:
-      /* selfid */
-      opt_selfid = 1;
-      break;
+        case 57:
+          /* selfid */
+          opt_selfid = 1;
+          break;
 
-    case 58:
-      /* maxid */
-      opt_maxid = atof(optarg);
-      break;
+        case 58:
+          /* maxid */
+          opt_maxid = atof(optarg);
+          break;
 
-    case 59:
-      /* minsizeratio */
-      opt_minsizeratio = atof(optarg);
-      break;
+        case 59:
+          /* minsizeratio */
+          opt_minsizeratio = atof(optarg);
+          break;
 
-    case 60:
-      /* maxsizeratio */
-      opt_maxsizeratio = atof(optarg);
-      break;
+        case 60:
+          /* maxsizeratio */
+          opt_maxsizeratio = atof(optarg);
+          break;
 
-    case 61:
-      /* maxdiffs */
-      opt_maxdiffs = args_getlong(optarg);
-      break;
+        case 61:
+          /* maxdiffs */
+          opt_maxdiffs = args_getlong(optarg);
+          break;
 
-    case 62:
-      /* maxsubs */
-      opt_maxsubs = args_getlong(optarg);
-      break;
+        case 62:
+          /* maxsubs */
+          opt_maxsubs = args_getlong(optarg);
+          break;
 
-    case 63:
-      /* maxgaps */
-      opt_maxgaps = args_getlong(optarg);
-      break;
+        case 63:
+          /* maxgaps */
+          opt_maxgaps = args_getlong(optarg);
+          break;
 
-    case 64:
-      /* mincols */
-      opt_mincols = args_getlong(optarg);
-      break;
+        case 64:
+          /* mincols */
+          opt_mincols = args_getlong(optarg);
+          break;
 
-    case 65:
-      /* maxqsize */
-      opt_maxqsize = args_getlong(optarg);
-      break;
+        case 65:
+          /* maxqsize */
+          opt_maxqsize = args_getlong(optarg);
+          break;
 
-    case 66:
-      /* mintsize */
-      opt_mintsize = args_getlong(optarg);
-      break;
+        case 66:
+          /* mintsize */
+          opt_mintsize = args_getlong(optarg);
+          break;
 
-    case 67:
-      /* mid */
-      opt_mid = atof(optarg);
-      break;
+        case 67:
+          /* mid */
+          opt_mid = atof(optarg);
+          break;
 
-    case 68:
-      /* shuffle */
-      opt_shuffle = optarg;
-      break;
+        case 68:
+          /* shuffle */
+          opt_shuffle = optarg;
+          break;
 
-    case 69:
-      /* seed */
-      opt_seed = args_getlong(optarg);
-      break;
+        case 69:
+          /* seed */
+          opt_seed = args_getlong(optarg);
+          break;
 
-    case 70:
-      /* mask */
-      opt_maskfasta = optarg;
-      break;
+        case 70:
+          /* mask */
+          opt_maskfasta = optarg;
+          break;
 
-    case 71:
-      /* hardmask */
-      opt_hardmask = 1;
-      break;
+        case 71:
+          /* hardmask */
+          opt_hardmask = 1;
+          break;
 
-    case 72:
-      /* qmask */
-      if (strcasecmp(optarg, "none") == 0)
-        opt_qmask = MASK_NONE;
-      else if (strcasecmp(optarg, "dust") == 0)
-        opt_qmask = MASK_DUST;
-      else if (strcasecmp(optarg, "soft") == 0)
-        opt_qmask = MASK_SOFT;
-      else
-        opt_qmask = MASK_ERROR;
-      break;
+        case 72:
+          /* qmask */
+          if (strcasecmp(optarg, "none") == 0)
+            opt_qmask = MASK_NONE;
+          else if (strcasecmp(optarg, "dust") == 0)
+            opt_qmask = MASK_DUST;
+          else if (strcasecmp(optarg, "soft") == 0)
+            opt_qmask = MASK_SOFT;
+          else
+            opt_qmask = MASK_ERROR;
+          break;
 
-    case 73:
-      /* dbmask */
-      if (strcasecmp(optarg, "none") == 0)
-        opt_dbmask = MASK_NONE;
-      else if (strcasecmp(optarg, "dust") == 0)
-        opt_dbmask = MASK_DUST;
-      else if (strcasecmp(optarg, "soft") == 0)
-        opt_dbmask = MASK_SOFT;
-      else
-        opt_dbmask = MASK_ERROR;
-      break;
+        case 73:
+          /* dbmask */
+          if (strcasecmp(optarg, "none") == 0)
+            opt_dbmask = MASK_NONE;
+          else if (strcasecmp(optarg, "dust") == 0)
+            opt_dbmask = MASK_DUST;
+          else if (strcasecmp(optarg, "soft") == 0)
+            opt_dbmask = MASK_SOFT;
+          else
+            opt_dbmask = MASK_ERROR;
+          break;
 
-    case 74:
-      /* cluster_smallmem */
-      opt_cluster_smallmem = optarg;
-      break;
+        case 74:
+          /* cluster_smallmem */
+          opt_cluster_smallmem = optarg;
+          break;
 
-    case 75:
-      /* cluster_fast */
-      opt_cluster_fast = optarg;
-      break;
+        case 75:
+          /* cluster_fast */
+          opt_cluster_fast = optarg;
+          break;
 
-    case 76:
-      /* centroids */
-      opt_centroids = optarg;
-      break;
+        case 76:
+          /* centroids */
+          opt_centroids = optarg;
+          break;
 
-    case 77:
-      /* clusters */
-      opt_clusters = optarg;
-      break;
+        case 77:
+          /* clusters */
+          opt_clusters = optarg;
+          break;
 
-    case 78:
-      /* consout */
-      fprintf(stderr, "WARNING: option --consout not implemented\n");
-      opt_consout = optarg;
-      break;
+        case 78:
+          /* consout */
+          fprintf(stderr, "WARNING: option --consout not implemented\n");
+          opt_consout = optarg;
+          break;
 
-    case 79:
-      /* construncate */
-      fprintf(stderr, "WARNING: option --construncate not implemented\n");
-      opt_construncate = 1;
-      break;
+        case 79:
+          /* construncate */
+          fprintf(stderr, "WARNING: option --construncate not implemented\n");
+          opt_construncate = 1;
+          break;
 
-    case 80:
-      /* msaout */
-      fprintf(stderr, "WARNING: option --msaout not implemented\n");
-      opt_msaout = optarg;
-      break;
+        case 80:
+          /* msaout */
+          fprintf(stderr, "WARNING: option --msaout not implemented\n");
+          opt_msaout = optarg;
+          break;
 
-    case 81:
-      /* usersort */
-      opt_usersort = 1;
-      break;
+        case 81:
+          /* usersort */
+          opt_usersort = 1;
+          break;
 
-    case 82:
-      /* usearch_global */
-      opt_vsearch_global = optarg;
-      break;
+        case 82:
+          /* usearch_global */
+          opt_vsearch_global = optarg;
+          break;
 
-    default:
-      fatal("Internal error in option parsing");
+        case 83:
+          /* iddef */
+          opt_iddef = args_getlong(optarg);
+          break;
+
+        default:
+          fatal("Internal error in option parsing");
+        }
     }
-  }
-  
+
   if (c != -1)
-    exit(1);
-  
+    exit(EXIT_FAILURE);
+
   int commands = 0;
   if (opt_vsearch_global)
     commands++;
@@ -1069,11 +1072,14 @@ void args_init(int argc, char **argv)
   if (maxrejects < 0)
     fatal("The argument to --maxrejects must not be negative");
 
-  if ((opt_threads < 0) || (opt_threads > 32))
-    fatal("The argument to --threads must be in the range 0 (default) to 32");
+  if ((opt_threads < 0) || (opt_threads > 1024))
+    fatal("The argument to --threads must be in the range 0 (default) to 1024");
 
   if ((opt_wordlength < 3) || (opt_wordlength > 15))
     fatal("The argument to --wordlength must be in the range 3 to 15");
+
+  if ((opt_iddef < 0) || (opt_iddef > 4))
+    fatal("The argument to --iddef must in the range 0 to 4");
 
   if (match_score <= 0)
     fatal("The argument to --match must be positive");
@@ -1127,14 +1133,12 @@ void args_init(int argc, char **argv)
 
   if (opt_minseqlength == 0)
     {
-      if (opt_sortbylength || opt_sortbysize || opt_shuffle)
-        opt_minseqlength = 1;
-      else
+      if (opt_cluster_smallmem || opt_cluster_fast || 
+          opt_vsearch_global || opt_derep_fulllength )
         opt_minseqlength = 32;
+      else
+        opt_minseqlength = 1;
     }
-
-  if (opt_rowlen == 0)
-    opt_rowlen = 60;
 }
 
 
@@ -1150,6 +1154,7 @@ void cmd_help()
           "General options:\n"
           "  --help                      display help information\n"
           "  --version                   display version information\n"
+          "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
           "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
           "  --maxseqlength INT          maximum sequence length (50000)\n"
           "  --minseqlength INT          min seq length (sort/shuffle:1, search/derep: 32)\n"
@@ -1255,7 +1260,7 @@ void cmd_vsearch_global()
   if ((opt_id < 0.0) || (opt_id > 1.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-  search(cmdline, progheader);
+  vsearch_global(cmdline, progheader);
 }
 
 void cmd_sortbysize()
@@ -1356,8 +1361,10 @@ void getentirecommandline(int argc, char** argv)
 void show_header()
 {
   fprintf(stdout, "%s\n", progheader);
+#if 0
   fprintf(stdout, "Copyright (C) 2014 Torbjorn Rognes, Tomas Flouri & Frederic Mahe\n");
   fprintf(stdout, "License: AGPL 3.0\n");
+#endif
   fprintf(stdout, "https://github.com/torognes/vsearch\n");
   fprintf(stdout, "\n");
 }

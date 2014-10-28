@@ -37,7 +37,7 @@ extern unsigned int chrstatus[256];
 static FILE * query_fp;
 static char query_line[LINEALLOC];
 
-static long query_no = -1;
+static int query_no = -1;
 
 static char * query_head = 0;
 static char * query_seq = 0;
@@ -51,10 +51,10 @@ static long query_seq_alloc = 0;
 static long query_filesize = 0;
 static int query_format = FORMAT_PLAIN;
 
-static long query_lineno;
+static int query_lineno;
 
-static long query_stripped_count;
-static long query_stripped[256];
+static int query_stripped_count;
+static int query_stripped[256];
 
 #ifdef HAVE_BZLIB
 static BZFILE * bz_query_fp;
@@ -187,7 +187,7 @@ void query_close()
       fprintf(stderr, "Warning: invalid characters stripped from query:");
       for (int i=0; i<256;i++)
         if (query_stripped[i])
-          fprintf(stderr, " %c(%ld)", i, query_stripped[i]);
+          fprintf(stderr, " %c(%d)", i, query_stripped[i]);
       fprintf(stderr, "\n");
     }
 #ifdef HAVE_BZLIB
@@ -213,9 +213,9 @@ void query_close()
   query_seq = 0;
 }
 
-int query_getnext(char ** head, long * head_len,
-                  char ** seq, long * seq_len, long * qno,
-                  long * qsize, int upcase)
+int query_getnext(char ** head, int * head_len,
+                  char ** seq, int * seq_len, int * qno,
+                  int * qsize, int upcase)
 {
   while (query_line[0])
     {
@@ -296,9 +296,9 @@ int query_getnext(char ** head, long * head_len,
                   /* fatal character */
                   char msg[200];
                   if (c>=32)
-                    snprintf(msg, 200, "illegal character '%c' on line %ld in the query file", c, query_lineno);
+                    snprintf(msg, 200, "illegal character '%c' on line %d in the query file", c, query_lineno);
                   else
-                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %ld in the query file", c, query_lineno);
+                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %d in the query file", c, query_lineno);
                   fatal(msg);
                   break;
 

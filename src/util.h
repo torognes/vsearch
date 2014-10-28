@@ -38,8 +38,6 @@ long getusec(void);
 void show_rusage();
 void fprint_fasta_hdr_only(FILE * fp, char * hdr);
 void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width);
-void db_fprint_fasta(FILE * fp, unsigned long seqno);
-void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size);
 void reverse_complement(char * rc, char * seq, long len);
 
 void progress_init(const char * prompt, unsigned long size);

@@ -21,6 +21,15 @@
 
 #include "vsearch.h"
 
+/* Find the unique kmers or words in a given sequence. Currently the
+   definintion of "unique kmers" are the kmers that appear exactly once;
+   kmers that appear twice or more often are ignored.
+   Maybe the definition should be all kmers that appear in the input
+   sequence, but that each of those kmers shoudl appear only
+   once in the resulting list.
+   Experiments indicate that the current (first) definition gives
+   both the highest sensitivity and precision. */
+
 #define HASH CityHash64
 
 struct bucket_s
@@ -141,7 +150,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
       kmer <<= 2UL;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
-          
+      
       if (!bad)
         {
           unsigned long x = kmer >> 6UL;
@@ -264,4 +273,39 @@ void unique_count(struct uhandle_s * uh,
     unique_count_bitmap(uh, k, seqlen, seq, listlen, list);
   else
     unique_count_hash(uh, k, seqlen, seq, listlen, list);
+}
+
+int unique_count_shared(struct uhandle_s * uh,
+                        int k,
+                        int listlen,
+                        unsigned int * list)
+{
+  /* counts how many of the kmers in list are present in the
+     (already computed) hash or bitmap */
+  
+  int count = 0;
+  if (k<10)
+    {
+      for(int i = 0; i<listlen; i++)
+        {
+          unsigned int kmer = list[i];
+          unsigned long x = kmer >> 6UL;
+          unsigned long y = 1UL << (kmer & 63UL);
+          if (uh->bitmap[2*x] & y)
+            count++;
+        }
+    }
+  else
+    {
+      for(int i = 0; i<listlen; i++)
+        {
+          unsigned int kmer = list[i];
+          unsigned long j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
+          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+            j = (j + 1) & uh->hash_mask;
+          if (uh->hash[j].count == 1)
+            count++;
+        }
+    }
+  return count;
 }

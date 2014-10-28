@@ -33,3 +33,7 @@ void unique_count(struct uhandle_s * uh,
                   unsigned int * listlen,
                   unsigned int * * list);
 
+int unique_count_shared(struct uhandle_s * uh,
+                        int k,
+                        int listlen,
+                        unsigned int * list);

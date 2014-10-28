@@ -42,6 +42,13 @@ void _mm_print(__m128i x)
     printf("%s%6d", (i>0?" ":""), y[7-i]);
 }
 
+void _mm_print2(__m128i x)
+{
+  signed short * y = (signed short*)&x;
+  for (int i=0; i<8; i++)
+    printf("%s%2d", (i>0?" ":""), y[7-i]);
+}
+
 void dprofile_dump16(CELL * dprofile)
 {
   char * s = sym_nt_4bit;
@@ -613,12 +620,11 @@ struct s16info_s * search16_init(CELL score_match,
       {
         CELL value;
         if (i==j)
-          if ((i>=1) && (i<=4))
-            value = score_match;
-          else
-            value = 0;
+          value = match_score;
+        else if ((i==0) || (j==0) || (i>4) || (j>4))
+          value = 0;
         else
-          value = score_mismatch;
+          value = mismatch_score;
         ((CELL*)(&s->matrix))[16*i+j] = value;
       }
   
@@ -626,16 +632,15 @@ struct s16info_s * search16_init(CELL score_match,
     for(int j=0; j<16; j++)
       {
         CELL value;
-        if (i==j)
-          value = match_score;
-        else if ((i==0) || (j==0) || (i>4) || (j>4))
+        if ((i==0) || (j==0) || (i>4) || (j>4))
           value = 0;
+        else if (i==j)
+          value = match_score;
         else
           value = mismatch_score;
         scorematrix[i][j] = value;
       }
   
-
   s->penalty_gap_open_query_left = penalty_gap_open_query_left;
   s->penalty_gap_open_query_interior = penalty_gap_open_query_interior;
   s->penalty_gap_open_query_right = penalty_gap_open_query_right;
@@ -732,6 +737,7 @@ void search16(s16info_s * s,
   __m128i QR_query_right, R_query_right;
   __m128i QR_target_left, R_target_left;
   __m128i QR_target_interior, R_target_interior;
+  __m128i QR_target_right, R_target_right;
   __m128i QR_target[4], R_target[4];
   
   __m128i *hep, **qp;
@@ -773,6 +779,10 @@ void search16(s16info_s * s,
   QR_target_interior = _mm_set1_epi16(s->penalty_gap_open_target_interior + 
                                      s->penalty_gap_extension_target_interior);
   R_target_interior = _mm_set1_epi16(s->penalty_gap_extension_target_interior);
+  
+  QR_target_right  = _mm_set1_epi16(s->penalty_gap_open_target_right + 
+                                   s->penalty_gap_extension_target_right);
+  R_target_right  = _mm_set1_epi16(s->penalty_gap_extension_target_right);
   
   hep = (__m128i*) hearray;
   qp = (__m128i**) q_start;
@@ -828,32 +838,41 @@ void search16(s16info_s * s,
       /* create vectors of gap penalties for target depending on whether
          any of the database sequences ended in these four columns */
 
-      QR_target[0] = QR_target_interior;
-      QR_target[1] = QR_target_interior;
-      QR_target[2] = QR_target_interior;
-      QR_target[3] = QR_target_interior;
-      R_target[0]  = R_target_interior;
-      R_target[1]  = R_target_interior;
-      R_target[2]  = R_target_interior;
-      R_target[3]  = R_target_interior;
-
-      if (!easy)
+      if (easy)
+        {
+          for(unsigned int j=0; j<CDEPTH; j++)
+            {
+              QR_target[j] = QR_target_interior;
+              R_target[j]  = R_target_interior;
+            }
+        }
+      else
         {
           /* one or more sequences ended */
-
-          for(int c=0; c<CHANNELS; c++)
-            if (d_begin[c] == d_end[c])
-              for(unsigned int j=0; j<CDEPTH; j++)
-                if (j >= ((d_length[c]+3) % 4))
-                  {
-                    *((CELL*)(QR_target)+8*j+c) = 
-                      s->penalty_gap_open_target_right +
-                      s->penalty_gap_extension_target_right;
-                    *((CELL*)(R_target)+8*j+c) = 
-                      s->penalty_gap_extension_target_right;
-                  }
+          __m128i QR_diff = _mm_subs_epi16(QR_target_right,
+                                           QR_target_interior);
+          __m128i R_diff  = _mm_subs_epi16(R_target_right,
+                                           R_target_interior);
+          for(unsigned int j=0; j<CDEPTH; j++)
+            {
+              __m128i M = _mm_setzero_si128();
+              __m128i T = T0;
+              for(int c=0; c<CHANNELS; c++)
+                {
+                  if ((d_begin[c] == d_end[c]) &&
+                      (j >= ((d_length[c]+3) % 4)))
+                    {
+                      M = _mm_xor_si128(M, T);
+                    }
+                  T = _mm_slli_si128(T, 2);
+                }
+              QR_target[j] = _mm_adds_epi16(QR_target_interior, 
+                                           _mm_and_si128(QR_diff, M));
+              R_target[j]  = _mm_adds_epi16(R_target_interior,
+                                           _mm_and_si128(R_diff, M));
+            }
         }
-
+      
       aligncolumns_rest(S, hep, qp,
                         QR_query_interior, R_query_interior, 
                         QR_query_right, R_query_right, 
@@ -1008,29 +1027,39 @@ void search16(s16info_s * s,
       /* create vectors of gap penalties for target depending on whether
          any of the database sequences ended in these four columns */
 
-      QR_target[0] = QR_target_interior;
-      QR_target[1] = QR_target_interior;
-      QR_target[2] = QR_target_interior;
-      QR_target[3] = QR_target_interior;
-      R_target[0]  = R_target_interior;
-      R_target[1]  = R_target_interior;
-      R_target[2]  = R_target_interior;
-      R_target[3]  = R_target_interior;
-
-      if (!easy)
+      if (easy)
+        {
+          for(unsigned int j=0; j<CDEPTH; j++)
+            {
+              QR_target[j] = QR_target_interior;
+              R_target[j]  = R_target_interior;
+            }
+        }
+      else
         {
           /* one or more sequences ended */
-          for(int c=0; c<CHANNELS; c++)
-            if (d_begin[c] == d_end[c])
-              for(unsigned int j=0; j<CDEPTH; j++)
-                if (j >= ((d_length[c]+3) % 4))
-                  {
-                    *((CELL*)(QR_target)+8*j+c) = 
-                      s->penalty_gap_open_target_right +
-                      s->penalty_gap_extension_target_right;
-                    *((CELL*)(R_target)+8*j+c) = 
-                      s->penalty_gap_extension_target_right;
-                  }
+          __m128i QR_diff = _mm_subs_epi16(QR_target_right,
+                                           QR_target_interior);
+          __m128i R_diff  = _mm_subs_epi16(R_target_right,
+                                           R_target_interior);
+          for(unsigned int j=0; j<CDEPTH; j++)
+            {
+              __m128i M = _mm_setzero_si128();
+              __m128i T = T0;
+              for(int c=0; c<CHANNELS; c++)
+                {
+                  if ((d_begin[c] == d_end[c]) &&
+                      (j >= ((d_length[c]+3) % 4)))
+                    {
+                      M = _mm_xor_si128(M, T);
+                    }
+                  T = _mm_slli_si128(T, 2);
+                }
+              QR_target[j] = _mm_adds_epi16(QR_target_interior, 
+                                           _mm_and_si128(QR_diff, M));
+              R_target[j]  = _mm_adds_epi16(R_target_interior,
+                                           _mm_and_si128(R_diff, M));
+            }
         }
       
       aligncolumns_first(S, hep, qp, 

@@ -6,6 +6,8 @@ INPUT=../data/Rfam_9_1.fasta
 #INPUT=../data/AF091148.fsa
 #INPUT=../data/BioMarKs50k.fsa
 
+THREADS=0
+
 USEARCH=$(which usearch)
 VSEARCH=../src/vsearch
 
@@ -22,7 +24,8 @@ fi
 
 CMD="/usr/bin/time $PROG \
     --cluster_fast $INPUT \
-    --id 0.7 \
+    --threads $THREADS \
+    --id 0.9 \
     --maxaccepts 1 \
     --maxrejects 8 \
     --centroids f.$P.centroids \
