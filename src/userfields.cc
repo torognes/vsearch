@@ -57,6 +57,11 @@ static const char * userfields_names[] =
     "ids",
     "qcov",
     "tcov",  // 33
+    "id0",
+    "id1",
+    "id2",
+    "id3",
+    "id4", // 38
     0
   };
 

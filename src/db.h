@@ -67,3 +67,7 @@ unsigned long db_getnucleotidecount();
 unsigned long db_getlongestheader();
 unsigned long db_getlongestsequence();
 unsigned long db_getshortestsequence();
+
+void db_fprint_fasta(FILE * fp, unsigned long seqno);
+
+void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size);

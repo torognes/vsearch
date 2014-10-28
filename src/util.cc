@@ -75,7 +75,7 @@ void  __attribute__((noreturn)) fatal(const char * msg)
 {
   fprintf(stderr, "\n\n");
   fprintf(stderr, "Fatal error: %s\n", msg);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 void  __attribute__((noreturn)) fatal(const char * format, 
@@ -84,7 +84,7 @@ void  __attribute__((noreturn)) fatal(const char * format,
   fprintf(stderr, "\n\n");
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 void * xmalloc(size_t size)
@@ -167,55 +167,6 @@ void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
           rest -= width;
         }
     }
-}
-
-void db_fprint_fasta(FILE * fp, unsigned long seqno)
-{
-  char * hdr = db_getheader(seqno);
-  char * seq = db_getsequence(seqno);
-  long seqlen = db_getsequencelen(seqno);
-  
-  fprint_fasta_hdr_only(fp, hdr);
-  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
-}
-
-void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size)
-{
-  char * hdr = db_getheader(seqno);
-  int hdrlen = db_getheaderlen(seqno);
-  char * seq = db_getsequence(seqno);
-  long seqlen = db_getsequencelen(seqno);
-  
-  /* remove any previous size annotation */
-  /* regexp search for "(^|;)(\d+)(;|$)" */
-  /* replace by ';' if not at either end */
-
-  regmatch_t pmatch[1];
-  if (!regexec(&db_regexp, hdr, 1, pmatch, 0))
-    {
-      int pat_start = pmatch[0].rm_so;
-      int pat_end = pmatch[0].rm_eo;
-
-      /* print initial part */
-      fprintf(fp, ">%.*s", pat_start, hdr);
-
-      /* replace old size with ";" if not at any end */
-      if ((pat_start > 0) && (pat_end < hdrlen))
-        fprintf(fp, ";");
-
-      /* print remaining part */
-      fprintf(fp, "%.*s", hdrlen - pat_end, hdr + pat_end);
-
-      /* print size annotation */
-      fprintf(fp, ";size=%lu;\n", size);
-    }
-  else
-    {
-      /* print entire header + size annotation */
-      fprintf(fp, ">%s;size=%lu;\n", hdr, size);
-    }
-
-  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }
 
 void reverse_complement(char * rc, char * seq, long len)

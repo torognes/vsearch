@@ -80,8 +80,8 @@ inline void finishop(char ** cigarendp, char * op, int * count)
 
   alignment priority when backtracking (from lower right corner):
   1. left/insert/e (gap in query sequence (qseq))
-  2. align/diag/h (match/mismatch)
-  3. up/delete/f (gap in database sequence (dseq))
+  2. up/delete/f (gap in database sequence (dseq))
+  3. align/diag/h (match/mismatch)
   
   qseq: the reference/query/upper/vertical/from sequence
   dseq: the sample/database/lower/horisontal/to sequence
@@ -215,8 +215,6 @@ void nw_align(char * dseq,
       e = *(hep+1);
       h += getscore(score_matrix, dseq[j], qseq[i]);
       
-      /* preference with equal score: diag, up, left */
-
       if (f > h)
         {  
           h = f;
@@ -253,15 +251,6 @@ void nw_align(char * dseq,
           f -= gapextend_t_right;
         }
 
-      if (e > h_e)
-        {
-          *d |= maskextleft;
-        }
-      else
-        {
-          e = h_e;
-        }
-
       if (f > h_f)
         {
           *d |= maskextup;
@@ -269,6 +258,15 @@ void nw_align(char * dseq,
       else
         {
           f = h_f;
+        }
+
+      if (e > h_e)
+        {
+          *d |= maskextleft;
+        }
+      else
+        {
+          e = h_e;
         }
 
       *(hep+1) = e;
@@ -308,19 +306,19 @@ void nw_align(char * dseq,
 
     alength++;
 
-    if ((op == 'D') && (d & maskextup))
-    {
-      score -= gapextend_t;
-      indels++;
-      i--;
-      pushop('D', &cigarend, &op, &count);
-    }
-    else if ((op == 'I') && (d & maskextleft))
+    if ((op == 'I') && (d & maskextleft))
     {
       score -= gapextend_q;
       indels++;
       j--;
       pushop('I', &cigarend, &op, &count);
+    }
+    else if ((op == 'D') && (d & maskextup))
+    {
+      score -= gapextend_t;
+      indels++;
+      i--;
+      pushop('D', &cigarend, &op, &count);
     }
     else if (d & maskleft)
     {
@@ -357,20 +355,6 @@ void nw_align(char * dseq,
     }
   }
   
-  while(j>0)
-  {
-    alength++;
-    score -= gapextend_q_left;
-    indels++;
-    if (op != 'I')
-      {
-        score -= gapopen_q_left;
-        gaps++;
-      }
-    j--;
-    pushop('I', &cigarend, &op, &count);
-  }
-
   while(i>0)
   {
     alength++;
@@ -383,6 +367,20 @@ void nw_align(char * dseq,
       }
     i--;
     pushop('D', &cigarend, &op, &count);
+  }
+
+  while(j>0)
+  {
+    alength++;
+    score -= gapextend_q_left;
+    indels++;
+    if (op != 'I')
+      {
+        score -= gapopen_q_left;
+        gaps++;
+      }
+    j--;
+    pushop('I', &cigarend, &op, &count);
   }
 
   finishop(&cigarend, &op, &count);

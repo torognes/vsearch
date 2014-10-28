@@ -34,8 +34,23 @@ elem_smaller(elem_t * a, elem_t * b)
     return 0;
   else if (a->length > b->length)
     return 1;
+  else if (a->length < b->length)
+    return 0;
+  else if (a->seqno > b->seqno)
+    return 1;
   else
     return 0;
+}
+
+int minheap_compare(const void * a, const void * b)
+{
+  elem_t * x = (elem_t*) a;
+  elem_t * y = (elem_t*) b;
+
+  if (elem_smaller(x, y))
+    return -1;
+  else
+    return +1;
 }
 
 minheap_t *
@@ -150,24 +165,6 @@ minheap_pop(minheap_t * m)
     }
   else
     return zero;
-}
-
-int minheap_compare(const void * a, const void * b)
-{
-  elem_t * x = (elem_t*) a;
-  elem_t * y = (elem_t*) b;
-
-  if (x->count < y->count)
-    return -1;
-  else if (x->count > y->count)
-    return +1;
-  else
-    if (x->length > y->length)
-      return -1;
-    else if (x->length < y->length)
-      return +1;
-    else
-      return 0;
 }
 
 void

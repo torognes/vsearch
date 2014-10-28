@@ -2,12 +2,13 @@
 
 P=$1
 
-#Q=../data/Rfam_9_1.fasta
-#DB=../data/Rfam_9_1.fasta
-Q=../data/BioMarKs50k.fsa
-DB=../data/BioMarKs50k.fsa
+Q=../data/Rfam_9_1.fasta
+DB=../data/Rfam_9_1.fasta
+#Q=../data/BioMarKs50k.fsa
+#DB=../data/BioMarKs50k.fsa
 T=0
-ID=0.5
+ID=0.9
+MA=1
 MR=32
 
 USEARCH=$(which usearch)
@@ -30,14 +31,14 @@ fi
     --threads $T \
     --strand plus \
     --id $ID \
-    --match 2 \
-    --mismatch -4 \
+    --self \
+    --output_no_hits \
     --gapopen 20I/2E \
     --gapext 2I/1E \
-    --maxaccepts 1 \
+    --maxaccepts $MA \
     --maxrejects $MR \
     --alnout alnout.$P.txt \
     --fastapairs fastapairs.$P.fsa \
     --dbmatched dbmatched.$P.fsa \
-    --dbnotmatched dbnotmatched.$P.fsa
-
+    --dbnotmatched dbnotmatched.$P.fsa \
+    --blast6out blast6out.$P.bl6

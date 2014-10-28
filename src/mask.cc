@@ -182,10 +182,10 @@ void maskfasta()
   if (!fp_output)
     fatal("Unable to open mask output file for writing");
 
-  db_read(opt_maskfasta, opt_dbmask != MASK_SOFT);
+  db_read(opt_maskfasta, opt_qmask != MASK_SOFT);
   show_rusage();
 
-  if (opt_dbmask == MASK_DUST)
+  if (opt_qmask == MASK_DUST)
     dust_all();
   if (opt_hardmask)
     hardmask_all();

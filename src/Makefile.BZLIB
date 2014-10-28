@@ -18,8 +18,9 @@
 # PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
 # Profiling
-#PROFILING=-g -pg
 #PROFILING=-g -pg -fprofile-arcs -ftest-coverage
+#PROFILING=-g -pg
+PROFILING=-g
 
 # Compiler warnings
 WARN=-Wall
@@ -32,18 +33,17 @@ LIBS=-lpthread -lbz2
 
 PROG=vsearch-bz
 
+OBJS=cityhash/city.o \
+	align.o align_simd.o arch.o bitmap.o cluster.o db.o dbindex.o derep.o \
+	maps.o mask.o minheap.o query.o results.o searchcore.o showalign.o \
+	shuffle.o sortbylength.o sortbysize.o unique.o userfields.o util.o \
+	vsearch.o search.o
+
 DEPS=Makefile cityhash/city.h cityhash/config.h \
 	align.h align_simd.h arch.h bitmap.h cluster.h db.h dbindex.h derep.h \
-	maps.h mask.h minheap.h query.h results.h search.h searchcore.h \
-	showalign.h shuffle.h sortbylength.h sortbysize.h unique.h \
-	userfields.h util.h vsearch.h
-
-OBJS=vsearch.o query.o db.o dbindex.o vsearch_global.o align.o \
-	showalign.o util.o \
-	unique.o userfields.o results.o sortbysize.o derep.o maps.o \
-	arch.o sortbylength.o shuffle.o align_simd.o mask.o minheap.o \
-	bitmap.o cluster.o searchcore.o \
-	cityhash/city.o
+	maps.h mask.h minheap.h query.h results.h searchcore.h showalign.h \
+	shuffle.h sortbylength.h sortbysize.h unique.h userfields.h util.h \
+	vsearch.h search.h
 
 .SUFFIXES:.o .cc
 

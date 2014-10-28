@@ -14,9 +14,11 @@ The new tool should:
 
 We have implemented a tool called VSEARCH which supports the following commands: `usearch_global`, `cluster_smallmem`, `cluster_fast`, `derep_fulllength`, `sortbysize`, `sortbylength` and `maskfasta`, as well as almost all their options.
 
-VSEARCH does not support amino acid sequences, local alignments, or chimera detection. These features may be added in the future.
+VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization to perform accurate alignments at high speed.
 
 Searches have been parallelized using threads and SIMD. VSEARCH includes a SIMD vectorized full global aligner, while USEARCH uses a heuristic seed and extend aligner.
+
+VSEARCH does not support amino acid sequences, local alignments, or chimera detection. These features may be added in the future.
 
 Exactly the same option names as USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
@@ -25,7 +27,7 @@ Exactly the same option names as USEARCH version 7 has been used in order to mak
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-0.0.15-linux-x86_64 --usearch_global queries.fsa --db database.fsa --strand plus --id 0.9 --alnout alnout.txt`
+`./vsearch-0.1.0-linux-x86_64 --usearch_global queries.fsa --db database.fsa --strand plus --id 0.9 --alnout alnout.txt`
 
 
 ## Details
@@ -40,7 +42,7 @@ It appears that there are differences in usearch between the searches performed 
 
 **Output formats:** Almost all output options of usearch are supported. The output can be written in different formats specified with the `--alnout`, `--blast6out`, `--fastapairs`, `--uc` and the flexible format specified with the `--userout` and `--userfields`. Also the `--matched`, `--notmatched`, `--dbmatched` and `--dbnotmatched` FASTA output files are supported. The only exceptions are the `--consout`, `--construncate` and `--msaout` clustering output options which are not supported.
 
-**Alignment:** VSEARCH uses a 8-way SIMD vectorized full dynamic programming algorithm (Needleman-Wunsch) for the global alignments instead of the less sensitive default procedure employed by USEARCH involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
+**Alignment:** VSEARCH uses a 8-way 16-bit SIMD vectorized full dynamic programming algorithm (Needleman-Wunsch) for the global alignments instead of the less sensitive default procedure employed by USEARCH involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
 
 **Accuracy:** The accuracy of VSEARCH searches has been assessed and compared to USEARCH version 7.0.1090. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
 
@@ -59,7 +61,7 @@ Further improvements in speed may be obtained by intra-sequence SIMD paralleliza
 
 For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the query sequences, VSEARCH needed 51 seconds, whereas USEARCH needed 60 seconds without the `--fulldp` option and 70 seconds with `--fulldp`. This includes time for loading, masking and indexing the database (about 2 secs for VSEARCH, 5 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 
-Clustering with VSEARCH currently seems to be 2-4 times slower than with USEARCH. The speed might be improved with an intra-sequence SIMD-vectorized aligner. Clustering has not been parallelized with threads in VSEARCH yet. Clustering is not parallelized in USEARCH either (despite what the name and documentation for `cluster_fast` seems to indicate).
+The speed of clustering with VSEARCH relative to USEARCH depends on how many threads are used. Running with a single thread VSEARCH currently seems to be 2-4 times slower than with USEARCH, depending on parameters. Clustering has been parallelized with threads in VSEARCH, but clustering does not seem to be parallelized in USEARCH (despite what the name and documentation for `cluster_fast` seems to indicate). Clustering with VSEARCH using 4-8 threads is often faster than USEARCH. The speed of VSEARCH might be further improved with an intra-sequence SIMD-vectorized aligner.
 
 The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
@@ -71,7 +73,9 @@ The dereplication and sorting commands seems to be considerably faster in VSEARC
 
 Another extension implemented is that dereplication will honor the `--sizein` option and add together the abundances of the sequences that are merged.
 
-The width of FASTA formatted output files may be specified with the `--fasta_width` option.
+The width of FASTA formatted output files may be specified with the `--fasta_width` option. Both the `--fasta_width` option and the `--rowlen` option will not wrap sequence and alignments when a value of zero is specified.
+
+VSEARCH implements the old USEARCH option `--iddef` to specify the definition of identity used to rank the hits. Values accepted are 0 (CD-HIT definition using shortest sequence as numerator), 1 (edit distance), 2 (edit distance excluding terminal gaps, default), 3 (Marine Biological Lab definition where entire gaps are considered a single difference) or 4 (BLAST, same as 2). See the [USEARCH User Guide 4.1](http://drive5.com/usearch/UsearchUserGuide4.1.pdf) page 42-44 for details. Also id0 to id4 are accepted as arguments to the `--userfields` option.
 
 **Command line options:** The options currently supported by VSEARCH are indicated below. Please run VSEARCH with the `--help` option to see more information about the options.
 
@@ -82,6 +86,7 @@ General options:
 
 * `--help`
 * `--version`
+* `--iddef <int>` (Default 2)
 * `--fasta_width <int>` (Default 80)
 * `--maxseqlength <int>` (Default 50000)
 * `--minseqlength <int>` (Default 1 for sort/shuffle or 32 for search/dereplicate)
@@ -208,7 +213,8 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **query.cc** | Reads the fasta file containing the query sequences.
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
-**searchcore.cc** | Core search functions
+**search.cc** | Implements search using global alignment
+**searchcore.cc** | Core search functions for searching and clustering
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
 **shuffle.cc** | Shuffle sequences
 **sortbylength.cc** | Code for sorting by length
@@ -217,7 +223,6 @@ The code is written in C++ but most of it is actually C with some C++ syntax con
 **userfields.cc** | Code for parsing the userfields option argument
 **util.cc** | Various common utility functions
 **vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
-**vsearch_global.cc** | Implements search using global alignment
 
 VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
 
@@ -232,8 +237,8 @@ VSEARCH has not been tested comprehensively yet. All bug reports are highly appr
 Some issues to work on:
 
 * testing and debugging
-* parallelization of clustering
 * intra-sequence SIMD parallelization using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000)
+* multiple sequence alignment and related options for consensus sequences from clustering
 * chimera filtering
 
 

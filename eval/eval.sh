@@ -8,16 +8,17 @@ DUPLICATES=100
 DIR=.
 DB=../data/Rfam_11_0.fasta
 
-USEARCH=$(which usearch)
 
 if [ $(uname -s) == "Linux" ]; then
-    VSEARCH=$(ls -t ../bin/vsearch*linux* | head -1)
+    VSEARCH=$(ls -v ../bin/vsearch*linux* | tail -1)
 else
     VSEARCH=$(ls -t ../bin/vsearch*macosx* | head -1)
 fi
 
+#VSEARCH=../src/vsearch
+
 if [ "$P" == "u" ]; then
-    PROG=$USEARCH
+    PROG=$(which usearch)
 else
     if [ "$P" == "v" ]; then
 	PROG=$VSEARCH
@@ -52,6 +53,8 @@ echo Running search
     --userout $DIR/userout.$P.txt \
     --userfields query+target+id+qcov
 
+#    --maxhits 1
+#    --iddef 1
 #    --fulldp
 #    --minseqlength 1
 

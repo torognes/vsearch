@@ -63,8 +63,8 @@
 #include "bitmap.h"
 #include "dbindex.h"
 #include "minheap.h"
+#include "search.h"
 #include "searchcore.h"
-#include "vsearch_global.h"
 #include "showalign.h"
 #include "userfields.h"
 #include "results.h"
@@ -96,7 +96,7 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.0.15"
+#define PROG_VERSION "v0.1.0"
 
 
 /* options */
@@ -160,6 +160,7 @@ extern long opt_dbmask;
 extern long opt_fasta_width;
 extern long opt_fulldp;
 extern long opt_hardmask;
+extern long opt_iddef;
 extern long opt_idprefix;
 extern long opt_idsuffix;
 extern long opt_leftjust;

@@ -1,19 +1,44 @@
 #!/bin/sh
 
-INPUT=../data/PR2-18S-rRNA-V4.fsa
+#INPUT=../data/PR2-18S-rRNA-V4.fsa
+INPUT=../data/Rfam_9_1.fasta
+THREADS=0
+VSEARCH=../src/vsearch
+USEARCH=$(which usearch)
+#OUTDIR=$SCRATCH
+OUTDIR=.
 
-/usr/bin/time ../src/vsearch \
-    --derep_fulllength $INPUT \
-    --threads 1 \
-    --strand both \
-    --output vderep.fsa \
-    --sizeout \
-    --uc vderep.uc
+echo Creating test database
 
-/usr/bin/time usearch \
+rm -rf temp.fsa
+for n in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    cat $INPUT >> $OUTDIR/temp.fsa
+done
+
+$VSEARCH --shuffle $OUTDIR/temp.fsa --output $OUTDIR/temp2.fsa
+
+INPUT=$OUTDIR/temp2.fsa
+
+echo 
+
+echo Running vsearch
+
+/usr/bin/time $VSEARCH \
     --derep_fulllength $INPUT \
-    --threads 1 \
+    --threads $THREADS \
     --strand both \
-    --output uderep.fsa \
+    --output $OUTDIR/derep.v.fsa \
     --sizeout \
-    --uc uderep.uc
+    --uc $OUTDIR/derep.v.uc
+
+echo
+
+echo Running usearch
+
+/usr/bin/time $USEARCH \
+    --derep_fulllength $INPUT \
+    --threads $THREADS \
+    --strand both \
+    --output $OUTDIR/derep.u.fsa \
+    --sizeout \
+    --uc $OUTDIR/derep.u.uc

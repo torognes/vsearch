@@ -6,6 +6,8 @@ INPUT=../data/Rfam_9_1.fasta
 #INPUT=../data/AF091148.fsa
 #INPUT=../data/BioMarKs50k.fsa
 
+THREADS=0
+
 USEARCH=$(which usearch)
 VSEARCH=../src/vsearch
 
@@ -23,7 +25,7 @@ fi
 CMD="/usr/bin/time $PROG \
     --cluster_smallmem $INPUT \
     --usersort \
-    --strand plus \
+    --strand both \
     --id 0.9 \
     --maxaccepts 1 \
     --maxrejects 8 \
@@ -35,6 +37,8 @@ CMD="/usr/bin/time $PROG \
     --notmatched s.$P.notmatched \
     --fastapairs s.$P.fastapairs"
 
+#    --threads $THREADS
+#    --minseqlength 1
 #    --output_no_hits
 #    --uc_allhits
 #    --query_cov 0.5

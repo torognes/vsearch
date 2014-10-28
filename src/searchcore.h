@@ -19,38 +19,63 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+//#define COMPARENONVECTORIZED
+
+/* the number of alignments that can be delayed */
+#define MAXDELAYED 8
+
+#define MINMATCHSAMPLECOUNT 6
+#define MINMATCHSAMPLEFREQ (1/16)
+
+struct cand_s
+{
+  int target;
+  int kmercount;
+};
+
 struct hit
 {
-  long target;
+  int target;
   int strand;
-  long count; /* number of word matches */
 
-  long matches;
-  long mismatches;
+  /* candidate info */
+  int count;             /* number of unique kmers shared with query */
+  int accepted;          /* is it accepted? */
+  int rejected;          /* is it rejected? */
+  int aligned;           /* has this hit been aligned, or was it rejected 
+                            before alignment? */
+  int weak;              /* weak hits are aligned with id > weak_id */
 
-  /* info for global alignment, entire sequences */
+  /* info about global alignment, including terminal gaps */
 
-  long nwscore;
-  long nwdiff; /* indels and mismatches in global alignment */
-  long nwgaps; /* gaps in global alignment */
-  long nwindels; /* indels in global alignment */
-  long nwalignmentlength; /* length of global alignment */
-  double nwid; /* percent identity of global alignment */
-  char * nwalignment; /* alignment string (cigar) of global alignment */
+  int nwscore;           /* alignment score */
+  int nwdiff;            /* indels and mismatches in global alignment */
+  int nwgaps;            /* gaps in global alignment */
+  int nwindels;          /* indels in global alignment */
+  int nwalignmentlength; /* length of global alignment */
+  double nwid;           /* percent identity of global alignment */
+  char * nwalignment;    /* alignment string (cigar) of global alignment */
+  int matches;
+  int mismatches;
   
-  /* info for semi-global alignment, excluding gaps at ends */
+  /* info about alignment excluding terminal gaps */
 
-  long internal_alignmentlength;
-  long internal_gaps;
-  long internal_indels;
-  double internal_id;
+  int internal_alignmentlength;
+  int internal_gaps;
+  int internal_indels;
+  int trim_q_left;
+  int trim_q_right;
+  int trim_t_left;
+  int trim_t_right;
+  int trim_aln_left;
+  int trim_aln_right;
 
-  long trim_q_left;
-  long trim_q_right;
-  long trim_t_left;
-  long trim_t_right;
-  long trim_aln_left;
-  long trim_aln_right;
+  /* more info */
+
+  double id;             /* identity used for ranking */
+  double id0, id1, id2, id3, id4;
+
+  int shortest;          /* length of shortest of query and target */
 };
 
 /* type of kmer hit counter element remember possibility of overflow */
@@ -58,33 +83,46 @@ typedef unsigned short count_t;
 
 struct searchinfo_s
 {
-  pthread_t pthread;            /* pthread info */
-  long query_no;                /* query number, zero-based */
-  long qsize;                   /* query abundance */
-  long query_head_len;          /* query header length */
-  long query_head_alloc;        /* bytes allocated for the header */
+  int query_no;                 /* query number, zero-based */
+  int strand;                   /* strand of query being analysed */
+  int qsize;                    /* query abundance */
+  int query_head_len;           /* query header length */
+  int query_head_alloc;         /* bytes allocated for the header */
   char * query_head;            /* query header */
-  long qseqlen;                 /* query length */
-  long seq_alloc;               /* bytes allocated for the query sequence */
-  long rc_seq_alloc;            /* bytes allocated for reverse complement q */
+  int qseqlen;                  /* query length */
+  int seq_alloc;                /* bytes allocated for the query sequence */
   char * qsequence;             /* query sequence */
-  char * rc;                    /* query sequence, reverse complement */
   unsigned int kmersamplecount; /* number of kmer samples from query */
   unsigned int * kmersample;    /* list of kmers sampled from query */
-  unsigned int * targetlist;    /* list of db seqs with >0 kmer match */
   count_t * kmers;              /* list of kmer counts for each db seq */
   struct hit * hits;            /* list of hits */
   int hit_count;                /* number of hits in the above list */
   struct uhandle_s * uh;        /* unique kmer finder instance */
   struct s16info_s * s;         /* SIMD aligner instance */
   struct nwinfo_s * nw;         /* NW aligner instance */
-  int strand;                   /* strand of query being analysed */
   int accepts;                  /* number of accepts */
   int rejects;                  /* number of rejects */
-  int candidatecount;           /* number of candidate seqs for SIMD align */
-  int candidate_target[8];      /* sequence nos of top candidates */
-  int candidate_kmercount[8];   /* kmer count in top candidates */
   minheap_t * m;                /* min heap with the top kmer db seqs */
+  int finalized;
 };
 
 void search_onequery(struct searchinfo_s * si);
+
+void search_sorthits(struct searchinfo_s * si);
+
+struct hit * search_findbest(struct searchinfo_s * si);
+
+struct hit * search_findbest2(struct searchinfo_s * si_p,
+                              struct searchinfo_s * si_m);
+
+int search_acceptable_unaligned(struct searchinfo_s * si, int target);
+
+int search_acceptable_aligned(struct searchinfo_s * si,
+                              struct hit * hit);
+
+void align_trim(struct hit * hit);
+
+void search_joinhits(struct searchinfo_s * si_p,
+                     struct searchinfo_s * si_m,
+                     struct hit * * hits,
+                     int * hit_count);
