@@ -56,4 +56,4 @@ vsearch : $(OBJS)
 all : $(PROG)
 
 clean :
-	rm -f *~ *.{o,S,gcda,gcno,gcov} $(PROG) gmon.out cityhash/*.{o,S,gcda,gcno,gcov}
+	rm -f *~ $(OBJS) *.{S,gcda,gcno,gcov} $(PROG) gmon.out cityhash/*.{S,gcda,gcno,gcov}
