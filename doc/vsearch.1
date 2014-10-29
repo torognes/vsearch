@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 17, 2014" "version 0.0.15" "USER COMMANDS"
+.TH vsearch 1 "October 29, 2014" "version 0.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -151,6 +151,12 @@ output each cluster to a separate fasta file using the prefix
 .\" contain a majority of gaps, yielding shorter consensus sequences than
 .\" when using --consout alone.
 .\" .TP
+.BI --id \0real
+do not add to the cluster if the pairwise identity with the centroid
+is lower than \fIreal\fR (value ranging from 0.0 to 1.0 included). The
+pairwise identity is defined as the number of (matching columns) /
+(alignment length - terminal gaps).
+.TP
 .\" .BI --msaout \0filename
 .\" output multiple sequence alignments of each cluster to \fIfilename\fR.
 .\" .TP
@@ -251,7 +257,8 @@ to "*" if there is no alignment.
 .IP \n+[step].
 Percentage of identity (real value ranging from 0.0 to 100.0). The
 percentage identity is defined as 100 * (matching columns) /
-(alignment length - terminal gaps).
+(alignment length - terminal gaps). See fields id0 to id4 for other
+definitions.
 .IP \n+[step].
 Length of the query-target alignment (number of columns). The field is
 set to 0 if there is no alignment.
@@ -278,7 +285,7 @@ Last nucleotide of the target aligned with the query. Nucleotide
 numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .IP \n+[step].
-E-value  (not computed for nucleotidic alignments). Always set to 0.
+E-value  (not computed for nucleotidic alignments). Always set to -1.
 .IP \n+[step].
 Bit score (not computed for nucleotidic alignments). Always set to 0.
 .RE
@@ -326,7 +333,30 @@ setting them to lower case.
 reject the sequence match if the pairwise identity is lower than
 \fIreal\fR (value ranging from 0.0 to 1.0 included). The pairwise
 identity is defined as the number of (matching columns) / (alignment
-length - terminal gaps).
+length - terminal gaps). That definition can be modified by --iddef.
+.TP
+.BI --iddef\~ "0|1|2|3|4"
+change the pairwise identity definition used in --id. Values accepted
+are:
+.RS
+.RS
+.nr step 0 1
+.IP \n[step]. 4
+CD-HIT definition using shortest sequence as numerator.
+.IP \n+[step].
+edit distance.
+.IP \n+[step].
+edit distance excluding terminal gaps (default value).
+.IP \n+[step].
+Marine Biological Lab definition counting each extended gap as a
+single difference.
+.IP \n+[step].
+BLAST, same as 2 for global pairwise alignments.
+.RE
+.RE
+The option --userfields accepts the fields id0 to id4, in addition to
+the field id, to produce the pairwise identity values corresponding to
+the different definitions.
 .TP
 .BI --idprefix\~ "positive integer"
 reject the target sequence if the first \fIinteger\fR nucleotides do
@@ -437,10 +467,9 @@ write query sequences not matching database target sequences to
 .TP
 .B --output_no_hits
 write both matching and non-matching queries to output files
-(--alnout, --blast6out, and --userout. Output files --uc and
+(--alnout, --blast6out, and --userout; output files --uc and
 --uc_allhits always feature non-matching queries). Non-matching
-queries are labelled "no hit" in --alnout files \fB(to be
-verified)\fR.
+queries are labelled "No hits" in --alnout files.
 .TP
 .BI --qmask\~ "none|dust|soft"
 mask simple repeats and low-complexity regions in query sequences
@@ -517,7 +546,7 @@ Bit score (not computed for nucleotidic alignments). Always set to 0.
 .B caln
 Compact representation of the pairwise alignment using the CIGAR
 format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion).
+(deletion) and I (insertion). Empty field if there is no alignment.
 .TP
 .B evalue
 E-value (not computed for nucleotidic alignments). Always set to -1.
@@ -533,6 +562,31 @@ Number of columns containing a gap (zero or positive integer value).
 Percentage of identity (real value ranging from 0.0 to 100.0). The
 percentage identity is defined as 100 * (matching columns) /
 (alignment length - terminal gaps).
+.TP
+.B id0
+CD-HIT definition of the percentage of identity, using the shortest
+sequence in the pairwise alignment as numerator (real value ranging
+from 0.0 to 100.0).
+.TP
+.B id1
+The percentage of identity (real value ranging from 0.0 to 100.0) is
+defined as the edit distance: 100 * (matching columns) / (alignment
+length).
+.TP
+.B id2
+The percentage of identity (real value ranging from 0.0 to 100.0) is
+defined as the edit distance, excluding terminal gaps. The field id2 is
+an alias for the field id.
+.TP
+.B id3
+Marine Biological Lab definition of the percentage of identity (real
+value ranging from 0.0 to 100.0), counting each extended gap as a
+single difference.
+.TP
+.B id4
+BLAST definition of the percentage of identity (real value ranging
+from 0.0 to 100.0), same as the field id2 for global pairwise
+alignments.
 .TP
 .B ids
 Number of matches in the alignment (zero or positive integer value).
@@ -566,8 +620,8 @@ value).
 .TP
 .B qcov
 Fraction of the query sequence that is aligned with the target
-sequence (real value ranging from 0.0 to 100.0). \fB(what is the
-formula?)\fR.
+sequence (real value ranging from 0.0 to 100.0). The field is set to
+0.0 if there is no alignment. \fB(what is the formula?)\fR.
 .TP
 .B qframe
 Query frame (-3 to +3). That field only concerns coding sequences and
@@ -579,7 +633,8 @@ numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .TP
 .B ql
-Query sequence length.
+Query sequence length (positive integer value). The field is set to 0
+if there is no alignment.
 .TP
 .B qlo
 First nucleotide of the query aligned with the target. Nucleotide
@@ -595,14 +650,16 @@ is no alignment.
 Query segment length. Always equal to query sequence length.
 .TP
 .B qstrand
-Query strand orientation (+ or - for nucleotidic sequences).
+Query strand orientation (+ or - for nucleotidic sequences). Empty
+field if there is no alignment.
 .TP
 .B query
 Query label.
 .TP
 .B raw
-Raw alignment score (not computed for nucleotidic alignments). Always
-set to 0.
+Raw alignment score (positive integer value). The score is the sum of
+match rewards minus mismatch penalties, gap openings and gap
+extensions. The field is set to 0 if there is no alignment.
 .TP
 .B target
 Target label. The field is set to "*" if there is no alignment.
@@ -610,7 +667,7 @@ Target label. The field is set to "*" if there is no alignment.
 .B tcov
 Fraction of the target sequence that is aligned with the query
 sequence (real value ranging from 0.0 to 100.0). \fB(what is the
-formula?)\fR. The field is set to 0 if there is no alignment.
+formula?)\fR. The field is set to 0.0 if there is no alignment.
 .TP
 .B tframe
 Target frame (-3 to +3). That field only concerns coding sequences and
@@ -622,7 +679,8 @@ numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .TP
 .B tl
-Target sequence length.
+Target sequence length (positive integer value). The field is set to 0
+if there is no alignment.
 .TP
 .B tlo
 First nucleotide of the target aligned with the query. Nucleotide
@@ -641,8 +699,9 @@ field is set to 0 if there is no alignment.
 .B tstrand
 Target strand orientation (+ or - for nucleotidic sequences). Always
 set to "+", so reverse strand matches have tstrand "+" and qstrand
-"-".
+"-". Empty field if there is no alignment.
 .RE
+
 
 .\" ============================================================================
 .SH DELIBERATE CHANGES
@@ -657,6 +716,16 @@ During a search with usearch, when using the options --blast6out and
 --output_no_hits, for queries with no match the number of fields
 reported is 13, where it should be 12. This is corrected in
 \fBvsearch\fR.
+
+The fields qlo, qhi, tlo, thi and raw of the --userfields option are
+not informative in usearch. This is corrected in \fBvsearch\fR.
+
+In usearch, when using the option --output_no_hits, queries that
+receive no match are reported in blast6out file, but not in the
+alignment output file. This is corrected in \fBvsearch\fR.
+
+\fBvsearch\fR reintroduces alternative pairwise identity definitions
+that were removed from usearch.
 
 .\" ============================================================================
 .SH NOVELTIES
@@ -745,10 +814,10 @@ available under a MIT license.
 \fBvsearch\fR includes code derived from Tatusov and Lipman's DUST
 program that is in the public domain.
 .PP
-\fBvsearch\fR binaries may include code from the zlib library
+\fBvsearch\fR binaries may include code from the zlib library,
 copyright Jean-loup Gailly and Mark Adler.
 .PP
-\fBvsearch\fR binaries may include code from the bzip2 library
+\fBvsearch\fR binaries may include code from the bzip2 library,
 copyright Julian R. Seward.
 .\" ============================================================================
 .SH SEE ALSO
@@ -770,7 +839,7 @@ First public release
 .\" NOTES
 .\" visualize and output to pdf
 .\" man -l vsearch.1
-.\" man -t ./doc/vsearch.1 | ps2pdf - > ./doc/vsearch_manual.pdf
+.\" man -t ./doc/vsearch.1 | ps2pdf - > ./doc/vsearch_manual.pdfq
 .\"
 .\" INSTALL (sysadmin)
 .\" gzip -c vsearch.1 > vsearch.1.gz
