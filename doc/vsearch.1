@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 29, 2014" "version 0.1.0" "USER COMMANDS"
+.TH vsearch 1 "October 31, 2014" "version 0.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -62,8 +62,8 @@ considered identical, regardless of their case. If two symbols are
 non-identical, their alignment will result in the negative mismatch
 score (default -4), except if one or both of the symbols are ambiguous
 (RYSWKMDBHVN) in which case the score is zero. Alignment of two
-identical ambiguous symbols (e.g. R vs R) is considered a match, and
-given a positive match score (+2).
+identical ambiguous symbols (e.g. R vs R) also receives a score of
+zero.
 
 Optionally, \fBvsearch\fR can be compiled to accepted compressed fasta
 files as input (gz and bzip2 formats).
@@ -152,10 +152,31 @@ output each cluster to a separate fasta file using the prefix
 .\" when using --consout alone.
 .\" .TP
 .BI --id \0real
-do not add to the cluster if the pairwise identity with the centroid
-is lower than \fIreal\fR (value ranging from 0.0 to 1.0 included). The
-pairwise identity is defined as the number of (matching columns) /
-(alignment length - terminal gaps).
+do not add the target to the cluster if the pairwise identity with the
+centroid is lower than \fIreal\fR (value ranging from 0.0 to 1.0
+included). The pairwise identity is defined as the number of (matching
+columns) / (alignment length - terminal gaps). That definition can be
+modified by --iddef.
+.TP
+.BI --iddef\~ "0|1|2|3|4"
+change the pairwise identity definition used in --id. Values accepted
+are:
+.RS
+.RS
+.nr step 0 1
+.IP \n[step]. 4
+CD-HIT definition using shortest sequence as numerator.
+.IP \n+[step].
+edit distance.
+.IP \n+[step].
+edit distance excluding terminal gaps (default value).
+.IP \n+[step].
+Marine Biological Lab definition counting each extended gap as a
+single difference.
+.IP \n+[step].
+BLAST, same as 2 for global pairwise alignments.
+.RE
+.RE
 .TP
 .\" .BI --msaout \0filename
 .\" output multiple sequence alignments of each cluster to \fIfilename\fR.
@@ -250,44 +271,46 @@ this manual.
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-Query label.
+\fIquery\fR: query label.
 .IP \n+[step].
-Target (database sequence or cluster centroid) label. The field is set
-to "*" if there is no alignment.
+\fItarget\fR: target (database sequence or cluster centroid)
+label. The field is set to "*" if there is no alignment.
 .IP \n+[step].
-Percentage of identity (real value ranging from 0.0 to 100.0). The
-percentage identity is defined as 100 * (matching columns) /
-(alignment length - terminal gaps). See fields id0 to id4 for other
+\fIid\fR: percentage of identity (real value ranging from 0.0 to
+100.0). The percentage identity is defined as 100 * (matching columns)
+/ (alignment length - terminal gaps). See fields id0 to id4 for other
 definitions.
 .IP \n+[step].
-Length of the query-target alignment (number of columns). The field is
-set to 0 if there is no alignment.
+\fIalnlen\fR: length of the query-target alignment (number of
+columns). The field is set to 0 if there is no alignment.
 .IP \n+[step].
-Number of mismatches in the alignment (zero or positive
+\fImism\fR: number of mismatches in the alignment (zero or positive
 integer value).
 .IP \n+[step].
-Number of columns containing a gap opening (zero or positive integer
-value).
+\fIopens\fR: number of columns containing a gap opening (zero or
+positive integer value).
 .IP \n+[step].
-First nucleotide of the query aligned with the target. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+\fIqlo\fR: first nucleotide of the query aligned with the
+target. Nucleotide numbering starts from 1. The field is set to 0 if
+there is no alignment.
 .IP \n+[step].
-Last nucleotide of the query aligned with the target. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+\fIqhi\fR: last nucleotide of the query aligned with the
+target. Nucleotide numbering starts from 1. The field is set to 0 if
+there is no alignment.
 .IP \n+[step].
-First nucleotide of the target aligned with the query. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+\fItlo\fR: first nucleotide of the target aligned with the
+query. Nucleotide numbering starts from 1. The field is set to 0 if
+there is no alignment.
 .IP \n+[step].
-Last nucleotide of the target aligned with the query. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+\fIthi\fR: last nucleotide of the target aligned with the
+query. Nucleotide numbering starts from 1. The field is set to 0 if
+there is no alignment.
 .IP \n+[step].
-E-value  (not computed for nucleotidic alignments). Always set to -1.
+\fIevalue\fR: expectancy-value (not computed for nucleotidic
+alignments). Always set to -1.
 .IP \n+[step].
-Bit score (not computed for nucleotidic alignments). Always set to 0.
+\fIbits\fR: bit score (not computed for nucleotidic
+alignments). Always set to 0.
 .RE
 .RE
 .TP
@@ -331,9 +354,18 @@ setting them to lower case.
 .TP
 .BI --id \0real
 reject the sequence match if the pairwise identity is lower than
-\fIreal\fR (value ranging from 0.0 to 1.0 included). The pairwise
-identity is defined as the number of (matching columns) / (alignment
-length - terminal gaps). That definition can be modified by --iddef.
+\fIreal\fR (value ranging from 0.0 to 1.0 included). The search
+process sorts target sequences by decreasing number of \fIk\fR-mers
+they have in common with the query sequence, using that information as
+a proxy for sequence similarity. That efficient pre-filtering will
+also prevent pairwise alignments with weakly matching targets, as
+there needs to be at least 6 shared \fIk\fR-mers to start the pairwise
+alignment, and at least one out of every 16 \fIk\fR-mers from the
+query needs to match the target. Consequently, using values lower than
+--id 0.5 is not likely to capture more weakly matching targets. The
+pairwise identity is defined as the number of (matching columns) /
+(alignment length - terminal gaps). That definition can be modified by
+--iddef.
 .TP
 .BI --iddef\~ "0|1|2|3|4"
 change the pairwise identity definition used in --id. Values accepted
@@ -479,7 +511,8 @@ become case sensitive. The default is to mask using \fIdust\fR.
 .TP
 .BI --query_cov \0real
 reject if the fraction of the query aligned to the target sequence is
-lower than \fIreal\fR.
+lower than \fIreal\fR. The query coverage is computed as
+such: 100.0 * (matches + mismatches) / query sequence length.
 .TP
 .B --rightjust
 reject the target sequence if the alignment ends with gaps.
@@ -496,7 +529,8 @@ reject the alignment if the query and target sequences are identical.
 .TP
 .BI --target_cov \0real
 reject if the fraction of the target sequence aligned to the query
-sequence is lower than \fIreal\fR.
+sequence is lower than \fIreal\fR. The target coverage is computed as
+such: 100.0 * (matches + mismatches) / target sequence length.
 .TP
 .B --top_hits_only
 output only the hits with the highest percentage of identity with the
@@ -508,7 +542,7 @@ output file. See the next section for a complete list of fields.
 .TP
 .BI --userout \0filename
 write user-defined tab-separated output to \fIfilename\fR. See
-"userfields".
+--userfields.
 .TP
 .BI --vsearch_global \0filename
 \fIfilename\fR of queries for global alignment search.
@@ -620,8 +654,9 @@ value).
 .TP
 .B qcov
 Fraction of the query sequence that is aligned with the target
-sequence (real value ranging from 0.0 to 100.0). The field is set to
-0.0 if there is no alignment. \fB(what is the formula?)\fR.
+sequence (real value ranging from 0.0 to 100.0). The query coverage is
+computed as such: 100.0 * (matches + mismatches) / query sequence
+length. The field is set to 0.0 if there is no alignment.
 .TP
 .B qframe
 Query frame (-3 to +3). That field only concerns coding sequences and
@@ -648,6 +683,7 @@ is no alignment.
 .TP
 .B qs
 Query segment length. Always equal to query sequence length.
+.\" The meaning of that field is not clear to us. 
 .TP
 .B qstrand
 Query strand orientation (+ or - for nucleotidic sequences). Empty
@@ -657,17 +693,19 @@ field if there is no alignment.
 Query label.
 .TP
 .B raw
-Raw alignment score (positive integer value). The score is the sum of
-match rewards minus mismatch penalties, gap openings and gap
-extensions. The field is set to 0 if there is no alignment.
+Raw alignment score (negative, null or positive integer value). The
+score is the sum of match rewards minus mismatch penalties, gap
+openings and gap extensions. The field is set to 0 if there is no
+alignment.
 .TP
 .B target
 Target label. The field is set to "*" if there is no alignment.
 .TP
 .B tcov
 Fraction of the target sequence that is aligned with the query
-sequence (real value ranging from 0.0 to 100.0). \fB(what is the
-formula?)\fR. The field is set to 0.0 if there is no alignment.
+sequence (real value ranging from 0.0 to 100.0). The target coverage
+is computed as such: 100.0 * (matches + mismatches) / target sequence
+length. The field is set to 0.0 if there is no alignment.
 .TP
 .B tframe
 Target frame (-3 to +3). That field only concerns coding sequences and
@@ -779,7 +817,7 @@ and write cluster descriptions using a uclust-like format:
 \fBvsearch\fR does not yet perform chimera detection.
 .\" ============================================================================
 .SH AUTHORS
-Implementation by Torbjørn Rognes and Tomas Flouri, documentation by Frédéric Mahé, .
+Implementation by Torbjørn Rognes and Tomas Flouri, documentation by Frédéric Mahé.
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -788,7 +826,7 @@ Submit suggestions and bug-reports at
 curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 .\" ============================================================================
 .SH AVAILABILITY
-The software is available from <https://github.com/torognes/vsearch>
+Source code and binaries are available at <https://github.com/torognes/vsearch>
 .\" ============================================================================
 .SH COPYRIGHT
 Copyright (C) 2014 Torbjørn Rognes et al.
