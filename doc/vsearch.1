@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 2, 2014" "version 0.1.0" "USER COMMANDS"
+.TH vsearch 1 "November 3, 2014" "version 0.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -20,6 +20,19 @@ Dereplication:
 .RS
 \fBvsearch\fR [\fIoptions\fR] --derep_fulllength \fIfastafile\fR (--output|--uc) \fIoutputfile\fR
 .RE
+Masking:
+.RS
+\fBvsearch\fR [\fIoptions\fR] --maskfasta \fIfastafile\fR --output \fIoutputfile\fR
+.RE
+Shuffling:
+.RS
+\fBvsearch\fR [\fIoptions\fR] --shuffle \fIfastafile\fR --output \fIoutputfile\fR
+.RE
+Sorting:
+.RS
+\fBvsearch\fR [\fIoptions\fR] (--sortbysize|--sortbylength) \fIfastafile\fR --output \fIoutputfile\fR
+.RE
+
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
@@ -220,28 +233,59 @@ header using the pattern ";size=\fIinteger\fR;".
 discard sequences with an abundance value smaller than \fIinteger\fR.
 .TP
 .BI --output \0filename
-write the dereplicated sequences to \fIfilename\fR, in fasta format.
+write the dereplicated sequences to \fIfilename\fR, in fasta format
+and sorted by decreasing abundance.
 .TP
 .B --sizein
 take into account the abundance annotations present in the input fasta
 file (search for the pattern ";size=\fIinteger\fR;").
 .TP
 .B --sizeout
-add abundance annotations to the output fasta file (using the
-pattern";size=\fIinteger\fR;").
+add abundance annotations to the output fasta file (using the pattern
+";size=\fIinteger\fR;").
 .TP
-.B --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences, sorted by decreasing
-abundance.
+.BI --topn\~ "positive integer"
+output only the top \fIinteger\fR sequences.
 .RE
 
 .\" ----------------------------------------------------------------------------
-Masking, shuffling and sorting options:
+Masking options:
 .RS
 .TP 9
+.B --hardmask
+mask low-complexity regions by replacing them with Ns instead of
+setting them to lower case.
+.TP
 .BI --maskfasta \0filename
 mask sequences contained in \fIfilename\fR.
 .TP
+.BI --output \0filename
+write the masked sequences to \fIfilename\fR, in fasta format.
+.RE
+
+.\" ----------------------------------------------------------------------------
+Shuffling options:
+.RS
+.TP 9
+.BI --output \0filename
+write the masked sequences to \fIfilename\fR, in fasta format.
+.TP
+.BI --seed\~ "positive integer"
+when shuffling sequence order, use \fIinteger\fR as seed. Set to 0 to
+use a pseudo-random seed (default behavior).
+.TP
+.BI --shuffle \0filename
+pseudo-randomly shuffle the order of sequences contained in
+\fIfilename\fR.
+.TP
+.BI --topn\~ "positive integer"
+output only the top \fIinteger\fR sequences.
+.RE
+
+.\" ----------------------------------------------------------------------------
+Sorting options:
+.RS
+.TP 9
 .BI --maxsize\~ "positive integer"
 when using --sortbysize, discard sequences with an abundance value
 equal to or greater than \fIinteger\fR.
@@ -250,40 +294,27 @@ equal to or greater than \fIinteger\fR.
 when using --sortbysize, discard sequences with an abundance value
 smaller than \fIinteger\fR.
 .TP
-.BI --minuniquesize\~ "positive integer"
-when dereplicating, discard sequences with an abundance value
-smaller than \fIinteger\fR.
-.TP
 .BI --output \0filename
-when dereplicating, sorting or shuffling, write the results to
-\fIfilename\fR.
+write the sorted sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI --relabel \0string
-when sorting, relabel sequence headers using \fIstring\fR as suffix.
-.TP
-.BI --seed\~ "positive integer"
-when shuffling, use \fIinteger\fR as seed. Set to 0 to use a
-pseudo-random seed.
-.TP
-.B --sizein
-read abundance annotation from input
+relabel sequence using the prefix \fIstring\fR and a ticker (1, 2, 3,
+etc.) to construct the new headers. Use --sizeout to conserve the
+abundance annotations.
 .TP
 .B --sizeout
-add abundance annotation to output
-.TP
-.BI --shuffle \0filename
-pseudo-randomly shuffle the order of sequences contained in
-\fIfilename\fR.
+add abundance annotations to the output fasta file (using the
+pattern ";size=\fIinteger\fR;").
 .TP
 .BI --sortbylength \0filename
 sort by decreasing length the sequences contained in \fIfilename\fR.
 .TP
 .BI --sortbysize \0filename
-sort by decreasing abundance the sequences contained in \fIfilename\fR.
+sort by decreasing abundance the sequences contained in \fIfilename\fR
+(the pattern ";size=\fIinteger\fR;" has to be present).
 .TP
-.B --topn\~ "positive integer"
-when dereplicating, sorting or shuffling, output just the top
-\fIinteger\fR sequences.
+.BI --topn\~ "positive integer"
+output only the top \fIinteger\fR sequences.
 .RE
 
 .\" ----------------------------------------------------------------------------
@@ -292,7 +323,7 @@ Searching options:
 .TP 9
 .BI --alnout \0filename
 write pairwise global alignments to \fIfilename\fR using a
-human-readable format.
+human-readable format. Use --rowlen to modify alignment length.
 .TP
 .BI --blast6out \0filename
 write search results to \fIfilename\fR using a blast-like
@@ -351,8 +382,9 @@ alignments). Always set to 0.
 .RE
 .TP
 .BI --db \0filename
-compare query sequences to the fasta-formatted target sequences
-contained in \fIfilename\fR, using global pairwise alignment.
+compare query sequences (--vsearch_global) to the fasta-formatted
+target sequences contained in \fIfilename\fR, using global pairwise
+alignment.
 .TP
 .BI --dbmask\~ "none|dust|soft"
 mask simple repeats and low-complexity regions in target database
@@ -423,7 +455,7 @@ BLAST, same as 2 for global pairwise alignments.
 .RE
 .RE
 The option --userfields accepts the fields id0 to id4, in addition to
-the field id, to produce the pairwise identity values corresponding to
+the field id, to report the pairwise identity values corresponding to
 the different definitions.
 .TP
 .BI --idprefix\~ "positive integer"
@@ -471,15 +503,15 @@ ignore the option.
 .TP
 .BI --maxid \0real
 reject the target sequence if its percentage of identity with the
-query is equal or greater than \fIreal\fR.
+query is equal to or greater than \fIreal\fR.
 .TP
 .BI --maxqsize\~ "positive integer"
-reject query sequences with an abundance equal or greater than
+reject query sequences with an abundance equal to or greater than
 \fIinteger\fR.
 .TP
 .BI --maxqt \0real
-reject if the query/target length ratio is equal or greater than
-\fIreal\fR.
+reject if the query/target sequence length ratio is equal to or
+greater than \fIreal\fR.
 .TP
 .BI --maxrejects\~ "positive integer"
 maximum number of non-matching target sequences to consider before
@@ -494,12 +526,12 @@ are considered. If maxaccepts and maxrejects are both set to 0, the
 complete database is searched.
 .TP
 .BI --maxsizeratio \0real
-reject if the query/target abundance ratio is equal or greater than
+reject if the query/target abundance ratio is equal to or greater than
 \fIreal\fR.
 .TP
 .BI --maxsl \0real
-reject if the shorter/longer length ratio is equal or greater than
-\fIreal\fR.
+reject if the shorter/longer sequence length ratio is equal to or
+greater than \fIreal\fR.
 .TP
 .BI --maxsubs\~ "positive integer"
 reject the target sequence if the alignment contains at least
@@ -514,13 +546,15 @@ reject the target sequence if the alignment length is shorter than
 \fIinteger\fR.
 .TP
 .BI --minqt \0real
-reject if the query/target length ratio is lower than \fIreal\fR.
+reject if the query/target sequence length ratio is lower than
+\fIreal\fR.
 .TP
 .BI --minsizeratio \0real
 reject if the query/target abundance ratio is lower than \fIreal\fR.
 .TP
 .BI --minsl \0real
-reject if the shorter/longer length ratio is lower than \fIreal\fR.
+reject if the shorter/longer sequence length ratio is lower than
+\fIreal\fR.
 .TP
 .BI --mintsize\~ "positive integer"
 reject target sequences with an abundance lower than \fIinteger\fR.
@@ -534,10 +568,10 @@ write query sequences not matching database target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --output_no_hits
-write both matching and non-matching queries to output files
-(--alnout, --blast6out, and --userout; output files --uc and
---uc_allhits always feature non-matching queries). Non-matching
-queries are labelled "No hits" in --alnout files.
+write both matching and non-matching queries to --alnout, --blast6out,
+and --userout output files (--uc and --uc_allhits output files always
+feature non-matching queries). Non-matching queries are labelled "No
+hits" in --alnout files.
 .TP
 .BI --qmask\~ "none|dust|soft"
 mask simple repeats and low-complexity regions in query sequences
@@ -554,8 +588,8 @@ such: 100.0 * (matches + mismatches) / query sequence length.
 reject the target sequence if the alignment ends with gaps.
 .TP
 .BI --rowlen\~ "positive integer"
-width of alignment lines in alnout output. The default value is
-64. Set that value to 0 to eliminate the wrapping.
+width of alignment lines in --alnout output. The default value is
+64. Set to 0 to eliminate the wrapping.
 .TP
 .B --self
 reject the alignment if the query and target labels are identical.
@@ -574,14 +608,17 @@ query.
 .TP
 .BI --userfields \0string
 when using --userout, select and order the fields written to the
-output file. See the next section for a complete list of fields.
+output file. Fields are separated by "+" (e.g. query+target+id). See
+the next section for a complete list of fields.
 .TP
 .BI --userout \0filename
-write user-defined tab-separated output to \fIfilename\fR. See
---userfields.
+write user-defined tab-separated output to \fIfilename\fR. Select the
+fields with the option --userfields. If --userfields is empty or not
+present, \fIfilename\fR is empty.
 .TP
 .BI --vsearch_global \0filename
-\fIfilename\fR of queries for global alignment search.
+compare target sequences (--db) to the fasta-formatted query sequences
+contained in \fIfilename\fR, using global pairwise alignment.
 .TP
 .BI --weak_id \0real
 show hits with percentage of identity of at least \fIreal\fR, without
@@ -598,7 +635,7 @@ value is 8.
 .RE
 
 .\" ----------------------------------------------------------------------------
-Fields:
+Fields accepted by the --userfields option:
 .RS
 .TP 9
 .B aln
@@ -822,7 +859,8 @@ threshold, take terminal gaps into account when calculating pairwise
 similarities:
 
 .RS
-\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8 --iddef 1
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db
+\fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8 --iddef 1
 
 .RE
 Search a sequence dataset against itself (ignore self hits), get all
@@ -830,14 +868,17 @@ matches with at least 60% identity, and collect results in a
 blast-like tab-separated format:
 
 .RS
-\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIqueries.fas\fR --id 0.6 --alnout \fIresults.aln\fR --self --blast6out \fIresults.blast6\fR --maxaccepts 0 --maxrejects 0
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db
+\fIqueries.fas\fR --id 0.6 --self --blast6out \fIresults.blast6\fR
+--maxaccepts 0 --maxrejects 0
 
 .RE
 Clusterize with a 97% similarity threshold, collect cluster centroids,
 and write cluster descriptions using a uclust-like format:
 
 .RS
-\fBvsearch\fR --cluster_fast \fIqueries.fas\fR --id 0.97 --centroids \fIcentroids.fas\fR --uc \fIclusters.uc\fR
+\fBvsearch\fR --cluster_fast \fIqueries.fas\fR --id 0.97 --centroids
+\fIcentroids.fas\fR --uc \fIclusters.uc\fR
 
 .RE
 .\" .B vsearch
@@ -869,7 +910,7 @@ curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 Source code and binaries are available at <https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014 Torbjørn Rognes et al.
+Copyright (C) 2014 Torbjørn Rognes and collaborators.
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
