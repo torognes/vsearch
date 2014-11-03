@@ -1,49 +1,59 @@
 .\" ============================================================================
-.TH vsearch 1 "October 31, 2014" "version 0.1.0" "USER COMMANDS"
+.TH vsearch 1 "November 2, 2014" "version 0.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
 amplicons from metagenomic projects
 .\" ============================================================================
 .SH SYNOPSIS
-.B vsearch
-[
-.I options
-]
-.I filename
+Searching:
+.RS
+\fBvsearch\fR [\fIoptions\fR] --vsearch_global \fIfastafile\fR --db
+\fIfastafile\fR (--alnout|--blast6out|--userout|--uc) \fIoutputfile\fR --id
+\fIreal\fR
+.RE
+Clustering:
+.RS
+(in progress)
+.RE
+Dereplication:
+.RS
+\fBvsearch\fR [\fIoptions\fR] --derep_fulllength \fIfastafile\fR (--output|--uc) \fIoutputfile\fR
+.RE
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
-amplicons (e.g. SSU-rRNA sequences) that need to be filtered,
-dereplicated, searched, clustered or compared to sequences from other
-studies. The aim of \fBvsearch\fR is to offer a all-in-one open source
-tool to perform these tasks, using optimized algorithm implementations
-and harvesting the full potential of modern computers to guarantee a
-fast and accurate data processing.
+amplicons (e.g. SSU-rRNA sequences) that need to be dereplicated,
+filtered, sorted, searched, clusterized or compared to reference
+sequences. The aim of \fBvsearch\fR is to offer a all-in-one open
+source tool to perform these tasks, using optimized algorithm
+implementations and harvesting the full potential of modern computers,
+thus guaranteeing a fast and accurate data processing.
 .PP
 Nucleotidic sequence comparisons is at the core of \fBvsearch\fR. To
 speed up comparisons, \fBvsearch\fR implements an efficient
-\fIk\fR-mer filtering, and an extremely fast Needleman-Wunsch
-algorithm making use of the Streaming SIMD Extensions (SSE2) of modern
-x86-64 CPUs. If SSE2 instructions are not available, \fBvsearch\fR
-exits with an error message.
+\fIk\fR-mer filtering, and an extremely fast implementation of the
+Needleman-Wunsch algorithm, making use of the Streaming SIMD
+Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are not
+available, \fBvsearch\fR exits with an error message.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR input is a fasta file containing one or several
 nucleotidic sequences. For each sequence, the sequence identifier is
 defined as the string comprised between the ">" symbol and the first
-space or the end of the line, whichever comes first. Additionally, if
+space, or the end of the line, whichever comes first. Additionally, if
 the line ends with the pattern ";size=\fIinteger\fR;", \fBvsearch\fR
-will interpret \fIinteger\fR as the abundance of the sequence (in a
-dereplicated fasta file for instance).
+will interpret \fIinteger\fR as the number of occurrences (or
+abundance) of the sequence in the study (see the Dereplication
+section).
 
 The nucleotidic sequence is defined as a string of IUPAC symbols
 (ACGTURYSWKMDBHVN), starting after the end of the identifier line and
 ending before the next identifier line or the file end. \fBvsearch\fR
-silently ignores ascii characters 9 to 13, exits with an error message
-if ascii characters 0 to 8, 14 to 31, "." and "-" are present. All
-other characters are stripped and complained about in a warning
-message (non-blocking).
+silently ignores ascii characters 9 to 13, and exits with an error
+message if ascii characters 0 to 8, 14 to 31, "." and "-" are
+present. All other characters are stripped and complained about in a
+non-blocking warning message.
 
 \fBvsearch\fR operations are case insensitive, except when soft masking is
 activated. For --vsearch_global (searching), --cluster_fast and
@@ -72,7 +82,7 @@ files as input (gz and bzip2 formats).
 \fBvsearch\fR recognizes a large number of command-line options. For
 an easier navigation, options are grouped by theme (dereplication,
 filtering, sorting, searching, comparison, clustering). We start with
-general options that apply to all themes.
+general options that apply to all or most themes.
 .PP
 General options:
 .RS
@@ -84,9 +94,9 @@ display a short help and exit.
 output version information and exit.
 .TP
 .BI --fasta_width\~ "positive integer"
-fasta files produced by \fBvsearch\fR are wrapped (sequences written
-on lines of \fIinteger\fR nucleotides, 80 by default). Set that value
-to 0 to eliminate the wrapping.
+fasta files produced by \fBvsearch\fR are wrapped (sequences are
+written on lines of \fIinteger\fR nucleotides, 80 by default). Set
+that value to 0 to eliminate the wrapping.
 .TP
 .BI --maxseqlength\~ "positive integer"
 all \fBvsearch\fR operations will discard sequences of length equal or
@@ -111,11 +121,13 @@ default is to launch one thread per available logical core.
 .TP
 .BI --uc \0filename
 when searching, clustering or dereplicating, output results in
-\fIfilename\fR using a uclust-like format.
+\fIfilename\fR using a uclust-like format. See
+<http://www.drive5.com/usearch/manual/ucout.html> for a description of
+the format.
 .TP
 .B --uc_allhits
 when searching, clustering or dereplicating, and when using the --uc
-option, show all hits, not just top hit.
+option, show all hits, not just the top hit for each query.
 .RE
 
 .\" ----------------------------------------------------------------------------
@@ -194,21 +206,45 @@ clustering.
 .RE
 
 .\" ----------------------------------------------------------------------------
-Dereplication, masking, shuffling and sorting options:
+Dereplication options:
 .RS
 .TP 9
 .BI --derep_fulllength \0filename
 merge strictly identical sequences contained in
-\fIfilename\fR. Redundant sequences receive the header of the sequence
-of their group, and the number of occurrences (abundance) is indicated
-at the end of the fasta header using the pattern ";size=X;".
+\fIfilename\fR. Redundant sequences receive the header of the first
+sequence of their group. If --sizeout is used, the number of
+occurrences (i.e. abundance) is indicated at the end of the fasta
+header using the pattern ";size=\fIinteger\fR;".
 .TP
+.BI --minuniquesize\~ "positive integer"
+discard sequences with an abundance value smaller than \fIinteger\fR.
+.TP
+.BI --output \0filename
+write the dereplicated sequences to \fIfilename\fR, in fasta format.
+.TP
+.B --sizein
+take into account the abundance annotations present in the input fasta
+file (search for the pattern ";size=\fIinteger\fR;").
+.TP
+.B --sizeout
+add abundance annotations to the output fasta file (using the
+pattern";size=\fIinteger\fR;").
+.TP
+.B --topn\~ "positive integer"
+output only the top \fIinteger\fR sequences, sorted by decreasing
+abundance.
+.RE
+
+.\" ----------------------------------------------------------------------------
+Masking, shuffling and sorting options:
+.RS
+.TP 9
 .BI --maskfasta \0filename
 mask sequences contained in \fIfilename\fR.
 .TP
 .BI --maxsize\~ "positive integer"
 when using --sortbysize, discard sequences with an abundance value
-greater than \fIinteger\fR.
+equal to or greater than \fIinteger\fR.
 .TP
 .BI --minsize\~ "positive integer"
 when using --sortbysize, discard sequences with an abundance value
@@ -762,30 +798,34 @@ In usearch, when using the option --output_no_hits, queries that
 receive no match are reported in blast6out file, but not in the
 alignment output file. This is corrected in \fBvsearch\fR.
 
-\fBvsearch\fR reintroduces alternative pairwise identity definitions
-that were removed from usearch.
+\fBvsearch\fR reintroduces with --iddef alternative pairwise identity
+definitions that were removed from usearch.
 
 .\" ============================================================================
 .SH NOVELTIES
-\fBvsearch\fR introduces new options not present in usearch. These options
-are described in the "Options" section of this manual. Here is a short
+\fBvsearch\fR introduces new options not present in usearch. They are
+described in the "Options" section of this manual. Here is a short
 list:
 .IP \[bu] 2
 shuffle
 .IP \[bu]
 fasta_width
+.IP \[bu]
+iddef
 
 .\" ============================================================================
 .SH EXAMPLES
 (in progress)
 
-Search queries in a reference database, with a 80%-similarity threshold:
+Search queries in a reference database, with a 80%-similarity
+threshold, take terminal gaps into account when calculating pairwise
+similarities:
 
 .RS
-\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8
+\fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIreferences.fas\fR --alnout \fIresults.aln\fR --id 0.8 --iddef 1
 
 .RE
-search a sequence dataset against itself (ignore self hits), get all
+Search a sequence dataset against itself (ignore self hits), get all
 matches with at least 60% identity, and collect results in a
 blast-like tab-separated format:
 
@@ -793,7 +833,7 @@ blast-like tab-separated format:
 \fBvsearch\fR --vsearch_global \fIqueries.fas\fR --db \fIqueries.fas\fR --id 0.6 --alnout \fIresults.aln\fR --self --blast6out \fIresults.blast6\fR --maxaccepts 0 --maxrejects 0
 
 .RE
-clusterize with a 97% similarity threshold, collect cluster centroids,
+Clusterize with a 97% similarity threshold, collect cluster centroids,
 and write cluster descriptions using a uclust-like format:
 
 .RS
@@ -826,7 +866,7 @@ Submit suggestions and bug-reports at
 curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 .\" ============================================================================
 .SH AVAILABILITY
-Source code and binaries are available at <https://github.com/torognes/vsearch>
+Source code and binaries are available at <https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
 Copyright (C) 2014 Torbjørn Rognes et al.
@@ -860,19 +900,19 @@ copyright Julian R. Seward.
 .\" ============================================================================
 .SH SEE ALSO
 \fBswipe\fR, an extremely fast Smith-Waterman database search tool by
-Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
+Torbjørn Rognes and available at <https://github.com/torognes/swipe>.
 .\" ============================================================================
 .SH VERSION HISTORY
 New features and important modifications of \fBvsearch\fR (short lived
 or minor bug releases are not mentioned):
 .RS
 .TP
-.BR v1.0\~ "released November 1st, 2014"
+.BR v1.0\~ "released November 15, 2014"
 First public release
 .LP
 .\" ============================================================================
 .\" TODO:
-.\" - define "terminal gaps",
+.\" - "--uc_allhits": how is it working for clustering?
 .\"
 .\" NOTES
 .\" visualize and output to pdf
