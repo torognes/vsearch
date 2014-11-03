@@ -99,7 +99,7 @@ void sortbysize()
   fprintf(stderr, "Median abundance: %.0f\n", median);
   show_rusage();
   
-  passed = MIN(dbsequencecount, opt_topn);
+  passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
   for(int i=0; i<passed; i++)

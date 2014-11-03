@@ -35,15 +35,15 @@ PROG=vsearch
 
 OBJS=cityhash/city.o \
 	align.o align_simd.o arch.o bitmap.o cluster.o db.o dbindex.o derep.o \
-	maps.o mask.o minheap.o query.o results.o searchcore.o showalign.o \
-	shuffle.o sortbylength.o sortbysize.o unique.o userfields.o util.o \
-	vsearch.o search.o
+	maps.o mask.o minheap.o msa.o query.o results.o searchcore.o \
+	showalign.o shuffle.o sortbylength.o sortbysize.o unique.o \
+	userfields.o util.o vsearch.o search.o
 
 DEPS=Makefile cityhash/city.h cityhash/config.h \
 	align.h align_simd.h arch.h bitmap.h cluster.h db.h dbindex.h derep.h \
-	maps.h mask.h minheap.h query.h results.h searchcore.h showalign.h \
-	shuffle.h sortbylength.h sortbysize.h unique.h userfields.h util.h \
-	vsearch.h search.h
+	maps.h mask.h minheap.h msa.h query.h results.h searchcore.h \
+	showalign.h shuffle.h sortbylength.h sortbysize.h unique.h \
+	userfields.h util.h vsearch.h search.h
 
 .SUFFIXES:.o .cc
 

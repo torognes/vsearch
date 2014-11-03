@@ -21,7 +21,6 @@
 
 #include "vsearch.h"
 
-
 /* per thread data */
 
 inline int hit_compare_typed(struct hit * x, struct hit * y)

@@ -74,6 +74,7 @@
 #include "shuffle.h"
 #include "mask.h"
 #include "cluster.h"
+#include "msa.h"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -96,7 +97,7 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.1.0"
+#define PROG_VERSION "v0.2.0"
 
 
 /* options */
@@ -142,7 +143,7 @@ extern double opt_minsl;
 extern double opt_query_cov;
 extern double opt_target_cov;
 extern double opt_weak_id;
-extern int opt_construncate;
+extern int opt_cons_truncate;
 extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_query_left;
 extern int opt_gap_extension_query_right;

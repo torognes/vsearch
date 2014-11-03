@@ -53,12 +53,18 @@ void shuffle()
   int dbsequencecount = db_getsequencecount();
   deck = (int*) xmalloc(dbsequencecount * sizeof(int));
 
-  /* initialize random generator */
-
-  if (opt_seed > 0)
-    srandom(opt_seed);
-  else
-    arch_srandom_init();
+  /* initialize pseudo-random number generator */
+  unsigned int seed = opt_seed;
+  if (seed == 0)
+    {
+      int fd = open("/dev/urandom", O_RDONLY);
+      if (fd < 0)
+        fatal("Unable to open /dev/urandom");
+      if (read(fd, & seed, sizeof(seed)) < 0)
+        fatal("Unable to read from /dev/urandom");
+      close(fd);
+    }
+  srandom(seed);
 
   for(int i=0; i<dbsequencecount; i++)
     deck[i] = i;

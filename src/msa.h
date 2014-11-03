@@ -19,5 +19,12 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-unsigned long arch_get_memused();
-unsigned long arch_get_memtotal();
+struct msa_target_s
+{
+  int seqno;
+  char * cigar;
+};
+
+void msa(FILE * fp_msaout, FILE * fp_consout,
+         int cluster,
+         int target_count, struct msa_target_s * target_list);
