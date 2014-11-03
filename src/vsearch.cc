@@ -57,7 +57,7 @@ double opt_query_cov;
 double opt_target_cov;
 double opt_weak_id;
 
-int opt_construncate;
+int opt_cons_truncate;
 int opt_gap_open_query_left;
 int opt_gap_open_target_left;
 int opt_gap_open_query_interior;
@@ -375,7 +375,7 @@ void args_init(int argc, char **argv)
   opt_centroids = 0;
   opt_clusters = 0;
   opt_consout = 0;
-  opt_construncate = 0;
+  opt_cons_truncate = 0;
   opt_msaout = 0;
   opt_usersort = 0;
 
@@ -557,7 +557,7 @@ void args_init(int argc, char **argv)
     {"centroids",             required_argument, 0, 0 },
     {"clusters",              required_argument, 0, 0 },
     {"consout",               required_argument, 0, 0 },
-    {"construncate",          no_argument,       0, 0 },
+    {"cons_truncate",         no_argument,       0, 0 },
     {"msaout",                required_argument, 0, 0 },
     {"usersort",              no_argument,       0, 0 },
     {"usearch_global",        required_argument, 0, 0 },
@@ -985,19 +985,18 @@ void args_init(int argc, char **argv)
 
         case 78:
           /* consout */
-          fprintf(stderr, "WARNING: option --consout not implemented\n");
           opt_consout = optarg;
           break;
 
         case 79:
-          /* construncate */
-          fprintf(stderr, "WARNING: option --construncate not implemented\n");
-          opt_construncate = 1;
+          /* cons_truncate */
+          fprintf(stderr,
+                  "WARNING: -option --cons_truncate not implemented\n");
+          opt_cons_truncate = 1;
           break;
 
         case 80:
           /* msaout */
-          fprintf(stderr, "WARNING: option --msaout not implemented\n");
           opt_msaout = optarg;
           break;
 
@@ -1157,11 +1156,11 @@ void cmd_help()
           "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
           "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
           "  --maxseqlength INT          maximum sequence length (50000)\n"
-          "  --minseqlength INT          min seq length (sort/shuffle:1, search/derep: 32)\n"
+          "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
           "  --notrunclabels             do not truncate labels at first space\n"
           "  --strand plus|both          search / dereplicate plus strand or both strands\n"
           "  --threads INT               number of threads to use, zero for all cores (0)\n"
-          "  --uc FILENAME               UCLUST-like output filename for search / derepl.\n"
+          "  --uc FILENAME               filename for UCLUST-like output\n"
           "  --uc_allhits                show all, not just top hit with uc output\n"
           "\n"
           "Search options:\n"
@@ -1173,7 +1172,7 @@ void cmd_help()
           "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
           "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
           "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
-          "  --fulldp                    full dynamic programming alignment for all hits\n"
+          "  --fulldp                    full dynamic programming alignment (always on)\n"
           "  --gapext STRING             penalties for gap extension (2I/1E)\n"
           "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
           "  --hardmask                  mask by replacing with N instead of lower case\n"
@@ -1183,10 +1182,10 @@ void cmd_help()
           "  --leftjust                  reject if terminal gaps at alignment left end\n"
           "  --match INT                 score for match (2)\n"
           "  --matched FILENAME          FASTA file for matching query sequences\n"
-          "  --maxaccepts INT            number of hits to accept and show (1)\n"
+          "  --maxaccepts INT            number of hits to accept and show per strand (1)\n"
           "  --maxdiffs INT              reject if more substitutions or indels\n"
           "  --maxgaps INT               reject if more indels\n"
-          "  --maxhits INT               maximum number of hits to show\n"
+          "  --maxhits INT               maximum number of hits to show (unlimited)\n"
           "  --maxid REAL                reject if identity higher\n"
           "  --maxqsize INT              reject if query abundance larger\n"
           "  --maxqt REAL                reject if query/target length ratio higher\n"
@@ -1214,7 +1213,7 @@ void cmd_help()
           "  --userfields STRING         fields to output in userout file\n"
           "  --userout FILENAME          filename for user-defined tab-separated output\n"
           "  --weak_id REAL              show hits with at least this id; continue search\n"
-          "  --wordlength INT            length of words (kmers) for database index (8)\n"
+          "  --wordlength INT            length of words for database index 3-15 (8)\n"
           "\n"
           "Dereplication, masking, shuffling and sorting options\n"
           "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
@@ -1238,7 +1237,7 @@ void cmd_help()
           "  --centroids FILENAME        output centroid sequences to FASTA file\n"
           "  --clusters STRING           output each cluster to a separate FASTA file\n"
           "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
-          "  --construncate              do not ignore terminal gaps in MSA for consensus\n"
+          "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
           "  --msaout FILENAME           output MSA for each cluster to FASTA file\n"
           "  --usersort                  indicate that input sequences are presorted\n"
           );

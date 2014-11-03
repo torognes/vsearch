@@ -28,6 +28,7 @@ typedef struct clusterinfo_s
 {
   int seqno;
   int clusterno;
+  char * cigar;
 } clusterinfo_t;
 
 static clusterinfo_t * clusterinfo = 0;
@@ -711,17 +712,19 @@ void cluster_core_parallel()
               /* a hit was found, cluster current sequence with hit */
               int target = best->target;
               
-              /* update cluster info about this sequence */
-              clusterinfo[seqno].seqno = seqno;
-              clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
-              
               /* output intermediate results to uc etc */
               cluster_core_results_hit(best,
-                                       clusterinfo[seqno].clusterno,
+                                       clusterinfo[target].clusterno,
                                        si_p->query_head,
                                        si_p->qseqlen,
                                        si_p->qsequence,
                                        best->strand ? si_m->qsequence : 0);
+
+              /* update cluster info about this sequence */
+              clusterinfo[seqno].seqno = seqno;
+              clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
+              clusterinfo[seqno].cigar = best->nwalignment;
+              best->nwalignment = 0;
             }
           else
             {
@@ -733,6 +736,7 @@ void cluster_core_parallel()
               /* update cluster info about this sequence */
               clusterinfo[seqno].seqno = seqno;
               clusterinfo[seqno].clusterno = clusters;
+              clusterinfo[seqno].cigar = 0;
               
               /* add current sequence to database */
               dbindex_addsequence(seqno);
@@ -752,7 +756,8 @@ void cluster_core_parallel()
               struct searchinfo_s * si = s ? si_m : si_p;
               for(int i=0; i<si->hit_count; i++)
                 if (si->hits[i].aligned)
-                  free(si->hits[i].nwalignment);
+                  if (si->hits[i].nwalignment)
+                    free(si->hits[i].nwalignment);
             }
 
           sum_nucleotides += si_p->qseqlen;
@@ -819,19 +824,22 @@ void cluster_core_serial()
       if (best)
         {
           int target = best->target;
-          clusterinfo[seqno].seqno = seqno;
-          clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
           cluster_core_results_hit(best,
-                                   clusterinfo[seqno].clusterno,
+                                   clusterinfo[target].clusterno,
                                    si_p->query_head,
                                    si_p->qseqlen,
                                    si_p->qsequence,
                                    best->strand ? si_m->qsequence : 0);
+          clusterinfo[seqno].seqno = seqno;
+          clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
+          clusterinfo[seqno].cigar = best->nwalignment;
+          best->nwalignment = 0;
         }
       else
         {
           clusterinfo[seqno].seqno = seqno;
           clusterinfo[seqno].clusterno = clusters;
+          clusterinfo[seqno].cigar = 0;
           dbindex_addsequence(seqno);
           cluster_core_results_nohit(clusters,
                                      si_p->query_head,
@@ -847,7 +855,8 @@ void cluster_core_serial()
           struct searchinfo_s * si = s ? si_m : si_p;
           for(int i=0; i<si->hit_count; i++)
             if (si->hits[i].aligned)
-              free(si->hits[i].nwalignment);
+              if (si->hits[i].nwalignment)
+                free(si->hits[i].nwalignment);
         }
 
       progress_update(seqno);
@@ -1051,7 +1060,8 @@ void cluster(char * dbname,
   if (opt_clusters)
     {
       fclose(fp_clusters);
-      free(fn_clusters);
+      if (fn_clusters)
+        free(fn_clusters);
     }
 
   if (ucfilename)
@@ -1068,6 +1078,65 @@ void cluster(char * dbname,
           singletons,
           100.0 * singletons / seqcount, 
           100.0 * singletons / clusters);
+
+  if (opt_msaout || opt_consout)
+    {
+      int msa_target_count = 0;
+      struct msa_target_s * msa_target_list =
+        (struct msa_target_s *) xmalloc(sizeof(struct msa_target_s) *size_max);
+
+      progress_init("Multiple alignments", seqcount);
+
+      FILE * fp_msaout = 0;
+      FILE * fp_consout = 0;
+
+      if (opt_msaout)
+        if (!(fp_msaout = fopen(opt_msaout, "w")))
+          fatal("Unable to open msaout file");
+
+      if (opt_consout)
+        if (!(fp_consout = fopen(opt_consout, "w")))
+          fatal("Unable to open consout file");
+
+      int lastcluster = 0;
+
+      for(int i=0; i<seqcount; i++)
+        {
+          int clusterno = clusterinfo[i].clusterno;
+          int seqno = clusterinfo[i].seqno;
+          char * cigar = clusterinfo[i].cigar;
+
+          if (clusterno != lastcluster)
+            {
+              /* compute msa & consensus */
+              msa(fp_msaout, fp_consout, lastcluster,
+                  msa_target_count, msa_target_list);
+
+              /* start new cluster */
+              msa_target_count = 0;
+              lastcluster = clusterno;
+            }
+
+          /* add current sequence to the cluster */
+          msa_target_list[msa_target_count].seqno = seqno;
+          msa_target_list[msa_target_count].cigar = cigar;
+          msa_target_count++;
+
+          progress_update(i);
+        }
+
+      /* compute msa & consensus */
+      msa(fp_msaout, fp_consout, lastcluster,
+          msa_target_count, msa_target_list);
+
+      progress_done();
+
+      if (fp_msaout)
+        fclose(fp_msaout);
+
+      if (fp_consout)
+        fclose(fp_consout);
+    }
 
 
   free(clusterinfo);

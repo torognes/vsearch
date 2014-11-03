@@ -51,18 +51,3 @@ unsigned long arch_get_memtotal()
   return si.totalram * si.mem_unit;
 #endif
 }
-
-void arch_srandom_init()
-{
-  /* init random generator with some random data */
-#ifdef __APPLE__
-  srandomdev();
-#else
-  unsigned int seed;
-  int fd = open("/dev/urandom", O_RDONLY);
-  if (fd < 0)
-    fatal("Unable to open /dev/urandom");
-  if (read(fd, & seed, sizeof(seed)) < 0)
-    fatal("Unable to read from /dev/urandom");
-#endif
-}

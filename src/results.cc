@@ -236,7 +236,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%ld", hp ? tseqlen : 0);
           break;
         case 15: /* qs */
-          fprintf(fp, "%ld", hp ? qseqlen : 0);
+          fprintf(fp, "%ld", qseqlen);
           break;
         case 16: /* ts */
           fprintf(fp, "%ld", hp ? tseqlen : 0);
@@ -311,11 +311,11 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%d", hp ? hp->matches : 0);
           break;
         case 32: /* qcov */
-          fprintf(fp, "%.0f",
+          fprintf(fp, "%.1f",
                   hp ? 100.0 * (hp->matches + hp->mismatches) / qseqlen : 0.0);
           break;
         case 33: /* tcov */
-          fprintf(fp, "%.0f",
+          fprintf(fp, "%.1f",
                   hp ? 100.0 * (hp->matches + hp->mismatches) / tseqlen : 0.0);
           break;
         case 34: /* id0 */

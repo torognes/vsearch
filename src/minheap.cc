@@ -204,7 +204,7 @@ minheap_test()
   
   for(int i=samples; i>=0; i--)
     {
-      elem_t x = {random(),0,1};
+      elem_t x = {(unsigned int)(random()),0,1};
       minheap_add(m, & x);
     }
 
