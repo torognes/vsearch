@@ -260,5 +260,5 @@ The following people have contributed to VSEARCH:
 
 ## References
 
-Edgar, Robert C. (2010) Search and clustering orders of magnitude faster than BLAST. Bioinformatics, 26 (19): 2460-2461. doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
-Rognes, Torbjørn (2011) Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation. BMC Bioinformatics, 12: 221. doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
+* Edgar, Robert C. (2010) Search and clustering orders of magnitude faster than BLAST. Bioinformatics, 26 (19): 2460-2461. doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
+* Rognes, Torbjørn (2011) Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation. BMC Bioinformatics, 12: 221. doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
