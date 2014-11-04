@@ -43,6 +43,7 @@ char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
 char * opt_vsearch_global;
+char * opt_pattern;
 
 double opt_id;
 double opt_maxid;
@@ -73,6 +74,7 @@ int opt_gap_extension_target_right;
 int opt_help;
 int opt_usersort;
 int opt_version;
+int opt_slots;
 
 long opt_dbmask;
 long opt_fasta_width;
@@ -398,6 +400,9 @@ void args_init(int argc, char **argv)
   maxrejects = -1;
   maxaccepts = 1;
 
+  opt_slots = 0;
+  opt_pattern = 0;
+
   opt_weak_id = 10.0;
   opt_strand = 1;
   opt_threads = 0;
@@ -562,6 +567,8 @@ void args_init(int argc, char **argv)
     {"usersort",              no_argument,       0, 0 },
     {"usearch_global",        required_argument, 0, 0 },
     {"iddef",                 required_argument, 0, 0 },
+    {"slots",                 required_argument, 0, 0 },
+    {"pattern",               required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -990,8 +997,7 @@ void args_init(int argc, char **argv)
 
         case 79:
           /* cons_truncate */
-          fprintf(stderr,
-                  "WARNING: -option --cons_truncate not implemented\n");
+          fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
           opt_cons_truncate = 1;
           break;
 
@@ -1013,6 +1019,18 @@ void args_init(int argc, char **argv)
         case 83:
           /* iddef */
           opt_iddef = args_getlong(optarg);
+          break;
+
+        case 84:
+          /* slots */
+          fprintf(stderr, "WARNING: Option --slots is ignored\n");
+          opt_slots = args_getlong(optarg);
+          break;
+
+        case 85:
+          /* pattern */
+          fprintf(stderr, "WARNING: Option --pattern is ignored\n");
+          opt_pattern = optarg;
           break;
 
         default:
@@ -1158,7 +1176,7 @@ void cmd_help()
           "  --maxseqlength INT          maximum sequence length (50000)\n"
           "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
           "  --notrunclabels             do not truncate labels at first space\n"
-          "  --strand plus|both          search / dereplicate plus strand or both strands\n"
+          "  --strand plus|both          search/derepl. plus or both strands (plus)\n"
           "  --threads INT               number of threads to use, zero for all cores (0)\n"
           "  --uc FILENAME               filename for UCLUST-like output\n"
           "  --uc_allhits                show all, not just top hit with uc output\n"
