@@ -129,7 +129,8 @@ void search_topscores(struct searchinfo_s * si)
       
       if (bitmap)
         {
-          /* http://stackoverflow.com/questions/21622212/how-to-perform-the-inverse-of-mm256-movemask-epi8-vpmovmskb */
+          /* http://stackoverflow.com/questions/21622212/
+             how-to-perform-the-inverse-of-mm256-movemask-epi8-vpmovmskb */
           
           const __m128i c1 =
             _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
@@ -440,7 +441,7 @@ void align_delayed(struct searchinfo_s * si)
   for(int x = si->finalized; x < si->hit_count; x++)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
-      if ((si->rejects < maxrejects) && (si->accepts < maxaccepts))
+      if ((si->rejects < opt_maxrejects) && (si->accepts < opt_maxaccepts))
         {
           struct hit * hit = si->hits + x;
       
@@ -480,9 +481,9 @@ void align_delayed(struct searchinfo_s * si)
                   if ((x==0) || (y==0) || (x>4) || (y>4))
                     scorematrix[x][y] = 0;
                   else if (x==y)
-                    scorematrix[x][y] = match_score;
+                    scorematrix[x][y] = opt_match;
                   else
-                    scorematrix[x][y] = mismatch_score;
+                    scorematrix[x][y] = opt_mismatch;
 
               nw_align(dseq,
                        dseq + dseqlen,
@@ -581,9 +582,9 @@ void search_onequery(struct searchinfo_s * si)
   int delayed = 0;
 
   int t = 0;
-  while ((si->finalized + delayed < maxaccepts + maxrejects - 1) &&
-         (si->rejects < maxrejects) &&
-         (si->accepts < maxaccepts) && 
+  while ((si->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
+         (si->rejects < opt_maxrejects) &&
+         (si->accepts < opt_maxaccepts) && 
          (!minheap_isempty(si->m)))
     {
       elem_t e = minheap_poplast(si->m);
