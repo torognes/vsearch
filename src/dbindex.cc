@@ -33,6 +33,10 @@ unsigned int dbindex_count;
 
 uhandle_s * dbindex_uh;
 
+#define BITMAP_THRESHOLD 8
+
+unsigned int bitmap_mincount;
+
 void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
 {
   unsigned long x = kmer;
@@ -55,9 +59,10 @@ void dbindex_addsequence(unsigned int seqno)
   for(unsigned int i=0; i<uniquecount; i++)
     {
       unsigned int kmer = uniquelist[i];
-      kmerindex[kmerhash[kmer]+(kmercount[kmer]++)] = dbindex_count;
       if (kmerbitmap[kmer])
         bitmap_set(kmerbitmap[kmer], dbindex_count);
+      else
+        kmerindex[kmerhash[kmer]+(kmercount[kmer]++)] = dbindex_count;
     }
   dbindex_count++;
 }
@@ -111,14 +116,30 @@ void dbindex_prepare(int use_bitmap)
   fclose(f);
 #endif
 
-  /* hash setup */
+  /* determine minimum kmer count for bitmap usage */
+  if (use_bitmap)
+    bitmap_mincount = seqcount / BITMAP_THRESHOLD;
+  else
+    bitmap_mincount = seqcount + 1;
+
+  /* allocate and zero bitmap pointers */
+  kmerbitmap = (bitmap_t **) xmalloc(kmerhashsize * sizeof(bitmap_t *));
+  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t *));
+
+  /* hash / bitmap setup */
   /* convert hash counts to position in index */
   kmerhash = (unsigned int *) xmalloc((kmerhashsize+1) * sizeof(unsigned int));
   unsigned int sum = 0;
   for(unsigned int i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = sum;
-      sum += kmercount[i];
+      if (kmercount[i] >= bitmap_mincount)
+        {
+          kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
+          bitmap_reset_all(kmerbitmap[i]);
+        }
+      else
+        sum += kmercount[i];
     }
   kmerindexsize = sum;
   kmerhash[kmerhashsize] = sum;
@@ -126,19 +147,6 @@ void dbindex_prepare(int use_bitmap)
   fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
   show_rusage();
-
-  /* allocate and zero bitmap pointers */
-  kmerbitmap = (bitmap_t **) xmalloc(kmerhashsize * sizeof(bitmap_t *));
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t *));
-
-  /* prepare bitmap for frequent kmers */
-  if (use_bitmap)
-    for(unsigned int kmer=0; kmer < kmerhashsize; kmer++)
-      if (kmercount[kmer] > seqcount / 8)
-        {
-          kmerbitmap[kmer] = bitmap_init(seqcount+127); // pad for xmm
-          bitmap_reset_all(kmerbitmap[kmer]);
-        }
   
   /* reset counts */
   memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));

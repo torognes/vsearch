@@ -38,10 +38,13 @@ char * opt_matched;
 char * opt_msaout;
 char * opt_notmatched;
 char * opt_output;
+char * opt_pattern;
 char * opt_relabel;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
+char * opt_userout;
+char * opt_uc;
 char * opt_vsearch_global;
 
 double opt_id;
@@ -73,6 +76,7 @@ int opt_gap_extension_target_right;
 int opt_help;
 int opt_usersort;
 int opt_version;
+int opt_slots;
 
 long opt_dbmask;
 long opt_fasta_width;
@@ -82,18 +86,23 @@ long opt_iddef;
 long opt_idprefix;
 long opt_idsuffix;
 long opt_leftjust;
+long opt_match;
+long opt_maxaccepts;
 long opt_maxdiffs;
 long opt_maxgaps;
 long opt_maxhits;
 long opt_maxqsize;
+long opt_maxrejects;
 long opt_maxseqlength;
 long opt_maxsize;
 long opt_maxsubs;
+long opt_maxuniquesize;
 long opt_mincols;
 long opt_minseqlength;
 long opt_minsize;
 long opt_mintsize;
 long opt_minuniquesize;
+long opt_mismatch;
 long opt_notrunclabels;
 long opt_output_no_hits;
 long opt_qmask;
@@ -111,12 +120,6 @@ long opt_topn;
 long opt_uc_allhits;
 long opt_wordlength;
 
-char * ucfilename;
-char * useroutfilename;
-long match_score;
-long maxaccepts;
-long maxrejects;
-long mismatch_score;
 
 
 /* Other variables */
@@ -385,7 +388,7 @@ void args_init(int argc, char **argv)
 
   opt_db = 0;
   opt_alnout = 0;
-  useroutfilename = 0;
+  opt_userout = 0;
   opt_fastapairs = 0;
   opt_matched = 0;
   opt_notmatched = 0;
@@ -395,8 +398,11 @@ void args_init(int argc, char **argv)
   opt_wordlength = 8;
   opt_fulldp = 0;
 
-  maxrejects = -1;
-  maxaccepts = 1;
+  opt_maxrejects = -1;
+  opt_maxaccepts = 1;
+
+  opt_slots = 0;
+  opt_pattern = 0;
 
   opt_weak_id = 10.0;
   opt_strand = 1;
@@ -426,6 +432,7 @@ void args_init(int argc, char **argv)
   opt_minseqlength = 0;
   opt_maxseqlength = 50000;
   opt_minuniquesize = 0;
+  opt_maxuniquesize = LONG_MAX;
   opt_topn = LONG_MAX;
   opt_output_no_hits = 0;
   opt_top_hits_only = 0;
@@ -456,8 +463,8 @@ void args_init(int argc, char **argv)
   opt_mintsize = 0;
   opt_mid = 0.0;
 
-  match_score = 2;
-  mismatch_score = -4;
+  opt_match = 2;
+  opt_mismatch = -4;
 
   opt_gap_open_query_left=2;
   opt_gap_open_target_left=2;
@@ -562,6 +569,9 @@ void args_init(int argc, char **argv)
     {"usersort",              no_argument,       0, 0 },
     {"usearch_global",        required_argument, 0, 0 },
     {"iddef",                 required_argument, 0, 0 },
+    {"slots",                 required_argument, 0, 0 },
+    {"pattern",               required_argument, 0, 0 },
+    {"maxuniquesize",         required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -605,12 +615,12 @@ void args_init(int argc, char **argv)
 
         case 6:
           /* maxaccepts */
-          maxaccepts = args_getlong(optarg);
+          opt_maxaccepts = args_getlong(optarg);
           break;
 
         case 7:
           /* maxrejects */
-          maxrejects = args_getlong(optarg);
+          opt_maxrejects = args_getlong(optarg);
           break;
 
         case 8:
@@ -620,12 +630,12 @@ void args_init(int argc, char **argv)
 
         case 9:
           /* match */
-          match_score = args_getlong(optarg);
+          opt_match = args_getlong(optarg);
           break;
 
         case 10:
           /* mismatch */
-          mismatch_score = args_getlong(optarg);
+          opt_mismatch = args_getlong(optarg);
           break;
 
         case 11:
@@ -671,7 +681,7 @@ void args_init(int argc, char **argv)
 
         case 18:
           /* userout */
-          useroutfilename = optarg;
+          opt_userout = optarg;
           break;
       
         case 19:
@@ -686,7 +696,7 @@ void args_init(int argc, char **argv)
       
         case 21:
           /* uc */
-          ucfilename = optarg;
+          opt_uc = optarg;
           break;
       
         case 22:
@@ -990,8 +1000,7 @@ void args_init(int argc, char **argv)
 
         case 79:
           /* cons_truncate */
-          fprintf(stderr,
-                  "WARNING: -option --cons_truncate not implemented\n");
+          fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
           opt_cons_truncate = 1;
           break;
 
@@ -1013,6 +1022,23 @@ void args_init(int argc, char **argv)
         case 83:
           /* iddef */
           opt_iddef = args_getlong(optarg);
+          break;
+
+        case 84:
+          /* slots */
+          fprintf(stderr, "WARNING: Option --slots is ignored\n");
+          opt_slots = args_getlong(optarg);
+          break;
+
+        case 85:
+          /* pattern */
+          fprintf(stderr, "WARNING: Option --pattern is ignored\n");
+          opt_pattern = optarg;
+          break;
+
+        case 86:
+          /* maxuniquesize */
+          opt_maxuniquesize = args_getlong(optarg);
           break;
 
         default:
@@ -1054,21 +1080,21 @@ void args_init(int argc, char **argv)
   if (opt_weak_id > opt_id)
     opt_weak_id = opt_id;
 
-  if (maxrejects == -1)
+  if (opt_maxrejects == -1)
     {
       if (opt_cluster_fast)
-        maxrejects = 8;
+        opt_maxrejects = 8;
       else
-        maxrejects = 32;
+        opt_maxrejects = 32;
     }
 
   if (opt_minseqlength < 0)
     fatal("The argument to --minseqlength must be positive");
 
-  if (maxaccepts < 0)
+  if (opt_maxaccepts < 0)
     fatal("The argument to --maxaccepts must not be negative");
 
-  if (maxrejects < 0)
+  if (opt_maxrejects < 0)
     fatal("The argument to --maxrejects must not be negative");
 
   if ((opt_threads < 0) || (opt_threads > 1024))
@@ -1080,10 +1106,10 @@ void args_init(int argc, char **argv)
   if ((opt_iddef < 0) || (opt_iddef > 4))
     fatal("The argument to --iddef must in the range 0 to 4");
 
-  if (match_score <= 0)
+  if (opt_match <= 0)
     fatal("The argument to --match must be positive");
 
-  if (mismatch_score >= 0)
+  if (opt_mismatch >= 0)
     fatal("The argument to --mismatch must be negative");
 
   if(opt_rowlen < 0)
@@ -1158,7 +1184,7 @@ void cmd_help()
           "  --maxseqlength INT          maximum sequence length (50000)\n"
           "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
           "  --notrunclabels             do not truncate labels at first space\n"
-          "  --strand plus|both          search / dereplicate plus strand or both strands\n"
+          "  --strand plus|both          search/derepl. plus or both strands (plus)\n"
           "  --threads INT               number of threads to use, zero for all cores (0)\n"
           "  --uc FILENAME               filename for UCLUST-like output\n"
           "  --uc_allhits                show all, not just top hit with uc output\n"
@@ -1222,6 +1248,7 @@ void cmd_help()
           "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
           "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
           "  --maxsize INT               maximum abundance for sortbysize\n"
+          "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
           "  --minsize INT               minimum abundance for sortbysize\n"
           "  --minuniquesize INT         minimum abundance for output from dereplication\n"
           "  --output FILENAME           output FASTA file for derepl./sort/shuffle\n"
@@ -1247,8 +1274,8 @@ void cmd_vsearch_global()
 {
   /* check options */
 
-  if ((!opt_alnout) && (!useroutfilename) &&
-      (!ucfilename) && (!opt_blast6out) &&
+  if ((!opt_alnout) && (!opt_userout) &&
+      (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched))
     fatal("No output files specified");
@@ -1280,7 +1307,7 @@ void cmd_sortbylength()
 
 void cmd_derep_fulllength()
 {
-  if ((!opt_output) && (!ucfilename))
+  if ((!opt_output) && (!opt_uc))
     fatal("Output file for derepl_fulllength must be specified with --output or --uc");
   
   derep_fulllength();
@@ -1304,8 +1331,8 @@ void cmd_maskfasta()
 
 void cmd_cluster_fast()
 {
-  if ((!opt_alnout) && (!useroutfilename) &&
-      (!ucfilename) && (!opt_blast6out) &&
+  if ((!opt_alnout) && (!opt_userout) &&
+      (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_centroids) && (!opt_clusters) &&
       (!opt_consout) && (!opt_msaout))
@@ -1319,8 +1346,8 @@ void cmd_cluster_fast()
 
 void cmd_cluster_smallmem()
 {
-  if ((!opt_alnout) && (!useroutfilename) &&
-      (!ucfilename) && (!opt_blast6out) &&
+  if ((!opt_alnout) && (!opt_userout) &&
+      (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_centroids) && (!opt_clusters) &&
       (!opt_consout) && (!opt_msaout))

@@ -88,9 +88,9 @@ void derep_fulllength()
         fatal("Unable to open output file for writing");
     }
 
-  if (ucfilename)
+  if (opt_uc)
     {
-      fp_uc = fopen(ucfilename, "w");
+      fp_uc = fopen(opt_uc, "w");
       if (!fp_uc)
         fatal("Unable to open output (uc) file for writing");
     }
@@ -278,33 +278,44 @@ void derep_fulllength()
           clusters, average, median, maxsize);
 
   show_rusage();
+  
+  long selected = 0;
 
-
-  long bigclusters = MIN(clusters, opt_topn);
-
-  long i = 0;
-  while ((i<bigclusters) && ((long)(hashtable[i].size) >= opt_minuniquesize))
-    i++;
-  bigclusters = i;
+  if (opt_output)
+    progress_init("Writing output file", clusters);
+    
+  for (long i=0; i<clusters; i++)
+    {
+      struct bucket * bp = hashtable + i;
+      long size = bp->size;
+      if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+        {
+          if (opt_output)
+            {
+              if (opt_sizeout)
+                db_fprint_fasta_with_size(fp_output,
+                                          bp->seqno_first, bp->size);
+              else
+                db_fprint_fasta(fp_output,
+                                bp->seqno_first);
+            }
+          selected++;
+          if (selected == opt_topn)
+            break;
+        }
+      if (opt_output)
+        progress_update(i);
+    }
 
   if (opt_output)
     {
-      progress_init("Writing output file", bigclusters);
-      for (long i=0; i<bigclusters; i++)
-        {
-          struct bucket * bp = hashtable + i;
-          if (opt_sizeout)
-            db_fprint_fasta_with_size(fp_output, bp->seqno_first, bp->size);
-          else
-            db_fprint_fasta(fp_output, bp->seqno_first);
-          progress_update(i);
-        }
       progress_done();
       fclose(fp_output);
-      show_rusage();
     }
-  
-  if (ucfilename)
+
+  show_rusage();
+
+  if (opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
       for (long i=0; i<clusters; i++)
@@ -341,11 +352,11 @@ void derep_fulllength()
       show_rusage();
     }
 
-  if (bigclusters < clusters)
+  if (selected < clusters)
     fprintf(stderr,
-            "%ld uniques written, %ld clusters < %ld discarded (%.1f%%)\n",
-            bigclusters, clusters - bigclusters, opt_minuniquesize,
-            100.0 * (clusters - bigclusters) / clusters);
+            "%ld uniques written, %ld clusters discarded (%.1f%%)\n",
+            selected, clusters - selected,
+            100.0 * (clusters - selected) / clusters);
 
   free(nextseqtab);
   free(hashtable);

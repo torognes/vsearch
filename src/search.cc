@@ -326,8 +326,8 @@ void search_thread_init(struct searchinfo_s * si)
 #else
   si->nw = 0;
 #endif
-  si->s = search16_init(match_score,
-                        mismatch_score,
+  si->s = search16_init(opt_match,
+                        opt_mismatch,
                         opt_gap_open_query_left,
                         opt_gap_open_target_left,
                         opt_gap_open_query_interior,
@@ -415,9 +415,9 @@ void search_prep(char * cmdline, char * progheader)
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (useroutfilename)
+  if (opt_userout)
     {
-      fp_userout = fopen(useroutfilename, "w");
+      fp_userout = fopen(opt_userout, "w");
       if (! fp_userout)
         fatal("Unable to open user-defined output file for writing");
     }
@@ -429,9 +429,9 @@ void search_prep(char * cmdline, char * progheader)
         fatal("Unable to open blast6-like output file for writing");
     }
 
-  if (ucfilename)
+  if (opt_uc)
     {
-      fp_uc = fopen(ucfilename, "w");
+      fp_uc = fopen(opt_uc, "w");
       if (! fp_uc)
         fatal("Unable to open uc output file for writing");
     }
@@ -473,13 +473,13 @@ void search_prep(char * cmdline, char * progheader)
 
   /* tophits = the maximum number of hits we need to store */
 
-  if ((maxrejects == 0) || (maxrejects > seqcount))
-    maxrejects = seqcount;
+  if ((opt_maxrejects == 0) || (opt_maxrejects > seqcount))
+    opt_maxrejects = seqcount;
 
-  if ((maxaccepts == 0) || (maxaccepts > seqcount))
-    maxaccepts = seqcount;
+  if ((opt_maxaccepts == 0) || (opt_maxaccepts > seqcount))
+    opt_maxaccepts = seqcount;
 
-  tophits = maxrejects + maxaccepts + MAXDELAYED;
+  tophits = opt_maxrejects + opt_maxaccepts + MAXDELAYED;
 
   if (tophits > seqcount)
     tophits = seqcount;
