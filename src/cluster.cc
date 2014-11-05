@@ -247,8 +247,8 @@ void cluster_query_init(struct searchinfo_s * si)
 
   si->uh = unique_init();
   si->m = minheap_init(tophits);
-  si->s = search16_init(match_score,
-                        mismatch_score,
+  si->s = search16_init(opt_match,
+                        opt_mismatch,
                         opt_gap_open_query_left,
                         opt_gap_open_target_left,
                         opt_gap_open_query_interior,
@@ -288,7 +288,7 @@ void cluster_core_results_hit(struct hit * best,
                               char * qsequence,
                               char * qsequence_rc)
 {
-  if (ucfilename)
+  if (opt_uc)
     {
       fprintf(fp_uc, "H\t%d\t%d\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
               clusterno,
@@ -335,7 +335,7 @@ void cluster_core_results_nohit(int clusterno,
                                 char * qsequence,
                                 char * qsequence_rc)
 {
-  if (ucfilename)
+  if (opt_uc)
     {
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
               clusters, qseqlen, query_head);
@@ -416,9 +416,9 @@ void cluster_core_parallel()
       if ((i==0) || (j==0) || (i>4) || (j>4))
         scorematrix[i][j] = 0;
       else if (i==j)
-        scorematrix[i][j] = match_score;
+        scorematrix[i][j] = opt_match;
       else
-        scorematrix[i][j] = mismatch_score;
+        scorematrix[i][j] = opt_mismatch;
 #endif
 
   int aligncount = 0;
@@ -512,12 +512,12 @@ void cluster_core_parallel()
                                     > length))))
                             x--;
                           
-                          if (x < maxaccepts + maxrejects - 1)
+                          if (x < opt_maxaccepts + opt_maxrejects - 1)
                             {
                               /* insert into list at position x */
                               
                               /* trash bottom element if no more space */
-                              if (si->hit_count >= maxaccepts + maxrejects - 1)
+                              if (si->hit_count >= opt_maxaccepts + opt_maxrejects - 1)
                                 {
                                   if (si->hits[si->hit_count-1].aligned)
                                     free(si->hits[si->hit_count-1].nwalignment);
@@ -563,8 +563,8 @@ void cluster_core_parallel()
                     }
                   
                   for(int t = 0;
-                      (si->accepts < maxaccepts) && 
-                        (si->rejects < maxrejects) &&
+                      (si->accepts < opt_maxaccepts) && 
+                        (si->rejects < opt_maxrejects) &&
                         (t < si->hit_count);
                       t++)
                     {
@@ -881,9 +881,9 @@ void cluster(char * dbname,
         fatal("Unable to open centroids file for writing");
     }
 
-  if (ucfilename)
+  if (opt_uc)
     {
-      fp_uc = fopen(ucfilename, "w");
+      fp_uc = fopen(opt_uc, "w");
       if (!fp_uc)
         fatal("Unable to open uc file for writing");
     }
@@ -898,9 +898,9 @@ void cluster(char * dbname,
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (useroutfilename)
+  if (opt_userout)
     {
-      fp_userout = fopen(useroutfilename, "w");
+      fp_userout = fopen(opt_userout, "w");
       if (! fp_userout)
         fatal("Unable to open user-defined output file for writing");
     }
@@ -955,13 +955,13 @@ void cluster(char * dbname,
   
   /* tophits = the maximum number of hits we need to store */
 
-  if ((maxrejects == 0) || (maxrejects > seqcount))
-    maxrejects = seqcount;
+  if ((opt_maxrejects == 0) || (opt_maxrejects > seqcount))
+    opt_maxrejects = seqcount;
 
-  if ((maxaccepts == 0) || (maxaccepts > seqcount))
-    maxaccepts = seqcount;
+  if ((opt_maxaccepts == 0) || (opt_maxaccepts > seqcount))
+    opt_maxaccepts = seqcount;
 
-  tophits = maxrejects + maxaccepts + MAXDELAYED;
+  tophits = opt_maxrejects + opt_maxaccepts + MAXDELAYED;
 
   if (tophits > seqcount)
     tophits = seqcount;
@@ -1037,7 +1037,7 @@ void cluster(char * dbname,
                                     opt_fasta_width);
             }              
 
-          if (ucfilename)
+          if (opt_uc)
             {
               fprintf(fp_uc, "C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
                       lastcluster, size, db_getheader(centroid));
@@ -1064,7 +1064,7 @@ void cluster(char * dbname,
         free(fn_clusters);
     }
 
-  if (ucfilename)
+  if (opt_uc)
     {
       fprintf(fp_uc, "C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
               lastcluster, size, db_getheader(centroid));
