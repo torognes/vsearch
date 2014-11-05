@@ -97,17 +97,10 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.2.1"
+#define PROG_VERSION "v0.2.2"
 
 
 /* options */
-
-extern char * ucfilename;
-extern char * useroutfilename;
-extern long match_score;
-extern long maxaccepts;
-extern long maxrejects;
-extern long mismatch_score;
 
 extern char * opt_alnout;
 extern char * opt_blast6out;
@@ -130,7 +123,10 @@ extern char * opt_relabel;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
+extern char * opt_userout;
+extern char * opt_uc;
 extern char * opt_vsearch_global;
+
 extern double opt_id;
 extern double opt_maxid;
 extern double opt_maxqt;
@@ -143,6 +139,7 @@ extern double opt_minsl;
 extern double opt_query_cov;
 extern double opt_target_cov;
 extern double opt_weak_id;
+
 extern int opt_cons_truncate;
 extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_query_left;
@@ -157,6 +154,7 @@ extern int opt_gap_open_target_interior;
 extern int opt_gap_open_target_left;
 extern int opt_gap_open_target_right;
 extern int opt_usersort;
+
 extern long opt_dbmask;
 extern long opt_fasta_width;
 extern long opt_fulldp;
@@ -165,18 +163,23 @@ extern long opt_iddef;
 extern long opt_idprefix;
 extern long opt_idsuffix;
 extern long opt_leftjust;
+extern long opt_match;
+extern long opt_maxaccepts;
 extern long opt_maxdiffs;
 extern long opt_maxgaps;
 extern long opt_maxhits;
 extern long opt_maxqsize;
+extern long opt_maxrejects;
 extern long opt_maxseqlength;
 extern long opt_maxsize;
 extern long opt_maxsubs;
+extern long opt_maxuniquesize;
 extern long opt_mincols;
 extern long opt_minseqlength;
 extern long opt_minsize;
 extern long opt_mintsize;
 extern long opt_minuniquesize;
+extern long opt_mismatch;
 extern long opt_notrunclabels;
 extern long opt_output_no_hits;
 extern long opt_qmask;

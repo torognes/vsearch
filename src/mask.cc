@@ -138,7 +138,6 @@ void * dust_all_worker(void * vp)
 
 void dust_all()
 {
-  seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
   pthread_attr_init(&attr);
@@ -185,9 +184,11 @@ void maskfasta()
   db_read(opt_maskfasta, opt_qmask != MASK_SOFT);
   show_rusage();
 
+  seqcount = db_getsequencecount();
+
   if (opt_qmask == MASK_DUST)
     dust_all();
-  if (opt_hardmask)
+  else if (opt_hardmask)
     hardmask_all();
   show_rusage();
 

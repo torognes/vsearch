@@ -133,7 +133,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
   while (s < e1)
     {
       bad <<= 2UL;
-      bad |= (chrmap_4bit[(int)(*s)] > 4);
+      bad |= chrmap_masked[(int)(*s)];
 
       kmer <<= 2UL;
       kmer |= chrmap_2bit[(int)(*s++)];
@@ -144,7 +144,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
   while (s < e2)
     {
       bad <<= 2UL;
-      bad |= (chrmap_4bit[(int)(*s)] > 4);
+      bad |= chrmap_masked[(int)(*s)];
       bad &= mask;
 
       kmer <<= 2UL;
@@ -225,7 +225,7 @@ void unique_count_hash(struct uhandle_s * uh,
   while (s < e1)
     {
       bad <<= 2UL;
-      bad |= (chrmap_4bit[(int)(*s)] > 4);
+      bad |= chrmap_masked[(int)(*s)];
 
       kmer <<= 2;
       kmer |= chrmap_2bit[(int)(*s++)];
@@ -234,7 +234,7 @@ void unique_count_hash(struct uhandle_s * uh,
   while (s < e2)
     {
       bad <<= 2UL;
-      bad |= (chrmap_4bit[(int)(*s)] > 4);
+      bad |= chrmap_masked[(int)(*s)];
       bad &= mask;
 
       kmer <<= 2;

@@ -620,11 +620,11 @@ struct s16info_s * search16_init(CELL score_match,
       {
         CELL value;
         if (i==j)
-          value = match_score;
+          value = opt_match;
         else if ((i==0) || (j==0) || (i>4) || (j>4))
           value = 0;
         else
-          value = mismatch_score;
+          value = opt_mismatch;
         ((CELL*)(&s->matrix))[16*i+j] = value;
       }
   
@@ -635,9 +635,9 @@ struct s16info_s * search16_init(CELL score_match,
         if ((i==0) || (j==0) || (i>4) || (j>4))
           value = 0;
         else if (i==j)
-          value = match_score;
+          value = opt_match;
         else
-          value = mismatch_score;
+          value = opt_mismatch;
         scorematrix[i][j] = value;
       }
   

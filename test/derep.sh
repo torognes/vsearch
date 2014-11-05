@@ -1,12 +1,15 @@
 #!/bin/sh
 
-#INPUT=../data/PR2-18S-rRNA-V4.fsa
-INPUT=../data/Rfam_9_1.fasta
+INPUT=../data/PR2-18S-rRNA-V4.fsa
+#INPUT=../data/Rfam_9_1.fasta
 THREADS=0
 VSEARCH=../src/vsearch
 USEARCH=$(which usearch)
 #OUTDIR=$SCRATCH
 OUTDIR=.
+MINSIZE=40
+MAXSIZE=1000
+TOPN=10000
 
 echo Creating test database
 
@@ -27,9 +30,13 @@ echo Running vsearch
     --derep_fulllength $INPUT \
     --threads $THREADS \
     --strand both \
-    --output $OUTDIR/derep.v.fsa \
+    --minuniquesize $MINSIZE \
+    --maxuniquesize $MAXSIZE \
+    --topn $TOPN \
     --sizeout \
+    --output $OUTDIR/derep.v.fsa \
     --uc $OUTDIR/derep.v.uc
+
 
 echo
 
@@ -39,6 +46,9 @@ echo Running usearch
     --derep_fulllength $INPUT \
     --threads $THREADS \
     --strand both \
-    --output $OUTDIR/derep.u.fsa \
+    --minuniquesize $MINSIZE \
+    --topn $TOPN \
     --sizeout \
+    --output $OUTDIR/derep.u.fsa \
     --uc $OUTDIR/derep.u.uc
+
