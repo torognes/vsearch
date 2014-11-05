@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 5, 2014" "version 0.2.0" "USER COMMANDS"
+.TH vsearch 1 "November 5, 2014" "version 0.2.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -33,7 +33,7 @@ Sorting:
 .RS
 \fBvsearch\fR [\fIoptions\fR] (--sortbysize|--sortbylength) \fIfastafile\fR --output \fIoutputfile\fR
 .RE
-
+.PP
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
@@ -237,6 +237,9 @@ length and the same string of nucleotides. Identical sequences receive
 the header of the first sequence of their group. If --sizeout is used,
 the number of occurrences (i.e. abundance) is indicated at the end of
 the fasta header using the pattern ";size=\fIinteger\fR".
+.TP
+.BI --maxuniquesize\~ "positive integer"
+discard sequences with an abundance value greater than \fIinteger\fR.
 .TP
 .BI --minuniquesize\~ "positive integer"
 discard sequences with an abundance value smaller than \fIinteger\fR.
@@ -933,6 +936,8 @@ shuffle
 fasta_width
 .IP \[bu]
 iddef
+.IP \[bu]
+maxuniquesize
 .PP
 .\" ============================================================================
 .SH EXAMPLES
