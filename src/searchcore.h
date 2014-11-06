@@ -24,14 +24,11 @@
 /* the number of alignments that can be delayed */
 #define MAXDELAYED 8
 
+/* minimum number of kmer matches */
 #define MINMATCHSAMPLECOUNT 6
-#define MINMATCHSAMPLEFREQ (1/16)
 
-struct cand_s
-{
-  int target;
-  int kmercount;
-};
+/* minimum kmer match frequency */
+#define MINMATCHSAMPLEFREQ (1/16)
 
 struct hit
 {
@@ -40,11 +37,11 @@ struct hit
 
   /* candidate info */
   int count;             /* number of unique kmers shared with query */
-  int accepted;          /* is it accepted? */
-  int rejected;          /* is it rejected? */
-  int aligned;           /* has this hit been aligned, or was it rejected 
-                            before alignment? */
-  int weak;              /* weak hits are aligned with id > weak_id */
+
+  bool accepted;          /* is it accepted? */
+  bool rejected;          /* is it rejected? */
+  bool aligned;           /* has this hit been aligned */
+  bool weak;              /* weak hits are aligned with id > weak_id */
 
   /* info about global alignment, including terminal gaps */
 
