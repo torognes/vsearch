@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 5, 2014" "version 0.2.2" "USER COMMANDS"
+.TH vsearch 1 "November 6, 2014" "version 0.2.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -137,7 +137,8 @@ Clustering options:
 .RS
 .TP 9
 .BI --centroids \0filename
-output cluster centroid sequences to \fIfilename\fR file.
+output cluster centroid sequences to \fIfilename\fR file \fBin fasta
+format?\fR.
 .TP
 .BI --cluster_fast \0filename
 clusterize the fasta sequences in \fIfilename\fR, perform a sorting by
@@ -378,8 +379,8 @@ this manual.
 .IP \n[step]. 4
 \fIquery\fR: query label.
 .IP \n+[step].
-\fItarget\fR: target (database sequence or cluster centroid)
-label. The field is set to "*" if there is no alignment.
+\fItarget\fR: target (database sequence) label. The field is set to
+"*" if there is no alignment.
 .IP \n+[step].
 \fIid\fR: percentage of identity (real value ranging from 0.0 to
 100.0). The percentage identity is defined as 100 * (matching columns)
@@ -513,7 +514,7 @@ CD-HIT definition using shortest sequence as numerator.
 .IP \n+[step].
 edit distance.
 .IP \n+[step].
-edit distance excluding terminal gaps (default value).
+edit distance excluding terminal gaps (default value of --id).
 .IP \n+[step].
 Marine Biological Lab definition counting each extended gap as a
 single difference.
@@ -605,8 +606,8 @@ reject the target sequence if the alignment contains at least
 \fIinteger\fR substitutions.
 .TP
 .BI --mid \0real
-reject the target sequence if its percentage of identity with the
-query is lower than \fIreal\fR (ignoring gaps).
+reject the alignment if the percentage of identity is lower than
+\fIreal\fR (ignoring all gaps, internal and terminal).
 .TP
 .BI --mincols\~ "positive integer"
 reject the target sequence if the alignment length is shorter than
@@ -662,7 +663,8 @@ width of alignment lines in --alnout output. The default value is
 reject the alignment if the query and target labels are identical.
 .TP
 .B --selfid
-reject the alignment if the query and target sequences are identical.
+reject the alignment if the query and target sequences are strictly
+identical.
 .TP
 .B --sizeout
 add abundance annotations to the output of the option --dbmatched
@@ -716,8 +718,13 @@ sensitivity. Logically, \fIreal\fR must be smaller than the value
 indicated by --id.
 .TP
 .BI --wordlength\~ "positive integer"
-length of words (i.e. \fIk\fR-mers) for database indexing. The range
-of possible values goes from 3 to 15. The default value is 8.
+length of words (i.e. \fIk\fR-mers) for query and database
+indexing. The range of possible values goes from 3 to 15. High values
+increase the accuracy, but reduce the sensitivity for weak
+similarities. Symmetrically, low values reduce the accuracy but
+increase the sensitivity. Warning, computation time and memory
+requirements are multiplied by 4 each time word length increases by
+one nucleotide. The default value is 8.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
