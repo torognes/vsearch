@@ -224,8 +224,22 @@ int query_getnext(char ** head, int * head_len,
       if (query_line[0] != '>')
         fatal("Illegal header line in query fasta file");
       
-      long headerlen = xstrchrnul(query_line+1, '\n') - (query_line+1);
+      /* terminate header at first space or end of line */
+
+      char * z0 = query_line + 1;
+      char * z = z0;
+      while (*z)
+        {
+          if ((!opt_notrunclabels) && (*z == ' '))
+            break;
+          if (*z == '\n')
+            break;
+          z++;
+        }
+      long headerlen = z - z0;
       query_head_len = headerlen;
+
+      /* store the header */
 
       if (headerlen + 1 > query_head_alloc)
         {

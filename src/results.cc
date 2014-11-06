@@ -101,7 +101,7 @@ void results_show_blast6out_one(FILE * fp,
         }
       
       fprintf(fp,
-              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%ld\t*\t*\n",
+              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%ld\t%d\t%d\n",
               query_head,
               db_getheader(hp->target),
               hp->id,
@@ -111,11 +111,13 @@ void results_show_blast6out_one(FILE * fp,
               qstart,
               qend,
               1,
-              db_getsequencelen(hp->target));
+              db_getsequencelen(hp->target),
+              -1,
+              0);
     }
   else
     {
-        fprintf(fp, "%s\t*\t0\t0\t0\t0\t0\t0\t0\t0\t*\t*\n", query_head);
+        fprintf(fp, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
     }
 }
 
