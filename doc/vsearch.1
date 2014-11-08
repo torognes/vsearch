@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 6, 2014" "version 0.2.2" "USER COMMANDS"
+.TH vsearch 1 "November 6, 2014" "version 0.2.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -278,6 +278,27 @@ effect.
 .\" ----------------------------------------------------------------------------
 Masking options:
 .RS
+An input sequence can be composed of lower- or uppercase
+nucleotides. Lowercase nucleotides are silently converted to uppercase
+before masking, unless the --qmask soft option is used. Here are the
+results of combined masking options --qmask (or --dbmask for database
+sequences) and --hardmask, assuming each input sequences contains both
+lower and uppercase nucleotides:
+.PP
+.TS
+tab(:);
+c c c
+l l l.
+qmask:hardmask:action
+_
+none:off:no masking, lowercase converted to uppercase
+none:on:idem
+dust:off:masked symbols converted to lowercase, the rest converted to uppercase
+dust:on:masked symbols replaced by Ns, the rest converted to upper case
+soft:off:lowercase symbols considered masked, no case changes
+soft:on:lowercase symbols considered masked and converted to Ns
+.TE
+.PP
 .TP 9
 .B --hardmask
 mask low-complexity regions by replacing them with Ns instead of
@@ -486,7 +507,8 @@ and later values override previous values.
 .TP
 .B --hardmask
 mask low-complexity regions by replacing them with Ns instead of
-setting them to lower case.
+setting them to lower case. For more information, please see the
+Masking section.
 .TP
 .BI --id \0real
 reject the sequence match if the pairwise identity is lower than
@@ -649,8 +671,9 @@ become case sensitive. The default is to mask using \fIdust\fR.
 .TP
 .BI --query_cov \0real
 reject if the fraction of the query aligned to the target sequence is
-lower than \fIreal\fR. The query coverage is computed as
-such: 100.0 * (matches + mismatches) / query sequence length.
+lower than \fIreal\fR. The query coverage is computed as such: 100.0 *
+(matches + mismatches) / query sequence length. Internal or terminal
+gaps are not taken into account.
 .TP
 .B --rightjust
 reject the target sequence if the alignment ends with gaps.
@@ -677,7 +700,8 @@ when searching for similar sequences, check the \fIplus\fR strand only
 .BI --target_cov \0real
 reject if the fraction of the target sequence aligned to the query
 sequence is lower than \fIreal\fR. The target coverage is computed as
-such: 100.0 * (matches + mismatches) / target sequence length.
+such: 100.0 * (matches + mismatches) / target sequence
+length. Internal or terminal gaps are not taken into account.
 .TP
 .B --top_hits_only
 output only the hits with the highest percentage of identity with the
@@ -718,13 +742,16 @@ sensitivity. Logically, \fIreal\fR must be smaller than the value
 indicated by --id.
 .TP
 .BI --wordlength\~ "positive integer"
-length of words (i.e. \fIk\fR-mers) for query and database
-indexing. The range of possible values goes from 3 to 15. High values
-increase the accuracy, but reduce the sensitivity for weak
-similarities. Symmetrically, low values reduce the accuracy but
-increase the sensitivity. Warning, computation time and memory
-requirements are multiplied by 4 each time word length increases by
-one nucleotide. The default value is 8.
+length of words (i.e. \fIk\fR-mers) for database indexing. The range
+of possible values goes from 3 to 15, but values near 8 are generally
+recommended. Longer words may reduce the sensitivity for weak
+similarities, but can increase accuracy. On the other hand, shorter
+words may increase sensitivity, but can reduce accuracy. Computation
+time will generally increase with shorter words and decrease with
+longer words. Memory requirements for a part of the index increase
+with a factor of 4 each time word length increases by one nucleotide,
+and this generally becomes significant for long words (12 or
+more). The default value is 8.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -822,7 +849,8 @@ value).
 Fraction of the query sequence that is aligned with the target
 sequence (real value ranging from 0.0 to 100.0). The query coverage is
 computed as such: 100.0 * (matches + mismatches) / query sequence
-length. The field is set to 0.0 if there is no alignment.
+length. Internal or terminal gaps are not taken into account. The
+field is set to 0.0 if there is no alignment.
 .TP
 .B qframe
 Query frame (-3 to +3). That field only concerns coding sequences and
@@ -871,7 +899,8 @@ Target label. The field is set to "*" if there is no alignment.
 Fraction of the target sequence that is aligned with the query
 sequence (real value ranging from 0.0 to 100.0). The target coverage
 is computed as such: 100.0 * (matches + mismatches) / target sequence
-length. The field is set to 0.0 if there is no alignment.
+length. Internal or terminal gaps are not taken into account. The
+field is set to 0.0 if there is no alignment.
 .TP
 .B tframe
 Target frame (-3 to +3). That field only concerns coding sequences and
