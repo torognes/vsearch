@@ -183,7 +183,7 @@ Dereplication, masking, shuffling and sorting options:
 
 ## Main limitations
 
-* VSEARCH cannot perform chimera detection.
+* VSEARCH cannot perform chimera detection, yet ;)
 
 
 ## VSEARCH license and third party licenses
@@ -243,8 +243,9 @@ VSEARCH has not been tested comprehensively yet. All bug reports are highly appr
 Some issues to work on:
 
 * testing and debugging
+* performance evaluation
 * intra-sequence SIMD parallelization using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000)
-* chimera filtering
+* chimera filtering as in UCHIME (Edgar et al., 2011)
 
 
 ## The VSEARCH team
@@ -260,5 +261,7 @@ The following people have contributed to VSEARCH:
 
 ## References
 
-* Edgar, Robert C. (2010) Search and clustering orders of magnitude faster than BLAST. Bioinformatics, 26 (19): 2460-2461. doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
-* Rognes, Torbjørn (2011) Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation. BMC Bioinformatics, 12: 221. doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
+* Edgar RC (2010) Search and clustering orders of magnitude faster than BLAST. Bioinformatics, 26 (19): 2460-2461. doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
+* Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011) UCHIME improves sensitivity and speed of chimera detection. Bioinformatics, 27 (16): 2194-2200. doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
+* Farrar M (2007) Striped Smith–Waterman speeds database searches six times over other SIMD implementations. Bioinformatics (2007) 23 (2): 156-161. doi:[10.1093/bioinformatics/btl582](http://dx.doi.org/10.1093/bioinformatics/btl582)
+* Rognes T (2011) Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation. BMC Bioinformatics, 12: 221. doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
