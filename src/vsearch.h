@@ -100,7 +100,7 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.3.0"
+#define PROG_VERSION "v0.3.1"
 
 /* options */
 
