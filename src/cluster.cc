@@ -60,26 +60,6 @@ typedef struct thread_info_s
 
 static thread_info_t * ti;
 
-inline int compare_bylength(const void * a, const void * b)
-{
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
-
-  /* longest first, otherwise keep order */
-
-  if (x->seqlen < y->seqlen)
-    return +1;
-  else if (x->seqlen > y->seqlen)
-    return -1;
-  else
-    if (x < y)
-      return -1;
-    else if (x > y)
-      return +1;
-    else
-      return 0;
-}
-
 inline int compare_byclusterno(const void * a, const void * b)
 {
   clusterinfo_t * x = (clusterinfo_t *) a;
@@ -242,7 +222,7 @@ void cluster_query_init(struct searchinfo_s * si)
   si->seq_alloc = db_getlongestsequence() + 1;
   si->qsequence = (char *) xmalloc(si->seq_alloc);
 
-  si->kmers = (count_t *) xmalloc(seqcount * sizeof(count_t) + 16);
+  si->kmers = (count_t *) xmalloc(seqcount * sizeof(count_t) + 32);
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
 
   si->uh = unique_init();
@@ -945,11 +925,7 @@ void cluster(char * dbname,
   seqcount = db_getsequencecount();
   
   if (sortbylength)
-    {
-      progress_init("Sorting by length", 100);
-      qsort(seqindex, seqcount, sizeof(seqinfo_t), compare_bylength);
-      progress_done();
-    }
+    db_sortbylength();
   
   dbindex_prepare(1);
   

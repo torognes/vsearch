@@ -81,7 +81,9 @@ void db_read(const char * filename, int upcase)
   
   rewind(fp);
 
-  progress_init("Reading database file", filesize);
+  char * prompt;
+  asprintf(& prompt, "Reading file %s", filename);
+  progress_init(prompt, filesize);
 
 #ifdef HAVE_BZLIB
   /* open appropriate data steam if input file was compressed with bzip */
@@ -385,6 +387,7 @@ void db_read(const char * filename, int upcase)
     fclose(fp);
 
   progress_done();
+  free(prompt);
 
   if (sequences > 0)
     fprintf(stderr,
@@ -461,6 +464,7 @@ void db_read(const char * filename, int upcase)
     /* read sizein annotation if appropriate */
     if ((opt_vsearch_global || 
          opt_sortbysize ||
+         opt_uchime_denovo ||
          (opt_sortbylength && opt_sizeout) ||
          (opt_derep_fulllength && opt_sizein)) && 
         (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0)))
@@ -556,4 +560,58 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
     }
 
   fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
+}
+
+int compare_bylength(const void * a, const void * b)
+{
+  seqinfo_t * x = (seqinfo_t *) a;
+  seqinfo_t * y = (seqinfo_t *) b;
+
+  /* longest first, otherwise keep order */
+
+  if (x->seqlen < y->seqlen)
+    return +1;
+  else if (x->seqlen > y->seqlen)
+    return -1;
+  else
+    if (x < y)
+      return -1;
+    else if (x > y)
+      return +1;
+    else
+      return 0;
+}
+
+inline int compare_byabundance(const void * a, const void * b)
+{
+  seqinfo_t * x = (seqinfo_t *) a;
+  seqinfo_t * y = (seqinfo_t *) b;
+
+  /* most abundant first, otherwise keep order */
+
+  if (x->size > y->size)
+    return -1;
+  else if (x->size < y->size)
+    return +1;
+  else
+    if (x < y)
+      return -1;
+    else if (x > y)
+      return +1;
+    else
+      return 0;
+}
+
+void db_sortbylength()
+{
+  progress_init("Sorting by length", 100);
+  qsort(seqindex, sequences, sizeof(seqinfo_t), compare_bylength);
+  progress_done();
+}
+
+void db_sortbyabundance()
+{
+  progress_init("Sorting by abundance", 100);
+  qsort(seqindex, sequences, sizeof(seqinfo_t), compare_byabundance);
+  progress_done();
 }
