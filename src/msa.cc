@@ -23,14 +23,6 @@
 
 /* Compute consensus sequence and msa of clustered sequences */
 
-/* 
-   Center-Star strategy:
-   1. Compute all shared kmer counts
-   2. Identify center sequence with greatest total similarity to all other
-   3. Perform alignment of the center sequence to all other sequences
-   4. Turn it into a MSA
-*/
-
 char * aln;
 int alnpos;
 int * profile;

@@ -71,3 +71,10 @@ unsigned long db_getshortestsequence();
 void db_fprint_fasta(FILE * fp, unsigned long seqno);
 
 void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size);
+
+/* Note: the sorting functions below must be called after db_read,
+   but before dbindex_prepare */
+
+void db_sortbylength();
+
+void db_sortbyabundance();

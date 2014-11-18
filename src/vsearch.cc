@@ -21,9 +21,12 @@
 
 #include "vsearch.h"
 
+/* options */
+
 char * opt_alnout;
 char * opt_blast6out;
 char * opt_centroids;
+char * opt_chimeras;
 char * opt_cluster_fast;
 char * opt_cluster_smallmem;
 char * opt_clusters;
@@ -36,6 +39,7 @@ char * opt_fastapairs;
 char * opt_maskfasta;
 char * opt_matched;
 char * opt_msaout;
+char * opt_nonchimeras;
 char * opt_notmatched;
 char * opt_output;
 char * opt_pattern;
@@ -43,41 +47,49 @@ char * opt_relabel;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
-char * opt_userout;
 char * opt_uc;
+char * opt_uchime_denovo;
+char * opt_uchime_ref;
+char * opt_uchimealns;
+char * opt_uchimeout;
+char * opt_userout;
 char * opt_vsearch_global;
-
+double opt_abskew;
+double opt_dn;
 double opt_id;
 double opt_maxid;
 double opt_maxqt;
 double opt_maxsizeratio;
 double opt_maxsl;
 double opt_mid;
+double opt_mindiv;
+double opt_minh;
 double opt_minqt;
 double opt_minsizeratio;
 double opt_minsl;
 double opt_query_cov;
 double opt_target_cov;
 double opt_weak_id;
-
+double opt_xn;
+int opt_uchimeout5;
 int opt_cons_truncate;
-int opt_gap_open_query_left;
-int opt_gap_open_target_left;
-int opt_gap_open_query_interior;
-int opt_gap_open_target_interior;
-int opt_gap_open_query_right;
-int opt_gap_open_target_right;
-int opt_gap_extension_query_left;
-int opt_gap_extension_target_left;
 int opt_gap_extension_query_interior;
-int opt_gap_extension_target_interior;
+int opt_gap_extension_query_left;
 int opt_gap_extension_query_right;
+int opt_gap_extension_target_interior;
+int opt_gap_extension_target_left;
 int opt_gap_extension_target_right;
+int opt_gap_open_query_interior;
+int opt_gap_open_query_left;
+int opt_gap_open_query_right;
+int opt_gap_open_target_interior;
+int opt_gap_open_target_left;
+int opt_gap_open_target_right;
 int opt_help;
+int opt_mindiffs;
+int opt_slots;
 int opt_usersort;
 int opt_version;
-int opt_slots;
-
 long opt_dbmask;
 long opt_fasta_width;
 long opt_fulldp;
@@ -119,8 +131,6 @@ long opt_top_hits_only;
 long opt_topn;
 long opt_uc_allhits;
 long opt_wordlength;
-
-
 
 /* Other variables */
 
@@ -375,110 +385,111 @@ void args_init(int argc, char **argv)
 
   progname = argv[0];
 
-  opt_centroids = 0;
-  opt_clusters = 0;
-  opt_consout = 0;
-  opt_cons_truncate = 0;
-  opt_msaout = 0;
-  opt_usersort = 0;
-
-  opt_hardmask = 0;
-  opt_qmask = MASK_DUST;
-  opt_dbmask = MASK_DUST;
-
-  opt_db = 0;
+  opt_abskew = 2.0;
   opt_alnout = 0;
-  opt_userout = 0;
-  opt_fastapairs = 0;
-  opt_matched = 0;
-  opt_notmatched = 0;
+  opt_centroids = 0;
+  opt_chimeras = 0;
+  opt_cluster_fast = 0;
+  opt_cluster_smallmem = 0;
+  opt_clusters = 0;
+  opt_cons_truncate = 0;
+  opt_consout = 0;
+  opt_db = 0;
+  opt_dbmask = MASK_DUST;
   opt_dbmatched = 0;
   opt_dbnotmatched = 0;
-  
-  opt_wordlength = 8;
-  opt_fulldp = 0;
-
-  opt_maxrejects = -1;
-  opt_maxaccepts = 1;
-
-  opt_slots = 0;
-  opt_pattern = 0;
-
-  opt_weak_id = 10.0;
-  opt_strand = 1;
-  opt_threads = 0;
-  opt_rowlen = 64;
-  opt_uc_allhits = 0;
-  opt_notrunclabels = 0;
-  opt_maxhits = LONG_MAX;
-
-  opt_help = 0;
-  opt_version = 0;
-  opt_vsearch_global = 0;
-  opt_sortbysize = 0;
-  opt_sortbylength = 0;
   opt_derep_fulllength = 0;
-  opt_shuffle = 0;
-  opt_cluster_smallmem = 0;
-  opt_cluster_fast = 0;
-
-  opt_seed = 0;
-  opt_output = 0;
-  opt_minsize = 0;
-  opt_maxsize = LONG_MAX;
-  opt_relabel = 0;
-  opt_sizein = 0;
-  opt_sizeout = 0;
-  opt_minseqlength = 0;
-  opt_maxseqlength = 50000;
-  opt_minuniquesize = 0;
-  opt_maxuniquesize = LONG_MAX;
-  opt_topn = LONG_MAX;
-  opt_output_no_hits = 0;
-  opt_top_hits_only = 0;
+  opt_dn = 1.4;
   opt_fasta_width = 80;
-
+  opt_fastapairs = 0;
+  opt_fulldp = 0;
+  opt_gap_extension_query_interior=2;
+  opt_gap_extension_query_left=1;
+  opt_gap_extension_query_right=1;
+  opt_gap_extension_target_interior=2;
+  opt_gap_extension_target_left=1;
+  opt_gap_extension_target_right=1;
+  opt_gap_open_query_interior=20;
+  opt_gap_open_query_left=2;
+  opt_gap_open_query_right=2;
+  opt_gap_open_target_interior=20;
+  opt_gap_open_target_left=2;
+  opt_gap_open_target_right=2;
+  opt_hardmask = 0;
+  opt_help = 0;
   opt_id = -1.0;
-  opt_query_cov = 0.0;
-  opt_target_cov = 0.0;
   opt_iddef = 2;
   opt_idprefix = 0;
   opt_idsuffix = 0;
-  opt_minqt = 0.0;
-  opt_maxqt = 1.0e37;
-  opt_minsl = 0.0;
-  opt_maxsl = 1.0e37;
   opt_leftjust = 0;
+  opt_match = 2;
+  opt_matched = 0;
+  opt_maxaccepts = 1;
+  opt_maxdiffs = INT_MAX;
+  opt_maxgaps = INT_MAX;
+  opt_maxhits = LONG_MAX;
+  opt_maxid = 1.0;
+  opt_maxqsize = INT_MAX;
+  opt_maxqt = DBL_MAX;
+  opt_maxrejects = -1;
+  opt_maxseqlength = 50000;
+  opt_maxsize = LONG_MAX;
+  opt_maxsizeratio = DBL_MAX;
+  opt_maxsl = DBL_MAX;
+  opt_maxsubs = INT_MAX;
+  opt_maxuniquesize = LONG_MAX;
+  opt_mid = 0.0;
+  opt_mincols = 0;
+  opt_mindiffs = 3;
+  opt_mindiv = 0.8;
+  opt_minh = 0.28;
+  opt_minqt = 0.0;
+  opt_minseqlength = 0;
+  opt_minsize = 0;
+  opt_minsizeratio = 0.0;
+  opt_minsl = 0.0;
+  opt_mintsize = 0;
+  opt_minuniquesize = 0;
+  opt_mismatch = -4;
+  opt_msaout = 0;
+  opt_nonchimeras = 0;
+  opt_notmatched = 0;
+  opt_notrunclabels = 0;
+  opt_output = 0;
+  opt_output_no_hits = 0;
+  opt_pattern = 0;
+  opt_qmask = MASK_DUST;
+  opt_query_cov = 0.0;
+  opt_relabel = 0;
   opt_rightjust = 0;
+  opt_rowlen = 64;
+  opt_seed = 0;
   opt_self = 0;
   opt_selfid = 0;
-  opt_maxid = 1.0;
-  opt_minsizeratio = 0.0;
-  opt_maxsizeratio = 1.0e37;
-  opt_maxdiffs = INT_MAX;
-  opt_maxsubs = INT_MAX;
-  opt_maxgaps = INT_MAX;
-  opt_mincols = 0;
-  opt_maxqsize = INT_MAX;
-  opt_mintsize = 0;
-  opt_mid = 0.0;
-
-  opt_match = 2;
-  opt_mismatch = -4;
-
-  opt_gap_open_query_left=2;
-  opt_gap_open_target_left=2;
-  opt_gap_open_query_interior=20;
-  opt_gap_open_target_interior=20;
-  opt_gap_open_query_right=2;
-  opt_gap_open_target_right=2;
-
-  opt_gap_extension_query_left=1;
-  opt_gap_extension_target_left=1;
-  opt_gap_extension_query_interior=2;
-  opt_gap_extension_target_interior=2;
-  opt_gap_extension_query_right=1;
-  opt_gap_extension_target_right=1;
+  opt_shuffle = 0;
+  opt_sizein = 0;
+  opt_sizeout = 0;
+  opt_slots = 0;
+  opt_sortbylength = 0;
+  opt_sortbysize = 0;
+  opt_strand = 1;
+  opt_target_cov = 0.0;
+  opt_threads = 0;
+  opt_top_hits_only = 0;
+  opt_topn = LONG_MAX;
+  opt_uc_allhits = 0;
+  opt_uchime_denovo = 0;
+  opt_uchime_ref = 0;
+  opt_uchimealns = 0;
+  opt_uchimeout = 0;
+  opt_uchimeout5 = 0;
+  opt_userout = 0;
+  opt_usersort = 0;
+  opt_version = 0;
+  opt_vsearch_global = 0;
+  opt_weak_id = 10.0;
+  opt_wordlength = 8;
+  opt_xn = 8.0;
 
   opterr = 1;
 
@@ -572,15 +583,36 @@ void args_init(int argc, char **argv)
     {"slots",                 required_argument, 0, 0 },
     {"pattern",               required_argument, 0, 0 },
     {"maxuniquesize",         required_argument, 0, 0 },
+    {"abskew",                required_argument, 0, 0 },
+    {"chimeras",              required_argument, 0, 0 },
+    {"dn",                    required_argument, 0, 0 },
+    {"mindiffs",              required_argument, 0, 0 },
+    {"mindiv",                required_argument, 0, 0 },
+    {"minh",                  required_argument, 0, 0 },
+    {"nonchimeras",           required_argument, 0, 0 },
+    {"uchime_denovo",         required_argument, 0, 0 },
+    {"uchime_ref",            required_argument, 0, 0 },
+    {"uchimealns",            required_argument, 0, 0 },
+    {"uchimeout",             required_argument, 0, 0 },
+    {"uchimeout5",            no_argument,       0, 0 },
+    {"xn",                    required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
+  int option_count = sizeof(long_options) / sizeof(struct option);
+  bool options_selected[option_count];
+
+  memset(options_selected, 0, sizeof(options_selected));
+
   int option_index = 0;
   int c;
   
   while ((c = getopt_long_only(argc, argv, "", long_options, 
                                &option_index)) == 0)
     {
+      if (option_index < option_count)
+        options_selected[option_index] = 1;
+
       switch(option_index)
         {
         case 0:
@@ -1041,6 +1073,71 @@ void args_init(int argc, char **argv)
           opt_maxuniquesize = args_getlong(optarg);
           break;
 
+        case 87:
+          /* abskew */
+          opt_abskew = atof(optarg);
+          break;
+          
+        case 88:
+          /* chimeras */
+          opt_chimeras = optarg;
+          break;
+          
+        case 89:
+          /* dn */
+          opt_dn = atof(optarg);
+          break;
+          
+        case 90:
+          /* mindiffs */
+          opt_mindiffs = args_getlong(optarg);
+          break;
+          
+        case 91:
+          /* mindiv */
+          opt_mindiv = atof(optarg);
+          break;
+          
+        case 92:
+          /* minh */
+          opt_minh = atof(optarg);
+          break;
+          
+        case 93:
+          /* nonchimeras */
+          opt_nonchimeras = optarg;
+          break;
+          
+        case 94:
+          /* uchime_denovo */
+          opt_uchime_denovo = optarg;
+          break;
+          
+        case 95:
+          /* uchime_ref */
+          opt_uchime_ref = optarg;
+          break;
+          
+        case 96:
+          /* uchimealns */
+          opt_uchimealns = optarg;
+          break;
+          
+        case 97:
+          /* uchimeout */
+          opt_uchimeout = optarg;
+          break;
+          
+        case 98:
+          /* uchimeout5 */
+          opt_uchimeout5 = 1;
+          break;
+          
+        case 99:
+          /* xn */
+          opt_xn = atof(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1070,7 +1167,11 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_cluster_fast)
     commands++;
-
+  if (opt_uchime_denovo)
+    commands++;
+  if (opt_uchime_ref)
+    commands++;
+  
   if (commands == 0)
     opt_version = 1;
 
@@ -1267,6 +1368,24 @@ void cmd_help()
           "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
           "  --msaout FILENAME           output MSA for each cluster to FASTA file\n"
           "  --usersort                  indicate that input sequences are presorted\n"
+          "\n"
+          "Chimera detection options\n"
+          "  --uchime_denovo FILENAME    detect chimeras de novo\n"
+          "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
+          "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
+          "  --chimeras FILENAME         output chimeric sequences to file\n"
+          "  --db FILENAME               reference database for --uchime_ref\n"
+          "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
+          "  --mindiffs INT              minimum number of differences in segment (3)\n"
+          "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
+          "  --minh REAL                 minimum score (0.28)\n"
+          "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
+          "  --self                      exclude identical sequences for --uchime_ref\n"
+          "  --selfid                    exclude identical labels for --uchime_ref\n"
+          "  --uchimealns FILENAME       output chimera alignments to file\n"
+          "  --uchimeout FILENAME        output to chimera info to tab-separated file\n"
+          "  --uchimeout5                make output compatible with uchime version 5\n"
+          "  --xn REAL                   'no' vote weight (8.0)\n"
           );
 }
 
@@ -1329,7 +1448,7 @@ void cmd_maskfasta()
   maskfasta();
 }
 
-void cmd_cluster_fast()
+void cmd_cluster()
 {
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
@@ -1341,22 +1460,37 @@ void cmd_cluster_fast()
   if ((opt_id < 0.0) || (opt_id > 1.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-  cluster_fast(cmdline, progheader);
+  if (opt_cluster_fast)
+    cluster_fast(cmdline, progheader);
+  else
+    cluster_smallmem(cmdline, progheader);
 }
 
-void cmd_cluster_smallmem()
+void cmd_uchime()
 {
-  if ((!opt_alnout) && (!opt_userout) &&
-      (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_centroids) && (!opt_clusters) &&
-      (!opt_consout) && (!opt_msaout))
+  if ((!opt_chimeras)  && (!opt_nonchimeras) &&
+      (!opt_uchimeout) && (!opt_uchimealns))
     fatal("No output files specified");
-  
-  if ((opt_id < 0.0) || (opt_id > 1.0))
-    fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-  cluster_smallmem(cmdline, progheader);
+  if (opt_uchime_ref && ! opt_db)
+    fatal("Database filename not specified with --db");
+
+  if (opt_xn <= 1.0)
+    fatal("Argument to --xn must be > 1");
+
+  if (opt_dn <= 0.0)
+    fatal("Argument to --dn must be > 0");
+  
+  if (opt_mindiffs <= 0)
+    fatal("Argument to --mindiffs must be > 0");
+
+  if (opt_mindiv <= 0.0)
+    fatal("Argument to --mindiv must be > 0");
+
+  if (opt_minh <= 0.0)
+    fatal("Argument to --minh must be > 0");
+
+  chimera();
 }
 
 void fillheader()
@@ -1433,13 +1567,13 @@ int main(int argc, char** argv)
     {
       cmd_maskfasta();
     }
-  else if (opt_cluster_smallmem)
+  else if (opt_cluster_smallmem || opt_cluster_fast)
     {
-      cmd_cluster_smallmem();
+      cmd_cluster();
     }
-  else if (opt_cluster_fast)
+  else if (opt_uchime_denovo || opt_uchime_ref)
     {
-      cmd_cluster_fast();
+      cmd_uchime();
     }
   else if (!opt_version)
     {

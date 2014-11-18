@@ -38,6 +38,8 @@
 #include <regex.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <float.h>
+
 #include <city.h>
 
 #ifndef __APPLE__
@@ -75,9 +77,10 @@
 #include "mask.h"
 #include "cluster.h"
 #include "msa.h"
+#include "chimera.h"
 
 #ifdef __APPLE__
-#define PROG_ARCH "macosx_x86_64"
+#define PROG_ARCH "osx_x86_64"
 #else
 #define PROG_ARCH "linux_x86_64"
 #endif
@@ -97,14 +100,14 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.2.3"
-
+#define PROG_VERSION "v0.3.0"
 
 /* options */
 
 extern char * opt_alnout;
 extern char * opt_blast6out;
 extern char * opt_centroids;
+extern char * opt_chimeras;
 extern char * opt_cluster_fast;
 extern char * opt_cluster_smallmem;
 extern char * opt_clusters;
@@ -117,29 +120,39 @@ extern char * opt_fastapairs;
 extern char * opt_maskfasta;
 extern char * opt_matched;
 extern char * opt_msaout;
+extern char * opt_nonchimeras;
 extern char * opt_notmatched;
 extern char * opt_output;
+extern char * opt_pattern;
 extern char * opt_relabel;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
-extern char * opt_userout;
 extern char * opt_uc;
+extern char * opt_uchime_denovo;
+extern char * opt_uchime_ref;
+extern char * opt_uchimealns;
+extern char * opt_uchimeout;
+extern char * opt_userout;
 extern char * opt_vsearch_global;
-
+extern double opt_abskew;
+extern double opt_dn;
 extern double opt_id;
 extern double opt_maxid;
 extern double opt_maxqt;
 extern double opt_maxsizeratio;
 extern double opt_maxsl;
 extern double opt_mid;
+extern double opt_mindiv;
+extern double opt_minh;
 extern double opt_minqt;
 extern double opt_minsizeratio;
 extern double opt_minsl;
 extern double opt_query_cov;
 extern double opt_target_cov;
 extern double opt_weak_id;
-
+extern double opt_xn;
+extern int opt_uchimeout5;
 extern int opt_cons_truncate;
 extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_query_left;
@@ -153,8 +166,11 @@ extern int opt_gap_open_query_right;
 extern int opt_gap_open_target_interior;
 extern int opt_gap_open_target_left;
 extern int opt_gap_open_target_right;
+extern int opt_help;
+extern int opt_mindiffs;
+extern int opt_slots;
 extern int opt_usersort;
-
+extern int opt_version;
 extern long opt_dbmask;
 extern long opt_fasta_width;
 extern long opt_fulldp;
@@ -184,6 +200,7 @@ extern long opt_notrunclabels;
 extern long opt_output_no_hits;
 extern long opt_qmask;
 extern long opt_rightjust;
+extern long opt_rowlen;
 extern long opt_seed;
 extern long opt_self;
 extern long opt_selfid;
@@ -194,5 +211,4 @@ extern long opt_threads;
 extern long opt_top_hits_only;
 extern long opt_topn;
 extern long opt_uc_allhits;
-extern long opt_rowlen;
 extern long opt_wordlength;
