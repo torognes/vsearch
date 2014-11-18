@@ -1276,8 +1276,9 @@ void chimera()
   if (ci.paln[1])
     free(ci.paln[1]);
   
-  query_close();
-
+  if (opt_uchime_ref)
+    query_close();
+  
   dbindex_free();
   db_free();
 
