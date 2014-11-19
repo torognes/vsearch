@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 6, 2014" "version 0.2.3" "USER COMMANDS"
+.TH vsearch 1 "November 19, 2014" "version 0.3.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em dereplicate, filter, sort, search, compare and clusterize
@@ -58,10 +58,11 @@ defined as the string comprised between the ">" symbol and the first
 space, or the end of the line, whichever comes first. Additionally, if
 the line starts with (>[;]size=\fIinteger\fR;label), contains
 (>label;size=\fIinteger\fR;label) or ends with
-(>label;size=\fIinteger\fR[;]), \fBvsearch\fR will interpret
-\fIinteger\fR as the number of occurrences (or abundance) of the
-sequence in the study. That abundance information is used or created
-during dereplication, sorting and searching.
+(>label;size=\fIinteger\fR[;]), \fBvsearch\fR will remove the pattern
+[;]size=\fIinteger\fR[;] from the header and interpret \fIinteger\fR
+as the number of occurrences (or abundance) of the sequence in the
+study. That abundance information is used or created during
+dereplication, sorting and searching.
 .PP
 The nucleotidic sequence is defined as a string of IUPAC symbols
 (ACGTURYSWKMDBHVN), starting after the end of the identifier line and
@@ -234,10 +235,10 @@ Dereplication options:
 .BI --derep_fulllength \0filename
 merge strictly identical sequences contained in
 \fIfilename\fR. Identical sequences are defined as having the same
-length and the same string of nucleotides. Identical sequences receive
-the header of the first sequence of their group. If --sizeout is used,
-the number of occurrences (i.e. abundance) is indicated at the end of
-the fasta header using the pattern ";size=\fIinteger\fR".
+length and the same string of nucleotides (case insensitive, T and U
+are considered as different). As \fBvsearch\fR needs to read
+\fIfilename\fR twice, \fIfilename\fR must be a real file, not a
+stream.
 .TP
 .BI --maxuniquesize\~ "positive integer"
 discard sequences with an abundance value greater than \fIinteger\fR.
@@ -247,7 +248,10 @@ discard sequences with an abundance value smaller than \fIinteger\fR.
 .TP
 .BI --output \0filename
 write the dereplicated sequences to \fIfilename\fR, in fasta format
-and sorted by decreasing abundance.
+and sorted by decreasing abundance. Identical sequences receive the
+header of the first sequence of their group. If --sizeout is used, the
+number of occurrences (i.e. abundance) is indicated at the end of the
+fasta header using the pattern ";size=\fIinteger\fR".
 .TP
 .B --sizein
 take into account the abundance annotations present in the input fasta
