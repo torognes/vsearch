@@ -6,6 +6,15 @@ vsearch \(em dereplicate, filter, sort, search, compare and clusterize
 amplicons from metagenomic projects
 .\" ============================================================================
 .SH SYNOPSIS
+Chimera detection:
+.RS
+\fBvsearch\fR [\fIoptions\fR] --uchime_denovo \fIfastafile\fR
+(--chimeras|--nonchimeras|--uchimealns|--uchimeout) \fIoutputfile\fR
+.PP
+\fBvsearch\fR [\fIoptions\fR] --uchime_ref \fIfastafile\fR
+(--chimeras|--nonchimeras|--uchimealns|--uchimeout) \fIoutputfile\fR
+--db \fIfastafile\fR
+.RE
 Clustering:
 .RS
 \fBvsearch\fR [\fIoptions\fR] (--cluster_fast|--cluster_smallmem)
@@ -131,6 +140,71 @@ do not truncate sequence labels at first space, use the full header.
 number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
 default is to launch one thread per available logical core.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+Chimera detection options:
+.RS
+.TP 9
+.BI --abskew \0real
+when using --uchime_denovo, min abundance ratio (or abundance skew) of
+parent vs chimera (2.0).
+.TP
+.BI --chimeras \0filename
+output chimeric sequences to file.
+.TP
+.BI --db \0filename
+when using --uchime_ref, reference database for --uchime_ref.
+.TP
+.BI --dn \0real
+no vote pseudo-count (parameter n) (1.4).
+.TP
+.BI --mindiffs \0integer
+minimum number of differences in segment (3).
+.TP
+.BI --minh \0real
+minimum score (h). Increasing this value tends to reduce the number of
+false positives and decrease sensitivity. Default value is
+0.28. (value ranging from 0.0 to 1.0 included).
+.TP
+.BI --nonchimeras \0filename
+output non-chimeric sequences to file.
+.TP
+.B --self
+when using --uchime_ref, exclude identical sequences.
+.TP
+.B --selfid
+when using --uchime_ref, exclude identical labels.
+.TP
+.BI --strand\~ "plus|both"
+when comparing sequences to the cluster seeds, check the \fIplus\fR
+strand only (default) or check \fIboth\fR strands. When using
+--uchime_ref, strand is always \fIplus\fB.
+.TP
+.BI --uchime_denovo \0filename
+detect chimeras de novo.
+.TP
+.BI --uchime_ref \0filename
+detect chimeras using a reference database.
+.TP
+.BI --uchimealns \0filename
+write tri-way global alignments (parentA, parentB, chimera) to
+\fIfilename\fR using a human-readable format. Use --rowlen to modify
+alignment length. Output order may vary when using multiple threads.
+.TP
+.BI --uchimeout \0filename
+write chimera detection results to \fIfilename\fR using the uchime
+tab-separated format of 18 fields (see
+http://drive5.com/usearch/manual/uchimeout.html). Use --uchimeout5 to
+use a format compatible with usearch v5 and earlier versions.
+.TP
+.B --uchimeout5
+write chimera detection results using a tab-separated format of 17
+fields (drop the 5th field of --uchimeout), compatible with usearch
+version 5 and earlier versions.
+.TP
+.BI --xn \0real
+no vote weight (parameter β) (8.0).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
