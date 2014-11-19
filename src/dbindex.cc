@@ -143,10 +143,10 @@ void dbindex_prepare(int use_bitmap)
     }
   kmerindexsize = sum;
   kmerhash[kmerhashsize] = sum;
+
 #if 0
   fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
-  show_rusage();
   
   /* reset counts */
   memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));

@@ -131,7 +131,13 @@ void search_topscores(struct searchinfo_s * si)
         {
           /* http://stackoverflow.com/questions/21622212/
              how-to-perform-the-inverse-of-mm256-movemask-epi8-vpmovmskb */
-          
+
+          /*
+            read 16 bytes from the bitmap 
+            use 2 bytes 
+            increment up to 16 words (32 bytes)
+          */
+
           const __m128i c1 =
             _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
           const __m128i c2 = 
