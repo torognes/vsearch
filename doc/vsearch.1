@@ -18,29 +18,34 @@ Chimera detection:
 Clustering:
 .RS
 \fBvsearch\fR [\fIoptions\fR] (--cluster_fast|--cluster_smallmem)
-\fIfastafile\fR --uc \fIoutputfile\fR --id \fIreal\fR
+\fIfastafile\fR (--alnout|--blast6out|--uc|--userout) \fIoutputfile\fR
+--id \fIreal\fR
 .RE
 Dereplication:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --derep_fulllength \fIfastafile\fR (--output|--uc) \fIoutputfile\fR
+\fBvsearch\fR [\fIoptions\fR] --derep_fulllength \fIfastafile\fR
+(--output|--uc) \fIoutputfile\fR
 .RE
 Masking:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --maskfasta \fIfastafile\fR --output \fIoutputfile\fR
+\fBvsearch\fR [\fIoptions\fR] --maskfasta \fIfastafile\fR --output
+\fIoutputfile\fR
 .RE
 Searching:
 .RS
 \fBvsearch\fR [\fIoptions\fR] --vsearch_global \fIfastafile\fR --db
-\fIfastafile\fR (--alnout|--blast6out|--userout|--uc) \fIoutputfile\fR --id
-\fIreal\fR
+\fIfastafile\fR (--alnout|--blast6out|--uc|--userout) \fIoutputfile\fR
+--id \fIreal\fR
 .RE
 Shuffling:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --shuffle \fIfastafile\fR --output \fIoutputfile\fR
+\fBvsearch\fR [\fIoptions\fR] --shuffle \fIfastafile\fR --output
+\fIoutputfile\fR
 .RE
 Sorting:
 .RS
-\fBvsearch\fR [\fIoptions\fR] (--sortbysize|--sortbylength) \fIfastafile\fR --output \fIoutputfile\fR
+\fBvsearch\fR [\fIoptions\fR] (--sortbylength|--sortbysize)
+\fIfastafile\fR --output \fIoutputfile\fR
 .RE
 .PP
 .\" ============================================================================
@@ -144,17 +149,38 @@ default is to launch one thread per available logical core.
 .PP
 .\" ----------------------------------------------------------------------------
 Chimera detection options:
+.PP
 .RS
+Chimera detection is based on a scoring function controlled by five
+options (--dn, --mindiv, mindiffs, --minh, --xn).
+.PP
+In \fIde novo\fR mode, input fasta file should present abundance
+annotations (pattern [;]size=\fIinteger\fR[;] in the fasta
+header). The input order influences the chimera detection, we
+recommend to sort sequences by decreasing abundance (default of
+--derep_fulllength command). If your sequence set needs to be sorted,
+please see the --sortbysize command.
+.PP
 .TP 9
 .BI --abskew \0real
-when using --uchime_denovo, min abundance ratio (or abundance skew) of
-parent vs chimera (2.0).
+when using --uchime_denovo, the abundance skew is used to distinguish
+in a 3-way alignment which sequence is the chimera and which are the
+parents. The assumption is that chimeras appeared latter in the PCR
+process and are therefore less abundant than their parents. The
+default value is 2.0, which means that the parents should be at least
+2 times more abundant than their chimera. Any positive values equal or
+greater than 1.0 can be used.
 .TP
 .BI --chimeras \0filename
-output chimeric sequences to file.
+output chimeric sequences to file. Output order may vary when using
+multiple threads.
 .TP
 .BI --db \0filename
-when using --uchime_ref, reference database for --uchime_ref.
+when using --uchime_ref, detect chimeras using the fasta-formatted
+reference sequences contained in \fIfilename\fR. Reference sequences
+are assumed to be chimera-free. Chimeras will not be detected if their
+parents (or sufficiently close relatives) are not present in the
+database.
 .TP
 .BI --dn \0real
 no vote pseudo-count (parameter n) (1.4).
@@ -168,35 +194,96 @@ false positives and decrease sensitivity. Default value is
 0.28. (value ranging from 0.0 to 1.0 included).
 .TP
 .BI --nonchimeras \0filename
-output non-chimeric sequences to file.
+output non-chimeric sequences to file. Output order may vary when
+using multiple threads.
+.TP
+.BI --rowlen\~ "positive integer"
+width of 3-way alignments in --uchimealns output. The default value is
+80. Set to 0 to eliminate the wrapping.
 .TP
 .B --self
-when using --uchime_ref, exclude identical sequences.
+when using --uchime_ref, ignore a reference sequence when its label
+matches the label of the query sequence (useful to estimate
+false-positive rate in reference sequences).
 .TP
 .B --selfid
-when using --uchime_ref, exclude identical labels.
+when using --uchime_ref, ignore a reference sequence when its
+nucleotidic sequence is strictly identical with the query sequence.
 .TP
 .BI --strand\~ "plus|both"
-when comparing sequences to the cluster seeds, check the \fIplus\fR
-strand only (default) or check \fIboth\fR strands. When using
---uchime_ref, strand is always \fIplus\fB.
+when using --uchime_denovo, check the \fIplus\fR strand only (default)
+or check \fIboth\fR strands. When using --uchime_ref, strand is always
+\fIplus\fB.
+.TP
+.BI --threads\~ "positive integer"
+when using the command --uchime_ref, set the number of computation
+threads to use (1 to 256). The number of threads should be lesser or
+equal to the number of available CPU cores. The default is to launch
+one thread per available logical core.
 .TP
 .BI --uchime_denovo \0filename
-detect chimeras de novo.
+detect chimeras de novo. Multithreading is not supported.
 .TP
 .BI --uchime_ref \0filename
-detect chimeras using a reference database.
+detect chimeras present in the fasta-formatted \fIfilename\fR by
+comparing them with reference sequences (option --db). Multithreading
+is supported.
 .TP
 .BI --uchimealns \0filename
-write tri-way global alignments (parentA, parentB, chimera) to
+write 3-way global alignments (parentA, parentB, chimera) to
 \fIfilename\fR using a human-readable format. Use --rowlen to modify
 alignment length. Output order may vary when using multiple threads.
 .TP
 .BI --uchimeout \0filename
 write chimera detection results to \fIfilename\fR using the uchime
-tab-separated format of 18 fields (see
-http://drive5.com/usearch/manual/uchimeout.html). Use --uchimeout5 to
-use a format compatible with usearch v5 and earlier versions.
+tab-separated format of 18 fields (see the list below). Use
+--uchimeout5 to use a format compatible with usearch v5 and earlier
+versions. Output order may vary when using multiple threads.
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+score \(em higher score means more strongly chimeric alignment.
+.IP \n+[step].
+Q \(em query sequence label.
+.IP \n+[step].
+A \(em parent A sequence label.
+.IP \n+[step].
+B \(em parent B sequence label.
+.IP \n+[step].
+T \(em top parent sequence label (i.e. parent most similar to the
+query). That fields is removed when using --uchimeout5.
+.IP \n+[step].
+idQM \(em percentage of similarity of query (Q) and the model
+(M) constructed as a segment of parent A and a segment of parent B.
+.IP \n+[step].
+idQA \(em percentage of similarity of query (Q) and parent A.
+.IP \n+[step].
+idQB \(em percentage of similarity of query (Q) and parent B.
+.IP \n+[step].
+idAB \(em percentage of similarity of parent A and parent B.
+.IP \n+[step].
+idQT \(em percentage of similarity of query (Q) and the top
+parent (T).
+.IP \n+[step].
+LY \(em yes votes in the left segment of the model.
+.IP \n+[step].
+LN \(em no votes in the left segment of the model.
+.IP \n+[step].
+LA \(em abstain votes in the left segment of the model.
+.IP \n+[step].
+RY \(em yes votes in the right segment of the model.
+.IP \n+[step].
+RN \(em no votes in the right segment of the model.
+.IP \n+[step].
+RA \(em abstain votes in the right segment of the model.
+.IP \n+[step].
+div \(em divergence, defined as (idQM - idQT).
+.IP \n+[step].
+YN \(em query is chimeric (Y), or not (N) or is a borderline
+case (?).
+.RE
+.RE
 .TP
 .B --uchimeout5
 write chimera detection results using a tab-separated format of 17
@@ -356,6 +443,7 @@ effect.
 .\" ----------------------------------------------------------------------------
 Masking options:
 .RS
+.PP
 An input sequence can be composed of lower- or uppercase
 nucleotides. Lowercase nucleotides are silently converted to uppercase
 before masking, unless the --qmask soft option is used. Here are the
@@ -1038,6 +1126,9 @@ alignment output file. This is corrected in \fBvsearch\fR.
 definitions that were removed from usearch.
 .PP
 \fBvsearch\fR extends the --topn option to sorting commands.
+.PP
+\fBvsearch\fR extends the --rowlen option to the chimera command
+(--uchimealns option).
 .PP
 .\" ============================================================================
 .SH NOVELTIES
