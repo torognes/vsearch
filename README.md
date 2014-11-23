@@ -22,13 +22,13 @@ VSEARCH does not support amino acid sequences or local alignments. These feature
 
 The same option names as USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
-VSEARCH binaries are provided for x86-64 bits systems running GNU/Linux or MacOS X.
+VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X.
 
 ## Example
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-0.3.1-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-0.3.2-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 
 ## Details
@@ -67,7 +67,7 @@ The dereplication and sorting commands seems to be considerably faster in VSEARC
 
 **Clustering:** The clustering commands `--cluster_smallmem` and `--cluster_fast` have been implemented. These commands support multiple threads. The only difference between `--cluster_smallmem` and `--cluster_fast` is that `--cluster_fast` will sort the sequences by length before clustering, while `--cluster_smallmem` require the sequences to be in length-sorted order unless the `--usersort` option is specified. There is no significant difference in speed or memory usage. The increased sensitivity of VSEARCH often leads to larger and fewer clusters than USEARCH.
 
-**Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the ``--uchime_ref`` and ``--uchime_denovo`` commands and all their options are supported. Parallelisation of chimera detection has not yet been implemented. The accuracy of VSEARCH on chimera detection has been evaluated using the SIMM dataset described in the UCHIME paper. See the ``eval/chimeval.sh`` script for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation of UCHIME in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH. VSEARCH is almost twice as fast as USEARCH on *de novo* chimera detection. Due to multithreading, USEARCH is currently considerably faster than VSEARCH on chimera detection against a reference database when running on 3 or more threads. We are working on a multithreaded uchime_ref implementation for VSEARCH.
+**Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the ``--uchime_ref`` and ``--uchime_denovo`` commands and all their options are supported. Parallelisation of chimera detection has not yet been implemented. The accuracy of VSEARCH on chimera detection has been evaluated using the SIMM dataset described in the UCHIME paper. See the ``eval/chimeval.sh`` script for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation of UCHIME in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH. VSEARCH is almost twice as fast as USEARCH on *de novo* chimera detection and about 30% faster on detection against a reference database. In VSEARCH ``uchime_ref`` is multithreaded, while ``uchime_denovo`` is not.
 
 **Masking:** VSEARCH by default uses an optimized reimplementation of the well-known DUST algorithm by Tatusov and Lipman to mask simple repeats and low-complexity regions in the sequences. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
 
@@ -151,7 +151,7 @@ Clustering and searching options:
 * `--qmask dust|none|soft` (Default dust)
 * `--query_cov <real>`
 * `--rightjust`
-* `--rowlen <int>` (Default 64)
+* `--rowlen <int>` (Default 60)
 * `--self`
 * `--selfid`
 * `--slots <int>` (Ignored)
@@ -192,6 +192,7 @@ Chimera detection options:
 * `--mindiv <real>` (Default 0.8)
 * `--minh <real>` (Default 0.28)
 * `--nonchimeras <filename>`
+* `--rowlen <int>` (Default 60)
 * `--self`
 * `--selfid`
 * `--uchimealns <filename>`
@@ -260,7 +261,6 @@ Some issues to work on:
 * testing and debugging
 * performance evaluation
 * intra-sequence SIMD parallelization using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000)
-* parallelisation of uchime_ref
 
 
 ## The VSEARCH team

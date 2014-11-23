@@ -31,13 +31,31 @@
   http://dx.doi.org/10.1093/bioinformatics/btr381
 */
 
+/* global constants/data, no need for synchronization */
 const int parts = 4;
 const int few = 1;
 const int maxcandidates = few * parts;
+const int rejects = 32;
+static int tophits;
+static pthread_attr_t attr;
+static pthread_t * pthread;
 
-static struct chimera_info_s
+/* mutexes and global data protected by mutex */
+static pthread_mutex_t mutex_input;
+static pthread_mutex_t mutex_output;
+static unsigned int seqno = 0;
+static int progress = 0;
+static int chimera_count = 0;
+static FILE * fp_chimeras = 0;
+static FILE * fp_nonchimeras = 0;
+static FILE * fp_uchimealns = 0;
+static FILE * fp_uchimeout = 0;
+
+/* information for each query sequence to be checked */
+struct chimera_info_s
 {
-  int qalloc; /* the longest query we allocated memory for */
+  int query_alloc; /* the longest query sequence allocated memory for */
+  int head_alloc; /* the longest header allocated memory for */
 
   int query_no;
   char * query_head;
@@ -52,7 +70,6 @@ static struct chimera_info_s
   int cand_count;
 
   struct s16info_s * s;
-
   CELL nwscore[maxcandidates];
   unsigned short nwalignmentlength[maxcandidates];
   unsigned short nwmatches[maxcandidates];
@@ -67,18 +84,8 @@ static struct chimera_info_s
 
   int best_parents[2];
 
-  FILE * fp_chimeras;
-  FILE * fp_nonchimeras;
-  FILE * fp_uchimealns;
-  FILE * fp_uchimeout;
-
-  int chimeras;
-  int tophits;
-  
   int best_target;
   char * best_cigar;
-
-  /* dynamic arrays */
 
   int * maxi;
   char * paln[2];
@@ -88,62 +95,74 @@ static struct chimera_info_s
   char * model;
   char * ignore;
 
-} ci;
+  struct hit * all_hits;
+};
 
-void realloc_arrays(int maxqlen)
+static struct chimera_info_s * cia;
+
+void realloc_arrays(struct chimera_info_s * ci)
 {
+  int maxhlen = ci->query_head_len;
+  if (maxhlen > ci->head_alloc)
+    {
+      ci->head_alloc = maxhlen;
+      ci->query_head = (char*) xrealloc(ci->query_head, maxhlen + 1);
+    }
+
   /* realloc arrays based on query length */
 
-  if (maxqlen > ci.qalloc)
+  int maxqlen = ci->query_len;
+  if (maxqlen > ci->query_alloc)
     {
-      ci.qalloc = maxqlen;
+      ci->query_alloc = maxqlen;
       
+      ci->query_seq = (char*) xrealloc(ci->query_seq, maxqlen + 1);
+
       for(int i=0; i < parts; i++)
         {
           int maxpartlen = (maxqlen + parts - 1) / parts;
-          ci.si[i].qsequence = (char*) xrealloc(ci.si[i].qsequence,
+          ci->si[i].qsequence = (char*) xrealloc(ci->si[i].qsequence,
                                                 maxpartlen + 1);
         }
       
-      ci.maxi = (int *) xrealloc(ci.maxi, (maxqlen + 1) * sizeof(int));
-      ci.maxsmooth = (int*) xrealloc(ci.maxsmooth, maxqlen * sizeof(int));
-      ci.match = (int*) xrealloc(ci.match,
+      ci->maxi = (int *) xrealloc(ci->maxi, (maxqlen + 1) * sizeof(int));
+      ci->maxsmooth = (int*) xrealloc(ci->maxsmooth, maxqlen * sizeof(int));
+      ci->match = (int*) xrealloc(ci->match,
                                  maxcandidates * maxqlen * sizeof(int));
-      ci.smooth = (int*) xrealloc(ci.smooth,
+      ci->smooth = (int*) xrealloc(ci->smooth,
                                   maxcandidates * maxqlen * sizeof(int));
       
       int maxalnlen = maxqlen + db_getsequencecount();
-      
-      ci.paln[0] = (char*) xrealloc(ci.paln[0], maxalnlen+1);
-      ci.paln[1] = (char*) xrealloc(ci.paln[1], maxalnlen+1);
-      ci.qaln = (char*) xrealloc(ci.qaln, maxalnlen+1);
-      ci.diffs = (char*) xrealloc(ci.diffs, maxalnlen+1);
-      ci.votes = (char*) xrealloc(ci.votes, maxalnlen+1);
-      ci.model = (char*) xrealloc(ci.model, maxalnlen+1);
-      ci.ignore = (char*) xrealloc(ci.ignore, maxalnlen+1);
+      ci->paln[0] = (char*) xrealloc(ci->paln[0], maxalnlen+1);
+      ci->paln[1] = (char*) xrealloc(ci->paln[1], maxalnlen+1);
+      ci->qaln = (char*) xrealloc(ci->qaln, maxalnlen+1);
+      ci->diffs = (char*) xrealloc(ci->diffs, maxalnlen+1);
+      ci->votes = (char*) xrealloc(ci->votes, maxalnlen+1);
+      ci->model = (char*) xrealloc(ci->model, maxalnlen+1);
+      ci->ignore = (char*) xrealloc(ci->ignore, maxalnlen+1);
     }
 }
 
 
-int find_best_parents()
+int find_best_parents(struct chimera_info_s * ci)
 {
-  ci.best_parents[0] = -1;
-  ci.best_parents[1] = -1;
+  ci->best_parents[0] = -1;
+  ci->best_parents[1] = -1;
 
   /* find the positions with matches for each potential parent */
 
-  char * qseq = ci.query_seq;
+  char * qseq = ci->query_seq;
 
-  memset(ci.match, 0, ci.cand_count * ci.query_len * sizeof(int));
+  memset(ci->match, 0, ci->cand_count * ci->query_len * sizeof(int));
 
-  for(int i=0; i < ci.cand_count; i++)
+  for(int i=0; i < ci->cand_count; i++)
     {
-      char * tseq = db_getsequence(ci.cand_list[i]);
+      char * tseq = db_getsequence(ci->cand_list[i]);
 
       int qpos = 0;
       int tpos = 0;
       
-      char * p = ci.nwcigar[i];
+      char * p = ci->nwcigar[i];
       char * e = p + strlen(p);
       
       while (p < e)
@@ -160,7 +179,7 @@ int find_best_parents()
                 {
                   if (chrmap_4bit[(int)(qseq[qpos])] ==
                       chrmap_4bit[(int)(tseq[tpos])])
-                    ci.match[i * ci.query_len + qpos] = 1;
+                    ci->match[i * ci->query_len + qpos] = 1;
                   qpos++;
                   tpos++;
                 }
@@ -177,44 +196,44 @@ int find_best_parents()
         }
     }
   
-  /* compute smoothed identity score in 32-wide window for each candidate */
-  /* and record max smoothed score for each position among candidates     */
+  /* Compute smoothed identity score in a window for each candidate,   */
+  /* and record max smoothed score for each position among candidates. */
 
-  memset(ci.maxsmooth, 0, ci.query_len * sizeof(int));
+  memset(ci->maxsmooth, 0, ci->query_len * sizeof(int));
 
   const int window = 32;
 
-  for(int i = 0; i < ci.cand_count; i++)
+  for(int i = 0; i < ci->cand_count; i++)
     {
       int sum = 0;
-      for(int qpos = 0; qpos < ci.query_len; qpos++)
+      for(int qpos = 0; qpos < ci->query_len; qpos++)
         {
-          int z = i * ci.query_len + qpos;
-          sum += ci.match[z];
+          int z = i * ci->query_len + qpos;
+          sum += ci->match[z];
           if (qpos >= window)
-            sum -= ci.match[z-window];
+            sum -= ci->match[z-window];
           if (qpos >= window-1)
             {
-              ci.smooth[z] = sum;
-              if (ci.smooth[z] > ci.maxsmooth[qpos])
-                ci.maxsmooth[qpos] = ci.smooth[z];
+              ci->smooth[z] = sum;
+              if (ci->smooth[z] > ci->maxsmooth[qpos])
+                ci->maxsmooth[qpos] = ci->smooth[z];
             }
         }
     }
   
   /* find first parent */
 
-  int wins[ci.cand_count];
+  int wins[ci->cand_count];
 
-  memset(wins, 0, ci.cand_count * sizeof(int));
+  memset(wins, 0, ci->cand_count * sizeof(int));
 
-  for(int qpos = window-1; qpos < ci.query_len; qpos++)
+  for(int qpos = window-1; qpos < ci->query_len; qpos++)
     {
-      if (ci.maxsmooth[qpos] != 0)
-        for(int i=0; i < ci.cand_count; i++)
+      if (ci->maxsmooth[qpos] != 0)
+        for(int i=0; i < ci->cand_count; i++)
           {
-            int z = i * ci.query_len + qpos;
-            if (ci.smooth[z] == ci.maxsmooth[qpos])
+            int z = i * ci->query_len + qpos;
+            if (ci->smooth[z] == ci->maxsmooth[qpos])
               wins[i]++;
           }
     }
@@ -224,7 +243,7 @@ int find_best_parents()
   int best2_w = -1;
   int best2_i = -1;
 
-  for(int i=0; i < ci.cand_count; i++)
+  for(int i=0; i < ci->cand_count; i++)
     {
       int w = wins[i];
       if (w > best1_w)
@@ -240,16 +259,16 @@ int find_best_parents()
 
       /* wipe out matches in positions covered by first parent */
       
-      for(int qpos = window - 1; qpos < ci.query_len; qpos++)
+      for(int qpos = window - 1; qpos < ci->query_len; qpos++)
         {
-          int z = best1_i * ci.query_len + qpos;
-          if (ci.smooth[z] == ci.maxsmooth[qpos])
+          int z = best1_i * ci->query_len + qpos;
+          if (ci->smooth[z] == ci->maxsmooth[qpos])
             {
               for(int i = qpos + 1 - window; i <= qpos; i++)
-                for(int j = 0; j < ci.cand_count; j++)
+                for(int j = 0; j < ci->cand_count; j++)
                   {
-                    int z = j * ci.query_len + i;
-                    ci.match[z] = 0;
+                    int z = j * ci->query_len + i;
+                    ci->match[z] = 0;
                   }
             }
         }
@@ -259,24 +278,24 @@ int find_best_parents()
         score for each position among remaining candidates
       */
       
-      memset(ci.maxsmooth, 0, ci.query_len * sizeof(int));
+      memset(ci->maxsmooth, 0, ci->query_len * sizeof(int));
 
-      for(int i = 0; i < ci.cand_count; i++)
+      for(int i = 0; i < ci->cand_count; i++)
         {
           if (i != best1_i)
             {
               int sum = 0;
-              for(int qpos = 0; qpos < ci.query_len; qpos++)
+              for(int qpos = 0; qpos < ci->query_len; qpos++)
                 {
-                  int z = i * ci.query_len + qpos;
-                  sum += ci.match[z];
+                  int z = i * ci->query_len + qpos;
+                  sum += ci->match[z];
                   if (qpos >= window)
-                    sum -= ci.match[z-window];
+                    sum -= ci->match[z-window];
                   if (qpos >= window-1)
                     {
-                      ci.smooth[z] = sum;
-                      if (ci.smooth[z] > ci.maxsmooth[qpos])
-                        ci.maxsmooth[qpos] = ci.smooth[z];
+                      ci->smooth[z] = sum;
+                      if (ci->smooth[z] > ci->maxsmooth[qpos])
+                        ci->maxsmooth[qpos] = ci->smooth[z];
                     }
                 }
             }
@@ -284,21 +303,21 @@ int find_best_parents()
   
       /* find second parent */
 
-      memset(wins, 0, ci.cand_count * sizeof(int));
+      memset(wins, 0, ci->cand_count * sizeof(int));
 
-      for(int qpos = window-1; qpos < ci.query_len; qpos++)
+      for(int qpos = window-1; qpos < ci->query_len; qpos++)
         {
-          if (ci.maxsmooth[qpos] != 0)
-            for(int i=0; i < ci.cand_count; i++)
+          if (ci->maxsmooth[qpos] != 0)
+            for(int i=0; i < ci->cand_count; i++)
               if (i != best1_i)
                 {
-                  int z = i * ci.query_len + qpos;
-                  if (ci.smooth[z] == ci.maxsmooth[qpos])
+                  int z = i * ci->query_len + qpos;
+                  if (ci->smooth[z] == ci->maxsmooth[qpos])
                     wins[i]++;
                 }
         }
 
-      for(int i=0; i < ci.cand_count; i++)
+      for(int i=0; i < ci->cand_count; i++)
         {
           int w = wins[i];
           if (w > best2_w)
@@ -309,22 +328,22 @@ int find_best_parents()
         }
     }
 
-  ci.best_parents[0] = best1_i;
-  ci.best_parents[1] = best2_i;
+  ci->best_parents[0] = best1_i;
+  ci->best_parents[1] = best2_i;
   
   return (best1_w >= 0) && (best2_w >= 0);
 }
 
-int eval_parents()
+int eval_parents(struct chimera_info_s * ci)
 {
   /* create msa */
 
   /* find max insertions in front of each position in the query sequence */
-  memset(ci.maxi, 0, (ci.query_len + 1) * sizeof(int));
+  memset(ci->maxi, 0, (ci->query_len + 1) * sizeof(int));
 
   for(int j=0; j<2; j++)
     {
-      char * p = ci.nwcigar[ci.best_parents[j]];
+      char * p = ci->nwcigar[ci->best_parents[j]];
       char * e = p + strlen(p);
       int pos = 0;
       while (p < e)
@@ -342,8 +361,8 @@ int eval_parents()
               break;
 
             case 'I':
-              if (run > ci.maxi[pos])
-                ci.maxi[pos] = run;
+              if (run > ci->maxi[pos])
+                ci->maxi[pos] = run;
               break;
             }
         }
@@ -351,21 +370,21 @@ int eval_parents()
 
   /* find total alignment length */
   int alnlen = 0;
-  for(int i=0; i < ci.query_len+1; i++)
-    alnlen += ci.maxi[i];
-  alnlen += ci.query_len;
+  for(int i=0; i < ci->query_len+1; i++)
+    alnlen += ci->maxi[i];
+  alnlen += ci->query_len;
 
   /* fill in alignment string for query */
 
-  char * p = ci.qaln;
+  char * p = ci->qaln;
   int qpos = 0;
-  for (int i=0; i < ci.query_len; i++)
+  for (int i=0; i < ci->query_len; i++)
     {
-      for (int j=0; j < ci.maxi[i]; j++)
+      for (int j=0; j < ci->maxi[i]; j++)
         *p++ = '-';
-      *p++ = ci.query_seq[qpos++];
+      *p++ = ci->query_seq[qpos++];
     }
-  for (int j=0; j < ci.maxi[ci.query_len]; j++)
+  for (int j=0; j < ci->maxi[ci->query_len]; j++)
     *p++ = '-';
   *p = 0;
   
@@ -373,17 +392,17 @@ int eval_parents()
 
   for(int j=0; j<2; j++)
     {
-      int cand = ci.best_parents[j];
-      int target_seqno = ci.cand_list[cand];
+      int cand = ci->best_parents[j];
+      int target_seqno = ci->cand_list[cand];
       char * target_seq = db_getsequence(target_seqno);
       
       int inserted = 0;
       int qpos = 0;
       int tpos = 0;
 
-      char * t = ci.paln[j];
+      char * t = ci->paln[j];
 
-      char * p = ci.nwcigar[cand];
+      char * p = ci->nwcigar[cand];
       char * e = p + strlen(p);
       while (p < e)
         {
@@ -395,7 +414,7 @@ int eval_parents()
               
           if (op == 'I')
             {
-              for(int x=0; x < ci.maxi[qpos]; x++)
+              for(int x=0; x < ci->maxi[qpos]; x++)
                 {
                   if (x < run)
                     *t++ = target_seq[tpos++];
@@ -409,7 +428,7 @@ int eval_parents()
               for(int x=0; x < run; x++)
                 {
                   if (!inserted)
-                    for(int x=0; x < ci.maxi[qpos]; x++)
+                    for(int x=0; x < ci->maxi[qpos]; x++)
                       *t++ = '-';
                       
                   if (op == 'M')
@@ -426,44 +445,44 @@ int eval_parents()
       /* add any gaps at the end */
 
       if (!inserted)
-        for(int x=0; x < ci.maxi[qpos]; x++)
+        for(int x=0; x < ci->maxi[qpos]; x++)
           *t++ = '-';
       
       /* end of sequence string */
       *t = 0;
     }
 
-  memset(ci.ignore, 0, alnlen);
+  memset(ci->ignore, 0, alnlen);
 
   for(int i = 0; i < alnlen; i++)
     {
-      char qsym  = chrmap_4bit[(int)(ci.qaln   [i])];
-      char p1sym = chrmap_4bit[(int)(ci.paln[0][i])];
-      char p2sym = chrmap_4bit[(int)(ci.paln[1][i])];
+      char qsym  = chrmap_4bit[(int)(ci->qaln   [i])];
+      char p1sym = chrmap_4bit[(int)(ci->paln[0][i])];
+      char p2sym = chrmap_4bit[(int)(ci->paln[1][i])];
           
       /* mark positions to ignore in voting */
 
       /* ignore gap positions and those next to the gap */
       if ((!qsym) || (!p1sym) || (!p2sym))
         {
-          ci.ignore[i] = 1;
+          ci->ignore[i] = 1;
           if (i>0)
-            ci.ignore[i-1] = 1;
+            ci->ignore[i-1] = 1;
           if (i<alnlen-1)
-            ci.ignore[i+1] = 1;
+            ci->ignore[i+1] = 1;
         }
 
       /* ignore ambigous symbols */
       if ((qsym>4) || (p1sym>4) || (p2sym>4))
-        ci.ignore[i] = 1;
+        ci->ignore[i] = 1;
 
       /* lower case parent symbols that differ from query */
 
       if (p1sym && (p1sym != qsym))
-        ci.paln[0][i] = tolower(ci.paln[0][i]);
+        ci->paln[0][i] = tolower(ci->paln[0][i]);
 
       if (p2sym && (p2sym != qsym))
-        ci.paln[1][i] = tolower(ci.paln[1][i]);
+        ci->paln[1][i] = tolower(ci->paln[1][i]);
 
       /* compute diffs */
 
@@ -491,10 +510,10 @@ int eval_parents()
       else
         diff = ' ';
 
-      ci.diffs[i] = diff;
+      ci->diffs[i] = diff;
     }
 
-  ci.diffs[alnlen] = 0;
+  ci->diffs[alnlen] = 0;
 
   /* compute score */
 
@@ -503,9 +522,9 @@ int eval_parents()
   int sumN = 0;
 
   for (int i = 0; i < alnlen; i++)
-    if (!ci.ignore[i])
+    if (!ci->ignore[i])
       {
-        char diff = ci.diffs[i];
+        char diff = ci->diffs[i];
         
         if (diff == 'A')
           sumA++;
@@ -535,9 +554,9 @@ int eval_parents()
 
   for (int i=0; i<alnlen; i++)
   {
-    if(!ci.ignore[i])
+    if(!ci->ignore[i])
       {
-        char diff = ci.diffs[i];
+        char diff = ci->diffs[i];
         if (diff != ' ')
           {
             if (diff == 'A')
@@ -612,11 +631,11 @@ int eval_parents()
       if (best_reverse)
         for(int i = 0; i < alnlen; i++)
           {
-            char diff = ci.diffs[i];
+            char diff = ci->diffs[i];
             if (diff == 'A')
-              ci.diffs[i] = 'B';
+              ci->diffs[i] = 'B';
             else if (diff == 'B')
-              ci.diffs[i] = 'A';
+              ci->diffs[i] = 'A';
           }
 
       /* fill in votes and model */
@@ -624,12 +643,12 @@ int eval_parents()
       for(int i = 0; i < alnlen; i++)
         {
           char m = i <= best_i ? 'A' : 'B';
-          ci.model[i] = m;
+          ci->model[i] = m;
           
           char v = ' ';
-          if (!ci.ignore[i])
+          if (!ci->ignore[i])
             {
-              char d = ci.diffs[i];
+              char d = ci->diffs[i];
           
               if ((d == 'A') || (d == 'B'))
                 {
@@ -643,23 +662,23 @@ int eval_parents()
                   v = '0';
                 }
             }
-          ci.votes[i] = v;
+          ci->votes[i] = v;
 
           /* lower case diffs for no votes */
           if (v == '!')
-            ci.diffs[i] = tolower(ci.diffs[i]);
+            ci->diffs[i] = tolower(ci->diffs[i]);
         }
 
       /* fill in crossover region */
 
       for(int i = best_i + 1; i < alnlen; i++)
-        if ((ci.diffs[i] == ' ') || (ci.diffs[i] == 'A'))
-          ci.model[i] = 'x';
+        if ((ci->diffs[i] == ' ') || (ci->diffs[i] == 'A'))
+          ci->model[i] = 'x';
         else
           break;
 
-      ci.votes[alnlen] = 0;
-      ci.model[alnlen] = 0;
+      ci->votes[alnlen] = 0;
+      ci->model[alnlen] = 0;
   
       /* count matches */
 
@@ -674,13 +693,13 @@ int eval_parents()
 
       for(int i = 0; i < alnlen; i++)
         {
-          if (! ci.ignore[i])
+          if (! ci->ignore[i])
             {
               cols++;
 
-              char qsym = chrmap_4bit[(int)(ci.qaln[i])];
-              char asym = chrmap_4bit[(int)(ci.paln[index_a][i])];
-              char bsym = chrmap_4bit[(int)(ci.paln[index_b][i])];
+              char qsym = chrmap_4bit[(int)(ci->qaln[i])];
+              char asym = chrmap_4bit[(int)(ci->paln[index_a][i])];
+              char bsym = chrmap_4bit[(int)(ci->paln[index_b][i])];
               char msym = i <= best_i ? asym : bsym;
 
               if (qsym == asym)
@@ -697,8 +716,8 @@ int eval_parents()
             }
         }
 
-      int seqno_a = ci.cand_list[ci.best_parents[index_a]];
-      int seqno_b = ci.cand_list[ci.best_parents[index_b]];
+      int seqno_a = ci->cand_list[ci->best_parents[index_a]];
+      int seqno_b = ci->cand_list[ci->best_parents[index_b]];
 
       double QA = 100.0 * match_QA / cols;
       double QB = 100.0 * match_QB / cols;
@@ -723,22 +742,24 @@ int eval_parents()
 
       /* print alignment */
 
+      pthread_mutex_lock(&mutex_output);
+
       if (opt_uchimealns && ischimeric)
         {
-          fprintf(ci.fp_uchimealns, "\n");
-          fprintf(ci.fp_uchimealns, "----------------------------------------"
+          fprintf(fp_uchimealns, "\n");
+          fprintf(fp_uchimealns, "----------------------------------------"
                   "--------------------------------\n");
-          fprintf(ci.fp_uchimealns, "Query   (%5d nt) %s\n",
-                  ci.query_len, ci.query_head);
-          fprintf(ci.fp_uchimealns, "ParentA (%5lu nt) %s\n",
+          fprintf(fp_uchimealns, "Query   (%5d nt) %s\n",
+                  ci->query_len, ci->query_head);
+          fprintf(fp_uchimealns, "ParentA (%5lu nt) %s\n",
                   db_getsequencelen(seqno_a),
                   db_getheader(seqno_a));
-          fprintf(ci.fp_uchimealns, "ParentB (%5lu nt) %s\n",
+          fprintf(fp_uchimealns, "ParentB (%5lu nt) %s\n",
                   db_getsequencelen(seqno_b),
                   db_getheader(seqno_b));
-          fprintf(ci.fp_uchimealns, "\n");
+          fprintf(fp_uchimealns, "\n");
 
-          int width = 80;
+          int width = opt_rowlen;
           qpos = 0;
           int p1pos = 0;
           int p2pos = 0;
@@ -755,37 +776,37 @@ int eval_parents()
 
               for(int j=0; j<w; j++)
                 {
-                  if (ci.qaln[i+j] != '-')
+                  if (ci->qaln[i+j] != '-')
                     qnt++;
-                  if (ci.paln[0][i+j] != '-')
+                  if (ci->paln[0][i+j] != '-')
                     p1nt++;
-                  if (ci.paln[1][i+j] != '-')
+                  if (ci->paln[1][i+j] != '-')
                     p2nt++;
                 }
 
               if (! best_reverse)
                 {
-                  fprintf(ci.fp_uchimealns, "A %5d %.*s %d\n",
-                          p1pos+1, w, ci.paln[0]+i, p1pos+p1nt);
-                  fprintf(ci.fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos+1,  w, ci.qaln+i,    qpos+qnt);
-                  fprintf(ci.fp_uchimealns, "B %5d %.*s %d\n",
-                          p2pos+1, w, ci.paln[1]+i, p2pos+p2nt);
+                  fprintf(fp_uchimealns, "A %5d %.*s %d\n",
+                          p1pos+1, w, ci->paln[0]+i, p1pos+p1nt);
+                  fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                          qpos+1,  w, ci->qaln+i,    qpos+qnt);
+                  fprintf(fp_uchimealns, "B %5d %.*s %d\n",
+                          p2pos+1, w, ci->paln[1]+i, p2pos+p2nt);
                 }
               else
                 {
-                  fprintf(ci.fp_uchimealns, "A %5d %.*s %d\n",
-                          p2pos+1, w, ci.paln[1]+i, p2pos+p2nt);
-                  fprintf(ci.fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos+1,  w, ci.qaln+i,    qpos+qnt);
-                  fprintf(ci.fp_uchimealns, "B %5d %.*s %d\n",
-                          p1pos+1, w, ci.paln[0]+i, p1pos+p1nt);
+                  fprintf(fp_uchimealns, "A %5d %.*s %d\n",
+                          p2pos+1, w, ci->paln[1]+i, p2pos+p2nt);
+                  fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                          qpos+1,  w, ci->qaln+i,    qpos+qnt);
+                  fprintf(fp_uchimealns, "B %5d %.*s %d\n",
+                          p1pos+1, w, ci->paln[0]+i, p1pos+p1nt);
                 }
 
-              fprintf(ci.fp_uchimealns, "Diffs   %.*s\n", w, ci.diffs+i);
-              fprintf(ci.fp_uchimealns, "Votes   %.*s\n", w, ci.votes+i);
-              fprintf(ci.fp_uchimealns, "Model   %.*s\n", w, ci.model+i);
-              fprintf(ci.fp_uchimealns, "\n");
+              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs+i);
+              fprintf(fp_uchimealns, "Votes   %.*s\n", w, ci->votes+i);
+              fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model+i);
+              fprintf(fp_uchimealns, "\n");
 
               qpos += qnt;
               p1pos += p1nt;
@@ -793,11 +814,11 @@ int eval_parents()
               rest -= width;
             }
 
-          fprintf(ci.fp_uchimealns, "Ids.  QA %.1f%%, QB %.1f%%, AB %.1f%%, "
+          fprintf(fp_uchimealns, "Ids.  QA %.1f%%, QB %.1f%%, AB %.1f%%, "
                   "QModel %.1f%%, Div. %+.1f%%\n",
                   QA, QB, AB, QM, divfrac);
 
-          fprintf(ci.fp_uchimealns, "Diffs Left %d: N %d, A %d, Y %d (%.1f%%); "
+          fprintf(fp_uchimealns, "Diffs Left %d: N %d, A %d, Y %d (%.1f%%); "
                   "Right %d: N %d, A %d, Y %d (%.1f%%), Score %.4f\n",
                   sumL, best_left_n, best_left_a, best_left_y,
                   100.0 * best_left_y / sumL,
@@ -810,11 +831,11 @@ int eval_parents()
         {
           if (opt_uchimeout5)
             {
-              fprintf(ci.fp_uchimeout,
+              fprintf(fp_uchimeout,
                       "%.4f\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
                       "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
                       best_h,
-                      ci.query_head,
+                      ci->query_head,
                       db_getheader(seqno_a),
                       db_getheader(seqno_b),
                       QM,
@@ -833,11 +854,11 @@ int eval_parents()
             }
           else
             {
-              fprintf(ci.fp_uchimeout,
+              fprintf(fp_uchimeout,
                       "%.4f\t%s\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
                       "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
                       best_h,
-                      ci.query_head,
+                      ci->query_head,
                       db_getheader(seqno_a),
                       db_getheader(seqno_b),
                       db_getheader(QA >= QB ? seqno_a : seqno_b),
@@ -856,25 +877,13 @@ int eval_parents()
                       ischimeric ? 'Y' : (isnonchimeric ? 'N' : '?'));
             }
         }
+      pthread_mutex_unlock(&mutex_output);
     }
   else
     {
       isnonchimeric = 1;
-
-      if (opt_uchimeout)
-        {
-          if (opt_uchimeout5)
-            fprintf(ci.fp_uchimeout,
-                    "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n",
-                    ci.query_head);
-          else
-            fprintf(ci.fp_uchimeout, 
-                    "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n",
-                    ci.query_head);
-        }
     }
-
-
+  
   if (ischimeric)
     return 1;
   else if (isnonchimeric)
@@ -887,7 +896,7 @@ void query_init(struct searchinfo_s * si)
 {
   si->qsequence = 0;
   si->kmers = 0;
-  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * ci.tophits);
+  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
   si->kmers = (count_t *) xmalloc(db_getsequencecount() * 
                                   sizeof(count_t) + 32);
   si->hit_count = 0;
@@ -907,7 +916,7 @@ void query_init(struct searchinfo_s * si)
                         opt_gap_extension_query_right,
                         opt_gap_extension_target_right);
   si->nw = nw_init();
-  si->m = minheap_init(ci.tophits);
+  si->m = minheap_init(tophits);
 }
 
 void query_exit(struct searchinfo_s * si)
@@ -925,21 +934,21 @@ void query_exit(struct searchinfo_s * si)
     free(si->kmers);
 }
 
-void partition_query(int parts)
+void partition_query(struct chimera_info_s * ci)
 {
-  int rest = ci.query_len;
-  char * p = ci.query_seq;
+  int rest = ci->query_len;
+  char * p = ci->query_seq;
   for (int i=0; i<parts; i++)
     {
       int len = (rest+(parts-1-i))/(parts-i);
 
-      struct searchinfo_s * si = ci.si + i;
+      struct searchinfo_s * si = ci->si + i;
 
-      si->query_no = ci.query_no;
+      si->query_no = ci->query_no;
       si->strand = 0;
-      si->qsize = ci.query_size;
-      si->query_head_len = ci.query_head_len;
-      si->query_head = ci.query_head;
+      si->qsize = ci->query_size;
+      si->query_head_len = ci->query_head_len;
+      si->query_head = ci->query_head;
       si->qseqlen = len;
       strncpy(si->qsequence, p, len);
       si->qsequence[len] = 0;
@@ -947,7 +956,302 @@ void partition_query(int parts)
       rest -= len;
       p += len;
     }
+}
 
+void chimera_thread_init(struct chimera_info_s * ci)
+{
+  ci->query_alloc = 0;
+  ci->head_alloc = 0;
+  ci->query_head = 0;
+  ci->query_seq = 0;
+  ci->maxi = 0;
+  ci->maxsmooth = 0;
+  ci->match = 0;
+  ci->smooth = 0;
+  ci->paln[0] = 0;
+  ci->paln[1] = 0;
+  ci->qaln = 0;
+  ci->diffs = 0;
+  ci->votes = 0;
+  ci->model = 0;
+  ci->ignore = 0;
+
+  for(int i = 0; i < parts; i++)
+    query_init(ci->si + i);
+
+  ci->s = search16_init(opt_match,
+                        opt_mismatch,
+                        opt_gap_open_query_left,
+                        opt_gap_open_target_left,
+                        opt_gap_open_query_interior,
+                        opt_gap_open_target_interior,
+                        opt_gap_open_query_right,
+                        opt_gap_open_target_right,
+                        opt_gap_extension_query_left,
+                        opt_gap_extension_target_left,
+                        opt_gap_extension_query_interior,
+                        opt_gap_extension_target_interior,
+                        opt_gap_extension_query_right,
+                        opt_gap_extension_target_right);
+}
+
+void chimera_thread_exit(struct chimera_info_s * ci)
+{
+  search16_exit(ci->s);
+  
+  for(int i = 0; i < parts; i++)
+    query_exit(ci->si + i);
+
+  if (ci->maxsmooth)
+    free(ci->maxsmooth);
+  if (ci->match)
+    free(ci->match);
+  if (ci->smooth)
+    free(ci->smooth);
+  if (ci->diffs)
+    free(ci->diffs);
+  if (ci->votes)
+    free(ci->votes);
+  if (ci->model)
+    free(ci->model);
+  if (ci->ignore)
+    free(ci->ignore);
+  if (ci->maxi)
+    free(ci->maxi);
+  if (ci->qaln)
+    free(ci->qaln);
+  if (ci->paln[0])
+    free(ci->paln[0]);
+  if (ci->paln[1])
+    free(ci->paln[1]);
+
+  if (ci->query_seq)
+    free(ci->query_seq);
+  if (ci->query_head)
+    free(ci->query_head);
+}
+
+unsigned long chimera_thread_core(struct chimera_info_s * ci)
+{
+  chimera_thread_init(ci);
+
+  struct hit * allhits_list = (struct hit *) xmalloc(maxcandidates * 
+                                                     sizeof(struct hit));
+
+  while(1)
+    {
+      /* get next sequence */
+      
+      pthread_mutex_lock(&mutex_input);
+
+      if (opt_uchime_ref)
+        {
+          char * query_seq;
+          char * query_head;
+
+          if (query_getnext(& query_head, & ci->query_head_len,
+                            & query_seq, & ci->query_len, & ci->query_no,
+                            & ci->query_size, 1))
+            {
+              /* if necessary expand memory for arrays based on query length */
+              realloc_arrays(ci);
+
+              /* copy the data locally (query seq, head) */
+              strcpy(ci->query_head, query_head);
+              strcpy(ci->query_seq, query_seq);
+            }
+          else
+            {
+              pthread_mutex_unlock(&mutex_input);
+              break; /* end while loop */
+            }
+        }
+      else
+        {
+          if (seqno < db_getsequencecount())
+            {
+              ci->query_no = seqno;
+              ci->query_head_len = db_getheaderlen(seqno);
+              ci->query_len = db_getsequencelen(seqno);
+              ci->query_size = db_getabundance(seqno);
+              
+              /* if necessary expand memory for arrays based on query length */
+              realloc_arrays(ci);
+
+              strcpy(ci->query_head, db_getheader(seqno));
+              strcpy(ci->query_seq, db_getsequence(seqno));
+            }
+          else
+            {
+              pthread_mutex_unlock(&mutex_input);
+              break; /* end while loop */
+            }
+        }
+
+      pthread_mutex_unlock(&mutex_input);
+
+
+      
+      int status = 0;
+
+      /* partition query */
+      partition_query(ci);
+
+      /* perform searches and collect candidate parents */
+      ci->cand_count = 0;
+      int allhits_count = 0;
+
+      for (int i=0; i<parts; i++)
+        {
+          struct hit * hits;
+          int hit_count;
+          search_onequery(ci->si+i);
+          search_joinhits(ci->si+i, 0, & hits, & hit_count);
+          for(int j=0; j<hit_count; j++)
+            if (hits[j].accepted)
+              allhits_list[allhits_count++] = hits[j];
+          free(hits);
+        }
+
+      for(int i=0; i < allhits_count; i++)
+        {
+          unsigned int target = allhits_list[i].target;
+
+          /* skip duplicates */
+          int k;
+          for(k = 0; k < ci->cand_count; k++)
+            if (ci->cand_list[k] == target)
+              break;
+
+          if (k == ci->cand_count)
+            ci->cand_list[ci->cand_count++] = target;
+
+          /* deallocate cigar */
+          if (allhits_list[i].nwalignment)
+            free(allhits_list[i].nwalignment);
+        }
+
+
+      /* align full query to each candidate */
+
+      search16_qprep(ci->s, ci->query_seq, ci->query_len);
+
+      search16(ci->s,
+               ci->cand_count,
+               ci->cand_list,
+               ci->nwscore,
+               ci->nwalignmentlength,
+               ci->nwmatches,
+               ci->nwmismatches,
+               ci->nwgaps,
+               ci->nwcigar);
+      
+      /* find the best pair of parents, then compute score for them */
+
+      if (find_best_parents(ci))
+        status = eval_parents(ci);
+      else
+        status = -1;
+
+      /* output results */
+
+      pthread_mutex_lock(&mutex_output);
+
+      if (status > 0)
+        {
+          chimera_count++;
+
+          if (opt_chimeras)
+            {
+              fprint_fasta_hdr_only(fp_chimeras, ci->query_head);
+              fprint_fasta_seq_only(fp_chimeras, ci->query_seq,
+                                    ci->query_len, opt_fasta_width);
+            }
+        }
+
+      if (status < 0)
+        {
+          /* output no parents, no chimeras */
+          if (opt_uchimeout)
+            {
+              if (opt_uchimeout5)
+                fprintf(fp_uchimeout,
+                        "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*"
+                        "\t0\t0\t0\t0\t0\t0\t*\tN\n",
+                        ci->query_head);
+              else
+                fprintf(fp_uchimeout,
+                        "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*\t*"
+                        "\t0\t0\t0\t0\t0\t0\t*\tN\n",
+                        ci->query_head);
+            }
+          
+          /* uchime_denovo: add non-chimeras to db */
+          if (opt_uchime_denovo)
+            dbindex_addsequence(seqno);
+
+          if (opt_nonchimeras)
+            {
+              fprint_fasta_hdr_only(fp_nonchimeras, ci->query_head);
+              fprint_fasta_seq_only(fp_nonchimeras, ci->query_seq,
+                                    ci->query_len, opt_fasta_width);
+            }
+        }
+      
+      for (int i=0; i < ci->cand_count; i++)
+        if (ci->nwcigar[i])
+          free(ci->nwcigar[i]);
+      
+
+
+      seqno++;
+
+      if (opt_uchime_ref)
+        progress = query_getfilepos();
+      else
+        progress += db_getsequencelen(seqno);
+
+      progress_update(progress);
+
+      pthread_mutex_unlock(&mutex_output);
+    }
+
+  if (allhits_list)
+    free(allhits_list);
+
+  chimera_thread_exit(ci);
+
+  return 0;
+}
+
+void * chimera_thread_worker(void * vp)
+{
+  return (void *) chimera_thread_core(cia + (long) vp);
+}
+
+void chimera_threads_run()
+{
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  /* create worker threads */
+  for(long t=0; t<opt_threads; t++)
+    {
+      if (pthread_create(pthread+t, & attr,
+                         chimera_thread_worker, (void*)t))
+        {
+          fatal("Cannot create thread");
+        }
+    }
+
+  /* finish worker threads */
+  for(int t=0; t<opt_threads; t++)
+    {
+      if (pthread_join(pthread[t], NULL))
+        fatal("Cannot join thread");
+    }
+
+  pthread_attr_destroy(&attr);
 }
 
 void open_chimera_file(FILE * * f, char * name)
@@ -968,88 +1272,42 @@ void close_chimera_file(FILE * f)
     fclose(f);
 }
 
-inline int hit2_compare_typed(struct hit * x, struct hit * y)
-{
-  // high id, then low id
-  // early target (high abundance), then late target (low abundance)
-
-  if (x->id > y->id)
-    return -1;
-  else
-    if (x->id < y->id)
-      return +1;
-    else
-      if (x->target < y->target)
-        return -1;
-      else
-        if (x->target > y->target)
-          return +1;
-        else
-          return 0;
-}
-
-int hit2_compare(const void * a, const void * b)
-{
-  return hit2_compare_typed((struct hit *) a, (struct hit *) b);
-}
-
-int cand_compare(const void * a, const void * b)
-{
-  int x = *(int*)a;
-  int y = *(int*)b;
-
-  if (ci.nwmatches[x] > ci.nwmatches[y])
-    return -1;
-  else if (ci.nwmatches[x] < ci.nwmatches[y])
-    return +1;
-  else if (x < y)
-    return -1;
-  else if (x > y)
-    return +1;
-  else
-    return 0;
-}
-
 void chimera()
 {
-  open_chimera_file(&ci.fp_chimeras, opt_chimeras);
-  open_chimera_file(&ci.fp_nonchimeras, opt_nonchimeras);
-  open_chimera_file(&ci.fp_uchimealns, opt_uchimealns);
-  open_chimera_file(&ci.fp_uchimeout, opt_uchimeout);
+  open_chimera_file(&fp_chimeras, opt_chimeras);
+  open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
+  open_chimera_file(&fp_uchimealns, opt_uchimealns);
+  open_chimera_file(&fp_uchimeout, opt_uchimeout);
 
   /* override any options the user might have set */
   opt_maxaccepts = few;
-  opt_maxrejects = 1;
+  opt_maxrejects = rejects;
   opt_id = 0.0;
   opt_strand = 1;
 
   if (opt_uchime_denovo)
+    opt_threads = 1;
+
+  if (opt_uchime_denovo)
     opt_maxsizeratio = 1.0 / opt_abskew;
 
-  ci.tophits = opt_maxaccepts + opt_maxrejects;
+  tophits = opt_maxaccepts + opt_maxrejects;
 
   int progress_total;
+  chimera_count = 0;
+  progress = 0;
+  seqno = 0;
+  
+  /* prepare threads */
+  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  cia = (struct chimera_info_s *) xmalloc(opt_threads *
+                                          sizeof(struct chimera_info_s));
 
-  int queries = 0;
-  ci.chimeras = 0;
-  
-  ci.qalloc = 0;
-  ci.maxi = 0;
-  ci.maxsmooth = 0;
-  ci.match = 0;
-  ci.smooth = 0;
-  ci.paln[0] = 0;
-  ci.paln[1] = 0;
-  ci.qaln = 0;
-  ci.diffs = 0;
-  ci.votes = 0;
-  ci.model = 0;
-  ci.ignore = 0;
-  
-  struct hit * allhits_list = (struct hit *) xmalloc(maxcandidates * sizeof(struct hit));
-  
+  /* init mutexes for input and output */
+  pthread_mutex_init(&mutex_input, NULL);
+  pthread_mutex_init(&mutex_output, NULL);
+
   /* prepare queries / database */
-
   if (opt_uchime_ref)
     {
       db_read(opt_db, 1);
@@ -1066,221 +1324,31 @@ void chimera()
       progress_total = db_getnucleotidecount();
     }
 
-  for(int i = 0; i < parts; i++)
-    query_init(ci.si + i);
-
-  int progress = 0;
-
-  ci.s = search16_init(opt_match,
-                       opt_mismatch,
-                       opt_gap_open_query_left,
-                       opt_gap_open_target_left,
-                       opt_gap_open_query_interior,
-                       opt_gap_open_target_interior,
-                       opt_gap_open_query_right,
-                       opt_gap_open_target_right,
-                       opt_gap_extension_query_left,
-                       opt_gap_extension_target_left,
-                       opt_gap_extension_query_interior,
-                       opt_gap_extension_target_interior,
-                       opt_gap_extension_query_right,
-                       opt_gap_extension_target_right);
-  
   progress_init("Detecting chimeras", progress_total);
 
-  int seqno = 0;
-  int seqcount = db_getsequencecount();
+  chimera_threads_run();
 
-  while(1)
-    {
-      if (opt_uchime_ref)
-        {
-          if (!query_getnext(& ci.query_head, & ci.query_head_len,
-                             & ci.query_seq, & ci.query_len, & ci.query_no,
-                             & ci.query_size, 1))
-            break;
-        }
-      else
-        {
-          if (seqno >= seqcount)
-            break;
-
-          ci.query_head = db_getheader(seqno);
-          ci.query_head_len = db_getheaderlen(seqno);
-          ci.query_seq = db_getsequence(seqno);
-          ci.query_len = db_getsequencelen(seqno);
-          ci.query_no = seqno;
-          ci.query_size = db_getabundance(seqno);
-        }
-
-      /* if necessary, expand memory for arrays dependent on query length */
-      realloc_arrays(ci.query_len);
-      
-      int status = 0;
-
-      /* partition query */
-      partition_query(parts);
-
-      /* perform searches and collect candidate parents */
-      ci.cand_count = 0;
-      int allhits_count = 0;
-
-      for (int i=0; i<parts; i++)
-        {
-          struct hit * hits;
-          int hit_count;
-          search_onequery(ci.si+i);
-          search_joinhits(ci.si+i, 0, & hits, & hit_count);
-          for(int j=0; j<hit_count; j++)
-            if (hits[j].accepted)
-              allhits_list[allhits_count++] = hits[j];
-          free(hits);
-        }
-
-      for(int i=0; i < allhits_count; i++)
-        {
-          unsigned int target = allhits_list[i].target;
-
-          /* skip duplicates */
-          int k;
-          for(k = 0; k < ci.cand_count; k++)
-            if (ci.cand_list[k] == target)
-              break;
-
-          if (k == ci.cand_count)
-            ci.cand_list[ci.cand_count++] = target;
-
-          /* deallocate cigar */
-          if (allhits_list[i].nwalignment)
-            free(allhits_list[i].nwalignment);
-        }
-
-
-      /* align full query to each candidate */
-
-      search16_qprep(ci.s, ci.query_seq, ci.query_len);
-
-      search16(ci.s,
-               ci.cand_count,
-               ci.cand_list,
-               ci.nwscore,
-               ci.nwalignmentlength,
-               ci.nwmatches,
-               ci.nwmismatches,
-               ci.nwgaps,
-               ci.nwcigar);
-      
-      /* find the best pair of parents */
-
-      if (find_best_parents())
-        {
-          /* compute score for parents */
-          status = eval_parents();
-        }
-      else
-        {
-          status = -1;
-          /* output no parents, no chimeras */
-          if (opt_uchimeout)
-            {
-              if (opt_uchimeout5)
-                fprintf(ci.fp_uchimeout,
-                        "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n",
-                        ci.query_head);
-              else
-                fprintf(ci.fp_uchimeout,
-                        "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n",
-                        ci.query_head);
-            }
-        }
-
-      if (status > 0)
-        {
-          ci.chimeras++;
-
-          if (opt_chimeras)
-            {
-              fprint_fasta_hdr_only(ci.fp_chimeras, ci.query_head);
-              fprint_fasta_seq_only(ci.fp_chimeras, ci.query_seq,
-                                    ci.query_len, opt_fasta_width);
-            }
-        }
-
-      if (status < 0)
-        {
-          /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo)
-            dbindex_addsequence(seqno);
-
-          if (opt_nonchimeras)
-            {
-              fprint_fasta_hdr_only(ci.fp_nonchimeras, ci.query_head);
-              fprint_fasta_seq_only(ci.fp_nonchimeras, ci.query_seq,
-                                    ci.query_len, opt_fasta_width);
-            }
-        }
-      
-      for (int i=0; i < ci.cand_count; i++)
-        if (ci.nwcigar[i])
-          free(ci.nwcigar[i]);
-      
-      seqno++;
-      queries++;
-
-      if (opt_uchime_ref)
-        progress = query_getfilepos();
-      else
-        progress += db_getsequencelen(seqno);
-
-      progress_update(progress);
-    }
   progress_done();
 
-  for(int i = 0; i < parts; i++)
-    query_exit(ci.si + i);
-  
   fprintf(stderr, "Found %d chimeras in %d sequences (%.1f%%)\n",
-          ci.chimeras, queries, 100.0 * ci.chimeras / queries);
+          chimera_count, seqno, 100.0 * chimera_count / seqno);
 
-
-  close_chimera_file(ci.fp_uchimeout);
-  close_chimera_file(ci.fp_uchimealns);
-  close_chimera_file(ci.fp_nonchimeras);
-  close_chimera_file(ci.fp_chimeras);
-
-  search16_exit(ci.s);
-
-  if (allhits_list)
-    free(allhits_list);
-
-  if (ci.maxsmooth)
-    free(ci.maxsmooth);
-  if (ci.match)
-    free(ci.match);
-  if (ci.smooth)
-    free(ci.smooth);
-  if (ci.diffs)
-    free(ci.diffs);
-  if (ci.votes)
-    free(ci.votes);
-  if (ci.model)
-    free(ci.model);
-  if (ci.ignore)
-    free(ci.ignore);
-  if (ci.maxi)
-    free(ci.maxi);
-  if (ci.qaln)
-    free(ci.qaln);
-  if (ci.paln[0])
-    free(ci.paln[0]);
-  if (ci.paln[1])
-    free(ci.paln[1]);
-  
   if (opt_uchime_ref)
     query_close();
   
   dbindex_free();
   db_free();
+
+  pthread_mutex_destroy(&mutex_output);
+  pthread_mutex_destroy(&mutex_input);
+  
+  free(cia);
+  free(pthread);
+  
+  close_chimera_file(fp_uchimeout);
+  close_chimera_file(fp_uchimealns);
+  close_chimera_file(fp_nonchimeras);
+  close_chimera_file(fp_chimeras);
 
   show_rusage();
 }

@@ -462,7 +462,7 @@ void args_init(int argc, char **argv)
   opt_query_cov = 0.0;
   opt_relabel = 0;
   opt_rightjust = 0;
-  opt_rowlen = 64;
+  opt_rowlen = 60;
   opt_seed = 0;
   opt_self = 0;
   opt_selfid = 0;
@@ -1332,7 +1332,7 @@ void cmd_help()
           "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
           "  --query_cov REAL            reject if fraction of query aligned lower\n"
           "  --rightjust                 reject if terminal gaps at alignment right end\n"
-          "  --rowlen INT                width of alignment lines in alnout output (64)\n"
+          "  --rowlen INT                width of alignment lines in alnout output (60)\n"
           "  --self                      reject if labels identical\n"
           "  --selfid                    reject if sequences identical\n"
           "  --target_cov REAL           reject if fraction of target aligned lower\n"
@@ -1380,8 +1380,9 @@ void cmd_help()
           "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
           "  --minh REAL                 minimum score (0.28)\n"
           "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
-          "  --self                      exclude identical sequences for --uchime_ref\n"
-          "  --selfid                    exclude identical labels for --uchime_ref\n"
+          "  --rowlen INT                width of alignment in uchimealn output (60)\n"
+          "  --self                      exclude identical labels for --uchime_ref\n"
+          "  --selfid                    exclude identical sequences for --uchime_ref\n"
           "  --uchimealns FILENAME       output chimera alignments to file\n"
           "  --uchimeout FILENAME        output to chimera info to tab-separated file\n"
           "  --uchimeout5                make output compatible with uchime version 5\n"
@@ -1489,6 +1490,9 @@ void cmd_uchime()
 
   if (opt_minh <= 0.0)
     fatal("Argument to --minh must be > 0");
+
+  if (opt_abskew <= 1.0)
+    fatal("Argument to --abskew must be > 1");
 
   chimera();
 }
