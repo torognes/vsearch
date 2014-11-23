@@ -22,12 +22,13 @@ VSEARCH does not support amino acid sequences or local alignments. These feature
 
 The same option names as USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
+VSEARCH binaries are provided for x86-64 bits systems running GNU/Linux or MacOS X.
 
 ## Example
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-0.2.0-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-0.3.1-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 
 ## Details
@@ -68,7 +69,7 @@ The dereplication and sorting commands seems to be considerably faster in VSEARC
 
 **Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the ``--uchime_ref`` and ``--uchime_denovo`` commands and all their options are supported. Parallelisation of chimera detection has not yet been implemented. The accuracy of VSEARCH on chimera detection has been evaluated using the SIMM dataset described in the UCHIME paper. See the ``eval/chimeval.sh`` script for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation of UCHIME in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH. VSEARCH is almost twice as fast as USEARCH on *de novo* chimera detection. Due to multithreading, USEARCH is currently considerably faster than VSEARCH on chimera detection against a reference database when running on 3 or more threads. We are working on a multithreaded uchime_ref implementation for VSEARCH.
 
-**Masking:** VSEARCH by default uses an optimzed reimplementation of the well-known DUST algorithm by Tatusov and Lipman to mask simple repeats and low-complexity regions in the sequences. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
+**Masking:** VSEARCH by default uses an optimized reimplementation of the well-known DUST algorithm by Tatusov and Lipman to mask simple repeats and low-complexity regions in the sequences. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
