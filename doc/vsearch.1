@@ -500,67 +500,6 @@ default is to launch one thread per available logical core.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
-Shuffling options:
-.RS
-.TP 9
-.BI --output \0filename
-write the shuffled sequences to \fIfilename\fR, in fasta format.
-.TP
-.BI --seed\~ "positive integer"
-when shuffling sequence order, use \fIinteger\fR as seed. A given seed
-will always produce the same output order (useful for
-replicability). Set to 0 to use a pseudo-random seed (default
-behavior).
-.TP
-.BI --shuffle \0filename
-pseudo-randomly shuffle the order of sequences contained in
-\fIfilename\fR.
-.TP
-.BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences.
-.RE
-.PP
-.\" ----------------------------------------------------------------------------
-Sorting options:
-.RS
-.TP 9
-.BI --maxsize\~ "positive integer"
-when using --sortbysize, discard sequences with an abundance value
-greater than \fIinteger\fR.
-.TP
-.BI --minsize\~ "positive integer"
-when using --sortbysize, discard sequences with an abundance value
-smaller than \fIinteger\fR.
-.TP
-.BI --output \0filename
-write the sorted sequences to \fIfilename\fR, in fasta format.
-.TP
-.BI --relabel \0string
-relabel sequence using the prefix \fIstring\fR and a ticker (1, 2, 3,
-etc.) to construct the new headers. Use --sizeout to conserve the
-abundance annotations.
-.TP
-.B --sizeout
-when using --relabel, report abundance annotations to the output fasta
-file (using the pattern ";size=\fIinteger\fR").
-.TP
-.BI --sortbylength \0filename
-sort by decreasing length the sequences contained in
-\fIfilename\fR. See the general options --minseqlength and
---maxseqlength to eliminate short and long sequences.
-.TP
-.BI --sortbysize \0filename
-sort by decreasing abundance the sequences contained in \fIfilename\fR
-(the pattern "[>;]size=\fIinteger\fR[;]" has to be present). See the
-options --minsize and --maxsize to eliminate rare and dominant
-sequences.
-.TP
-.BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences (i.e. the longest or the
-most abundant).
-.RE
-.PP
-.\" ----------------------------------------------------------------------------
 Searching options:
 .RS
 .TP 9
@@ -910,7 +849,7 @@ each query. \fBTO BE TESTED\fR.
 .BI --userfields \0string
 when using --userout, select and order the fields written to the
 output file. Fields are separated by "+" (e.g. query+target+id). See
-the next section for a complete list of fields.
+the "Userfields" section for a complete list of fields.
 .TP
 .BI --userout \0filename
 write user-defined tab-separated output to \fIfilename\fR. Select the
@@ -945,7 +884,68 @@ more). The default value is 8.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
-Fields accepted by the --userfields option:
+Shuffling options:
+.RS
+.TP 9
+.BI --output \0filename
+write the shuffled sequences to \fIfilename\fR, in fasta format.
+.TP
+.BI --seed\~ "positive integer"
+when shuffling sequence order, use \fIinteger\fR as seed. A given seed
+will always produce the same output order (useful for
+replicability). Set to 0 to use a pseudo-random seed (default
+behavior).
+.TP
+.BI --shuffle \0filename
+pseudo-randomly shuffle the order of sequences contained in
+\fIfilename\fR.
+.TP
+.BI --topn\~ "positive integer"
+output only the top \fIinteger\fR sequences.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+Sorting options:
+.RS
+.TP 9
+.BI --maxsize\~ "positive integer"
+when using --sortbysize, discard sequences with an abundance value
+greater than \fIinteger\fR.
+.TP
+.BI --minsize\~ "positive integer"
+when using --sortbysize, discard sequences with an abundance value
+smaller than \fIinteger\fR.
+.TP
+.BI --output \0filename
+write the sorted sequences to \fIfilename\fR, in fasta format.
+.TP
+.BI --relabel \0string
+relabel sequence using the prefix \fIstring\fR and a ticker (1, 2, 3,
+etc.) to construct the new headers. Use --sizeout to conserve the
+abundance annotations.
+.TP
+.B --sizeout
+when using --relabel, report abundance annotations to the output fasta
+file (using the pattern ";size=\fIinteger\fR").
+.TP
+.BI --sortbylength \0filename
+sort by decreasing length the sequences contained in
+\fIfilename\fR. See the general options --minseqlength and
+--maxseqlength to eliminate short and long sequences.
+.TP
+.BI --sortbysize \0filename
+sort by decreasing abundance the sequences contained in \fIfilename\fR
+(the pattern "[>;]size=\fIinteger\fR[;]" has to be present). See the
+options --minsize and --maxsize to eliminate rare and dominant
+sequences.
+.TP
+.BI --topn\~ "positive integer"
+output only the top \fIinteger\fR sequences (i.e. the longest or the
+most abundant).
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+Userfields (fields accepted by the --userfields option):
 .RS
 .TP 9
 .B aln
