@@ -24,6 +24,8 @@ The same option names as USEARCH version 7 has been used in order to make VSEARC
 
 VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X.
 
+When compiled with the zlib and bzip2 libraries (as in the supplied binaries), VSEARCH can read compressed input query and database files directly.
+
 ## Example
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
