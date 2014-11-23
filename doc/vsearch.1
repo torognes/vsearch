@@ -18,8 +18,9 @@ Chimera detection:
 Clustering:
 .RS
 \fBvsearch\fR [\fIoptions\fR] (--cluster_fast|--cluster_smallmem)
-\fIfastafile\fR (--alnout|--blast6out|--uc|--userout) \fIoutputfile\fR
---id \fIreal\fR
+\fIfastafile\fR
+(--alnout|--blast6out|--centroids|--clusters|--msaout|--uc|--userout)
+\fIoutputfile\fR --id \fIreal\fR
 .RE
 Dereplication:
 .RS
@@ -141,11 +142,6 @@ than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
 .B --notrunclabels
 do not truncate sequence labels at first space, use the full header in
 output files.
-.TP
-.BI --threads\~ "positive integer"
-number of computation threads to use (1 to 256). The number of threads
-should be lesser or equal to the number of available CPU cores. The
-default is to launch one thread per available logical core.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -153,28 +149,30 @@ Chimera detection options:
 .PP
 .RS
 Chimera detection is based on a scoring function controlled by five
-options (--dn, --mindiv, mindiffs, --minh, --xn).
+options (--dn, --mindiv, mindiffs, --minh, --xn). Sequences are first
+sorted by decreasing abundance (if available), and compared on their
+\fIplus\fR strand only.
 .PP
 In \fIde novo\fR mode, input fasta file should present abundance
 annotations (pattern [;]size=\fIinteger\fR[;] in the fasta
 header). The input order influences the chimera detection, we
 recommend to sort sequences by decreasing abundance (default of
 --derep_fulllength command). If your sequence set needs to be sorted,
-please see the --sortbysize command.
+please see the --sortbysize command in the sorting section.
 .PP
 .TP 9
 .BI --abskew \0real
 when using --uchime_denovo, the abundance skew is used to distinguish
 in a 3-way alignment which sequence is the chimera and which are the
 parents. The assumption is that chimeras appeared latter in the PCR
-process and are therefore less abundant than their parents. The
-default value is 2.0, which means that the parents should be at least
-2 times more abundant than their chimera. Any positive values equal or
-greater than 1.0 can be used.
+amplification process and are therefore less abundant than their
+parents. The default value is 2.0, which means that the parents should
+be at least 2 times more abundant than their chimera. Any positive
+value greater than 1.0 can be used.
 .TP
 .BI --chimeras \0filename
-output chimeric sequences to file. Output order may vary when using
-multiple threads.
+output chimeric sequences to \fIfilename\fR, in fasta format. Output
+order may vary when using multiple threads.
 .TP
 .BI --db \0filename
 when using --uchime_ref, detect chimeras using the fasta-formatted
@@ -184,19 +182,20 @@ parents (or sufficiently close relatives) are not present in the
 database.
 .TP
 .BI --dn \0real
-no vote pseudo-count (parameter n) (1.4).
+no vote pseudo-count (parameter \fIn\fR in the chimera scoring
+function) (1.4).
 .TP
-.BI --mindiffs \0integer
-minimum number of differences in segment (3).
+.BI --mindiffs\~ "positive integer"
+minimum number of differences per segment (3).
 .TP
 .BI --minh \0real
 minimum score (h). Increasing this value tends to reduce the number of
-false positives and decrease sensitivity. Default value is
+false positives and to decrease sensitivity. Default value is
 0.28. (value ranging from 0.0 to 1.0 included).
 .TP
 .BI --nonchimeras \0filename
-output non-chimeric sequences to file. Output order may vary when
-using multiple threads.
+output non-chimeric sequences to \fIfilename\fR, in fasta
+format. Output order may vary when using multiple threads.
 .TP
 .BI --rowlen\~ "positive integer"
 width of 3-way alignments in --uchimealns output. The default value is
@@ -210,20 +209,17 @@ false-positive rate in reference sequences).
 .B --selfid
 when using --uchime_ref, ignore a reference sequence when its
 nucleotidic sequence is strictly identical with the query sequence.
-.TP
-.BI --strand\~ "plus|both"
-when using --uchime_denovo, check the \fIplus\fR strand only (default)
-or check \fIboth\fR strands. When using --uchime_ref, strand is always
-\fIplus\fB.
-.TP
-.BI --threads\~ "positive integer"
-when using the command --uchime_ref, set the number of computation
-threads to use (1 to 256). The number of threads should be lesser or
-equal to the number of available CPU cores. The default is to launch
-one thread per available logical core.
+.\" .TP
+.\" .BI --threads\~ "positive integer"
+.\" when using the command --uchime_ref, set the number of computation
+.\" threads to use (1 to 256). The number of threads should be lesser or
+.\" equal to the number of available CPU cores. The default is to launch
+.\" one thread per available logical core.
 .TP
 .BI --uchime_denovo \0filename
-detect chimeras de novo. Multithreading is not supported.
+detect chimeras present in the fasta-formatted \fIfilename\fR, without
+external references (i.e. \fIde novo\fR). Multithreading is not
+supported.
 .TP
 .BI --uchime_ref \0filename
 detect chimeras present in the fasta-formatted \fIfilename\fR by
@@ -239,12 +235,12 @@ alignment length. Output order may vary when using multiple threads.
 write chimera detection results to \fIfilename\fR using the uchime
 tab-separated format of 18 fields (see the list below). Use
 --uchimeout5 to use a format compatible with usearch v5 and earlier
-versions. Output order may vary when using multiple threads.
+versions. Rows output order may vary when using multiple threads.
 .RS
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-score \(em higher score means more strongly chimeric alignment.
+score \(em higher score means a more likely chimeric alignment.
 .IP \n+[step].
 Q \(em query sequence label.
 .IP \n+[step].
@@ -253,10 +249,10 @@ A \(em parent A sequence label.
 B \(em parent B sequence label.
 .IP \n+[step].
 T \(em top parent sequence label (i.e. parent most similar to the
-query). That fields is removed when using --uchimeout5.
+query). That field is removed when using --uchimeout5.
 .IP \n+[step].
-idQM \(em percentage of similarity of query (Q) and the model
-(M) constructed as a segment of parent A and a segment of parent B.
+idQM \(em percentage of similarity of query (Q) and model (M)
+constructed as a segment of parent A and a segment of parent B.
 .IP \n+[step].
 idQA \(em percentage of similarity of query (Q) and parent A.
 .IP \n+[step].
@@ -264,8 +260,7 @@ idQB \(em percentage of similarity of query (Q) and parent B.
 .IP \n+[step].
 idAB \(em percentage of similarity of parent A and parent B.
 .IP \n+[step].
-idQT \(em percentage of similarity of query (Q) and the top
-parent (T).
+idQT \(em percentage of similarity of query (Q) and top parent (T).
 .IP \n+[step].
 LY \(em yes votes in the left segment of the model.
 .IP \n+[step].
@@ -281,15 +276,15 @@ RA \(em abstain votes in the right segment of the model.
 .IP \n+[step].
 div \(em divergence, defined as (idQM - idQT).
 .IP \n+[step].
-YN \(em query is chimeric (Y), or not (N) or is a borderline
-case (?).
+YN \(em query is chimeric (Y), or not (N), or is a borderline case
+(?).
 .RE
 .RE
 .TP
 .B --uchimeout5
-write chimera detection results using a tab-separated format of 17
-fields (drop the 5th field of --uchimeout), compatible with usearch
-version 5 and earlier versions.
+when using --uchimeout, write chimera detection results using a
+tab-separated format of 17 fields (drop the 5th field of --uchimeout),
+compatible with usearch version 5 and earlier versions.
 .TP
 .BI --xn \0real
 no vote weight (parameter β) (8.0).
@@ -298,19 +293,25 @@ no vote weight (parameter β) (8.0).
 .\" ----------------------------------------------------------------------------
 Clustering options:
 .RS
+.PP
+\fBvsearch\fR implements a single-pass, greedy star-clustering
+algorithm, similar to the algorithms implemented in usearch, DNAclust
+and sumaclust. Important parameters are the global clustering
+threshold (--id) and the pairwise identity definition (--iddef).
 .TP 9
 .BI --centroids \0filename
-output cluster centroid sequences to \fIfilename\fR file \fBin fasta
-format?\fR.
+output cluster centroid sequences to \fIfilename\fR file, in fasta
+format. The centroid is the sequence that seeded the cluster (i.e. the
+first sequence of the cluster).
 .TP
 .BI --cluster_fast \0filename
-clusterize the fasta sequences in \fIfilename\fR, perform a sorting by
-decreasing sequence length first.
+clusterize the fasta sequences in \fIfilename\fR, automatically
+perform a sorting by decreasing sequence length beforehand.
 .TP
 .BI --cluster_smallmem \0filename
-clusterize the fasta sequences in \fIfilename\fR without modifying
-their order first. Sequence must be sorted by decreasing sequence
-length, unless --usersort is used.
+clusterize the fasta sequences in \fIfilename\fR without automatically
+modifying their order beforehand. Sequence are expected to be sorted
+by decreasing sequence length, unless --usersort is used.
 .TP
 .BI --clusters \0string
 output each cluster to a separate fasta file using the prefix
@@ -322,14 +323,14 @@ cluster, a multiple alignment is computed, and a consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
 are skipped, except for terminal gaps. Use --construncate to take
-terminal gaps into account.
-.TP
+terminal gaps into account (not implemented yet).
+.\" .TP
 .\" .B --construncate
 .\" when using the --consout option to build consensus sequences, do not
 .\" ignore terminal gaps. That option skips terminal columns if they
 .\" contain a majority of gaps, yielding shorter consensus sequences than
 .\" when using --consout alone.
-.\" .TP
+.TP
 .BI --id \0real
 do not add the target to the cluster if the pairwise identity with the
 centroid is lower than \fIreal\fR (value ranging from 0.0 to 1.0
@@ -346,19 +347,25 @@ are:
 .IP \n[step]. 4
 CD-HIT definition using shortest sequence as numerator.
 .IP \n+[step].
-edit distance.
+edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
 edit distance excluding terminal gaps (default value).
 .IP \n+[step].
 Marine Biological Lab definition counting each extended gap as a
 single difference.
 .IP \n+[step].
-BLAST, same as 2 for global pairwise alignments.
+BLAST definition, equivalent to --iddef 2 in a context of global
+pairwise alignment.
 .RE
 .RE
 .TP
 .BI --msaout \0filename
-output multiple sequence alignments of each cluster to \fIfilename\fR.
+output a multiple sequence alignment and a consensus sequence for each
+cluster to \fIfilename\fR, in fasta format. The consensus sequence is
+constructed by taking the majority symbol (nucleotide or gap) from
+each column of the alignment. Columns containing a majority of gaps
+are skipped, except for terminal gaps. Use --construncate to take
+terminal gaps into account (not implemented yet).
 .TP
 .BI --qmask\~ "none|dust|soft"
 mask simple repeats and low-complexity regions in sequences using the
@@ -366,28 +373,32 @@ mask simple repeats and low-complexity regions in sequences using the
 (\fInone\fR). Warning, when using \fIsoft\fR masking, clustering
 becomes case sensitive. The default is to mask using \fIdust\fR.
 .TP
+.BI --threads\~ "positive integer"
+number of computation threads to use (1 to 256). The number of threads
+should be lesser or equal to the number of available CPU cores. The
+default is to launch one thread per available logical core.
+.TP
 .BI --strand\~ "plus|both"
-when comparing sequences to the cluster seeds, check the \fIplus\fR
+when comparing sequences with the cluster seed, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
 .TP
 .BI --uc \0filename
 output clustering results in \fIfilename\fR using a uclust-like
 format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
 description of the format.
-.TP
-.B --uc_allhits
-when using the --uc option, show all hits, not just the top hit for
-each seed. \fBTO BE TESTED\fR.
+.\" .TP
+.\" .B --uc_allhits
+.\" when using the --uc option, show all hits, not just the top hit for
+.\" each seed.
 .TP
 .B --usersort
-when using --cluster_smallmem, allows to use any sequence input order,
+when using --cluster_smallmem, allow to use any sequence input order,
 not only a decreasing length sorting.
 .TP
 Many searching options also apply to clustering:
 .br
 --alnout, --blast6out, --userout, --userfields, fastapairs, --matched,
---notmatched, --maxaccept, --maxreject, score filtering, gap
---penalties, masking, etc. (documentation in progress).
+--notmatched, --maxaccept, --maxreject, score filtering, gap penalties, masking. (see the Searching section).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -412,33 +423,31 @@ discard sequences with an abundance value smaller than \fIinteger\fR.
 write the dereplicated sequences to \fIfilename\fR, in fasta format
 and sorted by decreasing abundance. Identical sequences receive the
 header of the first sequence of their group. If --sizeout is used, the
-number of occurrences (i.e. abundance) is indicated at the end of the
-fasta header using the pattern ";size=\fIinteger\fR".
+number of occurrences (i.e. abundance) of each sequence is indicated
+at the end of their fasta header using the pattern
+";size=\fIinteger\fR".
 .TP
 .B --sizein
 take into account the abundance annotations present in the input fasta
-file (search for the pattern "[>;]size=\fIinteger\fR[;]").
+file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
+headers).
 .TP
 .B --sizeout
-add abundance annotations to the output fasta file (using the pattern
-";size=\fIinteger\fR").
+add abundance annotations to the output fasta file (add the pattern
+";size=\fIinteger\fR" to sequence headers).
 .TP
 .BI --strand\~ "plus|both"
 when searching for strictly identical sequences, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
 .TP
 .BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences.
+output only the top \fIinteger\fR sequences (i.e. the most abundant).
 .TP
 .BI --uc \0filename
 output dereplication results in \fIfilename\fR using a uclust-like
 format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
-description of the format.
-.TP
-.B --uc_allhits
-when using the --uc option, show all hits, not just the top hit for
-each query. In the context of dereplication, that option has no
-effect.
+description of the format. In the context of dereplication, the option
+--uc_allhits has no effect.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -473,7 +482,7 @@ setting them to lower case.
 .TP
 .BI --maskfasta \0filename
 mask simple repeats and low-complexity regions in sequences contained
-in \fIfilename\fR. The default is to mask using \fIdust\fR (see
+in \fIfilename\fR. The default is to mask using \fIdust\fR (use
 --qmask to modify that behavior).
 .TP
 .BI --qmask\~ "none|dust|soft"
@@ -483,6 +492,11 @@ mask simple repeats and low-complexity regions in sequences using the
 .TP
 .BI --output \0filename
 write the masked sequences to \fIfilename\fR, in fasta format.
+.TP
+.BI --threads\~ "positive integer"
+number of computation threads to use (1 to 256). The number of threads
+should be lesser or equal to the number of available CPU cores. The
+default is to launch one thread per available logical core.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -493,8 +507,10 @@ Shuffling options:
 write the shuffled sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI --seed\~ "positive integer"
-when shuffling sequence order, use \fIinteger\fR as seed. Set to 0 to
-use a pseudo-random seed (default behavior).
+when shuffling sequence order, use \fIinteger\fR as seed. A given seed
+will always produce the same output order (useful for
+replicability). Set to 0 to use a pseudo-random seed (default
+behavior).
 .TP
 .BI --shuffle \0filename
 pseudo-randomly shuffle the order of sequences contained in
@@ -540,7 +556,8 @@ options --minsize and --maxsize to eliminate rare and dominant
 sequences.
 .TP
 .BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences.
+output only the top \fIinteger\fR sequences (i.e. the longest or the
+most abundant).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -708,7 +725,8 @@ edit distance excluding terminal gaps (default value of --id).
 Marine Biological Lab definition counting each extended gap as a
 single difference.
 .IP \n+[step].
-BLAST, same as 2 for global pairwise alignments.
+BLAST definition, equivalent to --iddef 2 in a context of global
+pairwise alignment.
 .RE
 .RE
 The option --userfields accepts the fields id0 to id4, in addition to
@@ -870,6 +888,11 @@ sequence is lower than \fIreal\fR. The target coverage is computed as
 such: 100.0 * (matches + mismatches) / target sequence
 length. Internal or terminal gaps are not taken into account.
 .TP
+.BI --threads\~ "positive integer"
+number of computation threads to use (1 to 256). The number of threads
+should be lesser or equal to the number of available CPU cores. The
+default is to launch one thread per available logical core.
+.TP
 .B --top_hits_only
 output only the hits with the highest percentage of identity with the
 query.
@@ -979,8 +1002,8 @@ single difference.
 .TP
 .B id4
 BLAST definition of the percentage of identity (real value ranging
-from 0.0 to 100.0), same as the field id2 for global pairwise
-alignments.
+from 0.0 to 100.0), equivalent to --iddef 2 in a context of global
+pairwise alignment.
 .TP
 .B ids
 Number of matches in the alignment (zero or positive integer value).
@@ -1260,8 +1283,13 @@ copyright Jean-loup Gailly and Mark Adler.
 copyright Julian R. Seward.
 .\" ============================================================================
 .SH SEE ALSO
-\fBswipe\fR, an extremely fast Smith-Waterman database search tool by
-Torbjørn Rognes and available at <https://github.com/torognes/swipe>.
+\fBswipe\fR, an extremely fast pairwise local (Smith-Waterman)
+database search tool by Torbjørn Rognes, available at
+<https://github.com/torognes/swipe>.
+.PP
+\fBswarm\fR, a fast and accurate amplicon clustering method by
+Frédéric Mahé and Torbjørn Rognes, available at
+<https://github.com/torognes/swarm>.
 .\" ============================================================================
 .SH VERSION HISTORY
 New features and important modifications of \fBvsearch\fR (short lived
