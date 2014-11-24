@@ -229,8 +229,8 @@ VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library 
 
 The code is written in C++ but most of it is actually C with some C++ syntax conventions.
 
-    File     | Description 
--------------|------
+File | Description
+-|-
 **align.cc** | New Needleman-Wunsch global alignment, serial. Only for testing.
 **align_simd.cc** | SIMD parallel global alignment of 1 query with 8 database sequences
 **arch.cc** | Architecture specific code (Mac/Linux)
