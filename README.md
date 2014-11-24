@@ -34,13 +34,13 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 ## Download and install
 
-Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). Put the binaries in a folder included in your `$PATH`. These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
-The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf).
+The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file in a folder in your `$MANPATH`.
 
 The entire repository may be cloned by running `git clone git@github.com:torognes/vsearch.git`.
 
-Run `make -f Makefile` to build the executable.
+Run `make -f Makefile` within the `src` folder to build the executable.
 
 The alternative makefiles Makefile.ZLIB, Makefile.BZLIB and Makefile.static may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be installed in folders called `zlib` and `bzip2` below the main `vsearch` folder.
 
