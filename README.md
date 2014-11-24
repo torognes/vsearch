@@ -282,3 +282,39 @@ The following people have contributed to VSEARCH:
 * Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011) UCHIME improves sensitivity and speed of chimera detection. Bioinformatics, 27 (16): 2194-2200. doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
 * Farrar M (2007) Striped Smith-Waterman speeds database searches six times over other SIMD implementations. Bioinformatics (2007) 23 (2): 156-161. doi:[10.1093/bioinformatics/btl582](http://dx.doi.org/10.1093/bioinformatics/btl582)
 * Rognes T (2011) Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation. BMC Bioinformatics, 12: 221. doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
+
+
+Testing datasets were obtained from the
+[BioMarks project](http://biomarks.eu/) (Logares et al. 2014), the
+[TARA OCEANS project](http://oceans.taraexpeditions.org/) (Karsenti et
+al. 2011) and the [Protist Ribosomal Database](http://ssu-rrna.org/)
+(Guillou et al. 2012):
+
+* Guillou L., Bachar D., Audic S., Bass D., Berney C., Bittner L.,
+  Boutte C., Burgaud G., de Vargas C., Decelle J., del Campo J., Dolan
+  J., Dunthorn M., Edvardsen B., Holzmann M., Kooistra W., Lara E.,
+  Lebescot N., Logares R., Mahé F., Massana R., Montresor M., Morard
+  R., Not F., Pawlowski J., Probert I., Sauvadet A.-L., Siano R.,
+  Stoeck T., Vaulot D., Zimmermann P. & Christen R. (2013) The Protist
+  Ribosomal Reference database (PR2): a catalog of unicellular
+  eukaryote Small Sub-Unit rRNA sequences with curated
+  taxonomy. *Nucleic Acids Research*, 41(D1),
+  D597--D604. doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
+* Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R.,
+  Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B.,
+  Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski
+  J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck
+  T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de
+  Vargas C. & Massana R. (2014) The patterning of rare and abundant
+  community assemblages in coastal marine-planktonic microbial
+  eukaryotes. *Current Biology*, 24(8),
+  813-821. doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
+* Karsenti E., González Acinas S., Bork P., Bowler C., de Vargas C.,
+  Raes J., Sullivan M. B., Arendt D., Benzoni F., Claverie J.-M.,
+  Follows M., Jaillon O., Gorsky G., Hingamp P., Iudicone D.,
+  Kandels-Lewis S., Krzic U., Not F., Ogata H., Pesant S., Reynaud
+  E. G., Sardet C., Sieracki M. E., Speich S., Velayoudon D.,
+  Weissenbach J., Wincker P. & the Tara Oceans Consortium (2011) A
+  holistic approach to marine eco-systems biology. *PLoS Biology*,
+  9(10),
+  e1001177. doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
