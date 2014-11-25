@@ -34,7 +34,17 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 ## Download and install
 
-Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). Put the binaries in a folder included in your `$PATH`. These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2). Download the appropriate binary and make a symbolic link from `vsearch` to the binary in a folder included in your `$PATH`. You may for example use the following commands:
+
+```sh
+cd ~
+mkdir -p bin
+cd bin
+wget https://github.com/torognes/vsearch/releases/download/v0.3.2/vsearch-0.3.2-linux-x86_64
+ln -s vsearch-0.3.2-linux-x86_64 vsearch
+```
+
+Substitute `linux` with `osx` in those lines if you're on a Mac.
 
 The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file in a folder in your `$MANPATH`.
 
