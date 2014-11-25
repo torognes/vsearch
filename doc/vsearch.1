@@ -6,49 +6,53 @@ vsearch \(em dereplicate, filter, sort, search, compare and clusterize
 amplicons from metagenomic projects
 .\" ============================================================================
 .SH SYNOPSIS
+.\" left justified, ragged right
+.ad l
 Chimera detection:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --uchime_denovo \fIfastafile\fR
-(--chimeras|--nonchimeras|--uchimealns|--uchimeout) \fIoutputfile\fR
+\fBvsearch\fR --uchime_denovo \fIfastafile\fR (--chimeras |
+--nonchimeras | --uchimealns | --uchimeout) \fIoutputfile\fR
+[\fIoptions\fR]
 .PP
-\fBvsearch\fR [\fIoptions\fR] --uchime_ref \fIfastafile\fR
-(--chimeras|--nonchimeras|--uchimealns|--uchimeout) \fIoutputfile\fR
---db \fIfastafile\fR
+\fBvsearch\fR --uchime_ref \fIfastafile\fR (--chimeras | --nonchimeras
+| --uchimealns | --uchimeout) \fIoutputfile\fR --db \fIfastafile\fR
+[\fIoptions\fR]
 .RE
 Clustering:
 .RS
-\fBvsearch\fR [\fIoptions\fR] (--cluster_fast|--cluster_smallmem)
-\fIfastafile\fR
-(--alnout|--blast6out|--centroids|--clusters|--msaout|--uc|--userout)
-\fIoutputfile\fR --id \fIreal\fR
+\fBvsearch\fR (--cluster_fast | --cluster_smallmem) \fIfastafile\fR
+(--alnout | --blast6out | --centroids | --clusters | --msaout | --uc |
+--userout) \fIoutputfile\fR --id \fIreal\fR [\fIoptions\fR]
 .RE
 Dereplication:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --derep_fulllength \fIfastafile\fR
-(--output|--uc) \fIoutputfile\fR
+\fBvsearch\fR --derep_fulllength \fIfastafile\fR (--output | --uc)
+\fIoutputfile\fR [\fIoptions\fR]
 .RE
 Masking:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --maskfasta \fIfastafile\fR --output
-\fIoutputfile\fR
+\fBvsearch\fR --maskfasta \fIfastafile\fR --output \fIoutputfile\fR
+[\fIoptions\fR]
 .RE
 Searching:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --vsearch_global \fIfastafile\fR --db
-\fIfastafile\fR (--alnout|--blast6out|--uc|--userout) \fIoutputfile\fR
---id \fIreal\fR
+\fBvsearch\fR --vsearch_global \fIfastafile\fR --db \fIfastafile\fR
+(--alnout | --blast6out | --uc | --userout) \fIoutputfile\fR --id
+\fIreal\fR [\fIoptions\fR]
 .RE
 Shuffling:
 .RS
-\fBvsearch\fR [\fIoptions\fR] --shuffle \fIfastafile\fR --output
-\fIoutputfile\fR
+\fBvsearch\fR --shuffle \fIfastafile\fR --output \fIoutputfile\fR
+[\fIoptions\fR]
 .RE
 Sorting:
 .RS
-\fBvsearch\fR [\fIoptions\fR] (--sortbylength|--sortbysize)
-\fIfastafile\fR --output \fIoutputfile\fR
+\fBvsearch\fR (--sortbylength | --sortbysize) \fIfastafile\fR --output
+\fIoutputfile\fR [\fIoptions\fR]
 .RE
 .PP
+.\" left and right justified (default)
+.ad b 
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
@@ -71,9 +75,9 @@ available, \fBvsearch\fR exits with an error message.
 nucleotidic sequences. For each sequence, the sequence identifier is
 defined as the string comprised between the ">" symbol and the first
 space, or the end of the line, whichever comes first. Additionally, if
-the line starts with (>[;]size=\fIinteger\fR;label), contains
-(>label;size=\fIinteger\fR;label) or ends with
-(>label;size=\fIinteger\fR[;]), \fBvsearch\fR will remove the pattern
+the line starts with >[;]size=\fIinteger\fR;label, contains
+>label;size=\fIinteger\fR;label or ends with
+>label;size=\fIinteger\fR[;], \fBvsearch\fR will remove the pattern
 [;]size=\fIinteger\fR[;] from the header and interpret \fIinteger\fR
 as the number of occurrences (or abundance) of the sequence in the
 study. That abundance information is used or created during chimera
@@ -120,27 +124,27 @@ General options:
 .RS
 .TP 9
 .B --help
-display a short help and exit.
+Display a short help and exit.
 .TP
 .B --version
-output version information and exit.
+Output version information and exit.
 .TP
 .BI --fasta_width\~ "positive integer"
-fasta files produced by \fBvsearch\fR are wrapped (sequences are
+Fasta files produced by \fBvsearch\fR are wrapped (sequences are
 written on lines of \fIinteger\fR nucleotides, 80 by default). Set
 that value to 0 to eliminate the wrapping.
 .TP
 .BI --maxseqlength\~ "positive integer"
-all \fBvsearch\fR operations will discard sequences of length equal or
+All \fBvsearch\fR operations will discard sequences of length equal or
 greater than \fIinteger\fR (50,000 nucleotides by default).
 .TP
 .BI --minseqlength\~ "positive integer"
-all \fBvsearch\fR operations will discard sequences of length smaller
+All \fBvsearch\fR operations will discard sequences of length smaller
 than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
 32 nucleotides for clustering, dereplication or searching).
 .TP
 .B --notrunclabels
-do not truncate sequence labels at first space, use the full header in
+Do not truncate sequence labels at first space, use the full header in
 output files.
 .RE
 .PP
@@ -162,7 +166,7 @@ please see the --sortbysize command in the sorting section.
 .PP
 .TP 9
 .BI --abskew \0real
-when using --uchime_denovo, the abundance skew is used to distinguish
+When using --uchime_denovo, the abundance skew is used to distinguish
 in a 3-way alignment which sequence is the chimera and which are the
 parents. The assumption is that chimeras appeared latter in the PCR
 amplification process and are therefore less abundant than their
@@ -171,68 +175,68 @@ be at least 2 times more abundant than their chimera. Any positive
 value greater than 1.0 can be used.
 .TP
 .BI --chimeras \0filename
-output chimeric sequences to \fIfilename\fR, in fasta format. Output
+Output chimeric sequences to \fIfilename\fR, in fasta format. Output
 order may vary when using multiple threads.
 .TP
 .BI --db \0filename
-when using --uchime_ref, detect chimeras using the fasta-formatted
+When using --uchime_ref, detect chimeras using the fasta-formatted
 reference sequences contained in \fIfilename\fR. Reference sequences
 are assumed to be chimera-free. Chimeras will not be detected if their
 parents (or sufficiently close relatives) are not present in the
 database.
 .TP
 .BI --dn \0real
-no vote pseudo-count (parameter \fIn\fR in the chimera scoring
+No vote pseudo-count (parameter \fIn\fR in the chimera scoring
 function) (1.4).
 .TP
 .BI --mindiffs\~ "positive integer"
-minimum number of differences per segment (3).
+Minimum number of differences per segment (3).
 .TP
 .BI --minh \0real
-minimum score (h). Increasing this value tends to reduce the number of
+Minimum score (h). Increasing this value tends to reduce the number of
 false positives and to decrease sensitivity. Default value is
 0.28. (value ranging from 0.0 to 1.0 included).
 .TP
 .BI --nonchimeras \0filename
-output non-chimeric sequences to \fIfilename\fR, in fasta
+Output non-chimeric sequences to \fIfilename\fR, in fasta
 format. Output order may vary when using multiple threads.
 .TP
 .BI --rowlen\~ "positive integer"
-width of 3-way alignments in --uchimealns output. The default value is
+Width of 3-way alignments in --uchimealns output. The default value is
 60. Set to 0 to eliminate the wrapping.
 .TP
 .B --self
-when using --uchime_ref, ignore a reference sequence when its label
+When using --uchime_ref, ignore a reference sequence when its label
 matches the label of the query sequence (useful to estimate
 false-positive rate in reference sequences).
 .TP
 .B --selfid
-when using --uchime_ref, ignore a reference sequence when its
+When using --uchime_ref, ignore a reference sequence when its
 nucleotidic sequence is strictly identical with the query sequence.
 .TP
 .BI --threads\~ "positive integer"
-when using the command --uchime_ref, set the number of computation
+When using the command --uchime_ref, set the number of computation
 threads to use (1 to 256). The number of threads should be lesser or
 equal to the number of available CPU cores. The default is to launch
 one thread per available logical core.
 .TP
 .BI --uchime_denovo \0filename
-detect chimeras present in the fasta-formatted \fIfilename\fR, without
+Detect chimeras present in the fasta-formatted \fIfilename\fR, without
 external references (i.e. \fIde novo\fR). Multithreading is not
 supported.
 .TP
 .BI --uchime_ref \0filename
-detect chimeras present in the fasta-formatted \fIfilename\fR by
+Detect chimeras present in the fasta-formatted \fIfilename\fR by
 comparing them with reference sequences (option --db). Multithreading
 is supported.
 .TP
 .BI --uchimealns \0filename
-write 3-way global alignments (parentA, parentB, chimera) to
+Write 3-way global alignments (parentA, parentB, chimera) to
 \fIfilename\fR using a human-readable format. Use --rowlen to modify
 alignment length. Output order may vary when using multiple threads.
 .TP
 .BI --uchimeout \0filename
-write chimera detection results to \fIfilename\fR using the uchime
+Write chimera detection results to \fIfilename\fR using the uchime
 tab-separated format of 18 fields (see the list below). Use
 --uchimeout5 to use a format compatible with usearch v5 and earlier
 versions. Rows output order may vary when using multiple threads.
@@ -282,12 +286,12 @@ YN: query is chimeric (Y), or not (N), or is a borderline case
 .RE
 .TP
 .B --uchimeout5
-when using --uchimeout, write chimera detection results using a
+When using --uchimeout, write chimera detection results using a
 tab-separated format of 17 fields (drop the 5th field of --uchimeout),
 compatible with usearch version 5 and earlier versions.
 .TP
 .BI --xn \0real
-no vote weight (parameter β) (8.0).
+No vote weight (parameter β) (8.0).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -300,25 +304,25 @@ and sumaclust. Important parameters are the global clustering
 threshold (--id) and the pairwise identity definition (--iddef).
 .TP 9
 .BI --centroids \0filename
-output cluster centroid sequences to \fIfilename\fR file, in fasta
+Output cluster centroid sequences to \fIfilename\fR file, in fasta
 format. The centroid is the sequence that seeded the cluster (i.e. the
 first sequence of the cluster).
 .TP
 .BI --cluster_fast \0filename
-clusterize the fasta sequences in \fIfilename\fR, automatically
+Clusterize the fasta sequences in \fIfilename\fR, automatically
 perform a sorting by decreasing sequence length beforehand.
 .TP
 .BI --cluster_smallmem \0filename
-clusterize the fasta sequences in \fIfilename\fR without automatically
+Clusterize the fasta sequences in \fIfilename\fR without automatically
 modifying their order beforehand. Sequence are expected to be sorted
 by decreasing sequence length, unless --usersort is used.
 .TP
 .BI --clusters \0string
-output each cluster to a separate fasta file using the prefix
+Output each cluster to a separate fasta file using the prefix
 \fIstring\fR and a ticker (0, 1, 2, etc.) to construct the filenames.
 .TP
 .BI --consout \0filename
-output cluster consensus sequences to \fIfilename\fR. For each
+Output cluster consensus sequences to \fIfilename\fR. For each
 cluster, a multiple alignment is computed, and a consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
@@ -332,14 +336,14 @@ terminal gaps into account (not implemented yet).
 .\" when using --consout alone.
 .TP
 .BI --id \0real
-do not add the target to the cluster if the pairwise identity with the
+Do not add the target to the cluster if the pairwise identity with the
 centroid is lower than \fIreal\fR (value ranging from 0.0 to 1.0
 included). The pairwise identity is defined as the number of (matching
 columns) / (alignment length - terminal gaps). That definition can be
 modified by --iddef.
 .TP
 .BI --iddef\~ "0|1|2|3|4"
-change the pairwise identity definition used in --id. Values accepted
+Change the pairwise identity definition used in --id. Values accepted
 are:
 .RS
 .RS
@@ -360,7 +364,7 @@ pairwise alignment.
 .RE
 .TP
 .BI --msaout \0filename
-output a multiple sequence alignment and a consensus sequence for each
+Output a multiple sequence alignment and a consensus sequence for each
 cluster to \fIfilename\fR, in fasta format. The consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
@@ -368,22 +372,22 @@ are skipped, except for terminal gaps. Use --construncate to take
 terminal gaps into account (not implemented yet).
 .TP
 .BI --qmask\~ "none|dust|soft"
-mask simple repeats and low-complexity regions in sequences using the
+Mask simple repeats and low-complexity regions in sequences using the
 \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
 (\fInone\fR). Warning, when using \fIsoft\fR masking, clustering
 becomes case sensitive. The default is to mask using \fIdust\fR.
 .TP
 .BI --threads\~ "positive integer"
-number of computation threads to use (1 to 256). The number of threads
+Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
 default is to launch one thread per available logical core.
 .TP
 .BI --strand\~ "plus|both"
-when comparing sequences with the cluster seed, check the \fIplus\fR
+When comparing sequences with the cluster seed, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
 .TP
 .BI --uc \0filename
-output clustering results in \fIfilename\fR using a uclust-like
+Output clustering results in \fIfilename\fR using a uclust-like
 format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
 description of the format.
 .\" .TP
@@ -392,7 +396,7 @@ description of the format.
 .\" each seed.
 .TP
 .B --usersort
-when using --cluster_smallmem, allow to use any sequence input order,
+When using --cluster_smallmem, allow to use any sequence input order,
 not only a decreasing length sorting.
 .TP
 Many searching options also apply to clustering:
@@ -406,7 +410,7 @@ Dereplication options:
 .RS
 .TP 9
 .BI --derep_fulllength \0filename
-merge strictly identical sequences contained in
+Merge strictly identical sequences contained in
 \fIfilename\fR. Identical sequences are defined as having the same
 length and the same string of nucleotides (case insensitive, T and U
 are considered as different). As \fBvsearch\fR needs to read
@@ -414,13 +418,13 @@ are considered as different). As \fBvsearch\fR needs to read
 stream.
 .TP
 .BI --maxuniquesize\~ "positive integer"
-discard sequences with an abundance value greater than \fIinteger\fR.
+Discard sequences with an abundance value greater than \fIinteger\fR.
 .TP
 .BI --minuniquesize\~ "positive integer"
-discard sequences with an abundance value smaller than \fIinteger\fR.
+Discard sequences with an abundance value smaller than \fIinteger\fR.
 .TP
 .BI --output \0filename
-write the dereplicated sequences to \fIfilename\fR, in fasta format
+Write the dereplicated sequences to \fIfilename\fR, in fasta format
 and sorted by decreasing abundance. Identical sequences receive the
 header of the first sequence of their group. If --sizeout is used, the
 number of occurrences (i.e. abundance) of each sequence is indicated
@@ -428,23 +432,23 @@ at the end of their fasta header using the pattern
 ";size=\fIinteger\fR".
 .TP
 .B --sizein
-take into account the abundance annotations present in the input fasta
+Take into account the abundance annotations present in the input fasta
 file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
 headers).
 .TP
 .B --sizeout
-add abundance annotations to the output fasta file (add the pattern
+Add abundance annotations to the output fasta file (add the pattern
 ";size=\fIinteger\fR" to sequence headers).
 .TP
 .BI --strand\~ "plus|both"
-when searching for strictly identical sequences, check the \fIplus\fR
+When searching for strictly identical sequences, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
 .TP
 .BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences (i.e. the most abundant).
+Output only the top \fIinteger\fR sequences (i.e. the most abundant).
 .TP
 .BI --uc \0filename
-output dereplication results in \fIfilename\fR using a uclust-like
+Output dereplication results in \fIfilename\fR using a uclust-like
 format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
 description of the format. In the context of dereplication, the option
 --uc_allhits has no effect.
@@ -455,7 +459,7 @@ Masking options:
 .RS
 .PP
 An input sequence can be composed of lower- or uppercase
-nucleotides. Lowercase nucleotides are silently converted to uppercase
+nucleotides. Lowercase nucleotides are silently set to uppercase
 before masking, unless the --qmask soft option is used. Here are the
 results of combined masking options --qmask (or --dbmask for database
 sequences) and --hardmask, assuming each input sequences contains both
@@ -467,34 +471,34 @@ c c c
 l l l.
 qmask:hardmask:action
 _
-none:off:no masking, lowercase converted to uppercase
+none:off:no masking, lowercase set to uppercase
 none:on:idem
-dust:off:masked symbols converted to lowercase, the rest converted to uppercase
-dust:on:masked symbols replaced by Ns, the rest converted to upper case
+dust:off:masked symbols set to lowercase, other set to uppercase
+dust:on:masked symbols replaced by Ns, other set to uppercase
 soft:off:lowercase symbols considered masked, no case changes
-soft:on:lowercase symbols considered masked and converted to Ns
+soft:on:lowercase symbols considered masked and set to Ns
 .TE
 .PP
 .TP 9
 .B --hardmask
-mask low-complexity regions by replacing them with Ns instead of
+Mask low-complexity regions by replacing them with Ns instead of
 setting them to lower case.
 .TP
 .BI --maskfasta \0filename
-mask simple repeats and low-complexity regions in sequences contained
+Mask simple repeats and low-complexity regions in sequences contained
 in \fIfilename\fR. The default is to mask using \fIdust\fR (use
 --qmask to modify that behavior).
 .TP
 .BI --qmask\~ "none|dust|soft"
-mask simple repeats and low-complexity regions in sequences using the
+Mask simple repeats and low-complexity regions in sequences using the
 \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
 (\fInone\fR). The default is to mask using \fIdust\fR.
 .TP
 .BI --output \0filename
-write the masked sequences to \fIfilename\fR, in fasta format.
+Write the masked sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI --threads\~ "positive integer"
-number of computation threads to use (1 to 256). The number of threads
+Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
 default is to launch one thread per available logical core.
 .RE
@@ -504,12 +508,12 @@ Searching options:
 .RS
 .TP 9
 .BI --alnout \0filename
-write pairwise global alignments to \fIfilename\fR using a
+Write pairwise global alignments to \fIfilename\fR using a
 human-readable format. Use --rowlen to modify alignment length. Output
 order may vary when using multiple threads.
 .TP
 .BI --blast6out \0filename
-write search results to \fIfilename\fR using a blast-like
+Write search results to \fIfilename\fR using a blast-like
 tab-separated format of twelve fields (listed below), with one line
 per query-target matching (or lack of matching if --output_no_hits is
 used). Output order may vary when using multiple threads. A similar
@@ -565,45 +569,45 @@ alignments). Always set to 0.
 .RE
 .TP
 .BI --db \0filename
-compare query sequences (--vsearch_global) to the fasta-formatted
+Compare query sequences (--vsearch_global) to the fasta-formatted
 target sequences contained in \fIfilename\fR, using global pairwise
 alignment.
 .TP
 .BI --dbmask\~ "none|dust|soft"
-mask simple repeats and low-complexity regions in target database
+Mask simple repeats and low-complexity regions in target database
 sequences using the \fIdust\fR or the \fIsoft\fR algorithms, or do not
 mask (\fInone\fR). Warning, when using \fIsoft\fR masking search
 commands become case sensitive. The default is to mask using
 \fIdust\fR.
 .TP
 .BI --dbmatched \0filename
-write database target sequences matching at least one query sequence
+Write database target sequences matching at least one query sequence
 to \fIfilename\fR, in fasta format. If the option --sizeout is used,
 the number of queries that matched each target sequence is indicated
 using the pattern ";size=\fIinteger\fR".
 .TP
 .BI --dbnotmatched \0filename
-write database target sequences not matching query sequences to
+Write database target sequences not matching query sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --fastapairs \0filename
-write pairwise alignments of query and target sequences to
+Write pairwise alignments of query and target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --fulldp
-dummy option. To maximize search sensitivity, \fBvsearch\fR uses a
+Dummy option. To maximize search sensitivity, \fBvsearch\fR uses a
 8-way 16-bit SIMD vectorized full dynamic programming algorithm
 (Needleman-Wunsch), whether or not --fulldp is specified.
 .TP
 .BI --gapext \0string
-set penalties for a gap extension. See --gapopen for a complete
+Set penalties for a gap extension. See --gapopen for a complete
 description of the penaly declaration system. The default is to
 initialize the six gap extending penalties using a penalty of 2 for
 extending internal gaps and a penalty of 1 for extending terminal
 gaps, in both query and target sequences (i.e. 2I/1E).
 .TP
 .BI --gapopen \0string
-set penalties for a gap opening. A gap opening can occur in six
+Set penalties for a gap opening. A gap opening can occur in six
 different contexts: in the query (Q) or in the target (T) sequence, at
 the left (L) or right (R) extremity of the sequence, or inside the
 sequence (I). Sequence symbols (Q and T) can be combined with location
@@ -629,12 +633,12 @@ scanned from left to right, accepted symbols are (0123456789/LIREQT*),
 and later values override previous values.
 .TP
 .B --hardmask
-mask low-complexity regions by replacing them with Ns instead of
+Mask low-complexity regions by replacing them with Ns instead of
 setting them to lower case. For more information, please see the
 Masking section.
 .TP
 .BI --id \0real
-reject the sequence match if the pairwise identity is lower than
+Reject the sequence match if the pairwise identity is lower than
 \fIreal\fR (value ranging from 0.0 to 1.0 included). The search
 process sorts target sequences by decreasing number of \fIk\fR-mers
 they have in common with the query sequence, using that information as
@@ -649,7 +653,7 @@ pairwise identity is defined as the number of (matching columns) /
 --iddef.
 .TP
 .BI --iddef\~ "0|1|2|3|4"
-change the pairwise identity definition used in --id. Values accepted
+Change the pairwise identity definition used in --id. Values accepted
 are:
 .RS
 .RS
@@ -668,31 +672,32 @@ BLAST definition, equivalent to --iddef 2 in a context of global
 pairwise alignment.
 .RE
 .RE
+.PP
 The option --userfields accepts the fields id0 to id4, in addition to
 the field id, to report the pairwise identity values corresponding to
 the different definitions.
 .TP
 .BI --idprefix\~ "positive integer"
-reject the target sequence if the first \fIinteger\fR nucleotides do
+Reject the target sequence if the first \fIinteger\fR nucleotides do
 not match the query sequence.
 .TP
 .BI --idsuffix\~ "positive integer"
-reject the target sequence if the last \fIinteger\fR nucleotides do
+Reject the target sequence if the last \fIinteger\fR nucleotides do
 not match the query sequence.
 .TP
 .B --leftjust
-reject the target sequence if the alignment begins with gaps.
+Reject the target sequence if the alignment begins with gaps.
 .TP
 .BI --match\~ "integer"
-score assigned to a match (i.e. identical nucleotides) in the pairwise
+Score assigned to a match (i.e. identical nucleotides) in the pairwise
 alignment. The default value is 2.
 .TP
 .BI --matched \0filename
-write query sequences matching database target sequences to
+Write query sequences matching database target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI --maxaccepts\~ "positive integer"
-maximum number of hits to accept before stopping the search. The
+Maximum number of hits to accept before stopping the search. The
 default value is 1. That option works in pair with maxrejects. The
 search process sorts target sequences by decreasing number of
 \fIk\fR-mers they have in common with the query sequence, using that
@@ -703,32 +708,32 @@ higher value, more hits are accepted. If maxaccepts and maxrejects are
 both set to 0, the complete database is searched.
 .TP
 .BI --maxdiffs\~ "positive integer"
-reject the target sequence if the alignment contains at least
+Reject the target sequence if the alignment contains at least
 \fIinteger\fR substitutions, insertions or deletions.
 .TP
 .BI --maxgaps\~ "positive integer"
-reject the target sequence if the alignment contains at least
+Reject the target sequence if the alignment contains at least
 \fIinteger\fR insertions or deletions.
 .TP
 .BI --maxhits\~ "positive integer"
-maximum number of hits to show once the search is terminated (hits are
+Maximum number of hits to show once the search is terminated (hits are
 sorted by decreasing identity). Unlimited by default value. \fBIt
 applies to alnout, blast6out, uc, userout, fastapairs\fR.
 .TP
 .BI --maxid \0real
-reject the target sequence if its percentage of identity with the
+Reject the target sequence if its percentage of identity with the
 query is equal to or greater than \fIreal\fR.
 .TP
 .BI --maxqsize\~ "positive integer"
-reject query sequences with an abundance equal to or greater than
+Reject query sequences with an abundance equal to or greater than
 \fIinteger\fR.
 .TP
 .BI --maxqt \0real
-reject if the query/target sequence length ratio is equal to or
+Reject if the query/target sequence length ratio is equal to or
 greater than \fIreal\fR.
 .TP
 .BI --maxrejects\~ "positive integer"
-maximum number of non-matching target sequences to consider before
+Maximum number of non-matching target sequences to consider before
 stopping the search. The default value is 32. That option works in
 pair with maxaccepts. The search process sorts target sequences by
 decreasing number of \fIk\fR-mers they have in common with the query
@@ -740,129 +745,129 @@ are considered. If maxaccepts and maxrejects are both set to 0, the
 complete database is searched.
 .TP
 .BI --maxsizeratio \0real
-reject if the query/target abundance ratio is equal to or greater than
+Reject if the query/target abundance ratio is equal to or greater than
 \fIreal\fR.
 .TP
 .BI --maxsl \0real
-reject if the shorter/longer sequence length ratio is equal to or
+Reject if the shorter/longer sequence length ratio is equal to or
 greater than \fIreal\fR.
 .TP
 .BI --maxsubs\~ "positive integer"
-reject the target sequence if the alignment contains at least
+Reject the target sequence if the alignment contains at least
 \fIinteger\fR substitutions.
 .TP
 .BI --mid \0real
-reject the alignment if the percentage of identity is lower than
+Reject the alignment if the percentage of identity is lower than
 \fIreal\fR (ignoring all gaps, internal and terminal).
 .TP
 .BI --mincols\~ "positive integer"
-reject the target sequence if the alignment length is shorter than
+Reject the target sequence if the alignment length is shorter than
 \fIinteger\fR.
 .TP
 .BI --minqt \0real
-reject if the query/target sequence length ratio is lower than
+Reject if the query/target sequence length ratio is lower than
 \fIreal\fR.
 .TP
 .BI --minsizeratio \0real
-reject if the query/target abundance ratio is lower than \fIreal\fR.
+Reject if the query/target abundance ratio is lower than \fIreal\fR.
 .TP
 .BI --minsl \0real
-reject if the shorter/longer sequence length ratio is lower than
+Reject if the shorter/longer sequence length ratio is lower than
 \fIreal\fR.
 .TP
 .BI --mintsize\~ "positive integer"
-reject target sequences with an abundance lower than \fIinteger\fR.
+Reject target sequences with an abundance lower than \fIinteger\fR.
 .TP
 .BI --mismatch\~ "integer"
-score assigned to a mismatch (i.e. different nucleotides) in the
+Score assigned to a mismatch (i.e. different nucleotides) in the
 pairwise alignment. The default value is -4.
 .TP
 .BI --notmatched \0filename
-write query sequences not matching database target sequences to
+Write query sequences not matching database target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --output_no_hits
-write both matching and non-matching queries to --alnout, --blast6out,
+Write both matching and non-matching queries to --alnout, --blast6out,
 and --userout output files (--uc and --uc_allhits output files always
 feature non-matching queries). Non-matching queries are labelled "No
 hits" in --alnout files.
 .TP
 .BI --qmask\~ "none|dust|soft"
-mask simple repeats and low-complexity regions in query sequences
+Mask simple repeats and low-complexity regions in query sequences
 using the \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
 (\fInone\fR). Warning, when using \fIsoft\fR masking search commands
 become case sensitive. The default is to mask using \fIdust\fR.
 .TP
 .BI --query_cov \0real
-reject if the fraction of the query aligned to the target sequence is
+Reject if the fraction of the query aligned to the target sequence is
 lower than \fIreal\fR. The query coverage is computed as such: 100.0 *
 (matches + mismatches) / query sequence length. Internal or terminal
 gaps are not taken into account.
 .TP
 .B --rightjust
-reject the target sequence if the alignment ends with gaps.
+Reject the target sequence if the alignment ends with gaps.
 .TP
 .BI --rowlen\~ "positive integer"
-width of alignment lines in --alnout output. The default value is
+Width of alignment lines in --alnout output. The default value is
 60. Set to 0 to eliminate the wrapping.
 .TP
 .B --self
-reject the alignment if the query and target labels are identical.
+Reject the alignment if the query and target labels are identical.
 .TP
 .B --selfid
-reject the alignment if the query and target sequences are strictly
+Reject the alignment if the query and target sequences are strictly
 identical.
 .TP
 .B --sizeout
-add abundance annotations to the output of the option --dbmatched
+Add abundance annotations to the output of the option --dbmatched
 (using the pattern ";size=\fIinteger\fR").
 .TP
 .BI --strand\~ "plus|both"
-when searching for similar sequences, check the \fIplus\fR strand only
+When searching for similar sequences, check the \fIplus\fR strand only
 (default) or check \fIboth\fR strands.
 .TP
 .BI --target_cov \0real
-reject if the fraction of the target sequence aligned to the query
+Reject if the fraction of the target sequence aligned to the query
 sequence is lower than \fIreal\fR. The target coverage is computed as
 such: 100.0 * (matches + mismatches) / target sequence
 length. Internal or terminal gaps are not taken into account.
 .TP
 .BI --threads\~ "positive integer"
-number of computation threads to use (1 to 256). The number of threads
+Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
 default is to launch one thread per available logical core.
 .TP
 .B --top_hits_only
-output only the hits with the highest percentage of identity with the
+Output only the hits with the highest percentage of identity with the
 query.
 .TP
 .BI --uc \0filename
-output searching results in \fIfilename\fR using a uclust-like
+Output searching results in \fIfilename\fR using a uclust-like
 format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
 description of the format. Output order may vary when using multiple
 threads.
 .TP
 .B --uc_allhits
-when using the --uc option, show all hits, not just the top hit for
+When using the --uc option, show all hits, not just the top hit for
 each query. \fBTO BE TESTED\fR.
 .TP
 .BI --userfields \0string
-when using --userout, select and order the fields written to the
+When using --userout, select and order the fields written to the
 output file. Fields are separated by "+" (e.g. query+target+id). See
 the "Userfields" section for a complete list of fields.
 .TP
 .BI --userout \0filename
-write user-defined tab-separated output to \fIfilename\fR. Select the
+Write user-defined tab-separated output to \fIfilename\fR. Select the
 fields with the option --userfields. Output order may vary when using
 multiple threads. If --userfields is empty or not present,
 \fIfilename\fR is empty.
 .TP
 .BI --vsearch_global \0filename
-compare target sequences (--db) to the fasta-formatted query sequences
+Compare target sequences (--db) to the fasta-formatted query sequences
 contained in \fIfilename\fR, using global pairwise alignment.
 .TP
 .BI --weak_id \0real
-show hits with percentage of identity of at least \fIreal\fR, without
+Show hits with percentage of identity of at least \fIreal\fR, without
 terminating the search. A normal search stops as soon as enough hits
 are found (as defined by --maxaccepts, --maxrejects, and --id). As
 --weak_id reports weak hits that are not deduced from --maxaccepts,
@@ -871,7 +876,7 @@ sensitivity. Logically, \fIreal\fR must be smaller than the value
 indicated by --id.
 .TP
 .BI --wordlength\~ "positive integer"
-length of words (i.e. \fIk\fR-mers) for database indexing. The range
+Length of words (i.e. \fIk\fR-mers) for database indexing. The range
 of possible values goes from 3 to 15, but values near 8 are generally
 recommended. Longer words may reduce the sensitivity for weak
 similarities, but can increase accuracy. On the other hand, shorter
@@ -888,20 +893,20 @@ Shuffling options:
 .RS
 .TP 9
 .BI --output \0filename
-write the shuffled sequences to \fIfilename\fR, in fasta format.
+Write the shuffled sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI --seed\~ "positive integer"
-when shuffling sequence order, use \fIinteger\fR as seed. A given seed
+When shuffling sequence order, use \fIinteger\fR as seed. A given seed
 will always produce the same output order (useful for
 replicability). Set to 0 to use a pseudo-random seed (default
 behavior).
 .TP
 .BI --shuffle \0filename
-pseudo-randomly shuffle the order of sequences contained in
+Pseudo-randomly shuffle the order of sequences contained in
 \fIfilename\fR.
 .TP
 .BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences.
+Output only the top \fIinteger\fR sequences.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -909,38 +914,38 @@ Sorting options:
 .RS
 .TP 9
 .BI --maxsize\~ "positive integer"
-when using --sortbysize, discard sequences with an abundance value
+When using --sortbysize, discard sequences with an abundance value
 greater than \fIinteger\fR.
 .TP
 .BI --minsize\~ "positive integer"
-when using --sortbysize, discard sequences with an abundance value
+When using --sortbysize, discard sequences with an abundance value
 smaller than \fIinteger\fR.
 .TP
 .BI --output \0filename
-write the sorted sequences to \fIfilename\fR, in fasta format.
+Write the sorted sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI --relabel \0string
-relabel sequence using the prefix \fIstring\fR and a ticker (1, 2, 3,
+Relabel sequence using the prefix \fIstring\fR and a ticker (1, 2, 3,
 etc.) to construct the new headers. Use --sizeout to conserve the
 abundance annotations.
 .TP
 .B --sizeout
-when using --relabel, report abundance annotations to the output fasta
+When using --relabel, report abundance annotations to the output fasta
 file (using the pattern ";size=\fIinteger\fR").
 .TP
 .BI --sortbylength \0filename
-sort by decreasing length the sequences contained in
+Sort by decreasing length the sequences contained in
 \fIfilename\fR. See the general options --minseqlength and
 --maxseqlength to eliminate short and long sequences.
 .TP
 .BI --sortbysize \0filename
-sort by decreasing abundance the sequences contained in \fIfilename\fR
+Sort by decreasing abundance the sequences contained in \fIfilename\fR
 (the pattern "[>;]size=\fIinteger\fR[;]" has to be present). See the
 options --minsize and --maxsize to eliminate rare and dominant
 sequences.
 .TP
 .BI --topn\~ "positive integer"
-output only the top \fIinteger\fR sequences (i.e. the longest or the
+Output only the top \fIinteger\fR sequences (i.e. the longest or the
 most abundant).
 .RE
 .PP
@@ -1159,13 +1164,13 @@ definitions that were removed from usearch.
 \fBvsearch\fR introduces new options not present in usearch. They are
 described in the "Options" section of this manual. Here is a short
 list:
-.IP \[bu] 2
+.IP - 2
 shuffle
-.IP \[bu]
+.IP -
 fasta_width
-.IP \[bu]
+.IP -
 iddef
-.IP \[bu]
+.IP -
 maxuniquesize
 .PP
 .\" ============================================================================
