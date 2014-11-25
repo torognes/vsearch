@@ -14,17 +14,15 @@ The new tool should:
 
 We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, masking, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength` and `--maskfasta`, as well as almost all their options).
 
-VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization to perform accurate alignments at high speed.
+VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), while USEARCH uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-Searches have been parallelized using threads and SIMD. VSEARCH includes a SIMD vectorized optimal global aligner, while USEARCH uses a heuristic seed and extend aligner.
-
-VSEARCH does not support amino acid sequences or local alignments. These features may be added in the future.
-
-The same option names as USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
+The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
 VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X.
 
 When compiled with the zlib and bzip2 libraries (as in the supplied binaries), VSEARCH can directly read input query and database files that are compressed (.gz and .bz2).
+
+VSEARCH does not support amino acid sequences or local alignments. These features may be added in the future.
 
 ## Example
 
@@ -34,7 +32,11 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 ## Download and install
 
-Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2). Download the appropriate binary and make a symbolic link from `vsearch` to the binary in a folder included in your `$PATH`. You may for example use the following commands:
+The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
+
+Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+
+Download the appropriate binary and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
 ```sh
 cd ~
@@ -46,15 +48,15 @@ ln -s vsearch-0.3.2-linux-x86_64 vsearch
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
 
-The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file in a folder in your `$MANPATH`.
+The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file or a symbolic link to it in a folder included in your `$MANPATH`.
 
 The entire repository may be cloned by running `git clone git@github.com:torognes/vsearch.git`.
 
 Run `make -f Makefile` within the `src` folder to build the executable.
 
-The alternative makefiles Makefile.ZLIB, Makefile.BZLIB and Makefile.static may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be installed in folders called `zlib` and `bzip2` below the main `vsearch` folder.
+The alternative makefiles Makefile.ZLIB, Makefile.BZLIB and Makefile.static may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be downloaded and installed in folders called `zlib` and/or `bzip2`, respectively, below the main `vsearch` folder.
 
-## Details
+## Implementation details and initial assessment
 
 **Search algorithm:** VSEARCH indexes the unique kmers in the database in a way similar USEARCH, but is currently limited to continuous words (non-spaced seeds) of length 3--15. It samples every unique kmer from each query sequence and identifies the number of matching kmers in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those target sequences that satisfy all accept options are retained while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching target sequences considered, respectively. Please see the USEARCH paper and supplementary for details.
 
@@ -90,7 +92,7 @@ The speed of clustering with VSEARCH relative to USEARCH depends on how many thr
 
 **Dereplication and sorting:** The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
-**Masking:** VSEARCH by default uses an optimized reimplementation of the well-known DUST algorithm by Tatusov and Lipman (source: ftp://ftp.ncbi.nlm.nih.gov/pub/tatusov/dust/version1/src/) to mask simple repeats and low-complexity regions in the sequences. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
+**Masking:** VSEARCH by default uses an optimized multithreaded reimplementation of the well-known DUST algorithm by Tatusov and Lipman (source: ftp://ftp.ncbi.nlm.nih.gov/pub/tatusov/dust/version1/src/) to mask simple repeats and low-complexity regions in the sequences before searching and clustering. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
@@ -294,46 +296,39 @@ The following people have contributed to VSEARCH:
 * Christopher Quince (Initiator, feature suggestions, evaluation)
 * Umer Zeeshan Ijaz (Feature suggestions)
 
+## Test datasets
+
+Test datasets (found in the `data` folder) were obtained from
+the [BioMarks project](http://biomarks.eu/) (Logares et al. 2014),
+the [TARA OCEANS project](http://oceans.taraexpeditions.org/) (Karsenti et al. 2011) and
+the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et al. 2012).
 
 ## References
 
-* Edgar RC (2010) Search and clustering orders of magnitude faster than BLAST. Bioinformatics, 26 (19): 2460-2461. doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
-* Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011) UCHIME improves sensitivity and speed of chimera detection. Bioinformatics, 27 (16): 2194-2200. doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
-* Farrar M (2007) Striped Smith-Waterman speeds database searches six times over other SIMD implementations. Bioinformatics (2007) 23 (2): 156-161. doi:[10.1093/bioinformatics/btl582](http://dx.doi.org/10.1093/bioinformatics/btl582)
-* Rognes T (2011) Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation. BMC Bioinformatics, 12: 221. doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
-
-
-Testing datasets were obtained from the
-[BioMarks project](http://biomarks.eu/) (Logares et al. 2014), the
-[TARA OCEANS project](http://oceans.taraexpeditions.org/) (Karsenti et
-al. 2011) and the [Protist Ribosomal Database](http://ssu-rrna.org/)
-(Guillou et al. 2012):
-
-* Guillou L., Bachar D., Audic S., Bass D., Berney C., Bittner L.,
-  Boutte C., Burgaud G., de Vargas C., Decelle J., del Campo J., Dolan
-  J., Dunthorn M., Edvardsen B., Holzmann M., Kooistra W., Lara E.,
-  Lebescot N., Logares R., Mahé F., Massana R., Montresor M., Morard
-  R., Not F., Pawlowski J., Probert I., Sauvadet A.-L., Siano R.,
-  Stoeck T., Vaulot D., Zimmermann P. & Christen R. (2013) The Protist
-  Ribosomal Reference database (PR2): a catalog of unicellular
-  eukaryote Small Sub-Unit rRNA sequences with curated
-  taxonomy. *Nucleic Acids Research*, 41(D1),
-  D597--D604. doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
-* Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R.,
-  Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B.,
-  Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski
-  J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck
-  T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de
-  Vargas C. & Massana R. (2014) The patterning of rare and abundant
-  community assemblages in coastal marine-planktonic microbial
-  eukaryotes. *Current Biology*, 24(8),
-  813-821. doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
-* Karsenti E., González Acinas S., Bork P., Bowler C., de Vargas C.,
-  Raes J., Sullivan M. B., Arendt D., Benzoni F., Claverie J.-M.,
-  Follows M., Jaillon O., Gorsky G., Hingamp P., Iudicone D.,
-  Kandels-Lewis S., Krzic U., Not F., Ogata H., Pesant S., Reynaud
-  E. G., Sardet C., Sieracki M. E., Speich S., Velayoudon D.,
-  Weissenbach J., Wincker P. & the Tara Oceans Consortium (2011) A
-  holistic approach to marine eco-systems biology. *PLoS Biology*,
-  9(10),
-  e1001177. doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
+* Edgar RC (2010)
+Search and clustering orders of magnitude faster than BLAST.
+*Bioinformatics*, 26 (19): 2460-2461.
+doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
+* Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011)
+UCHIME improves sensitivity and speed of chimera detection.
+*Bioinformatics*, 27 (16): 2194-2200.
+doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
+* Farrar M (2007)
+Striped Smith-Waterman speeds database searches six times over other SIMD implementations.
+*Bioinformatics* (2007) 23 (2): 156-161.
+doi:[10.1093/bioinformatics/btl582](http://dx.doi.org/10.1093/bioinformatics/btl582)
+* Guillou L., Bachar D., Audic S., Bass D., Berney C., Bittner L., Boutte C., Burgaud G., de Vargas C., Decelle J., del Campo J., Dolan J., Dunthorn M., Edvardsen B., Holzmann M., Kooistra W., Lara E., Lebescot N., Logares R., Mahé F., Massana R., Montresor M., Morard R., Not F., Pawlowski J., Probert I., Sauvadet A.-L., Siano R., Stoeck T., Vaulot D., Zimmermann P. & Christen R. (2013)
+The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.
+*Nucleic Acids Research*, 41 (D1), D597-D604.
+doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
+* Karsenti E., González Acinas S., Bork P., Bowler C., de Vargas C., Raes J., Sullivan M. B., Arendt D., Benzoni F., Claverie J.-M., Follows M., Jaillon O., Gorsky G., Hingamp P., Iudicone D., Kandels-Lewis S., Krzic U., Not F., Ogata H., Pesant S., Reynaud E. G., Sardet C., Sieracki M. E., Speich S., Velayoudon D., Weissenbach J., Wincker P. & the Tara Oceans Consortium (2011)
+A holistic approach to marine eco-systems biology.
+*PLoS Biology*, 9(10), e1001177.
+doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
+* Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R., Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B., Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de Vargas C. & Massana R. (2014) The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.
+*Current Biology*, 24(8), 813-821.
+doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
+* Rognes T (2011)
+Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation.
+*BMC Bioinformatics*, 12: 221.
+doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
