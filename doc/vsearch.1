@@ -2,7 +2,7 @@
 .TH vsearch 1 "November 28, 2014" "version 1.0.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
-vsearch \(em chimera detection, clustering, dereplication, masking, searching, shuffling and sorting of amplicons from metagenomic projects
+vsearch \(em chimera detection, clustering, dereplication, masking, searching, shuffling and sorting of amplicons from metagenomic projects.
 .\" ============================================================================
 .SH SYNOPSIS
 .\" left justified, ragged right
@@ -170,10 +170,6 @@ recommend to sort sequences by decreasing abundance (default of
 please see the --sortbysize command in the sorting section.
 .PP
 .TP 9
-.BI --alignwidth\~ "positive integer"
-Width of 3-way alignments in --uchimealns output. The default value is
-80. Set to 0 to eliminate wrapping.
-.TP
 .BI --abskew \0real
 When using --uchime_denovo, the abundance skew is used to distinguish
 in a 3-way alignment which sequence is the chimera and which are the
@@ -182,6 +178,10 @@ amplification process and are therefore less abundant than their
 parents. The default value is 2.0, which means that the parents should
 be at least 2 times more abundant than their chimera. Any positive
 value greater than 1.0 can be used.
+.TP
+.BI --alignwidth\~ "positive integer"
+Width of 3-way alignments in --uchimealns output. The default value is
+80. Set to 0 to eliminate wrapping.
 .TP
 .BI --chimeras \0filename
 Output chimeric sequences to \fIfilename\fR, in fasta format. Output
@@ -408,8 +408,8 @@ format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
 description of the format.
 .TP
 .B --usersort
-When using --cluster_smallmem, allow the use any sequence input order,
-not just a decreasing length ordering.
+When using --cluster_smallmem, allow any sequence input order, not
+just a decreasing length ordering.
 .TP
 Most searching options also apply to clustering:
 .br
@@ -629,9 +629,9 @@ or positive integers, and "/" is used as a separator.
 .br
 To simplify declarations, the location symbols (L, I, and R) can be
 combined, the symbol (E) can be used to treat both extremities (L and
-R) equally, and the symbols Q and T can be ommited to treat both
-sequences equally. For instance, the default is to declare a penalty
-of 20 for opening internal gaps and a penalty of 2 for opening
+R) equally, and the symbols Q and T can be ommited to treat query and
+target sequences equally. For instance, the default is to declare a
+penalty of 20 for opening internal gaps and a penalty of 2 for opening
 terminal gaps (left or right), in both query and target sequences
 (i.e. 20I/2E). If only a numerical value is given, without any
 sequence or location symbol, then the penalty applies to all gap
