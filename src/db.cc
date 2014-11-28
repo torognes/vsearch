@@ -462,18 +462,20 @@ void db_read(const char * filename, int upcase)
     seqindex_p->size = 1;
 
     /* read sizein annotation if appropriate */
-    if ((opt_vsearch_global || 
-         opt_sortbysize ||
+    if ((opt_usearch_global || 
          opt_uchime_denovo ||
-         (opt_sortbylength && opt_sizeout) ||
+         (opt_sortbysize && opt_relabel && opt_sizeout) ||
+         (opt_sortbylength && opt_relabel && opt_sizeout) ||
+         (opt_cluster_fast && opt_sizein) ||
+         (opt_cluster_smallmem && opt_sizein) ||
          (opt_derep_fulllength && opt_sizein)) && 
         (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0)))
       {
-        unsigned long size = atol(seqindex_p->header + pmatch[2].rm_so);
+        long size = atol(seqindex_p->header + pmatch[2].rm_so);
         if (size > 0)
-          seqindex_p->size = size;
+          seqindex_p->size = (unsigned long) size;
         else
-          fatal("size annotation zero");
+          fatal("Size annotation (abundance) must be positive");
       }
 
     seqindex_p++;

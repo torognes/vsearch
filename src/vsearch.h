@@ -100,7 +100,7 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v0.3.2"
+#define PROG_VERSION "v1.0.0"
 
 /* options */
 
@@ -133,8 +133,8 @@ extern char * opt_uchime_denovo;
 extern char * opt_uchime_ref;
 extern char * opt_uchimealns;
 extern char * opt_uchimeout;
+extern char * opt_usearch_global;
 extern char * opt_userout;
-extern char * opt_vsearch_global;
 extern double opt_abskew;
 extern double opt_dn;
 extern double opt_id;
@@ -152,7 +152,7 @@ extern double opt_query_cov;
 extern double opt_target_cov;
 extern double opt_weak_id;
 extern double opt_xn;
-extern int opt_uchimeout5;
+extern int opt_alignwidth;
 extern int opt_cons_truncate;
 extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_query_left;
@@ -169,6 +169,7 @@ extern int opt_gap_open_target_right;
 extern int opt_help;
 extern int opt_mindiffs;
 extern int opt_slots;
+extern int opt_uchimeout5;
 extern int opt_usersort;
 extern int opt_version;
 extern long opt_dbmask;

@@ -29,6 +29,7 @@ CMD="/usr/bin/time $PROG \
     --id 0.9 \
     --maxaccepts 1 \
     --maxrejects 8 \
+    --sizeout \
     --centroids s.$P.centroids \
     --uc s.$P.uc \
     --alnout s.$P.alnout \
@@ -37,6 +38,7 @@ CMD="/usr/bin/time $PROG \
     --notmatched s.$P.notmatched \
     --fastapairs s.$P.fastapairs"
 
+#    --sizein
 #    --threads $THREADS
 #    --minseqlength 1
 #    --output_no_hits

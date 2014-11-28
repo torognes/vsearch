@@ -19,4 +19,4 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-void vsearch_global(char * cmdline, char * progheader);
+void usearch_global(char * cmdline, char * progheader);
