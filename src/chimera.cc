@@ -46,6 +46,7 @@ static pthread_mutex_t mutex_output;
 static unsigned int seqno = 0;
 static int progress = 0;
 static int chimera_count = 0;
+static int nonchimera_count = 0;
 static FILE * fp_chimeras = 0;
 static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
@@ -759,7 +760,7 @@ int eval_parents(struct chimera_info_s * ci)
                   db_getheader(seqno_b));
           fprintf(fp_uchimealns, "\n");
 
-          int width = opt_rowlen;
+          int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
           qpos = 0;
           int p1pos = 0;
           int p2pos = 0;
@@ -1171,6 +1172,8 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       if (status < 0)
         {
+          nonchimera_count++;
+
           /* output no parents, no chimeras */
           if (opt_uchimeout)
             {
@@ -1201,8 +1204,6 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       for (int i=0; i < ci->cand_count; i++)
         if (ci->nwcigar[i])
           free(ci->nwcigar[i]);
-      
-
 
       seqno++;
 
@@ -1295,6 +1296,7 @@ void chimera()
 
   int progress_total;
   chimera_count = 0;
+  nonchimera_count = 0;
   progress = 0;
   seqno = 0;
   
@@ -1330,8 +1332,16 @@ void chimera()
 
   progress_done();
 
-  fprintf(stderr, "Found %d chimeras in %d sequences (%.1f%%)\n",
-          chimera_count, seqno, 100.0 * chimera_count / seqno);
+  fprintf(stderr,
+          "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
+          "and %d (%.1f%%) suspicious candidates in %d sequences.\n",
+          chimera_count,
+          100.0 * chimera_count / seqno,
+          nonchimera_count,
+          100.0 * nonchimera_count / seqno,
+          (seqno - chimera_count - nonchimera_count),
+          100.0 * (seqno - chimera_count - nonchimera_count) / seqno,
+          seqno);
 
   if (opt_uchime_ref)
     query_close();

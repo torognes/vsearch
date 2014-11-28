@@ -7,7 +7,7 @@ DB=../data/Rfam_9_1.fasta
 #Q=../data/BioMarKs50k.fsa
 #DB=../data/BioMarKs50k.fsa
 T=0
-ID=0.9
+ID=0.5
 MA=1
 MR=32
 

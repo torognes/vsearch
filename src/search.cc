@@ -509,7 +509,7 @@ void search_done()
 
 
 
-void vsearch_global(char * cmdline, char * progheader)
+void usearch_global(char * cmdline, char * progheader)
 {
   search_prep(cmdline, progheader);
 
@@ -533,7 +533,7 @@ void vsearch_global(char * cmdline, char * progheader)
   /* prepare reading of queries */
   qmatches = 0;
   queries = 0;
-  query_open(opt_vsearch_global);
+  query_open(opt_usearch_global);
 
   /* allocate memory for thread info */
   si_plus = (struct searchinfo_s *) xmalloc(opt_threads * 

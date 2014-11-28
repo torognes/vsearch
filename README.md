@@ -2,9 +2,7 @@
 
 ## Introduction
 
-The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010).
-
-The new tool should:
+The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should:
 
 * have open source code with an appropriate open source license
 * be free of charge, gratis
@@ -14,7 +12,7 @@ The new tool should:
 
 We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, masking, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength` and `--maskfasta`, as well as almost all their options).
 
-VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), while USEARCH uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
+VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
 The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
@@ -28,13 +26,13 @@ VSEARCH does not support amino acid sequences or local alignments. These feature
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-0.3.2-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.0-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH version 0.3.2 are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-0.3.2-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate binary and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -42,15 +40,15 @@ Download the appropriate binary and make a symbolic link in a folder included in
 cd ~
 mkdir -p bin
 cd bin
-wget https://github.com/torognes/vsearch/releases/download/v0.3.2/vsearch-0.3.2-linux-x86_64
-ln -s vsearch-0.3.2-linux-x86_64 vsearch
+wget https://github.com/torognes/vsearch/releases/download/v1.0.0/vsearch-1.0.0-linux-x86_64
+ln -s vsearch-1.0.0-linux-x86_64 vsearch
 ```
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
 
 The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file or a symbolic link to it in a folder included in your `$MANPATH`.
 
-The entire repository may be cloned by running `git clone git@github.com:torognes/vsearch.git`.
+The entire repository may be cloned with `git clone git@github.com:torognes/vsearch.git`.
 
 Run `make -f Makefile` within the `src` folder to build the executable.
 
@@ -78,7 +76,7 @@ The recall of VSEARCH was usually about 92.3-93.5% and the precision was usually
 
 Please see the files in the `eval` folder for the scripts used for this assessment.
 
-**Search speed:** The speed of VSEARCH searches appears to slightly faster than USEARCH when USEARCH is run without the `--fulldp` option. When USEARCH is run with the `--fulldp` option, VSEARCH may be considerable faster, but it depends on the options and sequences used.
+**Search speed:** The speed of VSEARCH searches appears to somewhat faster than USEARCH when USEARCH is run without the `--fulldp` option. When USEARCH is run with the `--fulldp` option, VSEARCH may be considerable faster, but it depends on the options and sequences used.
 
 For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the query sequences, VSEARCH needed 46 seconds, whereas USEARCH needed 60 seconds without the `--fulldp` option and 70 seconds with `--fulldp`. This includes time for loading, masking and indexing the database (about 2 secs for VSEARCH, 5 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 
@@ -88,7 +86,11 @@ For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the que
 
 The speed of clustering with VSEARCH relative to USEARCH depends on how many threads are used. Running with a single thread VSEARCH currently seems to be 2-4 times slower than with USEARCH, depending on parameters. Clustering has been parallelized with threads in VSEARCH, but clustering does not seem to be parallelized in USEARCH (despite what the name and documentation for `--cluster_fast` seems to indicate). Clustering with VSEARCH using 4-8 threads is often faster than USEARCH. The speed of VSEARCH might be further improved with an intra-sequence SIMD-vectorized aligner.
 
-**Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the ``--uchime_ref`` and ``--uchime_denovo`` commands and all their options are supported. The accuracy of VSEARCH on chimera detection has been evaluated using the SIMM dataset described in the UCHIME paper. See the ``eval/chimeval.sh`` script for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH. VSEARCH is almost twice as fast as USEARCH on *de novo* chimera detection and about 30% faster on detection against a reference database. In VSEARCH ``uchime_ref`` is multithreaded, while ``uchime_denovo`` is not.
+**Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the ``--uchime_ref`` and ``--uchime_denovo`` commands and all their options are supported.
+
+A preliminary assessment of the accuracy of VSEARCH on chimera detection has been performed using the SIMM dataset described in the UCHIME paper. See the ``eval/chimeval.sh`` script and the results in `eval/chimeval.txt` for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH.
+
+VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and about 30% faster on detection against a reference database. In VSEARCH ``uchime_ref`` is multithreaded, while ``uchime_denovo`` is not.
 
 **Dereplication and sorting:** The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
@@ -100,7 +102,7 @@ Another extension implemented is that dereplication will honor the `--sizein` op
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
-The width of FASTA formatted output files may be specified with the `--fasta_width` option and the width of alignments ( produced with the `--alnout` and `--uchimealn` options) may be specified with the `--rowlen` option. When an argument of zero (0) is specfied for these options, sequences and alignments will not be wrapped.
+The width of FASTA formatted output files may be specified with the `--fasta_width` option and the width of alignments produced with the `--alnout` and `--uchimealn` options may be specified with the `--rowlen` and `--alignwidth` options, respectively. When an argument of zero (0) is specfied for these options, sequences and alignments will not be wrapped.
 
 VSEARCH implements the old USEARCH option `--iddef` to specify the definition of identity used to rank the hits. Values accepted are 0 (CD-HIT definition using shortest sequence as numerator), 1 (edit distance), 2 (edit distance excluding terminal gaps, default), 3 (Marine Biological Lab definition where entire gaps are considered a single difference) or 4 (BLAST, same as 2). See the [USEARCH User Guide 4.1](http://drive5.com/usearch/UsearchUserGuide4.1.pdf) page 42-44 for details. Also `id0`, `id1`, `id2`, `id3` and `id4`  are accepted as arguments to the `--userfields` option.
 
@@ -113,27 +115,75 @@ General options:
 
 * `--help`
 * `--version`
-* `--iddef <int>` (Default 2)
 * `--fasta_width <int>` (Default 80)
 * `--maxseqlength <int>` (Default 50000)
 * `--minseqlength <int>` (Default 1 for sort/shuffle or 32 for search/dereplicate)
 * `--notrunclabels`
-* `--strand <plus|both>` (Default plus)
 * `--threads <int>` (Default 0 means all available cores)
-* `--uc <filename>`
-* `--uc_allhits`
 
-Clustering and searching options:
+Chimera detection options:
 
+* `--abskew <real>` (Default 2.0)
+* `--alignwidth <int>` (Default 60)
+* `--chimeras <filename>`
+* `--db <filename>`
+* `--dn <real>` (Default 1.4)
+* `--mindiffs <int>` (Default 3)
+* `--mindiv <real>` (Default 0.8)
+* `--minh <real>` (Default 0.28)
+* `--nonchimeras <filename>`
+* `--self`
+* `--selfid`
+* `--uchime_denovo <filename>`
+* `--uchime_ref <filename>`
+* `--uchimealns <filename>`
+* `--uchimeout <filename>`
+* `--uchimeout5`
+* `--xn <real>` (Default 8.0)
+
+Clustering options (most searching options also apply):
+
+* `--centroids <filename>`
 * `--cluster_fast <filename>`
 * `--cluster_smallmem <filename>`
-* `--usearch_global <filename>`
-* `--alnout <filename>`
-* `--blast6out <filename>`
-* `--centroids <filename>`
 * `--clusters <prefix>`
 * `--consout <filename>`
 * `--cons_truncate` (Ignored - Not implemented yet)
+* `--id <real>` (Required)
+* `--iddef <int>` (Default 2)
+* `--msaout <filename>`
+* `--qmask dust|none|soft` (Default dust)
+* `--sizein`
+* `--sizeout`
+* `--strand <plus|both>` (Default plus)
+* `--uc <filename>`
+* `--usersort`
+
+Dereplication options:
+
+* `--derep_fulllength <filename>`
+* `--sortbylength <filename>`
+* `--sortbysize <filename>`
+* `--maxsize <int>` (Default inf.)
+* `--minsize <int>` (Default 0)
+* `--minuniquesize <int>` (Default 1)
+* `--output <filename>`
+* `--relabel`
+* `--sizein`
+* `--sizeout`
+* `--topn <int>` (Default all)
+
+Masking options:
+
+* `--hardmask`
+* `--maskfasta <filename>`
+* `--output_no_hits`
+* `--qmask dust|none|soft` (Default dust)
+
+Searching options:
+
+* `--alnout <filename>`
+* `--blast6out <filename>`
 * `--db <filename>` (Required)
 * `--dbmask dust|none|soft` (Default dust)
 * `--dbmatched <filename>`
@@ -144,6 +194,7 @@ Clustering and searching options:
 * `--gapopen <string>` (Default 20I/2E)
 * `--hardmask`
 * `--id <real>` (Required)
+* `--iddef <int>` (Default 2)
 * `--idprefix <int>`
 * `--idsuffix <int>`
 * `--leftjust`
@@ -167,7 +218,6 @@ Clustering and searching options:
 * `--minsl <real>`
 * `--mintsize <int>`
 * `--mismatch <int>` (Default -4)
-* `--msaout <filename>`
 * `--notmatched <filename>`
 * `--output_no_hits`
 * `--pattern <string>` (Ignored)
@@ -177,51 +227,24 @@ Clustering and searching options:
 * `--rowlen <int>` (Default 60)
 * `--self`
 * `--selfid`
+* `--sizeout`
 * `--slots <int>` (Ignored)
+* `--strand <plus|both>` (Default plus)
 * `--target_cov <real>`
 * `--top_hits_only`
+* `--uc <filename>`
+* `--uc_allhits`
+* `--usearch_global <filename>`
 * `--userfields <string>`
 * `--userout <filename>`
-* `--usersort`
 * `--weak_id <real>`
 * `--wordlength <int>` (Default 8)
 
-Dereplication, masking, shuffling and sorting options:
-
-* `--derep_fulllength <filename>`
-* `--maskfasta <filename>`
-* `--shuffle <filename>`
-* `--sortbylength <filename>`
-* `--sortbysize <filename>`
-* `--maxsize <int>` (Default inf.)
-* `--minsize <int>` (Default 0)
-* `--minuniquesize <int>` (Default 1)
+Shuffling options:
 * `--output <filename>`
-* `--relabel`
+* `--shuffle <filename>`
 * `--seed <int>` (Default 0=randomize)
-* `--sizein`
-* `--sizeout`
 * `--topn <int>` (Default all)
-
-Chimera detection options:
-
-* `--uchime_denovo <filename>`
-* `--uchime_ref <filename>`
-* `--abskew <real>` (Default 2.0)
-* `--chimeras <filename>`
-* `--db <filename>`
-* `--dn <real>` (Default 1.4)
-* `--mindiffs <int>` (Default 3)
-* `--mindiv <real>` (Default 0.8)
-* `--minh <real>` (Default 0.28)
-* `--nonchimeras <filename>`
-* `--rowlen <int>` (Default 60)
-* `--self`
-* `--selfid`
-* `--uchimealns <filename>`
-* `--uchimeout <filename>`
-* `--uchimeout5`
-* `--xn <real>` (Default 8.0)
 
 
 ## VSEARCH license and third party licenses
@@ -283,7 +306,7 @@ Some issues to work on:
 
 * testing and debugging
 * performance evaluation
-* intra-sequence SIMD parallelization using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000)
+* intra-sequence SIMD parallelization (using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000))
 
 
 ## The VSEARCH team
@@ -295,6 +318,13 @@ The following people have contributed to VSEARCH:
 * Fr&eacute;d&eacute;ric Mah&eacute; (Documentation, testing, feature suggestions)
 * Christopher Quince (Initiator, feature suggestions, evaluation)
 * Umer Zeeshan Ijaz (Feature suggestions)
+
+
+## Citing VSEARCH
+
+No papers about VSEARCH has been published yet. Please refer to the
+[VSEARCH GitHub repository](https://github.com/torognes/vsearch).
+
 
 ## Test datasets
 
