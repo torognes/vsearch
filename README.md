@@ -10,9 +10,9 @@ The aim of this project is to create an alternative to the [USEARCH](http://www.
 * be as accurate or more accurate than usearch
 * be as fast or faster than usearch
 
-We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, masking, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength` and `--maskfasta`, as well as almost all their options).
+We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength` and `--maskfasta`, as well as almost all their options).
 
-VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
+VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
 The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
@@ -78,7 +78,7 @@ Please see the files in the `eval` folder for the scripts used for this assessme
 
 **Search speed:** The speed of VSEARCH searches appears to be somewhat faster than USEARCH when USEARCH is run without the `--fulldp` option. When USEARCH is run with the `--fulldp` option, VSEARCH may be considerable faster, but it depends on the options and sequences used.
 
-For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the query sequences, VSEARCH needed 46 seconds, whereas USEARCH needed 60 seconds without the `--fulldp` option and 70 seconds with `--fulldp`. This includes time for loading, masking and indexing the database (about 2 secs for VSEARCH, 5 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
+For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the query sequences, VSEARCH needed 46 seconds, whereas USEARCH needed 60 seconds without the `--fulldp` option and 70 seconds with `--fulldp`. This includes time for loading, masking and indexing the database (about 2 seconds for VSEARCH, 5 seconds for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 
 **Memory:** VSEARCH is a 64-bit program and supports very large databases if you have enough memory. Search and clustering might use a lot of memory, especially if run with many threads. Memory usage has not been compared with USEARCH yet.
 
@@ -86,11 +86,11 @@ For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the que
 
 The speed of clustering with VSEARCH relative to USEARCH depends on how many threads are used. Running with a single thread VSEARCH currently seems to be 2-4 times slower than with USEARCH, depending on parameters. Clustering has been parallelized with threads in VSEARCH, but clustering does not seem to be parallelized in USEARCH (despite what the name and documentation for `--cluster_fast` seems to indicate). Clustering with VSEARCH using 4-8 threads is often faster than USEARCH. The speed of VSEARCH might be further improved with an intra-sequence SIMD-vectorized aligner.
 
-**Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the ``--uchime_ref`` and ``--uchime_denovo`` commands and all their options are supported.
+**Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the `--uchime_ref` and `--uchime_denovo` commands and all their options are supported.
 
-A preliminary assessment of the accuracy of VSEARCH on chimera detection has been performed using the SIMM dataset described in the UCHIME paper. See the ``eval/chimeval.sh`` script and the results in `eval/chimeval.txt` for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH.
+A preliminary assessment of the accuracy of VSEARCH on chimera detection has been performed using the SIMM dataset described in the UCHIME paper. See the `eval/chimeval.sh` script and the results in `eval/chimeval.txt` for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH.
 
-VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and about 30% faster on detection against a reference database. In VSEARCH ``uchime_ref`` is multithreaded, while ``uchime_denovo`` is not.
+VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and about 30% faster on detection against a reference database. In VSEARCH `uchime_ref` is multithreaded, while `uchime_denovo` is not.
 
 **Dereplication and sorting:** The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
@@ -98,7 +98,7 @@ VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and abou
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
-Another extension implemented is that dereplication will honor the `--sizein` option and add together the abundances of the sequences that are merged.
+Another extension implemented is that dereplication will honour the `--sizein` option and add together the abundances of the sequences that are merged.
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
@@ -262,7 +262,7 @@ VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library 
 
 ## Code
 
-The code is written in C++ but most of it is actually C with some C++ syntax conventions.
+The code is written in C++ but most of it is actually mostly C with some C++ syntax conventions.
 
 File | Description
 ---|---
@@ -322,8 +322,8 @@ The following people have contributed to VSEARCH:
 
 ## Citing VSEARCH
 
-No papers about VSEARCH has been published yet. Please refer to the
-[VSEARCH GitHub repository](https://github.com/torognes/vsearch).
+No papers about VSEARCH have been published yet, but a manuscript is in preparation.
+Please refer to the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
 
 
 ## Test datasets
@@ -332,6 +332,7 @@ Test datasets (found in the `data` folder) were obtained from
 the [BioMarks project](http://biomarks.eu/) (Logares et al. 2014),
 the [TARA OCEANS project](http://oceans.taraexpeditions.org/) (Karsenti et al. 2011) and
 the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et al. 2012).
+
 
 ## References
 
