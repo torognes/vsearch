@@ -32,7 +32,7 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Executable binaries of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate binary and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -76,7 +76,7 @@ The recall of VSEARCH was usually about 92.3-93.5% and the precision was usually
 
 Please see the files in the `eval` folder for the scripts used for this assessment.
 
-**Search speed:** The speed of VSEARCH searches appears to somewhat faster than USEARCH when USEARCH is run without the `--fulldp` option. When USEARCH is run with the `--fulldp` option, VSEARCH may be considerable faster, but it depends on the options and sequences used.
+**Search speed:** The speed of VSEARCH searches appears to be somewhat faster than USEARCH when USEARCH is run without the `--fulldp` option. When USEARCH is run with the `--fulldp` option, VSEARCH may be considerable faster, but it depends on the options and sequences used.
 
 For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the query sequences, VSEARCH needed 46 seconds, whereas USEARCH needed 60 seconds without the `--fulldp` option and 70 seconds with `--fulldp`. This includes time for loading, masking and indexing the database (about 2 secs for VSEARCH, 5 secs for USEARCH). The measurements were made on a Apple MacBook Pro Retina 2013 with four 2.3GHz Intel Core i7 cores (8 virtual cores) using the default number of threads (8).
 
@@ -94,7 +94,7 @@ VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and abou
 
 **Dereplication and sorting:** The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
-**Masking:** VSEARCH by default uses an optimized multithreaded reimplementation of the well-known DUST algorithm by Tatusov and Lipman (source: ftp://ftp.ncbi.nlm.nih.gov/pub/tatusov/dust/version1/src/) to mask simple repeats and low-complexity regions in the sequences before searching and clustering. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
+**Masking:** VSEARCH by default uses an optimized multithreaded re-implementation of the well-known DUST algorithm by Tatusov and Lipman (source: ftp://ftp.ncbi.nlm.nih.gov/pub/tatusov/dust/version1/src/) to mask simple repeats and low-complexity regions in the sequences before searching and clustering. USEARCH by default uses an undocumented rapid masking method called "fastnucleo" that seems to mask fewer and smaller regions than dust. USEARCH may also be run with the DUST masking method, but the masking then takes something like 30 times longer.
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
@@ -102,7 +102,7 @@ Another extension implemented is that dereplication will honor the `--sizein` op
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
-The width of FASTA formatted output files may be specified with the `--fasta_width` option and the width of alignments produced with the `--alnout` and `--uchimealn` options may be specified with the `--rowlen` and `--alignwidth` options, respectively. When an argument of zero (0) is specfied for these options, sequences and alignments will not be wrapped.
+The width of FASTA formatted output files may be specified with the `--fasta_width` option and the width of alignments produced with the `--alnout` and `--uchimealn` options may be specified with the `--rowlen` and `--alignwidth` options, respectively. When an argument of zero (0) is specified for these options, sequences and alignments will not be wrapped.
 
 VSEARCH implements the old USEARCH option `--iddef` to specify the definition of identity used to rank the hits. Values accepted are 0 (CD-HIT definition using shortest sequence as numerator), 1 (edit distance), 2 (edit distance excluding terminal gaps, default), 3 (Marine Biological Lab definition where entire gaps are considered a single difference) or 4 (BLAST, same as 2). See the [USEARCH User Guide 4.1](http://drive5.com/usearch/UsearchUserGuide4.1.pdf) page 42-44 for details. Also `id0`, `id1`, `id2`, `id3` and `id4`  are accepted as arguments to the `--userfields` option.
 
