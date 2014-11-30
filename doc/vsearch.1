@@ -390,8 +390,14 @@ file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
 headers).
 .TP
 .B --sizeout
-Add abundance annotations to the output fasta file (add the pattern
-";size=\fIinteger\fR" to sequence headers).
+Add abundance annotations to the output fasta files (add the pattern
+";size=\fIinteger\fR" to sequence headers). If --sizein is specified,
+abundance annotations are reported to output files, and each cluster
+centroid receives a new abundance value corresponding to the total
+abundance of the amplicons included in the cluster (--centroids
+option). If --sizein is not specified, input abundances are set to 1
+for amplicons, and to the number of amplicons per cluster for
+centroids.
 .TP
 .BI --strand\~ "plus|both"
 When comparing sequences with the cluster seed, check the \fIplus\fR
@@ -450,7 +456,12 @@ headers).
 .TP
 .B --sizeout
 Add abundance annotations to the output fasta file (add the pattern
-";size=\fIinteger\fR" to sequence headers).
+";size=\fIinteger\fR" to sequence headers).  If --sizein is specified,
+each unique sequence receives a new abundance value corresponding to
+its total abundance (sum of the abundances of its occurrences). If
+--sizein is not specified, input abundances are set to 1, and each
+unique sequence receives a new abundance value corresponding to its
+number of occurrences in the input file.
 .TP
 .BI --strand\~ "plus|both"
 When searching for strictly identical sequences, check the \fIplus\fR
