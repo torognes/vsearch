@@ -36,7 +36,11 @@ char sym_nt_4bit[] = "-ACGTRYSWKMDBHVN";
 unsigned int chrstatus[256] =
   {
     /*
-    0=stripped, 1=legal, 2=fatal, 3=silently stripped
+
+      How to handle input characters
+
+      0=stripped, 1=legal, 2=fatal, 3=silently stripped
+
     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
@@ -62,11 +66,14 @@ unsigned int chrstatus[256] =
 unsigned int chrmap_2bit[256] =
   {
     /* 
-       map from ascii to 2-bit code
-       A and all others: 0
-       C: 1
-       G: 2
-       TU: 3
+
+       Map from ascii to 2-bit nucleotide code
+
+       Aa: 0
+       Cc: 1
+       Gg: 2
+       TtUu: 3
+       All others: 0
 
     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _              
@@ -94,24 +101,25 @@ unsigned int chrmap_2bit[256] =
 unsigned int chrmap_4bit[256] =
   {
     /*
-      map from ascii to 4-bit code
 
-      A: 1
-      C: 2
-      G: 3
-      TU: 4
-      R: 5
-      Y: 6
-      S: 7
-      W: 8
-      K: 9
-      M: 10
-      B: 11
-      D: 12
-      H: 13
-      V: 14
-      N: 15
-      other: 0
+      Map from ascii to 4-bit nucleotide code
+
+      Aa: 1
+      Cc: 2
+      Gg: 3
+      TtUu: 4
+      Rr: 5
+      Yy: 6
+      Ss: 7
+      Ww: 8
+      Kk: 9
+      Mm: 10
+      Bb: 11
+      Dd: 12
+      Hh: 13
+      Vv: 14
+      Nn: 15
+      Others: 0
 
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
@@ -141,7 +149,7 @@ unsigned int chrmap_masked[256] =
 
       Should character be masked and not used for search ?
       Mask everything but A, C, G, T and U.
-      All lower case letters are masked.
+      All lower case letters are masked (soft masking).
 
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
@@ -169,7 +177,9 @@ unsigned int chrmap_masked[256] =
 char chrmap_complement[256] =
   {
     /*
-     map from ascii to ascii, complementary nucleotide
+      
+      Map from ascii to ascii, complementary nucleotide
+
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
@@ -183,6 +193,38 @@ char chrmap_complement[256] =
     'N','N','Y','S','A','A','B','W','N','R','N','N','N','N','N','N',
     'N','t','v','g','h','N','N','c','d','N','N','m','N','k','n','N',
     'N','N','y','s','a','a','b','w','N','r','N','N','N','N','N','N',
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
+  };
+
+char chrmap_normalize[256] =
+  {
+    /*
+      
+      Map from ascii to ascii
+      Convert to upper case nucleotide, and replace U by T
+      
+     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+    */
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+
+    'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
+    'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
+    'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
+    'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
 
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',

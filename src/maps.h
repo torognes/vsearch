@@ -27,3 +27,4 @@ extern unsigned int chrmap_2bit[256];
 extern unsigned int chrmap_4bit[256];
 extern unsigned int chrmap_masked[256];
 extern char chrmap_complement[256];
+extern char chrmap_normalize[256];

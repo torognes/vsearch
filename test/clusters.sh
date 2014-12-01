@@ -29,6 +29,7 @@ CMD="/usr/bin/time $PROG \
     --id 0.9 \
     --maxaccepts 1 \
     --maxrejects 8 \
+    --sizein \
     --sizeout \
     --centroids s.$P.centroids \
     --uc s.$P.uc \

@@ -52,28 +52,56 @@ int derep_compare(const void * a, const void * b)
   struct bucket * x = (struct bucket *) a;
   struct bucket * y = (struct bucket *) b;
 
-  /* highest abundance first, otherwize keep order */
+  /* highest abundance first, then by label, otherwise keep order */
 
   if (x->size < y->size)
     return +1;
   else if (x->size > y->size)
     return -1;
   else
-    if (x->seqno_first < y->seqno_first)
-      return -1;
-    else if (x->seqno_first > y->seqno_first)
-      return +1;
-    else
-      return 0;
+    {
+      int r = strcmp(db_getheader(x->seqno_first),
+                     db_getheader(y->seqno_first));
+      if (r != 0)
+        return r;
+      else
+        {
+          if (x->seqno_first < y->seqno_first)
+            return -1;
+          else if (x->seqno_first > y->seqno_first)
+            return +1;
+          else
+            return 0;
+        }
+    }
 }
 
-void string_upcase(char * upcase, char * s, unsigned long len)
+void string_normalize(char * normalized, char * s, unsigned long len)
 {
-  /* convert string to upper case, given all chars are in A-Za-z */
+  /* convert string to upper case and replace U by T */
   char * p = s;
-  char * q = upcase;
+  char * q = normalized;
   for(unsigned long i=0; i<len; i++)
-    *q++ = *p++ & 0xdf;
+    *q++ = chrmap_normalize[(int)(*p++)];
+}
+
+int seqcmp(char * a, char * b, int n)
+{
+  char * p = a;
+  char * q = b;
+
+  if (n <= 0)
+    return 0;
+
+  while ((n-- > 0) && (chrmap_4bit[(int)(*p)] == chrmap_4bit[(int)(*q)]))
+    {
+      if ((n == 0) || (*p == 0) || (*q == 0))
+        break;
+      p++;
+      q++;
+    }
+
+  return chrmap_4bit[(int)(*p)] - chrmap_4bit[(int)(*q)];
 }
 
 void derep_fulllength()
@@ -142,8 +170,8 @@ void derep_fulllength()
       unsigned long seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
 
-      /* upper case sequence */
-      string_upcase(seq_up, seq, seqlen);
+      /* normalize sequence: uppercase and replace U by T  */
+      string_normalize(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
       if (opt_strand > 1)
@@ -170,7 +198,7 @@ void derep_fulllength()
              &&
              ((bp->hash != hash) ||
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
-              (strncasecmp(seq_up, db_getsequence(bp->seqno_first), seqlen))))
+              (seqcmp(seq_up, db_getsequence(bp->seqno_first), seqlen))))
         {
           bp++;
           j++;
@@ -199,9 +227,9 @@ void derep_fulllength()
                  &&
                  ((rc_bp->hash != rc_hash) ||
                   (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
-                  (strncasecmp(rc_seq_up,
-                               db_getsequence(rc_bp->seqno_first), 
-                               seqlen))))
+                  (seqcmp(rc_seq_up,
+                          db_getsequence(rc_bp->seqno_first),
+                          seqlen))))
             {
               rc_bp++;
               k++;

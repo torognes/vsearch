@@ -2,13 +2,16 @@
 
 INPUT=../data/PR2-18S-rRNA-V4.fsa
 #INPUT=../data/Rfam_9_1.fasta
+
 THREADS=0
+
 VSEARCH=../src/vsearch
 USEARCH=$(which usearch)
-#OUTDIR=$SCRATCH
+
 OUTDIR=.
-MINSIZE=40
-MAXSIZE=1000
+
+MINSIZE=1
+MAXSIZE=100000
 TOPN=10000
 
 echo Creating test database

@@ -12,7 +12,7 @@ DB=../data/Rfam_11_0.fasta
 if [ $(uname -s) == "Linux" ]; then
     VSEARCH=$(ls -v ../bin/vsearch*linux* | tail -1)
 else
-    VSEARCH=$(ls -t ../bin/vsearch*macosx* | head -1)
+    VSEARCH=$(ls -t ../bin/vsearch*osx* | head -1)
 fi
 
 #VSEARCH=../src/vsearch

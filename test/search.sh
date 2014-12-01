@@ -32,6 +32,8 @@ fi
     --strand plus \
     --id $ID \
     --self \
+    --wordlength 8 \
+    --sizeout \
     --output_no_hits \
     --gapopen 20I/2E \
     --gapext 2I/1E \

@@ -464,7 +464,7 @@ void db_read(const char * filename, int upcase)
     /* read sizein annotation if appropriate */
     if ((opt_usearch_global || 
          opt_uchime_denovo ||
-         (opt_sortbysize && opt_relabel && opt_sizeout) ||
+         opt_sortbysize ||
          (opt_sortbylength && opt_relabel && opt_sizeout) ||
          (opt_cluster_fast && opt_sizein) ||
          (opt_cluster_smallmem && opt_sizein) ||
@@ -549,16 +549,21 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
       int pat_start = pmatch[0].rm_so;
       int pat_end = pmatch[0].rm_eo;
 
-      fprintf(fp, ">%.*s%ssize=%lu%s%.*s\n",
+      fprintf(fp,
+              ">%.*s%s%.*s%ssize=%lu;\n",
               pat_start, hdr,
               pat_start > 0 ? ";" : "",
-              size,
-              pat_end < hdrlen ? ";" : "",
-              hdrlen - pat_end, hdr + pat_end);
+              hdrlen - pat_end, hdr + pat_end,
+              ((pat_end < hdrlen) && (hdr[hdrlen - 1] != ';')) ? ";" : "",
+              size);
     }
   else
     {
-      fprintf(fp, ">%s;size=%lu\n", hdr, size);
+      fprintf(fp,
+              ">%s%ssize=%lu;\n", 
+              hdr,
+              ((hdrlen == 0) || (hdr[hdrlen - 1] != ';')) ? ";" : "", 
+              size);
     }
 
   fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
@@ -569,19 +574,27 @@ int compare_bylength(const void * a, const void * b)
   seqinfo_t * x = (seqinfo_t *) a;
   seqinfo_t * y = (seqinfo_t *) b;
 
-  /* longest first, otherwise keep order */
+  /* longest first, then by label, otherwise keep order */
 
   if (x->seqlen < y->seqlen)
     return +1;
   else if (x->seqlen > y->seqlen)
     return -1;
   else
-    if (x < y)
-      return -1;
-    else if (x > y)
-      return +1;
-    else
-      return 0;
+    {
+      int r = strcmp(x->header, y->header);
+      if (r != 0)
+        return r;
+      else
+        {
+          if (x < y)
+            return -1;
+          else if (x > y)
+            return +1;
+          else
+            return 0;
+        }
+    }
 }
 
 inline int compare_byabundance(const void * a, const void * b)
@@ -589,19 +602,27 @@ inline int compare_byabundance(const void * a, const void * b)
   seqinfo_t * x = (seqinfo_t *) a;
   seqinfo_t * y = (seqinfo_t *) b;
 
-  /* most abundant first, otherwise keep order */
+  /* most abundant first, then by label, otherwise keep order */
 
   if (x->size > y->size)
     return -1;
   else if (x->size < y->size)
     return +1;
   else
-    if (x < y)
-      return -1;
-    else if (x > y)
-      return +1;
-    else
-      return 0;
+    {
+      int r = strcmp(x->header, y->header);
+      if (r != 0)
+        return r;
+      else
+        {
+          if (x < y)
+            return -1;
+          else if (x > y)
+            return +1;
+          else
+            return 0;
+        }
+    }
 }
 
 void db_sortbylength()

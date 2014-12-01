@@ -32,19 +32,27 @@ int sortbylength_compare(const void * a, const void * b)
   struct sortinfo_s * x = (struct sortinfo_s *) a;
   struct sortinfo_s * y = (struct sortinfo_s *) b;
 
-  /* longest first, otherwize keep order */
+  /* longest first, then by label, otherwise keep order */
 
   if (x->length < y->length)
     return +1;
   else if (x->length > y->length)
     return -1;
   else
-    if (x->seqno < y->seqno)
-      return -1;
-    else if (x->seqno > y->seqno)
-      return +1;
-    else
-      return 0;
+    {
+      int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+      if (r != 0)
+        return r;
+      else
+        {
+          if (x->seqno < y->seqno)
+            return -1;
+          else if (x->seqno > y->seqno)
+            return +1;
+          else
+            return 0;
+        }
+    }
 }
 
 void sortbylength()
