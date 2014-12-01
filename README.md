@@ -98,7 +98,7 @@ VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and abou
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
-Another extension implemented is that `derep_fulllength` and `--cluster_fast` will honour the `--sizein` option and add together the abundances of the sequences that are merged.
+Another extension implemented is that `--derep_fulllength` and `--cluster_fast` will honour the `--sizein` option and add together the abundances for the sequences that are clustered.
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
