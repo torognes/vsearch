@@ -32,9 +32,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Executable binaries of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-osx-x86_64). These binaries include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
-Download the appropriate binary and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
+Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
 ```sh
 cd ~
@@ -56,7 +56,7 @@ The alternative makefiles Makefile.ZLIB, Makefile.BZLIB and Makefile.static may 
 
 ## Implementation details and initial assessment
 
-**Search algorithm:** VSEARCH indexes the unique kmers in the database in a way similar USEARCH, but is currently limited to continuous words (non-spaced seeds) of length 3--15. It samples every unique kmer from each query sequence and identifies the number of matching kmers in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those target sequences that satisfy all accept options are retained while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching target sequences considered, respectively. Please see the USEARCH paper and supplementary for details.
+**Search algorithm:** VSEARCH indexes the unique kmers in the database in a way similar to USEARCH, but is currently limited to continuous words (non-spaced seeds) of length 3-15. It samples every unique kmer from each query sequence and identifies the number of matching kmers in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those target sequences that satisfy all accept options are retained while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching target sequences considered, respectively. Please see the USEARCH paper and supplementary for details.
 
 **Kmer selection:** How many and which kmers USEARCH chooses from the query sequence is not well documented. It is also not known exactly which database sequences are examined, and in which order. We have therefore experimented with various strategies in order to obtain good performance. Our procedure seems to give results equal to or better than USEARCH.
 
@@ -64,7 +64,7 @@ We have chosen to select all unique kmers from the query. At least 6 of these km
 
 It appears that there are differences in usearch between the searches performed by the `--usearch_global` command and the clustering commands. Notably, it appears like `--usearch_global` simply ignores the options `--wordlength`, `--slots` and `--pattern`, while the clustering commands takes them into account. VSEARCH supports the `--wordlength` option for kmer lengths from 3 to 15, but the options `--slots` and `--pattern` are ignored.
 
-**Alignment:** VSEARCH uses a 8-way 16-bit SIMD vectorized implementation of the full dynamic programming algorithm (Needleman-Wunsch) for global sequence alignment. It is an adaptation of the method described by Rognes (2011). USEARCH by default uses heuristic procedure involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
+**Alignment:** VSEARCH uses a 8-way 16-bit SIMD vectorized implementation of the full dynamic programming algorithm (Needleman-Wunsch) for global sequence alignment. It is an adaptation of the method described by Rognes (2011). USEARCH by default uses a heuristic procedure involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
 
 **Search Accuracy:** The accuracy of VSEARCH searches has been assessed and compared to USEARCH version 7.0.1090. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
 
@@ -98,7 +98,7 @@ VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and abou
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
-Another extension implemented is that dereplication will honour the `--sizein` option and add together the abundances of the sequences that are merged.
+Another extension implemented is that `derep_fulllength` and `--cluster_fast` will honour the `--sizein` option and add together the abundances of the sequences that are merged.
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
@@ -323,7 +323,7 @@ The following people have contributed to VSEARCH:
 ## Citing VSEARCH
 
 No papers about VSEARCH have been published yet, but a manuscript is in preparation.
-Please refer to the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
+For now, please cite the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
 
 
 ## Test datasets

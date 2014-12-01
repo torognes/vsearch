@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 28, 2014" "version 1.0.0" "USER COMMANDS"
+.TH vsearch 1 "December 1, 2014" "version 1.0.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -391,7 +391,7 @@ headers).
 .TP
 .B --sizeout
 Add abundance annotations to the output fasta files (add the pattern
-";size=\fIinteger\fR" to sequence headers). If --sizein is specified,
+";size=\fIinteger\fR;" to sequence headers). If --sizein is specified,
 abundance annotations are reported to output files, and each cluster
 centroid receives a new abundance value corresponding to the total
 abundance of the amplicons included in the cluster (--centroids
@@ -447,7 +447,7 @@ and sorted by decreasing abundance. Identical sequences receive the
 header of the first sequence of their group. If --sizeout is used, the
 number of occurrences (i.e. abundance) of each sequence is indicated
 at the end of their fasta header using the pattern
-";size=\fIinteger\fR".
+";size=\fIinteger\fR;".
 .TP
 .B --sizein
 Take into account the abundance annotations present in the input fasta
@@ -456,7 +456,7 @@ headers).
 .TP
 .B --sizeout
 Add abundance annotations to the output fasta file (add the pattern
-";size=\fIinteger\fR" to sequence headers).  If --sizein is specified,
+";size=\fIinteger\fR;" to sequence headers).  If --sizein is specified,
 each unique sequence receives a new abundance value corresponding to
 its total abundance (sum of the abundances of its occurrences). If
 --sizein is not specified, input abundances are set to 1, and each
@@ -607,7 +607,7 @@ commands become case sensitive. The default is to mask using
 Write database target sequences matching at least one query sequence
 to \fIfilename\fR, in fasta format. If the option --sizeout is used,
 the number of queries that matched each target sequence is indicated
-using the pattern ";size=\fIinteger\fR".
+using the pattern ";size=\fIinteger\fR;".
 .TP
 .BI --dbnotmatched \0filename
 Write database target sequences not matching query sequences to
@@ -847,7 +847,7 @@ identical.
 .TP
 .B --sizeout
 Add abundance annotations to the output of the option --dbmatched
-(using the pattern ";size=\fIinteger\fR").
+(using the pattern ";size=\fIinteger\fR;").
 .TP
 .BI --strand\~ "plus|both"
 When searching for similar sequences, check the \fIplus\fR strand only
@@ -958,7 +958,7 @@ abundance annotations.
 .TP
 .B --sizeout
 When using --relabel, report abundance annotations to the output fasta
-file (using the pattern ";size=\fIinteger\fR").
+file (using the pattern ";size=\fIinteger\fR;").
 .TP
 .BI --sortbylength \0filename
 Sort by decreasing length the sequences contained in
@@ -1183,6 +1183,11 @@ definitions that were removed from usearch.
 .PP
 \fBvsearch\fR extends the --topn option to sorting commands.
 .PP
+\fBvsearch\fR extends the --sizein option to dereplication and
+--cluster_fast.
+.PP
+\fBvsearch\fR treats T and U as identical nucleotides for dereplication.
+.PP
 .\" ============================================================================
 .SH NOVELTIES
 \fBvsearch\fR introduces new options not present in usearch. They are
@@ -1327,6 +1332,12 @@ or minor bug releases are not mentioned):
 .TP
 .BR v1.0.0\~ "released November 28th, 2014"
 First public release
+.TP
+.BR v1.0.1\~ "released December 1st, 2014"
+Bug fixes (sortbysize, semicolon after size annotation in headers)
+and minor changes
+(labels as secondary sort key for most sorts, treat T and U as identical
+for dereplication, only output size in dbmatched file if sizeout specified).
 .LP
 .\" ============================================================================
 .\" TODO:

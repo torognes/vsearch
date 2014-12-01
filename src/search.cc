@@ -573,7 +573,12 @@ void usearch_global(char * cmdline, char * progheader)
         if (dbmatched[i])
           {
             if (opt_dbmatched)
-              db_fprint_fasta_with_size(fp_dbmatched, i, dbmatched[i]);
+              {
+                if (opt_sizeout)
+                  db_fprint_fasta_with_size(fp_dbmatched, i, dbmatched[i]);
+                else
+                  db_fprint_fasta(fp_dbmatched, i);
+              }
           }
         else
           {

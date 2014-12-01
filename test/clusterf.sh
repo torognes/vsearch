@@ -28,6 +28,7 @@ CMD="/usr/bin/time $PROG \
     --id 0.9 \
     --maxaccepts 1 \
     --maxrejects 8 \
+    --sizeout \
     --centroids f.$P.centroids \
     --uc f.$P.uc \
     --alnout f.$P.alnout \
@@ -36,6 +37,7 @@ CMD="/usr/bin/time $PROG \
     --notmatched f.$P.notmatched \
     --fastapairs f.$P.fastapairs"
 
+#    --sizein
 #    --output_no_hits
 #    --uc_allhits
 #    --query_cov 0.5
