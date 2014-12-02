@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 1, 2014" "version 1.0.1" "USER COMMANDS"
+.TH vsearch 1 "December 2, 2014" "version 1.0.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -230,8 +230,9 @@ default is to launch one thread per available logical core.
 .TP
 .BI --uchime_denovo \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR, without
-external references (i.e. \fIde novo\fR). Multithreading is not
-supported.
+external references (i.e. \fIde novo\fR). Automatically sort the
+sequences in \fIfilename\fR by decreasing abundance and length
+beforehand. Multithreading is not supported.
 .TP
 .BI --uchime_ref \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR by
@@ -939,6 +940,14 @@ Output only the top \fIinteger\fR sequences.
 .\" ----------------------------------------------------------------------------
 Sorting options:
 .RS
+To obtain a stable sorting order, fasta entries are sorted by
+decreasing abundance (--sortbysize) or sequence length
+(--sortbylength), and by sequence label increasing alpha-numerical
+order (assuming all sequences have unique labels). The same applies to
+the automatic sorting performed during chimera checking
+(--uchime_denovo), dereplication (--derep_fulllength), and clustering
+(--cluster_fast).
+.PP
 .TP 9
 .BI --maxsize\~ "positive integer"
 When using --sortbysize, discard sequences with an abundance value
@@ -1183,11 +1192,14 @@ definitions that were removed from usearch.
 .PP
 \fBvsearch\fR extends the --topn option to sorting commands.
 .PP
-\fBvsearch\fR extends the --sizein option to dereplication and
---cluster_fast.
+\fBvsearch\fR extends the --sizein option to dereplication
+(--derep_fulllength) and clustering (--cluster_fast).
 .PP
 \fBvsearch\fR treats T and U as identical nucleotides for
 dereplication.
+.PP
+\fBvsearch\fR sorting is stabilized by using sequence labels as
+secondary keys.
 .PP
 .\" ============================================================================
 .SH NOVELTIES
@@ -1195,7 +1207,7 @@ dereplication.
 described in the "Options" section of this manual. Here is a short
 list:
 .IP - 2
-shuffle
+alignwidth
 .IP -
 fasta_width
 .IP -
@@ -1203,7 +1215,7 @@ iddef
 .IP -
 maxuniquesize
 .IP -
-alignwidth
+shuffle
 .PP
 .\" ============================================================================
 .SH EXAMPLES
@@ -1328,11 +1340,11 @@ Frédéric Mahé and Torbjørn Rognes, available at
 .\" ============================================================================
 .SH VERSION HISTORY
 New features and important modifications of \fBvsearch\fR (short lived
-or minor bug releases are not mentioned):
+or minor bug releases may not be mentioned):
 .RS
 .TP
 .BR v1.0.0\~ "released November 28th, 2014"
-First public release
+First public release.
 .TP
 .BR v1.0.1\~ "released December 1st, 2014"
 Bug fixes (sortbysize, semicolon after size annotation in headers)
