@@ -108,13 +108,13 @@ the unique \fIk\fR-mers used in searching. When soft masking is not
 activated, all letters are converted to upper case internally and used
 in result files.
 .PP
-When aligning sequences during chimera detection, searching and
-clustering, T and U are considered identical, regardless of their
-case. If two symbols are non-identical, their alignment will result in
-the negative mismatch score (default -4), except if one or both of the
-symbols are ambiguous (RYSWKMDBHVN) in which case the score is
-zero. Alignment of two identical ambiguous symbols (e.g. R vs R) also
-receives a score of zero.
+When comparing sequences during chimera detection, dereplication,
+searching and clustering, T and U are considered identical, regardless
+of their case. If two symbols are non-identical, their alignment will
+result in the negative mismatch score (default -4), except if one or
+both of the symbols are ambiguous (RYSWKMDBHVN) in which case the
+score is zero. Alignment of two identical ambiguous symbols (e.g. R vs
+R) also receives a score of zero.
 .PP
 Optionally, \fBvsearch\fR can be compiled to accepted compressed fasta
 files as input (gz and bzip2 formats).
@@ -431,7 +431,7 @@ Dereplication options:
 Merge strictly identical sequences contained in
 \fIfilename\fR. Identical sequences are defined as having the same
 length and the same string of nucleotides (case insensitive, T and U
-are considered different). As \fBvsearch\fR needs to read
+are considered the same). As \fBvsearch\fR needs to read
 \fIfilename\fR twice, \fIfilename\fR must be a real file, not a
 stream.
 .TP
@@ -1186,7 +1186,8 @@ definitions that were removed from usearch.
 \fBvsearch\fR extends the --sizein option to dereplication and
 --cluster_fast.
 .PP
-\fBvsearch\fR treats T and U as identical nucleotides for dereplication.
+\fBvsearch\fR treats T and U as identical nucleotides for
+dereplication.
 .PP
 .\" ============================================================================
 .SH NOVELTIES
