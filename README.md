@@ -26,13 +26,13 @@ VSEARCH does not support amino acid sequences or local alignments. These feature
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.0.0-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.1-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.0-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.1-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.1-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -40,8 +40,8 @@ Download the appropriate executable and make a symbolic link in a folder include
 cd ~
 mkdir -p bin
 cd bin
-wget https://github.com/torognes/vsearch/releases/download/v1.0.0/vsearch-1.0.0-linux-x86_64
-ln -s vsearch-1.0.0-linux-x86_64 vsearch
+wget https://github.com/torognes/vsearch/releases/download/v1.0.1/vsearch-1.0.1-linux-x86_64
+ln -s vsearch-1.0.1-linux-x86_64 vsearch
 ```
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
@@ -98,7 +98,7 @@ VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and abou
 
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
-Another extension implemented is that `derep_fulllength` and `--cluster_fast` will honour the `--sizein` option and add together the abundances of the sequences that are merged.
+Another extension implemented is that `--derep_fulllength` and `--cluster_fast` will honour the `--sizein` option and add together the abundances for the sequences that are clustered.
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
