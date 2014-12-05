@@ -298,6 +298,8 @@ VSEARCH may be compiled with zlib or bzip2 integration that allows it to read co
 ## Bugs
 
 VSEARCH has not been tested comprehensively yet. All bug reports are highly appreciated.
+You may submit a bug report here on GitHub as an [issue](https://github.com/torognes/vsearch/issues)
+or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?subject=bug_in_vsearch).
 
 
 ## Future work
