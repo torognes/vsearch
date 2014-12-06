@@ -29,6 +29,7 @@
 #include <pthread.h>
 #include <getopt.h>
 #include <x86intrin.h>
+//#include <tmmintrin.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
@@ -78,6 +79,7 @@
 #include "cluster.h"
 #include "msa.h"
 #include "chimera.h"
+#include "cpu.h"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -100,7 +102,7 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.1"
+#define PROG_VERSION "v1.0.2"
 
 /* options */
 
@@ -213,3 +215,14 @@ extern long opt_top_hits_only;
 extern long opt_topn;
 extern long opt_uc_allhits;
 extern long opt_wordlength;
+
+extern long mmx_present;
+extern long sse_present;
+extern long sse2_present;
+extern long sse3_present;
+extern long ssse3_present;
+extern long sse41_present;
+extern long sse42_present;
+extern long popcnt_present;
+extern long avx_present;
+extern long avx2_present;

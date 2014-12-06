@@ -153,20 +153,21 @@ static char progheader[80];
 static char * cmdline;
 
 
-#define cpuid(f,a,b,c,d)                                                \
-  __asm__ __volatile__ ("cpuid":                                        \
-                        "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (f));
+#define cpuid(f1, f2, a, b, c, d)                                \
+  __asm__ __volatile__ ("cpuid"                                  \
+                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d) \
+                        : "a" (f1), "c" (f2));
 
 void cpu_features_detect()
 {
   unsigned int a, b, c, d;
 
-  cpuid(0,a,b,c,d);
+  cpuid(0, 0, a, b, c, d);
   unsigned int maxlevel = a & 0xff;
 
   if (maxlevel >= 1)
   {
-    cpuid(1,a,b,c,d);
+    cpuid(1, 0, a, b, c, d);
     mmx_present    = (d >> 23) & 1;
     sse_present    = (d >> 25) & 1;
     sse2_present   = (d >> 26) & 1;
@@ -179,8 +180,8 @@ void cpu_features_detect()
     
     if (maxlevel >= 7)
     {
-      cpuid(7,a,b,c,d);
-      avx2_present   = (b >>  5) & 1;
+      cpuid(7, 0, a, b, c, d);
+      avx2_present = (b >>  5) & 1;
     }
   }
 }
@@ -1608,11 +1609,15 @@ int main(int argc, char** argv)
 {
   fillheader();
   getentirecommandline(argc, argv);
+
   cpu_features_detect();
 
   args_init(argc, argv);
 
   show_header();
+
+  if (!sse2_present)
+    fatal("Sorry, this program requires a cpu with SSE2.");
 
   if (opt_help)
     {

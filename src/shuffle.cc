@@ -116,7 +116,7 @@ void shuffle()
     }
   progress_done();
   show_rusage();
-
+  free(deck);
   db_free();
   fclose(fp_output);
 }
