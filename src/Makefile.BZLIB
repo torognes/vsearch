@@ -27,20 +27,20 @@ WARN=-Wall
 #WARN=-Weverything
 
 CXX=g++
-CXXFLAGS=-O3 -DHAVE_BZLIB -msse4.1 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
+CXXFLAGS=-O3 -DHAVE_BZLIB -msse2 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
 LINKFLAGS=$(PROFILING)
 LIBS=-lpthread -lbz2
 
 PROG=vsearch-bz
 
 OBJS=cityhash/city.o \
-	align.o align_simd.o arch.o bitmap.o chimera.o cluster.o db.o \
-	dbindex.o derep.o maps.o mask.o minheap.o msa.o query.o results.o \
-	search.o searchcore.o showalign.o shuffle.o sortbylength.o \
-	sortbysize.o unique.o userfields.o util.o vsearch.o
+	align.o align_simd.o arch.o bitmap.o chimera.o cluster.o cpu_sse2.o \
+	cpu_ssse3.o db.o dbindex.o derep.o maps.o mask.o minheap.o msa.o \
+	query.o results.o search.o searchcore.o showalign.o shuffle.o \
+	sortbylength.o sortbysize.o unique.o userfields.o util.o vsearch.o
 
 DEPS=Makefile cityhash/city.h cityhash/config.h \
-	align.h align_simd.h arch.h bitmap.h chimera.h cluster.h db.h \
+	align.h align_simd.h arch.h bitmap.h chimera.h cluster.h cpu.h db.h \
 	dbindex.h derep.h maps.h mask.h minheap.h msa.h query.h results.h \
 	search.h searchcore.h showalign.h shuffle.h sortbylength.h \
 	sortbysize.h unique.h userfields.h util.h vsearch.h
@@ -57,3 +57,9 @@ vsearch-bz : $(OBJS)
 
 clean :
 	rm -f *~ $(OBJS) *.{S,gcda,gcno,gcov} $(PROG) gmon.out cityhash/*.{S,gcda,gcno,gcov}
+
+cpu_ssse3.o : cpu.cc $(DEPS)
+	$(CXX) $(CXXFLAGS) -mssse3 -DSSSE3 -c -o $@ $<
+
+cpu_sse2.o : cpu.cc $(DEPS)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<

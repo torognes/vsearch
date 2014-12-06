@@ -124,45 +124,16 @@ void search_topscores(struct searchinfo_s * si)
   for(unsigned int i=0; i<si->kmersamplecount; i++)
     {
       unsigned int kmer = si->kmersample[i];
-
       unsigned char * bitmap = dbindex_getbitmap(kmer);
       
       if (bitmap)
         {
-          /* http://stackoverflow.com/questions/21622212/
-             how-to-perform-the-inverse-of-mm256-movemask-epi8-vpmovmskb */
-
-          /*
-            read 16 bytes from the bitmap 
-            use 2 bytes 
-            increment up to 16 words (32 bytes)
-          */
-
-          const __m128i c1 =
-            _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
-          const __m128i c2 = 
-            _mm_set_epi32(0x7fbfdfef, 0xf7fbfdfe, 0x7fbfdfef, 0xf7fbfdfe);
-          const __m128i c3 =
-            _mm_set_epi32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
-          
-          int r = (indexed_count + 15) / 16;
-          unsigned short * p = (unsigned short *)(bitmap);
-          __m128i * q = (__m128i *)(si->kmers);
-          
-          for(int j=0; j<r; j++)
-            {
-              __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
-              xmm0 = _mm_loadu_si128((__m128i*)p++);
-              xmm1 = _mm_shuffle_epi8(xmm0, c1);
-              xmm2 = _mm_or_si128(xmm1, c2);
-              xmm3 = _mm_cmpeq_epi8(xmm2, c3);
-              xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
-              xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
-              *q = _mm_subs_epi16(*q, xmm4);
-              q++;
-              *q = _mm_subs_epi16(*q, xmm5);
-              q++;
-            }
+          if (ssse3_present)
+            increment_counters_from_bitmap_ssse3(si->kmers, 
+                                                 bitmap, indexed_count);
+          else
+            increment_counters_from_bitmap_sse2(si->kmers,
+                                                bitmap, indexed_count);
         }
       else
         {
