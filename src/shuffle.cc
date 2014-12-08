@@ -92,30 +92,13 @@ void shuffle()
   progress_init("Writing output", passed);
   for(int i=0; i<passed; i++)
     {
-#if 0
-      if (opt_relabel)
-        {
-          if (opt_sizeout)
-            fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, db_getabundance(i));
-          else
-            fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
-
-          char * seq = db_getsequence(deck[i]);
-          long len = db_getsequencelen(deck[i]);
-          fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
-        }
-      else
-        {
-#endif
-          db_fprint_fasta(fp_output, deck[i]);
-#if 0
-        }
-#endif
-
+      db_fprint_fasta(fp_output, deck[i]);
       progress_update(i);
     }
   progress_done();
+
   show_rusage();
+
   free(deck);
   db_free();
   fclose(fp_output);

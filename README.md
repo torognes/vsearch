@@ -10,7 +10,7 @@ The aim of this project is to create an alternative to the [USEARCH](http://www.
 * be as accurate or more accurate than usearch
 * be as fast or faster than usearch
 
-We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength` and `--maskfasta`, as well as almost all their options).
+We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength`, `--maskfasta` and `--allpairs_global`, as well as almost all their options).
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
@@ -26,13 +26,13 @@ VSEARCH does not support amino acid sequences or local alignments. These feature
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.0.3-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.4-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.3-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.4-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.4-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -40,8 +40,8 @@ Download the appropriate executable and make a symbolic link in a folder include
 cd ~
 mkdir -p bin
 cd bin
-wget https://github.com/torognes/vsearch/releases/download/v1.0.3/vsearch-1.0.3-linux-x86_64
-ln -s vsearch-1.0.3-linux-x86_64 vsearch
+wget https://github.com/torognes/vsearch/releases/download/v1.0.4/vsearch-1.0.4-linux-x86_64
+ln -s vsearch-1.0.4-linux-x86_64 vsearch
 ```
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
@@ -180,6 +180,11 @@ Masking options:
 * `--output_no_hits`
 * `--qmask dust|none|soft` (Default dust)
 
+Pairwise alignment options (most searching options also apply):
+
+*  `--allpairs_global <filename>`
+*  `--acceptall`
+
 Searching options:
 
 * `--alnout <filename>`
@@ -268,6 +273,7 @@ File | Description
 ---|---
 **align.cc** | New Needleman-Wunsch global alignment, serial. Only for testing.
 **align_simd.cc** | SIMD parallel global alignment of 1 query with 8 database sequences
+**allpairs.cc** | All-vs-all optimal global pairwise alignment (no heuristics)
 **arch.cc** | Architecture specific code (Mac/Linux)
 **bitmap.cc** | Implementation of bitmaps
 **chimera.cc** | Chimera detection

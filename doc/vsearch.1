@@ -1,8 +1,8 @@
 .\" ============================================================================
-.TH vsearch 1 "December 6, 2014" "version 1.0.3" "USER COMMANDS"
+.TH vsearch 1 "December 8, 2014" "version 1.0.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
-vsearch \(em chimera detection, clustering, dereplication, masking, searching, shuffling and sorting of amplicons from metagenomic projects.
+vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
 .\" ============================================================================
 .SH SYNOPSIS
 .\" left justified, ragged right
@@ -35,6 +35,12 @@ Masking:
 .RS
 \fBvsearch\fR --maskfasta \fIfastafile\fR --output \fIoutputfile\fR
 [\fIoptions\fR]
+.PP
+.RE
+Pairwise alignment:
+.RS
+\fBvsearch\fR --allpairs_global \fIfastafile\fR
+(--alnout | --blast6out | --uc | --userout) \fIoutputfile\fR (--acceptall | --id \fIreal\fR) [\fIoptions\fR]
 .PP
 .RE
 Searching:
@@ -525,6 +531,25 @@ Mask simple repeats and low-complexity regions in sequences using the
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
 default is to launch one thread per available logical core.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+Pairwise alignment options:
+.RS
+.TP 9
+.BI --allpairs_global \0filename
+Perform optimal global pairwise alignments of all vs all sequences
+in the specified FASTA file. The results of the n * (n-1) / 2 alignments
+are written to the result files specified with --alnout, --uc, --matched,
+--notmatched, --fastapairs, --blast6out or --userout. Specify either the
+--acceptall option to output all results or specify an identity level with
+--id. Most other accept/reject options (see Searching options below) may
+also be used. Only the plus strand of the sequences are aligned. This
+command is multi-threaded.
+.TP
+.BI --acceptall
+Write the results of all alignments to output files. This option overrides
+all other accept / reject options (e.g. --id).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1257,6 +1282,14 @@ sequences with an abundance equal to or greater than 2:
 \fIqueries_sorted.fas\fR --relabel sampleA_ --sizeout --minsize 2
 .RE
 .PP
+Align all sequences in a database with each other and output all pairwise
+alignments:
+.PP
+.RS
+\fBvsearch\fR --allpairs_global \fIdatabase.fas\fR
+--alnout \fIresults.aln\fR --acceptall
+.RE
+.PP
 Search queries in a reference database, with a 80%-similarity
 threshold, take terminal gaps into account when calculating pairwise
 similarities:
@@ -1357,6 +1390,9 @@ Bug fixes (ssse3/sse41 requirement, memory leak)
 .TP
 .BR v1.0.3\~ "released December 6th, 2014"
 Bug fix (now writes help to stdout instead of stderr)
+.TP
+.BR v1.0.4\~ "released December 8th, 2014"
+Added --allpairs_global option. Reduced memory requirements slightly. Removed memory leaks.
 .LP
 .\" ============================================================================
 .\" TODO:

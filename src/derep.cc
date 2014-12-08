@@ -27,10 +27,10 @@
 
 struct bucket
 {
-  unsigned long seqno_first;
-  unsigned long seqno_last;
   unsigned long hash;
-  unsigned long size;
+  unsigned int seqno_first;
+  unsigned int seqno_last;
+  unsigned int size;
 };
 
 #ifdef BITMAP
@@ -76,12 +76,12 @@ int derep_compare(const void * a, const void * b)
     }
 }
 
-void string_normalize(char * normalized, char * s, unsigned long len)
+void string_normalize(char * normalized, char * s, unsigned int len)
 {
   /* convert string to upper case and replace U by T */
   char * p = s;
   char * q = normalized;
-  for(unsigned long i=0; i<len; i++)
+  for(unsigned int i=0; i<len; i++)
     *q++ = chrmap_normalize[(int)(*p++)];
 }
 
@@ -127,9 +127,10 @@ void derep_fulllength()
 
   show_rusage();
 
-
   long dbsequencecount = db_getsequencecount();
   
+  /* adjust size of hash table for 2/3 fill rate */
+
   long hashtablesize = 1;
   int hash_shift = 0;
   while (3 * dbsequencecount > 2 * hashtablesize)
@@ -158,8 +159,8 @@ void derep_fulllength()
 
   /* alloc and init table of links to other sequences in cluster */
 
-  long * nextseqtab = (long*) xmalloc(sizeof(long) * dbsequencecount);
-  memset(nextseqtab, 0, sizeof(long) * dbsequencecount);
+  unsigned int * nextseqtab = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
+  memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
 
   char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
   char * rc_seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
@@ -167,7 +168,7 @@ void derep_fulllength()
   progress_init("Dereplicating", dbsequencecount);
   for(long i=0; i<dbsequencecount; i++)
     {
-      unsigned long seqlen = db_getsequencelen(i);
+      unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
 
       /* normalize sequence: uppercase and replace U by T  */
@@ -254,7 +255,7 @@ void derep_fulllength()
         {
           /* at least one identical sequence already */
           bp->size += ab;
-          unsigned long last = bp->seqno_last;
+          unsigned int last = bp->seqno_last;
           nextseqtab[last] = i;
           bp->seqno_last = i;
         }
@@ -371,7 +372,7 @@ void derep_fulllength()
       for (long i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          fprintf(fp_uc, "C\t%ld\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "C\t%ld\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, db_getheader(bp->seqno_first));
           progress_update(i);
         }

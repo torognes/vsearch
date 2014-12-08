@@ -23,10 +23,9 @@ struct seqinfo_s
 {
   char * header;
   char * seq;
-  unsigned long headerlen;
-  unsigned long headeridlen;
-  unsigned long seqlen;
-  unsigned long size;
+  unsigned int headerlen;
+  unsigned int seqlen;
+  unsigned int size;
 };
 
 typedef struct seqinfo_s seqinfo_t;

@@ -105,8 +105,6 @@ struct searchinfo_s
 
 void search_onequery(struct searchinfo_s * si);
 
-void search_sorthits(struct searchinfo_s * si);
-
 struct hit * search_findbest(struct searchinfo_s * si);
 
 struct hit * search_findbest2(struct searchinfo_s * si_p,

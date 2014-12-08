@@ -24,6 +24,7 @@
 /* options */
 
 char * opt_alnout;
+char * opt_allpairs_global;
 char * opt_blast6out;
 char * opt_centroids;
 char * opt_chimeras;
@@ -71,6 +72,7 @@ double opt_query_cov;
 double opt_target_cov;
 double opt_weak_id;
 double opt_xn;
+int opt_acceptall;
 int opt_alignwidth;
 int opt_cons_truncate;
 int opt_gap_extension_query_interior;
@@ -388,7 +390,9 @@ void args_init(int argc, char **argv)
   progname = argv[0];
 
   opt_abskew = 2.0;
+  opt_acceptall = 0;
   opt_alignwidth = 80;
+  opt_allpairs_global = 0;
   opt_alnout = 0;
   opt_centroids = 0;
   opt_chimeras = 0;
@@ -599,6 +603,8 @@ void args_init(int argc, char **argv)
     {"uchimeout",             required_argument, 0, 0 },
     {"uchimeout5",            no_argument,       0, 0 },
     {"alignwidth",            required_argument, 0, 0 },
+    {"allpairs_global",       required_argument, 0, 0 },
+    {"acceptall",             no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1141,6 +1147,16 @@ void args_init(int argc, char **argv)
           opt_alignwidth = args_getlong(optarg);
           break;
           
+        case 100:
+          /* allpairs_global */
+          opt_allpairs_global = optarg;
+          break;
+          
+        case 101:
+          /* acceptall */
+          opt_acceptall = 1;
+          break;
+          
         default:
           fatal("Internal error in option parsing");
         }
@@ -1173,6 +1189,8 @@ void args_init(int argc, char **argv)
   if (opt_uchime_denovo)
     commands++;
   if (opt_uchime_ref)
+    commands++;
+  if (opt_allpairs_global)
     commands++;
   
   if (commands > 1)
@@ -1288,6 +1306,11 @@ void cmd_help()
           "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
           "  --notrunclabels             do not truncate labels at first space\n"
           "  --threads INT               number of threads to use, zero for all cores (0)\n"
+          "\n"
+          "Alignment options (most searching options also apply)\n"
+          "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
+          "  --alnout FILENAME           filename for human-readable alignment output\n"
+          "  --acceptall                 output all pairwise alignments\n"
           "\n"
           "Chimera detection options\n"
           "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
@@ -1418,11 +1441,23 @@ void cmd_help()
           );
 }
 
+void cmd_allpairs_global()
+{
+  /* check options */
+
+  if ((!opt_alnout) && (!opt_userout) &&
+      (!opt_uc) && (!opt_blast6out) &&
+      (!opt_matched) && (!opt_notmatched))
+    fatal("No output files specified");
+  
+  if (opt_acceptall || ((opt_id < 0.0) || (opt_id > 1.0)))
+    fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
+
+  allpairs_global(cmdline, progheader);
+}
+
 void cmd_usearch_global()
 {
-  if (!sse2_present)
-    fatal("This program requires a processor with SSE2 instructions.\n");
-
   /* check options */
 
   if ((!opt_alnout) && (!opt_userout) &&
@@ -1491,6 +1526,7 @@ void cmd_none()
           "\n"
           "Some basic command examples:\n"
           "\n"
+          "%s --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
           "%s --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
           "%s --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
           "%s --derep_fulllength FILENAME --output FILENAME\n"
@@ -1512,14 +1548,12 @@ void cmd_none()
           progname,
           progname,
           progname,
+          progname,
           progname);
 }
 
 void cmd_cluster()
 {
-  if (!sse2_present)
-    fatal("This program requires a processor with SSE2 instructions.\n");
-
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
@@ -1538,9 +1572,6 @@ void cmd_cluster()
 
 void cmd_uchime()
 {
-  if (!sse2_present)
-    fatal("This program requires a processor with SSE2 instructions.\n");
-
   if ((!opt_chimeras)  && (!opt_nonchimeras) &&
       (!opt_uchimeout) && (!opt_uchimealns))
     fatal("No output files specified");
@@ -1622,6 +1653,10 @@ int main(int argc, char** argv)
   if (opt_help)
     {
       cmd_help();
+    }
+  else if (opt_allpairs_global)
+    {
+      cmd_allpairs_global();
     }
   else if (opt_usearch_global)
     {
