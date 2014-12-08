@@ -23,8 +23,8 @@
 
 static struct sortinfo_s
 {
-  unsigned long length;
-  int seqno;
+  unsigned int length;
+  unsigned int seqno;
 } * sortinfo;
 
 int sortbylength_compare(const void * a, const void * b)
@@ -119,6 +119,7 @@ void sortbylength()
   progress_done();
   show_rusage();
 
+  free(sortinfo);
   db_free();
   fclose(fp_output);
 }

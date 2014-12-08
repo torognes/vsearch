@@ -29,7 +29,6 @@
 #include <pthread.h>
 #include <getopt.h>
 #include <x86intrin.h>
-//#include <tmmintrin.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
@@ -80,6 +79,7 @@
 #include "msa.h"
 #include "chimera.h"
 #include "cpu.h"
+#include "allpairs.h"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -102,10 +102,11 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.3"
+#define PROG_VERSION "v1.0.4"
 
 /* options */
 
+extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_blast6out;
 extern char * opt_centroids;
@@ -154,6 +155,7 @@ extern double opt_query_cov;
 extern double opt_target_cov;
 extern double opt_weak_id;
 extern double opt_xn;
+extern int opt_acceptall;
 extern int opt_alignwidth;
 extern int opt_cons_truncate;
 extern int opt_gap_extension_query_interior;

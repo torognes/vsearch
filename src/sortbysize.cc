@@ -23,8 +23,8 @@
 
 static struct sortinfo_s
 {
-  unsigned long size;
-  int seqno;
+  unsigned int size;
+  unsigned int seqno;
 } * sortinfo;
 
 int sortbysize_compare(const void * a, const void * b)
@@ -65,7 +65,6 @@ void sortbysize()
 
   show_rusage();
 
-  
   int dbsequencecount = db_getsequencecount();
   
   progress_init("Getting sizes", dbsequencecount);
@@ -76,7 +75,7 @@ void sortbysize()
 
   for(int i=0; i<dbsequencecount; i++)
     {
-      long size = db_getabundance(i);
+      unsigned int size = db_getabundance(i);
       
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
@@ -115,7 +114,7 @@ void sortbysize()
       if (opt_relabel)
         {
           if (opt_sizeout)
-            fprintf(fp_output, ">%s%d;size=%lu;\n", opt_relabel, i+1, sortinfo[i].size);
+            fprintf(fp_output, ">%s%d;size=%u;\n", opt_relabel, i+1, sortinfo[i].size);
           else
             fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
         }
@@ -123,13 +122,14 @@ void sortbysize()
         fprintf(fp_output, ">%s\n", db_getheader(sortinfo[i].seqno));
       
       char * seq = db_getsequence(sortinfo[i].seqno);
-      int len = db_getsequencelen(sortinfo[i].seqno);
+      unsigned int len = db_getsequencelen(sortinfo[i].seqno);
       fprint_fasta_seq_only(fp_output, seq, len, opt_fasta_width);
       progress_update(i);
     }
   progress_done();
   show_rusage();
   
+  free(sortinfo);
   db_free();
   fclose(fp_output);
 }

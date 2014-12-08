@@ -450,9 +450,6 @@ void db_read(const char * filename, int upcase)
     seqindex_p->header = p;
     p += seqindex_p->headerlen + 1;
 
-    seqindex_p->headeridlen = xstrchrnul(seqindex_p->header, ' ') 
-      - seqindex_p->header;
-
     seqindex_p->seqlen = *(unsigned int*) p;
     p += 4;
 
