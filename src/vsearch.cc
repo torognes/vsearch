@@ -1450,7 +1450,7 @@ void cmd_allpairs_global()
       (!opt_matched) && (!opt_notmatched))
     fatal("No output files specified");
   
-  if (opt_acceptall || ((opt_id < 0.0) || (opt_id > 1.0)))
+  if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0)))) 
     fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
 
   allpairs_global(cmdline, progheader);
