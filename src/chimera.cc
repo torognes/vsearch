@@ -133,7 +133,7 @@ void realloc_arrays(struct chimera_info_s * ci)
       ci->smooth = (int*) xrealloc(ci->smooth,
                                   maxcandidates * maxqlen * sizeof(int));
       
-      int maxalnlen = maxqlen + db_getsequencecount();
+      int maxalnlen = maxqlen + 2 * db_getlongestsequence();
       ci->paln[0] = (char*) xrealloc(ci->paln[0], maxalnlen+1);
       ci->paln[1] = (char*) xrealloc(ci->paln[1], maxalnlen+1);
       ci->qaln = (char*) xrealloc(ci->qaln, maxalnlen+1);
