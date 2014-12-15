@@ -22,6 +22,10 @@ When compiled with the zlib and bzip2 libraries (as in the supplied binaries), V
 
 VSEARCH does not support amino acid sequences or local alignments. These features may be added in the future.
 
+## Getting Help
+
+If you can't find an answer in the VSEARCH documentation, please visiting the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+
 ## Example
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
