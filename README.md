@@ -24,7 +24,7 @@ VSEARCH does not support amino acid sequences or local alignments. These feature
 
 ## Getting Help
 
-If you can't find an answer in the VSEARCH documentation, please visiting the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in the VSEARCH documentation, please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -309,7 +309,8 @@ VSEARCH may be compiled with zlib or bzip2 integration that allows it to read co
 ## Bugs
 
 VSEARCH has not been tested comprehensively yet. All bug reports are highly appreciated.
-You may submit a bug report here on GitHub as an [issue](https://github.com/torognes/vsearch/issues)
+You may submit a bug report here on GitHub as an [issue](https://github.com/torognes/vsearch/issues),
+you could post a message on the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum)
 or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?subject=bug_in_vsearch).
 
 
