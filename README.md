@@ -314,12 +314,18 @@ you could post a message on the [VSEARCH Web Forum](https://groups.google.com/fo
 or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?subject=bug_in_vsearch).
 
 
+## Limitations
+
+* VSEARCH cannot currently align very long sequences (on the order of 20 000 bp) unless you have extreme amounts of memory installed. This is because VSEARCH saves the entire direction matrix during alignment and it takes 8 bytes times the longest query sequence times the longest target sequence per thread. In the future a less memory demanding alignment procedure should be implemented.
+
+
 ## Future work
 
 Some issues to work on:
 
 * testing and debugging
 * performance evaluation
+* alignment of very long sequences where the direction matrix wont fit in memory
 * intra-sequence SIMD parallelization (using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000))
 
 
