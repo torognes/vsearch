@@ -337,6 +337,8 @@ int find_best_parents(struct chimera_info_s * ci)
 
 int eval_parents(struct chimera_info_s * ci)
 {
+  int status = 1;
+
   /* create msa */
 
   /* find max insertions in front of each position in the query sequence */
@@ -622,11 +624,10 @@ int eval_parents(struct chimera_info_s * ci)
       }
   }
 
-  int ischimeric = 0;
-  int isnonchimeric = 0;
-
   if (best_h >= 0.0)
     {
+      status = 2;
+
       /* flip A and B if necessary */
 
       if (best_reverse)
@@ -733,19 +734,18 @@ int eval_parents(struct chimera_info_s * ci)
 
       if (best_h >= opt_minh)
         {
+          status = 3;
           if ((divdiff >= opt_mindiv) &&
               (sumL >= opt_mindiffs) &&
               (sumR >= opt_mindiffs))
-            ischimeric = 1;
+            status = 4;
         }
-      else
-        isnonchimeric = 1;
 
       /* print alignment */
 
       pthread_mutex_lock(&mutex_output);
 
-      if (opt_uchimealns && ischimeric)
+      if (opt_uchimealns && (status == 4))
         {
           fprintf(fp_uchimealns, "\n");
           fprintf(fp_uchimealns, "----------------------------------------"
@@ -851,7 +851,7 @@ int eval_parents(struct chimera_info_s * ci)
                       best_right_n,
                       best_right_a,
                       divdiff,
-                      ischimeric ? 'Y' : (isnonchimeric ? 'N' : '?'));
+                      status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
             }
           else
             {
@@ -875,23 +875,23 @@ int eval_parents(struct chimera_info_s * ci)
                       best_right_n,
                       best_right_a,
                       divdiff,
-                      ischimeric ? 'Y' : (isnonchimeric ? 'N' : '?'));
+                      status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
             }
         }
       pthread_mutex_unlock(&mutex_output);
     }
-  else
-    {
-      isnonchimeric = 1;
-    }
-  
-  if (ischimeric)
-    return 1;
-  else if (isnonchimeric)
-    return -1;
-  else
-    return 0;
+
+  return status;
 }
+
+/*
+  new chimeric status:
+  0: no parents, non-chimeric
+  1: score < 0 (no alignment), non-chimeric
+  2: score < minh, non-chimeric
+  3: score >= minh, suspicious
+  4: score >= minh && (divdiff >= opt_mindiv) && ..., chimeric
+*/
 
 void query_init(struct searchinfo_s * si)
 {
@@ -1152,13 +1152,13 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       if (find_best_parents(ci))
         status = eval_parents(ci);
       else
-        status = -1;
+        status = 0;
 
       /* output results */
 
       pthread_mutex_lock(&mutex_output);
 
-      if (status > 0)
+      if (status == 4)
         {
           chimera_count++;
 
@@ -1170,12 +1170,12 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
             }
         }
 
-      if (status < 0)
+      if (status < 3)
         {
           nonchimera_count++;
 
           /* output no parents, no chimeras */
-          if (opt_uchimeout)
+          if ((status < 2) && opt_uchimeout)
             {
               if (opt_uchimeout5)
                 fprintf(fp_uchimeout,

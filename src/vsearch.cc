@@ -439,7 +439,7 @@ void args_init(int argc, char **argv)
   opt_maxqsize = INT_MAX;
   opt_maxqt = DBL_MAX;
   opt_maxrejects = -1;
-  opt_maxseqlength = 50000;
+  opt_maxseqlength = 15000;
   opt_maxsize = LONG_MAX;
   opt_maxsizeratio = DBL_MAX;
   opt_maxsl = DBL_MAX;

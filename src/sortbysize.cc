@@ -75,12 +75,12 @@ void sortbysize()
 
   for(int i=0; i<dbsequencecount; i++)
     {
-      unsigned int size = db_getabundance(i);
+      long size = db_getabundance(i);
       
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
           sortinfo[passed].seqno = i;
-          sortinfo[passed].size = size;
+          sortinfo[passed].size = (unsigned int) size;
           passed++;
         }
       progress_update(i);

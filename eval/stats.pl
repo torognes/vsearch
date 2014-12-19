@@ -40,7 +40,7 @@ while (<I>)
 close I;
 
 my $pos = $truepos + $falsepos;
-my $falseneg = $gold - $ truepos;
+my $falseneg = $gold - $truepos;
 my $prec = 100.0 * $truepos / $pos;
 my $fdr  = 100.0 * $falsepos / $pos;
 my $recall = 100.0 * $truepos / $gold;

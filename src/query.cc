@@ -84,7 +84,7 @@ static char * FGETS(char * query_line, int size)
   switch (query_format)
    {
      case FORMAT_PLAIN:
-       fgets(query_line, size, query_fp);
+       (void) fgets(query_line, size, query_fp);
        break;
      case FORMAT_BZIP:
 #ifdef HAVE_BZLIB

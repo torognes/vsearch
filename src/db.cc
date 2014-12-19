@@ -82,7 +82,7 @@ void db_read(const char * filename, int upcase)
   rewind(fp);
 
   char * prompt;
-  asprintf(& prompt, "Reading file %s", filename);
+  (void) asprintf(& prompt, "Reading file %s", filename);
   progress_init(prompt, filesize);
 
 #ifdef HAVE_BZLIB
@@ -124,7 +124,7 @@ void db_read(const char * filename, int upcase)
   switch (db_format)
    {
      case FORMAT_PLAIN:
-       fgets(line, LINEALLOC, fp);
+       (void) fgets(line, LINEALLOC, fp);
        break;
      case FORMAT_BZIP:
 #ifdef HAVE_BZLIB
@@ -205,7 +205,7 @@ void db_read(const char * filename, int upcase)
       switch (db_format)
        {
          case FORMAT_PLAIN:
-           fgets(line, LINEALLOC, fp);
+           (void) fgets(line, LINEALLOC, fp);
            break;
          case FORMAT_BZIP:
 #ifdef HAVE_BZLIB
@@ -294,7 +294,7 @@ void db_read(const char * filename, int upcase)
           switch (db_format)
            {
              case FORMAT_PLAIN:
-               fgets(line, LINEALLOC, fp);
+               (void) fgets(line, LINEALLOC, fp);
                break;
              case FORMAT_BZIP:
 #ifdef HAVE_BZLIB
