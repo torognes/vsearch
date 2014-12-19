@@ -2,9 +2,9 @@
 
 P=$1
 
-INPUT=../data/Rfam_9_1.fasta
+#INPUT=../data/Rfam_9_1.fasta
 #INPUT=../data/AF091148.fsa
-#INPUT=../data/BioMarKs50k.fsa
+INPUT=../data/BioMarKs50k.fsa
 
 THREADS=0
 

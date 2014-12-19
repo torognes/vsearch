@@ -91,7 +91,7 @@ void * xmalloc(size_t size)
 {
   const size_t alignment = 16;
   void * t;
-  posix_memalign(& t, alignment, size);
+  (void) posix_memalign(& t, alignment, size);
 
   if (t==NULL)
     fatal("Unable to allocate enough memory.");

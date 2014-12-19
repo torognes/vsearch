@@ -732,7 +732,7 @@ void search16(s16info_s * s,
 
   __m128i M_QR_target_left, M_R_target_left;
 
-  __m128i QR_query_left, R_query_left;
+  __m128i R_query_left;
   __m128i QR_query_interior, R_query_interior;
   __m128i QR_query_right, R_query_right;
   __m128i QR_target_left, R_target_left;
@@ -760,8 +760,6 @@ void search16(s16info_s * s,
   
   T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
 
-  QR_query_left = _mm_set1_epi16(s->penalty_gap_open_query_left + 
-                                 s->penalty_gap_extension_query_left);
   R_query_left = _mm_set1_epi16(s->penalty_gap_extension_query_left);
   
   QR_query_interior = _mm_set1_epi16(s->penalty_gap_open_query_interior + 
