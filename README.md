@@ -338,6 +338,7 @@ The following people have contributed to VSEARCH:
 * Fr&eacute;d&eacute;ric Mah&eacute; (Documentation, testing, feature suggestions)
 * Christopher Quince (Initiator, feature suggestions, evaluation)
 * Umer Zeeshan Ijaz (Feature suggestions)
+* Ben Nichols (evaluation)
 
 
 ## Citing VSEARCH
