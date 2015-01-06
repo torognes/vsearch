@@ -52,7 +52,7 @@ Substitute `linux` with `osx` in those lines if you're on a Mac.
 
 The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file or a symbolic link to it in a folder included in your `$MANPATH`.
 
-The entire repository may be cloned with `git clone git@github.com:torognes/vsearch.git`.
+The entire repository may be cloned with the following command: `git clone https://github.com/torognes/vsearch.git`
 
 Run `make -f Makefile` within the `src` folder to build the executable.
 
