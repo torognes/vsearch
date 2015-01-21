@@ -66,6 +66,7 @@
 #include "dbindex.h"
 #include "minheap.h"
 #include "search.h"
+#include "linmemalign.h"
 #include "searchcore.h"
 #include "showalign.h"
 #include "userfields.h"
@@ -102,7 +103,7 @@
 #define FORMAT_GZIP  3
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.7"
+#define PROG_VERSION "v1.0.8"
 
 /* options */
 
@@ -113,6 +114,7 @@ extern char * opt_centroids;
 extern char * opt_chimeras;
 extern char * opt_cluster_fast;
 extern char * opt_cluster_smallmem;
+extern char * opt_cluster_size;
 extern char * opt_clusters;
 extern char * opt_consout;
 extern char * opt_db;

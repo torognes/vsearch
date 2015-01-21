@@ -71,11 +71,16 @@ struct chimera_info_s
   int cand_count;
 
   struct s16info_s * s;
-  CELL nwscore[maxcandidates];
-  unsigned short nwalignmentlength[maxcandidates];
-  unsigned short nwmatches[maxcandidates];
-  unsigned short nwmismatches[maxcandidates];
-  unsigned short nwgaps[maxcandidates];
+  CELL snwscore[maxcandidates];
+  unsigned short snwalignmentlength[maxcandidates];
+  unsigned short snwmatches[maxcandidates];
+  unsigned short snwmismatches[maxcandidates];
+  unsigned short snwgaps[maxcandidates];
+  long nwscore[maxcandidates];
+  long nwalignmentlength[maxcandidates];
+  long nwmatches[maxcandidates];
+  long nwmismatches[maxcandidates];
+  long nwgaps[maxcandidates];
   char * nwcigar[maxcandidates];
 
   int match_size;
@@ -1039,6 +1044,24 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
   struct hit * allhits_list = (struct hit *) xmalloc(maxcandidates * 
                                                      sizeof(struct hit));
 
+  LinearMemoryAligner lma;
+
+  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+
+  lma.set_parameters(scorematrix,
+                     opt_gap_open_query_left,
+                     opt_gap_open_target_left,
+                     opt_gap_open_query_interior,
+                     opt_gap_open_target_interior,
+                     opt_gap_open_query_right,
+                     opt_gap_open_target_right,
+                     opt_gap_extension_query_left,
+                     opt_gap_extension_target_left,
+                     opt_gap_extension_query_interior,
+                     opt_gap_extension_target_interior,
+                     opt_gap_extension_query_right,
+                     opt_gap_extension_target_right);
+
   while(1)
     {
       /* get next sequence */
@@ -1140,13 +1163,66 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       search16(ci->s,
                ci->cand_count,
                ci->cand_list,
-               ci->nwscore,
-               ci->nwalignmentlength,
-               ci->nwmatches,
-               ci->nwmismatches,
-               ci->nwgaps,
+               ci->snwscore,
+               ci->snwalignmentlength,
+               ci->snwmatches,
+               ci->snwmismatches,
+               ci->snwgaps,
                ci->nwcigar);
+
+      for(int i=0; i < ci->cand_count; i++)
+        {
+          long target = ci->cand_list[i];
+          long nwscore = ci->snwscore[i];
+          char * nwcigar;
+          long nwalignmentlength;
+          long nwmatches;
+          long nwmismatches;
+          long nwgaps;
+
+          if (nwscore == SHRT_MAX)
+            {
+              /* In case the SIMD aligner cannot align,
+                         perform a new alignment with the
+                         linear memory aligner */
+                      
+              char * tseq = db_getsequence(target);
+              long tseqlen = db_getsequencelen(target);
+                      
+              if (ci->nwcigar[i])
+                free(ci->nwcigar[i]);
+                      
+              nwcigar = xstrdup(lma.align(ci->query_seq,
+                                         tseq,
+                                         ci->query_len,
+                                         tseqlen));
+              lma.alignstats(nwcigar,
+                             ci->query_seq,
+                             tseq,
+                             & nwscore,
+                             & nwalignmentlength,
+                             & nwmatches,
+                             & nwmismatches,
+                             & nwgaps);
+
+              ci->nwcigar[i] = nwcigar;
+              ci->nwscore[i] = nwscore;
+              ci->nwalignmentlength[i] = nwalignmentlength;
+              ci->nwmatches[i] = nwmatches;
+              ci->nwmismatches[i] = nwmismatches;
+              ci->nwgaps[i] = nwgaps;
+            }
+          else
+            {
+              ci->nwscore[i] = ci->snwscore[i];
+              ci->nwalignmentlength[i] = ci->snwalignmentlength[i];
+              ci->nwmatches[i] = ci->snwmatches[i];
+              ci->nwmismatches[i] = ci->snwmismatches[i];
+              ci->nwgaps[i] = ci->snwgaps[i];
+            }
+        }
       
+
       /* find the best pair of parents, then compute score for them */
 
       if (find_best_parents(ci))
@@ -1205,14 +1281,14 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
         if (ci->nwcigar[i])
           free(ci->nwcigar[i]);
 
-      seqno++;
-
       if (opt_uchime_ref)
         progress = query_getfilepos();
       else
         progress += db_getsequencelen(seqno);
 
       progress_update(progress);
+
+      seqno++;
 
       pthread_mutex_unlock(&mutex_output);
     }
@@ -1221,6 +1297,8 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
     free(allhits_list);
 
   chimera_thread_exit(ci);
+
+  free(scorematrix);
 
   return 0;
 }

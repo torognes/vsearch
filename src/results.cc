@@ -145,15 +145,20 @@ void results_show_uc_one(FILE * fp,
   */
 
   if (hp)
-    fprintf(fp,
-            "H\t%d\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
-            hp->target,
-            qseqlen,
-            hp->id,
-            hp->strand ? '-' : '+',
-            hp->nwalignment,
-            query_head,
-            db_getheader(hp->target));
+    {
+      bool perfect = (hp->matches == qseqlen) &&
+        (qseqlen = db_getsequencelen(hp->target));
+
+      fprintf(fp,
+              "H\t%d\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
+              hp->target,
+              qseqlen,
+              hp->id,
+              hp->strand ? '-' : '+',
+              perfect ? "=" : hp->nwalignment,
+              query_head,
+              db_getheader(hp->target));
+    }
   else
     fprintf(fp, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
 }
@@ -205,10 +210,10 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%.1f", hp ? hp->id : 0.0);
           break;
         case 4: /* pctpv */
-          fprintf(fp, "%.1f", hp ? 100.0 * hp->matches / hp->internal_alignmentlength : 0.0);
+          fprintf(fp, "%.1f", (hp && (hp->internal_alignmentlength > 0)) ? 100.0 * hp->matches / hp->internal_alignmentlength : 0.0);
           break;
         case 5: /* pctgaps */
-          fprintf(fp, "%.1f", hp ? 100.0 * hp->internal_indels / hp->internal_alignmentlength : 0.0);
+          fprintf(fp, "%.1f", (hp && (hp->internal_alignmentlength > 0)) ? 100.0 * hp->internal_indels / hp->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
           fprintf(fp, "%d", hp ? hp->matches + hp->mismatches : 0);
@@ -217,16 +222,16 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%d", hp ? hp->internal_indels : 0);
           break;
         case 8: /* qlo */
-          fprintf(fp, "%d", hp ? hp->trim_q_left + 1 : 0);
+          fprintf(fp, "%ld", hp ? (hp->strand ? qseqlen : 1) : 0);
           break;
         case 9: /* qhi */
-          fprintf(fp, "%ld", hp ? qseqlen - hp->trim_q_right : 0);
+          fprintf(fp, "%ld", hp ? (hp->strand ? 1 : qseqlen) : 0);
           break;
         case 10: /* tlo */
-          fprintf(fp, "%d", hp ? hp->trim_t_left + 1 : 0);
+          fprintf(fp, "%d", hp ? 1 : 0);
           break;
         case 11: /* thi */
-          fprintf(fp, "%ld", hp ? tseqlen - hp->trim_t_right : 0);
+          fprintf(fp, "%ld", tseqlen);
           break;
         case 12: /* pv */
           fprintf(fp, "%d", hp ? hp->matches : 0);
@@ -335,6 +340,21 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
         case 38: /* id4 */
           fprintf(fp, "%.1f", hp ? hp->id4 : 0.0);
           break;
+
+          /* new internal alignment coordinates */
+
+        case 39: /* qilo */
+          fprintf(fp, "%d", hp ? hp->trim_q_left + 1 : 0);
+          break;
+        case 40: /* qihi */
+          fprintf(fp, "%ld", hp ? qseqlen - hp->trim_q_right : 0);
+          break;
+        case 41: /* tilo */
+          fprintf(fp, "%d", hp ? hp->trim_t_left + 1 : 0);
+          break;
+        case 42: /* tihi */
+          fprintf(fp, "%ld", hp ? tseqlen - hp->trim_t_right : 0);
+          break;
         }
     }
   fprintf(fp, "\n");
@@ -419,7 +439,9 @@ void results_show_alnout(FILE * fp,
                   hp->matches,
                   hp->id,
                   hp->internal_indels,
-                  100.0 * hp->internal_indels / hp->internal_alignmentlength);
+                  hp->internal_alignmentlength > 0 ?
+                  100.0 * hp->internal_indels / hp->internal_alignmentlength :
+                  0.0);
 
 #if 0
           fprintf(fp, "%d kmers, %d score, %d gap opens. %s\n",

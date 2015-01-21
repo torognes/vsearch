@@ -30,6 +30,7 @@ char * opt_centroids;
 char * opt_chimeras;
 char * opt_cluster_fast;
 char * opt_cluster_smallmem;
+char * opt_cluster_size;
 char * opt_clusters;
 char * opt_consout;
 char * opt_db;
@@ -439,7 +440,7 @@ void args_init(int argc, char **argv)
   opt_maxqsize = INT_MAX;
   opt_maxqt = DBL_MAX;
   opt_maxrejects = -1;
-  opt_maxseqlength = 15000;
+  opt_maxseqlength = 50000;
   opt_maxsize = LONG_MAX;
   opt_maxsizeratio = DBL_MAX;
   opt_maxsl = DBL_MAX;
@@ -605,6 +606,7 @@ void args_init(int argc, char **argv)
     {"alignwidth",            required_argument, 0, 0 },
     {"allpairs_global",       required_argument, 0, 0 },
     {"acceptall",             no_argument,       0, 0 },
+    {"cluster_size",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1157,6 +1159,11 @@ void args_init(int argc, char **argv)
           opt_acceptall = 1;
           break;
           
+        case 102:
+          /* cluster_size */
+          opt_cluster_size = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1185,6 +1192,8 @@ void args_init(int argc, char **argv)
   if (opt_cluster_smallmem)
     commands++;
   if (opt_cluster_fast)
+    commands++;
+  if (opt_cluster_size)
     commands++;
   if (opt_uchime_denovo)
     commands++;
@@ -1280,7 +1289,7 @@ void args_init(int argc, char **argv)
 
   if (opt_minseqlength == 0)
     {
-      if (opt_cluster_smallmem || opt_cluster_fast || 
+      if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
           opt_usearch_global || opt_derep_fulllength )
         opt_minseqlength = 32;
       else
@@ -1333,8 +1342,9 @@ void cmd_help()
           "\n"
           "Clustering options (most searching options also apply)\n"
           "  --centroids FILENAME        output centroid sequences to FASTA file\n"
-          "  --cluster_fast FILENAME     cluster sequences fast\n"
-          "  --cluster_smallmem FILENAME cluster sequences using a small amount of memory\n"
+          "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
+          "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
+          "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
           "  --clusters STRING           output each cluster to a separate FASTA file\n"
           "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
           "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
@@ -1346,7 +1356,7 @@ void cmd_help()
           "  --sizeout                   write cluster abundances to centroid file\n"
           "  --strand plus|both          cluster using plus or both strands (plus)\n"
           "  --uc FILENAME               filename for UCLUST-like output\n"
-          "  --usersort                  indicate that input sequences are presorted\n"
+          "  --usersort                  indicate sequences not presorted by length\n"
           "\n"
           "Dereplication options\n"
           "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
@@ -1528,6 +1538,7 @@ void cmd_none()
           "\n"
           "%s --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
           "%s --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
+          "%s --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
           "%s --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
           "%s --derep_fulllength FILENAME --output FILENAME\n"
           "%s --maskfasta FILENAME --output FILENAME\n"
@@ -1538,6 +1549,7 @@ void cmd_none()
           "%s --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
           "%s --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
           "\n",
+          progname,
           progname,
           progname,
           progname,
@@ -1566,8 +1578,10 @@ void cmd_cluster()
 
   if (opt_cluster_fast)
     cluster_fast(cmdline, progheader);
-  else
+  else if (opt_cluster_smallmem)
     cluster_smallmem(cmdline, progheader);
+  else if (opt_cluster_size)
+    cluster_size(cmdline, progheader);
 }
 
 void cmd_uchime()
@@ -1682,7 +1696,7 @@ int main(int argc, char** argv)
     {
       cmd_maskfasta();
     }
-  else if (opt_cluster_smallmem || opt_cluster_fast)
+  else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size)
     {
       cmd_cluster();
     }

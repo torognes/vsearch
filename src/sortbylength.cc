@@ -24,6 +24,7 @@
 static struct sortinfo_s
 {
   unsigned int length;
+  unsigned int size;
   unsigned int seqno;
 } * sortinfo;
 
@@ -32,27 +33,32 @@ int sortbylength_compare(const void * a, const void * b)
   struct sortinfo_s * x = (struct sortinfo_s *) a;
   struct sortinfo_s * y = (struct sortinfo_s *) b;
 
-  /* longest first, then by label, otherwise keep order */
+  /* longest first, then most abundant, then by label, otherwise keep order */
 
   if (x->length < y->length)
     return +1;
   else if (x->length > y->length)
     return -1;
   else
-    {
-      int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-      if (r != 0)
-        return r;
-      else
-        {
-          if (x->seqno < y->seqno)
-            return -1;
-          else if (x->seqno > y->seqno)
-            return +1;
-          else
-            return 0;
-        }
-    }
+    if (x->size < y->size)
+      return +1;
+    else if (x->size > y->size)
+      return -1;
+    else
+      {
+        int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+        if (r != 0)
+          return r;
+        else
+          {
+            if (x->seqno < y->seqno)
+              return -1;
+            else if (x->seqno > y->seqno)
+              return +1;
+            else
+              return 0;
+          }
+      }
 }
 
 void sortbylength()
@@ -74,6 +80,7 @@ void sortbylength()
     {
       sortinfo[passed].seqno = i;
       sortinfo[passed].length = db_getsequencelen(i);
+      sortinfo[passed].size = db_getabundance(i);
       passed++;
       progress_update(i);
     }
