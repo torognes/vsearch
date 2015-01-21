@@ -201,6 +201,8 @@ void allpairs_thread_run(long t)
 
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
 
+  struct nwinfo_s * nw = nw_init();
+
   si->s = search16_init(opt_match,
                         opt_mismatch,
                         opt_gap_open_query_left,
@@ -216,6 +218,24 @@ void allpairs_thread_run(long t)
                         opt_gap_extension_query_right,
                         opt_gap_extension_target_right);
 
+
+  LinearMemoryAligner lma;
+
+  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+
+  lma.set_parameters(scorematrix,
+                     opt_gap_open_query_left,
+                     opt_gap_open_target_left,
+                     opt_gap_open_query_interior,
+                     opt_gap_open_target_interior,
+                     opt_gap_open_query_right,
+                     opt_gap_open_target_right,
+                     opt_gap_extension_query_left,
+                     opt_gap_extension_target_left,
+                     opt_gap_extension_query_interior,
+                     opt_gap_extension_target_interior,
+                     opt_gap_extension_query_right,
+                     opt_gap_extension_target_right);
 
   /* allocate memory for alignment results */
   unsigned int maxhits = seqcount;
@@ -272,6 +292,7 @@ void allpairs_thread_run(long t)
           if (si->hit_count)
             {
               /* perform alignments */
+
               search16_qprep(si->s, si->qsequence, si->qseqlen);
               
               search16(si->s,
@@ -283,19 +304,54 @@ void allpairs_thread_run(long t)
                        pmismatches,
                        pgaps,
                        pcigar);
-
+              
               /* convert to hit structure */
               for (int h = 0; h < si->hit_count; h++)
                 {
                   struct hit * hit = si->hits + h;
                   
                   unsigned int target = pseqnos[h];
-                  CELL  nwscore = pscores[h];
-                  unsigned short nwalignmentlength = paligned[h];
-                  unsigned short nwmatches = pmatches[h];
-                  unsigned short nwmismatches = pmismatches[h];
-                  unsigned short nwgaps = pgaps[h];
-                  char * nwcigar = pcigar[h];
+                  long nwscore = pscores[h];
+                  
+                  char * nwcigar;
+                  long nwalignmentlength;
+                  long nwmatches;
+                  long nwmismatches;
+                  long nwgaps;
+                  
+                  if (nwscore == SHRT_MAX)
+                    {
+                      /* In case the SIMD aligner cannot align,
+                         perform a new alignment with the
+                         linear memory aligner */
+                      
+                      char * tseq = db_getsequence(target);
+                      long tseqlen = db_getsequencelen(target);
+                      
+                      if (pcigar[h])
+                        free(pcigar[h]);
+                      
+                      nwcigar = xstrdup(lma.align(si->qsequence,
+                                                 tseq,
+                                                 si->qseqlen,
+                                                 tseqlen));
+                      lma.alignstats(nwcigar,
+                                     si->qsequence,
+                                     tseq,
+                                     & nwscore,
+                                     & nwalignmentlength,
+                                     & nwmatches,
+                                     & nwmismatches,
+                                     & nwgaps);
+                    }
+                  else
+                    {
+                      nwcigar = pcigar[h];
+                      nwalignmentlength = paligned[h];
+                      nwmatches = pmatches[h];
+                      nwmismatches = pmismatches[h];
+                      nwgaps = pgaps[h];
+                    }
                   
                   hit->target = target;
                   hit->strand = 0;
@@ -327,7 +383,7 @@ void allpairs_thread_run(long t)
                   if (opt_acceptall || search_acceptable_aligned(si, hit))
                     finalhits[si->accepts++] = *hit;
                 }
-          
+              
               /* sort hits */
               qsort(finalhits, si->accepts,
                     sizeof(struct hit), allpairs_hit_compare);
@@ -379,6 +435,10 @@ void allpairs_thread_run(long t)
   free(pseqnos);
 
   search16_exit(si->s);
+
+  nw_exit(nw);
+
+  free(scorematrix);
 
   free(si->hits);
 }

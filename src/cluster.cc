@@ -381,18 +381,22 @@ void cluster_core_parallel()
 
   int * extra_list = (int*) xmalloc(max_queries*sizeof(int));
 
-#if 0
-  long scorematrix[16][16];
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      if ((i==0) || (j==0) || (i>4) || (j>4))
-        scorematrix[i][j] = 0;
-      else if (i==j)
-        scorematrix[i][j] = opt_match;
-      else
-        scorematrix[i][j] = opt_mismatch;
-#endif
-
+  LinearMemoryAligner lma;
+  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  lma.set_parameters(scorematrix,
+                     opt_gap_open_query_left,
+                     opt_gap_open_target_left,
+                     opt_gap_open_query_interior,
+                     opt_gap_open_target_interior,
+                     opt_gap_open_query_right,
+                     opt_gap_open_target_right,
+                     opt_gap_extension_query_left,
+                     opt_gap_extension_target_left,
+                     opt_gap_extension_query_interior,
+                     opt_gap_extension_target_interior,
+                     opt_gap_extension_query_right,
+                     opt_gap_extension_target_right);
+  
   int aligncount = 0;
 
   int lastlength = INT_MAX;
@@ -415,8 +419,12 @@ void cluster_core_parallel()
           if (seqno < seqcount)
             {
               int length = db_getsequencelen(seqno);
-              if ((!opt_usersort) && (length > lastlength))
+
+#if 1
+              if (opt_cluster_smallmem && (!opt_usersort) && (length > lastlength))
                 fatal("Sequences not sorted by length and --usersort not specified.");
+#endif
+
               lastlength = length;
 
               si_plus[i].query_no = seqno;
@@ -460,11 +468,12 @@ void cluster_core_parallel()
                       struct searchinfo_s * sic = si_plus + extra_list[j];
                       
                       /* find the number of shared unique kmers */
-                      int shared = unique_count_shared(si->uh,
-                                                       opt_wordlength,
-                                                       sic->kmersamplecount,
-                                                       sic->kmersample);
-                      
+                      unsigned int shared
+                        = unique_count_shared(si->uh,
+                                              opt_wordlength,
+                                              sic->kmersamplecount,
+                                              sic->kmersample);
+
                       /* check if min number of shared kmers is satisfied */
                       if ((shared >= MINMATCHSAMPLECOUNT) &&
                           (shared >= MINMATCHSAMPLEFREQ * si->kmersamplecount))
@@ -550,76 +559,74 @@ void cluster_core_parallel()
                             {
                               aligncount++;
                               
-#if 1
                               /* perform vectorized alignment */
                               /* but only using 1 sequence ! */
 
                               unsigned int nwtarget = target;
-                              CELL nwscore;
-                              unsigned short nwalignmentlength;
-                              unsigned short nwmatches;
-                              unsigned short nwmismatches;
-                              unsigned short nwgaps;
+                              
+                              long nwscore;
+                              long nwalignmentlength;
+                              long nwmatches;
+                              long nwmismatches;
+                              long nwgaps;
                               char * nwcigar = 0;
+
+                              /* short variants for simd aligner */
+                              CELL snwscore;
+                              unsigned short snwalignmentlength;
+                              unsigned short snwmatches;
+                              unsigned short snwmismatches;
+                              unsigned short snwgaps;
                               
                               search16(si->s,
                                        1,
                                        & nwtarget,
-                                       & nwscore,
-                                       & nwalignmentlength,
-                                       & nwmatches,
-                                       & nwmismatches,
-                                       & nwgaps,
+                                       & snwscore,
+                                       & snwalignmentlength,
+                                       & snwmatches,
+                                       & snwmismatches,
+                                       & snwgaps,
                                        & nwcigar);
                               
+                              long tseqlen = db_getsequencelen(target);
+
+                              if (snwscore == SHRT_MAX)
+                                {
+                                  /* In case the SIMD aligner cannot align,
+                                     perform a new alignment with the
+                                     linear memory aligner */
+                                  
+                                  char * tseq = db_getsequence(target);
+                                  
+                                  if (nwcigar)
+                                    free(nwcigar);
+                                  
+                                  nwcigar = xstrdup(lma.align(si->qsequence,
+                                                             tseq,
+                                                             si->qseqlen,
+                                                             tseqlen));
+
+                                  lma.alignstats(nwcigar,
+                                                 si->qsequence,
+                                                 tseq,
+                                                 & nwscore,
+                                                 & nwalignmentlength,
+                                                 & nwmatches,
+                                                 & nwmismatches,
+                                                 & nwgaps);
+                                }
+                              else
+                                {
+                                  nwscore = snwscore;
+                                  nwalignmentlength = snwalignmentlength;
+                                  nwmatches = snwmatches;
+                                  nwmismatches = snwmismatches;
+                                  nwgaps = snwgaps;
+                                }
+                              
+
                               long nwdiff = nwalignmentlength - nwmatches;
                               long nwindels = nwdiff - nwmismatches;
-
-#else
-                              /* perform non-vectorized alignment */
-                              /* considerably slower even with 1 seq */
-
-                              char * qseq = si->qsequence;
-                              char * dseq = db_getsequence(target);
-                              long dseqlen = db_getsequencelen(target);
-
-                              long nwscore;
-                              long nwdiff;
-                              long nwindels;
-                              long nwgaps;
-                              long nwalignmentlength;
-                              char * nwcigar = 0;
-                              
-                              nw_align(dseq,
-                                       dseq + dseqlen,
-                                       qseq,
-                                       qseq + si->qseqlen,
-                                       (long*) scorematrix,
-                                       opt_gap_open_query_left,
-                                       opt_gap_open_query_interior,
-                                       opt_gap_open_query_right,
-                                       opt_gap_open_target_left,
-                                       opt_gap_open_target_interior,
-                                       opt_gap_open_target_right,
-                                       opt_gap_extension_query_left,
-                                       opt_gap_extension_query_interior,
-                                       opt_gap_extension_query_right,
-                                       opt_gap_extension_target_left,
-                                       opt_gap_extension_target_interior,
-                                       opt_gap_extension_target_right,
-                                       & nwscore,
-                                       & nwdiff,
-                                       & nwgaps,
-                                       & nwindels,
-                                       & nwalignmentlength,
-                                       & nwcigar,
-                                       si->query_no,
-                                       target,
-                                       si->nw);
-
-                              long nwmatches = nwalignmentlength - nwdiff;
-                              long nwmismatches = nwdiff - nwindels;
-#endif
                               
                               hit->aligned = 1;
                               hit->nwalignment = nwcigar;
@@ -634,7 +641,9 @@ void cluster_core_parallel()
                               hit->nwid = 100.0 *
                                 (nwalignmentlength - hit->nwdiff) /
                                 nwalignmentlength;
-                                  
+                              
+                              hit->shortest = MIN(si->qseqlen, tseqlen);
+                              
                               /* trim alignment and compute numbers
                                  excluding terminal gaps */
                               align_trim(hit);
@@ -759,6 +768,8 @@ void cluster_core_parallel()
 
   /* terminate threads and clean up */
   threads_exit();
+
+  free(scorematrix);
 }
 
 void cluster_core_serial()
@@ -776,8 +787,12 @@ void cluster_core_serial()
   for (int seqno=0; seqno<seqcount; seqno++)
     {
       int length = db_getsequencelen(seqno);
-      if ((!opt_usersort) && (length > lastlength))
+
+#if 1
+      if (opt_cluster_smallmem && (!opt_usersort) && (length > lastlength))
         fatal("Sequences not sorted by length and --usersort not specified.");
+#endif
+
       lastlength = length;
 
       si_p->query_no = seqno;
@@ -843,8 +858,7 @@ void cluster_core_serial()
 
 void cluster(char * dbname, 
              char * cmdline,
-             char * progheader,
-             int sortbylength)
+             char * progheader)
 {
   if (opt_centroids)
     {
@@ -916,8 +930,10 @@ void cluster(char * dbname,
   
   seqcount = db_getsequencecount();
   
-  if (sortbylength)
+  if (opt_cluster_fast)
     db_sortbylength();
+  else if (opt_cluster_size)
+    db_sortbyabundance();
   
   dbindex_prepare(1);
   
@@ -1135,6 +1151,10 @@ void cluster(char * dbname,
         fclose(fp_consout);
     }
 
+  /* free cigar strings for all aligned sequences */
+  for(int i=0; i<seqcount; i++)
+    if (clusterinfo[i].cigar)
+      free(clusterinfo[i].cigar);
 
   free(clusterinfo);
 
@@ -1162,10 +1182,15 @@ void cluster(char * dbname,
 
 void cluster_fast(char * cmdline, char * progheader)
 {
-  cluster(opt_cluster_fast, cmdline, progheader, 1);
+  cluster(opt_cluster_fast, cmdline, progheader);
 }
 
 void cluster_smallmem(char * cmdline, char * progheader)
 {
-  cluster(opt_cluster_smallmem, cmdline, progheader, 0);
+  cluster(opt_cluster_smallmem, cmdline, progheader);
+}
+
+void cluster_size(char * cmdline, char * progheader)
+{
+  cluster(opt_cluster_size, cmdline, progheader);
 }

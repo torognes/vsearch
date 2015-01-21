@@ -32,6 +32,7 @@ void fatal(const char * msg);
 void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
+char * xstrdup(const char *s);
 char * xstrchrnul(char *s, int c);
 unsigned long hash_cityhash64(char * s, unsigned long n);
 long getusec(void);

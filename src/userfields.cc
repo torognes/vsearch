@@ -62,6 +62,10 @@ static const char * userfields_names[] =
     "id2",
     "id3",
     "id4", // 38
+    "qilo", // 39
+    "qihi",
+    "tilo",
+    "tihi", // 42
     0
   };
 
@@ -116,16 +120,7 @@ int parse_userfields_arg(char * arg)
       p = q;
       
       if (p == e)  // reached end of argument
-        {
-#if 0
-          printf("Userfields requested (%d):\n", userfields_requested_count);
-          for(int j=0; j<userfields_requested_count; j++)
-            {
-              printf("Field: %d\n", userfields_requested[j]);
-            }
-#endif
-          return 1;  // ok
-        }
+        return 1;
 
       p++;
     }

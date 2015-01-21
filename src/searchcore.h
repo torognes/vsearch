@@ -36,7 +36,7 @@ struct hit
   int strand;
 
   /* candidate info */
-  int count;             /* number of unique kmers shared with query */
+  unsigned int count;     /* number of unique kmers shared with query */
 
   bool accepted;          /* is it accepted? */
   bool rejected;          /* is it rejected? */
@@ -97,6 +97,7 @@ struct searchinfo_s
   struct uhandle_s * uh;        /* unique kmer finder instance */
   struct s16info_s * s;         /* SIMD aligner instance */
   struct nwinfo_s * nw;         /* NW aligner instance */
+  LinearMemoryAligner * lma;    /* Linear memory aligner instance pointer */
   int accepts;                  /* number of accepts */
   int rejects;                  /* number of rejects */
   minheap_t * m;                /* min heap with the top kmer db seqs */

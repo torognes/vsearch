@@ -92,20 +92,28 @@ void * xmalloc(size_t size)
   const size_t alignment = 16;
   void * t;
   (void) posix_memalign(& t, alignment, size);
-
-  if (t==NULL)
+  if (t==0)
     fatal("Unable to allocate enough memory.");
-
   return t;
 }
 
 void * xrealloc(void *ptr, size_t size)
 {
+  if (size == 0)
+    size = 1;
   void * t = realloc(ptr, size);
   if (!t)
     fatal("Unable to allocate enough memory.");
   return t;
 }
+
+char * xstrdup(const char *s)
+{
+  size_t len = strlen(s);
+  char * p = (char*) xmalloc(len+1);
+  return strcpy(p, s);
+}
+
 
 char * xstrchrnul(char *s, int c)
 {

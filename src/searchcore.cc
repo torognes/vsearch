@@ -86,10 +86,6 @@ inline void topscore_insert(int i, struct searchinfo_s * si)
   novel.seqno = seqno;
   novel.length = length;
   
-#if 0
-  printf("i, count, seqno, length: %d %d %d %d\n", i, count, seqno, length);
-#endif
-
   minheap_add(si->m, & novel);
 }
 
@@ -112,10 +108,6 @@ void search_topscores(struct searchinfo_s * si)
   /* count kmer hits in the database sequences */
   int indexed_count = dbindex_getcount();
   
-#if 0
-  printf("Indexed sequences: %d\n", indexed_count);
-#endif
-
   /* zero counts */
   memset(si->kmers, 0, indexed_count * sizeof(count_t));
   
@@ -226,16 +218,20 @@ void align_trim(struct hit * hit)
     - (hit->trim_q_right + hit->trim_t_right > 0 ? 1 : 0);
   
   /* CD-HIT */
-  hit->id0 = 100.0 * hit->matches / hit->shortest;
+  hit->id0 = hit->shortest > 0 ? 100.0 * hit->matches / hit->shortest : 0.0;
   /* all diffs */
-  hit->id1 = 100.0 * hit->matches / hit->nwalignmentlength;
+  hit->id1 = hit->nwalignmentlength > 0 ?
+    100.0 * hit->matches / hit->nwalignmentlength : 0.0;
   /* internal diffs */
-  hit->id2 = 100.0 * hit->matches / hit->internal_alignmentlength; 
+  hit->id2 = hit->internal_alignmentlength > 0 ?
+    100.0 * hit->matches / hit->internal_alignmentlength : 0.0;
   /* Marine Biology Lab */
-  hit->id3 = MAX(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
-                                      hit->shortest)));
+  hit->id3 = hit->shortest > 0 ?
+    MAX(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
+                             hit->shortest))) : 0.0;
   /* BLAST */
-  hit->id4 = 100.0 * hit->matches / hit->nwalignmentlength;
+  hit->id4 = hit->nwalignmentlength > 0 ?
+    100.0 * hit->matches / hit->nwalignmentlength : 0.0;
 
   switch (opt_iddef)
     {
@@ -428,81 +424,51 @@ void align_delayed(struct searchinfo_s * si)
             }
           else
             {
-              CELL  nwscore = nwscore_list[i];
-              unsigned short nwalignmentlength = nwalignmentlength_list[i];
-              unsigned short nwmatches = nwmatches_list[i];
-              unsigned short nwmismatches = nwmismatches_list[i];
-              unsigned short nwgaps = nwgaps_list[i];
-              char * nwcigar = nwcigar_list[i];
+              long target = hit->target;
+              long nwscore = nwscore_list[i];
 
-              long dseqlen = db_getsequencelen(hit->target);
+              char * nwcigar;
+              long nwalignmentlength;
+              long nwmatches;
+              long nwmismatches;
+              long nwgaps;
+              
+              long dseqlen = db_getsequencelen(target);
 
-#ifdef COMPARENONVECTORIZED
-
-              /* compare results with non-vectorized nw */
-
-              char * qseq = si->qsequence;
-              char * dseq = db_getsequence(hit->target);
-
-              long xnwscore;
-              long xnwdiff;
-              long xnwindels;
-              long xnwgaps;
-              long xnwalignmentlength;
-              char * xnwcigar = 0;
-      
-              long scorematrix[16][16];
-
-              for(int x=0; x<16; x++)
-                for(int y=0; y<16; y++)
-                  if ((x==0) || (y==0) || (x>4) || (y>4))
-                    scorematrix[x][y] = 0;
-                  else if (x==y)
-                    scorematrix[x][y] = opt_match;
-                  else
-                    scorematrix[x][y] = opt_mismatch;
-
-              nw_align(dseq,
-                       dseq + dseqlen,
-                       qseq,
-                       qseq + si->qseqlen,
-                       (long*) scorematrix,
-                       opt_gap_open_query_left,
-                       opt_gap_open_query_interior,
-                       opt_gap_open_query_right,
-                       opt_gap_open_target_left,
-                       opt_gap_open_target_interior,
-                       opt_gap_open_target_right,
-                       opt_gap_extension_query_left,
-                       opt_gap_extension_query_interior,
-                       opt_gap_extension_query_right,
-                       opt_gap_extension_target_left,
-                       opt_gap_extension_target_interior,
-                       opt_gap_extension_target_right,
-                       & xnwscore,
-                       & xnwdiff,
-                       & xnwgaps,
-                       & xnwindels,
-                       & xnwalignmentlength,
-                       & xnwcigar,
-                       si->query_no,
-                       hit->target,
-                       si->nw);
-
-              if ((xnwscore != nwscore) || (strcmp(xnwcigar, nwcigar) != 0))
+              if (nwscore == SHRT_MAX)
                 {
-                  printf("Alignment error in channel %d:\n", i);
-                  printf("qlen, dlen: %d, %ld\n",si->qseqlen, dseqlen);
-                  printf("qseq: [%s]\n", qseq);
-                  printf("dseq: [%s]\n", dseq);
-                  printf("Non-vectorized: %ld %s\n", xnwscore, xnwcigar);
-                  printf("Vectorized:     %d %s\n",   nwscore,  nwcigar);
+                  /* In case the SIMD aligner cannot align,
+                     perform a new alignment with the
+                     linear memory aligner */
+                  
+                  char * dseq = db_getsequence(target);
+                  
+                  if (nwcigar_list[i])
+                    free(nwcigar_list[i]);
+                  
+                  nwcigar = xstrdup(si->lma->align(si->qsequence,
+                                                  dseq,
+                                                  si->qseqlen,
+                                                  dseqlen));
+
+                  si->lma->alignstats(nwcigar,
+                                      si->qsequence,
+                                      dseq,
+                                      & nwscore,
+                                      & nwalignmentlength,
+                                      & nwmatches,
+                                      & nwmismatches,
+                                      & nwgaps);
                 }
-      
-              free(xnwcigar);
-
-#endif
-
+              else
+                {
+                  nwalignmentlength = nwalignmentlength_list[i];
+                  nwmatches = nwmatches_list[i];
+                  nwmismatches = nwmismatches_list[i];
+                  nwgaps = nwgaps_list[i];
+                  nwcigar = nwcigar_list[i];
+                }
+              
               hit->aligned = 1;
               hit->shortest = MIN(si->qseqlen, dseqlen);
               hit->nwalignment = nwcigar;
@@ -542,6 +508,24 @@ void search_onequery(struct searchinfo_s * si)
   si->hit_count = 0;
 
   search16_qprep(si->s, si->qsequence, si->qseqlen);
+
+  si->lma = new LinearMemoryAligner;
+
+  long * scorematrix = si->lma->scorematrix_create(opt_match, opt_mismatch);
+
+  si->lma->set_parameters(scorematrix,
+                          opt_gap_open_query_left,
+                          opt_gap_open_target_left,
+                          opt_gap_open_query_interior,
+                          opt_gap_open_target_interior,
+                          opt_gap_open_query_right,
+                          opt_gap_open_target_right,
+                          opt_gap_extension_query_left,
+                          opt_gap_extension_target_left,
+                          opt_gap_extension_query_interior,
+                          opt_gap_extension_target_interior,
+                          opt_gap_extension_query_right,
+                          opt_gap_extension_target_right);
   
   /* extract unique kmer samples from query*/
   unique_count(si->uh, opt_wordlength, 
@@ -598,6 +582,9 @@ void search_onequery(struct searchinfo_s * si)
     }  
   if (delayed > 0)
     align_delayed(si);
+  
+  delete si->lma;
+  free(scorematrix);
 }
 
 struct hit * search_findbest2(struct searchinfo_s * si_p,
