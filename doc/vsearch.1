@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 19, 2014" "version 1.0.7" "USER COMMANDS"
+.TH vsearch 1 "January 22, 2015" "version 1.0.8" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -20,9 +20,10 @@ Chimera detection:
 .RE
 Clustering:
 .RS
-\fBvsearch\fR (--cluster_fast | --cluster_smallmem) \fIfastafile\fR
-(--alnout | --blast6out | --centroids | --clusters | --msaout | --uc |
---userout) \fIoutputfile\fR --id \fIreal\fR [\fIoptions\fR]
+\fBvsearch\fR (--cluster_fast | --cluster_size | --cluster_smallmem)
+\fIfastafile\fR (--alnout | --blast6out | --centroids | --clusters |
+--msaout | --uc | --userout) \fIoutputfile\fR --id \fIreal\fR
+[\fIoptions\fR]
 .PP
 .RE
 Dereplication:
@@ -76,11 +77,13 @@ implementations and harvesting the full potential of modern computers,
 thus providing fast and accurate data processing.
 .PP
 Nucleotide sequence comparisons is at the core of \fBvsearch\fR. To
-speed up comparisons, \fBvsearch\fR implements an extremely
-fast implementation of the
-Needleman-Wunsch algorithm, making use of the Streaming SIMD
-Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are not
-available, \fBvsearch\fR exits with an error message.
+speed up comparisons, \fBvsearch\fR implements an extremely fast
+implementation of the Needleman-Wunsch algorithm, making use of the
+Streaming SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2
+instructions are not available, \fBvsearch\fR exits with an error
+message. For comparisons involving sequences longer than 5,000
+nucleotides, \fBvsearch\fR uses a slower alignment method with smaller
+memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR input is a fasta file containing one or several
@@ -327,6 +330,10 @@ first sequence of the cluster).
 .BI --cluster_fast \0filename
 Clusterize the fasta sequences in \fIfilename\fR, automatically
 perform a sorting by decreasing sequence length beforehand.
+.TP
+.BI --cluster_size \0filename
+Clusterize the fasta sequences in \fIfilename\fR, automatically
+perform a sorting by decreasing sequence abundance beforehand.
 .TP
 .BI --cluster_smallmem \0filename
 Clusterize the fasta sequences in \fIfilename\fR without automatically
@@ -976,13 +983,15 @@ Output only the top \fIinteger\fR sequences.
 .\" ----------------------------------------------------------------------------
 Sorting options:
 .RS
-To obtain a stable sorting order, fasta entries are sorted by
-decreasing abundance (--sortbysize) or sequence length
-(--sortbylength), and by sequence label increasing alpha-numerical
-order (assuming all sequences have unique labels). The same applies to
-the automatic sorting performed during chimera checking
-(--uchime_denovo), dereplication (--derep_fulllength), and clustering
-(--cluster_fast).
+Fasta entries are sorted by decreasing abundance (--sortbysize) or
+sequence length (--sortbylength). To obtain a stable sorting order,
+ties are sorted by decreasing abundance and label increasing
+alpha-numerical order (--sortbylength), or just by label increasing
+alpha-numerical order (--sortbysize). Label sorting assumes that all
+sequences have unique labels. The same applies to the automatic
+sorting performed during chimera checking (--uchime_denovo),
+dereplication (--derep_fulllength), and clustering (--cluster_fast and
+--cluster_size).
 .PP
 .TP 9
 .BI --maxsize\~ "positive integer"
@@ -1128,6 +1137,16 @@ Last nucleotide of the query aligned with the target. Nucleotide
 numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .TP
+.B qihi
+Last nucleotide of the query aligned with the target (ignoring
+terminal gaps). Nucleotide numbering starts from 1. The field is set
+to 0 if there is no alignment.
+.TP
+.B qilo
+First nucleotide of the query aligned with the target (ignoring
+initial gaps). Nucleotide numbering starts from 1. The field is set to
+0 if there is no alignment.
+.TP
 .B ql
 Query sequence length (positive integer value). The field is set to 0
 if there is no alignment.
@@ -1178,6 +1197,16 @@ Last nucleotide of the target aligned with the query. Nucleotide
 numbering starts from 1. The field is set to 0 if there is no
 alignment.
 .TP
+.B tihi
+Last nucleotide of the target aligned with the query (ignoring
+terminal gaps). Nucleotide numbering starts from 1. The field is set
+to 0 if there is no alignment.
+.TP
+.B tilo
+First nucleotide of the target aligned with the query (ignoring
+initial gaps). Nucleotide numbering starts from 1. The field is set to
+0 if there is no alignment.
+.TP
 .B tl
 Target sequence length (positive integer value). The field is set to 0
 if there is no alignment.
@@ -1216,14 +1245,20 @@ During a search with usearch, when using the options --blast6out and
 reported is 13, where it should be 12. This is corrected in
 \fBvsearch\fR.
 .PP
-The fields qlo, qhi, tlo, thi and raw of the --userfields option are
-not informative in usearch. This is corrected in \fBvsearch\fR.
+The field raw of the --userfields option is not informative in
+usearch. This is corrected in \fBvsearch\fR.
+.PP
+The fields qlo, qhi, tlo, thi now have counterparts (qilo, qihi, tilo,
+tihi) reporting alignment coordinates ignoring terminal gaps.
 .PP
 In usearch, when using the option --output_no_hits, queries that
 receive no match are reported in blast6out file, but not in the
 alignment output file. This is corrected in \fBvsearch\fR.
 .PP
-\fBvsearch\fR reintroduces with --iddef alternative pairwise identity
+\fBvsearch\fR introduces a new --cluster_size command that sorts
+sequences by decreasing abundance before clustering.
+.PP
+\fBvsearch\fR reintroduces --iddef alternative pairwise identity
 definitions that were removed from usearch.
 .PP
 \fBvsearch\fR extends the --topn option to sorting commands.
@@ -1234,8 +1269,8 @@ definitions that were removed from usearch.
 \fBvsearch\fR treats T and U as identical nucleotides for
 dereplication.
 .PP
-\fBvsearch\fR sorting is stabilized by using sequence labels as
-secondary keys.
+\fBvsearch\fR sorting is stabilized by using sequence abundances or
+sequences labels as secondary or tertiary keys.
 .PP
 .\" ============================================================================
 .SH NOVELTIES
@@ -1244,6 +1279,8 @@ described in the "Options" section of this manual. Here is a short
 list:
 .IP - 2
 alignwidth
+.IP -
+cluster_size
 .IP -
 fasta_width
 .IP -
@@ -1344,7 +1381,7 @@ curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 Source code and binaries are available at <https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014 Torbjørn Rognes and collaborators.
+Copyright (C) 2014, 2015 Torbjørn Rognes and collaborators.
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -1414,6 +1451,34 @@ Fixes a memory allocation bug in chimera detection (--uchime_ref option).
 .TP
 .BR v1.0.7\~ "released December 19th, 2014"
 Fixes a bug in the output from chimera detection with the --uchimeout option.
+.TP
+.BR v1.0.8\~ "released January 22nd, 2015"
+Introduces several changes and bug fixes:
+.RS
+.IP - 2
+a new linear memory aligner for alignment of sequences longer than
+5,000 nucleotides,
+.IP -
+a new --cluster_size command that sorts sequences by decreasing
+abundance before clustering,
+.IP -
+meaning of userfields qlo, qhi, tlo, thi changed for compatibility
+with usearch,
+.IP -
+new userfields qilo, qihi, tilo, tihi gives coordinates ignoring
+terminal gaps,
+.IP -
+in --uc output files, a perfect alignment is indicated with a "=" sign,
+.IP -
+--cluster_fast will now sort sequences by decreasing length, then by
+  decreasing abundance and finally by sequence identifier,
+.IP -
+default --maxseqlength value set to 50,000 nucleotides,
+.IP -
+fix for bug in alignment in rare cases,
+.IP -
+fix for lack of detection of under- or overflow in SIMD aligner.
+.RE
 .LP
 .\" ============================================================================
 .\" TODO:
