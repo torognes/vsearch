@@ -30,7 +30,7 @@ If you can't find an answer in the VSEARCH documentation, please visit the [VSEA
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.0.7-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.8-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
@@ -86,7 +86,7 @@ For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the que
 
 **Memory:** VSEARCH is a 64-bit program and supports very large databases if you have enough memory. Search and clustering might use a lot of memory, especially if run with many threads. Memory usage has not been compared with USEARCH yet.
 
-**Clustering:** The clustering commands `--cluster_smallmem` and `--cluster_fast` have been implemented. These commands support multiple threads. The only difference between `--cluster_smallmem` and `--cluster_fast` is that `--cluster_fast` will sort the sequences by length before clustering, while `--cluster_smallmem` require the sequences to be in length-sorted order unless the `--usersort` option is specified. There is no significant difference in speed or memory usage between these commands. The increased sensitivity of VSEARCH often leads to larger and fewer clusters than USEARCH.
+**Clustering:** The clustering commands `--cluster_smallmem` and `--cluster_fast` have been implemented. These commands support multiple threads. The only difference between `--cluster_smallmem` and `--cluster_fast` is that `--cluster_fast` will sort the sequences by length before clustering, while `--cluster_smallmem` require the sequences to be in length-sorted order unless the `--usersort` option is specified. An additional clustering command called `--cluster_size` has been added that will sort your sequences by abundance before clustering. There is no significant difference in speed or memory usage between these commands. The increased sensitivity of VSEARCH often leads to larger and fewer clusters than USEARCH.
 
 The speed of clustering with VSEARCH relative to USEARCH depends on how many threads are used. Running with a single thread VSEARCH currently seems to be 2-4 times slower than with USEARCH, depending on parameters. Clustering has been parallelized with threads in VSEARCH, but clustering does not seem to be parallelized in USEARCH (despite what the name and documentation for `--cluster_fast` seems to indicate). Clustering with VSEARCH using 4-8 threads is often faster than USEARCH. The speed of VSEARCH might be further improved with an intra-sequence SIMD-vectorized aligner.
 
@@ -103,6 +103,8 @@ VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and abou
 **Extensions:** A shuffle command has been added. By specifying a FASTA file using the `--shuffle` option, and an output file with the `--output` option, VSEARCH will shuffle the sequences in a pseudo-random order. An integer may be specified as the seed with the `--seed` option to generate the same shuffling several times. By default, or when `--seed 0` is specified, the pseudo-random number generator will be initialized with pseudo-random data from the machine to give different numbers each time it is run.
 
 Another extension implemented is that `--derep_fulllength` and `--cluster_fast` will honour the `--sizein` option and add together the abundances for the sequences that are clustered.
+
+An additional clustering command called `--cluster_size` has been added that will sort sequences by abundance before clustering. 
 
 The commands `--sortbylength` and `--sortbysize` supports the `--topn` option to output no more than the given number of sequences.
 
@@ -149,6 +151,7 @@ Clustering options (most searching options also apply):
 
 * `--centroids <filename>`
 * `--cluster_fast <filename>`
+* `--cluster_size <filename>`
 * `--cluster_smallmem <filename>`
 * `--clusters <prefix>`
 * `--consout <filename>`
@@ -286,6 +289,7 @@ File | Description
 **db.cc** | Handles the database file read, access etc
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
+**linmem.cc* | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
 **minheap.cc** | A minheap implementation for the list of top kmer matches
@@ -316,7 +320,7 @@ or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?s
 
 ## Limitations
 
-* VSEARCH cannot currently align very long sequences (on the order of 20 000 bp) unless you have extreme amounts of memory installed. This is because VSEARCH saves the entire direction matrix during alignment and it takes 8 bytes times the longest query sequence times the longest target sequence per thread. In the future a less memory demanding alignment procedure should be implemented.
+* VSEARCH is designed for rather short sequences, and will be slow when sequences are longer than about 5000bp. This is because it always performs optimal global alignment on selected sequences.
 
 
 ## Future work
@@ -325,7 +329,7 @@ Some issues to work on:
 
 * testing and debugging
 * performance evaluation
-* alignment of very long sequences where the direction matrix wont fit in memory
+* heuristics for alignment of long sequences (e.g. banded alignment around selected diagonals)?
 * intra-sequence SIMD parallelization (using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000))
 
 
