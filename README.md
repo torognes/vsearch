@@ -289,7 +289,7 @@ File | Description
 **db.cc** | Handles the database file read, access etc
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
-**linmem.cc* | Linear memory global sequence aligner
+**linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
 **minheap.cc** | A minheap implementation for the list of top kmer matches
