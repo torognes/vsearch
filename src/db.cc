@@ -458,15 +458,8 @@ void db_read(const char * filename, int upcase)
 
     seqindex_p->size = 1;
 
-    /* read sizein annotation if appropriate */
-    if ((opt_usearch_global || 
-         opt_uchime_denovo ||
-         opt_sortbysize ||
-         (opt_sortbylength && opt_relabel && opt_sizeout) ||
-         (opt_cluster_fast && opt_sizein) ||
-         (opt_cluster_smallmem && opt_sizein) ||
-         (opt_derep_fulllength && opt_sizein)) && 
-        (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0)))
+    /* read sizein annotation */
+    if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
       {
         long size = atol(seqindex_p->header + pmatch[2].rm_so);
         if (size > 0)
@@ -571,7 +564,7 @@ int compare_bylength(const void * a, const void * b)
   seqinfo_t * x = (seqinfo_t *) a;
   seqinfo_t * y = (seqinfo_t *) b;
 
-  /* longest first, then by label, otherwise keep order */
+  /* longest first, then by abundance, then by label, otherwise keep order */
 
   if (x->seqlen < y->seqlen)
     return +1;
@@ -579,17 +572,24 @@ int compare_bylength(const void * a, const void * b)
     return -1;
   else
     {
-      int r = strcmp(x->header, y->header);
-      if (r != 0)
-        return r;
+      if (x->size < y->size)
+        return +1;
+      else if (x->size > y->size)
+        return -1;
       else
         {
-          if (x < y)
-            return -1;
-          else if (x > y)
-            return +1;
+          int r = strcmp(x->header, y->header);
+          if (r != 0)
+            return r;
           else
-            return 0;
+            {
+              if (x < y)
+                return -1;
+              else if (x > y)
+                return +1;
+              else
+                return 0;
+            }
         }
     }
 }
