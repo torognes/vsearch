@@ -381,18 +381,18 @@ doi:[10.1093/bioinformatics/btl582](http://dx.doi.org/10.1093/bioinformatics/btl
 *Nucleic Acids Research*, 41 (D1), D597-D604.
 doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
 
-* Hirschberg D.S (1975) A linear space algorithm for computing maximal common subsequences. *Comm ACM*, 18(6), 341-343. doi:[10.1145/360825.360861](http://dx.doi.org/10.1145/360825.360861)
+* Hirschberg D.S (1975) **A linear space algorithm for computing maximal common subsequences.** *Comm ACM*, 18(6), 341-343. doi:[10.1145/360825.360861](http://dx.doi.org/10.1145/360825.360861)
 
 * Karsenti E., González Acinas S., Bork P., Bowler C., de Vargas C., Raes J., Sullivan M. B., Arendt D., Benzoni F., Claverie J.-M., Follows M., Jaillon O., Gorsky G., Hingamp P., Iudicone D., Kandels-Lewis S., Krzic U., Not F., Ogata H., Pesant S., Reynaud E. G., Sardet C., Sieracki M. E., Speich S., Velayoudon D., Weissenbach J., Wincker P. & the Tara Oceans Consortium (2011)
 **A holistic approach to marine eco-systems biology.**
 *PLoS Biology*, 9(10), e1001177.
 doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
 
-* Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R., Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B., Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de Vargas C. & Massana R. (2014) The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.
+* Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R., Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B., Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de Vargas C. & Massana R. (2014) **The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.**
 *Current Biology*, 24(8), 813-821.
 doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
 
-* Myers E.W., & Miller W. (1988) Optimal alignments in linear space.
+* Myers E.W., & Miller W. (1988) **Optimal alignments in linear space.**
 *Comput Appl Biosci*, 4(1), 11-17.
 doi:[10.1093/bioinformatics/4.1.11](http://dx.doi.org/10.1093/bioinformatics/4.1.11)
 
