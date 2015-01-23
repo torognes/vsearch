@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 22, 2015" "version 1.0.9" "USER COMMANDS"
+.TH vsearch 1 "January 23, 2015" "version 1.0.10" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -434,7 +434,7 @@ just a decreasing length ordering.
 .TP
 Most searching options also apply to clustering:
 .br
---alnout, --blast6out, --userout, --userfields, fastapairs, --matched,
+--alnout, --blast6out, --userout, --userfields, --fastapairs, --matched,
 --notmatched, --maxaccept, --maxreject, score filtering, gap penalties, masking. (see the Searching section).
 .RE
 .PP
@@ -684,7 +684,7 @@ or positive integers, and "/" is used as a separator.
 .br
 To simplify declarations, the location symbols (L, I, and R) can be
 combined, the symbol (E) can be used to treat both extremities (L and
-R) equally, and the symbols Q and T can be ommited to treat query and
+R) equally, and the symbols Q and T can be omitted to treat query and
 target sequences equally. For instance, the default is to declare a
 penalty of 20 for opening internal gaps and a penalty of 2 for opening
 terminal gaps (left or right), in both query and target sequences
@@ -1381,7 +1381,7 @@ curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 Source code and binaries are available at <https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014, 2015 Torbjørn Rognes and collaborators.
+Copyright (C) 2014, 2015 Torbjørn Rognes, Frédéric Mahé and Tomas Flouri.
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -1482,6 +1482,10 @@ fix for lack of detection of under- or overflow in SIMD aligner.
 .TP
 .BR v1.0.9\~ "released January 22nd, 2015"
 Fixes a bug in the function sorting sequences by decreasing abundance (--sortbysize).
+.TP
+.BR v1.0.10\~ "released January 23rd, 2015"
+Fixes a bug where the sizein option was ignored and always treated as on,
+affecting clustering and dereplication commands.
 .LP
 .\" ============================================================================
 .\" TODO:
