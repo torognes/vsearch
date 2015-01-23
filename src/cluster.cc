@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -996,7 +996,7 @@ void cluster(char * dbname,
                                     db_getsequencelen(seqno),
                                     opt_fasta_width);
             }
-          abundance += db_getabundance(seqno);
+          abundance += opt_sizein ? db_getabundance(seqno) : 1;
           size++;
         }
       else
@@ -1044,7 +1044,7 @@ void cluster(char * dbname,
             }
   
           centroid = clusterinfo[i].seqno;
-          abundance = db_getabundance(seqno);
+          abundance = opt_sizein ? db_getabundance(seqno) : 1;
           size = 1;
           lastcluster = clusterno;
         }

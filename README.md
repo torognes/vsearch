@@ -30,13 +30,13 @@ If you can't find an answer in the VSEARCH documentation, please visit the [VSEA
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.0.9-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.10-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.9-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.9-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.10-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.10-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -44,8 +44,8 @@ Download the appropriate executable and make a symbolic link in a folder include
 cd ~
 mkdir -p bin
 cd bin
-wget https://github.com/torognes/vsearch/releases/download/v1.0.9/vsearch-1.0.9-linux-x86_64
-ln -s vsearch-1.0.9-linux-x86_64 vsearch
+wget https://github.com/torognes/vsearch/releases/download/v1.0.10/vsearch-1.0.10-linux-x86_64
+ln -s vsearch-1.0.10-linux-x86_64 vsearch
 ```
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
@@ -68,7 +68,7 @@ We have chosen to select all unique kmers from the query. At least 6 of these km
 
 It appears that there are differences in usearch between the searches performed by the `--usearch_global` command and the clustering commands. Notably, it appears like `--usearch_global` simply ignores the options `--wordlength`, `--slots` and `--pattern`, while the clustering commands takes them into account. VSEARCH supports the `--wordlength` option for kmer lengths from 3 to 15, but the options `--slots` and `--pattern` are ignored.
 
-**Alignment:** VSEARCH uses a 8-way 16-bit SIMD vectorized implementation of the full dynamic programming algorithm (Needleman-Wunsch) for global sequence alignment. It is an adaptation of the method described by Rognes (2011). USEARCH by default uses a heuristic procedure involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
+**Alignment:** VSEARCH uses a 8-way 16-bit SIMD vectorized implementation of the full dynamic programming algorithm (Needleman-Wunsch) for global sequence alignment. It is an adaptation of the method described by Rognes (2011). Due to the extreme memory requirements of this method when aligning two long sequences (e.g. more than 5000bp long), an alternative algorithm described by Hirschberg (1975) and Myers and Miller (1988) is used when aligning a pair of long sequences. This alternative algorithm uses only a linear amount of memory but is much slower. USEARCH by default uses a heuristic procedure involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
 
 **Search Accuracy:** The accuracy of VSEARCH searches has been assessed and compared to USEARCH version 7.0.1090. The Rfam 11.0 database was used for the assessment, as described on the [USEARCH website](http://drive5.com/usearch/benchmark_rfam.html). A similar procedure was described in the USEARCH paper using the Rfam 9.1 database.
 
@@ -365,25 +365,37 @@ the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et al. 2012).
 **Search and clustering orders of magnitude faster than BLAST.**
 *Bioinformatics*, 26 (19): 2460-2461.
 doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
+
 * Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011)
 **UCHIME improves sensitivity and speed of chimera detection.**
 *Bioinformatics*, 27 (16): 2194-2200.
 doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
+
 * Farrar M (2007)
 **Striped Smith-Waterman speeds database searches six times over other SIMD implementations.**
 *Bioinformatics* (2007) 23 (2): 156-161.
 doi:[10.1093/bioinformatics/btl582](http://dx.doi.org/10.1093/bioinformatics/btl582)
+
 * Guillou L., Bachar D., Audic S., Bass D., Berney C., Bittner L., Boutte C., Burgaud G., de Vargas C., Decelle J., del Campo J., Dolan J., Dunthorn M., Edvardsen B., Holzmann M., Kooistra W., Lara E., Lebescot N., Logares R., Mahé F., Massana R., Montresor M., Morard R., Not F., Pawlowski J., Probert I., Sauvadet A.-L., Siano R., Stoeck T., Vaulot D., Zimmermann P. & Christen R. (2013)
 **The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.**
 *Nucleic Acids Research*, 41 (D1), D597-D604.
 doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
+
+* Hirschberg D.S (1975) A linear space algorithm for computing maximal common subsequences. *Comm ACM*, 18(6), 341-343. doi:[10.1145/360825.360861](http://dx.doi.org/10.1145/360825.360861)
+
 * Karsenti E., González Acinas S., Bork P., Bowler C., de Vargas C., Raes J., Sullivan M. B., Arendt D., Benzoni F., Claverie J.-M., Follows M., Jaillon O., Gorsky G., Hingamp P., Iudicone D., Kandels-Lewis S., Krzic U., Not F., Ogata H., Pesant S., Reynaud E. G., Sardet C., Sieracki M. E., Speich S., Velayoudon D., Weissenbach J., Wincker P. & the Tara Oceans Consortium (2011)
 **A holistic approach to marine eco-systems biology.**
 *PLoS Biology*, 9(10), e1001177.
 doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
+
 * Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R., Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B., Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de Vargas C. & Massana R. (2014) The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.
 *Current Biology*, 24(8), 813-821.
 doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
+
+* Myers E.W., & Miller W. (1988) Optimal alignments in linear space.
+*Comput Appl Biosci*, 4(1), 11-17.
+doi:[10.1093/bioinformatics/4.1.11](http://dx.doi.org/10.1093/bioinformatics/4.1.11)
+
 * Rognes T (2011)
 **Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation.**
 *BMC Bioinformatics*, 12: 221.
