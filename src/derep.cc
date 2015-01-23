@@ -248,7 +248,7 @@ void derep_fulllength()
             }
         }
 
-      long ab = db_getabundance(i); 
+      long ab = opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
       if (bp->size)

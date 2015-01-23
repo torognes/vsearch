@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes and Tomas Flouri
+    Copyright (C) 2014-2015 Torbjorn Rognes and Tomas Flouri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -82,6 +82,9 @@
 #include "cpu.h"
 #include "allpairs.h"
 
+#define PROG_NAME "vsearch"
+#define PROG_VERSION "v1.0.10"
+
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
 #else
@@ -101,9 +104,6 @@
 #define FORMAT_PLAIN 1
 #define FORMAT_BZIP  2
 #define FORMAT_GZIP  3
-
-#define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.9"
 
 /* options */
 

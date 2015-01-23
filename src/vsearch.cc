@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes & Frederic Mahe
+    Copyright (C) 2014-2015 Torbjorn Rognes & Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -1352,7 +1352,7 @@ void cmd_help()
           "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
           "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
           "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
-          "  --sizein                    read abundance annotation from input\n"
+          "  --sizein                    propagate abundance annotation from input\n"
           "  --sizeout                   write cluster abundances to centroid file\n"
           "  --strand plus|both          cluster using plus or both strands (plus)\n"
           "  --uc FILENAME               filename for UCLUST-like output\n"
@@ -1363,7 +1363,7 @@ void cmd_help()
           "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
           "  --minuniquesize INT         minimum abundance for output from dereplication\n"
           "  --output FILENAME           output FASTA file\n"
-          "  --sizein                    read abundance annotation from input\n"
+          "  --sizein                    propagate abundance annotation from input\n"
           "  --sizeout                   write abundance annotation to output\n"
           "  --strand plus|both          dereplicate plus or both strands (plus)\n"
           "  --topn INT                  output just the n most abundant sequences\n"
@@ -1420,7 +1420,7 @@ void cmd_help()
           "  --rowlen INT                width of alignment lines in alnout output (64)\n"
           "  --self                      reject if labels identical\n"
           "  --selfid                    reject if sequences identical\n"
-          "  --sizeout                   write abundance annotation to output\n"
+          "  --sizeout                   write abundance annotation to dbmatched file\n"
           "  --strand plus|both          search plus or both strands (plus)\n"
           "  --target_cov REAL           reject if fraction of target seq. aligned lower\n"
           "  --top_hits_only             output only hits with identity equal to the best\n"
@@ -1443,7 +1443,7 @@ void cmd_help()
           "  --minsize INT               minimum abundance for sortbysize\n"
           "  --output FILENAME           output FASTA file\n"
           "  --relabel STRING            relabel with this prefix string after sorting\n"
-          "  --sizeout                   add abundance annotation to output\n"
+          "  --sizeout                   add abundance to output when relabelling\n"
           "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
           "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
           "  --topn INT                  output just top n seqs after sorting\n"

@@ -28,9 +28,11 @@
   
   These functions are based on the following articles:
   - Hirschberg (1975) Comm ACM 18:341-343
-  - Huang, Hardison & Miller (1990) CABIOS 6:373-381
   - Myers & Miller (1988) CABIOS 4:11-17
   
+  The method has been adapted for the use of different
+  gap penalties for query/target/left/interior/right gaps.
+
   scorematrix consists of 16x16 long integers
   
   Sequences and alignment matrix:
@@ -41,8 +43,6 @@
   EE corresponds to score ending with gap in B/target
 
 */
-
-//#define DEBUG
 
 LinearMemoryAligner::LinearMemoryAligner()
 {
@@ -183,13 +183,6 @@ void LinearMemoryAligner::diff(long a_start,
                                bool b_left,      /* includes left end of b  */
                                bool b_right)     /* includes right end of b */
 {
-#ifdef DEBUG
-  printf("diff(a_start=%ld, b_start=%ld, a_len=%ld, b_len=%ld, gap_b_left=%d, gap_b_right=%d, a_left=%d, a_right=%d, b_left=%d, b_right=%d)\n",
-         a_start, b_start, a_len, b_len,
-         gap_b_left, gap_b_right,
-         a_left, a_right, b_left, b_right);
-#endif
-
   long MaxScore = 0;
 
   if (b_len == 0)
@@ -299,10 +292,6 @@ void LinearMemoryAligner::diff(long a_start,
 	    }
 	}
 
-#ifdef DEBUG
-      printf("MaxScore=%ld best=%ld\n", MaxScore, best);
-#endif
-
       if (best == -1)
 	{
 	  cigar_add('D', 1);
@@ -347,10 +336,6 @@ void LinearMemoryAligner::diff(long a_start,
 
       /* compute matrix */
 
-#ifdef DEBUG
-          printf("Forward:\n");
-#endif
-
       for (i = 1; i <= I; i++)
 	{
 	  long p = HH[0];
@@ -362,10 +347,6 @@ void LinearMemoryAligner::diff(long a_start,
           HH[0] = h;
 	  long f = LONG_MIN;
           
-#ifdef DEBUG
-          printf("%4ld", h);
-#endif
-
 	  for (j = 1; j <= b_len; j++)
 	    {
               f = MAX(f, h - go_q_i) - ge_q_i;
@@ -382,17 +363,9 @@ void LinearMemoryAligner::diff(long a_start,
 		h = EE[j];
 	      p = HH[j];
 	      HH[j] = h;
-
-#ifdef DEBUG
-              printf(" %4ld", h);
-#endif
-
 	    }
-#ifdef DEBUG
-          printf("\n");
-#endif
-
 	}
+
       EE[0] = HH[0];
 
       // Compute XX & YY in reverse phase
@@ -411,10 +384,7 @@ void LinearMemoryAligner::diff(long a_start,
       
       /* compute matrix */
 
-#ifdef DEBUG
-      printf("Reverse:\n");
-#endif
-for (i = 1; i <= a_len - I; i++)
+      for (i = 1; i <= a_len - I; i++)
 	{
 	  long p = XX[0];
 
@@ -424,10 +394,6 @@ for (i = 1; i <= a_len - I; i++)
           XX[0] = h;
 	  long f = LONG_MIN;
 
-#ifdef DEBUG
-          printf("%4ld", h);
-#endif
-          
 	  for (j = 1; j <= b_len; j++)
 	    {
               f = MAX(f, h - go_q_i) - ge_q_i;
@@ -444,15 +410,9 @@ for (i = 1; i <= a_len - I; i++)
 		h = YY[j];
 	      p = XX[j];
 	      XX[j] = h;
-
-#ifdef DEBUG
-              printf(" %4ld", h);
-#endif
 	    }
-#ifdef DEBUG
-          printf("\n");
-#endif
 	}
+
       YY[0] = XX[0];
 
 
@@ -463,38 +423,24 @@ for (i = 1; i <= a_len - I; i++)
 
       /* solutions with diagonal at break */
       
-#ifdef DEBUG
-      printf("Forward scores:");
-#endif
-
       for (j=0; j <= b_len; j++)
 	{
 	  long Score = HH[j] + XX[b_len - j];
-#ifdef DEBUG
-          printf(" %ld+%ld=%ld", HH[j], XX[b_len-j], Score);
-#endif
+
 	  if (Score > MaxScore0)
 	    {
 	      MaxScore0 = Score;
 	      best0 = j;
 	    }
 	}
-#ifdef DEBUG
-      printf("\n");
-#endif
 
       long MaxScore1 = LONG_MIN;
       long best1 = -1;
 
       /* solutions that end with a gap in b from both ends at break */
 
-#ifdef DEBUG
-      printf("Reverse scores:");
-#endif
-
       for (j=0; j <= b_len; j++)
 	{
-
           long g;
           if (b_left && (j==0))
             g = go_t_l;
@@ -504,18 +450,13 @@ for (i = 1; i <= a_len - I; i++)
             g = go_t_i;
 
 	  long Score = EE[j] + YY[b_len - j] + g;
-#ifdef DEBUG
-          printf(" %ld+%ld=%ld", EE[j], YY[b_len-j], Score);
-#endif
+
 	  if (Score > MaxScore1)
 	    {
 	      MaxScore1 = Score;
 	      best1 = j;
 	    }
 	}
-#ifdef DEBUG
-      printf("\n");
-#endif
       
       long P;
       long best;
@@ -544,10 +485,6 @@ for (i = 1; i <= a_len - I; i++)
               best = best1;
             }
         }
-
-#ifdef DEBUG
-      printf("Selection: P=%ld best=%ld, MaxScore=%ld\n", P, best, MaxScore);
-#endif
 
       /* recursively compute upper left and lower right parts */
 
