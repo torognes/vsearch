@@ -46,6 +46,7 @@ char * opt_notmatched;
 char * opt_output;
 char * opt_pattern;
 char * opt_relabel;
+char * opt_samout;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
@@ -471,6 +472,7 @@ void args_init(int argc, char **argv)
   opt_relabel = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
+  opt_samout = 0;
   opt_seed = 0;
   opt_self = 0;
   opt_selfid = 0;
@@ -607,6 +609,7 @@ void args_init(int argc, char **argv)
     {"allpairs_global",       required_argument, 0, 0 },
     {"acceptall",             no_argument,       0, 0 },
     {"cluster_size",          required_argument, 0, 0 },
+    {"samout",                required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1164,6 +1167,11 @@ void args_init(int argc, char **argv)
           opt_cluster_size = optarg;
           break;
 
+        case 103:
+          /* samout */
+          opt_samout = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1377,6 +1385,7 @@ void cmd_help()
           "\n"
           "Searching options\n"
           "  --alnout FILENAME           filename for human-readable alignment output\n"
+          "  --samout FILENAME           filename for SAM format output\n"
           "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
           "  --db FILENAME               filename for FASTA formatted database for search\n"
           "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
@@ -1473,7 +1482,8 @@ void cmd_usearch_global()
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
-      (!opt_dbmatched) && (!opt_dbnotmatched))
+      (!opt_dbmatched) && (!opt_dbnotmatched) &&
+      (!opt_samout))
     fatal("No output files specified");
   
   if (!opt_db)

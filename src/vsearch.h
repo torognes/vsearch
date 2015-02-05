@@ -54,10 +54,11 @@
 #include <bzlib.h>
 #endif
 
+#include "util.h"
+#include "string.h"
 #include "align_simd.h"
 #include "maps.h"
 #include "arch.h"
-#include "util.h"
 #include "db.h"
 #include "query.h"
 #include "align.h"
@@ -83,7 +84,7 @@
 #include "allpairs.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.10"
+#define PROG_VERSION "v1.0.11"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -130,6 +131,7 @@ extern char * opt_notmatched;
 extern char * opt_output;
 extern char * opt_pattern;
 extern char * opt_relabel;
+extern char * opt_samout;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -54,3 +54,11 @@ void results_show_fastapairs_one(FILE * fp,
                                  char * qsequence,
                                  long qseqlen,
                                  char * rc);
+
+void results_show_samout(FILE * fp,
+                         struct hit * hits,
+                         int hitcount,
+                         char * query_head,
+                         char * qsequence,
+                         long qseqlen,
+                         char * rc);
