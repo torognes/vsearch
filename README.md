@@ -1,5 +1,7 @@
 # VSEARCH
 
+[![DOI](https://zenodo.org/badge/8128/torognes/vsearch.svg)](http://dx.doi.org/10.5281/zenodo.14860)
+
 ## Introduction
 
 The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should:
