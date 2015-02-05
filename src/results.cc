@@ -457,3 +457,215 @@ void results_show_alnout(FILE * fp,
       fprintf(fp,"No hits\n");
     }
 }
+
+bool inline nucleotide_equal(char a, char b)
+{
+  return chrmap_4bit[(int)a] == chrmap_4bit[(int)b];
+}
+
+void build_sam_strings(char * alignment,
+                       char * queryseq,
+                       char * targetseq,
+                       xstring * cigar,
+                       xstring * md)
+{
+  /*
+    convert cigar to sam format: 
+    add "1" to operations without run length
+    flip direction of indels in cigar string
+    
+    build MD-string with substitutions
+  */
+
+  cigar->empty();
+  md->empty();
+
+  char * p = alignment;
+  char * e = p + strlen(p);
+
+  int qpos = 0;
+  int tpos = 0;
+
+  int matched = 0;
+  bool flag = 0; /* 1: MD string ends with a number */
+
+  while(p < e)
+    {
+      int run = 1;
+      int scanned = 0;
+      sscanf(p, "%d%n", & run, & scanned);
+      p += scanned;
+      char op = *p++;
+
+      switch (op)
+        {
+        case 'M':
+          cigar->add_d(run);
+          cigar->add_c('M');
+
+          for(int i=0; i<run; i++)
+            {
+              if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
+                matched++;
+              else
+                {
+                  if (!flag)
+                    {
+                      md->add_d(matched);
+                      matched = 0;
+                      flag = 1;
+                    }
+
+                  md->add_c(targetseq[tpos]);
+                  flag = 0;
+                }
+              qpos++;
+              tpos++;
+            }
+
+          break;
+
+        case 'D':
+          cigar->add_d(run);
+          cigar->add_c('I');
+          qpos += run;
+          break;
+
+        case 'I':
+          cigar->add_d(run);
+          cigar->add_c('D');
+
+          if (!flag)
+            {
+              md->add_d(matched);
+              matched = 0;
+              flag = 1;
+            }
+          
+          md->add_c('^');
+          for(int i=0; i<run; i++)
+            md->add_c(targetseq[tpos++]);
+          flag = 0;
+          break;
+        }
+    }
+
+  if (!flag)
+    {
+      md->add_d(matched);
+      matched = 0;
+      flag = 1;
+    }
+}
+
+void results_show_samout(FILE * fp,
+                         struct hit * hits,
+                         int hitcount,
+                         char * query_head,
+                         char * qsequence,
+                         long qseqlen,
+                         char * rc)
+{
+  /* 
+     SAM format output
+     
+     http://samtools.github.io/hts-specs/SAMv1.pdf 
+     http://www.drive5.com/usearch/manual/sam_files.html 
+     http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#sam-output
+     http://davetang.org/muse/2011/01/28/perl-and-sam/
+
+      1: qname, query template name
+      2: flag, bitwise flag (12 bits)
+         (0x004=unmapped, 0x010=rev strand, 0x100 sec. alignment)
+      3: rname, reference sequence name
+      4: pos, 1-based leftmost mapping position (1)
+      5: mapq, mapping quality (255)
+      6: cigar, cigar string (MID)
+      7: rnext, ref name of next/paired read (*)
+      8: pnest, position of next/paired read (0)
+      9: tlen, obs template length (target length)
+     10: seq, segment of sequence
+     11: qual, ascii of phred based quality+33 (*)
+     12: optional tags (tag:type:value)
+     
+     Optional tags AS, XN, XM, XO, XG, NM, MD and YT used in usearch8.
+
+     Usearch8:
+
+     AS:i:? alignment score (i.e percent identity)
+     XN:i:? next best alignment score (always 0?)
+     XM:i:? number of mismatches
+     XO:i:? number of gap opens (excluding terminal gaps)
+     XG:i:? number of gap extensions (excluding terminal gaps)
+     NM:i:? edit distance (sum of XM and XG)
+     MD:Z:? variant string
+     YT:Z:UU string representing alignment type
+
+  */
+  
+  if (hitcount > 0)
+    {
+      double top_hit_id = hits[0].id;
+      
+      for(int t = 0; t < hitcount; t++)
+        {
+          struct hit * hp = hits + t;
+          
+          if (opt_top_hits_only && (hp->id < top_hit_id))
+            break;
+          
+          /*
+
+          */
+
+          xstring cigar;
+          xstring md;
+
+          build_sam_strings(hp->nwalignment,
+                            hp->strand ? rc : qsequence,
+                            db_getsequence(hp->target),
+                            & cigar,
+                            & md);
+
+          fprintf(fp,
+                  "%s\t%u\t%s\t%lu\t%u\t%s\t%s\t%lu\t%lu\t%s\t%s\t"
+                  "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
+                  "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
+                  query_head,
+                  0x10 * hp->strand | (t>0 ? 0x100 : 0),
+                  db_getheader(hp->target),
+                  1UL,
+                  255,
+                  cigar.get_string(),
+                  "*",
+                  0UL,
+                  0UL,
+                  hp->strand ? rc : qsequence,
+                  "*",
+                  hp->id,
+                  0,
+                  hp->mismatches,
+                  hp->internal_gaps,
+                  hp->internal_indels,
+                  hp->mismatches + hp->internal_indels,
+                  md.get_string(),
+                  "UU");
+        }
+    }
+  else if (opt_output_no_hits)
+    {
+      fprintf(fp,
+              "%s\t%u\t%s\t%lu\t%u\t%s\t%s\t%lu\t%lu\t%s\t%s\n",
+              query_head,
+              0x04,
+              "*",
+              0UL,
+              255,
+              "*",
+              "*",
+              0UL,
+              0UL,
+              qsequence,
+              "*");
+    }
+}

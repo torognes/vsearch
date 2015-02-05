@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 23, 2015" "version 1.0.10" "USER COMMANDS"
+.TH vsearch 1 "February 5, 2015" "version 1.0.11" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -22,7 +22,7 @@ Clustering:
 .RS
 \fBvsearch\fR (--cluster_fast | --cluster_size | --cluster_smallmem)
 \fIfastafile\fR (--alnout | --blast6out | --centroids | --clusters |
---msaout | --uc | --userout) \fIoutputfile\fR --id \fIreal\fR
+--msaout | --samout | --uc | --userout) \fIoutputfile\fR --id \fIreal\fR
 [\fIoptions\fR]
 .PP
 .RE
@@ -41,14 +41,14 @@ Masking:
 Pairwise alignment:
 .RS
 \fBvsearch\fR --allpairs_global \fIfastafile\fR (--alnout |
---blast6out | --matched | --notmatched | --uc | --userout)
+--blast6out | --matched | --notmatched | --samout | --uc | --userout)
 \fIoutputfile\fR (--acceptall | --id \fIreal\fR) [\fIoptions\fR]
 .PP
 .RE
 Searching:
 .RS
 \fBvsearch\fR --usearch_global \fIfastafile\fR --db \fIfastafile\fR
-(--alnout | --blast6out | --uc | --userout) \fIoutputfile\fR --id
+(--alnout | --blast6out | --samout | --uc | --userout) \fIoutputfile\fR --id
 \fIreal\fR [\fIoptions\fR]
 .PP
 .RE
@@ -434,8 +434,9 @@ just a decreasing length ordering.
 .TP
 Most searching options also apply to clustering:
 .br
---alnout, --blast6out, --userout, --userfields, --fastapairs, --matched,
---notmatched, --maxaccept, --maxreject, score filtering, gap penalties, masking. (see the Searching section).
+--alnout, --samout, --blast6out, --userout, --userfields, --fastapairs,
+--matched, --notmatched, --maxaccept, --maxreject,
+score filtering, gap penalties, masking. (see the Searching section).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -549,7 +550,7 @@ Pairwise alignment options:
 Perform optimal global pairwise alignments of all vs. all fasta
 sequences contained in \fIfilename\fR. The results of the n * (n-1) /
 2 alignments are written to the result files specified with --alnout,
---blast6out, --fastapairs --matched, --notmatched, --uc or --userout
+--blast6out, --fastapairs --matched, --notmatched, --samout, --uc or --userout
 (see Searching section below). Specify either the --acceptall option
 to output all pairwise alignments, or specify an identity level with
 --id to discard weak alignments. Most other accept/reject options (see
@@ -790,7 +791,7 @@ Reject the target sequence if the alignment contains at least
 .BI --maxhits\~ "positive integer"
 Maximum number of hits to show once the search is terminated (hits are
 sorted by decreasing identity). Unlimited by default value. \fBIt
-applies to alnout, blast6out, uc, userout, fastapairs\fR.
+applies to alnout, blast6out, samout, uc, userout, fastapairs\fR.
 .TP
 .BI --maxid \0real
 Reject the target sequence if its percentage of identity with the
@@ -859,9 +860,9 @@ Write query sequences not matching database target sequences to
 .TP
 .B --output_no_hits
 Write both matching and non-matching queries to --alnout, --blast6out,
-and --userout output files (--uc and --uc_allhits output files always
-feature non-matching queries). Non-matching queries are labelled "No
-hits" in --alnout files.
+--samout and --userout output files (--uc and --uc_allhits output files
+always feature non-matching queries). Non-matching queries are labelled
+"No hits" in --alnout files.
 .TP
 .BI --qmask\~ "none|dust|soft"
 Mask simple repeats and low-complexity regions in query sequences
@@ -881,6 +882,10 @@ Reject the target sequence if the alignment ends with gaps.
 .BI --rowlen\~ "positive integer"
 Width of alignment lines in --alnout output. The default value is
 64. Set to 0 to eliminate wrapping.
+.TP
+.BI --samout \0filename
+Write alignment results to \fIfilename\fR in the SAM format.
+Output order may vary when using multiple threads.
 .TP
 .B --self
 Reject the alignment if the query and target labels are identical.

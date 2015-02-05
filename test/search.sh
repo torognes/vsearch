@@ -25,7 +25,7 @@ else
     fi
 fi
 
-/usr/bin/time $PROG \
+CMD="/usr/bin/time $PROG \
     --usearch_global $Q \
     --db $DB \
     --threads $T \
@@ -43,4 +43,11 @@ fi
     --fastapairs fastapairs.$P.fsa \
     --dbmatched dbmatched.$P.fsa \
     --dbnotmatched dbnotmatched.$P.fsa \
-    --blast6out blast6out.$P.bl6
+    --blast6out blast6out.$P.bl6"
+
+echo Search test
+echo
+echo Running command: $CMD
+echo
+
+$CMD
