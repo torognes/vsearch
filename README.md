@@ -237,6 +237,7 @@ Searching options:
 * `--query_cov <real>`
 * `--rightjust`
 * `--rowlen <int>` (Default 60)
+* `--samout <filename>`
 * `--self`
 * `--selfid`
 * `--sizeout`
