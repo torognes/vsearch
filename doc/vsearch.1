@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 23, 2015" "version 1.0.10" "USER COMMANDS"
+.TH vsearch 1 "February 5, 2015" "version 1.0.11" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -22,8 +22,8 @@ Clustering:
 .RS
 \fBvsearch\fR (--cluster_fast | --cluster_size | --cluster_smallmem)
 \fIfastafile\fR (--alnout | --blast6out | --centroids | --clusters |
---msaout | --uc | --userout) \fIoutputfile\fR --id \fIreal\fR
-[\fIoptions\fR]
+--msaout | --samout | --uc | --userout) \fIoutputfile\fR --id
+\fIreal\fR [\fIoptions\fR]
 .PP
 .RE
 Dereplication:
@@ -41,15 +41,15 @@ Masking:
 Pairwise alignment:
 .RS
 \fBvsearch\fR --allpairs_global \fIfastafile\fR (--alnout |
---blast6out | --matched | --notmatched | --uc | --userout)
+--blast6out | --matched | --notmatched | --samout | --uc | --userout)
 \fIoutputfile\fR (--acceptall | --id \fIreal\fR) [\fIoptions\fR]
 .PP
 .RE
 Searching:
 .RS
 \fBvsearch\fR --usearch_global \fIfastafile\fR --db \fIfastafile\fR
-(--alnout | --blast6out | --uc | --userout) \fIoutputfile\fR --id
-\fIreal\fR [\fIoptions\fR]
+(--alnout | --blast6out | --samout | --uc | --userout)
+\fIoutputfile\fR --id \fIreal\fR [\fIoptions\fR]
 .PP
 .RE
 Shuffling:
@@ -68,15 +68,15 @@ Sorting:
 .ad b 
 .\" ============================================================================
 .SH DESCRIPTION
-Environmental or clinical molecular studies generate large volumes of
-amplicons (e.g. SSU-rRNA sequences) that need to be dereplicated,
-masked, sorted, searched, clustered or compared to reference
-sequences. The aim of \fBvsearch\fR is to offer a all-in-one open
-source tool to perform these tasks, using optimized algorithm
-implementations and harvesting the full potential of modern computers,
-thus providing fast and accurate data processing.
+Environmental or clinical molecular diversity studies generate large
+volumes of amplicons (e.g. SSU-rRNA sequences) that need to be checked
+for chimeras, dereplicated, masked, sorted, searched, clustered or
+compared to reference sequences. The aim of \fBvsearch\fR is to offer
+a all-in-one open source tool to perform these tasks, using optimized
+algorithm implementations and harvesting the full potential of modern
+computers, thus providing fast and accurate data processing.
 .PP
-Nucleotide sequence comparisons is at the core of \fBvsearch\fR. To
+Comparing nucleotide sequences is at the core of \fBvsearch\fR. To
 speed up comparisons, \fBvsearch\fR implements an extremely fast
 implementation of the Needleman-Wunsch algorithm, making use of the
 Streaming SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2
@@ -96,7 +96,7 @@ the line starts with ">[;]size=\fIinteger\fR;label", contains
 [;]size=\fIinteger\fR[;] from the header and interpret \fIinteger\fR
 as the number of occurrences (or abundance) of the sequence in the
 study. That abundance information is used or created during chimera
-detection, dereplication, sorting and searching.
+detection, clustering, dereplication, sorting and searching.
 .PP
 The nucleotide sequence is defined as a string of IUPAC symbols
 (ACGTURYSWKMDBHVN), starting after the end of the identifier line and
@@ -106,21 +106,20 @@ message if ascii characters 0 to 8, 14 to 31, "." or "-" are
 present. All other ascii or non-ascii characters are stripped and
 complained about in a non-blocking warning message.
 .PP
-\fBvsearch\fR operations are case insensitive, except when soft masking is
-activated. For --usearch_global (searching), --cluster_fast and
---cluster_smallmem (clustering), and --maskfasta (masking) commands,
-the case is important if soft masking is used. Soft masking is
-specified with the options "--dbmask soft" (for searching) or "--qmask
-soft" (for searching, clustering and masking). When using soft
-masking, lower case letters indicate masked symbols, while upper case
-letters indicate regular symbols. Masked symbols are never included in
-the unique \fIk\fR-mers used in searching. When soft masking is not
-activated, all letters are converted to upper case internally and used
-in result files.
+\fBvsearch\fR operations are case insensitive, except when soft
+masking is activated. When using clustering, masking or searching
+commands, the case is important if soft masking is used. Soft masking
+is specified with the options "--dbmask soft" (for searching) or
+"--qmask soft" (for searching, clustering and masking). When using
+soft masking, lower case letters indicate masked symbols, while upper
+case letters indicate regular symbols. Masked symbols are never
+included in the unique \fIk\fR-mers used in searching. When soft
+masking is not activated, all letters are converted to upper case
+internally and used in result files.
 .PP
 When comparing sequences during chimera detection, dereplication,
 searching and clustering, T and U are considered identical, regardless
-of their case. If two symbols are non-identical, their alignment will
+of their case. If two symbols are not identical, their alignment will
 result in the negative mismatch score (default -4), except if one or
 both of the symbols are ambiguous (RYSWKMDBHVN) in which case the
 score is zero. Alignment of two identical ambiguous symbols (e.g. R vs
@@ -174,7 +173,7 @@ sorted by decreasing abundance (if available), and compared on their
 .PP
 In \fIde novo\fR mode, input fasta file should present abundance
 annotations (pattern [;]size=\fIinteger\fR[;] in the fasta
-header). The input order influences the chimera detection, we
+header). The input order influences the chimera detection, so we
 recommend to sort sequences by decreasing abundance (default of
 --derep_fulllength command). If your sequence set needs to be sorted,
 please see the --sortbysize command in the sorting section.
@@ -183,15 +182,15 @@ please see the --sortbysize command in the sorting section.
 .BI --abskew \0real
 When using --uchime_denovo, the abundance skew is used to distinguish
 in a 3-way alignment which sequence is the chimera and which are the
-parents. The assumption is that chimeras appeared later in the PCR
+parents. The assumption is that chimeras appear later in the PCR
 amplification process and are therefore less abundant than their
 parents. The default value is 2.0, which means that the parents should
 be at least 2 times more abundant than their chimera. Any positive
 value greater than 1.0 can be used.
 .TP
 .BI --alignwidth\~ "positive integer"
-Width of 3-way alignments in --uchimealns output. The default value is
-80. Set to 0 to eliminate wrapping.
+Width of the 3-way alignments in --uchimealns output. The default
+value is 80. Set to 0 to eliminate wrapping.
 .TP
 .BI --chimeras \0filename
 Output chimeric sequences to \fIfilename\fR, in fasta format. Output
@@ -206,18 +205,18 @@ database.
 .TP
 .BI --dn \0real
 No vote pseudo-count (parameter \fIn\fR in the chimera scoring
-function) (1.4).
+function) (default value is 1.4).
 .TP
 .BI --mindiffs\~ "positive integer"
-Minimum number of differences per segment (3).
+Minimum number of differences per segment (default value is 3).
 .TP
 .BI --mindiv \0real
-Minimum divergence from closest parent (0.8).
+Minimum divergence from closest parent (default value is 0.8).
 .TP
 .BI --minh \0real
 Minimum score (h). Increasing this value tends to reduce the number of
-false positives and to decrease sensitivity. Default value is
-0.28. (value ranging from 0.0 to 1.0 included).
+false positives and to decrease sensitivity. Default value is 0.28,
+and values ranging from 0.0 to 1.0 included are accepted.
 .TP
 .BI --nonchimeras \0filename
 Output non-chimeric sequences to \fIfilename\fR, in fasta
@@ -233,16 +232,16 @@ When using --uchime_ref, ignore a reference sequence when its
 nucleotide sequence is strictly identical with the query sequence.
 .TP
 .BI --threads\~ "positive integer"
-Number of computation threads to use (1 to 256) with uchime_ref.
-The number of threads
-should be lesser or equal to the number of available CPU cores. The
-default is to launch one thread per available logical core.
+Number of computation threads to use (1 to 256) with --uchime_ref.
+The number of threads should be lesser or equal to the number of
+available CPU cores. The default is to use all available ressources
+and to launch one thread per logical core.
 .TP
 .BI --uchime_denovo \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR, without
 external references (i.e. \fIde novo\fR). Automatically sort the
-sequences in \fIfilename\fR by decreasing abundance
-beforehand. Multithreading is not supported.
+sequences in \fIfilename\fR by decreasing abundance beforehand (see
+the sorting section for details). Multithreading is not supported.
 .TP
 .BI --uchime_ref \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR by
@@ -250,9 +249,10 @@ comparing them with reference sequences (option --db). Multithreading
 is supported.
 .TP
 .BI --uchimealns \0filename
-Write 3-way global alignments (parentA, parentB, chimera) to
-\fIfilename\fR using a human-readable format. Use --alignwidth to modify
-alignment length. Output order may vary when using multiple threads.
+Write the 3-way global alignments (parentA, parentB, chimera) to
+\fIfilename\fR using a human-readable format. Use --alignwidth to
+modify alignment length. Output order may vary when using multiple
+threads.
 .TP
 .BI --uchimeout \0filename
 Write chimera detection results to \fIfilename\fR using the uchime
@@ -310,7 +310,8 @@ tab-separated format of 17 fields (drop the 5th field of --uchimeout),
 compatible with usearch version 5 and earlier versions.
 .TP
 .BI --xn \0real
-No vote weight (parameter beta) (8.0).
+No vote weight (parameter beta in the scoring function) (default value
+is 8.0).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -319,11 +320,12 @@ Clustering options:
 .PP
 \fBvsearch\fR implements a single-pass, greedy star-clustering
 algorithm, similar to the algorithms implemented in usearch, DNAclust
-and sumaclust. Important parameters are the global clustering
-threshold (--id) and the pairwise identity definition (--iddef).
+and sumaclust for example. Important parameters are the global
+clustering threshold (--id) and the pairwise identity definition
+(--iddef).
 .TP 9
 .BI --centroids \0filename
-Output cluster centroid sequences to \fIfilename\fR file, in fasta
+Output cluster centroid sequences to \fIfilename\fR, in fasta
 format. The centroid is the sequence that seeded the cluster (i.e. the
 first sequence of the cluster).
 .TP
@@ -349,8 +351,7 @@ Output cluster consensus sequences to \fIfilename\fR. For each
 cluster, a multiple alignment is computed, and a consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
-are skipped, except for terminal gaps. Use --construncate to take
-terminal gaps into account (not implemented yet).
+are skipped, except for terminal gaps.
 .\" .TP
 .\" .B --construncate
 .\" when using the --consout option to build consensus sequences, do not
@@ -376,7 +377,7 @@ CD-HIT definition using shortest sequence as numerator.
 .IP \n+[step].
 edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
-edit distance excluding terminal gaps (default value).
+edit distance excluding terminal gaps (same as --id).
 .IP \n+[step].
 Marine Biological Lab definition counting each extended gap as a
 single difference.
@@ -420,13 +421,14 @@ strand only (default) or check \fIboth\fR strands.
 .TP
 .BI --threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
-should be less or equal to the number of available CPU cores. The
-default is to launch one thread per available logical core.
+should be lesser or equal to the number of available CPU cores. The
+default is to use all available ressources and to launch one thread
+per logical core.
 .TP
 .BI --uc \0filename
 Output clustering results in \fIfilename\fR using a uclust-like
-format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
-description of the format.
+format. For a description of the format, see
+<http://www.drive5.com/usearch/manual/ucout.html>.
 .TP
 .B --usersort
 When using --cluster_smallmem, allow any sequence input order, not
@@ -434,8 +436,9 @@ just a decreasing length ordering.
 .TP
 Most searching options also apply to clustering:
 .br
---alnout, --blast6out, --userout, --userfields, --fastapairs, --matched,
---notmatched, --maxaccept, --maxreject, score filtering, gap penalties, masking. (see the Searching section).
+--alnout, --blast6out, --fastapairs, --matched, --notmatched,
+  --maxaccept, --maxreject, --samout, --userout, --userfields, score
+  filtering, --gap penalties, masking. (see the Searching section).
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -487,9 +490,10 @@ Output only the top \fIinteger\fR sequences (i.e. the most abundant).
 .TP
 .BI --uc \0filename
 Output dereplication results in \fIfilename\fR using a uclust-like
-format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
-description of the format. In the context of dereplication, the option
---uc_allhits has no effect.
+format. For a description of the format, see
+<http://www.drive5.com/usearch/manual/ucout.html>. In the context of
+dereplication, the option --uc_allhits has no effect on the --uc
+output.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -538,27 +542,30 @@ Mask simple repeats and low-complexity regions in sequences using the
 .BI --threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to launch one thread per available logical core.
+default is to use all available ressources and to launch one thread
+per logical core.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
 Pairwise alignment options:
 .RS
+.PP
+The results of the n * (n - 1) / 2 pairwise alignments are written to
+the result files specified with --alnout, --blast6out, --fastapairs
+--matched, --notmatched, --samout, --uc or --userout (see Searching
+section below). Specify either the --acceptall option to output all
+pairwise alignments, or specify an identity level with --id to discard
+weak alignments. Most other accept/reject options (see Searching
+options below) may also be used. Sequences are aligned on their
+\fIplus\fR strand only.
 .TP 9
 .BI --allpairs_global \0filename
 Perform optimal global pairwise alignments of all vs. all fasta
-sequences contained in \fIfilename\fR. The results of the n * (n-1) /
-2 alignments are written to the result files specified with --alnout,
---blast6out, --fastapairs --matched, --notmatched, --uc or --userout
-(see Searching section below). Specify either the --acceptall option
-to output all pairwise alignments, or specify an identity level with
---id to discard weak alignments. Most other accept/reject options (see
-Searching options below) may also be used. Sequences are aligned on
-their \fIplus\fR strand only. This command is multi-threaded.
+sequences contained in \fIfilename\fR. This command is multi-threaded.
 .TP
 .B --acceptall
 Write the results of all alignments to output files. This option
-overrides all other accept/reject options (e.g. --id).
+overrides all other accept/reject options (including --id).
 .TP
 .BI --id \0real
 Reject the sequence match if the pairwise identity is lower than
@@ -567,7 +574,8 @@ Reject the sequence match if the pairwise identity is lower than
 .BI --threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to launch one thread per available logical core.
+default is to use all available ressources and to launch one thread
+per logical core.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -612,20 +620,18 @@ integer value).
 positive integer value).
 .IP \n+[step].
 \fIqlo\fR: first nucleotide of the query aligned with the
-target. Nucleotide numbering starts from 1. The field is set to 0 if
-there is no alignment.
+target. Always equal to 1 if there is an alignment, 0 otherwise.
 .IP \n+[step].
 \fIqhi\fR: last nucleotide of the query aligned with the
-target. Nucleotide numbering starts from 1. The field is set to 0 if
-there is no alignment.
+target. Always equal to the length of the pairwise alignment. The
+field is set to 0 if there is no alignment.
 .IP \n+[step].
-\fItlo\fR: first nucleotide of the target aligned with the
-query. Nucleotide numbering starts from 1. The field is set to 0 if
-there is no alignment.
+\fItlo\fR: irst nucleotide of the target aligned with the
+query. Always equal to 1 if there is an alignment, 0 otherwise.
 .IP \n+[step].
 \fIthi\fR: last nucleotide of the target aligned with the
-query. Nucleotide numbering starts from 1. The field is set to 0 if
-there is no alignment.
+query. Always equal to the length of the pairwise alignment. The field
+is set to 0 if there is no alignment.
 .IP \n+[step].
 \fIevalue\fR: expectancy-value (not computed for nucleotide
 alignments). Always set to -1.
@@ -662,9 +668,10 @@ Write pairwise alignments of query and target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .B --fulldp
-Dummy option. To maximize search sensitivity, \fBvsearch\fR uses a
-8-way 16-bit SIMD vectorized full dynamic programming algorithm
-(Needleman-Wunsch), whether or not --fulldp is specified.
+Dummy option for compatibility with usearch. To maximize search
+sensitivity, \fBvsearch\fR uses a 8-way 16-bit SIMD vectorized full
+dynamic programming algorithm (Needleman-Wunsch), whether or not
+--fulldp is specified.
 .TP
 .BI --gapext \0string
 Set penalties for a gap extension. See --gapopen for a complete
@@ -690,8 +697,10 @@ penalty of 20 for opening internal gaps and a penalty of 2 for opening
 terminal gaps (left or right), in both query and target sequences
 (i.e. 20I/2E). If only a numerical value is given, without any
 sequence or location symbol, then the penalty applies to all gap
-openings. To declare an infinite penalty value, the symbol "*" can be
-used to indicate that gap openings are forbidden in that context.
+openings. To forbid gap-opening, an infinite penalty value can be
+declared with the symbol "*". Tu use \fBvsearch\fR as a semi-global
+aligner, a null-penalty can be applied to the left (L) or right (R)
+gaps.
 .br
 \fBvsearch\fR always initializes the six gap opening
 penalties using the default parameters (20I/2E). The user is then free
@@ -699,10 +708,11 @@ to declare only the values he/she wants to modify. The \fIstring\fR is
 scanned from left to right, accepted symbols are (0123456789/LIREQT*),
 and later values override previous values.
 .br
-Please note that \fBvsearch\fR, in contrast to usearch, only allows integer
-gap penalties. Because the lowest gap penalties are 0.5 by default
-in usearch, all default scores and gap penalties in \fBvsearch\fR
-have been doubled in order to obtain similar alignments.
+Please note that \fBvsearch\fR, in contrast to usearch, only allows
+integer gap penalties. Because the lowest gap penalties are 0.5 by
+default in usearch, all default scores and gap penalties in
+\fBvsearch\fR have been doubled to maintain equivalent penalties and
+to produce identical alignments.
 .TP
 .B --hardmask
 Mask low-complexity regions by replacing them with Ns instead of
@@ -733,9 +743,9 @@ are:
 .IP \n[step]. 4
 CD-HIT definition using shortest sequence as numerator.
 .IP \n+[step].
-edit distance.
+edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
-edit distance excluding terminal gaps (default value of --id).
+edit distance excluding terminal gaps (same as --id).
 .IP \n+[step].
 Marine Biological Lab definition counting each extended gap as a
 single difference.
@@ -743,22 +753,22 @@ single difference.
 BLAST definition, equivalent to --iddef 2 in a context of global
 pairwise alignment.
 .RE
-.RE
 .PP
 The option --userfields accepts the fields id0 to id4, in addition to
 the field id, to report the pairwise identity values corresponding to
 the different definitions.
+.RE
 .TP
 .BI --idprefix\~ "positive integer"
-Reject the target sequence if the first \fIinteger\fR nucleotides do
-not match the query sequence.
+Reject the sequence match if the first \fIinteger\fR nucleotides of
+the target do not match the query.
 .TP
 .BI --idsuffix\~ "positive integer"
-Reject the target sequence if the last \fIinteger\fR nucleotides do
-not match the query sequence.
+Reject the sequence match if the last \fIinteger\fR nucleotides of the
+target do not match the query.
 .TP
 .B --leftjust
-Reject the target sequence if the alignment begins with gaps.
+Reject the sequence match if the pairwise alignment begins with gaps.
 .TP
 .BI --match\~ "integer"
 Score assigned to a match (i.e. identical nucleotides) in the pairwise
@@ -770,31 +780,33 @@ Write query sequences matching database target sequences to
 .TP
 .BI --maxaccepts\~ "positive integer"
 Maximum number of hits to accept before stopping the search. The
-default value is 1. This option works in pair with maxrejects. The
+default value is 1. This option works in pair with --maxrejects. The
 search process sorts target sequences by decreasing number of
 \fIk\fR-mers they have in common with the query sequence, using that
-information as a proxy for sequence similarity. If the first target
-sequence passes the acceptation criteria, it is accepted as best hit
-and the search process stops for that query. If maxaccepts is set to a
-higher value, more hits are accepted. If maxaccepts and maxrejects are
-both set to 0, the complete database is searched.
+information as a proxy for sequence similarity. After pairwise
+alignments, if the first target sequence passes the acceptation
+criteria, it is accepted as best hit and the search process stops for
+that query. If --maxaccepts is set to a higher value, more hits are
+accepted. If --maxaccepts and --maxrejects are both set to 0, the
+complete database is searched.
 .TP
 .BI --maxdiffs\~ "positive integer"
-Reject the target sequence if the alignment contains at least
+Reject the sequence match if the alignment contains at least
 \fIinteger\fR substitutions, insertions or deletions.
 .TP
 .BI --maxgaps\~ "positive integer"
-Reject the target sequence if the alignment contains at least
+Reject the sequence match if the alignment contains at least
 \fIinteger\fR insertions or deletions.
 .TP
 .BI --maxhits\~ "positive integer"
 Maximum number of hits to show once the search is terminated (hits are
-sorted by decreasing identity). Unlimited by default value. \fBIt
-applies to alnout, blast6out, uc, userout, fastapairs\fR.
+sorted by decreasing identity). Unlimited by default. That option
+applies to --alnout, --blast6out, --fastapairs, --samout, --uc, or
+--userout output files.
 .TP
 .BI --maxid \0real
-Reject the target sequence if its percentage of identity with the
-query is greater than \fIreal\fR.
+Reject the sequence match if the percentage of identity between the
+two sequences is greater than \fIreal\fR.
 .TP
 .BI --maxqsize\~ "positive integer"
 Reject query sequences with an abundance greater than
@@ -806,14 +818,14 @@ Reject if the query/target sequence length ratio is greater than \fIreal\fR.
 .BI --maxrejects\~ "positive integer"
 Maximum number of non-matching target sequences to consider before
 stopping the search. The default value is 32. This option works in
-pair with maxaccepts. The search process sorts target sequences by
+pair with --maxaccepts. The search process sorts target sequences by
 decreasing number of \fIk\fR-mers they have in common with the query
 sequence, using that information as a proxy for sequence
-similarity. If none of the first 32 examined target sequences pass the
-acceptation criteria, the search process stops for that query (no
-hit). If maxrejects is set to a higher value, more target sequences
-are considered. If maxaccepts and maxrejects are both set to 0, the
-complete database is searched.
+similarity. After pairwise alignments, if none of the first 32
+examined target sequences pass the acceptation criteria, the search
+process stops for that query (no hit). If --maxrejects is set to a
+higher value, more target sequences are considered. If --maxaccepts
+and --maxrejects are both set to 0, the complete database is searched.
 .TP
 .BI --maxsizeratio \0real
 Reject if the query/target abundance ratio is greater than
@@ -824,15 +836,15 @@ Reject if the shorter/longer sequence length ratio is
 greater than \fIreal\fR.
 .TP
 .BI --maxsubs\~ "positive integer"
-Reject the target sequence if the alignment contains more than
+Reject the sequence match if the pairwise alignment contains more than
 \fIinteger\fR substitutions.
 .TP
 .BI --mid \0real
-Reject the alignment if the percentage of identity is lower than
+Reject the sequence match if the percentage of identity is lower than
 \fIreal\fR (ignoring all gaps, internal and terminal).
 .TP
 .BI --mincols\~ "positive integer"
-Reject the target sequence if the alignment length is shorter than
+Reject the sequence match if the alignment length is shorter than
 \fIinteger\fR.
 .TP
 .BI --minqt \0real
@@ -859,9 +871,9 @@ Write query sequences not matching database target sequences to
 .TP
 .B --output_no_hits
 Write both matching and non-matching queries to --alnout, --blast6out,
-and --userout output files (--uc and --uc_allhits output files always
-feature non-matching queries). Non-matching queries are labelled "No
-hits" in --alnout files.
+--samout or --userout output files (--uc and --uc_allhits output files
+always feature non-matching queries). Non-matching queries are
+labelled "No hits" in --alnout files.
 .TP
 .BI --qmask\~ "none|dust|soft"
 Mask simple repeats and low-complexity regions in query sequences
@@ -876,37 +888,46 @@ lower than \fIreal\fR. The query coverage is computed as
 gaps are not taken into account.
 .TP
 .B --rightjust
-Reject the target sequence if the alignment ends with gaps.
+Reject the sequence match if the pairwise alignment ends with gaps.
 .TP
 .BI --rowlen\~ "positive integer"
 Width of alignment lines in --alnout output. The default value is
 64. Set to 0 to eliminate wrapping.
 .TP
+.BI --samout \0filename
+Write alignment results to \fIfilename\fR in the SAM format. For a
+description of the format, see
+<https://github.com/samtools/hts-specs>. Output order may vary when
+using multiple threads.
+.TP
 .B --self
-Reject the alignment if the query and target labels are identical.
+Reject the sequence match if the query and target labels are
+identical.
 .TP
 .B --selfid
-Reject the alignment if the query and target sequences are strictly
-identical.
+Reject the sequence match if the query and target sequences are
+strictly identical.
 .TP
 .B --sizeout
 Add abundance annotations to the output of the option --dbmatched
-(using the pattern ";size=\fIinteger\fR;").
+(using the pattern ";size=\fIinteger\fR;"), to report the number of
+queries that matched each target.
 .TP
 .BI --strand\~ "plus|both"
 When searching for similar sequences, check the \fIplus\fR strand only
 (default) or check \fIboth\fR strands.
 .TP
 .BI --target_cov \0real
-Reject if the fraction of the target sequence aligned to the query
-sequence is lower than \fIreal\fR. The target coverage is computed as
-(matches + mismatches) / target sequence length.
-Internal or terminal gaps are not taken into account.
+Reject the sequence match if the fraction of the target sequence
+aligned to the query sequence is lower than \fIreal\fR. The target
+coverage is computed as (matches + mismatches) / target sequence
+length.  Internal or terminal gaps are not taken into account.
 .TP
 .BI --threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to launch one thread per available logical core.
+default is to use all available ressources and to launch one thread
+per logical core.
 .TP
 .B --top_hits_only
 Output only the hits with the highest percentage of identity with the
@@ -914,9 +935,9 @@ query.
 .TP
 .BI --uc \0filename
 Output searching results in \fIfilename\fR using a uclust-like
-format. See <http://www.drive5.com/usearch/manual/ucout.html> for a
-description of the format. Output order may vary when using multiple
-threads.
+format. For a description of the format, see
+<http://www.drive5.com/usearch/manual/ucout.html>. Output order may
+vary when using multiple threads.
 .TP
 .B --uc_allhits
 When using the --uc option, show all hits, not just the top hit for
@@ -1133,9 +1154,9 @@ Query frame (-3 to +3). That field only concerns coding sequences and
 is not computed by \fBvsearch\fR. Always set to +0.
 .TP
 .B qhi
-Last nucleotide of the query aligned with the target. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+Last nucleotide of the query aligned with the target. Always equal to
+the length of the pairwise alignment. The field is set to 0 if there
+is no alignment.
 .TP
 .B qihi
 Last nucleotide of the query aligned with the target (ignoring
@@ -1152,9 +1173,8 @@ Query sequence length (positive integer value). The field is set to 0
 if there is no alignment.
 .TP
 .B qlo
-First nucleotide of the query aligned with the target. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+First nucleotide of the query aligned with the target. Always equal to
+1 if there is an alignment, 0 otherwise.
 .TP
 .B qrow
 Print the sequence of the query segment as seen in the pairwise
@@ -1193,9 +1213,9 @@ Target frame (-3 to +3). That field only concerns coding sequences and
 is not computed by \fBvsearch\fR. Always set to +0.
 .TP
 .B thi
-Last nucleotide of the target aligned with the query. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+Last nucleotide of the target aligned with the query. Always equal to
+the length of the pairwise alignment. The field is set to 0 if there
+is no alignment.
 .TP
 .B tihi
 Last nucleotide of the target aligned with the query (ignoring
@@ -1212,9 +1232,8 @@ Target sequence length (positive integer value). The field is set to 0
 if there is no alignment.
 .TP
 .B tlo
-First nucleotide of the target aligned with the query. Nucleotide
-numbering starts from 1. The field is set to 0 if there is no
-alignment.
+First nucleotide of the target aligned with the query. Always equal to
+1 if there is an alignment, 0 otherwise.
 .TP
 .B trow
 Print the sequence of the target segment as seen in the pairwise
@@ -1266,7 +1285,7 @@ definitions that were removed from usearch.
 \fBvsearch\fR extends the --sizein option to dereplication
 (--derep_fulllength) and clustering (--cluster_fast).
 .PP
-\fBvsearch\fR treats T and U as identical nucleotides for
+\fBvsearch\fR treats T and U as identical nucleotides during
 dereplication.
 .PP
 \fBvsearch\fR sorting is stabilized by using sequence abundances or
@@ -1278,20 +1297,38 @@ sequences labels as secondary or tertiary keys.
 described in the "Options" section of this manual. Here is a short
 list:
 .IP - 2
-alignwidth
+alignwidth (chimera checking)
 .IP -
-cluster_size
+cluster_size (clustering)
 .IP -
-fasta_width
+fasta_width (general option)
 .IP -
-iddef
+iddef (clustering, pairwise alignment, searching)
 .IP -
-maxuniquesize
+maxuniquesize (dereplication)
 .IP -
-shuffle
+shuffle (shuffling)
 .PP
 .\" ============================================================================
 .SH EXAMPLES
+.PP
+Align all sequences in a database with each other and output all pairwise
+alignments:
+.PP
+.RS
+\fBvsearch\fR --allpairs_global \fIdatabase.fas\fR
+--alnout \fIresults.aln\fR --acceptall
+.RE
+.PP
+Check for the presence of chimeras (\fIde novo\fR); parents should be
+at least 1.5 times more abundant than chimeras. Output non-chimeric
+sequences in fasta format (no wrapping):
+.PP
+.RS
+\fBvsearch\fR --uchime_denovo \fIqueries.fas\fR --nonchimeras
+\fIresults.fas\fR --fasta_width 0 --abskew 1.5
+.RE
+.PP
 Cluster with a 97% similarity threshold, collect cluster centroids,
 and write cluster descriptions using a uclust-like format:
 .PP
@@ -1320,24 +1357,6 @@ file:
 \fIqueries_masked.fas\fR --qmask dust
 .RE
 .PP
-Sort by decreasing abundance the sequences contained in queries.fas
-(using the "size=\fIinteger\fR" information), relabel the sequences
-while preserving the abundance information (with --sizeout), keep only
-sequences with an abundance equal to or greater than 2:
-.PP
-.RS
-\fBvsearch\fR --sortbysize \fIqueries.fas\fR --output
-\fIqueries_sorted.fas\fR --relabel sampleA_ --sizeout --minsize 2
-.RE
-.PP
-Align all sequences in a database with each other and output all pairwise
-alignments:
-.PP
-.RS
-\fBvsearch\fR --allpairs_global \fIdatabase.fas\fR
---alnout \fIresults.aln\fR --acceptall
-.RE
-.PP
 Search queries in a reference database, with a 80%-similarity
 threshold, take terminal gaps into account when calculating pairwise
 similarities:
@@ -1364,6 +1383,16 @@ to the output file:
 .RS
 \fBvsearch\fR --shuffle \fIqueries.fas\fR --output
 \fIqueries_shuffled.fas\fR --seed 13 --fasta_width 0
+.RE
+.PP
+Sort by decreasing abundance the sequences contained in queries.fas
+(using the "size=\fIinteger\fR" information), relabel the sequences
+while preserving the abundance information (with --sizeout), keep only
+sequences with an abundance equal to or greater than 2:
+.PP
+.RS
+\fBvsearch\fR --sortbysize \fIqueries.fas\fR --output
+\fIqueries_sorted.fas\fR --relabel sampleA_ --sizeout --minsize 2
 .RE
 .PP
 .\" 
@@ -1405,7 +1434,7 @@ available under a MIT license.
 program that is in the public domain.
 .PP
 \fBvsearch\fR binaries may include code from the zlib library,
-copyright Jean-loup Gailly and Mark Adler.
+copyright Jean-Loup Gailly and Mark Adler.
 .PP
 \fBvsearch\fR binaries may include code from the bzip2 library,
 copyright Julian R. Seward.
@@ -1434,7 +1463,7 @@ and U as identical for dereplication, only output size in dbmatched
 file if sizeout specified).
 .TP
 .BR v1.0.2\~ "released December 6th, 2014"
-Bug fixes (ssse3/sse41 requirement, memory leak).
+Bug fixes (ssse3/sse4.1 requirement, memory leak).
 .TP
 .BR v1.0.3\~ "released December 6th, 2014"
 Bug fix (now writes help to stdout instead of stderr).
@@ -1465,13 +1494,14 @@ abundance before clustering,
 meaning of userfields qlo, qhi, tlo, thi changed for compatibility
 with usearch,
 .IP -
-new userfields qilo, qihi, tilo, tihi gives coordinates ignoring
-terminal gaps,
+new userfields qilo, qihi, tilo, tihi gives alignment coordinates
+ignoring terminal gaps,
 .IP -
 in --uc output files, a perfect alignment is indicated with a "=" sign,
 .IP -
---cluster_fast will now sort sequences by decreasing length, then by
-  decreasing abundance and finally by sequence identifier,
+the option --cluster_fast will now sort sequences by decreasing
+length, then by decreasing abundance and finally by sequence
+identifier,
 .IP -
 default --maxseqlength value set to 50,000 nucleotides,
 .IP -
@@ -1486,6 +1516,9 @@ Fixes a bug in the function sorting sequences by decreasing abundance (--sortbys
 .BR v1.0.10\~ "released January 23rd, 2015"
 Fixes a bug where the sizein option was ignored and always treated as on,
 affecting clustering and dereplication commands.
+.TP
+.BR v1.0.11\~ "released February 5th, 2015"
+Introduces the possibility to output results in SAM format.
 .LP
 .\" ============================================================================
 .\" TODO:
