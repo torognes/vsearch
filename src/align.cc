@@ -409,7 +409,7 @@ void nw_align(char * dseq,
 #if 1
   if (score != dist)
   {
-    fprintf(stderr, "Warning: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
+    fprintf(stderr, "WARNING: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
     fprintf(stderr, "Initial and recomputed alignment score disagreement: %lu %lu\n", dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
   }
