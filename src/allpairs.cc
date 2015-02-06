@@ -34,6 +34,7 @@ static int qmatches;
 static int queries;
 static long progress = 0;
 static FILE * fp_alnout = 0;
+static FILE * fp_samout = 0;
 static FILE * fp_userout = 0;
 static FILE * fp_blast6out = 0;
 static FILE * fp_uc = 0;
@@ -78,6 +79,15 @@ void allpairs_output_results(int hit_count,
 
   if (fp_alnout)
     results_show_alnout(fp_alnout,
+                        hits,
+                        toreport,
+                        query_head,
+                        qsequence,
+                        qseqlen, 
+                        qsequence_rc);
+
+  if (fp_samout)
+    results_show_samout(fp_samout,
                         hits,
                         toreport,
                         query_head,
@@ -493,6 +503,13 @@ void allpairs_global(char * cmdline, char * progheader)
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
+  if (opt_samout)
+    {
+      fp_samout = fopen(opt_samout, "w");
+      if (! fp_samout)
+        fatal("Unable to open SAM output file for writing");
+    }
+
   if (opt_userout)
     {
       fp_userout = fopen(opt_userout, "w");
@@ -585,5 +602,7 @@ void allpairs_global(char * cmdline, char * progheader)
     fclose(fp_userout);
   if (fp_alnout)
     fclose(fp_alnout);
+  if (fp_samout)
+    fclose(fp_samout);
   show_rusage();
 }

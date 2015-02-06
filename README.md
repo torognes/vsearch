@@ -1,5 +1,7 @@
 # VSEARCH
 
+[![DOI](https://zenodo.org/badge/8128/torognes/vsearch.svg)](http://dx.doi.org/10.5281/zenodo.14860)
+
 ## Introduction
 
 The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should:
@@ -30,13 +32,13 @@ If you can't find an answer in the VSEARCH documentation, please visit the [VSEA
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.0.10-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.11-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.10-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.10-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.11-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.11-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -44,8 +46,8 @@ Download the appropriate executable and make a symbolic link in a folder include
 cd ~
 mkdir -p bin
 cd bin
-wget https://github.com/torognes/vsearch/releases/download/v1.0.10/vsearch-1.0.10-linux-x86_64
-ln -s vsearch-1.0.10-linux-x86_64 vsearch
+wget https://github.com/torognes/vsearch/releases/download/v1.0.11/vsearch-1.0.11-linux-x86_64
+ln -s vsearch-1.0.11-linux-x86_64 vsearch
 ```
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
@@ -237,6 +239,7 @@ Searching options:
 * `--query_cov <real>`
 * `--rightjust`
 * `--rowlen <int>` (Default 60)
+* `--samout <filename>`
 * `--self`
 * `--selfid`
 * `--sizeout`
@@ -302,6 +305,7 @@ File | Description
 **shuffle.cc** | Shuffle sequences
 **sortbylength.cc** | Code for sorting by length
 **sortbysize.cc** | Code for sorting by size (abundance)
+**string.h** | Code for a simple string class
 **unique.cc** | Find unique kmers in a sequence
 **userfields.cc** | Code for parsing the userfields option argument
 **util.cc** | Various common utility functions
