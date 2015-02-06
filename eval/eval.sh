@@ -7,7 +7,7 @@ THREADS=0
 DUPLICATES=100
 DIR=.
 DB=../data/Rfam_11_0.fasta
-
+ID=0.5
 
 if [ $(uname -s) == "Linux" ]; then
     VSEARCH=$(ls -v ../bin/vsearch*linux* | tail -1)
@@ -45,7 +45,7 @@ echo Running search
 /usr/bin/time $PROG \
     --usearch_global $DIR/qq.fsa \
     --db $DIR/db.fsa \
-    --id 0.5 \
+    --id $ID \
     --maxaccepts 1 \
     --maxrejects 32 \
     --strand plus \

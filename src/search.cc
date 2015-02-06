@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2014 Torbjorn Rognes
+  Copyright (C) 2014-2015 Torbjorn Rognes
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -36,6 +36,7 @@ static pthread_mutex_t mutex_output;
 static int qmatches;
 static int queries;
 static int * dbmatched;
+static FILE * fp_samout = 0;
 static FILE * fp_alnout = 0;
 static FILE * fp_userout = 0;
 static FILE * fp_blast6out = 0;
@@ -60,6 +61,15 @@ void search_output_results(int hit_count,
 
   if (fp_alnout)
     results_show_alnout(fp_alnout,
+                        hits,
+                        toreport,
+                        query_head,
+                        qsequence,
+                        qseqlen, 
+                        qsequence_rc);
+
+  if (fp_samout)
+    results_show_samout(fp_samout,
                         hits,
                         toreport,
                         query_head,
@@ -415,6 +425,13 @@ void search_prep(char * cmdline, char * progheader)
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
+  if (opt_samout)
+    {
+      fp_samout = fopen(opt_samout, "w");
+      if (! fp_samout)
+        fatal("Unable to open SAM output file for writing");
+    }
+
   if (opt_userout)
     {
       fp_userout = fopen(opt_userout, "w");
@@ -504,6 +521,8 @@ void search_done()
     fclose(fp_userout);
   if (fp_alnout)
     fclose(fp_alnout);
+  if (fp_samout)
+    fclose(fp_samout);
   show_rusage();
 }
 
