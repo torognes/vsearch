@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes & Tomas Flouri
+    Copyright (C) 2014-2015 Torbjorn Rognes & Tomas Flouri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -25,12 +25,8 @@
    allocated here for the query header and sequence. This buffers will
    be overwritten on the next call of query_getnext. */
 
-#ifndef LINE_MAX
-#define LINE_MAX 2048
-#endif
-
 #define MEMCHUNK 4096
-#define LINEALLOC LINE_MAX
+#define LINEALLOC 1048576
 
 extern unsigned int chrstatus[256];
 
@@ -184,7 +180,7 @@ void query_close()
 
   if (query_stripped_count)
     {
-      fprintf(stderr, "Warning: invalid characters stripped from query:");
+      fprintf(stderr, "WARNING: invalid characters stripped from query:");
       for (int i=0; i<256;i++)
         if (query_stripped[i])
           fprintf(stderr, " %c(%d)", i, query_stripped[i]);
@@ -222,8 +218,11 @@ int query_getnext(char ** head, int * head_len,
       /* read header */
 
       if (query_line[0] != '>')
-        fatal("Illegal header line in query fasta file");
+        fatal("Illegal header line in query fasta file (not starting with '>' character).");
       
+      if (strlen(query_line) + 1 == LINEALLOC)
+        fatal("FASTA header line in query too long");
+
       /* terminate header at first space or end of line */
 
       char * z0 = query_line + 1;

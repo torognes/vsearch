@@ -163,7 +163,10 @@ void db_read(const char * filename, int upcase)
       unsigned long hdrbegin = datalen;
 
       if (line[0] != '>')
-        fatal("Illegal header line in fasta file.");
+        fatal("Illegal header line in fasta file (not starting with '>' character).");
+
+      if (strlen(line) + 1 == LINEALLOC)
+        fatal("FASTA header line in database too long");
       
       /* terminate header at first space or end of line */
 
@@ -407,7 +410,7 @@ void db_read(const char * filename, int upcase)
 
   if (stripped_count)
     {
-      fprintf(stderr, "Warning: invalid characters stripped from sequence:");
+      fprintf(stderr, "WARNING: invalid characters stripped from sequence:");
       for (int i=0; i<256;i++)
         if (stripped[i])
           fprintf(stderr, " %c(%d)", i, stripped[i]);
