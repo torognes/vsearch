@@ -26,7 +26,7 @@
    be overwritten on the next call of query_getnext. */
 
 #define MEMCHUNK 4096
-#define LINEALLOC 4194304
+#define LINEALLOC 1048576
 
 extern unsigned int chrstatus[256];
 

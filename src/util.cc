@@ -183,19 +183,9 @@ void reverse_complement(char * rc, char * seq, long len)
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1. */
 
-#if 0
-  printf("Sequence:\n");
-  fprint_fasta_seq_only(stdout, seq, len, 60);
-#endif
   for(long i=0; i<len; i++)
-    {
-      rc[i] = chrmap_complement[(int)(seq[len-1-i])];
-    }
+    rc[i] = chrmap_complement[(int)(seq[len-1-i])];
   rc[len] = 0;
-#if 0
-  printf("RC:\n");
-  fprint_fasta_seq_only(stdout, rc, len, 60);
-#endif
 }
 
 #ifdef HAVE_BZLIB

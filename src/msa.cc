@@ -151,6 +151,19 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
   memset(profile, 0, 4 * sizeof(int) * alnlen);
   aln = (char *) xmalloc(alnlen+1);
   char * cons = (char *) xmalloc(alnlen+1);
+  
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  long longest_reversed = 0;
+  for(int i=0; i < target_count; i++)
+    if (target_list[i].strand)
+      {
+        long len = db_getsequencelen(target_list[i].seqno);
+        if (len > longest_reversed)
+          longest_reversed = len;
+      }
+  char * rc_buffer = 0;
+  if (longest_reversed > 0)
+    rc_buffer = (char*) xmalloc(longest_reversed + 1);
 
   /* blank line before each msa */
   if (fp_msaout)
@@ -161,6 +174,13 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
       
+      if (target_list[j].strand)
+        {
+          reverse_complement(rc_buffer, target_seq,
+                             db_getsequencelen(target_seqno));
+          target_seq = rc_buffer;
+        }
+
       int inserted = 0;
       int qpos = 0;
       int tpos = 0;
@@ -235,6 +255,8 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
         }
     }  
 
+  if (rc_buffer)
+    free(rc_buffer);
 
   /* consensus */
 
