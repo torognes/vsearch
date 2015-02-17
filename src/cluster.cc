@@ -1110,6 +1110,7 @@ void cluster(char * dbname,
       int msa_target_count = 0;
       struct msa_target_s * msa_target_list =
         (struct msa_target_s *) xmalloc(sizeof(struct msa_target_s) * size_max);
+      //memset(msa_target_list, 0, sizeof(struct msa_target_s)*size_max);
 
       progress_init("Multiple alignments", seqcount);
 
@@ -1162,13 +1163,16 @@ void cluster(char * dbname,
 
       if (fp_consout)
         fclose(fp_consout);
+
+      free(msa_target_list);
     }
 
   /* free cigar strings for all aligned sequences */
+  /*
   for(int i=0; i<seqcount; i++)
     if (clusterinfo[i].cigar)
       free(clusterinfo[i].cigar);
-
+  */
   free(clusterinfo);
 
   if (opt_matched)
