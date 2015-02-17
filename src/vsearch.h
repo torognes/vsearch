@@ -84,7 +84,7 @@
 #include "allpairs.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.12"
+#define PROG_VERSION "v1.0.13"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
