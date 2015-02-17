@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -23,6 +23,7 @@ struct msa_target_s
 {
   int seqno;
   char * cigar;
+  int strand;
 };
 
 void msa(FILE * fp_msaout, FILE * fp_consout,

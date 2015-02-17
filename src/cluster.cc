@@ -29,6 +29,7 @@ typedef struct clusterinfo_s
   int seqno;
   int clusterno;
   char * cigar;
+  int strand;
 } clusterinfo_t;
 
 static clusterinfo_t * clusterinfo = 0;
@@ -711,6 +712,7 @@ void cluster_core_parallel()
               clusterinfo[seqno].seqno = seqno;
               clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
               clusterinfo[seqno].cigar = best->nwalignment;
+              clusterinfo[seqno].strand = best->strand;
               best->nwalignment = 0;
             }
           else
@@ -724,6 +726,7 @@ void cluster_core_parallel()
               clusterinfo[seqno].seqno = seqno;
               clusterinfo[seqno].clusterno = clusters;
               clusterinfo[seqno].cigar = 0;
+              clusterinfo[seqno].strand = 0;
               
               /* add current sequence to database */
               dbindex_addsequence(seqno);
@@ -826,6 +829,7 @@ void cluster_core_serial()
           clusterinfo[seqno].seqno = seqno;
           clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
           clusterinfo[seqno].cigar = best->nwalignment;
+          clusterinfo[seqno].strand = best->strand;
           best->nwalignment = 0;
         }
       else
@@ -833,6 +837,7 @@ void cluster_core_serial()
           clusterinfo[seqno].seqno = seqno;
           clusterinfo[seqno].clusterno = clusters;
           clusterinfo[seqno].cigar = 0;
+          clusterinfo[seqno].strand = 0;
           dbindex_addsequence(seqno);
           cluster_core_results_nohit(clusters,
                                      si_p->query_head,
@@ -1130,6 +1135,7 @@ void cluster(char * dbname,
           int clusterno = clusterinfo[i].clusterno;
           int seqno = clusterinfo[i].seqno;
           char * cigar = clusterinfo[i].cigar;
+          int strand = clusterinfo[i].strand;
 
           if (clusterno != lastcluster)
             {
@@ -1145,6 +1151,7 @@ void cluster(char * dbname,
           /* add current sequence to the cluster */
           msa_target_list[msa_target_count].seqno = seqno;
           msa_target_list[msa_target_count].cigar = cigar;
+          msa_target_list[msa_target_count].strand = strand;
           msa_target_count++;
 
           progress_update(i);
