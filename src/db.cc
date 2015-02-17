@@ -34,7 +34,7 @@ seqinfo_t * seqindex = 0;
 static char * datap = 0;
 
 #define MEMCHUNK 10485760
-#define LINEALLOC 1048576
+#define LINEALLOC 4194304
 
 regex_t db_regexp;
 

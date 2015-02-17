@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "February 6, 2015" "version 1.0.12" "USER COMMANDS"
+.TH vsearch 1 "February 17, 2015" "version 1.0.13" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -1523,6 +1523,11 @@ clustering, pairwise alignment and searching).
 .TP
 .BR v1.0.12\~ "released February 6th, 2015"
 Temporarily fixes a problem with long headers in FASTA files.
+.TP
+.BR v1.0.13\~ "released February 6th, 2015"
+Fix a memory allocation problem when computing multiple sequence alignments
+with the --msaout and --consout options, as well as a memory leak.
+Also increased line buffer for reading FASTA files to 4MB.
 .LP
 .\" ============================================================================
 .\" TODO:

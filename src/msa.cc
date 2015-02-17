@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -233,10 +233,6 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
                   db_getheader(target_seqno));
           fprint_fasta_seq_only(fp_msaout, aln, alnlen, opt_fasta_width);
         }
-
-      /* free cigar */
-      if (target_list[j].cigar)
-        free(target_list[j].cigar);
     }  
 
 
