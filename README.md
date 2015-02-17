@@ -1,6 +1,6 @@
 # VSEARCH
 
-[![DOI](https://zenodo.org/badge/8128/torognes/vsearch.svg)](http://dx.doi.org/10.5281/zenodo.14860)
+[![DOI](https://zenodo.org/badge/8128/torognes/vsearch.svg)](http://dx.doi.org/10.5281/zenodo.15478)
 
 ## Introduction
 
