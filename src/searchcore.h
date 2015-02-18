@@ -73,6 +73,7 @@ struct hit
   double id0, id1, id2, id3, id4;
 
   int shortest;          /* length of shortest of query and target */
+  int longest;           /* length of longest of query and target */
 };
 
 /* type of kmer hit counter element remember possibility of overflow */
