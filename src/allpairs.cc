@@ -385,6 +385,7 @@ void allpairs_thread_run(long t)
                   
                   long dseqlen = db_getsequencelen(target);
                   hit->shortest = MIN(si->qseqlen, dseqlen);
+                  hit->longest = MAX(si->qseqlen, dseqlen);
                   
                   /* trim alignment, compute numbers excluding terminal gaps */
                   align_trim(hit);

@@ -226,9 +226,8 @@ void align_trim(struct hit * hit)
   hit->id2 = hit->internal_alignmentlength > 0 ?
     100.0 * hit->matches / hit->internal_alignmentlength : 0.0;
   /* Marine Biology Lab */
-  hit->id3 = hit->shortest > 0 ?
-    MAX(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
-                             hit->shortest))) : 0.0;
+  hit->id3 = MAX(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
+                                      hit->longest)));
   /* BLAST */
   hit->id4 = hit->nwalignmentlength > 0 ?
     100.0 * hit->matches / hit->nwalignmentlength : 0.0;
@@ -471,6 +470,7 @@ void align_delayed(struct searchinfo_s * si)
               
               hit->aligned = 1;
               hit->shortest = MIN(si->qseqlen, dseqlen);
+              hit->longest = MAX(si->qseqlen, dseqlen);
               hit->nwalignment = nwcigar;
               hit->nwscore = nwscore;
               hit->nwdiff = nwalignmentlength - nwmatches;

@@ -650,6 +650,7 @@ void cluster_core_parallel()
                                 nwalignmentlength;
                               
                               hit->shortest = MIN(si->qseqlen, tseqlen);
+                              hit->longest = MAX(si->qseqlen, tseqlen);
                               
                               /* trim alignment and compute numbers
                                  excluding terminal gaps */
