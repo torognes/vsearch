@@ -373,7 +373,7 @@ are:
 .RS
 .nr step 0 1
 .IP \n[step]. 4
-CD-HIT definition using shortest sequence as numerator.
+CD-HIT definition: (matching columns) / (shortest sequence length).
 .IP \n+[step].
 edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
@@ -742,7 +742,7 @@ are:
 .RS
 .nr step 0 1
 .IP \n[step]. 4
-CD-HIT definition using shortest sequence as numerator.
+CD-HIT definition: (matching columns) / (shortest sequence length).
 .IP \n+[step].
 edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
@@ -1090,9 +1090,10 @@ percentage identity is defined as 100 * (matching columns) /
 (alignment length - terminal gaps).
 .TP
 .B id0
-CD-HIT definition of the percentage of identity, using the shortest
-sequence in the pairwise alignment as numerator (real value ranging
-from 0.0 to 100.0).
+CD-HIT definition of the percentage of identity (real value ranging
+from 0.0 to 100.0) using the length of the shortest sequence in the
+pairwise alignment as denominator: 100 * (matching columns) /
+(shortest sequence length).
 .TP
 .B id1
 The percentage of identity (real value ranging from 0.0 to 100.0) is
