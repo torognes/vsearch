@@ -1108,8 +1108,9 @@ an alias for the field id.
 .B id3
 Marine Biological Lab definition of the percentage of identity (real
 value ranging from 0.0 to 100.0), counting each extended gap (internal
-or terminal) as a single difference: 1.0 - [(mismatches +
-gaps)/(longest sequence length)]
+or terminal) as a single difference and using the length of the
+longest sequence in the pairwise alignment as denominator: 100 * (1.0
+- [(mismatches + gaps) / (longest sequence length)]).
 .TP
 .B id4
 BLAST definition of the percentage of identity (real value ranging
