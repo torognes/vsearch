@@ -125,8 +125,12 @@ both of the symbols are ambiguous (RYSWKMDBHVN) in which case the
 score is zero. Alignment of two identical ambiguous symbols (e.g. R vs
 R) also receives a score of zero.
 .PP
-Optionally, \fBvsearch\fR can be compiled to accepted compressed fasta
-files as input (gz and bzip2 formats).
+\fBvsearch\fR can be compiled to accepted compressed fasta files as
+input (gz and bzip2 formats). On the other hand, special files like
+pipes, named pipes, or sockets cannot be used as input. To present a
+progress indicator, \fBvsearch\fR needs to seek to the end of
+\fIfilename\fR to find its length. Consequently, \fIfilename\fR must
+be a regular file, not a stream.
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBvsearch\fR recognizes a large number of command-line options. For
@@ -450,9 +454,7 @@ Dereplication options:
 Merge strictly identical sequences contained in
 \fIfilename\fR. Identical sequences are defined as having the same
 length and the same string of nucleotides (case insensitive, T and U
-are considered the same). As \fBvsearch\fR needs to read
-\fIfilename\fR twice, \fIfilename\fR must be a real file, not a
-stream.
+are considered the same).
 .TP
 .BI --maxuniquesize\~ "positive integer"
 Discard sequences with an abundance value greater than \fIinteger\fR.
