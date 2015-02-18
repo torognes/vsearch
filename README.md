@@ -353,6 +353,7 @@ The following people have contributed to VSEARCH:
 
 No papers about VSEARCH have been published yet, but a manuscript is in preparation.
 For now, please cite the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
+Release 1.0.14 has doi [10.5281/zenodo.14860](http://dx.doi.org/10.5281/zenodo.14860).
 
 
 ## Test datasets
