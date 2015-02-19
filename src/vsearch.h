@@ -20,7 +20,6 @@
 */
 
 #include <sys/types.h>
-#include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -40,11 +39,13 @@
 #include <unistd.h>
 #include <float.h>
 
-#include <city.h>
-
-#ifndef __APPLE__
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#else
 #include <sys/sysinfo.h>
 #endif
+
+#include <city.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
@@ -84,7 +85,7 @@
 #include "allpairs.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.15"
+#define PROG_VERSION "v1.0.16"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
