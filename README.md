@@ -32,13 +32,13 @@ If you can't find an answer in the VSEARCH documentation, please visit the [VSEA
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.0.15-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch-1.0.16-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
 
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.15-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.15-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
+Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.16-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.0.16-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
 
 Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
 
@@ -46,8 +46,8 @@ Download the appropriate executable and make a symbolic link in a folder include
 cd ~
 mkdir -p bin
 cd bin
-wget https://github.com/torognes/vsearch/releases/download/v1.0.15/vsearch-1.0.15-linux-x86_64
-ln -s vsearch-1.0.15-linux-x86_64 vsearch
+wget https://github.com/torognes/vsearch/releases/download/v1.0.16/vsearch-1.0.16-linux-x86_64
+ln -s vsearch-1.0.16-linux-x86_64 vsearch
 ```
 
 Substitute `linux` with `osx` in those lines if you're on a Mac.
@@ -339,14 +339,22 @@ Some issues to work on:
 
 ## The VSEARCH team
 
-The following people have contributed to VSEARCH:
+The main contributors to VSEARCH:
 
-* Torbj&oslash;rn Rognes (Coding, testing, documentation, evaluation)
-* Tom&aacute;&scaron; Flouri (Coding, testing)
-* Fr&eacute;d&eacute;ric Mah&eacute; (Documentation, testing, feature suggestions)
-* Christopher Quince (Initiator, feature suggestions, evaluation)
-* Umer Zeeshan Ijaz (Feature suggestions)
-* Ben Nichols (evaluation)
+* Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
+* Umer Zeeshan Ijaz <umer.ijaz@glasgow.ac.uk> (Feature suggestions)
+* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, feature suggestions)
+* Ben Nichols <b.nichols.1@research.gla.ac.uk> (evaluation)
+* Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
+* Torbj&oslash;rn Rognes <torognes@ifi.uio.no> (Coding, testing, documentation, evaluation)
+
+
+## Acknowledgements
+
+Thanks to the following for patches and other suggestions for improvements:
+
+* Jeff Epler <jepler@unpythonic.net>
+* Andreas Tille <tille@debian.org>
 
 
 ## Citing VSEARCH
