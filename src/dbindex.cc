@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -145,7 +145,8 @@ void dbindex_prepare(int use_bitmap)
   kmerhash[kmerhashsize] = sum;
 
 #if 0
-  fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
+  if (!opt_quiet)
+    fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
   
   /* reset counts */

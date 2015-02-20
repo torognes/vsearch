@@ -100,7 +100,13 @@ void sortbylength()
         median = (sortinfo[(passed/2)-1].length +
                   sortinfo[passed/2].length) / 2.0;
     }
-  fprintf(stderr, "Median length: %.0f\n", median);
+
+  if (!opt_quiet)
+    fprintf(stderr, "Median length: %.0f\n", median);
+
+  if (opt_log)
+    fprintf(fp_log, "Median length: %.0f\n", median);
+
   show_rusage();
   
   passed = MIN(passed, opt_topn);

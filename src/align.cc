@@ -412,6 +412,14 @@ void nw_align(char * dseq,
     fprintf(stderr, "WARNING: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
     fprintf(stderr, "Initial and recomputed alignment score disagreement: %lu %lu\n", dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
+
+    if (opt_log)
+      {
+        fprintf(fp_log, "WARNING: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
+        fprintf(fp_log, "Initial and recomputed alignment score disagreement: %lu %lu\n", dist, score);
+        fprintf(fp_log, "Alignment: %s\n", cigar);
+        fprintf(fp_log, "\n");
+      }
   }
 #endif
 }

@@ -36,27 +36,32 @@ static unsigned char magic_gzip[] = "\x1f\x8b";
 
 void progress_init(const char * prompt, unsigned long size)
 {
-  progress_prompt = prompt;
-  progress_size = size;
-  progress_chunk = size < progress_granularity ? 
-    1 : size / progress_granularity;
-  progress_next = 0;
-  fprintf(stderr, "%s %.0f%%", prompt, 0.0);
+  if (! opt_quiet)
+    {
+      progress_prompt = prompt;
+      progress_size = size;
+      progress_chunk = size < progress_granularity ? 
+        1 : size / progress_granularity;
+      progress_next = 0;
+      fprintf(stderr, "%s %.0f%%", prompt, 0.0);
+    }
 }
 
 void progress_update(unsigned long progress)
 {
-  if (progress >= progress_next)
-    {
-      fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
-              100.0 * progress / progress_size);
-      progress_next = progress + progress_chunk;
-    }
+  if (! opt_quiet)
+    if (progress >= progress_next)
+      {
+        fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
+                100.0 * progress / progress_size);
+        progress_next = progress + progress_chunk;
+      }
 }
 
 void progress_done()
 {
-  fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+  if (! opt_quiet)
+    fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
 }
 
 long gcd(long a, long b)
@@ -75,6 +80,13 @@ void  __attribute__((noreturn)) fatal(const char * msg)
 {
   fprintf(stderr, "\n\n");
   fprintf(stderr, "Fatal error: %s\n", msg);
+
+  if (opt_log)
+    {
+      fprintf(fp_log, "\n\n");
+      fprintf(fp_log, "Fatal error: %s\n", msg);
+    }
+
   exit(EXIT_FAILURE);
 }
 
@@ -84,6 +96,14 @@ void  __attribute__((noreturn)) fatal(const char * format,
   fprintf(stderr, "\n\n");
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
+
+  if (opt_log)
+    {
+      fprintf(fp_log, "\n\n");
+      fprintf(fp_log, format, message);
+      fprintf(fp_log, "\n");
+    }
+
   exit(EXIT_FAILURE);
 }
 
@@ -147,6 +167,14 @@ void show_rusage()
   fprintf(stderr, " %.3fs (sys)", r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6);
 
   fprintf(stderr, " Memory: %luMB\n",  arch_get_memused() / 1024 / 1024);
+
+  if (opt_log)
+    {
+      fprintf(fp_log, "Time: %.3fs (user)", r_usage.ru_utime.tv_sec * 1.0 + (double) r_usage.ru_utime.tv_usec * 1.0e-6);
+      fprintf(fp_log, " %.3fs (sys)", r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6);
+      
+      fprintf(fp_log, " Memory: %luMB\n",  arch_get_memused() / 1024 / 1024);
+    }
 #endif
 }
 

@@ -759,7 +759,8 @@ void cluster_core_parallel()
   progress_done();
 
 #if 0
-  fprintf(stderr, "Extra alignments computed: %d\n", aligncount);
+  if (!opt_quiet)
+    fprintf(stderr, "Extra alignments computed: %d\n", aligncount);
 #endif
 
   /* clean up search info */
@@ -971,6 +972,22 @@ void cluster(char * dbname,
 
   clusterinfo = (clusterinfo_t *) xmalloc(seqcount * sizeof(clusterinfo_t));
 
+  if (opt_log)
+    {
+      unsigned long slots = 1UL << (opt_wordlength << 1UL);
+      fprintf(fp_log, "\n");
+      fprintf(fp_log, "      Alphabet  nt\n");
+      fprintf(fp_log, "    Word width  %ld\n", opt_wordlength);
+      fprintf(fp_log, "     Word ones  %ld\n", opt_wordlength);
+      fprintf(fp_log, "        Spaced  No\n");
+      fprintf(fp_log, "        Hashed  No\n");
+      fprintf(fp_log, "         Coded  No\n");
+      fprintf(fp_log, "       Stepped  No\n");
+      fprintf(fp_log, "         Slots  %lu (%.1fk)\n", slots, slots/1000.0);
+      fprintf(fp_log, "       DBAccel  100%%\n");
+      fprintf(fp_log, "\n");
+    }      
+
   if (opt_threads == 1)
     cluster_core_serial();
   else
@@ -1104,12 +1121,36 @@ void cluster(char * dbname,
   
   progress_done();
 
-  fprintf(stderr, "Clusters: %d Size min %d, max %d, avg %.1f\n",
-          clusters, abundance_min, abundance_max, 1.0 * seqcount / clusters);
-  fprintf(stderr, "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
-          singletons,
-          100.0 * singletons / seqcount, 
-          100.0 * singletons / clusters);
+  if (!opt_quiet)
+    {
+      fprintf(stderr,
+              "Clusters: %d Size min %d, max %d, avg %.1f\n",
+              clusters,
+              abundance_min,
+              abundance_max,
+              1.0 * seqcount / clusters);
+      fprintf(stderr,
+              "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
+              singletons,
+              100.0 * singletons / seqcount, 
+              100.0 * singletons / clusters);
+    }
+
+  if (opt_log)
+    {
+      fprintf(fp_log,
+              "Clusters: %d Size min %d, max %d, avg %.1f\n",
+              clusters,
+              abundance_min,
+              abundance_max,
+              1.0 * seqcount / clusters);
+      fprintf(fp_log,
+              "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
+              singletons,
+              100.0 * singletons / seqcount, 
+              100.0 * singletons / clusters);
+      fprintf(fp_log, "\n");
+    }
 
   if (opt_msaout || opt_consout)
     {

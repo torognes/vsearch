@@ -1361,7 +1361,7 @@ void chimera()
   /* override any options the user might have set */
   opt_maxaccepts = few;
   opt_maxrejects = rejects;
-  opt_id = 0.0;
+  opt_id = 0.75;
   opt_strand = 1;
 
   if (opt_uchime_denovo)
@@ -1404,22 +1404,49 @@ void chimera()
       progress_total = db_getnucleotidecount();
     }
 
+  if (opt_log)
+    {
+      fprintf(fp_log, "%8.2f  minh\n", opt_minh);
+      fprintf(fp_log, "%8.2f  xn\n", opt_xn);
+      fprintf(fp_log, "%8.2f  dn\n", opt_dn);
+      fprintf(fp_log, "%8.2f  xa\n", 1.0);
+      fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
+      fprintf(fp_log, "%8.2f  id\n", opt_id);
+      fprintf(fp_log, "%8d  maxp\n", 2);
+      fprintf(fp_log, "\n");
+    }
+
+
   progress_init("Detecting chimeras", progress_total);
 
   chimera_threads_run();
 
   progress_done();
 
-  fprintf(stderr,
-          "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
-          "and %d (%.1f%%) suspicious candidates in %d sequences.\n",
-          chimera_count,
-          100.0 * chimera_count / seqno,
-          nonchimera_count,
-          100.0 * nonchimera_count / seqno,
-          (seqno - chimera_count - nonchimera_count),
-          100.0 * (seqno - chimera_count - nonchimera_count) / seqno,
-          seqno);
+  if (!opt_quiet)
+    fprintf(stderr,
+            "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
+            "and %d (%.1f%%) suspicious candidates in %d sequences.\n",
+            chimera_count,
+            100.0 * chimera_count / seqno,
+            nonchimera_count,
+            100.0 * nonchimera_count / seqno,
+            (seqno - chimera_count - nonchimera_count),
+            100.0 * (seqno - chimera_count - nonchimera_count) / seqno,
+            seqno);
+
+  if (opt_log)
+    {
+      if (opt_uchime_ref)
+        fprintf(fp_log, "%s", opt_uchime_ref);
+      else
+        fprintf(fp_log, "%s", opt_uchime_denovo);
+      fprintf(fp_log, ": %d/%d chimeras (%.1f%%)\n",
+              chimera_count,
+              seqno, 
+              100.0 * chimera_count / seqno);
+    }
+
 
   if (opt_uchime_ref)
     query_close();

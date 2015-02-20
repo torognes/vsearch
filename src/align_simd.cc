@@ -1020,10 +1020,7 @@ void search16(s16info_s * s,
               signed short h_min_c = h_min_array[c];
               signed short h_max_c = h_max_array[c];
               if ((h_min_c <= score_min) || (h_max_c >= score_max))
-                {
-                  overflow[c] = true;
-                  //                  fprintf(stderr, "h_min: %d, h_max: %d\n", h_min_c, h_max_c);
-                }
+                overflow[c] = true;
             }
         }
     }
@@ -1071,11 +1068,6 @@ void search16(s16info_s * s,
 
             if (overflow[c])
               {
-#if 0
-                fprintf(stderr, "WARNING! Alignment overflow!\n");
-                fprintf(stderr, "Seqid: %ld length: %lu\n",
-                        seq_id[c], d_length[c]);
-#endif
                 pscores[cand_id] = SHRT_MAX;
                 paligned[cand_id] = 0;
                 pmatches[cand_id] = 0;
@@ -1260,10 +1252,7 @@ void search16(s16info_s * s,
               signed short h_max_c = h_max_array[c];
               if ((h_min_c <= score_min) || 
                   (h_max_c >= score_max))
-                {
-                  overflow[c] = true;
-                  //                  fprintf(stderr, "h_min: %d, h_max: %d\n", h_min_c, h_max_c);
-                }
+                overflow[c] = true;
             }
         }
     }
