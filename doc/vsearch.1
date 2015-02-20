@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "February 19, 2015" "version 1.0.16" "USER COMMANDS"
+.TH vsearch 1 "February 20, 2015" "version 1.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
@@ -142,16 +142,22 @@ searching). We start with general options that apply to all themes.
 General options:
 .RS
 .TP 9
-.B \-\-help
-Display a short help and exit.
-.TP
-.B \-\-version
-Output version information and exit.
-.TP
 .BI \-\-fasta_width\~ "positive integer"
 Fasta files produced by \fBvsearch\fR are wrapped (sequences are
 written on lines of \fIinteger\fR nucleotides, 80 by default). Set
 that value to 0 to eliminate the wrapping.
+.TP
+.B \-\-help
+Display a short help and exit.
+.TP
+.BI \-\-log \0filename
+Write messages to the specified log file. Information written includes
+program version, amount of memory available, number of cores and command
+line options. The start and finish times are also recorded as well as
+the elapsed time. The maximum amount of memory consumed is included.
+The different commands will usually also write some information about
+their results. Both fatal, warning and informational messages are
+written.
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
 All \fBvsearch\fR operations will discard sequences of length equal or
@@ -165,6 +171,13 @@ than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
 .B \-\-notrunclabels
 Do not truncate sequence labels at first space, use the full header in
 output files.
+.TP
+.B \-\-quiet
+Suppress all output to stdout and stdout except for warnings and fatal
+error messages.
+.TP
+.B \-\-version
+Output version information and exit.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -240,7 +253,7 @@ nucleotide sequence is strictly identical with the query sequence.
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 256) with \-\-uchime_ref.
 The number of threads should be lesser or equal to the number of
-available CPU cores. The default is to use all available ressources
+available CPU cores. The default is to use all available resources
 and to launch one thread per logical core.
 .TP
 .BI \-\-uchime_denovo \0filename
@@ -430,7 +443,7 @@ strand only (default) or check \fIboth\fR strands.
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to use all available ressources and to launch one thread
+default is to use all available resources and to launch one thread
 per logical core.
 .TP
 .BI \-\-uc \0filename
@@ -446,7 +459,7 @@ Most searching options also apply to clustering:
 .br
 \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-matched,
 \-\-notmatched, \-\-maxaccept, \-\-maxreject, \-\-samout, \-\-userout,
-\-\-userfields, score filtering, \-\-gap penalties, masking. (see the
+\-\-userfields, score filtering, gap penalties, masking. (see the
 Searching section).
 .RE
 .PP
@@ -549,7 +562,7 @@ Mask simple repeats and low-complexity regions in sequences using the
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to use all available ressources and to launch one thread
+default is to use all available resources and to launch one thread
 per logical core.
 .RE
 .PP
@@ -566,13 +579,13 @@ identity level with \-\-id to discard weak alignments. Most other
 accept/reject options (see Searching options below) may also be
 used. Sequences are aligned on their \fIplus\fR strand only.
 .TP 9
-.BI \-\-allpairs_global \0filename
-Perform optimal global pairwise alignments of all vs. all fasta
-sequences contained in \fIfilename\fR. This command is multi-threaded.
-.TP
 .B \-\-acceptall
 Write the results of all alignments to output files. This option
 overrides all other accept/reject options (including \-\-id).
+.TP
+.BI \-\-allpairs_global \0filename
+Perform optimal global pairwise alignments of all vs. all fasta
+sequences contained in \fIfilename\fR. This command is multi-threaded.
 .TP
 .BI \-\-id \0real
 Reject the sequence match if the pairwise identity is lower than
@@ -581,7 +594,7 @@ Reject the sequence match if the pairwise identity is lower than
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to use all available ressources and to launch one thread
+default is to use all available resources and to launch one thread
 per logical core.
 .RE
 .PP
@@ -706,7 +719,7 @@ terminal gaps (left or right), in both query and target sequences
 (i.e. 20I/2E). If only a numerical value is given, without any
 sequence or location symbol, then the penalty applies to all gap
 openings. To forbid gap-opening, an infinite penalty value can be
-declared with the symbol "*". Tu use \fBvsearch\fR as a semi-global
+declared with the symbol "*". To use \fBvsearch\fR as a semi-global
 aligner, a null-penalty can be applied to the left (L) or right (R)
 gaps.
 .br
@@ -937,7 +950,7 @@ length.  Internal or terminal gaps are not taken into account.
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to use all available ressources and to launch one thread
+default is to use all available resources and to launch one thread
 per logical core.
 .TP
 .B \-\-top_hits_only
@@ -1560,6 +1573,15 @@ excessive stack memory usage.
 .BR v1.0.15\~ "released February 18th, 2015"
 Fix bug in calculation of identity metric between sequences when using
 the MBL definition (\-\-iddef 3).
+.TP
+.BR v1.0.16\~ "released February 19th, 2015"
+Integrated patches from Debian for increased compatibility with
+various architectures.
+.TP
+.BR v1.1.0\~ "released February 20th, 2015"
+Added the \-\-quiet option to suppress all output to stdout and stdout
+except for warnings and fatal errors.
+Added the \-\-log option to write messages to a log file.
 .LP
 .\" ============================================================================
 .\" TODO:

@@ -23,6 +23,7 @@
 
 /* options */
 
+bool opt_quiet;
 char * opt_alnout;
 char * opt_allpairs_global;
 char * opt_blast6out;
@@ -38,6 +39,7 @@ char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
 char * opt_fastapairs;
+char * opt_log;
 char * opt_maskfasta;
 char * opt_matched;
 char * opt_msaout;
@@ -156,6 +158,9 @@ static char * progname;
 static char progheader[80];
 static char * cmdline;
 
+FILE * fp_log = 0;
+time_t time_start;
+time_t time_finish;
 
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \
@@ -215,7 +220,6 @@ void cpu_features_show()
     fprintf(stderr, " avx2");
   fprintf(stderr, "\n");
 }
-
 
 
 void args_get_gap_penalty_string(char * arg, int is_open)
@@ -431,6 +435,7 @@ void args_init(int argc, char **argv)
   opt_idprefix = 0;
   opt_idsuffix = 0;
   opt_leftjust = 0;
+  opt_log = 0;
   opt_match = 2;
   opt_matched = 0;
   opt_maxaccepts = 1;
@@ -469,6 +474,7 @@ void args_init(int argc, char **argv)
   opt_pattern = 0;
   opt_qmask = MASK_DUST;
   opt_query_cov = 0.0;
+  opt_quiet = false;
   opt_relabel = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
@@ -610,6 +616,8 @@ void args_init(int argc, char **argv)
     {"acceptall",             no_argument,       0, 0 },
     {"cluster_size",          required_argument, 0, 0 },
     {"samout",                required_argument, 0, 0 },
+    {"log",                   required_argument, 0, 0 },
+    {"quiet",                 no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1172,6 +1180,16 @@ void args_init(int argc, char **argv)
           opt_samout = optarg;
           break;
 
+        case 104:
+          /* log */
+          opt_log = optarg;
+          break;
+
+        case 105:
+          /* quiet */
+          opt_quiet = true;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1311,153 +1329,157 @@ void cmd_help()
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  fprintf(stdout, 
-          "Usage: %s [OPTIONS]\n", progname);
-  fprintf(stdout, 
-          "\n"
-          "General options\n"
-          "  --help                      display help information\n"
-          "  --version                   display version information\n"
-          "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
-          "  --maxseqlength INT          maximum sequence length (50000)\n"
-          "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
-          "  --notrunclabels             do not truncate labels at first space\n"
-          "  --threads INT               number of threads to use, zero for all cores (0)\n"
-          "\n"
-          "Alignment options (most searching options also apply)\n"
-          "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
-          "  --alnout FILENAME           filename for human-readable alignment output\n"
-          "  --acceptall                 output all pairwise alignments\n"
-          "\n"
-          "Chimera detection options\n"
-          "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
-          "  --alignwidth INT            width of alignment in uchimealn output (80)\n"
-          "  --chimeras FILENAME         output chimeric sequences to file\n"
-          "  --db FILENAME               reference database for --uchime_ref\n"
-          "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
-          "  --mindiffs INT              minimum number of differences in segment (3)\n"
-          "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
-          "  --minh REAL                 minimum score (0.28)\n"
-          "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
-          "  --self                      exclude identical labels for --uchime_ref\n"
-          "  --selfid                    exclude identical sequences for --uchime_ref\n"
-          "  --uchime_denovo FILENAME    detect chimeras de novo\n"
-          "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
-          "  --uchimealns FILENAME       output chimera alignments to file\n"
-          "  --uchimeout FILENAME        output to chimera info to tab-separated file\n"
-          "  --uchimeout5                make output compatible with uchime version 5\n"
-          "  --xn REAL                   'no' vote weight (8.0)\n"
-          "\n"
-          "Clustering options (most searching options also apply)\n"
-          "  --centroids FILENAME        output centroid sequences to FASTA file\n"
-          "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
-          "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
-          "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
-          "  --clusters STRING           output each cluster to a separate FASTA file\n"
-          "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
-          "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
-          "  --id REAL                   reject if identity lower\n"
-          "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
-          "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
-          "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
-          "  --sizein                    propagate abundance annotation from input\n"
-          "  --sizeout                   write cluster abundances to centroid file\n"
-          "  --strand plus|both          cluster using plus or both strands (plus)\n"
-          "  --uc FILENAME               filename for UCLUST-like output\n"
-          "  --usersort                  indicate sequences not presorted by length\n"
-          "\n"
-          "Dereplication options\n"
-          "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
-          "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
-          "  --minuniquesize INT         minimum abundance for output from dereplication\n"
-          "  --output FILENAME           output FASTA file\n"
-          "  --sizein                    propagate abundance annotation from input\n"
-          "  --sizeout                   write abundance annotation to output\n"
-          "  --strand plus|both          dereplicate plus or both strands (plus)\n"
-          "  --topn INT                  output just the n most abundant sequences\n"
-          "  --uc FILENAME               filename for UCLUST-like output\n"
-          "\n"
-          "Masking options\n"
-          "  --hardmask                  mask by replacing with N instead of lower case\n"
-          "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
-          "  --output FILENAME           output to specified FASTA file\n"
-          "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
-          "\n"
-          "Searching options\n"
-          "  --alnout FILENAME           filename for human-readable alignment output\n"
-          "  --samout FILENAME           filename for SAM format output\n"
-          "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
-          "  --db FILENAME               filename for FASTA formatted database for search\n"
-          "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
-          "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
-          "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
-          "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
-          "  --fulldp                    full dynamic programming alignment (always on)\n"
-          "  --gapext STRING             penalties for gap extension (2I/1E)\n"
-          "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
-          "  --hardmask                  mask by replacing with N instead of lower case\n"
-          "  --id REAL                   reject if identity lower\n"
-          "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
-          "  --idprefix INT              reject if first n nucleotides do not match\n"
-          "  --idsuffix INT              reject if last n nucleotides do not match\n"
-          "  --leftjust                  reject if terminal gaps at alignment left end\n"
-          "  --match INT                 score for match (2)\n"
-          "  --matched FILENAME          FASTA file for matching query sequences\n"
-          "  --maxaccepts INT            number of hits to accept and show per strand (1)\n"
-          "  --maxdiffs INT              reject if more substitutions or indels\n"
-          "  --maxgaps INT               reject if more indels\n"
-          "  --maxhits INT               maximum number of hits to show (unlimited)\n"
-          "  --maxid REAL                reject if identity higher\n"
-          "  --maxqsize INT              reject if query abundance larger\n"
-          "  --maxqt REAL                reject if query/target length ratio higher\n"
-          "  --maxrejects INT            number of non-matching hits to consider (32)\n"
-          "  --maxsizeratio REAL         reject if query/target abundance ratio higher\n"
-          "  --maxsl REAL                reject if shorter/longer length ratio higher\n"
-          "  --maxsubs INT               reject if more substitutions\n"
-          "  --mid REAL                  reject if percent identity lower, ignoring gaps\n"
-          "  --mincols INT               reject if alignment length shorter\n"
-          "  --minqt REAL                reject if query/target length ratio lower\n"
-          "  --minsizeratio REAL         reject if query/target abundance ratio lower\n"
-          "  --minsl REAL                reject if shorter/longer length ratio lower\n"
-          "  --mintsize INT              reject if target abundance lower\n"
-          "  --mismatch INT              score for mismatch (-4)\n"
-          "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
-          "  --output_no_hits            output non-matching queries to output files\n"
-          "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
-          "  --query_cov REAL            reject if fraction of query seq. aligned lower\n"
-          "  --rightjust                 reject if terminal gaps at alignment right end\n"
-          "  --rowlen INT                width of alignment lines in alnout output (64)\n"
-          "  --self                      reject if labels identical\n"
-          "  --selfid                    reject if sequences identical\n"
-          "  --sizeout                   write abundance annotation to dbmatched file\n"
-          "  --strand plus|both          search plus or both strands (plus)\n"
-          "  --target_cov REAL           reject if fraction of target seq. aligned lower\n"
-          "  --top_hits_only             output only hits with identity equal to the best\n"
-          "  --uc FILENAME               filename for UCLUST-like output\n"
-          "  --uc_allhits                show all, not just top hit with uc output\n"
-          "  --usearch_global FILENAME   filename of queries for global alignment search\n"
-          "  --userfields STRING         fields to output in userout file\n"
-          "  --userout FILENAME          filename for user-defined tab-separated output\n"
-          "  --weak_id REAL              include aligned hits with >= id; continue search\n"
-          "  --wordlength INT            length of words for database index 3-15 (8)\n"
-          "\n"
-          "Shuffling options\n"
-          "  --output FILENAME           output to specified FASTA file\n"
-          "  --seed INT                  seed for PRNG, zero to use random data source (0)\n"
-          "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
-          "  --topn INT                  output just first n sequences\n"
-          "\n"
-          "Sorting options\n"
-          "  --maxsize INT               maximum abundance for sortbysize\n"
-          "  --minsize INT               minimum abundance for sortbysize\n"
-          "  --output FILENAME           output FASTA file\n"
-          "  --relabel STRING            relabel with this prefix string after sorting\n"
-          "  --sizeout                   add abundance to output when relabelling\n"
-          "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
-          "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
-          "  --topn INT                  output just top n seqs after sorting\n"
-          "\n"
+  if (! opt_quiet)
+    {
+      fprintf(stdout, 
+              "Usage: %s [OPTIONS]\n", progname);
+      
+      fprintf(stdout, 
+              "\n"
+              "General options\n"
+              "  --help                      display help information\n"
+              "  --version                   display version information\n"
+              "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
+              "  --maxseqlength INT          maximum sequence length (50000)\n"
+              "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
+              "  --notrunclabels             do not truncate labels at first space\n"
+              "  --threads INT               number of threads to use, zero for all cores (0)\n"
+              "\n"
+              "Alignment options (most searching options also apply)\n"
+              "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
+              "  --alnout FILENAME           filename for human-readable alignment output\n"
+              "  --acceptall                 output all pairwise alignments\n"
+              "\n"
+              "Chimera detection options\n"
+              "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
+              "  --alignwidth INT            width of alignment in uchimealn output (80)\n"
+              "  --chimeras FILENAME         output chimeric sequences to file\n"
+              "  --db FILENAME               reference database for --uchime_ref\n"
+              "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
+              "  --mindiffs INT              minimum number of differences in segment (3)\n"
+              "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
+              "  --minh REAL                 minimum score (0.28)\n"
+              "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
+              "  --self                      exclude identical labels for --uchime_ref\n"
+              "  --selfid                    exclude identical sequences for --uchime_ref\n"
+              "  --uchime_denovo FILENAME    detect chimeras de novo\n"
+              "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
+              "  --uchimealns FILENAME       output chimera alignments to file\n"
+              "  --uchimeout FILENAME        output to chimera info to tab-separated file\n"
+              "  --uchimeout5                make output compatible with uchime version 5\n"
+              "  --xn REAL                   'no' vote weight (8.0)\n"
+              "\n"
+              "Clustering options (most searching options also apply)\n"
+              "  --centroids FILENAME        output centroid sequences to FASTA file\n"
+              "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
+              "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
+              "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
+              "  --clusters STRING           output each cluster to a separate FASTA file\n"
+              "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
+              "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
+              "  --id REAL                   reject if identity lower\n"
+              "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
+              "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
+              "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
+              "  --sizein                    propagate abundance annotation from input\n"
+              "  --sizeout                   write cluster abundances to centroid file\n"
+              "  --strand plus|both          cluster using plus or both strands (plus)\n"
+              "  --uc FILENAME               filename for UCLUST-like output\n"
+              "  --usersort                  indicate sequences not presorted by length\n"
+              "\n"
+              "Dereplication options\n"
+              "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+              "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
+              "  --minuniquesize INT         minimum abundance for output from dereplication\n"
+              "  --output FILENAME           output FASTA file\n"
+              "  --sizein                    propagate abundance annotation from input\n"
+              "  --sizeout                   write abundance annotation to output\n"
+              "  --strand plus|both          dereplicate plus or both strands (plus)\n"
+              "  --topn INT                  output just the n most abundant sequences\n"
+              "  --uc FILENAME               filename for UCLUST-like output\n"
+              "\n"
+              "Masking options\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
+              "  --output FILENAME           output to specified FASTA file\n"
+              "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
+              "\n"
+              "Searching options\n"
+              "  --alnout FILENAME           filename for human-readable alignment output\n"
+              "  --samout FILENAME           filename for SAM format output\n"
+              "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
+              "  --db FILENAME               filename for FASTA formatted database for search\n"
+              "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
+              "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
+              "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
+              "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
+              "  --fulldp                    full dynamic programming alignment (always on)\n"
+              "  --gapext STRING             penalties for gap extension (2I/1E)\n"
+              "  --gapopen STRING            penalties for gap opening (20I/2E)\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "  --id REAL                   reject if identity lower\n"
+              "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
+              "  --idprefix INT              reject if first n nucleotides do not match\n"
+              "  --idsuffix INT              reject if last n nucleotides do not match\n"
+              "  --leftjust                  reject if terminal gaps at alignment left end\n"
+              "  --match INT                 score for match (2)\n"
+              "  --matched FILENAME          FASTA file for matching query sequences\n"
+              "  --maxaccepts INT            number of hits to accept and show per strand (1)\n"
+              "  --maxdiffs INT              reject if more substitutions or indels\n"
+              "  --maxgaps INT               reject if more indels\n"
+              "  --maxhits INT               maximum number of hits to show (unlimited)\n"
+              "  --maxid REAL                reject if identity higher\n"
+              "  --maxqsize INT              reject if query abundance larger\n"
+              "  --maxqt REAL                reject if query/target length ratio higher\n"
+              "  --maxrejects INT            number of non-matching hits to consider (32)\n"
+              "  --maxsizeratio REAL         reject if query/target abundance ratio higher\n"
+              "  --maxsl REAL                reject if shorter/longer length ratio higher\n"
+              "  --maxsubs INT               reject if more substitutions\n"
+              "  --mid REAL                  reject if percent identity lower, ignoring gaps\n"
+              "  --mincols INT               reject if alignment length shorter\n"
+              "  --minqt REAL                reject if query/target length ratio lower\n"
+              "  --minsizeratio REAL         reject if query/target abundance ratio lower\n"
+              "  --minsl REAL                reject if shorter/longer length ratio lower\n"
+              "  --mintsize INT              reject if target abundance lower\n"
+              "  --mismatch INT              score for mismatch (-4)\n"
+              "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
+              "  --output_no_hits            output non-matching queries to output files\n"
+              "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
+              "  --query_cov REAL            reject if fraction of query seq. aligned lower\n"
+              "  --rightjust                 reject if terminal gaps at alignment right end\n"
+              "  --rowlen INT                width of alignment lines in alnout output (64)\n"
+              "  --self                      reject if labels identical\n"
+              "  --selfid                    reject if sequences identical\n"
+              "  --sizeout                   write abundance annotation to dbmatched file\n"
+              "  --strand plus|both          search plus or both strands (plus)\n"
+              "  --target_cov REAL           reject if fraction of target seq. aligned lower\n"
+              "  --top_hits_only             output only hits with identity equal to the best\n"
+              "  --uc FILENAME               filename for UCLUST-like output\n"
+              "  --uc_allhits                show all, not just top hit with uc output\n"
+              "  --usearch_global FILENAME   filename of queries for global alignment search\n"
+              "  --userfields STRING         fields to output in userout file\n"
+              "  --userout FILENAME          filename for user-defined tab-separated output\n"
+              "  --weak_id REAL              include aligned hits with >= id; continue search\n"
+              "  --wordlength INT            length of words for database index 3-15 (8)\n"
+              "\n"
+              "Shuffling options\n"
+              "  --output FILENAME           output to specified FASTA file\n"
+              "  --seed INT                  seed for PRNG, zero to use random data source (0)\n"
+              "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
+              "  --topn INT                  output just first n sequences\n"
+              "\n"
+              "Sorting options\n"
+              "  --maxsize INT               maximum abundance for sortbysize\n"
+              "  --minsize INT               minimum abundance for sortbysize\n"
+              "  --output FILENAME           output FASTA file\n"
+              "  --relabel STRING            relabel with this prefix string after sorting\n"
+              "  --sizeout                   add abundance to output when relabelling\n"
+              "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
+              "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
+              "  --topn INT                  output just top n seqs after sorting\n"
+              "\n"
           );
+    }
 }
 
 void cmd_allpairs_global()
@@ -1537,41 +1559,40 @@ void cmd_maskfasta()
 
 void cmd_none()
 {
-  fprintf(stderr,
-          "No commands were recognized among the arguments.\n"
-          "\n"
-          "For help, please enter: %s --help\n"
-          "\n"
-          "For further details, please see the manual by entering: man vsearch\n"
-          "\n"
-          "Some basic command examples:\n"
-          "\n"
-          "%s --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
-          "%s --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
-          "%s --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
-          "%s --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
-          "%s --derep_fulllength FILENAME --output FILENAME\n"
-          "%s --maskfasta FILENAME --output FILENAME\n"
-          "%s --shuffle FILENAME --output FILENAME\n"
-          "%s --sortbylength FILENAME --output FILENAME\n"
-          "%s --sortbysize FILENAME --output FILENAME\n"
-          "%s --uchime_denovo FILENAME --nonchimeras FILENAME\n"
-          "%s --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
-          "%s --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
-          "\n",
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname,
-          progname);
+  if (! opt_quiet)
+    fprintf(stderr,
+            "For help, please enter: %s --help\n"
+            "\n"
+            "For further details, please see the manual by entering: man vsearch\n"
+            "\n"
+            "Some basic command examples:\n"
+            "\n"
+            "%s --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
+            "%s --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
+            "%s --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
+            "%s --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
+            "%s --derep_fulllength FILENAME --output FILENAME\n"
+            "%s --maskfasta FILENAME --output FILENAME\n"
+            "%s --shuffle FILENAME --output FILENAME\n"
+            "%s --sortbylength FILENAME --output FILENAME\n"
+            "%s --sortbysize FILENAME --output FILENAME\n"
+            "%s --uchime_denovo FILENAME --nonchimeras FILENAME\n"
+            "%s --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
+            "%s --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
+            "\n",
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname,
+            progname);
 }
 
 void cmd_cluster()
@@ -1651,13 +1672,12 @@ void getentirecommandline(int argc, char** argv)
 
 void show_header()
 {
-  fprintf(stdout, "%s\n", progheader);
-#if 0
-  fprintf(stdout, "Copyright (C) 2014 Torbjorn Rognes, Tomas Flouri & Frederic Mahe\n");
-  fprintf(stdout, "License: AGPL 3.0\n");
-#endif
-  fprintf(stdout, "https://github.com/torognes/vsearch\n");
-  fprintf(stdout, "\n");
+  if (! opt_quiet)
+    {
+      fprintf(stdout, "%s\n", progheader);
+      fprintf(stdout, "https://github.com/torognes/vsearch\n");
+      fprintf(stdout, "\n");
+    }
 }
 
 int main(int argc, char** argv)
@@ -1668,6 +1688,18 @@ int main(int argc, char** argv)
   cpu_features_detect();
 
   args_init(argc, argv);
+
+  if (opt_log)
+    {
+      fp_log = fopen(opt_log, "w");
+      if (!fp_log)
+        fatal("Unable to open log file for writing");
+      fprintf(fp_log, "%s\n", progheader);
+      fprintf(fp_log, "%s\n", cmdline);
+      char time_string[26];
+      time_start = time(0);
+      fprintf(fp_log, "Started %s", ctime_r(&time_start, time_string));
+    }
 
   show_header();
 
@@ -1722,5 +1754,22 @@ int main(int argc, char** argv)
       cmd_none();
     }
   
+  if (opt_log)
+    {
+      time_finish = time(0);
+      char time_string[26];
+      fprintf(fp_log, "\n");
+      fprintf(fp_log, "Finished %s", ctime_r(&time_finish, time_string));
+      time_t time_diff = time_finish - time_start;
+      fprintf(fp_log, "Elapsed time %02lu:%02lu\n", 
+              time_diff / 60, time_diff % 60);
+      double maxmem = arch_get_memused() / 1048576.0;
+      if (maxmem < 1024.0)
+        fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
+      else
+        fprintf(fp_log, "Max memory %.1lfGB\n", maxmem/1024.0);
+      fclose(fp_log);
+    }
+
   free(cmdline);
 }

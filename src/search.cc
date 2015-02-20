@@ -583,8 +583,13 @@ void usearch_global(char * cmdline, char * progheader)
 
   query_close();
 
-  fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
-          qmatches, queries, 100.0 * qmatches / queries);
+  if (!opt_quiet)
+    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
+            qmatches, queries, 100.0 * qmatches / queries);
+
+  if (opt_log)
+    fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n", 
+            qmatches, queries, 100.0 * qmatches / queries);
 
   if (opt_dbmatched || opt_dbnotmatched)
     {

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2014 Torbjorn Rognes
+  Copyright (C) 2014-2015 Torbjorn Rognes
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -103,7 +103,13 @@ void sortbysize()
         median = (sortinfo[(passed/2)-1].size +
                   sortinfo[passed/2].size) / 2.0;
     }
-  fprintf(stderr, "Median abundance: %.0f\n", median);
+
+  if (! opt_quiet)
+    fprintf(stderr, "Median abundance: %.0f\n", median);
+
+  if (opt_log)
+    fprintf(fp_log, "Median abundance: %.0f\n", median);
+
   show_rusage();
   
   passed = MIN(passed, opt_topn);

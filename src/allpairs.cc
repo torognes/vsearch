@@ -579,8 +579,15 @@ void allpairs_global(char * cmdline, char * progheader)
   allpairs_thread_worker_run();
   progress_done();
   
-  fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
-          qmatches, queries, 100.0 * qmatches / queries);
+  if (!opt_quiet)
+    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
+            qmatches, queries, 100.0 * qmatches / queries);
+
+  if (opt_log)
+    {
+      fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n\n", 
+              qmatches, queries, 100.0 * qmatches / queries);
+    }
 
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);

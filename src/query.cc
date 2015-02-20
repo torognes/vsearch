@@ -185,7 +185,17 @@ void query_close()
         if (query_stripped[i])
           fprintf(stderr, " %c(%d)", i, query_stripped[i]);
       fprintf(stderr, "\n");
+
+      if (opt_log)
+        {
+          fprintf(fp_log, "WARNING: invalid characters stripped from query:");
+          for (int i=0; i<256;i++)
+            if (query_stripped[i])
+              fprintf(fp_log, " %c(%d)", i, query_stripped[i]);
+          fprintf(fp_log, "\n");
+        }
     }
+
 #ifdef HAVE_BZLIB
   if (query_format == FORMAT_BZIP)
     BZ2_bzReadClose(&bz_error, bz_query_fp);

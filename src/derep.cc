@@ -302,9 +302,15 @@ void derep_fulllength()
   
   average = 1.0 * sumsize / clusters;
 
-  fprintf(stderr,
-          "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n",
-          clusters, average, median, maxsize);
+  if (!opt_quiet)
+    fprintf(stderr,
+            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n",
+            clusters, average, median, maxsize);
+
+  if (opt_log)
+    fprintf(fp_log,
+            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n\n",
+            clusters, average, median, maxsize);
 
   show_rusage();
   
@@ -382,11 +388,20 @@ void derep_fulllength()
     }
 
   if (selected < clusters)
-    fprintf(stderr,
-            "%ld uniques written, %ld clusters discarded (%.1f%%)\n",
-            selected, clusters - selected,
-            100.0 * (clusters - selected) / clusters);
+    {
+      if (!opt_quiet)
+        fprintf(stderr,
+                "%ld uniques written, %ld clusters discarded (%.1f%%)\n",
+                selected, clusters - selected,
+                100.0 * (clusters - selected) / clusters);
 
+      if (opt_log)
+        fprintf(fp_log,
+                "%ld uniques written, %ld clusters discarded (%.1f%%)\n\n",
+                selected, clusters - selected,
+                100.0 * (clusters - selected) / clusters);
+    }
+  
   free(nextseqtab);
   free(hashtable);
   db_free();

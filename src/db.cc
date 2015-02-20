@@ -392,19 +392,39 @@ void db_read(const char * filename, int upcase)
   progress_done();
   free(prompt);
 
-  if (sequences > 0)
-    fprintf(stderr,
-            "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n", 
-            db_getnucleotidecount(),
-            db_getsequencecount(),
-            db_getshortestsequence(),
-            db_getlongestsequence(),
-            db_getnucleotidecount() * 1.0 / db_getsequencecount());
-  else
-    fprintf(stderr,
-            "%'ld nt in %'ld seqs\n", 
-            db_getnucleotidecount(),
-            db_getsequencecount());
+  if (!opt_quiet)
+    {
+      if (sequences > 0)
+        fprintf(stderr,
+                "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n", 
+                db_getnucleotidecount(),
+                db_getsequencecount(),
+                db_getshortestsequence(),
+                db_getlongestsequence(),
+                db_getnucleotidecount() * 1.0 / db_getsequencecount());
+      else
+        fprintf(stderr,
+                "%'ld nt in %'ld seqs\n", 
+                db_getnucleotidecount(),
+                db_getsequencecount());
+    }
+
+  if (opt_log)
+    {
+      if (sequences > 0)
+        fprintf(fp_log,
+                "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n\n", 
+                db_getnucleotidecount(),
+                db_getsequencecount(),
+                db_getshortestsequence(),
+                db_getlongestsequence(),
+                db_getnucleotidecount() * 1.0 / db_getsequencecount());
+      else
+        fprintf(fp_log,
+                "%'ld nt in %'ld seqs\n\n", 
+                db_getnucleotidecount(),
+                db_getsequencecount());
+    }
 
   /* Warn about stripped chars */
 
@@ -415,23 +435,45 @@ void db_read(const char * filename, int upcase)
         if (stripped[i])
           fprintf(stderr, " %c(%d)", i, stripped[i]);
       fprintf(stderr, "\n");
-    }
 
+      if (opt_log)
+        {
+          fprintf(fp_log, 
+                  "WARNING: invalid characters stripped from sequence:");
+          for (int i=0; i<256;i++)
+            if (stripped[i])
+              fprintf(fp_log, " %c(%d)", i, stripped[i]);
+          fprintf(fp_log, "\n\n");
+        }
+    }
 
   /* Warn about discarded sequences */
 
   if (discarded_short)
-    fprintf(stderr,
-            "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n",
-            discarded_short, opt_minseqlength);
+    {
+      fprintf(stderr,
+              "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n",
+              discarded_short, opt_minseqlength);
+
+      if (opt_log)
+        fprintf(fp_log,
+                "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n\n",
+                discarded_short, opt_minseqlength);
+    }
   
   if (discarded_long)
-    fprintf(stderr,
-            "WARNING: %lu sequences longer than %lu nucleotides discarded.\n",
-            discarded_long, opt_maxseqlength);
+    {
+      fprintf(stderr,
+              "WARNING: %lu sequences longer than %lu nucleotides discarded.\n",
+              discarded_long, opt_maxseqlength);
+
+      if (opt_log)
+        fprintf(fp_log,
+                "WARNING: %lu sequences longer than %lu nucleotides discarded.\n\n",
+                discarded_long, opt_maxseqlength);
+    }
 
   show_rusage();
-  
 
   progress_init("Indexing sequences", sequences);
 

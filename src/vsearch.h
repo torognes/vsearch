@@ -85,7 +85,7 @@
 #include "allpairs.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.0.16"
+#define PROG_VERSION "v1.1.0"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -109,6 +109,7 @@
 
 /* options */
 
+extern bool opt_quiet;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_blast6out;
@@ -124,6 +125,7 @@ extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
 extern char * opt_fastapairs;
+extern char * opt_log;
 extern char * opt_maskfasta;
 extern char * opt_matched;
 extern char * opt_msaout;
@@ -233,3 +235,5 @@ extern long sse42_present;
 extern long popcnt_present;
 extern long avx_present;
 extern long avx2_present;
+
+extern FILE * fp_log;
