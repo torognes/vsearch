@@ -22,13 +22,13 @@
 #include "vsearch.h"
 
 unsigned int * kmercount;
-unsigned int * kmerhash;
+unsigned long * kmerhash;
 unsigned int * kmerindex;
 bitmap_t * * kmerbitmap;
 unsigned int * dbindex_map;
 
 unsigned int kmerhashsize;
-unsigned int kmerindexsize;
+unsigned long kmerindexsize;
 unsigned int dbindex_count;
 
 uhandle_s * dbindex_uh;
@@ -128,8 +128,8 @@ void dbindex_prepare(int use_bitmap)
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
-  kmerhash = (unsigned int *) xmalloc((kmerhashsize+1) * sizeof(unsigned int));
-  unsigned int sum = 0;
+  kmerhash = (unsigned long *) xmalloc((kmerhashsize+1) * sizeof(unsigned long));
+  unsigned long sum = 0;
   for(unsigned int i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = sum;

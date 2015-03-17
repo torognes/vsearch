@@ -1569,31 +1569,19 @@ void cmd_none()
             "\n"
             "Some basic command examples:\n"
             "\n"
-            "%s --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
-            "%s --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
-            "%s --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
-            "%s --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
-            "%s --derep_fulllength FILENAME --output FILENAME\n"
-            "%s --maskfasta FILENAME --output FILENAME\n"
-            "%s --shuffle FILENAME --output FILENAME\n"
-            "%s --sortbylength FILENAME --output FILENAME\n"
-            "%s --sortbysize FILENAME --output FILENAME\n"
-            "%s --uchime_denovo FILENAME --nonchimeras FILENAME\n"
-            "%s --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
-            "%s --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
+            "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
+            "vsearch --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
+            "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
+            "vsearch --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
+            "vsearch --derep_fulllength FILENAME --output FILENAME\n"
+            "vsearch --maskfasta FILENAME --output FILENAME\n"
+            "vsearch --shuffle FILENAME --output FILENAME\n"
+            "vsearch --sortbylength FILENAME --output FILENAME\n"
+            "vsearch --sortbysize FILENAME --output FILENAME\n"
+            "vsearch --uchime_denovo FILENAME --nonchimeras FILENAME\n"
+            "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
+            "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
             "\n",
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
-            progname,
             progname);
 }
 
