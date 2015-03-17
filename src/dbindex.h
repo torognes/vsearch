@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -20,7 +20,7 @@
 */
 
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
-extern unsigned int * kmerhash;  /* index into the list below for each kmer */
+extern unsigned long * kmerhash;  /* index into the list below for each kmer */
 extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
 extern bitmap_t * * kmerbitmap;
 extern unsigned int * dbindex_map;
