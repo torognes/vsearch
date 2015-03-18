@@ -44,7 +44,7 @@ static pthread_t * pthread;
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
 static unsigned int seqno = 0;
-static int progress = 0;
+static unsigned long progress = 0;
 static int chimera_count = 0;
 static int nonchimera_count = 0;
 static FILE * fp_chimeras = 0;
@@ -1372,7 +1372,7 @@ void chimera()
 
   tophits = opt_maxaccepts + opt_maxrejects;
 
-  int progress_total;
+  unsigned long progress_total;
   chimera_count = 0;
   nonchimera_count = 0;
   progress = 0;

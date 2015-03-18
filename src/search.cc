@@ -280,7 +280,7 @@ void search_thread_run(long t)
           strcpy(si_plus[t].qsequence, qseq);
           
           /* get progress as amount of input file read */
-          int progress = query_getfilepos();
+          unsigned long progress = query_getfilepos();
 
           /* let other threads read input */
           pthread_mutex_unlock(&mutex_input);
