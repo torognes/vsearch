@@ -1,4 +1,3 @@
-# VSEARCH
 
 ---
 ## JOB ANNOUNCEMENT
@@ -11,6 +10,7 @@ Closing date for applications: 13 April 2015.
 ---
 
 
+# VSEARCH
 
 ## Introduction
 
