@@ -1,6 +1,16 @@
 # VSEARCH
 
-[![DOI](https://zenodo.org/badge/8128/torognes/vsearch.svg)](http://dx.doi.org/10.5281/zenodo.15478)
+---
+## JOB ANNOUNCEMENT
+Would you like to work with research and development of [VSEARCH](https://github.com/torognes/vsearch),
+[Swarm](https://github.com/torognes/swarm) or other open source tools for metagenomics?
+A position as [PhD research fellow in bioinformatics](http://uio.easycruit.com/vacancy/1356637/64290)
+is now available at the Department of Informatics, University of Oslo, Norway.
+Closing date for applications: 13 April 2015.
+
+---
+
+
 
 ## Introduction
 
