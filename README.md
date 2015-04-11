@@ -28,7 +28,7 @@ VSEARCH stands for vectorized search, as the tool takes advantage of parallelism
 
 The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
-VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X.
+VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X (10.7 or higher).
 
 When compiled with the zlib and bzip2 libraries (as in the supplied binaries), VSEARCH can directly read input query and database files that are compressed (.gz and .bz2).
 
