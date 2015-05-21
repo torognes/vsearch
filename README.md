@@ -32,6 +32,10 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 `./vsearch-1.1.3-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
+## Galaxy wrapper
+
+If you want to use VSEARCH in [Galaxy](https://usegalaxy.org/), there is now a Galaxy wrapper for VSEARCH in the Galaxy tool shed: https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/
+
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
