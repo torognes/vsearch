@@ -36,6 +36,10 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 If you want to use VSEARCH in [Galaxy](https://usegalaxy.org/), there is now a Galaxy wrapper for VSEARCH in the Galaxy tool shed: https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/
 
+## Debian package
+
+There is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/), thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team. The example/test data is available in a separate [vsearch-data](https://packages.debian.org/sid/science/vsearch-data) package.
+
 ## Download and install
 
 The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
