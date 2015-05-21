@@ -273,9 +273,9 @@ VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/
 
 VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in the public domain.
 
-VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler.
+VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
 
-VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward.
+VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward, distributed under a BSD-style license.
 
 
 ## Code
