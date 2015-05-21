@@ -32,39 +32,34 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 `./vsearch-1.1.3-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
-## Galaxy wrapper
-
-If you want to use VSEARCH in [Galaxy](https://usegalaxy.org/), there is now a Galaxy wrapper for VSEARCH in the Galaxy tool shed: https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/
-
-## Debian package
-
-There is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/), thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team. The example/test data is available in a separate [vsearch-data](https://packages.debian.org/sid/science/vsearch-data) package.
-
 ## Download and install
 
-The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
-
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
-
-Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
+**binaries** The latest VSEARCH binaries are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
 
 ```sh
 cd ~
 mkdir -p bin
-cd bin
+cd ./bin/
 wget https://github.com/torognes/vsearch/releases/download/v1.1.3/vsearch-1.1.3-linux-x86_64
 ln -s vsearch-1.1.3-linux-x86_64 vsearch
 ```
 
-Substitute `linux` with `osx` in those lines if you're on a Mac.
+**source code** Use the following commands to clone the entire repository and build the executable:
 
-The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file or a symbolic link to it in a folder included in your `$MANPATH`.
+```sh
+git clone https://github.com/torognes/vsearch.git`
+cd ./vsearch/src/
+make -f Makefile
+cd ../bin/
+```
 
-The entire repository may be cloned with the following command: `git clone https://github.com/torognes/vsearch.git`
+The alternative makefiles `Makefile.ZLIB`, `Makefile.BZLIB` and `Makefile.static` may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be downloaded and installed in folders called `zlib` and/or `bzip2`, respectively, below the main `vsearch` folder.
 
-Run `make -f Makefile` within the `src` folder to build the executable.
+**documentation** The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). To install the manpage, copy `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`.
 
-The alternative makefiles Makefile.ZLIB, Makefile.BZLIB and Makefile.static may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be downloaded and installed in folders called `zlib` and/or `bzip2`, respectively, below the main `vsearch` folder.
+**Galaxy wrapper** Thanks to the work of the [Intergalactic Utilities Commission](https://wiki.galaxyproject.org/IUC) members, vsearch is now part of the [Galaxy ToolShed](https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/).
+
+**Debian package** Thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team, there is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/). The `example/test` data is available in a separate [vsearch-data](https://packages.debian.org/sid/science/vsearch-data) package.
 
 ## Implementation details and initial assessment
 
