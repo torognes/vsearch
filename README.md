@@ -327,7 +327,7 @@ or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?s
 
 ## Limitations
 
-* VSEARCH is designed for rather short sequences, and will be slow when sequences are longer than about 5000bp. This is because it always performs optimal global alignment on selected sequences.
+VSEARCH is designed for rather short sequences, and will be slow when sequences are longer than about 5,000 bp. This is because it always performs optimal global alignment on selected sequences.
 
 
 ## Future work
