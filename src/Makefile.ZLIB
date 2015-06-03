@@ -45,7 +45,7 @@ DEPS=Makefile cityhash/city.h cityhash/config.h \
 	dbindex.h derep.h maps.h mask.h minheap.h msa.h query.h results.h \
 	search.h searchcore.h showalign.h shuffle.h sortbylength.h \
 	sortbysize.h unique.h userfields.h util.h vsearch.h \
-	allpairs.h linmemalign.h
+	allpairs.h linmemalign.h xstring.h
 
 .SUFFIXES:.o .cc
 
