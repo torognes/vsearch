@@ -61,7 +61,7 @@ The alternative makefiles `Makefile.ZLIB`, `Makefile.BZLIB` and `Makefile.static
 
 **Debian package** Thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team, there is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/). The `example/test` data is available in a separate [vsearch-data](https://packages.debian.org/sid/science/vsearch-data) package.
 
-**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a vsearch package for [Homebrew](http://brew.sh/) (has been made)[https://github.com/Homebrew/homebrew-science/pull/2409].
+**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a vsearch package for [Homebrew](http://brew.sh/) [has been made](https://github.com/Homebrew/homebrew-science/pull/2409).
 
 ## Implementation details and initial assessment
 
