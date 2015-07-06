@@ -1,15 +1,3 @@
-
----
-## JOB ANNOUNCEMENT
-Would you like to work with research and development of [VSEARCH](https://github.com/torognes/vsearch),
-[Swarm](https://github.com/torognes/swarm) or other open source tools for metagenomics?
-A position as [PhD research fellow in bioinformatics](http://uio.easycruit.com/vacancy/1356637/64290)
-is now available at the Department of Informatics, University of Oslo, Norway.
-Closing date for applications: 13 April 2015.
-
----
-
-
 # VSEARCH
 
 ## Introduction
@@ -28,7 +16,7 @@ VSEARCH stands for vectorized search, as the tool takes advantage of parallelism
 
 The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
 
-VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X.
+VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X (10.7 or higher).
 
 When compiled with the zlib and bzip2 libraries (as in the supplied binaries), VSEARCH can directly read input query and database files that are compressed (.gz and .bz2).
 
@@ -46,29 +34,34 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 ## Download and install
 
-The latest releases of VSEARCH are available [here](https://github.com/torognes/vsearch/releases).
-
-Binary executables of VSEARCH are available in the `bin` folder for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for  input files compressed by zlib and bzip2 (with files usually ending in .gz or .bz2).
-
-Download the appropriate executable and make a symbolic link in a folder included in your `$PATH` from `vsearch` to the appropriate binary. You may use the following commands (assuming `~/bin` is in your `$PATH`):
+**binaries** The latest VSEARCH binaries are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
 
 ```sh
 cd ~
 mkdir -p bin
-cd bin
+cd ./bin/
 wget https://github.com/torognes/vsearch/releases/download/v1.1.3/vsearch-1.1.3-linux-x86_64
 ln -s vsearch-1.1.3-linux-x86_64 vsearch
 ```
 
-Substitute `linux` with `osx` in those lines if you're on a Mac.
+**source code** Use the following commands to clone the entire repository and build the executable:
 
-The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). Put the `vsearch.1` file or a symbolic link to it in a folder included in your `$MANPATH`.
+```sh
+git clone https://github.com/torognes/vsearch.git`
+cd ./vsearch/src/
+make -f Makefile
+cd ../bin/
+```
 
-The entire repository may be cloned with the following command: `git clone https://github.com/torognes/vsearch.git`
+The alternative makefiles `Makefile.ZLIB`, `Makefile.BZLIB` and `Makefile.static` may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be downloaded and installed in folders called `zlib` and/or `bzip2`, respectively, below the main `vsearch` folder.
 
-Run `make -f Makefile` within the `src` folder to build the executable.
+**documentation** The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). To install the manpage, copy `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`.
 
-The alternative makefiles Makefile.ZLIB, Makefile.BZLIB and Makefile.static may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be downloaded and installed in folders called `zlib` and/or `bzip2`, respectively, below the main `vsearch` folder.
+**Galaxy wrapper** Thanks to the work of the [Intergalactic Utilities Commission](https://wiki.galaxyproject.org/IUC) members, vsearch is now part of the [Galaxy ToolShed](https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/).
+
+**Debian package** Thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team, there is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/). The `example/test` data is available in a separate [vsearch-data](https://packages.debian.org/sid/science/vsearch-data) package.
+
+**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a vsearch package for [Homebrew](http://brew.sh/) [has been made](https://github.com/Homebrew/homebrew-science/pull/2409).
 
 ## Implementation details and initial assessment
 
@@ -282,9 +275,9 @@ VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/
 
 VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in the public domain.
 
-VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler.
+VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
 
-VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward.
+VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward, distributed under a BSD-style license.
 
 
 ## Code
@@ -336,7 +329,7 @@ or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?s
 
 ## Limitations
 
-* VSEARCH is designed for rather short sequences, and will be slow when sequences are longer than about 5000bp. This is because it always performs optimal global alignment on selected sequences.
+VSEARCH is designed for rather short sequences, and will be slow when sequences are longer than about 5,000 bp. This is because it always performs optimal global alignment on selected sequences.
 
 
 ## Future work
