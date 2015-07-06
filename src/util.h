@@ -51,3 +51,7 @@ int detect_compress_format (const char * filename);
 char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
                  int * bz_error_ptr, char * buf_internal, long * buf_internal_len);
 #endif
+
+void random_init();
+long random_int(long n);
+unsigned long random_ulong(unsigned long n);
