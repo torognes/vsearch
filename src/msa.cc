@@ -103,7 +103,7 @@ void msa_add(char c)
   aln[alnpos++] = c;
 }
 
-void msa(FILE * fp_msaout, FILE * fp_consout,
+void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list)
 {
@@ -307,6 +307,33 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
       fprint_fasta_seq_only(fp_consout, cons, conslen, opt_fasta_width);
     }
   
+  if (fp_profile)
+    {
+      fprintf(fp_profile, ">centroid=%s;seqs=%d;\n",
+              db_getheader(centroid_seqno), target_count);
+
+      for (int i=0; i<alnlen; i++)
+        {
+          fprintf(fp_profile, "%d\t%c", i, aln[i]);
+          int nongap_count = 0;
+          for (int c=0; c<4; c++)
+            {
+              int count = profile[4*i+c];
+              nongap_count += count;
+              if (count % 12 == 0)
+                fprintf(fp_profile, "\t%d", count / 12);
+              else
+                fprintf(fp_profile, "\t%.2f", 1.0 * count / 12.0);
+            }
+          if (nongap_count % 12 == 0)
+            fprintf(fp_profile, "\t%d", target_count - nongap_count / 12);
+          else
+            fprintf(fp_profile, "\t%.2f", 1.0 * target_count - 1.0 * nongap_count / 12.0);
+          fprintf(fp_profile, "\n");
+        }
+      fprintf(fp_profile, "\n");
+    }
+
   free(maxi);
   free(aln);
   free(cons);

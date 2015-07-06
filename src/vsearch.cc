@@ -48,6 +48,7 @@ char * opt_nonchimeras;
 char * opt_notmatched;
 char * opt_output;
 char * opt_pattern;
+char * opt_profile;
 char * opt_relabel;
 char * opt_samout;
 char * opt_subsample;
@@ -477,6 +478,7 @@ void args_init(int argc, char **argv)
   opt_output = 0;
   opt_output_no_hits = 0;
   opt_pattern = 0;
+  opt_profile = 0;
   opt_qmask = MASK_DUST;
   opt_query_cov = 0.0;
   opt_quiet = false;
@@ -627,6 +629,7 @@ void args_init(int argc, char **argv)
     {"subsample",             required_argument, 0, 0 },
     {"fraction",              required_argument, 0, 0 },
     {"fastq_chars",           required_argument, 0, 0 },
+    {"profile",               required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1214,6 +1217,11 @@ void args_init(int argc, char **argv)
           opt_fastq_chars = optarg;
           break;
 
+        case 109:
+          /* profile */
+          opt_profile = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1413,6 +1421,7 @@ void cmd_help()
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
               "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
+              "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "  --sizein                    propagate abundance annotation from input\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
@@ -1639,7 +1648,7 @@ void cmd_cluster()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_centroids) && (!opt_clusters) &&
       (!opt_consout) && (!opt_msaout) &&
-      (!opt_samout))
+      (!opt_samout) && (!opt_profile))
     fatal("No output files specified");
   
   if ((opt_id < 0.0) || (opt_id > 1.0))

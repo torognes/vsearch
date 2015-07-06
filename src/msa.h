@@ -26,6 +26,6 @@ struct msa_target_s
   int strand;
 };
 
-void msa(FILE * fp_msaout, FILE * fp_consout,
+void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list);

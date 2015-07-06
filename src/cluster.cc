@@ -1152,7 +1152,7 @@ void cluster(char * dbname,
       fprintf(fp_log, "\n");
     }
 
-  if (opt_msaout || opt_consout)
+  if (opt_msaout || opt_consout || opt_profile)
     {
       int msa_target_count = 0;
       struct msa_target_s * msa_target_list =
@@ -1161,6 +1161,7 @@ void cluster(char * dbname,
 
       FILE * fp_msaout = 0;
       FILE * fp_consout = 0;
+      FILE * fp_profile = 0;
 
       if (opt_msaout)
         if (!(fp_msaout = fopen(opt_msaout, "w")))
@@ -1169,6 +1170,10 @@ void cluster(char * dbname,
       if (opt_consout)
         if (!(fp_consout = fopen(opt_consout, "w")))
           fatal("Unable to open consout file");
+
+      if (opt_profile)
+        if (!(fp_profile = fopen(opt_profile, "w")))
+          fatal("Unable to open profile file");
 
       int lastcluster = 0;
 
@@ -1182,7 +1187,8 @@ void cluster(char * dbname,
           if (clusterno != lastcluster)
             {
               /* compute msa & consensus */
-              msa(fp_msaout, fp_consout, lastcluster,
+              msa(fp_msaout, fp_consout, fp_profile,
+                  lastcluster,
                   msa_target_count, msa_target_list);
 
               /* start new cluster */
@@ -1200,10 +1206,14 @@ void cluster(char * dbname,
         }
 
       /* compute msa & consensus */
-      msa(fp_msaout, fp_consout, lastcluster,
+      msa(fp_msaout, fp_consout, fp_profile,
+          lastcluster,
           msa_target_count, msa_target_list);
 
       progress_done();
+
+      if (fp_profile)
+        fclose(fp_profile);
 
       if (fp_msaout)
         fclose(fp_msaout);
