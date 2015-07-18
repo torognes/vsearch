@@ -1670,7 +1670,7 @@ void show_header()
     }
 }
 
-int main(int argc, char** argv)
+int vsearch_main(int argc, char** argv)
 {
   fillheader();
   getentirecommandline(argc, argv);

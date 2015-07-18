@@ -20,7 +20,7 @@
 # Profiling
 #PROFILING=-g -fprofile-arcs -ftest-coverage
 #PROFILING=-g -pg
-PROFILING=-g
+#PROFILING=-g
 
 # Compiler warnings
 WARN=-Wall -Wsign-compare
@@ -30,8 +30,11 @@ CXX=g++
 CXXFLAGS=-O3 -msse2 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
 LINKFLAGS=$(PROFILING)
 LIBS=-lpthread
+TEST_LIBS=-lcheck -lm -lrt
 
-PROG=vsearch
+-include tests/subdir.mk
+
+PROG=vsearch vsearch_check
 
 OBJS=cityhash/city.o \
 	align.o align_simd.o arch.o bitmap.o chimera.o cluster.o cpu_sse2.o \
@@ -53,7 +56,10 @@ DEPS=Makefile cityhash/city.h cityhash/config.h \
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 vsearch : $(OBJS)
-	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CXX) $(LINKFLAGS) -o $@ vsearch_main.c $(OBJS) $(LIBS)
+
+vsearch_check : vsearch $(TESTS)
+	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(TESTS) $(TEST_LIBS) $(LIBS)
 
 all : $(PROG)
 

@@ -237,3 +237,7 @@ extern long avx_present;
 extern long avx2_present;
 
 extern FILE * fp_log;
+
+/* Main entry point into VSEARCH */
+int vsearch_main(int argc, char** argv);
+
