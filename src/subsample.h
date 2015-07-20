@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014-2015 Torbjorn Rognes
+    Copyright (C) 2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -19,13 +19,4 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-struct msa_target_s
-{
-  int seqno;
-  char * cigar;
-  int strand;
-};
-
-void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
-         int cluster,
-         int target_count, struct msa_target_s * target_list);
+void subsample();

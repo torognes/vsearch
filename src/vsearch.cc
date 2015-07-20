@@ -39,6 +39,7 @@ char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
 char * opt_fastapairs;
+char * opt_fastq_chars;
 char * opt_log;
 char * opt_maskfasta;
 char * opt_matched;
@@ -47,8 +48,10 @@ char * opt_nonchimeras;
 char * opt_notmatched;
 char * opt_output;
 char * opt_pattern;
+char * opt_profile;
 char * opt_relabel;
 char * opt_samout;
+char * opt_subsample;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
@@ -61,6 +64,7 @@ char * opt_usearch_global;
 char * opt_userout;
 double opt_abskew;
 double opt_dn;
+double opt_fraction;
 double opt_id;
 double opt_maxid;
 double opt_maxqt;
@@ -415,6 +419,8 @@ void args_init(int argc, char **argv)
   opt_dn = 1.4;
   opt_fasta_width = 80;
   opt_fastapairs = 0;
+  opt_fastq_chars = 0;
+  opt_fraction = 0.1;
   opt_fulldp = 0;
   opt_gap_extension_query_interior=2;
   opt_gap_extension_query_left=1;
@@ -472,6 +478,7 @@ void args_init(int argc, char **argv)
   opt_output = 0;
   opt_output_no_hits = 0;
   opt_pattern = 0;
+  opt_profile = 0;
   opt_qmask = MASK_DUST;
   opt_query_cov = 0.0;
   opt_quiet = false;
@@ -479,6 +486,7 @@ void args_init(int argc, char **argv)
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samout = 0;
+  opt_subsample = 0;
   opt_seed = 0;
   opt_self = 0;
   opt_selfid = 0;
@@ -618,6 +626,10 @@ void args_init(int argc, char **argv)
     {"samout",                required_argument, 0, 0 },
     {"log",                   required_argument, 0, 0 },
     {"quiet",                 no_argument,       0, 0 },
+    {"subsample",             required_argument, 0, 0 },
+    {"fraction",              required_argument, 0, 0 },
+    {"fastq_chars",           required_argument, 0, 0 },
+    {"profile",               required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1190,6 +1202,26 @@ void args_init(int argc, char **argv)
           opt_quiet = true;
           break;
 
+        case 106:
+          /* subsample */
+          opt_subsample = optarg;
+          break;
+
+        case 107:
+          /* fraction */
+          opt_fraction = atof(optarg);
+          break;
+
+        case 108:
+          /* fastq_chars */
+          opt_fastq_chars = optarg;
+          break;
+
+        case 109:
+          /* profile */
+          opt_profile = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1199,6 +1231,8 @@ void args_init(int argc, char **argv)
     exit(EXIT_FAILURE);
 
   int commands = 0;
+  if (opt_fastq_chars)
+    commands++;
   if (opt_usearch_global)
     commands++;
   if (opt_sortbysize)
@@ -1212,6 +1246,8 @@ void args_init(int argc, char **argv)
   if (opt_version)
     commands++;
   if (opt_shuffle)
+    commands++;
+  if (opt_subsample)
     commands++;
   if (opt_maskfasta)
     commands++;
@@ -1280,6 +1316,9 @@ void args_init(int argc, char **argv)
   
   if (opt_dbmask == MASK_ERROR)
     fatal("The argument to --dbmask must be none, dust or soft");
+
+  if ((opt_fraction < 0.0) || (opt_fraction > 1.0))
+    fatal("The argument to --fraction must be in the range 0.0 to 1.0");
   
   /* TODO: check valid range of gap penalties */
 
@@ -1382,6 +1421,7 @@ void cmd_help()
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
               "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
+              "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "  --sizein                    propagate abundance annotation from input\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
@@ -1480,6 +1520,13 @@ void cmd_help()
               "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
               "  --topn INT                  output just top n seqs after sorting\n"
               "\n"
+              "Subsampling options\n"
+              "  --subsample FILENAME        subsample sequences from given file\n"
+              "  --fraction REAL             sampling fraction between 0.0 and 1.0 (0.1)\n"
+              "  --output FILENAME           output FASTA file for subsamples \n"
+              "\n"
+              "FASTQ file processing\n"
+              "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
           );
     }
 }
@@ -1490,7 +1537,8 @@ void cmd_allpairs_global()
 
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched))
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_samout))
     fatal("No output files specified");
   
   if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0)))) 
@@ -1551,6 +1599,14 @@ void cmd_shuffle()
   shuffle();
 }
 
+void cmd_subsample()
+{
+  if (!opt_output)
+    fatal("Output file for subsampling must be specified with --output");
+  
+  subsample();
+}
+
 void cmd_maskfasta()
 {
   if (!opt_output)
@@ -1591,7 +1647,8 @@ void cmd_cluster()
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_centroids) && (!opt_clusters) &&
-      (!opt_consout) && (!opt_msaout))
+      (!opt_consout) && (!opt_msaout) &&
+      (!opt_samout) && (!opt_profile))
     fatal("No output files specified");
   
   if ((opt_id < 0.0) || (opt_id > 1.0))
@@ -1724,6 +1781,10 @@ int vsearch_main(int argc, char** argv)
     {
       cmd_shuffle();
     }
+  else if (opt_subsample)
+    {
+      cmd_subsample();
+    }
   else if (opt_maskfasta)
     {
       cmd_maskfasta();
@@ -1735,6 +1796,10 @@ int vsearch_main(int argc, char** argv)
   else if (opt_uchime_denovo || opt_uchime_ref)
     {
       cmd_uchime();
+    }
+  else if (opt_fastq_chars)
+    {
+      fastq_chars();
     }
   else if (opt_version)
     {

@@ -83,9 +83,11 @@
 #include "chimera.h"
 #include "cpu.h"
 #include "allpairs.h"
+#include "subsample.h"
+#include "fastqread.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.1.3"
+#define PROG_VERSION "v1.2.1"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -125,6 +127,7 @@ extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
 extern char * opt_fastapairs;
+extern char * opt_fastq_chars;
 extern char * opt_log;
 extern char * opt_maskfasta;
 extern char * opt_matched;
@@ -133,8 +136,10 @@ extern char * opt_nonchimeras;
 extern char * opt_notmatched;
 extern char * opt_output;
 extern char * opt_pattern;
+extern char * opt_profile;
 extern char * opt_relabel;
 extern char * opt_samout;
+extern char * opt_subsample;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
@@ -147,6 +152,7 @@ extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double opt_abskew;
 extern double opt_dn;
+extern double opt_fraction;
 extern double opt_id;
 extern double opt_maxid;
 extern double opt_maxqt;

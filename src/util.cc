@@ -274,3 +274,54 @@ int detect_compress_format (const char * filename)
   return FORMAT_PLAIN;
 }
 
+void random_init()
+{
+  /* initialize pseudo-random number generator */
+  unsigned int seed = opt_seed;
+  if (seed == 0)
+    {
+      int fd = open("/dev/urandom", O_RDONLY);
+      if (fd < 0)
+        fatal("Unable to open /dev/urandom");
+      if (read(fd, & seed, sizeof(seed)) < 0)
+        fatal("Unable to read from /dev/urandom");
+      close(fd);
+    }
+  srandom(seed);
+}
+
+long random_int(long n)
+{
+  /*
+    Generate a random integer in the range 0 to n-1, inclusive.
+    n must be > 0
+    The random() function returns a random number in the range
+    0 to 2147483647 (=2^31-1=RAND_MAX), inclusive.
+    We should avoid some of the upper generated numbers to
+    avoid modulo bias.
+  */
+
+  long random_max = RAND_MAX;
+  long limit = random_max - (random_max + 1) % n;
+  long r = random();
+  while (r > limit)
+    r = random();
+  return r % n;
+}
+
+unsigned long random_ulong(unsigned long n)
+{
+  /*
+    Generate a random integer in the range 0 to n-1, inclusive,
+    n must be > 0
+  */
+
+  unsigned long random_max = ULONG_MAX;
+  unsigned long limit = random_max - (random_max - n + 1) % n;
+  unsigned long r = ((random() << 48) ^ (random() << 32) ^
+                     (random() << 16) ^ (random()));
+  while (r > limit)
+    r = ((random() << 48) ^ (random() << 32) ^
+         (random() << 16) ^ (random()));
+  return r % n;
+}
