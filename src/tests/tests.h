@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+void add_dprofile_fill_TC( Suite *s );
 void add_align_simd_TC( Suite *s );
 
 #endif /* CHECK_VSEARCH_H_ */

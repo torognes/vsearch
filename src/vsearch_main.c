@@ -21,5 +21,5 @@ extern int vsearch_main(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
-	vsearch_main(argc, argv);
+	return vsearch_main(argc, argv);
 }

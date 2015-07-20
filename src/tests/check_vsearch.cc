@@ -22,7 +22,8 @@
 Suite* vsearch_suite( void ) {
     Suite *s = suite_create( "vsearch" );
 
-    add_align_simd_TC( s );
+    add_dprofile_fill_TC(s);
+    add_align_simd_TC(s);
 
     return s;
 }
