@@ -20,6 +20,8 @@
 #include "tests.h"
 
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include "../vsearch.h"
 #include "../align_simd.h"
@@ -33,11 +35,17 @@ extern void dprofile_fill16(CELL * dprofile_word,
                             CELL * score_matrix_word,
                             BYTE * dseq);
 
+static BYTE dseq[CDEPTH * CHANNELS];
+static CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM];
+
 /* Is run once before each unit test */
 static void setup()
 {
   opt_match = 5;
   opt_mismatch = -4;
+
+  memset(matrix, 0, SCORE_MATRIX_DIM*SCORE_MATRIX_DIM);
+  memset(dseq, 0, CDEPTH * CHANNELS);
 }
 
 /* Is run once after each unit test */
@@ -89,6 +97,7 @@ void print_search_window(BYTE * dseq)
 
 void check_profile(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM], CELL* dprofile, BYTE* dseq)
 {
+  //      print_profile(dprofile);
   for (int i = 0; i<SCORE_MATRIX_DIM; ++i)
     {
       for (int j = 0; j<CDEPTH; ++j)
@@ -104,7 +113,7 @@ void check_profile(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM], CELL* dprofil
     }
 }
 
-/* copied from align_simd.c -> search16_init() */
+/* copied from search16_init() in align_simd.c */
 void fill_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
 {
   for (int i = 0; i<SCORE_MATRIX_DIM; i++)
@@ -119,41 +128,101 @@ void fill_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
           value = opt_mismatch;
         matrix[SCORE_MATRIX_DIM*i+j] = value;
       }
+  //      print_matrix(matrix);
+}
+
+void fill_search_window(int dseq_count, int db_sequences[][CDEPTH])
+{
+  for (int j = 0; j<dseq_count; ++j)
+    for (int i = 0; i<CDEPTH; ++i)
+      {
+        dseq[CHANNELS*i+j] = chrmap_4bit[db_sequences[j][i]];
+      }
+//        print_search_window(dseq);
 }
 
 START_TEST (test_dprofile_fill_nucleotide_simple)
     {
-      BYTE * dseq = (BYTE *)calloc(1, CDEPTH * CHANNELS);
+      int dseq_count = 1;
 
-      int k = 1;
-
-      int dseq_orig[][4] = {{ 'A', 'C', 'A', 'T' }, }; // ACAT
-      for (int j = 0; j < k; ++j)
-          for (int i = 0; i < CDEPTH; ++i) {
-              dseq[CHANNELS*i+k] = chrmap_4bit[dseq_orig[j][i]];
-          }
-//      print_search_window(dseq);
-
-      CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM];
+      int db_sequences[][CDEPTH] = {{ 'A', 'C', 'A', 'T' }, };
+      fill_search_window(dseq_count, db_sequences);
 
       fill_matrix(matrix);
-//      print_matrix(matrix);
 
       CELL * dprofile = (CELL*)xmalloc(2*4*8*16);
 
       dprofile_fill16(dprofile, matrix, dseq);
-//      print_profile(dprofile);
+
+      check_profile(matrix, dprofile, dseq);
+    }END_TEST
+
+START_TEST (test_dprofile_fill_nucleotide_more)
+    {
+      int dseq_count = CHANNELS;
+
+      int db_sequences[][CDEPTH] = {
+          { 'A', 'C', 'A', 'T' },
+          { 'A', 'T', 'C', 'C' },
+          { 'T', 'T', 'T', 'T' },
+          { 'A', 'A', 0, 0 },
+          { 'C', 'T', 'C', 'C' },
+          { 'A', 'C', 'T', 'C' },
+          { 'A', 'T', 'A', 0 },
+          { 'C', 'A', 'C', 'C' }};
+      fill_search_window(dseq_count, db_sequences);
+
+      fill_matrix(matrix);
+
+      CELL * dprofile = (CELL*)xmalloc(2*4*8*16);
+
+      dprofile_fill16(dprofile, matrix, dseq);
+
+      check_profile(matrix, dprofile, dseq);
+    }END_TEST
+
+START_TEST (test_dprofile_fill_nucleotide_perf)
+    {
+      int dseq_count = 1;
+
+      int db_sequences[][CDEPTH] = { { 'A', 'C', 'A', 'T' }, };
+      fill_search_window(dseq_count, db_sequences);
+
+      fill_matrix(matrix);
+
+      CELL * dprofile = (CELL*)xmalloc(2*4*8*16);
+
+      struct timeval start;
+      struct timeval finish;
+
+      gettimeofday(&start, NULL);
+
+      long rounds = 10000000;
+      for (int i = 0; i<rounds; ++i)
+        {
+          dprofile_fill16(dprofile, matrix, dseq);
+        }
+
+      gettimeofday(&finish, NULL);
+
+      double elapsed = (finish.tv_sec-start.tv_sec);
+      elapsed += (finish.tv_usec-start.tv_usec)/1000000.0;
+
+      // TODO before: ca. 0.703s
+      printf("\nRuntime used for %ld runs of dprofile_fill16: %lf sec\n\n", rounds, elapsed);
 
       check_profile(matrix, dprofile, dseq);
     }END_TEST
 
 void add_dprofile_fill_TC(Suite *s)
 {
-  TCase *tc_core = tcase_create("dprofile fill");
+  TCase *tc_core = tcase_create("dprofile fill nucleotides");
 
   tcase_add_checked_fixture(tc_core, &setup, &teardown);
 
   tcase_add_test(tc_core, test_dprofile_fill_nucleotide_simple);
+  tcase_add_test(tc_core, test_dprofile_fill_nucleotide_more);
+  tcase_add_test(tc_core, test_dprofile_fill_nucleotide_perf);
 
   suite_add_tcase(s, tc_core);
 }

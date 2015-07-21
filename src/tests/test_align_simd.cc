@@ -49,25 +49,57 @@ static void teardown() {
 }
 
 START_TEST (test_align_simd_simple)
-	{
-	char * query = "ACAT";
-	search16_qprep(s16, query, 4);
+    {
+      char * query = (char *)"ACAT";
+      search16_qprep(s16, query, 4);
 
-	unsigned int sequences = 1;
-	unsigned int seqnos[] = { 0 };
-	CELL pscores[1];
-	unsigned short paligned[1];
-	unsigned short pmatches[1];
-	unsigned short pmismatches[1];
-	unsigned short pgaps[1];
-	char * pcigar = (char *)xmalloc(5);
+      unsigned int seq_count = 1;
+      unsigned int seqnos[] = { 0 };
+      CELL pscores[1];
+      unsigned short paligned[1];
+      unsigned short pmatches[1];
+      unsigned short pmismatches[1];
+      unsigned short pgaps[1];
+      char * pcigar[1];
+      pcigar[0] = 0;
 
-	search16(s16, sequences, seqnos, pscores, paligned, pmatches,
-				pmismatches, pgaps, &pcigar);
+      search16(s16, seq_count, seqnos, pscores, paligned, pmatches,
+          pmismatches, pgaps, pcigar);
 
-	printf("cigar: %s\n", pcigar);
+      ck_assert_ptr_ne(0, pcigar[0]);
 
-	}END_TEST
+    }END_TEST
+
+START_TEST (test_align_simd_all)
+    {
+      char * query = (char *)"ACAT";
+      search16_qprep(s16, query, 4);
+
+      unsigned long seq_count = db_getsequencecount();
+
+      unsigned int seqnos[seq_count];
+      for (unsigned int i = 0; i < seq_count; ++i)
+        {
+          seqnos[i] = i;
+        }
+
+      CELL pscores[seq_count];
+      unsigned short paligned[seq_count];
+      unsigned short pmatches[seq_count];
+      unsigned short pmismatches[seq_count];
+      unsigned short pgaps[seq_count];
+      char * pcigar[seq_count];
+      memset(pcigar, 0, seq_count);
+
+      search16(s16, seq_count, seqnos, pscores, paligned, pmatches,
+          pmismatches, pgaps, pcigar);
+
+      for (unsigned int i = 0; i<seq_count; ++i)
+        {
+          ck_assert_ptr_ne(0, pcigar[i]);
+        }
+
+    }END_TEST
 
 void add_align_simd_TC( Suite *s ) {
     TCase *tc_core = tcase_create( "align simd" );
@@ -75,6 +107,7 @@ void add_align_simd_TC( Suite *s ) {
     tcase_add_checked_fixture(tc_core, &setup, &teardown);
 
     tcase_add_test(tc_core, test_align_simd_simple);
+    tcase_add_test(tc_core, test_align_simd_all);
 
     suite_add_tcase(s, tc_core);
 }
