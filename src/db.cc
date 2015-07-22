@@ -47,6 +47,11 @@ static long bz_buffer_len = 0;
 
 void db_read(const char * filename, int upcase)
 {
+  db_read(filename, upcase, DB_MODE_NUC);
+}
+
+void db_read(const char * filename, int upcase, int mode)
+{
   if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
     fatal("Regular expression compilation failed");
   
@@ -254,7 +259,7 @@ void db_read(const char * filename, int upcase)
           char * p = line;
           while((c = *p++))
             {
-              m = chrstatus[(int)c];
+              m = (mode == DB_MODE_NUC) ? chrstatus[(int)c] : chrstatus_aa[(int)c];
 
               switch(m)
                 {

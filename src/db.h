@@ -21,6 +21,9 @@
 
 #include <regex.h>
 
+#define DB_MODE_NUC 0
+#define DB_MODE_AA 1
+
 struct seqinfo_s
 {
   char * header;
@@ -61,6 +64,7 @@ inline unsigned long db_getheaderlen(unsigned long seqno)
 }
 
 void db_read(const char * filename, int upcase);
+void db_read(const char * filename, int upcase, int mode);
 void db_free();
 
 unsigned long db_getsequencecount();

@@ -24,10 +24,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+void add_maps_TC(Suite *s);
+void add_db_TC(Suite *s);
 void add_dprofile_fill_nuc_TC(Suite *s);
 void add_align_simd_nuc_TC(Suite *s);
 void add_align_simd_aa_TC(Suite *s);
-void add_db_TC(Suite *s);
 
 #endif /* CHECK_VSEARCH_H_ */
 
