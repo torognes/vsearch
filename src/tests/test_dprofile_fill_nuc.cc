@@ -35,7 +35,7 @@ extern void dprofile_fill16(CELL * dprofile_word,
                             CELL * score_matrix_word,
                             BYTE * dseq);
 
-static BYTE dseq[CDEPTH * CHANNELS];
+static BYTE dseq[CDEPTH*CHANNELS];
 static CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM];
 
 /* Is run once before each unit test */
@@ -45,7 +45,7 @@ static void setup()
   opt_mismatch = -4;
 
   memset(matrix, 0, SCORE_MATRIX_DIM*SCORE_MATRIX_DIM);
-  memset(dseq, 0, CDEPTH * CHANNELS);
+  memset(dseq, 0, CDEPTH*CHANNELS);
 }
 
 /* Is run once after each unit test */
@@ -54,20 +54,20 @@ static void teardown()
 }
 
 void print_profile(CELL * dprofile)
-  {
-    for (int i = 0; i<SCORE_MATRIX_DIM; ++i)
-      {
-        for (int j = 0; j<CDEPTH; ++j)
-          {
-            for (int k = 0; k<CHANNELS; k++)
-              {
-                printf("%2d ", dprofile[CHANNELS*CDEPTH*i+CHANNELS*j+k]);
-              }
-            printf(" | ");
-          }
-        printf("\n");
-      }
-  }
+{
+  for (int i = 0; i<SCORE_MATRIX_DIM; ++i)
+    {
+      for (int j = 0; j<CDEPTH; ++j)
+        {
+          for (int k = 0; k<CHANNELS; k++)
+            {
+              printf("%2d ", dprofile[CHANNELS*CDEPTH*i+CHANNELS*j+k]);
+            }
+          printf(" | ");
+        }
+      printf("\n");
+    }
+}
 
 void print_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
 {
@@ -145,7 +145,7 @@ START_TEST (test_dprofile_fill_nucleotide_simple)
     {
       int dseq_count = 1;
 
-      int db_sequences[][CDEPTH] = {{ 'A', 'C', 'A', 'T' }, };
+      int db_sequences[][CDEPTH] = { { 'A', 'C', 'A', 'T' }, };
       fill_search_window(dseq_count, db_sequences);
 
       fill_matrix(matrix);
@@ -169,7 +169,7 @@ START_TEST (test_dprofile_fill_nucleotide_more)
           { 'C', 'T', 'C', 'C' },
           { 'A', 'C', 'T', 'C' },
           { 'A', 'T', 'A', 0 },
-          { 'C', 'A', 'C', 'C' }};
+          { 'C', 'A', 'C', 'C' } };
       fill_search_window(dseq_count, db_sequences);
 
       fill_matrix(matrix);
@@ -214,9 +214,9 @@ START_TEST (test_dprofile_fill_nucleotide_perf)
       check_profile(matrix, dprofile, dseq);
     }END_TEST
 
-void add_dprofile_fill_TC(Suite *s)
+void add_dprofile_fill_nuc_TC(Suite *s)
 {
-  TCase *tc_core = tcase_create("dprofile fill nucleotides");
+  TCase *tc_core = tcase_create("dprofile fill for nucleotide sequences");
 
   tcase_add_checked_fixture(tc_core, &setup, &teardown);
 
