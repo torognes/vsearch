@@ -33,10 +33,12 @@ static void setup()
 {
   opt_maxseqlength = 2000;
 
-  db_read("../data/uniprot_sprot.fasta", 0); // TODO what does upcase do?
+  db_read("../data/uniprot_first_two_sequences.fasta", 0, DB_MODE_AA); // TODO what does upcase do?
 
   CELL match = 5;
+  opt_match = match;
   CELL mismatch = -4;
+  opt_mismatch = mismatch;
   CELL gap_open = 2;
   CELL gap_extension = 1;
 
@@ -76,7 +78,7 @@ static void check_cigar_matches(int max_match_count, unsigned short pmatches, un
         {
           break;
         }
-      char otherString[6];
+      char otherString[] = { 0, 0, 0, 0, 0, 0 };
       strncpy(otherString, pcigar+rm[i].rm_so, rm[i].rm_eo-rm[i].rm_so-1);
       count += atoi(otherString);
     }
@@ -85,7 +87,8 @@ static void check_cigar_matches(int max_match_count, unsigned short pmatches, un
 
 START_TEST (test_align_simd_simple)
     {
-      char * query = (char *)"gtcgctcctaccgattgaataaatatatagaaaatttgcaaactagattatttagaggaaggagaagtcgtaacaaggtttcc";
+      char * query =
+          (char *)"MSIIGATRLQNDKSDTYSAGPCYAGGCSAFTPRGTCGKDWDLGEQTCASGFCTSQPLCARIKKTQVCGLRYSSKGKDPLVSAEWDSRGAPYVRCTYDADLIDTQAQVDQFVSMFGESPSLAERYCMRGVKNTAGELVSRVSSDADPAGGWCRKWYSAHRGPDQDAALGSFCIKNPGAADCKCINRASDPVYQKVKTLHAYPDQCWYVPCAADVGELKMGTQRDTPTNCPTQVCQIVFNMLDDGSVTMDDVKNTINCDFSKYVPPPPPPKPTPPTPPTPPTPPTPPTPPTPPTPRPVHNRKVMFFVAGAVLVAILISTVRW";
       search16_aa_qprep(s16, query, strlen(query));
 
       unsigned int seq_count = 1;
@@ -97,21 +100,27 @@ START_TEST (test_align_simd_simple)
       unsigned short pgaps[1];
       char * pcigar[1];
       pcigar[0] = 0;
-
       search16_aa(s16, seq_count, seqnos, pscores, paligned, pmatches,
           pmismatches, pgaps, pcigar);
-
       ck_assert_ptr_ne(0, pcigar[0]);
+
+      printf("cigar: %s\n", pcigar[0]);
+
+      ck_assert_str_eq(
+          "M2IM3D2M4DM2I2M2DM6I5M5D3MI2MIM4D5M8D2MID3M3D3M3DMI3M7I8M2DM2DM2I2DMD4M6D4I2M5D2MI4M5I2M5D3MI3M3DM2I2M3I3MD2M4D7M3IM6IM2I4M2D2M2DM12DMI11MD3MD10MD2M2I2M3DIM4D5MIM5D2M7DM2I3MI2M4ID3MDM3DI5M9D20M8D5MI6DM6DM3D7MDM7IM5I",
+          pcigar[0]);
 
       check_cigar_matches(5, pmatches[0], pmismatches[0], pcigar[0]);
     }END_TEST
 
 START_TEST (test_align_simd_all)
     {
-      char * query = (char *)"gtcgctcctaccgattgaataagtttggataaagagatgattttagatatagaaaatttgtatttagaggaaggagaagtcc";
+      char * query =
+          (char *)"MSIIGATRLQNDKSDTYSAGPCYAGGCSAFTPRGTCGKDWDLGEQTCASGFCTSQPLCARIKKTQVCGLRYSSKGKDPLVSAEWDSRGAPYVRCTYDADLIDTQAQVDQFVSMFGESPSLAERYCMRGVKNTAGELVSRVSSDADPAGGWCRKWYSAHRGPDQDAALGSFCIKNPGAADCKCINRASDPVYQKVKTLHAYPDQCWYVPCAADVGELKMGTQRDTPTNCPTQVCQIVFNMLDDGSVTMDDVKNTINCDFSKYVPPPPPPKPTPPTPPTPPTPPTPPTPPTPPTPRPVHNRKVMFFVAGAVLVAILISTVRW";
+
       search16_aa_qprep(s16, query, strlen(query));
 
-      unsigned long seq_count = db_getsequencecount();
+      unsigned long seq_count = 10000;
 
       unsigned int seqnos[seq_count];
       for (unsigned int i = 0; i<seq_count; ++i)
@@ -135,7 +144,6 @@ START_TEST (test_align_simd_all)
           ck_assert_ptr_ne(0, pcigar[i]);
           check_cigar_matches(5, pmatches[i], pmismatches[i], pcigar[i]);
         }
-
     }END_TEST
 
 void add_align_simd_aa_TC(Suite *s)
@@ -145,7 +153,7 @@ void add_align_simd_aa_TC(Suite *s)
   tcase_add_checked_fixture(tc_core, &setup, &teardown);
 
   tcase_add_test(tc_core, test_align_simd_simple);
-  tcase_add_test(tc_core, test_align_simd_all);
+//  tcase_add_test(tc_core, test_align_simd_all);
 
   suite_add_tcase(s, tc_core);
 }
