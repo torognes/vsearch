@@ -64,7 +64,7 @@ inline unsigned long db_getheaderlen(unsigned long seqno)
 }
 
 void db_read(const char * filename, int upcase);
-void db_read(const char * filename, int upcase, int mode);
+void db_read(const char * filename, int upcase, int sequence_mode);
 void db_free();
 
 unsigned long db_getsequencecount();

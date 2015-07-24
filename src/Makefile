@@ -20,7 +20,7 @@
 # Profiling
 #PROFILING=-g -fprofile-arcs -ftest-coverage
 #PROFILING=-g -pg
-#PROFILING=-g
+PROFILING=-g
 
 # Compiler warnings
 WARN=-Wall -Wsign-compare
@@ -41,7 +41,7 @@ OBJS=cityhash/city.o \
 	cpu_ssse3.o db.o dbindex.o derep.o maps.o mask.o minheap.o msa.o \
 	query.o results.o search.o searchcore.o showalign.o shuffle.o \
 	sortbylength.o sortbysize.o unique.o userfields.o util.o vsearch.o \
-	allpairs.o linmemalign.o subsample.o fastqread.o
+	allpairs.o linmemalign.o subsample.o fastqread.o score_matrix.o
 
 DEPS=Makefile cityhash/city.h cityhash/config.h \
 	align.h align_simd.h align_simd_aa.h arch.h bitmap.h chimera.h cluster.h cpu.h db.h \

@@ -50,7 +50,7 @@ void db_read(const char * filename, int upcase)
   db_read(filename, upcase, DB_MODE_NUC);
 }
 
-void db_read(const char * filename, int upcase, int mode)
+void db_read(const char * filename, int upcase, int sequence_mode)
 {
   if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
     fatal("Regular expression compilation failed");
@@ -259,7 +259,7 @@ void db_read(const char * filename, int upcase, int mode)
           char * p = line;
           while((c = *p++))
             {
-              m = (mode == DB_MODE_NUC) ? chrstatus[(int)c] : chrstatus_aa[(int)c];
+              m = (sequence_mode == DB_MODE_NUC) ? chrstatus[(int)c] : chrstatus_aa[(int)c];
 
               switch(m)
                 {

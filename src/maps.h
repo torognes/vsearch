@@ -21,11 +21,13 @@
 
 extern char sym_nt_2bit[5];
 extern char sym_nt_4bit[17];
+extern const char sym_aa_5bit[33];
 
 extern unsigned int chrstatus[256];
 extern unsigned int chrstatus_aa[256];
 extern unsigned int chrmap_2bit[256];
 extern unsigned int chrmap_4bit[256];
+extern unsigned int chrmap_aa_5bit[256];
 extern unsigned int chrmap_masked[256];
 extern char chrmap_complement[256];
 extern char chrmap_normalize[256];

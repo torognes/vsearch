@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 void add_maps_TC(Suite *s);
+void add_matrices_TC(Suite *s);
 void add_db_TC(Suite *s);
 void add_dprofile_fill_nuc_TC(Suite *s);
 void add_align_simd_nuc_TC(Suite *s);
