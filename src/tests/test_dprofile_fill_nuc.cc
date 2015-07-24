@@ -23,13 +23,11 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "helper_functions.h"
+
 #include "../vsearch.h"
 #include "../align_simd.h"
 #include "../util.h"
-
-#define CDEPTH 4
-#define CHANNELS 8
-#define SCORE_MATRIX_DIM 16
 
 extern void dprofile_fill16(CELL * dprofile_word,
                             CELL * score_matrix_word,
@@ -53,49 +51,7 @@ static void teardown()
 {
 }
 
-void print_profile(CELL * dprofile)
-{
-  for (int i = 0; i<SCORE_MATRIX_DIM; ++i)
-    {
-      for (int j = 0; j<CDEPTH; ++j)
-        {
-          for (int k = 0; k<CHANNELS; k++)
-            {
-              printf("%2d ", dprofile[CHANNELS*CDEPTH*i+CHANNELS*j+k]);
-            }
-          printf(" | ");
-        }
-      printf("\n");
-    }
-}
-
-void print_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
-{
-  // end copy
-  for (int i = 0; i<SCORE_MATRIX_DIM; i++)
-    {
-      for (int j = 0; j<SCORE_MATRIX_DIM; j++)
-        {
-          printf("%2d, ", matrix[SCORE_MATRIX_DIM*i+j]);
-        }
-      printf("\n");
-    }
-  printf("\n");
-}
-
-void print_search_window(BYTE * dseq)
-{
-  for (int i = 0; i<CDEPTH; i++)
-    {
-      for (int j = 0; j<CHANNELS; j++)
-        {
-          printf("%2d ", dseq[CHANNELS*i+j]);
-        }
-      printf("\n");
-    }
-}
-
-void check_profile(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM], CELL* dprofile, BYTE* dseq)
+static void check_profile(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM], CELL* dprofile, BYTE* dseq)
 {
   //      print_profile(dprofile);
   for (int i = 0; i<SCORE_MATRIX_DIM; ++i)
@@ -114,7 +70,7 @@ void check_profile(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM], CELL* dprofil
 }
 
 /* copied from search16_init() in align_simd.c */
-void fill_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
+static void fill_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
 {
   for (int i = 0; i<SCORE_MATRIX_DIM; i++)
     for (int j = 0; j<SCORE_MATRIX_DIM; j++)
@@ -131,7 +87,7 @@ void fill_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
   //      print_matrix(matrix);
 }
 
-void fill_search_window(int dseq_count, int db_sequences[][CDEPTH])
+static void fill_search_window(int dseq_count, int db_sequences[][CDEPTH])
 {
   for (int j = 0; j<dseq_count; ++j)
     for (int i = 0; i<CDEPTH; ++i)

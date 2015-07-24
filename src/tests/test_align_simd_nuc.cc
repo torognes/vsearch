@@ -19,8 +19,7 @@
 
 #include "tests.h"
 
-#include <regex.h>
-#include <string.h>
+#include "helper_functions.h"
 
 #include "../vsearch.h"
 #include "../align_simd.h"
@@ -53,36 +52,6 @@ static void teardown()
   db_free();
 }
 
-static void check_cigar_matches(int max_match_count, unsigned short pmatches, unsigned short pmismatches, char* pcigar)
-{
-  regex_t re;
-  regmatch_t rm[max_match_count];
-  memset(rm, 0, max_match_count);
-  if (regcomp(&re, "[0-9]*M", REG_EXTENDED))
-    {
-      fail("bad regex pattern");
-    }
-  int status = regexec(&re, pcigar, max_match_count, rm, 0);
-  if (status!=REG_NOERROR)
-    {
-      fail("No match for regex");
-    }
-  // TODO     regfree(&re);
-
-  int count = 0;
-  for (int i = 0; i<max_match_count; ++i)
-    {
-      if (rm[i].rm_so==-1)
-        {
-          break;
-        }
-      char otherString[6];
-      strncpy(otherString, pcigar+rm[i].rm_so, rm[i].rm_eo-rm[i].rm_so-1);
-      count += atoi(otherString);
-    }
-  ck_assert_int_eq(count, pmatches+pmismatches);
-}
-
 START_TEST (test_align_simd_simple)
     {
       char * query = (char *)"gtcgctcctaccgattgaataaatatatagaaaatttgcaaactagattatttagaggaaggagaagtcgtaacaaggtttcc";
@@ -103,7 +72,7 @@ START_TEST (test_align_simd_simple)
 
       ck_assert_ptr_ne(0, pcigar[0]);
 
-      check_cigar_matches(5, pmatches[0], pmismatches[0], pcigar[0]);
+      check_cigar_matches(pmatches[0], pmismatches[0], pcigar[0]);
     }END_TEST
 
 START_TEST (test_align_simd_all)
@@ -133,7 +102,7 @@ START_TEST (test_align_simd_all)
       for (unsigned int i = 0; i<seq_count; ++i)
         {
           ck_assert_ptr_ne(0, pcigar[i]);
-          check_cigar_matches(5, pmatches[i], pmismatches[i], pcigar[i]);
+          check_cigar_matches(pmatches[i], pmismatches[i], pcigar[i]);
         }
 
     }END_TEST

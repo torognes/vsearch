@@ -17,31 +17,22 @@
  Contact: Jakob Frielingsdorf <jfrielingsdorf@gmail.com>
  */
 
-#include "tests.h"
+#ifndef VSEARCH_TEST_HELPER_H_
+#define VSEARCH_TEST_HELPER_H_
 
-Suite* vsearch_suite(void)
-{
-  Suite *s = suite_create("vsearch");
+#include <check.h>
 
-  add_db_TC(s);
-  add_maps_TC(s);
-  add_dprofile_fill_nuc_TC(s);
-  add_align_simd_nuc_TC(s);
-  add_align_simd_aa_TC(s);
+#include "../align_simd.h"
 
-  return s;
-}
+#define CDEPTH 4
+#define CHANNELS 8
+#define SCORE_MATRIX_DIM 16
 
-int main(void)
-{
-  printf("Using Check unit testing framework version %d.%d.%d\n", CHECK_MAJOR_VERSION, CHECK_MINOR_VERSION,
-  CHECK_MICRO_VERSION);
+void check_cigar_matches(unsigned short pmatches, unsigned short pmismatches, char* pcigar);
 
-  int number_failed;
-  Suite *s = vsearch_suite();
-  SRunner *sr = srunner_create(s);
-  srunner_run_all(sr, CK_NORMAL);
-  number_failed = srunner_ntests_failed(sr);
-  srunner_free(sr);
-  return (number_failed==0) ? EXIT_SUCCESS : EXIT_FAILURE;
-}
+void print_profile(CELL * dprofile);
+void print_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM]);
+void print_search_window(BYTE * dseq);
+
+#endif /* VSEARCH_TEST_HELPER_H_ */
+
