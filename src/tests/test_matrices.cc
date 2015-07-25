@@ -23,46 +23,53 @@
 
 // Checks the first two values for the first line of each matrix
 
-static void test_first_two_values(ScoreMatrix * matrix, int val1, int val2)
+static void test_first_two_values(const char * matrix_name, int val1, int val2)
 {
+  ScoreMatrix * matrix = &ScoreMatrix::instance;
+
+  matrix->init(matrix_name);
+
   ck_assert_int_eq(val1, matrix->get64(1, 1));
   ck_assert_int_eq(val2, matrix->get64(1, 2));
 
   ck_assert_int_eq(val1, matrix->get16(1, 1));
   ck_assert_int_eq(val2, matrix->get16(1, 2));
-
-  delete matrix;
 }
 
 START_TEST (test_matrices_buildin)
     {
-      test_first_two_values(new ScoreMatrix(BLOSUM45), 5, -1);
-      test_first_two_values(new ScoreMatrix(BLOSUM50), 5, -2);
-      test_first_two_values(new ScoreMatrix(BLOSUM62), 4, -2);
-      test_first_two_values(new ScoreMatrix(BLOSUM80), 5, -2);
-      test_first_two_values(new ScoreMatrix(BLOSUM90), 5, -2);
+      test_first_two_values(BLOSUM45, 5, -1);
+      test_first_two_values(BLOSUM50, 5, -2);
+      test_first_two_values(BLOSUM62, 4, -2);
+      test_first_two_values(BLOSUM80, 5, -2);
+      test_first_two_values(BLOSUM90, 5, -2);
 
-      test_first_two_values(new ScoreMatrix(PAM30), 6, -3);
-      test_first_two_values(new ScoreMatrix(PAM70), 5, -1);
-      test_first_two_values(new ScoreMatrix(PAM250), 2, -0);
+      test_first_two_values(PAM30, 6, -3);
+      test_first_two_values(PAM70, 5, -1);
+      test_first_two_values(PAM250, 2, -0);
+    }END_TEST
+
+START_TEST (test_singleton)
+    {
+      ck_assert_ptr_eq(&ScoreMatrix::instance, &ScoreMatrix::instance);
     }END_TEST
 
 START_TEST (test_matrices_aa)
     {
-      ScoreMatrix * matrix = new ScoreMatrix(BLOSUM62);
+      ScoreMatrix * matrix = &ScoreMatrix::instance;
 
-      ck_assert_int_eq(32, matrix->matrix_dim);
+      matrix->init(BLOSUM62);
+
+      ck_assert_int_eq(32, matrix->get_dimension());
       ck_assert_int_eq(0, matrix->is_constant_scoring());
-
-      delete matrix;
 
     }END_TEST
 
 static void check_constant_score_matrix(ScoreMatrix * matrix, int match, int mismatch)
 {
-  for (int i = 0; i<matrix->matrix_dim; ++i)
+  for (int i = 0; i<matrix->get_dimension(); ++i)
     {
-      for (int j = 0; j<matrix->matrix_dim; ++j)
+      for (int j = 0; j<matrix->get_dimension(); ++j)
         {
           if (i>0&&j>0)
             if (i==j)
@@ -86,25 +93,23 @@ static void check_constant_score_matrix(ScoreMatrix * matrix, int match, int mis
 
 START_TEST (test_matrices_constant_scoring)
     {
-      // nucleotides
-      ScoreMatrix * matrix = new ScoreMatrix(5, -4, MATRIX_MODE_NUC);
+      ScoreMatrix * matrix = &ScoreMatrix::instance;
 
-      ck_assert_int_eq(16, matrix->matrix_dim);
+      // nucleotides
+      matrix->init(5, -4, MATRIX_MODE_NUC);
+
+      ck_assert_int_eq(16, matrix->get_dimension());
       ck_assert_int_eq(1, matrix->is_constant_scoring());
 
       check_constant_score_matrix(matrix, 5, -4);
 
-      delete matrix;
-
       // amino acids
-      matrix = new ScoreMatrix(6, -7, MATRIX_MODE_AA);
+      matrix->init(6, -7, MATRIX_MODE_AA);
 
-      ck_assert_int_eq(32, matrix->matrix_dim);
+      ck_assert_int_eq(32, matrix->get_dimension());
       ck_assert_int_eq(1, matrix->is_constant_scoring());
 
       check_constant_score_matrix(matrix, 6, -7);
-
-      delete matrix;
 
     }END_TEST
 
@@ -112,6 +117,7 @@ void add_matrices_TC(Suite *s)
 {
   TCase *tc_core = tcase_create("score matrices");
 
+  tcase_add_test(tc_core, test_singleton);
   tcase_add_test(tc_core, test_matrices_aa);
   tcase_add_test(tc_core, test_matrices_buildin);
   tcase_add_test(tc_core, test_matrices_constant_scoring);

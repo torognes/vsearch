@@ -1,4 +1,4 @@
-/*
+  /*
  Copyright (C) 2015 Jakob Frielingsdorf
 
  This program is free software: you can redistribute it and/or modify
@@ -16,6 +16,9 @@
 
  Contact: Jakob Frielingsdorf <jfrielingsdorf@gmail.com>
  */
+
+#ifndef SCORE_MATRIX_H
+#define SCORE_MATRIX_H
 
 #include <stddef.h>
 
@@ -35,10 +38,27 @@
 
 #define LINE_MAX 2048
 
+/**
+ * Implements the score matrix, that is used during the alignments.
+ *
+ * VSEARCH uses the same matrix concept for constant match and
+ * mismatch scores, like the score matrices used for protein sequences.
+ *
+ * This class is implemented as a singleton.
+ */
 class ScoreMatrix
 {
 private:
   int constant_scoring;
+  int dimension;
+
+  // singleton part
+  ScoreMatrix() { constant_scoring = 0; dimension = -1; }
+
+  ScoreMatrix(const ScoreMatrix&);
+
+  ~ScoreMatrix();
+  // end singleton part
 
   void prepare_matrices(int sequence_mode);
   void finalize_matrices();
@@ -54,16 +74,16 @@ private:
 
   void set16(int x, int y, long value)
   {
-    score_matrix_16[(x*matrix_dim)+y] = (CELL)value;
+    score_matrix_16[(x*dimension)+y] = (CELL)value;
   }
 
   void set64(int x, int y, long value)
   {
-    score_matrix_64[(x*matrix_dim)+y] = value;
+    score_matrix_64[(x*dimension)+y] = value;
   }
 
 public:
-  int matrix_dim;
+  static ScoreMatrix instance;
 
   CELL * score_matrix_16 = NULL; // short
   long * score_matrix_64 = NULL; // long
@@ -71,14 +91,12 @@ public:
   /**
    * Assumes that amino acid sequences are aligned.
    */
-  ScoreMatrix(const char* matrixname);
+  void init(const char* matrixname);
 
   /**
    * Can be used for both amino acid and nucleotide sequences.
    */
-  ScoreMatrix(const int match, const int mismatch, int sequence_mode);
-
-  ~ScoreMatrix();
+  void init(const int match, const int mismatch, int sequence_mode);
 
   void dump_matrix();
 
@@ -87,14 +105,20 @@ public:
     return constant_scoring;
   }
 
+  int get_dimension()
+  {
+    return dimension;
+  }
+
   CELL get16(int x, int y)
   {
-    return score_matrix_16[(x*matrix_dim)+y];
+    return score_matrix_16[(x*dimension)+y];
   }
 
   long get64(int x, int y)
   {
-    return score_matrix_64[(x*matrix_dim)+y];
+    return score_matrix_64[(x*dimension)+y];
   }
-
 };
+
+#endif /* SCORE_MATRIX_H */

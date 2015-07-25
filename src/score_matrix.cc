@@ -278,7 +278,9 @@ B  0 -1  2  3 -4  1  3  0  1 -2 -3  1 -2 -4 -1  0  0 -5 -3 -2  3  2 -1\n\
 Z  0  0  1  3 -5  3  3  0  2 -2 -3  0 -2 -5  0  0 -1 -6 -4 -2  2  3 -1\n\
 X  0 -1  0 -1 -3 -1 -1 -1 -1 -1 -1 -1 -1 -2 -1  0  0 -4 -2 -1 -1 -1 -1\n";
 
-ScoreMatrix::ScoreMatrix(const char* amino_acid_matrix)
+ScoreMatrix ScoreMatrix::instance = ScoreMatrix();
+
+void ScoreMatrix::init(const char* amino_acid_matrix)
 {
   constant_scoring = 0;
 
@@ -289,7 +291,7 @@ ScoreMatrix::ScoreMatrix(const char* amino_acid_matrix)
   finalize_matrices();
 }
 
-ScoreMatrix::ScoreMatrix(const int match, const int mismatch, int sequence_mode)
+void ScoreMatrix::init(const int match, const int mismatch, int sequence_mode)
 {
   constant_scoring = 1;
 
@@ -313,17 +315,17 @@ ScoreMatrix::~ScoreMatrix()
 void ScoreMatrix::prepare_matrices(int sequence_mode)
 {
   if (sequence_mode==MATRIX_MODE_NUC)
-    matrix_dim = 16;
+    dimension = 16;
   else
-    matrix_dim = 32;
+    dimension = 32;
 
   // free first, before we allocate new memory
   mat_free();
 
-  score_matrix_16 = (CELL*)xmalloc(matrix_dim*matrix_dim*sizeof(CELL));
-  score_matrix_64 = (long*)xmalloc(matrix_dim*matrix_dim*sizeof(long));
+  score_matrix_16 = (CELL*)xmalloc(dimension*dimension*sizeof(CELL));
+  score_matrix_64 = (long*)xmalloc(dimension*dimension*sizeof(long));
 
-  memset(score_matrix_64, -1, matrix_dim*matrix_dim*sizeof(long));
+  memset(score_matrix_64, -1, dimension*dimension*sizeof(long));
 }
 
 /**
@@ -338,9 +340,9 @@ void ScoreMatrix::finalize_matrices()
   hi = -100;
   lo = 100;
 
-  for (a = 0; a<matrix_dim; a++)
+  for (a = 0; a<dimension; a++)
     {
-      for (b = 0; b<matrix_dim; b++)
+      for (b = 0; b<dimension; b++)
         {
           sc = get64(a, b);
           if (sc<lo)
@@ -350,9 +352,9 @@ void ScoreMatrix::finalize_matrices()
         }
     }
 
-  for (a = 0; a<matrix_dim; a++)
+  for (a = 0; a<dimension; a++)
     {
-      for (b = 0; b<matrix_dim; b++)
+      for (b = 0; b<dimension; b++)
         {
           set16(a, b, get64(a, b));
         }
@@ -413,7 +415,7 @@ void ScoreMatrix::read_line(char line[LINE_MAX], int* symbols, char* order)
 
             char b = order[i];
 
-            if ((a>=0)&&(b>=0)&&(a<matrix_dim)&&(b<matrix_dim))
+            if ((a>=0)&&(b>=0)&&(a<dimension)&&(b<dimension))
               {
                 set64(a, b, sc);
               }
@@ -503,9 +505,9 @@ void ScoreMatrix::mat_init_from_file(const char * matrix)
 
 void ScoreMatrix::mat_init_constant_scoring(const int match, const int mismatch)
 {
-  for (int a = 1; a<matrix_dim; a++)
+  for (int a = 1; a<dimension; a++)
     {
-      for (int b = 1; b<matrix_dim; b++)
+      for (int b = 1; b<dimension; b++)
         {
           set64(a, b, ((a==b) ? match : mismatch));
         }
@@ -537,17 +539,17 @@ void ScoreMatrix::mat_init_buildin(const char* matrixname)
 void ScoreMatrix::dump_matrix()
 {
   printf("     ");
-  for (int i = 0; i<matrix_dim; i++)
+  for (int i = 0; i<dimension; i++)
     printf("%2d", i);
   printf("\n");
   printf("     ");
-  for (int i = 0; i<matrix_dim; i++)
+  for (int i = 0; i<dimension; i++)
     printf(" %c", sym_aa_5bit[i]);
   printf("\n");
-  for (int i = 0; i<matrix_dim; i++)
+  for (int i = 0; i<dimension; i++)
     {
       printf("%2d %c ", i, sym_aa_5bit[i]);
-      for (int j = 0; j<matrix_dim; j++)
+      for (int j = 0; j<dimension; j++)
         {
           printf("%2ld", get64(i, j));
         }
