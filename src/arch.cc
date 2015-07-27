@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014-2015 Torbjorn Rognes, Jeff Epler
+    Copyright (C) 2014-2015 Torbjorn Rognes
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -41,26 +41,16 @@ unsigned long arch_get_memtotal()
 
   long phys_pages = sysconf(_SC_PHYS_PAGES);
   long pagesize = sysconf(_SC_PAGESIZE);
-
   if ((phys_pages == -1) || (pagesize == -1))
     fatal("Cannot determine amount of RAM");
-
-  // sysconf(3) notes that pagesize * phys_pages can overflow, such as
-  // when long is 32-bits and there's more than 4GB RAM.  Since vsearch
-  // apparently targets LP64 systems like x86_64 linux, this will not
-  // arise in practice on the intended platform.
-
-  if (pagesize > LONG_MAX / phys_pages)
-    return LONG_MAX;
-  else
-    return pagesize * phys_pages;
+  return pagesize * phys_pages;
 
 #elif defined(__APPLE__)
 
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
   size_t length = sizeof(ram);
-  if(-1 == sysctl(mib, 2, &ram, &length, NULL, 0))
+  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
     fatal("Cannot determine amount of RAM");
   return ram;
 

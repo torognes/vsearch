@@ -23,21 +23,26 @@
 
 void subsample()
 {
-  FILE * fp_output = fopen(opt_output, "w");
+  FILE * fp_output = fopen(opt_fastaout, "w");
   if (!fp_output)
     fatal("Unable to open subsampling output file for writing");
 
-  db_read(opt_subsample, 0);
+  db_read(opt_fastx_subsample, 0);
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
 
   unsigned long mass_total = 0;
-  for(int i=0; i<dbsequencecount; i++)
-    mass_total += db_getabundance(i);
+
+  if (!opt_sizein)
+    mass_total = dbsequencecount;
+  else
+    for(int i=0; i<dbsequencecount; i++)
+      mass_total += db_getabundance(i);
   
   fprintf(stderr, "Got %lu reads from %d amplicons\n",
           mass_total, dbsequencecount);
+
 
   int * abundance = (int*) xmalloc(dbsequencecount * sizeof(int));
 
@@ -46,13 +51,23 @@ void subsample()
 
   random_init();
 
-  unsigned long n = mass_total * opt_fraction;  /* number of reads to sample */
-  int a = 0;                                    /* amplicon number */
+  unsigned long n;                              /* number of reads to sample */
+  if (opt_sample_size)
+    n = opt_sample_size;
+  else
+    n = mass_total * opt_sample_pct / 100.0;
+
+  if (n > mass_total)
+    fatal("Cannot subsample more reads than in the original sample");
+
   unsigned long x = n;                          /* number of reads left */
+  int a = 0;                                    /* amplicon number */
   unsigned long r = 0;                          /* read being checked */
-  unsigned long mass = db_getabundance(a);      /* mass of current amplicon */
   unsigned long m = 0;                          /* accumulated mass */
 
+  unsigned long mass =                          /* mass of current amplicon */
+    opt_sizein ? db_getabundance(0) : 1;
+  
   progress_init("Subsampling", mass_total);
   while (x > 0)
     {
@@ -71,7 +86,7 @@ void subsample()
         {
           /* next amplicon */
           a++;
-          mass = db_getabundance(a);
+          mass = opt_sizein ? db_getabundance(a) : 1;
           m = 0;
         }
       progress_update(r);
@@ -84,7 +99,13 @@ void subsample()
     {
       if (abundance[i]>0)
         {
-          db_fprint_fasta_with_size(fp_output, i, abundance[i]);
+          if (opt_sizeout)
+            db_fprint_fasta_with_size(fp_output, i, abundance[i]);
+          else if (opt_xsize)
+            db_fprint_fasta_strip_size(fp_output, i);
+          else
+            db_fprint_fasta(fp_output, i);
+
           sampled++;
         }
       progress_update(i);

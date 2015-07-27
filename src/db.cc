@@ -604,6 +604,40 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
   fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }
 
+void db_fprint_fasta_strip_size(FILE * fp, unsigned long seqno)
+{
+  /* write FASTA but remove abundance information, as with --xsize option */
+
+  char * hdr = db_getheader(seqno);
+  int hdrlen = db_getheaderlen(seqno);
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+  
+  /* remove any previous size annotation */
+  /* regexp search for "(^|;)(\d+)(;|$)" */
+  /* replace by ';' if not at either end */
+
+  regmatch_t pmatch[1];
+
+  if (!regexec(&db_regexp, hdr, 1, pmatch, 0))
+    {
+      int pat_start = pmatch[0].rm_so;
+      int pat_end = pmatch[0].rm_eo;
+
+      fprintf(fp,
+              ">%.*s%s%.*s\n",
+              pat_start, hdr,
+              ((pat_start > 0) && (pat_end < hdrlen)) ? ";" : "",
+              hdrlen - pat_end, hdr + pat_end);
+    }
+  else
+    {
+      fprintf(fp, ">%s\n", hdr);
+    }
+
+  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
+}
+
 int compare_bylength(const void * a, const void * b)
 {
   seqinfo_t * x = (seqinfo_t *) a;

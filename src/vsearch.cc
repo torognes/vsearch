@@ -24,6 +24,7 @@
 /* options */
 
 bool opt_quiet;
+bool opt_xsize;
 char * opt_alnout;
 char * opt_allpairs_global;
 char * opt_blast6out;
@@ -38,8 +39,10 @@ char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
+char * opt_fastaout;
 char * opt_fastapairs;
 char * opt_fastq_chars;
+char * opt_fastx_subsample;
 char * opt_log;
 char * opt_maskfasta;
 char * opt_matched;
@@ -51,7 +54,6 @@ char * opt_pattern;
 char * opt_profile;
 char * opt_relabel;
 char * opt_samout;
-char * opt_subsample;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
@@ -64,7 +66,6 @@ char * opt_usearch_global;
 char * opt_userout;
 double opt_abskew;
 double opt_dn;
-double opt_fraction;
 double opt_id;
 double opt_maxid;
 double opt_maxqt;
@@ -77,6 +78,7 @@ double opt_minqt;
 double opt_minsizeratio;
 double opt_minsl;
 double opt_query_cov;
+double opt_sample_pct;
 double opt_target_cov;
 double opt_weak_id;
 double opt_xn;
@@ -129,9 +131,10 @@ long opt_mismatch;
 long opt_notrunclabels;
 long opt_output_no_hits;
 long opt_qmask;
+long opt_randseed;
 long opt_rightjust;
 long opt_rowlen;
-long opt_seed;
+long opt_sample_size;
 long opt_self;
 long opt_selfid;
 long opt_sizein;
@@ -419,8 +422,9 @@ void args_init(int argc, char **argv)
   opt_dn = 1.4;
   opt_fasta_width = 80;
   opt_fastapairs = 0;
+  opt_fastaout = 0;
   opt_fastq_chars = 0;
-  opt_fraction = 0.1;
+  opt_fastx_subsample = 0;
   opt_fulldp = 0;
   opt_gap_extension_query_interior=2;
   opt_gap_extension_query_left=1;
@@ -482,12 +486,13 @@ void args_init(int argc, char **argv)
   opt_qmask = MASK_DUST;
   opt_query_cov = 0.0;
   opt_quiet = false;
+  opt_randseed = 0;
   opt_relabel = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samout = 0;
-  opt_subsample = 0;
-  opt_seed = 0;
+  opt_sample_pct = 0;
+  opt_sample_size = 0;
   opt_self = 0;
   opt_selfid = 0;
   opt_shuffle = 0;
@@ -514,6 +519,7 @@ void args_init(int argc, char **argv)
   opt_weak_id = 10.0;
   opt_wordlength = 8;
   opt_xn = 8.0;
+  opt_xsize = 0;
 
   opterr = 1;
 
@@ -589,7 +595,7 @@ void args_init(int argc, char **argv)
     {"mintsize",              required_argument, 0, 0 },
     {"mid",                   required_argument, 0, 0 },
     {"shuffle",               required_argument, 0, 0 },
-    {"seed",                  required_argument, 0, 0 },
+    {"randseed",              required_argument, 0, 0 },
     {"maskfasta",             required_argument, 0, 0 },
     {"hardmask",              no_argument,       0, 0 },
     {"qmask",                 required_argument, 0, 0 },
@@ -626,10 +632,13 @@ void args_init(int argc, char **argv)
     {"samout",                required_argument, 0, 0 },
     {"log",                   required_argument, 0, 0 },
     {"quiet",                 no_argument,       0, 0 },
-    {"subsample",             required_argument, 0, 0 },
-    {"fraction",              required_argument, 0, 0 },
+    {"fastx_subsample",       required_argument, 0, 0 },
+    {"sample_pct",            required_argument, 0, 0 },
     {"fastq_chars",           required_argument, 0, 0 },
     {"profile",               required_argument, 0, 0 },
+    {"sample_size",           required_argument, 0, 0 },
+    {"fastaout",              required_argument, 0, 0 },
+    {"xsize",                 no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1001,8 +1010,8 @@ void args_init(int argc, char **argv)
           break;
 
         case 69:
-          /* seed */
-          opt_seed = args_getlong(optarg);
+          /* randseed */
+          opt_randseed = args_getlong(optarg);
           break;
 
         case 70:
@@ -1203,13 +1212,13 @@ void args_init(int argc, char **argv)
           break;
 
         case 106:
-          /* subsample */
-          opt_subsample = optarg;
+          /* fastx_subsample */
+          opt_fastx_subsample = optarg;
           break;
 
         case 107:
-          /* fraction */
-          opt_fraction = atof(optarg);
+          /* sample_pct */
+          opt_sample_pct = atof(optarg);
           break;
 
         case 108:
@@ -1220,6 +1229,21 @@ void args_init(int argc, char **argv)
         case 109:
           /* profile */
           opt_profile = optarg;
+          break;
+
+        case 110:
+          /* sample_size */
+          opt_sample_size = args_getlong(optarg);
+          break;
+          
+        case 111:
+          /* fastaout */
+          opt_fastaout = optarg;
+          break;
+
+        case 112:
+          /* xsize */
+          opt_xsize = 1;
           break;
 
         default:
@@ -1252,7 +1276,7 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_shuffle)
     commands++;
-  if (opt_subsample)
+  if (opt_fastx_subsample)
     commands++;
   if (opt_maskfasta)
     commands++;
@@ -1322,8 +1346,11 @@ void args_init(int argc, char **argv)
   if (opt_dbmask == MASK_ERROR)
     fatal("The argument to --dbmask must be none, dust or soft");
 
-  if ((opt_fraction < 0.0) || (opt_fraction > 1.0))
-    fatal("The argument to --fraction must be in the range 0.0 to 1.0");
+  if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0))
+    fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
+  
+  if (opt_sample_size < 0)
+    fatal("The argument to --sample_size must not be negative");
   
   /* TODO: check valid range of gap penalties */
 
@@ -1445,6 +1472,9 @@ void cmd_help()
               "  --topn INT                  output just the n most abundant sequences\n"
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "\n"
+              "FASTQ file processing\n"
+              "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
+              "\n"
               "Masking options\n"
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
@@ -1511,7 +1541,7 @@ void cmd_help()
               "\n"
               "Shuffling options\n"
               "  --output FILENAME           output to specified FASTA file\n"
-              "  --seed INT                  seed for PRNG, zero to use random data source (0)\n"
+              "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
               "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
               "  --topn INT                  output just first n sequences\n"
               "\n"
@@ -1520,18 +1550,19 @@ void cmd_help()
               "  --minsize INT               minimum abundance for sortbysize\n"
               "  --output FILENAME           output FASTA file\n"
               "  --relabel STRING            relabel with this prefix string after sorting\n"
-              "  --sizeout                   add abundance to output when relabelling\n"
               "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
               "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
               "  --topn INT                  output just top n seqs after sorting\n"
               "\n"
               "Subsampling options\n"
-              "  --subsample FILENAME        subsample sequences from given file\n"
-              "  --fraction REAL             sampling fraction between 0.0 and 1.0 (0.1)\n"
-              "  --output FILENAME           output FASTA file for subsamples \n"
-              "\n"
-              "FASTQ file processing\n"
-              "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
+              "  --fastaout FILENAME         output FASTA file for subsamples\n"
+              "  --fastx_subsample FILENAME  subsample sequences from given file\n"
+              "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
+              "  --sample_pct REAL           sampling percentage between 0.0 and 100.0\n"
+              "  --sample_size INT           sampling size\n"
+              "  --sizein                    consider abundance info from input, do not ignore\n"
+              "  --sizeout                   update abundance information in output\n"
+              "  --xsize                     strip abundance information in output\n"
           );
     }
 }
@@ -1606,9 +1637,12 @@ void cmd_shuffle()
 
 void cmd_subsample()
 {
-  if (!opt_output)
-    fatal("Output file for subsampling must be specified with --output");
-  
+  if (!opt_fastaout)
+    fatal("Output file for subsampling must be specified with --fastaout");
+
+  if ((opt_sample_pct > 0) && (opt_sample_size > 0))
+    fatal("Specify either --sample_pct or --sample_size, not both");
+
   subsample();
 }
 
@@ -1786,7 +1820,7 @@ int main(int argc, char** argv)
     {
       cmd_shuffle();
     }
-  else if (opt_subsample)
+  else if (opt_fastx_subsample)
     {
       cmd_subsample();
     }

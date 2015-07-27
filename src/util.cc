@@ -277,7 +277,7 @@ int detect_compress_format (const char * filename)
 void random_init()
 {
   /* initialize pseudo-random number generator */
-  unsigned int seed = opt_seed;
+  unsigned int seed = opt_randseed;
   if (seed == 0)
     {
       int fd = open("/dev/urandom", O_RDONLY);

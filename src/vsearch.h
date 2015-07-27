@@ -87,7 +87,7 @@
 #include "fastqread.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.1"
+#define PROG_VERSION "v1.2.2"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -112,6 +112,7 @@
 /* options */
 
 extern bool opt_quiet;
+extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_blast6out;
@@ -127,7 +128,9 @@ extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
 extern char * opt_fastapairs;
+extern char * opt_fastaout;
 extern char * opt_fastq_chars;
+extern char * opt_fastx_subsample;
 extern char * opt_log;
 extern char * opt_maskfasta;
 extern char * opt_matched;
@@ -139,7 +142,6 @@ extern char * opt_pattern;
 extern char * opt_profile;
 extern char * opt_relabel;
 extern char * opt_samout;
-extern char * opt_subsample;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
@@ -152,7 +154,6 @@ extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double opt_abskew;
 extern double opt_dn;
-extern double opt_fraction;
 extern double opt_id;
 extern double opt_maxid;
 extern double opt_maxqt;
@@ -165,6 +166,7 @@ extern double opt_minqt;
 extern double opt_minsizeratio;
 extern double opt_minsl;
 extern double opt_query_cov;
+extern double opt_sample_pct;
 extern double opt_target_cov;
 extern double opt_weak_id;
 extern double opt_xn;
@@ -217,9 +219,10 @@ extern long opt_mismatch;
 extern long opt_notrunclabels;
 extern long opt_output_no_hits;
 extern long opt_qmask;
+extern long opt_randseed;
 extern long opt_rightjust;
 extern long opt_rowlen;
-extern long opt_seed;
+extern long opt_sample_size;
 extern long opt_self;
 extern long opt_selfid;
 extern long opt_sizein;
