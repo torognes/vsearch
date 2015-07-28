@@ -23,6 +23,8 @@
 
 /* options */
 
+bool opt_cluster_id;
+bool opt_cluster_sort;
 bool opt_quiet;
 bool opt_xsize;
 char * opt_alnout;
@@ -410,7 +412,10 @@ void args_init(int argc, char **argv)
   opt_centroids = 0;
   opt_chimeras = 0;
   opt_cluster_fast = 0;
+  opt_cluster_id = 0;
+  opt_cluster_size = 0;
   opt_cluster_smallmem = 0;
+  opt_cluster_sort = 0;
   opt_clusters = 0;
   opt_cons_truncate = 0;
   opt_consout = 0;
@@ -639,6 +644,8 @@ void args_init(int argc, char **argv)
     {"sample_size",           required_argument, 0, 0 },
     {"fastaout",              required_argument, 0, 0 },
     {"xsize",                 no_argument,       0, 0 },
+    {"cluster_id",            no_argument,       0, 0 },
+    {"cluster_sort",          no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1246,6 +1253,16 @@ void args_init(int argc, char **argv)
           opt_xsize = 1;
           break;
 
+        case 113:
+          /* cluster_id */
+          opt_cluster_id = 1;
+          break;
+
+        case 114:
+          /* cluster_sort */
+          opt_cluster_sort = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1445,8 +1462,10 @@ void cmd_help()
               "Clustering options (most searching options also apply)\n"
               "  --centroids FILENAME        output centroid sequences to FASTA file\n"
               "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
+              "  --cluster_id                add cluster id info to consout and profile files\n"
               "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
               "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
+              "  --cluster_sort              order msaout, consout, profile by decr abundance\n"
               "  --clusters STRING           output each cluster to a separate FASTA file\n"
               "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"

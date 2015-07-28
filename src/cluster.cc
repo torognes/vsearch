@@ -35,6 +35,8 @@ typedef struct clusterinfo_s
 static clusterinfo_t * clusterinfo = 0;
 static int clusters = 0;
 
+static long * cluster_abundance;
+
 static FILE * fp_centroids = 0;
 static FILE * fp_uc = 0;
 static FILE * fp_alnout = 0;
@@ -67,6 +69,26 @@ inline int compare_byclusterno(const void * a, const void * b)
   clusterinfo_t * x = (clusterinfo_t *) a;
   clusterinfo_t * y = (clusterinfo_t *) b;
   if (x->clusterno < y->clusterno)
+    return -1;
+  else if (x->clusterno > y->clusterno)
+    return +1;
+  else if (x->seqno < y->seqno)
+    return -1;
+  else if (x->seqno > y->seqno)
+    return +1;
+  else
+    return 0;
+}
+
+inline int compare_byclusterabundance(const void * a, const void * b)
+{
+  clusterinfo_t * x = (clusterinfo_t *) a;
+  clusterinfo_t * y = (clusterinfo_t *) b;
+  if (cluster_abundance[x->clusterno] > cluster_abundance[y->clusterno])
+    return -1;
+  else if (cluster_abundance[x->clusterno] < cluster_abundance[y->clusterno])
+    return +1;
+  else if (x->clusterno < y->clusterno)
     return -1;
   else if (x->clusterno > y->clusterno)
     return +1;
@@ -993,138 +1015,138 @@ void cluster(char * dbname,
   else
     cluster_core_parallel();
 
-  qsort(clusterinfo, seqcount, sizeof(clusterinfo_t), compare_byclusterno);
 
-  progress_init("Writing clusters", seqcount);
+  /* find size and abundance of each cluster and save stats */
 
-  int abundance_min = INT_MAX;
-  int abundance_max = 0;
-  int abundance = 0;
-  int size = 0;
-  int size_max = 0;
-  int singletons = 0;
-  int lastcluster = 0;
-  int centroid = 0;
-  FILE * fp_clusters = 0;
-  char * fn_clusters = 0;
+  cluster_abundance = (long *) xmalloc(clusters * sizeof(long));
+  int * cluster_size = (int *) xmalloc(clusters * sizeof(int));
 
-  if (opt_clusters)
-    {
-      fn_clusters = (char *) xmalloc(strlen(opt_clusters) + 25);
-      sprintf(fn_clusters, "%s%d", opt_clusters, 0);
-      fp_clusters = fopen(fn_clusters, "w");
-      if (!fp_clusters)
-        fatal("Unable to open clusters file for writing");
-    };
+  memset(cluster_abundance, 0, clusters * sizeof(long));
+  memset(cluster_size, 0, clusters * sizeof(int));
 
   for(int i=0; i<seqcount; i++)
     {
-      int clusterno = clusterinfo[i].clusterno;
       int seqno = clusterinfo[i].seqno;
+      int clusterno = clusterinfo[i].clusterno;
+      cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
+      cluster_size[clusterno]++;
+    }
+      
+  long abundance_min = LONG_MAX;
+  long abundance_max = 0;
+  int size_max = 0;
+  int singletons = 0;
 
-      if (clusterno == lastcluster)
+  for(int z=0; z<clusters; z++)
+    {
+      long abundance = cluster_abundance[z];
+      if (abundance < abundance_min)
+        abundance_min = abundance;
+      if (abundance > abundance_max)
+        abundance_max = abundance;
+
+      if (abundance == 1)
+        singletons++;
+
+      int size = cluster_size[z];
+      if (size > size_max)
+        size_max = size;
+    }
+
+
+  /* Sort clusters */
+  /* Sequences in same cluster must always come right after each other. */
+  /* The centroid sequence must be the first in each cluster. */
+
+  progress_init("Sorting clusters", clusters);
+  qsort(clusterinfo, seqcount, sizeof(clusterinfo_t), compare_byclusterno);
+  progress_done();
+
+
+  progress_init("Writing clusters", seqcount);
+
+  /* allocate memory for full file name of the clusters files */
+  FILE * fp_clusters = 0;
+  char * fn_clusters = 0;
+  if (opt_clusters)
+    fn_clusters = (char *) xmalloc(strlen(opt_clusters) + 25);
+
+  int lastcluster = -1;
+
+  for(int i=0; i<seqcount; i++)
+    {
+      int seqno = clusterinfo[i].seqno;
+      int clusterno = clusterinfo[i].clusterno;
+
+      if (clusterno != lastcluster)
         {
-          if (opt_clusters)
+          /* prepare for new cluster */
+          /* performed with first sequence only in each cluster */
+          /* the first sequence is always the centroid */
+
+          if (opt_centroids)
             {
-              fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
-              fprint_fasta_seq_only(fp_clusters,
-                                    db_getsequence(seqno),
-                                    db_getsequencelen(seqno),
-                                    opt_fasta_width);
+              if (opt_sizeout)
+                db_fprint_fasta_with_size(fp_centroids, seqno,
+                                          cluster_abundance[clusterno]);
+              else
+                db_fprint_fasta(fp_centroids, seqno);
             }
-          abundance += opt_sizein ? db_getabundance(seqno) : 1;
-          size++;
-        }
-      else
-        {
-          if (abundance < abundance_min)
-            abundance_min = abundance;
-          if (abundance > abundance_max)
-            abundance_max = abundance;
 
-          if (size > size_max)
-            size_max = size;
-
-          if (abundance == 1)
-            singletons++;
+          if (opt_uc)
+            {
+              fprintf(fp_uc, "C\t%d\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
+                      clusterno,
+                      cluster_abundance[clusterno],
+                      db_getheader(seqno));
+            }
 
           if (opt_clusters)
             {
-              fclose(fp_clusters);
-
+              /* close previous (except for first time) and open new file */
+              if (lastcluster != -1)
+                fclose(fp_clusters);
+              
               sprintf(fn_clusters, "%s%d", opt_clusters, clusterno);
               fp_clusters = fopen(fn_clusters, "w");
               if (!fp_clusters)
                 fatal("Unable to open clusters file for writing");
-              
-              fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
-              fprint_fasta_seq_only(fp_clusters,
-                                    db_getsequence(seqno),
-                                    db_getsequencelen(seqno),
-                                    opt_fasta_width);
-            }              
-
-          if (opt_uc)
-            {
-              fprintf(fp_uc, "C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
-                      lastcluster, abundance, db_getheader(centroid));
-              
             }
           
-          if (opt_centroids)
-            {
-              if (opt_sizeout)
-                db_fprint_fasta_with_size(fp_centroids, centroid, abundance);
-              else
-                db_fprint_fasta(fp_centroids, centroid);
-            }
-  
-          centroid = clusterinfo[i].seqno;
-          abundance = opt_sizein ? db_getabundance(seqno) : 1;
-          size = 1;
           lastcluster = clusterno;
         }
+      
+      /* performed for all sequences */
+
+      if (opt_clusters)
+        {
+          fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
+          fprint_fasta_seq_only(fp_clusters,
+                                db_getsequence(seqno),
+                                db_getsequencelen(seqno),
+                                opt_fasta_width);
+        }
+
       progress_update(i);
     }
 
-  if (abundance < abundance_min)
-    abundance_min = abundance;
-  if (abundance > abundance_max)
-    abundance_max = abundance;
-
-  if (size > size_max)
-    size_max = size;
-
-  if (abundance == 1)
-    singletons++;
-
-  if (opt_clusters)
+  if (lastcluster != -1)
     {
-      fclose(fp_clusters);
-      if (fn_clusters)
-        free(fn_clusters);
+      /* performed with the last sequence */
+      if (opt_clusters)
+        {
+          fclose(fp_clusters);
+          if (fn_clusters)
+            free(fn_clusters);
+        }
     }
 
-  if (opt_uc)
-    {
-      fprintf(fp_uc, "C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
-              lastcluster, abundance, db_getheader(centroid));
-    }
-
-  if (opt_centroids)
-    {
-      if (opt_sizeout)
-        db_fprint_fasta_with_size(fp_centroids, centroid, abundance);
-      else
-        db_fprint_fasta(fp_centroids, centroid);
-    }
-  
   progress_done();
 
   if (!opt_quiet)
     {
       fprintf(stderr,
-              "Clusters: %d Size min %d, max %d, avg %.1f\n",
+              "Clusters: %d Size min %ld, max %ld, avg %.1f\n",
               clusters,
               abundance_min,
               abundance_max,
@@ -1139,7 +1161,7 @@ void cluster(char * dbname,
   if (opt_log)
     {
       fprintf(fp_log,
-              "Clusters: %d Size min %d, max %d, avg %.1f\n",
+              "Clusters: %d Size min %ld, max %ld, avg %.1f\n",
               clusters,
               abundance_min,
               abundance_max,
@@ -1150,6 +1172,15 @@ void cluster(char * dbname,
               100.0 * singletons / seqcount, 
               100.0 * singletons / clusters);
       fprintf(fp_log, "\n");
+    }
+
+  if (opt_cluster_sort)
+    {
+      /* Optionally sort clusters by abundance */
+      progress_init("Sorting clusters by abundance", clusters);
+      qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
+            compare_byclusterabundance);
+      progress_done();
     }
 
   if (opt_msaout || opt_consout || opt_profile)
@@ -1175,7 +1206,7 @@ void cluster(char * dbname,
         if (!(fp_profile = fopen(opt_profile, "w")))
           fatal("Unable to open profile file");
 
-      int lastcluster = 0;
+      int lastcluster = -1;
 
       for(int i=0; i<seqcount; i++)
         {
@@ -1186,10 +1217,13 @@ void cluster(char * dbname,
 
           if (clusterno != lastcluster)
             {
-              /* compute msa & consensus */
-              msa(fp_msaout, fp_consout, fp_profile,
-                  lastcluster,
-                  msa_target_count, msa_target_list);
+              if (lastcluster != -1)
+                {
+                  /* compute msa & consensus */
+                  msa(fp_msaout, fp_consout, fp_profile,
+                      lastcluster,
+                      msa_target_count, msa_target_list);
+                }
 
               /* start new cluster */
               msa_target_count = 0;
@@ -1205,10 +1239,13 @@ void cluster(char * dbname,
           progress_update(i);
         }
 
-      /* compute msa & consensus */
-      msa(fp_msaout, fp_consout, fp_profile,
-          lastcluster,
-          msa_target_count, msa_target_list);
+      if (lastcluster != -1)
+        {
+          /* compute msa & consensus */
+          msa(fp_msaout, fp_consout, fp_profile,
+              lastcluster,
+              msa_target_count, msa_target_list);
+        }
 
       progress_done();
 
@@ -1223,6 +1260,9 @@ void cluster(char * dbname,
 
       free(msa_target_list);
     }
+
+  free(cluster_abundance);
+  free(cluster_size);
 
   /* free cigar strings for all aligned sequences */
 
