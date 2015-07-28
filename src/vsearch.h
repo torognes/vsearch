@@ -87,7 +87,7 @@
 #include "fastqread.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.4"
+#define PROG_VERSION "v1.2.5"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -118,6 +118,7 @@ extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_blast6out;
+extern char * opt_borderline;
 extern char * opt_centroids;
 extern char * opt_chimeras;
 extern char * opt_cluster_fast;

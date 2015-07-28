@@ -52,6 +52,7 @@ static FILE * fp_chimeras = 0;
 static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
 static FILE * fp_uchimeout = 0;
+static FILE * fp_borderline = 0;
 
 #define ALT
 //#define ALT2
@@ -1256,6 +1257,16 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 #endif
         }
 
+      if (status == 3)
+        {
+          if (opt_borderline)
+            {
+              fprint_fasta_hdr_only(fp_borderline, ci->query_head);
+              fprint_fasta_seq_only(fp_borderline, ci->query_seq,
+                                    ci->query_len, opt_fasta_width);
+            }
+        }
+
       if (status < 3)
         {
           nonchimera_count++;
@@ -1369,6 +1380,7 @@ void chimera()
   open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
   open_chimera_file(&fp_uchimealns, opt_uchimealns);
   open_chimera_file(&fp_uchimeout, opt_uchimeout);
+  open_chimera_file(&fp_borderline, opt_borderline);
 
   /* override any options the user might have set */
   opt_maxaccepts = few;
@@ -1479,6 +1491,7 @@ void chimera()
   free(cia);
   free(pthread);
   
+  close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);
   close_chimera_file(fp_uchimealns);
   close_chimera_file(fp_nonchimeras);

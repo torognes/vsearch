@@ -30,6 +30,7 @@ bool opt_xsize;
 char * opt_alnout;
 char * opt_allpairs_global;
 char * opt_blast6out;
+char * opt_borderline;
 char * opt_centroids;
 char * opt_chimeras;
 char * opt_cluster_fast;
@@ -409,6 +410,7 @@ void args_init(int argc, char **argv)
   opt_alignwidth = 80;
   opt_allpairs_global = 0;
   opt_alnout = 0;
+  opt_borderline = 0;
   opt_centroids = 0;
   opt_chimeras = 0;
   opt_cluster_fast = 0;
@@ -646,6 +648,7 @@ void args_init(int argc, char **argv)
     {"xsize",                 no_argument,       0, 0 },
     {"clusterout_id",         no_argument,       0, 0 },
     {"clusterout_sort",       no_argument,       0, 0 },
+    {"borderline",            required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1263,6 +1266,11 @@ void args_init(int argc, char **argv)
           opt_clusterout_sort = 1;
           break;
 
+        case 115:
+          /* borderline */
+          opt_borderline = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1443,6 +1451,7 @@ void cmd_help()
               "Chimera detection options\n"
               "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
               "  --alignwidth INT            width of alignment in uchimealn output (80)\n"
+              "  --borderline FILENAME       output borderline chimeric sequences to file\n"
               "  --chimeras FILENAME         output chimeric sequences to file\n"
               "  --db FILENAME               reference database for --uchime_ref\n"
               "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
