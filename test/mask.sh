@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 DB=../data/BioMarKs50k.fsa
 VSEARCH=../src/vsearch

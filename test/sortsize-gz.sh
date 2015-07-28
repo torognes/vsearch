@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 INPUT=../data/BioMarKs.fsa.gz
 TEMP=temp-gz.fsa
