@@ -111,8 +111,8 @@
 
 /* options */
 
-extern bool opt_cluster_id;
-extern bool opt_cluster_sort;
+extern bool opt_clusterout_id;
+extern bool opt_clusterout_sort;
 extern bool opt_quiet;
 extern bool opt_xsize;
 extern char * opt_allpairs_global;

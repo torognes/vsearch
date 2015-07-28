@@ -304,7 +304,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
     {
       fprintf(fp_consout, ">centroid=%s;seqs=%d;",
               db_getheader(centroid_seqno), target_count);
-      if (opt_cluster_id)
+      if (opt_clusterout_id)
         fprintf(fp_consout, "clusterid=%d;", cluster);
       fprintf(fp_consout, "\n");
       fprint_fasta_seq_only(fp_consout, cons, conslen, opt_fasta_width);
@@ -314,7 +314,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
     {
       fprintf(fp_profile, ">centroid=%s;seqs=%d;",
               db_getheader(centroid_seqno), target_count);
-      if (opt_cluster_id)
+      if (opt_clusterout_id)
         fprintf(fp_profile, "clusterid=%d;", cluster);
       fprintf(fp_profile, "\n");
 

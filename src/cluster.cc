@@ -1174,7 +1174,7 @@ void cluster(char * dbname,
       fprintf(fp_log, "\n");
     }
 
-  if (opt_cluster_sort)
+  if (opt_clusterout_sort)
     {
       /* Optionally sort clusters by abundance */
       progress_init("Sorting clusters by abundance", clusters);
