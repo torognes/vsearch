@@ -19,6 +19,8 @@
 
 #include "vsearch.h"
 
+#include "score_matrix.h"
+
 /*
   Using 16-bit signed values, from -32768 to +32767.
   match: positive
@@ -50,11 +52,9 @@
 #define MAXSEQLENPRODUCT 25000000
 //#define MAXSEQLENPRODUCT 160000
 
-static long scorematrix[16][16];
-
 struct s16info_s
 {
-  __m128i matrix[32];
+  __m128i * matrix;
   __m128i * hearray;
   __m128i * dprofile;
   __m128i ** qtable;
@@ -155,7 +155,7 @@ void dprofile_fill16_aa(CELL * dprofile_word,
   {
     int d[CHANNELS];
     for(int z=0; z<CHANNELS; z++)
-      d[z] = dseq[j*CHANNELS+z] << 4;
+      d[z] = dseq[j*CHANNELS+z] << 5;
       
     for(int i=0; i<16; i += 8)
     {
@@ -618,7 +618,7 @@ void backtrack16_aa(s16info_s * s,
     }
     else
     {
-      if (chrmap_4bit[(int)(qseq[i])] == chrmap_4bit[(int)(dseq[j])])
+      if (chrmap_aa_5bit[(int)(qseq[i])] == chrmap_aa_5bit[(int)(dseq[j])])
         matches++;
       else
         mismatches++;
@@ -677,7 +677,9 @@ struct s16info_s * search16_aa_init(CELL score_match,
   struct s16info_s * s = (struct s16info_s *)
     xmalloc(sizeof(struct s16info_s));
 
-  s->dprofile = (__m128i *) xmalloc(2*4*8*16);
+  ScoreMatrix::instance.init(score_match, score_mismatch, MATRIX_MODE_AA);
+
+  s->dprofile = (__m128i *) xmalloc(sizeof(CELL)*CDEPTH*CHANNELS*ScoreMatrix::instance.get_dimension());
   s->qlen = 0;
   s->qseq = 0;
   s->maxdlen = 0;
@@ -689,31 +691,7 @@ struct s16info_s * search16_aa_init(CELL score_match,
   s->cigarend = 0;
   s->cigaralloc = 0;
 
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      {
-        CELL value;
-        if (i==j)
-          value = opt_match;
-        else if ((i==0) || (j==0) || (i>4) || (j>4))
-          value = 0;
-        else
-          value = opt_mismatch;
-        ((CELL*)(&s->matrix))[16*i+j] = value;
-      }
-  
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      {
-        CELL value;
-        if ((i==0) || (j==0) || (i>4) || (j>4))
-          value = 0;
-        else if (i==j)
-          value = opt_match;
-        else
-          value = opt_mismatch;
-        scorematrix[i][j] = value;
-      }
+  s->matrix = (__m128i*) ScoreMatrix::instance.score_matrix_16;
   
   s->penalty_gap_open_query_left = penalty_gap_open_query_left;
   s->penalty_gap_open_query_interior = penalty_gap_open_query_interior;
@@ -765,7 +743,25 @@ void search16_aa_qprep(s16info_s * s, char * qseq, int qlen)
   s->qtable = (__m128i **) xmalloc(s->qlen * sizeof(__m128i*));
 
   for(int i = 0; i < qlen; i++)
-    s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int)(qseq[i])];
+    s->qtable[i] = s->dprofile + CDEPTH * chrmap_aa_5bit[(int)(qseq[i])];
+}
+
+void check_for_overflows(bool overflow[CHANNELS], __m128i h_min, __m128i h_max, short score_min, short score_max)
+{
+  for (int c = 0; c<CHANNELS; c++)
+    {
+      if (!overflow[c])
+        {
+          signed short h_min_array[8];
+          signed short h_max_array[8];
+          _mm_storeu_si128((__m128i *)h_min_array, h_min);
+          _mm_storeu_si128((__m128i *)h_max_array, h_max);
+          signed short h_min_c = h_min_array[c];
+          signed short h_max_c = h_max_array[c];
+          if ((h_min_c<=score_min)||(h_max_c>=score_max))
+            overflow[c] = true;
+        }
+    }
 }
 
 void search16_aa(s16info_s * s,
@@ -795,17 +791,16 @@ void search16_aa(s16info_s * s,
             maxdlen = dlen;
         }
     }
-  maxdlen = 4 * ((maxdlen + 3) / 4);
+  maxdlen = CDEPTH * ((maxdlen + 3) / CDEPTH);
   s->maxdlen = maxdlen;
-  unsigned long dirbuffersize = s->qlen * s->maxdlen * 4;
+  unsigned long dirbuffersize = s->qlen * s->maxdlen * CDEPTH;
   
   if (dirbuffersize > s->diralloc)
     {
       s->diralloc = dirbuffersize;
       if (s->dir)
         free(s->dir);
-      s->dir = (unsigned short*) xmalloc(dirbuffersize * 
-                                         sizeof(unsigned short));
+      s->dir = (unsigned short*) xmalloc(dirbuffersize * sizeof(unsigned short));
     }
   
   unsigned short * dirbuffer = s->dir;
@@ -843,7 +838,7 @@ void search16_aa(s16info_s * s,
   bool overflow[CHANNELS];
   
   __m128i dseqalloc[CDEPTH];
-  __m128i S[4];
+  __m128i S[CDEPTH];
 
   BYTE * dseq = (BYTE*) & dseqalloc;
   BYTE zero = 0;
@@ -913,7 +908,7 @@ void search16_aa(s16info_s * s,
   short score_min = SHRT_MIN + gap_penalty_max;
   short score_max = SHRT_MAX;
 
-  for(int i=0; i<4; i++)
+  for(int i=0; i<CDEPTH; i++)
     {
       S[i] = _mm_setzero_si128();
       dseqalloc[i] = _mm_setzero_si128();
@@ -945,7 +940,7 @@ void search16_aa(s16info_s * s,
         for(int j=0; j<CDEPTH; j++)
         {
           if (d_begin[c] < d_end[c])
-            dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+            dseq[CHANNELS*j+c] = chrmap_aa_5bit[*(d_begin[c]++)];
           else
             dseq[CHANNELS*j+c] = 0;
         }
@@ -1007,20 +1002,7 @@ void search16_aa(s16info_s * s,
                         & h_min, & h_max,
                         qlen, dir);
 
-      for(int c=0; c<CHANNELS; c++)
-        {
-          if (! overflow[c])
-            {
-              signed short h_min_array[8];
-              signed short h_max_array[8];
-              _mm_storeu_si128((__m128i*)h_min_array, h_min);
-              _mm_storeu_si128((__m128i*)h_max_array, h_max);
-              signed short h_min_c = h_min_array[c];
-              signed short h_max_c = h_max_array[c];
-              if ((h_min_c <= score_min) || (h_max_c >= score_max))
-                overflow[c] = true;
-            }
-        }
+      check_for_overflows(overflow, h_min, h_max, score_min, score_max);
     }
     else
     {
@@ -1040,7 +1022,7 @@ void search16_aa(s16info_s * s,
           for(int j=0; j<CDEPTH; j++)
           {
             if (d_begin[c] < d_end[c])
-              dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+              dseq[CHANNELS*j+c] = chrmap_aa_5bit[*(d_begin[c]++)];
             else
               dseq[CHANNELS*j+c] = 0;
           }
@@ -1061,7 +1043,7 @@ void search16_aa(s16info_s * s,
 
             char * dbseq = (char*) d_address[c];
             long dbseqlen = d_length[c];
-            long z = (dbseqlen+3) % 4;
+            long z = (dbseqlen+3) % CDEPTH;
             long score = ((CELL*)S)[z*CHANNELS+c];
 
             if (overflow[c])
@@ -1142,7 +1124,7 @@ void search16_aa(s16info_s * s,
               for(int j=0; j<CDEPTH; j++)
                 {
                   if (d_begin[c] < d_end[c])
-                    dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+                    dseq[CHANNELS*j+c] = chrmap_aa_5bit[*(d_begin[c]++)];
                   else
                     dseq[CHANNELS*j+c] = 0;
                 }
@@ -1207,7 +1189,7 @@ void search16_aa(s16info_s * s,
               for(int c=0; c<CHANNELS; c++)
                 {
                   if ((d_begin[c] == d_end[c]) &&
-                      (j >= ((d_length[c]+3) % 4)))
+                      (j >= ((d_length[c]+3) % CDEPTH)))
                     {
                       M = _mm_xor_si128(M, T);
                     }
@@ -1238,21 +1220,7 @@ void search16_aa(s16info_s * s,
                          M_QR_query_right,
                          qlen, dir);
       
-      for(int c=0; c<CHANNELS; c++)
-        {
-          if (! overflow[c])
-            {
-              signed short h_min_array[8];
-              signed short h_max_array[8];
-              _mm_storeu_si128((__m128i*)h_min_array, h_min);
-              _mm_storeu_si128((__m128i*)h_max_array, h_max);
-              signed short h_min_c = h_min_array[c];
-              signed short h_max_c = h_max_array[c];
-              if ((h_min_c <= score_min) || 
-                  (h_max_c >= score_max))
-                overflow[c] = true;
-            }
-        }
+      check_for_overflows(overflow, h_min, h_max, score_min, score_max);
     }
     
     H0 = _mm_subs_epi16(H3, R_query_left);

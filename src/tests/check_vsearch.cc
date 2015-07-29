@@ -23,12 +23,12 @@ Suite* vsearch_suite(void)
 {
   Suite *s = suite_create("vsearch");
 
-  add_maps_TC(s);
-  add_matrices_TC(s);
+//  add_maps_TC(s);
+//  add_matrices_TC(s);
 //  add_db_TC(s);
 //  add_dprofile_fill_nuc_TC(s);
 //  add_align_simd_nuc_TC(s);
-//  add_align_simd_aa_TC(s);
+  add_align_simd_aa_TC(s);
 
   return s;
 }

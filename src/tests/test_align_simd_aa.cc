@@ -32,12 +32,10 @@ static void setup()
 {
   opt_maxseqlength = 2000;
 
-  db_read("../data/uniprot_first_two_sequences.fasta", 0, DB_MODE_AA); // TODO what does upcase do?
+  db_read("../data/test_aminoacid_db.fasta", 0, DB_MODE_AA); // TODO what does upcase do?
 
   CELL match = 5;
-  opt_match = match;
   CELL mismatch = -4;
-  opt_mismatch = mismatch;
   CELL gap_open = 2;
   CELL gap_extension = 1;
 
@@ -56,7 +54,7 @@ static void teardown()
 
 START_TEST (test_align_simd_simple)
     {
-      char * query = (char *)"MSIIGATRLQNDKRRRRMEALLLSLYYPNDRKLLDYKEWSPPRVQVECPKTSQPLCAR";
+      char * query = (char *)"AAA";
       search16_aa_qprep(s16, query, strlen(query));
 
       unsigned int seq_count = 1;
@@ -71,14 +69,15 @@ START_TEST (test_align_simd_simple)
       search16_aa(s16, seq_count, seqnos, pscores, paligned, pmatches, pmismatches, pgaps, pcigar);
 
       ck_assert_ptr_ne(0, pcigar[0]);
-      ck_assert_str_eq("MD4MI3MI3MD37MI3M3I2M2DM", pcigar[0]);
+      ck_assert_str_eq("2M2IM", pcigar[0]);
+      ck_assert_int_eq(2, pscores[0]);
 
       check_cigar_matches(pmatches[0], pmismatches[0], pcigar[0]);
     }END_TEST
 
 START_TEST (test_align_simd_all)
     {
-      char * query = (char *)"MSIIGATRLQNDKRRRRMEALLLSLYYPNDRKLLDYKEWSPPRVQVECPKTSQPLCAR";
+      char * query = (char *)"XXAAN";
 
       search16_aa_qprep(s16, query, strlen(query));
 

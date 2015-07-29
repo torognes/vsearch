@@ -21,6 +21,7 @@
 #define SCORE_MATRIX_H
 
 #include <stddef.h>
+#include <limits.h>
 
 #include "align_simd.h"
 
@@ -35,8 +36,6 @@
 #define PAM30 "pam30"
 #define PAM70 "pam70"
 #define PAM250 "pam250"
-
-#define LINE_MAX 2048
 
 /**
  * Implements the score matrix, that is used during the alignments.

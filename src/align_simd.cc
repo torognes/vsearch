@@ -21,6 +21,8 @@
 
 #include "vsearch.h"
 
+#include "score_matrix.h"
+
 /*
   Using 16-bit signed values, from -32768 to +32767.
   match: positive
@@ -52,11 +54,11 @@
 #define MAXSEQLENPRODUCT 25000000
 //#define MAXSEQLENPRODUCT 160000
 
-static long scorematrix[16][16];
+//static long scorematrix[16][16];
 
 struct s16info_s
 {
-  __m128i matrix[32];
+  __m128i * matrix;
   __m128i * hearray;
   __m128i * dprofile;
   __m128i ** qtable;
@@ -691,31 +693,35 @@ struct s16info_s * search16_init(CELL score_match,
   s->cigarend = 0;
   s->cigaralloc = 0;
 
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      {
-        CELL value;
-        if (i==j)
-          value = opt_match;
-        else if ((i==0) || (j==0) || (i>4) || (j>4))
-          value = 0;
-        else
-          value = opt_mismatch;
-        ((CELL*)(&s->matrix))[16*i+j] = value;
-      }
-  
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      {
-        CELL value;
-        if ((i==0) || (j==0) || (i>4) || (j>4))
-          value = 0;
-        else if (i==j)
-          value = opt_match;
-        else
-          value = opt_mismatch;
-        scorematrix[i][j] = value;
-      }
+  ScoreMatrix::instance.init(score_match, score_mismatch, MATRIX_MODE_NUC);
+
+  s->matrix = (__m128i*) ScoreMatrix::instance.score_matrix_16;
+
+//  for(int i=0; i<16; i++)
+//    for(int j=0; j<16; j++)
+//      {
+//        CELL value;
+//        if (i==j)
+//          value = score_match;
+//        else if ((i==0) || (j==0) || (i>4) || (j>4))
+//          value = 0;
+//        else
+//          value = score_mismatch;
+//        ((CELL*)(&s->matrix))[16*i+j] = value;
+//      }
+//
+//  for(int i=0; i<16; i++)
+//    for(int j=0; j<16; j++)
+//      {
+//        CELL value;
+//        if ((i==0) || (j==0) || (i>4) || (j>4))
+//          value = 0;
+//        else if (i==j)
+//          value = opt_match;
+//        else
+//          value = opt_mismatch;
+//        scorematrix[i][j] = value;
+//      }
   
   s->penalty_gap_open_query_left = penalty_gap_open_query_left;
   s->penalty_gap_open_query_interior = penalty_gap_open_query_interior;
