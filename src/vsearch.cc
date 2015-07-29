@@ -520,8 +520,8 @@ void args_init(int argc, char **argv)
   static struct option long_options[] =
 
   {
-    {"help",                  no_argument,       & opt_help,    1 },
-    {"version",               no_argument,       & opt_version, 1 },
+    {"help",                  no_argument,       0, 0 },
+    {"version",               no_argument,       0, 0 },
     {"alnout",                required_argument, 0, 0 },
     {"usearch_global",        required_argument, 0, 0 },
     {"db",                    required_argument, 0, 0 },
@@ -651,12 +651,12 @@ void args_init(int argc, char **argv)
         {
         case 0:
           /* help */
-          // opt_help = 1;
+          opt_help = 1;
           break;
               
         case 1:
           /* version */
-          // opt_version = 1;
+          opt_version = 1;
           break;
 
         case 2:
@@ -1227,8 +1227,13 @@ void args_init(int argc, char **argv)
         }
     }
 
+  /* Terminate if ambiguous or illegal options have been detected */
   if (c != -1)
     exit(EXIT_FAILURE);
+
+  /* Terminate after reporting any extra non-option arguments */
+  if (optind < argc)
+    fatal("Unrecognized string on command line (%s)", argv[optind]);
 
   int commands = 0;
   if (opt_fastq_chars)

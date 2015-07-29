@@ -16,6 +16,9 @@ UCHIME=$(which uchime)
 USEARCH=$(which usearch)
 VSEARCH=../src/vsearch
 
+MINH=0.28
+MINDIV=0.8
+
 if [ "$P" == "u" ]; then
     PROG=$USEARCH
 else
@@ -38,8 +41,8 @@ if [ "$P" == "o" ]; then
         --db $DB \
         --uchimeout $P.uchimeout \
         --uchimealns $P.uchimealns \
-        --minh 0.28 \
-        --mindiv 0.8"
+        --minh $MINH \
+        --mindiv $MINDIV"
 
 else
 
@@ -50,7 +53,9 @@ else
       --chimeras $P.chimeras \
       --nonchimeras $P.nonchimeras \
       --uchimealns $P.uchimealns \
-      --uchimeout $P.uchimeout"
+      --uchimeout $P.uchimeout \
+      --minh $MINH \
+      --mindiv $MINDIV"
 
 fi
     
