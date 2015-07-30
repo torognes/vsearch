@@ -290,7 +290,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
               nongap_count += count;
             }
 
-          if (nongap_count >= 6 * target_count)
+          int gap_count = 12 * target_count - nongap_count;
+
+          if (best_count >= gap_count)
             {
               char sym = sym_nt_2bit[(int)best_sym];
               aln[i] = sym;

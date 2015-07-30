@@ -87,7 +87,7 @@
 #include "fastqread.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.6"
+#define PROG_VERSION "v1.2.7"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
