@@ -23,15 +23,15 @@
 #include <check.h>
 
 #include "../align_simd.h"
+#include "../score_matrix.h"
 
 #define CDEPTH 4
 #define CHANNELS 8
-#define SCORE_MATRIX_DIM 16
 
 void check_cigar_matches(unsigned short pmatches, unsigned short pmismatches, char* pcigar);
 
 void print_profile(CELL * dprofile);
-void print_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM]);
+void print_matrix(CELL * matrix);
 void print_search_window(BYTE * dseq);
 
 #endif /* VSEARCH_TEST_HELPER_H_ */

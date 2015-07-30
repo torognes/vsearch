@@ -50,9 +50,10 @@ class ScoreMatrix
 private:
   int constant_scoring;
   int dimension;
+  int mode;
 
   // singleton part
-  ScoreMatrix() { constant_scoring = 0; dimension = -1; }
+  ScoreMatrix() { constant_scoring = 0; dimension = -1; mode = MATRIX_MODE_NUC; }
 
   ScoreMatrix(const ScoreMatrix&);
 
@@ -107,6 +108,11 @@ public:
   int get_dimension()
   {
     return dimension;
+  }
+  
+  int is_nucleotide_mode()
+  {
+    return mode == MATRIX_MODE_NUC;
   }
 
   CELL get16(int x, int y)

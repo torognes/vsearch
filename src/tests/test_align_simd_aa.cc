@@ -22,8 +22,9 @@
 #include "helper_functions.h"
 
 #include "../vsearch.h"
-#include "../align_simd_aa.h"
+#include "../align_simd.h"
 #include "../util.h"
+#include "../score_matrix.h"
 
 static struct s16info_s * s16;
 
@@ -39,7 +40,9 @@ static void setup()
   CELL gap_open = 2;
   CELL gap_extension = 1;
 
-  s16 = search16_aa_init(match, mismatch,
+  ScoreMatrix::instance.init(match, mismatch, MATRIX_MODE_NUC);
+
+  s16 = search16_init_2(
       gap_open, gap_open, gap_open, gap_open, gap_open, gap_open,
       gap_extension, gap_extension, gap_extension, gap_extension, gap_extension, gap_extension);
 }
@@ -47,7 +50,7 @@ static void setup()
 /* Is run once after each unit test */
 static void teardown()
 {
-  search16_aa_exit(s16);
+  search16_exit(s16);
 
   db_free();
 }
@@ -55,7 +58,7 @@ static void teardown()
 START_TEST (test_align_simd_simple)
     {
       char * query = (char *)"AAA";
-      search16_aa_qprep(s16, query, strlen(query));
+      search16_qprep(s16, query, strlen(query));
 
       unsigned int seq_count = 1;
       unsigned int seqnos[] = { 0 };
@@ -66,7 +69,7 @@ START_TEST (test_align_simd_simple)
       unsigned short pgaps[1];
       char * pcigar[1];
       pcigar[0] = 0;
-      search16_aa(s16, seq_count, seqnos, pscores, paligned, pmatches, pmismatches, pgaps, pcigar);
+      search16(s16, seq_count, seqnos, pscores, paligned, pmatches, pmismatches, pgaps, pcigar);
 
       ck_assert_ptr_ne(0, pcigar[0]);
       ck_assert_str_eq("2M2IM", pcigar[0]);
@@ -79,7 +82,7 @@ START_TEST (test_align_simd_all)
     {
       char * query = (char *)"XXAAN";
 
-      search16_aa_qprep(s16, query, strlen(query));
+      search16_qprep(s16, query, strlen(query));
 
       unsigned long seq_count = 2;
 
@@ -97,7 +100,7 @@ START_TEST (test_align_simd_all)
       char * pcigar[seq_count];
       memset(pcigar, 0, seq_count);
 
-      search16_aa(s16, seq_count, seqnos, pscores, paligned, pmatches, pmismatches, pgaps, pcigar);
+      search16(s16, seq_count, seqnos, pscores, paligned, pmatches, pmismatches, pgaps, pcigar);
 
       for (unsigned int i = 0; i<seq_count; ++i)
         {

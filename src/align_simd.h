@@ -22,11 +22,50 @@
 typedef signed short CELL;
 typedef unsigned short WORD;
 typedef unsigned char BYTE;
+
 struct s16info_s;
 
+extern unsigned int * chrmap; // TODO should be exchanged with a global field that is set in the beginning
+
+void backtrack16(s16info_s * s,
+                 char * dseq,
+                 unsigned long dlen,
+                 unsigned long offset,
+                 unsigned long channel,
+                 unsigned short * paligned,
+                 unsigned short * pmatches,
+                 unsigned short * pmismatches,
+                 unsigned short * pgaps);
+
+/*
+ * Initialises the alignment process.
+ *
+ * Requires the score matrix (class ScoreMatrix) to already be intialised.
+ */
 struct s16info_s *
-search16_init(CELL score_match,
-              CELL score_mismatch,
+search16_init_2(CELL penalty_gap_open_query_left,
+              CELL penalty_gap_open_target_left,
+              CELL penalty_gap_open_query_interior,
+              CELL penalty_gap_open_target_interior,
+              CELL penalty_gap_open_query_right,
+              CELL penalty_gap_open_target_right,
+              CELL penalty_gap_extension_query_left,
+              CELL penalty_gap_extension_target_left,
+              CELL penalty_gap_extension_query_interior,
+              CELL penalty_gap_extension_target_interior,
+              CELL penalty_gap_extension_query_right,
+              CELL penalty_gap_extension_target_right);
+
+/*
+ * Deprecated function kept for compatibility reasons. Should be
+ * exchanged for search16_init_2.
+ *
+ * This function additionally initialises the score matrix, while
+ * this should be done at a different point in the program.
+ */
+struct s16info_s *
+search16_init(int score_match,
+              int score_mismatch,
               CELL penalty_gap_open_query_left,
               CELL penalty_gap_open_target_left,
               CELL penalty_gap_open_query_interior,

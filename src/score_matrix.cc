@@ -283,6 +283,7 @@ ScoreMatrix ScoreMatrix::instance = ScoreMatrix();
 void ScoreMatrix::init(const char* amino_acid_matrix)
 {
   constant_scoring = 0;
+  mode = MATRIX_MODE_AA;
 
   prepare_matrices(MATRIX_MODE_AA);
 
@@ -294,6 +295,7 @@ void ScoreMatrix::init(const char* amino_acid_matrix)
 void ScoreMatrix::init(const int match, const int mismatch, int sequence_mode)
 {
   constant_scoring = 1;
+  mode = sequence_mode;
 
   prepare_matrices(sequence_mode);
 

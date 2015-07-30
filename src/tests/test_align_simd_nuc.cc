@@ -23,6 +23,7 @@
 
 #include "../vsearch.h"
 #include "../align_simd.h"
+#include "../score_matrix.h"
 #include "../util.h"
 
 static struct s16info_s * s16;
@@ -39,8 +40,9 @@ static void setup()
   CELL gap_open = 5;
   CELL gap_extension = 1;
 
-  s16 = search16_init(match, mismatch,
-      gap_open, gap_open, gap_open, gap_open, gap_open, gap_open,
+  ScoreMatrix::instance.init(match, mismatch, MATRIX_MODE_NUC);
+
+  s16 = search16_init_2(gap_open, gap_open, gap_open, gap_open, gap_open, gap_open,
       gap_extension, gap_extension, gap_extension, gap_extension, gap_extension, gap_extension);
 }
 

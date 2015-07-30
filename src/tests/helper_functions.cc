@@ -60,7 +60,7 @@ void check_cigar_matches(unsigned short pmatches, unsigned short pmismatches, ch
 
 void print_profile(CELL * dprofile)
 {
-  for (int i = 0; i<SCORE_MATRIX_DIM; ++i)
+  for (int i = 0; i<ScoreMatrix::instance.get_dimension(); ++i)
     {
       for (int j = 0; j<CDEPTH; ++j)
         {
@@ -74,14 +74,14 @@ void print_profile(CELL * dprofile)
     }
 }
 
-void print_matrix(CELL matrix[SCORE_MATRIX_DIM*SCORE_MATRIX_DIM])
+void print_matrix(CELL * matrix)
 {
   // end copy
-  for (int i = 0; i<SCORE_MATRIX_DIM; i++)
+  for (int i = 0; i<ScoreMatrix::instance.get_dimension(); i++)
     {
-      for (int j = 0; j<SCORE_MATRIX_DIM; j++)
+      for (int j = 0; j<ScoreMatrix::instance.get_dimension(); j++)
         {
-          printf("%2d, ", matrix[SCORE_MATRIX_DIM*i+j]);
+          printf("%2d, ", matrix[ScoreMatrix::instance.get_dimension()*i+j]);
         }
       printf("\n");
     }
