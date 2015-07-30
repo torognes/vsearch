@@ -262,31 +262,43 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   int conslen = 0;
 
+  /* Censor part of the consensus sequence outside the centroid sequence */
+
+  int left_censored = maxi[0];
+  int right_censored = maxi[centroid_len];
+
   for(int i=0; i<alnlen; i++)
     {
-      /* find most common symbol */
-      char best_sym = 0;
-      int best_count = -1;
-      int nongap_count = 0;
-      for(int c=0; c<4; c++)
+      if ((i < left_censored) || (i >= alnlen - right_censored))
         {
-          int count = profile[4*i+c];
-          if (count > best_count)
-            {
-              best_count = count;
-              best_sym = c;
-            }
-          nongap_count += count;
+          aln[i] = '+';
         }
-
-      if (nongap_count >= 6 * target_count)
-        {
-          char sym = sym_nt_2bit[(int)best_sym];
-          aln[i] = sym;
-          cons[conslen++] = sym;
-        }  
       else
-        aln[i] = '-';
+        {
+          /* find most common symbol */
+          char best_sym = 0;
+          int best_count = -1;
+          int nongap_count = 0;
+          for(int c=0; c<4; c++)
+            {
+              int count = profile[4*i+c];
+              if (count > best_count)
+                {
+                  best_count = count;
+                  best_sym = c;
+                }
+              nongap_count += count;
+            }
+
+          if (nongap_count >= 6 * target_count)
+            {
+              char sym = sym_nt_2bit[(int)best_sym];
+              aln[i] = sym;
+              cons[conslen++] = sym;
+            }
+          else
+            aln[i] = '-';
+        }
     }
 
   aln[alnlen] = 0;
