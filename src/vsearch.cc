@@ -27,6 +27,8 @@ bool opt_clusterout_id;
 bool opt_clusterout_sort;
 bool opt_quiet;
 bool opt_xsize;
+bool opt_relabel_sha1;
+bool opt_relabel_md5;
 char * opt_alnout;
 char * opt_allpairs_global;
 char * opt_blast6out;
@@ -495,6 +497,8 @@ void args_init(int argc, char **argv)
   opt_quiet = false;
   opt_randseed = 0;
   opt_relabel = 0;
+  opt_relabel_sha1 = 0;
+  opt_relabel_md5 = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samout = 0;
@@ -649,6 +653,8 @@ void args_init(int argc, char **argv)
     {"clusterout_id",         no_argument,       0, 0 },
     {"clusterout_sort",       no_argument,       0, 0 },
     {"borderline",            required_argument, 0, 0 },
+    {"relabel_sha1",          no_argument,       0, 0 },
+    {"relabel_md5",           no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1271,6 +1277,16 @@ void args_init(int argc, char **argv)
           opt_borderline = optarg;
           break;
 
+        case 116:
+          /* relabel_sha1 */
+          opt_relabel_sha1 = 1;
+          break;
+
+        case 117:
+          /* relabel_md5 */
+          opt_relabel_md5 = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1376,6 +1392,9 @@ void args_init(int argc, char **argv)
   
   if (opt_sample_size < 0)
     fatal("The argument to --sample_size must not be negative");
+
+  if (opt_relabel_sha1 && opt_relabel_md5)
+    fatal("Specify either --relabel_sha1 or --relabel_md5, not both");
   
   /* TODO: check valid range of gap penalties */
 

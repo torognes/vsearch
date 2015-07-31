@@ -41,8 +41,11 @@
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
+#include <CommonCrypto/CommonDigest.h>
 #else
 #include <sys/sysinfo.h>
+#include <openssl/sha.h>
+#include <openssl/md5.h>
 #endif
 
 #include <city.h>
@@ -87,7 +90,7 @@
 #include "fastqread.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.7"
+#define PROG_VERSION "v1.2.8"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -115,6 +118,8 @@ extern bool opt_clusterout_id;
 extern bool opt_clusterout_sort;
 extern bool opt_quiet;
 extern bool opt_xsize;
+extern bool opt_relabel_sha1;
+extern bool opt_relabel_md5;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_blast6out;

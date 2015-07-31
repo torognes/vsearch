@@ -76,15 +76,6 @@ int derep_compare(const void * a, const void * b)
     }
 }
 
-void string_normalize(char * normalized, char * s, unsigned int len)
-{
-  /* convert string to upper case and replace U by T */
-  char * p = s;
-  char * q = normalized;
-  for(unsigned int i=0; i<len; i++)
-    *q++ = chrmap_normalize[(int)(*p++)];
-}
-
 int seqcmp(char * a, char * b, int n)
 {
   char * p = a;
@@ -327,12 +318,39 @@ void derep_fulllength()
         {
           if (opt_output)
             {
-              if (opt_sizeout)
-                db_fprint_fasta_with_size(fp_output,
-                                          bp->seqno_first, bp->size);
+              if (opt_relabel_sha1 || opt_relabel_md5)
+                {
+                  fprintf(fp_output, ">");
+                  char * seq = db_getsequence(bp->seqno_first);
+                  unsigned int len = db_getsequencelen(bp->seqno_first);
+                  if (opt_relabel_sha1)
+                    fprint_seq_digest_sha1(fp_output, seq, len);
+                  else
+                    fprint_seq_digest_md5(fp_output, seq, len);
+                  if (opt_sizeout)
+                    fprintf(fp_output, ";size=%u;\n", bp->size);
+                  else
+                    fprintf(fp_output, "\n");
+                  db_fprint_fasta_seq_only(fp_output, bp->seqno_first);
+                }
+              else if (opt_relabel)
+                {
+                  if (opt_sizeout)
+                    fprintf(fp_output, ">%s%ld;size=%u;\n", opt_relabel, i+1,
+                            bp->size);
+                  else
+                    fprintf(fp_output, ">%s%ld\n", opt_relabel, i+1);
+                  db_fprint_fasta_seq_only(fp_output, bp->seqno_first);
+                }
               else
-                db_fprint_fasta(fp_output,
-                                bp->seqno_first);
+                {
+                  if (opt_sizeout)
+                    db_fprint_fasta_with_size(fp_output,
+                                              bp->seqno_first, bp->size);
+                  else
+                    db_fprint_fasta(fp_output,
+                                    bp->seqno_first);
+                }
             }
           selected++;
           if (selected == opt_topn)

@@ -325,3 +325,19 @@ unsigned long random_ulong(unsigned long n)
          (random() << 16) ^ (random()));
   return r % n;
 }
+
+void string_normalize(char * normalized, char * s, unsigned int len)
+{
+  /* convert string to upper case and replace U by T */
+  char * p = s;
+  char * q = normalized;
+  for(unsigned int i=0; i<len; i++)
+    *q++ = chrmap_normalize[(int)(*p++)];
+  *q = 0;
+}
+
+void fprint_hex(FILE * fp, unsigned char * data, int len)
+{
+  for(int i=0; i<len; i++)
+    fprintf(fp, "%02x", data[i]);
+}

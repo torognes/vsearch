@@ -21,3 +21,6 @@
 
 unsigned long arch_get_memused();
 unsigned long arch_get_memtotal();
+
+void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen);
+void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen);

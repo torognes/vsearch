@@ -63,3 +63,47 @@ unsigned long arch_get_memtotal()
 
 #endif
 }
+
+void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen)
+{
+  /* Print a hexadecimal representation of the sha1 hash of the sequence to fp.
+     First normalize string by uppercasing it and replacing U's with T's. */
+
+  char * normalized = (char*) xmalloc(seqlen+1);
+  string_normalize(normalized, seq, seqlen);
+
+#if __APPLE__
+  #define DIG_LEN_SHA1 CC_SHA1_DIGEST_LENGTH
+  unsigned char digest[DIG_LEN_SHA1];
+  CC_SHA1(normalized, (CC_LONG) seqlen, digest);
+#else
+  #define DIG_LEN_SHA1 SHA_DIGEST_LENGTH
+  unsigned char digest[DIG_LEN_SHA1];
+  SHA1((const unsigned char*)normalized, (size_t) seqlen, digest);
+#endif
+
+  free(normalized);
+  fprint_hex(fp, digest, DIG_LEN_SHA1);
+}
+
+void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen)
+{
+  /* Print a hexadecimal representation of the md5 hash of the sequence to fp.
+     First normalize string by uppercasing it and replacing U's with T's. */
+
+  char * normalized = (char*) xmalloc(seqlen+1);
+  string_normalize(normalized, seq, seqlen);
+
+#ifdef __APPLE__
+  #define DIG_LEN_MD5 CC_MD5_DIGEST_LENGTH
+  unsigned char digest[DIG_LEN_MD5];
+  CC_MD5(normalized, (CC_LONG) seqlen, digest);
+#else
+  #define DIG_LEN_MD5 MD5_DIGEST_LENGTH
+  unsigned char digest[DIG_LEN_MD5];
+  MD5((const unsigned char*)normalized, (size_t) seqlen, digest);
+#endif
+
+  free(normalized);
+  fprint_hex(fp, digest, DIG_LEN_MD5);
+}

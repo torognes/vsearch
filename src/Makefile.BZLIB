@@ -29,7 +29,7 @@ WARN=-Wall -Wsign-compare
 CXX=g++
 CXXFLAGS=-O3 -DHAVE_BZLIB -msse2 -mtune=core2 -Icityhash $(WARN) $(PROFILING)
 LINKFLAGS=$(PROFILING)
-LIBS=-lpthread -lbz2
+LIBS=-lpthread -lssl -lcrypto -lbz2
 
 PROG=vsearch-bz
 

@@ -55,3 +55,7 @@ char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
 void random_init();
 long random_int(long n);
 unsigned long random_ulong(unsigned long n);
+
+void string_normalize(char * normalized, char * s, unsigned int len);
+
+void fprint_hex(FILE * fp, unsigned char * data, int len);

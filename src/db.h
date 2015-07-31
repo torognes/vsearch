@@ -69,6 +69,8 @@ unsigned long db_getshortestsequence();
 
 void db_fprint_fasta(FILE * fp, unsigned long seqno);
 
+void db_fprint_fasta_seq_only(FILE * fp, unsigned long seqno);
+
 void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size);
 
 void db_fprint_fasta_strip_size(FILE * fp, unsigned long seqno);

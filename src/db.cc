@@ -556,6 +556,13 @@ void db_free()
     free(seqindex);
 }
 
+void db_fprint_fasta_seq_only(FILE * fp, unsigned long seqno)
+{
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
+}
+
 void db_fprint_fasta(FILE * fp, unsigned long seqno)
 {
   char * hdr = db_getheader(seqno);
