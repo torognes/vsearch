@@ -1086,11 +1086,43 @@ void cluster(char * dbname,
 
           if (opt_centroids)
             {
-              if (opt_sizeout)
-                db_fprint_fasta_with_size(fp_centroids, seqno,
-                                          cluster_abundance[clusterno]);
+              unsigned int size = cluster_abundance[clusterno];
+
+              if (opt_relabel_sha1 || opt_relabel_md5)
+                {
+                  char * seq = db_getsequence(seqno);
+                  unsigned int len = db_getsequencelen(seqno);
+
+                  fprintf(fp_centroids, ">");
+
+                  if (opt_relabel_sha1)
+                    fprint_seq_digest_sha1(fp_centroids, seq, len);
+                  else
+                    fprint_seq_digest_md5(fp_centroids, seq, len);
+
+                  if (opt_sizeout)
+                    fprintf(fp_centroids, ";size=%u;\n", size);
+                  else
+                    fprintf(fp_centroids, "\n");
+
+                  db_fprint_fasta_seq_only(fp_centroids, seqno);
+                }
+              else if (opt_relabel)
+                {
+                  if (opt_sizeout)
+                    fprintf(fp_centroids, ">%s%d;size=%u;\n", opt_relabel, i+1, size);
+                  else
+                    fprintf(fp_centroids, ">%s%d\n", opt_relabel, i+1);
+
+                  db_fprint_fasta_seq_only(fp_centroids, seqno);
+                }
               else
-                db_fprint_fasta(fp_centroids, seqno);
+                {
+                  if (opt_sizeout)
+                    db_fprint_fasta_with_size(fp_centroids, seqno, size);
+                  else
+                    db_fprint_fasta(fp_centroids, seqno);
+                }
             }
 
           if (opt_uc)
