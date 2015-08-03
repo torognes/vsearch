@@ -44,6 +44,7 @@ char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
+char * opt_derep_prefix;
 char * opt_fastaout;
 char * opt_fastapairs;
 char * opt_fastq_chars;
@@ -428,6 +429,7 @@ void args_init(int argc, char **argv)
   opt_dbmatched = 0;
   opt_dbnotmatched = 0;
   opt_derep_fulllength = 0;
+  opt_derep_prefix = 0;
   opt_dn = 1.4;
   opt_fasta_width = 80;
   opt_fastapairs = 0;
@@ -655,6 +657,7 @@ void args_init(int argc, char **argv)
     {"borderline",            required_argument, 0, 0 },
     {"relabel_sha1",          no_argument,       0, 0 },
     {"relabel_md5",           no_argument,       0, 0 },
+    {"derep_prefix",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1287,6 +1290,11 @@ void args_init(int argc, char **argv)
           opt_relabel_md5 = 1;
           break;
 
+        case 118:
+          /* derep_prefix */
+          opt_derep_prefix = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1310,6 +1318,8 @@ void args_init(int argc, char **argv)
   if (opt_sortbylength)
     commands++;
   if (opt_derep_fulllength)
+    commands++;
+  if (opt_derep_prefix)
     commands++;
   if (opt_help)
     commands++;
@@ -1431,7 +1441,7 @@ void args_init(int argc, char **argv)
   if (opt_minseqlength == 0)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
-          opt_usearch_global || opt_derep_fulllength )
+          opt_usearch_global || opt_derep_fulllength || opt_derep_prefix )
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;
@@ -1517,6 +1527,7 @@ void cmd_help()
               "\n"
               "Dereplication options\n"
               "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+              "  --derep_prefix FILENAME     dereplicate sequences in file based on prefixes\n"
               "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
               "  --minuniquesize INT         minimum abundance for output from dereplication\n"
               "  --output FILENAME           output FASTA file\n"
@@ -1679,12 +1690,20 @@ void cmd_sortbylength()
   sortbylength();
 }
 
-void cmd_derep_fulllength()
+void cmd_derep()
 {
   if ((!opt_output) && (!opt_uc))
     fatal("Output file for derepl_fulllength must be specified with --output or --uc");
   
-  derep_fulllength();
+  if (opt_derep_fulllength)
+    derep_fulllength();
+  else
+    {
+      if (opt_strand > 1)
+        fatal("Option '--strand both' not supported with --derep_prefix");
+      else
+        derep_prefix();
+    }
 }
 
 void cmd_shuffle()
@@ -1853,60 +1872,34 @@ int main(int argc, char** argv)
     fatal("Sorry, this program requires a cpu with SSE2.");
 
   if (opt_help)
-    {
-      cmd_help();
-    }
+    cmd_help();
   else if (opt_allpairs_global)
-    {
-      cmd_allpairs_global();
-    }
+    cmd_allpairs_global();
   else if (opt_usearch_global)
-    {
-      cmd_usearch_global();
-    }
+    cmd_usearch_global();
   else if (opt_sortbysize)
-    {
-      cmd_sortbysize();
-    }
+    cmd_sortbysize();
   else if (opt_sortbylength)
-    {
-      cmd_sortbylength();
-    }
-  else if (opt_derep_fulllength)
-    {
-      cmd_derep_fulllength();
-    }
+    cmd_sortbylength();
+  else if (opt_derep_fulllength || opt_derep_prefix)
+    cmd_derep();
   else if (opt_shuffle)
-    {
-      cmd_shuffle();
-    }
+    cmd_shuffle();
   else if (opt_fastx_subsample)
-    {
-      cmd_subsample();
-    }
+    cmd_subsample();
   else if (opt_maskfasta)
-    {
-      cmd_maskfasta();
-    }
+    cmd_maskfasta();
   else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size)
-    {
-      cmd_cluster();
-    }
+    cmd_cluster();
   else if (opt_uchime_denovo || opt_uchime_ref)
-    {
-      cmd_uchime();
-    }
+    cmd_uchime();
   else if (opt_fastq_chars)
-    {
-      fastq_chars();
-    }
+    fastq_chars();
   else if (opt_version)
     {
     }
   else
-    {
-      cmd_none();
-    }
+    cmd_none();
   
   if (opt_log)
     {

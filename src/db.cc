@@ -680,6 +680,41 @@ int compare_bylength(const void * a, const void * b)
     }
 }
 
+int compare_bylength_shortest_first(const void * a, const void * b)
+{
+  seqinfo_t * x = (seqinfo_t *) a;
+  seqinfo_t * y = (seqinfo_t *) b;
+
+  /* shortest first, then by abundance, then by label, otherwise keep order */
+
+  if (x->seqlen < y->seqlen)
+    return -1;
+  else if (x->seqlen > y->seqlen)
+    return +1;
+  else
+    {
+      if (x->size < y->size)
+        return +1;
+      else if (x->size > y->size)
+        return -1;
+      else
+        {
+          int r = strcmp(x->header, y->header);
+          if (r != 0)
+            return r;
+          else
+            {
+              if (x < y)
+                return -1;
+              else if (x > y)
+                return +1;
+              else
+                return 0;
+            }
+        }
+    }
+}
+
 inline int compare_byabundance(const void * a, const void * b)
 {
   seqinfo_t * x = (seqinfo_t *) a;
@@ -712,6 +747,13 @@ void db_sortbylength()
 {
   progress_init("Sorting by length", 100);
   qsort(seqindex, sequences, sizeof(seqinfo_t), compare_bylength);
+  progress_done();
+}
+
+void db_sortbylength_shortest_first()
+{
+  progress_init("Sorting by length", 100);
+  qsort(seqindex, sequences, sizeof(seqinfo_t), compare_bylength_shortest_first);
   progress_done();
 }
 

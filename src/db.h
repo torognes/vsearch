@@ -75,9 +75,11 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
 
 void db_fprint_fasta_strip_size(FILE * fp, unsigned long seqno);
 
+
 /* Note: the sorting functions below must be called after db_read,
    but before dbindex_prepare */
 
 void db_sortbylength();
+void db_sortbylength_shortest_first();
 
 void db_sortbyabundance();

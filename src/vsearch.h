@@ -90,7 +90,7 @@
 #include "fastqread.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.10"
+#define PROG_VERSION "v1.2.11"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -135,6 +135,7 @@ extern char * opt_db;
 extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
+extern char * opt_derep_prefix;
 extern char * opt_fastapairs;
 extern char * opt_fastaout;
 extern char * opt_fastq_chars;

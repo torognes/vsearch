@@ -20,3 +20,4 @@
 */
 
 void derep_fulllength();
+void derep_prefix();
