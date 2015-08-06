@@ -88,9 +88,10 @@
 #include "allpairs.h"
 #include "subsample.h"
 #include "fastqread.h"
+#include "fasta.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.11"
+#define PROG_VERSION "v1.2.12"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
