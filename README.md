@@ -1,14 +1,3 @@
-## JOB ANNOUNCEMENT
-Would you like to work with development of [VSEARCH](https://github.com/torognes/vsearch),
-[Swarm](https://github.com/torognes/swarm) and [QIIME](http://qiime.org/)?
-[PhD fellowships](https://www.simula.no/students-page) are now available at the Department of Informatics, University of Oslo and the Simula Research Laboratory, Oslo, Norway.
-One of the proposed projects is titled
-[*"Development, integration and benchmarking of algorithms and tools for analyzing large scale microbiome datasets"*](https://www.simula.no/sites/www.simula.no/files/uio_8.pdf)
-and is a collaboration between the University of California, San Diego (UCSD) and the University of Oslo (UiO). Primary advisors are Rob Knight and Torbjørn Rognes. Please submit your application according to the [procedure](https://www.simula.no/suurph-applications) and indicate project UiO_8 as one of your selected projects.
-Deadline for applications: August 3rd, 2015 at 17.00 CEST.
-
----
-
 # VSEARCH
 
 ## Introduction
