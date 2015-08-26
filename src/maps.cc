@@ -33,19 +33,19 @@
 char sym_nt_2bit[] = "ACGT";
 char sym_nt_4bit[] = "-ACGTRYSWKMDBHVN";
 
-unsigned int chrstatus[256] =
+unsigned int char_action_std[256] =
   {
     /*
 
       How to handle input characters
 
-      0=stripped, 1=legal, 2=fatal, 3=silently stripped
+      0=stripped, 1=legal, 2=fatal, 3=silently stripped, 4=newline
 
     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
 
-    2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  4,  3,  3,  3,  2,  2,
     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -225,6 +225,69 @@ char chrmap_normalize[256] =
     'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
     'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
     'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
+  };
+
+char chrmap_upcase[256] =
+  {
+    /*
+      
+      Map from ascii to ascii
+      Convert to upper case nucleotide
+      
+     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+    */
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+
+    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
+    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
+  };
+
+char chrmap_no_change[256] =
+  {
+    /*
+      
+      Map from ascii to ascii - no change
+      
+     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+    */
+
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+
+    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
+    'N','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o',
+    'p','q','r','s','t','u','v','w','x','y','z','N','N','N','N','N',
 
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',

@@ -29,6 +29,7 @@ static pthread_t * pthread;
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
 static pthread_attr_t attr;
+static fasta_handle query_fasta_h;
 
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;
@@ -241,13 +242,20 @@ void search_thread_run(long t)
       int qseqlen;
       int query_no;
       int qsize;
-
-      if (query_getnext(& qhead, & query_head_len,
-                        & qseq, & qseqlen,
-                        & query_no, & qsize,
-                        opt_qmask != MASK_SOFT))
+      
+      if (fasta_next(query_fasta_h,
+                     ! opt_notrunclabels,
+                     char_action_std,
+                     ((opt_qmask != MASK_SOFT) ?
+                      chrmap_upcase : chrmap_no_change)))
         {
-
+          qhead = fasta_get_header(query_fasta_h);
+          query_head_len = fasta_get_header_length(query_fasta_h);
+          qseq = fasta_get_sequence(query_fasta_h);
+          qseqlen = fasta_get_sequence_length(query_fasta_h);
+          query_no = fasta_get_seqno(query_fasta_h);
+          qsize = fasta_get_abundance(query_fasta_h);
+          
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
@@ -280,7 +288,7 @@ void search_thread_run(long t)
           strcpy(si_plus[t].qsequence, qseq);
           
           /* get progress as amount of input file read */
-          unsigned long progress = query_getfilepos();
+          unsigned long progress = fasta_get_position(query_fasta_h);
 
           /* let other threads read input */
           pthread_mutex_unlock(&mutex_input);
@@ -552,7 +560,7 @@ void usearch_global(char * cmdline, char * progheader)
   /* prepare reading of queries */
   qmatches = 0;
   queries = 0;
-  query_open(opt_usearch_global);
+  query_fasta_h = fasta_open(opt_usearch_global);
 
   /* allocate memory for thread info */
   si_plus = (struct searchinfo_s *) xmalloc(opt_threads * 
@@ -569,7 +577,7 @@ void usearch_global(char * cmdline, char * progheader)
   pthread_mutex_init(&mutex_input, NULL);
   pthread_mutex_init(&mutex_output, NULL);
 
-  progress_init("Searching", query_getfilesize());
+  progress_init("Searching", fasta_get_size(query_fasta_h));
   search_thread_worker_run();
   progress_done();
   
@@ -581,7 +589,7 @@ void usearch_global(char * cmdline, char * progheader)
   if (si_minus)
     free(si_minus);
 
-  query_close();
+  fasta_close(query_fasta_h);
 
   if (!opt_quiet)
     fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 

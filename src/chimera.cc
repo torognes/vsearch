@@ -40,6 +40,7 @@ const double chimera_id = 0.55;
 static int tophits;
 static pthread_attr_t attr;
 static pthread_t * pthread;
+static fasta_handle query_fasta_h;
 
 /* mutexes and global data protected by mutex */
 static pthread_mutex_t mutex_input;
@@ -1075,19 +1076,20 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       if (opt_uchime_ref)
         {
-          char * query_seq;
-          char * query_head;
-
-          if (query_getnext(& query_head, & ci->query_head_len,
-                            & query_seq, & ci->query_len, & ci->query_no,
-                            & ci->query_size, 1))
+          if (fasta_next(query_fasta_h, ! opt_notrunclabels,
+                         char_action_std, chrmap_upcase))
             {
+              ci->query_head_len = fasta_get_header_length(query_fasta_h);
+              ci->query_len = fasta_get_sequence_length(query_fasta_h);
+              ci->query_no = fasta_get_seqno(query_fasta_h);
+              ci->query_size = fasta_get_abundance(query_fasta_h);
+
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
 
               /* copy the data locally (query seq, head) */
-              strcpy(ci->query_head, query_head);
-              strcpy(ci->query_seq, query_seq);
+              strcpy(ci->query_head, fasta_get_header(query_fasta_h));
+              strcpy(ci->query_seq, fasta_get_sequence(query_fasta_h));
             }
           else
             {
@@ -1294,7 +1296,6 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_nonchimeras)
             {
-              int seqno = ci->query_no;
               int size = ci->query_size;
 
               if (opt_relabel_sha1 || opt_relabel_md5)
@@ -1314,21 +1315,21 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                   else
                     fprintf(fp_nonchimeras, "\n");
 
-                  db_fprint_fasta_seq_only(fp_nonchimeras, seqno);
                 }
               else if (opt_relabel)
                 {
                   if (opt_sizeout)
-                    fprintf(fp_nonchimeras, ">%s%d;size=%u;\n", opt_relabel, nonchimera_count, size);
+                    fprintf(fp_nonchimeras, ">%s%d;size=%u;\n", 
+                            opt_relabel, nonchimera_count, size);
                   else
-                    fprintf(fp_nonchimeras, ">%s%d\n", opt_relabel, nonchimera_count);
-
-                  db_fprint_fasta_seq_only(fp_nonchimeras, seqno);
+                    fprintf(fp_nonchimeras, ">%s%d\n", 
+                            opt_relabel, nonchimera_count);
                 }
               else
-                {
-                  db_fprint_fasta(fp_nonchimeras, seqno);
-                }
+                fprintf(fp_nonchimeras, ">%s\n", ci->query_head);
+
+              fprint_fasta_seq_only(fp_nonchimeras, ci->query_seq,
+                                    ci->query_len, opt_fasta_width);
             }
         }
       
@@ -1337,7 +1338,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
           free(ci->nwcigar[i]);
 
       if (opt_uchime_ref)
-        progress = query_getfilepos();
+        progress = fasta_get_position(query_fasta_h);
       else
         progress += db_getsequencelen(seqno);
 
@@ -1451,8 +1452,8 @@ void chimera()
       db_read(opt_db, 1);
       dbindex_prepare(1);
       dbindex_addallsequences();
-      query_open(opt_uchime_ref);
-      progress_total = query_getfilesize();
+      query_fasta_h = fasta_open(opt_uchime_ref);
+      progress_total = fasta_get_size(query_fasta_h);
     }
   else
     {
@@ -1512,7 +1513,7 @@ void chimera()
 
 
   if (opt_uchime_ref)
-    query_close();
+    fasta_close(query_fasta_h);
   
   dbindex_free();
   db_free();

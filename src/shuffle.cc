@@ -36,6 +36,8 @@ void shuffle()
   for(int i=0; i<dbsequencecount; i++)
     deck[i] = i;
 
+  random_init();
+
   int passed = 0;
   progress_init("Shuffling", dbsequencecount-1);
   for(int i=dbsequencecount-1; i>0; i--)
@@ -50,6 +52,7 @@ void shuffle()
 
       passed++;
       progress_update(i);
+      printf("deck[%d] = %d\n", i, deck[i]);
     }
   progress_done();
   show_rusage();

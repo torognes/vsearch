@@ -21,376 +21,122 @@
 
 #include "vsearch.h"
 
-int stripped[256];
+#define MEMCHUNK 10485760
 
+static fasta_handle h;
 static unsigned long sequences = 0;
 static unsigned long nucleotides = 0;
-static unsigned long headerchars = 0;
-static int longest = 0;
-static long shortest = LONG_MAX;
-static int longestheader = 0;
-
-seqinfo_t * seqindex = 0;
-static char * datap = 0;
-
-#define MEMCHUNK 10485760
-#define LINEALLOC 1048576
-
+static unsigned long longest;
+static unsigned long shortest;
+static unsigned long longestheader;
+static char * datap;
+seqinfo_t * seqindex;
 regex_t db_regexp;
-
-static int db_format = FORMAT_PLAIN;
-#ifdef HAVE_BZLIB
-static int bz_error;
-static char bz_buffer[LINEALLOC];
-static long bz_buffer_len = 0;
-#endif
 
 void db_read(const char * filename, int upcase)
 {
-  if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-    fatal("Regular expression compilation failed");
+  h = fasta_open(filename);
+
+  long filesize = fasta_get_size(h);
   
-  FILE * fp = NULL;
-#ifdef HAVE_BZLIB
-  BZFILE * bz_fp = NULL;
-#endif
-#ifdef HAVE_ZLIB
-  gzFile gz_fp = NULL;
-#endif
-
-  if (filename)
-    {
-      /* check if file is compressed */
-      db_format = detect_compress_format(filename);
-      if (!db_format)
-        fatal("Error: Unable to read from query file (%s)", filename);
-
-      fp = fopen(filename, "r");
-      if (!fp)
-        fatal("Error: Unable to open database file (%s)", filename);
-    }
-  else
-    fp = stdin;
-
-  /* get file size */
-
-  if (fseek(fp, 0, SEEK_END))
-    fatal("Error: Unable to seek in database file (%s)", filename);
-
-  long filesize = ftell(fp);
-  
-  rewind(fp);
-
   char * prompt;
   (void) asprintf(& prompt, "Reading file %s", filename);
   progress_init(prompt, filesize);
-
-#ifdef HAVE_BZLIB
-  /* open appropriate data steam if input file was compressed with bzip */
-  if (db_format == FORMAT_BZIP)
-   {
-       bz_fp = BZ2_bzReadOpen(&bz_error, fp, 
-                              BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0);
-       if (!bz_fp)
-         fatal("Error: Unable to open query file (%s)", filename);
-   }
-#endif
-#ifdef HAVE_ZLIB
-  if (db_format == FORMAT_GZIP)
-   {
-     fclose(fp);
-     gz_fp = gzopen(filename, "r");
-     if (!gz_fp)
-       fatal("Error: Unable to open query file (%s)", filename);
-   }
-#endif
 
   /* allocate space */
 
   unsigned long dataalloc = MEMCHUNK;
   datap = (char *) xmalloc(dataalloc);
   unsigned long datalen = 0;
-
+  seqindex = 0;
   longest = 0;
   shortest = LONG_MAX;
   longestheader = 0;
   sequences = 0;
   nucleotides = 0;
-  headerchars = 0;
-
-  char line[LINEALLOC];
-  line[0] = 0;
-
-  switch (db_format)
-   {
-     case FORMAT_PLAIN:
-       (void) fgets(line, LINEALLOC, fp);
-       break;
-     case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
-       bz_fgets(line, LINEALLOC, bz_fp, LINEALLOC,
-                &bz_error, bz_buffer, &bz_buffer_len);
-       break;
-#else
-       fatal("Error: Database file seems to be BZIPx compressed, but %s was not "
-             "compiled with BZLIB support", PROG_NAME);
-#endif
-     case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
-       gzgets(gz_fp, line, LINEALLOC);
-       break;
-#else
-       fatal("Error: Database file seems to be GZIP compressed, but %s was not "
-             "compiled with ZLIB support", PROG_NAME);
-#endif
-     default:
-       fatal("Error: Unknown compression type detected");
-   }
-
-  int lineno = 1;
-
-  long stripped_count = 0;
-  for(int i=0; i<256; i++)
-    stripped[i] = 0;
 
   long discarded_short = 0;
   long discarded_long = 0;
 
-  while(line[0])
+  while(fasta_next(h,
+                   ! opt_notrunclabels,
+                   char_action_std,
+                   upcase ? chrmap_upcase : chrmap_no_change))
     {
-      /* read header */
+      size_t sequencelength = fasta_get_sequence_length(h);
 
-      unsigned long hdrbegin = datalen;
-
-      if (line[0] != '>')
-        fatal("Illegal header line in fasta file (not starting with '>' character).");
-
-      if (strlen(line) + 1 == LINEALLOC)
-        fatal("FASTA header line in database too long");
-      
-      /* terminate header at first space or end of line */
-
-      char * z0 = line + 1;
-      char * z = z0;
-      while (*z)
-        {
-          if ((!opt_notrunclabels) && (*z == ' '))
-            break;
-          if (*z == '\n')
-            break;
-          z++;
-        }
-      long headerlen = z - z0;
-
-      headerchars += headerlen;
-
-      if (headerlen > longestheader)
-        longestheader = headerlen;
-
-      /* store the header */
-
-      while (datalen + headerlen + 1 + 4 > dataalloc)
-      {
-        dataalloc += MEMCHUNK;
-        datap = (char *) xrealloc(datap, dataalloc);
-      }
-
-      *(unsigned int*)(datap + datalen) = headerlen;
-      datalen += 4;
-
-      memcpy(datap + datalen, line + 1, headerlen);
-      *(datap + datalen + headerlen) = 0;
-      datalen += headerlen + 1;
-
-      /* get next line */
-
-      line[0] = 0;
-      switch (db_format)
-       {
-         case FORMAT_PLAIN:
-           (void) fgets(line, LINEALLOC, fp);
-           break;
-         case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
-           bz_fgets(line, LINEALLOC, bz_fp, LINEALLOC,
-                    &bz_error, bz_buffer, &bz_buffer_len);
-           break;
-#else
-           fatal("Error: Database file seems to be BZIPx compressed, but %s was not "
-                 "compiled with BZLIB support", PROG_NAME);
-#endif
-         case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
-           gzgets(gz_fp, line, LINEALLOC);
-           break;
-#else
-           fatal("Error: Database file seems to be GZIP compressed, but %s was not "
-                 "compiled with ZLIB support", PROG_NAME);
-#endif
-         default:
-           fatal("Error: Unknown compression type detected");
-       }
-      lineno++;
-
-      /* read sequence */
-
-      unsigned long seqbegin = datalen;
-
-      /* make space for sequence length to be filled in later */
-
-      while (datalen + 4 > dataalloc)
-      {
-        dataalloc += MEMCHUNK;
-        datap = (char *) xrealloc(datap, dataalloc);
-      }
-
-      * (unsigned int*)(datap + datalen) = 0;
-      datalen += 4;
-
-      while (line[0] && (line[0] != '>'))
-        {
-          char m;
-          char c;
-          char * p = line;
-          while((c = *p++))
-            {
-              m = chrstatus[(int)c];
-
-              switch(m)
-                {
-                case 0:
-                  /* character to be stripped */
-                  stripped_count++;
-                  stripped[(int)c]++;
-                  break;
-
-                case 1:
-                  /* legal character */
-                  while (datalen >= dataalloc)
-                    {
-                      dataalloc += MEMCHUNK;
-                      datap = (char *) xrealloc(datap, dataalloc);
-                    }
-                  if (upcase)
-                    c &= 0xdf;
-                  *(datap+datalen) = c;
-                  datalen++;
-                  break;
-
-                case 2:
-                  /* fatal character */
-                  char msg[200];
-                  if (c>=32)
-                    snprintf(msg, 200, "illegal character '%c' on line %d in the database file", c, lineno);
-                  else
-                    snprintf(msg, 200, "illegal unprintable character %#.2x (hexadecimal) on line %d in the database file", c, lineno);
-                  fatal(msg);
-                  break;
-
-                case 3:
-                  /* character to be stripped, silently */
-                  break;
-                }
-            }
-
-          line[0] = 0;
-          switch (db_format)
-           {
-             case FORMAT_PLAIN:
-               (void) fgets(line, LINEALLOC, fp);
-               break;
-             case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
-               bz_fgets(line, LINEALLOC, bz_fp, LINEALLOC,
-                        &bz_error, bz_buffer, &bz_buffer_len);
-               break;
-#else
-               fatal("Error: Database file seems to be BZIPx compressed, but %s was not "
-                     "compiled with BZLIB support", PROG_NAME);
-#endif
-             case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
-               gzgets(gz_fp, line, LINEALLOC);
-               break;
-#else
-               fatal("Error: Database file seems to be GZIP compressed, but %s was not "
-                     "compiled with ZLIB support", PROG_NAME);
-#endif
-             default:
-               fatal("Error: Unknown compression type detected");
-           }
-          lineno++;
-        }
-      
-
-      long length = datalen - seqbegin - 4;
-      
-
-      /* discard sequence if too short or long */
-
-      if (length < opt_minseqlength)
+      if (sequencelength < (size_t)opt_minseqlength)
         {
           discarded_short++;
-          datalen = hdrbegin;
         }
-      else if (length > opt_maxseqlength)
+      else if (sequencelength > (size_t)opt_maxseqlength)
         {
           discarded_long++;
-          datalen = hdrbegin;
         }
       else
         {
-          /* store the length in its designated space */
+          size_t headerlength = fasta_get_header_length(h);
           
-          *(unsigned int*)(datap + seqbegin) = length;
-          
-          
-          /* add a zero after the sequence */
-          
-          while (datalen >= dataalloc)
-            {
-              dataalloc += MEMCHUNK;
-              datap = (char *) xrealloc(datap, dataalloc);
-            }
-          *(datap+datalen) = 0;
-          datalen++;
-          
+          /*
+            make space for:
 
+            + header length
+            + header
+            + trailing zero
+            + sequence length
+            + sequence
+            + trailing zero
+            + abundance
+          */
+          
+          size_t dataalloc_old = dataalloc;
+          while (datalen + headerlength + sequencelength + 2
+                 + 3 * sizeof(unsigned int)
+                 > dataalloc)
+            dataalloc += MEMCHUNK;
+
+          if (dataalloc > dataalloc_old)
+            datap = (char *) xrealloc(datap, dataalloc);
+          
+          /* store the header length */
+          *(unsigned int*)(datap + datalen) = headerlength;
+          datalen += 4;
+          
+          /* store the header */
+          memcpy(datap + datalen, fasta_get_header(h), headerlength + 1);
+          datalen += headerlength + 1;
+          
+          /* store sequence length */
+          * (unsigned int*)(datap + datalen) = sequencelength;
+          datalen += 4;
+          
+          /* store sequence */
+          memcpy(datap + datalen, fasta_get_sequence(h), sequencelength + 1);
+          datalen += sequencelength + 1;
+          
+          /* store abundance */
+          * (unsigned int*)(datap + datalen) = fasta_get_abundance(h);
+          datalen += 4;
+          
           /* update statistics */
-
-          nucleotides += length;
-
-          if (length > longest)
-            longest = length;
-          
-          if (length < shortest)
-            shortest = length;
-
+          nucleotides += sequencelength;
           sequences++;
+          if (sequencelength > longest)
+            longest = sequencelength;
+          if (sequencelength < shortest)
+            shortest = sequencelength;
+          if (headerlength > longestheader)
+            longestheader = headerlength;
         }
-#ifdef HAVE_ZLIB
-      if (db_format == FORMAT_GZIP)
-        progress_update(gzoffset(gz_fp));
-      else
-#endif
-      progress_update(ftell(fp));
+      
+      progress_update(fasta_get_position(h));
     }
 
-  /* close the database file */
-#ifdef HAVE_BZLIB
-  if (db_format == FORMAT_BZIP)
-    BZ2_bzReadClose(&bz_error, bz_fp);
-#endif
-#ifdef HAVE_ZLIB
-  if (db_format == FORMAT_GZIP)
-    gzclose(gz_fp);
-#endif
-  
-  if (db_format != FORMAT_GZIP)
-    fclose(fp);
-
   progress_done();
+
   free(prompt);
+
+  fasta_close(h);
 
   if (!opt_quiet)
     {
@@ -426,27 +172,6 @@ void db_read(const char * filename, int upcase)
                 db_getsequencecount());
     }
 
-  /* Warn about stripped chars */
-
-  if (stripped_count)
-    {
-      fprintf(stderr, "WARNING: invalid characters stripped from sequence:");
-      for (int i=0; i<256;i++)
-        if (stripped[i])
-          fprintf(stderr, " %c(%d)", i, stripped[i]);
-      fprintf(stderr, "\n");
-
-      if (opt_log)
-        {
-          fprintf(fp_log, 
-                  "WARNING: invalid characters stripped from sequence:");
-          for (int i=0; i<256;i++)
-            if (stripped[i])
-              fprintf(fp_log, " %c(%d)", i, stripped[i]);
-          fprintf(fp_log, "\n\n");
-        }
-    }
-
   /* Warn about discarded sequences */
 
   if (discarded_short)
@@ -477,7 +202,6 @@ void db_read(const char * filename, int upcase)
 
   progress_init("Indexing sequences", sequences);
 
-
   /* Create index and parse abundance info, if specified */
 
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
@@ -485,8 +209,6 @@ void db_read(const char * filename, int upcase)
 
   char * p = datap;
 
-  regmatch_t pmatch[4];
-  
   for(unsigned long i=0; i<sequences; i++)
   {
     seqindex_p->headerlen = * (unsigned int *) p;
@@ -501,17 +223,8 @@ void db_read(const char * filename, int upcase)
     seqindex_p->seq = p;
     p += seqindex_p->seqlen + 1;
 
-    seqindex_p->size = 1;
-
-    /* read sizein annotation */
-    if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
-      {
-        long size = atol(seqindex_p->header + pmatch[2].rm_so);
-        if (size > 0)
-          seqindex_p->size = (unsigned long) size;
-        else
-          fatal("Size annotation (abundance) must be positive");
-      }
+    seqindex_p->size = *(unsigned int*)p;
+    p += 4;
 
     seqindex_p++;
     progress_update(i);
@@ -520,6 +233,9 @@ void db_read(const char * filename, int upcase)
   progress_done();
 
   show_rusage();
+
+  if (regcomp(& db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+    fatal("Compilation of regular expression for abundance annotation failed");
 }
 
 unsigned long db_getsequencecount()

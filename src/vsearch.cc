@@ -1871,40 +1871,6 @@ int main(int argc, char** argv)
   if (!sse2_present)
     fatal("Sorry, this program requires a cpu with SSE2.");
 
-
-#if 0
-
-  /* code for testing new fasta file reader */
-
-  fasta_handle h = fasta_file_open(opt_db);
-
-  size_t pos = fasta_file_getpos(h);
-  size_t size = fasta_file_getsize(h);
-  
-  printf("FASTA file position and size: %lu %lu\n", pos, size);
-
-  char * header;
-  char * sequence;
-  size_t header_length, sequence_length;
-
-  int i = 0;
-  while (fasta_file_read(h, 
-                         & header, & header_length, 
-                         & sequence, & sequence_length))
-    {
-      i++;
-      printf("Sequence no:    %d\n", i);
-      printf("Header (%lu):   [%s]\n", header_length, header);
-      printf("Sequence (%lu): [%s]\n", sequence_length, sequence);
-      printf("\n");
-    }
-
-  fasta_file_close(h);
-  exit(1);
-
-#endif
-
-
   if (opt_help)
     cmd_help();
   else if (opt_allpairs_global)

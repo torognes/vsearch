@@ -1,8 +1,14 @@
+struct buffer_s
+{
+  char * data;
+  size_t length;
+  size_t alloc;
+  size_t position;
+};
+
 struct fasta_s
 {
   FILE * fp;
-
-  int format;
 
 #ifdef HAVE_ZLIB
   gzFile fp_gz;
@@ -12,30 +18,38 @@ struct fasta_s
   BZFILE * fp_bz;
 #endif
 
-  char * file_buffer;
-  char * header_buffer;
-  char * sequence_buffer;
+  int format;
 
-  size_t file_buffer_length;
-  size_t header_buffer_length;
-  size_t sequence_buffer_length;
+  regex_t size_regexp;
 
-  size_t file_buffer_alloc;
-  size_t header_buffer_alloc;
-  size_t sequence_buffer_alloc;
+  struct buffer_s file_buffer;
+  struct buffer_s header_buffer;
+  struct buffer_s sequence_buffer;
 
-  size_t file_buffer_position;
   size_t file_size;
   size_t file_position;
 
+  size_t lineno;
+  long seqno;
+
+  size_t stripped_all;
+  size_t stripped[256];
 };
 
 typedef struct fasta_s * fasta_handle;
 
-fasta_handle fasta_file_open(const char * filename);
-void fasta_file_close(fasta_handle h);
-bool fasta_file_read(fasta_handle h, 
-                     char * * header, size_t * header_length,
-                     char * * sequence, size_t * sequence_length);
-size_t fasta_file_getpos(fasta_handle h);
-size_t fasta_file_getsize(fasta_handle h);
+fasta_handle fasta_open(const char * filename);
+void fasta_close(fasta_handle h);
+bool fasta_next(fasta_handle h,
+                bool truncateatspace,
+                unsigned int * char_action,
+                char * char_mapping);
+size_t fasta_get_position(fasta_handle h);
+size_t fasta_get_size(fasta_handle h);
+size_t fasta_get_lineno(fasta_handle h);
+size_t fasta_get_seqno(fasta_handle h);
+char * fasta_get_header(fasta_handle h);
+char * fasta_get_sequence(fasta_handle h);
+size_t fasta_get_header_length(fasta_handle h);
+size_t fasta_get_sequence_length(fasta_handle h);
+long fasta_get_abundance(fasta_handle h);
