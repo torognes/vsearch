@@ -52,7 +52,6 @@ void shuffle()
 
       passed++;
       progress_update(i);
-      printf("deck[%d] = %d\n", i, deck[i]);
     }
   progress_done();
   show_rusage();

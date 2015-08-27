@@ -1,7 +1,22 @@
 /*
+    Copyright (C) 2014-2015 Torbjorn Rognes & Tomas Flouri
 
-Simple FASTA reader capable of indefinite long lines and compressed files
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+    Department of Informatics, University of Oslo,
+    PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
 #include "vsearch.h"
@@ -50,14 +65,16 @@ fasta_handle fasta_open(const char * filename)
         h->format = FORMAT_BZIP;
     }
 
+  /* Get size of original (uncompressed) file */
+
   if (fseek(h->fp, 0, SEEK_END))
     fatal("Error: Unable to seek in fasta file (%s)", filename);
   h->file_size = ftell(h->fp);
   rewind(h->fp);
 
-  /* GZIP: Close ordinary file and open again as gzipped file */
   if (h->format == FORMAT_GZIP)
     {
+      /* GZIP: Close ordinary file and open again as gzipped file */
 #ifdef HAVE_ZLIB
       fclose(h->fp);
       if (! (h->fp_gz = gzopen(filename, "rb")))
@@ -67,9 +84,9 @@ fasta_handle fasta_open(const char * filename)
 #endif
     }
 
-  /* BZIP: Keep original file open, then open as bzipped file as well */
   if (h->format == FORMAT_BZIP)
     {
+      /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_ZLIB
       int bzError;
       if (! (h->fp_bz = BZ2_bzReadOpen(& bzError, h->fp,
@@ -184,59 +201,53 @@ size_t fasta_file_fill_buffer(fasta_handle h)
           space = h->file_buffer.alloc;
         }
       
-      size_t bytes_read_plain = 0;
-
-#ifdef HAVE_ZLIB
-      int bytes_read_gz = 0;
-#endif
-
+      int bytes_read = 0;
+      
 #ifdef HAVE_BZLIB
-      int bytes_read_bz = 0;
       int bzError = 0;
 #endif
 
       switch(h->format)
         {
         case FORMAT_PLAIN:
-          bytes_read_plain = fread(h->file_buffer.data
-                                   + h->file_buffer.position,
-                                   1,
-                                   space,
-                                   h->fp);
-          h->file_buffer.length += bytes_read_plain;
-          return bytes_read_plain;
+          bytes_read = fread(h->file_buffer.data
+                             + h->file_buffer.position,
+                             1,
+                             space,
+                             h->fp);
+          break;
 
         case FORMAT_GZIP:
 #ifdef HAVE_ZLIB
-          bytes_read_gz = gzread(h->fp_gz,
-                                 h->file_buffer.data + h->file_buffer.position,
-                                 space);
-          if (bytes_read_gz < 0)
+          bytes_read = gzread(h->fp_gz,
+                              h->file_buffer.data + h->file_buffer.position,
+                              space);
+          if (bytes_read < 0)
             fatal("Error reading gzip compressed fasta file");
-          h->file_buffer.length += bytes_read_gz;
-          return bytes_read_gz;
+          break;
 #endif
           
         case FORMAT_BZIP:
 #ifdef HAVE_BZLIB
-          bytes_read_bz = BZ2_bzRead(& bzError,
-                                     h->fp_bz,
-                                     h->file_buffer.data 
-                                     + h->file_buffer.position,
-                                     space);
-          if ((bytes_read_bz < 0) ||
+          bytes_read = BZ2_bzRead(& bzError,
+                                  h->fp_bz,
+                                  h->file_buffer.data 
+                                  + h->file_buffer.position,
+                                  space);
+          if ((bytes_read < 0) ||
               ! ((bzError == BZ_OK) ||
                  (bzError == BZ_STREAM_END) ||
                  (bzError == BZ_SEQUENCE_ERROR)))
             fatal("Error reading bzip2 compressed fasta file");
-          h->file_buffer.length += bytes_read_bz;
-          return bytes_read_bz;
+          break;
 #endif
           
         default:
           fatal("Internal error");
-          return 0;
         }
+      
+      h->file_buffer.length += bytes_read;
+      return bytes_read;
     }
 }
 
@@ -423,10 +434,13 @@ bool fasta_next(fasta_handle h,
   fasta_truncate_header(h, truncateatspace);
   fasta_filter_sequence(h, char_action, char_mapping);
 
-
-  /* Need to change if compressed !!! */
-  h->file_position = ftell(h->fp);
-
+#ifdef HAVE_ZLIB
+  if (h->format == FORMAT_GZIP)
+    h->file_position = gzoffset(h->fp_gz);
+  else
+#endif
+    h->file_position = ftell(h->fp);
+  
   return 1;
 }
 
