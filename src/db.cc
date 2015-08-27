@@ -21,7 +21,7 @@
 
 #include "vsearch.h"
 
-#define MEMCHUNK 10485760
+#define MEMCHUNK 16777216
 
 static fasta_handle h;
 static unsigned long sequences = 0;
@@ -29,12 +29,18 @@ static unsigned long nucleotides = 0;
 static unsigned long longest;
 static unsigned long shortest;
 static unsigned long longestheader;
-static char * datap;
+
 seqinfo_t * seqindex;
+char * datap;
 regex_t db_regexp;
 
 void db_read(const char * filename, int upcase)
 {
+  /* compile regexp for abundance pattern */
+
+  if (regcomp(& db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+    fatal("Compilation of regular expression for abundance annotation failed");
+
   h = fasta_open(filename);
 
   long filesize = fasta_get_size(h);
@@ -43,12 +49,6 @@ void db_read(const char * filename, int upcase)
   (void) asprintf(& prompt, "Reading file %s", filename);
   progress_init(prompt, filesize);
 
-  /* allocate space */
-
-  unsigned long dataalloc = MEMCHUNK;
-  datap = (char *) xmalloc(dataalloc);
-  unsigned long datalen = 0;
-  seqindex = 0;
   longest = 0;
   shortest = LONG_MAX;
   longestheader = 0;
@@ -58,12 +58,23 @@ void db_read(const char * filename, int upcase)
   long discarded_short = 0;
   long discarded_long = 0;
 
+  /* allocate space for data */
+  unsigned long dataalloc = 0;
+  datap = 0;
+  unsigned long datalen = 0;
+
+  /* allocate space for index */
+  size_t seqindex_alloc = 0;
+  seqindex = 0;
+
   while(fasta_next(h,
                    ! opt_notrunclabels,
                    char_action_std,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {
+      size_t headerlength = fasta_get_header_length(h);
       size_t sequencelength = fasta_get_sequence_length(h);
+      unsigned int abundance = fasta_get_abundance(h);
 
       if (sequencelength < (size_t)opt_minseqlength)
         {
@@ -75,52 +86,41 @@ void db_read(const char * filename, int upcase)
         }
       else
         {
-          size_t headerlength = fasta_get_header_length(h);
-          
-          /*
-            make space for:
-
-            + header length
-            + header
-            + trailing zero
-            + sequence length
-            + sequence
-            + trailing zero
-            + abundance
-          */
-          
+          /* grow space for data, if necessary */
           size_t dataalloc_old = dataalloc;
-          while (datalen + headerlength + sequencelength + 2
-                 + 3 * sizeof(unsigned int)
-                 > dataalloc)
+          while (datalen + headerlength + sequencelength + 2 > dataalloc)
             dataalloc += MEMCHUNK;
-
           if (dataalloc > dataalloc_old)
             datap = (char *) xrealloc(datap, dataalloc);
-          
-          /* store the header length */
-          *(unsigned int*)(datap + datalen) = headerlength;
-          datalen += 4;
-          
+
           /* store the header */
-          memcpy(datap + datalen, fasta_get_header(h), headerlength + 1);
+          size_t header_p = datalen;
+          memcpy(datap + header_p, fasta_get_header(h), headerlength + 1);
           datalen += headerlength + 1;
           
-          /* store sequence length */
-          * (unsigned int*)(datap + datalen) = sequencelength;
-          datalen += 4;
-          
           /* store sequence */
-          memcpy(datap + datalen, fasta_get_sequence(h), sequencelength + 1);
+          size_t sequence_p = datalen;
+          memcpy(datap+sequence_p, fasta_get_sequence(h), sequencelength + 1);
           datalen += sequencelength + 1;
           
-          /* store abundance */
-          * (unsigned int*)(datap + datalen) = fasta_get_abundance(h);
-          datalen += 4;
+          /* grow space for index, if necessary */
+          size_t seqindex_alloc_old = seqindex_alloc;
+          while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
+            seqindex_alloc += MEMCHUNK;
+          if (seqindex_alloc > seqindex_alloc_old)
+            seqindex = (seqinfo_t *) xrealloc(seqindex, seqindex_alloc);
           
+          /* update index */
+          seqinfo_t * seqindex_p = seqindex + sequences;
+          seqindex_p->headerlen = headerlength;
+          seqindex_p->header_p = header_p;
+          seqindex_p->seqlen = sequencelength;
+          seqindex_p->seq_p = sequence_p;
+          seqindex_p->size = abundance;
+
           /* update statistics */
-          nucleotides += sequencelength;
           sequences++;
+          nucleotides += sequencelength;
           if (sequencelength > longest)
             longest = sequencelength;
           if (sequencelength < shortest)
@@ -128,14 +128,11 @@ void db_read(const char * filename, int upcase)
           if (headerlength > longestheader)
             longestheader = headerlength;
         }
-      
       progress_update(fasta_get_position(h));
     }
 
   progress_done();
-
   free(prompt);
-
   fasta_close(h);
 
   if (!opt_quiet)
@@ -200,42 +197,6 @@ void db_read(const char * filename, int upcase)
 
   show_rusage();
 
-  progress_init("Indexing sequences", sequences);
-
-  /* Create index and parse abundance info, if specified */
-
-  seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
-  seqinfo_t * seqindex_p = seqindex;
-
-  char * p = datap;
-
-  for(unsigned long i=0; i<sequences; i++)
-  {
-    seqindex_p->headerlen = * (unsigned int *) p;
-    p += 4;
-
-    seqindex_p->header = p;
-    p += seqindex_p->headerlen + 1;
-
-    seqindex_p->seqlen = *(unsigned int*) p;
-    p += 4;
-
-    seqindex_p->seq = p;
-    p += seqindex_p->seqlen + 1;
-
-    seqindex_p->size = *(unsigned int*)p;
-    p += 4;
-
-    seqindex_p++;
-    progress_update(i);
-  }
-
-  progress_done();
-
-  show_rusage();
-
-  if (regcomp(& db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-    fatal("Compilation of regular expression for abundance annotation failed");
 }
 
 unsigned long db_getsequencecount()
@@ -380,7 +341,7 @@ int compare_bylength(const void * a, const void * b)
         return -1;
       else
         {
-          int r = strcmp(x->header, y->header);
+          int r = strcmp(datap + x->header_p, datap + y->header_p);
           if (r != 0)
             return r;
           else
@@ -415,7 +376,7 @@ int compare_bylength_shortest_first(const void * a, const void * b)
         return -1;
       else
         {
-          int r = strcmp(x->header, y->header);
+          int r = strcmp(datap + x->header_p, datap + y->header_p);
           if (r != 0)
             return r;
           else
@@ -444,7 +405,7 @@ inline int compare_byabundance(const void * a, const void * b)
     return +1;
   else
     {
-      int r = strcmp(x->header, y->header);
+      int r = strcmp(datap + x->header_p, datap + y->header_p);
       if (r != 0)
         return r;
       else

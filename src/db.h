@@ -21,8 +21,8 @@
 
 struct seqinfo_s
 {
-  char * header;
-  char * seq;
+  size_t header_p;
+  size_t seq_p;
   unsigned int headerlen;
   unsigned int seqlen;
   unsigned int size;
@@ -30,17 +30,18 @@ struct seqinfo_s
 
 typedef struct seqinfo_s seqinfo_t;
 
+extern char * datap;
 extern seqinfo_t * seqindex;
 extern regex_t db_regexp;
 
 inline char * db_getheader(unsigned long seqno)
 {
-  return seqindex[seqno].header;
+  return datap + seqindex[seqno].header_p;
 }
 
 inline char * db_getsequence(unsigned long seqno)
 {
-  return seqindex[seqno].seq;
+  return datap + seqindex[seqno].seq_p;
 }
 
 inline unsigned long db_getabundance(unsigned long seqno)
