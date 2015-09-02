@@ -19,7 +19,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-struct fasta_buffer_s
+struct fastq_buffer_s
 {
   char * data;
   size_t length;
@@ -27,7 +27,7 @@ struct fasta_buffer_s
   size_t position;
 };
 
-struct fasta_s
+struct fastq_s
 {
   FILE * fp;
 
@@ -41,11 +41,11 @@ struct fasta_s
 
   int format;
 
-  regex_t size_regexp;
+  struct fastq_buffer_s file_buffer;
 
-  struct fasta_buffer_s file_buffer;
-  struct fasta_buffer_s header_buffer;
-  struct fasta_buffer_s sequence_buffer;
+  struct fastq_buffer_s header_buffer;
+  struct fastq_buffer_s sequence_buffer;
+  struct fastq_buffer_s quality_buffer;
 
   size_t file_size;
   size_t file_position;
@@ -57,20 +57,21 @@ struct fasta_s
   size_t stripped[256];
 };
 
-typedef struct fasta_s * fasta_handle;
+typedef struct fastq_s * fastq_handle;
 
-fasta_handle fasta_open(const char * filename);
-void fasta_close(fasta_handle h);
-bool fasta_next(fasta_handle h,
+fastq_handle fastq_open(const char * filename);
+void fastq_close(fastq_handle h);
+bool fastq_next(fastq_handle h,
                 bool truncateatspace,
                 unsigned int * char_action,
                 char * char_mapping);
-size_t fasta_get_position(fasta_handle h);
-size_t fasta_get_size(fasta_handle h);
-size_t fasta_get_lineno(fasta_handle h);
-size_t fasta_get_seqno(fasta_handle h);
-char * fasta_get_header(fasta_handle h);
-char * fasta_get_sequence(fasta_handle h);
-size_t fasta_get_header_length(fasta_handle h);
-size_t fasta_get_sequence_length(fasta_handle h);
-long fasta_get_abundance(fasta_handle h);
+size_t fastq_get_position(fastq_handle h);
+size_t fastq_get_size(fastq_handle h);
+size_t fastq_get_lineno(fastq_handle h);
+size_t fastq_get_seqno(fastq_handle h);
+char * fastq_get_header(fastq_handle h);
+char * fastq_get_sequence(fastq_handle h);
+char * fastq_get_quality(fastq_handle h);
+size_t fastq_get_header_length(fastq_handle h);
+size_t fastq_get_sequence_length(fastq_handle h);
+size_t fastq_get_quality_length(fastq_handle h);

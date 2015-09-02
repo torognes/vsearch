@@ -20,3 +20,5 @@
 */
 
 void fastq_chars();
+void fastq_filter();
+void fastq_stats();

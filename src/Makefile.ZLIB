@@ -38,14 +38,15 @@ OBJS=cityhash/city.o \
 	cpu_ssse3.o db.o dbindex.o derep.o maps.o mask.o minheap.o msa.o \
 	results.o search.o searchcore.o showalign.o shuffle.o \
 	sortbylength.o sortbysize.o unique.o userfields.o util.o vsearch.o \
-	allpairs.o linmemalign.o subsample.o fastqread.o fasta.o
+	allpairs.o linmemalign.o subsample.o fastqops.o fasta.o fastq.o
 
 DEPS=Makefile cityhash/city.h cityhash/config.h \
 	align.h align_simd.h arch.h bitmap.h chimera.h cluster.h cpu.h db.h \
 	dbindex.h derep.h maps.h mask.h minheap.h msa.h results.h \
 	search.h searchcore.h showalign.h shuffle.h sortbylength.h \
 	sortbysize.h unique.h userfields.h util.h vsearch.h \
-	allpairs.h linmemalign.h xstring.h subsample.h fastqread.h fasta.h
+	allpairs.h linmemalign.h xstring.h subsample.h fastqops.h fasta.h \
+	fastq.h
 
 .SUFFIXES:.o .cc
 

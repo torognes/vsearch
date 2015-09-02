@@ -86,11 +86,12 @@
 #include "cpu.h"
 #include "allpairs.h"
 #include "subsample.h"
-#include "fastqread.h"
 #include "fasta.h"
+#include "fastq.h"
+#include "fastqops.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.15"
+#define PROG_VERSION "v1.2.16"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -98,28 +99,15 @@
 #define PROG_ARCH "linux_x86_64"
 #endif
 
-#ifdef HAVE_BZLIB
-#define BZ_VERBOSE_0 0
-#define BZ_VERBOSE_1 1
-#define BZ_VERBOSE_2 2
-#define BZ_VERBOSE_3 3
-#define BZ_VERBOSE_4 4
-#define BZ_MORE_MEM 0  /* faster decompression using more memory */
-#define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
-#endif
-
-#define FORMAT_PLAIN 1
-#define FORMAT_BZIP  2
-#define FORMAT_GZIP  3
-
 /* options */
 
 extern bool opt_clusterout_id;
 extern bool opt_clusterout_sort;
+extern bool opt_eeout;
 extern bool opt_quiet;
-extern bool opt_xsize;
-extern bool opt_relabel_sha1;
 extern bool opt_relabel_md5;
+extern bool opt_relabel_sha1;
+extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_blast6out;
@@ -127,8 +115,8 @@ extern char * opt_borderline;
 extern char * opt_centroids;
 extern char * opt_chimeras;
 extern char * opt_cluster_fast;
-extern char * opt_cluster_smallmem;
 extern char * opt_cluster_size;
+extern char * opt_cluster_smallmem;
 extern char * opt_clusters;
 extern char * opt_consout;
 extern char * opt_db;
@@ -136,9 +124,14 @@ extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
 extern char * opt_derep_prefix;
-extern char * opt_fastapairs;
 extern char * opt_fastaout;
+extern char * opt_fastaout_discarded;
+extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
+extern char * opt_fastq_filter;
+extern char * opt_fastq_stats;
+extern char * opt_fastqout;
+extern char * opt_fastqout_discarded;
 extern char * opt_fastx_subsample;
 extern char * opt_log;
 extern char * opt_maskfasta;
@@ -163,6 +156,8 @@ extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double opt_abskew;
 extern double opt_dn;
+extern double opt_fastq_maxee;
+extern double opt_fastq_maxee_rate;
 extern double opt_id;
 extern double opt_maxid;
 extern double opt_maxqt;
@@ -202,6 +197,15 @@ extern int opt_usersort;
 extern int opt_version;
 extern long opt_dbmask;
 extern long opt_fasta_width;
+extern long opt_fastq_ascii;
+extern long opt_fastq_maxns;
+extern long opt_fastq_minlen;
+extern long opt_fastq_qmax;
+extern long opt_fastq_qmaxout;
+extern long opt_fastq_qmin;
+extern long opt_fastq_stripleft;
+extern long opt_fastq_trunclen;
+extern long opt_fastq_truncqual;
 extern long opt_fulldp;
 extern long opt_hardmask;
 extern long opt_iddef;
