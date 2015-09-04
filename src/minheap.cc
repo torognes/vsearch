@@ -177,7 +177,7 @@ void
 minheap_dump(minheap_t * m)
 {
   for(int i=0; i < m->count; i++)
-    printf("%s%d", i>0 ? " " : "", m->array[i].count);
+    printf("%s%u", i>0 ? " " : "", m->array[i].count);
   printf("\n");
 }
 
@@ -213,7 +213,7 @@ minheap_test()
   while(! minheap_isempty(m))
     {
       elem_t x = minheap_poplast(m);
-      printf("%d\n", x.count);
+      printf("%u\n", x.count);
     }
 
   printf("Swaps: %d\n\n", swaps);

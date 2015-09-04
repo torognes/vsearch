@@ -101,7 +101,7 @@ void results_show_blast6out_one(FILE * fp,
         }
       
       fprintf(fp,
-              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%ld\t%d\t%d\n",
+              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%lu\t%d\t%d\n",
               query_head,
               db_getheader(hp->target),
               hp->id,

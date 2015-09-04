@@ -28,7 +28,7 @@
 #define MINMATCHSAMPLECOUNT 6
 
 /* minimum kmer match frequency */
-#define MINMATCHSAMPLEFREQ (1/16)
+#define MINMATCHSAMPLEFREQ 16
 
 struct hit
 {

@@ -303,12 +303,12 @@ void derep_fulllength()
 
   if (!opt_quiet)
     fprintf(stderr,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n",
+            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n",
             clusters, average, median, maxsize);
 
   if (opt_log)
     fprintf(fp_log,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n\n",
+            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n\n",
             clusters, average, median, maxsize);
 
   show_rusage();
@@ -404,7 +404,7 @@ void derep_fulllength()
       for (long i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          fprintf(fp_uc, "C\t%ld\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "C\t%ld\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, db_getheader(bp->seqno_first));
           progress_update(i);
         }
@@ -659,12 +659,12 @@ void derep_prefix()
 
   if (!opt_quiet)
     fprintf(stderr,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n",
+            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n",
             clusters, average, median, maxsize);
 
   if (opt_log)
     fprintf(fp_log,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %ld\n\n",
+            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n\n",
             clusters, average, median, maxsize);
 
   show_rusage();
@@ -748,7 +748,7 @@ void derep_prefix()
                next;
                next = nextseqtab[next])
             fprintf(fp_uc,
-                    "H\t%ld\t%ld\t%.1f\t*\t0\t0\t*\t%s\t%s\n",
+                    "H\t%ld\t%lu\t%.1f\t*\t0\t0\t*\t%s\t%s\n",
                     i, db_getsequencelen(next), 100.0, db_getheader(next), h);
 
           progress_update(i);
@@ -760,7 +760,7 @@ void derep_prefix()
       for (long i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          fprintf(fp_uc, "C\t%ld\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "C\t%ld\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, db_getheader(bp->seqno_first));
           progress_update(i);
         }

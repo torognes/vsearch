@@ -74,7 +74,7 @@ LinearMemoryAligner::~LinearMemoryAligner()
 
 long * LinearMemoryAligner::scorematrix_create(long match, long mismatch)
 {
-  long * scorematrix = (long*) xmalloc(16*16*sizeof(long));
+  long * newscorematrix = (long*) xmalloc(16*16*sizeof(long));
 
   for(int i=0; i<16; i++)
     for(int j=0; j<16; j++)
@@ -86,9 +86,9 @@ long * LinearMemoryAligner::scorematrix_create(long match, long mismatch)
           value = match;
         else
           value = mismatch;
-        scorematrix[16*i+j] = value;
+        newscorematrix[16*i+j] = value;
       }
-  return scorematrix;
+  return newscorematrix;
 }
 
 void LinearMemoryAligner::alloc_vectors(size_t x)
@@ -183,8 +183,6 @@ void LinearMemoryAligner::diff(long a_start,
                                bool b_left,      /* includes left end of b  */
                                bool b_right)     /* includes right end of b */
 {
-  long MaxScore = 0;
-
   if (b_len == 0)
     {
       /* B and possibly A is empty */
@@ -460,7 +458,6 @@ void LinearMemoryAligner::diff(long a_start,
       
       long P;
       long best;
-      MaxScore = MAX(MaxScore0, MaxScore1);
 
       if (MaxScore0 > MaxScore1)
         {
@@ -616,8 +613,7 @@ void LinearMemoryAligner::alignstats(char * cigar,
       int scanlength = 0;
       sscanf(p, "%ld%n", &run, &scanlength);
       p += scanlength;
-      char op = *p++;
-      switch (op)
+      switch (*p++)
         {
         case 'M':
           nwalignmentlength += run;

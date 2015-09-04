@@ -89,9 +89,10 @@
 #include "fasta.h"
 #include "fastq.h"
 #include "fastqops.h"
+#include "fastxdetect.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.16"
+#define PROG_VERSION "v1.2.17"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -132,7 +133,9 @@ extern char * opt_fastq_filter;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
 extern char * opt_fastqout_discarded;
+extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
+extern char * opt_label_suffix;
 extern char * opt_log;
 extern char * opt_maskfasta;
 extern char * opt_matched;
@@ -204,6 +207,7 @@ extern long opt_fastq_qmax;
 extern long opt_fastq_qmaxout;
 extern long opt_fastq_qmin;
 extern long opt_fastq_stripleft;
+extern long opt_fastq_tail;
 extern long opt_fastq_trunclen;
 extern long opt_fastq_truncqual;
 extern long opt_fulldp;

@@ -33,11 +33,10 @@
 char sym_nt_2bit[] = "ACGT";
 char sym_nt_4bit[] = "-ACGTRYSWKMDBHVN";
 
-unsigned int char_action_std[256] =
+unsigned int char_fasta_action[256] =
   {
     /*
-
-      How to handle input characters
+      How to handle input characters for FASTA
 
       0=stripped, 1=legal, 2=fatal, 3=silently stripped, 4=newline
 
@@ -63,7 +62,40 @@ unsigned int char_action_std[256] =
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
   };
 
-unsigned int char_qual_action[256] =
+unsigned int char_fq_action_seq[256] =
+  {
+    /*
+      How to handle input characters for FASTQ:
+      All IUPAC characters are valid.
+      CR (^M) silently stripped.
+      LF is newline.
+      Rest is fatal
+
+      0=stripped, 1=legal, 2=fatal, 3=silently stripped, 4=newline
+
+    @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+    P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+    */
+
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  3,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  1,  1,  1,  1,  2,  2,  1,  1,  2,  2,  1,  2,  1,  1,  2,
+    2,  2,  1,  1,  1,  1,  1,  1,  2,  1,  2,  2,  2,  2,  2,  2,
+    2,  1,  1,  1,  1,  2,  2,  1,  1,  2,  2,  1,  2,  1,  1,  2,
+    2,  2,  1,  1,  1,  1,  1,  1,  2,  1,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+  };
+
+unsigned int char_fq_action_qual[256] =
   {
     /* 
     Quality characters, any from 33 to 126 is valid.

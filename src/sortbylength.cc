@@ -71,7 +71,7 @@ void sortbylength()
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
-  sortinfo = (sortinfo_s*) xmalloc(dbsequencecount * sizeof(sortinfo_s));
+  sortinfo = (struct sortinfo_s *) xmalloc(dbsequencecount * sizeof(sortinfo_s));
 
   int passed = 0;
 

@@ -197,16 +197,16 @@ void fasta_close(fasta_handle h)
 }
 
 
-size_t fasta_file_fill_buffer(fasta_handle h)
+unsigned long fasta_file_fill_buffer(fasta_handle h)
 {
   /* read more data if necessary */
-  size_t rest = h->file_buffer.length - h->file_buffer.position;
+  unsigned long rest = h->file_buffer.length - h->file_buffer.position;
   
   if (rest > 0)
     return rest;
   else
     {
-      size_t space = h->file_buffer.alloc - h->file_buffer.length;
+      unsigned long space = h->file_buffer.alloc - h->file_buffer.length;
 
       if (space == 0)
         {
@@ -266,7 +266,7 @@ size_t fasta_file_fill_buffer(fasta_handle h)
     }
 }
 
-void buffer_extend(struct fasta_buffer_s * buffer, char * buf, size_t len)
+void buffer_extend(struct fasta_buffer_s * buffer, char * buf, unsigned long len)
 {
   if (buffer->length + len + 1 > buffer->alloc)
     {
@@ -331,7 +331,7 @@ void fasta_filter_sequence(fasta_handle h,
           
         case 2:
           /* fatal character */
-          if (c>=32)
+          if ((c>=32) && (c<127))
             snprintf(msg,
                      200,
                      "illegal character '%c' on line %lu in fasta file",
@@ -340,7 +340,7 @@ void fasta_filter_sequence(fasta_handle h,
           else
             snprintf(msg,
                      200,
-                     "illegal character %#.2x (hexadecimal) on line %lu in fasta file",
+                     "illegal unprintable character %#.2x (hexadecimal) on line %lu in fasta file",
                      c,
                      h->lineno);
           fatal(msg);
@@ -364,13 +364,12 @@ void fasta_filter_sequence(fasta_handle h,
 
 bool fasta_next(fasta_handle h,
                 bool truncateatspace,
-                unsigned int * char_action,
                 char * char_mapping)
 {
   h->header_buffer.length = 0;
   h->sequence_buffer.length = 0;
 
-  size_t rest = fasta_file_fill_buffer(h);
+  unsigned long rest = fasta_file_fill_buffer(h);
 
   if (rest == 0)
     return 0;
@@ -398,7 +397,7 @@ bool fasta_next(fasta_handle h,
                            rest);
 
       /* copy to header buffer */
-      size_t len = rest;
+      unsigned long len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
@@ -431,7 +430,7 @@ bool fasta_next(fasta_handle h,
       lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n', rest);
 
-      size_t len = rest;
+      unsigned long len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
@@ -447,7 +446,7 @@ bool fasta_next(fasta_handle h,
   h->seqno++;
 
   fasta_truncate_header(h, truncateatspace);
-  fasta_filter_sequence(h, char_action, char_mapping);
+  fasta_filter_sequence(h, char_fasta_action, char_mapping);
 
 #ifdef HAVE_ZLIB
   if (h->format == FORMAT_GZIP)
@@ -477,32 +476,32 @@ long fasta_get_abundance(fasta_handle h)
   return abundance;
 }
 
-size_t fasta_get_position(fasta_handle h)
+unsigned long fasta_get_position(fasta_handle h)
 {
   return h->file_position;
 }
 
-size_t fasta_get_size(fasta_handle h)
+unsigned long fasta_get_size(fasta_handle h)
 {
   return h->file_size;
 }
 
-size_t fasta_get_lineno(fasta_handle h)
+unsigned long fasta_get_lineno(fasta_handle h)
 {
   return h->lineno;
 }
 
-size_t fasta_get_seqno(fasta_handle h)
+unsigned long fasta_get_seqno(fasta_handle h)
 {
   return h->seqno;
 }
 
-size_t fasta_get_header_length(fasta_handle h)
+unsigned long fasta_get_header_length(fasta_handle h)
 {
   return h->header_buffer.length;
 }
 
-size_t fasta_get_sequence_length(fasta_handle h)
+unsigned long fasta_get_sequence_length(fasta_handle h)
 {
   return h->sequence_buffer.length;
 }

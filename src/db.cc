@@ -69,7 +69,6 @@ void db_read(const char * filename, int upcase)
 
   while(fasta_next(h,
                    ! opt_notrunclabels,
-                   char_action_std,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {
       size_t headerlength = fasta_get_header_length(h);
@@ -139,7 +138,7 @@ void db_read(const char * filename, int upcase)
     {
       if (sequences > 0)
         fprintf(stderr,
-                "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n", 
+                "%'lu nt in %'lu seqs, min %'lu, max %'lu, avg %'.0f\n", 
                 db_getnucleotidecount(),
                 db_getsequencecount(),
                 db_getshortestsequence(),
@@ -147,7 +146,7 @@ void db_read(const char * filename, int upcase)
                 db_getnucleotidecount() * 1.0 / db_getsequencecount());
       else
         fprintf(stderr,
-                "%'ld nt in %'ld seqs\n", 
+                "%'lu nt in %'lu seqs\n", 
                 db_getnucleotidecount(),
                 db_getsequencecount());
     }
@@ -156,7 +155,7 @@ void db_read(const char * filename, int upcase)
     {
       if (sequences > 0)
         fprintf(fp_log,
-                "%'ld nt in %'ld seqs, min %'ld, max %'ld, avg %'.0f\n\n", 
+                "%'lu nt in %'lu seqs, min %'lu, max %'lu, avg %'.0f\n\n", 
                 db_getnucleotidecount(),
                 db_getsequencecount(),
                 db_getshortestsequence(),
@@ -164,7 +163,7 @@ void db_read(const char * filename, int upcase)
                 db_getnucleotidecount() * 1.0 / db_getsequencecount());
       else
         fprintf(fp_log,
-                "%'ld nt in %'ld seqs\n\n", 
+                "%'lu nt in %'lu seqs\n\n", 
                 db_getnucleotidecount(),
                 db_getsequencecount());
     }
@@ -174,24 +173,24 @@ void db_read(const char * filename, int upcase)
   if (discarded_short)
     {
       fprintf(stderr,
-              "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n",
+              "WARNING: %ld sequences shorter than %ld nucleotides discarded.\n",
               discarded_short, opt_minseqlength);
 
       if (opt_log)
         fprintf(fp_log,
-                "WARNING: %lu sequences shorter than %lu nucleotides discarded.\n\n",
+                "WARNING: %ld sequences shorter than %ld nucleotides discarded.\n\n",
                 discarded_short, opt_minseqlength);
     }
   
   if (discarded_long)
     {
       fprintf(stderr,
-              "WARNING: %lu sequences longer than %lu nucleotides discarded.\n",
+              "WARNING: %ld sequences longer than %ld nucleotides discarded.\n",
               discarded_long, opt_maxseqlength);
 
       if (opt_log)
         fprintf(fp_log,
-                "WARNING: %lu sequences longer than %lu nucleotides discarded.\n\n",
+                "WARNING: %ld sequences longer than %ld nucleotides discarded.\n\n",
                 discarded_long, opt_maxseqlength);
     }
 

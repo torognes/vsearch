@@ -90,7 +90,6 @@ int parse_userfields_arg(char * arg)
   p = arg;
 
   char * q;
-  unsigned long n;
 
   int fields = 0;
 
@@ -100,7 +99,7 @@ int parse_userfields_arg(char * arg)
       if (!q)
         q = e;
       
-      n = (unsigned long)(q - p);
+      unsigned long n = (unsigned long)(q - p);
 
       char ** u = (char**) userfields_names;
 

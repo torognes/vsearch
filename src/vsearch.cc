@@ -51,9 +51,12 @@ char * opt_fastaout_discarded;
 char * opt_fastapairs;
 char * opt_fastq_chars;
 char * opt_fastq_filter;
+char * opt_fastq_stats;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
+char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
+char * opt_label_suffix;
 char * opt_log;
 char * opt_maskfasta;
 char * opt_matched;
@@ -79,7 +82,6 @@ double opt_abskew;
 double opt_dn;
 double opt_fastq_maxee;
 double opt_fastq_maxee_rate;
-char * opt_fastq_stats;
 double opt_id;
 double opt_maxid;
 double opt_maxqt;
@@ -126,6 +128,7 @@ long opt_fastq_qmax;
 long opt_fastq_qmaxout;
 long opt_fastq_qmin;
 long opt_fastq_stripleft;
+long opt_fastq_tail;
 long opt_fastq_trunclen;
 long opt_fastq_truncqual;
 long opt_fulldp;
@@ -458,13 +461,28 @@ void args_init(int argc, char **argv)
   opt_derep_fulllength = 0;
   opt_derep_prefix = 0;
   opt_dn = 1.4;
+  opt_eeout = 0;
   opt_fasta_width = 80;
-  opt_fastapairs = 0;
   opt_fastaout = 0;
-  opt_fastqout = 0;
   opt_fastaout_discarded = 0;
-  opt_fastqout_discarded = 0;
+  opt_fastapairs = 0;
+  opt_fastq_ascii = 33;
   opt_fastq_chars = 0;
+  opt_fastq_maxee = DBL_MAX;
+  opt_fastq_maxee_rate = DBL_MAX;
+  opt_fastq_maxns = LONG_MAX;
+  opt_fastq_minlen = 1;
+  opt_fastq_qmax = 41;
+  opt_fastq_qmaxout = 41;
+  opt_fastq_qmin = 0;
+  opt_fastq_stats = 0;
+  opt_fastq_stripleft = 0;
+  opt_fastq_tail = 4;
+  opt_fastq_trunclen = 0;
+  opt_fastq_truncqual = LONG_MIN;
+  opt_fastqout = 0;
+  opt_fastqout_discarded = 0;
+  opt_fastx_revcomp = 0;
   opt_fastx_subsample = 0;
   opt_fulldp = 0;
   opt_gap_extension_query_interior=2;
@@ -485,6 +503,7 @@ void args_init(int argc, char **argv)
   opt_iddef = 2;
   opt_idprefix = 0;
   opt_idsuffix = 0;
+  opt_label_suffix = 0;
   opt_leftjust = 0;
   opt_log = 0;
   opt_match = 2;
@@ -529,8 +548,8 @@ void args_init(int argc, char **argv)
   opt_quiet = false;
   opt_randseed = 0;
   opt_relabel = 0;
-  opt_relabel_sha1 = 0;
   opt_relabel_md5 = 0;
+  opt_relabel_sha1 = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samout = 0;
@@ -563,19 +582,6 @@ void args_init(int argc, char **argv)
   opt_wordlength = 8;
   opt_xn = 8.0;
   opt_xsize = 0;
-  opt_fastq_truncqual = LONG_MIN;
-  opt_fastq_maxee = DBL_MAX;
-  opt_fastq_trunclen = 0;
-  opt_fastq_minlen = 1;
-  opt_fastq_stripleft = 0;
-  opt_fastq_maxee_rate = DBL_MAX;
-  opt_fastq_maxns = LONG_MAX;
-  opt_fastq_ascii = 33;
-  opt_fastq_qmin = 0;
-  opt_fastq_qmax = 41;
-  opt_fastq_qmaxout = 41;
-  opt_fastq_stats = 0;
-  opt_eeout = 0;
 
   opterr = 1;
 
@@ -718,6 +724,9 @@ void args_init(int argc, char **argv)
     {"fastq_qmax",            required_argument, 0, 0 },
     {"fastq_qmaxout",         required_argument, 0, 0 },
     {"fastq_stats",           required_argument, 0, 0 },
+    {"fastq_tail",            required_argument, 0, 0 },
+    {"fastx_revcomp",         required_argument, 0, 0 },
+    {"label_suffix",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -738,67 +747,54 @@ void args_init(int argc, char **argv)
       switch(option_index)
         {
         case 0:
-          /* help */
           opt_help = 1;
           break;
               
         case 1:
-          /* version */
           opt_version = 1;
           break;
 
         case 2:
-          /* alnout */
           opt_alnout = optarg;
           break;
           
         case 3:
-          /* usearch_global */
           opt_usearch_global = optarg;
           break;
 
         case 4:
-          /* db */
           opt_db = optarg;
           break;
 
         case 5:
-          /* id */
           opt_id = args_getdouble(optarg);
           break;
 
         case 6:
-          /* maxaccepts */
           opt_maxaccepts = args_getlong(optarg);
           break;
 
         case 7:
-          /* maxrejects */
           opt_maxrejects = args_getlong(optarg);
           break;
 
         case 8:
-          /* wordlength */
           opt_wordlength = args_getlong(optarg);
           break;
 
         case 9:
-          /* match */
           opt_match = args_getlong(optarg);
           break;
 
         case 10:
-          /* mismatch */
           opt_mismatch = args_getlong(optarg);
           break;
 
         case 11:
-          /* fulldp */
           opt_fulldp = 1;
           break;
 
         case 12:
-          /* strand */
           if (strcasecmp(optarg, "plus") == 0)
             opt_strand = 1;
           else if (strcasecmp(optarg, "both") == 0)
@@ -808,303 +804,243 @@ void args_init(int argc, char **argv)
           break;
 
         case 13:
-          /* threads */
           opt_threads = args_getlong(optarg);
           break;
 
         case 14:
-          /* gapopen */
           args_get_gap_penalty_string(optarg, 1);
           break;
 
         case 15:
-          /* gapext */
           args_get_gap_penalty_string(optarg, 0);
           break;
 
         case 16:
-          /* rowlen */
           opt_rowlen = args_getlong(optarg);
           break;
 
         case 17:
-          /* userfields */
           if (!parse_userfields_arg(optarg))
             fatal("Unrecognized userfield argument");
           break;
 
         case 18:
-          /* userout */
           opt_userout = optarg;
           break;
       
         case 19:
-          /* self */
           opt_self = 1;
           break;
       
         case 20:
-          /* blast6out */
           opt_blast6out = optarg;
           break;
       
         case 21:
-          /* uc */
           opt_uc = optarg;
           break;
       
         case 22:
-          /* weak_id */
           opt_weak_id = args_getdouble(optarg);
           break;
 
         case 23:
-          /* uc_allhits */
           opt_uc_allhits = 1;
           break;
 
         case 24:
-          /* notrunclabels */
           opt_notrunclabels = 1;
           break;
 
         case 25:
-          /* sortbysize */
           opt_sortbysize = optarg;
           break;
 
         case 26:
-          /* output */
           opt_output = optarg;
           break;
 
         case 27:
-          /* minsize */
           opt_minsize = args_getlong(optarg);
           break;
 
         case 28:
-          /* maxsize */
           opt_maxsize = args_getlong(optarg);
           break;
 
         case 29:
-          /* relabel */
           opt_relabel = optarg;
           break;
 
         case 30:
-          /* sizeout */
           opt_sizeout = 1;
           break;
 
         case 31:
-          /* derep_fulllength */
           opt_derep_fulllength = optarg;
           break;
 
         case 32:
-          /* minseqlength */
           opt_minseqlength = args_getlong(optarg);
           break;
 
         case 33:
-          /* minuniquesize */
           opt_minuniquesize = args_getlong(optarg);
           break;
 
         case 34:
-          /* topn */
           opt_topn = args_getlong(optarg);
           break;
 
         case 35:
-          /* maxseqlength */
           opt_maxseqlength = args_getlong(optarg);
           break;
 
         case 36:
-          /* sizein */
           opt_sizein = 1;
           break;
 
         case 37:
-          /* sortbylength */
           opt_sortbylength = optarg;
           break;
 
         case 38:
-          /* matched */
           opt_matched = optarg;
           break;
 
         case 39:
-          /* notmatched */
           opt_notmatched = optarg;
           break;
 
         case 40:
-          /* dbmatched */
           opt_dbmatched = optarg;
           break;
 
         case 41:
-          /* dbnotmatched */
           opt_dbnotmatched = optarg;
           break;
 
         case 42:
-          /* fastapairs */
           opt_fastapairs = optarg;
           break;
 
         case 43:
-          /* sizein */
           opt_output_no_hits = 1;
           break;
 
         case 44:
-          /* maxhits */
           opt_maxhits = args_getlong(optarg);
           break;
 
         case 45:
-          /* top_hits_only */
           opt_top_hits_only = 1;
           break;
 
         case 46:
-          /* fasta_width */
           opt_fasta_width = args_getlong(optarg);
           break;
 
         case 47:
-          /* query_cov */
           opt_query_cov = args_getdouble(optarg);
           break;
 
         case 48:
-          /* target_cov */
           opt_target_cov = args_getdouble(optarg);
           break;
 
         case 49:
-          /* idprefix */
           opt_idprefix = args_getlong(optarg);
           break;
 
         case 50:
-          /* idsuffix */
           opt_idsuffix = args_getlong(optarg);
           break;
 
         case 51:
-          /* minqt */
           opt_minqt = args_getdouble(optarg);
           break;
 
         case 52:
-          /* maxqt */
           opt_maxqt = args_getdouble(optarg);
           break;
 
         case 53:
-          /* minsl */
           opt_minsl = args_getdouble(optarg);
           break;
 
         case 54:
-          /* maxsl */
           opt_maxsl = args_getdouble(optarg);
           break;
 
         case 55:
-          /* leftjust */
           opt_leftjust = 1;
           break;
 
         case 56:
-          /* rightjust */
           opt_rightjust = 1;
           break;
 
         case 57:
-          /* selfid */
           opt_selfid = 1;
           break;
 
         case 58:
-          /* maxid */
           opt_maxid = args_getdouble(optarg);
           break;
 
         case 59:
-          /* minsizeratio */
           opt_minsizeratio = args_getdouble(optarg);
           break;
 
         case 60:
-          /* maxsizeratio */
           opt_maxsizeratio = args_getdouble(optarg);
           break;
 
         case 61:
-          /* maxdiffs */
           opt_maxdiffs = args_getlong(optarg);
           break;
 
         case 62:
-          /* maxsubs */
           opt_maxsubs = args_getlong(optarg);
           break;
 
         case 63:
-          /* maxgaps */
           opt_maxgaps = args_getlong(optarg);
           break;
 
         case 64:
-          /* mincols */
           opt_mincols = args_getlong(optarg);
           break;
 
         case 65:
-          /* maxqsize */
           opt_maxqsize = args_getlong(optarg);
           break;
 
         case 66:
-          /* mintsize */
           opt_mintsize = args_getlong(optarg);
           break;
 
         case 67:
-          /* mid */
           opt_mid = args_getdouble(optarg);
           break;
 
         case 68:
-          /* shuffle */
           opt_shuffle = optarg;
           break;
 
         case 69:
-          /* randseed */
           opt_randseed = args_getlong(optarg);
           break;
 
         case 70:
-          /* mask */
           opt_maskfasta = optarg;
           break;
 
         case 71:
-          /* hardmask */
           opt_hardmask = 1;
           break;
 
         case 72:
-          /* qmask */
           if (strcasecmp(optarg, "none") == 0)
             opt_qmask = MASK_NONE;
           else if (strcasecmp(optarg, "dust") == 0)
@@ -1116,7 +1052,6 @@ void args_init(int argc, char **argv)
           break;
 
         case 73:
-          /* dbmask */
           if (strcasecmp(optarg, "none") == 0)
             opt_dbmask = MASK_NONE;
           else if (strcasecmp(optarg, "dust") == 0)
@@ -1128,316 +1063,266 @@ void args_init(int argc, char **argv)
           break;
 
         case 74:
-          /* cluster_smallmem */
           opt_cluster_smallmem = optarg;
           break;
 
         case 75:
-          /* cluster_fast */
           opt_cluster_fast = optarg;
           break;
 
         case 76:
-          /* centroids */
           opt_centroids = optarg;
           break;
 
         case 77:
-          /* clusters */
           opt_clusters = optarg;
           break;
 
         case 78:
-          /* consout */
           opt_consout = optarg;
           break;
 
         case 79:
-          /* cons_truncate */
           fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
           opt_cons_truncate = 1;
           break;
 
         case 80:
-          /* msaout */
           opt_msaout = optarg;
           break;
 
         case 81:
-          /* usersort */
           opt_usersort = 1;
           break;
 
         case 82:
-          /* xn */
           opt_xn = args_getdouble(optarg);
           break;
 
         case 83:
-          /* iddef */
           opt_iddef = args_getlong(optarg);
           break;
 
         case 84:
-          /* slots */
           fprintf(stderr, "WARNING: Option --slots is ignored\n");
           opt_slots = args_getlong(optarg);
           break;
 
         case 85:
-          /* pattern */
           fprintf(stderr, "WARNING: Option --pattern is ignored\n");
           opt_pattern = optarg;
           break;
 
         case 86:
-          /* maxuniquesize */
           opt_maxuniquesize = args_getlong(optarg);
           break;
 
         case 87:
-          /* abskew */
           opt_abskew = args_getdouble(optarg);
           break;
           
         case 88:
-          /* chimeras */
           opt_chimeras = optarg;
           break;
           
         case 89:
-          /* dn */
           opt_dn = args_getdouble(optarg);
           break;
           
         case 90:
-          /* mindiffs */
           opt_mindiffs = args_getlong(optarg);
           break;
           
         case 91:
-          /* mindiv */
           opt_mindiv = args_getdouble(optarg);
           break;
           
         case 92:
-          /* minh */
           opt_minh = args_getdouble(optarg);
           break;
           
         case 93:
-          /* nonchimeras */
           opt_nonchimeras = optarg;
           break;
           
         case 94:
-          /* uchime_denovo */
           opt_uchime_denovo = optarg;
           break;
           
         case 95:
-          /* uchime_ref */
           opt_uchime_ref = optarg;
           break;
           
         case 96:
-          /* uchimealns */
           opt_uchimealns = optarg;
           break;
           
         case 97:
-          /* uchimeout */
           opt_uchimeout = optarg;
           break;
           
         case 98:
-          /* uchimeout5 */
           opt_uchimeout5 = 1;
           break;
           
         case 99:
-          /* alignwidth */
           opt_alignwidth = args_getlong(optarg);
           break;
           
         case 100:
-          /* allpairs_global */
           opt_allpairs_global = optarg;
           break;
           
         case 101:
-          /* acceptall */
           opt_acceptall = 1;
           break;
           
         case 102:
-          /* cluster_size */
           opt_cluster_size = optarg;
           break;
 
         case 103:
-          /* samout */
           opt_samout = optarg;
           break;
 
         case 104:
-          /* log */
           opt_log = optarg;
           break;
 
         case 105:
-          /* quiet */
           opt_quiet = true;
           break;
 
         case 106:
-          /* fastx_subsample */
           opt_fastx_subsample = optarg;
           break;
 
         case 107:
-          /* sample_pct */
           opt_sample_pct = args_getdouble(optarg);
           break;
 
         case 108:
-          /* fastq_chars */
           opt_fastq_chars = optarg;
           break;
 
         case 109:
-          /* profile */
           opt_profile = optarg;
           break;
 
         case 110:
-          /* sample_size */
           opt_sample_size = args_getlong(optarg);
           break;
           
         case 111:
-          /* fastaout */
           opt_fastaout = optarg;
           break;
 
         case 112:
-          /* xsize */
           opt_xsize = 1;
           break;
 
         case 113:
-          /* clusterout_id */
           opt_clusterout_id = 1;
           break;
 
         case 114:
-          /* clusterout_sort */
           opt_clusterout_sort = 1;
           break;
 
         case 115:
-          /* borderline */
           opt_borderline = optarg;
           break;
 
         case 116:
-          /* relabel_sha1 */
           opt_relabel_sha1 = 1;
           break;
 
         case 117:
-          /* relabel_md5 */
           opt_relabel_md5 = 1;
           break;
 
         case 118:
-          /* derep_prefix */
           opt_derep_prefix = optarg;
           break;
 
         case 119:
-          /* fastq_filter */
           opt_fastq_filter = optarg;
           break;
 
         case 120:
-          /* fastqout */
           opt_fastqout = optarg;
           break;
 
         case 121:
-          /* fastaout_discarded */
           opt_fastaout_discarded = optarg;
           break;
 
         case 122:
-          /* fastqout_discarded */
           opt_fastqout_discarded = optarg;
           break;
 
         case 123:
-          /* fastq_truncqual */
           opt_fastq_truncqual = args_getlong(optarg);
           break;
 
         case 124:
-          /* fastq_maxee */
           opt_fastq_maxee = args_getdouble(optarg);
           break;
 
         case 125:
-          /* fastq_trunclen */
           opt_fastq_trunclen = args_getlong(optarg);
           break;
 
         case 126:
-          /* fastq_minlen */
           opt_fastq_minlen = args_getlong(optarg);
           break;
 
         case 127:
-          /* fastq_stripleft */
           opt_fastq_stripleft = args_getlong(optarg);
           break;
 
         case 128:
-          /* fastq_maxee_rate */
           opt_fastq_maxee_rate = args_getdouble(optarg);
           break;
 
         case 129:
-          /* fastq_maxns */
           opt_fastq_maxns = args_getlong(optarg);
           break;
 
         case 130:
-          /* eeout */
           opt_eeout = 1;
           break;
 
         case 131:
-          /* fastq_ascii */
           opt_fastq_ascii = args_getlong(optarg);
           break;
 
         case 132:
-          /* fastq_qmin */
           opt_fastq_qmin = args_getlong(optarg);
           break;
 
         case 133:
-          /* fastq_qmax */
           opt_fastq_qmax = args_getlong(optarg);
           break;
 
         case 134:
-          /* fastq_qmaxout */
           opt_fastq_qmaxout = args_getlong(optarg);
           break;
 
         case 135:
-          /* fastq_stats */
           opt_fastq_stats = optarg;
+          break;
+
+        case 136:
+          opt_fastq_tail = args_getlong(optarg);
+          break;
+
+        case 137:
+          opt_fastx_revcomp = optarg;
+          break;
+
+        case 138:
+          opt_label_suffix = optarg;
           break;
 
         default:
@@ -1491,6 +1376,8 @@ void args_init(int argc, char **argv)
   if (opt_uchime_ref)
     commands++;
   if (opt_allpairs_global)
+    commands++;
+  if (opt_fastx_revcomp)
     commands++;
   
   if (commands > 1)
@@ -1554,6 +1441,9 @@ void args_init(int argc, char **argv)
 
   if (opt_relabel_sha1 && opt_relabel_md5)
     fatal("Specify either --relabel_sha1 or --relabel_md5, not both");
+
+  if (opt_fastq_tail < 1)
+    fatal("The argument to --fastq_tail must be positive");
 
   
   /* TODO: check valid range of gap penalties */
@@ -1694,7 +1584,8 @@ void cmd_help()
               "  --topn INT                  output just the n most abundant sequences\n"
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "\n"
-              "FASTQ file processing\n"
+              "FASTA/FASTQ file processing\n"
+              "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
               "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
               "  --fastq_filter FILENAME     Filter FASTQ file, output to FASTQ or FASTA file\n"
               "  --fastq_stats FILENAME      Report FASTQ file statistics\n"
@@ -1707,14 +1598,16 @@ void cmd_help()
               "  --fastq_maxee_rate REAL     Maximum expected error rate for FASTQ filter\n"
               "  --fastq_maxns INT           Maximum number of N's for FASTQ filter\n"
               "  --fastq_minlen INT          Minimum length for FASTQ filter\n"
-              "  --fastq_qmax INT            Maximum base quality value for FASTQ input\n"
+              "  --fastq_qmax INT            Maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmaxout INT         Maximum base quality value for FASTQ output\n"
-              "  --fastq_qmin INT            Minimum base quality value for FASTQ input\n"
+              "  --fastq_qmin INT            Minimum base quality value for FASTQ input (0)\n"
               "  --fastq_stripleft INT       Bases on the left to delete for FASTQ filter\n"
+              "  --fastq_tail INT            Length of tails of same quality score to count\n"
               "  --fastq_trunclen INT        Read length for FASTQ filter truncation\n"
               "  --fastq_truncqual INT       Base quality value for FASTQ filter truncation\n"
               "  --fastqout FILENAME         FASTQ filename for passed seqs from FASTQ filter\n"
               "  --fastqout_discarded FNAME  FASTQ filename for discarded by FASTQ filter\n"
+              "  --label_suffix STRING       Label to add to output for --fastx_revcomp\n"
               "\n"
               "Masking\n"
               "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
@@ -2049,9 +1942,13 @@ int main(int argc, char** argv)
         fatal("Unable to open log file for writing");
       fprintf(fp_log, "%s\n", progheader);
       fprintf(fp_log, "%s\n", cmdline);
+
       char time_string[26];
       time_start = time(0);
-      fprintf(fp_log, "Started %s", ctime_r(&time_start, time_string));
+      struct tm tm_start;
+      localtime_r(& time_start, & tm_start);
+      strftime(time_string, 26, "%c", & tm_start);
+      fprintf(fp_log, "Started  %s", time_string);
     }
 
   show_header();
@@ -2087,6 +1984,8 @@ int main(int argc, char** argv)
     fastq_stats();
   else if (opt_fastq_filter)
     cmd_fastq_filter();
+  else if (opt_fastx_revcomp)
+    fastx_revcomp();
   else if (opt_version)
     {
     }
@@ -2095,11 +1994,17 @@ int main(int argc, char** argv)
   
   if (opt_log)
     {
+
       time_finish = time(0);
+      struct tm tm_finish;
+      localtime_r(& time_finish, & tm_finish);
       char time_string[26];
+      strftime(time_string, 26, "%c", & tm_finish);
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "Finished %s", ctime_r(&time_finish, time_string));
+      fprintf(fp_log, "Finished %s", time_string);
+
       time_t time_diff = time_finish - time_start;
+      fprintf(fp_log, "\n");
       fprintf(fp_log, "Elapsed time %02lu:%02lu\n", 
               time_diff / 60, time_diff % 60);
       double maxmem = arch_get_memused() / 1048576.0;

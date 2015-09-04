@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2014 Torbjorn Rognes
+    Copyright (C) 2014-2015 Torbjorn Rognes and Tomas Flouri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -19,16 +19,4 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-extern char sym_nt_2bit[5];
-extern char sym_nt_4bit[17];
-
-extern unsigned int char_fasta_action[256];
-extern unsigned int char_fq_action_seq[256];
-extern unsigned int char_fq_action_qual[256];
-extern unsigned int chrmap_2bit[256];
-extern unsigned int chrmap_4bit[256];
-extern unsigned int chrmap_masked[256];
-extern char chrmap_complement[256];
-extern char chrmap_normalize[256];
-extern char chrmap_upcase[256];
-extern char chrmap_no_change[256];
+int fastx_detect(const char * filename);

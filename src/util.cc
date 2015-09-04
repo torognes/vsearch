@@ -171,7 +171,7 @@ void show_rusage()
 #endif
 }
 
-void fprint_fasta_hdr_only(FILE * fp, char * hdr)
+void fprint_fasta_hdr_only(FILE * fp, const char * hdr)
 {
   fprintf(fp, ">%s\n", hdr);
 }
@@ -196,6 +196,18 @@ void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
           rest -= width;
         }
     }
+}
+
+void fprint_fastq(FILE * fp, char * header, char * sequence, char * quality,
+                  bool add_ee, double ee)
+{
+  if (add_ee)
+    fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
+  else
+    fprintf(fp, "@%s\n", header);
+  fprintf(fp, "%s\n", sequence);
+  fprintf(fp, "+\n");
+  fprintf(fp, "%s\n", quality);
 }
 
 void reverse_complement(char * rc, char * seq, long len)

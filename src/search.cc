@@ -236,25 +236,17 @@ void search_thread_run(long t)
     {
       pthread_mutex_lock(&mutex_input);
       
-      char * qhead;
-      int query_head_len;
-      char * qseq;
-      int qseqlen;
-      int query_no;
-      int qsize;
-      
       if (fasta_next(query_fasta_h,
                      ! opt_notrunclabels,
-                     char_action_std,
                      ((opt_qmask != MASK_SOFT) ?
                       chrmap_upcase : chrmap_no_change)))
         {
-          qhead = fasta_get_header(query_fasta_h);
-          query_head_len = fasta_get_header_length(query_fasta_h);
-          qseq = fasta_get_sequence(query_fasta_h);
-          qseqlen = fasta_get_sequence_length(query_fasta_h);
-          query_no = fasta_get_seqno(query_fasta_h);
-          qsize = fasta_get_abundance(query_fasta_h);
+          char * qhead = fasta_get_header(query_fasta_h);
+          int query_head_len = fasta_get_header_length(query_fasta_h);
+          char * qseq = fasta_get_sequence(query_fasta_h);
+          int qseqlen = fasta_get_sequence_length(query_fasta_h);
+          int query_no = fasta_get_seqno(query_fasta_h);
+          int qsize = fasta_get_abundance(query_fasta_h);
           
           for (int s = 0; s < opt_strand; s++)
             {

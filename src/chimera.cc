@@ -278,10 +278,7 @@ int find_best_parents(struct chimera_info_s * ci)
             {
               for(int i = qpos + 1 - window; i <= qpos; i++)
                 for(int j = 0; j < ci->cand_count; j++)
-                  {
-                    int z = j * ci->query_len + i;
-                    ci->match[z] = 0;
-                  }
+                  ci->match[j * ci->query_len + i] = 0;
             }
         }
 
@@ -390,17 +387,17 @@ int eval_parents(struct chimera_info_s * ci)
 
   /* fill in alignment string for query */
 
-  char * p = ci->qaln;
+  char * q = ci->qaln;
   int qpos = 0;
   for (int i=0; i < ci->query_len; i++)
     {
       for (int j=0; j < ci->maxi[i]; j++)
-        *p++ = '-';
-      *p++ = ci->query_seq[qpos++];
+        *q++ = '-';
+      *q++ = ci->query_seq[qpos++];
     }
   for (int j=0; j < ci->maxi[ci->query_len]; j++)
-    *p++ = '-';
-  *p = 0;
+    *q++ = '-';
+  *q = 0;
   
   /* fill in alignment strings for the 2 parents */
 
@@ -411,7 +408,7 @@ int eval_parents(struct chimera_info_s * ci)
       char * target_seq = db_getsequence(target_seqno);
       
       int inserted = 0;
-      int qpos = 0;
+      qpos = 0;
       int tpos = 0;
 
       char * t = ci->paln[j];
@@ -442,7 +439,7 @@ int eval_parents(struct chimera_info_s * ci)
               for(int x=0; x < run; x++)
                 {
                   if (!inserted)
-                    for(int x=0; x < ci->maxi[qpos]; x++)
+                    for(int y=0; y < ci->maxi[qpos]; y++)
                       *t++ = '-';
                       
                   if (op == 'M')
@@ -1077,7 +1074,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       if (opt_uchime_ref)
         {
           if (fasta_next(query_fasta_h, ! opt_notrunclabels,
-                         char_action_std, chrmap_upcase))
+                         chrmap_upcase))
             {
               ci->query_head_len = fasta_get_header_length(query_fasta_h);
               ci->query_len = fasta_get_sequence_length(query_fasta_h);
@@ -1311,7 +1308,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                     fprint_seq_digest_md5(fp_nonchimeras, seq, len);
 
                   if (opt_sizeout)
-                    fprintf(fp_nonchimeras, ";size=%u;\n", size);
+                    fprintf(fp_nonchimeras, ";size=%d;\n", size);
                   else
                     fprintf(fp_nonchimeras, "\n");
 
@@ -1319,7 +1316,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
               else if (opt_relabel)
                 {
                   if (opt_sizeout)
-                    fprintf(fp_nonchimeras, ">%s%d;size=%u;\n", 
+                    fprintf(fp_nonchimeras, ">%s%d;size=%d;\n", 
                             opt_relabel, nonchimera_count, size);
                   else
                     fprintf(fp_nonchimeras, ">%s%d\n", 
@@ -1490,7 +1487,7 @@ void chimera()
   if (!opt_quiet)
     fprintf(stderr,
             "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
-            "and %d (%.1f%%) suspicious candidates in %d sequences.\n",
+            "and %d (%.1f%%) suspicious candidates in %u sequences.\n",
             chimera_count,
             100.0 * chimera_count / seqno,
             nonchimera_count,
@@ -1505,7 +1502,7 @@ void chimera()
         fprintf(fp_log, "%s", opt_uchime_ref);
       else
         fprintf(fp_log, "%s", opt_uchime_denovo);
-      fprintf(fp_log, ": %d/%d chimeras (%.1f%%)\n",
+      fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
               chimera_count,
               seqno, 
               100.0 * chimera_count / seqno);

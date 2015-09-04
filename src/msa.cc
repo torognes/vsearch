@@ -190,7 +190,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         {
           for(int x=0; x < centroid_len; x++)
             {
-              for(int x=0; x < maxi[qpos]; x++)
+              for(int y=0; y < maxi[qpos]; y++)
                 msa_add('-');
               msa_add(target_seq[tpos++]);
               qpos++;
@@ -224,7 +224,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                   for(int x=0; x < run; x++)
                     {
                       if (!inserted)
-                        for(int x=0; x < maxi[qpos]; x++)
+                        for(int y=0; y < maxi[qpos]; y++)
                           msa_add('-');
                       
                       if (op == 'M')
@@ -306,11 +306,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   aln[alnlen] = 0;
   cons[conslen] = 0;
 
-  char cons_hdr[] = "consensus";
-
   if (fp_msaout)
     {
-      fprint_fasta_hdr_only(fp_msaout, cons_hdr);
+      fprint_fasta_hdr_only(fp_msaout, "consensus");
       fprint_fasta_seq_only(fp_msaout, aln, alnlen, opt_fasta_width);
     }
 

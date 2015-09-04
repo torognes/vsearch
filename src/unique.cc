@@ -170,7 +170,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
 
   for (int i = 0; i < candidates; i++)
     {
-      unsigned long kmer = uh->list[i];
+      kmer = uh->list[i];
       unsigned long x = kmer >> 6UL;
       unsigned long y = 1UL << (kmer & 63UL);
       

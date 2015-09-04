@@ -21,23 +21,31 @@
 
 #include "vsearch.h"
 
-void fprint_fastq(FILE * fp, char * header, char * sequence, char * quality,
-                  bool add_ee, double ee)
+int fastq_get_qual(char q)
 {
-  if (add_ee)
-    fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
-  else
-    fprintf(fp, "@%s\n", header);
-  fprintf(fp, "%s\n", sequence);
-  fprintf(fp, "+\n");
-  fprintf(fp, "%s\n", quality);
+  int qual = q - opt_fastq_ascii;
+  char msg[200];
+
+  if (qual < opt_fastq_qmin)
+    {
+      snprintf(msg, 200, "FASTQ quality value (%d) below qmin (%ld)",
+               qual, opt_fastq_qmin);
+      fatal(msg);
+    }
+  else if (qual > opt_fastq_qmax)
+    {
+      snprintf(msg, 200, "FASTQ quality value (%d) above qmax (%ld)",
+               qual, opt_fastq_qmax);
+      fatal(msg);
+    }
+  return qual;
 }
 
 void fastq_filter()
 {
   fastq_handle h = fastq_open(opt_fastq_filter);
 
-  size_t filesize = fastq_get_size(h);
+  unsigned long filesize = fastq_get_size(h);
 
   FILE * fp_fastaout = 0;
   FILE * fp_fastqout = 0;
@@ -78,7 +86,7 @@ void fastq_filter()
   long discarded = 0;
   long truncated = 0;
 
-  while(fastq_next(h, 0, char_action_std, chrmap_upcase))
+  while(fastq_next(h, 0, chrmap_upcase))
     {
       long length = fastq_get_sequence_length(h);
       char * d = fastq_get_header(h);
@@ -114,10 +122,7 @@ void fastq_filter()
       /* quality truncation */
       for (long i = 0; i < length; i++)
         {
-          int qual = q[i] - opt_fastq_ascii;
-
-          if ((qual < opt_fastq_qmin) || (qual > opt_fastq_qmax))
-            fatal("FASTQ quality value out of range");
+          int qual = fastq_get_qual(q[i]);
 
           if (qual <= opt_fastq_truncqual)
             {
@@ -139,11 +144,7 @@ void fastq_filter()
       double ee = 0.0;
       for (long i = 0; i < length; i++)
         {
-          int qual = q[i] - opt_fastq_ascii;
-
-          if ((qual < opt_fastq_qmin) || (qual > opt_fastq_qmax))
-            fatal("FASTQ quality value out of range");
-
+          int qual = fastq_get_qual(q[i]);
           ee += pow(10.0, - qual / 10.0);
         }
 
@@ -158,7 +159,7 @@ void fastq_filter()
         {
           /* keep the sequence */
           kept++;
-          if ((size_t)(length) < fastq_get_sequence_length(h))
+          if ((unsigned long)(length) < fastq_get_sequence_length(h))
             {
               truncated++;
               p[length] = 0;
@@ -170,7 +171,7 @@ void fastq_filter()
               fprint_fasta_seq_only(fp_fastaout, p, length, opt_fasta_width);
             }
           if (opt_fastqout)
-            fprint_fastq(fp_fastqout, d, p, q, 1, ee);
+            fprint_fastq(fp_fastqout, d, p, q, opt_eeout, ee);
         }
       else
         {
@@ -186,7 +187,7 @@ void fastq_filter()
                                     opt_fasta_width);
             }
           if (opt_fastqout_discarded)
-            fprint_fastq(fp_fastqout_discarded, d, p, q, 1, ee);
+            fprint_fastq(fp_fastqout_discarded, d, p, q, opt_eeout, ee);
         }
 
       progress_update(fastq_get_position(h));
@@ -194,7 +195,7 @@ void fastq_filter()
   progress_done();
 
   fprintf(stderr,
-          "%lu sequences kept (of which %lu truncated), %lu sequences discarded.\n",
+          "%ld sequences kept (of which %ld truncated), %ld sequences discarded.\n",
           kept,
           truncated,
           discarded);
@@ -216,10 +217,10 @@ void fastq_filter()
 
 void fastq_chars()
 {
-  size_t sequence_chars[256];
-  size_t quality_chars[256];
-  size_t tail_chars[256];
-  size_t total_chars = 0;
+  unsigned long sequence_chars[256];
+  unsigned long quality_chars[256];
+  unsigned long tail_chars[256];
+  unsigned long total_chars = 0;
   int maxrun[256];
 
   for(int c=0; c<256; c++)
@@ -232,17 +233,17 @@ void fastq_chars()
 
   fastq_handle h = fastq_open(opt_fastq_chars);
 
-  size_t filesize = fastq_get_size(h);
+  unsigned long filesize = fastq_get_size(h);
 
   progress_init("Reading fastq file", filesize);
 
-  size_t seq_count = 0;
+  unsigned long seq_count = 0;
   
   int qmin_n = 255, qmax_n = 0;
 
-  while(fastq_next(h, 0, char_action_std, chrmap_upcase))
+  while(fastq_next(h, 0, chrmap_upcase))
     {
-      size_t len = fastq_get_sequence_length(h);
+      long len = fastq_get_sequence_length(h);
       char * p = fastq_get_sequence(h);
       char * q = fastq_get_quality(h);
 
@@ -252,7 +253,7 @@ void fastq_chars()
       int run_char = -1;
       int run = 0;
       
-      size_t i = 0;
+      long i = 0;
       while(i<len)
         {
           int pc = *p++;
@@ -280,12 +281,24 @@ void fastq_chars()
               run = 0;
             }
           
-          if (i == len-1)
-            tail_chars[qc]++;
-
           i++;
         }
-      
+
+      if (len >= opt_fastq_tail)
+        {
+          q = fastq_get_quality(h) + len - 1;
+          int tail_char = *q--;
+          int tail_len = 1;
+          while(*q-- == tail_char)
+            {
+              tail_len++;
+              if (tail_len >= opt_fastq_tail)
+                break;
+            }
+          if (tail_len >= opt_fastq_tail)
+            tail_chars[tail_char]++;
+        }
+
       progress_update(fastq_get_position(h));
     }
   progress_done();
@@ -319,40 +332,30 @@ void fastq_chars()
 
   if (qmin < 59)
     fastq_ascii = 33;
-  else if (qmax > 74)
-    fastq_ascii = 64;
   else
-    fastq_ascii = 0;
+    fastq_ascii = 64;
 
   fprintf(stderr, "Qmin %d, QMax %d, Range %d\n",
           qmin, qmax, qmax-qmin+1);
 
-  if (fastq_ascii == 0)
-    fprintf(stderr, "Unable to determine format with certainty\n");
+  fastq_qmax = qmax - fastq_ascii;
+  fastq_qmin = qmin - fastq_ascii;
+  
+  fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
+          fastq_qmin, fastq_qmax, fastq_ascii);
+  
+  if (fastq_ascii == 64)
+    {
+      if (qmin < 64)
+        fprintf(stderr, "Guess: Solexa format\n");
+      else if (qmin < 66)
+        fprintf(stderr, "Guess: Illumina 1.3+ format\n");
+      else
+        fprintf(stderr, "Guess: Illumina 1.5+ format\n");
+    }
   else
     {
-      fastq_qmax = qmax - fastq_ascii;
-      fastq_qmin = qmin - fastq_ascii;
-
-      fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-              fastq_qmin, fastq_qmax, fastq_ascii);
-      
-      if (fastq_ascii == 64)
-        {
-          if (qmin < 64)
-            fprintf(stderr, "Guess: Solexa format\n");
-          else if (qmin < 66)
-            fprintf(stderr, "Guess: Illumina 1.3+ format\n");
-          else
-            fprintf(stderr, "Guess: Illumina 1.5+ format\n");
-        }
-      else
-        {
-          if (qmax == 74)
-            fprintf(stderr, "Guess: Illumina 1.8+ format\n");
-          else
-            fprintf(stderr, "Guess: Sanger format\n");
-        }
+      fprintf(stderr, "Guess: Sanger / Illumina 1.8+ format\n");
     }
 
   fprintf(stderr, "\n");
@@ -363,7 +366,7 @@ void fastq_chars()
     {
       if (sequence_chars[c] > 0)
         {
-          fprintf(stderr, "     %c %10ld %5.1f%% %6d",
+          fprintf(stderr, "     %c %10lu %5.1f%% %6d",
                   c,
                   sequence_chars[c],
                   100.0 * sequence_chars[c] / total_chars,
@@ -387,7 +390,7 @@ void fastq_chars()
     {
       if (quality_chars[c] > 0)
         {
-          fprintf(stderr, " '%c'  %5u  %5.1f%%  %10lu\n",
+          fprintf(stderr, " '%c'  %5d  %5.1f%%  %10lu\n",
                   c,
                   c,
                   100.0 * quality_chars[c] / total_chars,
@@ -405,12 +408,12 @@ void fastq_stats()
 {
   fastq_handle h = fastq_open(opt_fastq_stats);
 
-  size_t filesize = fastq_get_size(h);
+  unsigned long filesize = fastq_get_size(h);
 
   progress_init("Reading fastq file", filesize);
 
-  size_t seq_count = 0;
-  size_t symbols = 0;
+  unsigned long seq_count = 0;
+  unsigned long symbols = 0;
   
   long read_length_alloc = 512;
   int * read_length_table = (int*) xmalloc(sizeof(int) * read_length_alloc);
@@ -428,11 +431,11 @@ void fastq_stats()
   int qmin = +1000;
   int qmax = -1000;
 
-  size_t quality_chars[256];
+  unsigned long quality_chars[256];
   for(int c=0; c<256; c++)
     quality_chars[c] = 0;
   
-  while(fastq_next(h, 0, char_action_std, chrmap_upcase))
+  while(fastq_next(h, 0, chrmap_upcase))
     {
       seq_count++;
 
@@ -531,7 +534,6 @@ void fastq_stats()
 
   long length_accum = 0;
   long symb_accum = 0;
-  long qual_accum = 0;
   double p_sum = 0.0;
 
   for(long i = 0; i <= len_max; i++)
@@ -550,7 +552,6 @@ void fastq_stats()
           int qual = c - opt_fastq_ascii;
           x += qual_length_table[256*i + c];
 
-          qual_accum += qual_length_table[256*i + c] * qual;
           q += qual_length_table[256*i + c] * qual;
 
           p_sum += qual_length_table[256*i + c] * q2p(qual);
@@ -571,7 +572,7 @@ void fastq_stats()
       
       for(long i = len_max; i >= len_min; i--)
         {
-          fprintf(fp_log, "%2s%5lu  %10d   %5.1lf%%   %5.1lf%%\n",
+          fprintf(fp_log, "%2s%5ld  %10d   %5.1lf%%   %5.1lf%%\n",
                   (i == len_max ? ">=" : "  "),
                   i,
                   read_length_table[i],
@@ -673,7 +674,7 @@ void fastq_stats()
         }
 
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "%10ld  Recs (%.1lfM), 0 too long\n",
+      fprintf(fp_log, "%10lu  Recs (%.1lfM), 0 too long\n",
               seq_count, seq_count / 1.0e6);
       fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
       fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);
@@ -687,4 +688,162 @@ void fastq_stats()
   fastq_close(h);
   
   fprintf(stderr, "Read %lu sequences.\n", seq_count);
+}
+
+void fastx_revcomp()
+{
+  int filetype = fastx_detect(opt_fastx_revcomp);
+
+  unsigned long buffer_alloc = 512;
+  char * seq_buffer = (char*) xmalloc(buffer_alloc);
+  char * qual_buffer = (char*) xmalloc(buffer_alloc);
+
+  unsigned long header_alloc = 512;
+  char * header = (char*) xmalloc(header_alloc);
+
+  unsigned long suffix_length = opt_label_suffix ? strlen(opt_label_suffix) : 0;
+
+  if (filetype == 1)
+    {
+      fasta_handle h = fasta_open(opt_fastx_revcomp);
+      unsigned long filesize = fasta_get_size(h);
+      
+      progress_init("Reading fasta file", filesize);
+      
+      FILE * fp_fastaout = 0;
+
+      if (opt_fastaout)
+        {
+          fp_fastaout = fopen(opt_fastaout, "w");
+          if (!fp_fastaout)
+            fatal("Unable to open fasta output file for writing");
+        }
+
+      while(fasta_next(h, 0, chrmap_no_change))
+        {
+          unsigned long length = fasta_get_sequence_length(h);
+          unsigned long hlen = fasta_get_header_length(h);
+          char * d = fasta_get_header(h);
+          char * p = fasta_get_sequence(h);
+
+          if (hlen + suffix_length + 1 > header_alloc)
+            header_alloc = hlen + suffix_length + 1;
+          header = (char*) xrealloc(header, header_alloc);
+
+          if (length + 1 > buffer_alloc)
+            buffer_alloc = length + 1;
+          seq_buffer = (char *) xrealloc(seq_buffer, buffer_alloc);
+          
+          if (opt_label_suffix)
+            snprintf(header, header_alloc, "%s%s", d, opt_label_suffix);
+          else
+            snprintf(header, header_alloc, "%s", d);
+
+          reverse_complement(seq_buffer, p, length);
+          
+          if (opt_fastaout)
+            {
+              fprint_fasta_hdr_only(fp_fastaout, header);
+              fprint_fasta_seq_only(fp_fastaout,
+                                    seq_buffer,
+                                    length,
+                                    opt_fasta_width);
+            }
+                    
+          progress_update(fasta_get_position(h));
+        }
+      progress_done();
+      
+      if (opt_fastaout)
+        fclose(fp_fastaout);
+
+      fasta_close(h);
+    }
+  else if (filetype == 2)
+    {
+      fastq_handle h = fastq_open(opt_fastx_revcomp);
+      unsigned long filesize = fastq_get_size(h);
+      
+      progress_init("Reading fastq file", filesize);
+      
+      FILE * fp_fastaout = 0;
+      FILE * fp_fastqout = 0;
+
+      if (opt_fastaout)
+        {
+          fp_fastaout = fopen(opt_fastaout, "w");
+          if (!fp_fastaout)
+            fatal("Unable to open fasta output file for writing");
+        }
+
+      if (opt_fastqout)
+        {
+          fp_fastqout = fopen(opt_fastqout, "w");
+          if (!fp_fastqout)
+            fatal("Unable to open fastq output file for writing");
+        }
+
+      while(fastq_next(h, 0, chrmap_no_change))
+        {
+          unsigned long length = fastq_get_sequence_length(h);
+          unsigned long hlen = fastq_get_header_length(h);
+          char * d = fastq_get_header(h);
+          char * p = fastq_get_sequence(h);
+          char * q = fastq_get_quality(h);
+
+          if (hlen + suffix_length + 1 > header_alloc)
+            header_alloc = hlen + suffix_length + 1;
+          header = (char*) xrealloc(header, header_alloc);
+
+          if (length + 1 > buffer_alloc)
+            buffer_alloc = length + 1;
+          seq_buffer = (char *) xrealloc(seq_buffer, buffer_alloc);
+          qual_buffer = (char *) xrealloc(qual_buffer, buffer_alloc);
+          
+          if (opt_label_suffix)
+            snprintf(header, header_alloc, "%s%s", d, opt_label_suffix);
+          else
+            snprintf(header, header_alloc, "%s", d);
+
+          reverse_complement(seq_buffer, p, length);
+          
+          /* reverse quality values */
+          for(unsigned long i=0; i<length; i++)
+            qual_buffer[i] = q[length-1-i];
+          qual_buffer[length] = 0;
+
+          if (opt_fastaout)
+            {
+              fprint_fasta_hdr_only(fp_fastaout, header);
+              fprint_fasta_seq_only(fp_fastaout,
+                                    seq_buffer,
+                                    length,
+                                    opt_fasta_width);
+            }
+          if (opt_fastqout)
+            fprint_fastq(fp_fastqout,
+                         header,
+                         seq_buffer,
+                         qual_buffer,
+                         0,
+                         0);
+                    
+          progress_update(fastq_get_position(h));
+        }
+      progress_done();
+      
+      if (opt_fastaout)
+        fclose(fp_fastaout);
+  
+      if (opt_fastqout)
+        fclose(fp_fastqout);
+
+      fastq_close(h);
+    }
+  else
+    fatal("Unable to determine file type.");
+
+  free(header);
+  free(seq_buffer);
+  free(qual_buffer);
 }

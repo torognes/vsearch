@@ -75,7 +75,7 @@ inline void topscore_insert(int i, struct searchinfo_s * si)
   if (count < MINMATCHSAMPLECOUNT)
     return;
 
-  if (count < MINMATCHSAMPLEFREQ * si->kmersamplecount)
+  if (count < si->kmersamplecount / MINMATCHSAMPLEFREQ)
     return;
   
   unsigned int seqno = dbindex_getmapping(i);

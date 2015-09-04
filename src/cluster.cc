@@ -505,7 +505,7 @@ void cluster_core_parallel()
 
                       /* check if min number of shared kmers is satisfied */
                       if ((shared >= MINMATCHSAMPLECOUNT) &&
-                          (shared >= MINMATCHSAMPLEFREQ * si->kmersamplecount))
+                          (shared >= si->kmersamplecount / MINMATCHSAMPLEFREQ))
                         {
                           unsigned int length = sic->qseqlen;
                           
@@ -716,7 +716,7 @@ void cluster_core_parallel()
           /* find best hit */
           struct hit * best = search_findbest2(si_p, si_m);
           
-          int seqno = si_p->query_no;
+          int myseqno = si_p->query_no;
           
           if (best)
             {
@@ -732,10 +732,10 @@ void cluster_core_parallel()
                                        best->strand ? si_m->qsequence : 0);
 
               /* update cluster info about this sequence */
-              clusterinfo[seqno].seqno = seqno;
-              clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
-              clusterinfo[seqno].cigar = best->nwalignment;
-              clusterinfo[seqno].strand = best->strand;
+              clusterinfo[myseqno].seqno = myseqno;
+              clusterinfo[myseqno].clusterno = clusterinfo[target].clusterno;
+              clusterinfo[myseqno].cigar = best->nwalignment;
+              clusterinfo[myseqno].strand = best->strand;
               best->nwalignment = 0;
             }
           else
@@ -746,13 +746,13 @@ void cluster_core_parallel()
               extra_list[extra_count++] = i;
               
               /* update cluster info about this sequence */
-              clusterinfo[seqno].seqno = seqno;
-              clusterinfo[seqno].clusterno = clusters;
-              clusterinfo[seqno].cigar = 0;
-              clusterinfo[seqno].strand = 0;
+              clusterinfo[myseqno].seqno = myseqno;
+              clusterinfo[myseqno].clusterno = clusters;
+              clusterinfo[myseqno].cigar = 0;
+              clusterinfo[myseqno].strand = 0;
               
               /* add current sequence to database */
-              dbindex_addsequence(seqno);
+              dbindex_addsequence(myseqno);
               
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(clusters,
@@ -767,10 +767,10 @@ void cluster_core_parallel()
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
-              for(int i=0; i<si->hit_count; i++)
-                if (si->hits[i].aligned)
-                  if (si->hits[i].nwalignment)
-                    free(si->hits[i].nwalignment);
+              for(int j=0; j<si->hit_count; j++)
+                if (si->hits[j].aligned)
+                  if (si->hits[j].nwalignment)
+                    free(si->hits[j].nwalignment);
             }
 
           sum_nucleotides += si_p->qseqlen;
@@ -1238,7 +1238,7 @@ void cluster(char * dbname,
         if (!(fp_profile = fopen(opt_profile, "w")))
           fatal("Unable to open profile file");
 
-      int lastcluster = -1;
+      lastcluster = -1;
 
       for(int i=0; i<seqcount; i++)
         {

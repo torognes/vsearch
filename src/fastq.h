@@ -22,9 +22,9 @@
 struct fastq_buffer_s
 {
   char * data;
-  size_t length;
-  size_t alloc;
-  size_t position;
+  unsigned long length;
+  unsigned long alloc;
+  unsigned long position;
 };
 
 struct fastq_s
@@ -39,22 +39,22 @@ struct fastq_s
   BZFILE * fp_bz;
 #endif
 
-  int format;
-
   struct fastq_buffer_s file_buffer;
 
   struct fastq_buffer_s header_buffer;
   struct fastq_buffer_s sequence_buffer;
   struct fastq_buffer_s quality_buffer;
 
-  size_t file_size;
-  size_t file_position;
+  unsigned long file_size;
+  unsigned long file_position;
 
-  size_t lineno;
+  unsigned long lineno;
   long seqno;
 
-  size_t stripped_all;
-  size_t stripped[256];
+  unsigned long stripped_all;
+  unsigned long stripped[256];
+
+  int format;
 };
 
 typedef struct fastq_s * fastq_handle;
@@ -63,15 +63,14 @@ fastq_handle fastq_open(const char * filename);
 void fastq_close(fastq_handle h);
 bool fastq_next(fastq_handle h,
                 bool truncateatspace,
-                unsigned int * char_action,
                 char * char_mapping);
-size_t fastq_get_position(fastq_handle h);
-size_t fastq_get_size(fastq_handle h);
-size_t fastq_get_lineno(fastq_handle h);
-size_t fastq_get_seqno(fastq_handle h);
+unsigned long fastq_get_position(fastq_handle h);
+unsigned long fastq_get_size(fastq_handle h);
+unsigned long fastq_get_lineno(fastq_handle h);
+unsigned long fastq_get_seqno(fastq_handle h);
 char * fastq_get_header(fastq_handle h);
 char * fastq_get_sequence(fastq_handle h);
 char * fastq_get_quality(fastq_handle h);
-size_t fastq_get_header_length(fastq_handle h);
-size_t fastq_get_sequence_length(fastq_handle h);
-size_t fastq_get_quality_length(fastq_handle h);
+unsigned long fastq_get_header_length(fastq_handle h);
+unsigned long fastq_get_sequence_length(fastq_handle h);
+unsigned long fastq_get_quality_length(fastq_handle h);
