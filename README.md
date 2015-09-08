@@ -270,7 +270,7 @@ Shuffling options:
 
 ## VSEARCH license and third party licenses
 
-The VSEARCH code is licensed under the GNU Affero General Public License version 3.
+The VSEARCH code is dual-licensed either under the GNU General Public License version 3 or under the BSD 2-clause license. Please see LICENSE.txt for details.
 
 VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
 
@@ -287,6 +287,7 @@ The code is written in C++ but most of it is actually mostly C with some C++ syn
 
 File | Description
 ---|---
+**abundance.cc** | Code for extracting and printing abundance information from FASTA headers
 **align.cc** | New Needleman-Wunsch global alignment, serial. Only for testing.
 **align_simd.cc** | SIMD parallel global alignment of 1 query with 8 database sequences
 **allpairs.cc** | All-vs-all optimal global pairwise alignment (no heuristics)
@@ -298,12 +299,15 @@ File | Description
 **db.cc** | Handles the database file read, access etc
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
+**fasta.cc** | FASTA file parser
+**fastq.cc** | FASTQ file parser
+**fastqops.cc** | Basic FASTQ file statistics etc
+**fastxdetect.cc** | Detection of FASTA and FASTQ files
 **linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
-**query.cc** | Reads the fasta file containing the query sequences.
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
@@ -311,18 +315,19 @@ File | Description
 **shuffle.cc** | Shuffle sequences
 **sortbylength.cc** | Code for sorting by length
 **sortbysize.cc** | Code for sorting by size (abundance)
-**string.h** | Code for a simple string class
+**subsample.cc** | Subsampling reads from a FASTA file
 **unique.cc** | Find unique kmers in a sequence
 **userfields.cc** | Code for parsing the userfields option argument
 **util.cc** | Various common utility functions
 **vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
+**xstring.h** | Code for a simple string class
 
 VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
 
 
 ## Bugs
 
-VSEARCH has not been tested comprehensively yet. All bug reports are highly appreciated.
+All bug reports are highly appreciated.
 You may submit a bug report here on GitHub as an [issue](https://github.com/torognes/vsearch/issues),
 you could post a message on the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum)
 or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?subject=bug_in_vsearch).
@@ -340,19 +345,18 @@ Some issues to work on:
 * testing and debugging
 * performance evaluation
 * heuristics for alignment of long sequences (e.g. banded alignment around selected diagonals)?
-* intra-sequence SIMD parallelization (using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000))
 
 
 ## The VSEARCH team
 
 The main contributors to VSEARCH:
 
-* Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
-* Umer Zeeshan Ijaz <umer.ijaz@glasgow.ac.uk> (Feature suggestions)
-* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, feature suggestions)
-* Ben Nichols <b.nichols.1@research.gla.ac.uk> (Evaluation)
-* Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
 * Torbj&oslash;rn Rognes <torognes@ifi.uio.no> (Coding, testing, documentation, evaluation)
+* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, feature suggestions)
+* Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
+* Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
+* Ben Nichols <b.nichols.1@research.gla.ac.uk> (Evaluation)
+* Umer Zeeshan Ijaz <umer.ijaz@glasgow.ac.uk> (Feature suggestions)
 
 
 ## Acknowledgements
