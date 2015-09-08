@@ -268,6 +268,17 @@ Shuffling options:
 * `--topn <int>` (Default all)
 
 
+## Dependencies
+
+Compiling VSEARCH requires the following libraries:
+
+* libcrypto and libssl (CommonCrypto for Mac / OpenSSL for Linux)
+* libz 1.2.8 (zlib) (optional)
+* libbz2 1.0.6 (bzip2lib) (optional)
+
+The CommonCrypto/OpenSSL libraries are used for generation of MD5 or SHA1 sequence hashes for sequence relabelling. The optional zlib and bzip2lib libraries are used for reading compressed FASTA and FASTQ input files.
+
+
 ## VSEARCH license and third party licenses
 
 The VSEARCH code is dual-licensed either under the GNU General Public License version 3 or under the BSD 2-clause license. Please see LICENSE.txt for details.
