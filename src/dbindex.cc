@@ -27,15 +27,15 @@ unsigned int * kmerindex;
 bitmap_t * * kmerbitmap;
 unsigned int * dbindex_map;
 
-unsigned int kmerhashsize;
-unsigned long kmerindexsize;
+static unsigned int kmerhashsize;
+static unsigned long kmerindexsize;
 unsigned int dbindex_count;
 
-uhandle_s * dbindex_uh;
+static uhandle_s * dbindex_uh;
 
 #define BITMAP_THRESHOLD 8
 
-unsigned int bitmap_mincount;
+static unsigned int bitmap_mincount;
 
 void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
 {

@@ -32,21 +32,22 @@ static unsigned long longestheader;
 
 seqinfo_t * seqindex;
 char * datap;
-regex_t db_regexp;
+abundance_t * db_abundance;
 
 void db_read(const char * filename, int upcase)
 {
   /* compile regexp for abundance pattern */
 
-  if (regcomp(& db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-    fatal("Compilation of regular expression for abundance annotation failed");
+  db_abundance = abundance_init();
 
   h = fasta_open(filename);
 
   long filesize = fasta_get_size(h);
   
   char * prompt;
-  (void) asprintf(& prompt, "Reading file %s", filename);
+  if (asprintf(& prompt, "Reading file %s", filename) == -1)
+    fatal("Out of memory");
+
   progress_init(prompt, filesize);
 
   longest = 0;
@@ -73,8 +74,10 @@ void db_read(const char * filename, int upcase)
     {
       size_t headerlength = fasta_get_header_length(h);
       size_t sequencelength = fasta_get_sequence_length(h);
-      unsigned int abundance = fasta_get_abundance(h);
 
+      unsigned int abundance = abundance_get(db_abundance,
+                                             fasta_get_header(h));
+      
       if (sequencelength < (size_t)opt_minseqlength)
         {
           discarded_short++;
@@ -225,7 +228,7 @@ unsigned long db_getshortestsequence()
 
 void db_free()
 {
-  regfree(&db_regexp);
+  abundance_exit(db_abundance);
   if (datap)
     free(datap);
   if (seqindex)
@@ -253,36 +256,15 @@ void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long siz
 {
   char * hdr = db_getheader(seqno);
   int hdrlen = db_getheaderlen(seqno);
+  
+  abundance_fprint_header_with_size(db_abundance,
+                                    fp,
+                                    hdr,
+                                    hdrlen,
+                                    size);
+
   char * seq = db_getsequence(seqno);
   long seqlen = db_getsequencelen(seqno);
-  
-  /* remove any previous size annotation */
-  /* regexp search for "(^|;)(\d+)(;|$)" */
-  /* replace by ';' if not at either end */
-
-  regmatch_t pmatch[1];
-
-  if (!regexec(&db_regexp, hdr, 1, pmatch, 0))
-    {
-      int pat_start = pmatch[0].rm_so;
-      int pat_end = pmatch[0].rm_eo;
-
-      fprintf(fp,
-              ">%.*s%s%.*s%ssize=%lu;\n",
-              pat_start, hdr,
-              pat_start > 0 ? ";" : "",
-              hdrlen - pat_end, hdr + pat_end,
-              ((pat_end < hdrlen) && (hdr[hdrlen - 1] != ';')) ? ";" : "",
-              size);
-    }
-  else
-    {
-      fprintf(fp,
-              ">%s%ssize=%lu;\n", 
-              hdr,
-              ((hdrlen == 0) || (hdr[hdrlen - 1] != ';')) ? ";" : "", 
-              size);
-    }
 
   fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }
@@ -293,30 +275,14 @@ void db_fprint_fasta_strip_size(FILE * fp, unsigned long seqno)
 
   char * hdr = db_getheader(seqno);
   int hdrlen = db_getheaderlen(seqno);
+  
+  abundance_fprint_header_strip_size(db_abundance,
+                                     fp,
+                                     hdr,
+                                     hdrlen);
+
   char * seq = db_getsequence(seqno);
   long seqlen = db_getsequencelen(seqno);
-  
-  /* remove any previous size annotation */
-  /* regexp search for "(^|;)(\d+)(;|$)" */
-  /* replace by ';' if not at either end */
-
-  regmatch_t pmatch[1];
-
-  if (!regexec(&db_regexp, hdr, 1, pmatch, 0))
-    {
-      int pat_start = pmatch[0].rm_so;
-      int pat_end = pmatch[0].rm_eo;
-
-      fprintf(fp,
-              ">%.*s%s%.*s\n",
-              pat_start, hdr,
-              ((pat_start > 0) && (pat_end < hdrlen)) ? ";" : "",
-              hdrlen - pat_end, hdr + pat_end);
-    }
-  else
-    {
-      fprintf(fp, ">%s\n", hdr);
-    }
 
   fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }

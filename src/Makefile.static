@@ -34,6 +34,7 @@ LIBS=-lpthread -lssl -lcrypto ../zlib/libz.a ../bzip2/libbz2.a
 PROG=vsearch
 
 OBJS=cityhash/city.o \
+	abundance.o \
 	align.o \
 	align_simd.o \
 	arch.o \
@@ -71,6 +72,7 @@ OBJS=cityhash/city.o \
 DEPS=Makefile.static \
 	cityhash/city.h \
 	cityhash/config.h \
+	abundance.h \
 	align.h \
 	align_simd.h \
 	allpairs.h \

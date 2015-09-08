@@ -190,10 +190,10 @@ long avx2_present = 0;
 static char * progname;
 static char progheader[80];
 static char * cmdline;
+static time_t time_start;
+static time_t time_finish;
 
 FILE * fp_log = 0;
-time_t time_start;
-time_t time_finish;
 
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \

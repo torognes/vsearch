@@ -23,11 +23,9 @@
 
 /* Compute consensus sequence and msa of clustered sequences */
 
-char * aln;
-int alnpos;
-int * profile;
-
-#define DENOMINATOR 12
+static char * aln;
+static int alnpos;
+static int * profile;
 
 void msa_add(char c)
 {
@@ -105,7 +103,8 @@ void msa_add(char c)
 
 void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
-         int target_count, struct msa_target_s * target_list)
+         int target_count, struct msa_target_s * target_list,
+         long totalabundance, abundance_t * abundance_handle)
 {
   int centroid_seqno = target_list[0].seqno;
   int centroid_len = db_getsequencelen(centroid_seqno);
@@ -314,20 +313,59 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   if (fp_consout)
     {
-      fprintf(fp_consout, ">centroid=%s;seqs=%d;",
-              db_getheader(centroid_seqno), target_count);
+      if (opt_sizeout)
+        {
+          /* must remove old size info first */
+          char * header_wo_size 
+            = abundance_strip_size(abundance_handle,
+                                   db_getheader(centroid_seqno), 
+                                   db_getheaderlen(centroid_seqno));
+          fprintf(fp_consout,
+                  ">centroid=%s;seqs=%d;size=%ld;",
+                  header_wo_size,
+                  target_count,
+                  totalabundance);
+          free(header_wo_size);
+        }
+      else
+          fprintf(fp_consout,
+                  ">centroid=%s;seqs=%d;",
+                  db_getheader(centroid_seqno),
+                  target_count);
+
       if (opt_clusterout_id)
         fprintf(fp_consout, "clusterid=%d;", cluster);
+
       fprintf(fp_consout, "\n");
+
       fprint_fasta_seq_only(fp_consout, cons, conslen, opt_fasta_width);
     }
   
   if (fp_profile)
     {
-      fprintf(fp_profile, ">centroid=%s;seqs=%d;",
-              db_getheader(centroid_seqno), target_count);
+      /* must remove old size info first */
+      if (opt_sizeout)
+        {
+          char * header_wo_size 
+            = abundance_strip_size(abundance_handle,
+                                   db_getheader(centroid_seqno), 
+                                   db_getheaderlen(centroid_seqno));
+          fprintf(fp_profile,
+                  ">centroid=%s;seqs=%d;size=%ld;",
+                  header_wo_size, 
+                  target_count,
+                  totalabundance);
+          free(header_wo_size);
+        }
+      else
+        fprintf(fp_profile,
+                ">centroid=%s;seqs=%d;",
+                db_getheader(centroid_seqno),
+                target_count);
+
       if (opt_clusterout_id)
         fprintf(fp_profile, "clusterid=%d;", cluster);
+
       fprintf(fp_profile, "\n");
 
       for (int i=0; i<alnlen; i++)

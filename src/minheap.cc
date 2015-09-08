@@ -70,7 +70,7 @@ minheap_exit(minheap_t * m)
   free(m);
 }
 
-int swaps = 0;
+static int swaps = 0;
 
 void
 minheap_replaceroot(minheap_t * m, elem_t tmp)

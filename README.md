@@ -39,16 +39,17 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 ```sh
 cd ~
 mkdir -p bin
-cd ./bin/
+cd bin
 wget https://github.com/torognes/vsearch/releases/download/v1.1.3/vsearch-1.1.3-linux-x86_64
+chmod a+x vsearch-1.1.3-linux-x86_64
 ln -s vsearch-1.1.3-linux-x86_64 vsearch
 ```
 
 **source code** Use the following commands to clone the entire repository and build the executable:
 
 ```sh
-git clone https://github.com/torognes/vsearch.git`
-cd ./vsearch/src/
+git clone https://github.com/torognes/vsearch.git
+cd vsearch/src
 make -f Makefile
 cd ../bin/
 ```

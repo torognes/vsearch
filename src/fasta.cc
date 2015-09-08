@@ -117,8 +117,7 @@ fasta_handle fasta_open(const char * filename)
   for(int i=0; i<256; i++)
     h->stripped[i] = 0;
 
-  if (regcomp(& h->size_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-    fatal("Compilation of regular expression for abundance annotation failed");
+  h->abundance = abundance_init();
   
   h->file_position = 0;
 
@@ -183,7 +182,7 @@ void fasta_close(fasta_handle h)
       fatal("Internal error");
     }
   
-  regfree(& h->size_regexp);
+  abundance_exit(h->abundance);
 
   buffer_free(& h->file_buffer);
   buffer_free(& h->header_buffer);
@@ -460,20 +459,7 @@ bool fasta_next(fasta_handle h,
 
 long fasta_get_abundance(fasta_handle h)
 {
-  /* read size/abundance annotation */
-  
-  unsigned long abundance = 1;
-  regmatch_t pmatch[4];
-  
-  if (!regexec(& h->size_regexp, h->header_buffer.data, 4, pmatch, 0))
-    {
-      long number = atol(h->header_buffer.data + pmatch[2].rm_so);
-      if (number > 0)
-        abundance = number;
-      else
-        fatal("Invalid (zero) abundance annotation in fasta header");
-    }
-  return abundance;
+  return abundance_get(h->abundance, h->header_buffer.data);
 }
 
 unsigned long fasta_get_position(fasta_handle h)

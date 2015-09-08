@@ -32,7 +32,7 @@ typedef struct seqinfo_s seqinfo_t;
 
 extern char * datap;
 extern seqinfo_t * seqindex;
-extern regex_t db_regexp;
+extern abundance_t * db_abundance;
 
 inline char * db_getheader(unsigned long seqno)
 {

@@ -45,10 +45,12 @@ static char map_identity[256];
 void fastq_fatal(unsigned long lineno, const char * msg)
 {
   char * string; 
-  (void) asprintf(& string,
-                  "Invalid line %lu in FASTQ file: %s",
-                  lineno,
-                  msg);
+  if (asprintf(& string,
+               "Invalid line %lu in FASTQ file: %s",
+               lineno,
+               msg) == -1)
+    fatal("Out of memory");
+  
   if (string)
     {
       fatal(string);

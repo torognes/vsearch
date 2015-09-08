@@ -39,7 +39,7 @@ struct fasta_s
   BZFILE * fp_bz;
 #endif
 
-  regex_t size_regexp;
+  abundance_t * abundance;
 
   struct fasta_buffer_s file_buffer;
   struct fasta_buffer_s header_buffer;

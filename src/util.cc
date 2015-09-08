@@ -103,9 +103,10 @@ void  __attribute__((noreturn)) fatal(const char * format,
 void * xmalloc(size_t size)
 {
   const size_t alignment = 16;
-  void * t;
-  (void) posix_memalign(& t, alignment, size);
-  if (t==0)
+  void * t = 0;
+  if (posix_memalign(& t, alignment, size))
+    fatal("Unable to allocate enough memory.");
+  if (!t)
     fatal("Unable to allocate enough memory.");
   return t;
 }

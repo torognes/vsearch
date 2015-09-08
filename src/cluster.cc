@@ -49,8 +49,8 @@ static FILE * fp_notmatched = 0;
   
 static pthread_attr_t attr;
 
-struct searchinfo_s * si_plus;
-struct searchinfo_s * si_minus;
+static struct searchinfo_s * si_plus;
+static struct searchinfo_s * si_minus;
 
 typedef struct thread_info_s
 {
@@ -1240,6 +1240,8 @@ void cluster(char * dbname,
 
       lastcluster = -1;
 
+      abundance_t * abundance_handle = abundance_init();
+
       for(int i=0; i<seqcount; i++)
         {
           int clusterno = clusterinfo[i].clusterno;
@@ -1254,7 +1256,9 @@ void cluster(char * dbname,
                   /* compute msa & consensus */
                   msa(fp_msaout, fp_consout, fp_profile,
                       lastcluster,
-                      msa_target_count, msa_target_list);
+                      msa_target_count, msa_target_list,
+                      cluster_abundance[lastcluster],
+                      abundance_handle);
                 }
 
               /* start new cluster */
@@ -1276,10 +1280,14 @@ void cluster(char * dbname,
           /* compute msa & consensus */
           msa(fp_msaout, fp_consout, fp_profile,
               lastcluster,
-              msa_target_count, msa_target_list);
+              msa_target_count, msa_target_list,
+              cluster_abundance[lastcluster],
+              abundance_handle);
         }
 
       progress_done();
+
+      abundance_exit(abundance_handle);
 
       if (fp_profile)
         fclose(fp_profile);

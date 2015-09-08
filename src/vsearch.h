@@ -63,6 +63,7 @@
 #include "align_simd.h"
 #include "maps.h"
 #include "arch.h"
+#include "abundance.h"
 #include "db.h"
 #include "align.h"
 #include "unique.h"
@@ -92,7 +93,7 @@
 #include "fastxdetect.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.17"
+#define PROG_VERSION "v1.2.18"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"

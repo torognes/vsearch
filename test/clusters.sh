@@ -36,6 +36,7 @@ CMD="/usr/bin/time $PROG \
     --blast6out s.$P.bl6 \
     --matched s.$P.matched \
     --notmatched s.$P.notmatched \
+    --consout s.$P.consout \
     --fastapairs s.$P.fastapairs"
 
 #    --sizein
@@ -45,7 +46,6 @@ CMD="/usr/bin/time $PROG \
 #    --uc_allhits
 #    --query_cov 0.5
 #    --clusters files/s.$P.clusters
-#    --consout s.$P.consout
 #    --msaout s.$P.msaout
 
 echo Cluster test
