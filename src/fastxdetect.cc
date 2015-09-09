@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
 #define BZ_VERBOSE_0 0
 #define BZ_VERBOSE_1 1
 #define BZ_VERBOSE_2 2
@@ -79,11 +79,11 @@ static unsigned char MAGIC_BZIP[] = "BZ";
 
 int fastx_detect(const char * filename)
 {
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
   gzFile fp_gz = 0;
 #endif
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
   BZFILE * fp_bz = 0;
 #endif
 
@@ -110,7 +110,7 @@ int fastx_detect(const char * filename)
   if (format == FORMAT_GZIP)
     {
       /* GZIP: Close ordinary file and open again as gzipped file */
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       fclose(fp);
       if (! (fp_gz = gzopen(filename, "rb")))
         fatal("Unable to open gzip compressed file (%s)", filename);
@@ -122,7 +122,7 @@ int fastx_detect(const char * filename)
   if (format == FORMAT_BZIP)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       int bzError;
       if (! (fp_bz = BZ2_bzReadOpen(& bzError, fp,
                                        BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0)))
@@ -139,7 +139,7 @@ int fastx_detect(const char * filename)
   
   int bytes_read = 0;
   
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
   int bzError = 0;
 #endif
  
@@ -153,7 +153,7 @@ int fastx_detect(const char * filename)
       break;
       
     case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       bytes_read = gzread(fp_gz,
                           buffer,
                           BUFFERLEN);
@@ -163,7 +163,7 @@ int fastx_detect(const char * filename)
 #endif
       
     case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
       bytes_read = BZ2_bzRead(& bzError,
                               fp_bz,
                               buffer,
@@ -191,7 +191,7 @@ int fastx_detect(const char * filename)
 
   /* close files */
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
   int bz_error;
 #endif
   
@@ -203,14 +203,14 @@ int fastx_detect(const char * filename)
       break;
 
     case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       gzclose(fp_gz);
       fp_gz = 0;
       break;
 #endif
       
     case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
       BZ2_bzReadClose(&bz_error, fp_bz);
       fp_bz = 0;
       break;

@@ -62,7 +62,7 @@
 
 #define FASTA_BUFFER_ALLOC 8192
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
 #define BZ_VERBOSE_0 0
 #define BZ_VERBOSE_1 1
 #define BZ_VERBOSE_2 2
@@ -129,7 +129,7 @@ fasta_handle fasta_open(const char * filename)
   if (h->format == FORMAT_GZIP)
     {
       /* GZIP: Close ordinary file and open again as gzipped file */
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       fclose(h->fp);
       if (! (h->fp_gz = gzopen(filename, "rb")))
         fatal("Unable to open gzip compressed fasta file (%s)", filename);
@@ -141,7 +141,7 @@ fasta_handle fasta_open(const char * filename)
   if (h->format == FORMAT_BZIP)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       int bzError;
       if (! (h->fp_bz = BZ2_bzReadOpen(& bzError, h->fp,
                                        BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0)))
@@ -192,7 +192,7 @@ void fasta_close(fasta_handle h)
         }
     }
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
   int bz_error;
 #endif
   
@@ -204,14 +204,14 @@ void fasta_close(fasta_handle h)
       break;
 
     case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
       gzclose(h->fp_gz);
       h->fp_gz = 0;
       break;
 #endif
       
     case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
       BZ2_bzReadClose(&bz_error, h->fp_bz);
       h->fp_bz = 0;
       break;
@@ -256,7 +256,7 @@ unsigned long fasta_file_fill_buffer(fasta_handle h)
       
       int bytes_read = 0;
       
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
       int bzError = 0;
 #endif
 
@@ -271,7 +271,7 @@ unsigned long fasta_file_fill_buffer(fasta_handle h)
           break;
 
         case FORMAT_GZIP:
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
           bytes_read = gzread(h->fp_gz,
                               h->file_buffer.data + h->file_buffer.position,
                               space);
@@ -281,7 +281,7 @@ unsigned long fasta_file_fill_buffer(fasta_handle h)
 #endif
           
         case FORMAT_BZIP:
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
           bytes_read = BZ2_bzRead(& bzError,
                                   h->fp_bz,
                                   h->file_buffer.data 
@@ -486,7 +486,7 @@ bool fasta_next(fasta_handle h,
   fasta_truncate_header(h, truncateatspace);
   fasta_filter_sequence(h, char_fasta_action, char_mapping);
 
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
   if (h->format == FORMAT_GZIP)
     h->file_position = gzoffset(h->fp_gz);
   else

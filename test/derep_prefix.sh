@@ -6,7 +6,7 @@ INPUT=../data/BioMarKs.fsa
 
 THREADS=0
 
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 USEARCH=$(which usearch)
 
 OUTDIR=.

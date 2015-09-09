@@ -89,11 +89,11 @@
 
 #include <city.h>
 
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
 #include <zlib.h>
 #endif
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
 #include <bzlib.h>
 #endif
 
@@ -132,7 +132,7 @@
 #include "fastxdetect.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.2.19"
+#define PROG_VERSION "v1.3.0"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"

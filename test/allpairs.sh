@@ -8,7 +8,7 @@ T=0
 ID=0.7
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH

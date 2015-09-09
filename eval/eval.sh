@@ -9,13 +9,7 @@ DIR=.
 DB=../data/Rfam_11_0.fasta
 ID=0.5
 
-if [ $(uname -s) == "Linux" ]; then
-    VSEARCH=$(ls -v ../bin/vsearch*linux* | tail -1)
-else
-    VSEARCH=$(ls -t ../bin/vsearch*osx* | head -1)
-fi
-
-#VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$(which usearch)

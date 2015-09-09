@@ -2,8 +2,6 @@
 
 P=$1
 
-#INPUT=../data/Rfam_9_1.fasta
-#INPUT=../data/AF091148.fsa
 INPUT=../data/BioMarKs50k.fsa
 
 THREADS=0
@@ -23,21 +21,24 @@ else
 fi
 
 CMD="/usr/bin/time $PROG \
-    --cluster_fast $INPUT \
-    --threads $THREADS \
-    --id 0.9 \
+    --cluster_otus $INPUT \
+    --strand both \
+    --id 0.97 \
     --maxaccepts 1 \
     --maxrejects 8 \
     --sizeout \
-    --centroids f.$P.centroids \
-    --uc f.$P.uc \
-    --alnout f.$P.alnout \
-    --blast6out f.$P.bl6 \
-    --matched f.$P.matched \
-    --notmatched f.$P.notmatched \
-    --fastapairs f.$P.fastapairs"
+    --centroids o.$P.centroids \
+    --uc o.$P.uc \
+    --alnout o.$P.alnout \
+    --blast6out o.$P.bl6 \
+    --matched o.$P.matched \
+    --notmatched o.$P.notmatched \
+    --fastapairs o.$P.fastapairs \
+    --otus o.$P.otus"
 
 #    --sizein
+#    --threads $THREADS
+#    --minseqlength 1
 #    --output_no_hits
 #    --uc_allhits
 #    --query_cov 0.5
@@ -45,7 +46,7 @@ CMD="/usr/bin/time $PROG \
 #    --consout s.$P.consout
 #    --msaout s.$P.msaout
 
-echo Cluster test
+echo Testing cluster_otus
 echo
 echo Running command: $CMD
 echo

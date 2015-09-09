@@ -70,11 +70,11 @@ struct fasta_s
 {
   FILE * fp;
 
-#ifdef HAVE_ZLIB
+#ifdef HAVE_ZLIB_H
   gzFile fp_gz;
 #endif
 
-#ifdef HAVE_BZLIB
+#ifdef HAVE_BZLIB_H
   BZFILE * fp_bz;
 #endif
 

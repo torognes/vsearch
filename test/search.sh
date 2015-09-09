@@ -12,7 +12,7 @@ MA=1
 MR=32
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH

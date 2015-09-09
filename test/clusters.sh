@@ -9,7 +9,7 @@ INPUT=../data/Rfam_9_1.fasta
 THREADS=0
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH

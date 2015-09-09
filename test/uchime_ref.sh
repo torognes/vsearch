@@ -14,7 +14,7 @@ THREADS=0
 
 UCHIME=$(which uchime)
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 MINH=0.28
 MINDIV=0.8

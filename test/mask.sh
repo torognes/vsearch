@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DB=../data/BioMarKs50k.fsa
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 USEARCH=$(which usearch)
 
 MASK=dust

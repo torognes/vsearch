@@ -5,7 +5,7 @@ INPUT=../data/PR2-18S-rRNA-V4.fsa
 
 THREADS=0
 
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 USEARCH=$(which usearch)
 
 OUTDIR=.
