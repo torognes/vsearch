@@ -119,11 +119,22 @@ void fastq_filter()
         fatal("Unable to open fastq output file for writing");
     }
 
+  unsigned long header_alloc = 0;
+  char * header = 0;
+  if (opt_relabel)
+    {
+      header_alloc = strlen(opt_relabel) + 25;
+      header = (char*) xmalloc(header_alloc);
+    }
+
   progress_init("Reading fastq file", filesize);
 
   long kept = 0;
   long discarded = 0;
   long truncated = 0;
+
+  char hex_md5[LEN_HEX_DIG_MD5];
+  char hex_sha1[LEN_HEX_DIG_SHA1];
 
   while(fastq_next(h, 0, chrmap_upcase))
     {
@@ -187,14 +198,11 @@ void fastq_filter()
           ee += pow(10.0, - qual / 10.0);
         }
 
-      if (
-          (length >= opt_fastq_minlen) &&
+      if ((length >= opt_fastq_minlen) &&
           ((opt_fastq_trunclen == 0) || (length >= opt_fastq_trunclen)) &&
           (ee <= opt_fastq_maxee) &&
           (ee / length <= opt_fastq_maxee_rate) &&
-          (ncount <= opt_fastq_maxns)
-          )
-
+          (ncount <= opt_fastq_maxns))
         {
           /* keep the sequence */
           kept++;
@@ -204,6 +212,24 @@ void fastq_filter()
               p[length] = 0;
               q[length] = 0;
             }
+
+          if (opt_relabel)
+            {
+              (void) snprintf(header, header_alloc,
+                              "%s%ld", opt_relabel, kept);
+              d = header;
+            }
+          else if (opt_relabel_md5)
+            {
+              get_hex_seq_digest_md5(hex_md5, p, length);
+              d = hex_md5;
+            }
+          else if (opt_relabel_sha1)
+            {
+              get_hex_seq_digest_sha1(hex_sha1, p, length);
+              d = hex_sha1;
+            }
+
           if (opt_fastaout)
             {
               fprint_fasta_hdr_only(fp_fastaout, d);
@@ -217,6 +243,23 @@ void fastq_filter()
           discarded++;
           p = fastq_get_sequence(h);
           q = fastq_get_quality(h);
+
+          if (opt_relabel)
+            {
+              (void) snprintf(header, header_alloc, "%s%ld", opt_relabel, discarded);
+              d = header;
+            }
+          else if (opt_relabel_md5)
+            {
+              get_hex_seq_digest_md5(hex_md5, p, length);
+              d = hex_md5;
+            }
+          else if (opt_relabel_sha1)
+            {
+              get_hex_seq_digest_sha1(hex_sha1, p, length);
+              d = hex_sha1;
+            }
+
           if (opt_fastaout_discarded)
             {
               fprint_fasta_hdr_only(fp_fastaout_discarded, d);
@@ -238,6 +281,9 @@ void fastq_filter()
           kept,
           truncated,
           discarded);
+
+  if (header)
+    free(header);
 
   if (opt_fastaout)
     fclose(fp_fastaout);
@@ -744,12 +790,12 @@ void fastx_revcomp()
 
   if (filetype == 1)
     {
+      /* fasta */
       fasta_handle h = fasta_open(opt_fastx_revcomp);
       unsigned long filesize = fasta_get_size(h);
       
-      progress_init("Reading fasta file", filesize);
-      
       FILE * fp_fastaout = 0;
+      FILE * fp_fastqout = 0;
 
       if (opt_fastaout)
         {
@@ -758,6 +804,17 @@ void fastx_revcomp()
             fatal("Unable to open fasta output file for writing");
         }
 
+      if (opt_fastqout)
+        {
+          fp_fastqout = fopen(opt_fastqout, "w");
+          if (!fp_fastqout)
+            fatal("Unable to open fastq output file for writing");
+
+          fprintf(stderr, "WARNING: Writing FASTQ output without base quality information; using max value\n");
+        }
+
+      progress_init("Reading fasta file", filesize);
+      
       while(fasta_next(h, 0, chrmap_no_change))
         {
           unsigned long length = fasta_get_sequence_length(h);
@@ -772,6 +829,7 @@ void fastx_revcomp()
           if (length + 1 > buffer_alloc)
             buffer_alloc = length + 1;
           seq_buffer = (char *) xrealloc(seq_buffer, buffer_alloc);
+          qual_buffer = (char *) xrealloc(qual_buffer, buffer_alloc);
           
           if (opt_label_suffix)
             snprintf(header, header_alloc, "%s%s", d, opt_label_suffix);
@@ -780,6 +838,11 @@ void fastx_revcomp()
 
           reverse_complement(seq_buffer, p, length);
           
+          /* set quality values to max */
+          for(unsigned long i=0; i<length; i++)
+            qual_buffer[i] = opt_fastq_ascii + opt_fastq_qmaxout;
+          qual_buffer[length] = 0;
+
           if (opt_fastaout)
             {
               fprint_fasta_hdr_only(fp_fastaout, header);
@@ -788,6 +851,14 @@ void fastx_revcomp()
                                     length,
                                     opt_fasta_width);
             }
+          if (opt_fastqout)
+            fprint_fastq(fp_fastqout,
+                         header,
+                         seq_buffer,
+                         qual_buffer,
+                         0,
+                         0);
+                    
                     
           progress_update(fasta_get_position(h));
         }
@@ -796,14 +867,16 @@ void fastx_revcomp()
       if (opt_fastaout)
         fclose(fp_fastaout);
 
+      if (opt_fastqout)
+        fclose(fp_fastqout);
+
       fasta_close(h);
     }
   else if (filetype == 2)
     {
+      /* fastq */
       fastq_handle h = fastq_open(opt_fastx_revcomp);
       unsigned long filesize = fastq_get_size(h);
-      
-      progress_init("Reading fastq file", filesize);
       
       FILE * fp_fastaout = 0;
       FILE * fp_fastqout = 0;
@@ -822,6 +895,8 @@ void fastx_revcomp()
             fatal("Unable to open fastq output file for writing");
         }
 
+      progress_init("Reading fastq file", filesize);
+      
       while(fastq_next(h, 0, chrmap_no_change))
         {
           unsigned long length = fastq_get_sequence_length(h);

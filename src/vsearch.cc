@@ -1551,12 +1551,6 @@ void cmd_help()
               "  --threads INT               number of threads to use, zero for all cores (0)\n"
               "  --version                   display version information\n"
               "\n"
-              "Alignment\n"
-              "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
-              "Options (most searching options also apply)\n"
-              "  --alnout FILENAME           filename for human-readable alignment output\n"
-              "  --acceptall                 output all pairwise alignments\n"
-              "\n"
               "Chimera detection\n"
               "  --uchime_denovo FILENAME    detect chimeras de novo\n"
               "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
@@ -1624,10 +1618,10 @@ void cmd_help()
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "\n"
               "FASTA/FASTQ file processing\n"
-              "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
               "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
               "  --fastq_filter FILENAME     Filter FASTQ file, output to FASTQ or FASTA file\n"
               "  --fastq_stats FILENAME      Report FASTQ file statistics\n"
+              "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
               "Options\n"
               "  --eeout                     Include expected errors in FASTQ filter output\n"
               "  --fastaout FILENAME         FASTA filename for passed seqs from FASTQ filter\n"
@@ -1654,6 +1648,12 @@ void cmd_help()
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --output FILENAME           output to specified FASTA file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
+              "\n"
+              "Pairwise alignment\n"
+              "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
+              "Options (most searching options also apply)\n"
+              "  --alnout FILENAME           filename for human-readable alignment output\n"
+              "  --acceptall                 output all pairwise alignments\n"
               "\n"
               "Searching\n"
               "  --usearch_global FILENAME   filename of queries for global alignment search\n"
@@ -1871,6 +1871,14 @@ void cmd_none()
             progname);
 }
 
+void cmd_fastx_revcomp()
+{
+  if ((!opt_fastaout) && (!opt_fastqout))
+    fatal("No output files specified");
+  
+  fastx_revcomp();
+}
+
 void cmd_cluster()
 {
   if ((!opt_alnout) && (!opt_userout) &&
@@ -1933,7 +1941,7 @@ void cmd_fastq_filter()
 void fillheader()
 {
   snprintf(progheader, 80, 
-           "%s %s_%s, %.1fGB RAM, %ld cores",
+           "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
            sysconf(_SC_NPROCESSORS_ONLN));
@@ -2024,7 +2032,7 @@ int main(int argc, char** argv)
   else if (opt_fastq_filter)
     cmd_fastq_filter();
   else if (opt_fastx_revcomp)
-    fastx_revcomp();
+    cmd_fastx_revcomp();
   else if (opt_version)
     {
     }

@@ -132,7 +132,7 @@
 #include "fastxdetect.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "v1.3.0"
+#define PROG_VERSION "v1.3.1"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"

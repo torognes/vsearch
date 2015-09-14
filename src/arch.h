@@ -61,5 +61,19 @@
 unsigned long arch_get_memused();
 unsigned long arch_get_memtotal();
 
+#ifdef __APPLE__
+#define LEN_DIG_MD5 CC_MD5_DIGEST_LENGTH
+#define LEN_DIG_SHA1 CC_SHA1_DIGEST_LENGTH
+#else
+#define LEN_DIG_MD5 MD5_DIGEST_LENGTH
+#define LEN_DIG_SHA1 SHA_DIGEST_LENGTH
+#endif
+
+#define LEN_HEX_DIG_MD5 (2*LEN_DIG_MD5+1)
+#define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
+
+void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen);
+void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen);
+
 void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen);
 void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen);

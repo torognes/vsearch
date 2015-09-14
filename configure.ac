@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [1.3.0], [torognes@ifi.uio.no])
+AC_INIT([vsearch], [1.3.1], [torognes@ifi.uio.no])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
@@ -47,7 +47,7 @@ AC_SEARCH_LIBS([pthread_create], [pthread], [have_pthreads=yes])
 
 AC_ARG_ENABLE(bzip2, AS_HELP_STRING([--disable-bzip2], [Disable bzip2 support]))
 AS_IF([test "x$enable_bzip2" != "xno"], [
-  AC_SEARCH_LIBS([BZ2_bzCompress], [bz2], [have_bzip2=yes])
+  AC_SEARCH_LIBS([BZ2_bzRead], [bz2], [have_bzip2=yes])
 ])
 
 AC_ARG_ENABLE(zlib, AS_HELP_STRING([--disable-zlib], [Disable zlib support]))
