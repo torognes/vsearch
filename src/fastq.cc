@@ -283,6 +283,8 @@ void fastq_close(fastq_handle h)
 
   h->lineno = 0;
   h->seqno = -1;
+
+  free(h);
 }
 
 
@@ -591,6 +593,8 @@ bool fastq_next(fastq_handle h,
   if (plusline_invalid)
     fastq_fatal(lineno_plus, 
                 "'+' line must be empty or identical to header");
+
+  buffer_free(&plusline_buffer);
 
   /* read quality line(s) */
 

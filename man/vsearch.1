@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 14, 2015" "version 1.3.1" "USER COMMANDS"
+.TH vsearch 1 "September 15, 2015" "version 1.3.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -172,8 +172,8 @@ Fasta files produced by \fBvsearch\fR are wrapped (sequences are
 written on lines of \fIinteger\fR nucleotides, 80 by default). Set
 that value to 0 to eliminate the wrapping.
 .TP
-.B \-\-help
-Display a short help and exit.
+.B \-\-help | \-\-h
+Display help text and exit.
 .TP
 .BI \-\-log \0filename
 Write messages to the specified log file. Information written includes
@@ -495,9 +495,15 @@ each column of the alignment. Columns containing a majority of gaps
 are skipped, except for terminal gaps.
 .TP
 .BI \-\-profile \0filename
-For each cluster, output a sequence profile to a text file in
-tab-separated format with the frequency of each nucleotide in each
-position in the alignment.
+Output a sequence profile to a text file with the frequency of each
+nucleotide in each position in the multiple alignment for each
+cluster. There is a FASTA-like header line for each cluster, followed
+by the profile information in a tab-separated format. The columns are:
+position (1-based), consensus nucleotide, number of A's, number of
+C's, number of G's, number of Ts or Us, and finally the number of
+gaps. If ambiguous nucleotide symbols are present, the numbers may be
+floating point numbers, otherwise they are integers. For instance,
+an 'R' will count 0.5 towards an A and 0.5 towards a G.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask simple repeats and low-complexity regions in sequences using the
@@ -1952,6 +1958,10 @@ Fix more bugs with large datasets.
 .TP
 .BR v1.3.1\~ "released September 14th, 2015"
 Several new commands and options. Bug fixes.
+.TP
+.BR v1.3.2\~ "released September 15th, 2015"
+Fixed memory leaks. Added "-h" shortcut for help. Removed extra "v" in
+version number.
 .RE
 .LP
 .\" ============================================================================

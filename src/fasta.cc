@@ -232,6 +232,8 @@ void fasta_close(fasta_handle h)
 
   h->lineno = 0;
   h->seqno = -1;
+
+  free(h);
 }
 
 

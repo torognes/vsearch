@@ -766,6 +766,7 @@ void args_init(int argc, char **argv)
     {"fastq_tail",            required_argument, 0, 0 },
     {"fastx_revcomp",         required_argument, 0, 0 },
     {"label_suffix",          required_argument, 0, 0 },
+    {"h",                     no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1362,6 +1363,10 @@ void args_init(int argc, char **argv)
 
         case 138:
           opt_label_suffix = optarg;
+          break;
+
+        case 139:
+          opt_help = 1;
           break;
 
         default:

@@ -770,6 +770,13 @@ void fastq_stats()
   free(ee_length_table);
   free(q_length_table);
 
+  free(length_dist);
+  free(symb_dist);
+  free(rate_dist);
+  free(avgq_dist);
+  free(avgee_dist);
+  free(avgp_dist);
+
   fastq_close(h);
   
   fprintf(stderr, "Read %lu sequences.\n", seq_count);
