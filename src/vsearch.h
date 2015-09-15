@@ -132,7 +132,7 @@
 #include "fastxdetect.h"
 
 #define PROG_NAME "vsearch"
-#define PROG_VERSION "1.3.2"
+#define PROG_VERSION "1.3.3"
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
@@ -148,6 +148,7 @@ extern bool opt_eeout;
 extern bool opt_quiet;
 extern bool opt_relabel_md5;
 extern bool opt_relabel_sha1;
+extern bool opt_samheader;
 extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;

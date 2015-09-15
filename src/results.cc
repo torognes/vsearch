@@ -597,6 +597,36 @@ void build_sam_strings(char * alignment,
     }
 }
 
+void results_show_samheader(FILE * fp,
+                            char * cmdline,
+                            char * dbname)
+{
+  if (opt_samout && opt_samheader)
+    {
+      fprintf(fp, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
+      
+      for(unsigned long i=0; i<db_getsequencecount(); i++)
+        {
+          char md5hex[LEN_HEX_DIG_MD5];
+          get_hex_seq_digest_md5(md5hex,
+                                 db_getsequence(i),
+                                 db_getsequencelen(i));
+          fprintf(fp,
+                  "@SQ\tSN:%s\tLN:%lu\tM5:%s\tUR:file:%s\n",
+                  db_getheader(i),
+                  db_getsequencelen(i),
+                  md5hex,
+                  dbname);
+        }
+
+      fprintf(fp,
+              "@PG\tID:%s\tVN:%s\tCL:%s\n",
+              PROG_NAME,
+              PROG_VERSION,
+              cmdline);
+    }
+}
+
 void results_show_samout(FILE * fp,
                          struct hit * hits,
                          int hitcount,

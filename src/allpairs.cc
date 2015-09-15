@@ -594,6 +594,8 @@ void allpairs_global(char * cmdline, char * progheader)
 
   db_read(opt_allpairs_global, opt_qmask != MASK_SOFT);
 
+  results_show_samheader(fp_samout, cmdline, opt_allpairs_global);
+
   if (opt_qmask == MASK_DUST)
     dust_all();
   else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))

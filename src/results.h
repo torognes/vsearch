@@ -94,6 +94,10 @@ void results_show_fastapairs_one(FILE * fp,
                                  long qseqlen,
                                  char * rc);
 
+void results_show_samheader(FILE * fp,
+                            char * cmdline,
+                            char * dbname);
+
 void results_show_samout(FILE * fp,
                          struct hit * hits,
                          int hitcount,

@@ -68,6 +68,7 @@ bool opt_eeout;
 bool opt_quiet;
 bool opt_relabel_md5;
 bool opt_relabel_sha1;
+bool opt_samheader;
 bool opt_xsize;
 char * opt_allpairs_global;
 char * opt_alnout;
@@ -591,6 +592,7 @@ void args_init(int argc, char **argv)
   opt_relabel_sha1 = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
+  opt_samheader = 0;
   opt_samout = 0;
   opt_sample_pct = 0;
   opt_sample_size = 0;
@@ -767,6 +769,7 @@ void args_init(int argc, char **argv)
     {"fastx_revcomp",         required_argument, 0, 0 },
     {"label_suffix",          required_argument, 0, 0 },
     {"h",                     no_argument,       0, 0 },
+    {"samheader",             no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1369,6 +1372,10 @@ void args_init(int argc, char **argv)
           opt_help = 1;
           break;
 
+        case 140:
+          opt_samheader = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1547,7 +1554,7 @@ void cmd_help()
               "\n"
               "General options\n"
               "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
-              "  --help                      display help information\n"
+              "  --help | --h                display help information\n"
               "  --log FILENAME              write messages, timing and memory info to file\n"
               "  --maxseqlength INT          maximum sequence length (50000)\n"
               "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
@@ -1706,6 +1713,7 @@ void cmd_help()
               "  --query_cov REAL            reject if fraction of query seq. aligned lower\n"
               "  --rightjust                 reject if terminal gaps at alignment right end\n"
               "  --rowlen INT                width of alignment lines in alnout output (64)\n"
+              "  --samheader                 include a header in the SAM output file\n"
               "  --samout FILENAME           filename for SAM format output\n"
               "  --self                      reject if labels identical\n"
               "  --selfid                    reject if sequences identical\n"

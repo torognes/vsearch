@@ -1002,6 +1002,8 @@ void cluster(char * dbname,
 
   db_read(dbname, opt_qmask != MASK_SOFT);
 
+  results_show_samheader(fp_samout, cmdline, dbname);
+
   if (opt_qmask == MASK_DUST)
     dust_all();
   else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
@@ -1100,7 +1102,6 @@ void cluster(char * dbname,
   progress_init("Sorting clusters", clusters);
   qsort(clusterinfo, seqcount, sizeof(clusterinfo_t), compare_byclusterno);
   progress_done();
-
 
   progress_init("Writing clusters", seqcount);
 

@@ -515,6 +515,8 @@ void search_prep(char * cmdline, char * progheader)
 
   db_read(opt_db, opt_dbmask != MASK_SOFT);
 
+  results_show_samheader(fp_samout, cmdline, opt_db);
+
   if (opt_dbmask == MASK_DUST)
     dust_all();
   else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
@@ -564,8 +566,6 @@ void search_done()
     fclose(fp_samout);
   show_rusage();
 }
-
-
 
 void usearch_global(char * cmdline, char * progheader)
 {

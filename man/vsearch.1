@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 15, 2015" "version 1.3.2" "USER COMMANDS"
+.TH vsearch 1 "September 15, 2015" "version 1.3.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -1184,6 +1184,11 @@ Reject the sequence match if the pairwise alignment ends with gaps.
 Width of alignment lines in \-\-alnout output. The default value is
 64. Set to 0 to eliminate wrapping.
 .TP
+.B \-\-samheader
+Include header lines to the sam file when \-\-samout is specified. The
+header will include @HD, @SQ and @PG lines, but no read group (@RG)
+information. By default no header lines are written.
+.TP
 .BI \-\-samout \0filename
 Write alignment results to \fIfilename\fR in the SAM format. For a
 description of the format, see
@@ -1962,6 +1967,10 @@ Several new commands and options. Bug fixes.
 .BR v1.3.2\~ "released September 15th, 2015"
 Fixed memory leaks. Added "-h" shortcut for help. Removed extra "v" in
 version number.
+.TP
+.BR v1.3.3\~ "released September 15th, 2015"
+Fixed bug in hexadecimal digits of MD5 and SHA1 digests. Added
+\-\-samheader option.
 .RE
 .LP
 .\" ============================================================================

@@ -127,7 +127,7 @@ void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
   for(int i=0; i<LEN_DIG_SHA1; i++)
     {
       hex[2*i+0] = hexdigits[digest[i] >> 4];
-      hex[2*i+1] = hexdigits[digest[i] & 7];
+      hex[2*i+1] = hexdigits[digest[i] & 15];
     }
   hex[2*LEN_DIG_SHA1] = 0;
 }
@@ -154,7 +154,7 @@ void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
   for(int i=0; i<LEN_DIG_MD5; i++)
     {
       hex[2*i+0] = hexdigits[digest[i] >> 4];
-      hex[2*i+1] = hexdigits[digest[i] & 7];
+      hex[2*i+1] = hexdigits[digest[i] & 15];
     }
   hex[2*LEN_DIG_MD5] = 0;
 }
