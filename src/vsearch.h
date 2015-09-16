@@ -89,6 +89,10 @@
 
 #include <city.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
 #endif
@@ -131,8 +135,8 @@
 #include "fastqops.h"
 #include "fastxdetect.h"
 
-#define PROG_NAME "vsearch"
-#define PROG_VERSION "1.3.3"
+#define PROG_NAME PACKAGE
+#define PROG_VERSION PACKAGE_VERSION
 
 #ifdef __APPLE__
 #define PROG_ARCH "osx_x86_64"
