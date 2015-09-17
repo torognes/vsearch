@@ -1,5 +1,17 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
+CXXFLAGS=-I${srcdir}/cityhash -O3 -mtune=native -Wall -Wsign-compare
+
+libcpu_sse2_a_SOURCES = cpu.cc
+libcpu_sse2_a_CXXFLAGS = -msse2
+
+libcpu_ssse3_a_SOURCES = cpu.cc
+libcpu_ssse3_a_CXXFLAGS = -mssse3 -DSSSE3
+
+noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a
+
+__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a
+
 __top_builddir__bin_vsearch_SOURCES = cityhash/city.h \
 cityhash/config.h \
 abundance.h \
@@ -45,7 +57,6 @@ arch.cc \
 bitmap.cc \
 chimera.cc \
 cluster.cc \
-cpu.cc \
 db.cc \
 dbindex.cc \
 derep.cc \
@@ -71,10 +82,3 @@ userfields.cc \
 util.cc \
 vsearch.cc
 
-__top_builddir__bin_vsearch_CXXFLAGS = -I${srcdir}/cityhash @WARN@ @PROFILING@
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a
-noinst_LIBRARIES = libcpu_ssse3.a libcpu_sse2.a
-libcpu_ssse3_a_SOURCES = cpu.cc
-libcpu_ssse3_a_CXXFLAGS = -mssse3 -DSSSE3 -I${srcdir}/cityhash @WARN@ @PROFILING@
-libcpu_sse2_a_SOURCES = cpu.cc
-libcpu_sse2_a_CXXFLAGS = -I${srcdir}/cityhash @WARN@ @PROFILING@
