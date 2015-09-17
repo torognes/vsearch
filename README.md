@@ -36,9 +36,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 **Source distribution** To download the source distribution (not yet available) from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation using Autotools, use the following commands:
 ```
-wget https://github.com/torognes/vsearch/releases/download/v1.3.x/vsearch-1.3.x.tar.gz
-tar xzf vsearch-1.3.x.tar.gz
-cd vsearch-1.3.x
+wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z.tar.gz
+tar xzf vsearch-x.y.z.tar.gz
+cd vsearch-x.y.z
 ./autogen.sh
 ./configure
 make
@@ -47,18 +47,29 @@ make install  # as root or sudo make install
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all.
 
+**Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
+
+```
+git clone git@github.com:torognes/vsearch.git
+cd vsearch
+git checkout summer
+./autogen.sh
+./configure
+make
+make install  # as root or sudo make install
+```
 
 **Binary distribution** Starting with version 1.3.x, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v1.3.x/vsearch-1.3.x-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z-linux-x86_64.tar.gz
 tar xzf vsearch-1.3.x-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Mac:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v1.3.x/vsearch-1.3.x-osx-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z-osx-x86_64.tar.gz
 tar xzf vsearch-1.3.x-osx-x86_64.tar.gz
 ```
 
