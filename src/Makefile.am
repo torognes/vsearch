@@ -1,6 +1,6 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-CXXFLAGS=-I${srcdir}/cityhash -O3 -mtune=native -Wall -Wsign-compare
+AM_CXXFLAGS=-I${srcdir}/cityhash -O3 -mtune=native -Wall -Wsign-compare
 
 libcpu_sse2_a_SOURCES = cpu.cc
 libcpu_sse2_a_CXXFLAGS = -msse2
