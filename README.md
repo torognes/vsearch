@@ -47,7 +47,7 @@ ln -s vsearch-1.1.3-linux-x86_64 vsearch
 **source code** Use the following commands to clone the entire repository and build the executable:
 
 ```sh
-git clone https://github.com/torognes/vsearch.git`
+git clone https://github.com/torognes/vsearch.git
 cd ./vsearch/src/
 make -f Makefile
 cd ../bin/
