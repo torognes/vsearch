@@ -1,8 +1,8 @@
 .\" ============================================================================
-.TH vsearch 1 "March 18, 2015" "version 1.1.3" "USER COMMANDS"
+.TH vsearch 1 "September 25, 2015" "version 1.4.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
-vsearch \(em chimera detection, clustering, dereplication, masking, pairwise alignment, searching, shuffling and sorting of amplicons from metagenomic projects.
+vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
 .\" ============================================================================
 .SH SYNOPSIS
 .\" left justified, ragged right
@@ -22,14 +22,31 @@ Clustering:
 .RS
 \fBvsearch\fR (\-\-cluster_fast | \-\-cluster_size |
 \-\-cluster_smallmem) \fIfastafile\fR (\-\-alnout | \-\-blast6out |
-\-\-centroids | \-\-clusters | \-\-msaout | \-\-samout | \-\-uc |
-\-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR [\fIoptions\fR]
+\-\-centroids | \-\-clusters | \-\-msaout | \-\-profile | 
+\-\-samout | \-\-uc | \-\-userout) \fIoutputfile\fR
+\-\-id \fIreal\fR [\fIoptions\fR]
 .PP
 .RE
 Dereplication:
 .RS
-\fBvsearch\fR \-\-derep_fulllength \fIfastafile\fR (\-\-output |
+\fBvsearch\fR (\-\-derep_fulllength | \-\-derep_prefix)
+\fIfastafile\fR (\-\-output |
 \-\-uc) \fIoutputfile\fR [\fIoptions\fR]
+.PP
+.RE
+FASTA/FASTQ file processing:
+.RS
+\fBvsearch\fR \-\-fastq_chars \fIfastqfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
+\-\-fastaout_discarded | \-\-fastqout | \-\-fastqout_discarded)
+\fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastq_stats \fIfastqfile\fR
+[\-\-log \fIlogfile\fR] [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastx_revcomp \fIfastxfile\fR (\-\-fastaout |
+\-\-fastqout) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
 Masking:
@@ -56,6 +73,14 @@ Searching:
 Shuffling:
 .RS
 \fBvsearch\fR \-\-shuffle \fIfastafile\fR \-\-output \fIoutputfile\fR
+[\fIoptions\fR]
+.PP
+.RE
+Subsampling:
+.RS
+\fBvsearch\fR \-\-fastx_subsample \fIfastafile\fR
+\-\-fastaout \fIoutputfile\fR
+(\-\-sample_pct \fIreal\fR | \-\-sample_size \fIpositive integer\fR)
 [\fIoptions\fR]
 .PP
 .RE
@@ -147,8 +172,8 @@ Fasta files produced by \fBvsearch\fR are wrapped (sequences are
 written on lines of \fIinteger\fR nucleotides, 80 by default). Set
 that value to 0 to eliminate the wrapping.
 .TP
-.B \-\-help
-Display a short help and exit.
+.B \-\-help | \-\-h
+Display help text and exit.
 .TP
 .BI \-\-log \0filename
 Write messages to the specified log file. Information written includes
@@ -175,6 +200,15 @@ output files.
 .B \-\-quiet
 Suppress all output to stdout and stdout except for warnings and fatal
 error messages.
+.TP
+.BI \-\-threads\~ "positive integer"
+Number of computation threads to use (1 to 256). The number of threads
+should be lesser or equal to the number of available CPU cores. The
+default is to use all available resources and to launch one thread
+per logical core. The following commands are multi-threaded:
+uchime_ref, cluster_fast, cluster_size, cluster_smallmem, maskfasta,
+allpairs_global, usearch_global.
+Only one thread is used for the other commands.
 .TP
 .B \-\-version
 Output version information and exit.
@@ -211,6 +245,11 @@ positive value greater than 1.0 can be used.
 Width of the 3-way alignments in \-\-uchimealns output. The default
 value is 80. Set to 0 to eliminate wrapping.
 .TP
+.BI \-\-borderline \0filename
+Output borderline chimeric sequences to \fIfilename\fR, in fasta format.
+Borderline chimeric sequences are sequences that have a high enough
+score but which are not sufficiently diverged from their closest parent.
+.TP
 .BI \-\-chimeras \0filename
 Output chimeric sequences to \fIfilename\fR, in fasta format. Output
 order may vary when using multiple threads.
@@ -241,6 +280,37 @@ and values ranging from 0.0 to 1.0 included are accepted.
 Output non-chimeric sequences to \fIfilename\fR, in fasta
 format. Output order may vary when using multiple threads.
 .TP
+.BI \-\-relabel \0string
+Relabel sequences using the prefix \fIstring\fR and a ticker (1, 2, 3,
+etc.) to construct the new headers. Use \-\-sizeout to conserve the
+abundance annotations.
+.TP
+.BI \-\-relabel_md5
+Relabel sequences using the MD5 message digest algorithm applied to
+the sequence to replace the header.
+The sequence is converted to upper case and U is replaced by
+T before the digest is computed.
+The MD5 digest is a cryptographic hash function designed
+to minimize the probability that two
+different inputs will give the same output, even for very similar,
+but non-identical inputs. Still, there will always be a small,
+but non-zero, probability that two different inputs
+will give the same result.
+The MD5 digest generates a 128 bit (16 byte) result that is
+represented by 32 hexadecimal digits (0123456789abcdef).
+Use \-\-sizeout to conserve the abundance annotations.
+.TP
+.BI \-\-relabel_sha1
+Relabel sequences using the SHA1 message digest algorithm applied to
+the sequence to replace the header. It is similar to the
+\-\-relabel_md5 option but uses the SHA1 algorithm instead of the
+MD5 algorithm.
+The SHA1 digest generates a 160 bit (20 byte) result
+that is represented by 40 hexadecimal digits.
+The probability of a collision (two non-identical sequences
+having the same digest) is smaller for the SHA1 algorithm
+than for the MD5 algorithm.
+.TP
 .B \-\-self
 When using \-\-uchime_ref, ignore a reference sequence when its label
 matches the label of the query sequence (useful to estimate
@@ -250,11 +320,9 @@ false-positive rate in reference sequences).
 When using \-\-uchime_ref, ignore a reference sequence when its
 nucleotide sequence is strictly identical with the query sequence.
 .TP
-.BI \-\-threads\~ "positive integer"
-Number of computation threads to use (1 to 256) with \-\-uchime_ref.
-The number of threads should be lesser or equal to the number of
-available CPU cores. The default is to use all available resources
-and to launch one thread per logical core.
+.B \-\-sizeout
+Add abundance annotations to the output fasta file (with the pattern
+";size=\fIinteger\fR;" to sequence headers) when relabelling.
 .TP
 .BI \-\-uchime_denovo \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR, without
@@ -348,6 +416,14 @@ Output cluster centroid sequences to \fIfilename\fR, in fasta
 format. The centroid is the sequence that seeded the cluster (i.e. the
 first sequence of the cluster).
 .TP
+.BI \-\-clusterout_id
+Add cluster identifier information to the output files
+when using the \-\-consout and \-\-profile options.
+.TP
+.BI \-\-clusterout_sort
+Sort output files by decreasing abundance
+when using the \-\-consout, \-\-msaout and \-\-profile options.
+.TP
 .BI \-\-cluster_fast \0filename
 Clusterize the fasta sequences in \fIfilename\fR, automatically
 perform a sorting by decreasing sequence length beforehand.
@@ -372,8 +448,11 @@ cluster, a multiple alignment is computed, and a consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
 are skipped, except for terminal gaps.
+.TP
+.B \-\-cons_truncate
+This command is ignored. A warning is issued.
 .\" .TP
-.\" .B \-\-construncate
+.\" .B \-\-cons_truncate
 .\" when using the \-\-consout option to build consensus sequences, do not
 .\" ignore terminal gaps. That option skips terminal columns if they
 .\" contain a majority of gaps, yielding shorter consensus sequences than
@@ -415,16 +494,49 @@ constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
 are skipped, except for terminal gaps.
 .TP
+.BI \-\-profile \0filename
+Output a sequence profile to a text file with the frequency of each
+nucleotide in each position in the multiple alignment for each
+cluster. There is a FASTA-like header line for each cluster, followed
+by the profile information in a tab-separated format. The columns are:
+position (1-based), consensus nucleotide, number of A's, number of
+C's, number of G's, number of Ts or Us, and finally the number of
+gaps. If ambiguous nucleotide symbols are present, the numbers may be
+floating point numbers, otherwise they are integers. For instance,
+an 'R' will count 0.5 towards an A and 0.5 towards a G.
+.TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask simple repeats and low-complexity regions in sequences using the
 \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
 (\fInone\fR). Warning, when using \fIsoft\fR masking, clustering
 becomes case sensitive. The default is to mask using \fIdust\fR.
 .TP
+.BI \-\-relabel \0string
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_md5
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_sha1
+Please see the description of the same option under Chimera detection
+for details.
+.TP
 .B \-\-sizein
 Take into account the abundance annotations present in the input fasta
 file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
 headers).
+.TP
+.B \-\-sizeorder
+When an amplicon is close to 2 or more centroids, both within the
+distance specified with the \-\-id option, resolve the ambiguity by
+clustering it with the centroid having the highest abundance, not
+necessarily the closest one. The option only has effect when the value
+specified with \-\-maxaccepts is higher than one. The \-\-sizeorder
+option turns on what is sometimes referred to as abundance-based
+greedy clustering (AGC), in contrast to the default distance-based
+greedy clustering (DGC).
 .TP
 .B \-\-sizeout
 Add abundance annotations to the output fasta files (add the pattern
@@ -439,12 +551,6 @@ per cluster for centroids.
 .BI \-\-strand\~ "plus|both"
 When comparing sequences with the cluster seed, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
-.TP
-.BI \-\-threads\~ "positive integer"
-Number of computation threads to use (1 to 256). The number of threads
-should be lesser or equal to the number of available CPU cores. The
-default is to use all available resources and to launch one thread
-per logical core.
 .TP
 .BI \-\-uc \0filename
 Output clustering results in \fIfilename\fR using a uclust-like
@@ -473,6 +579,17 @@ Merge strictly identical sequences contained in
 length and the same string of nucleotides (case insensitive, T and U
 are considered the same).
 .TP
+.BI \-\-derep_prefix \0filename
+Merge sequences with identical prefixes contained in \fIfilename\fR.
+A short sequence identical to an initial segment (prefix) of another
+sequence is considered a replicate of the longer sequence. If a
+sequence is identical to the prefix of two or more longer sequences
+it is undefined which of the longer sequences it will be considered
+a replicate of. This has consequences regarding the total abundance
+reported with \-\-sizeout. When considering whether two sequence
+are identical, the comparison is case insensitive, and T and U
+are considered identical.
+.TP
 .BI \-\-maxuniquesize\~ "positive integer"
 Discard sequences with an abundance value greater than \fIinteger\fR.
 .TP
@@ -486,6 +603,18 @@ header of the first sequence of their group. If \-\-sizeout is used, the
 number of occurrences (i.e. abundance) of each sequence is indicated
 at the end of their fasta header using the pattern
 ";size=\fIinteger\fR;".
+.TP
+.BI \-\-relabel \0string
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_md5
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_sha1
+Please see the description of the same option under Chimera detection
+for details.
 .TP
 .B \-\-sizein
 Take into account the abundance annotations present in the input fasta
@@ -517,6 +646,156 @@ output.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
+FASTA/FASTQ file processing options:
+.RS
+.PP
+Analyse, shorten, filter or convert sequences in FASTQ files, or
+reverse complement sequences in FASTA or FASTQ files. The
+\-\-fastq_chars command can be used to analyse FASTQ files to identify
+the type of FASTQ file and the range of quality score values used. A
+statistical analysis of the qualtity and length of the sequences in a
+FASTQ file is performed with the \-\-fastq_stats command. Sequences
+may be shortened, filtered and converted by the \-\-fastq_filter
+command. Finally, the \-\-fastx_revcomp command will reverse
+complement sequences.
+.PP
+.TP 9
+.B \-\-eeout
+When writing FASTQ file output, include the number of expected errors
+in the sequence header. Used with \-\-fastq_filter.
+.TP
+.BI \-\-fastaout \0filename
+Write sequences that passes the filter of the \-\-fastq_filter command
+to the given FASTA-formatted file.
+.TP
+.BI \-\-fastaout_discarded \0filename
+Write sequences that does not pass the filter of the \-\-fastq_filter
+command to the given FASTA-formatted file.
+.TP
+.BI \-\-fastq_ascii\~ "positive integer"
+The ASCII character number of the basis for the FASTQ quality
+score. The default is 33 ('!'), which is used by the Sanger / Illumina
+1.8+ FASTQ format. The value 64 ('@') is used by the Solexa, Illumina
+1.3+ and Illumina 1.5+ format.
+.TP
+.BI \-\-fastq_chars \0filename
+Try to automatically detect the type of FASTQ file given (Solexa,
+Illumina 1.3+, Illumina 1.5+ or Illumina 1.8+/Sanger) by analysing the
+range of quality score values used.  Summarize the composition of
+sequence and quality strings contained in the input FASTQ file. For
+each of the four DNA letters, \-\-fastq_chars gives the number of
+occurrences of the letter, its relative frequency and the length of
+the longest run of that letter. For each character present in the
+quality strings, \-\-fastq_chars gives the ASCII value of the
+character, its relative frequency, and the number of time a k-mer of
+that character appears at the end of quality strings. The length of
+the k-mer can be set using \-\-fastq_tail (4 by default). The command
+will suggest values for the \-\-fastq_ascii, \-\-fastq_qmin and
+\-\-fastq_qmax options to be used with the other commands that require
+a FASTQ input file.
+.TP
+.BI \-\-fastq_filter \0filename
+Shorten and/or filter the sequences in the given FASTQ file and output
+the remaining sequences to the FASTQ file specified with the
+\-\-fastqout option and, after conversion, to the FASTA file specified
+with the \-\-fastaout option. The discarded sequences will be written
+to the files specified with the \-\-fastaout_discarded and
+\-\-fastqout_discarded options. Sequences may be shortened using the
+options \-\-fastq_stripleft, \-\-fastq_trunclen, and
+\-\-fastq_truncqual. The sequences may be filtered using the options
+\-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxns,
+\-\-fastq_minlen and \-\-fastq_trunclen. If shortening results in an
+empty sequence, it will be discarded. The sequences are first
+shortened and then filtered based on the remaining bases. If no
+shortening or filtering options are givem, all sequences will be
+written to the output files, possibly after conversion from FASTQ to
+FASTA format. The \-\-relabel option may be used to relabel the output
+sequences. The \-\-eeout may be used to output the expected number of
+errors in each sequence.
+.TP
+.BI \-\-fastq_maxee\~ real
+With the \-\-fastq_filter command, discard sequences with more than
+the specified number of expected errors.
+.TP
+.BI \-\-fastq_maxee_rate\~ real
+With the \-\-fastq_filter command, discard sequences with more than
+the specified number of expected errors per base.
+.TP
+.BI \-\-fastq_maxns\~ "positive integer"
+With the \-\-fastq_filter command, discard sequences with more than
+the specified number of N's.
+.TP
+.BI \-\-fastq_minlen\~ "positive integer"
+With the \-\-fastq_filter command, discard sequences with less than
+the specified number of bases (default 1).
+.TP
+.BI \-\-fastq_qmax\~ "positive integer"
+Specify the maximum base quality score used when reading FASTQ
+files. The default is 41, which is usual for Sanger/Illumina 1.8+
+files.
+.TP
+.BI \-\-fastq_qmaxout\~ "positive integer"
+Specify the maximum base quality score used when writing FASTQ
+files. The default is 41, which is usual for Sanger/Illumina 1.8+
+files.
+.TP
+.BI \-\-fastq_qmin\~ "positive integer"
+Specify the maximum base quality score used for FASTQ files. The
+default is 0, which is usual for Sanger/Illumina 1.8+ files.
+.TP
+.BI \-\-fastq_stats \0filename
+Analyse a FASTQ file and report various statistics on the sequence
+length and quality score distribution. The type of FASTQ file may be
+specified with \-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qman. The output is written to the log file specified with the \-\-log option.
+.TP
+.BI \-\-fastq_stripleft\~ "positive integer"
+The specified number of bases on the left are deleted when using the
+\-\-fastq_filter command.
+.TP
+.BI \-\-fastq_tail\~ "positive integer"
+For the \-\-fastq_chars command, the length of the sequence tails with
+the identical quality score to count (default 4).
+.TP
+.BI \-\-fastq_trunclen\~ "positive integer"
+Truncate sequences to the specified length when using
+\-\-fastq_filter. Sequences that are shorter will be
+discarded.
+.TP
+.BI \-\-fastq_truncqual\~ "positive integer"
+Truncate sequences starting from the first base with the specified
+base quality score value or lower. Empty sequences will be discarded.
+.TP
+.BI \-\-fastqout \0filename
+Write sequences that passes the filter of the \-\-fastq_filter command
+to the given FASTQ-formatted file.
+.TP
+.BI \-\-fastqout_discarded \0filename
+Write sequences that does not pass the filter of the \-\-fastq_filter
+command to the given FASTQ-formatted file.
+.TP
+.BI \-\-fastx_revcomp \0filename
+Reverse-complement the sequences in the given FASTA or FASTQ file to a
+files specified with the \-\-fastaout and/or \-\-fastqout options. If
+the input file is in FASTA format, the output can not be written top a
+FASTQ file due to missing base quality scores.
+.TP
+.BI \-\-label_suffix\~ string
+Label to add as a suffix to the header in the output from \-\-fastx_revcomp.
+.TP
+.BI \-\-relabel \0string
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_md5
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_sha1
+Please see the description of the same option under Chimera detection
+for details.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
 Masking options:
 .RS
 .PP
@@ -535,8 +814,8 @@ qmask:hardmask:action
 _
 none:off:no masking, all symbols uppercased
 none:on:no masking, all symbols uppercased
-dust:off:masked symbols lowercased, others uppercased
-dust:on:masked symbols changed to Ns, others uppercased
+dust:off:masked symbols lowercased, rest uppercased
+dust:on:masked symbols changed to Ns, rest uppercased
 soft:off:lowercase symbols masked, no case changes
 soft:on:lowercase symbols masked and changed to Ns
 .TE
@@ -558,12 +837,6 @@ Write the masked sequences to \fIfilename\fR, in fasta format.
 Mask simple repeats and low-complexity regions in sequences using the
 \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
 (\fInone\fR). The default is to mask using \fIdust\fR.
-.TP
-.BI \-\-threads\~ "positive integer"
-Number of computation threads to use (1 to 256). The number of threads
-should be lesser or equal to the number of available CPU cores. The
-default is to use all available resources and to launch one thread
-per logical core.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -899,6 +1172,9 @@ Write both matching and non-matching queries to \-\-alnout,
 queries). Non-matching queries are labelled "No hits" in \-\-alnout
 files.
 .TP
+.B \-\-pattern \fIstring\fR
+This option is ignored. It is provided for compatibility with usearch.
+.TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask simple repeats and low-complexity regions in query sequences
 using the \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
@@ -917,6 +1193,11 @@ Reject the sequence match if the pairwise alignment ends with gaps.
 .BI \-\-rowlen\~ "positive integer"
 Width of alignment lines in \-\-alnout output. The default value is
 64. Set to 0 to eliminate wrapping.
+.TP
+.B \-\-samheader
+Include header lines to the sam file when \-\-samout is specified. The
+header will include @HD, @SQ and @PG lines, but no read group (@RG)
+information. By default no header lines are written.
 .TP
 .BI \-\-samout \0filename
 Write alignment results to \fIfilename\fR in the SAM format. For a
@@ -946,12 +1227,6 @@ Reject the sequence match if the fraction of the target sequence
 aligned to the query sequence is lower than \fIreal\fR. The target
 coverage is computed as (matches + mismatches) / target sequence
 length.  Internal or terminal gaps are not taken into account.
-.TP
-.BI \-\-threads\~ "positive integer"
-Number of computation threads to use (1 to 256). The number of threads
-should be lesser or equal to the number of available CPU cores. The
-default is to use all available resources and to launch one thread
-per logical core.
 .TP
 .B \-\-top_hits_only
 Output only the hits with the highest percentage of identity with the
@@ -1012,7 +1287,7 @@ Shuffling options:
 .BI \-\-output \0filename
 Write the shuffled sequences to \fIfilename\fR, in fasta format.
 .TP
-.BI \-\-seed\~ "positive integer"
+.BI \-\-randseed\~ "positive integer"
 When shuffling sequence order, use \fIinteger\fR as seed. A given seed
 will always produce the same output order (useful for
 replicability). Set to 0 to use a pseudo-random seed (default
@@ -1052,9 +1327,16 @@ smaller than \fIinteger\fR.
 Write the sorted sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI \-\-relabel \0string
-Relabel sequence using the prefix \fIstring\fR and a ticker (1, 2, 3,
-etc.) to construct the new headers. Use \-\-sizeout to conserve the
-abundance annotations.
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_md5
+Please see the description of the same option under Chimera detection
+for details.
+.TP
+.BI \-\-relabel_sha1
+Please see the description of the same option under Chimera detection
+for details.
 .TP
 .B \-\-sizeout
 When using \-\-relabel, report abundance annotations to the output
@@ -1074,6 +1356,53 @@ sequences.
 .BI \-\-topn\~ "positive integer"
 Output only the top \fIinteger\fR sequences (i.e. the longest or the
 most abundant).
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+Subsampling options:
+.RS
+Subsampling will randomly extract a certain number or a certain
+percentage of the sequences in the input file. If the \-\-sizein
+option is in effect, the abundances of the input sequences will be
+taken into account and the sampling will be performed from the input
+sequences as if they had not be dereplicated. The extraction is
+performed as a random sampling with a uniform distribution among the
+input sequences and is performed without replacement.  The input file
+is specified with \-\-fastx_subsample option, the output file is
+specified with the \-\-fastaout option and the amount of sequences to
+be sampled is specified with the \-\-sample_pct or \-\-sample_size
+options.
+.PP
+.TP 9
+.BI \-\-fastaout \0filename
+Write the sampled sequences to \fIfilename\fR, in fasta format.
+.TP
+.BI \-\-fastx_subsample \0filename
+Perform subsampling from the sequences in the specified input file
+that is in FASTA format.
+.TP
+.BI \-\-randseed\~ "positive integer"
+Use \fIinteger\fR as a seed for the pseudo-random generator. A given
+seed will always produce the same output, which is useful for
+replicability. Set to 0 to use a pseudo-random seed (default
+behavior).
+.TP
+.BI \-\-sample_pct\~ "real"
+Subsample the given percentage of the input sequences.
+.TP
+.BI \-\-sample_size\~ "positive integer"
+Extract the given number of sequences.
+.TP
+.B \-\-sizein
+Take the abundance information of the input file into account, otherwise
+the abundance of each sequence is considered to be 1.
+.TP
+.B \-\-sizeout
+Write abundance information to the output file.
+.TP
+.B \-\-xsize
+Strip abundance information from the headers when writing the output file. 
+.TP
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1327,13 +1656,25 @@ list:
 .IP - 2
 alignwidth (chimera checking)
 .IP -
+borderline (chimera checking)
+.IP -
 cluster_size (clustering)
+.IP -
+clusterout_id (clustering)
+.IP -
+clusterout_sort (clustering)
 .IP -
 fasta_width (general option)
 .IP -
 iddef (clustering, pairwise alignment, searching)
 .IP -
 maxuniquesize (dereplication)
+.IP -
+profile (clustering)
+.IP -
+relabel_md5
+.IP -
+relabel_sha1
 .IP -
 shuffle (shuffling)
 .PP
@@ -1440,21 +1781,59 @@ curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 Source code and binaries are available at <https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014, 2015 Torbjørn Rognes, Frédéric Mahé and Tomás Flouri.
+Copyright (C) 2014-2015, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
+.PP
+All rights reserved.
+.PP
+Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+Department of Informatics, University of Oslo,
+PO Box 1080 Blindern, NO-0316 Oslo, Norway
+.PP
+This software is dual-licensed and available under a choice
+of one of two licenses, either under the terms of the GNU
+General Public License version 3 or the BSD 2-Clause License.
+.PP
+\fBGNU General Public License version 3\fR
 .PP
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 .PP
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 .PP
-You should have received a copy of the GNU Affero General Public
-License along with this program.  If not, see
-<http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.PP
+.PP
+\fBThe BSD 2-Clause License\fR
+.PP
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+.PP
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+.PP
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+.PP
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
 .PP
 \fBvsearch\fR includes code from Google's CityHash project by Geoff
 Pike and Jyrki Alakuijala, providing some excellent hash functions
@@ -1591,6 +1970,34 @@ Fix bug with large datasets. Fix format of help info.
 .TP
 .BR v1.1.3\~ "released March 18th, 2015"
 Fix more bugs with large datasets.
+.TP
+.BR v1.2.0-1.2.19\~ "released July 6th to September 8th, 2015"
+Several new commands and options added. Bugs fixed. Documentation updated.
+.TP
+.BR v1.3.0\~ "released September 9th, 2015"
+Changed to autotools build system.
+.TP
+.BR v1.3.1\~ "released September 14th, 2015"
+Several new commands and options. Bug fixes.
+.TP
+.BR v1.3.2\~ "released September 15th, 2015"
+Fixed memory leaks. Added "-h" shortcut for help. Removed extra "v" in
+version number.
+.TP
+.BR v1.3.3\~ "released September 15th, 2015"
+Fixed bug in hexadecimal digits of MD5 and SHA1 digests. Added
+\-\-samheader option.
+.TP
+.BR v1.3.4\~ "released September 16th, 2015"
+Fixed compilation problems with zlib and bzip2lib.
+.TP
+.BR v1.3.5\~ "released September 17th, 2015"
+Minor configuration/makefile changes to compile to native cpu and
+simplify makefile.
+.TP
+.BR v1.4.0\~ "released September 25th, 2015"
+Added \-\-sizeorder option.
+.RE
 .LP
 .\" ============================================================================
 .\" TODO:

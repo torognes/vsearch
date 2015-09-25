@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 P=$1
 
@@ -6,16 +6,10 @@ SEED=1
 THREADS=0
 DUPLICATES=100
 DIR=.
-DB=../data/Rfam_11_0.fasta
+DB=../../vsearch-data/Rfam_11_0.fasta
 ID=0.5
 
-if [ $(uname -s) == "Linux" ]; then
-    VSEARCH=$(ls -v ../bin/vsearch*linux* | tail -1)
-else
-    VSEARCH=$(ls -t ../bin/vsearch*osx* | head -1)
-fi
-
-#VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$(which usearch)
@@ -30,7 +24,7 @@ fi
 
 echo Creating random test set
 
-$VSEARCH --shuffle $DB --output $DIR/temp.fsa --seed $SEED > /dev/null 2> /dev/null
+$VSEARCH --shuffle $DB --output $DIR/temp.fsa --randseed $SEED > /dev/null 2> /dev/null
 ./select.pl $DIR/temp.fsa $DIR/q.fsa $DIR/db.fsa
 
 cat q.fsa > qq.fsa

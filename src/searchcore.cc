@@ -1,29 +1,68 @@
 /*
-  Copyright (C) 2014-2015 Torbjorn Rognes
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
   Department of Informatics, University of Oslo,
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
+
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
 
 /* per thread data */
 
-inline int hit_compare_typed(struct hit * x, struct hit * y)
+inline int hit_compare_byid_typed(struct hit * x, struct hit * y)
 {
   // high id, then low id
   // early target, then late target
@@ -61,9 +100,59 @@ inline int hit_compare_typed(struct hit * x, struct hit * y)
                       return 0;
 }
 
-int hit_compare(const void * a, const void * b)
+inline int hit_compare_bysize_typed(struct hit * x, struct hit * y)
 {
-  return hit_compare_typed((struct hit *) a, (struct hit *) b);
+  // high abundance, then low abundance
+  // high id, then low id
+  // early target, then late target
+
+  if (x->rejected < y->rejected)
+    return -1;
+  else
+    if (x->rejected > y->rejected)
+      return +1;
+    else
+      if (x->rejected == 1)
+        return 0;
+      else
+        if (x->aligned > y->aligned)
+          return -1;
+        else
+          if (x->aligned < y->aligned)
+            return +1;
+          else
+            if (x->aligned == 0)
+              return 0;
+            else
+              if (db_getabundance(x->target) > db_getabundance(y->target))
+                return -1;
+              else
+                if (db_getabundance(x->target) < db_getabundance(y->target))
+                  return +1;
+                else
+                  if (x->id > y->id)
+                    return -1;
+                  else
+                    if (x->id < y->id)
+                      return +1;
+                    else
+                      if (x->target < y->target)
+                        return -1;
+                      else
+                        if (x->target > y->target)
+                          return +1;
+                        else
+                          return 0;
+}
+
+int hit_compare_byid(const void * a, const void * b)
+{
+  return hit_compare_byid_typed((struct hit *) a, (struct hit *) b);
+}
+
+int hit_compare_bysize(const void * a, const void * b)
+{
+  return hit_compare_bysize_typed((struct hit *) a, (struct hit *) b);
 }
 
 inline void topscore_insert(int i, struct searchinfo_s * si)
@@ -75,7 +164,7 @@ inline void topscore_insert(int i, struct searchinfo_s * si)
   if (count < MINMATCHSAMPLECOUNT)
     return;
 
-  if (count < MINMATCHSAMPLEFREQ * si->kmersamplecount)
+  if (count < si->kmersamplecount / MINMATCHSAMPLEFREQ)
     return;
   
   unsigned int seqno = dbindex_getmapping(i);
@@ -587,18 +676,38 @@ void search_onequery(struct searchinfo_s * si)
   free(scorematrix);
 }
 
-struct hit * search_findbest2(struct searchinfo_s * si_p,
-                              struct searchinfo_s * si_m)
+struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
+                                   struct searchinfo_s * si_m)
 {
   struct hit * best = 0;
 
   for(int i=0; i < si_p->hit_count; i++)
-    if ((!best) || (hit_compare_typed(si_p->hits + i, best) < 0))
+    if ((!best) || (hit_compare_byid_typed(si_p->hits + i, best) < 0))
       best = si_p->hits + i;
   
   if (opt_strand>1)
     for(int i=0; i < si_m->hit_count; i++)
-      if ((!best) || (hit_compare_typed(si_m->hits + i, best) < 0))
+      if ((!best) || (hit_compare_byid_typed(si_m->hits + i, best) < 0))
+        best = si_m->hits + i;
+  
+  if (best && ! best->accepted)
+    best = 0;
+
+  return best;
+}
+
+struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
+                                     struct searchinfo_s * si_m)
+{
+  struct hit * best = 0;
+
+  for(int i=0; i < si_p->hit_count; i++)
+    if ((!best) || (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
+      best = si_p->hits + i;
+  
+  if (opt_strand>1)
+    for(int i=0; i < si_m->hit_count; i++)
+      if ((!best) || (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
         best = si_m->hits + i;
   
   if (best && ! best->accepted)
@@ -641,7 +750,7 @@ void search_joinhits(struct searchinfo_s * si_p,
         }
     }
   
-  qsort(hits, a, sizeof(struct hit), hit_compare);
+  qsort(hits, a, sizeof(struct hit), hit_compare_byid);
 
   *hitsp = hits;
   *hit_count = a;

@@ -1,15 +1,15 @@
-#!/bin/sh
+#!/bin/bash
 
 P=$1
 
-INPUT=../data/Rfam_9_1.fasta
-#INPUT=../data/AF091148.fsa
-#INPUT=../data/BioMarKs50k.fsa
+INPUT=../../vsearch-data/Rfam_9_1.fasta
+#INPUT=../../vsearch-data/AF091148.fsa
+#INPUT=../../vsearch-data/BioMarKs50k.fsa
 
 THREADS=0
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH
@@ -36,6 +36,7 @@ CMD="/usr/bin/time $PROG \
     --blast6out s.$P.bl6 \
     --matched s.$P.matched \
     --notmatched s.$P.notmatched \
+    --consout s.$P.consout \
     --fastapairs s.$P.fastapairs"
 
 #    --sizein
@@ -45,7 +46,6 @@ CMD="/usr/bin/time $PROG \
 #    --uc_allhits
 #    --query_cov 0.5
 #    --clusters files/s.$P.clusters
-#    --consout s.$P.consout
 #    --msaout s.$P.msaout
 
 echo Cluster test

@@ -1,20 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
 cd ../test
 
 P=$1
 
-INPUT=../data/simm/simm.m1.fa
-DB=../data/simm/simm_sp.fa
+INPUT=../../vsearch-data/simm/simm.m1.fa
+DB=../../vsearch-data/simm/simm_sp.fa
 
-#INPUT=../data/PR2-18S-rRNA-V4.derep.fsa
-#DB=../data/PR2-18S-rRNA-V4.ref.fsa
+#INPUT=../../vsearch-data/PR2-18S-rRNA-V4.derep.fsa
+#DB=../../vsearch-data/PR2-18S-rRNA-V4.ref.fsa
 
 THREADS=0
 
 UCHIME=$(which uchime)
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
+
+MINH=0.28
+MINDIV=0.8
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH
@@ -38,8 +41,8 @@ if [ "$P" == "o" ]; then
         --db $DB \
         --uchimeout $P.uchimeout \
         --uchimealns $P.uchimealns \
-        --minh 0.28 \
-        --mindiv 0.8"
+        --minh $MINH \
+        --mindiv $MINDIV"
 
 else
 
@@ -50,7 +53,9 @@ else
       --chimeras $P.chimeras \
       --nonchimeras $P.nonchimeras \
       --uchimealns $P.uchimealns \
-      --uchimeout $P.uchimeout"
+      --uchimeout $P.uchimeout \
+      --minh $MINH \
+      --mindiv $MINDIV"
 
 fi
     

@@ -1,22 +1,61 @@
 /*
-    Copyright (C) 2014-2015 Torbjorn Rognes & Tomas Flouri
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
-    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-    Department of Informatics, University of Oslo,
-    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
@@ -26,13 +65,6 @@ static unsigned long progress_next;
 static unsigned long progress_size;
 static unsigned long progress_chunk;
 static const unsigned long progress_granularity = 200;
-
-#ifdef HAVE_BZLIB
-static unsigned char magic_bzip[] = "\x42\x5a";
-#endif
-#ifdef HAVE_ZLIB
-static unsigned char magic_gzip[] = "\x1f\x8b";
-#endif
 
 void progress_init(const char * prompt, unsigned long size)
 {
@@ -110,9 +142,10 @@ void  __attribute__((noreturn)) fatal(const char * format,
 void * xmalloc(size_t size)
 {
   const size_t alignment = 16;
-  void * t;
-  (void) posix_memalign(& t, alignment, size);
-  if (t==0)
+  void * t = 0;
+  if (posix_memalign(& t, alignment, size))
+    fatal("Unable to allocate enough memory.");
+  if (!t)
     fatal("Unable to allocate enough memory.");
   return t;
 }
@@ -178,7 +211,7 @@ void show_rusage()
 #endif
 }
 
-void fprint_fasta_hdr_only(FILE * fp, char * hdr)
+void fprint_fasta_hdr_only(FILE * fp, const char * hdr)
 {
   fprintf(fp, ">%s\n", hdr);
 }
@@ -205,6 +238,18 @@ void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
     }
 }
 
+void fprint_fastq(FILE * fp, char * header, char * sequence, char * quality,
+                  bool add_ee, double ee)
+{
+  if (add_ee)
+    fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
+  else
+    fprintf(fp, "@%s\n", header);
+  fprintf(fp, "%s\n", sequence);
+  fprintf(fp, "+\n");
+  fprintf(fp, "%s\n", quality);
+}
+
 void reverse_complement(char * rc, char * seq, long len)
 {
   /* Write the reverse complementary sequence to rc.
@@ -216,61 +261,70 @@ void reverse_complement(char * rc, char * seq, long len)
   rc[len] = 0;
 }
 
-#ifdef HAVE_BZLIB
-char * bz_fgets (char * s, int size, BZFILE * stream, long linealloc,
-                 int * bz_error_ptr, char * buf_internal, long * buf_internal_len_ptr)
+void random_init()
 {
-  long linelen    = 0;
-  long buf_internal_len = *buf_internal_len_ptr;
-
-  /* fill the buffer */
-  long bytes_read = BZ2_bzRead(bz_error_ptr, stream, buf_internal + buf_internal_len,
-                               linealloc - buf_internal_len - 1);
-
-  buf_internal_len              += bytes_read;
-  buf_internal[buf_internal_len] = 0;
-
-  if (buf_internal_len)
-   {
-     linelen = xstrchrnul(buf_internal, '\n') - buf_internal;
-     memcpy (s, buf_internal, linelen);
-     s[linelen] = 0;
-   }
-
-  /* if newline found */
-  if (buf_internal[linelen])
-   memmove (buf_internal, buf_internal + linelen + 1, buf_internal_len - linelen); 
-
-  if (buf_internal_len - linelen > 0)
-    buf_internal_len = buf_internal_len - linelen - 1;
-
-  *buf_internal_len_ptr = buf_internal_len;
-  return s;
-}
-#endif
-
-int detect_compress_format (const char * filename)
-{
-  /* check for magic numbers to detect file type */
-  unsigned char magic[3];
-  int cnt;
-  FILE * fp;
-
-  if (!(fp = fopen(filename, "r")))
-    fatal("Error: Unable to open database file (%s)", filename);
-
-  cnt = fread(magic, sizeof(unsigned char), 2, fp);
-  fclose(fp);
-  if (cnt < 2) return (0); 
-
-#ifdef HAVE_BZLIB
-  if (!memcmp(magic, magic_bzip, 2)) return FORMAT_BZIP;
-#endif
-
-#ifdef HAVE_ZLIB
-  if (!memcmp(magic, magic_gzip, 2)) return FORMAT_GZIP;
-#endif
-
-  return FORMAT_PLAIN;
+  /* initialize pseudo-random number generator */
+  unsigned int seed = opt_randseed;
+  if (seed == 0)
+    {
+      int fd = open("/dev/urandom", O_RDONLY);
+      if (fd < 0)
+        fatal("Unable to open /dev/urandom");
+      if (read(fd, & seed, sizeof(seed)) < 0)
+        fatal("Unable to read from /dev/urandom");
+      close(fd);
+    }
+  srandom(seed);
 }
 
+long random_int(long n)
+{
+  /*
+    Generate a random integer in the range 0 to n-1, inclusive.
+    n must be > 0
+    The random() function returns a random number in the range
+    0 to 2147483647 (=2^31-1=RAND_MAX), inclusive.
+    We should avoid some of the upper generated numbers to
+    avoid modulo bias.
+  */
+
+  long random_max = RAND_MAX;
+  long limit = random_max - (random_max + 1) % n;
+  long r = random();
+  while (r > limit)
+    r = random();
+  return r % n;
+}
+
+unsigned long random_ulong(unsigned long n)
+{
+  /*
+    Generate a random integer in the range 0 to n-1, inclusive,
+    n must be > 0
+  */
+
+  unsigned long random_max = ULONG_MAX;
+  unsigned long limit = random_max - (random_max - n + 1) % n;
+  unsigned long r = ((random() << 48) ^ (random() << 32) ^
+                     (random() << 16) ^ (random()));
+  while (r > limit)
+    r = ((random() << 48) ^ (random() << 32) ^
+         (random() << 16) ^ (random()));
+  return r % n;
+}
+
+void string_normalize(char * normalized, char * s, unsigned int len)
+{
+  /* convert string to upper case and replace U by T */
+  char * p = s;
+  char * q = normalized;
+  for(unsigned int i=0; i<len; i++)
+    *q++ = chrmap_normalize[(int)(*p++)];
+  *q = 0;
+}
+
+void fprint_hex(FILE * fp, unsigned char * data, int len)
+{
+  for(int i=0; i<len; i++)
+    fprintf(fp, "%02x", data[i]);
+}

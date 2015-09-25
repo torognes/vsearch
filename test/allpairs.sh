@@ -1,14 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 
 P=$1
 
-DB=../data/Rfam_11_0.repr.fasta
+DB=../../vsearch-data/Rfam_11_0.repr.fasta
 
 T=0
 ID=0.7
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH

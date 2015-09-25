@@ -1,22 +1,61 @@
 /*
-    Copyright (C) 2014-2015 Torbjorn Rognes
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
-    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-    Department of Informatics, University of Oslo,
-    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
@@ -35,6 +74,8 @@ typedef struct clusterinfo_s
 static clusterinfo_t * clusterinfo = 0;
 static int clusters = 0;
 
+static long * cluster_abundance;
+
 static FILE * fp_centroids = 0;
 static FILE * fp_uc = 0;
 static FILE * fp_alnout = 0;
@@ -47,8 +88,8 @@ static FILE * fp_notmatched = 0;
   
 static pthread_attr_t attr;
 
-struct searchinfo_s * si_plus;
-struct searchinfo_s * si_minus;
+static struct searchinfo_s * si_plus;
+static struct searchinfo_s * si_minus;
 
 typedef struct thread_info_s
 {
@@ -67,6 +108,26 @@ inline int compare_byclusterno(const void * a, const void * b)
   clusterinfo_t * x = (clusterinfo_t *) a;
   clusterinfo_t * y = (clusterinfo_t *) b;
   if (x->clusterno < y->clusterno)
+    return -1;
+  else if (x->clusterno > y->clusterno)
+    return +1;
+  else if (x->seqno < y->seqno)
+    return -1;
+  else if (x->seqno > y->seqno)
+    return +1;
+  else
+    return 0;
+}
+
+inline int compare_byclusterabundance(const void * a, const void * b)
+{
+  clusterinfo_t * x = (clusterinfo_t *) a;
+  clusterinfo_t * y = (clusterinfo_t *) b;
+  if (cluster_abundance[x->clusterno] > cluster_abundance[y->clusterno])
+    return -1;
+  else if (cluster_abundance[x->clusterno] < cluster_abundance[y->clusterno])
+    return +1;
+  else if (x->clusterno < y->clusterno)
     return -1;
   else if (x->clusterno > y->clusterno)
     return +1;
@@ -483,7 +544,7 @@ void cluster_core_parallel()
 
                       /* check if min number of shared kmers is satisfied */
                       if ((shared >= MINMATCHSAMPLECOUNT) &&
-                          (shared >= MINMATCHSAMPLEFREQ * si->kmersamplecount))
+                          (shared >= si->kmersamplecount / MINMATCHSAMPLEFREQ))
                         {
                           unsigned int length = sic->qseqlen;
                           
@@ -692,9 +753,13 @@ void cluster_core_parallel()
             }
 
           /* find best hit */
-          struct hit * best = search_findbest2(si_p, si_m);
-          
-          int seqno = si_p->query_no;
+          struct hit * best = 0;
+          if (opt_sizeorder)
+            best = search_findbest2_bysize(si_p, si_m);
+          else
+            best = search_findbest2_byid(si_p, si_m);
+            
+          int myseqno = si_p->query_no;
           
           if (best)
             {
@@ -710,10 +775,10 @@ void cluster_core_parallel()
                                        best->strand ? si_m->qsequence : 0);
 
               /* update cluster info about this sequence */
-              clusterinfo[seqno].seqno = seqno;
-              clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
-              clusterinfo[seqno].cigar = best->nwalignment;
-              clusterinfo[seqno].strand = best->strand;
+              clusterinfo[myseqno].seqno = myseqno;
+              clusterinfo[myseqno].clusterno = clusterinfo[target].clusterno;
+              clusterinfo[myseqno].cigar = best->nwalignment;
+              clusterinfo[myseqno].strand = best->strand;
               best->nwalignment = 0;
             }
           else
@@ -724,13 +789,13 @@ void cluster_core_parallel()
               extra_list[extra_count++] = i;
               
               /* update cluster info about this sequence */
-              clusterinfo[seqno].seqno = seqno;
-              clusterinfo[seqno].clusterno = clusters;
-              clusterinfo[seqno].cigar = 0;
-              clusterinfo[seqno].strand = 0;
+              clusterinfo[myseqno].seqno = myseqno;
+              clusterinfo[myseqno].clusterno = clusters;
+              clusterinfo[myseqno].cigar = 0;
+              clusterinfo[myseqno].strand = 0;
               
               /* add current sequence to database */
-              dbindex_addsequence(seqno);
+              dbindex_addsequence(myseqno);
               
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(clusters,
@@ -745,10 +810,10 @@ void cluster_core_parallel()
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
-              for(int i=0; i<si->hit_count; i++)
-                if (si->hits[i].aligned)
-                  if (si->hits[i].nwalignment)
-                    free(si->hits[i].nwalignment);
+              for(int j=0; j<si->hit_count; j++)
+                if (si->hits[j].aligned)
+                  if (si->hits[j].nwalignment)
+                    free(si->hits[j].nwalignment);
             }
 
           sum_nucleotides += si_p->qseqlen;
@@ -817,7 +882,11 @@ void cluster_core_serial()
           cluster_query_core(si_m);
         }
 
-      struct hit * best = search_findbest2(si_p, si_m);
+      struct hit * best = 0;
+      if (opt_sizeorder)
+        best = search_findbest2_bysize(si_p, si_m);
+      else
+        best = search_findbest2_byid(si_p, si_m);
       
       if (best)
         {
@@ -941,6 +1010,8 @@ void cluster(char * dbname,
 
   db_read(dbname, opt_qmask != MASK_SOFT);
 
+  results_show_samheader(fp_samout, cmdline, dbname);
+
   if (opt_qmask == MASK_DUST)
     dust_all();
   else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
@@ -993,138 +1064,169 @@ void cluster(char * dbname,
   else
     cluster_core_parallel();
 
-  qsort(clusterinfo, seqcount, sizeof(clusterinfo_t), compare_byclusterno);
 
-  progress_init("Writing clusters", seqcount);
+  /* find size and abundance of each cluster and save stats */
 
-  int abundance_min = INT_MAX;
-  int abundance_max = 0;
-  int abundance = 0;
-  int size = 0;
-  int size_max = 0;
-  int singletons = 0;
-  int lastcluster = 0;
-  int centroid = 0;
-  FILE * fp_clusters = 0;
-  char * fn_clusters = 0;
+  cluster_abundance = (long *) xmalloc(clusters * sizeof(long));
+  int * cluster_size = (int *) xmalloc(clusters * sizeof(int));
 
-  if (opt_clusters)
-    {
-      fn_clusters = (char *) xmalloc(strlen(opt_clusters) + 25);
-      sprintf(fn_clusters, "%s%d", opt_clusters, 0);
-      fp_clusters = fopen(fn_clusters, "w");
-      if (!fp_clusters)
-        fatal("Unable to open clusters file for writing");
-    };
+  memset(cluster_abundance, 0, clusters * sizeof(long));
+  memset(cluster_size, 0, clusters * sizeof(int));
 
   for(int i=0; i<seqcount; i++)
     {
-      int clusterno = clusterinfo[i].clusterno;
       int seqno = clusterinfo[i].seqno;
+      int clusterno = clusterinfo[i].clusterno;
+      cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
+      cluster_size[clusterno]++;
+    }
+      
+  long abundance_min = LONG_MAX;
+  long abundance_max = 0;
+  int size_max = 0;
+  int singletons = 0;
 
-      if (clusterno == lastcluster)
+  for(int z=0; z<clusters; z++)
+    {
+      long abundance = cluster_abundance[z];
+      if (abundance < abundance_min)
+        abundance_min = abundance;
+      if (abundance > abundance_max)
+        abundance_max = abundance;
+
+      if (abundance == 1)
+        singletons++;
+
+      int size = cluster_size[z];
+      if (size > size_max)
+        size_max = size;
+    }
+
+
+  /* Sort clusters */
+  /* Sequences in same cluster must always come right after each other. */
+  /* The centroid sequence must be the first in each cluster. */
+
+  progress_init("Sorting clusters", clusters);
+  qsort(clusterinfo, seqcount, sizeof(clusterinfo_t), compare_byclusterno);
+  progress_done();
+
+  progress_init("Writing clusters", seqcount);
+
+  /* allocate memory for full file name of the clusters files */
+  FILE * fp_clusters = 0;
+  char * fn_clusters = 0;
+  if (opt_clusters)
+    fn_clusters = (char *) xmalloc(strlen(opt_clusters) + 25);
+
+  int lastcluster = -1;
+
+  for(int i=0; i<seqcount; i++)
+    {
+      int seqno = clusterinfo[i].seqno;
+      int clusterno = clusterinfo[i].clusterno;
+
+      if (clusterno != lastcluster)
         {
-          if (opt_clusters)
+          /* prepare for new cluster */
+          /* performed with first sequence only in each cluster */
+          /* the first sequence is always the centroid */
+
+          if (opt_centroids)
             {
-              fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
-              fprint_fasta_seq_only(fp_clusters,
-                                    db_getsequence(seqno),
-                                    db_getsequencelen(seqno),
-                                    opt_fasta_width);
+              unsigned int size = cluster_abundance[clusterno];
+
+              if (opt_relabel_sha1 || opt_relabel_md5)
+                {
+                  char * seq = db_getsequence(seqno);
+                  unsigned int len = db_getsequencelen(seqno);
+
+                  fprintf(fp_centroids, ">");
+
+                  if (opt_relabel_sha1)
+                    fprint_seq_digest_sha1(fp_centroids, seq, len);
+                  else
+                    fprint_seq_digest_md5(fp_centroids, seq, len);
+
+                  if (opt_sizeout)
+                    fprintf(fp_centroids, ";size=%u;\n", size);
+                  else
+                    fprintf(fp_centroids, "\n");
+
+                  db_fprint_fasta_seq_only(fp_centroids, seqno);
+                }
+              else if (opt_relabel)
+                {
+                  if (opt_sizeout)
+                    fprintf(fp_centroids, ">%s%d;size=%u;\n", opt_relabel, i+1, size);
+                  else
+                    fprintf(fp_centroids, ">%s%d\n", opt_relabel, i+1);
+
+                  db_fprint_fasta_seq_only(fp_centroids, seqno);
+                }
+              else
+                {
+                  if (opt_sizeout)
+                    db_fprint_fasta_with_size(fp_centroids, seqno, size);
+                  else
+                    db_fprint_fasta(fp_centroids, seqno);
+                }
             }
-          abundance += opt_sizein ? db_getabundance(seqno) : 1;
-          size++;
-        }
-      else
-        {
-          if (abundance < abundance_min)
-            abundance_min = abundance;
-          if (abundance > abundance_max)
-            abundance_max = abundance;
 
-          if (size > size_max)
-            size_max = size;
-
-          if (abundance == 1)
-            singletons++;
+          if (opt_uc)
+            {
+              fprintf(fp_uc, "C\t%d\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
+                      clusterno,
+                      cluster_abundance[clusterno],
+                      db_getheader(seqno));
+            }
 
           if (opt_clusters)
             {
-              fclose(fp_clusters);
-
+              /* close previous (except for first time) and open new file */
+              if (lastcluster != -1)
+                fclose(fp_clusters);
+              
               sprintf(fn_clusters, "%s%d", opt_clusters, clusterno);
               fp_clusters = fopen(fn_clusters, "w");
               if (!fp_clusters)
                 fatal("Unable to open clusters file for writing");
-              
-              fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
-              fprint_fasta_seq_only(fp_clusters,
-                                    db_getsequence(seqno),
-                                    db_getsequencelen(seqno),
-                                    opt_fasta_width);
-            }              
-
-          if (opt_uc)
-            {
-              fprintf(fp_uc, "C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
-                      lastcluster, abundance, db_getheader(centroid));
-              
             }
           
-          if (opt_centroids)
-            {
-              if (opt_sizeout)
-                db_fprint_fasta_with_size(fp_centroids, centroid, abundance);
-              else
-                db_fprint_fasta(fp_centroids, centroid);
-            }
-  
-          centroid = clusterinfo[i].seqno;
-          abundance = opt_sizein ? db_getabundance(seqno) : 1;
-          size = 1;
           lastcluster = clusterno;
         }
+      
+      /* performed for all sequences */
+
+      if (opt_clusters)
+        {
+          fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
+          fprint_fasta_seq_only(fp_clusters,
+                                db_getsequence(seqno),
+                                db_getsequencelen(seqno),
+                                opt_fasta_width);
+        }
+
       progress_update(i);
     }
 
-  if (abundance < abundance_min)
-    abundance_min = abundance;
-  if (abundance > abundance_max)
-    abundance_max = abundance;
-
-  if (size > size_max)
-    size_max = size;
-
-  if (abundance == 1)
-    singletons++;
-
-  if (opt_clusters)
+  if (lastcluster != -1)
     {
-      fclose(fp_clusters);
-      if (fn_clusters)
-        free(fn_clusters);
+      /* performed with the last sequence */
+      if (opt_clusters)
+        {
+          fclose(fp_clusters);
+          if (fn_clusters)
+            free(fn_clusters);
+        }
     }
 
-  if (opt_uc)
-    {
-      fprintf(fp_uc, "C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
-              lastcluster, abundance, db_getheader(centroid));
-    }
-
-  if (opt_centroids)
-    {
-      if (opt_sizeout)
-        db_fprint_fasta_with_size(fp_centroids, centroid, abundance);
-      else
-        db_fprint_fasta(fp_centroids, centroid);
-    }
-  
   progress_done();
 
   if (!opt_quiet)
     {
       fprintf(stderr,
-              "Clusters: %d Size min %d, max %d, avg %.1f\n",
+              "Clusters: %d Size min %ld, max %ld, avg %.1f\n",
               clusters,
               abundance_min,
               abundance_max,
@@ -1139,7 +1241,7 @@ void cluster(char * dbname,
   if (opt_log)
     {
       fprintf(fp_log,
-              "Clusters: %d Size min %d, max %d, avg %.1f\n",
+              "Clusters: %d Size min %ld, max %ld, avg %.1f\n",
               clusters,
               abundance_min,
               abundance_max,
@@ -1152,7 +1254,16 @@ void cluster(char * dbname,
       fprintf(fp_log, "\n");
     }
 
-  if (opt_msaout || opt_consout)
+  if (opt_clusterout_sort)
+    {
+      /* Optionally sort clusters by abundance */
+      progress_init("Sorting clusters by abundance", clusters);
+      qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
+            compare_byclusterabundance);
+      progress_done();
+    }
+
+  if (opt_msaout || opt_consout || opt_profile)
     {
       int msa_target_count = 0;
       struct msa_target_s * msa_target_list =
@@ -1161,6 +1272,7 @@ void cluster(char * dbname,
 
       FILE * fp_msaout = 0;
       FILE * fp_consout = 0;
+      FILE * fp_profile = 0;
 
       if (opt_msaout)
         if (!(fp_msaout = fopen(opt_msaout, "w")))
@@ -1170,7 +1282,13 @@ void cluster(char * dbname,
         if (!(fp_consout = fopen(opt_consout, "w")))
           fatal("Unable to open consout file");
 
-      int lastcluster = 0;
+      if (opt_profile)
+        if (!(fp_profile = fopen(opt_profile, "w")))
+          fatal("Unable to open profile file");
+
+      lastcluster = -1;
+
+      abundance_t * abundance_handle = abundance_init();
 
       for(int i=0; i<seqcount; i++)
         {
@@ -1181,9 +1299,15 @@ void cluster(char * dbname,
 
           if (clusterno != lastcluster)
             {
-              /* compute msa & consensus */
-              msa(fp_msaout, fp_consout, lastcluster,
-                  msa_target_count, msa_target_list);
+              if (lastcluster != -1)
+                {
+                  /* compute msa & consensus */
+                  msa(fp_msaout, fp_consout, fp_profile,
+                      lastcluster,
+                      msa_target_count, msa_target_list,
+                      cluster_abundance[lastcluster],
+                      abundance_handle);
+                }
 
               /* start new cluster */
               msa_target_count = 0;
@@ -1199,11 +1323,22 @@ void cluster(char * dbname,
           progress_update(i);
         }
 
-      /* compute msa & consensus */
-      msa(fp_msaout, fp_consout, lastcluster,
-          msa_target_count, msa_target_list);
+      if (lastcluster != -1)
+        {
+          /* compute msa & consensus */
+          msa(fp_msaout, fp_consout, fp_profile,
+              lastcluster,
+              msa_target_count, msa_target_list,
+              cluster_abundance[lastcluster],
+              abundance_handle);
+        }
 
       progress_done();
+
+      abundance_exit(abundance_handle);
+
+      if (fp_profile)
+        fclose(fp_profile);
 
       if (fp_msaout)
         fclose(fp_msaout);
@@ -1213,6 +1348,9 @@ void cluster(char * dbname,
 
       free(msa_target_list);
     }
+
+  free(cluster_abundance);
+  free(cluster_size);
 
   /* free cigar strings for all aligned sequences */
 

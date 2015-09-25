@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-INPUT=../data/PR2-18S-rRNA-V4.fsa
+INPUT=../../vsearch-data/PR2-18S-rRNA-V4.fsa
 
 echo
 
-/usr/bin/time ../src/vsearch --sortbylength $INPUT --output vsortlen.fsa --sizeout
+/usr/bin/time ../bin/vsearch --sortbylength $INPUT --output vsortlen.fsa --sizeout
 
 echo
 

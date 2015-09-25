@@ -1,44 +1,103 @@
 /*
-    Copyright (C) 2014-2015 Torbjorn Rognes & Frederic Mahe
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
-    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-    Department of Informatics, University of Oslo,
-    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
 
 /* options */
 
+bool opt_clusterout_id;
+bool opt_clusterout_sort;
+bool opt_eeout;
 bool opt_quiet;
-char * opt_alnout;
+bool opt_relabel_md5;
+bool opt_relabel_sha1;
+bool opt_samheader;
+bool opt_sizeorder;
+bool opt_xsize;
 char * opt_allpairs_global;
+char * opt_alnout;
 char * opt_blast6out;
+char * opt_borderline;
 char * opt_centroids;
 char * opt_chimeras;
 char * opt_cluster_fast;
-char * opt_cluster_smallmem;
 char * opt_cluster_size;
+char * opt_cluster_smallmem;
 char * opt_clusters;
 char * opt_consout;
 char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
+char * opt_derep_prefix;
+char * opt_fastaout;
+char * opt_fastaout_discarded;
 char * opt_fastapairs;
+char * opt_fastq_chars;
+char * opt_fastq_filter;
+char * opt_fastq_stats;
+char * opt_fastqout;
+char * opt_fastqout_discarded;
+char * opt_fastx_revcomp;
+char * opt_fastx_subsample;
+char * opt_label_suffix;
 char * opt_log;
 char * opt_maskfasta;
 char * opt_matched;
@@ -47,6 +106,7 @@ char * opt_nonchimeras;
 char * opt_notmatched;
 char * opt_output;
 char * opt_pattern;
+char * opt_profile;
 char * opt_relabel;
 char * opt_samout;
 char * opt_shuffle;
@@ -61,6 +121,8 @@ char * opt_usearch_global;
 char * opt_userout;
 double opt_abskew;
 double opt_dn;
+double opt_fastq_maxee;
+double opt_fastq_maxee_rate;
 double opt_id;
 double opt_maxid;
 double opt_maxqt;
@@ -73,6 +135,7 @@ double opt_minqt;
 double opt_minsizeratio;
 double opt_minsl;
 double opt_query_cov;
+double opt_sample_pct;
 double opt_target_cov;
 double opt_weak_id;
 double opt_xn;
@@ -99,6 +162,16 @@ int opt_usersort;
 int opt_version;
 long opt_dbmask;
 long opt_fasta_width;
+long opt_fastq_ascii;
+long opt_fastq_maxns;
+long opt_fastq_minlen;
+long opt_fastq_qmax;
+long opt_fastq_qmaxout;
+long opt_fastq_qmin;
+long opt_fastq_stripleft;
+long opt_fastq_tail;
+long opt_fastq_trunclen;
+long opt_fastq_truncqual;
 long opt_fulldp;
 long opt_hardmask;
 long opt_iddef;
@@ -125,9 +198,10 @@ long opt_mismatch;
 long opt_notrunclabels;
 long opt_output_no_hits;
 long opt_qmask;
+long opt_randseed;
 long opt_rightjust;
 long opt_rowlen;
-long opt_seed;
+long opt_sample_size;
 long opt_self;
 long opt_selfid;
 long opt_sizein;
@@ -157,10 +231,10 @@ long avx2_present = 0;
 static char * progname;
 static char progheader[80];
 static char * cmdline;
+static time_t time_start;
+static time_t time_finish;
 
 FILE * fp_log = 0;
-time_t time_start;
-time_t time_finish;
 
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \
@@ -389,6 +463,16 @@ long args_getlong(char * arg)
   return temp;
 }
 
+double args_getdouble(char * arg)
+{
+  int len = 0;
+  double temp = 0;
+  int ret = sscanf(arg, "%lf%n", &temp, &len);
+  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
+    fatal("Illegal option argument");
+  return temp;
+}
+
 void args_init(int argc, char **argv)
 {
   /* Set defaults */
@@ -400,10 +484,14 @@ void args_init(int argc, char **argv)
   opt_alignwidth = 80;
   opt_allpairs_global = 0;
   opt_alnout = 0;
+  opt_borderline = 0;
   opt_centroids = 0;
   opt_chimeras = 0;
   opt_cluster_fast = 0;
+  opt_cluster_size = 0;
   opt_cluster_smallmem = 0;
+  opt_clusterout_id = 0;
+  opt_clusterout_sort = 0;
   opt_clusters = 0;
   opt_cons_truncate = 0;
   opt_consout = 0;
@@ -412,9 +500,31 @@ void args_init(int argc, char **argv)
   opt_dbmatched = 0;
   opt_dbnotmatched = 0;
   opt_derep_fulllength = 0;
+  opt_derep_prefix = 0;
   opt_dn = 1.4;
+  opt_eeout = 0;
   opt_fasta_width = 80;
+  opt_fastaout = 0;
+  opt_fastaout_discarded = 0;
   opt_fastapairs = 0;
+  opt_fastq_ascii = 33;
+  opt_fastq_chars = 0;
+  opt_fastq_maxee = DBL_MAX;
+  opt_fastq_maxee_rate = DBL_MAX;
+  opt_fastq_maxns = LONG_MAX;
+  opt_fastq_minlen = 1;
+  opt_fastq_qmax = 41;
+  opt_fastq_qmaxout = 41;
+  opt_fastq_qmin = 0;
+  opt_fastq_stats = 0;
+  opt_fastq_stripleft = 0;
+  opt_fastq_tail = 4;
+  opt_fastq_trunclen = 0;
+  opt_fastq_truncqual = LONG_MIN;
+  opt_fastqout = 0;
+  opt_fastqout_discarded = 0;
+  opt_fastx_revcomp = 0;
+  opt_fastx_subsample = 0;
   opt_fulldp = 0;
   opt_gap_extension_query_interior=2;
   opt_gap_extension_query_left=1;
@@ -434,6 +544,7 @@ void args_init(int argc, char **argv)
   opt_iddef = 2;
   opt_idprefix = 0;
   opt_idsuffix = 0;
+  opt_label_suffix = 0;
   opt_leftjust = 0;
   opt_log = 0;
   opt_match = 2;
@@ -472,18 +583,25 @@ void args_init(int argc, char **argv)
   opt_output = 0;
   opt_output_no_hits = 0;
   opt_pattern = 0;
+  opt_profile = 0;
   opt_qmask = MASK_DUST;
   opt_query_cov = 0.0;
   opt_quiet = false;
+  opt_randseed = 0;
   opt_relabel = 0;
+  opt_relabel_md5 = 0;
+  opt_relabel_sha1 = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
+  opt_samheader = 0;
   opt_samout = 0;
-  opt_seed = 0;
+  opt_sample_pct = 0;
+  opt_sample_size = 0;
   opt_self = 0;
   opt_selfid = 0;
   opt_shuffle = 0;
   opt_sizein = 0;
+  opt_sizeorder = 0;
   opt_sizeout = 0;
   opt_slots = 0;
   opt_sortbylength = 0;
@@ -506,14 +624,15 @@ void args_init(int argc, char **argv)
   opt_weak_id = 10.0;
   opt_wordlength = 8;
   opt_xn = 8.0;
+  opt_xsize = 0;
 
   opterr = 1;
 
   static struct option long_options[] =
 
   {
-    {"help",                  no_argument,       & opt_help,    1 },
-    {"version",               no_argument,       & opt_version, 1 },
+    {"help",                  no_argument,       0, 0 },
+    {"version",               no_argument,       0, 0 },
     {"alnout",                required_argument, 0, 0 },
     {"usearch_global",        required_argument, 0, 0 },
     {"db",                    required_argument, 0, 0 },
@@ -581,7 +700,7 @@ void args_init(int argc, char **argv)
     {"mintsize",              required_argument, 0, 0 },
     {"mid",                   required_argument, 0, 0 },
     {"shuffle",               required_argument, 0, 0 },
-    {"seed",                  required_argument, 0, 0 },
+    {"randseed",              required_argument, 0, 0 },
     {"maskfasta",             required_argument, 0, 0 },
     {"hardmask",              no_argument,       0, 0 },
     {"qmask",                 required_argument, 0, 0 },
@@ -618,6 +737,42 @@ void args_init(int argc, char **argv)
     {"samout",                required_argument, 0, 0 },
     {"log",                   required_argument, 0, 0 },
     {"quiet",                 no_argument,       0, 0 },
+    {"fastx_subsample",       required_argument, 0, 0 },
+    {"sample_pct",            required_argument, 0, 0 },
+    {"fastq_chars",           required_argument, 0, 0 },
+    {"profile",               required_argument, 0, 0 },
+    {"sample_size",           required_argument, 0, 0 },
+    {"fastaout",              required_argument, 0, 0 },
+    {"xsize",                 no_argument,       0, 0 },
+    {"clusterout_id",         no_argument,       0, 0 },
+    {"clusterout_sort",       no_argument,       0, 0 },
+    {"borderline",            required_argument, 0, 0 },
+    {"relabel_sha1",          no_argument,       0, 0 },
+    {"relabel_md5",           no_argument,       0, 0 },
+    {"derep_prefix",          required_argument, 0, 0 },
+    {"fastq_filter",          required_argument, 0, 0 },
+    {"fastqout",              required_argument, 0, 0 },
+    {"fastaout_discarded",    required_argument, 0, 0 },
+    {"fastqout_discarded",    required_argument, 0, 0 },
+    {"fastq_truncqual",       required_argument, 0, 0 },
+    {"fastq_maxee",           required_argument, 0, 0 },
+    {"fastq_trunclen",        required_argument, 0, 0 },
+    {"fastq_minlen",          required_argument, 0, 0 },
+    {"fastq_stripleft",       required_argument, 0, 0 },
+    {"fastq_maxee_rate",      required_argument, 0, 0 },
+    {"fastq_maxns",           required_argument, 0, 0 },
+    {"eeout",                 no_argument,       0, 0 },
+    {"fastq_ascii",           required_argument, 0, 0 },
+    {"fastq_qmin",            required_argument, 0, 0 },
+    {"fastq_qmax",            required_argument, 0, 0 },
+    {"fastq_qmaxout",         required_argument, 0, 0 },
+    {"fastq_stats",           required_argument, 0, 0 },
+    {"fastq_tail",            required_argument, 0, 0 },
+    {"fastx_revcomp",         required_argument, 0, 0 },
+    {"label_suffix",          required_argument, 0, 0 },
+    {"h",                     no_argument,       0, 0 },
+    {"samheader",             no_argument,       0, 0 },
+    {"sizeorder",             no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -638,67 +793,54 @@ void args_init(int argc, char **argv)
       switch(option_index)
         {
         case 0:
-          /* help */
-          // opt_help = 1;
+          opt_help = 1;
           break;
               
         case 1:
-          /* version */
-          // opt_version = 1;
+          opt_version = 1;
           break;
 
         case 2:
-          /* alnout */
           opt_alnout = optarg;
           break;
           
         case 3:
-          /* usearch_global */
           opt_usearch_global = optarg;
           break;
 
         case 4:
-          /* db */
           opt_db = optarg;
           break;
 
         case 5:
-          /* id */
-          opt_id = atof(optarg);
+          opt_id = args_getdouble(optarg);
           break;
 
         case 6:
-          /* maxaccepts */
           opt_maxaccepts = args_getlong(optarg);
           break;
 
         case 7:
-          /* maxrejects */
           opt_maxrejects = args_getlong(optarg);
           break;
 
         case 8:
-          /* wordlength */
           opt_wordlength = args_getlong(optarg);
           break;
 
         case 9:
-          /* match */
           opt_match = args_getlong(optarg);
           break;
 
         case 10:
-          /* mismatch */
           opt_mismatch = args_getlong(optarg);
           break;
 
         case 11:
-          /* fulldp */
           opt_fulldp = 1;
           break;
 
         case 12:
-          /* strand */
           if (strcasecmp(optarg, "plus") == 0)
             opt_strand = 1;
           else if (strcasecmp(optarg, "both") == 0)
@@ -708,303 +850,243 @@ void args_init(int argc, char **argv)
           break;
 
         case 13:
-          /* threads */
           opt_threads = args_getlong(optarg);
           break;
 
         case 14:
-          /* gapopen */
           args_get_gap_penalty_string(optarg, 1);
           break;
 
         case 15:
-          /* gapext */
           args_get_gap_penalty_string(optarg, 0);
           break;
 
         case 16:
-          /* rowlen */
           opt_rowlen = args_getlong(optarg);
           break;
 
         case 17:
-          /* userfields */
           if (!parse_userfields_arg(optarg))
             fatal("Unrecognized userfield argument");
           break;
 
         case 18:
-          /* userout */
           opt_userout = optarg;
           break;
       
         case 19:
-          /* self */
           opt_self = 1;
           break;
       
         case 20:
-          /* blast6out */
           opt_blast6out = optarg;
           break;
       
         case 21:
-          /* uc */
           opt_uc = optarg;
           break;
       
         case 22:
-          /* weak_id */
-          opt_weak_id = atof(optarg);
+          opt_weak_id = args_getdouble(optarg);
           break;
 
         case 23:
-          /* uc_allhits */
           opt_uc_allhits = 1;
           break;
 
         case 24:
-          /* notrunclabels */
           opt_notrunclabels = 1;
           break;
 
         case 25:
-          /* sortbysize */
           opt_sortbysize = optarg;
           break;
 
         case 26:
-          /* output */
           opt_output = optarg;
           break;
 
         case 27:
-          /* minsize */
           opt_minsize = args_getlong(optarg);
           break;
 
         case 28:
-          /* maxsize */
           opt_maxsize = args_getlong(optarg);
           break;
 
         case 29:
-          /* relabel */
           opt_relabel = optarg;
           break;
 
         case 30:
-          /* sizeout */
           opt_sizeout = 1;
           break;
 
         case 31:
-          /* derep_fulllength */
           opt_derep_fulllength = optarg;
           break;
 
         case 32:
-          /* minseqlength */
           opt_minseqlength = args_getlong(optarg);
           break;
 
         case 33:
-          /* minuniquesize */
           opt_minuniquesize = args_getlong(optarg);
           break;
 
         case 34:
-          /* topn */
           opt_topn = args_getlong(optarg);
           break;
 
         case 35:
-          /* maxseqlength */
           opt_maxseqlength = args_getlong(optarg);
           break;
 
         case 36:
-          /* sizein */
           opt_sizein = 1;
           break;
 
         case 37:
-          /* sortbylength */
           opt_sortbylength = optarg;
           break;
 
         case 38:
-          /* matched */
           opt_matched = optarg;
           break;
 
         case 39:
-          /* notmatched */
           opt_notmatched = optarg;
           break;
 
         case 40:
-          /* dbmatched */
           opt_dbmatched = optarg;
           break;
 
         case 41:
-          /* dbnotmatched */
           opt_dbnotmatched = optarg;
           break;
 
         case 42:
-          /* fastapairs */
           opt_fastapairs = optarg;
           break;
 
         case 43:
-          /* sizein */
           opt_output_no_hits = 1;
           break;
 
         case 44:
-          /* maxhits */
           opt_maxhits = args_getlong(optarg);
           break;
 
         case 45:
-          /* top_hits_only */
           opt_top_hits_only = 1;
           break;
 
         case 46:
-          /* fasta_width */
           opt_fasta_width = args_getlong(optarg);
           break;
 
         case 47:
-          /* query_cov */
-          opt_query_cov = atof(optarg);
+          opt_query_cov = args_getdouble(optarg);
           break;
 
         case 48:
-          /* target_cov */
-          opt_target_cov = atof(optarg);
+          opt_target_cov = args_getdouble(optarg);
           break;
 
         case 49:
-          /* idprefix */
           opt_idprefix = args_getlong(optarg);
           break;
 
         case 50:
-          /* idsuffix */
           opt_idsuffix = args_getlong(optarg);
           break;
 
         case 51:
-          /* minqt */
-          opt_minqt = atof(optarg);
+          opt_minqt = args_getdouble(optarg);
           break;
 
         case 52:
-          /* maxqt */
-          opt_maxqt = atof(optarg);
+          opt_maxqt = args_getdouble(optarg);
           break;
 
         case 53:
-          /* minsl */
-          opt_minsl = atof(optarg);
+          opt_minsl = args_getdouble(optarg);
           break;
 
         case 54:
-          /* maxsl */
-          opt_maxsl = atof(optarg);
+          opt_maxsl = args_getdouble(optarg);
           break;
 
         case 55:
-          /* leftjust */
           opt_leftjust = 1;
           break;
 
         case 56:
-          /* rightjust */
           opt_rightjust = 1;
           break;
 
         case 57:
-          /* selfid */
           opt_selfid = 1;
           break;
 
         case 58:
-          /* maxid */
-          opt_maxid = atof(optarg);
+          opt_maxid = args_getdouble(optarg);
           break;
 
         case 59:
-          /* minsizeratio */
-          opt_minsizeratio = atof(optarg);
+          opt_minsizeratio = args_getdouble(optarg);
           break;
 
         case 60:
-          /* maxsizeratio */
-          opt_maxsizeratio = atof(optarg);
+          opt_maxsizeratio = args_getdouble(optarg);
           break;
 
         case 61:
-          /* maxdiffs */
           opt_maxdiffs = args_getlong(optarg);
           break;
 
         case 62:
-          /* maxsubs */
           opt_maxsubs = args_getlong(optarg);
           break;
 
         case 63:
-          /* maxgaps */
           opt_maxgaps = args_getlong(optarg);
           break;
 
         case 64:
-          /* mincols */
           opt_mincols = args_getlong(optarg);
           break;
 
         case 65:
-          /* maxqsize */
           opt_maxqsize = args_getlong(optarg);
           break;
 
         case 66:
-          /* mintsize */
           opt_mintsize = args_getlong(optarg);
           break;
 
         case 67:
-          /* mid */
-          opt_mid = atof(optarg);
+          opt_mid = args_getdouble(optarg);
           break;
 
         case 68:
-          /* shuffle */
           opt_shuffle = optarg;
           break;
 
         case 69:
-          /* seed */
-          opt_seed = args_getlong(optarg);
+          opt_randseed = args_getlong(optarg);
           break;
 
         case 70:
-          /* mask */
           opt_maskfasta = optarg;
           break;
 
         case 71:
-          /* hardmask */
           opt_hardmask = 1;
           break;
 
         case 72:
-          /* qmask */
           if (strcasecmp(optarg, "none") == 0)
             opt_qmask = MASK_NONE;
           else if (strcasecmp(optarg, "dust") == 0)
@@ -1016,7 +1098,6 @@ void args_init(int argc, char **argv)
           break;
 
         case 73:
-          /* dbmask */
           if (strcasecmp(optarg, "none") == 0)
             opt_dbmask = MASK_NONE;
           else if (strcasecmp(optarg, "dust") == 0)
@@ -1028,166 +1109,278 @@ void args_init(int argc, char **argv)
           break;
 
         case 74:
-          /* cluster_smallmem */
           opt_cluster_smallmem = optarg;
           break;
 
         case 75:
-          /* cluster_fast */
           opt_cluster_fast = optarg;
           break;
 
         case 76:
-          /* centroids */
           opt_centroids = optarg;
           break;
 
         case 77:
-          /* clusters */
           opt_clusters = optarg;
           break;
 
         case 78:
-          /* consout */
           opt_consout = optarg;
           break;
 
         case 79:
-          /* cons_truncate */
           fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
           opt_cons_truncate = 1;
           break;
 
         case 80:
-          /* msaout */
           opt_msaout = optarg;
           break;
 
         case 81:
-          /* usersort */
           opt_usersort = 1;
           break;
 
         case 82:
-          /* xn */
-          opt_xn = atof(optarg);
+          opt_xn = args_getdouble(optarg);
           break;
 
         case 83:
-          /* iddef */
           opt_iddef = args_getlong(optarg);
           break;
 
         case 84:
-          /* slots */
           fprintf(stderr, "WARNING: Option --slots is ignored\n");
           opt_slots = args_getlong(optarg);
           break;
 
         case 85:
-          /* pattern */
           fprintf(stderr, "WARNING: Option --pattern is ignored\n");
           opt_pattern = optarg;
           break;
 
         case 86:
-          /* maxuniquesize */
           opt_maxuniquesize = args_getlong(optarg);
           break;
 
         case 87:
-          /* abskew */
-          opt_abskew = atof(optarg);
+          opt_abskew = args_getdouble(optarg);
           break;
           
         case 88:
-          /* chimeras */
           opt_chimeras = optarg;
           break;
           
         case 89:
-          /* dn */
-          opt_dn = atof(optarg);
+          opt_dn = args_getdouble(optarg);
           break;
           
         case 90:
-          /* mindiffs */
           opt_mindiffs = args_getlong(optarg);
           break;
           
         case 91:
-          /* mindiv */
-          opt_mindiv = atof(optarg);
+          opt_mindiv = args_getdouble(optarg);
           break;
           
         case 92:
-          /* minh */
-          opt_minh = atof(optarg);
+          opt_minh = args_getdouble(optarg);
           break;
           
         case 93:
-          /* nonchimeras */
           opt_nonchimeras = optarg;
           break;
           
         case 94:
-          /* uchime_denovo */
           opt_uchime_denovo = optarg;
           break;
           
         case 95:
-          /* uchime_ref */
           opt_uchime_ref = optarg;
           break;
           
         case 96:
-          /* uchimealns */
           opt_uchimealns = optarg;
           break;
           
         case 97:
-          /* uchimeout */
           opt_uchimeout = optarg;
           break;
           
         case 98:
-          /* uchimeout5 */
           opt_uchimeout5 = 1;
           break;
           
         case 99:
-          /* alignwidth */
           opt_alignwidth = args_getlong(optarg);
           break;
           
         case 100:
-          /* allpairs_global */
           opt_allpairs_global = optarg;
           break;
           
         case 101:
-          /* acceptall */
           opt_acceptall = 1;
           break;
           
         case 102:
-          /* cluster_size */
           opt_cluster_size = optarg;
           break;
 
         case 103:
-          /* samout */
           opt_samout = optarg;
           break;
 
         case 104:
-          /* log */
           opt_log = optarg;
           break;
 
         case 105:
-          /* quiet */
           opt_quiet = true;
+          break;
+
+        case 106:
+          opt_fastx_subsample = optarg;
+          break;
+
+        case 107:
+          opt_sample_pct = args_getdouble(optarg);
+          break;
+
+        case 108:
+          opt_fastq_chars = optarg;
+          break;
+
+        case 109:
+          opt_profile = optarg;
+          break;
+
+        case 110:
+          opt_sample_size = args_getlong(optarg);
+          break;
+          
+        case 111:
+          opt_fastaout = optarg;
+          break;
+
+        case 112:
+          opt_xsize = 1;
+          break;
+
+        case 113:
+          opt_clusterout_id = 1;
+          break;
+
+        case 114:
+          opt_clusterout_sort = 1;
+          break;
+
+        case 115:
+          opt_borderline = optarg;
+          break;
+
+        case 116:
+          opt_relabel_sha1 = 1;
+          break;
+
+        case 117:
+          opt_relabel_md5 = 1;
+          break;
+
+        case 118:
+          opt_derep_prefix = optarg;
+          break;
+
+        case 119:
+          opt_fastq_filter = optarg;
+          break;
+
+        case 120:
+          opt_fastqout = optarg;
+          break;
+
+        case 121:
+          opt_fastaout_discarded = optarg;
+          break;
+
+        case 122:
+          opt_fastqout_discarded = optarg;
+          break;
+
+        case 123:
+          opt_fastq_truncqual = args_getlong(optarg);
+          break;
+
+        case 124:
+          opt_fastq_maxee = args_getdouble(optarg);
+          break;
+
+        case 125:
+          opt_fastq_trunclen = args_getlong(optarg);
+          break;
+
+        case 126:
+          opt_fastq_minlen = args_getlong(optarg);
+          break;
+
+        case 127:
+          opt_fastq_stripleft = args_getlong(optarg);
+          break;
+
+        case 128:
+          opt_fastq_maxee_rate = args_getdouble(optarg);
+          break;
+
+        case 129:
+          opt_fastq_maxns = args_getlong(optarg);
+          break;
+
+        case 130:
+          opt_eeout = 1;
+          break;
+
+        case 131:
+          opt_fastq_ascii = args_getlong(optarg);
+          break;
+
+        case 132:
+          opt_fastq_qmin = args_getlong(optarg);
+          break;
+
+        case 133:
+          opt_fastq_qmax = args_getlong(optarg);
+          break;
+
+        case 134:
+          opt_fastq_qmaxout = args_getlong(optarg);
+          break;
+
+        case 135:
+          opt_fastq_stats = optarg;
+          break;
+
+        case 136:
+          opt_fastq_tail = args_getlong(optarg);
+          break;
+
+        case 137:
+          opt_fastx_revcomp = optarg;
+          break;
+
+        case 138:
+          opt_label_suffix = optarg;
+          break;
+
+        case 139:
+          opt_help = 1;
+          break;
+
+        case 140:
+          opt_samheader = 1;
+          break;
+
+        case 141:
+          opt_sizeorder = 1;
           break;
 
         default:
@@ -1195,10 +1388,22 @@ void args_init(int argc, char **argv)
         }
     }
 
+  /* Terminate if ambiguous or illegal options have been detected */
   if (c != -1)
     exit(EXIT_FAILURE);
 
+  /* Terminate after reporting any extra non-option arguments */
+  if (optind < argc)
+    fatal("Unrecognized string on command line (%s)", argv[optind]);
+
   int commands = 0;
+
+  if (opt_fastq_chars)
+    commands++;
+  if (opt_fastq_filter)
+    commands++;
+  if (opt_fastq_stats)
+    commands++;
   if (opt_usearch_global)
     commands++;
   if (opt_sortbysize)
@@ -1207,11 +1412,15 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_derep_fulllength)
     commands++;
+  if (opt_derep_prefix)
+    commands++;
   if (opt_help)
     commands++;
   if (opt_version)
     commands++;
   if (opt_shuffle)
+    commands++;
+  if (opt_fastx_subsample)
     commands++;
   if (opt_maskfasta)
     commands++;
@@ -1226,6 +1435,8 @@ void args_init(int argc, char **argv)
   if (opt_uchime_ref)
     commands++;
   if (opt_allpairs_global)
+    commands++;
+  if (opt_fastx_revcomp)
     commands++;
   
   if (commands > 1)
@@ -1280,6 +1491,19 @@ void args_init(int argc, char **argv)
   
   if (opt_dbmask == MASK_ERROR)
     fatal("The argument to --dbmask must be none, dust or soft");
+
+  if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0))
+    fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
+  
+  if (opt_sample_size < 0)
+    fatal("The argument to --sample_size must not be negative");
+
+  if (opt_relabel_sha1 && opt_relabel_md5)
+    fatal("Specify either --relabel_sha1 or --relabel_md5, not both");
+
+  if (opt_fastq_tail < 1)
+    fatal("The argument to --fastq_tail must be positive");
+
   
   /* TODO: check valid range of gap penalties */
 
@@ -1316,7 +1540,7 @@ void args_init(int argc, char **argv)
   if (opt_minseqlength == 0)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
-          opt_usearch_global || opt_derep_fulllength )
+          opt_usearch_global || opt_derep_fulllength || opt_derep_prefix )
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;
@@ -1338,7 +1562,7 @@ void cmd_help()
               "\n"
               "General options\n"
               "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
-              "  --help                      display help information\n"
+              "  --help | --h                display help information\n"
               "  --log FILENAME              write messages, timing and memory info to file\n"
               "  --maxseqlength INT          maximum sequence length (50000)\n"
               "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
@@ -1347,14 +1571,13 @@ void cmd_help()
               "  --threads INT               number of threads to use, zero for all cores (0)\n"
               "  --version                   display version information\n"
               "\n"
-              "Alignment options (most searching options also apply)\n"
-              "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
-              "  --alnout FILENAME           filename for human-readable alignment output\n"
-              "  --acceptall                 output all pairwise alignments\n"
-              "\n"
-              "Chimera detection options\n"
+              "Chimera detection\n"
+              "  --uchime_denovo FILENAME    detect chimeras de novo\n"
+              "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
+              "Options\n"
               "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
               "  --alignwidth INT            width of alignment in uchimealn output (80)\n"
+              "  --borderline FILENAME       output borderline chimeric sequences to file\n"
               "  --chimeras FILENAME         output chimeric sequences to file\n"
               "  --db FILENAME               reference database for --uchime_ref\n"
               "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
@@ -1362,53 +1585,101 @@ void cmd_help()
               "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
               "  --minh REAL                 minimum score (0.28)\n"
               "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
+              "  --relabel STRING            relabel nonchimeras with this prefix string\n"
+              "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --self                      exclude identical labels for --uchime_ref\n"
               "  --selfid                    exclude identical sequences for --uchime_ref\n"
-              "  --uchime_denovo FILENAME    detect chimeras de novo\n"
-              "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
+              "  --sizeout                   include abundance information when relabelling\n"
               "  --uchimealns FILENAME       output chimera alignments to file\n"
               "  --uchimeout FILENAME        output to chimera info to tab-separated file\n"
               "  --uchimeout5                make output compatible with uchime version 5\n"
               "  --xn REAL                   'no' vote weight (8.0)\n"
               "\n"
-              "Clustering options (most searching options also apply)\n"
-              "  --centroids FILENAME        output centroid sequences to FASTA file\n"
+              "Clustering\n"
               "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
               "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
               "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
+              "Options (most searching options also apply)\n"
+              "  --centroids FILENAME        output centroid sequences to FASTA file\n"
+              "  --clusterout_id             add cluster id info to consout and profile files\n"
+              "  --clusterout_sort           order msaout, consout, profile by decr abundance\n"
               "  --clusters STRING           output each cluster to a separate FASTA file\n"
               "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
               "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
+              "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
+              "  --relabel STRING            relabel centroids with this prefix string\n"
+              "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
+              "  --sizeorder                 Sort accepted centroids by abundance (AGC)\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
               "  --strand plus|both          cluster using plus or both strands (plus)\n"
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "  --usersort                  indicate sequences not presorted by length\n"
               "\n"
-              "Dereplication options\n"
+              "Dereplication\n"
               "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+              "  --derep_prefix FILENAME     dereplicate sequences in file based on prefixes\n"
+              "Options\n"
               "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
               "  --minuniquesize INT         minimum abundance for output from dereplication\n"
               "  --output FILENAME           output FASTA file\n"
+              "  --relabel STRING            relabel with this prefix string after derep.\n"
+              "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
               "  --sizeout                   write abundance annotation to output\n"
               "  --strand plus|both          dereplicate plus or both strands (plus)\n"
               "  --topn INT                  output just the n most abundant sequences\n"
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "\n"
-              "Masking options\n"
-              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "FASTA/FASTQ file processing\n"
+              "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
+              "  --fastq_filter FILENAME     Filter FASTQ file, output to FASTQ or FASTA file\n"
+              "  --fastq_stats FILENAME      Report FASTQ file statistics\n"
+              "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
+              "Options\n"
+              "  --eeout                     Include expected errors in FASTQ filter output\n"
+              "  --fastaout FILENAME         FASTA filename for passed seqs from FASTQ filter\n"
+              "  --fastaout_discarded FNAME  FASTA filename for discarded by FASTQ filter\n"
+              "  --fastq_ascii INT           ASCII char no for FASTQ quality base value (33)\n"
+              "  --fastq_maxee REAL          Maximum expected error value for FASTQ filter\n"
+              "  --fastq_maxee_rate REAL     Maximum expected error rate for FASTQ filter\n"
+              "  --fastq_maxns INT           Maximum number of N's for FASTQ filter\n"
+              "  --fastq_minlen INT          Minimum length for FASTQ filter\n"
+              "  --fastq_qmax INT            Maximum base quality value for FASTQ input (41)\n"
+              "  --fastq_qmaxout INT         Maximum base quality value for FASTQ output\n"
+              "  --fastq_qmin INT            Minimum base quality value for FASTQ input (0)\n"
+              "  --fastq_stripleft INT       Bases on the left to delete for FASTQ filter\n"
+              "  --fastq_tail INT            Length of tails of same quality score to count\n"
+              "  --fastq_trunclen INT        Read length for FASTQ filter truncation\n"
+              "  --fastq_truncqual INT       Base quality value for FASTQ filter truncation\n"
+              "  --fastqout FILENAME         FASTQ filename for passed seqs from FASTQ filter\n"
+              "  --fastqout_discarded FNAME  FASTQ filename for discarded by FASTQ filter\n"
+              "  --label_suffix STRING       Label to add to output for --fastx_revcomp\n"
+              "\n"
+              "Masking\n"
               "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
+              "Options\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --output FILENAME           output to specified FASTA file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "\n"
-              "Searching options\n"
+              "Pairwise alignment\n"
+              "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
+              "Options (most searching options also apply)\n"
               "  --alnout FILENAME           filename for human-readable alignment output\n"
-              "  --samout FILENAME           filename for SAM format output\n"
+              "  --acceptall                 output all pairwise alignments\n"
+              "\n"
+              "Searching\n"
+              "  --usearch_global FILENAME   filename of queries for global alignment search\n"
+              "Options\n"
+              "  --alnout FILENAME           filename for human-readable alignment output\n"
               "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
               "  --db FILENAME               filename for FASTA formatted database for search\n"
               "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
@@ -1446,40 +1717,57 @@ void cmd_help()
               "  --mismatch INT              score for mismatch (-4)\n"
               "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
               "  --output_no_hits            output non-matching queries to output files\n"
+              "  --pattern STRING            option is ignored\n"
               "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
               "  --query_cov REAL            reject if fraction of query seq. aligned lower\n"
               "  --rightjust                 reject if terminal gaps at alignment right end\n"
               "  --rowlen INT                width of alignment lines in alnout output (64)\n"
+              "  --samheader                 include a header in the SAM output file\n"
+              "  --samout FILENAME           filename for SAM format output\n"
               "  --self                      reject if labels identical\n"
               "  --selfid                    reject if sequences identical\n"
               "  --sizeout                   write abundance annotation to dbmatched file\n"
+              "  --slots INT                 option is ignored\n"
               "  --strand plus|both          search plus or both strands (plus)\n"
               "  --target_cov REAL           reject if fraction of target seq. aligned lower\n"
               "  --top_hits_only             output only hits with identity equal to the best\n"
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "  --uc_allhits                show all, not just top hit with uc output\n"
-              "  --usearch_global FILENAME   filename of queries for global alignment search\n"
               "  --userfields STRING         fields to output in userout file\n"
               "  --userout FILENAME          filename for user-defined tab-separated output\n"
               "  --weak_id REAL              include aligned hits with >= id; continue search\n"
               "  --wordlength INT            length of words for database index 3-15 (8)\n"
               "\n"
-              "Shuffling options\n"
+              "Shuffling\n"
+              "  --shuffle FILENAME          shuffle order of sequences in FASTA file randomly\n"
+              "Options\n"
               "  --output FILENAME           output to specified FASTA file\n"
-              "  --seed INT                  seed for PRNG, zero to use random data source (0)\n"
-              "  --shuffle FILENAME          shuffle order of sequences pseudo-randomly\n"
+              "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
               "  --topn INT                  output just first n sequences\n"
               "\n"
-              "Sorting options\n"
+              "Sorting\n"
+              "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
+              "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
+              "Options\n"
               "  --maxsize INT               maximum abundance for sortbysize\n"
               "  --minsize INT               minimum abundance for sortbysize\n"
               "  --output FILENAME           output FASTA file\n"
               "  --relabel STRING            relabel with this prefix string after sorting\n"
-              "  --sizeout                   add abundance to output when relabelling\n"
-              "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n"
-              "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n"
+              "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
+              "  --sizeout                   include abundance information when relabelling\n"
               "  --topn INT                  output just top n seqs after sorting\n"
               "\n"
+              "Subsampling\n"
+              "  --fastx_subsample FILENAME  subsample sequences from given FASTA file\n"
+              "Options\n"
+              "  --fastaout FILENAME         output FASTA file for subsamples\n"
+              "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
+              "  --sample_pct REAL           sampling percentage between 0.0 and 100.0\n"
+              "  --sample_size INT           sampling size\n"
+              "  --sizein                    consider abundance info from input, do not ignore\n"
+              "  --sizeout                   update abundance information in output\n"
+              "  --xsize                     strip abundance information in output\n"
           );
     }
 }
@@ -1490,7 +1778,8 @@ void cmd_allpairs_global()
 
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched))
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_samout))
     fatal("No output files specified");
   
   if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0)))) 
@@ -1535,12 +1824,20 @@ void cmd_sortbylength()
   sortbylength();
 }
 
-void cmd_derep_fulllength()
+void cmd_derep()
 {
   if ((!opt_output) && (!opt_uc))
     fatal("Output file for derepl_fulllength must be specified with --output or --uc");
   
-  derep_fulllength();
+  if (opt_derep_fulllength)
+    derep_fulllength();
+  else
+    {
+      if (opt_strand > 1)
+        fatal("Option '--strand both' not supported with --derep_prefix");
+      else
+        derep_prefix();
+    }
 }
 
 void cmd_shuffle()
@@ -1549,6 +1846,17 @@ void cmd_shuffle()
     fatal("Output file for shuffling must be specified with --output");
   
   shuffle();
+}
+
+void cmd_subsample()
+{
+  if (!opt_fastaout)
+    fatal("Output file for subsampling must be specified with --fastaout");
+
+  if ((opt_sample_pct > 0) && (opt_sample_size > 0))
+    fatal("Specify either --sample_pct or --sample_size, not both");
+
+  subsample();
 }
 
 void cmd_maskfasta()
@@ -1585,13 +1893,22 @@ void cmd_none()
             progname);
 }
 
+void cmd_fastx_revcomp()
+{
+  if ((!opt_fastaout) && (!opt_fastqout))
+    fatal("No output files specified");
+  
+  fastx_revcomp();
+}
+
 void cmd_cluster()
 {
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_centroids) && (!opt_clusters) &&
-      (!opt_consout) && (!opt_msaout))
+      (!opt_consout) && (!opt_msaout) &&
+      (!opt_samout) && (!opt_profile))
     fatal("No output files specified");
   
   if ((opt_id < 0.0) || (opt_id > 1.0))
@@ -1635,10 +1952,18 @@ void cmd_uchime()
   chimera();
 }
 
+void cmd_fastq_filter()
+{
+  if ((!opt_fastqout) && (!opt_fastaout) &&
+      (!opt_fastqout_discarded) && (!opt_fastaout_discarded))
+    fatal("No output files specified");
+  fastq_filter();
+}
+
 void fillheader()
 {
   snprintf(progheader, 80, 
-           "%s %s_%s, %.1fGB RAM, %ld cores",
+           "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
            sysconf(_SC_NPROCESSORS_ONLN));
@@ -1686,9 +2011,13 @@ int main(int argc, char** argv)
         fatal("Unable to open log file for writing");
       fprintf(fp_log, "%s\n", progheader);
       fprintf(fp_log, "%s\n", cmdline);
+
       char time_string[26];
       time_start = time(0);
-      fprintf(fp_log, "Started %s", ctime_r(&time_start, time_string));
+      struct tm tm_start;
+      localtime_r(& time_start, & tm_start);
+      strftime(time_string, 26, "%c", & tm_start);
+      fprintf(fp_log, "Started  %s", time_string);
     }
 
   show_header();
@@ -1697,60 +2026,54 @@ int main(int argc, char** argv)
     fatal("Sorry, this program requires a cpu with SSE2.");
 
   if (opt_help)
-    {
-      cmd_help();
-    }
+    cmd_help();
   else if (opt_allpairs_global)
-    {
-      cmd_allpairs_global();
-    }
+    cmd_allpairs_global();
   else if (opt_usearch_global)
-    {
-      cmd_usearch_global();
-    }
+    cmd_usearch_global();
   else if (opt_sortbysize)
-    {
-      cmd_sortbysize();
-    }
+    cmd_sortbysize();
   else if (opt_sortbylength)
-    {
-      cmd_sortbylength();
-    }
-  else if (opt_derep_fulllength)
-    {
-      cmd_derep_fulllength();
-    }
+    cmd_sortbylength();
+  else if (opt_derep_fulllength || opt_derep_prefix)
+    cmd_derep();
   else if (opt_shuffle)
-    {
-      cmd_shuffle();
-    }
+    cmd_shuffle();
+  else if (opt_fastx_subsample)
+    cmd_subsample();
   else if (opt_maskfasta)
-    {
-      cmd_maskfasta();
-    }
+    cmd_maskfasta();
   else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size)
-    {
-      cmd_cluster();
-    }
+    cmd_cluster();
   else if (opt_uchime_denovo || opt_uchime_ref)
-    {
-      cmd_uchime();
-    }
+    cmd_uchime();
+  else if (opt_fastq_chars)
+    fastq_chars();
+  else if (opt_fastq_stats)
+    fastq_stats();
+  else if (opt_fastq_filter)
+    cmd_fastq_filter();
+  else if (opt_fastx_revcomp)
+    cmd_fastx_revcomp();
   else if (opt_version)
     {
     }
   else
-    {
-      cmd_none();
-    }
+    cmd_none();
   
   if (opt_log)
     {
+
       time_finish = time(0);
+      struct tm tm_finish;
+      localtime_r(& time_finish, & tm_finish);
       char time_string[26];
+      strftime(time_string, 26, "%c", & tm_finish);
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "Finished %s", ctime_r(&time_finish, time_string));
+      fprintf(fp_log, "Finished %s", time_string);
+
       time_t time_diff = time_finish - time_start;
+      fprintf(fp_log, "\n");
       fprintf(fp_log, "Elapsed time %02lu:%02lu\n", 
               time_diff / 60, time_diff % 60);
       double maxmem = arch_get_memused() / 1048576.0;

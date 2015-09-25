@@ -30,32 +30,65 @@ If you can't find an answer in the VSEARCH documentation, please visit the [VSEA
 
 In the example below, VSEARCH will identify sequences in the file database.fsa that are at least 90% identical on the plus strand to the query sequences in the file queries.fsa and write the results to the file alnout.txt.
 
-`./vsearch-1.1.3-linux-x86_64 --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
+`./vsearch --usearch_global queries.fsa --db database.fsa --id 0.9 --alnout alnout.txt`
 
 ## Download and install
 
-**binaries** The latest VSEARCH binaries are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
+**Source distribution** To download the source distribution (not yet available) from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation using Autotools, use the following commands:
+```
+wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z.tar.gz
+tar xzf vsearch-x.y.z.tar.gz
+cd vsearch-x.y.z
+./autogen.sh
+./configure
+make
+make install  # as root or sudo make install
+```
+
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all.
+
+**Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
+
+```
+git clone git@github.com:torognes/vsearch.git
+cd vsearch
+git checkout summer
+./autogen.sh
+./configure
+make
+make install  # as root or sudo make install
+```
+
+**Binary distribution** Starting with version 1.3.x, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
+
+```sh
+wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z-linux-x86_64.tar.gz
+tar xzf vsearch-1.3.x-linux-x86_64.tar.gz
+```
+
+Or these commands if you are using a Mac:
+
+```sh
+wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z-osx-x86_64.tar.gz
+tar xzf vsearch-1.3.x-osx-x86_64.tar.gz
+```
+
+You will now have the binary distribution in a folder called something like `vsearch-x.y.z-os-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
+
+
+**Binaries** The latest VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
 
 ```sh
 cd ~
 mkdir -p bin
-cd ./bin/
+cd bin
 wget https://github.com/torognes/vsearch/releases/download/v1.1.3/vsearch-1.1.3-linux-x86_64
+chmod a+x vsearch-1.1.3-linux-x86_64
 ln -s vsearch-1.1.3-linux-x86_64 vsearch
 ```
 
-**source code** Use the following commands to clone the entire repository and build the executable:
 
-```sh
-git clone https://github.com/torognes/vsearch.git
-cd ./vsearch/src/
-make -f Makefile
-cd ../bin/
-```
-
-The alternative makefiles `Makefile.ZLIB`, `Makefile.BZLIB` and `Makefile.static` may be used to include support for compressed input files using zlib, bzip2 or both. The first two alternatives uses dynamic linking to the compression libraries, while the third uses static linking. The compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) must be downloaded and installed in folders called `zlib` and/or `bzip2`, respectively, below the main `vsearch` folder.
-
-**documentation** The VSEARCH user's manual is available in the `doc` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1) and a [pdf ](https://github.com/torognes/vsearch/blob/master/doc/vsearch_manual.pdf). To install the manpage, copy `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`.
+**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/doc/vsearch.1). A pdf version (vsearch_manual.pdf) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`.
 
 **Galaxy wrapper** Thanks to the work of the [Intergalactic Utilities Commission](https://wiki.galaxyproject.org/IUC) members, vsearch is now part of the [Galaxy ToolShed](https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/).
 
@@ -117,159 +150,21 @@ The width of FASTA formatted output files may be specified with the `--fasta_wid
 
 VSEARCH implements the old USEARCH option `--iddef` to specify the definition of identity used to rank the hits. Values accepted are 0 (CD-HIT definition using shortest sequence as numerator), 1 (edit distance), 2 (edit distance excluding terminal gaps, default), 3 (Marine Biological Lab definition where entire gaps are considered a single difference) or 4 (BLAST, same as 2). See the [USEARCH User Guide 4.1](http://drive5.com/usearch/UsearchUserGuide4.1.pdf) page 42-44 for details. Also `id0`, `id1`, `id2`, `id3` and `id4`  are accepted as arguments to the `--userfields` option.
 
-**Command line options:** The options currently supported by VSEARCH are indicated below. Please run VSEARCH with the `--help` option to see more information about the options.
 
+## Dependencies
 
-## Command line options supported
+Compiling VSEARCH requires the following libraries:
 
-General options:
+* libcrypto (CommonCrypto for Mac / OpenSSL for Linux)
+* libz >=1.2.4 (zlib) (optional)
+* libbz2 >=1.0.0 (bzip2lib) (optional)
 
-* `--help`
-* `--version`
-* `--fasta_width <int>` (Default 80)
-* `--maxseqlength <int>` (Default 50000)
-* `--minseqlength <int>` (Default 1 for sort/shuffle or 32 for search/dereplicate)
-* `--notrunclabels`
-* `--threads <int>` (Default 0 means all available cores)
-* `--quiet`
-* `--log <filename>`
-
-Chimera detection options:
-
-* `--abskew <real>` (Default 2.0)
-* `--alignwidth <int>` (Default 60)
-* `--chimeras <filename>`
-* `--db <filename>`
-* `--dn <real>` (Default 1.4)
-* `--mindiffs <int>` (Default 3)
-* `--mindiv <real>` (Default 0.8)
-* `--minh <real>` (Default 0.28)
-* `--nonchimeras <filename>`
-* `--self`
-* `--selfid`
-* `--uchime_denovo <filename>`
-* `--uchime_ref <filename>`
-* `--uchimealns <filename>`
-* `--uchimeout <filename>`
-* `--uchimeout5`
-* `--xn <real>` (Default 8.0)
-
-Clustering options (most searching options also apply):
-
-* `--centroids <filename>`
-* `--cluster_fast <filename>`
-* `--cluster_size <filename>`
-* `--cluster_smallmem <filename>`
-* `--clusters <prefix>`
-* `--consout <filename>`
-* `--cons_truncate` (Ignored - Not implemented yet)
-* `--id <real>` (Required)
-* `--iddef <int>` (Default 2)
-* `--msaout <filename>`
-* `--qmask dust|none|soft` (Default dust)
-* `--sizein`
-* `--sizeout`
-* `--strand <plus|both>` (Default plus)
-* `--uc <filename>`
-* `--usersort`
-
-Dereplication options:
-
-* `--derep_fulllength <filename>`
-* `--sortbylength <filename>`
-* `--sortbysize <filename>`
-* `--maxsize <int>` (Default inf.)
-* `--minsize <int>` (Default 0)
-* `--minuniquesize <int>` (Default 1)
-* `--output <filename>`
-* `--relabel`
-* `--sizein`
-* `--sizeout`
-* `--topn <int>` (Default all)
-
-Masking options:
-
-* `--hardmask`
-* `--maskfasta <filename>`
-* `--output_no_hits`
-* `--qmask dust|none|soft` (Default dust)
-
-Pairwise alignment options (most searching options also apply):
-
-*  `--allpairs_global <filename>`
-*  `--acceptall`
-
-Searching options:
-
-* `--alnout <filename>`
-* `--blast6out <filename>`
-* `--db <filename>` (Required)
-* `--dbmask dust|none|soft` (Default dust)
-* `--dbmatched <filename>`
-* `--dbnotmatched <filename>`
-* `--fastapairs <filename>`
-* `--fulldp` (Ignored; VSEARCH always computes full dynamic programming alignments)
-* `--gapext <string>` (Default 2I/1E)
-* `--gapopen <string>` (Default 20I/2E)
-* `--hardmask`
-* `--id <real>` (Required)
-* `--iddef <int>` (Default 2)
-* `--idprefix <int>`
-* `--idsuffix <int>`
-* `--leftjust`
-* `--match <int>` (Default 2)
-* `--matched <filename>`
-* `--maxaccepts <int>` (Default 1)
-* `--maxdiffs <int>`
-* `--maxgaps <int>`
-* `--maxhits`
-* `--maxid <real>`
-* `--maxqsize <int>`
-* `--maxqt <real>`
-* `--maxrejects <int>` (Default 32)
-* `--maxsizeratio <real>`
-* `--maxsl <real>`
-* `--maxsubs <int>`
-* `--mid <real>`
-* `--mincols <int>`
-* `--minqt <real>`
-* `--minsizeratio <real>`
-* `--minsl <real>`
-* `--mintsize <int>`
-* `--mismatch <int>` (Default -4)
-* `--notmatched <filename>`
-* `--output_no_hits`
-* `--pattern <string>` (Ignored)
-* `--qmask dust|none|soft` (Default dust)
-* `--query_cov <real>`
-* `--rightjust`
-* `--rowlen <int>` (Default 60)
-* `--samout <filename>`
-* `--self`
-* `--selfid`
-* `--sizeout`
-* `--slots <int>` (Ignored)
-* `--strand <plus|both>` (Default plus)
-* `--target_cov <real>`
-* `--top_hits_only`
-* `--uc <filename>`
-* `--uc_allhits`
-* `--usearch_global <filename>`
-* `--userfields <string>`
-* `--userout <filename>`
-* `--weak_id <real>`
-* `--wordlength <int>` (Default 8)
-
-Shuffling options:
-* `--output <filename>`
-* `--shuffle <filename>`
-* `--seed <int>` (Default 0=randomize)
-* `--topn <int>` (Default all)
+The crypto libraries are used for generation of MD5 or SHA1 sequence hashes for sequence relabelling. The optional zlib and bzip2lib libraries are used for reading compressed FASTA and FASTQ input files.
 
 
 ## VSEARCH license and third party licenses
 
-The VSEARCH code is licensed under the GNU Affero General Public License version 3.
+The VSEARCH code is dual-licensed either under the GNU General Public License version 3 or under the BSD 2-clause license. Please see LICENSE.txt for details.
 
 VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
 
@@ -286,6 +181,7 @@ The code is written in C++ but most of it is actually mostly C with some C++ syn
 
 File | Description
 ---|---
+**abundance.cc** | Code for extracting and printing abundance information from FASTA headers
 **align.cc** | New Needleman-Wunsch global alignment, serial. Only for testing.
 **align_simd.cc** | SIMD parallel global alignment of 1 query with 8 database sequences
 **allpairs.cc** | All-vs-all optimal global pairwise alignment (no heuristics)
@@ -297,12 +193,15 @@ File | Description
 **db.cc** | Handles the database file read, access etc
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
+**fasta.cc** | FASTA file parser
+**fastq.cc** | FASTQ file parser
+**fastqops.cc** | Basic FASTQ file statistics etc
+**fastxdetect.cc** | Detection of FASTA and FASTQ files
 **linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
-**query.cc** | Reads the fasta file containing the query sequences.
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
@@ -310,18 +209,19 @@ File | Description
 **shuffle.cc** | Shuffle sequences
 **sortbylength.cc** | Code for sorting by length
 **sortbysize.cc** | Code for sorting by size (abundance)
-**string.h** | Code for a simple string class
+**subsample.cc** | Subsampling reads from a FASTA file
 **unique.cc** | Find unique kmers in a sequence
 **userfields.cc** | Code for parsing the userfields option argument
 **util.cc** | Various common utility functions
 **vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
+**xstring.h** | Code for a simple string class
 
 VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
 
 
 ## Bugs
 
-VSEARCH has not been tested comprehensively yet. All bug reports are highly appreciated.
+All bug reports are highly appreciated.
 You may submit a bug report here on GitHub as an [issue](https://github.com/torognes/vsearch/issues),
 you could post a message on the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum)
 or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?subject=bug_in_vsearch).
@@ -339,19 +239,18 @@ Some issues to work on:
 * testing and debugging
 * performance evaluation
 * heuristics for alignment of long sequences (e.g. banded alignment around selected diagonals)?
-* intra-sequence SIMD parallelization (using the striped approach (Farrar 2007) or the plain vertical approach (Rognes & Seeberg 2000))
 
 
 ## The VSEARCH team
 
 The main contributors to VSEARCH:
 
-* Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
-* Umer Zeeshan Ijaz <umer.ijaz@glasgow.ac.uk> (Feature suggestions)
-* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, feature suggestions)
-* Ben Nichols <b.nichols.1@research.gla.ac.uk> (Evaluation)
-* Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
 * Torbj&oslash;rn Rognes <torognes@ifi.uio.no> (Coding, testing, documentation, evaluation)
+* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, feature suggestions)
+* Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
+* Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
+* Ben Nichols <b.nichols.1@research.gla.ac.uk> (Evaluation)
+* Umer Zeeshan Ijaz <umer.ijaz@glasgow.ac.uk> (Feature suggestions)
 
 
 ## Acknowledgements

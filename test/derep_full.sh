@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-INPUT=../data/PR2-18S-rRNA-V4.fsa
-#INPUT=../data/Rfam_9_1.fasta
+INPUT=../../vsearch-data/PR2-18S-rRNA-V4.fsa
+#INPUT=../../vsearch-data/Rfam_9_1.fasta
 
 THREADS=0
 
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 USEARCH=$(which usearch)
 
 OUTDIR=.

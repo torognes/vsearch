@@ -1,18 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 
 P=$1
 
-Q=../data/Rfam_9_1.fasta
-DB=../data/Rfam_9_1.fasta
-#Q=../data/BioMarKs50k.fsa
-#DB=../data/BioMarKs50k.fsa
+Q=../../vsearch-data/Rfam_9_1.fasta
+DB=../../vsearch-data/Rfam_9_1.fasta
+#Q=../../vsearch-data/BioMarKs50k.fsa
+#DB=../../vsearch-data/BioMarKs50k.fsa
 T=0
 ID=0.5
 MA=1
 MR=32
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH

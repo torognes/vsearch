@@ -6,7 +6,7 @@ THREADS=0
 
 UCHIME=$(which uchime)
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 echo Evaluation of uchime_ref
 

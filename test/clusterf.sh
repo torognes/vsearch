@@ -1,15 +1,15 @@
-#!/bin/sh
+#!/bin/bash
 
 P=$1
 
-#INPUT=../data/Rfam_9_1.fasta
-#INPUT=../data/AF091148.fsa
-INPUT=../data/BioMarKs50k.fsa
+#INPUT=../../vsearch-data/Rfam_9_1.fasta
+#INPUT=../../vsearch-data/AF091148.fsa
+INPUT=../../vsearch-data/BioMarKs50k.fsa
 
 THREADS=0
 
 USEARCH=$(which usearch)
-VSEARCH=../src/vsearch
+VSEARCH=../bin/vsearch
 
 if [ "$P" == "u" ]; then
     PROG=$USEARCH

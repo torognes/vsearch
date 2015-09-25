@@ -1,33 +1,70 @@
 /*
-    Copyright (C) 2014-2015 Torbjorn Rognes
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
-    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-    Department of Informatics, University of Oslo,
-    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
 
 /* Compute consensus sequence and msa of clustered sequences */
 
-char * aln;
-int alnpos;
-int * profile;
-
-#define DENOMINATOR 12
+static char * aln;
+static int alnpos;
+static int * profile;
 
 void msa_add(char c)
 {
@@ -103,9 +140,10 @@ void msa_add(char c)
   aln[alnpos++] = c;
 }
 
-void msa(FILE * fp_msaout, FILE * fp_consout,
+void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
-         int target_count, struct msa_target_s * target_list)
+         int target_count, struct msa_target_s * target_list,
+         long totalabundance, abundance_t * abundance_handle)
 {
   int centroid_seqno = target_list[0].seqno;
   int centroid_len = db_getsequencelen(centroid_seqno);
@@ -190,7 +228,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
         {
           for(int x=0; x < centroid_len; x++)
             {
-              for(int x=0; x < maxi[qpos]; x++)
+              for(int y=0; y < maxi[qpos]; y++)
                 msa_add('-');
               msa_add(target_seq[tpos++]);
               qpos++;
@@ -224,7 +262,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
                   for(int x=0; x < run; x++)
                     {
                       if (!inserted)
-                        for(int x=0; x < maxi[qpos]; x++)
+                        for(int y=0; y < maxi[qpos]; y++)
                           msa_add('-');
                       
                       if (op == 'M')
@@ -262,51 +300,135 @@ void msa(FILE * fp_msaout, FILE * fp_consout,
 
   int conslen = 0;
 
+  /* Censor part of the consensus sequence outside the centroid sequence */
+
+  int left_censored = maxi[0];
+  int right_censored = maxi[centroid_len];
+
   for(int i=0; i<alnlen; i++)
     {
-      /* find most common symbol */
-      char best_sym = 0;
-      int best_count = -1;
-      int nongap_count = 0;
-      for(int c=0; c<4; c++)
+      if ((i < left_censored) || (i >= alnlen - right_censored))
         {
-          int count = profile[4*i+c];
-          if (count > best_count)
-            {
-              best_count = count;
-              best_sym = c;
-            }
-          nongap_count += count;
+          aln[i] = '+';
         }
-
-      if (nongap_count >= 6 * target_count)
-        {
-          char sym = sym_nt_2bit[(int)best_sym];
-          aln[i] = sym;
-          cons[conslen++] = sym;
-        }  
       else
-        aln[i] = '-';
+        {
+          /* find most common symbol */
+          char best_sym = 0;
+          int best_count = -1;
+          int nongap_count = 0;
+          for(int c=0; c<4; c++)
+            {
+              int count = profile[4*i+c];
+              if (count > best_count)
+                {
+                  best_count = count;
+                  best_sym = c;
+                }
+              nongap_count += count;
+            }
+
+          int gap_count = 12 * target_count - nongap_count;
+
+          if (best_count >= gap_count)
+            {
+              char sym = sym_nt_2bit[(int)best_sym];
+              aln[i] = sym;
+              cons[conslen++] = sym;
+            }
+          else
+            aln[i] = '-';
+        }
     }
 
   aln[alnlen] = 0;
   cons[conslen] = 0;
 
-  char cons_hdr[] = "consensus";
-
   if (fp_msaout)
     {
-      fprint_fasta_hdr_only(fp_msaout, cons_hdr);
+      fprint_fasta_hdr_only(fp_msaout, "consensus");
       fprint_fasta_seq_only(fp_msaout, aln, alnlen, opt_fasta_width);
     }
 
   if (fp_consout)
     {
-      fprintf(fp_consout, ">centroid=%s;seqs=%d;\n",
-              db_getheader(centroid_seqno), target_count);
+      if (opt_sizeout)
+        {
+          /* must remove old size info first */
+          char * header_wo_size 
+            = abundance_strip_size(abundance_handle,
+                                   db_getheader(centroid_seqno), 
+                                   db_getheaderlen(centroid_seqno));
+          fprintf(fp_consout,
+                  ">centroid=%s;seqs=%d;size=%ld;",
+                  header_wo_size,
+                  target_count,
+                  totalabundance);
+          free(header_wo_size);
+        }
+      else
+          fprintf(fp_consout,
+                  ">centroid=%s;seqs=%d;",
+                  db_getheader(centroid_seqno),
+                  target_count);
+
+      if (opt_clusterout_id)
+        fprintf(fp_consout, "clusterid=%d;", cluster);
+
+      fprintf(fp_consout, "\n");
+
       fprint_fasta_seq_only(fp_consout, cons, conslen, opt_fasta_width);
     }
   
+  if (fp_profile)
+    {
+      /* must remove old size info first */
+      if (opt_sizeout)
+        {
+          char * header_wo_size 
+            = abundance_strip_size(abundance_handle,
+                                   db_getheader(centroid_seqno), 
+                                   db_getheaderlen(centroid_seqno));
+          fprintf(fp_profile,
+                  ">centroid=%s;seqs=%d;size=%ld;",
+                  header_wo_size, 
+                  target_count,
+                  totalabundance);
+          free(header_wo_size);
+        }
+      else
+        fprintf(fp_profile,
+                ">centroid=%s;seqs=%d;",
+                db_getheader(centroid_seqno),
+                target_count);
+
+      if (opt_clusterout_id)
+        fprintf(fp_profile, "clusterid=%d;", cluster);
+
+      fprintf(fp_profile, "\n");
+
+      for (int i=0; i<alnlen; i++)
+        {
+          fprintf(fp_profile, "%d\t%c", i, aln[i]);
+          int nongap_count = 0;
+          for (int c=0; c<4; c++)
+            {
+              int count = profile[4*i+c];
+              nongap_count += count;
+              if (count % 12 == 0)
+                fprintf(fp_profile, "\t%d", count / 12);
+              else
+                fprintf(fp_profile, "\t%.2f", 1.0 * count / 12.0);
+            }
+          if (nongap_count % 12 == 0)
+            fprintf(fp_profile, "\t%d", target_count - nongap_count / 12);
+          else
+            fprintf(fp_profile, "\t%.2f", 1.0 * target_count - 1.0 * nongap_count / 12.0);
+          fprintf(fp_profile, "\n");
+        }
+      fprintf(fp_profile, "\n");
+    }
+
   free(maxi);
   free(aln);
   free(cons);

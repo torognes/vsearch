@@ -1,22 +1,61 @@
 /*
-  Copyright (C) 2014-2015 Torbjorn Rognes
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
   Department of Informatics, University of Oslo,
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
+
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
@@ -35,10 +74,12 @@
 const int parts = 4;
 const int few = 1;
 const int maxcandidates = few * parts;
-const int rejects = 32;
+const int rejects = 64;
+const double chimera_id = 0.55;
 static int tophits;
 static pthread_attr_t attr;
 static pthread_t * pthread;
+static fasta_handle query_fasta_h;
 
 /* mutexes and global data protected by mutex */
 static pthread_mutex_t mutex_input;
@@ -51,6 +92,10 @@ static FILE * fp_chimeras = 0;
 static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
 static FILE * fp_uchimeout = 0;
+static FILE * fp_borderline = 0;
+
+#define ALT
+//#define ALT2
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -272,10 +317,7 @@ int find_best_parents(struct chimera_info_s * ci)
             {
               for(int i = qpos + 1 - window; i <= qpos; i++)
                 for(int j = 0; j < ci->cand_count; j++)
-                  {
-                    int z = j * ci->query_len + i;
-                    ci->match[z] = 0;
-                  }
+                  ci->match[j * ci->query_len + i] = 0;
             }
         }
 
@@ -384,17 +426,17 @@ int eval_parents(struct chimera_info_s * ci)
 
   /* fill in alignment string for query */
 
-  char * p = ci->qaln;
+  char * q = ci->qaln;
   int qpos = 0;
   for (int i=0; i < ci->query_len; i++)
     {
       for (int j=0; j < ci->maxi[i]; j++)
-        *p++ = '-';
-      *p++ = ci->query_seq[qpos++];
+        *q++ = '-';
+      *q++ = ci->query_seq[qpos++];
     }
   for (int j=0; j < ci->maxi[ci->query_len]; j++)
-    *p++ = '-';
-  *p = 0;
+    *q++ = '-';
+  *q = 0;
   
   /* fill in alignment strings for the 2 parents */
 
@@ -405,7 +447,7 @@ int eval_parents(struct chimera_info_s * ci)
       char * target_seq = db_getsequence(target_seqno);
       
       int inserted = 0;
-      int qpos = 0;
+      qpos = 0;
       int tpos = 0;
 
       char * t = ci->paln[j];
@@ -436,7 +478,7 @@ int eval_parents(struct chimera_info_s * ci)
               for(int x=0; x < run; x++)
                 {
                   if (!inserted)
-                    for(int x=0; x < ci->maxi[qpos]; x++)
+                    for(int y=0; y < ci->maxi[qpos]; y++)
                       *t++ = '-';
                       
                   if (op == 'M')
@@ -1070,19 +1112,20 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       if (opt_uchime_ref)
         {
-          char * query_seq;
-          char * query_head;
-
-          if (query_getnext(& query_head, & ci->query_head_len,
-                            & query_seq, & ci->query_len, & ci->query_no,
-                            & ci->query_size, 1))
+          if (fasta_next(query_fasta_h, ! opt_notrunclabels,
+                         chrmap_upcase))
             {
+              ci->query_head_len = fasta_get_header_length(query_fasta_h);
+              ci->query_len = fasta_get_sequence_length(query_fasta_h);
+              ci->query_no = fasta_get_seqno(query_fasta_h);
+              ci->query_size = fasta_get_abundance(query_fasta_h);
+
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
 
               /* copy the data locally (query seq, head) */
-              strcpy(ci->query_head, query_head);
-              strcpy(ci->query_seq, query_seq);
+              strcpy(ci->query_head, fasta_get_header(query_fasta_h));
+              strcpy(ci->query_seq, fasta_get_sequence(query_fasta_h));
             }
           else
             {
@@ -1244,6 +1287,22 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
               fprint_fasta_seq_only(fp_chimeras, ci->query_seq,
                                     ci->query_len, opt_fasta_width);
             }
+
+
+#ifdef ALT2
+          if (opt_uchime_denovo)
+            dbindex_addsequence(seqno);
+#endif
+        }
+
+      if (status == 3)
+        {
+          if (opt_borderline)
+            {
+              fprint_fasta_hdr_only(fp_borderline, ci->query_head);
+              fprint_fasta_seq_only(fp_borderline, ci->query_seq,
+                                    ci->query_len, opt_fasta_width);
+            }
         }
 
       if (status < 3)
@@ -1265,13 +1324,46 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                         ci->query_head);
             }
           
+#ifndef ALT
           /* uchime_denovo: add non-chimeras to db */
           if (opt_uchime_denovo)
             dbindex_addsequence(seqno);
+#endif
 
           if (opt_nonchimeras)
             {
-              fprint_fasta_hdr_only(fp_nonchimeras, ci->query_head);
+              int size = ci->query_size;
+
+              if (opt_relabel_sha1 || opt_relabel_md5)
+                {
+                  char * seq = ci->query_seq;
+                  int len = ci->query_len;
+
+                  fprintf(fp_nonchimeras, ">");
+
+                  if (opt_relabel_sha1)
+                    fprint_seq_digest_sha1(fp_nonchimeras, seq, len);
+                  else
+                    fprint_seq_digest_md5(fp_nonchimeras, seq, len);
+
+                  if (opt_sizeout)
+                    fprintf(fp_nonchimeras, ";size=%d;\n", size);
+                  else
+                    fprintf(fp_nonchimeras, "\n");
+
+                }
+              else if (opt_relabel)
+                {
+                  if (opt_sizeout)
+                    fprintf(fp_nonchimeras, ">%s%d;size=%d;\n", 
+                            opt_relabel, nonchimera_count, size);
+                  else
+                    fprintf(fp_nonchimeras, ">%s%d\n", 
+                            opt_relabel, nonchimera_count);
+                }
+              else
+                fprintf(fp_nonchimeras, ">%s\n", ci->query_head);
+
               fprint_fasta_seq_only(fp_nonchimeras, ci->query_seq,
                                     ci->query_len, opt_fasta_width);
             }
@@ -1282,7 +1374,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
           free(ci->nwcigar[i]);
 
       if (opt_uchime_ref)
-        progress = query_getfilepos();
+        progress = fasta_get_position(query_fasta_h);
       else
         progress += db_getsequencelen(seqno);
 
@@ -1357,12 +1449,15 @@ void chimera()
   open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
   open_chimera_file(&fp_uchimealns, opt_uchimealns);
   open_chimera_file(&fp_uchimeout, opt_uchimeout);
+  open_chimera_file(&fp_borderline, opt_borderline);
 
   /* override any options the user might have set */
   opt_maxaccepts = few;
   opt_maxrejects = rejects;
-  opt_id = 0.75;
+  opt_id = chimera_id;
   opt_strand = 1;
+  opt_self = 1;
+  opt_selfid = 1;
 
   if (opt_uchime_denovo)
     opt_threads = 1;
@@ -1393,14 +1488,19 @@ void chimera()
       db_read(opt_db, 1);
       dbindex_prepare(1);
       dbindex_addallsequences();
-      query_open(opt_uchime_ref);
-      progress_total = query_getfilesize();
+      query_fasta_h = fasta_open(opt_uchime_ref);
+      progress_total = fasta_get_size(query_fasta_h);
     }
   else
     {
       db_read(opt_uchime_denovo, 1);
+#ifndef ALT
       db_sortbyabundance();
+#endif
       dbindex_prepare(1);
+#ifdef ALT
+      dbindex_addallsequences();
+#endif
       progress_total = db_getnucleotidecount();
     }
 
@@ -1426,7 +1526,7 @@ void chimera()
   if (!opt_quiet)
     fprintf(stderr,
             "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
-            "and %d (%.1f%%) suspicious candidates in %d sequences.\n",
+            "and %d (%.1f%%) suspicious candidates in %u sequences.\n",
             chimera_count,
             100.0 * chimera_count / seqno,
             nonchimera_count,
@@ -1441,7 +1541,7 @@ void chimera()
         fprintf(fp_log, "%s", opt_uchime_ref);
       else
         fprintf(fp_log, "%s", opt_uchime_denovo);
-      fprintf(fp_log, ": %d/%d chimeras (%.1f%%)\n",
+      fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
               chimera_count,
               seqno, 
               100.0 * chimera_count / seqno);
@@ -1449,7 +1549,7 @@ void chimera()
 
 
   if (opt_uchime_ref)
-    query_close();
+    fasta_close(query_fasta_h);
   
   dbindex_free();
   db_free();
@@ -1460,6 +1560,7 @@ void chimera()
   free(cia);
   free(pthread);
   
+  close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);
   close_chimera_file(fp_uchimealns);
   close_chimera_file(fp_nonchimeras);

@@ -1,22 +1,61 @@
 /*
-  Copyright (C) 2014-2015 Torbjorn Rognes
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or (at your option) any later version.
+  VSEARCH: a versatile open source tool for metagenomics
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
   Department of Informatics, University of Oslo,
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
+
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #include "vsearch.h"
@@ -29,6 +68,7 @@ static pthread_t * pthread;
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
 static pthread_attr_t attr;
+static fasta_handle query_fasta_h;
 
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;
@@ -235,19 +275,18 @@ void search_thread_run(long t)
     {
       pthread_mutex_lock(&mutex_input);
       
-      char * qhead;
-      int query_head_len;
-      char * qseq;
-      int qseqlen;
-      int query_no;
-      int qsize;
-
-      if (query_getnext(& qhead, & query_head_len,
-                        & qseq, & qseqlen,
-                        & query_no, & qsize,
-                        opt_qmask != MASK_SOFT))
+      if (fasta_next(query_fasta_h,
+                     ! opt_notrunclabels,
+                     ((opt_qmask != MASK_SOFT) ?
+                      chrmap_upcase : chrmap_no_change)))
         {
-
+          char * qhead = fasta_get_header(query_fasta_h);
+          int query_head_len = fasta_get_header_length(query_fasta_h);
+          char * qseq = fasta_get_sequence(query_fasta_h);
+          int qseqlen = fasta_get_sequence_length(query_fasta_h);
+          int query_no = fasta_get_seqno(query_fasta_h);
+          int qsize = fasta_get_abundance(query_fasta_h);
+          
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
@@ -280,7 +319,7 @@ void search_thread_run(long t)
           strcpy(si_plus[t].qsequence, qseq);
           
           /* get progress as amount of input file read */
-          unsigned long progress = query_getfilepos();
+          unsigned long progress = fasta_get_position(query_fasta_h);
 
           /* let other threads read input */
           pthread_mutex_unlock(&mutex_input);
@@ -476,6 +515,8 @@ void search_prep(char * cmdline, char * progheader)
 
   db_read(opt_db, opt_dbmask != MASK_SOFT);
 
+  results_show_samheader(fp_samout, cmdline, opt_db);
+
   if (opt_dbmask == MASK_DUST)
     dust_all();
   else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
@@ -526,8 +567,6 @@ void search_done()
   show_rusage();
 }
 
-
-
 void usearch_global(char * cmdline, char * progheader)
 {
   search_prep(cmdline, progheader);
@@ -552,7 +591,7 @@ void usearch_global(char * cmdline, char * progheader)
   /* prepare reading of queries */
   qmatches = 0;
   queries = 0;
-  query_open(opt_usearch_global);
+  query_fasta_h = fasta_open(opt_usearch_global);
 
   /* allocate memory for thread info */
   si_plus = (struct searchinfo_s *) xmalloc(opt_threads * 
@@ -569,7 +608,7 @@ void usearch_global(char * cmdline, char * progheader)
   pthread_mutex_init(&mutex_input, NULL);
   pthread_mutex_init(&mutex_output, NULL);
 
-  progress_init("Searching", query_getfilesize());
+  progress_init("Searching", fasta_get_size(query_fasta_h));
   search_thread_worker_run();
   progress_done();
   
@@ -581,7 +620,7 @@ void usearch_global(char * cmdline, char * progheader)
   if (si_minus)
     free(si_minus);
 
-  query_close();
+  fasta_close(query_fasta_h);
 
   if (!opt_quiet)
     fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
