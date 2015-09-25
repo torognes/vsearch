@@ -264,15 +264,17 @@ Thanks to the following for patches and other suggestions for improvements:
 
 No papers about VSEARCH have been published yet, but a manuscript is in preparation.
 For now, please cite the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
-Release 1.0.16 has doi [10.5281/zenodo.15524](http://dx.doi.org/10.5281/zenodo.15524).
+Release 1.4.0 has doi [10.5281/zenodo.31443](http://dx.doi.org/10.5281/zenodo.31443).
 
 
 ## Test datasets
 
-Test datasets (found in the `data` folder) were obtained from
-the [BioMarks project](http://biomarks.eu/) (Logares et al. 2014),
-the [TARA OCEANS project](http://oceans.taraexpeditions.org/) (Karsenti et al. 2011) and
-the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et al. 2012).
+Test datasets (found in the separate vsearch-data repository) were
+obtained from the [BioMarks project](http://biomarks.eu/) (Logares et
+al. 2014), the [TARA OCEANS
+project](http://oceans.taraexpeditions.org/) (Karsenti et al. 2011)
+and the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et
+al. 2012).
 
 
 ## References
