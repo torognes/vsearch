@@ -34,11 +34,11 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 ## Download and install
 
-**Source distribution** To download the source distribution (not yet available) from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation using Autotools, use the following commands:
+**Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation using Autotools, use the following commands:
 ```
-wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z.tar.gz
-tar xzf vsearch-x.y.z.tar.gz
-cd vsearch-x.y.z
+wget https://github.com/torognes/vsearch/archive/v1.4.0.tar.gz
+tar xzf vsearch-1.4.0.tar.gz
+cd vsearch-1.4.0
 ./autogen.sh
 ./configure
 make
@@ -52,31 +52,30 @@ You may customize the installation directory using the `--prefix=DIR` option to 
 ```
 git clone git@github.com:torognes/vsearch.git
 cd vsearch
-git checkout summer
 ./autogen.sh
 ./configure
 make
 make install  # as root or sudo make install
 ```
 
-**Binary distribution** Starting with version 1.3.x, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
+**Binary distribution** Starting with version 1.4.0, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z-linux-x86_64.tar.gz
-tar xzf vsearch-1.3.x-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v1.4.0/vsearch-1.4.0-linux-x86_64.tar.gz
+tar xzf vsearch-1.4.0-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Mac:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/vx.y.z/vsearch-x.y.z-osx-x86_64.tar.gz
-tar xzf vsearch-1.3.x-osx-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v1.4.0/vsearch-1.4.0-osx-x86_64.tar.gz
+tar xzf vsearch-1.4.0-osx-x86_64.tar.gz
 ```
 
-You will now have the binary distribution in a folder called something like `vsearch-x.y.z-os-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
+You will now have the binary distribution in a folder called something like `vsearch-1.4.0-linux-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
 
 
-**Binaries** The latest VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
+**Binaries** Older VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
 
 ```sh
 cd ~
