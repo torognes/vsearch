@@ -37,7 +37,7 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation using Autotools, use the following commands:
 ```
 wget https://github.com/torognes/vsearch/archive/v1.4.0.tar.gz
-tar xzf vsearch-1.4.0.tar.gz
+tar xzf v1.4.0.tar.gz
 cd vsearch-1.4.0
 ./autogen.sh
 ./configure
