@@ -87,8 +87,6 @@
 #include <openssl/md5.h>
 #endif
 
-#include <city.h>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -100,6 +98,8 @@
 #ifdef HAVE_BZLIB_H
 #include <bzlib.h>
 #endif
+
+#include "cityhash/city.h"
 
 #include "util.h"
 #include "xstring.h"
