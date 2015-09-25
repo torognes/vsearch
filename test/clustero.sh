@@ -2,7 +2,7 @@
 
 P=$1
 
-INPUT=../data/BioMarKs50k.fsa
+INPUT=../../vsearch-data/BioMarKs50k.fsa
 
 THREADS=0
 

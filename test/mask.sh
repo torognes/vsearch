@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DB=../data/BioMarKs50k.fsa
+DB=../../vsearch-data/BioMarKs50k.fsa
 VSEARCH=../bin/vsearch
 USEARCH=$(which usearch)
 

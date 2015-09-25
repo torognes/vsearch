@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INPUT=../data/BioMarKs.fsa
+INPUT=../../vsearch-data/BioMarKs.fsa
 TEMP=temp.fsa
 
 ../bin/vsearch --shuffle $INPUT --output $TEMP

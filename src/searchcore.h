@@ -146,10 +146,11 @@ struct searchinfo_s
 
 void search_onequery(struct searchinfo_s * si);
 
-struct hit * search_findbest(struct searchinfo_s * si);
+struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
+                                   struct searchinfo_s * si_m);
 
-struct hit * search_findbest2(struct searchinfo_s * si_p,
-                              struct searchinfo_s * si_m);
+struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
+                                     struct searchinfo_s * si_m);
 
 int search_acceptable_unaligned(struct searchinfo_s * si, int target);
 

@@ -4,11 +4,11 @@ cd ../test
 
 P=$1
 
-INPUT=../data/simm/simm.m1.fa
-DB=../data/simm/simm_sp.fa
+INPUT=../../vsearch-data/simm/simm.m1.fa
+DB=../../vsearch-data/simm/simm_sp.fa
 
-#INPUT=../data/PR2-18S-rRNA-V4.derep.fsa
-#DB=../data/PR2-18S-rRNA-V4.ref.fsa
+#INPUT=../../vsearch-data/PR2-18S-rRNA-V4.derep.fsa
+#DB=../../vsearch-data/PR2-18S-rRNA-V4.ref.fsa
 
 THREADS=0
 

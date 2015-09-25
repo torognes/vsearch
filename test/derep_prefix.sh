@@ -1,8 +1,8 @@
 #!/bin/bash
 
-INPUT=../data/BioMarKs.fsa
-#INPUT=../data/PR2-18S-rRNA-V4.fsa
-#INPUT=../data/Rfam_9_1.fasta
+INPUT=../../vsearch-data/BioMarKs.fsa
+#INPUT=../../vsearch-data/PR2-18S-rRNA-V4.fsa
+#INPUT=../../vsearch-data/Rfam_9_1.fasta
 
 THREADS=0
 

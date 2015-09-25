@@ -6,7 +6,7 @@ SEED=1
 THREADS=0
 DUPLICATES=100
 DIR=.
-DB=../data/Rfam_11_0.fasta
+DB=../../vsearch-data/Rfam_11_0.fasta
 ID=0.5
 
 VSEARCH=../bin/vsearch

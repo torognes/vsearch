@@ -753,8 +753,12 @@ void cluster_core_parallel()
             }
 
           /* find best hit */
-          struct hit * best = search_findbest2(si_p, si_m);
-          
+          struct hit * best = 0;
+          if (opt_sizeorder)
+            best = search_findbest2_bysize(si_p, si_m);
+          else
+            best = search_findbest2_byid(si_p, si_m);
+            
           int myseqno = si_p->query_no;
           
           if (best)
@@ -878,7 +882,11 @@ void cluster_core_serial()
           cluster_query_core(si_m);
         }
 
-      struct hit * best = search_findbest2(si_p, si_m);
+      struct hit * best = 0;
+      if (opt_sizeorder)
+        best = search_findbest2_bysize(si_p, si_m);
+      else
+        best = search_findbest2_byid(si_p, si_m);
       
       if (best)
         {

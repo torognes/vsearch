@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INPUT=../data/BioMarKs.fsa
+INPUT=../../vsearch-data/BioMarKs.fsa
 
 echo
 

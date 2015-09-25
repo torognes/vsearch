@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INPUT=../data/PR2-18S-rRNA-V4.fsa
+INPUT=../../vsearch-data/PR2-18S-rRNA-V4.fsa
 
 echo
 

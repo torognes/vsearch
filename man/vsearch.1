@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 15, 2015" "version 1.3.3" "USER COMMANDS"
+.TH vsearch 1 "September 25, 2015" "version 1.4.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -527,6 +527,16 @@ for details.
 Take into account the abundance annotations present in the input fasta
 file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
 headers).
+.TP
+.B \-\-sizeorder
+When an amplicon is close to 2 or more centroids, both within the
+distance specified with the \-\-id option, resolve the ambiguity by
+clustering it with the centroid having the highest abundance, not
+necessarily the closest one. The option only has effect when the value
+specified with \-\-maxaccepts is higher than one. The \-\-sizeorder
+option turns on what is sometimes referred to as abundance-based
+greedy clustering (AGC), in contrast to the default distance-based
+greedy clustering (DGC).
 .TP
 .B \-\-sizeout
 Add abundance annotations to the output fasta files (add the pattern
@@ -1961,6 +1971,12 @@ Fix bug with large datasets. Fix format of help info.
 .BR v1.1.3\~ "released March 18th, 2015"
 Fix more bugs with large datasets.
 .TP
+.BR v1.2.0-1.2.19\~ "released July 6th to September 8th, 2015"
+Several new commands and options added. Bugs fixed. Documentation updated.
+.TP
+.BR v1.3.0\~ "released September 9th, 2015"
+Changed to autotools build system.
+.TP
 .BR v1.3.1\~ "released September 14th, 2015"
 Several new commands and options. Bug fixes.
 .TP
@@ -1978,6 +1994,9 @@ Fixed compilation problems with zlib and bzip2lib.
 .BR v1.3.5\~ "released September 17th, 2015"
 Minor configuration/makefile changes to compile to native cpu and
 simplify makefile.
+.TP
+.BR v1.4.0\~ "released September 25th, 2015"
+Added \-\-sizeorder option.
 .RE
 .LP
 .\" ============================================================================

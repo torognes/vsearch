@@ -4,7 +4,7 @@ cd ../test
 
 P=$1
 
-INPUT=../data/PR2-18S-rRNA-V4.derep.fsa
+INPUT=../../vsearch-data/PR2-18S-rRNA-V4.derep.fsa
 
 THREADS=0
 

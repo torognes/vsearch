@@ -69,6 +69,7 @@ bool opt_quiet;
 bool opt_relabel_md5;
 bool opt_relabel_sha1;
 bool opt_samheader;
+bool opt_sizeorder;
 bool opt_xsize;
 char * opt_allpairs_global;
 char * opt_alnout;
@@ -600,6 +601,7 @@ void args_init(int argc, char **argv)
   opt_selfid = 0;
   opt_shuffle = 0;
   opt_sizein = 0;
+  opt_sizeorder = 0;
   opt_sizeout = 0;
   opt_slots = 0;
   opt_sortbylength = 0;
@@ -770,6 +772,7 @@ void args_init(int argc, char **argv)
     {"label_suffix",          required_argument, 0, 0 },
     {"h",                     no_argument,       0, 0 },
     {"samheader",             no_argument,       0, 0 },
+    {"sizeorder",             no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1376,6 +1379,10 @@ void args_init(int argc, char **argv)
           opt_samheader = 1;
           break;
 
+        case 141:
+          opt_sizeorder = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1390,6 +1397,7 @@ void args_init(int argc, char **argv)
     fatal("Unrecognized string on command line (%s)", argv[optind]);
 
   int commands = 0;
+
   if (opt_fastq_chars)
     commands++;
   if (opt_fastq_filter)
@@ -1608,6 +1616,7 @@ void cmd_help()
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
+              "  --sizeorder                 Sort accepted centroids by abundance (AGC)\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
               "  --strand plus|both          cluster using plus or both strands (plus)\n"
               "  --uc FILENAME               filename for UCLUST-like output\n"
