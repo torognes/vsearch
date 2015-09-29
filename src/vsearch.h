@@ -80,11 +80,8 @@
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
-#include <CommonCrypto/CommonDigest.h>
 #else
 #include <sys/sysinfo.h>
-#include <openssl/sha.h>
-#include <openssl/md5.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -100,7 +97,8 @@
 #endif
 
 #include "cityhash/city.h"
-
+#include "md5.h"
+#include "sha1.h"
 #include "util.h"
 #include "xstring.h"
 #include "align_simd.h"

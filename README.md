@@ -36,9 +36,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation using Autotools, use the following commands:
 ```
-wget https://github.com/torognes/vsearch/archive/v1.4.0.tar.gz
-tar xzf v1.4.0.tar.gz
-cd vsearch-1.4.0
+wget https://github.com/torognes/vsearch/archive/v1.4.1.tar.gz
+tar xzf v1.4.1.tar.gz
+cd vsearch-1.4.1
 ./autogen.sh
 ./configure
 make
@@ -58,21 +58,21 @@ make
 make install  # as root or sudo make install
 ```
 
-**Binary distribution** Starting with version 1.4.0, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
+**Binary distribution** Starting with version 1.4.1, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v1.4.0/vsearch-1.4.0-linux-x86_64.tar.gz
-tar xzf vsearch-1.4.0-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v1.4.1/vsearch-1.4.1-linux-x86_64.tar.gz
+tar xzf vsearch-1.4.1-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Mac:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v1.4.0/vsearch-1.4.0-osx-x86_64.tar.gz
-tar xzf vsearch-1.4.0-osx-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v1.4.1/vsearch-1.4.1-osx-x86_64.tar.gz
+tar xzf vsearch-1.4.1-osx-x86_64.tar.gz
 ```
 
-You will now have the binary distribution in a folder called something like `vsearch-1.4.0-linux-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
+You will now have the binary distribution in a folder called something like `vsearch-1.4.1-linux-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
 
 
 **Binaries** Older VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
@@ -152,26 +152,27 @@ VSEARCH implements the old USEARCH option `--iddef` to specify the definition of
 
 ## Dependencies
 
-Compiling VSEARCH requires the following libraries:
+Compiling VSEARCH requires the following optional libraries in order to add support for gzip and bzip2 compressed FASTA and FASTQ input files:
 
-* libcrypto (CommonCrypto for Mac / OpenSSL for Linux)
 * libz >=1.2.4 (zlib) (optional)
 * libbz2 >=1.0.0 (bzip2lib) (optional)
-
-The crypto libraries are used for generation of MD5 or SHA1 sequence hashes for sequence relabelling. The optional zlib and bzip2lib libraries are used for reading compressed FASTA and FASTQ input files.
 
 
 ## VSEARCH license and third party licenses
 
 The VSEARCH code is dual-licensed either under the GNU General Public License version 3 or under the BSD 2-clause license. Please see LICENSE.txt for details.
 
+VSEARCH includes code from several other projects. We thank the authors for making their source code available.
+
 VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
 
 VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in the public domain.
 
-VSEARCH binaries may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
+VSEARCH includes code for MD5 and SHA1 message digest algorithms that are in the public domain.
 
-VSEARCH binaries may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward, distributed under a BSD-style license.
+VSEARCH may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
+
+VSEARCH may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward, distributed under a BSD-style license.
 
 
 ## Code
@@ -199,11 +200,13 @@ File | Description
 **linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
+**md5.c** | MD5 message digest
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
+**sha1.c** | SHA1 message digest
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
 **shuffle.cc** | Shuffle sequences
 **sortbylength.cc** | Code for sorting by length
@@ -254,7 +257,7 @@ The main contributors to VSEARCH:
 
 ## Acknowledgements
 
-Thanks to the following for patches and other suggestions for improvements:
+Thanks to the following people for patches and other suggestions for improvements:
 
 * Jeff Epler <jepler@unpythonic.net>
 * Andreas Tille <tille@debian.org>

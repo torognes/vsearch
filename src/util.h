@@ -66,6 +66,15 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
+#define MD5_DIGEST_LENGTH 16
+#define SHA_DIGEST_LENGTH SHA1_DIGEST_SIZE
+
+#define LEN_DIG_MD5 MD5_DIGEST_LENGTH
+#define LEN_DIG_SHA1 SHA_DIGEST_LENGTH
+
+#define LEN_HEX_DIG_MD5 (2*LEN_DIG_MD5+1)
+#define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
+
 long gcd(long a, long b);
 void fatal(const char * msg);
 void fatal(const char * format, const char * message);
@@ -94,3 +103,9 @@ unsigned long random_ulong(unsigned long n);
 void string_normalize(char * normalized, char * s, unsigned int len);
 
 void fprint_hex(FILE * fp, unsigned char * data, int len);
+
+void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen);
+void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen);
+
+void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen);
+void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen);

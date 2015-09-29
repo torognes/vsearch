@@ -64,7 +64,7 @@
   legal symbols: *abcdefghiklmnpqrstuvxyz (all except j and o), also upper case
   fatal symbols: .-
   fatal: ascii 0-26 except tab (9), newline (10 and 13), vt (11), formfeed (12)
-  stripped: !"#$&'()+,/0123456789:;<=>?@JO^_`joæøåÆØÅ§¨´ as well as chrs 9-13
+  stripped: !"#$&'()+,/0123456789:;<=>?@JO[\]^_`jo{|}~ and chrs 9-13, 127
   
   includes both amino acid and nucleotide sequences, adapt to nt only
 */

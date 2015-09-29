@@ -328,3 +328,86 @@ void fprint_hex(FILE * fp, unsigned char * data, int len)
   for(int i=0; i<len; i++)
     fprintf(fp, "%02x", data[i]);
 }
+
+void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
+{
+  if (!md)
+    fatal("Error in computing SHA1 digest");
+  SHA1_CTX c;
+  SHA1_Init(&c);
+  SHA1_Update(&c, d, n);
+  SHA1_Final(&c, md);
+}
+
+void MD5(void * d, unsigned long n, unsigned char * md)
+{
+  if (!md)
+    fatal("Error in computing MD5 digest");
+  MD5_CTX c;
+  MD5_Init(&c);
+  MD5_Update(&c, d, n);
+  MD5_Final(md, &c);
+}
+
+static const char hexdigits[] = "0123456789abcdef";
+
+void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
+{
+  /* Save hexadecimal representation of the SHA1 hash of the sequence.
+     The string array digest must be large enough (LEN_HEX_DIG_SHA1).
+     First normalize string by uppercasing it and replacing U's with T's. */
+
+  char * normalized = (char*) xmalloc(seqlen+1);
+  string_normalize(normalized, seq, seqlen);
+
+  unsigned char digest[LEN_DIG_SHA1];
+
+  SHA1((const unsigned char*) normalized, (size_t) seqlen, digest);
+
+  free(normalized);
+
+  for(int i=0; i<LEN_DIG_SHA1; i++)
+    {
+      hex[2*i+0] = hexdigits[digest[i] >> 4];
+      hex[2*i+1] = hexdigits[digest[i] & 15];
+    }
+  hex[2*LEN_DIG_SHA1] = 0;
+}
+
+void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
+{
+  /* Save hexadecimal representation of the MD5 hash of the sequence.
+     The string array digest must be large enough (LEN_HEX_DIG_MD5).
+     First normalize string by uppercasing it and replacing U's with T's. */
+
+  char * normalized = (char*) xmalloc(seqlen+1);
+  string_normalize(normalized, seq, seqlen);
+
+  unsigned char digest[LEN_DIG_MD5];
+
+  MD5(normalized, (size_t) seqlen, digest);
+
+  free(normalized);
+
+  for(int i=0; i<LEN_DIG_MD5; i++)
+    {
+      hex[2*i+0] = hexdigits[digest[i] >> 4];
+      hex[2*i+1] = hexdigits[digest[i] & 15];
+    }
+  hex[2*LEN_DIG_MD5] = 0;
+}
+
+
+void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen)
+{
+  char digest[LEN_HEX_DIG_SHA1];
+  get_hex_seq_digest_sha1(digest, seq, seqlen);
+  fprintf(fp, "%s", digest);
+}
+
+void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen)
+{
+  char digest[LEN_HEX_DIG_MD5];
+  get_hex_seq_digest_md5(digest, seq, seqlen);
+  fprintf(fp, "%s", digest);
+}
