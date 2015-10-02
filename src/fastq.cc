@@ -178,10 +178,11 @@ fastq_handle fastq_open(const char * filename)
 
   if (h->format == FORMAT_GZIP)
     {
-      /* GZIP: Close ordinary file and open again as gzipped file */
+      /* GZIP: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_ZLIB_H
-      fclose(h->fp);
-      if (! (h->fp_gz = gzopen(filename, "rb")))
+      if (!gz_lib)
+        fatal("Files compressed with gzip are not supported");
+      if (! (h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb")))
         fatal("Unable to open gzip compressed fastq file (%s)", filename);
 #else
       fatal("Files compressed with gzip are not supported");
@@ -192,9 +193,12 @@ fastq_handle fastq_open(const char * filename)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_ZLIB_H
+      if (!bz2_lib)
+        fatal("Files compressed with bzip2 are not supported");
       int bzError;
-      if (! (h->fp_bz = BZ2_bzReadOpen(& bzError, h->fp,
-                                       BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0)))
+      if (! (h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
+                                            BZ_VERBOSE_0, BZ_MORE_MEM,
+                                            NULL, 0)))
         fatal("Unable to open bzip2 compressed fastq file (%s)", filename);
 #else
       fatal("Files compressed with bzip2 are not supported");
@@ -257,14 +261,14 @@ void fastq_close(fastq_handle h)
 
     case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
-      gzclose(h->fp_gz);
+      (*gzclose_p)(h->fp_gz);
       h->fp_gz = 0;
       break;
 #endif
       
     case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
-      BZ2_bzReadClose(&bz_error, h->fp_bz);
+      (*BZ2_bzReadClose_p)(&bz_error, h->fp_bz);
       h->fp_bz = 0;
       break;
 #endif
@@ -325,9 +329,10 @@ unsigned long fastq_file_fill_buffer(fastq_handle h)
 
         case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
-          bytes_read = gzread(h->fp_gz,
-                              h->file_buffer.data + h->file_buffer.position,
-                              space);
+          bytes_read = (*gzread_p)(h->fp_gz,
+                                   h->file_buffer.data
+                                   + h->file_buffer.position,
+                                   space);
           if (bytes_read < 0)
             fatal("Error reading gzip compressed fastq file");
           break;
@@ -335,11 +340,11 @@ unsigned long fastq_file_fill_buffer(fastq_handle h)
           
         case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
-          bytes_read = BZ2_bzRead(& bzError,
-                                  h->fp_bz,
-                                  h->file_buffer.data 
-                                  + h->file_buffer.position,
-                                  space);
+          bytes_read = (*BZ2_bzRead_p)(& bzError,
+                                       h->fp_bz,
+                                       h->file_buffer.data
+                                       + h->file_buffer.position,
+                                       space);
           if ((bytes_read < 0) ||
               ! ((bzError == BZ_OK) ||
                  (bzError == BZ_STREAM_END) ||
@@ -648,7 +653,12 @@ bool fastq_next(fastq_handle h,
 
 #ifdef HAVE_ZLIB_H
   if (h->format == FORMAT_GZIP)
-    h->file_position = gzoffset(h->fp_gz);
+    {
+      /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
+      int fd = dup(fileno(h->fp));
+      h->file_position = lseek(fd, 0, SEEK_CUR);
+      close(fd);
+    }
   else
 #endif
     h->file_position = ftell(h->fp);

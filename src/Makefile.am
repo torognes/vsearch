@@ -1,6 +1,6 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-AM_CXXFLAGS=-I${srcdir}/cityhash -O3 -mtune=native -Wall -Wsign-compare
+AM_CXXFLAGS=-I${srcdir}/cityhash -O3 -mtune=native -Wall -Wsign-compare -g
 
 libcpu_sse2_a_SOURCES = cpu.cc
 libcpu_sse2_a_CXXFLAGS = -msse2
@@ -26,6 +26,7 @@ cpu.h \
 db.h \
 dbindex.h \
 derep.h \
+dynlibs.h \
 fasta.h \
 fastq.h \
 fastqops.h \
@@ -62,6 +63,7 @@ cluster.cc \
 db.cc \
 dbindex.cc \
 derep.cc \
+dynlibs.cc \
 fasta.cc \
 fastq.cc \
 fastqops.cc \

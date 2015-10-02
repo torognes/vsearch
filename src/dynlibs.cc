@@ -60,45 +60,69 @@
 
 #include "vsearch.h"
 
-unsigned long arch_get_memused()
-{
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  
+#ifdef HAVE_ZLIB_H
 #ifdef __APPLE__
-  /* Mac: ru_maxrss gives the size in bytes */
-  return r_usage.ru_maxrss;
+const char gz_libname[] = "libz.dylib";
 #else
-  /* Linux: ru_maxrss gives the size in kilobytes  */
-  return r_usage.ru_maxrss * 1024;
+const char gz_libname[] = "libz.so";
+#endif
+void * gz_lib;
+gzFile (*gzdopen_p)(int, const char *);
+int (*gzclose_p)(gzFile);
+int (*gzread_p)(gzFile, void *, unsigned);
+#endif
+
+#ifdef HAVE_BZLIB_H
+#ifdef __APPLE__
+const char bz2_libname[] = "libbz2.dylib";
+#else
+const char bz2_libname[] = "libbz2.so";
+#endif
+void * bz2_lib;
+BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
+void (*BZ2_bzReadClose_p)(int*, BZFILE*);
+int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
+#endif
+
+void dynlibs_open()
+{
+#ifdef HAVE_ZLIB_H
+  gz_lib = dlopen(gz_libname, RTLD_LAZY);
+  if (gz_lib)
+    {
+      gzdopen_p = (gzFile (*)(int, const char*))
+        dlsym(gz_lib, "gzdopen");
+      gzclose_p = (int (*)(gzFile))
+        dlsym(gz_lib, "gzclose");
+      gzread_p = (int (*)(gzFile, void*, unsigned))
+        dlsym(gz_lib, "gzread");
+    }
+#endif
+
+#ifdef HAVE_BZLIB_H
+  bz2_lib = dlopen(bz2_libname, RTLD_LAZY);
+  if (bz2_lib)
+    {
+      BZ2_bzReadOpen_p = (BZFILE* (*)(int*, FILE*, int, int, void*, int))
+        dlsym(bz2_lib, "BZ2_bzReadOpen");
+      BZ2_bzReadClose_p = (void (*)(int*, BZFILE*))
+        dlsym(bz2_lib, "BZ2_bzReadClose");
+      BZ2_bzRead_p = (int (*)(int*, BZFILE*, void*, int))
+        dlsym(bz2_lib, "BZ2_bzRead");
+    }
 #endif
 }
 
-unsigned long arch_get_memtotal()
+void dynlibs_close()
 {
-#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-
-  long phys_pages = sysconf(_SC_PHYS_PAGES);
-  long pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) || (pagesize == -1))
-    fatal("Cannot determine amount of RAM");
-  return pagesize * phys_pages;
-
-#elif defined(__APPLE__)
-
-  int mib [] = { CTL_HW, HW_MEMSIZE };
-  int64_t ram = 0;
-  size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-
-#else
-
-  struct sysinfo si;
-  if (sysinfo(&si))
-    fatal("Cannot determine amount of RAM");
-  return si.totalram * si.mem_unit;
-
+#ifdef HAVE_ZLIB_H
+  if (gz_lib)
+    dlclose(gz_lib);
+  gz_lib = 0;
+#endif
+#ifdef HAVE_BZLIB_H
+  if (bz2_lib)
+    dlclose(bz2_lib);
+  bz2_lib = 0;
 #endif
 }

@@ -77,6 +77,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <float.h>
+#include <dlfcn.h>
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
@@ -96,6 +97,7 @@
 #include <bzlib.h>
 #endif
 
+#include "dynlibs.h"
 #include "cityhash/city.h"
 #include "md5.h"
 #include "sha1.h"

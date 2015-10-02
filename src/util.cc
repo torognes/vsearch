@@ -84,8 +84,11 @@ void progress_update(unsigned long progress)
   if (! opt_quiet)
     if (progress >= progress_next)
       {
-        fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
-                100.0 * progress / progress_size);
+        if (progress_size > 0)
+          fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
+                  100.0 * progress / progress_size);
+        else
+          fprintf(stderr, "  \r%s ?%%", progress_prompt);
         progress_next = progress + progress_chunk;
       }
 }

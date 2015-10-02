@@ -2004,6 +2004,8 @@ int main(int argc, char** argv)
 
   args_init(argc, argv);
 
+  dynlibs_open();
+
   if (opt_log)
     {
       fp_log = fopen(opt_log, "w");
@@ -2085,4 +2087,6 @@ int main(int argc, char** argv)
     }
 
   free(cmdline);
+
+  dynlibs_close();
 }

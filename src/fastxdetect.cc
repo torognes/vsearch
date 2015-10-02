@@ -109,10 +109,11 @@ int fastx_detect(const char * filename)
 
   if (format == FORMAT_GZIP)
     {
-      /* GZIP: Close ordinary file and open again as gzipped file */
+      /* GZIP: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_ZLIB_H
-      fclose(fp);
-      if (! (fp_gz = gzopen(filename, "rb")))
+      if (!gz_lib)
+        fatal("Files compressed with gzip are not supported");
+      if (! (fp_gz = (*gzdopen_p)(fileno(fp), "rb")))
         fatal("Unable to open gzip compressed file (%s)", filename);
 #else
       fatal("Files compressed with gzip are not supported");
@@ -123,8 +124,10 @@ int fastx_detect(const char * filename)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_ZLIB_H
+      if (!bz2_lib)
+        fatal("Files compressed with bzip2 are not supported");
       int bzError;
-      if (! (fp_bz = BZ2_bzReadOpen(& bzError, fp,
+      if (! (fp_bz = (*BZ2_bzReadOpen_p)(& bzError, fp,
                                        BZ_VERBOSE_0, BZ_MORE_MEM, NULL, 0)))
         fatal("Unable to open bzip2 compressed file (%s)", filename);
 #else
@@ -154,9 +157,9 @@ int fastx_detect(const char * filename)
       
     case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
-      bytes_read = gzread(fp_gz,
-                          buffer,
-                          BUFFERLEN);
+      bytes_read = (*gzread_p)(fp_gz,
+                             buffer,
+                             BUFFERLEN);
       if (bytes_read < 0)
         fatal("Error reading gzip compressed file (%s)", filename);
       break;
@@ -164,10 +167,10 @@ int fastx_detect(const char * filename)
       
     case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
-      bytes_read = BZ2_bzRead(& bzError,
-                              fp_bz,
-                              buffer,
-                              BUFFERLEN);
+      bytes_read = (*BZ2_bzRead_p)(& bzError,
+                                 fp_bz,
+                                 buffer,
+                                 BUFFERLEN);
       if ((bytes_read < 0) ||
           ! ((bzError == BZ_OK) ||
              (bzError == BZ_STREAM_END) ||
@@ -204,14 +207,14 @@ int fastx_detect(const char * filename)
 
     case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
-      gzclose(fp_gz);
+      (*gzclose_p)(fp_gz);
       fp_gz = 0;
       break;
 #endif
       
     case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
-      BZ2_bzReadClose(&bz_error, fp_bz);
+      (*BZ2_bzReadClose_p)(&bz_error, fp_bz);
       fp_bz = 0;
       break;
 #endif

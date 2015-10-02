@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 29, 2015" "version 1.4.1" "USER COMMANDS"
+.TH vsearch 1 "October 2, 2015" "version 1.4.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -1752,7 +1752,7 @@ to the output file:
 .PP
 .RS
 \fBvsearch\fR \-\-shuffle \fIqueries.fas\fR \-\-output
-\fIqueries_shuffled.fas\fR \-\-seed 13 \-\-fasta_width 0
+\fIqueries_shuffled.fas\fR \-\-randseed 13 \-\-fasta_width 0
 .RE
 .PP
 Sort by decreasing abundance the sequences contained in queries.fas
@@ -2001,6 +2001,11 @@ Added \-\-sizeorder option.
 .BR v1.4.1\~ "released September 29th, 2015"
 Inserted public domain MD5 and SHA1 code to eliminate dependency on
 crypto and openssl libraries and their licensing issues.
+.TP
+.BR v1.4.2\~ "released October 2nd, 2015"
+Dynamic loading of libraries for reading gzip and bzip2 compressed
+files if available. Circumvention of missing gzoffset function in
+zlib 1.2.3 and earlier.
 .RE
 .LP
 .\" ============================================================================

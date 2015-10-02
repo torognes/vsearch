@@ -58,47 +58,19 @@
 
 */
 
-#include "vsearch.h"
-
-unsigned long arch_get_memused()
-{
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  
-#ifdef __APPLE__
-  /* Mac: ru_maxrss gives the size in bytes */
-  return r_usage.ru_maxrss;
-#else
-  /* Linux: ru_maxrss gives the size in kilobytes  */
-  return r_usage.ru_maxrss * 1024;
+#ifdef HAVE_ZLIB_H
+extern void * gz_lib;
+extern gzFile (*gzdopen_p)(int, const char *);
+extern int (*gzclose_p)(gzFile);
+extern int (*gzread_p)(gzFile, void*, unsigned);
 #endif
-}
 
-unsigned long arch_get_memtotal()
-{
-#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-
-  long phys_pages = sysconf(_SC_PHYS_PAGES);
-  long pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) || (pagesize == -1))
-    fatal("Cannot determine amount of RAM");
-  return pagesize * phys_pages;
-
-#elif defined(__APPLE__)
-
-  int mib [] = { CTL_HW, HW_MEMSIZE };
-  int64_t ram = 0;
-  size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-
-#else
-
-  struct sysinfo si;
-  if (sysinfo(&si))
-    fatal("Cannot determine amount of RAM");
-  return si.totalram * si.mem_unit;
-
+#ifdef HAVE_BZLIB_H
+extern void * bz2_lib;
+extern BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
+extern void (*BZ2_bzReadClose_p)(int*, BZFILE*);
+extern int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 #endif
-}
+
+void dynlibs_open();
+void dynlibs_close();
