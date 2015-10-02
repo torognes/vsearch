@@ -194,6 +194,7 @@ File | Description
 **db.cc** | Handles the database file read, access etc
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
+**dynlib.cc** | Dynamic loading of compression libraries
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
 **fastqops.cc** | Basic FASTQ file statistics etc
