@@ -76,22 +76,24 @@ unsigned long arch_get_memused()
 
 unsigned long arch_get_memtotal()
 {
-#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+#if defined(__APPLE__)
 
-  long phys_pages = sysconf(_SC_PHYS_PAGES);
-  long pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) || (pagesize == -1))
-    fatal("Cannot determine amount of RAM");
-  return pagesize * phys_pages;
-
-#elif defined(__APPLE__)
-
+  printf("Using sysctl\n");
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
   size_t length = sizeof(ram);
   if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
     fatal("Cannot determine amount of RAM");
   return ram;
+
+#elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+
+  printf("Using sysconf\n");
+  long phys_pages = sysconf(_SC_PHYS_PAGES);
+  long pagesize = sysconf(_SC_PAGESIZE);
+  if ((phys_pages == -1) || (pagesize == -1))
+    fatal("Cannot determine amount of RAM");
+  return pagesize * phys_pages;
 
 #else
 
