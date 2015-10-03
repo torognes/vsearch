@@ -58,7 +58,7 @@ make
 make install  # as root or sudo make install
 ```
 
-**Binary distribution** Starting with version 1.4.4, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
+**Binary distribution** Starting with version 1.4.0, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
 
 ```sh
 wget https://github.com/torognes/vsearch/releases/download/v1.4.4/vsearch-1.4.4-linux-x86_64.tar.gz
