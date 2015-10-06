@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 6, 2015" "version 1.4.5" "USER COMMANDS"
+.TH vsearch 1 "October 6, 2015" "version 1.4.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -2016,6 +2016,9 @@ Remove debug message.
 .TP
 .BR v1.4.5\~ "released October 6rd, 2015"
 Fix memory allocation bug when reading long FASTA sequences.
+.TP
+.BR v1.4.6\~ "released October 6rd, 2015"
+Fix subtle bug in SIMD alignment code that reduced accuracy.
 .RE
 .LP
 .\" ============================================================================

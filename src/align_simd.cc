@@ -1016,8 +1016,8 @@ void search16(s16info_s * s,
                                            R_target_interior);
           for(unsigned int j=0; j<CDEPTH; j++)
             {
-              M = _mm_setzero_si128();
-              T = T0;
+              __m128i M = _mm_setzero_si128();
+              __m128i T = T0;
               for(int c=0; c<CHANNELS; c++)
                 {
                   if ((d_begin[c] == d_end[c]) &&
@@ -1243,8 +1243,8 @@ void search16(s16info_s * s,
                                            R_target_interior);
           for(unsigned int j=0; j<CDEPTH; j++)
             {
-              M = _mm_setzero_si128();
-              T = T0;
+              __m128i M = _mm_setzero_si128();
+              __m128i T = T0;
               for(int c=0; c<CHANNELS; c++)
                 {
                   if ((d_begin[c] == d_end[c]) &&
