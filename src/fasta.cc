@@ -322,8 +322,8 @@ void buffer_extend(struct fasta_buffer_s * buffer, char * buf, unsigned long len
       /* alloc space for len more characters + terminating zero,
          but round up to nearest block size */
       buffer->alloc = 
-        (FASTA_BUFFER_ALLOC * 
-         ((buffer->length + len) / FASTA_BUFFER_ALLOC) + 1);
+        FASTA_BUFFER_ALLOC * 
+        (((buffer->length + len) / FASTA_BUFFER_ALLOC) + 1);
       buffer->data = (char*) xrealloc(buffer->data, buffer->alloc);
     }
 
