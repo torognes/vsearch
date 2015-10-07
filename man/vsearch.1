@@ -2022,9 +2022,9 @@ Fix subtle bug in SIMD alignment code that reduced accuracy.
 .TP
 .BR v1.4.7\~ "released October 7th, 2015"
 Fixes a problem with searching for or clustering sequences with
-repeats. In this new version, vsearch will look at all words occuring
+repeats. In this new version, vsearch will look at all words occurring
 at least once in the sequences in the initial step. Previously only
-words occuring exactly once were considered. In addition, vsearch now
+words occurring exactly once were considered. In addition, vsearch now
 requires at least 10 words to be shared by the sequences, previously
 only 6 were required. If the query contains less than 10 words, all
 words must be present for a match. This change seems to lead to
