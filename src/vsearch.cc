@@ -194,6 +194,7 @@ long opt_minseqlength;
 long opt_minsize;
 long opt_mintsize;
 long opt_minuniquesize;
+long opt_minwordmatches;
 long opt_mismatch;
 long opt_notrunclabels;
 long opt_output_no_hits;
@@ -575,6 +576,7 @@ void args_init(int argc, char **argv)
   opt_minsl = 0.0;
   opt_mintsize = 0;
   opt_minuniquesize = 0;
+  opt_minwordmatches = 0;
   opt_mismatch = -4;
   opt_msaout = 0;
   opt_nonchimeras = 0;
@@ -773,6 +775,8 @@ void args_init(int argc, char **argv)
     {"h",                     no_argument,       0, 0 },
     {"samheader",             no_argument,       0, 0 },
     {"sizeorder",             no_argument,       0, 0 },
+    {"minwordmatches",        required_argument, 0, 0 },
+    {"v",                     no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1383,6 +1387,14 @@ void args_init(int argc, char **argv)
           opt_sizeorder = 1;
           break;
 
+        case 142:
+          opt_minwordmatches = args_getlong(optarg);
+          break;
+
+        case 143:
+          opt_version = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1465,8 +1477,8 @@ void args_init(int argc, char **argv)
   if ((opt_threads < 0) || (opt_threads > 1024))
     fatal("The argument to --threads must be in the range 0 (default) to 1024");
 
-  if ((opt_wordlength < 3) || (opt_wordlength > 15))
-    fatal("The argument to --wordlength must be in the range 3 to 15");
+  if ((opt_wordlength < 7) || (opt_wordlength > 15))
+    fatal("The argument to --wordlength must be in the range 7 to 15");
 
   if ((opt_iddef < 0) || (opt_iddef > 4))
     fatal("The argument to --iddef must in the range 0 to 4");
@@ -1504,6 +1516,8 @@ void args_init(int argc, char **argv)
   if (opt_fastq_tail < 1)
     fatal("The argument to --fastq_tail must be positive");
 
+  if (opt_minwordmatches < 0)
+    fatal("The argument to --minwordmatches must not be negative");
   
   /* TODO: check valid range of gap penalties */
 
@@ -1531,6 +1545,9 @@ void args_init(int argc, char **argv)
   opt_gap_open_target_right -= opt_gap_extension_target_right;
 
 #endif
+
+  if (opt_minwordmatches == 0)
+    opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
 
   if (opt_threads == 0)
     opt_threads = sysconf(_SC_NPROCESSORS_ONLN);
@@ -1714,6 +1731,7 @@ void cmd_help()
               "  --minsizeratio REAL         reject if query/target abundance ratio lower\n"
               "  --minsl REAL                reject if shorter/longer length ratio lower\n"
               "  --mintsize INT              reject if target abundance lower\n"
+              "  --minwordmatches INT        minimum number of word matches required (10)\n"
               "  --mismatch INT              score for mismatch (-4)\n"
               "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
               "  --output_no_hits            output non-matching queries to output files\n"

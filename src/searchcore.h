@@ -63,8 +63,10 @@
 /* the number of alignments that can be delayed */
 #define MAXDELAYED 8
 
-/* minimum number of kmer matches */
-#define MINMATCHSAMPLECOUNT 10
+/* Default minimum number of word matches for word lengths 0-15 */
+/* Choosen for optimal F1 score on Rfam classification test */
+const int minwordmatches_defaults[] =
+  { -1, -1, -1, -1, -1, -1, -1, 14, 10,  9,  8,  6,  5,  4,  3,  2 };
 
 struct hit
 {

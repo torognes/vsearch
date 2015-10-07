@@ -279,6 +279,7 @@ extern long opt_minsize;
 extern long opt_mintsize;
 extern long opt_minuniquesize;
 extern long opt_mismatch;
+extern long opt_minwordmatches;
 extern long opt_notrunclabels;
 extern long opt_output_no_hits;
 extern long opt_qmask;

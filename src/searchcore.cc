@@ -158,7 +158,7 @@ int hit_compare_bysize(const void * a, const void * b)
 bool search_enough_kmers(struct searchinfo_s * si,
                          unsigned int count)
 {
-  return (count >= MINMATCHSAMPLECOUNT) || (count >= si->kmersamplecount);
+  return (count >= opt_minwordmatches) || (count >= si->kmersamplecount);
 }
 
 inline void topscore_insert(int i, struct searchinfo_s * si)
