@@ -155,16 +155,19 @@ int hit_compare_bysize(const void * a, const void * b)
   return hit_compare_bysize_typed((struct hit *) a, (struct hit *) b);
 }
 
+bool search_enough_kmers(struct searchinfo_s * si,
+                         unsigned int count)
+{
+  return (count >= MINMATCHSAMPLECOUNT) || (count >= si->kmersamplecount);
+}
+
 inline void topscore_insert(int i, struct searchinfo_s * si)
 {
   count_t count = si->kmers[i];
   
   /* ignore sequences with very few kmer matches */
 
-  if (count < MINMATCHSAMPLECOUNT)
-    return;
-
-  if (count < si->kmersamplecount / MINMATCHSAMPLEFREQ)
+  if (!search_enough_kmers(si, count))
     return;
   
   unsigned int seqno = dbindex_getmapping(i);

@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 6, 2015" "version 1.4.6" "USER COMMANDS"
+.TH vsearch 1 "October 7, 2015" "version 1.4.7" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -2019,6 +2019,17 @@ Fix memory allocation bug when reading long FASTA sequences.
 .TP
 .BR v1.4.6\~ "released October 6rd, 2015"
 Fix subtle bug in SIMD alignment code that reduced accuracy.
+.TP
+.BR v1.4.7\~ "released October 7th, 2015"
+Fixes a problem with searching for or clustering sequences with
+repeats. In this new version, vsearch will look at all words occuring
+at least once in the sequences in the initial step. Previously only
+words occuring exactly once were considered. In addition, vsearch now
+requires at least 10 words to be shared by the sequences, previously
+only 6 were required. If the query contains less than 10 words, all
+words must be present for a match. This change seems to lead to
+slightly reduced recall, but somewhat increased precision, ending up
+with slightly improved overall accuracy.
 .RE
 .LP
 .\" ============================================================================

@@ -60,14 +60,12 @@
 
 #include "vsearch.h"
 
-/* Find the unique kmers or words in a given sequence. Currently the
-   definintion of "unique kmers" are the kmers that appear exactly once;
-   kmers that appear twice or more often are ignored.
-   Maybe the definition should be all kmers that appear in the input
-   sequence, but that each of those kmers shoudl appear only
-   once in the resulting list.
-   Experiments indicate that the current (first) definition gives
-   both the highest sensitivity and precision. */
+/*
+  Find the unique kmers or words in a given sequence.
+  Unique is now defined as all different words occuring at least once.
+  Earlier it was defined as those words occuring exactly once, but
+  that caused a problem when searching for sequences with many repeats.
+*/
 
 #define HASH CityHash64
 
@@ -154,11 +152,11 @@ void unique_count_bitmap(struct uhandle_s * uh,
   
   if (uh->bitmap_size < size)
     {
-      uh->bitmap = (unsigned long *) xrealloc(uh->bitmap, size >> 2UL);
+      uh->bitmap = (unsigned long *) xrealloc(uh->bitmap, size >> 3UL);
       uh->bitmap_size = size;
     }
   
-  memset(uh->bitmap, 0, size >> 2UL);
+  memset(uh->bitmap, 0, size >> 3UL);
   
   unsigned long bad = 0;
   unsigned long kmer = 0;
@@ -178,7 +176,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
       kmer |= chrmap_2bit[(int)(*s++)];
     }
       
-  int candidates = 0;
+  int unique = 0;
 
   while (s < e2)
     {
@@ -194,29 +192,15 @@ void unique_count_bitmap(struct uhandle_s * uh,
         {
           unsigned long x = kmer >> 6UL;
           unsigned long y = 1UL << (kmer & 63UL);
-              
-          unsigned long uniq = uh->bitmap[2*x];
-          unsigned long seen = uh->bitmap[2*x+1];
-          
-          uh->bitmap[2*x] = (uniq & ~y) | (y & ~seen);
-          uh->bitmap[2*x+1] = seen | y;
-          
-          uh->list[candidates++] = kmer;
+          if (!(uh->bitmap[x] & y))
+            {
+              /* not seen before */
+              uh->list[unique++] = kmer;
+              uh->bitmap[x] |= y;
+            }
         }
     }
-      
-  int unique = 0;
 
-  for (int i = 0; i < candidates; i++)
-    {
-      kmer = uh->list[i];
-      unsigned long x = kmer >> 6UL;
-      unsigned long y = 1UL << (kmer & 63UL);
-      
-      if (uh->bitmap[2*x] & y)
-        uh->list[unique++] = uh->list[i];
-    }
-  
   *listlen = unique;
   *list = uh->list;
 }
@@ -228,8 +212,6 @@ void unique_count_hash(struct uhandle_s * uh,
                        unsigned int * listlen,
                        unsigned int * * list)
 {
-  unsigned long unique;
-
   /* if necessary, reallocate hash table and list of unique kmers */
 
   if (uh->alloc < 2*seqlen)
@@ -270,6 +252,8 @@ void unique_count_hash(struct uhandle_s * uh,
       kmer |= chrmap_2bit[(int)(*s++)];
     }
       
+  unsigned long unique = 0;
+
   while (s < e2)
     {
       bad <<= 2UL;
@@ -287,15 +271,15 @@ void unique_count_hash(struct uhandle_s * uh,
           while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
             j = (j + 1) & uh->hash_mask;
               
-          uh->hash[j].kmer = kmer;
-          uh->hash[j].count++;
+          if (!(uh->hash[j].count))
+            {
+              /* not seen before */
+              uh->list[unique++] = kmer;
+              uh->hash[j].kmer = kmer;
+              uh->hash[j].count = 1;
+            }
         }
     }
-      
-  unique = 0;
-  for(int i=0; i<uh->size; i++)
-    if (uh->hash[i].count == 1)
-      uh->list[unique++] = uh->hash[i].kmer;
       
   *listlen = unique;
   *list = uh->list;
@@ -330,7 +314,7 @@ int unique_count_shared(struct uhandle_s * uh,
           unsigned int kmer = list[i];
           unsigned long x = kmer >> 6UL;
           unsigned long y = 1UL << (kmer & 63UL);
-          if (uh->bitmap[2*x] & y)
+          if (uh->bitmap[x] & y)
             count++;
         }
     }
@@ -342,7 +326,7 @@ int unique_count_shared(struct uhandle_s * uh,
           unsigned long j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
           while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
             j = (j + 1) & uh->hash_mask;
-          if (uh->hash[j].count == 1)
+          if (uh->hash[j].count)
             count++;
         }
     }

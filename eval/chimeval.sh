@@ -1,6 +1,7 @@
 #!/bin/bash
 
-DB=../data/simm/simm_sp.fa
+DIR=../../vsearch-data/simm
+DB=$DIR/simm_sp.fa
 
 THREADS=0
 
@@ -17,9 +18,9 @@ for t in - m1 m2 m3 m4 m5 i1 i2 i3 i4 i5; do
     echo
 
     if [ "$t" == "-" ]; then
-        INPUT=../data/simm/simm.fa
+        INPUT=$DIR/simm.fa
     else
-        INPUT=../data/simm/simm.$t.fa
+        INPUT=$DIR/simm.$t.fa
     fi
 
     $UCHIME --input $INPUT --db $DB --uchimeout o.$t.uchimeout --minh 0.28 --mindiv 0.8 ; grep Y$ o.$t.uchimeout | cut -f2 > o.$t.chimeras

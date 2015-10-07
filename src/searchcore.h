@@ -64,10 +64,7 @@
 #define MAXDELAYED 8
 
 /* minimum number of kmer matches */
-#define MINMATCHSAMPLECOUNT 6
-
-/* minimum kmer match frequency */
-#define MINMATCHSAMPLEFREQ 16
+#define MINMATCHSAMPLECOUNT 10
 
 struct hit
 {
@@ -163,3 +160,6 @@ void search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
                      struct hit * * hits,
                      int * hit_count);
+
+bool search_enough_kmers(struct searchinfo_s * si,
+                         unsigned int count);

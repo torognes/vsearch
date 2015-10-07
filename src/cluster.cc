@@ -543,8 +543,7 @@ void cluster_core_parallel()
                                               sic->kmersample);
 
                       /* check if min number of shared kmers is satisfied */
-                      if ((shared >= MINMATCHSAMPLECOUNT) &&
-                          (shared >= si->kmersamplecount / MINMATCHSAMPLEFREQ))
+                      if (search_enough_kmers(si, shared))
                         {
                           unsigned int length = sic->qseqlen;
                           
