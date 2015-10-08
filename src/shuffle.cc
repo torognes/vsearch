@@ -100,8 +100,15 @@ void shuffle()
   progress_init("Writing output", passed);
   for(int i=0; i<passed; i++)
     {
-      db_fprint_fasta(fp_output, deck[i]);
-      progress_update(i);
+      if (opt_relabel) {
+        fprintf(fp_output, ">%s%ld\n", opt_relabel, i+1);
+        db_fprint_fasta_seq_only(fp_output, deck[i]);
+        progress_update(i);
+      }
+      else {
+        db_fprint_fasta(fp_output, deck[i]);
+        progress_update(i);      	
+      }
     }
   progress_done();
 
