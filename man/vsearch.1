@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 7, 2015" "version 1.5.0" "USER COMMANDS"
+.TH vsearch 1 "October 9, 2015" "version 1.6.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
@@ -561,6 +561,9 @@ format. For a description of the format, see
 When using \-\-cluster_smallmem, allow any sequence input order, not
 just a decreasing length ordering.
 .TP
+.B \-\-xsize
+Strip abundance information from the headers when writing the output file.
+.TP
 Most searching options also apply to clustering:
 .br
 \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-matched,
@@ -643,6 +646,9 @@ format. For a description of the format, see
 <http://www.drive5.com/usearch/manual/ucout.html>. In the context of
 dereplication, the option \-\-uc_allhits has no effect on the \-\-uc
 output.
+.TP
+.B \-\-xsize
+Strip abundance information from the headers when writing the output file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1303,6 +1309,9 @@ Pseudo-randomly shuffle the order of sequences contained in
 .TP
 .BI \-\-topn\~ "positive integer"
 Output only the top \fIinteger\fR sequences.
+.TP
+.B \-\-xsize
+Strip abundance information from the headers when writing the output file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1360,6 +1369,9 @@ sequences.
 .BI \-\-topn\~ "positive integer"
 Output only the top \fIinteger\fR sequences (i.e. the longest or the
 most abundant).
+.TP
+.B \-\-xsize
+Strip abundance information from the headers when writing the output file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1405,7 +1417,7 @@ the abundance of each sequence is considered to be 1.
 Write abundance information to the output file.
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file. 
+Strip abundance information from the headers when writing the output file.
 .TP
 .RE
 .PP
@@ -2036,7 +2048,16 @@ slightly reduced recall, but somewhat increased precision, ending up
 with slightly improved overall accuracy.
 .TP
 .BR v1.5.0\~ "released October 7th, 2015"
-This version introduces the new option \-\-minwordmatches that allows the user to specify the minimum number of matching unique words before a sequence is considered further. New default values for different word lengths are also set. The minimum word length is increased to 7.
+This version introduces the new option \-\-minwordmatches that allows
+the user to specify the minimum number of matching unique words before
+a sequence is considered further. New default values for different
+word lengths are also set. The minimum word length is increased to 7.
+.TP
+.BR v1.6.0\~ "released October 9th, 2015"
+This version adds the relabeling options (\-\-relabel, \-\-relabel_md5
+and \-\-relabel_sha1) to the shuffle command. It also adds the
+\-\-xsize option to the clustering, dereplication, shuffling and sorting
+commands.
 .RE
 .LP
 .\" ============================================================================

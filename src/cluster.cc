@@ -1167,6 +1167,8 @@ void cluster(char * dbname,
                 {
                   if (opt_sizeout)
                     db_fprint_fasta_with_size(fp_centroids, seqno, size);
+                  else if (opt_xsize)
+                    db_fprint_fasta_strip_size(fp_centroids, seqno);
                   else
                     db_fprint_fasta(fp_centroids, seqno);
                 }

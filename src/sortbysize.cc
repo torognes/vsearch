@@ -187,6 +187,10 @@ void sortbysize()
 
           db_fprint_fasta_seq_only(fp_output, seqno);
         }
+      else if (opt_xsize)
+        {
+          db_fprint_fasta_strip_size(fp_output, seqno);
+        }
       else
         {
           db_fprint_fasta(fp_output, seqno);
