@@ -599,26 +599,24 @@ void fasta_print_relabel(FILE * fp,
                          int abundance,
                          int ordinal)
 {
-  if (opt_relabel_sha1 || opt_relabel_md5)
+  if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
     {
       fprintf(fp, ">");
 
       if (opt_relabel_sha1)
         fprint_seq_digest_sha1(fp, seq, len);
-      else
+      else if (opt_relabel_md5)
         fprint_seq_digest_md5(fp, seq, len);
+      else
+        fprintf(fp, "%s%d", opt_relabel, ordinal);
 
       if (opt_sizeout)
-        fprintf(fp, ";size=%u;\n", abundance);
-      else
-        fprintf(fp, "\n");
-    }
-  else if (opt_relabel)
-    {
-      if (opt_sizeout)
-        fprintf(fp, ">%s%d;size=%u;\n", opt_relabel, ordinal, abundance);
-      else
-        fprintf(fp, ">%s%d\n", opt_relabel, ordinal);
+        fprintf(fp, ";size=%u;", abundance);
+
+      if (opt_relabel_keep)
+        fprintf(fp, " %s", header);
+
+      fprintf(fp, "\n");
     }
   else if (opt_sizeout)
     {

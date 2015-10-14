@@ -152,6 +152,7 @@ extern bool opt_eeout;
 extern bool opt_quiet;
 extern bool opt_relabel_md5;
 extern bool opt_relabel_sha1;
+extern bool opt_relabel_keep;
 extern bool opt_samheader;
 extern bool opt_sizeorder;
 extern bool opt_xsize;

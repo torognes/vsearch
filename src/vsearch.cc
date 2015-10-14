@@ -68,6 +68,7 @@ bool opt_eeout;
 bool opt_quiet;
 bool opt_relabel_md5;
 bool opt_relabel_sha1;
+bool opt_relabel_keep;
 bool opt_samheader;
 bool opt_sizeorder;
 bool opt_xsize;
@@ -595,6 +596,7 @@ void args_init(int argc, char **argv)
   opt_relabel = 0;
   opt_relabel_md5 = 0;
   opt_relabel_sha1 = 0;
+  opt_relabel_keep = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samheader = 0;
@@ -779,6 +781,7 @@ void args_init(int argc, char **argv)
     {"sizeorder",             no_argument,       0, 0 },
     {"minwordmatches",        required_argument, 0, 0 },
     {"v",                     no_argument,       0, 0 },
+    {"relabel_keep",          no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1397,6 +1400,10 @@ void args_init(int argc, char **argv)
           opt_version = 1;
           break;
 
+        case 144:
+          opt_relabel_keep = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1605,6 +1612,7 @@ void cmd_help()
               "  --minh REAL                 minimum score (0.28)\n"
               "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
               "  --relabel STRING            relabel nonchimeras with this prefix string\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --self                      exclude identical labels for --uchime_ref\n"
@@ -1633,6 +1641,7 @@ void cmd_help()
               "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "  --relabel STRING            relabel centroids with this prefix string\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
@@ -1651,6 +1660,7 @@ void cmd_help()
               "  --minuniquesize INT         minimum abundance for output from dereplication\n"
               "  --output FILENAME           output FASTA file\n"
               "  --relabel STRING            relabel with this prefix string after derep.\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
@@ -1685,6 +1695,7 @@ void cmd_help()
               "  --fastqout_discarded FNAME  FASTQ filename for discarded by FASTQ filter\n"
               "  --label_suffix STRING       Label to add to output for --fastx_revcomp\n"
               "  --relabel STRING            relabel filtered sequences with given prefix\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel filtered sequences with md5 digest\n"
               "  --relabel_sha1              relabel filtered sequences with sha1 digest\n"
               "  --sizeout                   include abundance information when relabelling\n"
@@ -1776,6 +1787,7 @@ void cmd_help()
               "  --output FILENAME           output to specified FASTA file\n"
               "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
               "  --relabel STRING            relabel sequences with this prefix string\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   include abundance information when relabelling\n"
@@ -1788,6 +1800,7 @@ void cmd_help()
               "  --fastaout FILENAME         output FASTA file for subsamples\n"
               "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
               "  --relabel STRING            relabel sequences with this prefix string\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sample_pct REAL           sampling percentage between 0.0 and 100.0\n"
