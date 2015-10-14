@@ -162,8 +162,6 @@ fasta_handle fasta_open(const char * filename)
   for(int i=0; i<256; i++)
     h->stripped[i] = 0;
 
-  h->abundance = abundance_init();
-  
   h->file_position = 0;
 
   buffer_init(& h->file_buffer);
@@ -229,8 +227,6 @@ void fasta_close(fasta_handle h)
       fatal("Internal error");
     }
   
-  abundance_exit(h->abundance);
-
   buffer_free(& h->file_buffer);
   buffer_free(& h->header_buffer);
   buffer_free(& h->sequence_buffer);
@@ -514,7 +510,7 @@ bool fasta_next(fasta_handle h,
 
 long fasta_get_abundance(fasta_handle h)
 {
-  return abundance_get(h->abundance, h->header_buffer.data);
+  return abundance_get(global_abundance, h->header_buffer.data);
 }
 
 unsigned long fasta_get_position(fasta_handle h)
@@ -555,5 +551,160 @@ char * fasta_get_header(fasta_handle h)
 char * fasta_get_sequence(fasta_handle h)
 {
   return h->sequence_buffer.data;
+}
+
+
+/* fasta output */
+
+void fasta_print_header(FILE * fp, const char * hdr)
+{
+  fprintf(fp, ">%s\n", hdr);
+}
+
+void fasta_print_sequence(FILE * fp, char * seq, unsigned long len, int width)
+{
+  /*
+     The actual length of the sequence may be longer than "len", but only
+     "len" characters are printed.
+
+     Specify width of lines - zero (or <1)  means linearize (all on one line).
+  */
+
+  if (width < 1)
+    fprintf(fp, "%.*s\n", (int)(len), seq);
+  else
+    {
+      long rest = len;
+      for(unsigned long i=0; i<len; i += width)
+        {
+          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq+i);
+          rest -= width;
+        }
+    }
+}
+
+void fasta_print(FILE * fp, const char * hdr,
+                 char * seq, unsigned long len)
+{
+  fasta_print_header(fp, hdr);
+  fasta_print_sequence(fp, seq, len, opt_fasta_width);
+}
+
+
+void fasta_print_relabel(FILE * fp,
+                         char * seq,
+                         int len,
+                         char * header,
+                         int header_len,
+                         int abundance,
+                         int ordinal)
+{
+  if (opt_relabel_sha1 || opt_relabel_md5)
+    {
+      fprintf(fp, ">");
+
+      if (opt_relabel_sha1)
+        fprint_seq_digest_sha1(fp, seq, len);
+      else
+        fprint_seq_digest_md5(fp, seq, len);
+
+      if (opt_sizeout)
+        fprintf(fp, ";size=%u;\n", abundance);
+      else
+        fprintf(fp, "\n");
+    }
+  else if (opt_relabel)
+    {
+      if (opt_sizeout)
+        fprintf(fp, ">%s%d;size=%u;\n", opt_relabel, ordinal, abundance);
+      else
+        fprintf(fp, ">%s%d\n", opt_relabel, ordinal);
+    }
+  else if (opt_sizeout)
+    {
+      abundance_fprint_header_with_size(global_abundance,
+                                        fp,
+                                        header,
+                                        header_len,
+                                        abundance);
+    }
+  else if (opt_xsize)
+    {
+      abundance_fprint_header_strip_size(global_abundance,
+                                         fp,
+                                         header,
+                                         header_len);
+    }
+  else
+    {
+      fasta_print_header(fp, header);
+    }
+
+  fasta_print_sequence(fp, seq, len, opt_fasta_width);
+}
+
+void fasta_print_db_relabel(FILE * fp,
+                            unsigned long seqno,
+                            int ordinal)
+{
+  fasta_print_relabel(fp,
+                      db_getsequence(seqno),
+                      db_getsequencelen(seqno),
+                      db_getheader(seqno),
+                      db_getheaderlen(seqno),
+                      db_getabundance(seqno),
+                      ordinal);
+}
+
+void fasta_print_db_sequence(FILE * fp, unsigned long seqno)
+{
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
+}
+
+void fasta_print_db(FILE * fp, unsigned long seqno)
+{
+  char * hdr = db_getheader(seqno);
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+
+  fasta_print_header(fp, hdr);
+  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
+}
+
+void fasta_print_db_size(FILE * fp, unsigned long seqno, unsigned long size)
+{
+  char * hdr = db_getheader(seqno);
+  int hdrlen = db_getheaderlen(seqno);
+  
+  abundance_fprint_header_with_size(global_abundance,
+                                    fp,
+                                    hdr,
+                                    hdrlen,
+                                    size);
+
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+
+  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
+}
+
+void fasta_print_db_strip_size(FILE * fp, unsigned long seqno)
+{
+  /* write FASTA but remove abundance information, as with --xsize option */
+
+  char * hdr = db_getheader(seqno);
+  int hdrlen = db_getheaderlen(seqno);
+
+  abundance_fprint_header_strip_size(global_abundance,
+                                     fp,
+                                     hdr,
+                                     hdrlen);
+
+  char * seq = db_getsequence(seqno);
+  long seqlen = db_getsequencelen(seqno);
+
+  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
 }
 

@@ -210,26 +210,20 @@ void allpairs_output_results(int hit_count,
     {
       if (opt_matched)
         {
-          fprintf(fp_matched,
-                  ">%s\n",
-                  query_head);
-          fprint_fasta_seq_only(fp_matched,
-                                qsequence,
-                                qseqlen,
-                                opt_fasta_width);
+          fasta_print(fp_matched,
+                      query_head,
+                      qsequence,
+                      qseqlen);
         }
     }
   else
     {
       if (opt_notmatched)
         {
-          fprintf(fp_notmatched,
-                  ">%s\n",
-                  query_head);
-          fprint_fasta_seq_only(fp_notmatched,
-                                qsequence,
-                                qseqlen,
-                                opt_fasta_width);
+          fasta_print(fp_notmatched,
+                      query_head,
+                      qsequence,
+                      qseqlen);
         }
     }
 }

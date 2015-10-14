@@ -75,18 +75,20 @@ void results_show_fastapairs_one(FILE * fp,
                                  hp->nwalignment,
                                  hp->nwalignmentlength,
                                  0);
-      fprint_fasta_hdr_only(fp, query_head);
-      fprint_fasta_seq_only(fp, qrow + hp->trim_q_left + hp->trim_t_left,
-                            hp->internal_alignmentlength, 0);
+      fasta_print_header(fp, query_head);
+      fasta_print_sequence(fp,
+                           qrow + hp->trim_q_left + hp->trim_t_left,
+                           hp->internal_alignmentlength, 0);
       free(qrow);
       
       char * trow = align_getrow(db_getsequence(hp->target),
                                  hp->nwalignment,
                                  hp->nwalignmentlength,
                                  1);
-      fprint_fasta_hdr_only(fp, db_getheader(hp->target));
-      fprint_fasta_seq_only(fp, trow + hp->trim_q_left + hp->trim_t_left,
-                            hp->internal_alignmentlength, 0);
+      fasta_print_header(fp, db_getheader(hp->target));
+      fasta_print_sequence(fp,
+                           trow + hp->trim_q_left + hp->trim_t_left,
+                           hp->internal_alignmentlength, 0);
       free(trow);
       
       fprintf(fp, "\n");

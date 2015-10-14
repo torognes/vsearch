@@ -237,6 +237,8 @@ static time_t time_finish;
 
 FILE * fp_log = 0;
 
+abundance_t * global_abundance;
+
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \
                         : "=a" (a), "=b" (b), "=c" (c), "=d" (d) \
@@ -1612,6 +1614,7 @@ void cmd_help()
               "  --uchimeout FILENAME        output to chimera info to tab-separated file\n"
               "  --uchimeout5                make output compatible with uchime version 5\n"
               "  --xn REAL                   'no' vote weight (8.0)\n"
+              "  --xsize                     strip abundance information in output\n"
               "\n"
               "Clustering\n"
               "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
@@ -1681,6 +1684,11 @@ void cmd_help()
               "  --fastqout FILENAME         FASTQ filename for passed seqs from FASTQ filter\n"
               "  --fastqout_discarded FNAME  FASTQ filename for discarded by FASTQ filter\n"
               "  --label_suffix STRING       Label to add to output for --fastx_revcomp\n"
+              "  --relabel STRING            relabel filtered sequences with given prefix\n"
+              "  --relabel_md5               relabel filtered sequences with md5 digest\n"
+              "  --relabel_sha1              relabel filtered sequences with sha1 digest\n"
+              "  --sizeout                   include abundance information when relabelling\n"
+              "  --xsize                     strip abundance information in output\n"
               "\n"
               "Masking\n"
               "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
@@ -1779,6 +1787,9 @@ void cmd_help()
               "Options\n"
               "  --fastaout FILENAME         output FASTA file for subsamples\n"
               "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
+              "  --relabel STRING            relabel sequences with this prefix string\n"
+              "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sample_pct REAL           sampling percentage between 0.0 and 100.0\n"
               "  --sample_size INT           sampling size\n"
               "  --sizein                    consider abundance info from input, do not ignore\n"
@@ -2043,6 +2054,8 @@ int main(int argc, char** argv)
   if (!sse2_present)
     fatal("Sorry, this program requires a cpu with SSE2.");
 
+  global_abundance = abundance_init();
+
   if (opt_help)
     cmd_help();
   else if (opt_allpairs_global)
@@ -2103,6 +2116,8 @@ int main(int argc, char** argv)
     }
 
   free(cmdline);
+
+  abundance_exit(global_abundance);
 
   dynlibs_close();
 }

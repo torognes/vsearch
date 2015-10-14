@@ -352,63 +352,49 @@ void derep_fulllength()
 
   show_rusage();
   
-  long selected = 0;
 
-  if (opt_output)
-    progress_init("Writing output file", clusters);
-    
+  /* count selected */
+
+  long selected = 0;
   for (long i=0; i<clusters; i++)
     {
       struct bucket * bp = hashtable + i;
       long size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
-          if (opt_output)
-            {
-              if (opt_relabel_sha1 || opt_relabel_md5)
-                {
-                  fprintf(fp_output, ">");
-                  char * seq = db_getsequence(bp->seqno_first);
-                  unsigned int len = db_getsequencelen(bp->seqno_first);
-                  if (opt_relabel_sha1)
-                    fprint_seq_digest_sha1(fp_output, seq, len);
-                  else
-                    fprint_seq_digest_md5(fp_output, seq, len);
-                  if (opt_sizeout)
-                    fprintf(fp_output, ";size=%u;\n", bp->size);
-                  else
-                    fprintf(fp_output, "\n");
-                  db_fprint_fasta_seq_only(fp_output, bp->seqno_first);
-                }
-              else if (opt_relabel)
-                {
-                  if (opt_sizeout)
-                    fprintf(fp_output, ">%s%ld;size=%u;\n", opt_relabel, i+1,
-                            bp->size);
-                  else
-                    fprintf(fp_output, ">%s%ld\n", opt_relabel, i+1);
-                  db_fprint_fasta_seq_only(fp_output, bp->seqno_first);
-                }
-              else
-                {
-                  if (opt_sizeout)
-                    db_fprint_fasta_with_size(fp_output,
-                                              bp->seqno_first, bp->size);
-                  else
-                    db_fprint_fasta(fp_output,
-                                    bp->seqno_first);
-                }
-            }
           selected++;
           if (selected == opt_topn)
             break;
         }
-      if (opt_output)
-        progress_update(i);
     }
+
+
+  /* write output */
 
   if (opt_output)
     {
+      progress_init("Writing output file", clusters);
+
+      long relabel_count = 0;
+      for (long i=0; i<clusters; i++)
+        {
+          struct bucket * bp = hashtable + i;
+          long size = bp->size;
+          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+            {
+              fasta_print_relabel(fp_output,
+                                  db_getsequence(bp->seqno_first),
+                                  db_getsequencelen(bp->seqno_first),
+                                  db_getheader(bp->seqno_first),
+                                  db_getheaderlen(bp->seqno_first),
+                                  size,
+                                  relabel_count + 1);
+              if (relabel_count == opt_topn)
+                break;
+            }
+          progress_update(i);
+        }
+
       progress_done();
       fclose(fp_output);
     }
@@ -708,63 +694,48 @@ void derep_prefix()
 
   show_rusage();
   
-  long selected = 0;
+  /* count selected */
 
-  if (opt_output)
-    progress_init("Writing output file", clusters);
-    
+  long selected = 0;
   for (long i=0; i<clusters; i++)
     {
       struct bucket * bp = hashtable + i;
       long size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
-          if (opt_output)
-            {
-              if (opt_relabel_sha1 || opt_relabel_md5)
-                {
-                  fprintf(fp_output, ">");
-                  char * seq = db_getsequence(bp->seqno_first);
-                  unsigned int len = db_getsequencelen(bp->seqno_first);
-                  if (opt_relabel_sha1)
-                    fprint_seq_digest_sha1(fp_output, seq, len);
-                  else
-                    fprint_seq_digest_md5(fp_output, seq, len);
-                  if (opt_sizeout)
-                    fprintf(fp_output, ";size=%u;\n", bp->size);
-                  else
-                    fprintf(fp_output, "\n");
-                  db_fprint_fasta_seq_only(fp_output, bp->seqno_first);
-                }
-              else if (opt_relabel)
-                {
-                  if (opt_sizeout)
-                    fprintf(fp_output, ">%s%ld;size=%u;\n", opt_relabel, i+1,
-                            bp->size);
-                  else
-                    fprintf(fp_output, ">%s%ld\n", opt_relabel, i+1);
-                  db_fprint_fasta_seq_only(fp_output, bp->seqno_first);
-                }
-              else
-                {
-                  if (opt_sizeout)
-                    db_fprint_fasta_with_size(fp_output,
-                                              bp->seqno_first, bp->size);
-                  else
-                    db_fprint_fasta(fp_output,
-                                    bp->seqno_first);
-                }
-            }
           selected++;
           if (selected == opt_topn)
             break;
         }
-      if (opt_output)
-        progress_update(i);
     }
+
+
+  /* write output */
 
   if (opt_output)
     {
+      progress_init("Writing output file", clusters);
+
+      long relabel_count = 0;
+      for (long i=0; i<clusters; i++)
+        {
+          struct bucket * bp = hashtable + i;
+          long size = bp->size;
+          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+            {
+              fasta_print_relabel(fp_output,
+                                  db_getsequence(bp->seqno_first),
+                                  db_getsequencelen(bp->seqno_first),
+                                  db_getheader(bp->seqno_first),
+                                  db_getheaderlen(bp->seqno_first),
+                                  size,
+                                  relabel_count + 1);
+              if (relabel_count == opt_topn)
+                break;
+            }
+          progress_update(i);
+        }
+
       progress_done();
       fclose(fp_output);
     }

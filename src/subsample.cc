@@ -132,20 +132,20 @@ void subsample()
     }
   progress_done();
 
-  int sampled = 0;
+  int samples = 0;
   progress_init("Writing output", dbsequencecount);
   for(int i=0; i<dbsequencecount; i++)
     {
       if (abundance[i]>0)
         {
-          if (opt_sizeout)
-            db_fprint_fasta_with_size(fp_output, i, abundance[i]);
-          else if (opt_xsize)
-            db_fprint_fasta_strip_size(fp_output, i);
-          else
-            db_fprint_fasta(fp_output, i);
-
-          sampled++;
+          samples++;
+          fasta_print_relabel(fp_output,
+                              db_getsequence(i),
+                              db_getsequencelen(i),
+                              db_getheader(i),
+                              db_getheaderlen(i),
+                              abundance[i],
+                              samples);
         }
       progress_update(i);
     }
@@ -153,7 +153,7 @@ void subsample()
 
   free(abundance);
 
-  fprintf(stderr, "Subsampled %lu reads from %d amplicons\n", n, sampled);
+  fprintf(stderr, "Subsampled %lu reads from %d amplicons\n", n, samples);
 
   db_free();
   fclose(fp_output);

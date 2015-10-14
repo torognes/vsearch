@@ -85,12 +85,6 @@ char * xstrchrnul(char *s, int c);
 unsigned long hash_cityhash64(char * s, unsigned long n);
 long getusec(void);
 void show_rusage();
-void fprint_fasta_hdr_only(FILE * fp, const char * hdr);
-void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width);
-void reverse_complement(char * rc, char * seq, long len);
-
-void fprint_fastq(FILE * fp, char * header, char * sequence, char * quality,
-                  bool add_ee, double ee);
 
 void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned long progress);
@@ -101,6 +95,8 @@ long random_int(long n);
 unsigned long random_ulong(unsigned long n);
 
 void string_normalize(char * normalized, char * s, unsigned int len);
+
+void reverse_complement(char * rc, char * seq, long len);
 
 void fprint_hex(FILE * fp, unsigned char * data, int len);
 

@@ -310,3 +310,5 @@ extern long avx_present;
 extern long avx2_present;
 
 extern FILE * fp_log;
+
+extern abundance_t * global_abundance;

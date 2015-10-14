@@ -153,46 +153,7 @@ void sortbylength()
   progress_init("Writing output", passed);
   for(int i=0; i<passed; i++)
     {
-      unsigned int seqno = sortinfo[i].seqno;
-      unsigned int size = sortinfo[i].size;
-
-      if (opt_relabel_sha1 || opt_relabel_md5)
-        {
-          char * seq = db_getsequence(seqno);
-          unsigned int len = db_getsequencelen(seqno);
-
-          fprintf(fp_output, ">");
-
-          if (opt_relabel_sha1)
-            fprint_seq_digest_sha1(fp_output, seq, len);
-          else
-            fprint_seq_digest_md5(fp_output, seq, len);
-
-          if (opt_sizeout)
-            fprintf(fp_output, ";size=%u;\n", size);
-          else
-            fprintf(fp_output, "\n");
-
-          db_fprint_fasta_seq_only(fp_output, seqno);
-        }
-      else if (opt_relabel)
-        {
-          if (opt_sizeout)
-            fprintf(fp_output, ">%s%d;size=%u;\n", opt_relabel, i+1, size);
-          else
-            fprintf(fp_output, ">%s%d\n", opt_relabel, i+1);
-
-          db_fprint_fasta_seq_only(fp_output, seqno);
-        }
-      else if (opt_xsize)
-        {
-          db_fprint_fasta_strip_size(fp_output, seqno);
-        }
-      else
-        {
-          db_fprint_fasta(fp_output, seqno);
-        }
-      
+      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
       progress_update(i);
     }
   progress_done();

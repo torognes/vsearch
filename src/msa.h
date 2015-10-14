@@ -68,4 +68,4 @@ struct msa_target_s
 void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list,
-         long totalabundance, abundance_t * abundance_handle);
+         long totalabundance);

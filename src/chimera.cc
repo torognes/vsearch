@@ -1283,9 +1283,10 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_chimeras)
             {
-              fprint_fasta_hdr_only(fp_chimeras, ci->query_head);
-              fprint_fasta_seq_only(fp_chimeras, ci->query_seq,
-                                    ci->query_len, opt_fasta_width);
+              fasta_print(fp_chimeras,
+                          ci->query_head,
+                          ci->query_seq,
+                          ci->query_len);
             }
 
 
@@ -1299,9 +1300,10 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
         {
           if (opt_borderline)
             {
-              fprint_fasta_hdr_only(fp_borderline, ci->query_head);
-              fprint_fasta_seq_only(fp_borderline, ci->query_seq,
-                                    ci->query_len, opt_fasta_width);
+              fasta_print(fp_borderline,
+                          ci->query_head,
+                          ci->query_seq,
+                          ci->query_len);
             }
         }
 
@@ -1332,40 +1334,13 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_nonchimeras)
             {
-              int size = ci->query_size;
-
-              if (opt_relabel_sha1 || opt_relabel_md5)
-                {
-                  char * seq = ci->query_seq;
-                  int len = ci->query_len;
-
-                  fprintf(fp_nonchimeras, ">");
-
-                  if (opt_relabel_sha1)
-                    fprint_seq_digest_sha1(fp_nonchimeras, seq, len);
-                  else
-                    fprint_seq_digest_md5(fp_nonchimeras, seq, len);
-
-                  if (opt_sizeout)
-                    fprintf(fp_nonchimeras, ";size=%d;\n", size);
-                  else
-                    fprintf(fp_nonchimeras, "\n");
-
-                }
-              else if (opt_relabel)
-                {
-                  if (opt_sizeout)
-                    fprintf(fp_nonchimeras, ">%s%d;size=%d;\n", 
-                            opt_relabel, nonchimera_count, size);
-                  else
-                    fprintf(fp_nonchimeras, ">%s%d\n", 
-                            opt_relabel, nonchimera_count);
-                }
-              else
-                fprintf(fp_nonchimeras, ">%s\n", ci->query_head);
-
-              fprint_fasta_seq_only(fp_nonchimeras, ci->query_seq,
-                                    ci->query_len, opt_fasta_width);
+              fasta_print_relabel(fp_nonchimeras,
+                                  ci->query_seq,
+                                  ci->query_len,
+                                  ci->query_head,
+                                  ci->query_head_len,
+                                  ci->query_size,
+                                  nonchimera_count);
             }
         }
       

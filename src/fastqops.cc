@@ -205,7 +205,9 @@ void fastq_filter()
           (ncount <= opt_fastq_maxns))
         {
           /* keep the sequence */
+
           kept++;
+
           if ((unsigned long)(length) < fastq_get_sequence_length(h))
             {
               truncated++;
@@ -213,63 +215,72 @@ void fastq_filter()
               q[length] = 0;
             }
 
-          if (opt_relabel)
-            {
-              (void) snprintf(header, header_alloc,
-                              "%s%ld", opt_relabel, kept);
-              d = header;
-            }
-          else if (opt_relabel_md5)
-            {
-              get_hex_seq_digest_md5(hex_md5, p, length);
-              d = hex_md5;
-            }
-          else if (opt_relabel_sha1)
-            {
-              get_hex_seq_digest_sha1(hex_sha1, p, length);
-              d = hex_sha1;
-            }
-
           if (opt_fastaout)
             {
-              fprint_fasta_hdr_only(fp_fastaout, d);
-              fprint_fasta_seq_only(fp_fastaout, p, length, opt_fasta_width);
+              fasta_print_relabel(fp_fastaout,
+                                  p, length,
+                                  header, fastq_get_header_length(h),
+                                  1, kept);
             }
           if (opt_fastqout)
-            fprint_fastq(fp_fastqout, d, p, q, opt_eeout, ee);
+            {
+              if (opt_relabel)
+                {
+                  (void) snprintf(header, header_alloc,
+                                  "%s%ld", opt_relabel, kept);
+                  d = header;
+                }
+              else if (opt_relabel_md5)
+                {
+                  get_hex_seq_digest_md5(hex_md5, p, length);
+                  d = hex_md5;
+                }
+              else if (opt_relabel_sha1)
+                {
+                  get_hex_seq_digest_sha1(hex_sha1, p, length);
+                  d = hex_sha1;
+                }
+              
+              fastq_print(fp_fastqout, d, p, q, opt_eeout, ee);
+            }
         }
       else
         {
+          /* discard the sequence */
+
           discarded++;
+
           p = fastq_get_sequence(h);
           q = fastq_get_quality(h);
 
-          if (opt_relabel)
-            {
-              (void) snprintf(header, header_alloc, "%s%ld", opt_relabel, discarded);
-              d = header;
-            }
-          else if (opt_relabel_md5)
-            {
-              get_hex_seq_digest_md5(hex_md5, p, length);
-              d = hex_md5;
-            }
-          else if (opt_relabel_sha1)
-            {
-              get_hex_seq_digest_sha1(hex_sha1, p, length);
-              d = hex_sha1;
-            }
-
           if (opt_fastaout_discarded)
             {
-              fprint_fasta_hdr_only(fp_fastaout_discarded, d);
-              fprint_fasta_seq_only(fp_fastaout_discarded,
-                                    p,
-                                    length,
-                                    opt_fasta_width);
+              fasta_print_relabel(fp_fastaout_discarded,
+                                  p, length,
+                                  header, fastq_get_header_length(h),
+                                  1, discarded);
             }
+
           if (opt_fastqout_discarded)
-            fprint_fastq(fp_fastqout_discarded, d, p, q, opt_eeout, ee);
+            {
+              if (opt_relabel)
+                {
+                  (void) snprintf(header, header_alloc, "%s%ld", opt_relabel, discarded);
+                  d = header;
+                }
+              else if (opt_relabel_md5)
+                {
+                  get_hex_seq_digest_md5(hex_md5, p, length);
+                  d = hex_md5;
+                }
+              else if (opt_relabel_sha1)
+                {
+                  get_hex_seq_digest_sha1(hex_sha1, p, length);
+                  d = hex_sha1;
+                }
+
+              fastq_print(fp_fastqout_discarded, d, p, q, opt_eeout, ee);
+            }
         }
 
       progress_update(fastq_get_position(h));
@@ -851,22 +862,10 @@ void fastx_revcomp()
           qual_buffer[length] = 0;
 
           if (opt_fastaout)
-            {
-              fprint_fasta_hdr_only(fp_fastaout, header);
-              fprint_fasta_seq_only(fp_fastaout,
-                                    seq_buffer,
-                                    length,
-                                    opt_fasta_width);
-            }
+            fasta_print(fp_fastaout, header, seq_buffer, length);
           if (opt_fastqout)
-            fprint_fastq(fp_fastqout,
-                         header,
-                         seq_buffer,
-                         qual_buffer,
-                         0,
-                         0);
-                    
-                    
+            fastq_print(fp_fastqout, header, seq_buffer, qual_buffer, 0, 0);
+
           progress_update(fasta_get_position(h));
         }
       progress_done();
@@ -934,20 +933,9 @@ void fastx_revcomp()
           qual_buffer[length] = 0;
 
           if (opt_fastaout)
-            {
-              fprint_fasta_hdr_only(fp_fastaout, header);
-              fprint_fasta_seq_only(fp_fastaout,
-                                    seq_buffer,
-                                    length,
-                                    opt_fasta_width);
-            }
+            fasta_print(fp_fastaout, header, seq_buffer, length);
           if (opt_fastqout)
-            fprint_fastq(fp_fastqout,
-                         header,
-                         seq_buffer,
-                         qual_buffer,
-                         0,
-                         0);
+            fastq_print(fp_fastqout, header, seq_buffer, qual_buffer, 0, 0);
                     
           progress_update(fastq_get_position(h));
         }

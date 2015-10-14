@@ -71,13 +71,10 @@ static unsigned long longestheader;
 
 seqinfo_t * seqindex;
 char * datap;
-abundance_t * db_abundance;
 
 void db_read(const char * filename, int upcase)
 {
   /* compile regexp for abundance pattern */
-
-  db_abundance = abundance_init();
 
   h = fasta_open(filename);
 
@@ -114,7 +111,7 @@ void db_read(const char * filename, int upcase)
       size_t headerlength = fasta_get_header_length(h);
       size_t sequencelength = fasta_get_sequence_length(h);
 
-      unsigned int abundance = abundance_get(db_abundance,
+      unsigned int abundance = abundance_get(global_abundance,
                                              fasta_get_header(h));
       
       if (sequencelength < (size_t)opt_minseqlength)
@@ -267,63 +264,10 @@ unsigned long db_getshortestsequence()
 
 void db_free()
 {
-  abundance_exit(db_abundance);
   if (datap)
     free(datap);
   if (seqindex)
     free(seqindex);
-}
-
-void db_fprint_fasta_seq_only(FILE * fp, unsigned long seqno)
-{
-  char * seq = db_getsequence(seqno);
-  long seqlen = db_getsequencelen(seqno);
-  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
-}
-
-void db_fprint_fasta(FILE * fp, unsigned long seqno)
-{
-  char * hdr = db_getheader(seqno);
-  char * seq = db_getsequence(seqno);
-  long seqlen = db_getsequencelen(seqno);
-  
-  fprint_fasta_hdr_only(fp, hdr);
-  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
-}
-
-void db_fprint_fasta_with_size(FILE * fp, unsigned long seqno, unsigned long size)
-{
-  char * hdr = db_getheader(seqno);
-  int hdrlen = db_getheaderlen(seqno);
-  
-  abundance_fprint_header_with_size(db_abundance,
-                                    fp,
-                                    hdr,
-                                    hdrlen,
-                                    size);
-
-  char * seq = db_getsequence(seqno);
-  long seqlen = db_getsequencelen(seqno);
-
-  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
-}
-
-void db_fprint_fasta_strip_size(FILE * fp, unsigned long seqno)
-{
-  /* write FASTA but remove abundance information, as with --xsize option */
-
-  char * hdr = db_getheader(seqno);
-  int hdrlen = db_getheaderlen(seqno);
-  
-  abundance_fprint_header_strip_size(db_abundance,
-                                     fp,
-                                     hdr,
-                                     hdrlen);
-
-  char * seq = db_getsequence(seqno);
-  long seqlen = db_getsequencelen(seqno);
-
-  fprint_fasta_seq_only(fp, seq, seqlen, opt_fasta_width);
 }
 
 int compare_bylength(const void * a, const void * b)
@@ -444,3 +388,5 @@ void db_sortbyabundance()
   qsort(seqindex, sequences, sizeof(seqinfo_t), compare_byabundance);
   progress_done();
 }
+
+

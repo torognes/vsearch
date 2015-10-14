@@ -234,7 +234,7 @@ void maskfasta()
   progress_init("Writing output", seqcount);
   for(int i=0; i<seqcount; i++)
     {
-      db_fprint_fasta(fp_output, i);
+      fasta_print_db(fp_output, i);
       progress_update(i);
     }
   progress_done();

@@ -78,8 +78,6 @@ struct fasta_s
   BZFILE * fp_bz;
 #endif
 
-  abundance_t * abundance;
-
   struct fasta_buffer_s file_buffer;
   struct fasta_buffer_s header_buffer;
   struct fasta_buffer_s sequence_buffer;
@@ -98,6 +96,8 @@ struct fasta_s
 
 typedef struct fasta_s * fasta_handle;
 
+/* fasta input */
+
 fasta_handle fasta_open(const char * filename);
 void fasta_close(fasta_handle h);
 bool fasta_next(fasta_handle h,
@@ -112,3 +112,32 @@ char * fasta_get_sequence(fasta_handle h);
 unsigned long fasta_get_header_length(fasta_handle h);
 unsigned long fasta_get_sequence_length(fasta_handle h);
 long fasta_get_abundance(fasta_handle h);
+
+/* fasta output */
+
+void fasta_print_header(FILE * fp, const char * hdr);
+
+void fasta_print_sequence(FILE * fp, char * seq,
+                          unsigned long len, int width);
+
+void fasta_print(FILE * fp, const char * hdr,
+                 char * seq, unsigned long len);
+
+void fasta_print_relabel(FILE * fp,
+                         char * seq,
+                         int len,
+                         char * header,
+                         int header_len,
+                         int abundance,
+                         int ordinal);
+
+void fasta_print_db(FILE * fp, unsigned long seqno);
+
+void fasta_print_db_sequence(FILE * fp, unsigned long seqno);
+
+void fasta_print_db_size(FILE * fp, unsigned long seqno,
+                         unsigned long size);
+
+void fasta_print_db_strip_size(FILE * fp, unsigned long seqno);
+
+void fasta_print_db_relabel(FILE * fp, unsigned long seqno, int ordinal);

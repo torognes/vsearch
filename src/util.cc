@@ -214,45 +214,6 @@ void show_rusage()
 #endif
 }
 
-void fprint_fasta_hdr_only(FILE * fp, const char * hdr)
-{
-  fprintf(fp, ">%s\n", hdr);
-}
-
-void fprint_fasta_seq_only(FILE * fp, char * seq, unsigned long len, int width)
-{
-  /* 
-     The actual length of the sequence may be longer than "len", but only
-     "len" characters are printed.
-     
-     Specify width of lines - zero (or <1)  means linearize (all on one line).
-  */
-
-  if (width < 1)
-    fprintf(fp, "%.*s\n", (int)(len), seq);
-  else
-    {
-      long rest = len;
-      for(unsigned long i=0; i<len; i += width)
-        {
-          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq+i);
-          rest -= width;
-        }
-    }
-}
-
-void fprint_fastq(FILE * fp, char * header, char * sequence, char * quality,
-                  bool add_ee, double ee)
-{
-  if (add_ee)
-    fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
-  else
-    fprintf(fp, "@%s\n", header);
-  fprintf(fp, "%s\n", sequence);
-  fprintf(fp, "+\n");
-  fprintf(fp, "%s\n", quality);
-}
-
 void reverse_complement(char * rc, char * seq, long len)
 {
   /* Write the reverse complementary sequence to rc.
@@ -414,3 +375,5 @@ void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen)
   get_hex_seq_digest_md5(digest, seq, seqlen);
   fprintf(fp, "%s", digest);
 }
+
+

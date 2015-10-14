@@ -192,28 +192,18 @@ void search_output_results(int hit_count,
   if (hit_count)
     {
       if (opt_matched)
-        {
-          fprintf(fp_matched,
-                  ">%s\n",
-                  query_head);
-          fprint_fasta_seq_only(fp_matched,
-                                qsequence,
-                                qseqlen,
-                                opt_fasta_width);
-        }
+        fasta_print(fp_matched,
+                    query_head,
+                    qsequence,
+                    qseqlen);
     }
   else
     {
       if (opt_notmatched)
-        {
-          fprintf(fp_notmatched,
-                  ">%s\n",
-                  query_head);
-          fprint_fasta_seq_only(fp_notmatched,
-                                qsequence,
-                                qseqlen,
-                                opt_fasta_width);
-        }
+        fasta_print(fp_notmatched,
+                    query_head,
+                    qsequence,
+                    qseqlen);
     }
 
   /* update matching db sequences */
@@ -638,15 +628,15 @@ void usearch_global(char * cmdline, char * progheader)
             if (opt_dbmatched)
               {
                 if (opt_sizeout)
-                  db_fprint_fasta_with_size(fp_dbmatched, i, dbmatched[i]);
+                  fasta_print_db_size(fp_dbmatched, i, dbmatched[i]);
                 else
-                  db_fprint_fasta(fp_dbmatched, i);
+                  fasta_print_db(fp_dbmatched, i);
               }
           }
         else
           {
             if (opt_dbnotmatched)
-              db_fprint_fasta(fp_dbnotmatched, i);
+              fasta_print_db(fp_dbnotmatched, i);
           }
     }
 

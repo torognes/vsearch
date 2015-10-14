@@ -143,7 +143,7 @@ void msa_add(char c)
 void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list,
-         long totalabundance, abundance_t * abundance_handle)
+         long totalabundance)
 {
   int centroid_seqno = target_list[0].seqno;
   int centroid_len = db_getsequencelen(centroid_seqno);
@@ -289,7 +289,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         {
           fprintf(fp_msaout, ">%s%s\n", j ? "" : "*", 
                   db_getheader(target_seqno));
-          fprint_fasta_seq_only(fp_msaout, aln, alnlen, opt_fasta_width);
+          fasta_print_sequence(fp_msaout, aln, alnlen, opt_fasta_width);
         }
     }  
 
@@ -345,10 +345,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   cons[conslen] = 0;
 
   if (fp_msaout)
-    {
-      fprint_fasta_hdr_only(fp_msaout, "consensus");
-      fprint_fasta_seq_only(fp_msaout, aln, alnlen, opt_fasta_width);
-    }
+    fasta_print(fp_msaout, "consensus", aln, alnlen);
 
   if (fp_consout)
     {
@@ -356,7 +353,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         {
           /* must remove old size info first */
           char * header_wo_size 
-            = abundance_strip_size(abundance_handle,
+            = abundance_strip_size(global_abundance,
                                    db_getheader(centroid_seqno), 
                                    db_getheaderlen(centroid_seqno));
           fprintf(fp_consout,
@@ -377,7 +374,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
       fprintf(fp_consout, "\n");
 
-      fprint_fasta_seq_only(fp_consout, cons, conslen, opt_fasta_width);
+      fasta_print_sequence(fp_consout, cons, conslen, opt_fasta_width);
     }
   
   if (fp_profile)
@@ -386,7 +383,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       if (opt_sizeout)
         {
           char * header_wo_size 
-            = abundance_strip_size(abundance_handle,
+            = abundance_strip_size(global_abundance,
                                    db_getheader(centroid_seqno), 
                                    db_getheaderlen(centroid_seqno));
           fprintf(fp_profile,

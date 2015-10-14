@@ -113,3 +113,6 @@ char * fastq_get_quality(fastq_handle h);
 unsigned long fastq_get_header_length(fastq_handle h);
 unsigned long fastq_get_sequence_length(fastq_handle h);
 unsigned long fastq_get_quality_length(fastq_handle h);
+
+void fastq_print(FILE * fp, char * header, char * sequence, char * quality,
+                 bool add_ee, double ee);

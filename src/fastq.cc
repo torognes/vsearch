@@ -717,3 +717,15 @@ char * fastq_get_sequence(fastq_handle h)
 {
   return h->sequence_buffer.data;
 }
+
+void fastq_print(FILE * fp, char * header, char * sequence, char * quality,
+                 bool add_ee, double ee)
+{
+  if (add_ee)
+    fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
+  else
+    fprintf(fp, "@%s\n", header);
+  fprintf(fp, "%s\n", sequence);
+  fprintf(fp, "+\n");
+  fprintf(fp, "%s\n", quality);
+}

@@ -370,11 +370,7 @@ void cluster_core_results_hit(struct hit * best,
                                qsequence, qseqlen, qsequence_rc);
   
   if (opt_matched)
-    {
-      fprintf(fp_matched, ">%s\n", query_head);
-      fprint_fasta_seq_only(fp_matched, qsequence, qseqlen,
-                            opt_fasta_width);
-    }
+    fasta_print(fp_matched, query_head, qsequence, qseqlen);
 }
 
 void cluster_core_results_nohit(int clusterno,
@@ -401,11 +397,7 @@ void cluster_core_results_nohit(int clusterno,
     }
   
   if (opt_notmatched)
-    {
-      fprintf(fp_notmatched, ">%s\n", query_head);
-      fprint_fasta_seq_only(fp_notmatched, qsequence, qseqlen,
-                            opt_fasta_width);
-    }
+    fasta_print(fp_notmatched, query_head, qsequence, qseqlen);
 }
 
 int compare_kmersample(const void * a, const void * b)
@@ -1133,45 +1125,13 @@ void cluster(char * dbname,
 
           if (opt_centroids)
             {
-              unsigned int size = cluster_abundance[clusterno];
-
-              if (opt_relabel_sha1 || opt_relabel_md5)
-                {
-                  char * seq = db_getsequence(seqno);
-                  unsigned int len = db_getsequencelen(seqno);
-
-                  fprintf(fp_centroids, ">");
-
-                  if (opt_relabel_sha1)
-                    fprint_seq_digest_sha1(fp_centroids, seq, len);
-                  else
-                    fprint_seq_digest_md5(fp_centroids, seq, len);
-
-                  if (opt_sizeout)
-                    fprintf(fp_centroids, ";size=%u;\n", size);
-                  else
-                    fprintf(fp_centroids, "\n");
-
-                  db_fprint_fasta_seq_only(fp_centroids, seqno);
-                }
-              else if (opt_relabel)
-                {
-                  if (opt_sizeout)
-                    fprintf(fp_centroids, ">%s%d;size=%u;\n", opt_relabel, i+1, size);
-                  else
-                    fprintf(fp_centroids, ">%s%d\n", opt_relabel, i+1);
-
-                  db_fprint_fasta_seq_only(fp_centroids, seqno);
-                }
-              else
-                {
-                  if (opt_sizeout)
-                    db_fprint_fasta_with_size(fp_centroids, seqno, size);
-                  else if (opt_xsize)
-                    db_fprint_fasta_strip_size(fp_centroids, seqno);
-                  else
-                    db_fprint_fasta(fp_centroids, seqno);
-                }
+              fasta_print_relabel(fp_centroids,
+                                  db_getsequence(seqno),
+                                  db_getsequencelen(seqno),
+                                  db_getheader(seqno),
+                                  db_getheaderlen(seqno),
+                                  cluster_abundance[clusterno],
+                                  clusterno+1);
             }
 
           if (opt_uc)
@@ -1200,14 +1160,8 @@ void cluster(char * dbname,
       /* performed for all sequences */
 
       if (opt_clusters)
-        {
-          fprintf(fp_clusters, ">%s\n", db_getheader(seqno));
-          fprint_fasta_seq_only(fp_clusters,
-                                db_getsequence(seqno),
-                                db_getsequencelen(seqno),
-                                opt_fasta_width);
-        }
-
+        fasta_print_db(fp_clusters, seqno);
+      
       progress_update(i);
     }
 
@@ -1289,8 +1243,6 @@ void cluster(char * dbname,
 
       lastcluster = -1;
 
-      abundance_t * abundance_handle = abundance_init();
-
       for(int i=0; i<seqcount; i++)
         {
           int clusterno = clusterinfo[i].clusterno;
@@ -1306,8 +1258,7 @@ void cluster(char * dbname,
                   msa(fp_msaout, fp_consout, fp_profile,
                       lastcluster,
                       msa_target_count, msa_target_list,
-                      cluster_abundance[lastcluster],
-                      abundance_handle);
+                      cluster_abundance[lastcluster]);
                 }
 
               /* start new cluster */
@@ -1330,13 +1281,10 @@ void cluster(char * dbname,
           msa(fp_msaout, fp_consout, fp_profile,
               lastcluster,
               msa_target_count, msa_target_list,
-              cluster_abundance[lastcluster],
-              abundance_handle);
+              cluster_abundance[lastcluster]);
         }
 
       progress_done();
-
-      abundance_exit(abundance_handle);
 
       if (fp_profile)
         fclose(fp_profile);
