@@ -62,7 +62,8 @@
 
 #define MEMCHUNK 16777216
 
-static fasta_handle h;
+static fastx_handle h;
+static bool is_fastq = 0;
 static unsigned long sequences = 0;
 static unsigned long nucleotides = 0;
 static unsigned long longest;
@@ -72,13 +73,28 @@ static unsigned long longestheader;
 seqinfo_t * seqindex;
 char * datap;
 
+bool db_is_fastq()
+{
+  return is_fastq;
+}
+
+char * db_getquality(unsigned long seqno)
+{
+  if (is_fastq)
+    return datap + seqindex[seqno].qual_p;
+  else
+    return 0;
+}
+
 void db_read(const char * filename, int upcase)
 {
   /* compile regexp for abundance pattern */
 
-  h = fasta_open(filename);
+  h = fastx_open(filename);
 
-  long filesize = fasta_get_size(h);
+  is_fastq = fastx_is_fastq(h);
+
+  long filesize = fastx_get_size(h);
   
   char * prompt;
   if (asprintf(& prompt, "Reading file %s", filename) == -1)
@@ -104,15 +120,15 @@ void db_read(const char * filename, int upcase)
   size_t seqindex_alloc = 0;
   seqindex = 0;
 
-  while(fasta_next(h,
+  while(fastx_next(h,
                    ! opt_notrunclabels,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {
-      size_t headerlength = fasta_get_header_length(h);
-      size_t sequencelength = fasta_get_sequence_length(h);
+      size_t headerlength = fastx_get_header_length(h);
+      size_t sequencelength = fastx_get_sequence_length(h);
 
       unsigned int abundance = abundance_get(global_abundance,
-                                             fasta_get_header(h));
+                                             fastx_get_header(h));
       
       if (sequencelength < (size_t)opt_minseqlength)
         {
@@ -126,21 +142,38 @@ void db_read(const char * filename, int upcase)
         {
           /* grow space for data, if necessary */
           size_t dataalloc_old = dataalloc;
-          while (datalen + headerlength + sequencelength + 2 > dataalloc)
+          size_t needed = datalen + headerlength + 1 + sequencelength + 1;
+          if (is_fastq)
+            needed += sequencelength + 1;
+          while (dataalloc < needed)
             dataalloc += MEMCHUNK;
           if (dataalloc > dataalloc_old)
             datap = (char *) xrealloc(datap, dataalloc);
 
           /* store the header */
           size_t header_p = datalen;
-          memcpy(datap + header_p, fasta_get_header(h), headerlength + 1);
+          memcpy(datap + header_p,
+                 fastx_get_header(h),
+                 headerlength + 1);
           datalen += headerlength + 1;
           
           /* store sequence */
           size_t sequence_p = datalen;
-          memcpy(datap+sequence_p, fasta_get_sequence(h), sequencelength + 1);
+          memcpy(datap + sequence_p,
+                 fastx_get_sequence(h),
+                 sequencelength + 1);
           datalen += sequencelength + 1;
           
+          size_t quality_p = datalen;
+          if (is_fastq)
+            {
+              /* store quality */
+              memcpy(datap+quality_p,
+                     fastx_get_quality(h),
+                     sequencelength + 1);
+              datalen += sequencelength + 1;
+            }
+
           /* grow space for index, if necessary */
           size_t seqindex_alloc_old = seqindex_alloc;
           while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
@@ -151,9 +184,10 @@ void db_read(const char * filename, int upcase)
           /* update index */
           seqinfo_t * seqindex_p = seqindex + sequences;
           seqindex_p->headerlen = headerlength;
-          seqindex_p->header_p = header_p;
           seqindex_p->seqlen = sequencelength;
+          seqindex_p->header_p = header_p;
           seqindex_p->seq_p = sequence_p;
+          seqindex_p->qual_p = quality_p;
           seqindex_p->size = abundance;
 
           /* update statistics */
@@ -166,12 +200,12 @@ void db_read(const char * filename, int upcase)
           if (headerlength > longestheader)
             longestheader = headerlength;
         }
-      progress_update(fasta_get_position(h));
+      progress_update(fastx_get_position(h));
     }
 
   progress_done();
   free(prompt);
-  fasta_close(h);
+  fastx_close(h);
 
   if (!opt_quiet)
     {
@@ -234,7 +268,6 @@ void db_read(const char * filename, int upcase)
     }
 
   show_rusage();
-
 }
 
 unsigned long db_getsequencecount()

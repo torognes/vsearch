@@ -58,4 +58,4 @@
 
 */
 
-int fastx_detect(const char * filename);
+void search_exact(char * cmdline, char * progheader);

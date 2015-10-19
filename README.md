@@ -10,17 +10,15 @@ The aim of this project is to create an alternative to the [USEARCH](http://www.
 * be as accurate or more accurate than usearch
 * be as fast or faster than usearch
 
-We have implemented a tool called VSEARCH which supports searching, clustering, chimera detection, dereplication, sorting and masking (commands `--usearch_global`, `--cluster_smallmem`, `--cluster_fast`, `--uchime_ref`, `--uchime_denovo`, `--derep_fulllength`, `--sortbysize`, `--sortbylength`, `--maskfasta` and `--allpairs_global`, as well as almost all their options).
+We have implemented a tool called VSEARCH which supports *de novo* and reference based chimera detection, clustering, full-length and prefix dereplication, reverse complementation, masking, all-vs-all pairwise global alignment, exact and global alignment searching, shuffling, subsampling and sorting. It also supports FASTQ file analysis, filtering and conversion.
 
-VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
-
-The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement.
+VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
 VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X (10.7 or higher).
 
-When compiled with the zlib and bzip2 libraries (as in the supplied binaries), VSEARCH can directly read input query and database files that are compressed (.gz and .bz2).
+VSEARCH can directly read input query and database files that are compressed using gzip and bzip2 (.gz and .bz2) if the zlib and bzip2 libraries are available.
 
-VSEARCH does not support amino acid sequences or local alignments. These features may be added in the future.
+Most of the nucleotide based commands and options in USEARCH version 7 are supported, as well as some in version 8. The same option names as in USEARCH version 7 has been used in order to make VSEARCH an almost drop-in replacement. VSEARCH does not support amino acid sequences or local alignments. These features may be added in the future.
 
 ## Getting Help
 
@@ -76,7 +74,7 @@ tar xzf vsearch-x.y.z-osx-x86_64.tar.gz
 You will now have the binary distribution in a folder called something like `vsearch-x.y.z-linux-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
 
 
-**Binaries** Older VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
+**Old binaries** Older VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
 
 ```sh
 cd ~
@@ -95,6 +93,7 @@ ln -s vsearch-1.1.3-linux-x86_64 vsearch
 **Debian package** Thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team, there is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/). The `example/test` data is available in a separate [vsearch-data](https://packages.debian.org/sid/science/vsearch-data) package.
 
 **Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a vsearch package for [Homebrew](http://brew.sh/) [has been made](https://github.com/Homebrew/homebrew-science/pull/2409).
+
 
 ## Implementation details and initial assessment
 
@@ -153,12 +152,13 @@ VSEARCH implements the old USEARCH option `--iddef` to specify the definition of
 
 ## Dependencies
 
-When compiling VSEARCH the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
+When compiling VSEARCH the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
-* libz (zlib) (optional)
-* libbz2 (bzip2lib) (optional)
+* libz (zlib library) (zlib.h header file) (optional)
+* libbz2 (bzip2lib library) (bzlib.h header file) (optional)
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
+
 
 ## VSEARCH license and third party licenses
 
@@ -170,7 +170,9 @@ VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/
 
 VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in the public domain.
 
-VSEARCH includes code for MD5 and SHA1 message digest algorithms that are in the public domain.
+VSEARCH includes public domain code written by Alexander Peslyak for the MD5 message digest algorithm.
+
+VSEARCH includes public domain code written by Steve Reid and others for the SHA1 message digest algorithm.
 
 VSEARCH may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
 
@@ -193,13 +195,14 @@ File | Description
 **cluster.cc** | Clustering (cluster\_fast and cluster\_smallmem)
 **cpu.cc** | Code dependent on specific cpu features (e.g. ssse3)
 **db.cc** | Handles the database file read, access etc
+**dbhash.cc** | Database hashing for exact searches
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
 **dynlib.cc** | Dynamic loading of compression libraries
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
-**fastqops.cc** | Basic FASTQ file statistics etc
-**fastxdetect.cc** | Detection of FASTA and FASTQ files
+**fastqops.cc** | FASTQ file statistics etc
+**fastx.cc** | Detection of FASTA and FASTQ files, wrapper for FASTA and FASTQ parsers
 **linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
@@ -209,6 +212,7 @@ File | Description
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
+**searchexact.cc** | Exact search functions
 **sha1.c** | SHA1 message digest
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
 **shuffle.cc** | Shuffle sequences

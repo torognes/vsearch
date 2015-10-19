@@ -58,78 +58,34 @@
 
 */
 
-struct fastq_buffer_s
+struct fastx_s
 {
-  char * data;
-  unsigned long length;
-  unsigned long alloc;
-  unsigned long position;
+  bool is_fastq;
+  union
+  {
+    fasta_handle fasta;
+    fastq_handle fastq;
+  } handle;
 };
 
-struct fastq_s
-{
-  FILE * fp;
+typedef struct fastx_s * fastx_handle;
 
-#ifdef HAVE_ZLIB_H
-  gzFile fp_gz;
-#endif
+/* fastx input */
 
-#ifdef HAVE_BZLIB_H
-  BZFILE * fp_bz;
-#endif
-
-  struct fastq_buffer_s file_buffer;
-
-  struct fastq_buffer_s header_buffer;
-  struct fastq_buffer_s sequence_buffer;
-  struct fastq_buffer_s quality_buffer;
-
-  unsigned long file_size;
-  unsigned long file_position;
-
-  unsigned long lineno;
-  unsigned long lineno_start;
-  long seqno;
-
-  unsigned long stripped_all;
-  unsigned long stripped[256];
-
-  int format;
-
-};
-
-typedef struct fastq_s * fastq_handle;
-
-fastq_handle fastq_open(const char * filename);
-void fastq_close(fastq_handle h);
-bool fastq_next(fastq_handle h,
+bool fastx_is_fastq(fastx_handle h);
+fastx_handle fastx_open(const char * filename);
+void fastx_close(fastx_handle h);
+bool fastx_next(fastx_handle h,
                 bool truncateatspace,
                 char * char_mapping);
-unsigned long fastq_get_position(fastq_handle h);
-unsigned long fastq_get_size(fastq_handle h);
-unsigned long fastq_get_lineno(fastq_handle h);
-unsigned long fastq_get_seqno(fastq_handle h);
-char * fastq_get_header(fastq_handle h);
-char * fastq_get_sequence(fastq_handle h);
-char * fastq_get_quality(fastq_handle h);
-long fastq_get_abundance(fastq_handle h);
-unsigned long fastq_get_header_length(fastq_handle h);
-unsigned long fastq_get_sequence_length(fastq_handle h);
-unsigned long fastq_get_quality_length(fastq_handle h);
+unsigned long fastx_get_position(fastx_handle h);
+unsigned long fastx_get_size(fastx_handle h);
+unsigned long fastx_get_lineno(fastx_handle h);
+unsigned long fastx_get_seqno(fastx_handle h);
+char * fastx_get_header(fastx_handle h);
+char * fastx_get_sequence(fastx_handle h);
+unsigned long fastx_get_header_length(fastx_handle h);
+unsigned long fastx_get_sequence_length(fastx_handle h);
 
-void fastq_print(FILE * fp, char * header, char * sequence, char * quality);
-
-void fastq_print_with_ee(FILE * fp, char * header, char * sequence,
-                         char * quality, double ee);
-
-void fastq_print_relabel(FILE * fp,
-                         char * seq,
-                         int len,
-                         char * header,
-                         int header_len,
-                         char * quality,
-                         int abundance,
-                         int ordinal);
-
-
-void fastq_print_db(FILE * fp, unsigned long seqno);
+char * fastx_get_quality(fastx_handle h);
+long fastx_get_abundance(fastx_handle h);

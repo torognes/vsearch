@@ -24,13 +24,14 @@ chimera.h \
 cluster.h \
 cpu.h \
 db.h \
+dbhash.h \
 dbindex.h \
 derep.h \
 dynlibs.h \
 fasta.h \
 fastq.h \
 fastqops.h \
-fastxdetect.h \
+fastx.h \
 linmemalign.h \
 maps.h \
 mask.h \
@@ -40,6 +41,7 @@ msa.h \
 results.h \
 search.h \
 searchcore.h \
+searchexact.h \
 showalign.h \
 sha1.h \
 shuffle.h \
@@ -61,13 +63,14 @@ bitmap.cc \
 chimera.cc \
 cluster.cc \
 db.cc \
+dbhash.cc \
 dbindex.cc \
 derep.cc \
 dynlibs.cc \
 fasta.cc \
 fastq.cc \
 fastqops.cc \
-fastxdetect.cc \
+fastx.cc \
 linmemalign.cc \
 maps.cc \
 mask.cc \
@@ -77,6 +80,7 @@ msa.cc \
 results.cc \
 search.cc \
 searchcore.cc \
+searchexact.cc \
 sha1.c \
 showalign.cc \
 shuffle.cc \

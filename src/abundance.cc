@@ -110,7 +110,7 @@ void abundance_fprint_header_with_size(abundance_t * a,
       int pat_end = pmatch[0].rm_eo;
 
       fprintf(fp,
-              ">%.*s%s%.*s%ssize=%lu;\n",
+              "%.*s%s%.*s%ssize=%lu;",
               pat_start, header,
               (pat_start > 0 ? ";" : ""),
               header_length - pat_end, header + pat_end,
@@ -121,7 +121,7 @@ void abundance_fprint_header_with_size(abundance_t * a,
   else
     {
       fprintf(fp,
-              ">%s%ssize=%lu;\n", 
+              "%s%ssize=%lu;",
               header,
               (((header_length == 0) || 
                 (header[header_length - 1] != ';')) ? ";" : ""),
@@ -142,13 +142,13 @@ void abundance_fprint_header_strip_size(abundance_t * a,
       int pat_end = pmatch[0].rm_eo;
 
       fprintf(fp,
-              ">%.*s%s%.*s\n",
+              "%.*s%s%.*s",
               pat_start, header,
               ((pat_start > 0) && (pat_end < header_length)) ? ";" : "",
               header_length - pat_end, header + pat_end);
     }
   else
-    fprintf(fp, ">%s\n", header);
+    fprintf(fp, "%s", header);
 }
 
 char * abundance_strip_size(abundance_t * a,

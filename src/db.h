@@ -62,6 +62,7 @@ struct seqinfo_s
 {
   size_t header_p;
   size_t seq_p;
+  size_t qual_p;
   unsigned int headerlen;
   unsigned int seqlen;
   unsigned int size;
@@ -113,3 +114,6 @@ void db_sortbylength();
 void db_sortbylength_shortest_first();
 
 void db_sortbyabundance();
+
+bool db_is_fastq();
+char * db_getquality(unsigned long seqno);

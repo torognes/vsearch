@@ -218,6 +218,7 @@ fastq_handle fastq_open(const char * filename)
   buffer_init(& h->quality_buffer);
 
   h->lineno = 1;
+  h->lineno_start = 1;
   h->seqno = -1;
 
   for(int i=0; i<256; i++)
@@ -453,6 +454,8 @@ bool fastq_next(fastq_handle h,
   h->sequence_buffer.data[0] = 0;
   h->quality_buffer.length = 0;
   h->quality_buffer.data[0] = 0;
+
+  h->lineno_start = h->lineno;
 
   unsigned long rest = fastq_file_fill_buffer(h);
 
@@ -690,7 +693,7 @@ unsigned long fastq_get_size(fastq_handle h)
 
 unsigned long fastq_get_lineno(fastq_handle h)
 {
-  return h->lineno;
+  return h->lineno_start;
 }
 
 unsigned long fastq_get_seqno(fastq_handle h)
@@ -718,14 +721,97 @@ char * fastq_get_sequence(fastq_handle h)
   return h->sequence_buffer.data;
 }
 
-void fastq_print(FILE * fp, char * header, char * sequence, char * quality,
-                 bool add_ee, double ee)
+void fastq_print_header(FILE * fp, char * header)
 {
-  if (add_ee)
-    fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
-  else
-    fprintf(fp, "@%s\n", header);
+  fprintf(fp, "@%s\n", header);
+}
+
+void fastq_print_sequence(FILE * fp, char * sequence)
+{
   fprintf(fp, "%s\n", sequence);
-  fprintf(fp, "+\n");
-  fprintf(fp, "%s\n", quality);
+}
+
+void fastq_print_quality(FILE * fp, char * quality)
+{
+  fprintf(fp, "+\n%s\n", quality);
+}
+
+void fastq_print(FILE * fp, char * header, char * sequence, char * quality)
+{
+  fastq_print_header(fp, header);
+  fastq_print_sequence(fp, sequence);
+  fastq_print_quality(fp, quality);
+}
+
+void fastq_print_with_ee(FILE * fp, char * header,
+                         char * sequence, char * quality, double ee)
+{
+  fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
+  fastq_print_sequence(fp, sequence);
+  fastq_print_quality(fp, quality);
+}
+
+void fastq_print_relabel(FILE * fp,
+                         char * seq,
+                         int len,
+                         char * header,
+                         int header_len,
+                         char * quality,
+                         int abundance,
+                         int ordinal)
+{
+  fprintf(fp, "@");
+  if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
+    {
+      if (opt_relabel_sha1)
+        fprint_seq_digest_sha1(fp, seq, len);
+      else if (opt_relabel_md5)
+        fprint_seq_digest_md5(fp, seq, len);
+      else
+        fprintf(fp, "%s%d", opt_relabel, ordinal);
+
+      if (opt_sizeout)
+        fprintf(fp, ";size=%u;", abundance);
+
+      if (opt_relabel_keep)
+        fprintf(fp, " %s", header);
+    }
+  else if (opt_sizeout)
+    {
+      abundance_fprint_header_with_size(global_abundance,
+                                        fp,
+                                        header,
+                                        header_len,
+                                        abundance);
+    }
+  else if (opt_xsize)
+    {
+      abundance_fprint_header_strip_size(global_abundance,
+                                         fp,
+                                         header,
+                                         header_len);
+    }
+  else
+    {
+      fprintf(fp, "%s", header);
+    }
+  fprintf(fp, "\n");
+  fastq_print_sequence(fp, seq);
+  fastq_print_quality(fp, quality);
+}
+
+long fastq_get_abundance(fastq_handle h)
+{
+  return abundance_get(global_abundance, h->header_buffer.data);
+}
+
+void fastq_print_db(FILE * fp, unsigned long seqno)
+{
+  char * hdr = db_getheader(seqno);
+  char * seq = db_getsequence(seqno);
+  char * qual = db_getquality(seqno);
+
+  fastq_print_header(fp, hdr);
+  fastq_print_sequence(fp, seq);
+  fastq_print_quality(fp, qual);
 }

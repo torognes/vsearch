@@ -132,8 +132,10 @@
 #include "subsample.h"
 #include "fasta.h"
 #include "fastq.h"
+#include "fastx.h"
 #include "fastqops.h"
-#include "fastxdetect.h"
+#include "dbhash.h"
+#include "searchexact.h"
 
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION
@@ -176,10 +178,12 @@ extern char * opt_fastaout;
 extern char * opt_fastaout_discarded;
 extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
+extern char * opt_fastq_convert;
 extern char * opt_fastq_filter;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
 extern char * opt_fastqout_discarded;
+extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
 extern char * opt_label_suffix;
@@ -194,6 +198,7 @@ extern char * opt_pattern;
 extern char * opt_profile;
 extern char * opt_relabel;
 extern char * opt_samout;
+extern char * opt_search_exact;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
@@ -209,11 +214,13 @@ extern double opt_dn;
 extern double opt_fastq_maxee;
 extern double opt_fastq_maxee_rate;
 extern double opt_id;
+extern double opt_max_unmasked_pct;
 extern double opt_maxid;
 extern double opt_maxqt;
 extern double opt_maxsizeratio;
 extern double opt_maxsl;
 extern double opt_mid;
+extern double opt_min_unmasked_pct;
 extern double opt_mindiv;
 extern double opt_minh;
 extern double opt_minqt;
@@ -248,11 +255,13 @@ extern int opt_version;
 extern long opt_dbmask;
 extern long opt_fasta_width;
 extern long opt_fastq_ascii;
+extern long opt_fastq_asciiout;
 extern long opt_fastq_maxns;
 extern long opt_fastq_minlen;
 extern long opt_fastq_qmax;
 extern long opt_fastq_qmaxout;
 extern long opt_fastq_qmin;
+extern long opt_fastq_qminout;
 extern long opt_fastq_stripleft;
 extern long opt_fastq_tail;
 extern long opt_fastq_trunclen;

@@ -60,6 +60,8 @@
 
 #include "vsearch.h"
 
+/* file type detector and wrapper for fastq and fastx parser */
+
 #ifdef HAVE_BZLIB_H
 #define BZ_VERBOSE_0 0
 #define BZ_VERBOSE_1 1
@@ -225,3 +227,137 @@ int fastx_detect(const char * filename)
 
   return filetype;
 }
+
+bool fastx_is_fastq(fastx_handle h)
+{
+  return h->is_fastq;
+}
+
+fastx_handle fastx_open(const char * filename)
+{
+  int filetype = fastx_detect(filename);
+
+  if (filetype == 0)
+    return 0;
+
+  fastx_handle h = (fastx_handle) xmalloc(sizeof(struct fastx_s));
+
+  h->is_fastq = (filetype == 2);
+
+  if (h->is_fastq)
+    h->handle.fastq = fastq_open(filename);
+  else
+    h->handle.fasta = fasta_open(filename);
+
+  return h;
+}
+
+void fastx_close(fastx_handle h)
+{
+  if (h->is_fastq)
+    {
+      fastq_close(h->handle.fastq);
+      h->handle.fastq = 0;
+    }
+  else
+    {
+      fasta_close(h->handle.fasta);
+      h->handle.fasta = 0;
+    }
+  free(h);
+}
+
+bool fastx_next(fastx_handle h,
+                bool truncateatspace,
+                char * char_mapping)
+{
+  if (h->is_fastq)
+    return fastq_next(h->handle.fastq, truncateatspace, char_mapping);
+  else
+    return fasta_next(h->handle.fasta, truncateatspace, char_mapping);
+}
+
+unsigned long fastx_get_position(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_position(h->handle.fastq);
+  else
+    return fasta_get_position(h->handle.fasta);
+}
+
+
+unsigned long fastx_get_size(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_size(h->handle.fastq);
+  else
+    return fasta_get_size(h->handle.fasta);
+}
+
+
+unsigned long fastx_get_lineno(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_lineno(h->handle.fastq);
+  else
+    return fasta_get_lineno(h->handle.fasta);
+}
+
+
+unsigned long fastx_get_seqno(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_seqno(h->handle.fastq);
+  else
+    return fasta_get_seqno(h->handle.fasta);
+}
+
+char * fastx_get_header(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_header(h->handle.fastq);
+  else
+    return fasta_get_header(h->handle.fasta);
+}
+
+char * fastx_get_sequence(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_sequence(h->handle.fastq);
+  else
+    return fasta_get_sequence(h->handle.fasta);
+}
+
+unsigned long fastx_get_header_length(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_header_length(h->handle.fastq);
+  else
+    return fasta_get_header_length(h->handle.fasta);
+}
+
+unsigned long fastx_get_sequence_length(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_sequence_length(h->handle.fastq);
+  else
+    return fasta_get_sequence_length(h->handle.fasta);
+}
+
+
+char * fastx_get_quality(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_quality(h->handle.fastq);
+  else
+    return 0;
+}
+
+long fastx_get_abundance(fastx_handle h)
+{
+  if (h->is_fastq)
+    return fastq_get_abundance(h->handle.fastq);
+  else
+    return fasta_get_abundance(h->handle.fasta);
+}
+

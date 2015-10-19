@@ -1,8 +1,10 @@
 .\" ============================================================================
-.TH vsearch 1 "October 14, 2015" "version 1.7.0" "USER COMMANDS"
+.TH vsearch 1 "October 19, 2015" "version 1.8.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
-vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ file processing, masking, pairwise alignment, searching, shuffling, sorting and subsampling of amplicons from metagenomic projects.
+vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ
+file processing, masking, pairwise alignment, searching, shuffling,
+sorting and subsampling of amplicons from metagenomic projects.
 .\" ============================================================================
 .SH SYNOPSIS
 .\" left justified, ragged right
@@ -38,6 +40,9 @@ FASTA/FASTQ file processing:
 .RS
 \fBvsearch\fR \-\-fastq_chars \fIfastqfile\fR [\fIoptions\fR]
 .PP
+\fBvsearch\fR \-\-fastq_convert \fIfastqfile\fR \-\-fastqout
+\fIoutputfile\fR [\fIoptions\fR]
+.PP
 \fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
 \-\-fastaout_discarded | \-\-fastqout | \-\-fastqout_discarded)
 \fIoutputfile\fR [\fIoptions\fR]
@@ -51,6 +56,9 @@ FASTA/FASTQ file processing:
 .RE
 Masking:
 .RS
+\fBvsearch\fR \-\-fastx_mask \fIfastxfile\fR (\-\-fastaout |
+\-\-fastqout) \fIoutputfile\fR [\fIoptions\fR]
+.PP
 \fBvsearch\fR \-\-maskfasta \fIfastafile\fR \-\-output
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
@@ -65,15 +73,19 @@ Pairwise alignment:
 .RE
 Searching:
 .RS
+\fBvsearch\fR \-\-search_exact \fIfastafile\fR \-\-db
+\fIfastafile\fR (\-\-alnout | \-\-blast6out | \-\-samout | \-\-uc |
+\-\-userout) \fIoutputfile\fR [\fIoptions\fR]
+.PP
 \fBvsearch\fR \-\-usearch_global \fIfastafile\fR \-\-db
 \fIfastafile\fR (\-\-alnout | \-\-blast6out | \-\-samout | \-\-uc |
 \-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR [\fIoptions\fR]
 .PP
 .RE
-Shuffling:
+Shuffling and sorting:
 .RS
-\fBvsearch\fR \-\-shuffle \fIfastafile\fR \-\-output \fIoutputfile\fR
-[\fIoptions\fR]
+\fBvsearch\fR (\-\-shuffle | \-\-sortbylength | \-\-sortbysize)
+\fIfastafile\fR \-\-output \fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
 Subsampling:
@@ -82,12 +94,6 @@ Subsampling:
 \-\-fastaout \fIoutputfile\fR
 (\-\-sample_pct \fIreal\fR | \-\-sample_size \fIpositive integer\fR)
 [\fIoptions\fR]
-.PP
-.RE
-Sorting:
-.RS
-\fBvsearch\fR (\-\-sortbylength | \-\-sortbysize) \fIfastafile\fR
-\-\-output \fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
 .\" left and right justified (default)
@@ -112,7 +118,7 @@ nucleotides, \fBvsearch\fR uses a slower alignment method with smaller
 memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
-\fBvsearch\fR input is a fasta file containing one or several
+\fBvsearch\fR input is a fasta (or fastq) file containing one or several
 nucleotide sequences. For each sequence, the sequence identifier is
 defined as the string comprised between the ">" symbol and the first
 space, or the end of the line, whichever comes first. Additionally, if
@@ -571,7 +577,8 @@ When using \-\-cluster_smallmem, allow any sequence input order, not
 just a decreasing length ordering.
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .TP
 Most searching options also apply to clustering:
 .br
@@ -670,12 +677,13 @@ FASTA/FASTQ file processing options:
 Analyse, shorten, filter or convert sequences in FASTQ files, or
 reverse complement sequences in FASTA or FASTQ files. The
 \-\-fastq_chars command can be used to analyse FASTQ files to identify
-the type of FASTQ file and the range of quality score values used. A
-statistical analysis of the qualtity and length of the sequences in a
-FASTQ file is performed with the \-\-fastq_stats command. Sequences
-may be shortened, filtered and converted by the \-\-fastq_filter
-command. Finally, the \-\-fastx_revcomp command will reverse
-complement sequences.
+the type of FASTQ file and the range of quality score values used. To
+convert between different FASTQ file variants, use the
+\-\-fastq_convert command. A statistical analysis of the quality and
+length of the sequences in a FASTQ file is performed with the
+\-\-fastq_stats command. Sequences may be shortened, filtered and
+converted by the \-\-fastq_filter command. Finally, the
+\-\-fastx_revcomp command will reverse complement sequences.
 .PP
 .TP 9
 .B \-\-eeout
@@ -691,10 +699,15 @@ Write sequences that does not pass the filter of the \-\-fastq_filter
 command to the given FASTA-formatted file.
 .TP
 .BI \-\-fastq_ascii\~ "positive integer"
-The ASCII character number of the basis for the FASTQ quality
-score. The default is 33 ('!'), which is used by the Sanger / Illumina
-1.8+ FASTQ format. The value 64 ('@') is used by the Solexa, Illumina
-1.3+ and Illumina 1.5+ format.
+The ASCII character number used as the basis for the FASTQ quality
+score. The default is 33, which is used by the Sanger / Illumina 1.8+
+FASTQ format (phred+33). The value 64 is used by the Solexa, Illumina
+1.3+ and Illumina 1.5+ format (phred+64).
+.TP
+.BI \-\-fastq_asciiout\~ "positive integer"
+The ASCII character number used as the basis for the FASTQ quality
+score when writing FASTQ output files. The default is 33. Applies only
+to \-\-fastq_convert.
 .TP
 .BI \-\-fastq_chars \0filename
 Try to automatically detect the type of FASTQ file given (Solexa,
@@ -705,12 +718,21 @@ each of the four DNA letters, \-\-fastq_chars gives the number of
 occurrences of the letter, its relative frequency and the length of
 the longest run of that letter. For each character present in the
 quality strings, \-\-fastq_chars gives the ASCII value of the
-character, its relative frequency, and the number of time a k-mer of
+character, its relative frequency, and the number of times a k-mer of
 that character appears at the end of quality strings. The length of
 the k-mer can be set using \-\-fastq_tail (4 by default). The command
 will suggest values for the \-\-fastq_ascii, \-\-fastq_qmin and
 \-\-fastq_qmax options to be used with the other commands that require
 a FASTQ input file.
+.TP
+.BI \-\-fastq_convert \0filename
+Convert between the different variants of the FASTQ file format. The
+type of input file must be specified with the \-\-fastq_ascii option
+(either 33 or 64, the default is 33), and the type of output file must
+be specified with the \-\-fastq_asciiout option (default 33). The
+mimimum and maximum output quality scores may be limited using the
+\-\-fastq_qminout and \-\-fastq_qmaxout options. The output file is
+specified with the \-\-fastqout option.
 .TP
 .BI \-\-fastq_filter \0filename
 Shorten and/or filter the sequences in the given FASTQ file and output
@@ -748,23 +770,32 @@ With the \-\-fastq_filter command, discard sequences with less than
 the specified number of bases (default 1).
 .TP
 .BI \-\-fastq_qmax\~ "positive integer"
-Specify the maximum base quality score used when reading FASTQ
-files. The default is 41, which is usual for Sanger/Illumina 1.8+
+Specify the maximum quality score accepted when reading FASTQ
+files. The default is 41, which is usual for recent Sanger/Illumina 1.8+
 files.
 .TP
 .BI \-\-fastq_qmaxout\~ "positive integer"
-Specify the maximum base quality score used when writing FASTQ
-files. The default is 41, which is usual for Sanger/Illumina 1.8+
-files.
+Specify the maximum quality score used when writing FASTQ files. The
+default is 41, which is usual for recent Sanger/Illumina 1.8+
+files. Older formats may use a maximum quality score of 40. Applies
+only to \-\-fastq_convert.
 .TP
 .BI \-\-fastq_qmin\~ "positive integer"
-Specify the maximum base quality score used for FASTQ files. The
-default is 0, which is usual for Sanger/Illumina 1.8+ files.
+Specify the minimum quality score accepted for FASTQ files. The
+default is 0, which is usual for recent Sanger/Illumina 1.8+
+files. Older formats may use scores between -5 and 2.
+.TP
+.BI \-\-fastq_qminout\~ "positive integer"
+Specify the minimum quality score used when writing FASTQ
+files. The default is 0, which is usual for Sanger/Illumina 1.8+
+files. Older versions of the format may use values between -5 and
+2. Applies only to \-\-fastq_convert.
 .TP
 .BI \-\-fastq_stats \0filename
 Analyse a FASTQ file and report various statistics on the sequence
 length and quality score distribution. The type of FASTQ file may be
-specified with \-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qman. The output is written to the log file specified with the \-\-log option.
+specified with \-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qmax. The
+output is written to the log file specified with the \-\-log option.
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
 The specified number of bases on the left are deleted when using the
@@ -798,7 +829,8 @@ the input file is in FASTA format, the output can not be written top a
 FASTQ file due to missing base quality scores.
 .TP
 .BI \-\-label_suffix\~ string
-Label to add as a suffix to the header in the output from \-\-fastx_revcomp.
+Label to add as a suffix to the header in the output from
+\-\-fastx_revcomp.
 .TP
 .B \-\-relabel_keep
 When relabelling, keep the old identifier in the header after a space.
@@ -845,17 +877,45 @@ soft:on:lowercase symbols masked and changed to Ns
 .TE
 .PP
 .TP 9
+.BI \-\-fastaout \0filename
+Write the masked sequences to \fIfilename\fR, in fasta format. Applies
+only to the \-\-fastx_mask command.
+.TP
+.BI \-\-fastqout \0filename
+Write the masked sequences to \fIfilename\fR, in fastq format. Applies
+only to the \-\-fastx_mask command.
+.TP
+.BI \-\-fastx_mask \0filename
+Mask simple repeats and low-complexity regions in sequences contained
+in the specified fasta or fastq file. The default is to mask using
+\fIdust\fR (use \-\-qmask to modify that behavior). The output files
+are specified with the \-\-fastaout and \-\-fastqout options. The
+minimum and maximum percentage of unmasked residues may be specified
+with the \-\-min_unmasked_pct and \-\-max_unmasked_pct options,
+respectively.
+.TP
 .B \-\-hardmask
 Mask low-complexity regions by replacing them with Ns instead of
 setting them to lower case.
 .TP
 .BI \-\-maskfasta \0filename
 Mask simple repeats and low-complexity regions in sequences contained
-in \fIfilename\fR. The default is to mask using \fIdust\fR (use
-\-\-qmask to modify that behavior).
+in the fasta file \fIfilename\fR. The default is to mask using
+\fIdust\fR (use \-\-qmask to modify that behavior). The output file is
+specified with the \-\-output option. This command is depreciated,
+please use \-\-fastx_mask instead.
+.TP
+.BI \-\-max_unmasked_pct \0real
+Discard sequences with more than the specified maximum percentage of
+unmasked residues. Works only with \-\-fastx_mask.
+.TP
+.BI \-\-min_unmasked_pct \0real
+Discard sequences with less than the specified minimum percentage of
+unmasked residues. Works only with \-\-fastx_mask.
 .TP
 .BI \-\-output \0filename
-Write the masked sequences to \fIfilename\fR, in fasta format.
+Write the masked sequences to \fIfilename\fR, in fasta format. Applies
+only to the \-\-mask_fasta command.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask simple repeats and low-complexity regions in sequences using the
@@ -1182,7 +1242,11 @@ Reject if the shorter/longer sequence length ratio is lower than
 Reject target sequences with an abundance lower than \fIinteger\fR.
 .TP
 .BI \-\-minwordmatches\~ "non-negative integer"
-Minimum number of word matches required for a sequence to be considered further. Default value is 10 for the default word length 8. For word lengths 7-15, the default minimum word matches is 14, 10, 9, 8, 6, 5, 4, 3 and 2, respectively. If the query sequence has fewer unique words than the number specified, all words must match.
+Minimum number of word matches required for a sequence to be
+considered further. Default value is 10 for the default word length
+8. For word lengths 7-15, the default minimum word matches is 14, 10,
+9, 8, 6, 5, 4, 3 and 2, respectively. If the query sequence has fewer
+unique words than the number specified, all words must match.
 .TP
 .BI \-\-mismatch\~ "integer"
 Score assigned to a mismatch (i.e. different nucleotides) in the
@@ -1231,6 +1295,14 @@ Write alignment results to \fIfilename\fR in the SAM format. For a
 description of the format, see
 <https://github.com/samtools/hts-specs>. Output order may vary when
 using multiple threads.
+.TP
+.BI \-\-search_exact \0filename
+Search for exact full-length matches to the query sequences contained
+in \fIfilename\fR in the database of target sequences (\-\-db). Only
+100% exact matches are reported and this command is much faster than
+\-\-usearch_global. The \-\-id, \-\-maxaccepts and \-\-maxrejects
+options are ignored, but the rest of the searching options may be
+specified.
 .TP
 .B \-\-self
 Reject the sequence match if the query and target labels are
@@ -1806,7 +1878,8 @@ only sequences with an abundance equal to or greater than 2:
 .\" 
 .\" ============================================================================
 .SH AUTHORS
-Implementation by Torbjørn Rognes and Tomás Flouri, documentation by Frédéric Mahé.
+Implementation by Torbjørn Rognes and Tomás Flouri, documentation by
+Frédéric Mahé.
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -1815,7 +1888,8 @@ Submit suggestions and bug-reports at
 curmudgeont e-mail to Torbjørn Rognes <torognes@ifi.uio.no>.
 .\" ============================================================================
 .SH AVAILABILITY
-Source code and binaries are available at <https://github.com/torognes/vsearch>.
+Source code and binaries are available at
+<https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
 Copyright (C) 2014-2015, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
@@ -2088,6 +2162,11 @@ commands. Refactoring of code.
 .TP
 .BR v1.7.0\~ "released October 14th, 2015"
 Add \-\-relabel_keep option.
+.TP
+.BR v1.8.0\~ "released October 19th, 2015"
+Added \-\-search_exact, \-\-fastx_mask and \-\-fastq_convert commands.
+Changed most commands to read FASTQ input files as well as FASTA files.
+Modified \-\-fastx_revcomp and \-\-fastx_subsample to write FASTQ files.
 .RE
 .LP
 .\" ============================================================================

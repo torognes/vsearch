@@ -64,6 +64,8 @@
 #define MASK_SOFT 2
 
 void maskfasta();
+void fastx_mask();
+
 void dust(char * m, int len);
 void hardmask(char * m, int len);
 void dust_all();

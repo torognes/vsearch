@@ -92,10 +92,12 @@ char * opt_fastaout;
 char * opt_fastaout_discarded;
 char * opt_fastapairs;
 char * opt_fastq_chars;
+char * opt_fastq_convert;
 char * opt_fastq_filter;
 char * opt_fastq_stats;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
+char * opt_fastx_mask;
 char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
 char * opt_label_suffix;
@@ -110,6 +112,7 @@ char * opt_pattern;
 char * opt_profile;
 char * opt_relabel;
 char * opt_samout;
+char * opt_search_exact;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
@@ -125,11 +128,13 @@ double opt_dn;
 double opt_fastq_maxee;
 double opt_fastq_maxee_rate;
 double opt_id;
+double opt_max_unmasked_pct;
 double opt_maxid;
 double opt_maxqt;
 double opt_maxsizeratio;
 double opt_maxsl;
 double opt_mid;
+double opt_min_unmasked_pct;
 double opt_mindiv;
 double opt_minh;
 double opt_minqt;
@@ -164,11 +169,13 @@ int opt_version;
 long opt_dbmask;
 long opt_fasta_width;
 long opt_fastq_ascii;
+long opt_fastq_asciiout;
 long opt_fastq_maxns;
 long opt_fastq_minlen;
 long opt_fastq_qmax;
 long opt_fastq_qmaxout;
 long opt_fastq_qmin;
+long opt_fastq_qminout;
 long opt_fastq_stripleft;
 long opt_fastq_tail;
 long opt_fastq_trunclen;
@@ -512,7 +519,9 @@ void args_init(int argc, char **argv)
   opt_fastaout_discarded = 0;
   opt_fastapairs = 0;
   opt_fastq_ascii = 33;
+  opt_fastq_asciiout = 33;
   opt_fastq_chars = 0;
+  opt_fastq_convert = 0;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
   opt_fastq_maxns = LONG_MAX;
@@ -520,6 +529,7 @@ void args_init(int argc, char **argv)
   opt_fastq_qmax = 41;
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
+  opt_fastq_qminout = 0;
   opt_fastq_stats = 0;
   opt_fastq_stripleft = 0;
   opt_fastq_tail = 4;
@@ -527,6 +537,7 @@ void args_init(int argc, char **argv)
   opt_fastq_truncqual = LONG_MIN;
   opt_fastqout = 0;
   opt_fastqout_discarded = 0;
+  opt_fastx_mask = 0;
   opt_fastx_revcomp = 0;
   opt_fastx_subsample = 0;
   opt_fulldp = 0;
@@ -553,6 +564,7 @@ void args_init(int argc, char **argv)
   opt_log = 0;
   opt_match = 2;
   opt_matched = 0;
+  opt_max_unmasked_pct = 100.0;
   opt_maxaccepts = 1;
   opt_maxdiffs = INT_MAX;
   opt_maxgaps = INT_MAX;
@@ -568,6 +580,7 @@ void args_init(int argc, char **argv)
   opt_maxsubs = INT_MAX;
   opt_maxuniquesize = LONG_MAX;
   opt_mid = 0.0;
+  opt_min_unmasked_pct = 0.0;
   opt_mincols = 0;
   opt_mindiffs = 3;
   opt_mindiv = 0.8;
@@ -603,6 +616,7 @@ void args_init(int argc, char **argv)
   opt_samout = 0;
   opt_sample_pct = 0;
   opt_sample_size = 0;
+  opt_search_exact = 0;
   opt_self = 0;
   opt_selfid = 0;
   opt_shuffle = 0;
@@ -782,6 +796,13 @@ void args_init(int argc, char **argv)
     {"minwordmatches",        required_argument, 0, 0 },
     {"v",                     no_argument,       0, 0 },
     {"relabel_keep",          no_argument,       0, 0 },
+    {"search_exact",          required_argument, 0, 0 },
+    {"fastx_mask",            required_argument, 0, 0 },
+    {"min_unmasked_pct",      required_argument, 0, 0 },
+    {"max_unmasked_pct",      required_argument, 0, 0 },
+    {"fastq_convert",         required_argument, 0, 0 },
+    {"fastq_asciiout",        required_argument, 0, 0 },
+    {"fastq_qminout",         required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1404,6 +1425,34 @@ void args_init(int argc, char **argv)
           opt_relabel_keep = 1;
           break;
 
+        case 145:
+          opt_search_exact = optarg;
+          break;
+
+        case 146:
+          opt_fastx_mask = optarg;
+          break;
+
+        case 147:
+          opt_min_unmasked_pct = args_getdouble(optarg);
+          break;
+
+        case 148:
+          opt_max_unmasked_pct = args_getdouble(optarg);
+          break;
+
+        case 149:
+          opt_fastq_convert = optarg;
+          break;
+
+        case 150:
+          opt_fastq_asciiout = args_getlong(optarg);
+          break;
+
+        case 151:
+          opt_fastq_qminout = args_getlong(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1458,6 +1507,12 @@ void args_init(int argc, char **argv)
   if (opt_allpairs_global)
     commands++;
   if (opt_fastx_revcomp)
+    commands++;
+  if (opt_search_exact)
+    commands++;
+  if (opt_fastx_mask)
+    commands++;
+  if (opt_fastq_convert)
     commands++;
   
   if (commands > 1)
@@ -1527,6 +1582,21 @@ void args_init(int argc, char **argv)
 
   if (opt_minwordmatches < 0)
     fatal("The argument to --minwordmatches must not be negative");
+
+  if ((opt_min_unmasked_pct < 0.0) && (opt_min_unmasked_pct > 100.0))
+    fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
+
+  if ((opt_max_unmasked_pct < 0.0) && (opt_max_unmasked_pct > 100.0))
+    fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
+
+  if (opt_min_unmasked_pct > opt_max_unmasked_pct)
+    fatal("The argument to --min_unmasked_pct cannot be larger than to --max_unmasked_pct");
+
+  if (opt_fastq_qmin > opt_fastq_qmax)
+    fatal("The argument to --fastq_qmin cannot be larger than to --fastq_qmax");
+  
+  if (opt_fastq_qminout > opt_fastq_qmaxout)
+    fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
   
   /* TODO: check valid range of gap penalties */
 
@@ -1672,6 +1742,7 @@ void cmd_help()
               "\n"
               "FASTA/FASTQ file processing\n"
               "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
+              "  --fastq_convert FILENAME    Convert between FASTQ file format variants\n"
               "  --fastq_filter FILENAME     Filter FASTQ file, output to FASTQ or FASTA file\n"
               "  --fastq_stats FILENAME      Report FASTQ file statistics\n"
               "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
@@ -1679,7 +1750,8 @@ void cmd_help()
               "  --eeout                     Include expected errors in FASTQ filter output\n"
               "  --fastaout FILENAME         FASTA filename for passed seqs from FASTQ filter\n"
               "  --fastaout_discarded FNAME  FASTA filename for discarded by FASTQ filter\n"
-              "  --fastq_ascii INT           ASCII char no for FASTQ quality base value (33)\n"
+              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
+              "  --fastq_asciiout INT        FASTQ output quality score ASCII base char (33)\n"
               "  --fastq_maxee REAL          Maximum expected error value for FASTQ filter\n"
               "  --fastq_maxee_rate REAL     Maximum expected error rate for FASTQ filter\n"
               "  --fastq_maxns INT           Maximum number of N's for FASTQ filter\n"
@@ -1687,6 +1759,7 @@ void cmd_help()
               "  --fastq_qmax INT            Maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmaxout INT         Maximum base quality value for FASTQ output\n"
               "  --fastq_qmin INT            Minimum base quality value for FASTQ input (0)\n"
+              "  --fastq_qminout INT         Minimum base quality value for FASTQ output\n"
               "  --fastq_stripleft INT       Bases on the left to delete for FASTQ filter\n"
               "  --fastq_tail INT            Length of tails of same quality score to count\n"
               "  --fastq_trunclen INT        Read length for FASTQ filter truncation\n"
@@ -1701,11 +1774,21 @@ void cmd_help()
               "  --sizeout                   include abundance information when relabelling\n"
               "  --xsize                     strip abundance information in output\n"
               "\n"
-              "Masking\n"
+              "Masking (old)\n"
               "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
               "Options\n"
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --output FILENAME           output to specified FASTA file\n"
+              "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
+              "\n"
+              "Masking (new)\n"
+              "  --fastx_mask FILENAME       mask sequences in the given FASTA or FASTQ file\n"
+              "Options\n"
+              "  --fastaout FILENAME         output to specified FASTA file\n"
+              "  --fastqout FILENAME         output to specified FASTQ file\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "  --max_unmasked_pct          max unmasked percentage of sequences to keep (100.0)\n"
+              "  --min_unmasked_pct          min unmasked percentage of sequences to keep (0.0)\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "\n"
               "Pairwise alignment\n"
@@ -1715,6 +1798,7 @@ void cmd_help()
               "  --acceptall                 output all pairwise alignments\n"
               "\n"
               "Searching\n"
+              "  --search_exact FILENAME     filename of queries for exact match search\n"
               "  --usearch_global FILENAME   filename of queries for global alignment search\n"
               "Options\n"
               "  --alnout FILENAME           filename for human-readable alignment output\n"
@@ -1848,6 +1932,23 @@ void cmd_usearch_global()
   usearch_global(cmdline, progheader);
 }
 
+void cmd_search_exact()
+{
+  /* check options */
+
+  if ((!opt_alnout) && (!opt_userout) &&
+      (!opt_uc) && (!opt_blast6out) &&
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_dbmatched) && (!opt_dbnotmatched) &&
+      (!opt_samout))
+    fatal("No output files specified");
+
+  if (!opt_db)
+    fatal("Database filename not specified with --db");
+
+  search_exact(cmdline, progheader);
+}
+
 void cmd_sortbysize()
 {
   if (!opt_output)
@@ -1890,10 +1991,10 @@ void cmd_shuffle()
 
 void cmd_subsample()
 {
-  if (!opt_fastaout)
-    fatal("Output file for subsampling must be specified with --fastaout");
+  if ((!opt_fastaout) && (!opt_fastqout))
+    fatal("Specifiy output files for subsampling with --fastaout and/or --fastqout");
 
-  if ((opt_sample_pct > 0) && (opt_sample_size > 0))
+  if ((opt_sample_pct > 0) == (opt_sample_size > 0))
     fatal("Specify either --sample_pct or --sample_size, not both");
 
   subsample();
@@ -1905,6 +2006,14 @@ void cmd_maskfasta()
     fatal("Output file for masking must be specified with --output");
   
   maskfasta();
+}
+
+void cmd_fastx_mask()
+{
+  if ((!opt_fastaout) && (!opt_fastqout))
+    fatal("Specifiy output files for masking with --fastaout and/or --fastqout");
+
+  fastx_mask();
 }
 
 void cmd_none()
@@ -1922,7 +2031,7 @@ void cmd_none()
             "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
             "vsearch --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
             "vsearch --derep_fulllength FILENAME --output FILENAME\n"
-            "vsearch --maskfasta FILENAME --output FILENAME\n"
+            "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
             "vsearch --shuffle FILENAME --output FILENAME\n"
             "vsearch --sortbylength FILENAME --output FILENAME\n"
             "vsearch --sortbysize FILENAME --output FILENAME\n"
@@ -1939,6 +2048,14 @@ void cmd_fastx_revcomp()
     fatal("No output files specified");
   
   fastx_revcomp();
+}
+
+void cmd_fastq_convert()
+{
+  if (! opt_fastqout)
+    fatal("No output file specified with --fastqout");
+  
+  fastq_convert();
 }
 
 void cmd_cluster()
@@ -2099,6 +2216,12 @@ int main(int argc, char** argv)
     cmd_fastq_filter();
   else if (opt_fastx_revcomp)
     cmd_fastx_revcomp();
+  else if (opt_search_exact)
+    cmd_search_exact();
+  else if (opt_fastx_mask)
+    cmd_fastx_mask();
+  else if (opt_fastq_convert)
+    cmd_fastq_convert();
   else if (opt_version)
     {
     }

@@ -169,6 +169,7 @@ fasta_handle fasta_open(const char * filename)
   buffer_init(& h->sequence_buffer);
 
   h->lineno = 1;
+  h->lineno_start = 1;
   h->seqno = -1;
 
   return h;
@@ -411,6 +412,8 @@ bool fasta_next(fasta_handle h,
                 bool truncateatspace,
                 char * char_mapping)
 {
+  h->lineno_start = h->lineno;
+
   h->header_buffer.length = 0;
   h->sequence_buffer.length = 0;
 
@@ -525,7 +528,7 @@ unsigned long fasta_get_size(fasta_handle h)
 
 unsigned long fasta_get_lineno(fasta_handle h)
 {
-  return h->lineno;
+  return h->lineno_start;
 }
 
 unsigned long fasta_get_seqno(fasta_handle h)
@@ -599,10 +602,9 @@ void fasta_print_relabel(FILE * fp,
                          int abundance,
                          int ordinal)
 {
+  fprintf(fp, ">");
   if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
     {
-      fprintf(fp, ">");
-
       if (opt_relabel_sha1)
         fprint_seq_digest_sha1(fp, seq, len);
       else if (opt_relabel_md5)
@@ -615,8 +617,6 @@ void fasta_print_relabel(FILE * fp,
 
       if (opt_relabel_keep)
         fprintf(fp, " %s", header);
-
-      fprintf(fp, "\n");
     }
   else if (opt_sizeout)
     {
@@ -635,8 +635,9 @@ void fasta_print_relabel(FILE * fp,
     }
   else
     {
-      fasta_print_header(fp, header);
+      fprintf(fp, "%s", header);
     }
+  fprintf(fp, "\n");
 
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
@@ -676,11 +677,13 @@ void fasta_print_db_size(FILE * fp, unsigned long seqno, unsigned long size)
   char * hdr = db_getheader(seqno);
   int hdrlen = db_getheaderlen(seqno);
   
+  fprintf(fp, ">");
   abundance_fprint_header_with_size(global_abundance,
                                     fp,
                                     hdr,
                                     hdrlen,
                                     size);
+  fprintf(fp, "\n");
 
   char * seq = db_getsequence(seqno);
   long seqlen = db_getsequencelen(seqno);
@@ -695,10 +698,12 @@ void fasta_print_db_strip_size(FILE * fp, unsigned long seqno)
   char * hdr = db_getheader(seqno);
   int hdrlen = db_getheaderlen(seqno);
 
+  fprintf(fp, ">");
   abundance_fprint_header_strip_size(global_abundance,
                                      fp,
                                      hdr,
                                      hdrlen);
+  fprintf(fp, "\n");
 
   char * seq = db_getsequence(seqno);
   long seqlen = db_getsequencelen(seqno);

@@ -86,6 +86,7 @@ struct fasta_s
   unsigned long file_position;
 
   unsigned long lineno;
+  unsigned long lineno_start;
   long seqno;
 
   unsigned long stripped_all;
