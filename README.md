@@ -259,7 +259,6 @@ The main contributors to VSEARCH:
 * Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
 * Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
 * Ben Nichols <b.nichols.1@research.gla.ac.uk> (Evaluation)
-* Umer Zeeshan Ijaz <umer.ijaz@glasgow.ac.uk> (Feature suggestions)
 
 
 ## Acknowledgements
