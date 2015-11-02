@@ -926,7 +926,7 @@ void args_init(int argc, char **argv)
           break;
 
         case 13:
-          opt_threads = args_getlong(optarg);
+          opt_threads = (long) args_getdouble(optarg);
           break;
 
         case 14:

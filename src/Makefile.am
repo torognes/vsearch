@@ -1,19 +1,24 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-AM_CXXFLAGS=-I${srcdir}/cityhash -O3 -mtune=native -Wall -Wsign-compare -g
+AM_CXXFLAGS=-Wall -Wsign-compare
+AM_CFLAGS=$(AM_CXXFLAGS)
+
+export MACOSX_DEPLOYMENT_TARGET
 
 libcpu_sse2_a_SOURCES = cpu.cc
-libcpu_sse2_a_CXXFLAGS = -msse2
+libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
 
 libcpu_ssse3_a_SOURCES = cpu.cc
-libcpu_ssse3_a_CXXFLAGS = -mssse3 -DSSSE3
+libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
 
-noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a
+libcityhash_a_SOURCES = cityhash/city.cc
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Icityhash
 
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a
+noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
 
-__top_builddir__bin_vsearch_SOURCES = cityhash/city.h \
-cityhash/config.h \
+__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
+
+__top_builddir__bin_vsearch_SOURCES = \
 abundance.h \
 align.h \
 align_simd.h \
@@ -54,7 +59,6 @@ userfields.h \
 util.h \
 vsearch.h \
 xstring.h \
-cityhash/city.cc \
 abundance.cc \
 align.cc \
 align_simd.cc \
