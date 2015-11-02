@@ -2,16 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [1.8.0], [torognes@ifi.uio.no])
+AC_INIT([vsearch], [1.8.1], [torognes@ifi.uio.no])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
 AC_CONFIG_HEADERS([config.h])
 
-# disable default CXXFLAGS
-if test -z $CXXFLAGS; then
-  CXXFLAGS=''
-fi
+AC_SUBST(MACOSX_DEPLOYMENT_TARGET)
+MACOSX_DEPLOYMENT_TARGET="10.7"
 
 # Checks for programs.
 AC_PROG_CXX
