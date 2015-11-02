@@ -8,6 +8,11 @@ AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
 AC_CONFIG_HEADERS([config.h])
 
+# disable default CXXFLAGS
+if test -z $CXXFLAGS; then
+  CXXFLAGS=''
+fi
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_RANLIB
