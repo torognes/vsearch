@@ -195,7 +195,7 @@ void fastq_filter()
       for (long i = 0; i < length; i++)
         {
           int qual = fastq_get_qual(q[i]);
-          ee += pow(10.0, - qual / 10.0);
+          ee += exp10(- qual / 10.0);
         }
 
       if ((length >= opt_fastq_minlen) &&
@@ -506,7 +506,7 @@ void fastq_chars()
 
 double q2p(double q)
 {
-  return pow(10.0, - q / 10.0);
+  return exp10(- q / 10.0);
 }
 
 void fastq_stats()

@@ -62,16 +62,25 @@
 
 /* options */
 
+bool opt_fastq_allowmergestagger;
+bool opt_fastq_nostagger;
+bool opt_fastq_eeout;
 bool opt_clusterout_id;
 bool opt_clusterout_sort;
 bool opt_eeout;
 bool opt_quiet;
+bool opt_relabel_keep;
 bool opt_relabel_md5;
 bool opt_relabel_sha1;
-bool opt_relabel_keep;
 bool opt_samheader;
 bool opt_sizeorder;
 bool opt_xsize;
+char * opt_eetabbedout;
+char * opt_fastaout_notmerged_fwd;
+char * opt_fastaout_notmerged_rev;
+char * opt_fastq_mergepairs;
+char * opt_fastqout_notmerged_fwd;
+char * opt_fastqout_notmerged_rev;
 char * opt_allpairs_global;
 char * opt_alnout;
 char * opt_blast6out;
@@ -123,6 +132,7 @@ char * opt_uchimealns;
 char * opt_uchimeout;
 char * opt_usearch_global;
 char * opt_userout;
+char * opt_reverse;
 double opt_abskew;
 double opt_dn;
 double opt_fastq_maxee;
@@ -166,6 +176,10 @@ int opt_slots;
 int opt_uchimeout5;
 int opt_usersort;
 int opt_version;
+long opt_fastq_maxdiffs;
+long opt_fastq_maxmergelen;
+long opt_fastq_minmergelen;
+long opt_fastq_minovlen;
 long opt_dbmask;
 long opt_fasta_width;
 long opt_fastq_ascii;
@@ -495,6 +509,7 @@ void args_init(int argc, char **argv)
   opt_alignwidth = 80;
   opt_allpairs_global = 0;
   opt_alnout = 0;
+  opt_blast6out = 0;
   opt_borderline = 0;
   opt_centroids = 0;
   opt_chimeras = 0;
@@ -514,18 +529,32 @@ void args_init(int argc, char **argv)
   opt_derep_prefix = 0;
   opt_dn = 1.4;
   opt_eeout = 0;
+  opt_eetabbedout = 0;
+  opt_fastaout_notmerged_fwd = 0;
+  opt_fastaout_notmerged_rev = 0;
   opt_fasta_width = 80;
   opt_fastaout = 0;
   opt_fastaout_discarded = 0;
   opt_fastapairs = 0;
+  opt_fastq_allowmergestagger = 0;
   opt_fastq_ascii = 33;
   opt_fastq_asciiout = 33;
   opt_fastq_chars = 0;
   opt_fastq_convert = 0;
+  opt_fastq_eeout = 0;
+  opt_fastq_filter = 0;
+  opt_fastq_maxdiffs = 1000000;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
+  opt_fastq_maxmergelen  = 1000000;
   opt_fastq_maxns = LONG_MAX;
+  opt_fastq_mergepairs = 0;
   opt_fastq_minlen = 1;
+  opt_fastq_minmergelen = 0;
+  opt_fastq_minovlen = 16;
+  opt_fastq_nostagger = 1;
+  opt_fastqout_notmerged_fwd = 0;
+  opt_fastqout_notmerged_rev = 0;
   opt_fastq_qmax = 41;
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
@@ -562,6 +591,7 @@ void args_init(int argc, char **argv)
   opt_label_suffix = 0;
   opt_leftjust = 0;
   opt_log = 0;
+  opt_maskfasta = 0;
   opt_match = 2;
   opt_matched = 0;
   opt_max_unmasked_pct = 100.0;
@@ -607,9 +637,10 @@ void args_init(int argc, char **argv)
   opt_quiet = false;
   opt_randseed = 0;
   opt_relabel = 0;
+  opt_relabel_keep = 0;
   opt_relabel_md5 = 0;
   opt_relabel_sha1 = 0;
-  opt_relabel_keep = 0;
+  opt_reverse = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samheader = 0;
@@ -631,6 +662,7 @@ void args_init(int argc, char **argv)
   opt_threads = 0;
   opt_top_hits_only = 0;
   opt_topn = LONG_MAX;
+  opt_uc = 0;
   opt_uc_allhits = 0;
   opt_uchime_denovo = 0;
   opt_uchime_ref = 0;
@@ -803,6 +835,20 @@ void args_init(int argc, char **argv)
     {"fastq_convert",         required_argument, 0, 0 },
     {"fastq_asciiout",        required_argument, 0, 0 },
     {"fastq_qminout",         required_argument, 0, 0 },
+    {"fastq_mergepairs",      required_argument, 0, 0 },
+    {"fastq_eeout",           no_argument,       0, 0 },
+    {"fastqout_notmerged_fwd",required_argument, 0, 0 },
+    {"fastqout_notmerged_rev",required_argument, 0, 0 },
+    {"fastq_minovlen",        required_argument, 0, 0 },
+    {"fastq_minmergelen",     required_argument, 0, 0 },
+    {"fastq_maxmergelen",     required_argument, 0, 0 },
+    {"fastq_nostagger",       no_argument,       0, 0 },
+    {"fastq_allowmergestagger", no_argument,     0, 0 },
+    {"fastq_maxdiffs",        required_argument, 0, 0 },
+    {"fastaout_notmerged_fwd",required_argument, 0, 0 },
+    {"fastaout_notmerged_rev",required_argument, 0, 0 },
+    {"reverse",               required_argument, 0, 0 },
+    {"eetabbedout",           required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1453,6 +1499,62 @@ void args_init(int argc, char **argv)
           opt_fastq_qminout = args_getlong(optarg);
           break;
 
+        case 152:
+          opt_fastq_mergepairs = optarg;
+          break;
+
+        case 153:
+          opt_fastq_eeout = 1;
+          break;
+
+        case 154:
+          opt_fastqout_notmerged_fwd = optarg;
+          break;
+
+        case 155:
+          opt_fastqout_notmerged_rev = optarg;
+          break;
+
+        case 156:
+          opt_fastq_minovlen = args_getlong(optarg);
+          break;
+
+        case 157:
+          opt_fastq_minmergelen = args_getlong(optarg);
+          break;
+
+        case 158:
+          opt_fastq_maxmergelen = args_getlong(optarg);
+          break;
+
+        case 159:
+          opt_fastq_nostagger = optarg;
+          break;
+
+        case 160:
+          opt_fastq_allowmergestagger = 1;
+          break;
+
+        case 161:
+          opt_fastq_maxdiffs = args_getlong(optarg);
+          break;
+
+        case 162:
+          opt_fastaout_notmerged_fwd = optarg;
+          break;
+
+        case 163:
+          opt_fastaout_notmerged_rev = optarg;
+          break;
+
+        case 164:
+          opt_reverse = optarg;
+          break;
+
+        case 165:
+          opt_eetabbedout = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1513,6 +1615,8 @@ void args_init(int argc, char **argv)
   if (opt_fastx_mask)
     commands++;
   if (opt_fastq_convert)
+    commands++;
+  if (opt_fastq_mergepairs)
     commands++;
   
   if (commands > 1)
@@ -2117,6 +2221,21 @@ void cmd_fastq_filter()
   fastq_filter();
 }
 
+void cmd_fastq_mergepairs()
+{
+  if (!opt_reverse)
+    fatal("No reverse reads file specified with --reverse");
+  if ((!opt_fastqout) &&
+      (!opt_fastaout) &&
+      (!opt_fastqout_notmerged_fwd) &&
+      (!opt_fastqout_notmerged_rev) &&
+      (!opt_fastaout_notmerged_fwd) &&
+      (!opt_fastaout_notmerged_rev) &&
+      (!opt_eetabbedout))
+    fatal("No output files specified");
+  fastq_mergepairs();
+}
+
 void fillheader()
 {
   snprintf(progheader, 80, 
@@ -2222,6 +2341,8 @@ int main(int argc, char** argv)
     cmd_fastx_mask();
   else if (opt_fastq_convert)
     cmd_fastq_convert();
+  else if (opt_fastq_mergepairs)
+    cmd_fastq_mergepairs();
   else if (opt_version)
     {
     }

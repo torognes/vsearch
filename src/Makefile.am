@@ -36,6 +36,7 @@ linmemalign.h \
 maps.h \
 mask.h \
 md5.h \
+mergepairs.h \
 minheap.h \
 msa.h \
 results.h \
@@ -75,6 +76,7 @@ linmemalign.cc \
 maps.cc \
 mask.cc \
 md5.c \
+mergepairs.cc \
 minheap.cc \
 msa.cc \
 results.cc \
