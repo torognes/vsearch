@@ -58,10 +58,6 @@
 
 */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -75,7 +71,7 @@
 #include <ctype.h>
 #include <regex.h>
 #include <fcntl.h>
-#include <unistd.h>
+
 #include <float.h>
 #include <dlfcn.h>
 
@@ -140,10 +136,39 @@
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION
 
-#ifdef __APPLE__
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <unistd.h>
+
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#define HAVE_SYS_STAT_H 1
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#define HAVE_SYS_TIME_H 1
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#define HAVE_SYS_TYPES_H 1
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#define HAVE_UNISTD_H 1
+
+
+#if defined (__APPLE__) || (__MACH__)
 #define PROG_ARCH "osx_x86_64"
+#include <sys/sysctl.h>
 #else
 #define PROG_ARCH "linux_x86_64"
+#include <sys/sysinfo.h>
+#endif
+#else
+#define PROG_ARCH "Windows_x86_64"
+#include <windows.h>
+#include <psapi.h>
 #endif
 
 /* options */
