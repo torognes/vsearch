@@ -333,7 +333,7 @@ void cluster_core_results_hit(struct hit * best,
 {
   if (opt_uc)
     {
-      fprintf(fp_uc, "H\t%d\t%d\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
+      fprintf(fp_uc, "H\t%d\t%d\t%.1f\t%c\t0\t0\t%s\t'%s'\t'%s'\n",
               clusterno,
               qseqlen,
               best->id,
@@ -381,7 +381,7 @@ void cluster_core_results_nohit(int clusterno,
 {
   if (opt_uc)
     {
-      fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
+      fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t'%s'\t*\n",
               clusters, qseqlen, query_head);
     }
   
