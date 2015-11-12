@@ -67,11 +67,7 @@
 #endif
 
 #ifndef exp10
-#ifdef __APPLE__
-#define exp10(x) (__exp10(x))
-#else
 #define exp10(x) (pow(10.0,(x)))
-#endif
 #endif
 
 #define MD5_DIGEST_LENGTH 16

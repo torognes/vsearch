@@ -38,20 +38,18 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 wget https://github.com/torognes/vsearch/archive/vx.y.z.tar.gz
 tar xzf vx.y.z.tar.gz
 cd vsearch-x.y.z
-./autogen.sh
 ./configure
 make
 make install  # as root or sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. For versions older than 1.9.0 you'll need to have autoconf installed and run the `autogen.sh` script before you run `configure`.
 
 **Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
 ```
 git clone git@github.com:torognes/vsearch.git
 cd vsearch
-./autogen.sh
 ./configure
 make
 make install  # as root or sudo make install
@@ -174,6 +172,10 @@ VSEARCH includes public domain code written by Alexander Peslyak for the MD5 mes
 
 VSEARCH includes public domain code written by Steve Reid and others for the SHA1 message digest algorithm.
 
+VSEARCH includes statistical data from [PEAR](https://github.com/xflouris/PEAR) by Zhang, Kobert, Flouri & Stamatakis. Used with permission.
+
+The VSEARCH distribution includes code from GNU Autoconf which normally is available under the GNU General Public License, but may be distributed with the special autoconf configure script exception.
+
 VSEARCH may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
 
 VSEARCH may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward, distributed under a BSD-style license.
@@ -192,6 +194,7 @@ File | Description
 **arch.cc** | Architecture specific code (Mac/Linux)
 **bitmap.cc** | Implementation of bitmaps
 **chimera.cc** | Chimera detection
+**city.cc** | CityHash code
 **cluster.cc** | Clustering (cluster\_fast and cluster\_smallmem)
 **cpu.cc** | Code dependent on specific cpu features (e.g. ssse3)
 **db.cc** | Handles the database file read, access etc
@@ -207,8 +210,10 @@ File | Description
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
 **md5.c** | MD5 message digest
+**mergepairs.cc** | Paired-end read merging
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
+**pvalue.h** | Statistical data (from PEAR) used for significance testing of merged paired-end reads
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection

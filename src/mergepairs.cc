@@ -59,10 +59,14 @@
 */
 
 #include "vsearch.h"
+#include "pvalue.h"
+
+/* Use default PEAR scoring method and statistics */
+const int score_method = 2;
+const double pvalue_level = 0.01;
 
 /* 
-   TODO: 
-   - Statistical test (as in PEAR?)
+   TODO:
    - Parallelize with pthreads
    - Check matching labels of forward and reverse reads (/1 and /2)
 */
@@ -112,37 +116,50 @@ int get_qual(char q)
 
 static char merge_qual_same[256][256];
 static char merge_qual_diff[256][256];
-static double score_weight[256][256];
+static double match_weight[256][256];
+static double mism_weight[256][256];
 static double q2p[256];
+
+double q_to_p(double q)
+{
+  return exp10((opt_fastq_ascii - q) / 10.0);
+}
 
 void precompute_qual()
 {
   /* Precompute tables of merged quality scores + score weights */
-  /* Quality score equations from Edgar & Flyvbjerg (2015) */
 
   for (int x = 33; x < 126; x++)
     {
-      q2p[x] = exp10( - (x - opt_fastq_ascii) / 10.0);
+      double px = q_to_p(x);
+      q2p[x] = px;
 
       for (int y = 33; y < 126; y++)
         {
-          double px = exp10( - (x - opt_fastq_ascii) / 10.0);
-          double py = exp10( - (y - opt_fastq_ascii) / 10.0);
+          double py = q_to_p(y);
           double p, q;
           
-          /* same */
+          /* Quality score equations from Edgar & Flyvbjerg (2015) */
+
+          /* Match */
           p = px * py / 3.0 / (1.0 - px - py + 4.0 * px * py / 3.0);
-          q = opt_fastq_ascii + MIN(round(-10.0 * log10(p)), opt_fastq_qmaxout);
+          q = opt_fastq_ascii + MIN(round(-10.0*log10(p)), opt_fastq_qmaxout);
           merge_qual_same[x][y] = q;
           
-          /* diff, x is highest quality */
+          /* Mismatch, x is highest quality */
           p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
-          q = opt_fastq_ascii + MIN(round(-10.0 * log10(p)), opt_fastq_qmaxout);
+          q = opt_fastq_ascii + MIN(round(-10.0*log10(p)), opt_fastq_qmaxout);
           merge_qual_diff[x][y] = q;
           
-          /* score weight */
-          p = (1.0 - px) * (1.0 - py);
-          score_weight[x][y] = p;
+          /* Score weights from PEAR */
+
+          /* Match */
+          p = (1.0 - px) * (1.0 - py) + px * py / 3.0;
+          match_weight[x][y] = p;
+
+          /* Mismatch */
+          p = 1.0 - px / 3.0 - py / 3.0 - px * py / 6.0;
+          mism_weight[x][y] = p;
         }
     }
 }
@@ -403,7 +420,6 @@ long merge(char * fwd_sequence, char * rev_sequence,
               char fwd_qual = fwd_quality[fwd_pos];
               char rev_qual = rev_quality[rev_pos];
               
-              const int score_method = 2;
               const double alpha = 1.0;
               const double beta = -1.0;
 
@@ -425,10 +441,10 @@ long merge(char * fwd_sequence, char * rev_sequence,
                 }
               else
                 {
-                  double p =
-                    score_weight[(unsigned)fwd_qual][(unsigned)rev_qual];
                   if (fwd_sym == rev_sym)
                     {
+                      double p =
+                        match_weight[(unsigned)fwd_qual][(unsigned)rev_qual];
                       oes += alpha * p + beta * (1.0 - p);
                       switch (score_method)
                         {
@@ -449,6 +465,8 @@ long merge(char * fwd_sequence, char * rev_sequence,
                       if (diffs > opt_fastq_maxdiffs)
                         break;
 
+                      double p =
+                        mism_weight[(unsigned)fwd_qual][(unsigned)rev_qual];
                       oes += alpha * (1.0 - p) + beta * p;
                       switch (score_method)
                         {
@@ -478,7 +496,41 @@ long merge(char * fwd_sequence, char * rev_sequence,
         }
     }
 
-  /* TODO: Statistical test */
+  /* Statistical test as in PEAR */
+
+  const int basefreqpct = (int) (0.25 * 100.0);
+
+  int overlapregion = opt_fastq_minovlen;
+  if (overlapregion > 99)
+    overlapregion = 99;
+  if (overlapregion < 1)
+    overlapregion = 1;
+
+  double cutoff;
+
+  if (pvalue_level == 1.0)
+    {
+      cutoff = DBL_MIN;
+    }
+  else if (pvalue_level == 0.01)
+    {
+      cutoff = precomp2_01[overlapregion][basefreqpct];
+    }
+  else if (pvalue_level == 0.05)
+    {
+      cutoff = precomp2_05[overlapregion][basefreqpct];
+    }
+  else if (pvalue_level == 0.001)
+    {
+      cutoff = precomp2_001[overlapregion][basefreqpct];
+    }
+  else
+    {
+      cutoff = precomp2_0001[overlapregion][basefreqpct];
+    }
+
+  if (best_oes <= cutoff)
+    best_i = 0;
 
   return best_i;
 }
@@ -630,10 +682,15 @@ void fastq_mergepairs()
     fatal("More reverse reads than forward reads");
 
   fprintf(stderr,
-"Out of a total of %lu read pairs, %lu were merged and %lu were not merged.\n",
-          total,
+          "%lu read pairs total\n",
+          total);
+
+  fprintf(stderr,
+          "%lu pairs merged (%.1lf%%) and %lu pairs not merged (%.1lf%%).\n",
           merged,
-          notmerged);
+          100.0 * merged / total,
+          notmerged,
+          100.0 * notmerged / total);
 
   if (opt_eetabbedout)
     fclose(fp_eetabbedout);

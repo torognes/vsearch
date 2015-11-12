@@ -335,11 +335,11 @@ void buffer_extend(struct fasta_buffer_s * buffer, char * buf, unsigned long len
 void fasta_truncate_header(fasta_handle h, bool truncateatspace)
 {
   /* Truncate the zero-terminated header string by inserting a new
-     terminator (zero byte) at the first space (if truncateatspace)
-     or first linefeed. */
+     terminator (zero byte) at the first space/tab character
+     (if truncateatspace) or first linefeed. */
   
   if (truncateatspace)
-    h->header_buffer.length = strcspn(h->header_buffer.data, " \n");
+    h->header_buffer.length = strcspn(h->header_buffer.data, " \t\n");
   else
     h->header_buffer.length = strcspn(h->header_buffer.data, "\n");
   

@@ -92,6 +92,9 @@ void db_read(const char * filename, int upcase)
 
   h = fastx_open(filename);
 
+  if (!h)
+    fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
+
   is_fastq = fastx_is_fastq(h);
 
   long filesize = fastx_get_size(h);

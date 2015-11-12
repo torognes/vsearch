@@ -136,11 +136,11 @@ void buffer_makespace(struct fastq_buffer_s * buffer, unsigned long x)
 void buffer_truncate(struct fastq_buffer_s * buffer, bool truncateatspace)
 {
   /* Truncate the zero-terminated header string by inserting a new
-     terminator (zero byte) at the first space (if truncateatspace)
-     or first linefeed. */
+     terminator (zero byte) at the first space/tab character
+     (if truncateatspace) or first linefeed. */
   
   if (truncateatspace)
-    buffer->length = strcspn(buffer->data, " \n");
+    buffer->length = strcspn(buffer->data, " \t\n");
   else
     buffer->length = strcspn(buffer->data, "\n");
   

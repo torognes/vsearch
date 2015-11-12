@@ -107,7 +107,13 @@ int fastx_detect(const char * filename)
         format = FORMAT_BZIP;
     }
 
-  rewind(fp);
+  /* close and reopen to avoid problems with gzip library */
+  /* rewind was not enough */
+
+  fclose(fp);
+  fp = fopen(filename, "rb");
+  if (!fp)
+    fatal("Error: Unable to open file for reading (%s)", filename);
 
   if (format == FORMAT_GZIP)
     {

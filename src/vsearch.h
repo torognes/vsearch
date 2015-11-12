@@ -98,7 +98,8 @@
 #endif
 
 #include "dynlibs.h"
-#include "cityhash/city.h"
+#include "city.h"
+#include "citycrc.h"
 #include "md5.h"
 #include "sha1.h"
 #include "util.h"

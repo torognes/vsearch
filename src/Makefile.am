@@ -5,20 +5,7 @@ AM_CFLAGS=$(AM_CXXFLAGS)
 
 export MACOSX_DEPLOYMENT_TARGET
 
-libcpu_sse2_a_SOURCES = cpu.cc
-libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-
-libcpu_ssse3_a_SOURCES = cpu.cc
-libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
-
-libcityhash_a_SOURCES = cityhash/city.cc
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Icityhash
-
-noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
-
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
-
-__top_builddir__bin_vsearch_SOURCES = \
+VSEARCHHEADERS=\
 abundance.h \
 align.h \
 align_simd.h \
@@ -26,6 +13,8 @@ allpairs.h \
 arch.h \
 bitmap.h \
 chimera.h \
+city.h \
+citycrc.h \
 cluster.h \
 cpu.h \
 db.h \
@@ -44,6 +33,7 @@ md5.h \
 mergepairs.h \
 minheap.h \
 msa.h \
+pvalue.h \
 results.h \
 search.h \
 searchcore.h \
@@ -58,7 +48,22 @@ unique.h \
 userfields.h \
 util.h \
 vsearch.h \
-xstring.h \
+xstring.h
+
+libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
+
+libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
+
+libcityhash_a_SOURCES = city.cc city.h citycrc.h
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
+
+noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
+
+__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
+
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
 abundance.cc \
 align.cc \
 align_simd.cc \
