@@ -93,15 +93,22 @@ ln -s vsearch-1.1.3-linux-x86_64 vsearch
 **Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a vsearch package for [Homebrew](http://brew.sh/) [has been made](https://github.com/Homebrew/homebrew-science/pull/2409).
 
 
+## Converting output to a biom file for use in QIIME and other software
+
+With the `from-uc`command in [biom](http://biom-format.org/) 2.1.5 or later, it is possible to convert data in a `.uc` file produced by vsearch into a biom file that can be read by QIIME and other software. It is described [here](https://gist.github.com/gregcaporaso/f3c042e5eb806349fa18).
+
+
 ## Implementation details and initial assessment
 
-**Search algorithm:** VSEARCH indexes the unique kmers in the database in a way similar to USEARCH, but is currently limited to continuous words (non-spaced seeds) of length 3-15. It samples every unique kmer from each query sequence and identifies the number of matching kmers in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those target sequences that satisfy all accept options are retained while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching target sequences considered, respectively. Please see the USEARCH paper and supplementary for details.
+**Please note: The vsearch code has evolved substantially over time and the numbers below may not be accurate any more.**
+
+**Search algorithm:** VSEARCH indexes the unique kmers in the database in a way similar to USEARCH, but is currently limited to continuous words (non-spaced seeds) of length 7-15 (the length can be specified with the `--wordlength` option, default 8). It samples every unique kmer from each query sequence and identifies the number of matching kmers in each database sequence. It then examines the database sequences in order of decreasing number of kmer matches. A full global alignment is computed and those target sequences that satisfy all accept options are retained while the others are rejected. The `--maxrejects` and `--maxaccepts` options are supported in this process, indicating the maximum number of non-matching and matching target sequences considered, respectively. Please see the USEARCH paper and supplementary for details.
 
 **Kmer selection:** How many and which kmers USEARCH chooses from the query sequence is not well documented. It is also not known exactly which database sequences are examined, and in which order. We have therefore experimented with various strategies in order to obtain good performance. Our procedure seems to give results equal to or better than USEARCH.
 
-We have chosen to select all unique kmers from the query. At least 6 of these kmers must be present in the database sequence before it will be considered. Also, at least 1 out of 16 query kmers need to be present in the database sequence. Furthermore, if several database sequences have the same number of kmer matches, they will be examined in order of decreasing sequence length.
+We have chosen to select all kmers occuring at least once from the query. At least 10 (by default, can be specified with `--miwordmatches`) of these kmers must be present in the database sequence before it will be considered. If the query has fewer than 10 kmers, all must be present in the database sequence. Furthermore, if several database sequences have the same number of kmer matches, they will be examined in order of decreasing sequence length.
 
-It appears that there are differences in usearch between the searches performed by the `--usearch_global` command and the clustering commands. Notably, it appears like `--usearch_global` simply ignores the options `--wordlength`, `--slots` and `--pattern`, while the clustering commands takes them into account. VSEARCH supports the `--wordlength` option for kmer lengths from 3 to 15, but the options `--slots` and `--pattern` are ignored.
+It appears that there are differences in usearch between the searches performed by the `--usearch_global` command and the clustering commands. Notably, it appears like `--usearch_global` simply ignores the options `--wordlength`, `--slots` and `--pattern`, while the clustering commands takes them into account. VSEARCH supports the `--wordlength` option for kmer lengths from 7 to 15, but the options `--slots` and `--pattern` are ignored.
 
 **Alignment:** VSEARCH uses a 8-way 16-bit SIMD vectorized implementation of the full dynamic programming algorithm (Needleman-Wunsch) for global sequence alignment. It is an adaptation of the method described by Rognes (2011). Due to the extreme memory requirements of this method when aligning two long sequences (e.g. more than 5000bp long), an alternative algorithm described by Hirschberg (1975) and Myers and Miller (1988) is used when aligning a pair of long sequences. This alternative algorithm uses only a linear amount of memory but is much slower. USEARCH by default uses a heuristic procedure involving seeding, extension and banded dynamic programming. If the `--fulldp` option is specified to USEARCH it will also use a full dynamic programming approach, but USEARCH is then considerably slower.
 
@@ -278,7 +285,6 @@ Thanks to the following people for patches and other suggestions for improvement
 
 No papers about VSEARCH have been published yet, but a manuscript is in preparation.
 For now, please cite the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
-Release 1.4.0 has doi [10.5281/zenodo.31443](http://dx.doi.org/10.5281/zenodo.31443).
 
 
 ## Test datasets
