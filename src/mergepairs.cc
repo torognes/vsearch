@@ -64,6 +64,8 @@
 /* Use default PEAR scoring method and statistics */
 const int score_method = 2;
 const double pvalue_level = 0.01;
+const double alpha = 1.0;
+const double beta = -1.0;
 
 /* 
    TODO:
@@ -114,20 +116,43 @@ int get_qual(char q)
   return qual;
 }
 
-static char merge_qual_same[256][256];
-static char merge_qual_diff[256][256];
-static double match_weight[256][256];
-static double mism_weight[256][256];
-static double q2p[256];
+static char merge_qual_same[128][128];
+static char merge_qual_diff[128][128];
+static double match_oes[128][128];
+static double match_score[128][128];
+static double mism_oes[128][128];
+static double mism_score[128][128];
+static double q2p[128];
+static double ambig_score;
+static double ambig_oes;
 
 double q_to_p(double q)
 {
-  return exp10((opt_fastq_ascii - q) / 10.0);
+  int x = q - opt_fastq_ascii;
+  if (x < 2)
+    return 0.75;
+  else
+    return exp10(-x/10.0);
 }
 
 void precompute_qual()
 {
-  /* Precompute tables of merged quality scores + score weights */
+  /* Precompute tables of scores etc */
+
+  ambig_oes = alpha * 0.25 + beta * 0.75;
+
+  switch (score_method)
+    {
+    case 1:
+      ambig_score = alpha * 0.25 + beta * 0.75;
+      break;
+    case 2:
+      ambig_score = beta * 0.75;
+      break;
+    case 3:
+      ambig_score = beta;
+      break;
+    }
 
   for (int x = 33; x < 126; x++)
     {
@@ -137,7 +162,8 @@ void precompute_qual()
       for (int y = 33; y < 126; y++)
         {
           double py = q_to_p(y);
-          double p, q;
+
+          double p, q, oes, score;
           
           /* Quality score equations from Edgar & Flyvbjerg (2015) */
 
@@ -154,12 +180,56 @@ void precompute_qual()
           /* Score weights from PEAR */
 
           /* Match */
-          p = (1.0 - px) * (1.0 - py) + px * py / 3.0;
-          match_weight[x][y] = p;
+
+          /* probability that they really are similar,
+             given that they look similar and have
+             error probabilites of px and py, resp. */
+
+          p = 1.0 - px - py + px * py * 4.0 / 3.0;
+
+          oes = alpha * p + beta * (1.0 - p);
+
+          switch (score_method)
+            {
+            case 1:
+              score = alpha * p + beta * (1.0 - p);
+              break;
+            case 2:
+              score = alpha * p;
+              break;
+            case 3:
+              score = alpha;
+              break;
+            }
+          
+          match_oes[x][y] = oes;
+          match_score[x][y] = score;
 
           /* Mismatch */
-          p = 1.0 - px / 3.0 - py / 3.0 - px * py / 6.0;
-          mism_weight[x][y] = p;
+
+          /* Probability that they really are different,
+             given that they look different and have
+             error probabilities of px and py, resp. */
+
+          p = 1.0 - px / 3.0 - py / 3.0 + px * py * 4.0 / 9.0;
+          
+          oes = (beta - alpha) * p + alpha;
+          
+          switch (score_method)
+            {
+            case 1:
+              score = alpha * (1.0 - p) + beta * p;
+              break;
+            case 2:
+              score = beta * p;
+              break;
+            case 3:
+              score = beta;
+              break;
+            }
+
+          mism_oes[x][y] = oes;
+          mism_score[x][y] = score;
         }
     }
 }
@@ -349,6 +419,11 @@ void keep(char * fwd_header,   char * rev_header,
     {
       notmerged++;
     }
+
+  free(merged_sequence);
+  merged_sequence = 0;
+  free(merged_quality);
+  merged_quality = 0;
 }
 
 void discard(char * fwd_header,   char * rev_header,
@@ -383,14 +458,83 @@ void discard(char * fwd_header,   char * rev_header,
                 rev_length);
 }
 
+
+double overlap_score(char * fwd_sequence, char * rev_sequence,
+                     char * fwd_quality,  char * rev_quality,
+                     long fwd_pos_start, long rev_pos_start,
+                     long overlap,
+                     long * pdiffs)
+{
+  long fwd_pos = fwd_pos_start;
+  long rev_pos = rev_pos_start;
+  
+  double score = 0.0;
+  long diffs = 0;
+
+  for (long j=0; j < overlap; j++)
+    {
+      char fwd_sym = fwd_sequence[fwd_pos];
+      char rev_sym = chrmap_complement[(int)(rev_sequence[rev_pos])];
+      unsigned int fwd_qual = fwd_quality[fwd_pos];
+      unsigned int rev_qual = rev_quality[rev_pos];
+      fwd_pos--;
+      rev_pos++;
+      
+      if (fwd_sym == rev_sym)
+        {
+          score += match_score[fwd_qual][rev_qual];
+        }
+      else
+        {
+          diffs++;
+          score += mism_score[fwd_qual][rev_qual];
+        }
+    }
+
+  *pdiffs = diffs;
+  return score;
+}
+
+double overlap_oes(char * fwd_sequence, char * rev_sequence,
+                   char * fwd_quality,  char * rev_quality,
+                   long fwd_pos_start, long rev_pos_start,
+                   long overlap)
+{
+  long fwd_pos = fwd_pos_start;
+  long rev_pos = rev_pos_start;
+  double oes = 0.0;
+
+  for (long j=0; j < overlap; j++)
+    {
+      char fwd_sym = fwd_sequence[fwd_pos];
+      char rev_sym = chrmap_complement[(int)(rev_sequence[rev_pos])];
+      unsigned int fwd_qual = fwd_quality[fwd_pos];
+      unsigned int rev_qual = rev_quality[rev_pos];
+      fwd_pos--;
+      rev_pos++;
+
+      if (fwd_sym == rev_sym)
+        oes += match_oes[fwd_qual][rev_qual];
+      else
+        oes += mism_oes[fwd_qual][rev_qual];
+    }
+
+  return oes;
+}
+
 long merge(char * fwd_sequence, char * rev_sequence,
            char * fwd_quality,  char * rev_quality,
            long fwd_trunc, long rev_trunc)
 {
   long i1 = opt_fastq_minovlen;
+
+  i1 = MAX(i1, fwd_trunc + rev_trunc - opt_fastq_maxmergelen);
+
   long i2 = opt_fastq_allowmergestagger ?
     (fwd_trunc + rev_trunc - opt_fastq_minovlen) :
     fwd_trunc;
+
+  i2 = MIN(i2, fwd_trunc + rev_trunc - opt_fastq_minmergelen);
 
   long best_i = 0;
   double best_score = 0.0;
@@ -401,99 +545,38 @@ long merge(char * fwd_sequence, char * rev_sequence,
       long fwd_3prime_overhang = i > rev_trunc ? i - rev_trunc : 0;
       long rev_3prime_overhang = i > fwd_trunc ? i - fwd_trunc : 0;
       long overlap = i - fwd_3prime_overhang - rev_3prime_overhang;
-      long mergelen = fwd_trunc + rev_trunc - i;
+      long diffs = 0;
+      long fwd_pos_start = fwd_trunc - fwd_3prime_overhang - 1;
+      long rev_pos_start = rev_trunc - rev_3prime_overhang - overlap;
       
-      if ((overlap >= opt_fastq_minovlen) &&
-          (mergelen >= opt_fastq_minmergelen) &&
-          (mergelen <= opt_fastq_maxmergelen) &&
-          (opt_fastq_allowmergestagger || ! rev_3prime_overhang))
+      double score = overlap_score(fwd_sequence, rev_sequence,
+                                   fwd_quality, rev_quality,
+                                   fwd_pos_start, rev_pos_start,
+                                   overlap,
+                                   & diffs);
+      
+      if ((diffs <= opt_fastq_maxdiffs) && (score > best_score))
         {
-          double score = 0.0;
-          double oes = 0.0;
-          long diffs = 0;
-          for (long j=0; j < overlap; j++)
-            {
-              long fwd_pos = fwd_trunc - fwd_3prime_overhang - j - 1;
-              long rev_pos = rev_trunc - rev_3prime_overhang - overlap + j;
-              char fwd_sym = fwd_sequence[fwd_pos];
-              char rev_sym = chrmap_complement[(int)(rev_sequence[rev_pos])];
-              char fwd_qual = fwd_quality[fwd_pos];
-              char rev_qual = rev_quality[rev_pos];
-              
-              const double alpha = 1.0;
-              const double beta = -1.0;
-
-              if ((fwd_sym == 'N') || (rev_sym == 'N'))
-                {
-                  oes += alpha * 0.25 + beta * 0.75;
-                  switch (score_method)
-                    {
-                    case 1:
-                      score += alpha * 0.25 + beta * 0.75;
-                      break;
-                    case 2:
-                      score += beta * 0.75;
-                      break;
-                    case 3:
-                      score += beta;
-                      break;
-                    }
-                }
-              else
-                {
-                  if (fwd_sym == rev_sym)
-                    {
-                      double p =
-                        match_weight[(unsigned)fwd_qual][(unsigned)rev_qual];
-                      oes += alpha * p + beta * (1.0 - p);
-                      switch (score_method)
-                        {
-                        case 1:
-                          score += alpha * p + beta * (1.0 - p);
-                          break;
-                        case 2:
-                          score += alpha * p;
-                          break;
-                        case 3:
-                          score += alpha;
-                          break;
-                        }
-                    }
-                  else
-                    {
-                      diffs++;
-                      if (diffs > opt_fastq_maxdiffs)
-                        break;
-
-                      double p =
-                        mism_weight[(unsigned)fwd_qual][(unsigned)rev_qual];
-                      oes += alpha * (1.0 - p) + beta * p;
-                      switch (score_method)
-                        {
-                        case 1:
-                          score += alpha * (1.0 - p) + beta * p;
-                          break;
-                        case 2:
-                          score += beta * p;
-                          break;
-                        case 3:
-                          score += beta;
-                          break;
-                        }
-                    }
-                }
-            }
-          
-          if (diffs <= opt_fastq_maxdiffs)
-            {
-              if (score > best_score)
-                {
-                  best_score = score;
-                  best_i = i;
-                  best_oes = oes;
-                }
-            }
+          best_score = score;
+          best_i = i;
         }
+    }
+
+  /* compute oes for best alignment */
+
+  if (best_score > 0.0)
+    {
+      long i = best_i;
+      long fwd_3prime_overhang = i > rev_trunc ? i - rev_trunc : 0;
+      long rev_3prime_overhang = i > fwd_trunc ? i - fwd_trunc : 0;
+      long overlap = i - fwd_3prime_overhang - rev_3prime_overhang;
+      long fwd_pos_start = fwd_trunc - fwd_3prime_overhang - 1;
+      long rev_pos_start = rev_trunc - rev_3prime_overhang - overlap;
+      
+      best_oes = overlap_oes(fwd_sequence, rev_sequence,
+                             fwd_quality, rev_quality,
+                             fwd_pos_start, rev_pos_start,
+                             overlap);
     }
 
   /* Statistical test as in PEAR */
@@ -630,12 +713,17 @@ void fastq_mergepairs()
       
       /* count n's */
 
+      /* replace quality of N's by zero */
+
       if (!skip)
         {
           long fwd_ncount = 0;
           for (long i = 0; i < fwd_trunc; i++)
             if (fwd_sequence[i] == 'N')
-              fwd_ncount++;
+              {
+                fwd_quality[i] = opt_fastq_ascii;
+                fwd_ncount++;
+              }
           if (fwd_ncount > opt_fastq_maxns)
             skip = 1;
         }
@@ -645,7 +733,10 @@ void fastq_mergepairs()
           long rev_ncount = 0;
           for (long i = 0; i < rev_trunc; i++)
             if (rev_sequence[i] == 'N')
-              rev_ncount++;
+              {
+                rev_quality[i] = opt_fastq_ascii;
+                rev_ncount++;
+              }
           if (rev_ncount > opt_fastq_maxns)
             skip = 1;
         }
@@ -708,7 +799,9 @@ void fastq_mergepairs()
     fclose(fp_fastqout);
 
   fastq_close(fastq_rev);
+  fastq_rev = 0;
   fastq_close(fastq_fwd);
+  fastq_fwd = 0;
 
   if (merged_sequence)
     free(merged_sequence);

@@ -290,6 +290,7 @@ void fastq_close(fastq_handle h)
   h->seqno = -1;
 
   free(h);
+  h=0;
 }
 
 
