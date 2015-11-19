@@ -66,7 +66,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <x86intrin.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
@@ -79,14 +78,22 @@
 #include <float.h>
 #include <dlfcn.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+
+#ifdef __SSSE3__
+#include <tmmintrin.h>
+#endif
+
 #ifdef __APPLE__
 #include <sys/sysctl.h>
 #else
 #include <sys/sysinfo.h>
-#endif
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
 #endif
 
 #ifdef HAVE_ZLIB_H
