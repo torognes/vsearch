@@ -58,6 +58,8 @@
 
 */
 
+#include <stdio.h>
+#include <stdarg.h>
 #include "vsearch.h"
 
 #define FASTQ_BUFFER_ALLOC 8192
@@ -84,7 +86,7 @@ static char map_identity[256];
 void fastq_fatal(unsigned long lineno, const char * msg)
 {
   char * string; 
-  if (asprintf(& string,
+  if (sprintf( string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
                msg) == -1)

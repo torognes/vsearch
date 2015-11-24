@@ -121,11 +121,11 @@ struct chimera_info_s
   unsigned short snwmatches[maxcandidates];
   unsigned short snwmismatches[maxcandidates];
   unsigned short snwgaps[maxcandidates];
-  long nwscore[maxcandidates];
-  long nwalignmentlength[maxcandidates];
-  long nwmatches[maxcandidates];
-  long nwmismatches[maxcandidates];
-  long nwgaps[maxcandidates];
+  long int nwscore[maxcandidates];
+  long int nwalignmentlength[maxcandidates];
+  long int nwmatches[maxcandidates];
+  long int nwmismatches[maxcandidates];
+  long int nwgaps[maxcandidates];
   char * nwcigar[maxcandidates];
 
   int match_size;
@@ -1079,7 +1079,7 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     free(ci->query_head);
 }
 
-unsigned long chimera_thread_core(struct chimera_info_s * ci)
+unsigned long long chimera_thread_core(struct chimera_info_s * ci)
 {
   chimera_thread_init(ci);
 
@@ -1088,7 +1088,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
   LinearMemoryAligner lma;
 
-  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  long int * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
 
   lma.set_parameters(scorematrix,
                      opt_gap_open_query_left,
@@ -1199,7 +1199,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
         }
 
 
-      /* align full query to each candidate */
+      /* align funsigned long long query to each candidate */
 
       search16_qprep(ci->s, ci->query_seq, ci->query_len);
 
@@ -1215,13 +1215,13 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       for(int i=0; i < ci->cand_count; i++)
         {
-          long target = ci->cand_list[i];
-          long nwscore = ci->snwscore[i];
+          long int target = ci->cand_list[i];
+          long int nwscore = ci->snwscore[i];
           char * nwcigar;
-          long nwalignmentlength;
-          long nwmatches;
-          long nwmismatches;
-          long nwgaps;
+          long int nwalignmentlength;
+          long int nwmatches;
+          long int nwmismatches;
+          long int nwgaps;
 
           if (nwscore == SHRT_MAX)
             {
@@ -1230,7 +1230,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                          linear memory aligner */
                       
               char * tseq = db_getsequence(target);
-              long tseqlen = db_getsequencelen(target);
+              long int tseqlen = db_getsequencelen(target);
                       
               if (ci->nwcigar[i])
                 free(ci->nwcigar[i]);
@@ -1371,8 +1371,8 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 }
 
 void * chimera_thread_worker(void * vp)
-{
-  return (void *) chimera_thread_core(cia + (long) vp);
+{	
+  return (void *) chimera_thread_core((cia + (unsigned long long)vp));
 }
 
 void chimera_threads_run()
@@ -1381,7 +1381,7 @@ void chimera_threads_run()
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
   /* create worker threads */
-  for(long t=0; t<opt_threads; t++)
+  for(unsigned long long t=0; t<opt_threads; t++)
     {
       if (pthread_create(pthread+t, & attr,
                          chimera_thread_worker, (void*)t))
@@ -1442,7 +1442,7 @@ void chimera()
 
   tophits = opt_maxaccepts + opt_maxrejects;
 
-  unsigned long progress_total;
+  unsigned long long progress_total;
   chimera_count = 0;
   nonchimera_count = 0;
   progress = 0;

@@ -58,26 +58,23 @@
 
 */
 
-#if defined(_WIN32)
-#include <windows.h>
-#include <psapi.h>
-#endif
 
 #include "vsearch.h"
 
 
 unsigned long arch_get_memused()
 {
-    struct rusage r_usage;
-    getrusage(RUSAGE_SELF, & r_usage);
-    
-    //#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-    
+        
 #if defined (__APPLE__) || (__MACH__)
     /* Mac: ru_maxrss gives the size in bytes */
+	struct rusage r_usage;
+    getrusage(RUSAGE_SELF, & r_usage);
+
     return r_usage.ru_maxrss;
 #elif (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
     /* Linux: ru_maxrss gives the size in kilobytes  */
+	struct rusage r_usage;
+    getrusage(RUSAGE_SELF, & r_usage);
     return r_usage.ru_maxrss * 1024;
 #else
     PROCESS_MEMORY_COUNTERS info;
@@ -104,7 +101,11 @@ unsigned long arch_get_memtotal()
   if ((phys_pages == -1) || (pagesize == -1))
     fatal("Cannot determine amount of RAM");
   return pagesize * phys_pages;
-
+#elif defined (_WIN32)
+	MEMORYSTATUSEX status;
+	status.dwLength = sizeof(status);
+	GlobalMemoryStatusEx(&status);
+	return (size_t)status.ullTotalPhys;
 #else
 
   struct sysinfo si;

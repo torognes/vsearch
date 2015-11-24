@@ -58,7 +58,11 @@
 
 */
 
+#ifndef VSEARCH_H
+#define VSEARCH_H
+
 #include <stdio.h>
+//#include <stdarg.h>
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
@@ -69,17 +73,9 @@
 #include <locale.h>
 #include <math.h>
 #include <ctype.h>
-#include <regex.h>
 #include <fcntl.h>
-
 #include <float.h>
-#include <dlfcn.h>
-
-#ifdef __APPLE__
-#include <sys/sysctl.h>
-#else
-#include <sys/sysinfo.h>
-#endif
+#include <random>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -95,6 +91,7 @@
 
 #include "dynlibs.h"
 #include "cityhash/city.h"
+
 #include "md5.h"
 #include "sha1.h"
 #include "util.h"
@@ -144,7 +141,6 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
 
@@ -169,7 +165,14 @@
 #define PROG_ARCH "Windows_x86_64"
 #include <windows.h>
 #include <psapi.h>
+
+//use aligned_malloc function instead of posix_memalign
+#define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno) 
+
 #endif
+//accounts for Windows long = 32bits even on 64bit compile
+typedef uint64_t ull; //unsigned long long
+typedef int64_t vlong; //vsearch long
 
 /* options */
 
@@ -347,3 +350,5 @@ extern long avx2_present;
 extern FILE * fp_log;
 
 extern abundance_t * global_abundance;
+
+#endif

@@ -402,7 +402,7 @@ void search_thread_exit(struct searchinfo_s * si)
 
 void * search_thread_worker(void * vp)
 {
-  long t = (long) vp;
+  long t = (intptr_t) vp;
   search_thread_run(t);
   return 0;
 }

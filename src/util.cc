@@ -189,8 +189,28 @@ unsigned long hash_cityhash64(char * s, unsigned long n)
 long getusec(void)
 {
   struct timeval tv;
+
+#if defined (_WIN32)
+	static const unsigned __int64 epoch = (uint64_t)(116444736000000000);
+FILETIME file_time;
+ SYSTEMTIME system_time;
+ULARGE_INTEGER ularge;
+
+GetSystemTime(&system_time);
+ if ((SystemTimeToFileTime(&system_time, &file_time)) == 0) { return 0; } //failed
+ ularge.LowPart = file_time.dwLowDateTime;
+ ularge.HighPart = file_time.dwHighDateTime;
+
+ tv.tv_sec = (long) ((ularge.QuadPart - epoch) / 10000000L);
+ tv.tv_usec = (long) (system_time.wMilliseconds * 1000);
+ return tv.tv_sec;
+
+
+
+#else
   if(gettimeofday(&tv,0) != 0) return 0;
   return tv.tv_sec * 1000000 + tv.tv_usec;
+#endif
 }
 
 void show_rusage()
@@ -238,7 +258,15 @@ void random_init()
         fatal("Unable to read from /dev/urandom");
       close(fd);
     }
-  srandom(seed);
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
+	srandom(seed);
+#else
+	std::default_random_engine generator;
+	generator.seed(seed);
+	srand(seed);
+#endif
+
+  
 }
 
 long random_int(long n)
@@ -252,28 +280,50 @@ long random_int(long n)
     avoid modulo bias.
   */
 
-  long random_max = RAND_MAX;
-  long limit = random_max - (random_max + 1) % n;
-  long r = random();
-  while (r > limit)
-    r = random();
+  	long random_max = RAND_MAX;
+  	long limit = random_max - (random_max + 1) % n;
+	long r = 1;
+
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
+	r = random();
+  	while (r > limit) {  r = random();  }
+#else
+	std::default_random_engine generator;
+	std::uniform_int_distribution<long> dis(0, limit);
+	r = (dis(generator));
+#endif
+
   return r % n;
 }
 
-unsigned long random_ulong(unsigned long n)
+ull random_ulong(ull n)
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive,
     n must be > 0
   */
 
-  unsigned long random_max = ULONG_MAX;
-  unsigned long limit = random_max - (random_max - n + 1) % n;
-  unsigned long r = ((random() << 48) ^ (random() << 32) ^
+  ull random_max = ULONG_MAX;
+  ull limit = random_max - (random_max - n + 1) % n;
+  ull r = 1;
+
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
+	r = ((random() << 48) ^ (random() << 32) ^
                      (random() << 16) ^ (random()));
-  while (r > limit)
+  while (r > limit) {
     r = ((random() << 48) ^ (random() << 32) ^
-         (random() << 16) ^ (random()));
+         (random() << 16) ^ (random())); }
+#else
+	std::default_random_engine generator;
+	std::uniform_int_distribution<ull> dis(0, limit);
+
+	r = (((dis(generator)) << 48) ^ ((dis(generator)) << 32) ^
+                     ((dis(generator)) << 16) ^ ((dis(generator))));
+  while (r > limit) {
+    r = (((dis(generator)) << 48) ^ ((dis(generator)) << 32) ^
+         ((dis(generator)) << 16) ^ ((dis(generator)))); }
+
+#endif
   return r % n;
 }
 

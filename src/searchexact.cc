@@ -108,7 +108,7 @@ void add_hit(struct searchinfo_s * si, unsigned long seqno)
       hp->matches = si->qseqlen;
       hp->mismatches = 0;
       
-      int ret = asprintf(&hp->nwalignment, "%dM", si->qseqlen);
+      int ret = sprintf(hp->nwalignment, "%dM", si->qseqlen);
       if ((ret == -1) || (!hp->nwalignment))
         fatal("Out of memory");
       
@@ -449,7 +449,7 @@ void search_exact_thread_exit(struct searchinfo_s * si)
 
 void * search_exact_thread_worker(void * vp)
 {
-  long t = (long) vp;
+  unsigned long long t = (unsigned long long) vp;
   search_exact_thread_run(t);
   return 0;
 }

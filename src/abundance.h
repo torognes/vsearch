@@ -58,6 +58,8 @@
 
 */
 
+#include <regex.h> 
+
 typedef struct abundance_s
 {
   regex_t regex;

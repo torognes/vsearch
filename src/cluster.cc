@@ -172,7 +172,7 @@ inline void cluster_worker(long t)
 
 void * threads_worker(void * vp)
 {
-  long t = (long) vp;
+  unsigned long long t = (unsigned long long) vp;
   thread_info_s * tip = ti + t;
   pthread_mutex_lock(&tip->mutex);
   /* loop until signalled to quit */

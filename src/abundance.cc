@@ -57,6 +57,9 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
+#if defined (_cplusplus)
+extern "C" {
+#endif
 
 #include "vsearch.h"
 
@@ -165,17 +168,21 @@ char * abundance_strip_size(abundance_t * a,
       int pat_start = pmatch[0].rm_so;
       int pat_end = pmatch[0].rm_eo;
 
-      ret = asprintf(&temp,
+      ret = sprintf(temp,
                      "%.*s%s%.*s",
                      pat_start, header,
                      ((pat_start > 0) && (pat_end < header_length)) ? ";" : "",
                      header_length - pat_end, header + pat_end);
     }
   else
-    ret = asprintf(&temp, "%s", header);
+    ret = sprintf(temp, "%s", header);
   
   if (ret == -1)
     fatal("Out of memory");
   
   return temp;
 }
+
+#if defined (_cplusplus)
+}
+#endif

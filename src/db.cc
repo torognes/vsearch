@@ -97,7 +97,7 @@ void db_read(const char * filename, int upcase)
   long filesize = fastx_get_size(h);
   
   char * prompt;
-  if (asprintf(& prompt, "Reading file %s", filename) == -1)
+  if (sprintf(prompt, "Reading file %s", filename) == -1)
     fatal("Out of memory");
 
   progress_init(prompt, filesize);

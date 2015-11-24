@@ -489,7 +489,7 @@ void allpairs_thread_run(long t)
 
 void * allpairs_thread_worker(void * vp)
 {
-  long t = (long) vp;
+  long t = (intptr_t) vp;
   allpairs_thread_run(t);
   return 0;
 }

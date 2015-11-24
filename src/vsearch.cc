@@ -1628,8 +1628,18 @@ void args_init(int argc, char **argv)
   if (opt_minwordmatches == 0)
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
 
-  if (opt_threads == 0)
-    opt_threads = sysconf(_SC_NPROCESSORS_ONLN);
+  if (opt_threads == 0) {
+int numProcessors = 1;
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
+	numProcessors = sysconf(_SC_NPROCESSORS_ONLN)
+#else
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	numProcessors = sysinfo.dwNumberOfProcessors;
+#endif
+
+    opt_threads = numProcessors;
+}
 
   /* set default opt_minseqlength depending on command */
 
@@ -2119,11 +2129,19 @@ void cmd_fastq_filter()
 
 void fillheader()
 {
+int numProcessors = 1;
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
+	numProcessors = sysconf(_SC_NPROCESSORS_ONLN)
+#else
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	numProcessors = sysinfo.dwNumberOfProcessors;
+#endif
   snprintf(progheader, 80, 
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
-           sysconf(_SC_NPROCESSORS_ONLN));
+           numProcessors);
 }
 
 void getentirecommandline(int argc, char** argv)
