@@ -58,7 +58,6 @@
 
 */
 
-
 #include "vsearch.h"
 
 abundance_t * abundance_init(void)
