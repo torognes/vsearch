@@ -57,9 +57,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
-#if defined (_cplusplus)
-extern "C" {
-#endif
 
 #include "vsearch.h"
 
@@ -183,6 +180,3 @@ char * abundance_strip_size(abundance_t * a,
   return temp;
 }
 
-#if defined (_cplusplus)
-}
-#endif
