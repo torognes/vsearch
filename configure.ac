@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [1.8.1], [torognes@ifi.uio.no])
+AC_INIT([vsearch], [1.9.3], [torognes@ifi.uio.no])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
@@ -21,7 +21,7 @@ AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([dl], [dlopen])
 
 # Checks for header files.
-AC_CHECK_HEADERS([getopt.h fcntl.h float.h regex.h ctype.h locale.h limits.h x86intrin.h string.h sys/time.h dlfcn.h])
+AC_CHECK_HEADERS([getopt.h fcntl.h float.h regex.h ctype.h locale.h limits.h string.h sys/time.h dlfcn.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE

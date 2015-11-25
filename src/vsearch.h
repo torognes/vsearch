@@ -58,15 +58,13 @@
 
 */
 
-#ifndef VSEARCH_H
-#define VSEARCH_H
-
 #include <stdio.h>
 //#include <stdarg.h>
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
 #include <x86intrin.h>
+#include <regex.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
@@ -89,9 +87,21 @@
 #include <bzlib.h>
 #endif
 
+
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+
+#ifdef __SSSE3__
+#include <tmmintrin.h>
+#endif
+
 #include "dynlibs.h"
 #include "cityhash/city.h"
 
+#include "dynlibs.h"
+#include "city.h"
+#include "citycrc.h"
 #include "md5.h"
 #include "sha1.h"
 #include "util.h"
@@ -129,6 +139,7 @@
 #include "fastqops.h"
 #include "dbhash.h"
 #include "searchexact.h"
+#include "mergepairs.h"
 
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION
@@ -179,10 +190,13 @@ typedef int64_t vlong; //vsearch long
 extern bool opt_clusterout_id;
 extern bool opt_clusterout_sort;
 extern bool opt_eeout;
+extern bool opt_fastq_allowmergestagger;
+extern bool opt_fastq_eeout;
+extern bool opt_fastq_nostagger;
 extern bool opt_quiet;
+extern bool opt_relabel_keep;
 extern bool opt_relabel_md5;
 extern bool opt_relabel_sha1;
-extern bool opt_relabel_keep;
 extern bool opt_samheader;
 extern bool opt_sizeorder;
 extern bool opt_xsize;
@@ -202,12 +216,18 @@ extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
 extern char * opt_derep_prefix;
+extern char * opt_eetabbedout;
+extern char * opt_fastaout_notmerged_fwd;
+extern char * opt_fastaout_notmerged_rev;
 extern char * opt_fastaout;
 extern char * opt_fastaout_discarded;
 extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
 extern char * opt_fastq_convert;
 extern char * opt_fastq_filter;
+extern char * opt_fastq_mergepairs;
+extern char * opt_fastqout_notmerged_fwd;
+extern char * opt_fastqout_notmerged_rev;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
 extern char * opt_fastqout_discarded;
@@ -225,6 +245,7 @@ extern char * opt_output;
 extern char * opt_pattern;
 extern char * opt_profile;
 extern char * opt_relabel;
+extern char * opt_reverse;
 extern char * opt_samout;
 extern char * opt_search_exact;
 extern char * opt_shuffle;
@@ -284,8 +305,12 @@ extern long opt_dbmask;
 extern long opt_fasta_width;
 extern long opt_fastq_ascii;
 extern long opt_fastq_asciiout;
+extern long opt_fastq_maxdiffs;
+extern long opt_fastq_maxmergelen;
 extern long opt_fastq_maxns;
 extern long opt_fastq_minlen;
+extern long opt_fastq_minmergelen;
+extern long opt_fastq_minovlen;
 extern long opt_fastq_qmax;
 extern long opt_fastq_qmaxout;
 extern long opt_fastq_qmin;
@@ -316,8 +341,8 @@ extern long opt_minseqlength;
 extern long opt_minsize;
 extern long opt_mintsize;
 extern long opt_minuniquesize;
-extern long opt_mismatch;
 extern long opt_minwordmatches;
+extern long opt_mismatch;
 extern long opt_notrunclabels;
 extern long opt_output_no_hits;
 extern long opt_qmask;
@@ -350,5 +375,3 @@ extern long avx2_present;
 extern FILE * fp_log;
 
 extern abundance_t * global_abundance;
-
-#endif

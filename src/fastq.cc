@@ -58,8 +58,6 @@
 
 */
 
-#include <stdio.h>
-#include <stdarg.h>
 #include "vsearch.h"
 
 #define FASTQ_BUFFER_ALLOC 8192
@@ -86,7 +84,7 @@ static char map_identity[256];
 void fastq_fatal(unsigned long lineno, const char * msg)
 {
   char * string; 
-  if (sprintf( string,
+  if (sprintf(string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
                msg) == -1)
@@ -138,11 +136,11 @@ void buffer_makespace(struct fastq_buffer_s * buffer, unsigned long x)
 void buffer_truncate(struct fastq_buffer_s * buffer, bool truncateatspace)
 {
   /* Truncate the zero-terminated header string by inserting a new
-     terminator (zero byte) at the first space (if truncateatspace)
-     or first linefeed. */
+     terminator (zero byte) at the first space/tab character
+     (if truncateatspace) or first linefeed. */
   
   if (truncateatspace)
-    buffer->length = strcspn(buffer->data, " \n");
+    buffer->length = strcspn(buffer->data, " \t\n");
   else
     buffer->length = strcspn(buffer->data, "\n");
   
@@ -292,6 +290,7 @@ void fastq_close(fastq_handle h)
   h->seqno = -1;
 
   free(h);
+  h=0;
 }
 
 
@@ -817,3 +816,4 @@ void fastq_print_db(FILE * fp, unsigned long seqno)
   fastq_print_sequence(fp, seq);
   fastq_print_quality(fp, qual);
 }
+

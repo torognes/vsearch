@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 19, 2015" "version 1.8.0" "USER COMMANDS"
+.TH vsearch 1 "November 19, 2015" "version 1.9.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ
@@ -32,8 +32,7 @@ Clustering:
 Dereplication:
 .RS
 \fBvsearch\fR (\-\-derep_fulllength | \-\-derep_prefix)
-\fIfastafile\fR (\-\-output |
-\-\-uc) \fIoutputfile\fR [\fIoptions\fR]
+\fIfastafile\fR (\-\-output | \-\-uc) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
 FASTA/FASTQ file processing:
@@ -46,6 +45,12 @@ FASTA/FASTQ file processing:
 \fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
 \-\-fastaout_discarded | \-\-fastqout | \-\-fastqout_discarded)
 \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastq_mergepairs \fIfastqfile\fR \-\-reverse
+\fIfastqfile\fR (\-\-fastaout | \-\-fastqout |
+\-\-fastaout_notmerged_fwd | \-\-fastaout_notmerged_rev |
+\-\-fastqout_notmerged_fwd | \-\-fastqout_notmerged_rev |
+\-\-eetabbedout) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_stats \fIfastqfile\fR
 [\-\-log \fIlogfile\fR] [\fIoptions\fR]
@@ -118,11 +123,12 @@ nucleotides, \fBvsearch\fR uses a slower alignment method with smaller
 memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
-\fBvsearch\fR input is a fasta (or fastq) file containing one or several
-nucleotide sequences. For each sequence, the sequence identifier is
-defined as the string comprised between the ">" symbol and the first
-space, or the end of the line, whichever comes first. Additionally, if
-the line starts with ">[;]size=\fIinteger\fR;label", contains
+\fBvsearch\fR input is a fasta (or fastq) file containing one or
+several nucleotide sequences. For each sequence, the sequence
+identifier is defined as the string comprised between the ">" (or "@")
+symbol and the first space, tab or the end of the line, whichever
+comes first. Additionally, if the fasta header line starts with
+">[;]size=\fIinteger\fR;label", contains
 ">label;size=\fIinteger\fR;label" or ends with
 ">label;size=\fIinteger\fR[;]", \fBvsearch\fR will remove the pattern
 [;]size=\fIinteger\fR[;] from the header and interpret \fIinteger\fR
@@ -200,8 +206,8 @@ than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
 32 nucleotides for clustering, dereplication or searching).
 .TP
 .B \-\-notrunclabels
-Do not truncate sequence labels at first space, use the full header in
-output files.
+Do not truncate sequence labels at first space or tab, use the full
+header in output files.
 .TP
 .B \-\-quiet
 Suppress all output to stdout and stdout except for warnings and fatal
@@ -674,15 +680,16 @@ Strip abundance information from the headers when writing the output file.
 FASTA/FASTQ file processing options:
 .RS
 .PP
-Analyse, shorten, filter or convert sequences in FASTQ files, or
-reverse complement sequences in FASTA or FASTQ files. The
+Analyse, shorten, filter, convert or merge sequences in FASTQ files,
+or reverse complement sequences in FASTA or FASTQ files. The
 \-\-fastq_chars command can be used to analyse FASTQ files to identify
 the type of FASTQ file and the range of quality score values used. To
 convert between different FASTQ file variants, use the
 \-\-fastq_convert command. A statistical analysis of the quality and
 length of the sequences in a FASTQ file is performed with the
 \-\-fastq_stats command. Sequences may be shortened, filtered and
-converted by the \-\-fastq_filter command. Finally, the
+converted by the \-\-fastq_filter command. Paired-end reads can be
+merged using the \-\-fastq_mergepairs command. Finally, the
 \-\-fastx_revcomp command will reverse complement sequences.
 .PP
 .TP 9
@@ -690,13 +697,41 @@ converted by the \-\-fastq_filter command. Finally, the
 When writing FASTQ file output, include the number of expected errors
 in the sequence header. Used with \-\-fastq_filter.
 .TP
+.BI \-\-eetabbedout \0filename
+When specified with the \-\-fastq_mergepairs command, write statistics
+with expected errors of each merged read to the given file. The file
+is a tab separated file with four columns: The number of errors
+expected in the forward read, the number of expected errors in the
+reverse read, the number of observed errors in the forward read, and
+the number of observed errors in the reverse read. The observed number
+of errors are the number of differences in the overlap region of the
+merged sequence relative to each of the reads in the pair.
+.TP
 .BI \-\-fastaout \0filename
-Write sequences that passes the filter of the \-\-fastq_filter command
-to the given FASTA-formatted file.
+Write to the given FASTA-formatted file the sequences that passes the
+filter of the \-\-fastq_filter command, or the merged sequences from
+the \-\-fastq_mergepairs command.
+.TP
+.BI \-\-fastaout_notmerged_fwd \0filename
+For \-\-fastq_mergepairs, write forward reads not merged to the
+specified FASTA file.
+.TP
+.BI \-\-fastaout_notmerged_rev \0filename
+For \-\-fastq_mergepairs, write reverse reads not merged to the
+specified FASTA file.
 .TP
 .BI \-\-fastaout_discarded \0filename
 Write sequences that does not pass the filter of the \-\-fastq_filter
 command to the given FASTA-formatted file.
+.TP
+.B \-\-fastq_allowmergestagger
+Allow the \-\-fastq_mergepairs command to merge staggered read
+pairs. Staggered pairs are pairs where the 3' end of the reverse read
+has an overhang to the left of the 5' end of the forward read. This
+situation can occur when a very short fragment is sequenced. The 3'
+overhang of the reverse read is not included in the merged
+sequence. The opposite option is the \-\-fastq_nostagger option. The
+default is to discard staggered pairs.
 .TP
 .BI \-\-fastq_ascii\~ "positive integer"
 The ASCII character number used as the basis for the FASTQ quality
@@ -734,6 +769,10 @@ mimimum and maximum output quality scores may be limited using the
 \-\-fastq_qminout and \-\-fastq_qmaxout options. The output file is
 specified with the \-\-fastqout option.
 .TP
+.B \-\-fastq_eeout
+When writing FASTQ file output, include the number of expected errors
+in the sequence header. Used with \-\-fastq_mergepairs.
+.TP
 .BI \-\-fastq_filter \0filename
 Shorten and/or filter the sequences in the given FASTQ file and output
 the remaining sequences to the FASTQ file specified with the
@@ -753,21 +792,73 @@ FASTA format. The \-\-relabel option may be used to relabel the output
 sequences. The \-\-eeout may be used to output the expected number of
 errors in each sequence.
 .TP
+.BI \-\-fastq_maxdiffs\~ "positive integer"
+Specify the maximum number of non-matching nucleotides allowed in the
+overlap region with the \-\-fastq_mergepairs command. By default there
+is no limit.
+.TP
 .BI \-\-fastq_maxee\~ real
-With the \-\-fastq_filter command, discard sequences with more than
-the specified number of expected errors.
+With the \-\-fastq_filter and \-\-fastq_mergepairs commands, discard
+sequences with more than the specified number of expected errors.
 .TP
 .BI \-\-fastq_maxee_rate\~ real
 With the \-\-fastq_filter command, discard sequences with more than
 the specified number of expected errors per base.
 .TP
+.BI \-\-fastq_maxmergelen\~ "positive integer"
+Specifity the maximum length of the merged sequence with the
+\-\-fastq_mergepairs command. By default there is no limit.
+.TP
 .BI \-\-fastq_maxns\~ "positive integer"
-With the \-\-fastq_filter command, discard sequences with more than
-the specified number of N's.
+With the \-\-fastq_filter and \-\-fastq_mergepairs commands, discard
+sequences with more than the specified number of N's.
+.TP
+.BI \-\-fastq_mergepairs\0 filename
+Merge paired-end sequence reads into one sequence using a method
+similar to the PEAR algorithm (Zhang, Kobert, Flouri & Stamatakis,
+2014), except that base frequencies are not empirically estimated. The
+algorithm employs a statistical test to identify merged reads that
+have a significantly good alignment score. The forward reads are
+specified as the argument to this option and the reverse reads are
+specified with the \-\-reverse option. The merged sequences are output
+to the file(s) specified with the \-\-fastaout or \-\-fastqout
+options. The non-merged reads can be output to the files specified
+with the \-\-fastaout_notmerged_fwd, \-\-fastaout_notmerged_rev,
+\-\-fastqout_notmerged_fwd and \-\-fastqout_notmerged_rev
+options. Statistics may be output to the file specified with the
+\-\-eetabbedout option. Sequences will be truncated as specified with
+the \-\-fastq_truncqual option to remove low-quality bases in the 3'
+end. Sequences shorter than specified with \-\-fastq_minlen (after
+truncation) will be discarded (1 by default). Sequences with too many
+ambiguous bases (N's), as specified with the \-\-fastq_maxns will also
+be discarded (no limit by default). Staggered reads will not be merged
+unless the \-\-fastq_allowmergestagger option is specified. The
+minimum length of the overlap region between the reads may be specfied
+with the \-\-minovlen option (default 1), and the overlap region may
+not include more mismatches than specified with the \-\-maxdiffs
+option (no limit by default), otherwise the read pair will be
+discarded. The mimimum and maximum length of the merged sequence may
+be specified with the \-\-fastq_minmergelen and \-\-fastq_maxmergelen
+options, respectively. Other relevant options are: \-\-fastq_ascii,
+\-\-fastq_maxee, \-\-fastq_nostagger, \-\-fastq_qmax, \-\-fastq_qmin,
+and \-\-label_suffix.
 .TP
 .BI \-\-fastq_minlen\~ "positive integer"
-With the \-\-fastq_filter command, discard sequences with less than
-the specified number of bases (default 1).
+With the \-\-fastq_filter and \-\-fastq_mergepairs commands, discard
+sequences with less than the specified number of bases (default 1).
+.TP
+.BI \-\-fastq_minmergelen\~ "positive integer"
+Specifity the minimum length of the merged sequence with the
+\-\-fastq_mergepairs command. The default is 1.
+.TP
+.BI \-\-fastq_minovlen\~ "positive integer"
+Specifify the minimum overlap between the merged reads with the
+\-\-fastq_mergepairs command. The default is 1.
+.TP
+.B \-\-fastq_nostagger
+Disallow the \-\-fastq_mergepairs command to merge staggered read
+pairs. This is the default. See the \-\-fastq_allowmergestagger option
+for details.
 .TP
 .BI \-\-fastq_qmax\~ "positive integer"
 Specify the maximum quality score accepted when reading FASTQ
@@ -815,12 +906,21 @@ Truncate sequences starting from the first base with the specified
 base quality score value or lower. Empty sequences will be discarded.
 .TP
 .BI \-\-fastqout \0filename
-Write sequences that passes the filter of the \-\-fastq_filter command
-to the given FASTQ-formatted file.
+Write to the given FASTQ-formatted file the sequences that passes the
+filter of the \-\-fastq_filter command, or the merged sequences from
+the \-\-fastq_mergepairs command.
 .TP
 .BI \-\-fastqout_discarded \0filename
 Write sequences that does not pass the filter of the \-\-fastq_filter
 command to the given FASTQ-formatted file.
+.TP
+.BI \-\-fastqout_notmerged_fwd \0filename
+For \-\-fastq_mergepairs, write forward reads not merged to the
+specified FASTQ file.
+.TP
+.BI \-\-fastqout_notmerged_rev \0filename
+For \-\-fastq_mergepairs, write reverse reads not merged to the
+specified FASTQ file.
 .TP
 .BI \-\-fastx_revcomp \0filename
 Reverse-complement the sequences in the given FASTA or FASTQ file to a
@@ -830,7 +930,7 @@ FASTQ file due to missing base quality scores.
 .TP
 .BI \-\-label_suffix\~ string
 Label to add as a suffix to the header in the output from
-\-\-fastx_revcomp.
+\-\-fastx_revcomp and \-\-fastq_mergepairs.
 .TP
 .B \-\-relabel_keep
 When relabelling, keep the old identifier in the header after a space.
@@ -846,6 +946,10 @@ for details.
 .BI \-\-relabel_sha1
 Please see the description of the same option under Chimera detection
 for details.
+.TP
+.BI \-\-reverse \0filename
+Specify the FASTQ file containing containing the reverse reads for the
+\-\-fastq_mergepairs command.
 .TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output file.
@@ -1896,7 +2000,7 @@ Copyright (C) 2014-2015, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
 .PP
 All rights reserved.
 .PP
-Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+Contact: Torbjørn Rognes <torognes@ifi.uio.no>,
 Department of Informatics, University of Oslo,
 PO Box 1080 Blindern, NO-0316 Oslo, Norway
 .PP
@@ -1946,12 +2050,25 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 .PP
+\fBvsearch\fR includes code from several other projects. We thank the
+authors for making their source code available.
+.PP
 \fBvsearch\fR includes code from Google's CityHash project by Geoff
 Pike and Jyrki Alakuijala, providing some excellent hash functions
 available under a MIT license.
 .PP
 \fBvsearch\fR includes code derived from Tatusov and Lipman's DUST
 program that is in the public domain.
+.PP
+\fBvsearch\fR includes public domain code written by Alexander Peslyak
+for the MD5 message digest algorithm.
+.PP
+\fBvsearch\fR includes public domain code written by Steve Reid and
+others for the SHA1 message digest algorithm.
+.PP
+\fBvsearch\fR includes statistical data from PEAR
+<https://github.com/xflouris/PEAR> by Zhang, Kobert, Flouri and
+Stamatakis. Used with permission.
 .PP
 \fBvsearch\fR binaries may include code from the zlib library,
 copyright Jean-Loup Gailly and Mark Adler.
@@ -2167,6 +2284,27 @@ Add \-\-relabel_keep option.
 Added \-\-search_exact, \-\-fastx_mask and \-\-fastq_convert commands.
 Changed most commands to read FASTQ input files as well as FASTA files.
 Modified \-\-fastx_revcomp and \-\-fastx_subsample to write FASTQ files.
+.TP
+.BR v1.8.1\~ "released November 2nd, 2015"
+Fixes for compatibility with QIIME and older OS X versions.
+.TP
+.BR v1.9.0\~ "released November 12th, 2015"
+Added the \-\-fastq_mergepairs command and associated options. This
+command has not been tested well yet. Included additional files to
+avoid dependency of autoconf for compilation. Fixed an error where
+identifiers in fasta headers where not truncated at tabs, just spaces.
+Fixed a bug in detection of the file format (FASTA/FASTQ) of a gzip
+compressed input file.
+.TP
+.BR v1.9.1\~ "released November 13th, 2015"
+Fixed memory leak and a bug in score computation in fastq_mergepairs,
+and improved speed.
+.TP
+.BR v1.9.2\~ "released November 17th, 2015"
+Fixed a bug in the computation of some values with \-\-fastq_stats.
+.TP
+.BR v1.9.3\~ "released November 19th, 2015"
+Workaround for missing x86intrin.h with old compilers.
 .RE
 .LP
 .\" ============================================================================

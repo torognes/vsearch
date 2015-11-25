@@ -1,3 +1,4 @@
+
 /*
 
   VSEARCH: a versatile open source tool for metagenomics
@@ -91,6 +92,9 @@ void db_read(const char * filename, int upcase)
   /* compile regexp for abundance pattern */
 
   h = fastx_open(filename);
+
+  if (!h)
+    fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
 
   is_fastq = fastx_is_fastq(h);
 
@@ -421,5 +425,4 @@ void db_sortbyabundance()
   qsort(seqindex, sequences, sizeof(seqinfo_t), compare_byabundance);
   progress_done();
 }
-
 

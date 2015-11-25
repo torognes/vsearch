@@ -195,7 +195,7 @@ void fastq_filter()
       for (long i = 0; i < length; i++)
         {
           int qual = fastq_get_qual(q[i]);
-          ee += pow(10.0, - qual / 10.0);
+          ee += exp10(- qual / 10.0);
         }
 
       if ((length >= opt_fastq_minlen) &&
@@ -506,7 +506,7 @@ void fastq_chars()
 
 double q2p(double q)
 {
-  return pow(10.0, - q / 10.0);
+  return exp10(- q / 10.0);
 }
 
 void fastq_stats()
@@ -521,14 +521,21 @@ void fastq_stats()
   unsigned long symbols = 0;
   
   long read_length_alloc = 512;
+
   int * read_length_table = (int*) xmalloc(sizeof(int) * read_length_alloc);
   memset(read_length_table, 0, sizeof(int) * read_length_alloc);
+
   int * qual_length_table = (int*) xmalloc(sizeof(int) * read_length_alloc * 256);
   memset(qual_length_table, 0, sizeof(int) * read_length_alloc * 256);
+
   int * ee_length_table = (int *) xmalloc(sizeof(int) * read_length_alloc * 4);
   memset(ee_length_table, 0, sizeof(int) * read_length_alloc * 4);
+
   int * q_length_table = (int *) xmalloc(sizeof(int) * read_length_alloc * 4);
   memset(q_length_table, 0, sizeof(int) * read_length_alloc * 4);
+
+  double * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
+  memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
 
   long len_min = LONG_MAX;
   long len_max = 0;
@@ -555,18 +562,27 @@ void fastq_stats()
                                               sizeof(int) * (len+1));
           memset(read_length_table + read_length_alloc, 0, 
                  sizeof(int) * (len + 1 - read_length_alloc));
+
           qual_length_table = (int*) xrealloc(qual_length_table,
                                               sizeof(int) * (len+1) * 256);
           memset(qual_length_table + 256 * read_length_alloc, 0, 
                  sizeof(int) * (len + 1 - read_length_alloc) * 256);
+
           ee_length_table = (int*) xrealloc(ee_length_table,
                                             sizeof(int) * (len+1) * 4);
           memset(ee_length_table + 4 * read_length_alloc, 0, 
                  sizeof(int) * (len + 1 - read_length_alloc) * 4);
+
           q_length_table = (int*) xrealloc(q_length_table,
                                            sizeof(int) * (len+1) * 4);
           memset(q_length_table + 4 * read_length_alloc, 0, 
                  sizeof(int) * (len + 1 - read_length_alloc) * 4);
+
+          sumee_length_table = (double *) xrealloc(sumee_length_table,
+                                                   sizeof(double) * (len+1));
+          memset(sumee_length_table + read_length_alloc, 0,
+                 sizeof(double) * (len + 1 - read_length_alloc));
+
           read_length_alloc = len + 1;
         }
 
@@ -603,6 +619,8 @@ void fastq_stats()
 
           ee += q2p(qual);
           
+          sumee_length_table[i] += ee;
+
           for(int z=0; z<4; z++)
             {
               if (ee <= ee_limit[z])
@@ -639,7 +657,6 @@ void fastq_stats()
 
   long length_accum = 0;
   long symb_accum = 0;
-  double p_sum = 0.0;
 
   for(long i = 0; i <= len_max; i++)
     {
@@ -656,20 +673,18 @@ void fastq_stats()
         {
           int qual = c - opt_fastq_ascii;
           x += qual_length_table[256*i + c];
-
           q += qual_length_table[256*i + c] * qual;
-
-          p_sum += qual_length_table[256*i + c] * q2p(qual);
           e_sum += qual_length_table[256*i + c] * q2p(qual);
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
-      avgee_dist[i] = 1.0 * p_sum / x;
-      rate_dist[i] = 1.0 * p_sum / symb_accum;
+      avgee_dist[i] = sumee_length_table[i] / x;
+      rate_dist[i] = avgee_dist[i] / (i+1);
     }
 
   if (fp_log)
     {
+      fprintf(fp_log, "\n");
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Read length distribution\n");
       fprintf(fp_log, "      L           N      Pct   AccPct\n");
@@ -677,12 +692,13 @@ void fastq_stats()
       
       for(long i = len_max; i >= len_min; i--)
         {
-          fprintf(fp_log, "%2s%5ld  %10d   %5.1lf%%   %5.1lf%%\n",
-                  (i == len_max ? ">=" : "  "),
-                  i,
-                  read_length_table[i],
-                  read_length_table[i] * 100.0 / seq_count,
-                  100.0 * (seq_count - length_dist[i-1]) / seq_count);
+          if (read_length_table[i] > 0)
+            fprintf(fp_log, "%2s%5ld  %10d   %5.1lf%%   %5.1lf%%\n",
+                    (i == len_max ? ">=" : "  "),
+                    i,
+                    read_length_table[i],
+                    read_length_table[i] * 100.0 / seq_count,
+                    100.0 * (seq_count - length_dist[i-1]) / seq_count);
         }
 
       fprintf(fp_log, "\n");
@@ -749,14 +765,17 @@ void fastq_stats()
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
             }
           
-          fprintf(fp_log,
-                  "%5ld  %7ld  %7ld  %7ld  %7ld  "
-                  "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
-                  i,
-                  read_count[0], read_count[1],
-                  read_count[2], read_count[3],
-                  read_percentage[0], read_percentage[1],
-                  read_percentage[2], read_percentage[3]);
+          if (read_count[0] > 0)
+            {
+              fprintf(fp_log,
+                      "%5ld  %7ld  %7ld  %7ld  %7ld  "
+                      "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
+                      i,
+                      read_count[0], read_count[1],
+                      read_count[2], read_count[3],
+                      read_percentage[0], read_percentage[1],
+                      read_percentage[2], read_percentage[3]);
+            }
         }
 
       
@@ -789,6 +808,7 @@ void fastq_stats()
   free(qual_length_table);
   free(ee_length_table);
   free(q_length_table);
+  free(sumee_length_table);
 
   free(length_dist);
   free(symb_dist);
