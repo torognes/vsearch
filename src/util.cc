@@ -296,7 +296,7 @@ long random_int(long n)
   return r % n;
 }
 
-ull random_ulong(ull n)
+unsigned long random_ulong(unsigned long n)
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive,

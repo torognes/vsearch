@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include <random>
 
 /* implement a priority queue with a min heap binary array structure */
 /* elements with the lowest count should be at the top (root) */

@@ -58,13 +58,15 @@
 
 */
 
+#ifndef VSEARCH_H
+#define VSEARCH_H
+
 #include <stdio.h>
 //#include <stdarg.h>
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
 #include <x86intrin.h>
-#include <regex.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
@@ -73,7 +75,6 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <float.h>
-#include <random>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -87,21 +88,9 @@
 #include <bzlib.h>
 #endif
 
-
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-
-#ifdef __SSSE3__
-#include <tmmintrin.h>
-#endif
-
-#include "dynlibs.h"
-#include "cityhash/city.h"
-
 #include "dynlibs.h"
 #include "city.h"
-#include "citycrc.h"
+
 #include "md5.h"
 #include "sha1.h"
 #include "util.h"
@@ -139,10 +128,9 @@
 #include "fastqops.h"
 #include "dbhash.h"
 #include "searchexact.h"
-#include "mergepairs.h"
 
-#define PROG_NAME PACKAGE
-#define PROG_VERSION PACKAGE_VERSION
+#define PROG_NAME "vsearch"
+#define PROG_VERSION "vsearch 1.9.3"
 
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
 
@@ -176,6 +164,7 @@
 #define PROG_ARCH "Windows_x86_64"
 #include <windows.h>
 #include <psapi.h>
+#include <random>
 
 //use aligned_malloc function instead of posix_memalign
 #define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno) 
@@ -372,6 +361,9 @@ extern long popcnt_present;
 extern long avx_present;
 extern long avx2_present;
 
+
 extern FILE * fp_log;
 
 extern abundance_t * global_abundance;
+
+#endif

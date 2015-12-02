@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "pvalue.h"
 
+
 /* Use default PEAR scoring method and statistics */
 const int score_method = 2;
 const double pvalue_level = 0.01;
@@ -132,7 +133,8 @@ double q_to_p(double q)
   if (x < 2)
     return 0.75;
   else
-    return exp10(-x/10.0);
+    //return exp10(-x/10.0);
+      return (pow(10, (-x/10.0)));
 }
 
 void precompute_qual()
@@ -810,3 +812,4 @@ void fastq_mergepairs()
   if (merged_header)
     free(merged_header);
 }
+    

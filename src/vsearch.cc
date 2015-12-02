@@ -359,7 +359,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
         }
       else if (*p == '*')
         {
-          pen = 1000;
+          pen = 10000;
           p++;
         }
       else
@@ -509,7 +509,6 @@ void args_init(int argc, char **argv)
   opt_alignwidth = 80;
   opt_allpairs_global = 0;
   opt_alnout = 0;
-  opt_blast6out = 0;
   opt_borderline = 0;
   opt_centroids = 0;
   opt_chimeras = 0;
@@ -529,32 +528,18 @@ void args_init(int argc, char **argv)
   opt_derep_prefix = 0;
   opt_dn = 1.4;
   opt_eeout = 0;
-  opt_eetabbedout = 0;
-  opt_fastaout_notmerged_fwd = 0;
-  opt_fastaout_notmerged_rev = 0;
   opt_fasta_width = 80;
   opt_fastaout = 0;
   opt_fastaout_discarded = 0;
   opt_fastapairs = 0;
-  opt_fastq_allowmergestagger = 0;
   opt_fastq_ascii = 33;
   opt_fastq_asciiout = 33;
   opt_fastq_chars = 0;
   opt_fastq_convert = 0;
-  opt_fastq_eeout = 0;
-  opt_fastq_filter = 0;
-  opt_fastq_maxdiffs = 1000000;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
-  opt_fastq_maxmergelen  = 1000000;
   opt_fastq_maxns = LONG_MAX;
-  opt_fastq_mergepairs = 0;
   opt_fastq_minlen = 1;
-  opt_fastq_minmergelen = 0;
-  opt_fastq_minovlen = 16;
-  opt_fastq_nostagger = 1;
-  opt_fastqout_notmerged_fwd = 0;
-  opt_fastqout_notmerged_rev = 0;
   opt_fastq_qmax = 41;
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
@@ -591,7 +576,6 @@ void args_init(int argc, char **argv)
   opt_label_suffix = 0;
   opt_leftjust = 0;
   opt_log = 0;
-  opt_maskfasta = 0;
   opt_match = 2;
   opt_matched = 0;
   opt_max_unmasked_pct = 100.0;
@@ -637,10 +621,9 @@ void args_init(int argc, char **argv)
   opt_quiet = false;
   opt_randseed = 0;
   opt_relabel = 0;
-  opt_relabel_keep = 0;
   opt_relabel_md5 = 0;
   opt_relabel_sha1 = 0;
-  opt_reverse = 0;
+  opt_relabel_keep = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
   opt_samheader = 0;
@@ -662,7 +645,6 @@ void args_init(int argc, char **argv)
   opt_threads = 0;
   opt_top_hits_only = 0;
   opt_topn = LONG_MAX;
-  opt_uc = 0;
   opt_uc_allhits = 0;
   opt_uchime_denovo = 0;
   opt_uchime_ref = 0;
@@ -835,20 +817,6 @@ void args_init(int argc, char **argv)
     {"fastq_convert",         required_argument, 0, 0 },
     {"fastq_asciiout",        required_argument, 0, 0 },
     {"fastq_qminout",         required_argument, 0, 0 },
-    {"fastq_mergepairs",      required_argument, 0, 0 },
-    {"fastq_eeout",           no_argument,       0, 0 },
-    {"fastqout_notmerged_fwd",required_argument, 0, 0 },
-    {"fastqout_notmerged_rev",required_argument, 0, 0 },
-    {"fastq_minovlen",        required_argument, 0, 0 },
-    {"fastq_minmergelen",     required_argument, 0, 0 },
-    {"fastq_maxmergelen",     required_argument, 0, 0 },
-    {"fastq_nostagger",       no_argument,       0, 0 },
-    {"fastq_allowmergestagger", no_argument,     0, 0 },
-    {"fastq_maxdiffs",        required_argument, 0, 0 },
-    {"fastaout_notmerged_fwd",required_argument, 0, 0 },
-    {"fastaout_notmerged_rev",required_argument, 0, 0 },
-    {"reverse",               required_argument, 0, 0 },
-    {"eetabbedout",           required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1499,62 +1467,6 @@ void args_init(int argc, char **argv)
           opt_fastq_qminout = args_getlong(optarg);
           break;
 
-        case 152:
-          opt_fastq_mergepairs = optarg;
-          break;
-
-        case 153:
-          opt_fastq_eeout = 1;
-          break;
-
-        case 154:
-          opt_fastqout_notmerged_fwd = optarg;
-          break;
-
-        case 155:
-          opt_fastqout_notmerged_rev = optarg;
-          break;
-
-        case 156:
-          opt_fastq_minovlen = args_getlong(optarg);
-          break;
-
-        case 157:
-          opt_fastq_minmergelen = args_getlong(optarg);
-          break;
-
-        case 158:
-          opt_fastq_maxmergelen = args_getlong(optarg);
-          break;
-
-        case 159:
-          opt_fastq_nostagger = optarg;
-          break;
-
-        case 160:
-          opt_fastq_allowmergestagger = 1;
-          break;
-
-        case 161:
-          opt_fastq_maxdiffs = args_getlong(optarg);
-          break;
-
-        case 162:
-          opt_fastaout_notmerged_fwd = optarg;
-          break;
-
-        case 163:
-          opt_fastaout_notmerged_rev = optarg;
-          break;
-
-        case 164:
-          opt_reverse = optarg;
-          break;
-
-        case 165:
-          opt_eetabbedout = optarg;
-          break;
-
         default:
           fatal("Internal error in option parsing");
         }
@@ -1615,8 +1527,6 @@ void args_init(int argc, char **argv)
   if (opt_fastx_mask)
     commands++;
   if (opt_fastq_convert)
-    commands++;
-  if (opt_fastq_mergepairs)
     commands++;
   
   if (commands > 1)
@@ -1732,17 +1642,18 @@ void args_init(int argc, char **argv)
   if (opt_minwordmatches == 0)
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
 
-  if (opt_threads == 0)
-      int numProcessors = 1;
+  if (opt_threads == 0) {
+int numProcessors = 1;
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-    numProcessors = sysconf(_SC_NPROCESSORS_ONLN)
+      numProcessors = sysconf(_SC_NPROCESSORS_ONLN);
 #else
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    numProcessors = sysinfo.dwNumberOfProcessors;
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	numProcessors = sysinfo.dwNumberOfProcessors;
 #endif
-    
+
     opt_threads = numProcessors;
+}
 
   /* set default opt_minseqlength depending on command */
 
@@ -1828,11 +1739,11 @@ void cmd_help()
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
-              "  --sizeorder                 sort accepted centroids by abundance (AGC)\n"
+              "  --sizeorder                 Sort accepted centroids by abundance (AGC)\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
               "  --strand plus|both          cluster using plus or both strands (plus)\n"
-              "  --uc FILENAME               specify filename for UCLUST-like output\n"
-              "  --usersort                  indicate sequences not pre-sorted by length\n"
+              "  --uc FILENAME               filename for UCLUST-like output\n"
+              "  --usersort                  indicate sequences not presorted by length\n"
               "  --xsize                     strip abundance information in output\n"
               "\n"
               "Dereplication\n"
@@ -1853,92 +1764,39 @@ void cmd_help()
               "  --uc FILENAME               filename for UCLUST-like output\n"
               "  --xsize                     strip abundance information in output\n"
               "\n"
-              "FASTQ filtering\n"
-              "  --fastq_filter FILENAME     filter FASTQ file, output to FASTQ or FASTA file\n"
+              "FASTA/FASTQ file processing\n"
+              "  --fastq_chars FILENAME      Analyse FASTQ file for version and quality range\n"
+              "  --fastq_convert FILENAME    Convert between FASTQ file format variants\n"
+              "  --fastq_filter FILENAME     Filter FASTQ file, output to FASTQ or FASTA file\n"
+              "  --fastq_stats FILENAME      Report FASTQ file statistics\n"
+              "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
               "Options\n"
-              "  --eeout                     include expected errors in FASTQ filter output\n"
-              "  --fastaout FILENAME         FASTA output filename for passed sequences\n"
-              "  --fastaout_discarded FNAME  FASTA filename for discarded sequences\n"
-              "  --fastqout FILENAME         FASTQ output filename for passed sequences\n"
-              "  --fastqout_discarded FNAME  FASTQ filename for discarded sequences\n"
+              "  --eeout                     Include expected errors in FASTQ filter output\n"
+              "  --fastaout FILENAME         FASTA filename for passed seqs from FASTQ filter\n"
+              "  --fastaout_discarded FNAME  FASTA filename for discarded by FASTQ filter\n"
               "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_maxee REAL          maximum expected error value for FASTQ filter\n"
-              "  --fastq_maxee_rate REAL     maximum expected error rate for FASTQ filter\n"
-              "  --fastq_maxns INT           maximum number of N's for FASTQ filter\n"
-              "  --fastq_minlen INT          minimum length for FASTQ filter\n"
-              "  --fastq_stripleft INT       bases on the left to delete for FASTQ filter\n"
-              "  --fastq_trunclen INT        read length for FASTQ filter truncation\n"
-              "  --fastq_truncqual INT       base quality value for FASTQ filter truncation\n"
+              "  --fastq_asciiout INT        FASTQ output quality score ASCII base char (33)\n"
+              "  --fastq_maxee REAL          Maximum expected error value for FASTQ filter\n"
+              "  --fastq_maxee_rate REAL     Maximum expected error rate for FASTQ filter\n"
+              "  --fastq_maxns INT           Maximum number of N's for FASTQ filter\n"
+              "  --fastq_minlen INT          Minimum length for FASTQ filter\n"
+              "  --fastq_qmax INT            Maximum base quality value for FASTQ input (41)\n"
+              "  --fastq_qmaxout INT         Maximum base quality value for FASTQ output\n"
+              "  --fastq_qmin INT            Minimum base quality value for FASTQ input (0)\n"
+              "  --fastq_qminout INT         Minimum base quality value for FASTQ output\n"
+              "  --fastq_stripleft INT       Bases on the left to delete for FASTQ filter\n"
+              "  --fastq_tail INT            Length of tails of same quality score to count\n"
+              "  --fastq_trunclen INT        Read length for FASTQ filter truncation\n"
+              "  --fastq_truncqual INT       Base quality value for FASTQ filter truncation\n"
+              "  --fastqout FILENAME         FASTQ filename for passed seqs from FASTQ filter\n"
+              "  --fastqout_discarded FNAME  FASTQ filename for discarded by FASTQ filter\n"
+              "  --label_suffix STRING       Label to add to output for --fastx_revcomp\n"
               "  --relabel STRING            relabel filtered sequences with given prefix\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel filtered sequences with md5 digest\n"
               "  --relabel_sha1              relabel filtered sequences with sha1 digest\n"
               "  --sizeout                   include abundance information when relabelling\n"
               "  --xsize                     strip abundance information in output\n"
-              "\n"
-              "FASTQ format conversion\n"
-              "  --fastq_convert FILENAME    convert between FASTQ file formats\n"
-              "Options\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_asciiout INT        FASTQ output quality score ASCII base char (33)\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n"
-              "\n"
-              "FASTQ format detection and quality analysis\n"
-              "  --fastq_chars FILENAME      analyse FASTQ file for version and quality range\n"
-              "Options\n"
-              "  --fastq_tail INT            min length of tails to count for fastq_chars (4)\n"
-              "\n"
-              "FASTQ paired-end reads merging\n"
-              "  --fastq_mergepairs FILENAME merge paired-end reads into one sequence\n"
-              "Options:\n"
-              "  --eetabbedout FILENAME      output error statistics to specified file\n"
-              "  --fastaout FILENAME         FASTA output filename for merged sequences\n"
-              "  --fastaout_notmerged_fwd FN FASTA filename for non-merged forward sequences\n"
-              "  --fastaout_notmerged_rev FN FASTA filename for non-merged reverse sequences\n"
-              "  --fastq_allowmergestagger   Allow merging of staggered reads\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_eeout               include expected errors in FASTQ output\n"
-              "  --fastq_maxdiffs            maximum number of different bases in overlap\n"
-              "  --fastq_maxee REAL          maximum expected error value for merged sequence\n"
-              "  --fastq_maxmergelen         maximum length of entire merged sequence\n"
-              "  --fastq_maxns INT           maximum number of N's\n"
-              "  --fastq_minlen INT          minimum input read length after truncation (1)\n"
-              "  --fastq_minmergelen         minimum length of entire merged sequence\n"
-              "  --fastq_minovlen            minimum length of overlap between reads\n"
-              "  --fastq_nostagger           disallow merging of staggered reads (default)\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n"
-              "  --fastq_truncqual INT       base quality value for truncation\n"
-              "  --fastqout FILENAME         FASTQ output filename for merged sequences\n"
-              "  --fastqout_notmerged_fwd  F FASTQ filename for non-merged forward sequences\n"
-              "  --fastqout_notmerged_rev  F FASTQ filename for non-merged reverse sequences\n"
-              "  --label_suffix              suffix to append to label of merged sequences\n"
-              "  --reverse FILENAME          specify FASTQ file with reverse reads\n"
-              "\n"
-              "FASTQ quality statistics\n"
-              "  --fastq_stats FILENAME      report FASTQ file statistics\n"
-              "Options\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "\n"
-              "Masking (new)\n"
-              "  --fastx_mask FILENAME       mask sequences in the given FASTA or FASTQ file\n"
-              "Options\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "  --fastaout FILENAME         output to specified FASTA file\n"
-              "  --fastqout FILENAME         output to specified FASTQ file\n"
-              "  --hardmask                  mask by replacing with N instead of lower case\n"
-              "  --max_unmasked_pct          max unmasked %% of sequences to keep (100.0)\n"
-              "  --min_unmasked_pct          min unmasked %% of sequences to keep (0.0)\n"
-              "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "\n"
               "Masking (old)\n"
               "  --maskfasta FILENAME        mask sequences in the given FASTA file\n"
@@ -1947,21 +1805,21 @@ void cmd_help()
               "  --output FILENAME           output to specified FASTA file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "\n"
+              "Masking (new)\n"
+              "  --fastx_mask FILENAME       mask sequences in the given FASTA or FASTQ file\n"
+              "Options\n"
+              "  --fastaout FILENAME         output to specified FASTA file\n"
+              "  --fastqout FILENAME         output to specified FASTQ file\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "  --max_unmasked_pct          max unmasked percentage of sequences to keep (100.0)\n"
+              "  --min_unmasked_pct          min unmasked percentage of sequences to keep (0.0)\n"
+              "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
+              "\n"
               "Pairwise alignment\n"
               "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
               "Options (most searching options also apply)\n"
               "  --alnout FILENAME           filename for human-readable alignment output\n"
               "  --acceptall                 output all pairwise alignments\n"
-              "\n"
-              "Reverse complementation\n"
-              "  --fastx_revcomp FILENAME    Reverse-complement seqs in FASTA or FASTQ file\n"
-              "Options\n"
-              "  --fastaout FILENAME         FASTA output filename\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "  --fastqout FILENAME         FASTQ output filename\n"
-              "  --label_suffix STRING       Label to append to identifier in the output\n"
               "\n"
               "Searching\n"
               "  --search_exact FILENAME     filename of queries for exact match search\n"
@@ -2045,13 +1903,9 @@ void cmd_help()
               "  --xsize                     strip abundance information in output\n"
               "\n"
               "Subsampling\n"
-              "  --fastx_subsample FILENAME  subsample sequences from given FASTA/FASTQ file\n"
+              "  --fastx_subsample FILENAME  subsample sequences from given FASTA file\n"
               "Options\n"
               "  --fastaout FILENAME         output FASTA file for subsamples\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "  --fastqout FILENAME         output FASTQ file for subsamples\n"
               "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
               "  --relabel STRING            relabel sequences with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
@@ -2194,23 +2048,14 @@ void cmd_none()
             "\n"
             "For further details, please see the manual by entering: man vsearch\n"
             "\n"
-            "Example commands:\n"
+            "Some basic command examples:\n"
             "\n"
             "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
             "vsearch --cluster_fast FILENAME --id 0.97 --centroids FILENAME\n"
             "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
             "vsearch --cluster_smallmem FILENAME --usersort --id 0.97 --centroids FILENAME\n"
             "vsearch --derep_fulllength FILENAME --output FILENAME\n"
-            "vsearch --derep_prefix FILENAME --output FILENAME\n"
-            "vsearch --fastq_chars FILENAME\n"
-            "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
-            "vsearch --fastq_filter FILENAME --fastqout FILENAME --fastq_truncqual 20\n"
-            "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
-            "vsearch --fastq_stats FILENAME --log FILENAME\n"
             "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
-            "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
-            "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
-            "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
             "vsearch --shuffle FILENAME --output FILENAME\n"
             "vsearch --sortbylength FILENAME --output FILENAME\n"
             "vsearch --sortbysize FILENAME --output FILENAME\n"
@@ -2296,36 +2141,21 @@ void cmd_fastq_filter()
   fastq_filter();
 }
 
-void cmd_fastq_mergepairs()
-{
-  if (!opt_reverse)
-    fatal("No reverse reads file specified with --reverse");
-  if ((!opt_fastqout) &&
-      (!opt_fastaout) &&
-      (!opt_fastqout_notmerged_fwd) &&
-      (!opt_fastqout_notmerged_rev) &&
-      (!opt_fastaout_notmerged_fwd) &&
-      (!opt_fastaout_notmerged_rev) &&
-      (!opt_eetabbedout))
-    fatal("No output files specified");
-  fastq_mergepairs();
-}
-
 void fillheader()
 {
-    int numProcessors = 1;
+int numProcessors = 1;
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-    numProcessors = sysconf(_SC_NPROCESSORS_ONLN)
+    numProcessors = sysconf(_SC_NPROCESSORS_ONLN);
 #else
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    numProcessors = sysinfo.dwNumberOfProcessors;
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	numProcessors = sysinfo.dwNumberOfProcessors;
 #endif
-    snprintf(progheader, 80,
-             "%s v%s_%s, %.1fGB RAM, %ld cores",
-             PROG_NAME, PROG_VERSION, PROG_ARCH,
-             arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
-             numProcessors);
+  snprintf(progheader, 80, 
+           "%s v%s_%s, %.1fGB RAM, %ld cores",
+           PROG_NAME, PROG_VERSION, PROG_ARCH,
+           arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
+           numProcessors);
 }
 
 void getentirecommandline(int argc, char** argv)
@@ -2424,8 +2254,6 @@ int main(int argc, char** argv)
     cmd_fastx_mask();
   else if (opt_fastq_convert)
     cmd_fastq_convert();
-  else if (opt_fastq_mergepairs)
-    cmd_fastq_mergepairs();
   else if (opt_version)
     {
     }
@@ -2461,4 +2289,3 @@ int main(int argc, char** argv)
 
   dynlibs_close();
 }
->>>>>>> upstream/master
