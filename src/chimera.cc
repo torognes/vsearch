@@ -72,9 +72,9 @@
 
 /* global constants/data, no need for synchronization */
 const int parts = 4;
-const int few = 1;
+const int few = 4;
 const int maxcandidates = few * parts;
-const int rejects = 64;
+const int rejects = 16;
 const double chimera_id = 0.55;
 static int tophits;
 static pthread_attr_t attr;
@@ -93,9 +93,6 @@ static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
 static FILE * fp_uchimeout = 0;
 static FILE * fp_borderline = 0;
-
-#define ALT
-//#define ALT2
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -1288,14 +1285,8 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                           ci->query_seq,
                           ci->query_len);
             }
-
-
-#ifdef ALT2
-          if (opt_uchime_denovo)
-            dbindex_addsequence(seqno);
-#endif
         }
-
+      
       if (status == 3)
         {
           if (opt_borderline)
@@ -1326,11 +1317,9 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                         ci->query_head);
             }
           
-#ifndef ALT
           /* uchime_denovo: add non-chimeras to db */
           if (opt_uchime_denovo)
             dbindex_addsequence(seqno);
-#endif
 
           if (opt_nonchimeras)
             {
@@ -1469,13 +1458,8 @@ void chimera()
   else
     {
       db_read(opt_uchime_denovo, 1);
-#ifndef ALT
       db_sortbyabundance();
-#endif
       dbindex_prepare(1);
-#ifdef ALT
-      dbindex_addallsequences();
-#endif
       progress_total = db_getnucleotidecount();
     }
 
