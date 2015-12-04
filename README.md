@@ -48,7 +48,7 @@ You may customize the installation directory using the `--prefix=DIR` option to 
 **Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
 ```
-git clone git@github.com:torognes/vsearch.git
+git clone https://github.com/torognes/vsearch.git
 cd vsearch
 ./configure
 make
