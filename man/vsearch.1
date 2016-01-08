@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 3, 2015" "version 1.9.5" "USER COMMANDS"
+.TH vsearch 1 "January 8, 2016" "version 1.9.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ
@@ -1996,7 +1996,7 @@ Source code and binaries are available at
 <https://github.com/torognes/vsearch>.
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014-2015, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
+Copyright (C) 2014-2016, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
 .PP
 All rights reserved.
 .PP
@@ -2311,6 +2311,10 @@ Fixed incrementation of counter when relabeling dereplicated sequences.
 .TP
 .BR v1.9.5\~ "released December 3rd, 2015"
 Fixed bug resulting in inferior chimera detection performance.
+.TP
+.BR v1.9.6\~ "released January 8th, 2016"
+Fixed bug in aligned sequences produced with \-\-fastapairs and
+\-\-userout (qrow, trow) options.
 .RE
 .LP
 .\" ============================================================================
