@@ -429,7 +429,7 @@ int eval_parents(struct chimera_info_s * ci)
     {
       for (int j=0; j < ci->maxi[i]; j++)
         *q++ = '-';
-      *q++ = ci->query_seq[qpos++];
+      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
     }
   for (int j=0; j < ci->maxi[ci->query_len]; j++)
     *q++ = '-';
@@ -464,7 +464,7 @@ int eval_parents(struct chimera_info_s * ci)
               for(int x=0; x < ci->maxi[qpos]; x++)
                 {
                   if (x < run)
-                    *t++ = target_seq[tpos++];
+                    *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
                   else
                     *t++ = '-';
                 }
@@ -479,7 +479,7 @@ int eval_parents(struct chimera_info_s * ci)
                       *t++ = '-';
                       
                   if (op == 'M')
-                    *t++ = target_seq[tpos++];
+                    *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
                   else
                     *t++ = '-';
                       
@@ -1110,7 +1110,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       if (opt_uchime_ref)
         {
           if (fasta_next(query_fasta_h, ! opt_notrunclabels,
-                         chrmap_upcase))
+                         chrmap_no_change))
             {
               ci->query_head_len = fasta_get_header_length(query_fasta_h);
               ci->query_len = fasta_get_sequence_length(query_fasta_h);
@@ -1169,7 +1169,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
         {
           struct hit * hits;
           int hit_count;
-          search_onequery(ci->si+i);
+          search_onequery(ci->si+i, opt_qmask);
           search_joinhits(ci->si+i, 0, & hits, & hit_count);
           for(int j=0; j<hit_count; j++)
             if (hits[j].accepted)
@@ -1319,7 +1319,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
           
           /* uchime_denovo: add non-chimeras to db */
           if (opt_uchime_denovo)
-            dbindex_addsequence(seqno);
+            dbindex_addsequence(seqno, opt_qmask);
 
           if (opt_nonchimeras)
             {
@@ -1449,17 +1449,29 @@ void chimera()
   /* prepare queries / database */
   if (opt_uchime_ref)
     {
-      db_read(opt_db, 1);
-      dbindex_prepare(1);
-      dbindex_addallsequences();
+      db_read(opt_db, 0);
+
+      if (opt_dbmask == MASK_DUST)
+        dust_all();
+      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+        hardmask_all();
+
+      dbindex_prepare(1, opt_dbmask);
+      dbindex_addallsequences(opt_dbmask);
       query_fasta_h = fasta_open(opt_uchime_ref);
       progress_total = fasta_get_size(query_fasta_h);
     }
   else
     {
-      db_read(opt_uchime_denovo, 1);
+      db_read(opt_uchime_denovo, 0);
+
+      if (opt_qmask == MASK_DUST)
+        dust_all();
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+        hardmask_all();
+
       db_sortbyabundance();
-      dbindex_prepare(1);
+      dbindex_prepare(1, opt_qmask);
       progress_total = db_getnucleotidecount();
     }
 

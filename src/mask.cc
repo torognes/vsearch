@@ -124,8 +124,19 @@ void dust(char * m, int len)
   int a, b;
 
   /* make a local copy of the original sequence */
-  char * s = (char*) alloca(len);
-  memcpy(s, m, len);
+  char * s = (char*) alloca(len+1);
+
+  /* copy seq, and upcase if not hardmask */
+  if (opt_hardmask)
+    {
+      strcpy(s, m);
+    }
+  else
+    {
+      for(int i=0; i < len; i++)
+        s[i] = toupper(m[i]);
+      s[len] = 0;
+    }
 
   for (int i=0; i < len; i += dust_window2)
     {
@@ -220,14 +231,14 @@ void maskfasta()
   if (!fp_output)
     fatal("Unable to open mask output file for writing");
 
-  db_read(opt_maskfasta, opt_qmask != MASK_SOFT);
+  db_read(opt_maskfasta, 0);
   show_rusage();
 
   seqcount = db_getsequencecount();
 
   if (opt_qmask == MASK_DUST)
     dust_all();
-  else if (opt_hardmask)
+  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
     hardmask_all();
   show_rusage();
 
@@ -263,7 +274,7 @@ void fastx_mask()
         fatal("Unable to open mask output FASTQ file for writing");
     }
 
-  db_read(opt_fastx_mask, opt_qmask != MASK_SOFT);
+  db_read(opt_fastx_mask, 0);
   show_rusage();
 
   if (fp_fastqout && ! db_is_fastq())
@@ -273,7 +284,7 @@ void fastx_mask()
 
   if (opt_qmask == MASK_DUST)
     dust_all();
-  else if (opt_hardmask)
+  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
     hardmask_all();
   show_rusage();
 
@@ -286,28 +297,39 @@ void fastx_mask()
       int unmasked = 0;
       char * seq = db_getsequence(i);
       int len = db_getsequencelen(i);
-      for(int j=0; j<len; j++)
-        if (isupper(seq[j]) && (seq[j] != 'N'))
-          unmasked++;
-
+      if (opt_qmask == MASK_NONE)
+        {
+          unmasked = len;
+        }
+      else if (opt_hardmask)
+        {
+          for(int j=0; j<len; j++)
+            if (seq[j] != 'N')
+              unmasked++;
+        }
+      else
+        {
+          for(int j=0; j<len; j++)
+            if (isupper(seq[j]))
+              unmasked++;
+        }
       double unmasked_pct = 100.0 * unmasked / len;
 
- 
-     if (unmasked_pct < opt_min_unmasked_pct)
-       discarded_less++;
-     else if (unmasked_pct >  opt_max_unmasked_pct)
-       discarded_more++;
-     else
-       {
-         kept++;
+      if (unmasked_pct < opt_min_unmasked_pct)
+        discarded_less++;
+      else if (unmasked_pct >  opt_max_unmasked_pct)
+        discarded_more++;
+      else
+        {
+          kept++;
 
-         if (opt_fastaout)
-           fasta_print_db(fp_fastaout, i);
-         
-         if (opt_fastqout)
-           fastq_print_db(fp_fastqout, i);
-       }
-     
+          if (opt_fastaout)
+            fasta_print_db(fp_fastaout, i);
+
+          if (opt_fastqout)
+            fastq_print_db(fp_fastqout, i);
+        }
+
       progress_update(i);
     }
   progress_done();

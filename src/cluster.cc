@@ -156,7 +156,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
     strcpy(si->qsequence, db_getsequence(seqno));
   
   /* perform search */
-  search_onequery(si);
+  search_onequery(si, opt_qmask);
 }
 
 inline void cluster_worker(long t)
@@ -786,7 +786,7 @@ void cluster_core_parallel()
               clusterinfo[myseqno].strand = 0;
               
               /* add current sequence to database */
-              dbindex_addsequence(myseqno);
+              dbindex_addsequence(myseqno, opt_qmask);
               
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(clusters,
@@ -900,7 +900,7 @@ void cluster_core_serial()
           clusterinfo[seqno].clusterno = clusters;
           clusterinfo[seqno].cigar = 0;
           clusterinfo[seqno].strand = 0;
-          dbindex_addsequence(seqno);
+          dbindex_addsequence(seqno, opt_qmask);
           cluster_core_results_nohit(clusters,
                                      si_p->query_head,
                                      si_p->qseqlen,
@@ -999,7 +999,7 @@ void cluster(char * dbname,
         fatal("Unable to open notmatched output file for writing");
     }
 
-  db_read(dbname, opt_qmask != MASK_SOFT);
+  db_read(dbname, 0);
 
   results_show_samheader(fp_samout, cmdline, dbname);
 
@@ -1017,7 +1017,7 @@ void cluster(char * dbname,
   else if (opt_cluster_size)
     db_sortbyabundance();
   
-  dbindex_prepare(1);
+  dbindex_prepare(1, opt_qmask);
   
   /* tophits = the maximum number of hits we need to store */
 

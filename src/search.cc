@@ -231,7 +231,7 @@ int search_query(long t)
         }
 
       /* perform search */
-      search_onequery(si);
+      search_onequery(si, opt_qmask);
     }
 
   struct hit * hits;
@@ -267,8 +267,7 @@ void search_thread_run(long t)
       
       if (fasta_next(query_fasta_h,
                      ! opt_notrunclabels,
-                     ((opt_qmask != MASK_SOFT) ?
-                      chrmap_upcase : chrmap_no_change)))
+                     chrmap_no_change))
         {
           char * qhead = fasta_get_header(query_fasta_h);
           int query_head_len = fasta_get_header_length(query_fasta_h);
@@ -503,7 +502,7 @@ void search_prep(char * cmdline, char * progheader)
         fatal("Unable to open notmatched output file for writing");
     }
 
-  db_read(opt_db, opt_dbmask != MASK_SOFT);
+  db_read(opt_db, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_db);
 
@@ -516,8 +515,8 @@ void search_prep(char * cmdline, char * progheader)
 
   seqcount = db_getsequencecount();
 
-  dbindex_prepare(1);
-  dbindex_addallsequences();
+  dbindex_prepare(1, opt_dbmask);
+  dbindex_addallsequences(opt_dbmask);
 
   /* tophits = the maximum number of hits we need to store */
 

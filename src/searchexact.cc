@@ -339,9 +339,7 @@ void search_exact_thread_run(long t)
     {
       pthread_mutex_lock(&mutex_input);
 
-      if (fasta_next(query_fasta_h, ! opt_notrunclabels,
-                     (opt_qmask != MASK_SOFT) ? 
-                     chrmap_upcase : chrmap_no_change))
+      if (fasta_next(query_fasta_h, ! opt_notrunclabels, chrmap_no_change))
         {
           char * qhead = fasta_get_header(query_fasta_h);
           int query_head_len = fasta_get_header_length(query_fasta_h);
@@ -562,7 +560,7 @@ void search_exact_prep(char * cmdline, char * progheader)
         fatal("Unable to open dbnotmatched output file for writing");
     }
 
-  db_read(opt_db, opt_dbmask != MASK_SOFT);
+  db_read(opt_db, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_db);
 

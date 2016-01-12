@@ -134,7 +134,8 @@ void unique_count_bitmap(struct uhandle_s * uh,
                          int seqlen,
                          char * seq,
                          unsigned int * listlen,
-                         unsigned int * * list)
+                         unsigned int * * list,
+                         int seqmask)
 {
   /* if necessary, reallocate list of unique kmers */
 
@@ -157,7 +158,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
     }
   
   memset(uh->bitmap, 0, size >> 3UL);
-  
+
   unsigned long bad = 0;
   unsigned long kmer = 0;
   unsigned long mask = size - 1UL;
@@ -166,28 +167,31 @@ void unique_count_bitmap(struct uhandle_s * uh,
   char * e2 = s + seqlen;
   if (e2 < e1)
     e1 = e2;
+
+  unsigned int * maskmap = (seqmask != MASK_NONE) ?
+    chrmap_mask_lower : chrmap_mask_ambig;
   
   while (s < e1)
     {
       bad <<= 2UL;
-      bad |= chrmap_masked[(int)(*s)];
+      bad |= maskmap[(int)(*s)];
 
       kmer <<= 2UL;
       kmer |= chrmap_2bit[(int)(*s++)];
     }
-      
+
   int unique = 0;
 
   while (s < e2)
     {
       bad <<= 2UL;
-      bad |= chrmap_masked[(int)(*s)];
+      bad |= maskmap[(int)(*s)];
       bad &= mask;
 
       kmer <<= 2UL;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
-      
+
       if (!bad)
         {
           unsigned long x = kmer >> 6UL;
@@ -210,7 +214,8 @@ void unique_count_hash(struct uhandle_s * uh,
                        int seqlen,
                        char * seq,
                        unsigned int * listlen,
-                       unsigned int * * list)
+                       unsigned int * * list,
+                       int seqmask)
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
@@ -243,27 +248,30 @@ void unique_count_hash(struct uhandle_s * uh,
   if (e2 < e1)
     e1 = e2;
       
+  unsigned int * maskmap = (seqmask != MASK_NONE) ?
+    chrmap_mask_lower : chrmap_mask_ambig;
+
   while (s < e1)
     {
       bad <<= 2UL;
-      bad |= chrmap_masked[(int)(*s)];
+      bad |= maskmap[(int)(*s)];
 
       kmer <<= 2;
       kmer |= chrmap_2bit[(int)(*s++)];
     }
-      
+
   unsigned long unique = 0;
 
   while (s < e2)
     {
       bad <<= 2UL;
-      bad |= chrmap_masked[(int)(*s)];
+      bad |= maskmap[(int)(*s)];
       bad &= mask;
 
       kmer <<= 2;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
-          
+
       if (!bad)
         {
           /* find free appropriate bucket in hash */
@@ -290,12 +298,13 @@ void unique_count(struct uhandle_s * uh,
                   int seqlen,
                   char * seq,
                   unsigned int * listlen,
-                  unsigned int * * list)
+                  unsigned int * * list,
+                  int seqmask)
 {
   if (k<10)
-    unique_count_bitmap(uh, k, seqlen, seq, listlen, list);
+    unique_count_bitmap(uh, k, seqlen, seq, listlen, list, seqmask);
   else
-    unique_count_hash(uh, k, seqlen, seq, listlen, list);
+    unique_count_hash(uh, k, seqlen, seq, listlen, list, seqmask);
 }
 
 int unique_count_shared(struct uhandle_s * uh,

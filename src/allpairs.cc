@@ -586,7 +586,7 @@ void allpairs_global(char * cmdline, char * progheader)
         fatal("Unable to open notmatched output file for writing");
     }
 
-  db_read(opt_allpairs_global, opt_qmask != MASK_SOFT);
+  db_read(opt_allpairs_global, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_allpairs_global);
 

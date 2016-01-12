@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 8, 2016" "version 1.9.6" "USER COMMANDS"
+.TH vsearch 1 "January 12, 2016" "version 1.9.7" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ
@@ -145,15 +145,15 @@ present. All other ascii or non-ascii characters are stripped and
 complained about in a non-blocking warning message.
 .PP
 \fBvsearch\fR operations are case insensitive, except when soft
-masking is activated. When using clustering, masking or searching
-commands, the case is important if soft masking is used. Soft masking
-is specified with the options "\-\-dbmask soft" (for searching) or
-"\-\-qmask soft" (for searching, clustering and masking). When using
-soft masking, lower case letters indicate masked symbols, while upper
-case letters indicate regular symbols. Masked symbols are never
-included in the unique \fIk\fR-mers used in searching. When soft
-masking is not activated, all letters are converted to upper case
-internally and used in result files.
+masking is activated. Masking is performed by the commands for chimera
+detection, clustering, masking, pairwise alignment and searching. Soft
+masking is specified with the options "\-\-dbmask soft" (for searching
+and chimera detection with a reference) or "\-\-qmask soft" (for
+searching, de novo chimera detection, clustering and masking). When
+using soft masking, lower case letters indicate masked symbols, while
+upper case letters indicate regular symbols. Masked symbols are never
+included in the unique index words used for searching, otherwise they
+are treated as normal symbols.
 .PP
 When comparing sequences during chimera detection, dereplication,
 searching and clustering, T and U are considered identical, regardless
@@ -235,6 +235,10 @@ options (\-\-dn, \-\-mindiffs, \-\-mindiv, \-\-minh,
 \-\-xn). Sequences are first sorted by decreasing abundance (if
 available), and compared on their \fIplus\fR strand only (case
 insensitive).
+.PP
+Input sequences are masked as specified with the \-\-qmask and
+\-\-hardmask options. Masking of the database for reference based
+chimera detection is specified with the \-\-dbmask option.
 .PP
 In \fIde novo\fR mode, input fasta file should present abundance
 annotations (pattern [;]size=\fIinteger\fR[;] in the fasta
@@ -354,7 +358,8 @@ comparing them with reference sequences (option
 Write the 3-way global alignments (parentA, parentB, chimera) to
 \fIfilename\fR using a human-readable format. Use \-\-alignwidth to
 modify alignment length. Output order may vary when using multiple
-threads.
+threads. All sequences are converted to upper case before
+alignment. Lower case letters indicate disagreement in the alignment.
 .TP
 .BI \-\-uchimeout \0filename
 Write chimera detection results to \fIfilename\fR using the uchime
@@ -428,6 +433,9 @@ algorithm, similar to the algorithms implemented in usearch, DNAclust
 and sumaclust for example. Important parameters are the global
 clustering threshold (\-\-id) and the pairwise identity definition
 (\-\-iddef).
+.PP
+Input sequences are masked as specified with the \-\-qmask and
+\-\-hardmask options.
 .TP 9
 .BI \-\-centroids \0filename
 Output cluster centroid sequences to \fIfilename\fR, in fasta
@@ -524,8 +532,8 @@ floating point numbers, otherwise they are integers. For instance,
 an 'R' will count 0.5 towards an A and 0.5 towards a G.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
-Mask simple repeats and low-complexity regions in sequences using the
-\fIdust\fR or the \fIsoft\fR algorithms, or do not mask
+Mask regions in sequences using the
+\fIdust\fR or the \fIsoft\fR methods, or do not mask
 (\fInone\fR). Warning, when using \fIsoft\fR masking, clustering
 becomes case sensitive. The default is to mask using \fIdust\fR.
 .TP
@@ -586,12 +594,11 @@ just a decreasing length ordering.
 Strip abundance information from the headers when writing the output
 file.
 .TP
-Most searching options also apply to clustering:
+Most searching options as well as score filtering, gap penalties and masking also apply to clustering (see the Searching section):
 .br
 \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-matched,
 \-\-notmatched, \-\-maxaccept, \-\-maxreject, \-\-samout, \-\-userout,
-\-\-userfields, score filtering, gap penalties, masking. (see the
-Searching section).
+\-\-userfields
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -959,11 +966,49 @@ Strip abundance information from the headers when writing the output file.
 Masking options:
 .RS
 .PP
-An input sequence can be composed of lower- or uppercase
-nucleotides. Lowercase nucleotides are silently set to uppercase
-before masking, unless the \-\-qmask soft option is used. Here are the
+An input sequence can be composed of lower- or uppercase letters. When
+soft masking is specified, lower case letters are treated as symbols
+that should be masked. Otherwise the case of the input sequences is
+ignored.
+
+Masking is performed by the commands
+for chimera detection (uchime_denovo, uchime_ref), clustering
+(cluster_fast, cluster_smallmem, cluster_size), masking (maskfasta,
+fastx_mask), pairwise alignment (allpairs_global) and searching
+(search_exact, usearch_global).
+
+Masking is usually specified with the \-\-qmask option, while the
+\-\-dbmask option is used for the database sequences specified with
+the \-\-db option with the \-\-usearch_global, 
+\-\-search_exact and \-\-uchime_ref commands.
+
+The argument to the \-\-qmask and \-\-dbmask option may be none, soft
+or dust. If the argument is none, the no masking is performed. If the
+argument is soft the lower case symbols will be masked. Finally, if
+the argument is dust, the sequence will be masked using the DUST
+algorith by Tatusov and Lipman to mask low-complexity regions.
+
+If the \-\-hardmask option is specified, all masked regions will be
+converted to N's, otherwise masked regions will be indicated by lower
+case letters.
+
+If any sequence is masked, the masked version of the sequence (with
+lower case letters or N's) will be used in all output files. Otherwise
+the sequence will be unmodified. The exception is the sequences in the
+output file specified with the \-\-uchimealns option, where the input
+sequences are converted to upper case first and lower case letters
+indicate disagreement between the aligned sequences.
+
+When a sequence region is masked, words in the region will not be
+included in the indicies used in the heuristic search algorithm. In
+all other aspects the region is treated as other regions.
+
+Regions in sequences that are hardmasked (with N's) will have a zero
+alignment score and do not contribute to an alignment.
+
+Here are the
 results of combined masking options \-\-qmask (or \-\-dbmask for
-database sequences) and \-\-hardmask, assuming each input sequences
+database sequences) and \-\-hardmask, assuming each input sequence
 contains both lower and uppercase nucleotides:
 .PP
 .TS
@@ -972,10 +1017,10 @@ c c c
 l l l.
 qmask:hardmask:action
 _
-none:off:no masking, all symbols uppercased
-none:on:no masking, all symbols uppercased
+none:off:no masking, all symbols used, no change
+none:on:no masking, all symbols used, no change
 dust:off:masked symbols lowercased, rest uppercased
-dust:on:masked symbols changed to Ns, rest uppercased
+dust:on:masked symbols changed to Ns, rest unchanged
 soft:off:lowercase symbols masked, no case changes
 soft:on:lowercase symbols masked and changed to Ns
 .TE
@@ -990,20 +1035,20 @@ Write the masked sequences to \fIfilename\fR, in fastq format. Applies
 only to the \-\-fastx_mask command.
 .TP
 .BI \-\-fastx_mask \0filename
-Mask simple repeats and low-complexity regions in sequences contained
+Mask regions in sequences contained
 in the specified fasta or fastq file. The default is to mask using
-\fIdust\fR (use \-\-qmask to modify that behavior). The output files
+DUST (use \-\-qmask to modify that behavior). The output files
 are specified with the \-\-fastaout and \-\-fastqout options. The
 minimum and maximum percentage of unmasked residues may be specified
 with the \-\-min_unmasked_pct and \-\-max_unmasked_pct options,
 respectively.
 .TP
 .B \-\-hardmask
-Mask low-complexity regions by replacing them with Ns instead of
-setting them to lower case.
+Symbols in masked regions are replaced by N's. The default is to
+replace the masked regions by lower case letters.
 .TP
 .BI \-\-maskfasta \0filename
-Mask simple repeats and low-complexity regions in sequences contained
+Mask regions in sequences contained
 in the fasta file \fIfilename\fR. The default is to mask using
 \fIdust\fR (use \-\-qmask to modify that behavior). The output file is
 specified with the \-\-output option. This command is depreciated,
@@ -1022,9 +1067,11 @@ Write the masked sequences to \fIfilename\fR, in fasta format. Applies
 only to the \-\-mask_fasta command.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
-Mask simple repeats and low-complexity regions in sequences using the
-\fIdust\fR or the \fIsoft\fR algorithms, or do not mask
-(\fInone\fR). The default is to mask using \fIdust\fR.
+If the argument is dust, mask regions in sequences using the
+\fIDUST\fR algorithm that detects simple repeats and low-complexity
+regions. This is the default. If the argument is soft, mask the lower
+case letters in the input sequence. If the argument is none, do not
+mask.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1038,7 +1085,8 @@ the result files specified with \-\-alnout, \-\-blast6out,
 \-\-acceptall option to output all pairwise alignments, or specify an
 identity level with \-\-id to discard weak alignments. Most other
 accept/reject options (see Searching options below) may also be
-used. Sequences are aligned on their \fIplus\fR strand only.
+used. Sequences are aligned on their \fIplus\fR strand only. Masking
+is performed as usual and specified with \-\-qmask and \-\-hardmask.
 .TP 9
 .B \-\-acceptall
 Write the results of all alignments to output files. This option
@@ -1129,11 +1177,10 @@ fasta-formatted target sequences contained in \fIfilename\fR, using
 global pairwise alignment.
 .TP
 .BI \-\-dbmask\~ "none|dust|soft"
-Mask simple repeats and low-complexity regions in target database
-sequences using the \fIdust\fR or the \fIsoft\fR algorithms, or do not
-mask (\fInone\fR). Warning, when using \fIsoft\fR masking search
-commands become case sensitive. The default is to mask using
-\fIdust\fR.
+Mask regions in the target database sequences using the dust method or
+the soft method, or do not mask (none). Warning, when using soft
+masking search commands become case sensitive. The default is to mask
+using dust.
 .TP
 .BI \-\-dbmatched \0filename
 Write database target sequences matching at least one query sequence
@@ -1197,9 +1244,9 @@ default in usearch, all default scores and gap penalties in
 to produce identical alignments.
 .TP
 .B \-\-hardmask
-Mask low-complexity regions by replacing them with Ns instead of
-setting them to lower case. For more information, please see the
-Masking section.
+Mask sequence regions by replacing them with Ns instead of setting
+them to lower case as is the default. For more information, please see
+the Masking section.
 .TP
 .BI \-\-id \0real
 Reject the sequence match if the pairwise identity is lower than
@@ -1371,9 +1418,9 @@ files.
 This option is ignored. It is provided for compatibility with usearch.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
-Mask simple repeats and low-complexity regions in query sequences
-using the \fIdust\fR or the \fIsoft\fR algorithms, or do not mask
-(\fInone\fR). Warning, when using \fIsoft\fR masking search commands
+Mask regions in the query sequences
+using the dust or the soft algorithms, or do not mask
+(none). Warning, when using soft masking search commands
 become case sensitive. The default is to mask using \fIdust\fR.
 .TP
 .BI \-\-query_cov \0real
@@ -1861,6 +1908,10 @@ dereplication.
 \fBvsearch\fR sorting is stabilized by using sequence abundances or
 sequences labels as secondary or tertiary keys.
 .PP
+\fBvsearch\fR by default uses the DUST algorithm for masking
+low-complexity regions. Masking behavior is also slightly changed to
+be more consistent.
+.PP
 .\" ============================================================================
 .SH NOVELTIES
 \fBvsearch\fR introduces new options not present in usearch 7. They
@@ -2315,6 +2366,10 @@ Fixed bug resulting in inferior chimera detection performance.
 .BR v1.9.6\~ "released January 8th, 2016"
 Fixed bug in aligned sequences produced with \-\-fastapairs and
 \-\-userout (qrow, trow) options.
+.TP
+.BR v1.9.7\~ "released January 12th, 2016"
+Masking behavior is changed somewhat to keep the letter case of the
+input sequences unchanged when no masking is performed. Masking is now performed also during chimera detection. Documentation updated.
 .RE
 .LP
 .\" ============================================================================
