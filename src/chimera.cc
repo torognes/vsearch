@@ -1165,17 +1165,18 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       ci->cand_count = 0;
       int allhits_count = 0;
 
-      for (int i=0; i<parts; i++)
-        {
-          struct hit * hits;
-          int hit_count;
-          search_onequery(ci->si+i, opt_qmask);
-          search_joinhits(ci->si+i, 0, & hits, & hit_count);
-          for(int j=0; j<hit_count; j++)
-            if (hits[j].accepted)
-              allhits_list[allhits_count++] = hits[j];
-          free(hits);
-        }
+      if (ci->query_len >= parts)
+        for (int i=0; i<parts; i++)
+          {
+            struct hit * hits;
+            int hit_count;
+            search_onequery(ci->si+i, opt_qmask);
+            search_joinhits(ci->si+i, 0, & hits, & hit_count);
+            for(int j=0; j<hit_count; j++)
+              if (hits[j].accepted)
+                allhits_list[allhits_count++] = hits[j];
+            free(hits);
+          }
 
       for(int i=0; i < allhits_count; i++)
         {

@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 12, 2016" "version 1.9.7" "USER COMMANDS"
+.TH vsearch 1 "January 22, 2016" "version 1.9.8" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication, FASTA/FASTQ
@@ -2370,6 +2370,10 @@ Fixed bug in aligned sequences produced with \-\-fastapairs and
 .BR v1.9.7\~ "released January 12th, 2016"
 Masking behavior is changed somewhat to keep the letter case of the
 input sequences unchanged when no masking is performed. Masking is now performed also during chimera detection. Documentation updated.
+.TP
+.BR v1.9.8\~ "released January 22nd, 2016"
+Fixed bug causing segfault when chimera detection is performed on
+extremely short sequences.
 .RE
 .LP
 .\" ============================================================================
