@@ -125,17 +125,14 @@ void dust(char * m, int len)
 
   /* make a local copy of the original sequence */
   char * s = (char*) alloca(len+1);
+  strcpy(s, m);
 
-  /* copy seq, and upcase if not hardmask */
-  if (opt_hardmask)
+  if (! opt_hardmask)
     {
-      strcpy(s, m);
-    }
-  else
-    {
+      /* convert sequence to upper case unless hardmask in effect */
       for(int i=0; i < len; i++)
-        s[i] = toupper(m[i]);
-      s[len] = 0;
+        m[i] = toupper(m[i]);
+      m[len] = 0;
     }
 
   for (int i=0; i < len; i += dust_window2)
@@ -188,6 +185,8 @@ void * dust_all_worker(void * vp)
 
 void dust_all()
 {
+  nextseq = 0;
+  seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
   pthread_attr_init(&attr);
