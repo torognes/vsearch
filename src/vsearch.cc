@@ -62,6 +62,7 @@
 
 /* options */
 
+bool opt_fasta_score;
 bool opt_fastq_allowmergestagger;
 bool opt_fastq_nostagger;
 bool opt_fastq_eeout;
@@ -532,6 +533,7 @@ void args_init(int argc, char **argv)
   opt_eetabbedout = 0;
   opt_fastaout_notmerged_fwd = 0;
   opt_fastaout_notmerged_rev = 0;
+  opt_fasta_score = 0;
   opt_fasta_width = 80;
   opt_fastaout = 0;
   opt_fastaout_discarded = 0;
@@ -849,6 +851,7 @@ void args_init(int argc, char **argv)
     {"fastaout_notmerged_rev",required_argument, 0, 0 },
     {"reverse",               required_argument, 0, 0 },
     {"eetabbedout",           required_argument, 0, 0 },
+    {"fasta_score",           no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1555,6 +1558,10 @@ void args_init(int argc, char **argv)
           opt_eetabbedout = optarg;
           break;
 
+        case 166:
+          opt_fasta_score = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1781,6 +1788,7 @@ void cmd_help()
               "  --chimeras FILENAME         output chimeric sequences to file\n"
               "  --db FILENAME               reference database for --uchime_ref\n"
               "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
+              "  --fasta_score               include chimera score in fasta output\n"
               "  --mindiffs INT              minimum number of differences in segment (3)\n"
               "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
               "  --minh REAL                 minimum score (0.28)\n"

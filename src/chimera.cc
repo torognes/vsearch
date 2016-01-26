@@ -150,6 +150,7 @@ struct chimera_info_s
   char * ignore;
 
   struct hit * all_hits;
+  double best_h;
 };
 
 static struct chimera_info_s * cia;
@@ -674,6 +675,8 @@ int eval_parents(struct chimera_info_s * ci)
       }
   }
 
+  ci->best_h = best_h > 0 ? best_h : 0.0;
+
   if (best_h >= 0.0)
     {
       status = 2;
@@ -1082,6 +1085,45 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     free(ci->query_head);
 }
 
+void fasta_print_with_score(FILE * fp,
+                            char * head,
+                            char * seq,
+                            int len,
+                            const char * score_name,
+                            double score)
+{
+  int alloc = strlen(head) + strlen(score_name) + log10(MAX(score,1)) + 16;
+  //  printf("alloc: %d\n", alloc);
+  char * newheader = (char*) xmalloc(alloc);
+  if (head[strlen(head)-1] == ';')
+    snprintf(newheader, alloc, "%s%s=%.4lf;", head, score_name, score);
+  else
+    snprintf(newheader, alloc, "%s%s=%.4lf;", head, score_name, score);
+  fasta_print(fp, newheader, seq, len);
+  free(newheader);
+}
+
+void fasta_print_relabel_with_score(FILE * fp,
+                                    char * seq,
+                                    int len,
+                                    char * header,
+                                    int head_len,
+                                    int abundance,
+                                    int ordinal,
+                                    const char * score_name,
+                                    double score)
+{
+  int alloc = head_len + strlen(score_name) + log10(MAX(score,1)) + 16;
+  //printf("head_len: %d   alloc: %d\n", head_len, alloc);
+  char * newheader = (char*) xmalloc(alloc);
+  if (header[head_len-1] == ';')
+    snprintf(newheader, alloc, "%s%s=%.4lf;", header, score_name, score);
+  else
+    snprintf(newheader, alloc, "%s%s=%.4lf;", header, score_name, score);
+  fasta_print_relabel(fp, seq, len, newheader, strlen(newheader), abundance, ordinal);
+  free(newheader);
+}
+
 unsigned long chimera_thread_core(struct chimera_info_s * ci)
 {
   chimera_thread_init(ci);
@@ -1291,10 +1333,18 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_chimeras)
             {
-              fasta_print(fp_chimeras,
-                          ci->query_head,
-                          ci->query_seq,
-                          ci->query_len);
+              if (opt_fasta_score)
+                fasta_print_with_score(fp_chimeras,
+                                       ci->query_head,
+                                       ci->query_seq,
+                                       ci->query_len,
+                                       opt_uchime_ref ? "uchime_ref" : "uchime_denovo",
+                                       ci->best_h);
+              else
+                fasta_print(fp_chimeras,
+                            ci->query_head,
+                            ci->query_seq,
+                            ci->query_len);
             }
         }
       
@@ -1304,10 +1354,18 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
           borderline_abundance += ci->query_size;
           if (opt_borderline)
             {
-              fasta_print(fp_borderline,
-                          ci->query_head,
-                          ci->query_seq,
-                          ci->query_len);
+              if (opt_fasta_score)
+                fasta_print_with_score(fp_borderline,
+                                       ci->query_head,
+                                       ci->query_seq,
+                                       ci->query_len,
+                                       opt_uchime_ref ? "uchime_ref" : "uchime_denovo",
+                                       ci->best_h);
+              else
+                fasta_print(fp_borderline,
+                            ci->query_head,
+                            ci->query_seq,
+                            ci->query_len);
             }
         }
 
@@ -1337,13 +1395,25 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_nonchimeras)
             {
-              fasta_print_relabel(fp_nonchimeras,
-                                  ci->query_seq,
-                                  ci->query_len,
-                                  ci->query_head,
-                                  ci->query_head_len,
-                                  ci->query_size,
-                                  nonchimera_count);
+              if (opt_fasta_score)
+                fasta_print_relabel_with_score(fp_nonchimeras,
+                                               ci->query_seq,
+                                               ci->query_len,
+                                               ci->query_head,
+                                               ci->query_head_len,
+                                               ci->query_size,
+                                               nonchimera_count,
+                                               opt_uchime_ref ?
+                                               "uchime_ref" : "uchime_denovo",
+                                               ci->best_h);
+              else
+                fasta_print_relabel(fp_nonchimeras,
+                                    ci->query_seq,
+                                    ci->query_len,
+                                    ci->query_head,
+                                    ci->query_head_len,
+                                    ci->query_size,
+                                    nonchimera_count);
             }
         }
       

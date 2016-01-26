@@ -281,6 +281,11 @@ database.
 No vote pseudo-count (parameter \fIn\fR in the chimera scoring
 function) (default value is 1.4).
 .TP
+.B \-\-fasta_score
+Add the chimera score to the headers in the fasta output files for chimeras,
+non-chimeras and borderline sequences. A string similar to
+";uchime_denovo=0.1234;" or ";uchime_ref=5.6789;" will be added.
+.TP
 .BI \-\-mindiffs\~ "positive integer"
 Minimum number of differences per segment (default value is 3).
 .TP
@@ -2369,7 +2374,8 @@ Fixed bug in aligned sequences produced with \-\-fastapairs and
 .TP
 .BR v1.9.7\~ "released January 12th, 2016"
 Masking behavior is changed somewhat to keep the letter case of the
-input sequences unchanged when no masking is performed. Masking is now performed also during chimera detection. Documentation updated.
+input sequences unchanged when no masking is performed. Masking is now
+performed also during chimera detection. Documentation updated.
 .TP
 .BR v1.9.8\~ "released January 22nd, 2016"
 Fixed bug causing segfault when chimera detection is performed on
@@ -2384,7 +2390,8 @@ Fixed bug related to masking and lower case database sequences.
 .TP
 .BR v1.10.1\~ "released January 26, 2016"
 Improved merging of paired-end reads and adjusted defaults slightly.
-Removed progress indicator when stderr is not a terminal.
+Removed progress indicator when stderr is not a terminal.  Added
+\-\-fasta_score option to report chimera scores in FASTA files.
 .RE
 .LP
 .\" ============================================================================
