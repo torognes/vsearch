@@ -88,6 +88,12 @@ static unsigned int seqno = 0;
 static unsigned long progress = 0;
 static int chimera_count = 0;
 static int nonchimera_count = 0;
+static int borderline_count = 0;
+static int total_count = 0;
+static long chimera_abundance = 0;
+static long nonchimera_abundance = 0;
+static long borderline_abundance = 0;
+static long total_abundance = 0;
 static FILE * fp_chimeras = 0;
 static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
@@ -1275,9 +1281,13 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       pthread_mutex_lock(&mutex_output);
 
+      total_count++;
+      total_abundance += ci->query_size;
+      
       if (status == 4)
         {
           chimera_count++;
+          chimera_abundance += ci->query_size;
 
           if (opt_chimeras)
             {
@@ -1290,6 +1300,8 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       
       if (status == 3)
         {
+          borderline_count++;
+          borderline_abundance += ci->query_size;
           if (opt_borderline)
             {
               fasta_print(fp_borderline,
@@ -1302,6 +1314,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       if (status < 3)
         {
           nonchimera_count++;
+          nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
           if ((status < 2) && opt_uchimeout)
@@ -1498,14 +1511,24 @@ void chimera()
   if (!opt_quiet)
     fprintf(stderr,
             "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
-            "and %d (%.1f%%) suspicious candidates in %u sequences.\n",
+            "and %d (%.1f%%) borderline sequences in %u unique sequences.\n"
+            "Taking abundance information into account, this corresponds to\n"
+            "%ld (%.1f%%) chimeras, %ld (%.1f%%) non-chimeras,\n"
+            "and %ld (%.1f%%) borderline sequences in %ld total sequences.\n",
             chimera_count,
-            100.0 * chimera_count / seqno,
+            100.0 * chimera_count / total_count,
             nonchimera_count,
-            100.0 * nonchimera_count / seqno,
-            (seqno - chimera_count - nonchimera_count),
-            100.0 * (seqno - chimera_count - nonchimera_count) / seqno,
-            seqno);
+            100.0 * nonchimera_count / total_count,
+            borderline_count,
+            100.0 * borderline_count / total_count,
+            total_count,
+            chimera_abundance,
+            100.0 * chimera_abundance / total_abundance,
+            nonchimera_abundance,
+            100.0 * nonchimera_abundance / total_abundance,
+            borderline_abundance,
+            100.0 * borderline_abundance / total_abundance,
+            total_abundance);
 
   if (opt_log)
     {
