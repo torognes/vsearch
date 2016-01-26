@@ -62,15 +62,13 @@
 #include "pvalue.h"
 
 /* Use default PEAR scoring method and statistics */
-const int score_method = 2;
-const double pvalue_level = 0.01;
-const double alpha = 1.0;
-const double beta = -1.0;
+const int score_method = 1;
+const double pvalue_level = 1.0;
+const double alpha = 5.0;
+const double beta = -4.0;
 
 /* 
-   TODO:
-   - Parallelize with pthreads
-   - Check matching labels of forward and reverse reads (/1 and /2)
+   TODO: Parallelize
 */
 
 /* static variables, needs lock */
@@ -126,7 +124,7 @@ static double q2p[128];
 static double ambig_score;
 static double ambig_oes;
 
-double q_to_p(double q)
+double q_to_p(int q)
 {
   int x = q - opt_fastq_ascii;
   if (x < 2)
@@ -524,7 +522,9 @@ double overlap_oes(char * fwd_sequence, char * rev_sequence,
 
 long merge(char * fwd_sequence, char * rev_sequence,
            char * fwd_quality,  char * rev_quality,
-           long fwd_trunc, long rev_trunc)
+           long fwd_trunc, long rev_trunc,
+           long * p_best_diffs, long * p_best_score,
+           double * p_best_oes, double cutoff)
 {
   long i1 = opt_fastq_minovlen;
 
@@ -537,6 +537,7 @@ long merge(char * fwd_sequence, char * rev_sequence,
   i2 = MIN(i2, fwd_trunc + rev_trunc - opt_fastq_minmergelen);
 
   long best_i = 0;
+  long best_diffs = 0;
   double best_score = 0.0;
   double best_oes = 0.0;
 
@@ -555,16 +556,18 @@ long merge(char * fwd_sequence, char * rev_sequence,
                                    overlap,
                                    & diffs);
       
-      if ((diffs <= opt_fastq_maxdiffs) && (score > best_score))
+      if (score > best_score)
         {
           best_score = score;
+          best_diffs = diffs;
           best_i = i;
         }
     }
 
+
   /* compute oes for best alignment */
 
-  if (best_score > 0.0)
+  //  if (best_score > 0.0)
     {
       long i = best_i;
       long fwd_3prime_overhang = i > rev_trunc ? i - rev_trunc : 0;
@@ -577,43 +580,15 @@ long merge(char * fwd_sequence, char * rev_sequence,
                              fwd_quality, rev_quality,
                              fwd_pos_start, rev_pos_start,
                              overlap);
+
+
     }
 
   /* Statistical test as in PEAR */
 
-  const int basefreqpct = (int) (0.25 * 100.0);
-
-  int overlapregion = opt_fastq_minovlen;
-  if (overlapregion > 99)
-    overlapregion = 99;
-  if (overlapregion < 1)
-    overlapregion = 1;
-
-  double cutoff;
-
-  if (pvalue_level == 1.0)
-    {
-      cutoff = DBL_MIN;
-    }
-  else if (pvalue_level == 0.01)
-    {
-      cutoff = precomp2_01[overlapregion][basefreqpct];
-    }
-  else if (pvalue_level == 0.05)
-    {
-      cutoff = precomp2_05[overlapregion][basefreqpct];
-    }
-  else if (pvalue_level == 0.001)
-    {
-      cutoff = precomp2_001[overlapregion][basefreqpct];
-    }
-  else
-    {
-      cutoff = precomp2_0001[overlapregion][basefreqpct];
-    }
-
-  if (best_oes <= cutoff)
-    best_i = 0;
+  * p_best_score = best_score;
+  * p_best_diffs = best_diffs;
+  * p_best_oes = best_oes;
 
   return best_i;
 }
@@ -646,10 +621,56 @@ void fastq_mergepairs()
 
   precompute_qual();
 
+
   /* init progress */
 
   unsigned long filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
+
+
+  /* counters */
+
+  long too_many_diffs = 0;
+  long not_aligned = 0;
+  long too_low_oes = 0;
+  long too_low_score = 0;
+
+  double cutoff;
+
+  const int basefreqpct = (int) (0.25 * 100.0);
+
+  int overlapregion = opt_fastq_minovlen;
+
+  if (overlapregion > 99)
+    overlapregion = 99;
+  if (overlapregion < 1)
+    overlapregion = 1;
+
+  if (pvalue_level > 9.9)
+    {
+      cutoff = -100000.0;
+    }
+  else if (pvalue_level > 0.99)
+    {
+      cutoff = 0.0;
+    }
+  else if (pvalue_level > 0.0499)
+    {
+      cutoff = precomp2_05[overlapregion][basefreqpct];
+    }
+  else if (pvalue_level > 0.0099)
+    {
+      cutoff = precomp2_01[overlapregion][basefreqpct];
+    }
+  else if (pvalue_level > 0.00099)
+    {
+      cutoff = precomp2_001[overlapregion][basefreqpct];
+    }
+  else
+    {
+      cutoff = precomp2_0001[overlapregion][basefreqpct];
+    }
+
 
   /* start loop */
   
@@ -745,9 +766,51 @@ void fastq_mergepairs()
       
       if (!skip)
         {
+          long best_diffs;
+          long best_score;
+          double best_oes;
+          
           offset = merge(fwd_sequence, rev_sequence,
                          fwd_quality,  rev_quality,
-                         fwd_trunc,    rev_trunc);
+                         fwd_trunc,    rev_trunc,
+                         & best_diffs, & best_score,
+                         & best_oes,   cutoff);
+
+
+#if 0
+          printf("score=%ld oes=%lf diffs=%ld\n",
+                 best_score,
+                 best_oes,
+                 best_diffs);
+#endif
+
+          if (offset == 0)
+            {
+              not_aligned++;
+              offset = 0;
+            }
+          else if (best_diffs > opt_fastq_maxdiffs)
+            {
+              too_many_diffs++;
+              offset = 0;
+            }
+#if 0
+          else if (best_score < minscore)
+            {
+              too_low_score++;
+              offset = 0;
+            }
+#endif
+          else if (best_oes < cutoff)
+            {
+              too_low_oes++;
+              offset = 0;
+            }
+        }
+      else
+        {
+          not_aligned++;
+          offset = 0;
         }
 
       if (offset)
@@ -773,15 +836,40 @@ void fastq_mergepairs()
     fatal("More reverse reads than forward reads");
 
   fprintf(stderr,
-          "%lu read pairs total\n",
+          "%10lu  Pairs\n",
           total);
 
   fprintf(stderr,
-          "%lu pairs merged (%.1lf%%) and %lu pairs not merged (%.1lf%%).\n",
+          "%10lu  Converted (%.1lf%%)\n",
           merged,
-          100.0 * merged / total,
+          100.0 * merged / total);
+
+  fprintf(stderr,
+          "%10lu  Not merged (%.1lf%%)\n",
           notmerged,
           100.0 * notmerged / total);
+
+  fprintf(stderr,
+          "%10lu  Not aligned (%.1lf%%)\n",
+          not_aligned,
+          100.0 * not_aligned / total);
+
+  fprintf(stderr,
+          "%10lu  Too many diffs (max=%ld) (%.1lf%%)\n",
+          too_many_diffs,
+          opt_fastq_maxdiffs,
+          100.0 * too_many_diffs / total);
+
+  fprintf(stderr,
+          "%10lu  Too low OES score (cutoff=%6.4lf) (%.1lf%%)\n",
+          too_low_oes,
+          cutoff,
+          100.0 * too_low_oes / total);
+
+  fprintf(stderr,
+          "%10lu  Too low score (%.1lf%%)\n",
+          too_low_score,
+          100.0 * too_low_score / total);
 
   if (opt_eetabbedout)
     fclose(fp_eetabbedout);

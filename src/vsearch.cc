@@ -543,7 +543,7 @@ void args_init(int argc, char **argv)
   opt_fastq_convert = 0;
   opt_fastq_eeout = 0;
   opt_fastq_filter = 0;
-  opt_fastq_maxdiffs = 1000000;
+  opt_fastq_maxdiffs = 5;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
   opt_fastq_maxmergelen  = 1000000;
@@ -1892,13 +1892,13 @@ void cmd_help()
               "  --fastq_allowmergestagger   Allow merging of staggered reads\n"
               "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
               "  --fastq_eeout               include expected errors in FASTQ output\n"
-              "  --fastq_maxdiffs            maximum number of different bases in overlap\n"
+              "  --fastq_maxdiffs            maximum number of different bases in overlap (5)\n"
               "  --fastq_maxee REAL          maximum expected error value for merged sequence\n"
               "  --fastq_maxmergelen         maximum length of entire merged sequence\n"
               "  --fastq_maxns INT           maximum number of N's\n"
               "  --fastq_minlen INT          minimum input read length after truncation (1)\n"
               "  --fastq_minmergelen         minimum length of entire merged sequence\n"
-              "  --fastq_minovlen            minimum length of overlap between reads\n"
+              "  --fastq_minovlen            minimum length of overlap between reads (16)\n"
               "  --fastq_nostagger           disallow merging of staggered reads (default)\n"
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n"
