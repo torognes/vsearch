@@ -62,13 +62,13 @@
 
 /* options */
 
-bool opt_fasta_score;
-bool opt_fastq_allowmergestagger;
-bool opt_fastq_nostagger;
-bool opt_fastq_eeout;
 bool opt_clusterout_id;
 bool opt_clusterout_sort;
 bool opt_eeout;
+bool opt_fasta_score;
+bool opt_fastq_allowmergestagger;
+bool opt_fastq_eeout;
+bool opt_fastq_nostagger;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
@@ -76,12 +76,6 @@ bool opt_relabel_sha1;
 bool opt_samheader;
 bool opt_sizeorder;
 bool opt_xsize;
-char * opt_eetabbedout;
-char * opt_fastaout_notmerged_fwd;
-char * opt_fastaout_notmerged_rev;
-char * opt_fastq_mergepairs;
-char * opt_fastqout_notmerged_fwd;
-char * opt_fastqout_notmerged_rev;
 char * opt_allpairs_global;
 char * opt_alnout;
 char * opt_blast6out;
@@ -98,15 +92,22 @@ char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
 char * opt_derep_prefix;
+char * opt_eetabbedout;
 char * opt_fastaout;
 char * opt_fastaout_discarded;
+char * opt_fastaout_notmerged_fwd;
+char * opt_fastaout_notmerged_rev;
 char * opt_fastapairs;
 char * opt_fastq_chars;
 char * opt_fastq_convert;
+char * opt_fastq_eestats;
 char * opt_fastq_filter;
+char * opt_fastq_mergepairs;
 char * opt_fastq_stats;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
+char * opt_fastqout_notmerged_fwd;
+char * opt_fastqout_notmerged_rev;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
@@ -121,6 +122,8 @@ char * opt_output;
 char * opt_pattern;
 char * opt_profile;
 char * opt_relabel;
+char * opt_rereplicate;
+char * opt_reverse;
 char * opt_samout;
 char * opt_search_exact;
 char * opt_shuffle;
@@ -133,7 +136,6 @@ char * opt_uchimealns;
 char * opt_uchimeout;
 char * opt_usearch_global;
 char * opt_userout;
-char * opt_reverse;
 double opt_abskew;
 double opt_dn;
 double opt_fastq_maxee;
@@ -177,16 +179,16 @@ int opt_slots;
 int opt_uchimeout5;
 int opt_usersort;
 int opt_version;
-long opt_fastq_maxdiffs;
-long opt_fastq_maxmergelen;
-long opt_fastq_minmergelen;
-long opt_fastq_minovlen;
 long opt_dbmask;
 long opt_fasta_width;
 long opt_fastq_ascii;
 long opt_fastq_asciiout;
+long opt_fastq_maxdiffs;
+long opt_fastq_maxmergelen;
 long opt_fastq_maxns;
 long opt_fastq_minlen;
+long opt_fastq_minmergelen;
+long opt_fastq_minovlen;
 long opt_fastq_qmax;
 long opt_fastq_qmaxout;
 long opt_fastq_qmin;
@@ -286,7 +288,7 @@ void cpu_features_detect()
     sse42_present  = (c >> 20) & 1;
     popcnt_present = (c >> 23) & 1;
     avx_present    = (c >> 28) & 1;
-    
+
     if (maxlevel >= 7)
     {
       cpuid(7, 0, a, b, c, d);
@@ -325,14 +327,14 @@ void cpu_features_show()
 void args_get_gap_penalty_string(char * arg, int is_open)
 {
   /* See http://www.drive5.com/usearch/manual/aln_params.html
-     
+
      --gapopen *E/10I/1E/2L/3RQ/4RT/1IQ
      --gapext *E/10I/1E/2L/3RQ/4RT/1IQ
-     
+
      integer or *
      followed by I, E, L, R, Q or T characters
      separated by /
-     * means infinitely high (disallow)        
+     * means infinitely high (disallow)
      E=end
      I=interior
      L=left
@@ -341,12 +343,12 @@ void args_get_gap_penalty_string(char * arg, int is_open)
      T=target
 
      E cannot be combined with L or R
-     
+
      We do not support floating point values. Therefore,
      all default score and penalties are multiplied by 2.
 
   */
-  
+
   char *p = arg;
 
   while (*p)
@@ -403,13 +405,13 @@ void args_get_gap_penalty_string(char * arg, int is_open)
             }
           p++;
         }
-      
+
       if (*p == '/')
         p++;
 
       if (set_E && (set_L || set_R))
         fatal("Invalid gap penalty string (E and L or R) '%s'", q);
-      
+
       if (set_E)
         {
           set_L = 1;
@@ -452,7 +454,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
                 opt_gap_open_target_interior = pen;
               if (set_R)
                 opt_gap_open_target_right = pen;
-            }     
+            }
         }
       else
         {
@@ -473,7 +475,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
                 opt_gap_extension_target_interior = pen;
               if (set_R)
                 opt_gap_extension_target_right = pen;
-            }     
+            }
         }
     }
 }
@@ -544,6 +546,7 @@ void args_init(int argc, char **argv)
   opt_fastq_chars = 0;
   opt_fastq_convert = 0;
   opt_fastq_eeout = 0;
+  opt_fastq_eestats = 0;
   opt_fastq_filter = 0;
   opt_fastq_maxdiffs = 5;
   opt_fastq_maxee = DBL_MAX;
@@ -553,7 +556,7 @@ void args_init(int argc, char **argv)
   opt_fastq_mergepairs = 0;
   opt_fastq_minlen = 1;
   opt_fastq_minmergelen = 0;
-  opt_fastq_minovlen = 16;
+  opt_fastq_minovlen = 10;
   opt_fastq_nostagger = 1;
   opt_fastqout_notmerged_fwd = 0;
   opt_fastqout_notmerged_rev = 0;
@@ -642,6 +645,7 @@ void args_init(int argc, char **argv)
   opt_relabel_keep = 0;
   opt_relabel_md5 = 0;
   opt_relabel_sha1 = 0;
+  opt_rereplicate = 0;
   opt_reverse = 0;
   opt_rightjust = 0;
   opt_rowlen = 64;
@@ -852,9 +856,15 @@ void args_init(int argc, char **argv)
     {"reverse",               required_argument, 0, 0 },
     {"eetabbedout",           required_argument, 0, 0 },
     {"fasta_score",           no_argument,       0, 0 },
+    {"fastq_eestats",         required_argument, 0, 0 },
+    {"rereplicate",           required_argument, 0, 0 },
+    {"xdrop_nw",              required_argument, 0, 0 },
+    {"minhsp",                required_argument, 0, 0 },
+    {"band",                  required_argument, 0, 0 },
+    {"hspw",                  required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
-  
+
   int option_count = sizeof(long_options) / sizeof(struct option);
   bool options_selected[option_count];
 
@@ -862,8 +872,8 @@ void args_init(int argc, char **argv)
 
   int option_index = 0;
   int c;
-  
-  while ((c = getopt_long_only(argc, argv, "", long_options, 
+
+  while ((c = getopt_long_only(argc, argv, "", long_options,
                                &option_index)) == 0)
     {
       if (option_index < option_count)
@@ -874,7 +884,7 @@ void args_init(int argc, char **argv)
         case 0:
           opt_help = 1;
           break;
-              
+
         case 1:
           opt_version = 1;
           break;
@@ -882,7 +892,7 @@ void args_init(int argc, char **argv)
         case 2:
           opt_alnout = optarg;
           break;
-          
+
         case 3:
           opt_usearch_global = optarg;
           break;
@@ -952,19 +962,19 @@ void args_init(int argc, char **argv)
         case 18:
           opt_userout = optarg;
           break;
-      
+
         case 19:
           opt_self = 1;
           break;
-      
+
         case 20:
           opt_blast6out = optarg;
           break;
-      
+
         case 21:
           opt_uc = optarg;
           break;
-      
+
         case 22:
           opt_weak_id = args_getdouble(optarg);
           break;
@@ -1245,63 +1255,63 @@ void args_init(int argc, char **argv)
         case 87:
           opt_abskew = args_getdouble(optarg);
           break;
-          
+
         case 88:
           opt_chimeras = optarg;
           break;
-          
+
         case 89:
           opt_dn = args_getdouble(optarg);
           break;
-          
+
         case 90:
           opt_mindiffs = args_getlong(optarg);
           break;
-          
+
         case 91:
           opt_mindiv = args_getdouble(optarg);
           break;
-          
+
         case 92:
           opt_minh = args_getdouble(optarg);
           break;
-          
+
         case 93:
           opt_nonchimeras = optarg;
           break;
-          
+
         case 94:
           opt_uchime_denovo = optarg;
           break;
-          
+
         case 95:
           opt_uchime_ref = optarg;
           break;
-          
+
         case 96:
           opt_uchimealns = optarg;
           break;
-          
+
         case 97:
           opt_uchimeout = optarg;
           break;
-          
+
         case 98:
           opt_uchimeout5 = 1;
           break;
-          
+
         case 99:
           opt_alignwidth = args_getlong(optarg);
           break;
-          
+
         case 100:
           opt_allpairs_global = optarg;
           break;
-          
+
         case 101:
           opt_acceptall = 1;
           break;
-          
+
         case 102:
           opt_cluster_size = optarg;
           break;
@@ -1337,7 +1347,7 @@ void args_init(int argc, char **argv)
         case 110:
           opt_sample_size = args_getlong(optarg);
           break;
-          
+
         case 111:
           opt_fastaout = optarg;
           break;
@@ -1562,6 +1572,34 @@ void args_init(int argc, char **argv)
           opt_fasta_score = 1;
           break;
 
+        case 167:
+          opt_fastq_eestats = optarg;
+          break;
+
+        case 168:
+          opt_rereplicate = optarg;
+          break;
+
+        case 169:
+          /* xdrop_nw ignored */
+          fprintf(stderr, "WARNING: Option --xdrop_nw is ignored\n");
+          break;
+
+        case 170:
+          /* minhsp ignored */
+          fprintf(stderr, "WARNING: Option --minhsp is ignored\n");
+          break;
+
+        case 171:
+          /* band ignored */
+          fprintf(stderr, "WARNING: Option --band is ignored\n");
+          break;
+
+        case 172:
+          /* hspw ignored */
+          fprintf(stderr, "WARNING: Option --hspw is ignored\n");
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1625,7 +1663,11 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_fastq_mergepairs)
     commands++;
-  
+  if (opt_fastq_eestats)
+    commands++;
+  if (opt_rereplicate)
+    commands++;
+
   if (commands > 1)
     fatal("More than one command specified");
 
@@ -1672,16 +1714,16 @@ void args_init(int argc, char **argv)
 
   if (opt_strand < 1)
     fatal("The argument to --strand must be plus or both");
-  
+
   if (opt_qmask == MASK_ERROR)
     fatal("The argument to --qmask must be none, dust or soft");
-  
+
   if (opt_dbmask == MASK_ERROR)
     fatal("The argument to --dbmask must be none, dust or soft");
 
   if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0))
     fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
-  
+
   if (opt_sample_size < 0)
     fatal("The argument to --sample_size must not be negative");
 
@@ -1705,17 +1747,17 @@ void args_init(int argc, char **argv)
 
   if (opt_fastq_qmin > opt_fastq_qmax)
     fatal("The argument to --fastq_qmin cannot be larger than to --fastq_qmax");
-  
+
   if (opt_fastq_qminout > opt_fastq_qmaxout)
     fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
-  
+
   /* TODO: check valid range of gap penalties */
 
   /* adapt/adjust parameters */
 
 #if 1
 
-  /* 
+  /*
      Adjust gap open penalty according to convention.
 
      The specified gap open penalties include the penalty for
@@ -1762,10 +1804,10 @@ void cmd_help()
 
   if (! opt_quiet)
     {
-      fprintf(stdout, 
+      fprintf(stdout,
               "Usage: %s [OPTIONS]\n", progname);
-      
-      fprintf(stdout, 
+
+      fprintf(stdout,
               "\n"
               "General options\n"
               "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
@@ -1834,23 +1876,24 @@ void cmd_help()
               "  --usersort                  indicate sequences not pre-sorted by length\n"
               "  --xsize                     strip abundance information in output\n"
               "\n"
-              "Dereplication\n"
+              "Dereplication and rereplication\n"
               "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
               "  --derep_prefix FILENAME     dereplicate sequences in file based on prefixes\n"
+              "  --rereplicate FILENAME      rereplicate sequences in the given FASTA file\n"
               "Options\n"
               "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
               "  --minuniquesize INT         minimum abundance for output from dereplication\n"
               "  --output FILENAME           output FASTA file\n"
-              "  --relabel STRING            relabel with this prefix string after derep.\n"
+              "  --relabel STRING            relabel with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizein                    propagate abundance annotation from input\n"
               "  --sizeout                   write abundance annotation to output\n"
               "  --strand plus|both          dereplicate plus or both strands (plus)\n"
-              "  --topn INT                  output just the n most abundant sequences\n"
-              "  --uc FILENAME               filename for UCLUST-like output\n"
-              "  --xsize                     strip abundance information in output\n"
+              "  --topn INT                  output only n most abundant sequences after derep\n"
+              "  --uc FILENAME               filename for UCLUST-like dereplication output\n"
+              "  --xsize                     strip abundance information in derep output\n"
               "\n"
               "FASTQ filtering\n"
               "  --fastq_filter FILENAME     filter FASTQ file, output to FASTQ or FASTA file\n"
@@ -1921,6 +1964,7 @@ void cmd_help()
               "\n"
               "FASTQ quality statistics\n"
               "  --fastq_stats FILENAME      report FASTQ file statistics\n"
+              "  --fastq_eestats FILENAME    quality score and expected error statistics\n"
               "Options\n"
               "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
@@ -2074,8 +2118,8 @@ void cmd_allpairs_global()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_samout))
     fatal("No output files specified");
-  
-  if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0)))) 
+
+  if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
     fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
 
   allpairs_global(cmdline, progheader);
@@ -2091,10 +2135,10 @@ void cmd_usearch_global()
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout))
     fatal("No output files specified");
-  
+
   if (!opt_db)
     fatal("Database filename not specified with --db");
-  
+
   if ((opt_id < 0.0) || (opt_id > 1.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
@@ -2134,11 +2178,19 @@ void cmd_sortbylength()
   sortbylength();
 }
 
+void cmd_rereplicate()
+{
+  if (!opt_output)
+    fatal("FASTA output file for rereplicate must be specified with --output");
+
+  rereplicate();
+}
+
 void cmd_derep()
 {
   if ((!opt_output) && (!opt_uc))
     fatal("Output file for derepl_fulllength must be specified with --output or --uc");
-  
+
   if (opt_derep_fulllength)
     derep_fulllength();
   else
@@ -2154,14 +2206,22 @@ void cmd_shuffle()
 {
   if (!opt_output)
     fatal("Output file for shuffling must be specified with --output");
-  
+
   shuffle();
+}
+
+void cmd_fastq_eestats()
+{
+  if (!opt_output)
+    fatal("Output file for fastq_eestats must be specified with --output");
+
+  fastq_eestats();
 }
 
 void cmd_subsample()
 {
   if ((!opt_fastaout) && (!opt_fastqout))
-    fatal("Specifiy output files for subsampling with --fastaout and/or --fastqout");
+    fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
 
   if ((opt_sample_pct > 0) == (opt_sample_size > 0))
     fatal("Specify either --sample_pct or --sample_size, not both");
@@ -2173,14 +2233,14 @@ void cmd_maskfasta()
 {
   if (!opt_output)
     fatal("Output file for masking must be specified with --output");
-  
+
   maskfasta();
 }
 
 void cmd_fastx_mask()
 {
   if ((!opt_fastaout) && (!opt_fastqout))
-    fatal("Specifiy output files for masking with --fastaout and/or --fastqout");
+    fatal("Specify output files for masking with --fastaout and/or --fastqout");
 
   fastx_mask();
 }
@@ -2203,12 +2263,14 @@ void cmd_none()
             "vsearch --derep_prefix FILENAME --output FILENAME\n"
             "vsearch --fastq_chars FILENAME\n"
             "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
+            "vsearch --fastq_eestats FILENAME --output FILENAME\n"
             "vsearch --fastq_filter FILENAME --fastqout FILENAME --fastq_truncqual 20\n"
             "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
             "vsearch --fastq_stats FILENAME --log FILENAME\n"
             "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
             "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
             "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
+            "vsearch --rereplicate FILENAME --output FILENAME\n"
             "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
             "vsearch --shuffle FILENAME --output FILENAME\n"
             "vsearch --sortbylength FILENAME --output FILENAME\n"
@@ -2224,7 +2286,7 @@ void cmd_fastx_revcomp()
 {
   if ((!opt_fastaout) && (!opt_fastqout))
     fatal("No output files specified");
-  
+
   fastx_revcomp();
 }
 
@@ -2232,7 +2294,7 @@ void cmd_fastq_convert()
 {
   if (! opt_fastqout)
     fatal("No output file specified with --fastqout");
-  
+
   fastq_convert();
 }
 
@@ -2245,7 +2307,7 @@ void cmd_cluster()
       (!opt_consout) && (!opt_msaout) &&
       (!opt_samout) && (!opt_profile))
     fatal("No output files specified");
-  
+
   if ((opt_id < 0.0) || (opt_id > 1.0))
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
@@ -2271,7 +2333,7 @@ void cmd_uchime()
 
   if (opt_dn <= 0.0)
     fatal("Argument to --dn must be > 0");
-  
+
   if (opt_mindiffs <= 0)
     fatal("Argument to --mindiffs must be > 0");
 
@@ -2312,7 +2374,7 @@ void cmd_fastq_mergepairs()
 
 void fillheader()
 {
-  snprintf(progheader, 80, 
+  snprintf(progheader, 80,
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
@@ -2417,12 +2479,16 @@ int main(int argc, char** argv)
     cmd_fastq_convert();
   else if (opt_fastq_mergepairs)
     cmd_fastq_mergepairs();
+  else if (opt_fastq_eestats)
+    cmd_fastq_eestats();
+  else if (opt_rereplicate)
+    cmd_rereplicate();
   else if (opt_version)
     {
     }
   else
     cmd_none();
-  
+
   if (opt_log)
     {
 
@@ -2436,7 +2502,7 @@ int main(int argc, char** argv)
 
       time_t time_diff = time_finish - time_start;
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "Elapsed time %02lu:%02lu\n", 
+      fprintf(fp_log, "Elapsed time %02lu:%02lu\n",
               time_diff / 60, time_diff % 60);
       double maxmem = arch_get_memused() / 1048576.0;
       if (maxmem < 1024.0)

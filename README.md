@@ -215,6 +215,7 @@ File | Description
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
 **dynlib.cc** | Dynamic loading of compression libraries
+**eestats.cc** | Produce statistics for fastq_eestats command
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
 **fastqops.cc** | FASTQ file statistics etc
@@ -226,7 +227,7 @@ File | Description
 **mergepairs.cc** | Paired-end read merging
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
-**pvalue.h** | Statistical data (from PEAR) used for significance testing of merged paired-end reads
+**rerep.cc** | Rereplication
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
