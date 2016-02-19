@@ -1,9 +1,3 @@
-## JOB ANNOUNCEMENT
-
-Would you like to work with research and development of open source tools for metagenomics, like [Swarm](https://github.com/torognes/swarm) and [VSEARCH](https://github.com/torognes/vsearch)? A [PhD research fellowship in bioinformatics](http://uio.easycruit.com/vacancy/1567523/64290) is now available at the [Department of Informatics](http://www.mn.uio.no/ifi/english/), [University of Oslo (UiO)](http://www.uio.no/english/), Norway. The position is associated with the [Centre for Computational Inference in Evolutionary Life Sciences (CELS)](http://www.mn.uio.no/math/english/research/groups/cels/index.html) at UiO. Closing date for applications: 11 February 2016.
-
----
-
 # VSEARCH
 
 ## Introduction
