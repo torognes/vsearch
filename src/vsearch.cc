@@ -1559,7 +1559,7 @@ void args_init(int argc, char **argv)
           break;
 
         case 166:
-          opt_idoffset = optarg;
+          opt_idoffset = args_getlong(optarg);
           break;
 
         default:
