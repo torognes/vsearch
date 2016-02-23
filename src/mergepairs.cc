@@ -580,9 +580,9 @@ bool read_pair(merge_data_t * ip)
 {
   long suffix_len = opt_label_suffix ? strlen(opt_label_suffix) : 0;
 
-  if (fastq_next(fastq_fwd, 1, chrmap_upcase))
+  if (fastq_next(fastq_fwd, 0, chrmap_upcase))
     {
-      if (! fastq_next(fastq_rev, 1, chrmap_upcase))
+      if (! fastq_next(fastq_rev, 0, chrmap_upcase))
         fatal("More forward reads than reverse reads");
 
       /* allocate more memory if necessary */

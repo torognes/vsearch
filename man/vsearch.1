@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "February 11, 2016" "version 1.10.0" "USER COMMANDS"
+.TH vsearch 1 "February 23, 2016" "version 1.10.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -2431,6 +2431,11 @@ terminal. Added \-\-fasta_score option to report chimera scores in
 FASTA files. Added rereplicate and fastq_eestats commands. Fixed
 typos. Added relabelling to files produced with \-\-consout and
 \-\-profile options.
+.TP
+.BR v1.10.1\~ "released February 23, 2016"
+Fixed a bug affecting the fastq_mergepairs command causing FASTQ
+headers to be truncated at first space. Full headers are now included
+in the output (no matter if --notrunclabels is in effect or not).
 .RE
 .LP
 .\" ============================================================================
