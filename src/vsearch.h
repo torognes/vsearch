@@ -330,6 +330,7 @@ extern long opt_top_hits_only;
 extern long opt_topn;
 extern long opt_uc_allhits;
 extern long opt_wordlength;
+extern long opt_idoffset;
 
 extern long mmx_present;
 extern long sse_present;

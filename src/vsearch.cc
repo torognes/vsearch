@@ -235,6 +235,7 @@ long opt_top_hits_only;
 long opt_topn;
 long opt_uc_allhits;
 long opt_wordlength;
+long opt_idoffset;
 
 /* Other variables */
 
@@ -586,6 +587,7 @@ void args_init(int argc, char **argv)
   opt_help = 0;
   opt_id = -1.0;
   opt_iddef = 2;
+  opt_idoffset = 0;
   opt_idprefix = 0;
   opt_idsuffix = 0;
   opt_label_suffix = 0;
@@ -849,6 +851,7 @@ void args_init(int argc, char **argv)
     {"fastaout_notmerged_rev",required_argument, 0, 0 },
     {"reverse",               required_argument, 0, 0 },
     {"eetabbedout",           required_argument, 0, 0 },
+    {"idoffset",              required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
   
@@ -1555,6 +1558,10 @@ void args_init(int argc, char **argv)
           opt_eetabbedout = optarg;
           break;
 
+        case 166:
+          opt_idoffset = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1651,6 +1658,9 @@ void args_init(int argc, char **argv)
   if ((opt_iddef < 0) || (opt_iddef > 4))
     fatal("The argument to --iddef must in the range 0 to 4");
 
+  if ((opt_idoffset < 0) || (opt_idoffset > 16))
+    fatal("The argument to --idoffset must in the range 0 to 16");
+
   if (opt_match <= 0)
     fatal("The argument to --match must be positive");
 
@@ -1745,6 +1755,9 @@ void args_init(int argc, char **argv)
       else
         opt_minseqlength = 1;
     }
+
+  if (opt_idoffset >= opt_minseqlength)
+    fatal("The argument to --idoffset must be smaller than to --minseqlength");
 }
 
 
@@ -1811,6 +1824,7 @@ void cmd_help()
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
+              "  --idoffset INT              id offset (0)\n"
               "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
               "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
@@ -1971,6 +1985,7 @@ void cmd_help()
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
+              "  --idoffset INT              id offset (0)\n"
               "  --idprefix INT              reject if first n nucleotides do not match\n"
               "  --idsuffix INT              reject if last n nucleotides do not match\n"
               "  --leftjust                  reject if terminal gaps at alignment left end\n"
