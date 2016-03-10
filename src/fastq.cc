@@ -192,7 +192,7 @@ fastq_handle fastq_open(const char * filename)
   if (h->format == FORMAT_BZIP)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_ZLIB_H
+#ifdef HAVE_BZLIB_H
       if (!bz2_lib)
         fatal("Files compressed with bzip2 are not supported");
       int bzError;
