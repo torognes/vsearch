@@ -76,8 +76,8 @@ int wo(int len, const char *s, int *beg, int *end)
   int bestv = 0;
   int besti = 0;
   int bestj = 0;
-  int counts[word_count];
-  int words[dust_window];
+  std::vector<int> counts(word_count);
+  std::vector<int> words(dust_window);
   int word = 0;
 
   for (int j = 0; j < len; j++)
@@ -89,8 +89,9 @@ int wo(int len, const char *s, int *beg, int *end)
 
   for (int i=0; i < l1; i++)
     {
-      memset(counts, 0, sizeof(counts));
-      
+      //memset(counts, 0, sizeof(counts));
+		counts.assign(counts.size(), 0);
+
       int sum = 0;
       
       for (int j = dust_word-1; j<len-i; j++)
@@ -124,8 +125,16 @@ void dust(char * m, int len)
   int a, b;
 
   /* make a local copy of the original sequence */
-  char * s = (char*) alloca(len);
-  memcpy(s, m, len);
+  char * s = (char*) alloca(len+1);
+  strcpy(s, m);
+
+  if (! opt_hardmask)
+    {
+      /* convert sequence to upper case unless hardmask in effect */
+      for(int i=0; i < len; i++)
+        m[i] = toupper(m[i]);
+      m[len] = 0;
+    }
 
   for (int i=0; i < len; i += dust_window2)
     {
@@ -147,14 +156,19 @@ void dust(char * m, int len)
     }
 }
 
+#if PTHREAD
 static pthread_t * pthread;
 static pthread_attr_t attr;
-static pthread_mutex_t mutex;
+static pthread_mutex_t myMutex;
+
+#endif
+
 static int nextseq = 0;
 static int seqcount = 0;
 
 void * dust_all_worker(void * vp)
 {
+#if PTHREAD
   while(1)
     {
       pthread_mutex_lock(&mutex);
@@ -172,12 +186,16 @@ void * dust_all_worker(void * vp)
           break;
         }
     }
+#endif
   return 0;
 }
 
 void dust_all()
 {
+  nextseq = 0;
+  seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
+#if PTHREAD
 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -195,7 +213,16 @@ void dust_all()
   free(pthread);
 
   pthread_attr_destroy(&attr);
-
+#else
+    while(1){
+        int seqno = nextseq;
+        if (seqno < seqcount){
+            nextseq++;
+            progress_update(seqno);
+            dust(db_getsequence(seqno), db_getsequencelen(seqno));
+        }else{  break;  }
+    }
+#endif
   progress_done();
 }
 
@@ -220,14 +247,14 @@ void maskfasta()
   if (!fp_output)
     fatal("Unable to open mask output file for writing");
 
-  db_read(opt_maskfasta, opt_qmask != MASK_SOFT);
+  db_read(opt_maskfasta, 0);
   show_rusage();
 
   seqcount = db_getsequencecount();
 
   if (opt_qmask == MASK_DUST)
     dust_all();
-  else if (opt_hardmask)
+  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
     hardmask_all();
   show_rusage();
 
@@ -263,7 +290,7 @@ void fastx_mask()
         fatal("Unable to open mask output FASTQ file for writing");
     }
 
-  db_read(opt_fastx_mask, opt_qmask != MASK_SOFT);
+  db_read(opt_fastx_mask, 0);
   show_rusage();
 
   if (fp_fastqout && ! db_is_fastq())
@@ -273,7 +300,7 @@ void fastx_mask()
 
   if (opt_qmask == MASK_DUST)
     dust_all();
-  else if (opt_hardmask)
+  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
     hardmask_all();
   show_rusage();
 
@@ -286,28 +313,39 @@ void fastx_mask()
       int unmasked = 0;
       char * seq = db_getsequence(i);
       int len = db_getsequencelen(i);
-      for(int j=0; j<len; j++)
-        if (isupper(seq[j]) && (seq[j] != 'N'))
-          unmasked++;
-
+      if (opt_qmask == MASK_NONE)
+        {
+          unmasked = len;
+        }
+      else if (opt_hardmask)
+        {
+          for(int j=0; j<len; j++)
+            if (seq[j] != 'N')
+              unmasked++;
+        }
+      else
+        {
+          for(int j=0; j<len; j++)
+            if (isupper(seq[j]))
+              unmasked++;
+        }
       double unmasked_pct = 100.0 * unmasked / len;
 
- 
-     if (unmasked_pct < opt_min_unmasked_pct)
-       discarded_less++;
-     else if (unmasked_pct >  opt_max_unmasked_pct)
-       discarded_more++;
-     else
-       {
-         kept++;
+      if (unmasked_pct < opt_min_unmasked_pct)
+        discarded_less++;
+      else if (unmasked_pct >  opt_max_unmasked_pct)
+        discarded_more++;
+      else
+        {
+          kept++;
 
-         if (opt_fastaout)
-           fasta_print_db(fp_fastaout, i);
-         
-         if (opt_fastqout)
-           fastq_print_db(fp_fastqout, i);
-       }
-     
+          if (opt_fastaout)
+            fasta_print_db(fp_fastaout, i);
+
+          if (opt_fastqout)
+            fastq_print_db(fp_fastqout, i);
+        }
+
       progress_update(i);
     }
   progress_done();

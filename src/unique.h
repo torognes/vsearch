@@ -70,7 +70,8 @@ void unique_count(struct uhandle_s * uh,
                   int seqlen,
                   char * seq,
                   unsigned int * listlen,
-                  unsigned int * * list);
+                  unsigned int * * list,
+                  int seqmask);
 
 int unique_count_shared(struct uhandle_s * uh,
                         int k,

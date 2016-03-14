@@ -57,6 +57,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
+#ifndef ALIGN_H
+#define ALIGN_H
 
 struct nwinfo_s;
 
@@ -90,3 +92,4 @@ void nw_align(char * dseq,
               long queryno,
               long dbseqno,
               struct nwinfo_s * nw);
+#endif

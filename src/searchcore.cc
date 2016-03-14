@@ -212,12 +212,16 @@ void search_topscores(struct searchinfo_s * si)
       
       if (bitmap)
         {
-          if (ssse3_present)
-            increment_counters_from_bitmap_ssse3(si->kmers, 
-                                                 bitmap, indexed_count);
-          else
-            increment_counters_from_bitmap_sse2(si->kmers,
-                                                bitmap, indexed_count);
+            if (ssse3_present) {
+              #ifdef __SSE2__
+#else
+            increment_counters_from_bitmap_ssse3(si->kmers, bitmap, indexed_count);
+#endif
+            }else{
+              #ifdef __SSE2__
+            increment_counters_from_bitmap_sse2(si->kmers, bitmap, indexed_count);
+                #endif
+            }
         }
       else
         {
@@ -595,10 +599,9 @@ void align_delayed(struct searchinfo_s * si)
   si->finalized = si->hit_count;
 }
 
-void search_onequery(struct searchinfo_s * si)
+void search_onequery(struct searchinfo_s * si, int seqmask)
 {
   si->hit_count = 0;
-
   search16_qprep(si->s, si->qsequence, si->qseqlen);
 
   si->lma = new LinearMemoryAligner;
@@ -622,7 +625,7 @@ void search_onequery(struct searchinfo_s * si)
   /* extract unique kmer samples from query*/
   unique_count(si->uh, opt_wordlength, 
                si->qseqlen, si->qsequence,
-               & si->kmersamplecount, & si->kmersample);
+               & si->kmersamplecount, & si->kmersample, seqmask);
   
   /* find database sequences with the most kmer hits */
   search_topscores(si);

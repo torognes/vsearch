@@ -111,7 +111,7 @@ long gcd(long a, long b)
   }
 }
 
-void  __attribute__((noreturn)) fatal(const char * msg)
+void  ATTR_NORETURN fatal(const char * msg)
 {
   fprintf(stderr, "\n\n");
   fprintf(stderr, "Fatal error: %s\n", msg);
@@ -125,7 +125,7 @@ void  __attribute__((noreturn)) fatal(const char * msg)
   exit(EXIT_FAILURE);
 }
 
-void  __attribute__((noreturn)) fatal(const char * format, 
+void  ATTR_NORETURN fatal(const char * format,
                                       const char * message)
 {
   fprintf(stderr, "\n\n");
@@ -146,8 +146,14 @@ void * xmalloc(size_t size)
 {
   const size_t alignment = 16;
   void * t = 0;
+
+#if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
   if (posix_memalign(& t, alignment, size))
     fatal("Unable to allocate enough memory.");
+#else
+	t = _aligned_malloc(size, alignment);
+#endif
+
   if (!t)
     fatal("Unable to allocate enough memory.");
   return t;
@@ -188,28 +194,28 @@ unsigned long hash_cityhash64(char * s, unsigned long n)
 
 long getusec(void)
 {
-  struct timeval tv;
-
+    struct timeval tv;
+    
 #if defined (_WIN32)
-	static const unsigned __int64 epoch = (uint64_t)(116444736000000000);
-FILETIME file_time;
- SYSTEMTIME system_time;
-ULARGE_INTEGER ularge;
-
-GetSystemTime(&system_time);
- if ((SystemTimeToFileTime(&system_time, &file_time)) == 0) { return 0; } //failed
- ularge.LowPart = file_time.dwLowDateTime;
- ularge.HighPart = file_time.dwHighDateTime;
-
- tv.tv_sec = (long) ((ularge.QuadPart - epoch) / 10000000L);
- tv.tv_usec = (long) (system_time.wMilliseconds * 1000);
- return tv.tv_sec;
-
-
-
+    static const unsigned __int64 epoch = (uint64_t)(116444736000000000);
+    FILETIME file_time;
+    SYSTEMTIME system_time;
+    ULARGE_INTEGER ularge;
+    
+    GetSystemTime(&system_time);
+    if ((SystemTimeToFileTime(&system_time, &file_time)) == 0) { return 0; } //failed
+    ularge.LowPart = file_time.dwLowDateTime;
+    ularge.HighPart = file_time.dwHighDateTime;
+    
+    tv.tv_sec = (long) ((ularge.QuadPart - epoch) / 10000000L);
+    tv.tv_usec = (long) (system_time.wMilliseconds * 1000);
+    return tv.tv_sec;
+    
+    
+    
 #else
-  if(gettimeofday(&tv,0) != 0) return 0;
-  return tv.tv_sec * 1000000 + tv.tv_usec;
+    if(gettimeofday(&tv,0) != 0) return 0;
+    return tv.tv_sec * 1000000 + tv.tv_usec;
 #endif
 }
 
@@ -251,22 +257,21 @@ void random_init()
   unsigned int seed = opt_randseed;
   if (seed == 0)
     {
-      int fd = open("/dev/urandom", O_RDONLY);
-      if (fd < 0)
+		char buffer[sizeof(seed)];
+		std::ifstream in;
+		in.open("/dev/urandom", std::ios_base::in);
+      if (!in)
         fatal("Unable to open /dev/urandom");
-      if (read(fd, & seed, sizeof(seed)) < 0)
+	  in.read(buffer, sizeof(seed));
+      if (in.gcount() < 0)
         fatal("Unable to read from /dev/urandom");
-      close(fd);
+	  in.close();
     }
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-	srandom(seed);
+    srandom(seed);
 #else
-	std::default_random_engine generator;
-	generator.seed(seed);
-	srand(seed);
+    srand(seed);
 #endif
-
-  
 }
 
 long random_int(long n)
@@ -280,19 +285,16 @@ long random_int(long n)
     avoid modulo bias.
   */
 
-  	long random_max = RAND_MAX;
-  	long limit = random_max - (random_max + 1) % n;
-	long r = 1;
-
+  long random_max = RAND_MAX;
+  long limit = random_max - (random_max + 1) % n;
+  long r = 1;
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-	r = random();
-  	while (r > limit) {  r = random();  }
+    r = random();
+    while (r > limit) {  r = random();  }
 #else
-	std::default_random_engine generator;
-	std::uniform_int_distribution<long> dis(0, limit);
-	r = (dis(generator));
+  	r = rand();
+    while (r > limit) {  r = rand();  }
 #endif
-
   return r % n;
 }
 
@@ -302,29 +304,35 @@ unsigned long random_ulong(unsigned long n)
     Generate a random integer in the range 0 to n-1, inclusive,
     n must be > 0
   */
-
-  ull random_max = ULONG_MAX;
-  ull limit = random_max - (random_max - n + 1) % n;
-  ull r = 1;
-
+    
+    
+    unsigned long random_max = ULONG_MAX;
+    unsigned long limit = random_max - (random_max - n + 1) % n;
+    unsigned long r_long = 1;
+    
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-	r = ((random() << 48) ^ (random() << 32) ^
+
+  unsigned long r = ((random() << 48) ^ (random() << 32) ^
                      (random() << 16) ^ (random()));
-  while (r > limit) {
+  while (r > limit)
     r = ((random() << 48) ^ (random() << 32) ^
-         (random() << 16) ^ (random())); }
+         (random() << 16) ^ (random()));
+    
+    r_long = r;
 #else
-	std::default_random_engine generator;
-	std::uniform_int_distribution<ull> dis(0, limit);
-
-	r = (((dis(generator)) << 48) ^ ((dis(generator)) << 32) ^
-                     ((dis(generator)) << 16) ^ ((dis(generator))));
-  while (r > limit) {
-    r = (((dis(generator)) << 48) ^ ((dis(generator)) << 32) ^
-         ((dis(generator)) << 16) ^ ((dis(generator)))); }
-
+    
+  long long r = ((rand() << 48) ^ (rand() << 32) ^
+                     (rand() << 16) ^ (rand()));
+  while (r > limit)
+    r = ((rand() << 48) ^ (rand() << 32) ^
+         (rand() << 16) ^ (rand()));
+    
+    
+    r_long = (unsigned long) r;
+    
 #endif
-  return r % n;
+    
+  return r_long % n;
 }
 
 void string_normalize(char * normalized, char * s, unsigned int len)

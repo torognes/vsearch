@@ -61,12 +61,20 @@
 #ifndef VSEARCH_H
 #define VSEARCH_H
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#define __SSE2__
+#include <array>
+#endif
+
+#define PTHREAD 0
+
+#if PTHREAD
+    #include <pthread.h>
+#endif
+
 #include <stdio.h>
-//#include <stdarg.h>
 #include <string.h>
-#include <pthread.h>
-#include <getopt.h>
-#include <x86intrin.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
@@ -75,9 +83,24 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <float.h>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+
+#ifdef __SSSE3__
+#include <tmmintrin.h>
+#define SSSE3
 #endif
 
 #ifdef HAVE_ZLIB_H
@@ -88,9 +111,10 @@
 #include <bzlib.h>
 #endif
 
+
 #include "dynlibs.h"
 #include "city.h"
-
+#include "citycrc.h"
 #include "md5.h"
 #include "sha1.h"
 #include "util.h"
@@ -128,16 +152,22 @@
 #include "fastqops.h"
 #include "dbhash.h"
 #include "searchexact.h"
+#include "mergepairs.h"
 
-#define PROG_NAME "vsearch"
-#define PROG_VERSION "vsearch 1.9.3"
+//vsearch definitions
+
+#define PROG_NAME "vsearch" //PACKAGE
+#define PROG_VERSION "1.9.10" //PACKAGE_VERSION
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "torognes@ifi.uio.no"
+
 
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-
+#include <sys/resource.h>
+#include <dlfcn.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <unistd.h>
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
@@ -164,15 +194,17 @@
 #define PROG_ARCH "Windows_x86_64"
 #include <windows.h>
 #include <psapi.h>
-#include <random>
-
-//use aligned_malloc function instead of posix_memalign
-#define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno) 
-
+#ifdef _MSC_VER
+#include <intrin.h>
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp 
+#define __asm__ __asm
+#define __volatile__ __volatile
+#define ATTR_NORETURN 
 #endif
-//accounts for Windows long = 32bits even on 64bit compile
-typedef uint64_t ull; //unsigned long long
-typedef int64_t vlong; //vsearch long
+#endif
+
+
 
 /* options */
 
@@ -360,7 +392,6 @@ extern long sse42_present;
 extern long popcnt_present;
 extern long avx_present;
 extern long avx2_present;
-
 
 extern FILE * fp_log;
 

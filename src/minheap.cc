@@ -236,21 +236,20 @@ minheap_poplast(minheap_t * m)
 void
 minheap_test()
 {
-minheap_t * m = minheap_init(10000000);
+  minheap_t * m = minheap_init(10000000);
 
   int samples = 10000000;
   swaps = 0;
   
   for(int i=samples; i>=0; i--)
     {
-	elem_t x; x.seqno = 0; x.length = 1;
+        elem_t x; x.seqno = 0; x.length = 1;
 #if defined (__APPLE__) || (__MACH__) || (linux) || (__linux) || (__linux__) || (__unix__) || (__unix)
-	x.count = (unsigned int) (random());
+        x.count = (unsigned int) (random());
 #else
-	std::default_random_engine generator;
-	std::uniform_int_distribution<int> dis(1, INT_MAX);
-	x.count = (unsigned int)(dis(generator));
+        x.count = (unsigned int) (rand());
 #endif
+        //= {(unsigned int)(random()),0,1};
       minheap_add(m, & x);
     }
 

@@ -60,15 +60,18 @@
 
 #include "vsearch.h"
 
-static pthread_t * pthread;
-
 /* global constants/data, no need for synchronization */
 static int seqcount; /* number of database sequences */
-static pthread_attr_t attr;
 
+#if PTHREAD
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
+static pthread_attr_t attr;
+static pthread_t * pthread;
+
+#endif
+
 static int qmatches;
 static int queries;
 static long progress = 0;
@@ -303,17 +306,21 @@ void allpairs_thread_run(long t)
 
   while (cont)
     {
-      pthread_mutex_lock(&mutex_input);
-      
+#if PTHREAD
+        pthread_mutex_lock(&mutex_input);
+        //#else assume 1 thread
+#endif
       int query_no = queries;
 
       if (query_no < seqcount)
         {
           queries++;
 
-          /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
-
+#if PTHREAD
+            /* let other threads read input */
+            pthread_mutex_unlock(&mutex_input);
+            //#else assume 1 thread
+#endif
           /* init search info */
           si->query_no = query_no;
           si->qsize = db_getabundance(query_no);
@@ -433,9 +440,11 @@ void allpairs_thread_run(long t)
                     sizeof(struct hit), allpairs_hit_compare);
             }
           
-          /* lock mutex for update of global data and output */
-          pthread_mutex_lock(&mutex_output);
-          
+#if PTHREAD
+            /* lock mutex for update of global data and output */
+            pthread_mutex_lock(&mutex_output);
+            //#else assume 1 thread
+#endif
           /* output results */
           allpairs_output_results(si->accepts,
                                   finalhits,
@@ -452,8 +461,9 @@ void allpairs_thread_run(long t)
           progress += seqcount - query_no - 1;
           progress_update(progress);
           
-          pthread_mutex_unlock(&mutex_output);
-          
+#if PTHREAD
+            pthread_mutex_unlock(&mutex_output);
+#endif
           /* free memory for alignment strings */
           for(int i=0; i < si->hit_count; i++)
             if (si->hits[i].aligned)
@@ -461,9 +471,11 @@ void allpairs_thread_run(long t)
         }
       else
         {
-          /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
-
+#if PTHREAD
+            /* let other threads read input */
+            pthread_mutex_unlock(&mutex_input);
+            //#else assume 1 thread
+#endif
           cont = 0;
         }
     }
@@ -497,7 +509,7 @@ void * allpairs_thread_worker(void * vp)
 void allpairs_thread_worker_run()
 {
   /* initialize threads, start them, join them and return */
-
+#if PTHREAD
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
@@ -517,6 +529,12 @@ void allpairs_thread_worker_run()
     }
 
   pthread_attr_destroy(&attr);
+#else
+    //assume 1 thread - future work expand
+    long t = 0;
+    allpairs_thread_run(t);
+#endif
+    
 }
 
 
@@ -586,7 +604,7 @@ void allpairs_global(char * cmdline, char * progheader)
         fatal("Unable to open notmatched output file for writing");
     }
 
-  db_read(opt_allpairs_global, opt_qmask != MASK_SOFT);
+  db_read(opt_allpairs_global, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_allpairs_global);
 
@@ -603,12 +621,14 @@ void allpairs_global(char * cmdline, char * progheader)
   qmatches = 0;
   queries = 0;
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
-
-  /* init mutexes for input and output */
-  pthread_mutex_init(&mutex_input, NULL);
-  pthread_mutex_init(&mutex_output, NULL);
-
+#if PTHREAD
+    pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+    
+    /* init mutexes for input and output */
+    pthread_mutex_init(&mutex_input, NULL);
+    pthread_mutex_init(&mutex_output, NULL);
+#endif
+    
   progress = 0;
   progress_init("Aligning", MAX(0,((long)seqcount)*((long)seqcount-1))/2);
   allpairs_thread_worker_run();
@@ -624,10 +644,12 @@ void allpairs_global(char * cmdline, char * progheader)
               qmatches, queries, 100.0 * qmatches / queries);
     }
 
-  pthread_mutex_destroy(&mutex_output);
-  pthread_mutex_destroy(&mutex_input);
-
-  free(pthread);
+#if PTHREAD    
+    pthread_mutex_destroy(&mutex_output);
+    pthread_mutex_destroy(&mutex_input);
+    
+    free(pthread);
+#endif
 
   /* clean up, global */
   db_free();

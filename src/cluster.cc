@@ -86,17 +86,21 @@ static FILE * fp_fastapairs = 0;
 static FILE * fp_matched = 0;
 static FILE * fp_notmatched = 0;
   
+#if PTHREAD
 static pthread_attr_t attr;
+#endif
 
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
 
 typedef struct thread_info_s
 {
-  pthread_t thread;
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
-  int work;
+#if PTHREAD
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+#endif
+    int work;
   int query_first;
   int query_count;
 } thread_info_t;
@@ -154,9 +158,8 @@ inline void cluster_query_core(struct searchinfo_s * si)
     reverse_complement(si->qsequence, db_getsequence(seqno), si->qseqlen);
   else
     strcpy(si->qsequence, db_getsequence(seqno));
-  
   /* perform search */
-  search_onequery(si);
+  search_onequery(si, opt_qmask);
 }
 
 inline void cluster_worker(long t)
@@ -172,7 +175,10 @@ inline void cluster_worker(long t)
 
 void * threads_worker(void * vp)
 {
-  unsigned long long t = (unsigned long long) vp;
+    
+#if PTHREAD
+
+  long t = (long) vp;
   thread_info_s * tip = ti + t;
   pthread_mutex_lock(&tip->mutex);
   /* loop until signalled to quit */
@@ -189,33 +195,39 @@ void * threads_worker(void * vp)
         }
     }
   pthread_mutex_unlock(&tip->mutex);
+    #endif
   return 0;
 }
 
 void threads_wakeup(int queries)
 {
-  int threads = queries > opt_threads ? opt_threads : queries;
-  int queries_rest = queries;
-  int threads_rest = threads;
-  int query_next = 0;
-
-  /* tell the threads that there is work to do */
-  for(int t=0; t < threads; t++)
+    int threads = queries > opt_threads ? opt_threads : queries;
+    int queries_rest = queries;
+    int threads_rest = threads;
+    int query_next = 0;
+    
+    /* tell the threads that there is work to do */
+    for(int t=0; t < threads; t++)
     {
-      thread_info_t * tip = ti + t;
-
-      tip->query_first = query_next;
-      tip->query_count = (queries_rest + threads_rest - 1) / threads_rest;
-      queries_rest -= tip->query_count;
-      query_next += tip->query_count;
-      threads_rest--;
-
-      pthread_mutex_lock(&tip->mutex);
-      tip->work = 1;
-      pthread_cond_signal(&tip->cond);
-      pthread_mutex_unlock(&tip->mutex);
+        thread_info_t * tip = ti + t;
+        
+        tip->query_first = query_next;
+        tip->query_count = (queries_rest + threads_rest - 1) / threads_rest;
+        queries_rest -= tip->query_count;
+        query_next += tip->query_count;
+        threads_rest--;
+        
+#if PTHREAD
+        pthread_mutex_lock(&tip->mutex);
+        tip->work = 1;
+        pthread_cond_signal(&tip->cond);
+        pthread_mutex_unlock(&tip->mutex);
+#else
+       ti->work = 1;
+#endif
     }
-  
+
+#if PTHREAD
   /* wait for theads to finish their work */
   for(int t=0; t < threads; t++)
     {
@@ -225,15 +237,19 @@ void threads_wakeup(int queries)
         pthread_cond_wait(&tip->cond, &tip->mutex);
       pthread_mutex_unlock(&tip->mutex);
     }
+#endif
 }
 
 void threads_init()
 {
+    /* allocate memory for thread info */
+    ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
+
+    
+#if PTHREAD
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
-  /* allocate memory for thread info */
-  ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
   
   /* init and create worker threads */
   for(int t=0; t < opt_threads; t++)
@@ -245,10 +261,17 @@ void threads_init()
       if (pthread_create(&tip->thread, &attr, threads_worker, (void*)(long)t))
         fatal("Cannot create thread");
     }
+#else
+    long t = 0; //one thread
+    ti->work = 0;
+    cluster_worker(t);
+#endif
+    
 }
 
 void threads_exit()
 {
+#if PTHREAD
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
     {
@@ -267,8 +290,10 @@ void threads_exit()
       pthread_cond_destroy(&tip->cond);
       pthread_mutex_destroy(&tip->mutex);
     }
+    pthread_attr_destroy(&attr);
+#endif
   free(ti);
-  pthread_attr_destroy(&attr);
+  
 }
 
 void cluster_query_init(struct searchinfo_s * si)
@@ -786,7 +811,7 @@ void cluster_core_parallel()
               clusterinfo[myseqno].strand = 0;
               
               /* add current sequence to database */
-              dbindex_addsequence(myseqno);
+              dbindex_addsequence(myseqno, opt_qmask);
               
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(clusters,
@@ -844,7 +869,7 @@ void cluster_core_serial()
   struct searchinfo_s si_p[1];
   struct searchinfo_s si_m[1];
 
-  cluster_query_init(si_p);
+    cluster_query_init(si_p);
   if (opt_strand > 1)
     cluster_query_init(si_m);
 
@@ -900,7 +925,7 @@ void cluster_core_serial()
           clusterinfo[seqno].clusterno = clusters;
           clusterinfo[seqno].cigar = 0;
           clusterinfo[seqno].strand = 0;
-          dbindex_addsequence(seqno);
+          dbindex_addsequence(seqno, opt_qmask);
           cluster_core_results_nohit(clusters,
                                      si_p->query_head,
                                      si_p->qseqlen,
@@ -999,7 +1024,7 @@ void cluster(char * dbname,
         fatal("Unable to open notmatched output file for writing");
     }
 
-  db_read(dbname, opt_qmask != MASK_SOFT);
+  db_read(dbname, 0);
 
   results_show_samheader(fp_samout, cmdline, dbname);
 
@@ -1011,13 +1036,13 @@ void cluster(char * dbname,
   show_rusage();
   
   seqcount = db_getsequencecount();
-  
+
   if (opt_cluster_fast)
     db_sortbylength();
   else if (opt_cluster_size)
     db_sortbyabundance();
   
-  dbindex_prepare(1);
+  dbindex_prepare(1, opt_qmask);
   
   /* tophits = the maximum number of hits we need to store */
 

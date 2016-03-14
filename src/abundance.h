@@ -58,11 +58,21 @@
 
 */
 
-#include <regex.h> 
+#ifndef ABUNDANCE_H
+#define ABUNDANCE_H
+
+
+#define REGEX 0
+
+#if REGEX
+//#ifdef _MSC_VER
+//to do use System regex object
+//#else
+#include <regex.h>
 
 typedef struct abundance_s
 {
-  regex_t regex;
+    regex_t regex;
 } abundance_t;
 
 abundance_t * abundance_init(void);
@@ -85,3 +95,38 @@ void abundance_fprint_header_strip_size(abundance_t * a,
 char * abundance_strip_size(abundance_t * a,
                             char * header,
                             int header_length);
+//#endif
+#else
+
+typedef struct abundance_s
+{
+    long abundance;
+    int start, end;
+} abundance_t;
+
+abundance_t * abundance_init();
+
+void abundance_exit(abundance_t * a);
+
+long abundance_get(abundance_t * a, char * header);
+
+
+void abundance_fprint_header_with_size(abundance_t * a,
+                                       FILE * fp,
+                                       char * header,
+                                       int header_length,
+                                       unsigned long size);
+
+
+void abundance_fprint_header_strip_size(abundance_t * a,
+                                        FILE * fp,
+                                        char * header,
+                                        int header_length);
+
+char * abundance_strip_size(abundance_t * a,
+                            char * header,
+                            int header_length);
+
+#endif
+#endif
+

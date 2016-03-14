@@ -72,18 +72,22 @@
 
 /* global constants/data, no need for synchronization */
 const int parts = 4;
-const int few = 1;
+const int few = 4;
 const int maxcandidates = few * parts;
-const int rejects = 64;
+const int rejects = 16;
 const double chimera_id = 0.55;
 static int tophits;
-static pthread_attr_t attr;
-static pthread_t * pthread;
 static fasta_handle query_fasta_h;
 
+#if PTHREAD
 /* mutexes and global data protected by mutex */
+static pthread_attr_t attr;
+static pthread_t * pthread;
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
+
+#endif
+
 static unsigned int seqno = 0;
 static unsigned long progress = 0;
 static int chimera_count = 0;
@@ -93,9 +97,6 @@ static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
 static FILE * fp_uchimeout = 0;
 static FILE * fp_borderline = 0;
-
-#define ALT
-//#define ALT2
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -121,11 +122,11 @@ struct chimera_info_s
   unsigned short snwmatches[maxcandidates];
   unsigned short snwmismatches[maxcandidates];
   unsigned short snwgaps[maxcandidates];
-  long int nwscore[maxcandidates];
-  long int nwalignmentlength[maxcandidates];
-  long int nwmatches[maxcandidates];
-  long int nwmismatches[maxcandidates];
-  long int nwgaps[maxcandidates];
+  long nwscore[maxcandidates];
+  long nwalignmentlength[maxcandidates];
+  long nwmatches[maxcandidates];
+  long nwmismatches[maxcandidates];
+  long nwgaps[maxcandidates];
   char * nwcigar[maxcandidates];
 
   int match_size;
@@ -274,9 +275,9 @@ int find_best_parents(struct chimera_info_s * ci)
   
   /* find first parent */
 
-  int wins[ci->cand_count];
+  std::vector<int> wins(ci->cand_count, 0);
 
-  memset(wins, 0, ci->cand_count * sizeof(int));
+  //memset(wins, 0, ci->cand_count * sizeof(int));
 
   for(int qpos = window-1; qpos < ci->query_len; qpos++)
     {
@@ -351,7 +352,8 @@ int find_best_parents(struct chimera_info_s * ci)
   
       /* find second parent */
 
-      memset(wins, 0, ci->cand_count * sizeof(int));
+      //memset(wins, 0, ci->cand_count * sizeof(int));
+	  wins.assign(ci->cand_count, 0);
 
       for(int qpos = window-1; qpos < ci->query_len; qpos++)
         {
@@ -432,7 +434,7 @@ int eval_parents(struct chimera_info_s * ci)
     {
       for (int j=0; j < ci->maxi[i]; j++)
         *q++ = '-';
-      *q++ = ci->query_seq[qpos++];
+      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
     }
   for (int j=0; j < ci->maxi[ci->query_len]; j++)
     *q++ = '-';
@@ -467,7 +469,7 @@ int eval_parents(struct chimera_info_s * ci)
               for(int x=0; x < ci->maxi[qpos]; x++)
                 {
                   if (x < run)
-                    *t++ = target_seq[tpos++];
+                    *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
                   else
                     *t++ = '-';
                 }
@@ -482,7 +484,7 @@ int eval_parents(struct chimera_info_s * ci)
                       *t++ = '-';
                       
                   if (op == 'M')
-                    *t++ = target_seq[tpos++];
+                    *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
                   else
                     *t++ = '-';
                       
@@ -790,8 +792,9 @@ int eval_parents(struct chimera_info_s * ci)
 
       /* print alignment */
 
-      pthread_mutex_lock(&mutex_output);
-
+#if PTHREAD
+        pthread_mutex_lock(&mutex_output);
+#endif
       if (opt_uchimealns && (status == 4))
         {
           fprintf(fp_uchimealns, "\n");
@@ -925,7 +928,9 @@ int eval_parents(struct chimera_info_s * ci)
                       status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
             }
         }
-      pthread_mutex_unlock(&mutex_output);
+#if PTHREAD
+        pthread_mutex_unlock(&mutex_output);
+#endif
     }
 
   return status;
@@ -1079,7 +1084,7 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     free(ci->query_head);
 }
 
-unsigned long long chimera_thread_core(struct chimera_info_s * ci)
+unsigned long chimera_thread_core(struct chimera_info_s * ci)
 {
   chimera_thread_init(ci);
 
@@ -1088,7 +1093,7 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
 
   LinearMemoryAligner lma;
 
-  long int * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
 
   lma.set_parameters(scorematrix,
                      opt_gap_open_query_left,
@@ -1108,12 +1113,14 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
     {
       /* get next sequence */
       
-      pthread_mutex_lock(&mutex_input);
-
+#if PTHREAD
+        pthread_mutex_lock(&mutex_input);
+#endif
+        
       if (opt_uchime_ref)
         {
           if (fasta_next(query_fasta_h, ! opt_notrunclabels,
-                         chrmap_upcase))
+                         chrmap_no_change))
             {
               ci->query_head_len = fasta_get_header_length(query_fasta_h);
               ci->query_len = fasta_get_sequence_length(query_fasta_h);
@@ -1129,8 +1136,10 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
             }
           else
             {
-              pthread_mutex_unlock(&mutex_input);
-              break; /* end while loop */
+#if PTHREAD
+                pthread_mutex_unlock(&mutex_input);
+#endif                
+                break; /* end while loop */
             }
         }
       else
@@ -1150,12 +1159,16 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
             }
           else
             {
-              pthread_mutex_unlock(&mutex_input);
-              break; /* end while loop */
+#if PTHREAD
+                pthread_mutex_unlock(&mutex_input);
+#endif
+                break; /* end while loop */
             }
         }
 
-      pthread_mutex_unlock(&mutex_input);
+#if PTHREAD
+        pthread_mutex_unlock(&mutex_input);
+#endif
 
 
       
@@ -1168,17 +1181,18 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
       ci->cand_count = 0;
       int allhits_count = 0;
 
-      for (int i=0; i<parts; i++)
-        {
-          struct hit * hits;
-          int hit_count;
-          search_onequery(ci->si+i);
-          search_joinhits(ci->si+i, 0, & hits, & hit_count);
-          for(int j=0; j<hit_count; j++)
-            if (hits[j].accepted)
-              allhits_list[allhits_count++] = hits[j];
-          free(hits);
-        }
+      if (ci->query_len >= parts)
+        for (int i=0; i<parts; i++)
+          {
+            struct hit * hits;
+            int hit_count;
+            search_onequery(ci->si+i, opt_qmask);
+            search_joinhits(ci->si+i, 0, & hits, & hit_count);
+            for(int j=0; j<hit_count; j++)
+              if (hits[j].accepted)
+                allhits_list[allhits_count++] = hits[j];
+            free(hits);
+          }
 
       for(int i=0; i < allhits_count; i++)
         {
@@ -1199,7 +1213,7 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
         }
 
 
-      /* align funsigned long long query to each candidate */
+      /* align full query to each candidate */
 
       search16_qprep(ci->s, ci->query_seq, ci->query_len);
 
@@ -1215,13 +1229,13 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
 
       for(int i=0; i < ci->cand_count; i++)
         {
-          long int target = ci->cand_list[i];
-          long int nwscore = ci->snwscore[i];
+          long target = ci->cand_list[i];
+          long nwscore = ci->snwscore[i];
           char * nwcigar;
-          long int nwalignmentlength;
-          long int nwmatches;
-          long int nwmismatches;
-          long int nwgaps;
+          long nwalignmentlength;
+          long nwmatches;
+          long nwmismatches;
+          long nwgaps;
 
           if (nwscore == SHRT_MAX)
             {
@@ -1230,7 +1244,7 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
                          linear memory aligner */
                       
               char * tseq = db_getsequence(target);
-              long int tseqlen = db_getsequencelen(target);
+              long tseqlen = db_getsequencelen(target);
                       
               if (ci->nwcigar[i])
                 free(ci->nwcigar[i]);
@@ -1275,8 +1289,9 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
 
       /* output results */
 
-      pthread_mutex_lock(&mutex_output);
-
+#if PTHREAD
+        pthread_mutex_lock(&mutex_output);
+#endif
       if (status == 4)
         {
           chimera_count++;
@@ -1288,14 +1303,8 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
                           ci->query_seq,
                           ci->query_len);
             }
-
-
-#ifdef ALT2
-          if (opt_uchime_denovo)
-            dbindex_addsequence(seqno);
-#endif
         }
-
+      
       if (status == 3)
         {
           if (opt_borderline)
@@ -1326,11 +1335,9 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
                         ci->query_head);
             }
           
-#ifndef ALT
           /* uchime_denovo: add non-chimeras to db */
           if (opt_uchime_denovo)
-            dbindex_addsequence(seqno);
-#endif
+            dbindex_addsequence(seqno, opt_qmask);
 
           if (opt_nonchimeras)
             {
@@ -1357,7 +1364,9 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
 
       seqno++;
 
-      pthread_mutex_unlock(&mutex_output);
+#if PTHREAD
+        pthread_mutex_unlock(&mutex_output);
+#endif
     }
 
   if (allhits_list)
@@ -1371,17 +1380,19 @@ unsigned long long chimera_thread_core(struct chimera_info_s * ci)
 }
 
 void * chimera_thread_worker(void * vp)
-{	
-  return (void *) chimera_thread_core((cia + (unsigned long long)vp));
+{
+  return (void *) (chimera_thread_core(cia + (intptr_t) vp));
 }
 
 void chimera_threads_run()
 {
+#if PTHREAD
+
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
   /* create worker threads */
-  for(unsigned long long t=0; t<opt_threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       if (pthread_create(pthread+t, & attr,
                          chimera_thread_worker, (void*)t))
@@ -1398,6 +1409,10 @@ void chimera_threads_run()
     }
 
   pthread_attr_destroy(&attr);
+#else
+    //assumes 1 thread
+    chimera_thread_core(cia);
+#endif
 }
 
 void open_chimera_file(FILE * * f, char * name)
@@ -1442,40 +1457,48 @@ void chimera()
 
   tophits = opt_maxaccepts + opt_maxrejects;
 
-  unsigned long long progress_total;
+  unsigned long progress_total;
   chimera_count = 0;
   nonchimera_count = 0;
   progress = 0;
   seqno = 0;
-  
-  /* prepare threads */
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
   cia = (struct chimera_info_s *) xmalloc(opt_threads *
-                                          sizeof(struct chimera_info_s));
-
-  /* init mutexes for input and output */
-  pthread_mutex_init(&mutex_input, NULL);
-  pthread_mutex_init(&mutex_output, NULL);
-
+                                            sizeof(struct chimera_info_s));
+ 
+  /* prepare threads */
+#if PTHREAD
+    pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+    
+    /* init mutexes for input and output */
+    pthread_mutex_init(&mutex_input, NULL);
+    pthread_mutex_init(&mutex_output, NULL);
+#endif
   /* prepare queries / database */
   if (opt_uchime_ref)
     {
-      db_read(opt_db, 1);
-      dbindex_prepare(1);
-      dbindex_addallsequences();
+      db_read(opt_db, 0);
+
+      if (opt_dbmask == MASK_DUST)
+        dust_all();
+      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+        hardmask_all();
+
+      dbindex_prepare(1, opt_dbmask);
+      dbindex_addallsequences(opt_dbmask);
       query_fasta_h = fasta_open(opt_uchime_ref);
       progress_total = fasta_get_size(query_fasta_h);
     }
   else
     {
-      db_read(opt_uchime_denovo, 1);
-#ifndef ALT
+      db_read(opt_uchime_denovo, 0);
+
+      if (opt_qmask == MASK_DUST)
+        dust_all();
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+        hardmask_all();
+
       db_sortbyabundance();
-#endif
-      dbindex_prepare(1);
-#ifdef ALT
-      dbindex_addallsequences();
-#endif
+      dbindex_prepare(1, opt_qmask);
       progress_total = db_getnucleotidecount();
     }
 
@@ -1529,12 +1552,14 @@ void chimera()
   dbindex_free();
   db_free();
 
-  pthread_mutex_destroy(&mutex_output);
-  pthread_mutex_destroy(&mutex_input);
-  
   free(cia);
-  free(pthread);
-  
+    
+#if PTHREAD
+    pthread_mutex_destroy(&mutex_output);
+    pthread_mutex_destroy(&mutex_input);
+    free(pthread);
+#endif
+    
   close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);
   close_chimera_file(fp_uchimealns);

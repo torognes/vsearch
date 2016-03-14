@@ -57,6 +57,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 static char empty_string[1] = "";
 
@@ -137,7 +138,7 @@ class xstring
         alloc = length + needed + 1;
         string = (char*) xrealloc(string, alloc);
       }
-    strcpy(string + length, s);
+    strcpy((string + length), s);
     length += needed;
   }
 };

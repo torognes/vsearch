@@ -79,7 +79,7 @@
 static unsigned char MAGIC_GZIP[] = "\x1f\x8b";
 static unsigned char MAGIC_BZIP[] = "BZ";
 
-int fastx_detect(const char * filename)
+int vfastx_detect(const char * filename)
 {
 #ifdef HAVE_ZLIB_H
   gzFile fp_gz = 0;
@@ -241,7 +241,7 @@ bool fastx_is_fastq(fastx_handle h)
 
 fastx_handle fastx_open(const char * filename)
 {
-  int filetype = fastx_detect(filename);
+  int filetype = vfastx_detect(filename);
 
   if (filetype == 0)
     return 0;

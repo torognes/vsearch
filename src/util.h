@@ -58,6 +58,8 @@
 
 */
 
+#include "vsearch.h"
+
 #ifndef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
@@ -78,6 +80,13 @@
 
 #define LEN_HEX_DIG_MD5 (2*LEN_DIG_MD5+1)
 #define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
+
+#ifdef _MSC_VER
+#define ATTR_NORETURN
+#else
+#define ATTR_NORETURN __attribute__((noreturn)) 
+#endif
+
 
 long gcd(long a, long b);
 void fatal(const char * msg);

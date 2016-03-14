@@ -382,13 +382,14 @@ void derep_fulllength()
           long size = bp->size;
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
+              relabel_count++;
               fasta_print_relabel(fp_output,
                                   db_getsequence(bp->seqno_first),
                                   db_getsequencelen(bp->seqno_first),
                                   db_getheader(bp->seqno_first),
                                   db_getheaderlen(bp->seqno_first),
                                   size,
-                                  relabel_count + 1);
+                                  relabel_count);
               if (relabel_count == opt_topn)
                 break;
             }
@@ -723,13 +724,14 @@ void derep_prefix()
           long size = bp->size;
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
+              relabel_count++;
               fasta_print_relabel(fp_output,
                                   db_getsequence(bp->seqno_first),
                                   db_getsequencelen(bp->seqno_first),
                                   db_getheader(bp->seqno_first),
                                   db_getheaderlen(bp->seqno_first),
                                   size,
-                                  relabel_count + 1);
+                                  relabel_count);
               if (relabel_count == opt_topn)
                 break;
             }

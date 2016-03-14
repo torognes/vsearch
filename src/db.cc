@@ -1,4 +1,3 @@
-
 /*
 
   VSEARCH: a versatile open source tool for metagenomics
@@ -90,7 +89,6 @@ char * db_getquality(unsigned long seqno)
 void db_read(const char * filename, int upcase)
 {
   /* compile regexp for abundance pattern */
-
   h = fastx_open(filename);
 
   if (!h)
@@ -99,10 +97,13 @@ void db_read(const char * filename, int upcase)
   is_fastq = fastx_is_fastq(h);
 
   long filesize = fastx_get_size(h);
-  
-  char * prompt;
-  if (sprintf(prompt, "Reading file %s", filename) == -1)
-    fatal("Out of memory");
+
+int promptLength = 13 + strlen(filename) + 1;  
+
+  char * prompt = (char*) malloc(promptLength * sizeof(char)); 
+  if (sprintf(prompt, "Reading file %s", filename) == -1) {
+    fatal("Out of memory"); 
+}
 
   progress_init(prompt, filesize);
 
@@ -203,14 +204,14 @@ void db_read(const char * filename, int upcase)
             shortest = sequencelength;
           if (headerlength > longestheader)
             longestheader = headerlength;
+
         }
       progress_update(fastx_get_position(h));
     }
 
   progress_done();
   free(prompt);
-  fastx_close(h);
-
+  //fastx_close(h);
   if (!opt_quiet)
     {
       if (sequences > 0)
@@ -270,7 +271,6 @@ void db_read(const char * filename, int upcase)
                 "WARNING: %ld sequences longer than %ld nucleotides discarded.\n\n",
                 discarded_long, opt_maxseqlength);
     }
-
   show_rusage();
 }
 
@@ -425,4 +425,5 @@ void db_sortbyabundance()
   qsort(seqindex, sequences, sizeof(seqinfo_t), compare_byabundance);
   progress_done();
 }
+
 

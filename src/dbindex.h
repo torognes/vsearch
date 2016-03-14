@@ -67,9 +67,9 @@ extern unsigned int dbindex_count;
 
 void fprint_kmer(FILE * f, unsigned int k, unsigned long kmer);
 
-void dbindex_prepare(int use_bitmap);
-void dbindex_addallsequences();
-void dbindex_addsequence(unsigned int seqno);
+void dbindex_prepare(int use_bitmap, int seqmask);
+void dbindex_addallsequences(int seqmask);
+void dbindex_addsequence(unsigned int seqno, int seqmask);
 void dbindex_free();
 
 inline unsigned char * dbindex_getbitmap(unsigned int kmer)

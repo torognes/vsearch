@@ -63,15 +63,11 @@
 /* This file contains code dependent on special cpu features (e.g. ssse3) */
 /* The file will be compiled several times with different cpu options */
 
-#ifdef SSSE3
-void increment_counters_from_bitmap_ssse3(unsigned short * counters,
-                                          unsigned char * bitmap,
-                                          unsigned int totalbits)
-#else
+
+#ifdef __SSE2__
 void increment_counters_from_bitmap_sse2(unsigned short * counters,
                                          unsigned char * bitmap,
                                          unsigned int totalbits)
-#endif
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -91,11 +87,6 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
     SSE2 code.
   */
 
-#ifdef SSSE3
-  const __m128i c1 =
-    _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
-#endif
-
   const __m128i c2 = 
     _mm_set_epi32(0x7fbfdfef, 0xf7fbfdfe, 0x7fbfdfef, 0xf7fbfdfe);
 
@@ -110,14 +101,12 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
     {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
       xmm0 = _mm_loadu_si128((__m128i*)p++);
-#ifdef SSSE3
-      xmm1 = _mm_shuffle_epi8(xmm0, c1);
-#else
+
       __m128i xmm6, xmm7;
       xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
       xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
       xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
-#endif
+
       xmm2 = _mm_or_si128(xmm1, c2);
       xmm3 = _mm_cmpeq_epi8(xmm2, c3);
       xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
@@ -128,3 +117,39 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
       q++;
     }
 }
+#else
+void increment_counters_from_bitmap_ssse3(unsigned short * counters,
+                                          unsigned char * bitmap,
+                                          unsigned int totalbits)
+{
+    const __m128i c1 =
+    _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
+    
+    const __m128i c2 =
+    _mm_set_epi32(0x7fbfdfef, 0xf7fbfdfe, 0x7fbfdfef, 0xf7fbfdfe);
+    
+    const __m128i c3 =
+    _mm_set_epi32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
+    
+    unsigned short * p = (unsigned short *)(bitmap);
+    __m128i * q = (__m128i *)(counters);
+    int r = (totalbits + 15) / 16;
+    
+    for(int j=0; j<r; j++)
+    {
+        __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
+        xmm0 = _mm_loadu_si128((__m128i*)p++);
+        xmm1 = _mm_shuffle_epi8(xmm0, c1);
+        
+        xmm2 = _mm_or_si128(xmm1, c2);
+        xmm3 = _mm_cmpeq_epi8(xmm2, c3);
+        xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
+        xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
+        *q = _mm_subs_epi16(*q, xmm4);
+        q++;
+        *q = _mm_subs_epi16(*q, xmm5);
+        q++;
+    }
+    
+}
+#endif

@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "util.h"
 
 void subsample()
 {

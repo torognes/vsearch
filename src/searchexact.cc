@@ -62,17 +62,21 @@
 
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
-static pthread_t * pthread;
+
 
 /* global constants/data, no need for synchronization */
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
-static pthread_attr_t attr;
 static fasta_handle query_fasta_h;
 
 /* global data protected by mutex */
+#if PTHREAD
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
+static pthread_t * pthread;
+static pthread_attr_t attr;
+#endif
+
 static int qmatches;
 static int queries;
 static int * dbmatched;
@@ -108,6 +112,10 @@ void add_hit(struct searchinfo_s * si, unsigned long seqno)
       hp->matches = si->qseqlen;
       hp->mismatches = 0;
       
+	int promptLength = hp->nwalignmentlength + 1;  
+
+  hp->nwalignment  = (char*) malloc(promptLength * sizeof(char)); 
+
       int ret = sprintf(hp->nwalignment, "%dM", si->qseqlen);
       if ((ret == -1) || (!hp->nwalignment))
         fatal("Out of memory");
@@ -168,8 +176,9 @@ void search_exact_output_results(int hit_count,
                            char * qsequence,
                            char * qsequence_rc)
 {
+#if PTHREAD
   pthread_mutex_lock(&mutex_output);
-
+#endif
   /* show results */
   long toreport = MIN(opt_maxhits, hit_count);
 
@@ -284,8 +293,9 @@ void search_exact_output_results(int hit_count,
   for (int i=0; i < hit_count; i++)
     if (hits[i].accepted)
       dbmatched[hits[i].target]++;
-  
+#if PTHREAD
   pthread_mutex_unlock(&mutex_output);
+#endif
 }
 
 int search_exact_query(long t)
@@ -337,11 +347,10 @@ void search_exact_thread_run(long t)
 {
   while (1)
     {
+#if PTHREAD
       pthread_mutex_lock(&mutex_input);
-
-      if (fasta_next(query_fasta_h, ! opt_notrunclabels,
-                     (opt_qmask != MASK_SOFT) ? 
-                     chrmap_upcase : chrmap_no_change))
+#endif
+      if (fasta_next(query_fasta_h, ! opt_notrunclabels, chrmap_no_change))
         {
           char * qhead = fasta_get_header(query_fasta_h);
           int query_head_len = fasta_get_header_length(query_fasta_h);
@@ -383,10 +392,10 @@ void search_exact_thread_run(long t)
           
           /* get progress as amount of input file read */
           unsigned long progress = fasta_get_position(query_fasta_h);
-
+#if PTHREAD
           /* let other threads read input */
           pthread_mutex_unlock(&mutex_input);
-          
+#endif
           /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
             {
@@ -397,10 +406,10 @@ void search_exact_thread_run(long t)
             }
           
           int match = search_exact_query(t);
-          
+#if PTHREAD
           /* lock mutex for update of global data and output */
           pthread_mutex_lock(&mutex_output);
-
+#endif
           /* update stats */
           queries++;
 
@@ -409,12 +418,15 @@ void search_exact_thread_run(long t)
 
           /* show progress */
           progress_update(progress);
-
+#if PTHREAD
           pthread_mutex_unlock(&mutex_output);
+#endif
         }
       else
         {
+#if PTHREAD
           pthread_mutex_unlock(&mutex_input);
+#endif
           break;
         }
     }
@@ -449,13 +461,14 @@ void search_exact_thread_exit(struct searchinfo_s * si)
 
 void * search_exact_thread_worker(void * vp)
 {
-  unsigned long long t = (unsigned long long) vp;
+  long t = (intptr_t) vp;
   search_exact_thread_run(t);
   return 0;
 }
 
 void search_exact_thread_worker_run()
 {
+#if PTHREAD
   /* initialize threads, start them, join them and return */
 
   pthread_attr_init(&attr);
@@ -483,6 +496,12 @@ void search_exact_thread_worker_run()
     }
 
   pthread_attr_destroy(&attr);
+#else
+    search_exact_thread_init(si_plus);
+    if (si_minus)
+        search_exact_thread_init(si_minus);
+    search_exact_thread_run(0);
+#endif
 }
 
 void search_exact_prep(char * cmdline, char * progheader)
@@ -562,7 +581,7 @@ void search_exact_prep(char * cmdline, char * progheader)
         fatal("Unable to open dbnotmatched output file for writing");
     }
 
-  db_read(opt_db, opt_dbmask != MASK_SOFT);
+  db_read(opt_db, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_db);
 
@@ -636,21 +655,23 @@ void search_exact(char * cmdline, char * progheader)
                                                sizeof(struct searchinfo_s));
   else
     si_minus = 0;
-  
+#if PTHREAD
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
   pthread_mutex_init(&mutex_input, NULL);
   pthread_mutex_init(&mutex_output, NULL);
-
+#endif
   progress_init("Searching", fasta_get_size(query_fasta_h));
   search_exact_thread_worker_run();
   progress_done();
-  
+#if PTHREAD  
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);
 
   free(pthread);
+#endif
+    
   free(si_plus);
   if (si_minus)
     free(si_minus);

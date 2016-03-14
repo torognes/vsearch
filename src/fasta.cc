@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <string>
 
 #define FASTA_BUFFER_ALLOC 8192
 
@@ -227,10 +228,10 @@ void fasta_close(fasta_handle h)
     default:
       fatal("Internal error");
     }
-  
+
   buffer_free(& h->file_buffer);
-  buffer_free(& h->header_buffer);
-  buffer_free(& h->sequence_buffer);
+  buffer_free(& h->header_buffer); 
+  buffer_free(& h->sequence_buffer); 
 
   h->file_size = 0;
   h->file_position = 0;
@@ -408,6 +409,18 @@ void fasta_filter_sequence(fasta_handle h,
   h->sequence_buffer.length = q - h->sequence_buffer.data;
 }
 
+char* isLineFeed(char* searchData, int rest) {
+	char* lf = NULL;
+	
+      /* find LF */
+      lf = (char *) memchr(searchData,'\n', rest);
+	
+	//try /r
+	if (lf == NULL) {  lf = (char *) memchr(searchData,'\r', rest); }
+	if (lf == NULL) { lf = (char *) memchr(searchData,'\f', rest); }
+	return lf;
+}
+
 bool fasta_next(fasta_handle h,
                 bool truncateatspace,
                 char * char_mapping)
@@ -440,9 +453,8 @@ bool fasta_next(fasta_handle h,
         fatal("Invalid FASTA - header must be terminated with newline");
       
       /* find LF */
-      lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
-                           '\n',
-                           rest);
+      lf = isLineFeed(h->file_buffer.data + h->file_buffer.position, rest);
+
 
       /* copy to header buffer */
       unsigned long len = rest;
@@ -475,8 +487,7 @@ bool fasta_next(fasta_handle h,
         break;
 
       /* find LF */
-      lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
-                           '\n', rest);
+      lf = isLineFeed(h->file_buffer.data + h->file_buffer.position, rest);
 
       unsigned long len = rest;
       if (lf)

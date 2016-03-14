@@ -83,7 +83,7 @@ void fprint_kmer(FILE * f, unsigned int kk, unsigned long kmer)
     fprintf(f, "%c", sym_nt_2bit[(x >> (2*(kk-i-1))) & 3]);
 }
 
-void dbindex_addsequence(unsigned int seqno)
+void dbindex_addsequence(unsigned int seqno, int seqmask)
 {
 #if 0
   printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
@@ -93,7 +93,7 @@ void dbindex_addsequence(unsigned int seqno)
   unsigned int * uniquelist;
   unique_count(dbindex_uh, opt_wordlength,
                db_getsequencelen(seqno), db_getsequence(seqno),
-               & uniquecount, & uniquelist);
+               & uniquecount, & uniquelist, seqmask);
   dbindex_map[dbindex_count] = seqno;
   for(unsigned int i=0; i<uniquecount; i++)
     {
@@ -106,19 +106,19 @@ void dbindex_addsequence(unsigned int seqno)
   dbindex_count++;
 }
 
-void dbindex_addallsequences()
+void dbindex_addallsequences(int seqmask)
 {
   unsigned int seqcount = db_getsequencecount();
   progress_init("Creating index of unique k-mers", seqcount);
   for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
-      dbindex_addsequence(seqno);
+      dbindex_addsequence(seqno, seqmask);
       progress_update(seqno);
     }
   progress_done();
 }
 
-void dbindex_prepare(int use_bitmap)
+void dbindex_prepare(int use_bitmap, int seqmask)
 {
   dbindex_uh = unique_init();
 
@@ -137,7 +137,7 @@ void dbindex_prepare(int use_bitmap)
       unsigned int * uniquelist;
       unique_count(dbindex_uh, opt_wordlength,
                    db_getsequencelen(seqno), db_getsequence(seqno),
-                   & uniquecount, & uniquelist);
+                   & uniquecount, & uniquelist, seqmask);
       for(unsigned int i=0; i<uniquecount; i++)
         kmercount[uniquelist[i]]++;
       progress_update(seqno);

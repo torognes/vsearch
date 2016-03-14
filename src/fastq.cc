@@ -83,7 +83,10 @@ static char map_identity[256];
 
 void fastq_fatal(unsigned long lineno, const char * msg)
 {
-  char * string; 
+  	int promptLength = 50 + strlen(msg) + 1;  
+
+  char* string = (char*) malloc(promptLength * sizeof(char)); 
+ 
   if (sprintf(string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
@@ -816,4 +819,3 @@ void fastq_print_db(FILE * fp, unsigned long seqno)
   fastq_print_sequence(fp, seq);
   fastq_print_quality(fp, qual);
 }
-

@@ -95,34 +95,34 @@ static long scorematrix[16][16];
 
 struct s16info_s
 {
-  __m128i matrix[32];
-  __m128i * hearray;
-  __m128i * dprofile;
-  __m128i ** qtable;
-  unsigned short * dir;
-  char * qseq;
-  unsigned long diralloc;
+	__m128i matrix[32];
+	__m128i * hearray;
+	__m128i * dprofile;
+	__m128i ** qtable;
+	unsigned short * dir;
+	char * qseq;
+	unsigned long diralloc;
 
-  char * cigar;
-  char * cigarend;
-  long cigaralloc;
-  int opcount;
-  char op;
+	char * cigar;
+	char * cigarend;
+	long cigaralloc;
+	int opcount;
+	char op;
 
-  int qlen;
-  int maxdlen;
-  CELL penalty_gap_open_query_left;
-  CELL penalty_gap_open_target_left;
-  CELL penalty_gap_open_query_interior;
-  CELL penalty_gap_open_target_interior;
-  CELL penalty_gap_open_query_right;
-  CELL penalty_gap_open_target_right;
-  CELL penalty_gap_extension_query_left;
-  CELL penalty_gap_extension_target_left;
-  CELL penalty_gap_extension_query_interior;
-  CELL penalty_gap_extension_target_interior;
-  CELL penalty_gap_extension_query_right;
-  CELL penalty_gap_extension_target_right;
+	int qlen;
+	int maxdlen;
+	CELL penalty_gap_open_query_left;
+	CELL penalty_gap_open_target_left;
+	CELL penalty_gap_open_query_interior;
+	CELL penalty_gap_open_target_interior;
+	CELL penalty_gap_open_query_right;
+	CELL penalty_gap_open_target_right;
+	CELL penalty_gap_extension_query_left;
+	CELL penalty_gap_extension_target_left;
+	CELL penalty_gap_extension_query_interior;
+	CELL penalty_gap_extension_target_interior;
+	CELL penalty_gap_extension_query_right;
+	CELL penalty_gap_extension_target_right;
 };
 
 void _mm_print(__m128i x)
@@ -293,30 +293,30 @@ void aligncolumns_first(__m128i * Sm,
                         __m128i QR_q_i,
                         __m128i R_q_i,
                         __m128i QR_q_r,
-                        __m128i R_q_r,
-                        __m128i QR_t_0,
-                        __m128i R_t_0,
-                        __m128i QR_t_1,
-                        __m128i R_t_1,
-                        __m128i QR_t_2,
-                        __m128i R_t_2,
-                        __m128i QR_t_3,
-                        __m128i R_t_3,
-                        __m128i h0,
-                        __m128i h1,
-                        __m128i h2,
-                        __m128i h3,
-                        __m128i f0,
-                        __m128i f1,
-                        __m128i f2,
-                        __m128i f3,
+                        __m128i &R_q_r,
+                        __m128i &QR_t_0,
+                        __m128i &R_t_0,
+                        __m128i &QR_t_1,
+                        __m128i &R_t_1,
+                        __m128i &QR_t_2,
+                        __m128i &R_t_2,
+                        __m128i &QR_t_3,
+                        __m128i &R_t_3,
+                        __m128i &h0,
+                        __m128i &h1,
+                        __m128i &h2,
+                        __m128i &h3,
+                        __m128i &f0,
+                        __m128i &f1,
+                        __m128i &f2,
+                        __m128i &f3,
                         __m128i * _h_min,
                         __m128i * _h_max,
-                        __m128i Mm,
-                        __m128i M_QR_t_left,
-                        __m128i M_R_t_left,
-                        __m128i M_QR_q_interior,
-                        __m128i M_QR_q_right,
+                        __m128i &Mm,
+                        __m128i &M_QR_t_left,
+                        __m128i &M_R_t_left,
+                        __m128i &M_QR_q_interior,
+                        __m128i &M_QR_q_right,
                         long ql,
                         unsigned short * dir)
 {
@@ -411,23 +411,23 @@ void aligncolumns_rest(__m128i * Sm,
                        __m128i QR_q_i,
                        __m128i R_q_i,
                        __m128i QR_q_r,
-                       __m128i R_q_r,
-                       __m128i QR_t_0,
-                       __m128i R_t_0,
-                       __m128i QR_t_1,
-                       __m128i R_t_1,
-                       __m128i QR_t_2,
-                       __m128i R_t_2,
-                       __m128i QR_t_3,
-                       __m128i R_t_3,
-                       __m128i h0,
-                       __m128i h1,
-                       __m128i h2,
-                       __m128i h3,
-                       __m128i f0,
-                       __m128i f1,
-                       __m128i f2,
-                       __m128i f3,
+                       __m128i &R_q_r,
+                       __m128i &QR_t_0,
+                       __m128i &R_t_0,
+                       __m128i &QR_t_1,
+                       __m128i &R_t_1,
+                       __m128i &QR_t_2,
+                       __m128i &R_t_2,
+                       __m128i &QR_t_3,
+                       __m128i &R_t_3,
+                       __m128i &h0,
+                       __m128i &h1,
+                       __m128i &h2,
+                       __m128i &h3,
+                       __m128i &f0,
+                       __m128i &f1,
+                       __m128i &f2,
+                       __m128i &f3,
                        __m128i * _h_min,
                        __m128i * _h_max,
                        long ql,

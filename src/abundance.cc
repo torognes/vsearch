@@ -60,10 +60,12 @@
 
 #include "vsearch.h"
 
+#if REGEX
+
 abundance_t * abundance_init(void)
 {
  abundance_t * a = (abundance_t *) xmalloc(sizeof(abundance_t));
- if (regcomp(&a->regex, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+ if (regcomp(&a->regex, "(^|;)size=([0-9]+)(;|$)",REG_EXTENDED))
    fatal("Compilation of regular expression for abundance annotation failed");
  return a;
 }
@@ -165,18 +167,153 @@ char * abundance_strip_size(abundance_t * a,
       int pat_start = pmatch[0].rm_so;
       int pat_end = pmatch[0].rm_eo;
 
+int promptLength = ((header_length - a->end) - (header_length - a->start)) + 1;  
+
+    	temp = new char(promptLength); 
       ret = sprintf(temp,
                      "%.*s%s%.*s",
                      pat_start, header,
                      ((pat_start > 0) && (pat_end < header_length)) ? ";" : "",
                      header_length - pat_end, header + pat_end);
     }
-  else
+  else {
+int promptLength = strlen(header) + 1;
+	temp = new char(promptLength);
+
     ret = sprintf(temp, "%s", header);
-  
+  }
   if (ret == -1)
     fatal("Out of memory");
   
   return temp;
 }
+#else
+
+#include <string>
+
+abundance_t * abundance_init(void)
+{
+    //Beginning of line, any chars, ';size=', abundanceWeWant, ';', any chars, end of line.
+
+    abundance_t * a = (abundance_t *) xmalloc(sizeof(abundance_t));
+
+    a->abundance = 1;
+
+	return a;
+}
+
+void abundance_exit(abundance_t * a) { free(a); }
+
+long abundance_get(abundance_t * a, char * header)
+{
+    a->abundance = 1;
+if ((header == NULL)) {     return a->abundance;
+ }
+    std::string search(header);
+   
+    int pos = search.find_first_of("size=");
+    if (pos == search.npos) {
+//abundance = 1;
+    }else {
+
+        std::string snum = "";
+        //read abundance
+        for (int i = pos+5; i < search.size(); i++) { 
+ if (isdigit(search[i])){ snum += search[i]; }
+else{ a->end = i; break; }  }
+        a->abundance = atol(&snum[0]);
+
+        if (a->abundance <= 0) { fatal("Invalid (zero) abundance annotation in fasta header"); }
+        a->start = pos;
+    }
+    return a->abundance;
+}
+
+void abundance_fprint_header_with_size(abundance_t * a,
+                                       FILE * fp,
+                                       char * header,
+                                       int header_length,
+                                       unsigned long size)
+{
+    /* remove any previous size annotation */
+    /* regexp search for "(^|;)(\d+)(;|$)" */
+    /* replace by ';' if not at either end */
+    
+    abundance_get(a, header);
+
+    if ((a->start!=0) && (a->end != 0))
+    {
+        fprintf(fp,
+                "%.*s%s%.*s%ssize=%lu;",
+                a->start, header,
+                (a->start > 0 ? ";" : ""),
+                header_length - a->end, header + a->end,
+                (((a->end < header_length) &&
+                  (header[header_length - 1] != ';')) ? ";" : ""),
+                size);
+    }
+    else
+    {
+        fprintf(fp,
+                "%s%ssize=%lu;",
+                header,
+                (((header_length == 0) ||
+                  (header[header_length - 1] != ';')) ? ";" : ""),
+                size);
+    }
+}
+
+void abundance_fprint_header_strip_size(abundance_t * a,
+                                        FILE * fp,
+                                        char * header,
+                                        int header_length)
+{
+    abundance_get(a, header);
+
+    if ((a->start!=0) && (a->end != 0))
+    {
+        fprintf(fp,
+                "%.*s%s%.*s",
+                a->start, header,
+                ((a->start > 0) && (a->end < header_length)) ? ";" : "",
+                header_length - a->end, header + a->end);
+    }
+    else
+        fprintf(fp, "%s", header);
+}
+
+char * abundance_strip_size(abundance_t * a,
+                            char * header,
+                            int header_length)
+{
+    int ret;
+    char * temp = 0;
+
+
+    abundance_get(a, header);
+
+    if ((a->start!=0) && (a->end != 0))
+    {
+
+int promptLength = ((header_length - a->end) - (header_length - a->start)) + 1;  
+    	temp = new char(promptLength); 
+        ret = sprintf(temp,
+                      "%.*s%s%.*s",
+                      a->start, header,
+                      ((a->start > 0) && (a->end < header_length)) ? ";" : "",
+                      header_length - a->end, header + a->end);
+    }
+    else {
+    	int promptLength = strlen(header) + 1;
+	temp = new char(promptLength);
+        ret = sprintf(temp, "%s", header);
+    }
+    if (ret == -1)
+        fatal("Out of memory");
+    
+    return temp;
+}
+
+
+#endif
 
