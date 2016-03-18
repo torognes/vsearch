@@ -824,6 +824,28 @@ void search16(s16info_s * s,
   CELL * hearray = (CELL*) s->hearray;
   unsigned long qlen = s->qlen;
   
+  if (qlen == 0)
+    {
+      for (unsigned int cand_id = 0; cand_id < sequences; cand_id++)
+        {
+          unsigned int seqno = seqnos[cand_id];
+          long length = db_getsequencelen(seqno);
+          pscores[cand_id] = 0;
+          paligned[cand_id] = 0;
+          pmatches[cand_id] = 0;
+          pmismatches[cand_id] = length;
+          pgaps[cand_id] = length;
+
+          char * cigar = 0;
+          int ret = asprintf(&cigar, "%ldI", length);
+          pcigar[cand_id] = cigar;
+
+          if ((ret < 2) || !cigar)
+            fatal("Unable to allocate enough memory.");
+        }
+      return;
+    }
+
   /* find longest target sequence and reallocate direction buffer */
   unsigned long maxdlen = 0;
   for(long i = 0; i < sequences; i++)
