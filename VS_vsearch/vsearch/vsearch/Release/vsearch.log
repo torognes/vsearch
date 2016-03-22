@@ -1,0 +1,102 @@
+﻿  abundance.cc
+abundance.cc(219): warning C4018: '<': signed/unsigned mismatch
+  align.cc
+  align_simd.cc
+align_simd.cc(738): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+align_simd.cc(742): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+align_simd.cc(753): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+align_simd.cc(755): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+align_simd.cc(829): warning C4018: '<': signed/unsigned mismatch
+align_simd.cc(895): warning C4309: 'argument': truncation of constant value
+align_simd.cc(1119): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+  allpairs.cc
+allpairs.cc(265): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  arch.cc
+  bitmap.cc
+  chimera.cc
+chimera.cc(970): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+chimera.cc(1048): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  city.cc
+city.cc(161): warning C4018: '<': signed/unsigned mismatch
+  cluster.cc
+cluster.cc(334): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  cpu.cc
+  db.cc
+db.cc(219): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+db.cc(220): warning C4474: 'fprintf' : too many arguments passed for format string
+  db.cc(220): note: placeholders and their parameters expect 0 variadic arguments, but 5 were provided
+db.cc(227): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+db.cc(228): warning C4474: 'fprintf' : too many arguments passed for format string
+  db.cc(228): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+db.cc(236): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+db.cc(237): warning C4474: 'fprintf' : too many arguments passed for format string
+  db.cc(237): note: placeholders and their parameters expect 0 variadic arguments, but 5 were provided
+db.cc(244): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+db.cc(245): warning C4474: 'fprintf' : too many arguments passed for format string
+  db.cc(245): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+  dbhash.cc
+  dbindex.cc
+  derep.cc
+derep.cc(560): warning C4305: 'initializing': truncation from 'unsigned __int64' to 'unsigned long'
+derep.cc(560): warning C4309: 'initializing': truncation of constant value
+derep.cc(564): warning C4305: '*=': truncation from 'unsigned __int64' to 'unsigned long'
+  dynlibs.cc
+  fasta.cc
+  fastq.cc
+  fastqops.cc
+  fastx.cc
+  fastxdetect.cc
+  linmemalign.cc
+  Compiling...
+  maps.cc
+  mask.cc
+  mergepairs.cc
+mergepairs.cc(131): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+mergepairs.cc(173): warning C4244: '=': conversion from 'double' to 'char', possible loss of data
+mergepairs.cc(178): warning C4244: '=': conversion from 'double' to 'char', possible loss of data
+mergepairs.cc(724): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+mergepairs.cc(737): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+  minheap.cc
+  msa.cc
+  results.cc
+  search.cc
+search.cc(393): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  searchcore.cc
+searchcore.cc(161): warning C4018: '>=': signed/unsigned mismatch
+  searchexact.cc
+  showalign.cc
+  shuffle.cc
+  sortbylength.cc
+  sortbysize.cc
+  subsample.cc
+subsample.cc(113): warning C4244: '=': conversion from 'double' to 'unsigned long', possible loss of data
+  unique.cc
+  userfields.cc
+  util.cc
+util.cc(192): warning C4244: 'return': conversion from 'uint64' to 'unsigned long', possible loss of data
+util.cc(324): warning C4293: '<<': shift count negative or too big, undefined behavior
+util.cc(327): warning C4293: '<<': shift count negative or too big, undefined behavior
+  vsearch.cc
+vsearch.cc(1552): warning C4800: 'char *': forcing value to bool 'true' or 'false' (performance warning)
+vsearch.cc(2488): warning C4477: 'fprintf' : format string '%02lu' requires an argument of type 'unsigned long', but variadic argument 1 has type 'time_t'
+  vsearch.cc(2488): note: consider using '%llu' in the format string
+  vsearch.cc(2488): note: consider using '%I64u' in the format string
+vsearch.cc(2488): warning C4477: 'fprintf' : format string '%02lu' requires an argument of type 'unsigned long', but variadic argument 2 has type 'time_t'
+  vsearch.cc(2488): note: consider using '%llu' in the format string
+  vsearch.cc(2488): note: consider using '%I64u' in the format string
+vsearch.cc(2398): warning C4101: 'time_string': unreferenced local variable
+vsearch.cc(2400): warning C4101: 'tm_start': unreferenced local variable
+  md5.c
+  sha1.c
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+  Generating code
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\abundance.cc(201): warning C4715: 'abundance_init': not all control paths return a value
+  All 698 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+  vsearch.vcxproj -> C:\Users\Schloss\Desktop\VS_vsearch\vsearch\Release\vsearch.exe

@@ -1,0 +1,6 @@
+vsearch v1.9.10_Windows_x86_64, 3.9GB RAM, 8 cores
+vsearch.exe --maxaccepts=16 --usersort --id=0.97 --minseqlength=30 --wordlength=8 --uc=final.fasta.0.temp.sorted.fasta.temp.clustered.uc --cluster_smallmem=final.fasta.0.temp.sorted.fasta --maxrejects=64 --strand=both --log=final.fasta.0.temp.sorted.fasta.temp.clustered.log --sizeorder 
+Started  Sat Feb 27 17:33:11 2016
+
+
+Error: Unable to open file for reading (final.fasta.0.temp.sorted.fasta)

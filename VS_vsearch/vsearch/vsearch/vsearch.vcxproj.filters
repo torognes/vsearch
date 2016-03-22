@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="abundance.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="align.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="align_simd.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="allpairs.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="arch.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bitmap.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chimera.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="city.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cpu.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="db.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dbhash.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dbindex.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="derep.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dynlibs.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fasta.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fastq.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fastqops.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fastx.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fastxdetect.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="linmemalign.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="maps.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mask.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mergepairs.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="minheap.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msa.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="results.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="search.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="searchcore.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="searchexact.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="showalign.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="shuffle.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sortbylength.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sortbysize.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="subsample.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unique.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="userfields.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vsearch.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="abundance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="align.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="align_simd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="allpairs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chimera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="city.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="citycrc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="db.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dbhash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dbindex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="derep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dynlibs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fasta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastqops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastxdetect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="linmemalign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="maps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mask.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mergepairs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="minheap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pvalue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="results.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="searchcore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="searchexact.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="showalign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shuffle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sortbylength.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sortbysize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="subsample.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="unique.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="userfields.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vsearch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="getopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="vsearch.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libcityhash.a" />
+  </ItemGroup>
+</Project>

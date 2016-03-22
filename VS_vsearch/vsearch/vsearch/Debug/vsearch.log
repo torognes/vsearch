@@ -1,0 +1,98 @@
+﻿  vsearch.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(1555): warning C4800: 'char *': forcing value to bool 'true' or 'false' (performance warning)
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2492): warning C4477: 'fprintf' : format string '%02lu' requires an argument of type 'unsigned long', but variadic argument 1 has type 'time_t'
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2492): note: consider using '%llu' in the format string
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2492): note: consider using '%I64u' in the format string
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2492): warning C4477: 'fprintf' : format string '%02lu' requires an argument of type 'unsigned long', but variadic argument 2 has type 'time_t'
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2492): note: consider using '%llu' in the format string
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2492): note: consider using '%I64u' in the format string
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2402): warning C4101: 'time_string': unreferenced local variable
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\vsearch.cc(2404): warning C4101: 'tm_start': unreferenced local variable
+  util.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\util.cc(192): warning C4244: 'return': conversion from 'uint64' to 'unsigned long', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\util.cc(324): warning C4293: '<<': shift count negative or too big, undefined behavior
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\util.cc(327): warning C4293: '<<': shift count negative or too big, undefined behavior
+  userfields.cc
+  unique.cc
+  subsample.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\subsample.cc(113): warning C4244: '=': conversion from 'double' to 'unsigned long', possible loss of data
+  sortbysize.cc
+  sortbylength.cc
+  shuffle.cc
+  showalign.cc
+  searchexact.cc
+  searchcore.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\searchcore.cc(161): warning C4018: '>=': signed/unsigned mismatch
+  search.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\search.cc(393): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  results.cc
+  msa.cc
+  minheap.cc
+  mergepairs.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\mergepairs.cc(131): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\mergepairs.cc(173): warning C4244: '=': conversion from 'double' to 'char', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\mergepairs.cc(178): warning C4244: '=': conversion from 'double' to 'char', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\mergepairs.cc(724): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\mergepairs.cc(737): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+  mask.cc
+  maps.cc
+  linmemalign.cc
+  fastxdetect.cc
+  Generating Code...
+  Compiling...
+  fastx.cc
+  fastqops.cc
+  fastq.cc
+  fasta.cc
+  dynlibs.cc
+  derep.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\derep.cc(560): warning C4305: 'initializing': truncation from 'unsigned __int64' to 'unsigned long'
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\derep.cc(560): warning C4309: 'initializing': truncation of constant value
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\derep.cc(564): warning C4305: '*=': truncation from 'unsigned __int64' to 'unsigned long'
+  dbindex.cc
+  dbhash.cc
+  db.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(219): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(220): warning C4474: 'fprintf' : too many arguments passed for format string
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(220): note: placeholders and their parameters expect 0 variadic arguments, but 5 were provided
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(227): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(228): warning C4474: 'fprintf' : too many arguments passed for format string
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(228): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(236): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(237): warning C4474: 'fprintf' : too many arguments passed for format string
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(237): note: placeholders and their parameters expect 0 variadic arguments, but 5 were provided
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(244): warning C4476: 'fprintf' : unknown type field character ''' in format specifier
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(245): warning C4474: 'fprintf' : too many arguments passed for format string
+  c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\db.cc(245): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
+  cpu.cc
+  cluster.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\cluster.cc(334): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  city.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\city.cc(161): warning C4018: '<': signed/unsigned mismatch
+  chimera.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\chimera.cc(970): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\chimera.cc(1048): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  bitmap.cc
+  arch.cc
+  allpairs.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\allpairs.cc(265): warning C4244: 'argument': conversion from 'long' to 'CELL', possible loss of data
+  align_simd.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(738): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(742): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(753): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(755): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(829): warning C4018: '<': signed/unsigned mismatch
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(895): warning C4309: 'argument': truncation of constant value
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\align_simd.cc(1119): warning C4244: '=': conversion from 'long' to 'CELL', possible loss of data
+  align.cc
+  abundance.cc
+c:\users\schloss\desktop\vs_vsearch\vsearch\vsearch\abundance.cc(221): warning C4018: '<': signed/unsigned mismatch
+  Generating Code...
+  sha1.c
+  md5.c
+  Generating Code...
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+libcityhash.a : warning LNK4003: invalid library format; library ignored
+  vsearch.vcxproj -> C:\Users\Schloss\Desktop\VS_vsearch\vsearch\Debug\vsearch.exe

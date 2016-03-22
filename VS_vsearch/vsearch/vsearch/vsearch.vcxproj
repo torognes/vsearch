@@ -1,0 +1,259 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="abundance.cc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\Schloss\VS_vsearch\vsearch\vsearch;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="align.cc" />
+    <ClCompile Include="align_simd.cc" />
+    <ClCompile Include="allpairs.cc" />
+    <ClCompile Include="arch.cc" />
+    <ClCompile Include="bitmap.cc" />
+    <ClCompile Include="chimera.cc" />
+    <ClCompile Include="city.cc" />
+    <ClCompile Include="cluster.cc" />
+    <ClCompile Include="cpu.cc" />
+    <ClCompile Include="db.cc" />
+    <ClCompile Include="dbhash.cc" />
+    <ClCompile Include="dbindex.cc" />
+    <ClCompile Include="derep.cc" />
+    <ClCompile Include="dynlibs.cc" />
+    <ClCompile Include="fasta.cc" />
+    <ClCompile Include="fastq.cc" />
+    <ClCompile Include="fastqops.cc" />
+    <ClCompile Include="fastx.cc" />
+    <ClCompile Include="fastxdetect.cc" />
+    <ClCompile Include="linmemalign.cc" />
+    <ClCompile Include="maps.cc" />
+    <ClCompile Include="mask.cc" />
+    <ClCompile Include="md5.c" />
+    <ClCompile Include="mergepairs.cc" />
+    <ClCompile Include="minheap.cc" />
+    <ClCompile Include="msa.cc" />
+    <ClCompile Include="results.cc" />
+    <ClCompile Include="search.cc" />
+    <ClCompile Include="searchcore.cc" />
+    <ClCompile Include="searchexact.cc" />
+    <ClCompile Include="sha1.c" />
+    <ClCompile Include="showalign.cc" />
+    <ClCompile Include="shuffle.cc" />
+    <ClCompile Include="sortbylength.cc" />
+    <ClCompile Include="sortbysize.cc" />
+    <ClCompile Include="subsample.cc" />
+    <ClCompile Include="unique.cc" />
+    <ClCompile Include="userfields.cc" />
+    <ClCompile Include="util.cc" />
+    <ClCompile Include="vsearch.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="abundance.h" />
+    <ClInclude Include="align.h" />
+    <ClInclude Include="align_simd.h" />
+    <ClInclude Include="allpairs.h" />
+    <ClInclude Include="arch.h" />
+    <ClInclude Include="bitmap.h" />
+    <ClInclude Include="chimera.h" />
+    <ClInclude Include="city.h" />
+    <ClInclude Include="citycrc.h" />
+    <ClInclude Include="cluster.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="cpu.h" />
+    <ClInclude Include="db.h" />
+    <ClInclude Include="dbhash.h" />
+    <ClInclude Include="dbindex.h" />
+    <ClInclude Include="derep.h" />
+    <ClInclude Include="dynlibs.h" />
+    <ClInclude Include="fasta.h" />
+    <ClInclude Include="fastq.h" />
+    <ClInclude Include="fastqops.h" />
+    <ClInclude Include="fastx.h" />
+    <ClInclude Include="fastxdetect.h" />
+    <ClInclude Include="getopt.h" />
+    <ClInclude Include="linmemalign.h" />
+    <ClInclude Include="maps.h" />
+    <ClInclude Include="mask.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="mergepairs.h" />
+    <ClInclude Include="minheap.h" />
+    <ClInclude Include="msa.h" />
+    <ClInclude Include="pvalue.h" />
+    <ClInclude Include="regex.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="results.h" />
+    <ClInclude Include="search.h" />
+    <ClInclude Include="searchcore.h" />
+    <ClInclude Include="searchexact.h" />
+    <ClInclude Include="sha1.h" />
+    <ClInclude Include="showalign.h" />
+    <ClInclude Include="shuffle.h" />
+    <ClInclude Include="sortbylength.h" />
+    <ClInclude Include="sortbysize.h" />
+    <ClInclude Include="subsample.h" />
+    <ClInclude Include="unique.h" />
+    <ClInclude Include="userfields.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="vsearch.h" />
+    <ClInclude Include="xstring.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="vsearch.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libcityhash.a" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6FDEECDC-DA13-478C-91BD-68035643030B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>vsearch</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\Schloss\Desktop\VS_vsearch\vsearch\vsearch;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
