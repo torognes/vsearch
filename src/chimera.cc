@@ -88,6 +88,12 @@ static unsigned int seqno = 0;
 static unsigned long progress = 0;
 static int chimera_count = 0;
 static int nonchimera_count = 0;
+static int borderline_count = 0;
+static int total_count = 0;
+static long chimera_abundance = 0;
+static long nonchimera_abundance = 0;
+static long borderline_abundance = 0;
+static long total_abundance = 0;
 static FILE * fp_chimeras = 0;
 static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
@@ -144,6 +150,7 @@ struct chimera_info_s
   char * ignore;
 
   struct hit * all_hits;
+  double best_h;
 };
 
 static struct chimera_info_s * cia;
@@ -668,6 +675,8 @@ int eval_parents(struct chimera_info_s * ci)
       }
   }
 
+  ci->best_h = best_h > 0 ? best_h : 0.0;
+
   if (best_h >= 0.0)
     {
       status = 2;
@@ -1076,6 +1085,45 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     free(ci->query_head);
 }
 
+void fasta_print_with_score(FILE * fp,
+                            char * head,
+                            char * seq,
+                            int len,
+                            const char * score_name,
+                            double score)
+{
+  int alloc = strlen(head) + strlen(score_name) + log10(MAX(score,1)) + 16;
+  //  printf("alloc: %d\n", alloc);
+  char * newheader = (char*) xmalloc(alloc);
+  if (head[strlen(head)-1] == ';')
+    snprintf(newheader, alloc, "%s%s=%.4lf;", head, score_name, score);
+  else
+    snprintf(newheader, alloc, "%s%s=%.4lf;", head, score_name, score);
+  fasta_print(fp, newheader, seq, len);
+  free(newheader);
+}
+
+void fasta_print_relabel_with_score(FILE * fp,
+                                    char * seq,
+                                    int len,
+                                    char * header,
+                                    int head_len,
+                                    int abundance,
+                                    int ordinal,
+                                    const char * score_name,
+                                    double score)
+{
+  int alloc = head_len + strlen(score_name) + log10(MAX(score,1)) + 16;
+  //printf("head_len: %d   alloc: %d\n", head_len, alloc);
+  char * newheader = (char*) xmalloc(alloc);
+  if (header[head_len-1] == ';')
+    snprintf(newheader, alloc, "%s%s=%.4lf;", header, score_name, score);
+  else
+    snprintf(newheader, alloc, "%s%s=%.4lf;", header, score_name, score);
+  fasta_print_relabel(fp, seq, len, newheader, strlen(newheader), abundance, ordinal);
+  free(newheader);
+}
+
 unsigned long chimera_thread_core(struct chimera_info_s * ci)
 {
   chimera_thread_init(ci);
@@ -1275,33 +1323,56 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       pthread_mutex_lock(&mutex_output);
 
+      total_count++;
+      total_abundance += ci->query_size;
+      
       if (status == 4)
         {
           chimera_count++;
+          chimera_abundance += ci->query_size;
 
           if (opt_chimeras)
             {
-              fasta_print(fp_chimeras,
-                          ci->query_head,
-                          ci->query_seq,
-                          ci->query_len);
+              if (opt_fasta_score)
+                fasta_print_with_score(fp_chimeras,
+                                       ci->query_head,
+                                       ci->query_seq,
+                                       ci->query_len,
+                                       opt_uchime_ref ? "uchime_ref" : "uchime_denovo",
+                                       ci->best_h);
+              else
+                fasta_print(fp_chimeras,
+                            ci->query_head,
+                            ci->query_seq,
+                            ci->query_len);
             }
         }
       
       if (status == 3)
         {
+          borderline_count++;
+          borderline_abundance += ci->query_size;
           if (opt_borderline)
             {
-              fasta_print(fp_borderline,
-                          ci->query_head,
-                          ci->query_seq,
-                          ci->query_len);
+              if (opt_fasta_score)
+                fasta_print_with_score(fp_borderline,
+                                       ci->query_head,
+                                       ci->query_seq,
+                                       ci->query_len,
+                                       opt_uchime_ref ? "uchime_ref" : "uchime_denovo",
+                                       ci->best_h);
+              else
+                fasta_print(fp_borderline,
+                            ci->query_head,
+                            ci->query_seq,
+                            ci->query_len);
             }
         }
 
       if (status < 3)
         {
           nonchimera_count++;
+          nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
           if ((status < 2) && opt_uchimeout)
@@ -1324,13 +1395,25 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_nonchimeras)
             {
-              fasta_print_relabel(fp_nonchimeras,
-                                  ci->query_seq,
-                                  ci->query_len,
-                                  ci->query_head,
-                                  ci->query_head_len,
-                                  ci->query_size,
-                                  nonchimera_count);
+              if (opt_fasta_score)
+                fasta_print_relabel_with_score(fp_nonchimeras,
+                                               ci->query_seq,
+                                               ci->query_len,
+                                               ci->query_head,
+                                               ci->query_head_len,
+                                               ci->query_size,
+                                               nonchimera_count,
+                                               opt_uchime_ref ?
+                                               "uchime_ref" : "uchime_denovo",
+                                               ci->best_h);
+              else
+                fasta_print_relabel(fp_nonchimeras,
+                                    ci->query_seq,
+                                    ci->query_len,
+                                    ci->query_head,
+                                    ci->query_head_len,
+                                    ci->query_size,
+                                    nonchimera_count);
             }
         }
       
@@ -1498,14 +1581,24 @@ void chimera()
   if (!opt_quiet)
     fprintf(stderr,
             "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
-            "and %d (%.1f%%) suspicious candidates in %u sequences.\n",
+            "and %d (%.1f%%) borderline sequences in %u unique sequences.\n"
+            "Taking abundance information into account, this corresponds to\n"
+            "%ld (%.1f%%) chimeras, %ld (%.1f%%) non-chimeras,\n"
+            "and %ld (%.1f%%) borderline sequences in %ld total sequences.\n",
             chimera_count,
-            100.0 * chimera_count / seqno,
+            100.0 * chimera_count / total_count,
             nonchimera_count,
-            100.0 * nonchimera_count / seqno,
-            (seqno - chimera_count - nonchimera_count),
-            100.0 * (seqno - chimera_count - nonchimera_count) / seqno,
-            seqno);
+            100.0 * nonchimera_count / total_count,
+            borderline_count,
+            100.0 * borderline_count / total_count,
+            total_count,
+            chimera_abundance,
+            100.0 * chimera_abundance / total_abundance,
+            nonchimera_abundance,
+            100.0 * nonchimera_abundance / total_abundance,
+            borderline_abundance,
+            100.0 * borderline_abundance / total_abundance,
+            total_abundance);
 
   if (opt_log)
     {

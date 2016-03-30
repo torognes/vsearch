@@ -1,9 +1,3 @@
-## JOB ANNOUNCEMENT
-
-Would you like to work with research and development of open source tools for metagenomics, like [Swarm](https://github.com/torognes/swarm) and [VSEARCH](https://github.com/torognes/vsearch)? A [PhD research fellowship in bioinformatics](http://uio.easycruit.com/vacancy/1567523/64290) is now available at the [Department of Informatics](http://www.mn.uio.no/ifi/english/), [University of Oslo (UiO)](http://www.uio.no/english/), Norway. The position is associated with the [Centre for Computational Inference in Evolutionary Life Sciences (CELS)](http://www.mn.uio.no/math/english/research/groups/cels/index.html) at UiO. Closing date for applications: 11 February 2016.
-
----
-
 # VSEARCH
 
 ## Introduction
@@ -215,6 +209,7 @@ File | Description
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
 **derep.cc** | Dereplication
 **dynlib.cc** | Dynamic loading of compression libraries
+**eestats.cc** | Produce statistics for fastq_eestats command
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
 **fastqops.cc** | FASTQ file statistics etc
@@ -226,7 +221,7 @@ File | Description
 **mergepairs.cc** | Paired-end read merging
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
-**pvalue.h** | Statistical data (from PEAR) used for significance testing of merged paired-end reads
+**rerep.cc** | Rereplication
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection

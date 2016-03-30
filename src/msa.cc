@@ -349,61 +349,30 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   if (fp_consout)
     {
-      if (opt_sizeout)
-        {
-          /* must remove old size info first */
-          char * header_wo_size 
-            = abundance_strip_size(global_abundance,
-                                   db_getheader(centroid_seqno), 
-                                   db_getheaderlen(centroid_seqno));
-          fprintf(fp_consout,
-                  ">centroid=%s;seqs=%d;size=%ld;",
-                  header_wo_size,
-                  target_count,
-                  totalabundance);
-          free(header_wo_size);
-        }
-      else
-          fprintf(fp_consout,
-                  ">centroid=%s;seqs=%d;",
-                  db_getheader(centroid_seqno),
-                  target_count);
-
-      if (opt_clusterout_id)
-        fprintf(fp_consout, "clusterid=%d;", cluster);
-
-      fprintf(fp_consout, "\n");
-
-      fasta_print_sequence(fp_consout, cons, conslen, opt_fasta_width);
+      fasta_print_relabel_cluster(fp_consout,
+                                  cons,
+                                  conslen,
+                                  db_getheader(centroid_seqno),
+                                  db_getheaderlen(centroid_seqno),
+                                  totalabundance,
+                                  cluster+1,
+                                  target_count,
+                                  opt_clusterout_id,
+                                  cluster);
     }
   
   if (fp_profile)
     {
-      /* must remove old size info first */
-      if (opt_sizeout)
-        {
-          char * header_wo_size 
-            = abundance_strip_size(global_abundance,
-                                   db_getheader(centroid_seqno), 
-                                   db_getheaderlen(centroid_seqno));
-          fprintf(fp_profile,
-                  ">centroid=%s;seqs=%d;size=%ld;",
-                  header_wo_size, 
-                  target_count,
-                  totalabundance);
-          free(header_wo_size);
-        }
-      else
-        fprintf(fp_profile,
-                ">centroid=%s;seqs=%d;",
-                db_getheader(centroid_seqno),
-                target_count);
-
-      if (opt_clusterout_id)
-        fprintf(fp_profile, "clusterid=%d;", cluster);
-
-      fprintf(fp_profile, "\n");
-
+      fasta_print_relabel_cluster(fp_profile,
+                                  0,
+                                  0,
+                                  db_getheader(centroid_seqno),
+                                  db_getheaderlen(centroid_seqno),
+                                  totalabundance,
+                                  cluster+1,
+                                  target_count,
+                                  opt_clusterout_id,
+                                  cluster);
       for (int i=0; i<alnlen; i++)
         {
           fprintf(fp_profile, "%d\t%c", i, aln[i]);

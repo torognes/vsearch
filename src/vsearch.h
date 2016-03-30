@@ -145,6 +145,8 @@
 #include "dbhash.h"
 #include "searchexact.h"
 #include "mergepairs.h"
+#include "eestats.h"
+#include "rerep.h"
 
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION
@@ -160,6 +162,7 @@
 extern bool opt_clusterout_id;
 extern bool opt_clusterout_sort;
 extern bool opt_eeout;
+extern bool opt_fasta_score;
 extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
@@ -187,20 +190,21 @@ extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
 extern char * opt_derep_prefix;
 extern char * opt_eetabbedout;
-extern char * opt_fastaout_notmerged_fwd;
-extern char * opt_fastaout_notmerged_rev;
 extern char * opt_fastaout;
 extern char * opt_fastaout_discarded;
+extern char * opt_fastaout_notmerged_fwd;
+extern char * opt_fastaout_notmerged_rev;
 extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
 extern char * opt_fastq_convert;
+extern char * opt_fastq_eestats;
 extern char * opt_fastq_filter;
 extern char * opt_fastq_mergepairs;
-extern char * opt_fastqout_notmerged_fwd;
-extern char * opt_fastqout_notmerged_rev;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
 extern char * opt_fastqout_discarded;
+extern char * opt_fastqout_notmerged_fwd;
+extern char * opt_fastqout_notmerged_rev;
 extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
@@ -215,6 +219,7 @@ extern char * opt_output;
 extern char * opt_pattern;
 extern char * opt_profile;
 extern char * opt_relabel;
+extern char * opt_rereplicate;
 extern char * opt_reverse;
 extern char * opt_samout;
 extern char * opt_search_exact;

@@ -189,6 +189,8 @@ void dust_all()
   seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
+  pthread_mutex_init(&mutex, NULL);
+
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
@@ -205,6 +207,8 @@ void dust_all()
   free(pthread);
 
   pthread_attr_destroy(&attr);
+
+  pthread_mutex_destroy(&mutex);
 
   progress_done();
 }

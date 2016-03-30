@@ -188,7 +188,7 @@ void results_show_uc_one(FILE * fp,
   if (hp)
     {
       bool perfect = (hp->matches == qseqlen) &&
-        (qseqlen = db_getsequencelen(hp->target));
+        ((unsigned long)(qseqlen) == db_getsequencelen(hp->target));
 
       fprintf(fp,
               "H\t%d\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",

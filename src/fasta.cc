@@ -142,7 +142,7 @@ fasta_handle fasta_open(const char * filename)
   if (h->format == FORMAT_BZIP)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_ZLIB_H
+#ifdef HAVE_BZLIB_H
       if (!bz2_lib)
         fatal("Files compressed with bzip2 are not supported");
       int bzError;
@@ -594,15 +594,22 @@ void fasta_print(FILE * fp, const char * hdr,
 }
 
 
-void fasta_print_relabel(FILE * fp,
-                         char * seq,
-                         int len,
-                         char * header,
-                         int header_len,
-                         int abundance,
-                         int ordinal)
+void fasta_print_relabel_cluster(FILE * fp,
+                                 char * seq,
+                                 int len,
+                                 char * header,
+                                 int header_len,
+                                 int abundance,
+                                 int ordinal,
+                                 int clustersize,
+                                 bool showclusterid,
+                                 int clusterid)
 {
   fprintf(fp, ">");
+
+  if (clustersize > 0)
+    fprintf(fp, "centroid=");
+
   if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
     {
       if (opt_relabel_sha1)
@@ -611,35 +618,52 @@ void fasta_print_relabel(FILE * fp,
         fprint_seq_digest_md5(fp, seq, len);
       else
         fprintf(fp, "%s%d", opt_relabel, ordinal);
-
-      if (opt_sizeout)
-        fprintf(fp, ";size=%u;", abundance);
-
-      if (opt_relabel_keep)
-        fprintf(fp, " %s", header);
-    }
-  else if (opt_sizeout)
-    {
-      abundance_fprint_header_with_size(global_abundance,
-                                        fp,
-                                        header,
-                                        header_len,
-                                        abundance);
-    }
-  else if (opt_xsize)
-    {
-      abundance_fprint_header_strip_size(global_abundance,
-                                         fp,
-                                         header,
-                                         header_len);
     }
   else
     {
-      fprintf(fp, "%s", header);
+      if (opt_sizeout || opt_xsize)
+        abundance_fprint_header_strip_size(global_abundance,
+                                           fp,
+                                           header,
+                                           header_len);
+      else
+        fprintf(fp, "%s", header);
     }
+
+  if ((clustersize > 0) || opt_sizeout || showclusterid)
+    fprintf(fp, ";");
+
+  if (clustersize > 0)
+    fprintf(fp, "seqs=%d;", clustersize);
+
+  if (opt_sizeout)
+    fprintf(fp, "size=%u;", abundance);
+
+  if (showclusterid)
+    fprintf(fp, "clusterid=%d;", clusterid);
+
+  if (opt_relabel_keep &&
+      ((opt_relabel || opt_relabel_sha1 || opt_relabel_md5)))
+    fprintf(fp, " %s", header);
+
   fprintf(fp, "\n");
 
-  fasta_print_sequence(fp, seq, len, opt_fasta_width);
+  if (seq)
+    fasta_print_sequence(fp, seq, len, opt_fasta_width);
+}
+
+
+void fasta_print_relabel(FILE * fp,
+                         char * seq,
+                         int len,
+                         char * header,
+                         int header_len,
+                         int abundance,
+                         int ordinal)
+{
+  fasta_print_relabel_cluster(fp, seq, len, header, header_len,
+                              abundance, ordinal,
+                              0, 0, 0);
 }
 
 void fasta_print_db_relabel(FILE * fp,

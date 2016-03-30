@@ -65,23 +65,28 @@ static unsigned long progress_next;
 static unsigned long progress_size;
 static unsigned long progress_chunk;
 static const unsigned long progress_granularity = 200;
+static bool progress_terminal;
 
 void progress_init(const char * prompt, unsigned long size)
 {
+  progress_terminal = isatty(fileno(stderr));
+  progress_prompt = prompt;
+  progress_size = size;
+  progress_chunk = size < progress_granularity ?
+    1 : size / progress_granularity;
+  progress_next = 0;
+
   if (! opt_quiet)
     {
-      progress_prompt = prompt;
-      progress_size = size;
-      progress_chunk = size < progress_granularity ? 
-        1 : size / progress_granularity;
-      progress_next = 0;
-      fprintf(stderr, "%s %.0f%%", prompt, 0.0);
+      fprintf(stderr, "%s", prompt);
+      if (progress_terminal)
+        fprintf(stderr, " %.0f%%", 0.0);
     }
 }
 
 void progress_update(unsigned long progress)
 {
-  if (! opt_quiet)
+  if ((! opt_quiet) && progress_terminal)
     if (progress >= progress_next)
       {
         if (progress_size > 0)
@@ -96,7 +101,11 @@ void progress_update(unsigned long progress)
 void progress_done()
 {
   if (! opt_quiet)
-    fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+    {
+      if (progress_terminal)
+        fprintf(stderr, "  \r%s", progress_prompt);
+      fprintf(stderr, " %.0f%%\n", 100.0);
+    }
 }
 
 long gcd(long a, long b)

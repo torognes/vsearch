@@ -127,13 +127,14 @@ am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
 	allpairs.$(OBJEXT) arch.$(OBJEXT) bitmap.$(OBJEXT) \
 	chimera.$(OBJEXT) cluster.$(OBJEXT) db.$(OBJEXT) \
 	dbhash.$(OBJEXT) dbindex.$(OBJEXT) derep.$(OBJEXT) \
-	dynlibs.$(OBJEXT) fasta.$(OBJEXT) fastq.$(OBJEXT) \
-	fastqops.$(OBJEXT) fastx.$(OBJEXT) linmemalign.$(OBJEXT) \
-	maps.$(OBJEXT) mask.$(OBJEXT) md5.$(OBJEXT) \
-	mergepairs.$(OBJEXT) minheap.$(OBJEXT) msa.$(OBJEXT) \
-	results.$(OBJEXT) search.$(OBJEXT) searchcore.$(OBJEXT) \
-	searchexact.$(OBJEXT) sha1.$(OBJEXT) showalign.$(OBJEXT) \
-	shuffle.$(OBJEXT) sortbylength.$(OBJEXT) sortbysize.$(OBJEXT) \
+	dynlibs.$(OBJEXT) eestats.$(OBJEXT) fasta.$(OBJEXT) \
+	fastq.$(OBJEXT) fastqops.$(OBJEXT) fastx.$(OBJEXT) \
+	linmemalign.$(OBJEXT) maps.$(OBJEXT) mask.$(OBJEXT) \
+	md5.$(OBJEXT) mergepairs.$(OBJEXT) minheap.$(OBJEXT) \
+	msa.$(OBJEXT) rerep.$(OBJEXT) results.$(OBJEXT) \
+	search.$(OBJEXT) searchcore.$(OBJEXT) searchexact.$(OBJEXT) \
+	sha1.$(OBJEXT) showalign.$(OBJEXT) shuffle.$(OBJEXT) \
+	sortbylength.$(OBJEXT) sortbysize.$(OBJEXT) \
 	subsample.$(OBJEXT) unique.$(OBJEXT) userfields.$(OBJEXT) \
 	util.$(OBJEXT) vsearch.$(OBJEXT)
 __top_builddir__bin_vsearch_OBJECTS =  \
@@ -333,6 +334,7 @@ dbhash.h \
 dbindex.h \
 derep.h \
 dynlibs.h \
+eestats.h \
 fasta.h \
 fastq.h \
 fastqops.h \
@@ -344,7 +346,7 @@ md5.h \
 mergepairs.h \
 minheap.h \
 msa.h \
-pvalue.h \
+rerep.h \
 results.h \
 search.h \
 searchcore.h \
@@ -383,6 +385,7 @@ dbhash.cc \
 dbindex.cc \
 derep.cc \
 dynlibs.cc \
+eestats.cc \
 fasta.cc \
 fastq.cc \
 fastqops.cc \
@@ -394,6 +397,7 @@ md5.c \
 mergepairs.cc \
 minheap.cc \
 msa.cc \
+rerep.cc \
 results.cc \
 search.cc \
 searchcore.cc \
@@ -529,6 +533,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbindex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/derep.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlibs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eestats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fasta.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fastq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fastqops.Po@am__quote@
@@ -543,6 +548,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mergepairs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minheap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/msa.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rerep.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/results.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/searchcore.Po@am__quote@

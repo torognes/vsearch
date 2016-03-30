@@ -178,11 +178,11 @@ fastq_handle fastq_open(const char * filename)
 
   if (h->format == FORMAT_GZIP)
     {
-      /* GZIP: Keep original file open, then open as bzipped file as well */
+      /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
       if (!gz_lib)
         fatal("Files compressed with gzip are not supported");
-      if (! (h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb")))
+      if (! (h->fp_gz = (*gzdopen_p)(dup(fileno(h->fp)), "rb")))
         fatal("Unable to open gzip compressed fastq file (%s)", filename);
 #else
       fatal("Files compressed with gzip are not supported");
@@ -192,7 +192,7 @@ fastq_handle fastq_open(const char * filename)
   if (h->format == FORMAT_BZIP)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_ZLIB_H
+#ifdef HAVE_BZLIB_H
       if (!bz2_lib)
         fatal("Files compressed with bzip2 are not supported");
       int bzError;
@@ -256,8 +256,6 @@ void fastq_close(fastq_handle h)
   switch(h->format)
     {
     case FORMAT_PLAIN:
-      fclose(h->fp);
-      h->fp = 0;
       break;
 
     case FORMAT_GZIP:
@@ -277,6 +275,9 @@ void fastq_close(fastq_handle h)
     default:
       fatal("Internal error");
     }
+
+  fclose(h->fp);
+  h->fp = 0;
   
   buffer_free(& h->file_buffer);
   buffer_free(& h->header_buffer);

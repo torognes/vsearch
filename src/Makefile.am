@@ -22,6 +22,7 @@ dbhash.h \
 dbindex.h \
 derep.h \
 dynlibs.h \
+eestats.h \
 fasta.h \
 fastq.h \
 fastqops.h \
@@ -33,7 +34,7 @@ md5.h \
 mergepairs.h \
 minheap.h \
 msa.h \
-pvalue.h \
+rerep.h \
 results.h \
 search.h \
 searchcore.h \
@@ -77,6 +78,7 @@ dbhash.cc \
 dbindex.cc \
 derep.cc \
 dynlibs.cc \
+eestats.cc \
 fasta.cc \
 fastq.cc \
 fastqops.cc \
@@ -88,6 +90,7 @@ md5.c \
 mergepairs.cc \
 minheap.cc \
 msa.cc \
+rerep.cc \
 results.cc \
 search.cc \
 searchcore.cc \
