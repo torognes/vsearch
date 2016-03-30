@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 static const char * progress_prompt;
 static unsigned long progress_next;

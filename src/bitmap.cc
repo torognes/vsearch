@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 bitmap_t * bitmap_init(unsigned int size)
 {

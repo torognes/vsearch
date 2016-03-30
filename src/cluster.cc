@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */

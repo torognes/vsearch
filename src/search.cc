@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;

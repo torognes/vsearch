@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /*
   Using 16-bit signed values, from -32768 to +32767.

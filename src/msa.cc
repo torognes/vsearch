@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /* Compute consensus sequence and msa of clustered sequences */
 

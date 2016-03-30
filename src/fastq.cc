@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 #define FASTQ_BUFFER_ALLOC 8192
 

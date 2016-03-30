@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 static bitmap_t * dbhash_bitmap;
 static unsigned long dbhash_size;

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 #define INPUTCHUNKSIZE 10000
 #define SCOREMETHOD 2

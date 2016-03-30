@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /* file type detector and wrapper for fastq and fastx parser */
 

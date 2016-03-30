@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /* This file contains code dependent on special cpu features (e.g. ssse3) */
 /* The file will be compiled several times with different cpu options */

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 #ifdef HAVE_ZLIB_H
 #ifdef __APPLE__

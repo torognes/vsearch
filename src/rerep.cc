@@ -59,7 +59,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 void rereplicate()
 {

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 void results_show_fastapairs_one(FILE * fp,
                                  struct hit * hp,

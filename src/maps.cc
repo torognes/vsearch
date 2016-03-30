@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /*
   legal symbols: *abcdefghiklmnpqrstuvxyz (all except j and o), also upper case
