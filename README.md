@@ -4,7 +4,7 @@ This is a modified version of VSEARCH. See https://github.com/torognes/vsearch t
 
 ## Difference from VSEARCH
 
-The --idoffset argument was added. If you specify --idoffset N (N must be integer), the identity will be calculated based on the following command.
+The --idoffset argument was added. If you specify --idoffset N (N must be integer), the identity will be calculated based on the following definition.
 
 100 * (the number of matches - N) / (alignment length - N)
 
