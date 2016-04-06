@@ -1,13 +1,13 @@
 /*
 
-  VSEARCH: a versatile open source tool for metagenomics
+  VSEARCH5D: a modified version of VSEARCH
 
+  Copyright (C) 2016, Akifumi S. Tanabe
+
+  Contact: Akifumi S. Tanabe <akifumi.tanabe@gmail.com>
+
+  Original version of VSEARCH
   Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
-  All rights reserved.
-
-  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-  Department of Informatics, University of Oslo,
-  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
   This software is dual-licensed and available under a choice
   of one of two licenses, either under the terms of the GNU
@@ -2417,7 +2417,7 @@ void show_header()
   if (! opt_quiet)
     {
       fprintf(stdout, "%s\n", progheader);
-      fprintf(stdout, "https://github.com/torognes/vsearch\n");
+      fprintf(stdout, "https://github.com/astanabe/vsearch5d\n");
       fprintf(stdout, "\n");
     }
 }
