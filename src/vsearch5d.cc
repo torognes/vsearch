@@ -1,13 +1,14 @@
 /*
 
-  VSEARCH: a versatile open source tool for metagenomics
+  VSEARCH5D: a modified version of VSEARCH
 
+  Copyright (C) 2016, Akifumi S. Tanabe
+
+  Contact: Akifumi S. Tanabe
+  https://github.com/astanabe/vsearch5d
+
+  Original version of VSEARCH
   Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
-  All rights reserved.
-
-  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-  Department of Informatics, University of Oslo,
-  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
   This software is dual-licensed and available under a choice
   of one of two licenses, either under the terms of the GNU
@@ -58,7 +59,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /* options */
 
@@ -238,6 +239,7 @@ long opt_top_hits_only;
 long opt_topn;
 long opt_uc_allhits;
 long opt_wordlength;
+long opt_idoffset;
 
 /* Other variables */
 
@@ -591,6 +593,7 @@ void args_init(int argc, char **argv)
   opt_help = 0;
   opt_id = -1.0;
   opt_iddef = 2;
+  opt_idoffset = 0;
   opt_idprefix = 0;
   opt_idsuffix = 0;
   opt_label_suffix = 0;
@@ -862,6 +865,7 @@ void args_init(int argc, char **argv)
     {"minhsp",                required_argument, 0, 0 },
     {"band",                  required_argument, 0, 0 },
     {"hspw",                  required_argument, 0, 0 },
+    {"idoffset",              required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1600,6 +1604,10 @@ void args_init(int argc, char **argv)
           fprintf(stderr, "WARNING: Option --hspw is ignored\n");
           break;
 
+        case 173:
+          opt_idoffset = args_getlong(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1700,6 +1708,9 @@ void args_init(int argc, char **argv)
   if ((opt_iddef < 0) || (opt_iddef > 4))
     fatal("The argument to --iddef must in the range 0 to 4");
 
+  if ((opt_idoffset < 0) || (opt_idoffset > 16))
+    fatal("The argument to --idoffset must in the range 0 to 16");
+
   if (opt_match <= 0)
     fatal("The argument to --match must be positive");
 
@@ -1794,6 +1805,9 @@ void args_init(int argc, char **argv)
       else
         opt_minseqlength = 1;
     }
+
+  if (opt_idoffset >= opt_minseqlength)
+    fatal("The argument to --idoffset must be smaller than to --minseqlength");
 }
 
 
@@ -1861,6 +1875,7 @@ void cmd_help()
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
+              "  --idoffset INT              id offset (0)\n"
               "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
               "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
@@ -2023,6 +2038,7 @@ void cmd_help()
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --id REAL                   reject if identity lower\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
+              "  --idoffset INT              id offset (0)\n"
               "  --idprefix INT              reject if first n nucleotides do not match\n"
               "  --idsuffix INT              reject if last n nucleotides do not match\n"
               "  --leftjust                  reject if terminal gaps at alignment left end\n"
@@ -2402,7 +2418,7 @@ void show_header()
   if (! opt_quiet)
     {
       fprintf(stdout, "%s\n", progheader);
-      fprintf(stdout, "https://github.com/torognes/vsearch\n");
+      fprintf(stdout, "https://github.com/astanabe/vsearch5d\n");
       fprintf(stdout, "\n");
     }
 }

@@ -1,13 +1,14 @@
 /*
 
-  VSEARCH: a versatile open source tool for metagenomics
+  VSEARCH5D: a modified version of VSEARCH
 
+  Copyright (C) 2016, Akifumi S. Tanabe
+
+  Contact: Akifumi S. Tanabe
+  https://github.com/astanabe/vsearch5d
+
+  Original version of VSEARCH
   Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
-  All rights reserved.
-
-  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-  Department of Informatics, University of Oslo,
-  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 
   This software is dual-licensed and available under a choice
   of one of two licenses, either under the terms of the GNU
@@ -58,7 +59,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch5d.h"
 
 /* per thread data */
 
@@ -310,19 +311,20 @@ void align_trim(struct hit * hit)
     - (hit->trim_q_right + hit->trim_t_right > 0 ? 1 : 0);
   
   /* CD-HIT */
-  hit->id0 = hit->shortest > 0 ? 100.0 * hit->matches / hit->shortest : 0.0;
+  hit->id0 = (hit->matches - opt_idoffset) > 0 && (hit->shortest - opt_idoffset) > 0 ?
+    100.0 * (hit->matches - opt_idoffset) / (hit->shortest - opt_idoffset) : 0.0;
   /* all diffs */
-  hit->id1 = hit->nwalignmentlength > 0 ?
-    100.0 * hit->matches / hit->nwalignmentlength : 0.0;
+  hit->id1 = (hit->matches - opt_idoffset) > 0 && (hit->nwalignmentlength - opt_idoffset) > 0 ?
+    100.0 * (hit->matches - opt_idoffset) / (hit->nwalignmentlength - opt_idoffset) : 0.0;
   /* internal diffs */
-  hit->id2 = hit->internal_alignmentlength > 0 ?
-    100.0 * hit->matches / hit->internal_alignmentlength : 0.0;
+  hit->id2 = (hit->matches - opt_idoffset) > 0 && (hit->internal_alignmentlength - opt_idoffset) > 0 ?
+    100.0 * (hit->matches - opt_idoffset) / (hit->internal_alignmentlength - opt_idoffset) : 0.0;
   /* Marine Biology Lab */
   hit->id3 = MAX(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
-                                      hit->longest)));
+                                      (hit->longest - opt_idoffset))));
   /* BLAST */
-  hit->id4 = hit->nwalignmentlength > 0 ?
-    100.0 * hit->matches / hit->nwalignmentlength : 0.0;
+  hit->id4 = (hit->matches - opt_idoffset) > 0 && (hit->nwalignmentlength - opt_idoffset) > 0 ?
+    100.0 * (hit->matches - opt_idoffset) / (hit->nwalignmentlength - opt_idoffset) : 0.0;
 
   switch (opt_iddef)
     {

@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [1.10.2], [torognes@ifi.uio.no])
+AC_INIT([vsearch5d], [1.10.2], [akifumi.tanabe@gmail.com])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
-AC_CONFIG_SRCDIR([src/vsearch.cc])
+AC_CONFIG_SRCDIR([src/vsearch5d.cc])
 AC_CONFIG_HEADERS([config.h])
 
 AC_SUBST(MACOSX_DEPLOYMENT_TARGET)
@@ -54,17 +54,6 @@ AS_IF([test "x$enable_zlib" != "xno"], [
   have_zlib=yes
 ])
 
-have_ps2pdf=no
-AC_ARG_ENABLE(pdfman, AS_HELP_STRING([--disable-pdfman], [Disable PDF manual creation]))
-AS_IF([test "x$enable_pdfman" != "xno"], [
-  have_ps2pdf=yes
-  AC_CHECK_PROG(HAVE_PS2PDF, ps2pdf, yes, no)
-  if test "x$HAVE_PS2PDF" = "xno"; then
-    AC_MSG_WARN([*** ps2pdf is required to build a PDF version of the manual])
-    have_ps2pdf=no
-  fi
-])
-
 if test "x${have_pthreads}" = "xyes"; then
   AC_CHECK_HEADERS([pthread.h], [], [have_pthreads=no])
 fi
@@ -84,7 +73,6 @@ AM_CONDITIONAL(HAVE_PS2PDF, test "x${have_ps2pdf}" = "xyes")
 AM_PROG_CC_C_O
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 man/Makefile])
+                 src/Makefile])
 
 AC_OUTPUT

@@ -87,7 +87,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
+bin_PROGRAMS = $(top_builddir)/bin/vsearch5d$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -122,7 +122,7 @@ am_libcpu_ssse3_a_OBJECTS = libcpu_ssse3_a-cpu.$(OBJEXT) \
 libcpu_ssse3_a_OBJECTS = $(am_libcpu_ssse3_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
+am___top_builddir__bin_vsearch5d_OBJECTS = $(am__objects_1) \
 	abundance.$(OBJEXT) align.$(OBJEXT) align_simd.$(OBJEXT) \
 	allpairs.$(OBJEXT) arch.$(OBJEXT) bitmap.$(OBJEXT) \
 	chimera.$(OBJEXT) cluster.$(OBJEXT) db.$(OBJEXT) \
@@ -136,10 +136,10 @@ am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
 	sha1.$(OBJEXT) showalign.$(OBJEXT) shuffle.$(OBJEXT) \
 	sortbylength.$(OBJEXT) sortbysize.$(OBJEXT) \
 	subsample.$(OBJEXT) unique.$(OBJEXT) userfields.$(OBJEXT) \
-	util.$(OBJEXT) vsearch.$(OBJEXT)
-__top_builddir__bin_vsearch_OBJECTS =  \
-	$(am___top_builddir__bin_vsearch_OBJECTS)
-__top_builddir__bin_vsearch_DEPENDENCIES = libcpu_ssse3.a \
+	util.$(OBJEXT) vsearch5d.$(OBJEXT)
+__top_builddir__bin_vsearch5d_OBJECTS =  \
+	$(am___top_builddir__bin_vsearch5d_OBJECTS)
+__top_builddir__bin_vsearch5d_DEPENDENCIES = libcpu_ssse3.a \
 	libcpu_sse2.a libcityhash.a
 am__dirstamp = $(am__leading_dot)dirstamp
 AM_V_P = $(am__v_P_@AM_V@)
@@ -189,10 +189,10 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(libcityhash_a_SOURCES) $(libcpu_sse2_a_SOURCES) \
 	$(libcpu_ssse3_a_SOURCES) \
-	$(__top_builddir__bin_vsearch_SOURCES)
+	$(__top_builddir__bin_vsearch5d_SOURCES)
 DIST_SOURCES = $(libcityhash_a_SOURCES) $(libcpu_sse2_a_SOURCES) \
 	$(libcpu_ssse3_a_SOURCES) \
-	$(__top_builddir__bin_vsearch_SOURCES)
+	$(__top_builddir__bin_vsearch5d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -244,7 +244,6 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 GREP = @GREP@
-HAVE_PS2PDF = @HAVE_PS2PDF@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -317,7 +316,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CXXFLAGS = -Wall -Wsign-compare
 AM_CFLAGS = $(AM_CXXFLAGS)
-VSEARCHHEADERS = \
+VSEARCH5DHEADERS = \
 abundance.h \
 align.h \
 align_simd.h \
@@ -360,18 +359,18 @@ subsample.h \
 unique.h \
 userfields.h \
 util.h \
-vsearch.h \
+vsearch5d.h \
 xstring.h
 
-libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCH5DHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCH5DHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
 libcityhash_a_SOURCES = city.cc city.h citycrc.h
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
+__top_builddir__bin_vsearch5d_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
+__top_builddir__bin_vsearch5d_SOURCES = $(VSEARCH5DHEADERS) \
 abundance.cc \
 align.cc \
 align_simd.cc \
@@ -411,7 +410,7 @@ subsample.cc \
 unique.cc \
 userfields.cc \
 util.cc \
-vsearch.cc
+vsearch5d.cc
 
 all: all-am
 
@@ -510,9 +509,9 @@ $(top_builddir)/bin/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/bin
 	@: > $(top_builddir)/bin/$(am__dirstamp)
 
-$(top_builddir)/bin/vsearch$(EXEEXT): $(__top_builddir__bin_vsearch_OBJECTS) $(__top_builddir__bin_vsearch_DEPENDENCIES) $(EXTRA___top_builddir__bin_vsearch_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
-	@rm -f $(top_builddir)/bin/vsearch$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_vsearch_OBJECTS) $(__top_builddir__bin_vsearch_LDADD) $(LIBS)
+$(top_builddir)/bin/vsearch5d$(EXEEXT): $(__top_builddir__bin_vsearch5d_OBJECTS) $(__top_builddir__bin_vsearch5d_DEPENDENCIES) $(EXTRA___top_builddir__bin_vsearch5d_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/vsearch5d$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_vsearch5d_OBJECTS) $(__top_builddir__bin_vsearch5d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -562,7 +561,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unique.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/userfields.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch5d.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
