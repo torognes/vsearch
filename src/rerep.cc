@@ -5,7 +5,8 @@
 
   Copyright (C) 2016, Akifumi S. Tanabe
 
-  Contact: Akifumi S. Tanabe <akifumi.tanabe@gmail.com>
+  Contact: Akifumi S. Tanabe
+  https://github.com/astanabe/vsearch5d
 
   Original version of VSEARCH
   Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
