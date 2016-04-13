@@ -124,6 +124,10 @@ void fasta_print_sequence(FILE * fp, char * seq,
 void fasta_print(FILE * fp, const char * hdr,
                  char * seq, unsigned long len);
 
+void fasta_print_ee(FILE * fp, const char * hdr,
+                    char * seq, unsigned long len,
+                    double ee);
+
 void fasta_print_relabel_cluster(FILE * fp,
                                  char * seq,
                                  int len,
@@ -134,6 +138,15 @@ void fasta_print_relabel_cluster(FILE * fp,
                                  int clustersize,
                                  bool showclusterid,
                                  int clusterid);
+
+void fasta_print_relabel_ee(FILE * fp,
+                            char * seq,
+                            int len,
+                            char * header,
+                            int header_len,
+                            int abundance,
+                            int ordinal,
+                            double ee);
 
 void fasta_print_relabel(FILE * fp,
                          char * seq,

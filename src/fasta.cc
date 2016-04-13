@@ -593,17 +593,25 @@ void fasta_print(FILE * fp, const char * hdr,
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
+void fasta_print_ee(FILE * fp, const char * hdr,
+                    char * seq, unsigned long len,
+                    double ee)
+{
+  fprintf(fp, ">%s;%6.4lf;\n", hdr, ee);
+  fasta_print_sequence(fp, seq, len, opt_fasta_width);
+}
 
-void fasta_print_relabel_cluster(FILE * fp,
-                                 char * seq,
-                                 int len,
-                                 char * header,
-                                 int header_len,
-                                 int abundance,
-                                 int ordinal,
-                                 int clustersize,
-                                 bool showclusterid,
-                                 int clusterid)
+void fasta_print_general(FILE * fp,
+                         char * seq,
+                         int len,
+                         char * header,
+                         int header_len,
+                         int abundance,
+                         int ordinal,
+                         int clustersize,
+                         bool showclusterid,
+                         int clusterid,
+                         double ee)
 {
   fprintf(fp, ">");
 
@@ -630,7 +638,7 @@ void fasta_print_relabel_cluster(FILE * fp,
         fprintf(fp, "%s", header);
     }
 
-  if ((clustersize > 0) || opt_sizeout || showclusterid)
+  if ((clustersize > 0) || opt_sizeout || showclusterid || (ee >= 0.0))
     fprintf(fp, ";");
 
   if (clustersize > 0)
@@ -641,6 +649,9 @@ void fasta_print_relabel_cluster(FILE * fp,
 
   if (showclusterid)
     fprintf(fp, "clusterid=%d;", clusterid);
+
+  if (ee >= 0.0)
+    fprintf(fp, "ee=%6.4lf;", ee);
 
   if (opt_relabel_keep &&
       ((opt_relabel || opt_relabel_sha1 || opt_relabel_md5)))
@@ -653,6 +664,38 @@ void fasta_print_relabel_cluster(FILE * fp,
 }
 
 
+void fasta_print_relabel_cluster(FILE * fp,
+                                 char * seq,
+                                 int len,
+                                 char * header,
+                                 int header_len,
+                                 int abundance,
+                                 int ordinal,
+                                 int clustersize,
+                                 bool showclusterid,
+                                 int clusterid)
+{
+  fasta_print_general(fp, seq, len, header, header_len,
+                      abundance, ordinal,
+                      clustersize, showclusterid, clusterid,
+                      -1.0);
+}
+
+void fasta_print_relabel_ee(FILE * fp,
+                            char * seq,
+                            int len,
+                            char * header,
+                            int header_len,
+                            int abundance,
+                            int ordinal,
+                            double ee)
+{
+  fasta_print_general(fp, seq, len, header, header_len,
+                      abundance, ordinal,
+                      0, 0, 0,
+                      ee);
+}
+
 void fasta_print_relabel(FILE * fp,
                          char * seq,
                          int len,
@@ -661,9 +704,10 @@ void fasta_print_relabel(FILE * fp,
                          int abundance,
                          int ordinal)
 {
-  fasta_print_relabel_cluster(fp, seq, len, header, header_len,
-                              abundance, ordinal,
-                              0, 0, 0);
+  fasta_print_general(fp, seq, len, header, header_len,
+                      abundance, ordinal,
+                      0, 0, 0,
+                      -1.0);
 }
 
 void fasta_print_db_relabel(FILE * fp,

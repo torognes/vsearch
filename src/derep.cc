@@ -200,6 +200,9 @@ void derep_fulllength()
   unsigned int * nextseqtab = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
   memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
 
+  char * match_strand = (char *) xmalloc(dbsequencecount);
+  memset(match_strand, 0, dbsequencecount);
+
   char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
   char * rc_seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
   
@@ -283,6 +286,7 @@ void derep_fulllength()
             {
               bp = rc_bp;
               j = k;
+              match_strand[i] = 1;
             }
         }
 
@@ -418,8 +422,10 @@ void derep_fulllength()
                next;
                next = nextseqtab[next])
             fprintf(fp_uc,
-                    "H\t%ld\t%ld\t%.1f\t*\t0\t0\t*\t%s\t%s\n",
-                    i, len, 100.0, db_getheader(next), h);
+                    "H\t%ld\t%ld\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
+                    i, len, 100.0,
+                    (match_strand[next] ? "-" : "+"),
+                    db_getheader(next), h);
 
           progress_update(i);
         }
@@ -454,6 +460,7 @@ void derep_fulllength()
                 100.0 * (clusters - selected) / clusters);
     }
   
+  free(match_strand);
   free(nextseqtab);
   free(hashtable);
   db_free();
@@ -760,7 +767,7 @@ void derep_prefix()
                next;
                next = nextseqtab[next])
             fprintf(fp_uc,
-                    "H\t%ld\t%lu\t%.1f\t*\t0\t0\t*\t%s\t%s\n",
+                    "H\t%ld\t%lu\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
                     i, db_getsequencelen(next), 100.0, db_getheader(next), h);
 
           progress_update(i);

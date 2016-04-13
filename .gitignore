@@ -11,3 +11,11 @@
 /config.status
 /stamp-h1
 Makefile
+aclocal.m4
+config.h.in
+configure
+compile
+depcomp
+install-sh
+missing
+Makefile.in

@@ -273,7 +273,7 @@ void keep(merge_data_t * ip)
 
   if (opt_fastqout)
     {
-      if (opt_fastq_eeout)
+      if (opt_fastq_eeout || opt_eeout)
         fastq_print_with_ee(fp_fastqout,
                             ip->merged_header,
                             ip->merged_sequence,
@@ -287,10 +287,19 @@ void keep(merge_data_t * ip)
     }
 
   if (opt_fastaout)
-    fasta_print(fp_fastaout,
-                ip->merged_header,
-                ip->merged_sequence,
-                strlen(ip->merged_sequence));
+    {
+      if (opt_fastq_eeout || opt_eeout)
+        fasta_print_ee(fp_fastaout,
+                       ip->merged_header,
+                       ip->merged_sequence,
+                       strlen(ip->merged_sequence),
+                       ip->ee_merged);
+      else
+        fasta_print(fp_fastaout,
+                    ip->merged_header,
+                    ip->merged_sequence,
+                    strlen(ip->merged_sequence));
+    }
 
   if (opt_eetabbedout)
     fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%ld\t%ld\n",

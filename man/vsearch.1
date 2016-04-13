@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 18, 2016" "version 1.10.2" "USER COMMANDS"
+.TH vsearch 1 "April 13, 2016" "version 1.11.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -727,8 +727,9 @@ complement sequences.
 .PP
 .TP 9
 .B \-\-eeout
-When using \-\-fastq_filter, and when writing FASTQ file output,
-include the number of expected errors in the sequence header.
+For \-\-fastq_filter or \-\-fastq_mergepairs, include the
+number of expected errors (ee) in the sequence header of FASTQ and FASTA
+files. This option is a synonym of the \-\-fastq_eeout option.
 .TP
 .BI \-\-eetabbedout \0filename
 When specified with the \-\-fastq_mergepairs command, write statistics
@@ -803,8 +804,9 @@ mimimum and maximum output quality scores may be limited using the
 specified with the \-\-fastqout option.
 .TP
 .B \-\-fastq_eeout
-When writing FASTQ file output, include the number of expected errors
-in the sequence header. Used with \-\-fastq_mergepairs.
+For \-\-fastq_filter or \-\-fastq_mergepairs, include the
+number of expected errors (ee) in the sequence header of FASTQ and FASTA
+files. This option is a synonym of the \-\-eeout option.
 .TP
 .BI \-\-fastq_eestats \0filename
 Analyse a FASTQ file and report statistics on the sequence lengths,
@@ -2437,7 +2439,19 @@ headers to be truncated at first space. Full headers are now included
 in the output (no matter if --notrunclabels is in effect or not).
 .TP
 .BR v1.10.2\~ "released March 18, 2016"
-Fixed a bug causing a segmentation fault when running usearch_global with an empty query sequence. Also fixed a bug causing imperfect alignments to be reported with an alignment string of "=" in uc output files. Fixed typos in man file. Fixed fasta/fastq processing code regarding presence or absence of compression library header files.
+Fixed a bug causing a segmentation fault when running usearch_global
+with an empty query sequence. Also fixed a bug causing imperfect
+alignments to be reported with an alignment string of "=" in uc output
+files. Fixed typos in man file. Fixed fasta/fastq processing code
+regarding presence or absence of compression library header files.
+.TP
+.BR v1.11.1\~ "released April 13, 2016"
+Added strand information in UC file for derep_fulllength and
+derep_prefix. Added expected errors (ee) to header of FASTA files
+specified with \-\-fastaout and \-\-fastaout_discarded when \-\-eeout
+or \-\-fastq_eeout option is in effect for fastq_filter and
+fastq_mergepairs. The options \-\-eeout and \-\-fastq_eeout are now
+equivalent.
 .RE
 .LP
 .\" ============================================================================
