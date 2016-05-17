@@ -1163,8 +1163,11 @@ length. Output order may vary when using multiple threads.
 Write search results to \fIfilename\fR using a blast-like
 tab-separated format of twelve fields (listed below), with one line
 per query-target matching (or lack of matching if \-\-output_no_hits
-is used). Output order may vary when using multiple threads. A similar
-output can be obtain with \-\-userout \fIfilename\fR and
+is used). Warning, vsearch uses global pairwise alignments, not
+blast's seed-and-extend algorithm. Therefore, some common blast output
+values (alignment start and end, evalue, bit score) are reported
+differently. Output order may vary when using multiple threads. A
+similar output can be obtain with \-\-userout \fIfilename\fR and
 \-\-userfields
 query+target+id+alnlen+mism+opens+qlo+qhi+tlo+thi+evalue+bits.  A
 complete list and description is available in the section "Userfields"
@@ -1193,18 +1196,20 @@ integer value).
 positive integer value).
 .IP \n+[step].
 \fIqlo\fR: first nucleotide of the query aligned with the
-target. Always equal to 1 if there is an alignment, 0 otherwise.
+target. Always equal to 1 if there is an alignment, 0 otherwise (see
+\fIqilo\fR to ignore initial gaps).
 .IP \n+[step].
 \fIqhi\fR: last nucleotide of the query aligned with the
-target. Always equal to the length of the pairwise alignment. The
-field is set to 0 if there is no alignment.
+target. Always equal to the length of the pairwise alignment, 0
+otherwise (see \fIqihi\fR to ignore terminal gaps).
 .IP \n+[step].
 \fItlo\fR: irst nucleotide of the target aligned with the
-query. Always equal to 1 if there is an alignment, 0 otherwise.
+query. Always equal to 1 if there is an alignment, 0 otherwise (see
+\fItilo\fR to ignore initial gaps).
 .IP \n+[step].
 \fIthi\fR: last nucleotide of the target aligned with the
-query. Always equal to the length of the pairwise alignment. The field
-is set to 0 if there is no alignment.
+query. Always equal to the length of the pairwise alignment, 0
+otherwise (see \fItihi\fR to ignore terminal gaps).
 .IP \n+[step].
 \fIevalue\fR: expectancy-value (not computed for nucleotide
 alignments). Always set to -1.
@@ -1814,8 +1819,8 @@ is not computed by \fBvsearch\fR. Always set to +0.
 .TP
 .B qhi
 Last nucleotide of the query aligned with the target. Always equal to
-the length of the pairwise alignment. The field is set to 0 if there
-is no alignment.
+the length of the pairwise alignment, 0 otherwise (see \fIqihi\fR to
+ignore terminal gaps).
 .TP
 .B qihi
 Last nucleotide of the query aligned with the target (ignoring
@@ -1833,7 +1838,8 @@ if there is no alignment.
 .TP
 .B qlo
 First nucleotide of the query aligned with the target. Always equal to
-1 if there is an alignment, 0 otherwise.
+1 if there is an alignment, 0 otherwise (see \fIqilo\fR to ignore
+initial gaps).
 .TP
 .B qrow
 Print the sequence of the query segment as seen in the pairwise
@@ -1873,8 +1879,8 @@ is not computed by \fBvsearch\fR. Always set to +0.
 .TP
 .B thi
 Last nucleotide of the target aligned with the query. Always equal to
-the length of the pairwise alignment. The field is set to 0 if there
-is no alignment.
+the length of the pairwise alignment, 0 otherwise (see \fItihi\fR to
+ignore terminal gaps).
 .TP
 .B tihi
 Last nucleotide of the target aligned with the query (ignoring
@@ -1892,7 +1898,8 @@ if there is no alignment.
 .TP
 .B tlo
 First nucleotide of the target aligned with the query. Always equal to
-1 if there is an alignment, 0 otherwise.
+1 if there is an alignment, 0 otherwise (see \fItilo\fR to ignore
+initial gaps).
 .TP
 .B trow
 Print the sequence of the target segment as seen in the pairwise
