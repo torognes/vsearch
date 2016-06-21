@@ -62,80 +62,48 @@
 
 /* Compute consensus sequence and msa of clustered sequences */
 
+#define PROFSIZE 6
+
 static char * aln;
 static int alnpos;
 static int * profile;
 
 void msa_add(char c)
 {
-  int * p = profile + 4 * alnpos;
+  int * p = profile + PROFSIZE * alnpos;
 
   switch(toupper(c))
     {
     case 'A':
-      p[0] += 12;
+      p[0]++;
       break;
     case 'C':
-      p[1] += 12;
+      p[1]++;
       break;
     case 'G':
-      p[2] += 12;
+      p[2]++;
       break;
     case 'T':
     case 'U':
-      p[3] += 12;
+      p[3]++;
       break;
     case 'R':
-      p[0] += 6;
-      p[2] += 6;
-      break;
     case 'Y':
-      p[1] += 6;
-      p[3] += 6;
-      break;
     case 'S':
-      p[1] += 6;
-      p[2] += 6;
-      break;
     case 'W':
-      p[0] += 6;
-      p[3] += 6;
-      break;
     case 'K':
-      p[2] += 6;
-      p[3] += 6;
-      break;
     case 'M':
-      p[0] += 6;
-      p[1] += 6;
-      break;
     case 'B':
-      p[1] += 4;
-      p[2] += 4;
-      p[3] += 4;
-      break;
     case 'D':
-      p[0] += 4;
-      p[2] += 4;
-      p[3] += 4;
-      break;
     case 'H':
-      p[0] += 4;
-      p[1] += 4;
-      p[3] += 4;
-      break;
     case 'V':
-      p[0] += 4;
-      p[1] += 4;
-      p[2] += 4;
-      break;
     case 'N':
-      p[0] += 3;
-      p[1] += 3;
-      p[2] += 3;
-      p[3] += 3;
+      p[4]++;
       break;
-    }   
+    case '-':
+      p[5]++;
+      break;
+    }
 
   aln[alnpos++] = c;
 }
@@ -185,8 +153,8 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   alnlen += centroid_len;
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  profile = (int *) xmalloc(4 * sizeof(int) * alnlen);
-  memset(profile, 0, 4 * sizeof(int) * alnlen);
+  profile = (int *) xmalloc(PROFSIZE * sizeof(int) * alnlen);
+  memset(profile, 0, PROFSIZE * sizeof(int) * alnlen);
   aln = (char *) xmalloc(alnlen+1);
   char * cons = (char *) xmalloc(alnlen+1);
   
@@ -313,26 +281,32 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         }
       else
         {
-          /* find most common symbol */
+          /* find most common symbol of A, C, G and T */
           char best_sym = 0;
-          int best_count = -1;
-          int nongap_count = 0;
+          int best_count = 0;
           for(int c=0; c<4; c++)
             {
-              int count = profile[4*i+c];
+              int count = profile[PROFSIZE*i+c];
               if (count > best_count)
                 {
                   best_count = count;
-                  best_sym = c;
+                  best_sym = c+1;
                 }
-              nongap_count += count;
             }
 
-          int gap_count = 12 * target_count - nongap_count;
+          /* if no A, C, G, or T, check if there are any N's */
+          int n_count = profile[PROFSIZE*i+4];
+          if ((best_count == 0) && (n_count > 0))
+            {
+              best_count = n_count;
+              best_sym = 15; // N
+            }
 
+          /* compare to the number of gap symbols */
+          int gap_count = profile[PROFSIZE*i+5];
           if (best_count >= gap_count)
             {
-              char sym = sym_nt_2bit[(int)best_sym];
+              char sym = sym_nt_4bit[(int)best_sym];
               aln[i] = sym;
               cons[conslen++] = sym;
             }

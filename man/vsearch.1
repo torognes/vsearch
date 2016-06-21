@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "April 13, 2016" "version 1.11.1" "USER COMMANDS"
+.TH vsearch 1 "June 21, 2016" "version 1.11.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -2459,6 +2459,18 @@ specified with \-\-fastaout and \-\-fastaout_discarded when \-\-eeout
 or \-\-fastq_eeout option is in effect for fastq_filter and
 fastq_mergepairs. The options \-\-eeout and \-\-fastq_eeout are now
 equivalent.
+.TP
+.BR v1.11.2\~ "released June 21, 2016"
+Two bugs were fixed. The first issue was related to the \-\-query_cov
+option that used a different coverage definition than the qcov
+userfield. The coverage is now defined as the fraction of the whole
+query sequence length that is aligned with matching or mismatching
+residues in the target. All gaps are ignored. The other issue was
+related to the consensus sequences produced during clustering when
+only N's were present in some positions. Previously these would be
+converted to A's in the consensus. The behaviour is changed so that
+N's are produced in the consensus, and it should now be more
+compatible with usearch.
 .RE
 .LP
 .\" ============================================================================

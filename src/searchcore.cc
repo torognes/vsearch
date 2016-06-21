@@ -433,9 +433,9 @@ int search_acceptable_aligned(struct searchinfo_s * si,
       ((!opt_rightjust) || (hit->trim_q_right +
                             hit->trim_t_right == 0)) &&
       /* query_cov */
-      (hit->internal_alignmentlength >= opt_query_cov * si->qseqlen) &&
+      (hit->matches + hit->mismatches >= opt_query_cov * si->qseqlen) &&
       /* target_cov */
-      (hit->internal_alignmentlength >=
+      (hit->matches + hit->mismatches >=
        opt_target_cov * db_getsequencelen(hit->target)) &&
       /* maxid */
       (hit->id <= 100.0 * opt_maxid) &&
