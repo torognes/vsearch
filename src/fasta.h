@@ -58,61 +58,24 @@
 
 */
 
-struct fasta_buffer_s
-{
-  char * data;
-  unsigned long length;
-  unsigned long alloc;
-  unsigned long position;
-};
-
-struct fasta_s
-{
-  FILE * fp;
-
-#ifdef HAVE_ZLIB_H
-  gzFile fp_gz;
-#endif
-
-#ifdef HAVE_BZLIB_H
-  BZFILE * fp_bz;
-#endif
-
-  struct fasta_buffer_s file_buffer;
-  struct fasta_buffer_s header_buffer;
-  struct fasta_buffer_s sequence_buffer;
-
-  unsigned long file_size;
-  unsigned long file_position;
-
-  unsigned long lineno;
-  unsigned long lineno_start;
-  long seqno;
-
-  unsigned long stripped_all;
-  unsigned long stripped[256];
-
-  int format;
-};
-
-typedef struct fasta_s * fasta_handle;
 
 /* fasta input */
 
-fasta_handle fasta_open(const char * filename);
-void fasta_close(fasta_handle h);
-bool fasta_next(fasta_handle h,
+void fasta_open_rest(fastx_handle h);
+fastx_handle fasta_open(const char * filename);
+void fasta_close(fastx_handle h);
+bool fasta_next(fastx_handle h,
                 bool truncateatspace,
                 char * char_mapping);
-unsigned long fasta_get_position(fasta_handle h);
-unsigned long fasta_get_size(fasta_handle h);
-unsigned long fasta_get_lineno(fasta_handle h);
-unsigned long fasta_get_seqno(fasta_handle h);
-char * fasta_get_header(fasta_handle h);
-char * fasta_get_sequence(fasta_handle h);
-unsigned long fasta_get_header_length(fasta_handle h);
-unsigned long fasta_get_sequence_length(fasta_handle h);
-long fasta_get_abundance(fasta_handle h);
+unsigned long fasta_get_position(fastx_handle h);
+unsigned long fasta_get_size(fastx_handle h);
+unsigned long fasta_get_lineno(fastx_handle h);
+unsigned long fasta_get_seqno(fastx_handle h);
+char * fasta_get_header(fastx_handle h);
+char * fasta_get_sequence(fastx_handle h);
+unsigned long fasta_get_header_length(fastx_handle h);
+unsigned long fasta_get_sequence_length(fastx_handle h);
+long fasta_get_abundance(fastx_handle h);
 
 /* fasta output */
 

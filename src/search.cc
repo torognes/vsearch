@@ -68,7 +68,7 @@ static pthread_t * pthread;
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
 static pthread_attr_t attr;
-static fasta_handle query_fasta_h;
+static fastx_handle query_fasta_h;
 
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;

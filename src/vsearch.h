@@ -138,9 +138,9 @@
 #include "cpu.h"
 #include "allpairs.h"
 #include "subsample.h"
+#include "fastx.h"
 #include "fasta.h"
 #include "fastq.h"
-#include "fastx.h"
 #include "fastqops.h"
 #include "dbhash.h"
 #include "searchexact.h"
@@ -159,6 +159,7 @@
 
 /* options */
 
+extern bool opt_bzip2_decompress;
 extern bool opt_clusterout_id;
 extern bool opt_clusterout_sort;
 extern bool opt_eeout;
@@ -166,6 +167,7 @@ extern bool opt_fasta_score;
 extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
+extern bool opt_gzip_decompress;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;
 extern bool opt_relabel_md5;

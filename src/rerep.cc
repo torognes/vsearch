@@ -74,7 +74,7 @@ void rereplicate()
         fatal("Unable to open fasta output file for writing");
     }
 
-  fasta_handle fh = fasta_open(opt_rereplicate);
+  fastx_handle fh = fasta_open(opt_rereplicate);
   long filesize = fasta_get_size(fh);
 
   progress_init("Rereplicating", filesize);

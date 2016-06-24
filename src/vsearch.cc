@@ -62,6 +62,7 @@
 
 /* options */
 
+bool opt_bzip2_decompress;
 bool opt_clusterout_id;
 bool opt_clusterout_sort;
 bool opt_eeout;
@@ -69,6 +70,7 @@ bool opt_fasta_score;
 bool opt_fastq_allowmergestagger;
 bool opt_fastq_eeout;
 bool opt_fastq_nostagger;
+bool opt_gzip_decompress;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
@@ -263,6 +265,9 @@ static time_t time_finish;
 FILE * fp_log = 0;
 
 abundance_t * global_abundance;
+
+char * STDIN_NAME = (char*) "/dev/stdin";
+char * STDOUT_NAME = (char*) "/dev/stdout";
 
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \
@@ -514,6 +519,7 @@ void args_init(int argc, char **argv)
   opt_alnout = 0;
   opt_blast6out = 0;
   opt_borderline = 0;
+  opt_bzip2_decompress = 0;
   opt_centroids = 0;
   opt_chimeras = 0;
   opt_cluster_fast = 0;
@@ -587,6 +593,7 @@ void args_init(int argc, char **argv)
   opt_gap_open_target_interior=20;
   opt_gap_open_target_left=2;
   opt_gap_open_target_right=2;
+  opt_gzip_decompress = 0;
   opt_hardmask = 0;
   opt_help = 0;
   opt_id = -1.0;
@@ -862,6 +869,8 @@ void args_init(int argc, char **argv)
     {"minhsp",                required_argument, 0, 0 },
     {"band",                  required_argument, 0, 0 },
     {"hspw",                  required_argument, 0, 0 },
+    {"gzip_decompress",       no_argument,       0, 0 },
+    {"bzip2_decompress",      no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1600,6 +1609,16 @@ void args_init(int argc, char **argv)
           fprintf(stderr, "WARNING: Option --hspw is ignored\n");
           break;
 
+        case 173:
+          /* gzip_decompress */
+          opt_gzip_decompress = 1;
+          break;
+
+        case 174:
+          /* bzip2_decompress */
+          opt_bzip2_decompress = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1751,6 +1770,9 @@ void args_init(int argc, char **argv)
   if (opt_fastq_qminout > opt_fastq_qmaxout)
     fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
 
+  if (opt_gzip_decompress && opt_bzip2_decompress)
+    fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
+
   /* TODO: check valid range of gap penalties */
 
   /* adapt/adjust parameters */
@@ -1794,6 +1816,87 @@ void args_init(int argc, char **argv)
       else
         opt_minseqlength = 1;
     }
+
+  /* replace filename "-" by "/dev/stdin" for input file options */
+
+  char * * stdin_options[] =
+    {
+      & opt_allpairs_global,
+      & opt_cluster_fast,
+      & opt_cluster_size,
+      & opt_cluster_smallmem,
+      & opt_db,
+      & opt_derep_fulllength,
+      & opt_derep_prefix,
+      & opt_fastq_chars,
+      & opt_fastq_convert,
+      & opt_fastq_eestats,
+      & opt_fastq_filter,
+      & opt_fastq_mergepairs,
+      & opt_fastq_stats,
+      & opt_fastx_mask,
+      & opt_fastx_revcomp,
+      & opt_fastx_subsample,
+      & opt_maskfasta,
+      & opt_rereplicate,
+      & opt_reverse,
+      & opt_search_exact,
+      & opt_shuffle,
+      & opt_sortbylength,
+      & opt_sortbysize,
+      & opt_uchime_denovo,
+      & opt_uchime_ref,
+      & opt_usearch_global,
+      0
+    };
+
+  int i = 0;
+  while(char * * stdin_opt = stdin_options[i++])
+    if ((*stdin_opt) && (!strcmp(*stdin_opt, "-")))
+      *stdin_opt = STDIN_NAME;
+
+
+  /* replace filename "-" by "/dev/stdout" for output file options */
+
+  char * * stdout_options[] =
+    {
+      & opt_alnout,
+      & opt_blast6out,
+      & opt_borderline,
+      & opt_centroids,
+      & opt_chimeras,
+      & opt_consout,
+      & opt_dbmatched,
+      & opt_dbnotmatched,
+      & opt_eetabbedout,
+      & opt_fastaout,
+      & opt_fastaout_discarded,
+      & opt_fastaout_notmerged_fwd,
+      & opt_fastaout_notmerged_rev,
+      & opt_fastapairs,
+      & opt_fastqout,
+      & opt_fastqout_discarded,
+      & opt_fastqout_notmerged_fwd,
+      & opt_fastqout_notmerged_rev,
+      & opt_log,
+      & opt_matched,
+      & opt_msaout,
+      & opt_nonchimeras,
+      & opt_notmatched,
+      & opt_output,
+      & opt_profile,
+      & opt_samout,
+      & opt_uc,
+      & opt_uchimealns,
+      & opt_uchimeout,
+      & opt_userout,
+      0
+    };
+
+  int o = 0;
+  while(char * * stdout_opt = stdout_options[o++])
+    if ((*stdout_opt) && (!strcmp(*stdout_opt, "-")))
+      *stdout_opt = STDOUT_NAME;
 }
 
 
@@ -1810,7 +1913,9 @@ void cmd_help()
       fprintf(stdout,
               "\n"
               "General options\n"
+              "  --bzip2_decompress          decompress input with bzip2 (required for pipes)\n"
               "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
+              "  --gzip_decompress           decompress input with gzip (required for pipes)\n"
               "  --help | --h                display help information\n"
               "  --log FILENAME              write messages, timing and memory info to file\n"
               "  --maxseqlength INT          maximum sequence length (50000)\n"
@@ -2343,8 +2448,10 @@ void cmd_uchime()
   if (opt_minh <= 0.0)
     fatal("Argument to --minh must be > 0");
 
+#if 0
   if (opt_abskew <= 1.0)
     fatal("Argument to --abskew must be > 1");
+#endif
 
   chimera();
 }
@@ -2401,9 +2508,9 @@ void show_header()
 {
   if (! opt_quiet)
     {
-      fprintf(stdout, "%s\n", progheader);
-      fprintf(stdout, "https://github.com/torognes/vsearch\n");
-      fprintf(stdout, "\n");
+      fprintf(stderr, "%s\n", progheader);
+      fprintf(stderr, "https://github.com/torognes/vsearch\n");
+      fprintf(stderr, "\n");
     }
 }
 

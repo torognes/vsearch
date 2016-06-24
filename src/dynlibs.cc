@@ -70,6 +70,10 @@ void * gz_lib;
 gzFile (*gzdopen_p)(int, const char *);
 int (*gzclose_p)(gzFile);
 int (*gzread_p)(gzFile, void *, unsigned);
+int (*gzgetc_p)(gzFile);
+int (*gzrewind_p)(gzFile);
+int (*gzungetc_p)(int, gzFile);
+const char * (*gzerror_p)(gzFile, int*);
 #endif
 
 #ifdef HAVE_BZLIB_H
@@ -90,12 +94,13 @@ void dynlibs_open()
   gz_lib = dlopen(gz_libname, RTLD_LAZY);
   if (gz_lib)
     {
-      gzdopen_p = (gzFile (*)(int, const char*))
-        dlsym(gz_lib, "gzdopen");
-      gzclose_p = (int (*)(gzFile))
-        dlsym(gz_lib, "gzclose");
-      gzread_p = (int (*)(gzFile, void*, unsigned))
-        dlsym(gz_lib, "gzread");
+      gzdopen_p = (gzFile (*)(int, const char*)) dlsym(gz_lib, "gzdopen");
+      gzclose_p = (int (*)(gzFile)) dlsym(gz_lib, "gzclose");
+      gzread_p = (int (*)(gzFile, void*, unsigned)) dlsym(gz_lib, "gzread");
+      gzgetc_p = (int (*)(gzFile)) dlsym(gz_lib, "gzgetc");
+      gzrewind_p = (int (*)(gzFile)) dlsym(gz_lib, "gzrewind");
+      gzerror_p = (const char * (*)(gzFile, int*)) dlsym(gz_lib, "gzerror");
+      gzungetc_p = (int (*)(int, gzFile)) dlsym(gz_lib, "gzungetc");
     }
 #endif
 

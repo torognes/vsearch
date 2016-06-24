@@ -82,7 +82,7 @@ int fastq_get_qual(char q)
 
 void fastq_filter()
 {
-  fastq_handle h = fastq_open(opt_fastq_filter);
+  fastx_handle h = fastq_open(opt_fastq_filter);
 
   unsigned long filesize = fastq_get_size(h);
 
@@ -347,7 +347,7 @@ void fastq_chars()
       maxrun[c] = 0;
     }
 
-  fastq_handle h = fastq_open(opt_fastq_chars);
+  fastx_handle h = fastq_open(opt_fastq_chars);
 
   unsigned long filesize = fastq_get_size(h);
 
@@ -525,7 +525,7 @@ double q2p(double q)
 
 void fastq_stats()
 {
-  fastq_handle h = fastq_open(opt_fastq_stats);
+  fastx_handle h = fastq_open(opt_fastq_stats);
 
   unsigned long filesize = fastq_get_size(h);
 
@@ -951,7 +951,7 @@ void fastx_revcomp()
 
 void fastq_convert()
 {
-  fastq_handle h = fastq_open(opt_fastq_convert);
+  fastx_handle h = fastq_open(opt_fastq_convert);
 
   if (!h)
     fatal("Unable to open FASTQ file");

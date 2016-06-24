@@ -63,6 +63,10 @@ extern void * gz_lib;
 extern gzFile (*gzdopen_p)(int, const char *);
 extern int (*gzclose_p)(gzFile);
 extern int (*gzread_p)(gzFile, void*, unsigned);
+extern int (*gzgetc_p)(gzFile);
+extern int (*gzrewind_p)(gzFile);
+extern int (*gzungetc_p)(int, gzFile);
+extern const char * (*gzerror_p)(gzFile, int*);
 #endif
 
 #ifdef HAVE_BZLIB_H

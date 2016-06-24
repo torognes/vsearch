@@ -58,17 +58,58 @@
 
 */
 
+struct fastx_buffer_s
+{
+  char * data;
+  unsigned long length;
+  unsigned long alloc;
+  unsigned long position;
+};
+
+void buffer_init(struct fastx_buffer_s * buffer);
+void buffer_free(struct fastx_buffer_s * buffer);
+void buffer_extend(struct fastx_buffer_s * dest_buffer,
+                   char * source_buf,
+                   unsigned long len);
+void buffer_makespace(struct fastx_buffer_s * buffer, unsigned long x);
+void buffer_truncate(struct fastx_buffer_s * buffer, bool truncateatspace);
+
 struct fastx_s
 {
+  bool is_pipe;
   bool is_fastq;
-  union
-  {
-    fasta_handle fasta;
-    fastq_handle fastq;
-  } handle;
+
+  FILE * fp;
+
+#ifdef HAVE_ZLIB_H
+  gzFile fp_gz;
+#endif
+
+#ifdef HAVE_BZLIB_H
+  BZFILE * fp_bz;
+#endif
+
+  struct fastx_buffer_s file_buffer;
+
+  struct fastx_buffer_s header_buffer;
+  struct fastx_buffer_s sequence_buffer;
+  struct fastx_buffer_s quality_buffer;
+
+  unsigned long file_size;
+  unsigned long file_position;
+
+  unsigned long lineno;
+  unsigned long lineno_start;
+  long seqno;
+
+  unsigned long stripped_all;
+  unsigned long stripped[256];
+
+  int format;
 };
 
 typedef struct fastx_s * fastx_handle;
+
 
 /* fastx input */
 
@@ -89,3 +130,5 @@ unsigned long fastx_get_sequence_length(fastx_handle h);
 
 char * fastx_get_quality(fastx_handle h);
 long fastx_get_abundance(fastx_handle h);
+
+unsigned long fastx_file_fill_buffer(fastx_handle h);

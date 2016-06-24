@@ -72,7 +72,7 @@ long ee_start(int pos, int resolution)
 
 void fastq_eestats()
 {
-  fastq_handle h = fastq_open(opt_fastq_eestats);
+  fastx_handle h = fastq_open(opt_fastq_eestats);
 
   unsigned long filesize = fastq_get_size(h);
 

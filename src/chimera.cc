@@ -79,7 +79,7 @@ const double chimera_id = 0.55;
 static int tophits;
 static pthread_attr_t attr;
 static pthread_t * pthread;
-static fasta_handle query_fasta_h;
+static fastx_handle query_fasta_h;
 
 /* mutexes and global data protected by mutex */
 static pthread_mutex_t mutex_input;

@@ -93,7 +93,7 @@ void progress_update(unsigned long progress)
           fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
                   100.0 * progress / progress_size);
         else
-          fprintf(stderr, "  \r%s ?%%", progress_prompt);
+          fprintf(stderr, "  \r%s 0%%", progress_prompt);
         progress_next = progress + progress_chunk;
       }
 }

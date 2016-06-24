@@ -72,3 +72,4 @@ extern char chrmap_complement[256];
 extern char chrmap_normalize[256];
 extern char chrmap_upcase[256];
 extern char chrmap_no_change[256];
+extern char chrmap_identity[256];

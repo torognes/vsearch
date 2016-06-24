@@ -60,279 +60,22 @@
 
 #include "vsearch.h"
 
-#define FASTA_BUFFER_ALLOC 8192
-
-#ifdef HAVE_BZLIB_H
-#define BZ_VERBOSE_0 0
-#define BZ_VERBOSE_1 1
-#define BZ_VERBOSE_2 2
-#define BZ_VERBOSE_3 3
-#define BZ_VERBOSE_4 4
-#define BZ_MORE_MEM 0  /* faster decompression using more memory */
-#define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
-#endif
-
-#define FORMAT_PLAIN 1
-#define FORMAT_BZIP  2
-#define FORMAT_GZIP  3
-
-static unsigned char MAGIC_GZIP[] = "\x1f\x8b";
-static unsigned char MAGIC_BZIP[] = "BZ";
-
-void buffer_init(struct fasta_buffer_s * buffer)
+fastx_handle fasta_open(const char * filename)
 {
-  buffer->alloc = FASTA_BUFFER_ALLOC;
-  buffer->data = (char*) xmalloc(buffer->alloc);
-  buffer->data[0] = 0;
-  buffer->length = 0;
-  buffer->position = 0;
-}
+  fastx_handle h = fastx_open(filename);
 
-void buffer_free(struct fasta_buffer_s * buffer)
-{
-  if (buffer->data)
-    free(buffer->data);
-  buffer->data = 0;
-  buffer->alloc = 0;
-  buffer->length = 0;
-  buffer->position = 0;
-}
-
-fasta_handle fasta_open(const char * filename)
-{
-  fasta_handle h = (fasta_handle) xmalloc(sizeof(struct fasta_s));
-  
-  h->fp = NULL;
-  h->fp = fopen(filename, "rb");
-  if(!h->fp)
-    fatal("Error: Unable to open fasta file for reading (%s)", filename);
-  
-  /* detect compression (plain, gzipped or bzipped) */
-  
-  unsigned char magic[2];
-  h->format = FORMAT_PLAIN;
-  if (fread(&magic, 1, 2, h->fp) >= 2)
-    {
-      if (!memcmp(magic, MAGIC_GZIP, 2))
-        h->format = FORMAT_GZIP;
-      else if (!memcmp(magic, MAGIC_BZIP, 2))
-        h->format = FORMAT_BZIP;
-    }
-
-  /* Get size of original (uncompressed) file */
-
-  if (fseek(h->fp, 0, SEEK_END))
-    fatal("Error: Unable to seek in fasta file (%s)", filename);
-  h->file_size = ftell(h->fp);
-  rewind(h->fp);
-
-  if (h->format == FORMAT_GZIP)
-    {
-      /* GZIP: Keep original file open, then open as gzipped file as well */
-#ifdef HAVE_ZLIB_H
-      if (!gz_lib)
-        fatal("Files compressed with gzip are not supported");
-      if (! (h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb")))
-        fatal("Unable to open gzip compressed fasta file (%s)", filename);
-#else
-      fatal("Files compressed with gzip are not supported");
-#endif
-    }
-
-  if (h->format == FORMAT_BZIP)
-    {
-      /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_BZLIB_H
-      if (!bz2_lib)
-        fatal("Files compressed with bzip2 are not supported");
-      int bzError;
-      if (! (h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
-                                            BZ_VERBOSE_0, BZ_MORE_MEM,
-                                            NULL, 0)))
-        fatal("Unable to open bzip2 compressed fasta file (%s)", filename);
-#else
-      fatal("Files compressed with bzip2 are not supported");
-#endif
-    }
-
-
-
-  h->stripped_all = 0;
-
-  for(int i=0; i<256; i++)
-    h->stripped[i] = 0;
-
-  h->file_position = 0;
-
-  buffer_init(& h->file_buffer);
-  buffer_init(& h->header_buffer);
-  buffer_init(& h->sequence_buffer);
-
-  h->lineno = 1;
-  h->lineno_start = 1;
-  h->seqno = -1;
+  if (fastx_is_fastq(h))
+    fatal("FASTA file expected, FASTQ file found (%s)", filename);
 
   return h;
 }
 
-void fasta_close(fasta_handle h)
+void fasta_close(fastx_handle h)
 {
-  /* Warn about stripped chars */
-
-  if (h->stripped_all)
-    {
-      fprintf(stderr, "WARNING: invalid characters stripped from fasta file:");
-      for (int i=0; i<256;i++)
-        if (h->stripped[i])
-          fprintf(stderr, " %c(%lu)", i, h->stripped[i]);
-      fprintf(stderr, "\n");
-
-      if (opt_log)
-        {
-          fprintf(fp_log, "WARNING: invalid characters stripped from fasta file:");
-          for (int i=0; i<256;i++)
-            if (h->stripped[i])
-              fprintf(fp_log, " %c(%lu)", i, h->stripped[i]);
-          fprintf(fp_log, "\n");
-        }
-    }
-
-#ifdef HAVE_BZLIB_H
-  int bz_error;
-#endif
-  
-  switch(h->format)
-    {
-    case FORMAT_PLAIN:
-      fclose(h->fp);
-      h->fp = 0;
-      break;
-
-    case FORMAT_GZIP:
-#ifdef HAVE_ZLIB_H
-      (*gzclose_p)(h->fp_gz);
-      h->fp_gz = 0;
-      h->fp = 0;
-      break;
-#endif
-      
-    case FORMAT_BZIP:
-#ifdef HAVE_BZLIB_H
-      (*BZ2_bzReadClose_p)(&bz_error, h->fp_bz);
-      h->fp_bz = 0;
-      h->fp = 0;
-      break;
-#endif
-
-    default:
-      fatal("Internal error");
-    }
-  
-  buffer_free(& h->file_buffer);
-  buffer_free(& h->header_buffer);
-  buffer_free(& h->sequence_buffer);
-
-  h->file_size = 0;
-  h->file_position = 0;
-
-  h->lineno = 0;
-  h->seqno = -1;
-
-  free(h);
+  fastx_close(h);
 }
 
-
-unsigned long fasta_file_fill_buffer(fasta_handle h)
-{
-  /* read more data if necessary */
-  unsigned long rest = h->file_buffer.length - h->file_buffer.position;
-  
-  if (rest > 0)
-    return rest;
-  else
-    {
-      unsigned long space = h->file_buffer.alloc - h->file_buffer.length;
-
-      if (space == 0)
-        {
-          /* back to beginning of buffer */
-          h->file_buffer.position = 0;
-          h->file_buffer.length = 0;
-          space = h->file_buffer.alloc;
-        }
-      
-      int bytes_read = 0;
-      
-#ifdef HAVE_BZLIB_H
-      int bzError = 0;
-#endif
-
-      switch(h->format)
-        {
-        case FORMAT_PLAIN:
-          bytes_read = fread(h->file_buffer.data
-                             + h->file_buffer.position,
-                             1,
-                             space,
-                             h->fp);
-          break;
-
-        case FORMAT_GZIP:
-#ifdef HAVE_ZLIB_H
-          bytes_read = (*gzread_p)(h->fp_gz,
-                                   h->file_buffer.data
-                                   + h->file_buffer.position,
-                                   space);
-          if (bytes_read < 0)
-            fatal("Error reading gzip compressed fasta file");
-          break;
-#endif
-          
-        case FORMAT_BZIP:
-#ifdef HAVE_BZLIB_H
-          bytes_read = (*BZ2_bzRead_p)(& bzError,
-                                       h->fp_bz,
-                                       h->file_buffer.data
-                                       + h->file_buffer.position,
-                                       space);
-          if ((bytes_read < 0) ||
-              ! ((bzError == BZ_OK) ||
-                 (bzError == BZ_STREAM_END) ||
-                 (bzError == BZ_SEQUENCE_ERROR)))
-            fatal("Error reading bzip2 compressed fasta file");
-          break;
-#endif
-          
-        default:
-          fatal("Internal error");
-        }
-      
-      h->file_buffer.length += bytes_read;
-      return bytes_read;
-    }
-}
-
-void buffer_extend(struct fasta_buffer_s * buffer, char * buf, unsigned long len)
-{
-  if (buffer->length + len + 1 > buffer->alloc)
-    {
-      /* alloc space for len more characters + terminating zero,
-         but round up to nearest block size */
-      buffer->alloc = 
-        FASTA_BUFFER_ALLOC * 
-        (((buffer->length + len) / FASTA_BUFFER_ALLOC) + 1);
-      buffer->data = (char*) xrealloc(buffer->data, buffer->alloc);
-    }
-
-  /* copy string */
-  memcpy(buffer->data + buffer->length, buf, len);
-  buffer->length += len;
-
-  /* add terminator */
-  buffer->data[buffer->length] = 0;
-}
-
-void fasta_truncate_header(fasta_handle h, bool truncateatspace)
+void fasta_truncate_header(fastx_handle h, bool truncateatspace)
 {
   /* Truncate the zero-terminated header string by inserting a new
      terminator (zero byte) at the first space/tab character
@@ -346,7 +89,7 @@ void fasta_truncate_header(fasta_handle h, bool truncateatspace)
   h->header_buffer.data[h->header_buffer.length] = 0;
 }
 
-void fasta_filter_sequence(fasta_handle h,
+void fasta_filter_sequence(fastx_handle h,
                            unsigned int * char_action,
                            char * char_mapping)
 {
@@ -408,7 +151,7 @@ void fasta_filter_sequence(fasta_handle h,
   h->sequence_buffer.length = q - h->sequence_buffer.data;
 }
 
-bool fasta_next(fasta_handle h,
+bool fasta_next(fastx_handle h,
                 bool truncateatspace,
                 char * char_mapping)
 {
@@ -417,7 +160,7 @@ bool fasta_next(fasta_handle h,
   h->header_buffer.length = 0;
   h->sequence_buffer.length = 0;
 
-  unsigned long rest = fasta_file_fill_buffer(h);
+  unsigned long rest = fastx_file_fill_buffer(h);
 
   if (rest == 0)
     return 0;
@@ -427,7 +170,10 @@ bool fasta_next(fasta_handle h,
   /* check initial > character */
   
   if (h->file_buffer.data[h->file_buffer.position] != '>')
-    fatal("Invalid FASTA - header must start with > character");
+    {
+      fprintf(stderr, "Found character %02x\n", (unsigned char)(h->file_buffer.data[h->file_buffer.position]));
+      fatal("Invalid FASTA - header must start with > character");
+    }
   h->file_buffer.position++;
   rest--;
 
@@ -435,7 +181,7 @@ bool fasta_next(fasta_handle h,
   while (lf == 0)
     {
       /* get more data if buffer empty*/
-      rest = fasta_file_fill_buffer(h);
+      rest = fastx_file_fill_buffer(h);
       if (rest == 0)
         fatal("Invalid FASTA - header must be terminated with newline");
       
@@ -464,7 +210,7 @@ bool fasta_next(fasta_handle h,
   while (1)
     {
       /* get more data, if necessary */
-      rest = fasta_file_fill_buffer(h);
+      rest = fastx_file_fill_buffer(h);
 
       /* end if no more data */
       if (rest == 0)
@@ -496,62 +242,50 @@ bool fasta_next(fasta_handle h,
   fasta_truncate_header(h, truncateatspace);
   fasta_filter_sequence(h, char_fasta_action, char_mapping);
 
-#ifdef HAVE_ZLIB_H
-  if (h->format == FORMAT_GZIP)
-    {
-      /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
-      int fd = dup(fileno(h->fp));
-      h->file_position = lseek(fd, 0, SEEK_CUR);
-      close(fd);
-    }
-  else
-#endif
-    h->file_position = ftell(h->fp);
-  
   return 1;
 }
 
-long fasta_get_abundance(fasta_handle h)
+long fasta_get_abundance(fastx_handle h)
 {
   return abundance_get(global_abundance, h->header_buffer.data);
 }
 
-unsigned long fasta_get_position(fasta_handle h)
+unsigned long fasta_get_position(fastx_handle h)
 {
   return h->file_position;
 }
 
-unsigned long fasta_get_size(fasta_handle h)
+unsigned long fasta_get_size(fastx_handle h)
 {
   return h->file_size;
 }
 
-unsigned long fasta_get_lineno(fasta_handle h)
+unsigned long fasta_get_lineno(fastx_handle h)
 {
   return h->lineno_start;
 }
 
-unsigned long fasta_get_seqno(fasta_handle h)
+unsigned long fasta_get_seqno(fastx_handle h)
 {
   return h->seqno;
 }
 
-unsigned long fasta_get_header_length(fasta_handle h)
+unsigned long fasta_get_header_length(fastx_handle h)
 {
   return h->header_buffer.length;
 }
 
-unsigned long fasta_get_sequence_length(fasta_handle h)
+unsigned long fasta_get_sequence_length(fastx_handle h)
 {
   return h->sequence_buffer.length;
 }
 
-char * fasta_get_header(fasta_handle h)
+char * fasta_get_header(fastx_handle h)
 {
   return h->header_buffer.data;
 }
 
-char * fasta_get_sequence(fasta_handle h)
+char * fasta_get_sequence(fastx_handle h)
 {
   return h->sequence_buffer.data;
 }
