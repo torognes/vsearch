@@ -124,7 +124,7 @@ void dust(char * m, int len)
   int a, b;
 
   /* make a local copy of the original sequence */
-  char * s = (char*) alloca(len+1);
+  char * s = (char*) xmalloc(len+1);
   strcpy(s, m);
 
   if (! opt_hardmask)
@@ -153,6 +153,8 @@ void dust(char * m, int len)
             i += dust_window2 - b;
         }
     }
+
+  free(s);
 }
 
 static pthread_t * pthread;
