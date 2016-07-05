@@ -118,7 +118,7 @@ fastx_handle fastx_open(const char * filename);
 void fastx_close(fastx_handle h);
 bool fastx_next(fastx_handle h,
                 bool truncateatspace,
-                char * char_mapping);
+                const unsigned char * char_mapping);
 unsigned long fastx_get_position(fastx_handle h);
 unsigned long fastx_get_size(fastx_handle h);
 unsigned long fastx_get_lineno(fastx_handle h);

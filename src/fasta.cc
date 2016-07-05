@@ -91,7 +91,7 @@ void fasta_truncate_header(fastx_handle h, bool truncateatspace)
 
 void fasta_filter_sequence(fastx_handle h,
                            unsigned int * char_action,
-                           char * char_mapping)
+                           const unsigned char * char_mapping)
 {
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
@@ -153,7 +153,7 @@ void fasta_filter_sequence(fastx_handle h,
 
 bool fasta_next(fastx_handle h,
                 bool truncateatspace,
-                char * char_mapping)
+                const unsigned char * char_mapping)
 {
   h->lineno_start = h->lineno;
 

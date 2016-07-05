@@ -66,7 +66,7 @@ fastx_handle fasta_open(const char * filename);
 void fasta_close(fastx_handle h);
 bool fasta_next(fastx_handle h,
                 bool truncateatspace,
-                char * char_mapping);
+                const unsigned char * char_mapping);
 unsigned long fasta_get_position(fastx_handle h);
 unsigned long fasta_get_size(fastx_handle h);
 unsigned long fasta_get_lineno(fastx_handle h);

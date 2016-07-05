@@ -63,7 +63,7 @@ fastx_handle fastq_open(const char * filename);
 void fastq_close(fastx_handle h);
 bool fastq_next(fastx_handle h,
                 bool truncateatspace,
-                char * char_mapping);
+                const unsigned char * char_mapping);
 unsigned long fastq_get_position(fastx_handle h);
 unsigned long fastq_get_size(fastx_handle h);
 unsigned long fastq_get_lineno(fastx_handle h);

@@ -83,7 +83,7 @@ void buffer_filter_extend(fastx_handle h,
                           char * source_buf,
                           unsigned long len,
                           unsigned int * char_action,
-                          char * char_mapping,
+                          const unsigned char * char_mapping,
                           unsigned long lineno_start)
 {
   buffer_makespace(dest_buffer, len+1);
@@ -164,7 +164,7 @@ void fastq_close(fastx_handle h)
 
 bool fastq_next(fastx_handle h,
                 bool truncateatspace,
-                char * char_mapping)
+                const unsigned char * char_mapping)
 {
   h->header_buffer.length = 0;
   h->header_buffer.data[0] = 0;

@@ -496,7 +496,7 @@ unsigned long fastx_file_fill_buffer(fastx_handle h)
 
 bool fastx_next(fastx_handle h,
                 bool truncateatspace,
-                char * char_mapping)
+                const unsigned char * char_mapping)
 {
   if (h->is_fastq)
     return fastq_next(h, truncateatspace, char_mapping);
