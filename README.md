@@ -131,13 +131,11 @@ For the accuracy assessment searches in Rfam 11.0 with 100 replicates of the que
 
 **Clustering:** The clustering commands `--cluster_smallmem` and `--cluster_fast` have been implemented. These commands support multiple threads. The only difference between `--cluster_smallmem` and `--cluster_fast` is that `--cluster_fast` will sort the sequences by length before clustering, while `--cluster_smallmem` require the sequences to be in length-sorted order unless the `--usersort` option is specified. An additional clustering command called `--cluster_size` has been added that will sort your sequences by abundance before clustering. There is no significant difference in speed or memory usage between these commands. The increased sensitivity of VSEARCH often leads to larger and fewer clusters than USEARCH.
 
-The speed of clustering with VSEARCH relative to USEARCH depends on how many threads are used. Running with a single thread VSEARCH currently seems to be 2-4 times slower than with USEARCH, depending on parameters. Clustering has been parallelized with threads in VSEARCH, but clustering does not seem to be parallelized in USEARCH (despite what the name and documentation for `--cluster_fast` seems to indicate). Clustering with VSEARCH using 4-8 threads is often faster than USEARCH. The speed of VSEARCH might be further improved with an intra-sequence SIMD-vectorized aligner. Speed also depends on sequence length, and vsearch is relatively slower with longer sequences compared to usearch.
+The speed of clustering with VSEARCH relative to USEARCH depends on how many threads are used. Running with a single thread VSEARCH currently seems to be 2-4 times slower than with USEARCH, depending on parameters. Speed also depends on sequence length, and vsearch is relatively slower with longer sequences compared to usearch.
 
 **Chimera detection:** Chimera detection using the algorithm described by Edgar *et al.* (2011) has been implemented in VSEARCH. Both the `--uchime_ref` and `--uchime_denovo` commands and all their options are supported.
 
 A preliminary assessment of the accuracy of VSEARCH on chimera detection has been performed using the SIMM dataset described in the UCHIME paper. See the `eval/chimeval.sh` script and the results in `eval/chimeval.txt` for details. On the datasets with 1-5% substitutions, VSEARCH is generally on par with the original UCHIME implementation (version 4.2.40), and a bit more accurate than the implementation in USEARCH (version 7.0.1090). On the datasets with 1-5% indels, VSEARCH is clearly more accurate than both UCHIME and USEARCH.
-
-VSEARCH is about 40% faster than USEARCH on *de novo* chimera detection and about 30% faster on detection against a reference database. In VSEARCH `uchime_ref` is multithreaded, while `uchime_denovo` is not.
 
 **Dereplication and sorting:** The dereplication and sorting commands seems to be considerably faster in VSEARCH than in USEARCH.
 
