@@ -949,10 +949,65 @@ Sanger/Illumina 1.8+ files. Older versions of the format may use
 scores between -5 and 2.
 .TP
 .BI \-\-fastq_stats \0filename
-Analyse a FASTQ file and report various statistics on the sequence
-length and quality score distribution. The type of FASTQ file may be
-specified with \-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qmax. The
-output is written to the log file specified with the \-\-log option.
+Analyze a FASTQ file and report the number of reads it contains. The
+type of FASTQ file may be specified with \-\-fastq_ascii
+\-\-fastq_qmin and \-\-fastq_qmax. When using the \-\-log option,
+detailed statistics on read length, quality score, and length
+vs. quality distributions are outputted to the specified file.
+.RS
+.TP
+Read length distribution:
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+L: read length.
+.IP \n+[step].
+N: number of reads.
+.IP \n+[step].
+Pct: fraction of reads with this length.
+.IP \n+[step]:
+AccPct: fraction of reads with this length or longer.
+.RE
+.TP
+Quality score distribution:
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+ASCII: character encoding the quality score.
+.IP \n+[step].
+Q: Phred quality score.
+.IP \n+[step].
+Pe: probability of error associated with the quality score.
+.IP \n+[step].
+N: number of bases with this quality score.
+.IP \n+[step].
+Pct: fraction of bases with this quality score.
+.IP \n+[step]:
+AccPct: fraction of bases with this quality score or higher.
+.RE
+.TP
+Length vs. quality distribution:
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+L: position in reads.
+.IP \n+[step].
+PctRecs: fraction of reads with at least this length.
+.IP \n+[step].
+AvgQ: average quality score over all reads up to this position.
+.IP \n+[step].
+P(AvgQ): error probability corresponding to AvgQ.
+.IP \n+[step].
+AvgP: average error probability.
+.IP \n+[step]:
+AvgEE: average expected error.
+.IP \n+[step]:
+Rate: 
+.IP \n+[step]:
+RatePct: 
+.RE
+(incomplete)
+.RE
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
 When using \-\-fastq_filter, strip the specified number of bases from
