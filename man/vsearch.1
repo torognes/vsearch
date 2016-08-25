@@ -541,7 +541,9 @@ pairwise alignment.
 .TP
 .BI \-\-msaout \0filename
 Output a multiple sequence alignment and a consensus sequence for each
-cluster to \fIfilename\fR, in fasta format. The consensus sequence is
+cluster to \fIfilename\fR, in fasta format. Be warn that multiple
+sequence alignment's accuracy can decrease significantly when using
+low pairwise identity thresholds. The consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
 are skipped, except for terminal gaps.
