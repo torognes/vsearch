@@ -951,9 +951,10 @@ scores between -5 and 2.
 .BI \-\-fastq_stats \0filename
 Analyze a FASTQ file and report the number of reads it contains. The
 type of FASTQ file may be specified with \-\-fastq_ascii
-\-\-fastq_qmin and \-\-fastq_qmax. When using the \-\-log option,
-detailed statistics on read length, quality score, and length
-vs. quality distributions are outputted to the specified file.
+\-\-fastq_qmin and \-\-fastq_qmax. When using the \-\-log option, the
+following detailed statistics on read length, quality score, length
+vs. quality distributions, and length / quality filtering are
+outputted to the specified file:
 .RS
 .TP
 Read length distribution:
@@ -1000,13 +1001,33 @@ P(AvgQ): error probability corresponding to AvgQ.
 .IP \n+[step].
 AvgP: average error probability.
 .IP \n+[step]:
-AvgEE: average expected error.
+AvgEE: average expected error over all reads up to this position.
 .IP \n+[step]:
 Rate: 
 .IP \n+[step]:
 RatePct: 
 .RE
-(incomplete)
+.TP
+Effect of expected error and length filtering
+.RS
+The first column indicates read lengths (\fIL\fR). The next four
+columns indicate the number of reads that would be retained by the
+\-\-fastq_filter command if the reads were truncated at length \fIL\fR
+(option \-\-fastq_trunclen \fIL\fR) and filtered to have a maximum
+expected error of 1.0, 0.5, 0.25 or 0.1 (option \-\-fastq_maxee
+\fIfloat\fR). The last four columns indicate the fraction of reads
+that would be retained by the \-\-fastq_filter command using the same
+length and maximum expected error parameters.
+.RE
+.TP
+Effect of minimum quality and length filtering
+.RS
+The first column indicates read lengths (\fILen\fR). The next four
+columns indicate the fraction of reads that would be retained by the
+\-\-fastq_filter command if the reads were truncated at length
+\fILen\fR (option \-\-fastq_trunclen \fILen\fR) or at the first
+position with a quality \fIQ\fR below 5, 10, 15 or 20 (option
+\-\-fastq_truncqual \fIQ\fR).
 .RE
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
