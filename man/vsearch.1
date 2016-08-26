@@ -231,7 +231,7 @@ Do not truncate sequence labels at first space or tab, use the full
 header in output files.
 .TP
 .B \-\-quiet
-Suppress all output to stderr and stderr except for warnings and fatal
+Suppress all output to stdout and stderr except for warnings and fatal
 error messages.
 .TP
 .BI \-\-threads\~ "positive integer"
@@ -541,7 +541,7 @@ pairwise alignment.
 .TP
 .BI \-\-msaout \0filename
 Output a multiple sequence alignment and a consensus sequence for each
-cluster to \fIfilename\fR, in fasta format. Be warn that multiple
+cluster to \fIfilename\fR, in fasta format. Be warned that multiple
 sequence alignment's accuracy can decrease significantly when using
 low pairwise identity thresholds. The consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
@@ -1000,11 +1000,11 @@ P(AvgQ): error probability corresponding to AvgQ.
 .IP \n+[step].
 AvgP: average error probability.
 .IP \n+[step]:
-AvgEE: average expected error.
+AvgEE: average expected error over all reads up to this position.
 .IP \n+[step]:
-Rate: 
+Rate: the growth rate of the average number of expected errors (AvgEE) per base pair up to this position.
 .IP \n+[step]:
-RatePct: 
+RatePct: Rate (as explained above) expressed as a percentage.
 .RE
 (incomplete)
 .RE
