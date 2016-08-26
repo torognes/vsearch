@@ -991,7 +991,7 @@ Length vs. quality distribution:
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-L: position in reads.
+L: position in reads (starting from position 2).
 .IP \n+[step].
 PctRecs: fraction of reads with at least this length.
 .IP \n+[step].
@@ -1003,7 +1003,7 @@ AvgP: average error probability.
 .IP \n+[step]:
 AvgEE: average expected error over all reads up to this position.
 .IP \n+[step]:
-Rate: the growth rate of the average number of expected errors (AvgEE) per base pair up to this position.
+Rate: growth rate of AvgEE between this position and position - 1.
 .IP \n+[step]:
 RatePct: Rate (as explained above) expressed as a percentage.
 .RE
