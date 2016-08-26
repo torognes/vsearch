@@ -647,12 +647,12 @@ are considered the same).
 Merge sequences with identical prefixes contained in \fIfilename\fR.
 A short sequence identical to an initial segment (prefix) of another
 sequence is considered a replicate of the longer sequence. If a
-sequence is identical to the prefix of two or more longer sequences
-it is undefined which of the longer sequences it will be considered
-a replicate of. This has consequences regarding the total abundance
-reported with \-\-sizeout. When considering whether two sequence
-are identical, the comparison is case insensitive, and T and U
-are considered identical.
+sequence is identical to the prefix of two or more longer sequences,
+it will be clustered with the shortest of them. If they are equally
+long, it will be clustered with the most abundant. Remaining ties are
+solved using sequence headers and sequence input order. Sequence
+comparisons are case insensitive, and T and U are considered
+identical.
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
 Discard sequences with an abundance value greater than \fIinteger\fR.
