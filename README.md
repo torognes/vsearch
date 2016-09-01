@@ -283,8 +283,9 @@ Thanks to the following people for patches and other suggestions for improvement
 
 ## Citing VSEARCH
 
-No papers about VSEARCH have been published yet, but a manuscript is in preparation.
-For now, please cite the [VSEARCH GitHub repository](https://github.com/torognes/vsearch).
+The vsearch manuscript is now published in PeerJ Preprints: 
+
+Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a versatile open source tool for metagenomics. PeerJ Preprints 4:e2409v1 https://doi.org/10.7287/peerj.preprints.2409v1
 
 
 ## Test datasets
