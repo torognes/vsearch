@@ -621,7 +621,19 @@ void fastq_stats()
 
           int qual = qc - opt_fastq_ascii;
           if ((qual < opt_fastq_qmin) || (qual > opt_fastq_qmax))
-            fatal("FASTQ quality value out of range");
+            {
+              char * msg;
+              if (asprintf(& msg,
+"FASTQ quality value (%d) out of range (%d-%d).\n"
+"Please adjust the FASTQ quality base character or range with the\n"
+"--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n"
+"diagnosis with suggested values, please run vsearch --fastq_chars file.",
+                           qual, opt_fastq_qmin, opt_fastq_qmax) > 0)
+                fatal(msg);
+              else
+                fatal("Out of memory");
+              free(msg);
+            }
           
           quality_chars[qc]++;
           if (qc < qmin)
