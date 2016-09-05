@@ -122,12 +122,16 @@ computers, thus providing fast and accurate data processing.
 .PP
 Comparing nucleotide sequences is at the core of \fBvsearch\fR. To
 speed up comparisons, \fBvsearch\fR implements an extremely fast
-implementation of the Needleman-Wunsch algorithm, making use of the
-Streaming SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2
-instructions are not available, \fBvsearch\fR exits with an error
-message. For comparisons involving sequences longer than 5,000
-nucleotides, \fBvsearch\fR uses a slower alignment method with smaller
-memory requirements.
+Needleman-Wunsch algorithm, making use of the Streaming SIMD
+Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are not
+available, \fBvsearch\fR exits with an error message. Memory usage
+increases rapidly with sequence length: for example comparing two
+sequences of length 1 kb requires 8 MB of memory per thread, and
+comparing two 10 kb sequences requires 800 MB of memory per
+thread. For comparisons involving sequences with a length product
+greater than 25,000,000, \fBvsearch\fR uses a slower alignment method
+described by Hirschberg (1975) and Myers and Miller (1988), with
+smaller memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR input is a fasta (or fastq) file containing one or
