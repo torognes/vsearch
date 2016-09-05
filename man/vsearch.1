@@ -205,7 +205,7 @@ that value to 0 to eliminate the wrapping.
 Decompress input using gzip. The option is required only when reading
 from a pipe, otherwise compression is automatically detected.
 .TP
-.B \-\-help | \-\-h
+.B \-\-help | \-h
 Display help text and exit.
 .TP
 .BI \-\-log \0filename
@@ -243,7 +243,7 @@ uchime_ref, cluster_fast, cluster_size, cluster_smallmem, maskfasta,
 allpairs_global, usearch_global.
 Only one thread is used for the other commands.
 .TP
-.B \-\-version | \-\-v
+.B \-\-version | \-v
 Output version information and exit.
 .RE
 .PP
@@ -279,8 +279,8 @@ should be at least 2 times more abundant than their chimera. Any
 positive value greater than 1.0 can be used.
 .TP
 .BI \-\-alignwidth\~ "positive integer"
-Width of the 3-way alignments in \-\-uchimealns output. The default
-value is 80. Set to 0 to eliminate wrapping.
+When using \-\-uchimealns, set the width of the 3-way alignments. The
+default value is 80 characters. Set to 0 to eliminate wrapping.
 .TP
 .BI \-\-borderline \0filename
 Output borderline chimeric sequences to \fIfilename\fR, in fasta format.
@@ -366,8 +366,8 @@ When using \-\-uchime_ref, ignore a reference sequence when its
 nucleotide sequence is strictly identical with the query sequence.
 .TP
 .B \-\-sizeout
-Add abundance annotations to the output fasta file (with the pattern
-";size=\fIinteger\fR;" to sequence headers) when relabelling.
+When relabelling, add abundance annotations to the output fasta file
+(with the pattern ";size=\fIinteger\fR;" to sequence headers).
 .TP
 .BI \-\-uchime_denovo \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR, without
