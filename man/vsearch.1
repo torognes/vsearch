@@ -287,9 +287,10 @@ When using \-\-uchimealns, set the width of the 3-way alignments. The
 default value is 80 characters. Set to 0 to eliminate wrapping.
 .TP
 .BI \-\-borderline \0filename
-Output borderline chimeric sequences to \fIfilename\fR, in fasta format.
-Borderline chimeric sequences are sequences that have a high enough
-score but which are not sufficiently diverged from their closest parent.
+Output borderline chimeric sequences to \fIfilename\fR, in fasta
+format.  Borderline chimeric sequences are sequences that have a high
+enough score but which are not sufficiently diverged from their
+closest parent.
 .TP
 .BI \-\-chimeras \0filename
 Output chimeric sequences to \fIfilename\fR, in fasta format. Output
@@ -307,8 +308,8 @@ No vote pseudo-count (parameter \fIn\fR in the chimera scoring
 function) (default value is 1.4).
 .TP
 .B \-\-fasta_score
-Add the chimera score to the headers in the fasta output files for chimeras,
-non-chimeras and borderline sequences. A string similar to
+Add the chimera score to the headers in the fasta output files for
+chimeras, non-chimeras and borderline sequences. A string similar to
 ";uchime_denovo=0.1234;" or ";uchime_ref=5.6789;" will be added.
 .TP
 .BI \-\-mindiffs\~ "positive integer"
@@ -447,7 +448,8 @@ No vote weight (parameter beta in the scoring function) (default value
 is 8.0).
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -665,9 +667,9 @@ Discard sequences with an abundance value smaller than \fIinteger\fR.
 .BI \-\-output \0filename
 Write the dereplicated sequences to \fIfilename\fR, in fasta format
 and sorted by decreasing abundance. Identical sequences receive the
-header of the first sequence of their group. If \-\-sizeout is used, the
-number of occurrences (i.e. abundance) of each sequence is indicated
-at the end of their fasta header using the pattern
+header of the first sequence of their group. If \-\-sizeout is used,
+the number of occurrences (i.e. abundance) of each sequence is
+indicated at the end of their fasta header using the pattern
 ";size=\fIinteger\fR;".
 .TP
 .BI \-\-relabel \0string
@@ -723,7 +725,8 @@ dereplication, the option \-\-uc_allhits has no effect on the \-\-uc
 output.
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -795,6 +798,7 @@ Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64).
 When using \-\-fastq_convert, define the ASCII character number used
 as the basis for the FASTQ quality score when writing FASTQ output
 files. The default is 33.
+.TP
 .BI \-\-fastq_chars \0filename
 Summarize the composition of sequence and quality strings contained in
 the input FASTQ file. For each of the four DNA letters,
@@ -856,7 +860,7 @@ options \-\-fastq_stripleft, \-\-fastq_trunclen, and
 \-\-fastq_minlen and \-\-fastq_trunclen. If shortening results in an
 empty sequence, it will be discarded. The sequences are first
 shortened and then filtered based on the remaining bases. If no
-shortening or filtering options are givem, all sequences will be
+shortening or filtering options are given, all sequences will be
 written to the output files, possibly after conversion from FASTQ to
 FASTA format. The \-\-relabel option may be used to relabel the output
 sequences. The \-\-eeout may be used to output the expected number of
@@ -931,8 +935,8 @@ change that behaviour, see the \-\-fastq_allowmergestagger option.
 .TP
 .BI \-\-fastq_qmax\~ "positive integer"
 Specify the maximum quality score accepted when reading FASTQ
-files. The default is 41, which is usual for recent Sanger/Illumina 1.8+
-files.
+files. The default is 41, which is usual for recent Sanger/Illumina
+1.8+ files.
 .TP
 .BI \-\-fastq_qmaxout\~ "positive integer"
 When using \-\-fastq_convert, specify the maximum quality score used
@@ -1708,7 +1712,8 @@ Pseudo-randomly shuffle the order of sequences contained in
 Output only the top \fIinteger\fR sequences.
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1771,7 +1776,8 @@ Output only the top \fIinteger\fR sequences (i.e. the longest or the
 most abundant).
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1784,18 +1790,32 @@ taken into account and the sampling will be performed from the input
 sequences as if they had not been dereplicated. The extraction is
 performed as a random sampling with a uniform distribution among the
 input sequences and is performed without replacement. The input file
-is specified with \-\-fastx_subsample option, the output file is
-specified with the \-\-fastaout option and the amount of sequences to
-be sampled is specified with the \-\-sample_pct or \-\-sample_size
-options.
+is specified with \-\-fastx_subsample option, the output files are
+specified with the \-\-fastaout and \-\-fastqout options and the
+amount of sequences to be sampled is specified with the \-\-sample_pct
+or \-\-sample_size options. The sequences not sampled may be written
+to files specified with the options \-\-fasta_discarded and
+\-\-fastq_discarded. The \-\-fastq_ascii, \-\-fastq_qmin and
+\-\-fastq_qmax options are also available.
 .PP
 .TP 9
 .BI \-\-fastaout \0filename
 Write the sampled sequences to \fIfilename\fR, in fasta format.
 .TP
+.BI \-\-fastaout_discarded \0filename
+Write the sequences not sampled to \fIfilename\fR, in fasta format.
+.TP
+.BI \-\-fastqout \0filename
+Write the sampled sequences to \fIfilename\fR, in fastq
+format. Requires input in fastq format.
+.TP
+.BI \-\-fastqout_discarded \0filename
+Write the sequences not sampled to \fIfilename\fR, in fastq
+format. Requires input in fastq format.
+.TP
 .BI \-\-fastx_subsample \0filename
 Perform subsampling from the sequences in the specified input file
-that is in FASTA format (FASTQ format is not supported).
+that is in FASTA or FASTQ format.
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as a seed for the pseudo-random generator. A given
@@ -1811,14 +1831,15 @@ range from 0.0 to 100.0.
 Extract the given number of sequences.
 .TP
 .B \-\-sizein
-Take the abundance information of the input file into account, otherwise
-the abundance of each sequence is considered to be 1.
+Take the abundance information of the input file into account,
+otherwise the abundance of each sequence is considered to be 1.
 .TP
 .B \-\-sizeout
 Write abundance information to the output file.
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -2196,8 +2217,9 @@ Frédéric Mahé.
 .\" ============================================================================
 .SH CITATION
 .PP
-Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a
-versatile open source tool for metagenomics. \fIPeerJ Preprints\fR 4:e2409v1
+Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016)
+VSEARCH: a versatile open source tool for metagenomics.
+\fIPeerJ Preprints\fR 4:e2409v1
 <https://doi.org/10.7287/peerj.preprints.2409v1>
 .PP
 .\" ============================================================================
@@ -2420,7 +2442,8 @@ Fix bug with large datasets. Fix format of help info.
 Fix more bugs with large datasets.
 .TP
 .BR v1.2.0-1.2.19\~ "released July 6th to September 8th, 2015"
-Several new commands and options added. Bugs fixed. Documentation updated.
+Several new commands and options added. Bugs fixed. Documentation
+updated.
 .TP
 .BR v1.3.0\~ "released September 9th, 2015"
 Changed to autotools build system.
@@ -2488,8 +2511,8 @@ word lengths are also set. The minimum word length is increased to 7.
 .BR v1.6.0\~ "released October 9th, 2015"
 This version adds the relabeling options (\-\-relabel, \-\-relabel_md5
 and \-\-relabel_sha1) to the shuffle command. It also adds the
-\-\-xsize option to the clustering, dereplication, shuffling and sorting
-commands.
+\-\-xsize option to the clustering, dereplication, shuffling and
+sorting commands.
 .TP
 .BR v1.6.1\~ "released October 14th, 2015"
 Fix bugs and update manual and help text regarding relabelling. Add
@@ -2502,8 +2525,9 @@ Add \-\-relabel_keep option.
 .TP
 .BR v1.8.0\~ "released October 19th, 2015"
 Added \-\-search_exact, \-\-fastx_mask and \-\-fastq_convert commands.
-Changed most commands to read FASTQ input files as well as FASTA files.
-Modified \-\-fastx_revcomp and \-\-fastx_subsample to write FASTQ files.
+Changed most commands to read FASTQ input files as well as FASTA
+files.  Modified \-\-fastx_revcomp and \-\-fastx_subsample to write
+FASTQ files.
 .TP
 .BR v1.8.1\~ "released November 2nd, 2015"
 Fixes for compatibility with QIIME and older OS X versions.
@@ -2527,7 +2551,8 @@ Fixed a bug in the computation of some values with \-\-fastq_stats.
 Workaround for missing x86intrin.h with old compilers.
 .TP
 .BR v1.9.4\~ "released December 3rd, 2015"
-Fixed incrementation of counter when relabeling dereplicated sequences.
+Fixed incrementation of counter when relabeling dereplicated
+sequences.
 .TP
 .BR v1.9.5\~ "released December 3rd, 2015"
 Fixed bug resulting in inferior chimera detection performance.
@@ -2615,6 +2640,10 @@ when running precompiled binaries.
 .TP
 .BR v2.0.4\~ "released September 1, 2016"
 Improved error message for bad FASTQ quality values. Improved manual.
+.TP
+.BR v2.0.5\~ "released September 9, 2016"
+Added options to output discarded sequences from subsampling to
+separate files. Updated manual.
 .RE
 .LP
 .\" ============================================================================

@@ -63,12 +63,21 @@
 void subsample()
 {
   FILE * fp_fastaout = 0;
+  FILE * fp_fastaout_discarded = 0;
   FILE * fp_fastqout = 0;
+  FILE * fp_fastqout_discarded = 0;
 
   if (opt_fastaout)
     {
       fp_fastaout = fopen(opt_fastaout, "w");
       if (!fp_fastaout)
+        fatal("Unable to open fasta output file for writing");
+    }
+
+  if (opt_fastaout_discarded)
+    {
+      fp_fastaout_discarded = fopen(opt_fastaout_discarded, "w");
+      if (!fp_fastaout_discarded)
         fatal("Unable to open fasta output file for writing");
     }
 
@@ -79,10 +88,17 @@ void subsample()
         fatal("Unable to open fastq output file for writing");
     }
 
+  if (opt_fastqout_discarded)
+    {
+      fp_fastqout_discarded = fopen(opt_fastqout_discarded, "w");
+      if (!fp_fastqout_discarded)
+        fatal("Unable to open fastq output file for writing");
+    }
+
   db_read(opt_fastx_subsample, 0);
   show_rusage();
 
-  if (fp_fastqout && ! db_is_fastq())
+  if ((fp_fastqout || fp_fastqout_discarded) && ! db_is_fastq())
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
 
   int dbsequencecount = db_getsequencecount();
@@ -149,10 +165,14 @@ void subsample()
   progress_done();
 
   int samples = 0;
+  int discarded = 0;
   progress_init("Writing output", dbsequencecount);
   for(int i=0; i<dbsequencecount; i++)
     {
-      if (abundance[i]>0)
+      long ab_sub = abundance[i];
+      long ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
+
+      if (ab_sub > 0)
         {
           samples++;
 
@@ -162,7 +182,7 @@ void subsample()
                                 db_getsequencelen(i),
                                 db_getheader(i),
                                 db_getheaderlen(i),
-                                abundance[i],
+                                ab_sub,
                                 samples);
 
           if (opt_fastqout)
@@ -172,8 +192,32 @@ void subsample()
                                 db_getheader(i),
                                 db_getheaderlen(i),
                                 db_getquality(i),
-                                abundance[i],
+                                ab_sub,
                                 samples);
+        }
+
+      if (ab_discarded > 0)
+        {
+          discarded++;
+
+          if (opt_fastaout_discarded)
+            fasta_print_relabel(fp_fastaout_discarded,
+                                db_getsequence(i),
+                                db_getsequencelen(i),
+                                db_getheader(i),
+                                db_getheaderlen(i),
+                                ab_discarded,
+                                discarded);
+
+          if (opt_fastqout_discarded)
+            fastq_print_relabel(fp_fastqout_discarded,
+                                db_getsequence(i),
+                                db_getsequencelen(i),
+                                db_getheader(i),
+                                db_getheaderlen(i),
+                                db_getquality(i),
+                                ab_discarded,
+                                discarded);
         }
       progress_update(i);
     }
@@ -190,4 +234,10 @@ void subsample()
 
   if (opt_fastqout)
     fclose(fp_fastqout);
+
+  if (opt_fastaout_discarded)
+    fclose(fp_fastaout_discarded);
+
+  if (opt_fastqout_discarded)
+    fclose(fp_fastqout_discarded);
 }
