@@ -1636,11 +1636,15 @@ coverage is computed as (matches + mismatches) / target sequence
 length.  Internal or terminal gaps are not taken into account.
 .TP
 .B \-\-top_hits_only
-Output only the hits with the highest percentage of identity with the
-query. That option modifies the output of the options \-\-alnout,
+Only the top hits between the query and database sequence sets are
+written to the output specified with the options \-\-alnout,
 \-\-samout, \-\-userout, \-\-blast6out, \-\-uc, \-\-fastapairs,
-\-\-matched and \-\-notmatched, but not \-\-dbmatched and
-\-\-dbnotmatched
+\-\-matched or \-\-notmatched (but not \-\-dbmatched and
+\-\-dbnotmatched). For each query, the top hit is the one presenting
+the highest percentage of identity (see the \-\-iddef option to change
+the way identity is measured). For a given query, if several top hits
+present exactly the same percentage of identity, the number of hits
+reported is controlled by the \-\-maxaccepts value (1 by default).
 .TP
 .BI \-\-uc \0filename
 Output searching results in \fIfilename\fR using a uclust-like
