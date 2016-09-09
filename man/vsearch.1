@@ -217,7 +217,7 @@ Write messages to the specified log file. Information written includes
 program version, amount of memory available, number of cores and
 command line options, and if need be, informational messages, warnings
 and fatal errors. The start and finish times are also recorded as well
-as the elapsed time and the maximum amount of memory consumed.  The
+as the elapsed time and the maximum amount of memory consumed. The
 different commands will usually also write some information about
 their results.
 .TP
@@ -336,29 +336,25 @@ When relabelling, keep the old identifier in the header after a space.
 .TP
 .B \-\-relabel_md5
 Relabel sequences using the MD5 message digest algorithm applied to
-the sequence to replace the header.
-The sequence is converted to upper case and U is replaced by
-T before the digest is computed.
-The MD5 digest is a cryptographic hash function designed
-to minimize the probability that two
-different inputs will give the same output, even for very similar,
-but non-identical inputs. Still, there will always be a small,
-but non-zero, probability that two different inputs
-will give the same result.
-The MD5 digest generates a 128 bit (16 byte) result that is
-represented by 32 hexadecimal digits (0123456789abcdef).
-Use \-\-sizeout to conserve the abundance annotations.
+each sequence. Former sequence headers are discarded. The sequence is
+converted to upper case and U is replaced by T before the digest is
+computed.  The MD5 digest is a cryptographic hash function designed to
+minimize the probability that two different inputs will give the same
+output, even for very similar, but non-identical inputs. Still, there
+will always be a very small, but non-zero, probability that two
+different inputs will give the same result. The MD5 digest generates a
+128-bit (16-byte) digest that is represented by 16 hexadecimal numbers
+(using 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve
+the abundance annotations.
 .TP
 .B \-\-relabel_sha1
 Relabel sequences using the SHA1 message digest algorithm applied to
-the sequence to replace the header. It is similar to the
-\-\-relabel_md5 option but uses the SHA1 algorithm instead of the
-MD5 algorithm.
-The SHA1 digest generates a 160 bit (20 byte) result
-that is represented by 40 hexadecimal digits.
-The probability of a collision (two non-identical sequences
-having the same digest) is smaller for the SHA1 algorithm
-than for the MD5 algorithm.
+each sequence. It is similar to the \-\-relabel_md5 option but uses
+the SHA1 algorithm instead of the MD5 algorithm. The SHA1 digest
+generates a 160-bit (20-byte) result that is represented by 20
+hexadecimal numbers (40 symbols). The probability of a collision (two
+non-identical sequences having the same digest) is smaller for the
+SHA1 algorithm than it is for the MD5 algorithm.
 .TP
 .B \-\-self
 When using \-\-uchime_ref, ignore a reference sequence when its label
@@ -630,7 +626,9 @@ just a decreasing length ordering.
 Strip abundance information from the headers when writing the output
 file.
 .TP
-Most searching options as well as score filtering, gap penalties and masking also apply to clustering (see the Searching section):
+Most searching options as well as score filtering, gap penalties and
+masking also apply to clustering (see the Searching section for
+definitions):
 .br
 \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-matched,
 \-\-notmatched, \-\-maxaccept, \-\-maxreject, \-\-samout, \-\-userout,
@@ -791,7 +789,7 @@ default is to discard staggered pairs.
 Define the ASCII character number used as the basis for the FASTQ
 quality score. The default is 33, which is used by the Sanger /
 Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
-Solexa, Illumina 1.3+ and Illumina 1.5+ format (phred+64).
+Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64).
 .TP
 .BI \-\-fastq_asciiout\~ "positive integer"
 When using \-\-fastq_convert, define the ASCII character number used
@@ -956,10 +954,10 @@ scores between -5 and 2.
 .BI \-\-fastq_stats \0filename
 Analyze a FASTQ file and report the number of reads it contains. The
 type of FASTQ file may be specified with \-\-fastq_ascii
-\-\-fastq_qmin and \-\-fastq_qmax. When using the \-\-log option, the
-following detailed statistics on read length, quality score, length
-vs. quality distributions, and length / quality filtering are
-outputted to the specified file:
+\-\-fastq_qmin and \-\-fastq_qmax. That command requires the \-\-log
+option and outputs the following detailed statistics on read length,
+quality score, length vs. quality distributions, and length / quality
+filtering:
 .RS
 .TP
 Read length distribution:
@@ -1635,7 +1633,10 @@ length.  Internal or terminal gaps are not taken into account.
 .TP
 .B \-\-top_hits_only
 Output only the hits with the highest percentage of identity with the
-query.
+query. That option modifies the output of the options \-\-alnout,
+\-\-samout, \-\-userout, \-\-blast6out, \-\-uc, \-\-fastapairs,
+\-\-matched and \-\-notmatched, but not \-\-dbmatched and
+\-\-dbnotmatched
 .TP
 .BI \-\-uc \0filename
 Output searching results in \fIfilename\fR using a uclust-like
@@ -1780,9 +1781,9 @@ Subsampling will randomly extract a certain number or a certain
 percentage of the sequences in the input file. If the \-\-sizein
 option is in effect, the abundances of the input sequences will be
 taken into account and the sampling will be performed from the input
-sequences as if they had not be dereplicated. The extraction is
+sequences as if they had not been dereplicated. The extraction is
 performed as a random sampling with a uniform distribution among the
-input sequences and is performed without replacement.  The input file
+input sequences and is performed without replacement. The input file
 is specified with \-\-fastx_subsample option, the output file is
 specified with the \-\-fastaout option and the amount of sequences to
 be sampled is specified with the \-\-sample_pct or \-\-sample_size
@@ -1794,7 +1795,7 @@ Write the sampled sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI \-\-fastx_subsample \0filename
 Perform subsampling from the sequences in the specified input file
-that is in FASTA format.
+that is in FASTA format (FASTQ format is not supported).
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as a seed for the pseudo-random generator. A given
@@ -1803,7 +1804,8 @@ replicability. Set to 0 to use a pseudo-random seed (default
 behavior).
 .TP
 .BI \-\-sample_pct\~ "real"
-Subsample the given percentage of the input sequences.
+Subsample the given percentage of the input sequences. Accepted values
+range from 0.0 to 100.0.
 .TP
 .BI \-\-sample_size\~ "positive integer"
 Extract the given number of sequences.
@@ -2092,9 +2094,8 @@ maxuniquesize (dereplication)
 .IP -
 profile (clustering)
 .IP -
-relabel_md5
-.IP -
-relabel_sha1
+relabel_md5 and relabel_sha1 (chimera detection, dereplication, FASTQ
+processing, shuffling, sorting)
 .IP -
 shuffle (shuffling)
 .PP
