@@ -508,7 +508,9 @@ void process(merge_data_t * ip)
   /* check length */
 
   if ((ip->fwd_length < opt_fastq_minlen) ||
-      (ip->rev_length < opt_fastq_minlen))
+      (ip->rev_length < opt_fastq_minlen) ||
+      (ip->fwd_length > opt_fastq_maxlen) ||
+      (ip->rev_length > opt_fastq_maxlen))
     skip = 1;
 
   /* truncate sequences by quality */

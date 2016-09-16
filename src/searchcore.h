@@ -63,9 +63,9 @@
 /* the number of alignments that can be delayed */
 #define MAXDELAYED 8
 
-/* Default minimum number of word matches for word lengths 7-15 */
+/* Default minimum number of word matches for word lengths 3-15 */
 const int minwordmatches_defaults[] =
-  { -1, -1, -1, -1, -1, -1, -1, 14, 12, 11, 10,  9,  8,  7,  5,  3 };
+  { -1, -1, -1, 18, 17, 16, 15, 14, 12, 11, 10,  9,  8,  7,  5,  3 };
 
 struct hit
 {

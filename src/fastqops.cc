@@ -80,11 +80,20 @@ int fastq_get_qual(char q)
   return qual;
 }
 
-void fastq_filter()
+void filter(bool fastq_only, char * filename)
 {
-  fastx_handle h = fastq_open(opt_fastq_filter);
+  fastx_handle h = fastx_open(filename);
 
-  unsigned long filesize = fastq_get_size(h);
+  if (!h)
+    fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
+
+  if (fastq_only && ! h->is_fastq)
+    fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
+
+  if ((opt_fastqout || opt_fastqout_discarded) && ! h->is_fastq)
+    fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
+
+  unsigned long filesize = fastx_get_size(h);
 
   FILE * fp_fastaout = 0;
   FILE * fp_fastqout = 0;
@@ -127,7 +136,7 @@ void fastq_filter()
       header = (char*) xmalloc(header_alloc);
     }
 
-  progress_init("Reading fastq file", filesize);
+  progress_init("Reading input file", filesize);
 
   long kept = 0;
   long discarded = 0;
@@ -136,12 +145,12 @@ void fastq_filter()
   char hex_md5[LEN_HEX_DIG_MD5];
   char hex_sha1[LEN_HEX_DIG_SHA1];
 
-  while(fastq_next(h, 0, chrmap_no_change))
+  while(fastx_next(h, 0, chrmap_no_change))
     {
-      long length = fastq_get_sequence_length(h);
-      char * d = fastq_get_header(h);
-      char * p = fastq_get_sequence(h);
-      char * q = fastq_get_quality(h);
+      long length = fastx_get_sequence_length(h);
+      char * d = fastx_get_header(h);
+      char * p = fastx_get_sequence(h);
+      char * q = fastx_get_quality(h);
 
       /* strip initial part */
       if (opt_fastq_stripleft > 0)
@@ -169,15 +178,22 @@ void fastq_filter()
             length = 0;
         }
       
-      /* quality truncation */
-      for (long i = 0; i < length; i++)
+      /* quality and ee truncation */
+      double ee = 0.0;
+      if (h->is_fastq)
         {
-          int qual = fastq_get_qual(q[i]);
-
-          if (qual <= opt_fastq_truncqual)
+          for (long i = 0; i < length; i++)
             {
-              length = i;
-              break;
+              int qual = fastq_get_qual(q[i]);
+              ee += exp10(- qual / 10.0);
+              
+              if ((qual <= opt_fastq_truncqual) ||
+                  (ee > opt_fastq_truncee))
+                {
+                  ee -= exp10(- qual / 10.0);
+                  length = i;
+                  break;
+                }
             }
         }
 
@@ -190,29 +206,23 @@ void fastq_filter()
             ncount++;
         }
 
-      /* compute ee */
-      double ee = 0.0;
-      for (long i = 0; i < length; i++)
-        {
-          int qual = fastq_get_qual(q[i]);
-          ee += exp10(- qual / 10.0);
-        }
-
       if ((length >= opt_fastq_minlen) &&
+          (length <= opt_fastq_maxlen) &&
           ((opt_fastq_trunclen == 0) || (length >= opt_fastq_trunclen)) &&
+          (ncount <= opt_fastq_maxns) &&
           (ee <= opt_fastq_maxee) &&
-          (ee / length <= opt_fastq_maxee_rate) &&
-          (ncount <= opt_fastq_maxns))
+          (ee / length <= opt_fastq_maxee_rate))
         {
           /* keep the sequence */
 
           kept++;
 
-          if ((unsigned long)(length) < fastq_get_sequence_length(h))
+          if ((unsigned long)(length) < fastx_get_sequence_length(h))
             {
               truncated++;
               p[length] = 0;
-              q[length] = 0;
+              if (h->is_fastq)
+                q[length] = 0;
             }
 
           if (opt_fastaout)
@@ -220,13 +230,13 @@ void fastq_filter()
               if (opt_eeout || opt_fastq_eeout)
                 fasta_print_relabel_ee(fp_fastaout,
                                        p, length,
-                                       d, fastq_get_header_length(h),
+                                       d, fastx_get_header_length(h),
                                        1, kept,
                                        ee);
               else
                 fasta_print_relabel(fp_fastaout,
                                     p, length,
-                                    d, fastq_get_header_length(h),
+                                    d, fastx_get_header_length(h),
                                     1, kept);
             }
           if (opt_fastqout)
@@ -260,21 +270,21 @@ void fastq_filter()
 
           discarded++;
 
-          p = fastq_get_sequence(h);
-          q = fastq_get_quality(h);
+          p = fastx_get_sequence(h);
+          q = fastx_get_quality(h);
 
           if (opt_fastaout_discarded)
             {
               if (opt_eeout || opt_fastq_eeout)
                 fasta_print_relabel_ee(fp_fastaout_discarded,
                                        p, length,
-                                       d, fastq_get_header_length(h),
+                                       d, fastx_get_header_length(h),
                                        1, discarded,
                                        ee);
               else
                 fasta_print_relabel(fp_fastaout_discarded,
                                     p, length,
-                                    d, fastq_get_header_length(h),
+                                    d, fastx_get_header_length(h),
                                     1, discarded);
             }
 
@@ -303,7 +313,7 @@ void fastq_filter()
             }
         }
 
-      progress_update(fastq_get_position(h));
+      progress_update(fastx_get_position(h));
     }
   progress_done();
 
@@ -328,7 +338,17 @@ void fastq_filter()
   if (opt_fastqout_discarded)
     fclose(fp_fastqout_discarded);
 
-  fastq_close(h);
+  fastx_close(h);
+}
+
+void fastq_filter()
+{
+  filter(1, opt_fastq_filter);
+}
+
+void fastx_filter()
+{
+  filter(0, opt_fastx_filter);
 }
 
 void fastq_chars()
@@ -624,7 +644,7 @@ void fastq_stats()
             {
               char * msg;
               if (asprintf(& msg,
-"FASTQ quality value (%d) out of range (%d-%d).\n"
+"FASTQ quality value (%d) out of range (%ld-%ld).\n"
 "Please adjust the FASTQ quality base character or range with the\n"
 "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n"
 "diagnosis with suggested values, please run vsearch --fastq_chars file.",

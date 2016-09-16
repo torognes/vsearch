@@ -741,10 +741,10 @@ convert between different FASTQ file variants, use the
 \-\-fastq_convert command. Statistical analysis of the quality and
 length of the sequences in a FASTQ file may be performed with the
 \-\-fastq_stats and \-\-fastq_eestats commands. Sequences may be
-shortened, filtered and converted by the \-\-fastq_filter
-command. Paired-end reads can be merged using the \-\-fastq_mergepairs
-command. Finally, the \-\-fastx_revcomp command will reverse
-complement sequences.
+shortened, filtered and converted by the \-\-fastq_filter or
+\-\-fastx_filter commands. Paired-end reads can be merged using the
+\-\-fastq_mergepairs command. Finally, the \-\-fastx_revcomp command
+will reverse complement sequences.
 .PP
 .TP 9
 .B \-\-eeout
@@ -763,9 +763,9 @@ of errors are the number of differences in the overlap region of the
 merged sequence relative to each of the reads in the pair.
 .TP
 .BI \-\-fastaout \0filename
-When using \-\-fastq_filter or \-\-fastq_mergepairs, write to the
-given FASTA-formatted file the sequences passing the filter, or the
-merged sequences.
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+write to the given FASTA-formatted file the sequences passing the
+filter, or the merged sequences.
 .TP
 .BI \-\-fastaout_notmerged_fwd \0filename
 When using \-\-fastq_mergepairs, write forward reads not merged to the
@@ -776,8 +776,8 @@ When using \-\-fastq_mergepairs, write reverse reads not merged to the
 specified FASTA file.
 .TP
 .BI \-\-fastaout_discarded \0filename
-Write sequences that do not pass the filter of the \-\-fastq_filter
-command to the given FASTA-formatted file.
+Write sequences that do not pass the filter of the \-\-fastq_filter or
+\-\-fastx_filter command to the given FASTA-formatted file.
 .TP
 .B \-\-fastq_allowmergestagger
 When using \-\-fastq_mergepairs, allow to merge staggered read
@@ -848,23 +848,9 @@ EE distributions, the following statistics are included: minimum value
 with \-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qmax.
 .TP
 .BI \-\-fastq_filter \0filename
-Shorten and/or filter the sequences in the given FASTQ file and output
-the remaining sequences to the FASTQ file specified with the
-\-\-fastqout option and, after conversion, to the FASTA file specified
-with the \-\-fastaout option. The discarded sequences will be written
-to the files specified with the \-\-fastaout_discarded and
-\-\-fastqout_discarded options. Sequences may be shortened using the
-options \-\-fastq_stripleft, \-\-fastq_trunclen, and
-\-\-fastq_truncqual. The sequences may be filtered using the options
-\-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxns,
-\-\-fastq_minlen and \-\-fastq_trunclen. If shortening results in an
-empty sequence, it will be discarded. The sequences are first
-shortened and then filtered based on the remaining bases. If no
-shortening or filtering options are given, all sequences will be
-written to the output files, possibly after conversion from FASTQ to
-FASTA format. The \-\-relabel option may be used to relabel the output
-sequences. The \-\-eeout may be used to output the expected number of
-errors in each sequence.
+Shorten and/or filter sequences in the given FASTQ file. Similar to
+the \-\-fastx_filter command, but works only on FASTQ files. See
+\-\-fastx_filter for details.
 .TP
 .BI \-\-fastq_maxdiffs\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the maximum number of
@@ -873,20 +859,25 @@ has a strong influence on the merging success rate. The default
 value is 5.
 .TP
 .BI \-\-fastq_maxee\~ real
-When using \-\-fastq_filter or \-\-fastq_mergepairs, discard sequences
-with more than the specified number of expected errors.
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+discard sequences with more than the specified number of expected
+errors.
 .TP
 .BI \-\-fastq_maxee_rate\~ real
-When using \-\-fastq_filter, discard sequences with more than the
-specified number of expected errors per base.
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences
+with more than the specified number of expected errors per base.
+.TP
+.BI \-\-fastq_maxlen\~ "positive integer"
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+discard sequences with more than the specified number of bases.
 .TP
 .BI \-\-fastq_maxmergelen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the maximum length of the
 merged sequence. By default there is no limit.
 .TP
 .BI \-\-fastq_maxns\~ "positive integer"
-When using \-\-fastq_filter or \-\-fastq_mergepairs, discard sequences
-with more than the specified number of N's.
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+discard sequences with more than the specified number of N's.
 .TP
 .BI \-\-fastq_mergepairs\0 filename
 Merge paired-end sequence reads into one sequence. The method has some
@@ -917,8 +908,9 @@ respectively. Other relevant options are: \-\-fastq_ascii,
 and \-\-label_suffix.
 .TP
 .BI \-\-fastq_minlen\~ "positive integer"
-When using \-\-fastq_filter or \-\-fastq_mergepairs, discard sequences
-with less than the specified number of bases (default 1).
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+discard sequences with less than the specified number of bases
+(default 1).
 .TP
 .BI \-\-fastq_minmergelen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the minimum length of the
@@ -1039,31 +1031,36 @@ position with a quality \fIQ\fR below 5, 10, 15 or 20 (option
 .RE
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
-When using \-\-fastq_filter, strip the specified number of bases from
-the beginning of the reads.
+When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
+number of bases from the beginning of the reads.
 .TP
 .BI \-\-fastq_tail\~ "positive integer"
 When using \-\-fastq_chars, count the number of times a series of
 characters of length \fIk\fR appears at the end of quality strings. By
 default, \fIk\fR = 4.
 .TP
+.BI \-\-fastq_truncee\~ real
+When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences so
+that their total expected error will not be higher than the specified
+value.
+.TP
 .BI \-\-fastq_trunclen\~ "positive integer"
-When using \-\-fastq_filter, truncate sequences to the specified
-length. Sequences that are shorter will be discarded.
+When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences to
+the specified length. Sequences that are shorter will be discarded.
 .TP
 .BI \-\-fastq_truncqual\~ "positive integer"
-When using \-\-fastq_filter, truncate sequences starting from the
-first base with the specified base quality score value or lower. Empty
-sequences will be discarded.
+When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences
+starting from the first base with the specified base quality score
+value or lower.
 .TP
 .BI \-\-fastqout \0filename
-When using \-\-fastq_filter or \-\-fastq_mergepairs, write to the
-given FASTQ-formatted file the sequences passing the filter, or the
-merged sequences.
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+write to the given FASTQ-formatted file the sequences passing the
+filter, or the merged sequences.
 .TP
 .BI \-\-fastqout_discarded \0filename
-When using \-\-fastq_filter, write sequences that do not pass the
-filter to the given FASTQ-formatted file.
+When using \-\-fastq_filter or \-\-fastx_filter, write sequences that
+do not pass the filter to the given FASTQ-formatted file.
 .TP
 .BI \-\-fastqout_notmerged_fwd \0filename
 When using \-\-fastq_mergepairs, write forward reads not merged to the
@@ -1072,6 +1069,27 @@ specified FASTQ file.
 .BI \-\-fastqout_notmerged_rev \0filename
 When using \-\-fastq_mergepairs, write reverse reads not merged to the
 specified FASTQ file.
+.TP
+.BI \-\-fastx_filter \0filename
+Shorten and/or filter the sequences in the given FASTA or FASTQ file
+and output the remaining sequences to the FASTQ file specified with
+the \-\-fastqout option and to the FASTA file specified with the
+\-\-fastaout option. The discarded sequences will be written to the
+files specified with the \-\-fastaout_discarded and
+\-\-fastqout_discarded options. The input format (FASTA or FASTQ) is
+automatically detected. Output can not be written to FASTQ files if
+the input is in FASTA format. Sequences may be shortened using the
+options \-\-fastq_stripleft, \-\-fastq_truncee, \-\-fastq_trunclen and
+\-\-fastq_truncqual. The sequences may be filtered using the options
+\-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
+\-\-fastq_maxns, \-\-fastq_minlen and \-\-fastq_trunclen. If
+shortening results in an empty sequence, it will be discarded. The
+sequences are first shortened and then filtered based on the remaining
+bases. If no shortening or filtering options are given, all sequences
+will be written to the output files, possibly after conversion from
+FASTQ to FASTA format. The \-\-relabel option may be used to relabel
+the output sequences. The \-\-eeout may be used to output the expected
+number of errors in each sequence.
 .TP
 .BI \-\-fastx_revcomp \0filename
 Reverse-complement the sequences in the given FASTA or FASTQ file to a
@@ -1551,10 +1569,11 @@ Reject target sequences with an abundance lower than \fIinteger\fR.
 .TP
 .BI \-\-minwordmatches\~ "non-negative integer"
 Minimum number of word matches required for a sequence to be
-considered further. Default value is 10 for the default word length
-8. For word lengths 7-15, the default minimum word matches is 14, 10,
-9, 8, 6, 5, 4, 3 and 2, respectively. If the query sequence has fewer
-unique words than the number specified, all words must match.
+considered further. Default value is 12 for the default word length
+8. For word lengths 3-15, the default minimum word matches are 18, 17,
+16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the query
+sequence has fewer unique words than the number specified, all words
+in the query must match.
 .TP
 .BI \-\-mismatch\~ "integer"
 Score assigned to a mismatch (i.e. different nucleotides) in the
@@ -1683,7 +1702,7 @@ value indicated by \-\-id.
 .TP
 .BI \-\-wordlength\~ "positive integer"
 Length of words (i.e. \fIk\fR-mers) for database indexing. The range
-of possible values goes from 7 to 15, but values near 8 or 9 are
+of possible values goes from 3 to 15, but values near 8 or 9 are
 generally recommended. Longer words may reduce the sensitivity/recall
 for weak similarities, but can increase precision. On the other hand,
 shorter words may increase sensitivity or recall, but may reduce
@@ -2648,6 +2667,10 @@ Improved error message for bad FASTQ quality values. Improved manual.
 .BR v2.0.5\~ "released September 9, 2016"
 Added options to output discarded sequences from subsampling to
 separate files. Updated manual.
+.TP
+.BR v2.0.6\~ "released September 16, 2016"
+New options: \-\-fastq_maxlen, \-\-fastq_truncee. New command: fastx_filter.
+Allowed minwordmatches down to 3.
 .RE
 .LP
 .\" ============================================================================
