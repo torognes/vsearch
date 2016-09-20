@@ -1729,6 +1729,42 @@ will always produce the same output order (useful for
 replicability). Set to 0 to use a pseudo-random seed (default
 behavior).
 .TP
+.BI \-\-relabel \0string
+Relabel sequences using the prefix \fIstring\fR and a ticker (1, 2, 3,
+etc.) to construct the new headers. Use \-\-sizeout to conserve the
+abundance annotations.
+.TP
+.B \-\-relabel_keep
+When relabelling, keep the old identifier in the header after a space.
+.TP
+.B \-\-relabel_md5
+Relabel sequences using the MD5 message digest algorithm applied to
+each sequence. Former sequence headers are discarded. The sequence is
+converted to upper case and U is replaced by T before the digest is
+computed. The MD5 digest is a cryptographic hash function designed to
+minimize the probability that two different inputs will give the same
+output, even for very similar, but non-identical inputs. Still, there
+will always be a very small, but non-zero, probability that two
+different inputs will give the same result. The MD5 digest generates a
+128-bit (16-byte) digest that is represented by 16 hexadecimal numbers
+(using 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve
+the abundance annotations.
+.TP
+.B \-\-relabel_sha1
+Relabel sequences using the SHA1 message digest algorithm applied to
+each sequence. It is similar to the \-\-relabel_md5 option but uses
+the SHA1 algorithm instead of the MD5 algorithm. The SHA1 digest
+generates a 160-bit (20-byte) result that is represented by 20
+hexadecimal numbers (40 symbols). The probability of a collision (two
+non-identical sequences having the same digest) is smaller for the
+SHA1 algorithm than it is for the MD5 algorithm. Use \-\-sizeout to
+conserve the abundance annotations.
+.TP
+.B \-\-sizeout
+When using \-\-relabel, \-\-relabel_md5 or \-\-relabel_sha1, preserve
+and report abundance annotations to the output fasta file (using the
+pattern ";size=\fIinteger\fR;").
+.TP
 .BI \-\-shuffle \0filename
 Pseudo-randomly shuffle the order of sequences contained in
 \fIfilename\fR.
