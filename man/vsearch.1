@@ -2361,8 +2361,8 @@ First public release.
 .BR v1.0.1\~ "released December 1st, 2014"
 Bug fixes (sortbysize, semicolon after size annotation in headers) and
 minor changes (labels as secondary sort key for most sorts, treat T
-and U as identical for dereplication, only output size in dbmatched
-file if sizeout specified).
+and U as identical for dereplication, only output size in
+\-\-dbmatched file if \-\-sizeout specified).
 .TP
 .BR v1.0.2\~ "released December 6th, 2014"
 Bug fixes (ssse3/sse4.1 requirement, memory leak).
@@ -2371,8 +2371,8 @@ Bug fixes (ssse3/sse4.1 requirement, memory leak).
 Bug fix (now writes help to stdout instead of stderr).
 .TP
 .BR v1.0.4\~ "released December 8th, 2014"
-Added \-\-allpairs_global option. Reduced memory requirements
-slightly. Removed memory leaks.
+Added \-\-allpairs_global option. Reduce memory requirements slightly
+and eliminate memory leaks.
 .TP
 .BR v1.0.5\~ "released December 9th, 2014"
 Fixes a minor bug with \-\-allpairs_global and \-\-acceptall options.
@@ -2398,7 +2398,7 @@ abundance before clustering,
 meaning of userfields qlo, qhi, tlo, thi changed for compatibility
 with usearch,
 .IP -
-new userfields qilo, qihi, tilo, tihi gives alignment coordinates
+new userfields qilo, qihi, tilo, tihi give alignment coordinates
 ignoring terminal gaps,
 .IP -
 in \-\-uc output files, a perfect alignment is indicated with a "="
@@ -2420,8 +2420,8 @@ Fixes a bug in the function sorting sequences by decreasing abundance
 (\-\-sortbysize).
 .TP
 .BR v1.0.10\~ "released January 23rd, 2015"
-Fixes a bug where the sizein option was ignored and always treated as
-on, affecting clustering and dereplication commands.
+Fixes a bug where the \-\-sizein option was ignored and always treated
+as on, affecting clustering and dereplication commands.
 .TP
 .BR v1.0.11\~ "released February 5th, 2015"
 Introduces the possibility to output results in SAM format (for
@@ -2438,7 +2438,7 @@ memory leak.  Also increased line buffer for reading FASTA files to
 .TP
 .BR v1.0.14\~ "released February 17th, 2015"
 Fix a bug where the multiple alignment and consensus sequence computed
-after clustering ignored the strand of the sequences.  Also decreased
+after clustering ignored the strand of the sequences. Also decreased
 size of line buffer for reading FASTA files to 1MB again due to
 excessive stack memory usage.
 .TP
@@ -2451,9 +2451,9 @@ Integrated patches from Debian for increased compatibility with
 various architectures.
 .TP
 .BR v1.1.0\~ "released February 20th, 2015"
-Added the \-\-quiet option to suppress all output to stdout and stdout
-except for warnings and fatal errors.
-Added the \-\-log option to write messages to a log file.
+Added the \-\-quiet option to suppress all output to stdout and stderr
+except for warnings and fatal errors. Added the \-\-log option to
+write messages to a log file.
 .TP
 .BR v1.1.1\~ "released February 20th, 2015"
 Added info about \-\-log and \-\-quiet options to help text.
@@ -2486,7 +2486,7 @@ Fixed bug in hexadecimal digits of MD5 and SHA1 digests. Added
 Fixed compilation problems with zlib and bzip2lib.
 .TP
 .BR v1.3.5\~ "released September 17th, 2015"
-Minor configuration/makefile changes to compile to native cpu and
+Minor configuration/makefile changes to compile to native CPU and
 simplify makefile.
 .TP
 .BR v1.4.0\~ "released September 25th, 2015"
@@ -2508,10 +2508,10 @@ OS X.
 .BR v1.4.4\~ "released October 3rd, 2015"
 Remove debug message.
 .TP
-.BR v1.4.5\~ "released October 6rd, 2015"
+.BR v1.4.5\~ "released October 6th, 2015"
 Fix memory allocation bug when reading long FASTA sequences.
 .TP
-.BR v1.4.6\~ "released October 6rd, 2015"
+.BR v1.4.6\~ "released October 6th, 2015"
 Fix subtle bug in SIMD alignment code that reduced accuracy.
 .TP
 .BR v1.4.7\~ "released October 7th, 2015"
@@ -2564,8 +2564,8 @@ Fixed a bug in detection of the file format (FASTA/FASTQ) of a gzip
 compressed input file.
 .TP
 .BR v1.9.1\~ "released November 13th, 2015"
-Fixed memory leak and a bug in score computation in fastq_mergepairs,
-and improved speed.
+Fixed memory leak and a bug in score computation in
+\-\-fastq_mergepairs, and improved speed.
 .TP
 .BR v1.9.2\~ "released November 17th, 2015"
 Fixed a bug in the computation of some values with \-\-fastq_stats.
@@ -2597,38 +2597,40 @@ extremely short sequences.
 Adjusted default minimum number of word matches during searches for
 improved performance.
 .TP
-.BR v1.9.10\~ "released January 25nd, 2016"
+.BR v1.9.10\~ "released January 25th, 2016"
 Fixed bug related to masking and lower case database sequences.
 .TP
 .BR v1.10.0\~ "released February 11th, 2016"
 Parallelized and improved merging of paired-end reads and adjusted
 some defaults. Removed progress indicator when stderr is not a
 terminal. Added \-\-fasta_score option to report chimera scores in
-FASTA files. Added rereplicate and fastq_eestats commands. Fixed
-typos. Added relabelling to files produced with \-\-consout and
-\-\-profile options.
+FASTA files. Added \-\-rereplicate and \-\-fastq_eestats
+commands. Fixed typos. Added relabelling to files produced with
+\-\-consout and \-\-profile options.
 .TP
-.BR v1.10.1\~ "released February 23, 2016"
-Fixed a bug affecting the fastq_mergepairs command causing FASTQ
-headers to be truncated at first space. Full headers are now included
-in the output (no matter if --notrunclabels is in effect or not).
+.BR v1.10.1\~ "released February 23rd, 2016"
+Fixed a bug affecting the \-\-fastq_mergepairs command causing FASTQ
+headers to be truncated at first space (despite the bug fix release
+1.9.0 of November 12th, 2015). Full headers are now included in the
+output (no matter if \-\-notrunclabels is in effect or not).
 .TP
-.BR v1.10.2\~ "released March 18, 2016"
-Fixed a bug causing a segmentation fault when running usearch_global
-with an empty query sequence. Also fixed a bug causing imperfect
-alignments to be reported with an alignment string of "=" in uc output
-files. Fixed typos in man file. Fixed fasta/fastq processing code
-regarding presence or absence of compression library header files.
+.BR v1.10.2\~ "released March 18th, 2016"
+Fixed a bug causing a segmentation fault when running
+\-\-usearch_global with an empty query sequence. Also fixed a bug
+causing imperfect alignments to be reported with an alignment string
+of "=" in uc output files. Fixed typos in man file. Fixed fasta/fastq
+processing code regarding presence or absence of compression library
+header files.
 .TP
-.BR v1.11.1\~ "released April 13, 2016"
-Added strand information in UC file for derep_fulllength and
-derep_prefix. Added expected errors (ee) to header of FASTA files
+.BR v1.11.1\~ "released April 13th, 2016"
+Added strand information in UC file for \-\-derep_fulllength and
+\-\-derep_prefix. Added expected errors (ee) to header of FASTA files
 specified with \-\-fastaout and \-\-fastaout_discarded when \-\-eeout
 or \-\-fastq_eeout option is in effect for fastq_filter and
 fastq_mergepairs. The options \-\-eeout and \-\-fastq_eeout are now
 equivalent.
 .TP
-.BR v1.11.2\~ "released June 21, 2016"
+.BR v1.11.2\~ "released June 21st, 2016"
 Two bugs were fixed. The first issue was related to the \-\-query_cov
 option that used a different coverage definition than the qcov
 userfield. The coverage is now defined as the fraction of the whole
@@ -2640,7 +2642,7 @@ converted to A's in the consensus. The behaviour is changed so that
 N's are produced in the consensus, and it should now be more
 compatible with usearch.
 .TP
-.BR v2.0.0\~ "released June 24, 2016"
+.BR v2.0.0\~ "released June 24th, 2016"
 This major new version supports reading from pipes. Two new options
 are added: \-\-gzip_decompress and \-\-bzip2_decompress. One of these
 options must be specified if reading compressed input from a pipe, but
@@ -2651,26 +2653,27 @@ now represent standard input (/dev/stdin) or standard output
 (/dev/stdout) when reading or writing files, respectively. Code for
 reading FASTA and FASTQ files has been refactored.
 .TP
-.BR v2.0.1\~ "released June 30, 2016"
+.BR v2.0.1\~ "released June 30th, 2016"
 Avoid segmentation fault when masking very long sequences.
 .TP
-.BR v2.0.2\~ "released July 5, 2016"
+.BR v2.0.2\~ "released July 5th, 2016"
 Avoid warnings when compiling with GCC 6.
 .TP
-.BR v2.0.3\~ "released August 2, 2016"
+.BR v2.0.3\~ "released August 2nd, 2016"
 Fixed bad compiler options resulting in Illegal instruction errors
 when running precompiled binaries.
 .TP
-.BR v2.0.4\~ "released September 1, 2016"
+.BR v2.0.4\~ "released September 1st, 2016"
 Improved error message for bad FASTQ quality values. Improved manual.
 .TP
-.BR v2.0.5\~ "released September 9, 2016"
-Added options to output discarded sequences from subsampling to
-separate files. Updated manual.
+.BR v2.0.5\~ "released September 9th, 2016"
+Add options \-\-fastaout_discarded and \-\-fastqout_discarded to
+output discarded sequences from subsampling to separate files. Updated
+manual.
 .TP
-.BR v2.1.0\~ "released September 16, 2016"
-New options: \-\-fastq_maxlen, \-\-fastq_truncee. New command: fastx_filter.
-Allowed minwordmatches down to 3.
+.BR v2.1.0\~ "released September 16th, 2016"
+New command: \-\-fastx_filter. New options: \-\-fastq_maxlen,
+\-\-fastq_truncee. Allow \-\-minwordmatches down to 3.
 .RE
 .LP
 .\" ============================================================================
