@@ -2159,8 +2159,8 @@ at least 1.5 times more abundant than chimeras. Output non-chimeric
 sequences in fasta format (no wrapping):
 .PP
 .RS
-\fBvsearch\fR \-\-uchime_denovo \fIqueries.fas\fR \-\-nonchimeras
-\fIresults.fas\fR \-\-fasta_width 0 \-\-abskew 1.5
+\fBvsearch\fR \-\-uchime_denovo \fIqueries.fas\fR \-\-abskew 1.5
+\-\-nonchimeras \fIresults.fas\fR \-\-fasta_width 0
 .RE
 .PP
 Cluster with a 97% similarity threshold, collect cluster centroids,
@@ -2171,43 +2171,45 @@ and write cluster descriptions using a uclust-like format:
 \-\-centroids \fIcentroids.fas\fR \-\-uc \fIclusters.uc\fR
 .RE
 .PP
-Dereplicate the sequences contained in queries.fas, take into account
-the abundance information already present, write unwrapped sequences
-to output with the new abundance information, discard all sequences
-with an abundance of 1:
+Dereplicate the sequences contained in \fIqueries.fas\fR, take into
+account the abundance information already present, write unwrapped
+fasta sequences to \fIqueries_unique.fas\fR with the new abundance
+information, discard all sequences with an abundance of 1:
 .PP
 .RS
-\fBvsearch\fR \-\-derep_fulllength \fIqueries.fas\fR \-\-output
-\fIqueries_masked.fas\fR \-\-sizein \-\-sizeout \-\-fasta_width 0
+\fBvsearch\fR \-\-derep_fulllength \fIqueries.fas\fR \-\-sizein
+\-\-fasta_width 0 \-\-sizeout \-\-output \fIqueries_unique.fas\fR
 \-\-minuniquesize 2
 .RE
 .PP
 Mask simple repeats and low complexity regions in the input fasta file
-(masked regions are lowercased), and write the results to the output
-file:
+with the DUST algorithm (masked regions are lowercased), and write the
+results to the output file:
 .PP
 .RS
-\fBvsearch\fR \-\-maskfasta \fIqueries.fas\fR \-\-output
-\fIqueries_masked.fas\fR \-\-qmask dust
+\fBvsearch\fR \-\-maskfasta \fIqueries.fas\fR \-\-qmask dust
+\-\-output \fIqueries_masked.fas\fR
 .RE
 .PP
 Search queries in a reference database, with a 80%-similarity
 threshold, take terminal gaps into account when calculating pairwise
-similarities:
+similarities, output pairwise alignments:
 .PP
 .RS
 \fBvsearch\fR \-\-usearch_global \fIqueries.fas\fR \-\-db
-\fIreferences.fas\fR \-\-alnout \fIresults.aln\fR \-\-id 0.8 \-\-iddef
-1
+\fIreferences.fas\fR \-\-id 0.8 \-\-iddef 1 \-\-alnout
+\fIresults.aln\fR
 .RE
 .PP
 Search a sequence dataset against itself (ignore self hits), get all
-matches with at least 60% identity, and collect results in a
-blast-like tab-separated format:
+matches with at least 60% similarity, and collect results in a
+blast-like tab-separated format. Accept an unlimited number of hits
+(\-\-maxaccepts 0), and compare each query to all other sequences,
+including unlikely candidates (\-\-maxrejects 0):
 .PP
 .RS
 \fBvsearch\fR \-\-usearch_global \fIqueries.fas\fR \-\-db
-\fIqueries.fas\fR \-\-id 0.6 \-\-self \-\-blast6out
+\fIqueries.fas\fR \-\-self \-\-id 0.6 \-\-blast6out
 \fIresults.blast6\fR \-\-maxaccepts 0 \-\-maxrejects 0
 .RE
 .PP
@@ -2220,10 +2222,11 @@ to the output file:
 \fIqueries_shuffled.fas\fR \-\-randseed 13 \-\-fasta_width 0
 .RE
 .PP
-Sort by decreasing abundance the sequences contained in queries.fas
-(using the "size=\fIinteger\fR" information), relabel the sequences
-while preserving the abundance information (with \-\-sizeout), keep
-only sequences with an abundance equal to or greater than 2:
+Sort by decreasing abundance the sequences contained in
+\fIqueries.fas\fR (using the "size=\fIinteger\fR" information),
+relabel the sequences while preserving the abundance information (with
+\-\-sizeout), keep only sequences with an abundance equal to or
+greater than 2:
 .PP
 .RS
 \fBvsearch\fR \-\-sortbysize \fIqueries.fas\fR \-\-output
