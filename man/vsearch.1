@@ -2116,32 +2116,32 @@ be more consistent.
 .PP
 .\" ============================================================================
 .SH NOVELTIES
-\fBvsearch\fR introduces new options not present in usearch 7. They
-are described in the "Options" section of this manual. Here is a short
-list:
+\fBvsearch\fR introduces new commands and new options not present in
+usearch 7. They are described in the "Options" section of this
+manual. Here is a short list:
+.RS
 .IP - 2
-alignwidth (chimera checking)
+alignwidth, borderline, fasta_score (chimera checking)
 .IP -
-borderline (chimera checking)
+cluster_size, clusterout_id, clusterout_sort, profile (clustering)
 .IP -
-cluster_size (clustering)
-.IP -
-clusterout_id (clustering)
-.IP -
-clusterout_sort (clustering)
-.IP -
-fasta_width (general option)
+fasta_width, gzip_decompress, bzip2_decompress (general option)
 .IP -
 iddef (clustering, pairwise alignment, searching)
 .IP -
 maxuniquesize (dereplication)
 .IP -
-profile (clustering)
-.IP -
 relabel_md5 and relabel_sha1 (chimera detection, dereplication, FASTQ
 processing, shuffling, sorting)
 .IP -
 shuffle (shuffling)
+.IP -
+fastq_eestats, fastq_maxlen, fastq_truncee (FASTQ processing)
+.IP -
+fastaout_discarded, fastqout_discarded (subsampling)
+.IP -
+rereplicate (dereplication/rereplication)
+.RE
 .PP
 .\" ============================================================================
 .SH EXAMPLES
