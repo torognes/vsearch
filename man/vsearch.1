@@ -1869,6 +1869,22 @@ Write the sampled sequences to \fIfilename\fR, in fasta format.
 .BI \-\-fastaout_discarded \0filename
 Write the sequences not sampled to \fIfilename\fR, in fasta format.
 .TP
+.BI \-\-fastq_ascii\~ "positive integer"
+Define the ASCII character number used as the basis for the FASTQ
+quality score. The default is 33, which is used by the Sanger /
+Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
+Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64).
+.TP
+.BI \-\-fastq_qmax\~ "positive integer"
+Specify the maximum quality score accepted when reading FASTQ
+files. The default is 41, which is usual for recent Sanger/Illumina
+1.8+ files.
+.TP
+.BI \-\-fastq_qmin\~ "positive integer"
+Specify the minimum quality score accepted for FASTQ files. The
+default is 0, which is usual for recent Sanger/Illumina 1.8+
+files. Older formats may use scores between -5 and 2.
+.TP
 .BI \-\-fastqout \0filename
 Write the sampled sequences to \fIfilename\fR, in fastq
 format. Requires input in fastq format.
@@ -1886,6 +1902,37 @@ Use \fIinteger\fR as a seed for the pseudo-random generator. A given
 seed will always produce the same output, which is useful for
 replicability. Set to 0 to use a pseudo-random seed (default
 behavior).
+.TP
+.BI \-\-relabel \0string
+Relabel sequences using the prefix \fIstring\fR and a ticker (1, 2, 3,
+etc.) to construct the new headers. Use \-\-sizeout to conserve the
+abundance annotations.
+.TP
+.B \-\-relabel_keep
+When relabelling, keep the old identifier in the header after a space.
+.TP
+.B \-\-relabel_md5
+Relabel sequences using the MD5 message digest algorithm applied to
+each sequence. Former sequence headers are discarded. The sequence is
+converted to upper case and U is replaced by T before the digest is
+computed. The MD5 digest is a cryptographic hash function designed to
+minimize the probability that two different inputs will give the same
+output, even for very similar, but non-identical inputs. Still, there
+will always be a very small, but non-zero, probability that two
+different inputs will give the same result. The MD5 digest generates a
+128-bit (16-byte) digest that is represented by 16 hexadecimal numbers
+(using 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve
+the abundance annotations.
+.TP
+.B \-\-relabel_sha1
+Relabel sequences using the SHA1 message digest algorithm applied to
+each sequence. It is similar to the \-\-relabel_md5 option but uses
+the SHA1 algorithm instead of the MD5 algorithm. The SHA1 digest
+generates a 160-bit (20-byte) result that is represented by 20
+hexadecimal numbers (40 symbols). The probability of a collision (two
+non-identical sequences having the same digest) is smaller for the
+SHA1 algorithm than it is for the MD5 algorithm. Use \-\-sizeout to
+conserve the abundance annotations.
 .TP
 .BI \-\-sample_pct\~ "real"
 Subsample the given percentage of the input sequences. Accepted values
