@@ -1806,20 +1806,21 @@ file.
 .\" ----------------------------------------------------------------------------
 Subsampling options:
 .RS
-Subsampling will randomly extract a certain number or a certain
-percentage of the sequences in the input file. If the \-\-sizein
-option is in effect, the abundances of the input sequences will be
-taken into account and the sampling will be performed from the input
-sequences as if they had not been dereplicated. The extraction is
-performed as a random sampling with a uniform distribution among the
-input sequences and is performed without replacement. The input file
-is specified with \-\-fastx_subsample option, the output files are
-specified with the \-\-fastaout and \-\-fastqout options and the
-amount of sequences to be sampled is specified with the \-\-sample_pct
-or \-\-sample_size options. The sequences not sampled may be written
-to files specified with the options \-\-fasta_discarded and
-\-\-fastq_discarded. The \-\-fastq_ascii, \-\-fastq_qmin and
-\-\-fastq_qmax options are also available.
+Subsampling randomly extracts a certain number or a certain percentage
+of the sequences in the input file. If the \-\-sizein option is in
+effect, the abundances of the input sequences is taken into account
+and the sampling is performed as if the input sequences were
+rereplicated, subsampled and dereplicated before being written to the
+output file. The extraction is performed as a random sampling with a
+uniform distribution among the input sequences and is performed
+without replacement. The input file is specified with
+\-\-fastx_subsample option, the output files are specified with the
+\-\-fastaout and \-\-fastqout options and the amount of sequences to
+be sampled is specified with the \-\-sample_pct or \-\-sample_size
+options. The sequences not sampled may be written to files specified
+with the options \-\-fasta_discarded and \-\-fastq_discarded. The
+\-\-fastq_ascii, \-\-fastq_qmin and \-\-fastq_qmax options are also
+available.
 .PP
 .TP 9
 .BI \-\-fastaout \0filename
