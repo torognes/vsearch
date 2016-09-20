@@ -736,7 +736,7 @@ FASTA/FASTQ file processing options:
 Analyse, shorten, filter, convert or merge sequences in FASTQ files,
 or reverse complement sequences in FASTA or FASTQ files. The
 \-\-fastq_chars command can be used to analyse FASTQ files to identify
-the type of FASTQ file and the range of quality score values used. To
+the quality encoding and the range of quality score values used. To
 convert between different FASTQ file variants, use the
 \-\-fastq_convert command. Statistical analysis of the quality and
 length of the sequences in a FASTQ file may be performed with the
@@ -809,21 +809,21 @@ letter. For each character present in the quality strings,
 frequency, and the number of times a \fIk\fR-mer of that character
 appears at the end of quality strings. The length of the \fIk\fR-mer
 can be set using \-\-fastq_tail (4 by default). The command
-\-\-fastq_chars tries to automatically detect the type of FASTQ file
-given (Solexa, Illumina 1.3+, Illumina 1.5+ or Illumina 1.8+/Sanger)
-by analyzing the range of observed quality score values. In case of
+\-\-fastq_chars tries to automatically detect the quality encoding
+(Solexa, Illumina 1.3+, Illumina 1.5+ or Illumina 1.8+/Sanger) by
+analyzing the range of observed quality score values. In case of
 success, \-\-fastq_chars suggests values for the \-\-fastq_ascii (33
 or 64), \-\-fastq_qmin and \-\-fastq_qmax options to be used with the
 other commands that require a FASTQ input file.
 .TP
 .BI \-\-fastq_convert \0filename
 Convert between the different variants of the FASTQ file format. The
-type of input file must be specified with the \-\-fastq_ascii option
-(either 33 or 64, the default is 33), and the type of output file must
-be specified with the \-\-fastq_asciiout option (default 33). The
-mimimum and maximum output quality scores may be limited using the
-\-\-fastq_qminout and \-\-fastq_qmaxout options. The output file is
-specified with the \-\-fastqout option.
+quality encoding of the input file must be specified with the
+\-\-fastq_ascii option (either 33 or 64, the default is 33), and the
+output quality encoding must be specified with the \-\-fastq_asciiout
+option (default 33). The mimimum and maximum output quality scores may
+be limited using the \-\-fastq_qminout and \-\-fastq_qmaxout
+options. The output file is specified with the \-\-fastqout option.
 .TP
 .B \-\-fastq_eeout
 When using \-\-fastq_filter or \-\-fastq_mergepairs, include the
@@ -844,8 +844,9 @@ the expected number of accumulated errors from the beginning of the
 reads and until the current position (EE). For each of the Q, Pe and
 EE distributions, the following statistics are included: minimum value
 (Min), lower quartile (Low), median (Med), mean (Mean), upper quartile
-(Hi), and maximum value (Max). The type of FASTQ file may be specified
-with \-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qmax.
+(Hi), and maximum value (Max). The quality encoding and the range of
+quality values may be specified with \-\-fastq_ascii \-\-fastq_qmin
+and \-\-fastq_qmax.
 .TP
 .BI \-\-fastq_filter \0filename
 Shorten and/or filter sequences in the given FASTQ file. Similar to
@@ -949,11 +950,11 @@ scores between -5 and 2.
 .TP
 .BI \-\-fastq_stats \0filename
 Analyze a FASTQ file and report the number of reads it contains. The
-type of FASTQ file may be specified with \-\-fastq_ascii
-\-\-fastq_qmin and \-\-fastq_qmax. That command requires the \-\-log
-option and outputs the following detailed statistics on read length,
-quality score, length vs. quality distributions, and length / quality
-filtering:
+quality encoding and the range of quality values may be specified with
+\-\-fastq_ascii \-\-fastq_qmin and \-\-fastq_qmax. That command
+requires the \-\-log option and outputs the following detailed
+statistics on read length, quality score, length vs. quality
+distributions, and length / quality filtering:
 .RS
 .TP
 Read length distribution:
