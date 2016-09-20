@@ -1717,6 +1717,8 @@ default value is 8.
 .\" ----------------------------------------------------------------------------
 Shuffling options:
 .RS
+Fasta entries in the input file are outputted in a pseudo-random
+order.
 .TP 9
 .BI \-\-output \0filename
 Write the shuffled sequences to \fIfilename\fR, in fasta format.
@@ -1732,7 +1734,8 @@ Pseudo-randomly shuffle the order of sequences contained in
 \fIfilename\fR.
 .TP
 .BI \-\-topn\~ "positive integer"
-Output only the top \fIinteger\fR sequences.
+Output only the first \fIinteger\fR sequences after pseudo-random
+reordering.
 .TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
