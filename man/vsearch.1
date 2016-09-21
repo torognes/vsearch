@@ -616,9 +616,41 @@ When comparing sequences with the cluster seed, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
 .TP
 .BI \-\-uc \0filename
-Output clustering results in \fIfilename\fR using a uclust-like
-format. For a description of the format, see
-<http://www.drive5.com/usearch/manual/ucout.html>.
+Output clustering results in \fIfilename\fR using a tab-separated
+uclust-like format with 10 columns and 3 different type of entries (S,
+H or C). Each fasta sequence in the input file can be either a cluster
+centroid (S) or a hit (H) assigned to a cluster. Cluster records (C)
+summarize information (size, centroid label) for each cluster. Column
+content varies with the type of entry (S, H or C):
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+Record type: S, H, or C.
+.IP \n+[step].
+Cluster number (0-based).
+.IP \n+[step].
+Sequence length (S, H), or cluster size (C).
+.IP \n+[step].
+Percentage of similarity with the centroid sequence (H), or set to "*"
+(S, C).
+.IP \n+[step].
+Match orientation + or - (H), or set to "*" (S, C).
+.IP \n+[step].
+Not used, always set to "*".
+.IP \n+[step].
+Not used, always set to "*".
+.IP \n+[step].
+Compact representation of the pairwise alignment using the CIGAR
+format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
+(deletion) and I (insertion). The equal sign "=" indicates that the
+query is identical to the centroid sequence.
+.IP \n+[step].
+Label of the query sequence (H), or of the centroid sequence (S, C).
+.IP \n+[step].
+Label of the centroid sequence (H), or set to "*" (S, C).
+.RE
+.RE
 .TP
 .B \-\-usersort
 When using \-\-cluster_smallmem, allow any sequence input order, not
