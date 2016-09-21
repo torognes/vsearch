@@ -331,17 +331,11 @@ void cluster_core_results_hit(struct hit * best,
                               char * qsequence,
                               char * qsequence_rc)
 {
-  if (opt_uc)
-    {
-      fprintf(fp_uc, "H\t%d\t%d\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
-              clusterno,
-              qseqlen,
-              best->id,
-              best->strand ? '-' : '+',
-              best->nwalignment,
-              query_head,
-              db_getheader(best->target));
-    }
+  if (fp_uc)
+    results_show_uc_one(fp_uc,
+                        best, query_head,
+                        qsequence, qseqlen, qsequence_rc,
+                        clusterno);
   
   if (fp_alnout)
     results_show_alnout(fp_alnout,

@@ -78,7 +78,8 @@ void results_show_uc_one(FILE * fp,
                          char * query_head,
                          char * qsequence,
                          long qseqlen,
-                         char * rc);
+                         char * rc,
+                         int clusterno);
 
 void results_show_userout_one(FILE * fp,
                               struct hit * hp,

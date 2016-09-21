@@ -167,7 +167,8 @@ void results_show_uc_one(FILE * fp,
                          char * query_head,
                          char * qsequence,
                          long qseqlen,
-                         char * rc)
+                         char * rc,
+                         int clusterno)
 {
   /*
     http://www.drive5.com/usearch/manual/ucout.html
@@ -180,7 +181,7 @@ void results_show_uc_one(FILE * fp,
     strand: + or -
     0
     0
-    compressed alignment, e.g. 9I92M14D
+    compressed alignment, e.g. 9I92M14D, or "=" if prefect alignment
     query label
     target label
   */
