@@ -2138,7 +2138,7 @@ void cmd_help()
               "\n"
               "Pairwise alignment\n"
               "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
-              "Options (most searching options also apply)\n"
+              " Output (most searching options also apply)\n"
               "  --alnout FILENAME           filename for human-readable alignment output\n"
               "  --acceptall                 output all pairwise alignments\n"
               "\n"
