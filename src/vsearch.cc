@@ -1984,7 +1984,7 @@ void cmd_help()
               "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
               " Parameters (most searching options also apply)\n"
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
-              "  --id REAL                   reject if identity lower\n"
+              "  --id REAL                   reject if identity lower, accepted values: 0-1.0\n"
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               "  --sizein                    propagate abundance annotation from input\n"
