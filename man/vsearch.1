@@ -620,8 +620,9 @@ Output clustering results in \fIfilename\fR using a tab-separated
 uclust-like format with 10 columns and 3 different type of entries (S,
 H or C). Each fasta sequence in the input file can be either a cluster
 centroid (S) or a hit (H) assigned to a cluster. Cluster records (C)
-summarize information (size, centroid label) for each cluster. Column
-content varies with the type of entry (S, H or C):
+summarize information (size, centroid label) for each cluster. In the
+context of clustering, the option --uc_allhits has no effect on the
+--uc output. Column content varies with the type of entry (S, H or C):
 .RS
 .RS
 .nr step 1 1
