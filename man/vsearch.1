@@ -1765,10 +1765,44 @@ present exactly the same percentage of identity, the number of hits
 reported is controlled by the \-\-maxaccepts value (1 by default).
 .TP
 .BI \-\-uc \0filename
-Output searching results in \fIfilename\fR using a uclust-like
-format. For a description of the format, see
-<http://www.drive5.com/usearch/manual/ucout.html>. Output order may
-vary when using multiple threads.
+Output searching results in \fIfilename\fR using a tab-separated
+uclust-like format with 10 columns. When using the \-\-search_exact
+command, the table layout is the same than with the
+\-\-allpairs_global. When using the \-\-usearch_global command, the
+table present 2 different type of entries: hit (H) or no hit (N). Each
+query sequence is compared to all other sequences, and the best hit
+(\-\-maxaccept 1) or several hits (\-\-maxaccept >1) are reported
+(H). Output order may vary when using multiple threads. Column content
+varies with the type of entry (H or N):
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+Record type: H, or N.
+.IP \n+[step].
+Ordinal number of the target sequence (based on input order, starting
+from zero). Set to "*" for N.
+.IP \n+[step].
+Sequence length. Set to "*" for N.
+.IP \n+[step].
+Percentage of similarity with the target sequence. Set to "*" for N.
+.IP \n+[step].
+Match orientation + or -. . Set to "." for N.
+.IP \n+[step].
+Not used, always set to zero for H, or "*" for N.
+.IP \n+[step].
+Not used, always set to zero for H, or "*" for N.
+.IP \n+[step].
+Compact representation of the pairwise alignment using the CIGAR
+format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
+(deletion) and I (insertion). The equal sign "=" indicates that the
+query is identical to the centroid sequence. Set to "*" for N.
+.IP \n+[step].
+Label of the query sequence.
+.IP \n+[step].
+Label of the target centroid sequence. Set to "*" for N.
+.RE
+.RE
 .TP
 .B \-\-uc_allhits
 When using the \-\-uc option, show all hits, not just the top hit for
