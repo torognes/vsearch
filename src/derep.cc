@@ -198,7 +198,8 @@ void derep_fulllength()
   /* alloc and init table of links to other sequences in cluster */
 
   unsigned int * nextseqtab = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
-  memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
+  const unsigned int terminal = (unsigned int)(-1);
+  memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
 
   char * match_strand = (char *) xmalloc(dbsequencecount);
   memset(match_strand, 0, dbsequencecount);
@@ -418,8 +419,8 @@ void derep_fulllength()
           fprintf(fp_uc, "S\t%ld\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
           
-          for (unsigned long next = nextseqtab[bp->seqno_first];
-               next;
+          for (unsigned int next = nextseqtab[bp->seqno_first];
+               next != terminal;
                next = nextseqtab[next])
             fprintf(fp_uc,
                     "H\t%ld\t%ld\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
@@ -519,7 +520,8 @@ void derep_prefix()
   /* alloc and init table of links to other sequences in cluster */
 
   unsigned int * nextseqtab = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
-  memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
+  const unsigned int terminal = (unsigned int)(-1);
+  memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
 
   char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
 
@@ -763,8 +765,8 @@ void derep_prefix()
           fprintf(fp_uc, "S\t%ld\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
           
-          for (unsigned long next = nextseqtab[bp->seqno_first];
-               next;
+          for (unsigned int next = nextseqtab[bp->seqno_first];
+               next != terminal;
                next = nextseqtab[next])
             fprintf(fp_uc,
                     "H\t%ld\t%lu\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
