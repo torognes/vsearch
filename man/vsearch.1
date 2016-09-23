@@ -123,65 +123,83 @@ processing.
 Comparing nucleotide sequences is at the core of \fBvsearch\fR. To
 speed up comparisons, \fBvsearch\fR implements an extremely fast
 Needleman-Wunsch algorithm, making use of the Streaming SIMD
-Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are not
-available, \fBvsearch\fR exits with an error message. Memory usage
+Extensions (SSE2) of post-2003 x86-64 CPUs. If SSE2 instructions are
+not available, \fBvsearch\fR exits with an error message. Memory usage
 increases rapidly with sequence length: for example comparing two
 sequences of length 1 kb requires 8 MB of memory per thread, and
 comparing two 10 kb sequences requires 800 MB of memory per
 thread. For comparisons involving sequences with a length product
-greater than 25,000,000, \fBvsearch\fR uses a slower alignment method
-described by Hirschberg (1975) and Myers and Miller (1988), with
-smaller memory requirements.
+greater than 25 million (for example two sequences of length 5 kb),
+\fBvsearch\fR uses a slower alignment method described by Hirschberg
+(1975) and Myers and Miller (1988), with much smaller memory
+requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
-\fBvsearch\fR input is a fasta (or fastq) file containing one or
-several nucleotide sequences. For each sequence, the sequence
-identifier is defined as the string comprised between the ">" (or "@")
-symbol and the first space, tab or the end of the line, whichever
-comes first. Additionally, if the fasta header line matches
-">[;]size=\fIinteger\fR;label", ">label;size=\fIinteger\fR;label" or
-">label;size=\fIinteger\fR[;]", \fBvsearch\fR will remove the pattern
-[;]size=\fIinteger\fR[;] from the header and interpret \fIinteger\fR
-as the number of occurrences (or abundance) of the sequence in the
-study. That abundance information is used or created during chimera
-detection, clustering, dereplication, sorting and searching.
+\fBvsearch\fR accept as input fasta or fastq files containing one or
+several nucleotidic entries. In fasta files, each nucleotidic entry is
+made of a header and a sequence. The header is defined as the string
+comprised between the '>' symbol and the first space, tab or the end
+of the line, whichever comes first. Additionally, if the header
+matches
+'>[;]size=\fIinteger\fR;label', '>label;size=\fIinteger\fR;label' or
+'>label;size=\fIinteger\fR[;]', \fBvsearch\fR will interpret
+\fIinteger\fR as the number of occurrences (or abundance) of the
+sequence in the study. That abundance information is used or created
+during chimera detection, clustering, dereplication, sorting and
+searching.
 .PP
-The nucleotide sequence is defined as a string of IUPAC symbols
+The sequence is defined as a string of IUPAC symbols
 (ACGTURYSWKMDBHVN), starting after the end of the identifier line and
 ending before the next identifier line, or the file end. \fBvsearch\fR
 silently ignores ascii characters 9 to 13, and exits with an error
-message if ascii characters 0 to 8, 14 to 31, "." or "-" are
+message if ascii characters 0 to 8, 14 to 31, '.' or '-' are
 present. All other ascii or non-ascii characters are stripped and
 complained about in a non-blocking warning message.
 .PP
+In fastq files, each entry is made of sequence header starting with a
+symbol '@', a nucleotidic sequence (same rules as for fasta
+sequences), a quality header starting with a symbol '+' and a string
+of ASCII characters (offset 33 or 64), each one encoding the quality
+value of the corresponding position in the nucleotidic sequence.
+.PP
 \fBvsearch\fR operations are case insensitive, except when soft
-masking is activated. Masking is performed by the commands for chimera
+masking is activated. Masking is automatically applied during chimera
 detection, clustering, masking, pairwise alignment and searching. Soft
-masking is specified with the options "\-\-dbmask soft" (for searching
-and chimera detection with a reference) or "\-\-qmask soft" (for
-searching, de novo chimera detection, clustering and masking). When
-using soft masking, lower case letters indicate masked symbols, while
-upper case letters indicate regular symbols. Masked symbols are never
-included in the unique index words used for searching, otherwise they
-are treated as normal symbols.
+masking is specified with the options '\-\-dbmask soft' (for searching
+and chimera detection with a reference) or '\-\-qmask soft' (for
+searching, \fIde novo\fR chimera detection, clustering and
+masking). When using soft masking, lower case letters indicate masked
+symbols, while upper case letters indicate regular symbols. Masked
+symbols are never included in the unique index words used for sequence
+comparisons, otherwise they are treated as normal symbols.
 .PP
 When comparing sequences during chimera detection, dereplication,
 searching and clustering, T and U are considered identical, regardless
 of their case. If two symbols are not identical, their alignment will
-result in the negative mismatch score (default -4), except if one or
+result in a negative mismatch score (default -4), except if one or
 both of the symbols are ambiguous (RYSWKMDBHVN) in which case the
-score is zero. Alignment of two identical ambiguous symbols (e.g. R vs
-R) also receives a score of zero.
+score is zero. Alignment of two identical ambiguous symbols (for
+example, R vs R) also receives a score of zero.
 .PP
-Input files compressed with gzip or bzip2 are automatically
-detected and decompressed if vsearch was compiled with the appropriate
-libraries. Input from pipes is supported, but then compressed input
-must be indicated using the \-\-gzip_decompress or
-\-\-bzip2_decompress options. For input files the name '\-'
-represents standard input (/dev/stdin). Multiple FASTA or FASTQ files
-may be piped into vsearch for dereplication or other operations.  When
-reading from a pipe, the progress indicator is not updated.  For
-output files the name '\-' represents standard output (/dev/stdout).
+\fBvsearch\fR can read data from standard files and write to standard
+files, but it can also read from pipes and write to pipes! For
+example, multiple fasta files can be piped into vsearch for
+dereplication. To do so, file names can be replaced with:
+.RS
+.IP - 2
+the symbol '-', representing '/dev/stdin' for input files
+or '/dev/stdout' for output files,
+.IP -
+a named pipe created with the command mkfifo,
+.IP -
+a process substitution '<(command)' as input or '>(command)' as output.
+.RE
+\fBvsearch\fR can automatically read compressed gzip or bzip2 files if
+the appropriate libraries are present during the
+compilation. \fBvsearch\fR can also read pipes streaming compressed
+gzip or bzip2 data if the options \-\-gzip_decompress or
+\-\-bzip2_decompress are selected. When reading from a pipe, the
+progress indicator is not updated.
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBvsearch\fR recognizes a large number of command-line options. For
@@ -197,17 +215,19 @@ General options:
 .RS
 .TP 9
 .B \-\-bzip2_decompress
-Decompress input using bzip2. The option is required only when reading
-from a pipe, otherwise compression is automatically detected.
+When reading from a pipe streaming bzip2-compressed data, decompress
+the data. That option is not needed when reading from a standard
+bzip2-compressed file.
 .TP
 .BI \-\-fasta_width\~ "positive integer"
 Fasta files produced by \fBvsearch\fR are wrapped (sequences are
 written on lines of \fIinteger\fR nucleotides, 80 by default). Set
-that value to 0 to eliminate the wrapping.
+that value to zero to eliminate the wrapping.
 .TP
 .B \-\-gzip_decompress
-Decompress input using gzip. The option is required only when reading
-from a pipe, otherwise compression is automatically detected.
+When reading from a pipe streaming gzip-compressed data, decompress
+the data. That option is not needed when reading from a standard
+gzip-compressed file.
 .TP
 .B \-\-help | \-h
 Display help text and exit.
@@ -218,8 +238,8 @@ program version, amount of memory available, number of cores and
 command line options, and if need be, informational messages, warnings
 and fatal errors. The start and finish times are also recorded as well
 as the elapsed time and the maximum amount of memory consumed. The
-different commands will usually also write some information about
-their results.
+different \fBvsearch\fB commands can also write additional
+informations to the log file.
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
 All \fBvsearch\fR operations will discard sequences of length equal or
@@ -227,25 +247,26 @@ greater than \fIinteger\fR (50,000 nucleotides by default).
 .TP
 .BI \-\-minseqlength\~ "positive integer"
 All \fBvsearch\fR operations will discard sequences of length smaller
-than \fIinteger\fR (1 nucleotide by default for sorting or shuffling,
-32 nucleotides for clustering, dereplication or searching).
+than \fIinteger\fR: 1 nucleotide by default for sorting or shuffling,
+32 nucleotides for clustering, dereplication or searching.
 .TP
 .B \-\-notrunclabels
 Do not truncate sequence labels at first space or tab, use the full
 header in output files.
 .TP
 .B \-\-quiet
-Suppress all output to stdout and stderr except for warnings and fatal
-error messages.
+Suppress all messages to stdout and stderr except for warnings and
+fatal error messages.
 .TP
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 256). The number of threads
 should be lesser or equal to the number of available CPU cores. The
-default is to use all available resources and to launch one thread
-per logical core. The following commands are multi-threaded:
-uchime_ref, cluster_fast, cluster_size, cluster_smallmem, maskfasta,
-allpairs_global, usearch_global.
-Only one thread is used for the other commands.
+default is to use all available resources and to launch one thread per
+logical core. The following commands are multi-threaded: uchime_ref,
+cluster_fast, cluster_size, cluster_smallmem, maskfasta,
+allpairs_global, usearch_global. Only one thread is used for the other
+commands.
+.\" fastq_mergepairs is not multithreaded in v2.1.0
 .TP
 .B \-\-version | \-v
 Output version information and exit.
@@ -257,8 +278,8 @@ Chimera detection options:
 .RS
 Chimera detection is based on a scoring function controlled by five
 options (\-\-dn, \-\-mindiffs, \-\-mindiv, \-\-minh,
-\-\-xn). Sequences are first sorted by decreasing abundance (if
-available), and compared on their \fIplus\fR strand only (case
+\-\-xn). Sequences are first sorted by decreasing abundance ,if
+available, and compared on their \fIplus\fR strand only (case
 insensitive).
 .PP
 Input sequences are masked as specified with the \-\-qmask and
@@ -266,30 +287,30 @@ Input sequences are masked as specified with the \-\-qmask and
 chimera detection is specified with the \-\-dbmask option.
 .PP
 In \fIde novo\fR mode, input fasta file should present abundance
-annotations (pattern [;]size=\fIinteger\fR[;] in the fasta
-header). The input order influences the chimera detection, so we
-recommend to sort sequences by decreasing abundance (default of
+annotations (i.e. a pattern [;]size=\fIinteger\fR[;] in the fasta
+header). Input order matters for chimera detection, so we recommend to
+sort sequences by decreasing abundance (default of
 \-\-derep_fulllength command). If your sequence set needs to be
 sorted, please see the \-\-sortbysize command in the sorting section.
 .PP
 .TP 9
 .BI \-\-abskew \0real
 When using \-\-uchime_denovo, the abundance skew is used to
-distinguish in a 3-way alignment which sequence is the chimera and
+distinguish in a three-way alignment which sequence is the chimera and
 which are the parents. The assumption is that chimeras appear later in
 the PCR amplification process and are therefore less abundant than
 their parents. The default value is 2.0, which means that the parents
 should be at least 2 times more abundant than their chimera. Any
-positive value greater than 1.0 can be used.
+positive value equal or greater than 1.0 can be used.
 .TP
 .BI \-\-alignwidth\~ "positive integer"
-When using \-\-uchimealns, set the width of the 3-way alignments. The
-default value is 80 characters. Set to 0 to eliminate wrapping.
+When using \-\-uchimealns, set the width of the three-way alignments
+(80 nucleotides by default). Set to zero to eliminate wrapping.
 .TP
 .BI \-\-borderline \0filename
 Output borderline chimeric sequences to \fIfilename\fR, in fasta
 format.  Borderline chimeric sequences are sequences that have a high
-enough score but which are not sufficiently diverged from their
+enough score but which are not sufficiently different from their
 closest parent.
 .TP
 .BI \-\-chimeras \0filename
@@ -300,17 +321,17 @@ order may vary when using multiple threads.
 When using \-\-uchime_ref, detect chimeras using the fasta-formatted
 reference sequences contained in \fIfilename\fR. Reference sequences
 are assumed to be chimera-free. Chimeras will not be detected if their
-parents (or sufficiently close relatives) are not present in the
+parents, or sufficiently close relatives, are not present in the
 database.
 .TP
 .BI \-\-dn \0real
-No vote pseudo-count (parameter \fIn\fR in the chimera scoring
-function) (default value is 1.4).
+No vote pseudo-count, corresponding to the parameter \fIn\fR in the
+chimera scoring function (default value is 1.4).
 .TP
 .B \-\-fasta_score
 Add the chimera score to the headers in the fasta output files for
-chimeras, non-chimeras and borderline sequences. A string similar to
-";uchime_denovo=0.1234;" or ";uchime_ref=5.6789;" will be added.
+chimeras, non-chimeras and borderline sequences, using the format
+';uchime_denovo=\fIfloat\fR;'.
 .TP
 .BI \-\-mindiffs\~ "positive integer"
 Minimum number of differences per segment (default value is 3).
@@ -319,9 +340,9 @@ Minimum number of differences per segment (default value is 3).
 Minimum divergence from closest parent (default value is 0.8).
 .TP
 .BI \-\-minh \0real
-Minimum score (h). Increasing this value tends to reduce the number of
-false positives and to decrease sensitivity. Default value is 0.28,
-and values ranging from 0.0 to 1.0 included are accepted.
+Minimum score (\fIh\fR). Increasing this value tends to reduce the
+number of false positives and to decrease sensitivity. Default value
+is 0.28, and values ranging from 0.0 to 1.0 included are accepted.
 .TP
 .BI \-\-nonchimeras \0filename
 Output non-chimeric sequences to \fIfilename\fR, in fasta
@@ -338,37 +359,42 @@ When relabelling, keep the old identifier in the header after a space.
 .B \-\-relabel_md5
 Relabel sequences using the MD5 message digest algorithm applied to
 each sequence. Former sequence headers are discarded. The sequence is
-converted to upper case and U is replaced by T before the digest is
-computed.  The MD5 digest is a cryptographic hash function designed to
-minimize the probability that two different inputs will give the same
-output, even for very similar, but non-identical inputs. Still, there
-will always be a very small, but non-zero, probability that two
-different inputs will give the same result. The MD5 digest generates a
-128-bit (16-byte) digest that is represented by 16 hexadecimal numbers
-(using 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve
-the abundance annotations.
+converted to upper case and each 'U' is replaced by a 'T' before
+computation of the digest. The MD5 digest is a cryptographic hash
+function designed to minimize the probability that two different
+inputs will give the same output, even for very similar, but
+non-identical inputs. Still, there will always be a very small, but
+non-zero, probability that two different inputs will give the same
+digest (a collision). MD5 generates a 128-bit (16-byte) digest that is
+represented by 16 hexadecimal numbers (using 32 symbols among
+0123456789abcdef). Use \-\-sizeout to conserve the abundance
+annotations.
+.\" The probablity of collision for two sequences is 1/2^128
 .TP
 .B \-\-relabel_sha1
 Relabel sequences using the SHA1 message digest algorithm applied to
 each sequence. It is similar to the \-\-relabel_md5 option but uses
-the SHA1 algorithm instead of the MD5 algorithm. The SHA1 digest
-generates a 160-bit (20-byte) result that is represented by 20
-hexadecimal numbers (40 symbols). The probability of a collision (two
-non-identical sequences having the same digest) is smaller for the
-SHA1 algorithm than it is for the MD5 algorithm.
+the SHA1 algorithm instead of the MD5 algorithm. SHA1 generates a
+160-bit (20-byte) digest that is represented by 20 hexadecimal numbers
+(40 symbols). The probability of a collision (two non-identical
+sequences resulting in the same digest) is smaller for the SHA1
+algorithm than it is for the MD5 algorithm.
+.\" The probablity of collision for two sequences is 1/2^160
 .TP
 .B \-\-self
 When using \-\-uchime_ref, ignore a reference sequence when its label
 matches the label of the query sequence (useful to estimate
 false-positive rate in reference sequences).
+.\" I am not sure the statement above is true.
 .TP
 .B \-\-selfid
 When using \-\-uchime_ref, ignore a reference sequence when its
-nucleotide sequence is strictly identical with the query sequence.
+nucleotide sequence is strictly identical to the nucleotidic sequence
+of the query.
 .TP
 .B \-\-sizeout
-When relabelling, add abundance annotations to the output fasta file
-(with the pattern ";size=\fIinteger\fR;" to sequence headers).
+When relabelling, add abundance annotations to fasta headers (using
+the format ';size=\fIinteger\fR;').
 .TP
 .BI \-\-uchime_denovo \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR, without
@@ -382,17 +408,17 @@ comparing them with reference sequences (option
 \-\-db). Multithreading is supported.
 .TP
 .BI \-\-uchimealns \0filename
-Write the 3-way global alignments (parentA, parentB, chimera) to
+Write the three-way global alignments (parentA, parentB, chimera) to
 \fIfilename\fR using a human-readable format. Use \-\-alignwidth to
 modify alignment length. Output order may vary when using multiple
 threads. All sequences are converted to upper case before
 alignment. Lower case letters indicate disagreement in the alignment.
 .TP
 .BI \-\-uchimeout \0filename
-Write chimera detection results to \fIfilename\fR using the uchime
-tab-separated format of 18 fields (see the list below). Use
-\-\-uchimeout5 to use a format compatible with usearch v5 and earlier
-versions. Rows output order may vary when using multiple threads.
+Write chimera detection results to \fIfilename\fR using a 18-field,
+tab\-separated uchime\-like format. Use \-\-uchimeout5 to use a format
+compatible with usearch v5 and earlier versions. Rows output order may
+vary when using multiple threads.
 .RS
 .RS
 .nr step 1 1
@@ -439,13 +465,13 @@ YN: query is chimeric (Y), or not (N), or is a borderline case (?).
 .TP
 .B \-\-uchimeout5
 When using \-\-uchimeout, write chimera detection results using a
-tab-separated format of 17 fields (drop the 5th field of
+17\-field, tab\-separated uchime\-like format (drop the 5th field of
 \-\-uchimeout), compatible with usearch version 5 and earlier
 versions.
 .TP
 .BI \-\-xn \0real
-No vote weight (parameter beta in the scoring function) (default value
-is 8.0).
+No vote weight, corresponding to the parameter \fIbeta\fR in the
+scoring function (default value is 8.0).
 .TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
@@ -479,12 +505,12 @@ Sort output files by decreasing abundance
 when using the \-\-consout, \-\-msaout and \-\-profile options.
 .TP
 .BI \-\-cluster_fast \0filename
-Clusterize the fasta sequences in \fIfilename\fR, automatically
-perform a sorting by decreasing sequence length beforehand.
+Clusterize the fasta sequences in \fIfilename\fR, automatically sort
+by decreasing sequence length beforehand.
 .TP
 .BI \-\-cluster_size \0filename
-Clusterize the fasta sequences in \fIfilename\fR, automatically
-perform a sorting by decreasing sequence abundance beforehand.
+Clusterize the fasta sequences in \fIfilename\fR, automatically sort
+by decreasing sequence abundance beforehand.
 .TP
 .BI \-\-cluster_smallmem \0filename
 Clusterize the fasta sequences in \fIfilename\fR without automatically
