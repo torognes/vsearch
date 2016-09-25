@@ -658,16 +658,16 @@ Record type: S, H, or C.
 .IP \n+[step].
 Cluster number (0-based).
 .IP \n+[step].
-Sequence length (S, H), or cluster size (C).
+Centroid length (S), query length (H), or cluster size (C).
 .IP \n+[step].
 Percentage of similarity with the centroid sequence (H), or set to "*"
 (S, C).
 .IP \n+[step].
 Match orientation + or - (H), or set to "*" (S, C).
 .IP \n+[step].
-Not used, always set to "*".
+Not used, always set to "*" (S, C) or to zero (H).
 .IP \n+[step].
-Not used, always set to "*".
+Not used, always set to "*" (S, C) or to zero (H).
 .IP \n+[step].
 Compact representation of the pairwise alignment using the CIGAR
 format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
