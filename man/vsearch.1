@@ -142,7 +142,7 @@ comprised between the '>' symbol and the first space, tab or the end
 of the line, whichever comes first. Additionally, if the header
 matches
 '>[;]size=\fIinteger\fR;label', '>label;size=\fIinteger\fR;label' or
-'>label;size=\fIinteger\fR[;]', \fBvsearch\fR will interpret
+'>label;size=\fIinteger\fR[;]', \fBvsearch\fR interpret
 \fIinteger\fR as the number of occurrences (or abundance) of the
 sequence in the study. That abundance information is used or created
 during chimera detection, clustering, dereplication, sorting and
@@ -175,7 +175,7 @@ comparisons, otherwise they are treated as normal symbols.
 .PP
 When comparing sequences during chimera detection, dereplication,
 searching and clustering, T and U are considered identical, regardless
-of their case. If two symbols are not identical, their alignment will
+of their case. If two symbols are not identical, their alignment
 result in a negative mismatch score (default -4), except if one or
 both of the symbols are ambiguous (RYSWKMDBHVN) in which case the
 score is zero. Alignment of two identical ambiguous symbols (for
@@ -242,13 +242,13 @@ different \fBvsearch\fB commands can also write additional
 informations to the log file.
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
-All \fBvsearch\fR operations will discard sequences of length equal or
+All \fBvsearch\fR operations discard sequences of length equal or
 greater than \fIinteger\fR (50,000 nucleotides by default).
 .TP
 .BI \-\-minseqlength\~ "positive integer"
-All \fBvsearch\fR operations will discard sequences of length smaller
-than \fIinteger\fR: 1 nucleotide by default for sorting or shuffling,
-32 nucleotides for clustering, dereplication or searching.
+All \fBvsearch\fR operations discard sequences of length smaller than
+\fIinteger\fR: 1 nucleotide by default for sorting or shuffling, 32
+nucleotides for clustering, dereplication or searching.
 .TP
 .B \-\-notrunclabels
 Do not truncate sequence labels at first space or tab, use the full
@@ -320,7 +320,7 @@ order may vary when using multiple threads.
 .BI \-\-db \0filename
 When using \-\-uchime_ref, detect chimeras using the fasta-formatted
 reference sequences contained in \fIfilename\fR. Reference sequences
-are assumed to be chimera-free. Chimeras will not be detected if their
+are assumed to be chimera-free. Chimeras cannot be detected if their
 parents, or sufficiently close relatives, are not present in the
 database.
 .TP
@@ -362,13 +362,12 @@ each sequence. Former sequence headers are discarded. The sequence is
 converted to upper case and each 'U' is replaced by a 'T' before
 computation of the digest. The MD5 digest is a cryptographic hash
 function designed to minimize the probability that two different
-inputs will give the same output, even for very similar, but
-non-identical inputs. Still, there will always be a very small, but
-non-zero, probability that two different inputs will give the same
-digest (a collision). MD5 generates a 128-bit (16-byte) digest that is
-represented by 16 hexadecimal numbers (using 32 symbols among
-0123456789abcdef). Use \-\-sizeout to conserve the abundance
-annotations.
+inputs give the same output, even for very similar, but non-identical
+inputs. Still, there is a very small, but non-zero, probability that
+two different inputs give the same digest (i.e. a collision). MD5
+generates a 128-bit (16-byte) digest that is represented by 16
+hexadecimal numbers (using 32 symbols among 0123456789abcdef). Use
+\-\-sizeout to conserve the abundance annotations.
 .\" The probablity of collision for two sequences is 1/2^128
 .TP
 .B \-\-relabel_sha1
@@ -586,7 +585,7 @@ position (1-based), consensus nucleotide, number of A's, number of
 C's, number of G's, number of Ts or Us, and finally the number of
 gaps. If ambiguous nucleotide symbols are present, the numbers may be
 floating point numbers, otherwise they are integers. For instance,
-an 'R' will count 0.5 towards an A and 0.5 towards a G.
+an 'R' counts 0.5 towards an A and 0.5 towards a G.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask regions in sequences using the
@@ -711,11 +710,10 @@ Merge sequences with identical prefixes contained in \fIfilename\fR.
 A short sequence identical to an initial segment (prefix) of another
 sequence is considered a replicate of the longer sequence. If a
 sequence is identical to the prefix of two or more longer sequences,
-it will be clustered with the shortest of them. If they are equally
-long, it will be clustered with the most abundant. Remaining ties are
-solved using sequence headers and sequence input order. Sequence
-comparisons are case insensitive, and T and U are considered
-identical.
+it is clustered with the shortest of them. If they are equally long,
+it is clustered with the most abundant. Remaining ties are solved
+using sequence headers and sequence input order. Sequence comparisons
+are case insensitive, and T and U are considered identical.
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
 Discard sequences with an abundance value greater than \fIinteger\fR.
@@ -748,12 +746,12 @@ for details.
 .TP
 .BI \-\-rereplicate \0filename
 Duplicate each sequence the number of times indicated by the abundance
-of each sequence in the specified file. The sequence labels will be
+of each sequence in the specified file. The sequence labels are
 identical for the same sequence, unless \-\-relabel, \-\-relabel_sha1
-or \-\-relabel_md5 is used to create unique labels. Output will be
-written to the file specified with the \-\-output option, in FASTA
-format. The output file will not contain abundance information unless
-\-\-sizeout is specified, in which case an abundance of 1 is used.
+or \-\-relabel_md5 is used to create unique labels. Output is written
+to the file specified with the \-\-output option, in FASTA format. The
+output file does not contain abundance information unless \-\-sizeout
+is specified, in which case an abundance of 1 is used.
 .TP
 .B \-\-sizein
 Take into account the abundance annotations present in the input fasta
@@ -832,7 +830,7 @@ length of the sequences in a FASTQ file may be performed with the
 shortened, filtered and converted by the \-\-fastq_filter or
 \-\-fastx_filter commands. Paired-end reads can be merged using the
 \-\-fastq_mergepairs command. Finally, the \-\-fastx_revcomp command
-will reverse complement sequences.
+reverse-complements sequences.
 .PP
 .TP 9
 .B \-\-eeout
@@ -978,20 +976,20 @@ the \-\-fastaout or \-\-fastqout options. The non-merged reads can be
 output to the files specified with the \-\-fastaout_notmerged_fwd,
 \-\-fastaout_notmerged_rev, \-\-fastqout_notmerged_fwd and
 \-\-fastqout_notmerged_rev options. Statistics may be output to the
-file specified with the \-\-eetabbedout option. Sequences will be
+file specified with the \-\-eetabbedout option. Sequences are
 truncated as specified with the \-\-fastq_truncqual option to remove
 low-quality bases in the 3' end. Sequences shorter than specified with
-\-\-fastq_minlen (after truncation) will be discarded (1 by
+\-\-fastq_minlen (after truncation) are discarded (1 by
 default). Sequences with too many ambiguous bases (N's), as specified
-with the \-\-fastq_maxns will also be discarded (no limit by
-default). Staggered reads will not be merged unless the
+with the \-\-fastq_maxns are also discarded (no limit by
+default). Staggered reads are not merged unless the
 \-\-fastq_allowmergestagger option is specified. The minimum length of
 the overlap region between the reads may be specified with the
 \-\-minovlen option (default 10), and the overlap region may not
-include more mismatches than specified with the \-\-maxdiffs option
-(5 by default), otherwise the read pair will be discarded. The
-mimimum and maximum length of the merged sequence may be specified
-with the \-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
+include more mismatches than specified with the \-\-maxdiffs option (5
+by default), otherwise the read pair is discarded. The mimimum and
+maximum length of the merged sequence may be specified with the
+\-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
 respectively. Other relevant options are: \-\-fastq_ascii,
 \-\-fastq_maxee, \-\-fastq_nostagger, \-\-fastq_qmax, \-\-fastq_qmin,
 and \-\-label_suffix.
@@ -1130,12 +1128,12 @@ default, \fIk\fR = 4.
 .TP
 .BI \-\-fastq_truncee\~ real
 When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences so
-that their total expected error will not be higher than the specified
+that their total expected error is not higher than the specified
 value.
 .TP
 .BI \-\-fastq_trunclen\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences to
-the specified length. Sequences that are shorter will be discarded.
+the specified length. Shorter sequences are discarded.
 .TP
 .BI \-\-fastq_truncqual\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences
@@ -1163,21 +1161,21 @@ specified FASTQ file.
 Shorten and/or filter the sequences in the given FASTA or FASTQ file
 and output the remaining sequences to the FASTQ file specified with
 the \-\-fastqout option and to the FASTA file specified with the
-\-\-fastaout option. The discarded sequences will be written to the
-files specified with the \-\-fastaout_discarded and
-\-\-fastqout_discarded options. The input format (FASTA or FASTQ) is
-automatically detected. Output can not be written to FASTQ files if
-the input is in FASTA format. Sequences may be shortened using the
-options \-\-fastq_stripleft, \-\-fastq_truncee, \-\-fastq_trunclen and
+\-\-fastaout option. The discarded sequences are written to the files
+specified with the \-\-fastaout_discarded and \-\-fastqout_discarded
+options. The input format (FASTA or FASTQ) is automatically
+detected. Output can not be written to FASTQ files if the input is in
+FASTA format. Sequences may be shortened using the options
+\-\-fastq_stripleft, \-\-fastq_truncee, \-\-fastq_trunclen and
 \-\-fastq_truncqual. The sequences may be filtered using the options
 \-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
 \-\-fastq_maxns, \-\-fastq_minlen and \-\-fastq_trunclen. If
-shortening results in an empty sequence, it will be discarded. The
+shortening results in an empty sequence, it is discarded. The
 sequences are first shortened and then filtered based on the remaining
 bases. If no shortening or filtering options are given, all sequences
-will be written to the output files, possibly after conversion from
-FASTQ to FASTA format. The \-\-relabel option may be used to relabel
-the output sequences. The \-\-eeout may be used to output the expected
+are written to the output files, possibly after conversion from FASTQ
+to FASTA format. The \-\-relabel option may be used to relabel the
+output sequences. The \-\-eeout may be used to output the expected
 number of errors in each sequence.
 .TP
 .BI \-\-fastx_revcomp \0filename
@@ -1241,13 +1239,13 @@ the \-\-db option with the \-\-usearch_global,
 
 The argument to the \-\-qmask and \-\-dbmask option may be none, soft
 or dust. If the argument is none, the no masking is performed. If the
-argument is soft the lower case symbols will be masked. Finally, if
-the argument is dust, the sequence will be masked using the DUST
-algorithm by Tatusov and Lipman to mask low-complexity regions.
+argument is soft the lower case symbols are masked. Finally, if the
+argument is dust, the sequence is masked using the DUST algorithm by
+Tatusov and Lipman to mask low-complexity regions.
 
-If the \-\-hardmask option is specified, all masked regions will be
-converted to N's, otherwise masked regions will be indicated by lower
-case letters.
+If the \-\-hardmask option is specified, all masked regions are
+converted to N's, otherwise masked regions are indicated by lower case
+letters.
 
 If any sequence is masked, the masked version of the sequence (with
 lower case letters or N's) will be used in all output files. Otherwise
