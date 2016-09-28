@@ -1248,23 +1248,22 @@ converted to N's, otherwise masked regions are indicated by lower case
 letters.
 
 If any sequence is masked, the masked version of the sequence (with
-lower case letters or N's) will be used in all output files. Otherwise
-the sequence will be unmodified. The exception is the sequences in the
-output file specified with the \-\-uchimealns option, where the input
+lower case letters or N's) is used in all output files. Otherwise the
+sequence is unmodified. The exception is the sequences in the output
+file specified with the \-\-uchimealns option, where the input
 sequences are converted to upper case first and lower case letters
 indicate disagreement between the aligned sequences.
 
-When a sequence region is masked, words in the region will not be
-included in the indicies used in the heuristic search algorithm. In
-all other aspects the region is treated as other regions.
+When a sequence region is masked, words in the region are not included
+in the indices used in the heuristic search algorithm. In all other
+aspects, the region is treated as other regions.
 
-Regions in sequences that are hardmasked (with N's) will have a zero
+Regions in sequences that are hardmasked (with N's) have a zero
 alignment score and do not contribute to an alignment.
 
-Here are the
-results of combined masking options \-\-qmask (or \-\-dbmask for
-database sequences) and \-\-hardmask, assuming each input sequence
-contains both lower and uppercase nucleotides:
+Here are the results of combined masking options \-\-qmask (or
+\-\-dbmask for database sequences) and \-\-hardmask, assuming each
+input sequence contains both lower and uppercase nucleotides:
 .PP
 .ce 10 \# center the table (10 lines)
 .TS
@@ -1551,9 +1550,9 @@ Reject the sequence match if the pairwise identity is lower than
 \fIreal\fR (value ranging from 0.0 to 1.0 included). The search
 process sorts target sequences by decreasing number of \fIk\fR-mers
 they have in common with the query sequence, using that information as
-a proxy for sequence similarity. That efficient pre-filtering will
-also prevent pairwise alignments with weakly matching targets, as
-there needs to be at least 6 shared \fIk\fR-mers to start the pairwise
+a proxy for sequence similarity. That efficient pre-filtering also
+prevents pairwise alignments with weakly matching targets, as there
+needs to be at least 6 shared \fIk\fR-mers to start the pairwise
 alignment, and at least one out of every 16 \fIk\fR-mers from the
 query needs to match the target. Consequently, using values lower than
 \-\-id 0.5 is not likely to capture more weakly matching targets. The
@@ -1735,7 +1734,7 @@ Width of alignment lines in \-\-alnout output. The default value is
 .TP
 .B \-\-samheader
 Include header lines to the sam file when \-\-samout is specified. The
-header will include @HD, @SQ and @PG lines, but no read group (@RG)
+header includes @HD, @SQ and @PG lines, but no read group (@RG)
 information. By default no header lines are written.
 .TP
 .BI \-\-samout \0filename
@@ -1861,8 +1860,8 @@ of possible values goes from 3 to 15, but values near 8 or 9 are
 generally recommended. Longer words may reduce the sensitivity/recall
 for weak similarities, but can increase precision. On the other hand,
 shorter words may increase sensitivity or recall, but may reduce
-precision. Computation time will generally increase with shorter words
-and decrease with longer words, but will increase again for very long
+precision. Computation time generally increases with shorter words and
+decreases with longer words, but it increases again for very long
 words. Memory requirements for a part of the index increase with a
 factor of 4 each time word length increases by one nucleotide, and
 this generally becomes significant for long words (12 or more). The
@@ -1880,9 +1879,8 @@ Write the shuffled sequences to \fIfilename\fR, in fasta format.
 .TP
 .BI \-\-randseed\~ "positive integer"
 When shuffling sequence order, use \fIinteger\fR as seed. A given seed
-will always produce the same output order (useful for
-replicability). Set to 0 to use a pseudo-random seed (default
-behavior).
+always produces the same output order (useful for replicability). Set
+to 0 to use a pseudo-random seed (default behavior).
 .TP
 .BI \-\-relabel \0string
 Relabel sequences using the prefix \fIstring\fR and a ticker (1, 2, 3,
@@ -1897,13 +1895,13 @@ Relabel sequences using the MD5 message digest algorithm applied to
 each sequence. Former sequence headers are discarded. The sequence is
 converted to upper case and U is replaced by T before the digest is
 computed. The MD5 digest is a cryptographic hash function designed to
-minimize the probability that two different inputs will give the same
+minimize the probability that two different inputs gives the same
 output, even for very similar, but non-identical inputs. Still, there
-will always be a very small, but non-zero, probability that two
-different inputs will give the same result. The MD5 digest generates a
-128-bit (16-byte) digest that is represented by 16 hexadecimal numbers
-(using 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve
-the abundance annotations.
+is always a very small, but non-zero probability that two different
+inputs give the same result. The MD5 digest generates a 128-bit
+(16-byte) digest that is represented by 16 hexadecimal numbers (using
+32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve the
+abundance annotations.
 .TP
 .B \-\-relabel_sha1
 Relabel sequences using the SHA1 message digest algorithm applied to
@@ -2053,7 +2051,7 @@ that is in FASTA or FASTQ format.
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as a seed for the pseudo-random generator. A given
-seed will always produce the same output, which is useful for
+seed always produces the same output, which is useful for
 replicability. Set to 0 to use a pseudo-random seed (default
 behavior).
 .TP
@@ -2070,13 +2068,13 @@ Relabel sequences using the MD5 message digest algorithm applied to
 each sequence. Former sequence headers are discarded. The sequence is
 converted to upper case and U is replaced by T before the digest is
 computed. The MD5 digest is a cryptographic hash function designed to
-minimize the probability that two different inputs will give the same
+minimize the probability that two different inputs give the same
 output, even for very similar, but non-identical inputs. Still, there
-will always be a very small, but non-zero, probability that two
-different inputs will give the same result. The MD5 digest generates a
-128-bit (16-byte) digest that is represented by 16 hexadecimal numbers
-(using 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve
-the abundance annotations.
+is always a very small, but non-zero probability that two different
+inputs give the same result. The MD5 digest generates a 128-bit
+(16-byte) digest that is represented by 16 hexadecimal numbers (using
+32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve the
+abundance annotations.
 .TP
 .B \-\-relabel_sha1
 Relabel sequences using the SHA1 message digest algorithm applied to
@@ -2651,9 +2649,8 @@ ignoring terminal gaps,
 in \-\-uc output files, a perfect alignment is indicated with a "="
 sign,
 .IP -
-the option \-\-cluster_fast will now sort sequences by decreasing
-length, then by decreasing abundance and finally by sequence
-identifier,
+the option \-\-cluster_fast now sorts sequences by decreasing length,
+then by decreasing abundance and finally by sequence identifier,
 .IP -
 default \-\-maxseqlength value set to 50,000 nucleotides,
 .IP -
@@ -2763,9 +2760,9 @@ Fix subtle bug in SIMD alignment code that reduced accuracy.
 .TP
 .BR v1.4.7\~ "released October 7th, 2015"
 Fixes a problem with searching for or clustering sequences with
-repeats. In this new version, vsearch will look at all words occurring
-at least once in the sequences in the initial step. Previously only
-words occurring exactly once were considered. In addition, vsearch now
+repeats. In this new version, vsearch looks at all words occurring at
+least once in the sequences in the initial step. Previously only words
+occurring exactly once were considered. In addition, vsearch now
 requires at least 10 words to be shared by the sequences, previously
 only 6 were required. If the query contains less than 10 words, all
 words must be present for a match. This change seems to lead to
