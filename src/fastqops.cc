@@ -151,7 +151,8 @@ void filter(bool fastq_only, char * filename)
       char * d = fastx_get_header(h);
       char * p = fastx_get_sequence(h);
       char * q = fastx_get_quality(h);
-
+      long abundance = fastx_get_abundance(h);
+      
       /* strip initial part */
       if (opt_fastq_stripleft > 0)
         {
@@ -231,13 +232,13 @@ void filter(bool fastq_only, char * filename)
                 fasta_print_relabel_ee(fp_fastaout,
                                        p, length,
                                        d, fastx_get_header_length(h),
-                                       1, kept,
+                                       abundance, kept,
                                        ee);
               else
                 fasta_print_relabel(fp_fastaout,
                                     p, length,
                                     d, fastx_get_header_length(h),
-                                    1, kept);
+                                    abundance, kept);
             }
           if (opt_fastqout)
             {
@@ -279,13 +280,13 @@ void filter(bool fastq_only, char * filename)
                 fasta_print_relabel_ee(fp_fastaout_discarded,
                                        p, length,
                                        d, fastx_get_header_length(h),
-                                       1, discarded,
+                                       abundance, discarded,
                                        ee);
               else
                 fasta_print_relabel(fp_fastaout_discarded,
                                     p, length,
                                     d, fastx_get_header_length(h),
-                                    1, discarded);
+                                    abundance, discarded);
             }
 
           if (opt_fastqout_discarded)
