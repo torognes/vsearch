@@ -225,4 +225,76 @@ DESCRIPTION="fastx_filter reports sizein when relabeling fasta (issue #204)"
         failure "${DESCRIPTION}"
 
 
+#*****************************************************************************#
+#                                                                             #
+#         check pairwise alignment correctness (Flouri et al., 2015)          #
+#                                                                             #
+#*****************************************************************************#
+
+# http://biorxiv.org/content/early/2015/11/12/031500
+
+# test 1 requires the possibility to set independent match/mismatch
+# scores for the different pairs of nucleotides. Not possible to
+# replicate in vsearch: ">seq1\nGGTGTGA\n>seq2\nTCGCGT\n"
+
+# test 2 uses a match score of zero, not possible with vsearch (Fatal
+# error: The argument to --match must be positive)
+# ">seq1\nAAAGGG\n>seq2\nTTAAAAGGGGTT\n"
+
+# test 3 (score should be -72)
+DESCRIPTION="Flouri 2015 pairwise alignment correctness tests (test 3)"
+score=$("${VSEARCH}" \
+            --allpairs_global <(printf ">seq1\nAAATTTGC\n>seq2\nCGCCTTAC\n") \
+            --acceptall \
+            --gapopen 40 \
+            --gapext 1\
+            --match 10 \
+            --mismatch -30 \
+            --qmask none \
+            --quiet \
+            --userfields raw \
+            --userout -)
+
+(( ${score} == -72 )) && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+# test 4 (score should be -62)
+DESCRIPTION="Flouri 2015 pairwise alignment correctness tests (test 4)"
+score=$("${VSEARCH}" \
+            --allpairs_global <(printf ">seq1\nTAAATTTGC\n>seq2\nTCGCCTTAC\n") \
+            --acceptall \
+            --gapopen 40 \
+            --gapext 1\
+            --match 10 \
+            --mismatch -30 \
+            --qmask none \
+            --quiet \
+            --userfields raw \
+            --userout -)
+
+(( ${score} == -62 )) && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+# test 5 (identical to test 3)
+
+# test 6 (score should be -46)
+DESCRIPTION="Flouri 2015 pairwise alignment correctness tests (test 6)"
+score=$("${VSEARCH}" \
+            --allpairs_global <(printf ">seq1\nAGAT\n>seq2\nCTCT\n") \
+            --acceptall \
+            --gapopen 25 \
+            --gapext 1\
+            --match 10 \
+            --mismatch -30 \
+            --qmask none \
+            --quiet \
+            --userfields raw \
+            --userout -)
+
+(( ${score} == -46 )) && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 exit 0
