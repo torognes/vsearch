@@ -34,6 +34,7 @@ md5.h \
 mergepairs.h \
 minheap.h \
 msa.h \
+otutable.h \
 rerep.h \
 results.h \
 search.h \
@@ -90,6 +91,7 @@ md5.c \
 mergepairs.cc \
 minheap.cc \
 msa.cc \
+otutable.cc \
 rerep.cc \
 results.cc \
 search.cc \

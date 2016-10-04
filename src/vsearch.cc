@@ -80,6 +80,7 @@ bool opt_sizeorder;
 bool opt_xsize;
 char * opt_allpairs_global;
 char * opt_alnout;
+char * opt_biomout;
 char * opt_blast6out;
 char * opt_borderline;
 char * opt_centroids;
@@ -118,9 +119,11 @@ char * opt_label_suffix;
 char * opt_log;
 char * opt_maskfasta;
 char * opt_matched;
+char * opt_mothur_shared_out;
 char * opt_msaout;
 char * opt_nonchimeras;
 char * opt_notmatched;
+char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
 char * opt_profile;
@@ -521,6 +524,7 @@ void args_init(int argc, char **argv)
   opt_allpairs_global = 0;
   opt_alnout = 0;
   opt_blast6out = 0;
+  opt_biomout = 0;
   opt_borderline = 0;
   opt_bzip2_decompress = 0;
   opt_centroids = 0;
@@ -642,10 +646,12 @@ void args_init(int argc, char **argv)
   opt_minuniquesize = 0;
   opt_minwordmatches = 0;
   opt_mismatch = -4;
+  opt_mothur_shared_out = 0;
   opt_msaout = 0;
   opt_nonchimeras = 0;
   opt_notmatched = 0;
   opt_notrunclabels = 0;
+  opt_otutabout = 0;
   opt_output = 0;
   opt_output_no_hits = 0;
   opt_pattern = 0;
@@ -880,6 +886,9 @@ void args_init(int argc, char **argv)
     {"fastq_maxlen",          required_argument, 0, 0 },
     {"fastq_truncee",         required_argument, 0, 0 },
     {"fastx_filter",          required_argument, 0, 0 },
+    {"otutabout",             required_argument, 0, 0 },
+    {"mothur_shared_out",     required_argument, 0, 0 },
+    {"biomout",               required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1638,6 +1647,18 @@ void args_init(int argc, char **argv)
           opt_fastx_filter = optarg;
           break;
 
+        case 178:
+          opt_otutabout = optarg;
+          break;
+
+        case 179:
+          opt_mothur_shared_out = optarg;
+          break;
+
+        case 180:
+          opt_biomout = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2132,8 +2153,8 @@ void cmd_help()
               "  --fastaout_notmerged_rev FN FASTA filename for non-merged reverse sequences\n"
               "  --fastq_eeout               include expected errors in FASTQ output\n"
               "  --fastqout FILENAME         FASTQ output filename for merged sequences\n"
-              "  --fastqout_notmerged_fwd  F FASTQ filename for non-merged forward sequences\n"
-              "  --fastqout_notmerged_rev  F FASTQ filename for non-merged reverse sequences\n"
+              "  --fastqout_notmerged_fwd FN FASTQ filename for non-merged forward sequences\n"
+              "  --fastqout_notmerged_rev FN FASTQ filename for non-merged reverse sequences\n"
               "  --label_suffix              suffix to append to label of merged sequences\n"
               "\n"
               "Pairwise alignment\n"
@@ -2209,6 +2230,9 @@ void cmd_help()
               "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
               "  --matched FILENAME          FASTA file for matching query sequences\n"
               "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
+              "  --otutabout FILENAME        filename for OTU table output in text format\n"
+              "  --mothur_shared_out FN      filename for OTU table output in mothur format\n"
+              "  --biomout FILENAME          filename for OTU table output in biom 1.0 format\n"
               "  --output_no_hits            output non-matching queries to output files\n"
               "  --rowlen INT                width of alignment lines in alnout output (64)\n"
               "  --samheader                 include a header in the SAM output file\n"
@@ -2289,7 +2313,8 @@ void cmd_usearch_global()
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
-      (!opt_samout))
+      (!opt_samout) && (!opt_otutabout) &&
+      (!opt_biomout) && (!opt_mothur_shared_out))
     fatal("No output files specified");
 
   if (!opt_db)
@@ -2309,7 +2334,8 @@ void cmd_search_exact()
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
-      (!opt_samout))
+      (!opt_samout) && (!opt_otutabout) &&
+      (!opt_biomout) && (!opt_mothur_shared_out))
     fatal("No output files specified");
 
   if (!opt_db)

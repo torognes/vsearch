@@ -86,6 +86,9 @@ static FILE * fp_matched = 0;
 static FILE * fp_notmatched = 0;
 static FILE * fp_dbmatched = 0;
 static FILE * fp_dbnotmatched = 0;
+static FILE * fp_otutabout = 0;
+static FILE * fp_mothur_shared_out = 0;
+static FILE * fp_biomout = 0;
 
 void add_hit(struct searchinfo_s * si, unsigned long seqno)
 {
@@ -162,11 +165,12 @@ void search_exact_onequery(struct searchinfo_s * si)
 }
 
 void search_exact_output_results(int hit_count,
-                           struct hit * hits,
-                           char * query_head,
-                           int qseqlen,
-                           char * qsequence,
-                           char * qsequence_rc)
+                                 struct hit * hits,
+                                 char * query_head,
+                                 int qseqlen,
+                                 char * qsequence,
+                                 char * qsequence_rc,
+                                 int qsize)
 {
   pthread_mutex_lock(&mutex_output);
 
@@ -194,7 +198,12 @@ void search_exact_output_results(int hit_count,
   if (toreport)
     {
       double top_hit_id = hits[0].id;
-      
+
+      if (opt_otutabout)
+        otutable_add(query_head,
+                     db_getheader(hits[0].target),
+                     qsize);
+
       for(int t = 0; t < toreport; t++)
         {
           struct hit * hp = hits + t;
@@ -323,7 +332,8 @@ int search_exact_query(long t)
                               si_plus[t].query_head,
                               si_plus[t].qseqlen,
                               si_plus[t].qsequence,
-                              opt_strand > 1 ? si_minus[t].qsequence : 0);
+                              opt_strand > 1 ? si_minus[t].qsequence : 0,
+                              si_plus[t].qsize);
 
   /* free memory for alignment strings */
   for(int i=0; i<hit_count; i++)
@@ -562,6 +572,27 @@ void search_exact_prep(char * cmdline, char * progheader)
         fatal("Unable to open dbnotmatched output file for writing");
     }
 
+  if (opt_otutabout)
+    {
+      fp_otutabout = fopen(opt_otutabout, "w");
+      if (! fp_otutabout)
+        fatal("Unable to open OTU table (text format) output file for writing");
+    }
+
+  if (opt_mothur_shared_out)
+    {
+      fp_mothur_shared_out = fopen(opt_mothur_shared_out, "w");
+      if (! fp_mothur_shared_out)
+        fatal("Unable to open OTU table (mothur format) output file for writing");
+    }
+
+  if (opt_biomout)
+    {
+      fp_biomout = fopen(opt_biomout, "w");
+      if (! fp_biomout)
+        fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
+    }
+
   db_read(opt_db, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_db);
@@ -623,6 +654,8 @@ void search_exact(char * cmdline, char * progheader)
 
   search_exact_prep(cmdline, progheader);
 
+  otutable_init();
+
   /* prepare reading of queries */
   qmatches = 0;
   queries = 0;
@@ -664,6 +697,26 @@ void search_exact(char * cmdline, char * progheader)
   if (opt_log)
     fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n", 
             qmatches, queries, 100.0 * qmatches / queries);
+
+  if (fp_otutabout)
+    {
+      otutable_print_otutabout(fp_otutabout);
+      fclose(fp_otutabout);
+    }
+
+  if (fp_mothur_shared_out)
+    {
+      otutable_print_mothur_shared_out(fp_mothur_shared_out);
+      fclose(fp_mothur_shared_out);
+    }
+
+  if (fp_biomout)
+    {
+      otutable_print_biomout(fp_biomout);
+      fclose(fp_biomout);
+    }
+
+  otutable_done();
 
   if (opt_dbmatched || opt_dbnotmatched)
     {
