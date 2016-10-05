@@ -233,6 +233,20 @@ DESCRIPTION="fastx_filter reports sizein when relabeling fasta (issue #204)"
 
 # http://biorxiv.org/content/early/2015/11/12/031500
 
+# In USEARCH and VSEARCH the gap opening penalty includes the gap
+# extension penalty of the first residue, while in other programs it
+# does not. So if the gap open penalty is 40 and the gap extension
+# penalty is 1, then a single nucleotide gap will get a penalty of 40
+# in USEARCH and VSEARCH, and 41 in other programs.
+
+# In Flouri's tests, the gap opening penalty does not include the gap
+# extension penalty, and the optimal alignments contain two
+# independent gaps. Therefore, USEARCH and VSEARCH should return score
+# values equal to the scores indicated by Flouri, minus twice the gap
+# extension penalty (e.g., a score of -72 reported by Flouri
+# corresponds to a score of -70 with USEARCH and VSEARCH). The
+# expected score values in the tests below take that into account.
+
 # test 1 requires the possibility to set independent match/mismatch
 # scores for the different pairs of nucleotides. Not possible to
 # replicate in vsearch: ">seq1\nGGTGTGA\n>seq2\nTCGCGT\n"
@@ -241,7 +255,7 @@ DESCRIPTION="fastx_filter reports sizein when relabeling fasta (issue #204)"
 # error: The argument to --match must be positive)
 # ">seq1\nAAAGGG\n>seq2\nTTAAAAGGGGTT\n"
 
-# test 3 (score should be -72)
+# test 3 (score should be -70 in USEARCH/VSEARCH)
 DESCRIPTION="Flouri 2015 pairwise alignment correctness tests (test 3)"
 score=$("${VSEARCH}" \
             --allpairs_global <(printf ">seq1\nAAATTTGC\n>seq2\nCGCCTTAC\n") \
@@ -255,11 +269,11 @@ score=$("${VSEARCH}" \
             --userfields raw \
             --userout -)
 
-(( ${score} == -72 )) && \
+(( ${score} == -70 )) && \
     success  "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-# test 4 (score should be -62)
+# test 4 (score should be -60 in USEARCH/VSEARCH
 DESCRIPTION="Flouri 2015 pairwise alignment correctness tests (test 4)"
 score=$("${VSEARCH}" \
             --allpairs_global <(printf ">seq1\nTAAATTTGC\n>seq2\nTCGCCTTAC\n") \
@@ -273,13 +287,13 @@ score=$("${VSEARCH}" \
             --userfields raw \
             --userout -)
 
-(( ${score} == -62 )) && \
+(( ${score} == -60 )) && \
     success  "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
 # test 5 (identical to test 3)
 
-# test 6 (score should be -46)
+# test 6 (score should be -44 in USEARCH/VSEARCH
 DESCRIPTION="Flouri 2015 pairwise alignment correctness tests (test 6)"
 score=$("${VSEARCH}" \
             --allpairs_global <(printf ">seq1\nAGAT\n>seq2\nCTCT\n") \
@@ -293,7 +307,7 @@ score=$("${VSEARCH}" \
             --userfields raw \
             --userout -)
 
-(( ${score} == -46 )) && \
+(( ${score} == -44 )) && \
     success  "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
