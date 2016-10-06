@@ -1956,9 +1956,9 @@ void cmd_help()
       fprintf(stdout,
               "\n"
               "General options\n"
-              "  --bzip2_decompress          decompress input with bzip2 (required for pipes)\n"
+              "  --bzip2_decompress          decompress input with bzip2 (required if pipe)\n"
               "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
-              "  --gzip_decompress           decompress input with gzip (required for pipes)\n"
+              "  --gzip_decompress           decompress input with gzip (required if pipe)\n"
               "  --help | -h                 display help information\n"
               "  --log FILENAME              write messages, timing and memory info to file\n"
               "  --maxseqlength INT          maximum sequence length (50000)\n"
@@ -2012,12 +2012,15 @@ void cmd_help()
               "  --strand plus|both          cluster using plus or both strands (plus)\n"
               "  --usersort                  indicate sequences not pre-sorted by length\n"
               " Output\n"
+              "  --biomout FILENAME          filename for OTU table output in biom 1.0 format\n"
               "  --centroids FILENAME        output centroid sequences to FASTA file\n"
               "  --clusterout_id             add cluster id info to consout and profile files\n"
               "  --clusterout_sort           order msaout, consout, profile by decr abundance\n"
               "  --clusters STRING           output each cluster to a separate FASTA file\n"
               "  --consout FILENAME          output cluster consensus sequences to FASTA file\n"
+              "  --mothur_shared_out FN      filename for OTU table output in mothur format\n"
               "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n"
+              "  --otutabout FILENAME        filename for OTU table output in classic format\n"
               "  --profile FILENAME          output sequence profile of each cluster to file\n"
               "  --relabel STRING            relabel centroids with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
@@ -2224,15 +2227,15 @@ void cmd_help()
               "  --wordlength INT            length of words for database index 3-15 (8)\n"
               " Output\n"
               "  --alnout FILENAME           filename for human-readable alignment output\n"
+              "  --biomout FILENAME          filename for OTU table output in biom 1.0 format\n"
               "  --blast6out FILENAME        filename for blast-like tab-separated output\n"
               "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
               "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
               "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
               "  --matched FILENAME          FASTA file for matching query sequences\n"
-              "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
-              "  --otutabout FILENAME        filename for OTU table output in text format\n"
               "  --mothur_shared_out FN      filename for OTU table output in mothur format\n"
-              "  --biomout FILENAME          filename for OTU table output in biom 1.0 format\n"
+              "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"
+              "  --otutabout FILENAME        filename for OTU table output in classic format\n"
               "  --output_no_hits            output non-matching queries to output files\n"
               "  --rowlen INT                width of alignment lines in alnout output (64)\n"
               "  --samheader                 include a header in the SAM output file\n"
@@ -2487,7 +2490,9 @@ void cmd_cluster()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_centroids) && (!opt_clusters) &&
       (!opt_consout) && (!opt_msaout) &&
-      (!opt_samout) && (!opt_profile))
+      (!opt_samout) && (!opt_profile) &&
+      (!opt_otutabout) && (!opt_biomout) &&
+      (!opt_mothur_shared_out))
     fatal("No output files specified");
 
   if ((opt_id < 0.0) || (opt_id > 1.0))

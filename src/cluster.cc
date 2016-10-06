@@ -85,7 +85,10 @@ static FILE * fp_blast6out = 0;
 static FILE * fp_fastapairs = 0;
 static FILE * fp_matched = 0;
 static FILE * fp_notmatched = 0;
-  
+static FILE * fp_otutabout = 0;
+static FILE * fp_mothur_shared_out = 0;
+static FILE * fp_biomout = 0;
+
 static pthread_attr_t attr;
 
 static struct searchinfo_s * si_plus;
@@ -324,13 +327,52 @@ void cluster_query_exit(struct searchinfo_s * si)
     free(si->kmers);
 }
 
+char * relabel_otu(int clusterno, char * sequence, int seqlen)
+{
+  char * label = 0;
+  if (opt_relabel)
+    {
+      label = (char*) xmalloc(strlen(opt_relabel) + 21);
+      sprintf(label, "%s%d", opt_relabel, clusterno+1);
+    }
+  else if (opt_relabel_sha1)
+    {
+      label = (char*) xmalloc(LEN_HEX_DIG_SHA1);
+      get_hex_seq_digest_sha1(label, sequence, seqlen);
+    }
+  else if (opt_relabel_md5)
+    {
+      label = (char*) xmalloc(LEN_HEX_DIG_MD5);
+      get_hex_seq_digest_md5(label, sequence, seqlen);
+    }
+  return label;
+}
+
 void cluster_core_results_hit(struct hit * best,
                               int clusterno,
                               char * query_head,
                               int qseqlen,
                               char * qsequence,
-                              char * qsequence_rc)
+                              char * qsequence_rc,
+                              int qsize)
 {
+
+  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+    {
+      if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
+        {
+          char * label = relabel_otu(clusterno,
+                                     db_getsequence(best->target),
+                                     db_getsequencelen(best->target));
+          otutable_add(query_head, label, qsize);
+          free(label);
+        }
+      else
+        otutable_add(query_head,
+                     db_getheader(best->target),
+                     qsize);
+    }
+
   if (fp_uc)
     results_show_uc_one(fp_uc,
                         best, query_head,
@@ -371,8 +413,22 @@ void cluster_core_results_nohit(int clusterno,
                                 char * query_head,
                                 int qseqlen,
                                 char * qsequence,
-                                char * qsequence_rc)
+                                char * qsequence_rc,
+                                int qsize)
 {
+
+  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+    {
+      if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
+        {
+          char * label = relabel_otu(clusterno, qsequence, qseqlen);
+          otutable_add(query_head, label, qsize);
+          free(label);
+        }
+      else
+        otutable_add(query_head, query_head, qsize);
+    }
+
   if (opt_uc)
     {
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
@@ -757,7 +813,8 @@ void cluster_core_parallel()
                                        si_p->query_head,
                                        si_p->qseqlen,
                                        si_p->qsequence,
-                                       best->strand ? si_m->qsequence : 0);
+                                       best->strand ? si_m->qsequence : 0,
+                                       si_p->qsize);
 
               /* update cluster info about this sequence */
               clusterinfo[myseqno].seqno = myseqno;
@@ -787,7 +844,8 @@ void cluster_core_parallel()
                                          si_p->query_head,
                                          si_p->qseqlen,
                                          si_p->qsequence,
-                                         0);
+                                         0,
+                                         si_p->qsize);
               clusters++;
             }
           
@@ -881,7 +939,8 @@ void cluster_core_serial()
                                    si_p->query_head,
                                    si_p->qseqlen,
                                    si_p->qsequence,
-                                   best->strand ? si_m->qsequence : 0);
+                                   best->strand ? si_m->qsequence : 0,
+                                   si_p->qsize);
           clusterinfo[seqno].seqno = seqno;
           clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
           clusterinfo[seqno].cigar = best->nwalignment;
@@ -899,7 +958,8 @@ void cluster_core_serial()
                                      si_p->query_head,
                                      si_p->qseqlen,
                                      si_p->qsequence,
-                                     0);
+                                     0,
+                                     si_p->qsize);
           clusters++;
         }
       
@@ -993,7 +1053,30 @@ void cluster(char * dbname,
         fatal("Unable to open notmatched output file for writing");
     }
 
+  if (opt_otutabout)
+    {
+      fp_otutabout = fopen(opt_otutabout, "w");
+      if (! fp_otutabout)
+        fatal("Unable to open OTU table (text format) output file for writing");
+    }
+
+  if (opt_mothur_shared_out)
+    {
+      fp_mothur_shared_out = fopen(opt_mothur_shared_out, "w");
+      if (! fp_mothur_shared_out)
+        fatal("Unable to open OTU table (mothur format) output file for writing");
+    }
+
+  if (opt_biomout)
+    {
+      fp_biomout = fopen(opt_biomout, "w");
+      if (! fp_biomout)
+        fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
+    }
+
   db_read(dbname, 0);
+
+  otutable_init();
 
   results_show_samheader(fp_samout, cmdline, dbname);
 
@@ -1302,6 +1385,26 @@ void cluster(char * dbname,
       free(clusterinfo[i].cigar);
 
   free(clusterinfo);
+
+  if (fp_biomout)
+    {
+      otutable_print_biomout(fp_biomout);
+      fclose(fp_biomout);
+    }
+
+  if (fp_otutabout)
+    {
+      otutable_print_otutabout(fp_otutabout);
+      fclose(fp_otutabout);
+    }
+
+  if (fp_mothur_shared_out)
+    {
+      otutable_print_mothur_shared_out(fp_mothur_shared_out);
+      fclose(fp_mothur_shared_out);
+    }
+
+  otutable_done();
 
   if (opt_matched)
     fclose(fp_matched);
