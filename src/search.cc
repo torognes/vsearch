@@ -656,22 +656,22 @@ void usearch_global(char * cmdline, char * progheader)
     fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n", 
             qmatches, queries, 100.0 * qmatches / queries);
 
-  if (fp_otutabout)
+  if (opt_biomout)
+    {
+      otutable_print_biomout(fp_biomout);
+      fclose(fp_biomout);
+    }
+
+  if (opt_otutabout)
     {
       otutable_print_otutabout(fp_otutabout);
       fclose(fp_otutabout);
     }
 
-  if (fp_mothur_shared_out)
+  if (opt_mothur_shared_out)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
       fclose(fp_mothur_shared_out);
-    }
-
-  if (fp_biomout)
-    {
-      otutable_print_biomout(fp_biomout);
-      fclose(fp_biomout);
     }
 
   otutable_done();

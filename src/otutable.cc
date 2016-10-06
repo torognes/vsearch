@@ -211,6 +211,9 @@ void otutable_add(char * query_header, char * target_header, long abundance)
 
 void otutable_print_otutabout(FILE * fp)
 {
+  long progress = 0;
+  progress_init("Writing OTU table (classic)", otutable.otu_set.size());
+
   fprintf(fp, "#OTU ID");
   for (sample_set_t::iterator it_sample = otutable.sample_set.begin();
        it_sample != otutable.sample_set.end();
@@ -246,11 +249,16 @@ void otutable_print_otutabout(FILE * fp)
             fprintf(fp, "%s", it->second.c_str());
         }
       fprintf(fp, "\n");
+      progress_update(++progress);
     }
+  progress_done();
 }
 
 void otutable_print_mothur_shared_out(FILE * fp)
 {
+  long progress = 0;
+  progress_init("Writing OTU table (mothur)", otutable.sample_set.size());
+
   fprintf(fp, "label\tGroup\tnumOtus");
   long numotus = 0;
   for (otu_set_t::iterator it_otu = otutable.otu_set.begin();
@@ -283,11 +291,16 @@ void otutable_print_mothur_shared_out(FILE * fp)
         }
 
       fprintf(fp, "\n");
+      progress_update(++progress);
     }
+  progress_done();
 }
 
 void otutable_print_biomout(FILE * fp)
 {
+  long progress = 0;
+  progress_init("Writing OTU table (biom 1.0)", otutable.otu_set.size());
+
   long rows = otutable.otu_set.size();
   long columns = otutable.sample_set.size();
 
@@ -374,8 +387,10 @@ void otutable_print_biomout(FILE * fp)
           sample_no++;
         }
       otu_no++;
+      progress_update(++progress);
     }
   fprintf(fp, "\n\t]\n");
 
   fprintf(fp, "}\n");
+  progress_done();
 }
