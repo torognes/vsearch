@@ -698,6 +698,12 @@ void search_exact(char * cmdline, char * progheader)
     fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n", 
             qmatches, queries, 100.0 * qmatches / queries);
 
+  if (fp_biomout)
+    {
+      otutable_print_biomout(fp_biomout);
+      fclose(fp_biomout);
+    }
+
   if (fp_otutabout)
     {
       otutable_print_otutabout(fp_otutabout);
@@ -708,12 +714,6 @@ void search_exact(char * cmdline, char * progheader)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
       fclose(fp_mothur_shared_out);
-    }
-
-  if (fp_biomout)
-    {
-      otutable_print_biomout(fp_biomout);
-      fclose(fp_biomout);
     }
 
   otutable_done();
