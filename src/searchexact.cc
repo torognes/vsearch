@@ -199,7 +199,7 @@ void search_exact_output_results(int hit_count,
     {
       double top_hit_id = hits[0].id;
 
-      if (opt_otutabout)
+      if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
         otutable_add(query_head,
                      db_getheader(hits[0].target),
                      qsize);
