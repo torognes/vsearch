@@ -133,7 +133,7 @@ void otutable_add(char * query_header, char * target_header, long abundance)
 {
   /* read sample annotation in query */
 
-  const char legal_in_sample_name[] = 
+  const char legal_in_name[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "_"
@@ -151,9 +151,8 @@ void otutable_add(char * query_header, char * target_header, long abundance)
   else
     {
       /* no match: use first name in header */
-      len_sample = strspn(query_header, legal_in_sample_name);
+      len_sample = strspn(query_header, legal_in_name);
     }
-
   char * sample_name = (char *) xmalloc(len_sample+1);
   strncpy(sample_name, start_sample, len_sample);
   sample_name[len_sample] = 0;
@@ -164,7 +163,6 @@ void otutable_add(char * query_header, char * target_header, long abundance)
   regmatch_t pmatch_otu[4];
   int len_otu;
   char * start_otu = target_header;
-
   if (!regexec(&otutable.regex_otu, target_header, 4, pmatch_otu, 0))
     {
       /* match: use the matching otu name */
@@ -173,8 +171,8 @@ void otutable_add(char * query_header, char * target_header, long abundance)
     }
   else
     {
-      /* no match: use empty string */
-      len_otu = 0;
+      /* no match: use first name in header */
+      len_otu = strspn(query_header, legal_in_name);
     }
   char * otu_name = (char *) xmalloc(len_otu+1);
   strncpy(otu_name, start_otu, len_otu);
