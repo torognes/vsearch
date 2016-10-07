@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 28, 2016" "version 2.1.2" "USER COMMANDS"
+.TH vsearch 1 "October 7, 2016" "version 2.2.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -24,10 +24,10 @@ Chimera detection:
 Clustering:
 .RS
 \fBvsearch\fR (\-\-cluster_fast | \-\-cluster_size |
-\-\-cluster_smallmem) \fIfastafile\fR (\-\-alnout | \-\-blast6out |
-\-\-centroids | \-\-clusters | \-\-msaout | \-\-profile | 
-\-\-samout | \-\-uc | \-\-userout) \fIoutputfile\fR
-\-\-id \fIreal\fR [\fIoptions\fR]
+\-\-cluster_smallmem) \fIfastafile\fR (\-\-alnout | \-\-biomout |
+\-\-blast6out | \-\-centroids | \-\-clusters | \-\-mothur_shared_out |
+\-\-msaout | \-\-otutabout | \-\-profile | \-\-samout | \-\-uc |
+\-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR [\fIoptions\fR]
 .PP
 .RE
 Dereplication and rereplication:
@@ -85,12 +85,14 @@ Pairwise alignment:
 .RE
 Searching:
 .RS
-\fBvsearch\fR \-\-search_exact \fIfastafile\fR \-\-db
-\fIfastafile\fR (\-\-alnout | \-\-blast6out | \-\-samout | \-\-uc |
-\-\-userout) \fIoutputfile\fR [\fIoptions\fR]
+\fBvsearch\fR \-\-search_exact \fIfastafile\fR \-\-db \fIfastafile\fR
+(\-\-alnout | \-\-biomout | \-\-blast6out | \-\-mothur_shared_out |
+\-\-otutabout | \-\-samout | \-\-uc | \-\-userout) \fIoutputfile\fR
+[\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-usearch_global \fIfastafile\fR \-\-db
-\fIfastafile\fR (\-\-alnout | \-\-blast6out | \-\-samout | \-\-uc |
+\fIfastafile\fR (\-\-alnout | \-\-biomout | \-\-blast6out |
+\-\-mothur_shared_out | \-\-otutabout | \-\-samout | \-\-uc |
 \-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR [\fIoptions\fR]
 .PP
 .RE
@@ -490,6 +492,44 @@ clustering threshold (\-\-id) and the pairwise identity definition
 Input sequences are masked as specified with the \-\-qmask and
 \-\-hardmask options.
 .TP 9
+.BI \-\-biomout \0filename
+Generate an OTU table in the biom version 1.0 JSON file format as
+specified at
+http://biom-format.org/documentation/format_versions/biom-1.0.html.
+The format describes how to store a sparse matrix containing the
+abundances of the OTUs in the different samples. This format is much
+more efficient than the classic and mothur OTU table formats available
+with the \-\-otutabout and \-\-mothur_shared_out options,
+respectively, and is recommended at least for large tables. The OTUs
+are represented by the cluster centroids. Taxonomy information will be
+included for the OTUs if available. Sample identifiers will be
+extracted from the headers of all sequences in the input file. If the
+header contains ";sample=abc123;" or ";barcodelabel=abc123;" or a
+similar string somewhere, then the given sample identifier (here
+"abc123") will be used. The semicolon is not mandatory at the
+beginning or end of the header. The sample identifier may contain any
+printable character except semicolons. If no such sample label is
+found, the identifier in the initial part of the header will be used,
+but only letters, digits and underscores are allowed. OTU identifiers
+will be extracted from the headers of the cluster centroid
+sequences. If the header contains ";otu=def789;" or a similar string
+somewhere, then the given OTU identifier (here "def789") will be
+used. The semicolon is not mandatory at the beginning or end of the
+header. The OTU identifier may contain any printable character except
+semicolons. If no such OTU label is found, the identifier in the
+initial part of the header will be used, and all characters except
+semicolons are allowed. Alternatively, OTU identifers can be generated
+using the relabelling options (\-\-relabel, \-\-relabel_sha1 or
+\-\-relabel_md5). Taxonomy information, if present, will also be
+extracted from the headers of the centroid sequences. If the header
+contains ";tax=Homo_sapiens;" or a similar string somewhere, then the
+given taxonomy information (here "Homo_sapiens") will be used. The
+semicolon is not mandatory at the beginning or end of the header. The
+taxonomy information may contain any printable character except
+semicolons. If an OTU table in the biom version 2.1 HDF5 file format
+is required, the biom utility may be used as described at
+http://biom-format.org/documentation/biom_conversion.html.
+.TP
 .BI \-\-centroids \0filename
 Output cluster centroid sequences to \fIfilename\fR, in fasta
 format. The centroid is the sequence that seeded the cluster (i.e. the
@@ -575,6 +615,35 @@ identity thresholds. The consensus sequence is constructed by taking
 the majority symbol (nucleotide or gap) from each column of the
 alignment. Columns containing a majority of gaps are skipped, except
 for terminal gaps.
+.TP
+.BI \-\-mothur_shared_out \0filename
+Output an OTU table in the mothur "shared" tab-separated plain text
+format as described at http://www.mothur.org/wiki/Shared_file. The
+format describes how a matrix containing the abundances of the OTUs in
+the different samples is stored. The first line will start with the
+strings "label", "group" and "numOtus" and is followed by a list of
+all OTU identifiers. The following lines, one for each sample, starts
+with the string "vsearch" followed by the sample identifier, the total
+number of OTUs, and a list of abundances for each OTU in that sample,
+in the order given on the first line. The OTU and sample identifiers
+are extracted from the FASTA headers of the sequences. The OTUs are
+represented by the cluster centroids. See the \-\-biomout option for
+further details.
+.TP
+.BI \-\-otutabout \0filename
+Output an OTU table in the classic tab-separated plain text format as
+a matrix containing the abundances of the OTUs in the different
+samples. The first line will start with the string "#OTU ID" and is
+followed by a tab-separated list of all sample identifiers. The
+following lines, one for each OTU, starts with the OTU identifier and
+is followed by a tab-separated list of abundances for that OTU in each
+sample, in the order given on the first line. The OTU and sample
+identifiers are extracted from the FASTA headers of the sequences. The
+OTUs are represented by the cluster centroids. An extra column is
+added to the right of the table if taxonomy information is available
+for at least one of the OTUs. This column will be labelled "taxonomy"
+and each row will then contain the taxonomy information extracted for
+that OTU. See the \-\-biomout option for further details.
 .TP
 .BI \-\-profile \0filename
 Output a sequence profile to a text file with the frequency of each
@@ -1408,6 +1477,13 @@ Write pairwise global alignments to \fIfilename\fR using a
 human-readable format. Use \-\-rowlen to modify alignment
 length. Output order may vary when using multiple threads.
 .TP
+.BI \-\-biomout \0filename
+Write search results to an OTU table in the biom version 1.0 file
+format. The query file contains the samples, while the database file
+contains the OTUs. Sample and OTU identifiers are extracted from the
+header of these sequences. See the \-\-biomout option in the
+Clustering section for further details.
+.TP
 .BI \-\-blast6out \0filename
 Write search results to \fIfilename\fR using a blast-like
 tab-separated format of twelve fields (listed below), with one line
@@ -1701,9 +1777,23 @@ in the query must match.
 Score assigned to a mismatch (i.e. different nucleotides) in the
 pairwise alignment. The default value is -4.
 .TP
+.BI \-\-mothur_shared_out \0filename
+Write search results to an OTU table in the mothur "shared"
+tab-separated plain text file format. The query file contains the
+samples, while the database file contains the OTUs. Sample and OTU
+identifiers are extracted from the header of these sequences. See the
+\-\-otutabout option in the Clustering section for further details.
+.TP
 .BI \-\-notmatched \0filename
 Write query sequences not matching database target sequences to
 \fIfilename\fR, in fasta format.
+.TP
+.BI \-\-otutabout \0filename
+Write search results to an OTU table in the classic tab-separated plain text
+format. The query file contains the samples, while the database file
+contains the OTUs. Sample and OTU identifiers are extracted from the
+header of these sequences. See the \-\-mothur_shared_out option in the
+Clustering section for further details.
 .TP
 .B \-\-output_no_hits
 Write both matching and non-matching queries to \-\-alnout,
@@ -2922,9 +3012,13 @@ New command: \-\-fastx_filter. New options: \-\-fastq_maxlen,
 .BR v2.1.1\~ "released September 23rd, 2016"
 Fixed bugs in output to UC-files. Improved help text and manual.
 .TP
-.BR v2.1.2\~ "released September 28rd, 2016"
+.BR v2.1.2\~ "released September 28th, 2016"
 Fixed incorrect abundance output from fastx_filter and fastq_filter
 when relabelling.
+.TP
+.BR v2.2.0\~ "released October 7th, 2016"
+Added OTU table generation options \-\-biomout, \-\-mothur_shared_out
+and \-\-otutabout to the clustering and searching commands.
 .RE
 .LP
 .\" ============================================================================

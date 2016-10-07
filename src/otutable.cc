@@ -104,12 +104,12 @@ void otutable_init()
   /* compile regular expression matchers */
   
   if (regcomp(&otutable.regex_sample,
-              "(^|;)(sample|barcodelabel)=([A-Za-z0-9_=]*)",
+              "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
               REG_EXTENDED))
     fatal("Compilation of regular expression for sample annotation failed");
   
   if (regcomp(&otutable.regex_otu,
-              "(^|;)([Oo][Tt][Uu][A-Za-z0-9_=]*)",
+              "(^|;)otu=([^;]*)($|;)",
               REG_EXTENDED))
     fatal("Compilation of regular expression for otu annotation failed");
   
