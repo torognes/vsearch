@@ -157,7 +157,7 @@ static struct chimera_info_s * cia;
 
 void realloc_arrays(struct chimera_info_s * ci)
 {
-  int maxhlen = ci->query_head_len;
+  int maxhlen = MAX(ci->query_head_len,1);
   if (maxhlen > ci->head_alloc)
     {
       ci->head_alloc = maxhlen;
@@ -166,7 +166,7 @@ void realloc_arrays(struct chimera_info_s * ci)
 
   /* realloc arrays based on query length */
 
-  int maxqlen = ci->query_len;
+  int maxqlen = MAX(ci->query_len,1);
   if (maxqlen > ci->query_alloc)
     {
       ci->query_alloc = maxqlen;

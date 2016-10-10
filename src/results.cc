@@ -486,9 +486,13 @@ void results_show_alnout(FILE * fp,
                   0.0);
 
 #if 0
-          fprintf(fp, "%d kmers, %d score, %d gap opens. %s\n",
+          fprintf(fp, "%d kmers, %d score, %d gap opens. %s %s %d %d %d %d %d\n",
                   hp->count, hp->nwscore, hp->nwgaps,
-                  hp->accepted ? "accepted" : "not accepted");
+                  hp->accepted ? "accepted" : "not accepted",
+                  hp->nwalignment, hp->nwalignmentlength,
+                  hp->trim_q_left, hp->trim_q_right,
+                  hp->trim_t_left, hp->trim_t_right
+                  );
 #endif
         }
     }

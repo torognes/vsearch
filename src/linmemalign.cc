@@ -152,6 +152,19 @@ void LinearMemoryAligner::alloc_vectors(size_t x)
     }
 }
 
+void LinearMemoryAligner::cigar_reset()
+{
+  if (cigar_alloc < 1)
+    {
+      cigar_alloc = 64;
+      cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
+    }
+  cigar_string[0] = 0;
+  cigar_length = 0;
+  op = 0;
+  op_run = 0;
+}
+
 void LinearMemoryAligner::cigar_flush()
 {
   if (op_run > 0)
@@ -604,9 +617,7 @@ char * LinearMemoryAligner::align(char * _a_seq,
   b_seq = _b_seq;
 
   /* init cigar operations */
-  op = 0;
-  op_run = 0;
-  cigar_length = 0;
+  cigar_reset();
 
   /* allocate enough memory for vectors */
   alloc_vectors(b_len+1);

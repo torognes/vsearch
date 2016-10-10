@@ -171,7 +171,7 @@ void filter(bool fastq_only, char * filename)
         }
       
       /* truncate trailing part */
-      if (opt_fastq_trunclen > 0)
+      if (opt_fastq_trunclen >= 0)
         {
           if (length >= opt_fastq_trunclen)
             length = opt_fastq_trunclen;
@@ -179,6 +179,10 @@ void filter(bool fastq_only, char * filename)
             length = 0;
         }
       
+      /* truncate trailing part, but keep if short */
+      if ((opt_fastq_trunclen_keep >= 0) && (length > opt_fastq_trunclen_keep))
+        length = opt_fastq_trunclen_keep;
+
       /* quality and ee truncation */
       double ee = 0.0;
       if (h->is_fastq)
@@ -209,10 +213,10 @@ void filter(bool fastq_only, char * filename)
 
       if ((length >= opt_fastq_minlen) &&
           (length <= opt_fastq_maxlen) &&
-          ((opt_fastq_trunclen == 0) || (length >= opt_fastq_trunclen)) &&
+          ((opt_fastq_trunclen < 0) || (length >= opt_fastq_trunclen)) &&
           (ncount <= opt_fastq_maxns) &&
           (ee <= opt_fastq_maxee) &&
-          (ee / length <= opt_fastq_maxee_rate))
+          ((length == 0) || (ee / length <= opt_fastq_maxee_rate)))
         {
           /* keep the sequence */
 

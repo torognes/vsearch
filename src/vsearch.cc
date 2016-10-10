@@ -204,6 +204,7 @@ long opt_fastq_qminout;
 long opt_fastq_stripleft;
 long opt_fastq_tail;
 long opt_fastq_trunclen;
+long opt_fastq_trunclen_keep;
 long opt_fastq_truncqual;
 long opt_fulldp;
 long opt_hardmask;
@@ -582,7 +583,8 @@ void args_init(int argc, char **argv)
   opt_fastq_stripleft = 0;
   opt_fastq_tail = 4;
   opt_fastq_truncee = DBL_MAX;
-  opt_fastq_trunclen = 0;
+  opt_fastq_trunclen = -1;
+  opt_fastq_trunclen_keep = -1;
   opt_fastq_truncqual = LONG_MIN;
   opt_fastqout = 0;
   opt_fastqout_discarded = 0;
@@ -638,7 +640,7 @@ void args_init(int argc, char **argv)
   opt_mindiv = 0.8;
   opt_minh = 0.28;
   opt_minqt = 0.0;
-  opt_minseqlength = 0;
+  opt_minseqlength = -1;
   opt_minsize = 0;
   opt_minsizeratio = 0.0;
   opt_minsl = 0.0;
@@ -889,6 +891,7 @@ void args_init(int argc, char **argv)
     {"otutabout",             required_argument, 0, 0 },
     {"mothur_shared_out",     required_argument, 0, 0 },
     {"biomout",               required_argument, 0, 0 },
+    {"fastq_trunclen_keep",   required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1659,6 +1662,10 @@ void args_init(int argc, char **argv)
           opt_biomout = optarg;
           break;
 
+        case 181:
+          opt_fastq_trunclen_keep = args_getlong(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1743,8 +1750,8 @@ void args_init(int argc, char **argv)
         opt_maxrejects = 32;
     }
 
-  if (opt_minseqlength < 0)
-    fatal("The argument to --minseqlength must be positive");
+  if (opt_minseqlength < -1)
+    fatal("The argument to --minseqlength must not be negative");
 
   if (opt_maxaccepts < 0)
     fatal("The argument to --maxaccepts must not be negative");
@@ -1850,7 +1857,7 @@ void args_init(int argc, char **argv)
 
   /* set default opt_minseqlength depending on command */
 
-  if (opt_minseqlength == 0)
+  if (opt_minseqlength < 0)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
           opt_usearch_global || opt_derep_fulllength || opt_derep_prefix )
@@ -1904,6 +1911,7 @@ void args_init(int argc, char **argv)
   char * * stdout_options[] =
     {
       & opt_alnout,
+      & opt_biomout,
       & opt_blast6out,
       & opt_borderline,
       & opt_centroids,
@@ -1923,7 +1931,9 @@ void args_init(int argc, char **argv)
       & opt_fastqout_notmerged_rev,
       & opt_log,
       & opt_matched,
+      & opt_mothur_shared_out,
       & opt_msaout,
+      & opt_otutabout,
       & opt_nonchimeras,
       & opt_notmatched,
       & opt_output,

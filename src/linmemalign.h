@@ -95,6 +95,8 @@ class LinearMemoryAligner
   long * XX;
   long * YY;
   
+  void cigar_reset();
+
   void cigar_flush();
 
   void cigar_add(char _op, long run);

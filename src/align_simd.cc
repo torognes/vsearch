@@ -830,18 +830,34 @@ void search16(s16info_s * s,
         {
           unsigned int seqno = seqnos[cand_id];
           long length = db_getsequencelen(seqno);
-          pscores[cand_id] = 0;
-          paligned[cand_id] = 0;
+
+          paligned[cand_id] = length;
           pmatches[cand_id] = 0;
-          pmismatches[cand_id] = length;
+          pmismatches[cand_id] = 0;
           pgaps[cand_id] = length;
 
-          char * cigar = 0;
-          int ret = asprintf(&cigar, "%ldI", length);
-          pcigar[cand_id] = cigar;
+          if (length == 0)
+            pscores[cand_id] = 0;
+          else
+            pscores[cand_id] =
+              MAX(- s->penalty_gap_open_target_left -
+                  length * s->penalty_gap_extension_target_left,
+                  - s->penalty_gap_open_target_right -
+                  length * s->penalty_gap_extension_target_right);
 
-          if ((ret < 2) || !cigar)
-            fatal("Unable to allocate enough memory.");
+          char * cigar = 0;
+          if (length > 0)
+            {
+              int ret = asprintf(&cigar, "%ldI", length);
+              if ((ret < 2) || !cigar)
+                fatal("Unable to allocate enough memory.");
+            }
+          else
+            {
+              cigar = (char *) xmalloc(1);
+              cigar[0] = 0;
+            }
+          pcigar[cand_id] = cigar;
         }
       return;
     }

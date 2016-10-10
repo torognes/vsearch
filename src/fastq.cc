@@ -258,8 +258,10 @@ bool fastq_next(fastx_handle h,
       rest -= len;
     }
 
+#if 0
   if (h->sequence_buffer.length == 0)
     fastq_fatal(lineno_seq, "Empty sequence line");
+#endif
 
   unsigned long lineno_plus = h->lineno;
 
@@ -363,8 +365,10 @@ bool fastq_next(fastx_handle h,
       rest -= len;
     }
 
+#if 0
   if (h->quality_buffer.length == 0)
     fastq_fatal(lineno_seq, "Empty quality line");
+#endif
 
   if (h->sequence_buffer.length != h->quality_buffer.length)
     fastq_fatal(lineno_qual,

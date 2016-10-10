@@ -158,7 +158,9 @@ bool fasta_next(fastx_handle h,
   h->lineno_start = h->lineno;
 
   h->header_buffer.length = 0;
+  h->header_buffer.data[0] = 0;
   h->sequence_buffer.length = 0;
+  h->sequence_buffer.data[0] = 0;
 
   unsigned long rest = fastx_file_fill_buffer(h);
 

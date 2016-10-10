@@ -567,18 +567,19 @@ void derep_prefix()
       /* compute hashes of all prefixes */
 
       unsigned long fnv1a_hash = 14695981039346656037UL;
+      prefix_hashes[0] = fnv1a_hash;
       for(unsigned int j = 0; j < seqlen; j++)
         {
           fnv1a_hash ^= seq_up[j];
           fnv1a_hash *= 1099511628211UL;
-          prefix_hashes[j] = fnv1a_hash;
+          prefix_hashes[j+1] = fnv1a_hash;
         }
 
       /* first, look for an identical match */
 
       unsigned int prefix_len = seqlen;
 
-      unsigned long hash = prefix_hashes[prefix_len-1];
+      unsigned long hash = prefix_hashes[prefix_len];
       struct bucket * bp = hashtable + (hash & hash_mask);
       
       while ((bp->size) &&
@@ -613,9 +614,10 @@ void derep_prefix()
         {
           /* look for prefix match */
           
-          while((! bp->size) && (prefix_len-- >= len_shortest))
+          while((! bp->size) && (prefix_len > len_shortest))
             {
-              hash = prefix_hashes[prefix_len-1];
+              prefix_len--;
+              hash = prefix_hashes[prefix_len];
               bp = hashtable + (hash & hash_mask);
               
               while ((bp->size) &&
@@ -632,7 +634,7 @@ void derep_prefix()
                 }
             }
           
-          if ((bp->size) && (prefix_len >= len_shortest))
+          if (bp->size)
             {
               /* prefix match */
 

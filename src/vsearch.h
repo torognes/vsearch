@@ -302,6 +302,7 @@ extern long opt_fastq_qminout;
 extern long opt_fastq_stripleft;
 extern long opt_fastq_tail;
 extern long opt_fastq_trunclen;
+extern long opt_fastq_trunclen_keep;
 extern long opt_fastq_truncqual;
 extern long opt_fulldp;
 extern long opt_hardmask;

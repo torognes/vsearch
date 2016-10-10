@@ -266,37 +266,51 @@ void align_trim(struct hit * hit)
   /* left trim alignment */
   
   char * p = hit->nwalignment;
-  long run = 1;
-  int scanlength = 0;
-  sscanf(p, "%ld%n", &run, &scanlength);
-  char op = *(p+scanlength);
-  if (op != 'M')
+  char op;
+  long run;
+  if (*p)
     {
-      hit->trim_aln_left = 1 + scanlength;
-      if (op == 'D')
-        hit->trim_q_left = run;
-      else
-        hit->trim_t_left = run;
+      run = 1;
+      int scanlength = 0;
+      sscanf(p, "%ld%n", &run, &scanlength);
+      op = *(p+scanlength);
+      if (op != 'M')
+        {
+          hit->trim_aln_left = 1 + scanlength;
+          if (op == 'D')
+            hit->trim_q_left = run;
+          else
+            hit->trim_t_left = run;
+        }
     }
   
   /* right trim alignment */
   
   char * e = hit->nwalignment + strlen(hit->nwalignment);
-  p = e - 1;
-  op = *p;
-  if (op != 'M')
+  if (e > hit->nwalignment)
     {
-      while (*(p-1) <= '9')
-        p--;
-      run = 1;
-      sscanf(p, "%ld", &run);
-      hit->trim_aln_right = e - p;
-      if (op == 'D')
-        hit->trim_q_right = run;
-      else
-        hit->trim_t_right = run;
+      p = e - 1;
+      op = *p;
+      if (op != 'M')
+        {
+          while ((p > hit->nwalignment) && (*(p-1) <= '9'))
+            p--;
+          run = 1;
+          sscanf(p, "%ld", &run);
+          hit->trim_aln_right = e - p;
+          if (op == 'D')
+            hit->trim_q_right = run;
+          else
+            hit->trim_t_right = run;
+        }
     }
-  
+
+  if (hit->trim_q_left >= hit->nwalignmentlength)
+    hit->trim_q_right = 0;
+
+  if (hit->trim_t_left >= hit->nwalignmentlength)
+    hit->trim_t_right = 0;
+
   hit->internal_alignmentlength = hit->nwalignmentlength
     - hit->trim_q_left - hit->trim_t_left
     - hit->trim_q_right - hit->trim_t_right;
@@ -306,9 +320,9 @@ void align_trim(struct hit * hit)
     - hit->trim_q_right - hit->trim_t_right;
 
   hit->internal_gaps = hit->nwgaps
-    - (hit->trim_q_left  + hit->trim_t_left  > 0 ? 1 : 0)
-    - (hit->trim_q_right + hit->trim_t_right > 0 ? 1 : 0);
-  
+    - ((hit->trim_q_left  + hit->trim_t_left)  > 0 ? 1 : 0)
+    - ((hit->trim_q_right + hit->trim_t_right) > 0 ? 1 : 0);
+
   /* CD-HIT */
   hit->id0 = hit->shortest > 0 ? 100.0 * hit->matches / hit->shortest : 0.0;
   /* all diffs */
