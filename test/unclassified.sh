@@ -31,8 +31,8 @@ DESCRIPTION="check if vsearch is in the PATH"
 #                                                                             #
 #*****************************************************************************#
 
-## usearch 6, 7 and 8 output a "=" when the sequences are identical
-DESCRIPTION="CIGAR alignment is \"=\" when the sequences are identical"
+## usearch 6, 7 and 8 output a "=" when the sequences are strictly identical
+DESCRIPTION="CIGAR string is \'=\' when the sequences are identical"
 UC_OUT=$("${VSEARCH}" \
              --cluster_fast <(printf ">seq1\nACGT\n>seq2\nACGT\n") \
              --id 0.97 \
@@ -48,8 +48,26 @@ UC_OUT=$("${VSEARCH}" \
 unset UC_OUT
 
 
+## usearch 6 and 7 output a "=" when the sequences are identical
+## (terminal gaps ignored), usearch 8 seems to behave differently
+DESCRIPTION="CIGAR string is \'=\' when the sequences are identical (terminal gaps ignored)"
+UC_OUT=$("${VSEARCH}" \
+             --cluster_fast <(printf ">seq1\nACGT\n>seq2\nACG\n") \
+             --id 0.97 \
+             --quiet \
+             --minseqlength 1 \
+             --uc - | grep "^H" | cut -f 8)
+
+[[ "${UC_OUT}" == "=" ]] && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+## clean
+unset UC_OUT
+
+
 ## is the 3rd column of H the query length or the alignment length?
-DESCRIPTION="3rd column of H is the query length"
+DESCRIPTION="when clustering, 3rd column of H in --uc is the query length"
 UC_OUT=$("${VSEARCH}" \
              --cluster_fast <(printf ">seq1\nACGT\n>seq2\nACAGT\n") \
              --id 0.5 \
@@ -58,6 +76,30 @@ UC_OUT=$("${VSEARCH}" \
              --uc - | grep "^H")
 
 awk 'BEGIN {FS = "\t"} {$3 == 4 && $9 == "seq1"}' <<< "${UC_OUT}" && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+## clean
+unset UC_OUT
+
+
+## when clustering, in --uc output, the highest number in the 2nd
+## column of H entries is smaller or equal to the number of input
+## sequences (number of S and H lines, minus one)
+DESCRIPTION="when clustering (--uc output), the 2nd column of H is the centroid's ordinal number"
+INPUT=">seq1\nAAAA\n>seq2\nAAAT\n>seq3\nGGGG\n>seq4\nGGGC\n"
+
+UC_OUT=$("${VSEARCH}" \
+    --cluster_fast <(printf ${INPUT}) \
+    --id 0.75 \
+    --quiet \
+    --minseqlength 1 \
+    --uc -)
+
+awk 'BEGIN {FS = "\t" ; H = 0 ; seq = -1}
+     {if (/^S/ || /^H/) {seq += 1}
+      if (/^H/) {if (H < $2) {H = $2}}}
+     END {if (H > seq - 1) {exit 1}}' <<< "${UC_OUT}" && \
     success  "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
