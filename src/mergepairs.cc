@@ -79,9 +79,9 @@ static FILE * fp_fastaout_notmerged_rev = 0;
 static FILE * fp_eetabbedout = 0;
 static fastx_handle fastq_fwd;
 static fastx_handle fastq_rev;
-static long merged = 0;
-static long notmerged = 0;
-static long total = 0;
+static int64_t merged = 0;
+static int64_t notmerged = 0;
+static int64_t total = 0;
 static char * merged_sequence = 0;
 static char * merged_quality = 0;
 static char * merged_header = 0;
@@ -92,7 +92,7 @@ static pthread_mutex_t mutex_progress;
 static pthread_mutex_t mutex_counters;
 static pthread_mutex_t mutex_output;
 static pthread_cond_t cond_output;
-static long output_next;
+static int64_t output_next;
 static char merge_qual_same[128][128];
 static char merge_qual_diff[128][128];
 static double match_score[128][128];
@@ -109,24 +109,24 @@ typedef struct merge_data_s
   char * rev_seq_comp;
   char * fwd_quality;
   char * rev_quality;
-  long header_alloc;
-  long seq_alloc;
-  long fwd_length;
-  long rev_length;
-  long fwd_trunc;
-  long rev_trunc;
-  long pair_no;
+  int64_t header_alloc;
+  int64_t seq_alloc;
+  int64_t fwd_length;
+  int64_t rev_length;
+  int64_t fwd_trunc;
+  int64_t rev_trunc;
+  int64_t pair_no;
   char * merged_header;
   char * merged_sequence;
   char * merged_quality;
-  long merged_header_alloc;
-  long merged_seq_alloc;
+  int64_t merged_header_alloc;
+  int64_t merged_seq_alloc;
   double ee_merged;
   double ee_fwd;
   double ee_rev;
-  long fwd_errors;
-  long rev_errors;
-  long offset;
+  int64_t fwd_errors;
+  int64_t rev_errors;
+  int64_t offset;
   bool merged;
 } merge_data_t;
 
@@ -146,13 +146,13 @@ int get_qual(char q)
 
   if (qual < opt_fastq_qmin)
     {
-      snprintf(msg, 200, "FASTQ quality value (%d) below qmin (%ld)",
+      snprintf(msg, 200, "FASTQ quality value (%d) below qmin (%" PRId64 ")",
                qual, opt_fastq_qmin);
       fatal(msg);
     }
   else if (qual > opt_fastq_qmax)
     {
-      snprintf(msg, 200, "FASTQ quality value (%d) above qmax (%ld)",
+      snprintf(msg, 200, "FASTQ quality value (%d) above qmax (%" PRId64 ")",
                qual, opt_fastq_qmax);
       fatal(msg);
     }
@@ -302,7 +302,7 @@ void keep(merge_data_t * ip)
     }
 
   if (opt_eetabbedout)
-    fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%ld\t%ld\n",
+    fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
             ip->ee_fwd, ip->ee_rev, ip->fwd_errors, ip->rev_errors);
 }
 
@@ -340,24 +340,24 @@ void merge(merge_data_t * ip)
   /* The offset is the distance between the (truncated) 3' ends of the two
      sequences */
 
-  long rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
+  int64_t rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
     ip->offset - ip->fwd_trunc : 0;
-  long fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
+  int64_t fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
     ip->fwd_trunc - ip->offset : 0;
-  long mergelen = ip->fwd_trunc + ip->rev_trunc - ip->offset;
+  int64_t mergelen = ip->fwd_trunc + ip->rev_trunc - ip->offset;
 
   ip->ee_merged = 0.0;
   ip->ee_fwd = 0.0;
   ip->ee_rev = 0.0;
 
-  long fwd_pos = 0;
-  long rev_pos = ip->rev_trunc - 1 +
+  int64_t fwd_pos = 0;
+  int64_t rev_pos = ip->rev_trunc - 1 +
     fwd_5prime_overhang - rev_3prime_overhang;
 
   ip->fwd_errors = 0;
   ip->rev_errors = 0;
 
-  for(long i = 0; i < mergelen; i++)
+  for(int64_t i = 0; i < mergelen; i++)
     {
       bool has_fwd = 0;
       if ((fwd_pos >= 0) && (fwd_pos < ip->fwd_trunc))
@@ -429,16 +429,16 @@ void merge(merge_data_t * ip)
 }
 
 double overlap_score(merge_data_t * ip,
-                     long fwd_pos_start,
-                     long rev_pos_start,
-                     long overlap)
+                     int64_t fwd_pos_start,
+                     int64_t rev_pos_start,
+                     int64_t overlap)
 {
-  long fwd_pos = fwd_pos_start;
-  long rev_pos = rev_pos_start;
+  int64_t fwd_pos = fwd_pos_start;
+  int64_t rev_pos = rev_pos_start;
   double score = 0.0;
-  long diffs = 0;
+  int64_t diffs = 0;
 
-  for (long j=0; j < overlap; j++)
+  for (int64_t j=0; j < overlap; j++)
     {
       char fwd_sym = ip->fwd_sequence[fwd_pos];
       char rev_sym = ip->rev_seq_comp[rev_pos];
@@ -460,29 +460,29 @@ double overlap_score(merge_data_t * ip,
   return score;
 }
 
-long optimize(merge_data_t * ip)
+int64_t optimize(merge_data_t * ip)
 {
-  //  long i1 = opt_fastq_minovlen;
-  long i1 = 1;
+  //  int64_t i1 = opt_fastq_minovlen;
+  int64_t i1 = 1;
 
   i1 = MAX(i1, ip->fwd_trunc + ip->rev_trunc - opt_fastq_maxmergelen);
 
-  long i2 = opt_fastq_allowmergestagger ?
+  int64_t i2 = opt_fastq_allowmergestagger ?
     (ip->fwd_trunc + ip->rev_trunc - opt_fastq_minovlen) :
     ip->fwd_trunc;
 
   i2 = MIN(i2, ip->fwd_trunc + ip->rev_trunc - opt_fastq_minmergelen);
 
-  long best_i = 0;
+  int64_t best_i = 0;
   double best_score = 0.0;
 
-  for(long i = i1; i <= i2; i++)
+  for(int64_t i = i1; i <= i2; i++)
     {
-      long fwd_3prime_overhang = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
-      long rev_3prime_overhang = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
-      long overlap = i - fwd_3prime_overhang - rev_3prime_overhang;
-      long fwd_pos_start = ip->fwd_trunc - fwd_3prime_overhang - 1;
-      long rev_pos_start = ip->rev_trunc - rev_3prime_overhang - overlap;
+      int64_t fwd_3prime_overhang = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
+      int64_t rev_3prime_overhang = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
+      int64_t overlap = i - fwd_3prime_overhang - rev_3prime_overhang;
+      int64_t fwd_pos_start = ip->fwd_trunc - fwd_3prime_overhang - 1;
+      int64_t rev_pos_start = ip->rev_trunc - rev_3prime_overhang - overlap;
 
       double score = overlap_score(ip,
                                    fwd_pos_start,
@@ -515,11 +515,11 @@ void process(merge_data_t * ip)
 
   /* truncate sequences by quality */
 
-  long fwd_trunc = ip->fwd_length;
+  int64_t fwd_trunc = ip->fwd_length;
 
   if (!skip)
     {
-      for (long i = 0; i < ip->fwd_length; i++)
+      for (int64_t i = 0; i < ip->fwd_length; i++)
         if (get_qual(ip->fwd_quality[i]) <= opt_fastq_truncqual)
           {
             fwd_trunc = i;
@@ -531,11 +531,11 @@ void process(merge_data_t * ip)
 
   ip->fwd_trunc = fwd_trunc;
 
-  long rev_trunc = ip->rev_length;
+  int64_t rev_trunc = ip->rev_length;
 
   if (!skip)
     {
-      for (long i = 0; i < ip->rev_length; i++)
+      for (int64_t i = 0; i < ip->rev_length; i++)
         if (get_qual(ip->rev_quality[i]) <= opt_fastq_truncqual)
           {
             rev_trunc = i;
@@ -553,8 +553,8 @@ void process(merge_data_t * ip)
 
   if (!skip)
     {
-      long fwd_ncount = 0;
-      for (long i = 0; i < fwd_trunc; i++)
+      int64_t fwd_ncount = 0;
+      for (int64_t i = 0; i < fwd_trunc; i++)
         if (ip->fwd_sequence[i] == 'N')
           {
             ip->fwd_quality[i] = opt_fastq_ascii;
@@ -566,8 +566,8 @@ void process(merge_data_t * ip)
 
   if (!skip)
     {
-      long rev_ncount = 0;
-      for (long i = 0; i < rev_trunc; i++)
+      int64_t rev_ncount = 0;
+      for (int64_t i = 0; i < rev_trunc; i++)
         if (ip->rev_sequence[i] == 'N')
           {
             ip->rev_quality[i] = opt_fastq_ascii;
@@ -589,7 +589,7 @@ void process(merge_data_t * ip)
 
 bool read_pair(merge_data_t * ip)
 {
-  long suffix_len = opt_label_suffix ? strlen(opt_label_suffix) : 0;
+  int64_t suffix_len = opt_label_suffix ? strlen(opt_label_suffix) : 0;
 
   if (fastq_next(fastq_fwd, 0, chrmap_upcase))
     {
@@ -598,9 +598,9 @@ bool read_pair(merge_data_t * ip)
 
       /* allocate more memory if necessary */
 
-      long fwd_header_len = fastq_get_header_length(fastq_fwd);
-      long rev_header_len = fastq_get_header_length(fastq_rev);
-      long header_needed = MAX(fwd_header_len, rev_header_len) + 1;
+      int64_t fwd_header_len = fastq_get_header_length(fastq_fwd);
+      int64_t rev_header_len = fastq_get_header_length(fastq_rev);
+      int64_t header_needed = MAX(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > ip->header_alloc)
         {
@@ -611,7 +611,7 @@ bool read_pair(merge_data_t * ip)
 
       ip->fwd_length = fastq_get_sequence_length(fastq_fwd);
       ip->rev_length = fastq_get_sequence_length(fastq_rev);
-      long seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
+      int64_t seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
 
       if (seq_needed > ip->seq_alloc)
         {
@@ -624,7 +624,7 @@ bool read_pair(merge_data_t * ip)
 
         }
 
-      long merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
+      int64_t merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
 
       if (merged_seq_needed > ip->merged_seq_alloc)
         {
@@ -635,7 +635,7 @@ bool read_pair(merge_data_t * ip)
                                                 merged_seq_needed);
         }
 
-      long merged_header_needed = fwd_header_len + suffix_len + 1;
+      int64_t merged_header_needed = fwd_header_len + suffix_len + 1;
 
       if (merged_header_needed > ip->merged_header_alloc)
         {
@@ -655,7 +655,7 @@ bool read_pair(merge_data_t * ip)
 
       /* make a complementary sequence of the reverse sequence */
 
-      for(long i=0; i<ip->rev_length; i++)
+      for(int64_t i=0; i<ip->rev_length; i++)
         ip->rev_seq_comp[i] = chrmap_complement[(int)(ip->rev_sequence[i])];
       ip->rev_seq_comp[ip->rev_length] = 0;
 
@@ -678,7 +678,7 @@ void pair()
   merge_data_t * merge_buffer = (merge_data_t*)
     xmalloc(INPUTCHUNKSIZE * sizeof(merge_data_s));
 
-  for(long i=0; i<INPUTCHUNKSIZE; i++)
+  for(int64_t i=0; i<INPUTCHUNKSIZE; i++)
     {
       merge_data_s * ip = merge_buffer + i;
       ip->fwd_header = 0;
@@ -700,7 +700,7 @@ void pair()
     {
       pthread_mutex_lock(&mutex_input);
       progress_update(fastq_get_position(fastq_fwd));
-      long pairs = 0;
+      int64_t pairs = 0;
       while (more && (pairs < INPUTCHUNKSIZE))
         {
           more = read_pair(merge_buffer + pairs);
@@ -709,14 +709,14 @@ void pair()
         }
       pthread_mutex_unlock(&mutex_input);
 
-      for(long i=0; i<pairs; i++)
+      for(int64_t i=0; i<pairs; i++)
         process(merge_buffer + i);
 
       pthread_mutex_lock(&mutex_output);
       while(output_next < merge_buffer[0].pair_no)
         pthread_cond_wait(&cond_output, &mutex_output);
 
-      for(long i=0; i<pairs; i++)
+      for(int64_t i=0; i<pairs; i++)
         {
           merge_data_s * ip = merge_buffer + i;
           if (ip->merged)
@@ -730,31 +730,31 @@ void pair()
       pthread_mutex_unlock(&mutex_output);
     }
 
-  for(long i=0; i<INPUTCHUNKSIZE; i++)
+  for(int64_t i=0; i<INPUTCHUNKSIZE; i++)
     {
       merge_data_s * ip = merge_buffer + i;
       if (ip->fwd_header)
-        free(ip->fwd_header);
+        xfree(ip->fwd_header);
       if (ip->rev_header)
-        free(ip->rev_header);
+        xfree(ip->rev_header);
       if (ip->fwd_sequence)
-        free(ip->fwd_sequence);
+        xfree(ip->fwd_sequence);
       if (ip->rev_sequence)
-        free(ip->rev_sequence);
+        xfree(ip->rev_sequence);
       if (ip->rev_seq_comp)
-        free(ip->rev_seq_comp);
+        xfree(ip->rev_seq_comp);
       if (ip->fwd_quality)
-        free(ip->fwd_quality);
+        xfree(ip->fwd_quality);
       if (ip->rev_quality)
-        free(ip->rev_quality);
+        xfree(ip->rev_quality);
     }
 
-  free(merge_buffer);
+  xfree(merge_buffer);
 }
 
 void * pair_worker(void * vp)
 {
-  long t = (long) vp;
+  int64_t t = (int64_t) vp;
   (void) t;
   pair();
   return 0;
@@ -776,14 +776,14 @@ void pair_all()
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   for(int t=0; t<opt_threads; t++)
-    if (pthread_create(pthread+t, &attr, pair_worker, (void*)(long)t))
+    if (pthread_create(pthread+t, &attr, pair_worker, (void*)(int64_t)t))
       fatal("Cannot create thread");
 
   for(int t=0; t<opt_threads; t++)
     if (pthread_join(pthread[t], NULL))
       fatal("Cannot join thread");
 
-  free(pthread);
+  xfree(pthread);
 
   pthread_attr_destroy(&attr);
 
@@ -825,7 +825,7 @@ void fastq_mergepairs()
 
   /* main */
 
-  unsigned long filesize = fastq_get_size(fastq_fwd);
+  uint64_t filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
 
   pair_all();
@@ -836,16 +836,16 @@ void fastq_mergepairs()
     fatal("More reverse reads than forward reads");
 
   fprintf(stderr,
-          "%10lu  Pairs\n",
+          "%10" PRIu64 "  Pairs\n",
           total);
 
   fprintf(stderr,
-          "%10lu  Merged (%.1lf%%)\n",
+          "%10" PRIu64 "  Merged (%.1lf%%)\n",
           merged,
           100.0 * merged / total);
 
   fprintf(stderr,
-          "%10lu  Not merged (%.1lf%%)\n",
+          "%10" PRIu64 "  Not merged (%.1lf%%)\n",
           notmerged,
           100.0 * notmerged / total);
 
@@ -872,9 +872,9 @@ void fastq_mergepairs()
   fastq_fwd = 0;
 
   if (merged_sequence)
-    free(merged_sequence);
+    xfree(merged_sequence);
   if (merged_quality)
-    free(merged_quality);
+    xfree(merged_quality);
   if (merged_header)
-    free(merged_header);
+    xfree(merged_header);
 }

@@ -61,13 +61,13 @@
 #include "vsearch.h"
 
 static const char * progress_prompt;
-static unsigned long progress_next;
-static unsigned long progress_size;
-static unsigned long progress_chunk;
-static const unsigned long progress_granularity = 200;
+static uint64_t progress_next;
+static uint64_t progress_size;
+static uint64_t progress_chunk;
+static const uint64_t progress_granularity = 200;
 static bool progress_terminal;
 
-void progress_init(const char * prompt, unsigned long size)
+void progress_init(const char * prompt, uint64_t size)
 {
   progress_terminal = isatty(fileno(stderr));
   progress_prompt = prompt;
@@ -84,7 +84,7 @@ void progress_init(const char * prompt, unsigned long size)
     }
 }
 
-void progress_update(unsigned long progress)
+void progress_update(uint64_t progress)
 {
   if ((! opt_quiet) && progress_terminal)
     if (progress >= progress_next)
@@ -106,18 +106,6 @@ void progress_done()
         fprintf(stderr, "  \r%s", progress_prompt);
       fprintf(stderr, " %.0f%%\n", 100.0);
     }
-}
-
-long gcd(long a, long b)
-{
-  if (b == 0)
-  {
-    return a;
-  }
-  else
-  {
-    return gcd(b, a % b);
-  }
 }
 
 void  __attribute__((noreturn)) fatal(const char * msg)
@@ -151,27 +139,6 @@ void  __attribute__((noreturn)) fatal(const char * format,
   exit(EXIT_FAILURE);
 }
 
-void * xmalloc(size_t size)
-{
-  const size_t alignment = 16;
-  void * t = 0;
-  if (posix_memalign(& t, alignment, size))
-    fatal("Unable to allocate enough memory.");
-  if (!t)
-    fatal("Unable to allocate enough memory.");
-  return t;
-}
-
-void * xrealloc(void *ptr, size_t size)
-{
-  if (size == 0)
-    size = 1;
-  void * t = realloc(ptr, size);
-  if (!t)
-    fatal("Unable to allocate enough memory.");
-  return t;
-}
-
 char * xstrdup(const char *s)
 {
   size_t len = strlen(s);
@@ -190,12 +157,28 @@ char * xstrchrnul(char *s, int c)
     return (char *)s + strlen(s);
 }
 
-unsigned long hash_cityhash64(char * s, unsigned long n)
+int xsprintf(char * * ret, const char * format, ...)
+{
+  va_list ap;
+  va_start(ap, format);
+  int len = vsnprintf(0, 0, format, ap);
+  va_end(ap);
+  if (len < 0)
+    fatal("Error with vsnprintf in xsprintf");
+  char * p = (char *) xmalloc(len + 1);
+  va_start(ap, format);
+  len = vsnprintf(p, len + 1, format, ap);
+  va_end(ap);
+  *ret = p;
+  return len;
+}
+
+uint64_t hash_cityhash64(char * s, uint64_t n)
 {
   return CityHash64((const char*)s, n);
 }
 
-long getusec(void)
+int64_t getusec(void)
 {
   struct timeval tv;
   if(gettimeofday(&tv,0) != 0) return 0;
@@ -205,52 +188,39 @@ long getusec(void)
 void show_rusage()
 {
 #if 0
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
+  double user_time = 0.0;
+  double system_time = 0.0;
   
-  fprintf(stderr, "Time: %.3fs (user)", r_usage.ru_utime.tv_sec * 1.0 + (double) r_usage.ru_utime.tv_usec * 1.0e-6);
-  fprintf(stderr, " %.3fs (sys)", r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6);
+  arch_get_user_system_time(&user_time, &system_time);
 
-  fprintf(stderr, " Memory: %luMB\n",  arch_get_memused() / 1024 / 1024);
-
+  double megabytes = arch_get_memused() / 1024.0 / 1024.0;
+  
+  fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
+          user_time, system_time, megabytes);
+  
   if (opt_log)
-    {
-      fprintf(fp_log, "Time: %.3fs (user)", r_usage.ru_utime.tv_sec * 1.0 + (double) r_usage.ru_utime.tv_usec * 1.0e-6);
-      fprintf(fp_log, " %.3fs (sys)", r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6);
-      
-      fprintf(fp_log, " Memory: %luMB\n",  arch_get_memused() / 1024 / 1024);
-    }
+    fprintf(fp_log, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
+            user_time, system_time, megabytes);
 #endif
 }
 
-void reverse_complement(char * rc, char * seq, long len)
+void reverse_complement(char * rc, char * seq, int64_t len)
 {
   /* Write the reverse complementary sequence to rc.
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1. */
 
-  for(long i=0; i<len; i++)
+  for(int64_t i=0; i<len; i++)
     rc[i] = chrmap_complement[(int)(seq[len-1-i])];
   rc[len] = 0;
 }
 
 void random_init()
 {
-  /* initialize pseudo-random number generator */
-  unsigned int seed = opt_randseed;
-  if (seed == 0)
-    {
-      int fd = open("/dev/urandom", O_RDONLY);
-      if (fd < 0)
-        fatal("Unable to open /dev/urandom");
-      if (read(fd, & seed, sizeof(seed)) < 0)
-        fatal("Unable to read from /dev/urandom");
-      close(fd);
-    }
-  srandom(seed);
+  arch_srandom();
 }
 
-long random_int(long n)
+int64_t random_int(int64_t n)
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive.
@@ -261,28 +231,28 @@ long random_int(long n)
     avoid modulo bias.
   */
 
-  long random_max = RAND_MAX;
-  long limit = random_max - (random_max + 1) % n;
-  long r = random();
+  int64_t random_max = RAND_MAX;
+  int64_t limit = random_max - (random_max + 1) % n;
+  int64_t r = arch_random();
   while (r > limit)
-    r = random();
+    r = arch_random();
   return r % n;
 }
 
-unsigned long random_ulong(unsigned long n)
+uint64_t random_ulong(uint64_t n)
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive,
     n must be > 0
   */
 
-  unsigned long random_max = ULONG_MAX;
-  unsigned long limit = random_max - (random_max - n + 1) % n;
-  unsigned long r = ((random() << 48) ^ (random() << 32) ^
-                     (random() << 16) ^ (random()));
+  uint64_t random_max = ULONG_MAX;
+  uint64_t limit = random_max - (random_max - n + 1) % n;
+  uint64_t r = ((arch_random() << 48) ^ (arch_random() << 32) ^
+                (arch_random() << 16) ^ (arch_random()));
   while (r > limit)
-    r = ((random() << 48) ^ (random() << 32) ^
-         (random() << 16) ^ (random()));
+    r = ((arch_random() << 48) ^ (arch_random() << 32) ^
+         (arch_random() << 16) ^ (arch_random()));
   return r % n;
 }
 
@@ -337,7 +307,7 @@ void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
 
   SHA1((const unsigned char*) normalized, (size_t) seqlen, digest);
 
-  free(normalized);
+  xfree(normalized);
 
   for(int i=0; i<LEN_DIG_SHA1; i++)
     {
@@ -360,7 +330,7 @@ void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
 
   MD5(normalized, (size_t) seqlen, digest);
 
-  free(normalized);
+  xfree(normalized);
 
   for(int i=0; i<LEN_DIG_MD5; i++)
     {

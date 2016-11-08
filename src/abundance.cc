@@ -71,19 +71,19 @@ abundance_t * abundance_init(void)
 void abundance_exit(abundance_t * a)
 {
   regfree(&a->regex);
-  free(a);
+  xfree(a);
 }
 
-long abundance_get(abundance_t * a, char * header)
+int64_t abundance_get(abundance_t * a, char * header)
 {
   /* read size/abundance annotation */
   
-  long abundance = 1;
+  int64_t abundance = 1;
   regmatch_t pmatch[4];
   
   if (!regexec(&a->regex, header, 4, pmatch, 0))
     {
-      long number = atol(header + pmatch[2].rm_so);
+      int64_t number = atol(header + pmatch[2].rm_so);
       if (number > 0)
         abundance = number;
       else
@@ -96,7 +96,7 @@ void abundance_fprint_header_with_size(abundance_t * a,
                                        FILE * fp,
                                        char * header,
                                        int header_length,
-                                       unsigned long size)
+                                       uint64_t size)
 {
   /* remove any previous size annotation */
   /* regexp search for "(^|;)(\d+)(;|$)" */
@@ -110,7 +110,7 @@ void abundance_fprint_header_with_size(abundance_t * a,
       int pat_end = pmatch[0].rm_eo;
 
       fprintf(fp,
-              "%.*s%s%.*s%ssize=%lu;",
+              "%.*s%s%.*s%ssize=%" PRIu64 ";",
               pat_start, header,
               (pat_start > 0 ? ";" : ""),
               header_length - pat_end, header + pat_end,
@@ -121,7 +121,7 @@ void abundance_fprint_header_with_size(abundance_t * a,
   else
     {
       fprintf(fp,
-              "%s%ssize=%lu;",
+              "%s%ssize=%" PRIu64 ";",
               header,
               (((header_length == 0) || 
                 (header[header_length - 1] != ';')) ? ";" : ""),
@@ -165,14 +165,14 @@ char * abundance_strip_size(abundance_t * a,
       int pat_start = pmatch[0].rm_so;
       int pat_end = pmatch[0].rm_eo;
 
-      ret = asprintf(&temp,
+      ret = xsprintf(&temp,
                      "%.*s%s%.*s",
                      pat_start, header,
                      ((pat_start > 0) && (pat_end < header_length)) ? ";" : "",
                      header_length - pat_end, header + pat_end);
     }
   else
-    ret = asprintf(&temp, "%s", header);
+    ret = xsprintf(&temp, "%s", header);
   
   if (ret == -1)
     fatal("Out of memory");

@@ -85,15 +85,15 @@ static fastx_handle query_fasta_h;
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
 static unsigned int seqno = 0;
-static unsigned long progress = 0;
+static uint64_t progress = 0;
 static int chimera_count = 0;
 static int nonchimera_count = 0;
 static int borderline_count = 0;
 static int total_count = 0;
-static long chimera_abundance = 0;
-static long nonchimera_abundance = 0;
-static long borderline_abundance = 0;
-static long total_abundance = 0;
+static int64_t chimera_abundance = 0;
+static int64_t nonchimera_abundance = 0;
+static int64_t borderline_abundance = 0;
+static int64_t total_abundance = 0;
 static FILE * fp_chimeras = 0;
 static FILE * fp_nonchimeras = 0;
 static FILE * fp_uchimealns = 0;
@@ -124,11 +124,11 @@ struct chimera_info_s
   unsigned short snwmatches[maxcandidates];
   unsigned short snwmismatches[maxcandidates];
   unsigned short snwgaps[maxcandidates];
-  long nwscore[maxcandidates];
-  long nwalignmentlength[maxcandidates];
-  long nwmatches[maxcandidates];
-  long nwmismatches[maxcandidates];
-  long nwgaps[maxcandidates];
+  int64_t nwscore[maxcandidates];
+  int64_t nwalignmentlength[maxcandidates];
+  int64_t nwmatches[maxcandidates];
+  int64_t nwmismatches[maxcandidates];
+  int64_t nwgaps[maxcandidates];
   char * nwcigar[maxcandidates];
 
   int match_size;
@@ -755,7 +755,7 @@ int eval_parents(struct chimera_info_s * ci)
               char qsym = chrmap_4bit[(int)(ci->qaln[i])];
               char asym = chrmap_4bit[(int)(ci->paln[index_a][i])];
               char bsym = chrmap_4bit[(int)(ci->paln[index_b][i])];
-              char msym = i <= best_i ? asym : bsym;
+              char msym = (i <= best_i) ? asym : bsym;
 
               if (qsym == asym)
                 match_QA++;
@@ -805,10 +805,10 @@ int eval_parents(struct chimera_info_s * ci)
                   "--------------------------------\n");
           fprintf(fp_uchimealns, "Query   (%5d nt) %s\n",
                   ci->query_len, ci->query_head);
-          fprintf(fp_uchimealns, "ParentA (%5lu nt) %s\n",
+          fprintf(fp_uchimealns, "ParentA (%5" PRIu64 " nt) %s\n",
                   db_getsequencelen(seqno_a),
                   db_getheader(seqno_a));
-          fprintf(fp_uchimealns, "ParentB (%5lu nt) %s\n",
+          fprintf(fp_uchimealns, "ParentB (%5" PRIu64 " nt) %s\n",
                   db_getsequencelen(seqno_b),
                   db_getheader(seqno_b));
           fprintf(fp_uchimealns, "\n");
@@ -981,11 +981,11 @@ void query_exit(struct searchinfo_s * si)
   nw_exit(si->nw);
   
   if (si->qsequence)
-    free(si->qsequence);
+    xfree(si->qsequence);
   if (si->hits)
-    free(si->hits);
+    xfree(si->hits);
   if (si->kmers)
-    free(si->kmers);
+    xfree(si->kmers);
 }
 
 void partition_query(struct chimera_info_s * ci)
@@ -1057,32 +1057,32 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     query_exit(ci->si + i);
 
   if (ci->maxsmooth)
-    free(ci->maxsmooth);
+    xfree(ci->maxsmooth);
   if (ci->match)
-    free(ci->match);
+    xfree(ci->match);
   if (ci->smooth)
-    free(ci->smooth);
+    xfree(ci->smooth);
   if (ci->diffs)
-    free(ci->diffs);
+    xfree(ci->diffs);
   if (ci->votes)
-    free(ci->votes);
+    xfree(ci->votes);
   if (ci->model)
-    free(ci->model);
+    xfree(ci->model);
   if (ci->ignore)
-    free(ci->ignore);
+    xfree(ci->ignore);
   if (ci->maxi)
-    free(ci->maxi);
+    xfree(ci->maxi);
   if (ci->qaln)
-    free(ci->qaln);
+    xfree(ci->qaln);
   if (ci->paln[0])
-    free(ci->paln[0]);
+    xfree(ci->paln[0]);
   if (ci->paln[1])
-    free(ci->paln[1]);
+    xfree(ci->paln[1]);
 
   if (ci->query_seq)
-    free(ci->query_seq);
+    xfree(ci->query_seq);
   if (ci->query_head)
-    free(ci->query_head);
+    xfree(ci->query_head);
 }
 
 void fasta_print_with_score(FILE * fp,
@@ -1100,7 +1100,7 @@ void fasta_print_with_score(FILE * fp,
   else
     snprintf(newheader, alloc, "%s%s=%.4lf;", head, score_name, score);
   fasta_print(fp, newheader, seq, len);
-  free(newheader);
+  xfree(newheader);
 }
 
 void fasta_print_relabel_with_score(FILE * fp,
@@ -1121,10 +1121,10 @@ void fasta_print_relabel_with_score(FILE * fp,
   else
     snprintf(newheader, alloc, "%s%s=%.4lf;", header, score_name, score);
   fasta_print_relabel(fp, seq, len, newheader, strlen(newheader), abundance, ordinal);
-  free(newheader);
+  xfree(newheader);
 }
 
-unsigned long chimera_thread_core(struct chimera_info_s * ci)
+uint64_t chimera_thread_core(struct chimera_info_s * ci)
 {
   chimera_thread_init(ci);
 
@@ -1133,7 +1133,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
   LinearMemoryAligner lma;
 
-  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
 
   lma.set_parameters(scorematrix,
                      opt_gap_open_query_left,
@@ -1223,7 +1223,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
             for(int j=0; j<hit_count; j++)
               if (hits[j].accepted)
                 allhits_list[allhits_count++] = hits[j];
-            free(hits);
+            xfree(hits);
           }
 
       for(int i=0; i < allhits_count; i++)
@@ -1241,7 +1241,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
           /* deallocate cigar */
           if (allhits_list[i].nwalignment)
-            free(allhits_list[i].nwalignment);
+            xfree(allhits_list[i].nwalignment);
         }
 
 
@@ -1261,13 +1261,13 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
 
       for(int i=0; i < ci->cand_count; i++)
         {
-          long target = ci->cand_list[i];
-          long nwscore = ci->snwscore[i];
+          int64_t target = ci->cand_list[i];
+          int64_t nwscore = ci->snwscore[i];
           char * nwcigar;
-          long nwalignmentlength;
-          long nwmatches;
-          long nwmismatches;
-          long nwgaps;
+          int64_t nwalignmentlength;
+          int64_t nwmatches;
+          int64_t nwmismatches;
+          int64_t nwgaps;
 
           if (nwscore == SHRT_MAX)
             {
@@ -1276,10 +1276,10 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
                          linear memory aligner */
                       
               char * tseq = db_getsequence(target);
-              long tseqlen = db_getsequencelen(target);
+              int64_t tseqlen = db_getsequencelen(target);
                       
               if (ci->nwcigar[i])
-                free(ci->nwcigar[i]);
+                xfree(ci->nwcigar[i]);
                       
               nwcigar = xstrdup(lma.align(ci->query_seq,
                                          tseq,
@@ -1419,7 +1419,7 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
       
       for (int i=0; i < ci->cand_count; i++)
         if (ci->nwcigar[i])
-          free(ci->nwcigar[i]);
+          xfree(ci->nwcigar[i]);
 
       if (opt_uchime_ref)
         progress = fasta_get_position(query_fasta_h);
@@ -1434,18 +1434,18 @@ unsigned long chimera_thread_core(struct chimera_info_s * ci)
     }
 
   if (allhits_list)
-    free(allhits_list);
+    xfree(allhits_list);
 
   chimera_thread_exit(ci);
 
-  free(scorematrix);
+  xfree(scorematrix);
 
   return 0;
 }
 
 void * chimera_thread_worker(void * vp)
 {
-  return (void *) chimera_thread_core(cia + (long) vp);
+  return (void *) chimera_thread_core(cia + (int64_t) vp);
 }
 
 void chimera_threads_run()
@@ -1454,7 +1454,7 @@ void chimera_threads_run()
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
   /* create worker threads */
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     {
       if (pthread_create(pthread+t, & attr,
                          chimera_thread_worker, (void*)t))
@@ -1515,7 +1515,7 @@ void chimera()
 
   tophits = opt_maxaccepts + opt_maxrejects;
 
-  unsigned long progress_total;
+  uint64_t progress_total;
   chimera_count = 0;
   nonchimera_count = 0;
   progress = 0;
@@ -1583,8 +1583,8 @@ void chimera()
             "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
             "and %d (%.1f%%) borderline sequences in %u unique sequences.\n"
             "Taking abundance information into account, this corresponds to\n"
-            "%ld (%.1f%%) chimeras, %ld (%.1f%%) non-chimeras,\n"
-            "and %ld (%.1f%%) borderline sequences in %ld total sequences.\n",
+            "%" PRId64 " (%.1f%%) chimeras, %" PRId64 " (%.1f%%) non-chimeras,\n"
+            "and %" PRId64 " (%.1f%%) borderline sequences in %" PRId64 " total sequences.\n",
             chimera_count,
             100.0 * chimera_count / total_count,
             nonchimera_count,
@@ -1618,12 +1618,12 @@ void chimera()
   
   dbindex_free();
   db_free();
-
+  
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);
   
-  free(cia);
-  free(pthread);
+  xfree(cia);
+  xfree(pthread);
   
   close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);

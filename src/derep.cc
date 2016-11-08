@@ -66,7 +66,7 @@
 
 struct bucket
 {
-  unsigned long hash;
+  uint64_t hash;
   unsigned int seqno_first;
   unsigned int seqno_last;
   unsigned int size;
@@ -76,12 +76,12 @@ struct bucket
 #ifdef BITMAP
 unsigned char * hash_occupied = 0;
 
-void hash_set_occupied(unsigned long hashindex)
+void hash_set_occupied(uint64_t hashindex)
 {
   hash_occupied[(hashindex) >> 3] |= 1 << (hashindex & 7);
 }
 
-int hash_is_occupied(unsigned long hashindex)
+int hash_is_occupied(uint64_t hashindex)
 {
   return hash_occupied[(hashindex) >> 3] & (1 << (hashindex & 7));
 }
@@ -165,11 +165,11 @@ void derep_fulllength()
 
   show_rusage();
 
-  long dbsequencecount = db_getsequencecount();
+  int64_t dbsequencecount = db_getsequencecount();
   
   /* adjust size of hash table for 2/3 fill rate */
 
-  long hashtablesize = 1;
+  int64_t hashtablesize = 1;
   int hash_shift = 0;
   while (3 * dbsequencecount > 2 * hashtablesize)
     {
@@ -189,9 +189,9 @@ void derep_fulllength()
   memset(hash_occupied, 0, hashtablesize / 8);
 #endif
 
-  long clusters = 0;
-  long sumsize = 0;
-  unsigned long maxsize = 0;
+  int64_t clusters = 0;
+  int64_t sumsize = 0;
+  uint64_t maxsize = 0;
   double median = 0.0;
   double average = 0.0;
 
@@ -208,7 +208,7 @@ void derep_fulllength()
   char * rc_seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
   
   progress_init("Dereplicating", dbsequencecount);
-  for(long i=0; i<dbsequencecount; i++)
+  for(int64_t i=0; i<dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -228,8 +228,8 @@ void derep_fulllength()
         collision when the number of sequences is about 5e9.
       */
 
-      unsigned long hash = HASH(seq_up, seqlen);
-      unsigned long j = hash & hash_mask;
+      uint64_t hash = HASH(seq_up, seqlen);
+      uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
       
       while (
@@ -257,9 +257,9 @@ void derep_fulllength()
           /* no match on plus strand */
           /* check minus strand as well */
 
-          unsigned long rc_hash = HASH(rc_seq_up, seqlen);
+          uint64_t rc_hash = HASH(rc_seq_up, seqlen);
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
-          unsigned long k = rc_hash & hash_mask;
+          uint64_t k = rc_hash & hash_mask;
           
           while (
 #ifdef BITMAP
@@ -291,7 +291,7 @@ void derep_fulllength()
             }
         }
 
-      long ab = opt_sizein ? db_getabundance(i) : 1;
+      int64_t ab = opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -323,8 +323,8 @@ void derep_fulllength()
     }
   progress_done();
 
-  free(seq_up);
-  free(rc_seq_up);
+  xfree(seq_up);
+  xfree(rc_seq_up);
   
   show_rusage();
 
@@ -347,12 +347,12 @@ void derep_fulllength()
 
   if (!opt_quiet)
     fprintf(stderr,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n",
+            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
             clusters, average, median, maxsize);
 
   if (opt_log)
     fprintf(fp_log,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n\n",
+            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
             clusters, average, median, maxsize);
 
   show_rusage();
@@ -360,11 +360,11 @@ void derep_fulllength()
 
   /* count selected */
 
-  long selected = 0;
-  for (long i=0; i<clusters; i++)
+  int64_t selected = 0;
+  for (int64_t i=0; i<clusters; i++)
     {
       struct bucket * bp = hashtable + i;
-      long size = bp->size;
+      int64_t size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
           selected++;
@@ -380,11 +380,11 @@ void derep_fulllength()
     {
       progress_init("Writing output file", clusters);
 
-      long relabel_count = 0;
-      for (long i=0; i<clusters; i++)
+      int64_t relabel_count = 0;
+      for (int64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          long size = bp->size;
+          int64_t size = bp->size;
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
               relabel_count++;
@@ -410,20 +410,20 @@ void derep_fulllength()
   if (opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
-      for (long i=0; i<clusters; i++)
+      for (int64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           char * h =  db_getheader(bp->seqno_first);
-          long len = db_getsequencelen(bp->seqno_first);
+          int64_t len = db_getsequencelen(bp->seqno_first);
 
-          fprintf(fp_uc, "S\t%ld\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
           
           for (unsigned int next = nextseqtab[bp->seqno_first];
                next != terminal;
                next = nextseqtab[next])
             fprintf(fp_uc,
-                    "H\t%ld\t%ld\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
+                    "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                     i, len, 100.0,
                     (match_strand[next] ? "-" : "+"),
                     db_getheader(next), h);
@@ -434,10 +434,10 @@ void derep_fulllength()
       show_rusage();
       
       progress_init("Writing uc file, second part", clusters);
-      for (long i=0; i<clusters; i++)
+      for (int64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          fprintf(fp_uc, "C\t%ld\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, db_getheader(bp->seqno_first));
           progress_update(i);
         }
@@ -450,20 +450,20 @@ void derep_fulllength()
     {
       if (!opt_quiet)
         fprintf(stderr,
-                "%ld uniques written, %ld clusters discarded (%.1f%%)\n",
+                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
 
       if (opt_log)
         fprintf(fp_log,
-                "%ld uniques written, %ld clusters discarded (%.1f%%)\n\n",
+                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
     }
   
-  free(match_strand);
-  free(nextseqtab);
-  free(hashtable);
+  xfree(match_strand);
+  xfree(nextseqtab);
+  xfree(hashtable);
   db_free();
 }
 
@@ -493,11 +493,11 @@ void derep_prefix()
 
   show_rusage();
 
-  long dbsequencecount = db_getsequencecount();
+  int64_t dbsequencecount = db_getsequencecount();
   
   /* adjust size of hash table for 2/3 fill rate */
 
-  long hashtablesize = 1;
+  int64_t hashtablesize = 1;
   int hash_shift = 0;
   while (3 * dbsequencecount > 2 * hashtablesize)
     {
@@ -511,9 +511,9 @@ void derep_prefix()
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
 
-  long clusters = 0;
-  long sumsize = 0;
-  unsigned long maxsize = 0;
+  int64_t clusters = 0;
+  int64_t sumsize = 0;
+  uint64_t maxsize = 0;
   double median = 0.0;
   double average = 0.0;
 
@@ -529,11 +529,11 @@ void derep_prefix()
 
   unsigned int len_longest = db_getlongestsequence();
   unsigned int len_shortest = db_getshortestsequence();
-  unsigned long * prefix_hashes = (unsigned long *) 
-    xmalloc(sizeof(unsigned long) * (len_longest+1));
+  uint64_t * prefix_hashes = (uint64_t *) 
+    xmalloc(sizeof(uint64_t) * (len_longest+1));
   
   progress_init("Dereplicating", dbsequencecount);
-  for(long i=0; i<dbsequencecount; i++)
+  for(int64_t i=0; i<dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -541,7 +541,7 @@ void derep_prefix()
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up, seq, seqlen);
 
-      unsigned long ab = opt_sizein ? db_getabundance(i) : 1;
+      uint64_t ab = opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
       /* 
@@ -566,7 +566,7 @@ void derep_prefix()
 
       /* compute hashes of all prefixes */
 
-      unsigned long fnv1a_hash = 14695981039346656037UL;
+      uint64_t fnv1a_hash = 14695981039346656037UL;
       prefix_hashes[0] = fnv1a_hash;
       for(unsigned int j = 0; j < seqlen; j++)
         {
@@ -579,7 +579,7 @@ void derep_prefix()
 
       unsigned int prefix_len = seqlen;
 
-      unsigned long hash = prefix_hashes[prefix_len];
+      uint64_t hash = prefix_hashes[prefix_len];
       struct bucket * bp = hashtable + (hash & hash_mask);
       
       while ((bp->size) &&
@@ -596,7 +596,7 @@ void derep_prefix()
       /* at this point, bp points either to (1) a free empty hash bucket, or
          (2) a bucket with an exact match. */
 
-      unsigned long orig_hash = hash;
+      uint64_t orig_hash = hash;
       struct bucket * orig_bp = bp;
 
       if (bp->size)
@@ -673,9 +673,9 @@ void derep_prefix()
     }
   progress_done();
   
-  free(prefix_hashes);
+  xfree(prefix_hashes);
 
-  free(seq_up);
+  xfree(seq_up);
   
   show_rusage();
 
@@ -696,23 +696,23 @@ void derep_prefix()
 
   if (!opt_quiet)
     fprintf(stderr,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n",
+            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
             clusters, average, median, maxsize);
 
   if (opt_log)
     fprintf(fp_log,
-            "%ld unique sequences, avg cluster %.1lf, median %.0f, max %lu\n\n",
+            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
             clusters, average, median, maxsize);
 
   show_rusage();
   
   /* count selected */
 
-  long selected = 0;
-  for (long i=0; i<clusters; i++)
+  int64_t selected = 0;
+  for (int64_t i=0; i<clusters; i++)
     {
       struct bucket * bp = hashtable + i;
-      long size = bp->size;
+      int64_t size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
           selected++;
@@ -728,11 +728,11 @@ void derep_prefix()
     {
       progress_init("Writing output file", clusters);
 
-      long relabel_count = 0;
-      for (long i=0; i<clusters; i++)
+      int64_t relabel_count = 0;
+      for (int64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          long size = bp->size;
+          int64_t size = bp->size;
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
               relabel_count++;
@@ -758,20 +758,20 @@ void derep_prefix()
   if (opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
-      for (long i=0; i<clusters; i++)
+      for (int64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           char * h =  db_getheader(bp->seqno_first);
-          long len = db_getsequencelen(bp->seqno_first);
+          int64_t len = db_getsequencelen(bp->seqno_first);
 
-          fprintf(fp_uc, "S\t%ld\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
           
           for (unsigned int next = nextseqtab[bp->seqno_first];
                next != terminal;
                next = nextseqtab[next])
             fprintf(fp_uc,
-                    "H\t%ld\t%lu\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
+                    "H\t%" PRId64 "\t%" PRIu64 "\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
                     i, db_getsequencelen(next), 100.0, db_getheader(next), h);
 
           progress_update(i);
@@ -780,10 +780,10 @@ void derep_prefix()
       show_rusage();
       
       progress_init("Writing uc file, second part", clusters);
-      for (long i=0; i<clusters; i++)
+      for (int64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          fprintf(fp_uc, "C\t%ld\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+          fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, db_getheader(bp->seqno_first));
           progress_update(i);
         }
@@ -796,18 +796,18 @@ void derep_prefix()
     {
       if (!opt_quiet)
         fprintf(stderr,
-                "%ld uniques written, %ld clusters discarded (%.1f%%)\n",
+                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
 
       if (opt_log)
         fprintf(fp_log,
-                "%ld uniques written, %ld clusters discarded (%.1f%%)\n\n",
+                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
     }
   
-  free(nextseqtab);
-  free(hashtable);
+  xfree(nextseqtab);
+  xfree(hashtable);
   db_free();
 }

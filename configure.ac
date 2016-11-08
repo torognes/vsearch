@@ -24,6 +24,8 @@ AC_PROG_INSTALL
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([dl], [dlopen])
+#AC_CHECK_LIB([regex], [regexec])
+AC_CHECK_LIB([psapi], [GetProcessMemoryInfo])
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h fcntl.h float.h regex.h ctype.h locale.h limits.h string.h sys/time.h dlfcn.h])
@@ -81,6 +83,8 @@ fi
 if test "x${have_zlib}" = "xyes"; then
   AC_CHECK_HEADERS([zlib.h], [], [have_zlib=no])
 fi
+
+AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(ON_WINDOWS, true)], [AM_CONDITIONAL(ON_WINDOWS, false)])
 
 AM_CONDITIONAL(HAVE_BZLIB, test "x${have_bzip2}" = "xyes")
 AM_CONDITIONAL(HAVE_ZLIB, test "x${have_zlib}" = "xyes")

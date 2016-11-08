@@ -74,7 +74,7 @@ typedef struct clusterinfo_s
 static clusterinfo_t * clusterinfo = 0;
 static int clusters = 0;
 
-static long * cluster_abundance;
+static int64_t * cluster_abundance;
 
 static FILE * fp_centroids = 0;
 static FILE * fp_uc = 0;
@@ -162,7 +162,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
   search_onequery(si, opt_qmask);
 }
 
-inline void cluster_worker(long t)
+inline void cluster_worker(int64_t t)
 {
   /* wrapper for the main threaded core function for clustering */
   for (int q = 0; q < ti[t].query_count; q++)
@@ -175,7 +175,7 @@ inline void cluster_worker(long t)
 
 void * threads_worker(void * vp)
 {
-  long t = (long) vp;
+  int64_t t = (int64_t) vp;
   thread_info_s * tip = ti + t;
   pthread_mutex_lock(&tip->mutex);
   /* loop until signalled to quit */
@@ -245,7 +245,7 @@ void threads_init()
       tip->work = 0;
       pthread_mutex_init(&tip->mutex, 0);
       pthread_cond_init(&tip->cond, 0);
-      if (pthread_create(&tip->thread, &attr, threads_worker, (void*)(long)t))
+      if (pthread_create(&tip->thread, &attr, threads_worker, (void*)(int64_t)t))
         fatal("Cannot create thread");
     }
 }
@@ -270,7 +270,7 @@ void threads_exit()
       pthread_cond_destroy(&tip->cond);
       pthread_mutex_destroy(&tip->mutex);
     }
-  free(ti);
+  xfree(ti);
   pthread_attr_destroy(&attr);
 }
 
@@ -320,11 +320,11 @@ void cluster_query_exit(struct searchinfo_s * si)
   nw_exit(si->nw);
   
   if (si->qsequence)
-    free(si->qsequence);
+    xfree(si->qsequence);
   if (si->hits)
-    free(si->hits);
+    xfree(si->hits);
   if (si->kmers)
-    free(si->kmers);
+    xfree(si->kmers);
 }
 
 char * relabel_otu(int clusterno, char * sequence, int seqlen)
@@ -365,7 +365,7 @@ void cluster_core_results_hit(struct hit * best,
                                      db_getsequence(best->target),
                                      db_getsequencelen(best->target));
           otutable_add(query_head, label, qsize);
-          free(label);
+          xfree(label);
         }
       else
         otutable_add(query_head,
@@ -423,7 +423,7 @@ void cluster_core_results_nohit(int clusterno,
         {
           char * label = relabel_otu(clusterno, qsequence, qseqlen);
           otutable_add(query_head, label, qsize);
-          free(label);
+          xfree(label);
         }
       else
         otutable_add(query_head, query_head, qsize);
@@ -492,7 +492,7 @@ void cluster_core_parallel()
   int * extra_list = (int*) xmalloc(max_queries*sizeof(int));
 
   LinearMemoryAligner lma;
-  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
   lma.set_parameters(scorematrix,
                      opt_gap_open_query_left,
                      opt_gap_open_target_left,
@@ -513,7 +513,7 @@ void cluster_core_parallel()
 
   int seqno = 0;
 
-  long sum_nucleotides = 0;
+  int64_t sum_nucleotides = 0;
 
   progress_init("Clustering", db_getnucleotidecount());
 
@@ -610,7 +610,7 @@ void cluster_core_parallel()
                               if (si->hit_count >= opt_maxaccepts + opt_maxrejects - 1)
                                 {
                                   if (si->hits[si->hit_count-1].aligned)
-                                    free(si->hits[si->hit_count-1].nwalignment);
+                                    xfree(si->hits[si->hit_count-1].nwalignment);
                                   si->hit_count--;
                                 }
                               
@@ -673,11 +673,11 @@ void cluster_core_parallel()
 
                               unsigned int nwtarget = target;
                               
-                              long nwscore;
-                              long nwalignmentlength;
-                              long nwmatches;
-                              long nwmismatches;
-                              long nwgaps;
+                              int64_t nwscore;
+                              int64_t nwalignmentlength;
+                              int64_t nwmatches;
+                              int64_t nwmismatches;
+                              int64_t nwgaps;
                               char * nwcigar = 0;
 
                               /* short variants for simd aligner */
@@ -697,7 +697,7 @@ void cluster_core_parallel()
                                        & snwgaps,
                                        & nwcigar);
                               
-                              long tseqlen = db_getsequencelen(target);
+                              int64_t tseqlen = db_getsequencelen(target);
 
                               if (snwscore == SHRT_MAX)
                                 {
@@ -708,7 +708,7 @@ void cluster_core_parallel()
                                   char * tseq = db_getsequence(target);
                                   
                                   if (nwcigar)
-                                    free(nwcigar);
+                                    xfree(nwcigar);
                                   
                                   nwcigar = xstrdup(lma.align(si->qsequence,
                                                              tseq,
@@ -734,8 +734,8 @@ void cluster_core_parallel()
                                 }
                               
 
-                              long nwdiff = nwalignmentlength - nwmatches;
-                              long nwindels = nwdiff - nwmismatches;
+                              int64_t nwdiff = nwalignmentlength - nwmatches;
+                              int64_t nwindels = nwdiff - nwmismatches;
                               
                               hit->aligned = 1;
                               hit->nwalignment = nwcigar;
@@ -786,7 +786,7 @@ void cluster_core_parallel()
                         {
                           new_hit_count = t;
                           if (hit->aligned)
-                            free(hit->nwalignment);
+                            xfree(hit->nwalignment);
                         }
                     }
                   si->hit_count = new_hit_count;
@@ -856,7 +856,7 @@ void cluster_core_parallel()
               for(int j=0; j<si->hit_count; j++)
                 if (si->hits[j].aligned)
                   if (si->hits[j].nwalignment)
-                    free(si->hits[j].nwalignment);
+                    xfree(si->hits[j].nwalignment);
             }
 
           sum_nucleotides += si_p->qseqlen;
@@ -879,16 +879,16 @@ void cluster_core_parallel()
         cluster_query_exit(si_minus+i);
     }
 
-  free(extra_list);
+  xfree(extra_list);
 
-  free(si_plus);
+  xfree(si_plus);
   if (opt_strand>1)
-    free(si_minus);
+    xfree(si_minus);
 
   /* terminate threads and clean up */
   threads_exit();
 
-  free(scorematrix);
+  xfree(scorematrix);
 }
 
 void cluster_core_serial()
@@ -970,7 +970,7 @@ void cluster_core_serial()
           for(int i=0; i<si->hit_count; i++)
             if (si->hits[i].aligned)
               if (si->hits[i].nwalignment)
-                free(si->hits[i].nwalignment);
+                xfree(si->hits[i].nwalignment);
         }
 
       progress_update(seqno);
@@ -1113,16 +1113,16 @@ void cluster(char * dbname,
 
   if (opt_log)
     {
-      unsigned long slots = 1UL << (opt_wordlength << 1UL);
+      uint64_t slots = 1UL << (opt_wordlength << 1UL);
       fprintf(fp_log, "\n");
       fprintf(fp_log, "      Alphabet  nt\n");
-      fprintf(fp_log, "    Word width  %ld\n", opt_wordlength);
-      fprintf(fp_log, "     Word ones  %ld\n", opt_wordlength);
+      fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
+      fprintf(fp_log, "     Word ones  %" PRId64 "\n", opt_wordlength);
       fprintf(fp_log, "        Spaced  No\n");
       fprintf(fp_log, "        Hashed  No\n");
       fprintf(fp_log, "         Coded  No\n");
       fprintf(fp_log, "       Stepped  No\n");
-      fprintf(fp_log, "         Slots  %lu (%.1fk)\n", slots, slots/1000.0);
+      fprintf(fp_log, "         Slots  %" PRIu64 " (%.1fk)\n", slots, slots/1000.0);
       fprintf(fp_log, "       DBAccel  100%%\n");
       fprintf(fp_log, "\n");
     }      
@@ -1135,10 +1135,10 @@ void cluster(char * dbname,
 
   /* find size and abundance of each cluster and save stats */
 
-  cluster_abundance = (long *) xmalloc(clusters * sizeof(long));
+  cluster_abundance = (int64_t *) xmalloc(clusters * sizeof(int64_t));
   int * cluster_size = (int *) xmalloc(clusters * sizeof(int));
 
-  memset(cluster_abundance, 0, clusters * sizeof(long));
+  memset(cluster_abundance, 0, clusters * sizeof(int64_t));
   memset(cluster_size, 0, clusters * sizeof(int));
 
   for(int i=0; i<seqcount; i++)
@@ -1149,14 +1149,14 @@ void cluster(char * dbname,
       cluster_size[clusterno]++;
     }
       
-  long abundance_min = LONG_MAX;
-  long abundance_max = 0;
+  int64_t abundance_min = LONG_MAX;
+  int64_t abundance_max = 0;
   int size_max = 0;
   int singletons = 0;
 
   for(int z=0; z<clusters; z++)
     {
-      long abundance = cluster_abundance[z];
+      int64_t abundance = cluster_abundance[z];
       if (abundance < abundance_min)
         abundance_min = abundance;
       if (abundance > abundance_max)
@@ -1213,7 +1213,7 @@ void cluster(char * dbname,
 
           if (opt_uc)
             {
-              fprintf(fp_uc, "C\t%d\t%ld\t*\t*\t*\t*\t*\t%s\t*\n",
+              fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                       clusterno,
                       cluster_abundance[clusterno],
                       db_getheader(seqno));
@@ -1249,7 +1249,7 @@ void cluster(char * dbname,
         {
           fclose(fp_clusters);
           if (fn_clusters)
-            free(fn_clusters);
+            xfree(fn_clusters);
         }
     }
 
@@ -1258,7 +1258,7 @@ void cluster(char * dbname,
   if (!opt_quiet)
     {
       fprintf(stderr,
-              "Clusters: %d Size min %ld, max %ld, avg %.1f\n",
+              "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
               clusters,
               abundance_min,
               abundance_max,
@@ -1273,7 +1273,7 @@ void cluster(char * dbname,
   if (opt_log)
     {
       fprintf(fp_log,
-              "Clusters: %d Size min %ld, max %ld, avg %.1f\n",
+              "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
               clusters,
               abundance_min,
               abundance_max,
@@ -1372,19 +1372,19 @@ void cluster(char * dbname,
       if (fp_consout)
         fclose(fp_consout);
 
-      free(msa_target_list);
+      xfree(msa_target_list);
     }
 
-  free(cluster_abundance);
-  free(cluster_size);
+  xfree(cluster_abundance);
+  xfree(cluster_size);
 
   /* free cigar strings for all aligned sequences */
 
   for(int i=0; i<seqcount; i++)
     if (clusterinfo[i].cigar)
-      free(clusterinfo[i].cigar);
+      xfree(clusterinfo[i].cigar);
 
-  free(clusterinfo);
+  xfree(clusterinfo);
 
   if (fp_biomout)
     {

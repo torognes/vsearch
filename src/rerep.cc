@@ -75,18 +75,18 @@ void rereplicate()
     }
 
   fastx_handle fh = fasta_open(opt_rereplicate);
-  long filesize = fasta_get_size(fh);
+  int64_t filesize = fasta_get_size(fh);
 
   progress_init("Rereplicating", filesize);
 
-  long i = 0;
-  long n = 0;
+  int64_t i = 0;
+  int64_t n = 0;
   while (fasta_next(fh, ! opt_notrunclabels, chrmap_no_change))
     {
       n++;
-      long abundance = fasta_get_abundance(fh);
+      int64_t abundance = fasta_get_abundance(fh);
       
-      for(long j=0; j<abundance; j++)
+      for(int64_t j=0; j<abundance; j++)
         {
           i++;
           if (opt_output)
@@ -103,7 +103,7 @@ void rereplicate()
     }
   progress_done();
   
-  fprintf(stderr, "Rereplicated %ld reads from %ld amplicons\n", i, n);
+  fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
 
   fasta_close(fh);
 

@@ -61,47 +61,47 @@
 class LinearMemoryAligner
 {
   char op;
-  long op_run;
-  long cigar_alloc;
-  long cigar_length;
+  int64_t op_run;
+  int64_t cigar_alloc;
+  int64_t cigar_length;
   char * cigar_string;
   
   char * a_seq;
   char * b_seq;
 
-  long * scorematrix;
+  int64_t * scorematrix;
 
-  long q;
-  long r;
+  int64_t q;
+  int64_t r;
 
   /* gap penalties for open/extension query/target left/interior/right */
-  long go_q_l;
-  long go_t_l;
-  long go_q_i;
-  long go_t_i;
-  long go_q_r;
-  long go_t_r;
-  long ge_q_l;
-  long ge_t_l;
-  long ge_q_i;
-  long ge_t_i;
-  long ge_q_r;
-  long ge_t_r;
+  int64_t go_q_l;
+  int64_t go_t_l;
+  int64_t go_q_i;
+  int64_t go_t_i;
+  int64_t go_q_r;
+  int64_t go_t_r;
+  int64_t ge_q_l;
+  int64_t ge_t_l;
+  int64_t ge_q_i;
+  int64_t ge_t_i;
+  int64_t ge_q_r;
+  int64_t ge_t_r;
 
   size_t vector_alloc;
 
-  long * HH;
-  long * EE;
-  long * XX;
-  long * YY;
+  int64_t * HH;
+  int64_t * EE;
+  int64_t * XX;
+  int64_t * YY;
   
   void cigar_reset();
 
   void cigar_flush();
 
-  void cigar_add(char _op, long run);
+  void cigar_add(char _op, int64_t run);
 
-  inline long subst_score(long x, long y)
+  inline int64_t subst_score(int64_t x, int64_t y)
   {
     /* return substitution score for replacing symbol at position x in a
        with symbol at position y in b */
@@ -109,10 +109,10 @@ class LinearMemoryAligner
                        chrmap_4bit[(int)(a_seq[x])]];
   }
 
-  void diff(long a_start,
-            long b_start,
-            long a_len,
-            long b_len,
+  void diff(int64_t a_start,
+            int64_t b_start,
+            int64_t a_len,
+            int64_t b_len,
             bool gap_b_left,  /* gap open left of b      */
             bool gap_b_right, /* gap open right of b     */
             bool a_left,      /* includes left end of a  */
@@ -130,34 +130,34 @@ public:
 
   ~LinearMemoryAligner();
   
-  long * scorematrix_create(long match, long mismatch);
+  int64_t * scorematrix_create(int64_t match, int64_t mismatch);
   
-  void set_parameters(long * _scorematrix,
-                      long _gap_open_query_left,
-                      long _gap_open_target_left,
-                      long _gap_open_query_interior,
-                      long _gap_open_target_interior,
-                      long _gap_open_query_right,
-                      long _gap_open_target_right,
-                      long _gap_extension_query_left,
-                      long _gap_extension_target_left,
-                      long _gap_extension_query_interior,
-                      long _gap_extension_target_interior,
-                      long _gap_extension_query_right,
-                      long _gap_extension_target_right);
+  void set_parameters(int64_t * _scorematrix,
+                      int64_t _gap_open_query_left,
+                      int64_t _gap_open_target_left,
+                      int64_t _gap_open_query_interior,
+                      int64_t _gap_open_target_interior,
+                      int64_t _gap_open_query_right,
+                      int64_t _gap_open_target_right,
+                      int64_t _gap_extension_query_left,
+                      int64_t _gap_extension_target_left,
+                      int64_t _gap_extension_query_interior,
+                      int64_t _gap_extension_target_interior,
+                      int64_t _gap_extension_query_right,
+                      int64_t _gap_extension_target_right);
   
   char * align(char * _a_seq,
                char * _b_seq,
-               long M,
-               long N);
+               int64_t M,
+               int64_t N);
 
   void alignstats(char * cigar,
                   char * a_seq,
                   char * b_seq,
-                  long * nwscore,
-                  long * nwalignmentlength,
-                  long * nwmatches,
-                  long * nwmismatches,
-                  long * nwgaps);
+                  int64_t * nwscore,
+                  int64_t * nwalignmentlength,
+                  int64_t * nwmatches,
+                  int64_t * nwmismatches,
+                  int64_t * nwgaps);
 
 };

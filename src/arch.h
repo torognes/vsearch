@@ -58,5 +58,12 @@
 
 */
 
-unsigned long arch_get_memused();
-unsigned long arch_get_memtotal();
+uint64_t arch_get_memused();
+uint64_t arch_get_memtotal();
+long arch_get_cores();
+void arch_get_user_system_time(double * user_time, double * system_time);
+void arch_srandom();
+uint64_t arch_random();
+void * xmalloc(size_t size);
+void * xrealloc(void * ptr, size_t size);
+void xfree(void * ptr);

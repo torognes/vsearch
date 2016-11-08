@@ -58,12 +58,19 @@ libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
 
-libcityhash_a_SOURCES = city.cc city.h citycrc.h
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
-
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
 
+libcityhash_a_SOURCES = city.cc city.h
+
+
+if ON_WINDOWS
+libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O2 -g -D_MSC_VER
+__top_builddir__bin_vsearch_LDFLAGS = -static
+__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a libregex.a
+else
+libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O2 -g
 __top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
+endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
 abundance.cc \
@@ -107,4 +114,3 @@ unique.cc \
 userfields.cc \
 util.cc \
 vsearch.cc
-

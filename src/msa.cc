@@ -111,7 +111,7 @@ void msa_add(char c)
 void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list,
-         long totalabundance)
+         int64_t totalabundance)
 {
   int centroid_seqno = target_list[0].seqno;
   int centroid_len = db_getsequencelen(centroid_seqno);
@@ -127,9 +127,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       int pos = 0;
       while (p < e)
         {
-          long run = 1;
+          int64_t run = 1;
           int scanlength = 0;
-          sscanf(p, "%ld%n", &run, &scanlength);
+          sscanf(p, "%" PRId64 "%n", &run, &scanlength);
           p += scanlength;
           char op = *p++;
           switch (op)
@@ -159,11 +159,11 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   char * cons = (char *) xmalloc(alnlen+1);
   
   /* Find longest target sequence on reverse strand and allocate buffer */
-  long longest_reversed = 0;
+  int64_t longest_reversed = 0;
   for(int i=0; i < target_count; i++)
     if (target_list[i].strand)
       {
-        long len = db_getsequencelen(target_list[i].seqno);
+        int64_t len = db_getsequencelen(target_list[i].seqno);
         if (len > longest_reversed)
           longest_reversed = len;
       }
@@ -208,9 +208,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
           char * e = p + strlen(p);
           while (p < e)
             {
-              long run = 1;
+              int64_t run = 1;
               int scanlength = 0;
-              sscanf(p, "%ld%n", &run, &scanlength);
+              sscanf(p, "%" PRId64 "%n", &run, &scanlength);
               p += scanlength;
               char op = *p++;
               
@@ -262,7 +262,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
     }  
 
   if (rc_buffer)
-    free(rc_buffer);
+    xfree(rc_buffer);
 
   /* consensus */
 
@@ -369,8 +369,8 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       fprintf(fp_profile, "\n");
     }
 
-  free(maxi);
-  free(aln);
-  free(cons);
-  free(profile);
+  xfree(maxi);
+  xfree(aln);
+  xfree(cons);
+  xfree(profile);
 }

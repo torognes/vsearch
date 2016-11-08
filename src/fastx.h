@@ -61,17 +61,17 @@
 struct fastx_buffer_s
 {
   char * data;
-  unsigned long length;
-  unsigned long alloc;
-  unsigned long position;
+  uint64_t length;
+  uint64_t alloc;
+  uint64_t position;
 };
 
 void buffer_init(struct fastx_buffer_s * buffer);
 void buffer_free(struct fastx_buffer_s * buffer);
 void buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char * source_buf,
-                   unsigned long len);
-void buffer_makespace(struct fastx_buffer_s * buffer, unsigned long x);
+                   uint64_t len);
+void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x);
 void buffer_truncate(struct fastx_buffer_s * buffer, bool truncateatspace);
 
 struct fastx_s
@@ -93,17 +93,18 @@ struct fastx_s
 
   struct fastx_buffer_s header_buffer;
   struct fastx_buffer_s sequence_buffer;
+  struct fastx_buffer_s plusline_buffer;
   struct fastx_buffer_s quality_buffer;
 
-  unsigned long file_size;
-  unsigned long file_position;
+  uint64_t file_size;
+  uint64_t file_position;
 
-  unsigned long lineno;
-  unsigned long lineno_start;
-  long seqno;
+  uint64_t lineno;
+  uint64_t lineno_start;
+  int64_t seqno;
 
-  unsigned long stripped_all;
-  unsigned long stripped[256];
+  uint64_t stripped_all;
+  uint64_t stripped[256];
 
   int format;
 };
@@ -119,16 +120,16 @@ void fastx_close(fastx_handle h);
 bool fastx_next(fastx_handle h,
                 bool truncateatspace,
                 const unsigned char * char_mapping);
-unsigned long fastx_get_position(fastx_handle h);
-unsigned long fastx_get_size(fastx_handle h);
-unsigned long fastx_get_lineno(fastx_handle h);
-unsigned long fastx_get_seqno(fastx_handle h);
+uint64_t fastx_get_position(fastx_handle h);
+uint64_t fastx_get_size(fastx_handle h);
+uint64_t fastx_get_lineno(fastx_handle h);
+uint64_t fastx_get_seqno(fastx_handle h);
 char * fastx_get_header(fastx_handle h);
 char * fastx_get_sequence(fastx_handle h);
-unsigned long fastx_get_header_length(fastx_handle h);
-unsigned long fastx_get_sequence_length(fastx_handle h);
+uint64_t fastx_get_header_length(fastx_handle h);
+uint64_t fastx_get_sequence_length(fastx_handle h);
 
 char * fastx_get_quality(fastx_handle h);
-long fastx_get_abundance(fastx_handle h);
+int64_t fastx_get_abundance(fastx_handle h);
 
-unsigned long fastx_file_fill_buffer(fastx_handle h);
+uint64_t fastx_file_fill_buffer(fastx_handle h);

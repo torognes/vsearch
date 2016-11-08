@@ -60,7 +60,7 @@
 
 void otutable_init();
 void otutable_done();
-void otutable_add(char * query_header, char * target_header, long abundance);
+void otutable_add(char * query_header, char * target_header, int64_t abundance);
 void otutable_print_otutabout(FILE * fp);
 void otutable_print_mothur_shared_out(FILE * fp);
 void otutable_print_biomout(FILE * fp);

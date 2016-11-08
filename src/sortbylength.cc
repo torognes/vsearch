@@ -159,7 +159,7 @@ void sortbylength()
   progress_done();
   show_rusage();
 
-  free(sortinfo);
+  xfree(sortinfo);
   db_free();
   fclose(fp_output);
 }

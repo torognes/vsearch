@@ -91,7 +91,7 @@
 #define MAXSEQLENPRODUCT 25000000
 //#define MAXSEQLENPRODUCT 160000
 
-static long scorematrix[16][16];
+static int64_t scorematrix[16][16];
 
 struct s16info_s
 {
@@ -101,11 +101,11 @@ struct s16info_s
   __m128i ** qtable;
   unsigned short * dir;
   char * qseq;
-  unsigned long diralloc;
+  uint64_t diralloc;
 
   char * cigar;
   char * cigarend;
-  long cigaralloc;
+  int64_t cigaralloc;
   int opcount;
   char op;
 
@@ -317,14 +317,14 @@ void aligncolumns_first(__m128i * Sm,
                         __m128i M_R_t_left,
                         __m128i M_QR_q_interior,
                         __m128i M_QR_q_right,
-                        long ql,
+                        int64_t ql,
                         unsigned short * dir)
 {
   __m128i h4, h5, h6, h7, h8, E, HE, HF;
   __m128i * vp;
   __m128i h_min = _mm_setzero_si128();
   __m128i h_max = _mm_setzero_si128();
-  long i;
+  int64_t i;
 
   f0 = _mm_subs_epi16(f0, QR_t_0);
   f1 = _mm_subs_epi16(f1, QR_t_1);
@@ -430,14 +430,14 @@ void aligncolumns_rest(__m128i * Sm,
                        __m128i f3,
                        __m128i * _h_min,
                        __m128i * _h_max,
-                       long ql,
+                       int64_t ql,
                        unsigned short * dir)
 {
   __m128i h4, h5, h6, h7, h8, E, HE, HF;
   __m128i * vp;
   __m128i h_min = _mm_setzero_si128();
   __m128i h_max = _mm_setzero_si128();
-  long i;
+  int64_t i;
 
   f0 = _mm_subs_epi16(f0, QR_t_0);
   f1 = _mm_subs_epi16(f1, QR_t_1);
@@ -535,33 +535,33 @@ inline void finishop(s16info_s * s)
 
 void backtrack16(s16info_s * s,
                  char * dseq,
-                 unsigned long dlen,
-                 unsigned long offset,
-                 unsigned long channel,
+                 uint64_t dlen,
+                 uint64_t offset,
+                 uint64_t channel,
                  unsigned short * paligned,
                  unsigned short * pmatches,
                  unsigned short * pmismatches,
                  unsigned short * pgaps)
 {
   unsigned short * dirbuffer = s->dir;
-  unsigned long dirbuffersize = s->qlen * s->maxdlen * 4;
-  unsigned long qlen = s->qlen;
+  uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t qlen = s->qlen;
   char * qseq = s->qseq;
 
-  unsigned long maskup      = 3UL << (2*channel+ 0);
-  unsigned long maskleft    = 3UL << (2*channel+16);
-  unsigned long maskextup   = 3UL << (2*channel+32);
-  unsigned long maskextleft = 3UL << (2*channel+48);
+  uint64_t maskup      = 3UL << (2*channel+ 0);
+  uint64_t maskleft    = 3UL << (2*channel+16);
+  uint64_t maskextup   = 3UL << (2*channel+32);
+  uint64_t maskextleft = 3UL << (2*channel+48);
 
 #if 0
 
   printf("Dumping backtracking array\n");
 
-  for(unsigned long i=0; i<qlen; i++)
+  for(uint64_t i=0; i<qlen; i++)
   {
-    for(unsigned long j=0; j<dlen; j++)
+    for(uint64_t j=0; j<dlen; j++)
     {
-      unsigned long d = *((unsigned long *) (dirbuffer + 
+      uint64_t d = *((uint64_t *) (dirbuffer + 
                                              (offset + 16*s->qlen*(j/4) + 
                                               16*i + 4*(j&3)) % dirbuffersize));
       if (d & maskup)
@@ -585,11 +585,11 @@ void backtrack16(s16info_s * s,
 
   printf("Dumping gap extension array\n");
 
-  for(unsigned long i=0; i<qlen; i++)
+  for(uint64_t i=0; i<qlen; i++)
   {
-    for(unsigned long j=0; j<dlen; j++)
+    for(uint64_t j=0; j<dlen; j++)
     {
-      unsigned long d = *((unsigned long *) (dirbuffer + 
+      uint64_t d = *((uint64_t *) (dirbuffer + 
                                              (offset + 16*s->qlen*(j/4) + 
                                               16*i + 4*(j&3)) % dirbuffersize));
       if (d & maskextup)
@@ -618,8 +618,8 @@ void backtrack16(s16info_s * s,
   unsigned short mismatches = 0;
   unsigned short gaps = 0;
 
-  long i = qlen - 1;
-  long j = dlen - 1;
+  int64_t i = qlen - 1;
+  int64_t j = dlen - 1;
 
   s->cigarend = s->cigar + s->qlen + s->maxdlen + 1;
   s->op = 0;
@@ -629,7 +629,7 @@ void backtrack16(s16info_s * s,
   {
     aligned++;
 
-    unsigned long d = *((unsigned long *) (dirbuffer + 
+    uint64_t d = *((uint64_t *) (dirbuffer + 
                                            (offset + 16*s->qlen*(j/4) + 
                                             16*i + 4*(j&3)) % dirbuffersize));
 
@@ -779,16 +779,16 @@ void search16_exit(s16info_s * s)
 {
   /* free mem for dprofile, hearray, dir, qtable */
   if (s->dir)
-    free(s->dir);
+    xfree(s->dir);
   if (s->hearray)
-    free(s->hearray);
+    xfree(s->hearray);
   if (s->dprofile)
-    free(s->dprofile);
+    xfree(s->dprofile);
   if (s->qtable)
-    free(s->qtable);
+    xfree(s->qtable);
   if (s->cigar)
-    free(s->cigar);
-  free(s);
+    xfree(s->cigar);
+  xfree(s);
 }
 
 void search16_qprep(s16info_s * s, char * qseq, int qlen)
@@ -797,12 +797,12 @@ void search16_qprep(s16info_s * s, char * qseq, int qlen)
   s->qseq = qseq;
 
   if (s->hearray)
-    free(s->hearray);
+    xfree(s->hearray);
   s->hearray = (__m128i *) xmalloc(2 * s->qlen * sizeof(__m128i));
   memset(s->hearray, 0, 2 * s->qlen * sizeof(__m128i));
 
   if (s->qtable)
-    free(s->qtable);
+    xfree(s->qtable);
   s->qtable = (__m128i **) xmalloc(s->qlen * sizeof(__m128i*));
 
   for(int i = 0; i < qlen; i++)
@@ -822,14 +822,14 @@ void search16(s16info_s * s,
   CELL ** q_start = (CELL**) s->qtable;
   CELL * dprofile = (CELL*) s->dprofile;
   CELL * hearray = (CELL*) s->hearray;
-  unsigned long qlen = s->qlen;
+  uint64_t qlen = s->qlen;
   
   if (qlen == 0)
     {
       for (unsigned int cand_id = 0; cand_id < sequences; cand_id++)
         {
           unsigned int seqno = seqnos[cand_id];
-          long length = db_getsequencelen(seqno);
+          int64_t length = db_getsequencelen(seqno);
 
           paligned[cand_id] = length;
           pmatches[cand_id] = 0;
@@ -848,7 +848,7 @@ void search16(s16info_s * s,
           char * cigar = 0;
           if (length > 0)
             {
-              int ret = asprintf(&cigar, "%ldI", length);
+              int ret = xsprintf(&cigar, "%ldI", length);
               if ((ret < 2) || !cigar)
                 fatal("Unable to allocate enough memory.");
             }
@@ -863,12 +863,12 @@ void search16(s16info_s * s,
     }
 
   /* find longest target sequence and reallocate direction buffer */
-  unsigned long maxdlen = 0;
-  for(long i = 0; i < sequences; i++)
+  uint64_t maxdlen = 0;
+  for(int64_t i = 0; i < sequences; i++)
     {
-      unsigned long dlen = db_getsequencelen(seqnos[i]);
+      uint64_t dlen = db_getsequencelen(seqnos[i]);
       /* skip the very long sequences */
-      if ((long)(s->qlen) * dlen <= MAXSEQLENPRODUCT)
+      if ((int64_t)(s->qlen) * dlen <= MAXSEQLENPRODUCT)
         {
           if (dlen > maxdlen)
             maxdlen = dlen;
@@ -876,13 +876,13 @@ void search16(s16info_s * s,
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = maxdlen;
-  unsigned long dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
   
   if (dirbuffersize > s->diralloc)
     {
       s->diralloc = dirbuffersize;
       if (s->dir)
-        free(s->dir);
+        xfree(s->dir);
       s->dir = (unsigned short*) xmalloc(dirbuffersize * 
                                          sizeof(unsigned short));
     }
@@ -893,7 +893,7 @@ void search16(s16info_s * s,
     {
       s->cigaralloc = s->qlen + s->maxdlen + 1;
       if (s->cigar)
-        free(s->cigar);
+        xfree(s->cigar);
       s->cigar = (char *) xmalloc(s->cigaralloc);
     }
   
@@ -915,10 +915,10 @@ void search16(s16info_s * s,
 
   BYTE * d_begin[CHANNELS];
   BYTE * d_end[CHANNELS];
-  unsigned long d_offset[CHANNELS];
+  uint64_t d_offset[CHANNELS];
   BYTE * d_address[CHANNELS];
-  unsigned long d_length[CHANNELS];
-  long seq_id[CHANNELS];
+  uint64_t d_length[CHANNELS];
+  int64_t seq_id[CHANNELS];
   bool overflow[CHANNELS];
   
   __m128i dseqalloc[CDEPTH];
@@ -927,8 +927,8 @@ void search16(s16info_s * s,
   BYTE * dseq = (BYTE*) & dseqalloc;
   BYTE zero = 0;
 
-  unsigned long next_id = 0;
-  unsigned long done = 0;
+  uint64_t next_id = 0;
+  uint64_t done = 0;
   
   T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
 
@@ -1132,16 +1132,16 @@ void search16(s16info_s * s,
 
           M = _mm_xor_si128(M, T);
 
-          long cand_id = seq_id[c];
+          int64_t cand_id = seq_id[c];
           
           if (cand_id >= 0)
           {
             /* save score */
 
             char * dbseq = (char*) d_address[c];
-            long dbseqlen = d_length[c];
-            long z = (dbseqlen+3) % 4;
-            long score = ((CELL*)S)[z*CHANNELS+c];
+            int64_t dbseqlen = d_length[c];
+            int64_t z = (dbseqlen+3) % 4;
+            int64_t score = ((CELL*)S)[z*CHANNELS+c];
 
             if (overflow[c])
               {
@@ -1169,7 +1169,7 @@ void search16(s16info_s * s,
 
           /* get next sequence of reasonable length */
 
-          long length = 0;
+          int64_t length = 0;
 
           while ((length == 0) && (next_id < sequences))
           {

@@ -124,7 +124,7 @@ int parse_userfields_arg(char * arg)
     if (*p++ == '+')
       userfields_requested_count++;     
 
-  userfields_requested = (int*) xmalloc(sizeof(int) * (unsigned long)userfields_requested_count);
+  userfields_requested = (int*) xmalloc(sizeof(int) * (uint64_t)userfields_requested_count);
   
   p = arg;
 
@@ -138,7 +138,7 @@ int parse_userfields_arg(char * arg)
       if (!q)
         q = e;
       
-      unsigned long n = (unsigned long)(q - p);
+      uint64_t n = (uint64_t)(q - p);
 
       char ** u = (char**) userfields_names;
 

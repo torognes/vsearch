@@ -59,13 +59,13 @@
 */
 
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
-extern unsigned long * kmerhash;  /* index into the list below for each kmer */
+extern uint64_t * kmerhash;  /* index into the list below for each kmer */
 extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
 extern bitmap_t * * kmerbitmap;
 extern unsigned int * dbindex_map;
 extern unsigned int dbindex_count;
 
-void fprint_kmer(FILE * f, unsigned int k, unsigned long kmer);
+void fprint_kmer(FILE * f, unsigned int k, uint64_t kmer);
 
 void dbindex_prepare(int use_bitmap, int seqmask);
 void dbindex_addallsequences(int seqmask);
