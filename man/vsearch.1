@@ -156,7 +156,7 @@ ending before the next identifier line, or the file end. \fBvsearch\fR
 silently ignores ascii characters 9 to 13, and exits with an error
 message if ascii characters 0 to 8, 14 to 31, '.' or '-' are
 present. All other ascii or non-ascii characters are stripped and
-complained about in a non-blocking warning message.
+complained about in a warning message.
 .PP
 In fastq files, each entry is made of sequence header starting with a
 symbol '@', a nucleotidic sequence (same rules as for fasta
@@ -185,7 +185,7 @@ example, R vs R) also receives a score of zero.
 .PP
 \fBvsearch\fR can read data from standard files and write to standard
 files, but it can also read from pipes and write to pipes! For
-example, multiple fasta files can be piped into vsearch for
+example, multiple fasta files can be piped into \fBvsearch\fR for
 dereplication. To do so, file names can be replaced with:
 .RS
 .IP - 2
@@ -196,6 +196,7 @@ a named pipe created with the command mkfifo,
 .IP -
 a process substitution '<(command)' as input or '>(command)' as output.
 .RE
+.PP
 \fBvsearch\fR can automatically read compressed gzip or bzip2 files if
 the appropriate libraries are present during the
 compilation. \fBvsearch\fR can also read pipes streaming compressed
@@ -504,16 +505,16 @@ respectively, and is recommended at least for large tables. The OTUs
 are represented by the cluster centroids. Taxonomy information will be
 included for the OTUs if available. Sample identifiers will be
 extracted from the headers of all sequences in the input file. If the
-header contains ";sample=abc123;" or ";barcodelabel=abc123;" or a
+header contains ';sample=abc123;' or ';barcodelabel=abc123;' or a
 similar string somewhere, then the given sample identifier (here
-"abc123") will be used. The semicolon is not mandatory at the
+'abc123') will be used. The semicolon is not mandatory at the
 beginning or end of the header. The sample identifier may contain any
 printable character except semicolons. If no such sample label is
 found, the identifier in the initial part of the header will be used,
 but only letters, digits and underscores are allowed. OTU identifiers
 will be extracted from the headers of the cluster centroid
-sequences. If the header contains ";otu=def789;" or a similar string
-somewhere, then the given OTU identifier (here "def789") will be
+sequences. If the header contains ';otu=def789;' or a similar string
+somewhere, then the given OTU identifier (here 'def789') will be
 used. The semicolon is not mandatory at the beginning or end of the
 header. The OTU identifier may contain any printable character except
 semicolons. If no such OTU label is found, the identifier in the
@@ -522,8 +523,8 @@ semicolons are allowed. Alternatively, OTU identifers can be generated
 using the relabelling options (\-\-relabel, \-\-relabel_sha1 or
 \-\-relabel_md5). Taxonomy information, if present, will also be
 extracted from the headers of the centroid sequences. If the header
-contains ";tax=Homo_sapiens;" or a similar string somewhere, then the
-given taxonomy information (here "Homo_sapiens") will be used. The
+contains ';tax=Homo_sapiens;' or a similar string somewhere, then the
+given taxonomy information (here 'Homo_sapiens') will be used. The
 semicolon is not mandatory at the beginning or end of the header. The
 taxonomy information may contain any printable character except
 semicolons. If an OTU table in the biom version 2.1 HDF5 file format
@@ -617,13 +618,13 @@ alignment. Columns containing a majority of gaps are skipped, except
 for terminal gaps.
 .TP
 .BI \-\-mothur_shared_out \0filename
-Output an OTU table in the mothur "shared" tab-separated plain text
+Output an OTU table in the mothur 'shared' tab-separated plain text
 format as described at http://www.mothur.org/wiki/Shared_file. The
 format describes how a matrix containing the abundances of the OTUs in
 the different samples is stored. The first line will start with the
-strings "label", "group" and "numOtus" and is followed by a list of
+strings 'label', 'group' and 'numOtus' and is followed by a list of
 all OTU identifiers. The following lines, one for each sample, starts
-with the string "vsearch" followed by the sample identifier, the total
+with the string 'vsearch' followed by the sample identifier, the total
 number of OTUs, and a list of abundances for each OTU in that sample,
 in the order given on the first line. The OTU and sample identifiers
 are extracted from the FASTA headers of the sequences. The OTUs are
@@ -633,7 +634,7 @@ further details.
 .BI \-\-otutabout \0filename
 Output an OTU table in the classic tab-separated plain text format as
 a matrix containing the abundances of the OTUs in the different
-samples. The first line will start with the string "#OTU ID" and is
+samples. The first line will start with the string '#OTU ID' and is
 followed by a tab-separated list of all sample identifiers. The
 following lines, one for each OTU, starts with the OTU identifier and
 is followed by a tab-separated list of abundances for that OTU in each
@@ -641,7 +642,7 @@ sample, in the order given on the first line. The OTU and sample
 identifiers are extracted from the FASTA headers of the sequences. The
 OTUs are represented by the cluster centroids. An extra column is
 added to the right of the table if taxonomy information is available
-for at least one of the OTUs. This column will be labelled "taxonomy"
+for at least one of the OTUs. This column will be labelled 'taxonomy'
 and each row will then contain the taxonomy information extracted for
 that OTU. See the \-\-biomout option for further details.
 .TP
@@ -650,11 +651,11 @@ Output a sequence profile to a text file with the frequency of each
 nucleotide in each position in the multiple alignment for each
 cluster. There is a FASTA-like header line for each cluster, followed
 by the profile information in a tab-separated format. The columns are:
-position (1-based), consensus nucleotide, number of A's, number of
-C's, number of G's, number of Ts or Us, and finally the number of
-gaps. If ambiguous nucleotide symbols are present, the numbers may be
-floating point numbers, otherwise they are integers. For instance,
-an 'R' counts 0.5 towards an A and 0.5 towards a G.
+position (1-based), consensus nucleotide, number of As, number of Cs,
+number of Gs, number of Ts or Us, and finally the number of gaps. If
+ambiguous nucleotide symbols are present, the numbers may be floating
+point numbers, otherwise they are integers. For instance, an 'R'
+counts 0.5 towards an A and 0.5 towards a G.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask regions in sequences using the
@@ -682,7 +683,7 @@ description of the same option under Chimera detection for details.
 .TP
 .B \-\-sizein
 Take into account the abundance annotations present in the input fasta
-file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
+file (search for the pattern '[>;]size=\fIinteger\fR[;]' in sequence
 headers).
 .TP
 .B \-\-sizeorder
@@ -697,7 +698,7 @@ greedy clustering (DGC).
 .TP
 .B \-\-sizeout
 Add abundance annotations to the output fasta files (add the pattern
-";size=\fIinteger\fR;" to sequence headers). If \-\-sizein is
+';size=\fIinteger\fR;' to sequence headers). If \-\-sizein is
 specified, abundance annotations are reported to output files, and
 each cluster centroid receives a new abundance value corresponding to
 the total abundance of the amplicons included in the cluster
@@ -724,27 +725,29 @@ C):
 .IP \n[step]. 4
 Record type: S, H, or C.
 .IP \n+[step].
-Cluster number (0-based).
+Cluster number (zero-based) for S and C, or ordinal number of the
+matching input sequence (zero-based).
 .IP \n+[step].
 Centroid length (S), query length (H), or cluster size (C).
 .IP \n+[step].
-Percentage of similarity with the centroid sequence (H), or set to "*"
+Percentage of similarity with the centroid sequence (H), or set to '*'
 (S, C).
 .IP \n+[step].
-Match orientation + or - (H), or set to "*" (S, C).
+Match orientation + or - (H), or set to '*' (S, C).
 .IP \n+[step].
-Not used, always set to "*" (S, C) or to zero (H).
+Not used, always set to '*' (S, C) or to zero (H).
 .IP \n+[step].
-Not used, always set to "*" (S, C) or to zero (H).
+Not used, always set to '*' (S, C) or to zero (H).
 .IP \n+[step].
-Compact representation of the pairwise alignment using the CIGAR
-format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion). The equal sign "=" indicates that the
-query is identical to the centroid sequence.
+set to '*' (S, C) or, for H, compact representation of the pairwise
+alignment using the CIGAR format (Compact Idiosyncratic Gapped
+Alignment Report): M (match), D (deletion) and I (insertion). The
+equal sign '=' indicates that the query is identical to the centroid
+sequence.
 .IP \n+[step].
 Label of the query sequence (H), or of the centroid sequence (S, C).
 .IP \n+[step].
-Label of the centroid sequence (H), or set to "*" (S, C).
+Label of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .RE
 .TP
@@ -796,7 +799,7 @@ and sorted by decreasing abundance. Identical sequences receive the
 header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the pattern
-";size=\fIinteger\fR;".
+';size=\fIinteger\fR;'.
 .TP
 .BI \-\-relabel \0string
 Please see the description of the same option under Chimera detection
@@ -824,12 +827,12 @@ is specified, in which case an abundance of 1 is used.
 .TP
 .B \-\-sizein
 Take into account the abundance annotations present in the input fasta
-file (search for the pattern "[>;]size=\fIinteger\fR[;]" in sequence
+file (search for the pattern '[>;]size=\fIinteger\fR[;]' in sequence
 headers).
 .TP
 .B \-\-sizeout
 Add abundance annotations to the output fasta file (add the pattern
-";size=\fIinteger\fR;" to sequence headers).  If \-\-sizein is
+';size=\fIinteger\fR;' to sequence headers).  If \-\-sizein is
 specified, each unique sequence receives a new abundance value
 corresponding to its total abundance (sum of the abundances of its
 occurrences). If \-\-sizein is not specified, input abundances are set
@@ -858,24 +861,25 @@ content varies with the type of entry (S, H or C):
 .IP \n[step]. 4
 Record type: S, H, or C.
 .IP \n+[step].
-Cluster number (0-based).
+Cluster number (zero-based) for S and C, or ordinal number of the
+matching input sequence for H (zero-based).
 .IP \n+[step].
 Sequence length (S, H), or cluster size (C).
 .IP \n+[step].
-Percentage of similarity with the centroid sequence (H), or set to "*"
+Percentage of similarity with the centroid sequence (H), or set to '*'
 (S, C).
 .IP \n+[step].
-Match orientation + or - (H), or set to "*" (S, C).
+Match orientation + or - (H), or set to '*' (S, C).
 .IP \n+[step].
-Not used, always set to "*" (S, C) or 0 (H).
+Not used, always set to '*' (S, C) or 0 (H).
 .IP \n+[step].
-Not used, always set to "*" (S, C) or 0 (H).
+Not used, always set to '*' (S, C) or 0 (H).
 .IP \n+[step].
-Not used, always set to "*".
+Not used, always set to '*'.
 .IP \n+[step].
 Label of the query sequence (H), or of the centroid sequence (S, C).
 .IP \n+[step].
-Label of the centroid sequence (H), or set to "*" (S, C).
+Label of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .RE
 .TP
@@ -1163,19 +1167,19 @@ Rate: growth rate of AvgEE between this position and position - 1.
 RatePct: Rate (as explained above) expressed as a percentage.
 .RE
 .TP
-Effect of expected error and length filtering
+Effect of expected error and length filtering:
 .RS
 The first column indicates read lengths (\fIL\fR). The next four
 columns indicate the number of reads that would be retained by the
 \-\-fastq_filter command if the reads were truncated at length \fIL\fR
 (option \-\-fastq_trunclen \fIL\fR) and filtered to have a maximum
-expected error of 1.0, 0.5, 0.25 or 0.1 (option \-\-fastq_maxee
-\fIfloat\fR). The last four columns indicate the fraction of reads
-that would be retained by the \-\-fastq_filter command using the same
-length and maximum expected error parameters.
+expected error of 1.0, 0.5, 0.25 or 0.1 (with the option
+\-\-fastq_maxee \fIfloat\fR). The last four columns indicate the
+fraction of reads that would be retained by the \-\-fastq_filter
+command using the same length and maximum expected error parameters.
 .RE
 .TP
-Effect of minimum quality and length filtering
+Effect of minimum quality and length filtering:
 .RS
 The first column indicates read lengths (\fILen\fR). The next four
 columns indicate the fraction of reads that would be retained by the
@@ -1298,42 +1302,42 @@ An input sequence can be composed of lower- or uppercase letters. When
 soft masking is specified, lower case letters are treated as symbols
 that should be masked. Otherwise the case of the input sequences is
 ignored.
-
-Masking is performed by the commands
-for chimera detection (uchime_denovo, uchime_ref), clustering
-(cluster_fast, cluster_smallmem, cluster_size), masking (maskfasta,
-fastx_mask), pairwise alignment (allpairs_global) and searching
-(search_exact, usearch_global).
-
+.br
+Masking is performed by the commands for chimera detection
+(uchime_denovo, uchime_ref), clustering (cluster_fast,
+cluster_smallmem, cluster_size), masking (maskfasta, fastx_mask),
+pairwise alignment (allpairs_global) and searching (search_exact,
+usearch_global).
+.br
 Masking is usually specified with the \-\-qmask option, while the
 \-\-dbmask option is used for the database sequences specified with
-the \-\-db option with the \-\-usearch_global, 
-\-\-search_exact and \-\-uchime_ref commands.
-
+the \-\-db option with the \-\-usearch_global, \-\-search_exact and
+\-\-uchime_ref commands.
+.br
 The argument to the \-\-qmask and \-\-dbmask option may be none, soft
 or dust. If the argument is none, the no masking is performed. If the
 argument is soft the lower case symbols are masked. Finally, if the
 argument is dust, the sequence is masked using the DUST algorithm by
 Tatusov and Lipman to mask low-complexity regions.
-
+.br
 If the \-\-hardmask option is specified, all masked regions are
 converted to N's, otherwise masked regions are indicated by lower case
 letters.
-
+.br
 If any sequence is masked, the masked version of the sequence (with
 lower case letters or N's) is used in all output files. Otherwise the
 sequence is unmodified. The exception is the sequences in the output
 file specified with the \-\-uchimealns option, where the input
 sequences are converted to upper case first and lower case letters
 indicate disagreement between the aligned sequences.
-
+.br
 When a sequence region is masked, words in the region are not included
 in the indices used in the heuristic search algorithm. In all other
 aspects, the region is treated as other regions.
-
+.br
 Regions in sequences that are hardmasked (with N's) have a zero
 alignment score and do not contribute to an alignment.
-
+.br
 Here are the results of combined masking options \-\-qmask (or
 \-\-dbmask for database sequences) and \-\-hardmask, assuming each
 input sequence contains both lower and uppercase nucleotides:
@@ -1445,7 +1449,7 @@ comparison per line:
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-Record type, always set to "H".
+Record type, always set to 'H'.
 .IP \n+[step].
 Ordinal number of the target sequence (based on input order, starting
 from zero).
@@ -1454,7 +1458,7 @@ Sequence length.
 .IP \n+[step].
 Percentage of similarity with the target sequence.
 .IP \n+[step].
-Match orientation, always set to "+".
+Match orientation, always set to '+'.
 .IP \n+[step].
 Not used, always set to zero.
 .IP \n+[step].
@@ -1462,7 +1466,7 @@ Not used, always set to zero.
 .IP \n+[step].
 Compact representation of the pairwise alignment using the CIGAR
 format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion). The equal sign "=" indicates that the
+(deletion) and I (insertion). The equal sign '=' indicates that the
 query is identical to the centroid sequence.
 .IP \n+[step].
 Label of the query sequence.
@@ -1499,7 +1503,7 @@ differently. Output order may vary when using multiple threads. A
 similar output can be obtain with \-\-userout \fIfilename\fR and
 \-\-userfields
 query+target+id+alnlen+mism+opens+qlo+qhi+tlo+thi+evalue+bits.  A
-complete list and description is available in the section "Userfields"
+complete list and description is available in the section 'Userfields'
 of this manual.
 .RS
 .RS
@@ -1508,7 +1512,7 @@ of this manual.
 \fIquery\fR: query label.
 .IP \n+[step].
 \fItarget\fR: target (database sequence) label. The field is set to
-"*" if there is no alignment.
+'*' if there is no alignment.
 .IP \n+[step].
 \fIid\fR: percentage of identity (real value ranging from 0.0 to
 100.0). The percentage identity is defined as 100 * (matching columns)
@@ -1593,7 +1597,7 @@ the left (L) or right (R) extremity of the sequence, or inside the
 sequence (I). Sequence symbols (Q and T) can be combined with location
 symbols (L, I, and R), and numerical values to declare penalties for
 all possible contexts: aQL/bQI/cQR/dTL/eTI/fTR, where abcdef are zero
-or positive integers, and "/" is used as a separator.
+or positive integers, and '/' is used as a separator.
 .br
 To simplify declarations, the location symbols (L, I, and R) can be
 combined, the symbol (E) can be used to treat both extremities (L and
@@ -1604,7 +1608,7 @@ terminal gaps (left or right), in both query and target sequences
 (i.e. 20I/2E). If only a numerical value is given, without any
 sequence or location symbol, then the penalty applies to all gap
 openings. To forbid gap-opening, an infinite penalty value can be
-declared with the symbol "*". To use \fBvsearch\fR as a semi-global
+declared with the symbol '*'. To use \fBvsearch\fR as a semi-global
 aligner, a null-penalty can be applied to the left (L) or right (R)
 gaps.
 .br
@@ -1782,7 +1786,7 @@ Score assigned to a mismatch (i.e. different nucleotides) in the
 pairwise alignment. The default value is -4.
 .TP
 .BI \-\-mothur_shared_out \0filename
-Write search results to an OTU table in the mothur "shared"
+Write search results to an OTU table in the mothur 'shared'
 tab-separated plain text file format. The query file contains the
 samples, while the database file contains the OTUs. Sample and OTU
 identifiers are extracted from the header of these sequences. See the
@@ -1802,7 +1806,7 @@ Clustering section for further details.
 .B \-\-output_no_hits
 Write both matching and non-matching queries to \-\-alnout,
 \-\-blast6out, \-\-samout or \-\-userout output files. Non-matching
-queries are labelled "No hits" in \-\-alnout files.
+queries are labelled 'No hits' in \-\-alnout files.
 .TP
 .B \-\-pattern \fIstring\fR
 This option is ignored. It is provided for compatibility with usearch.
@@ -1855,7 +1859,7 @@ strictly identical.
 .TP
 .B \-\-sizeout
 Add abundance annotations to the output of the option \-\-dbmatched
-(using the pattern ";size=\fIinteger\fR;"), to report the number of
+(using the pattern ';size=\fIinteger\fR;'), to report the number of
 queries that matched each target.
 .TP
 .BI \-\-strand\~ "plus|both"
@@ -1884,11 +1888,11 @@ Output searching results in \fIfilename\fR using a tab-separated
 uclust-like format with 10 columns. When using the \-\-search_exact
 command, the table layout is the same than with the
 \-\-allpairs_global. When using the \-\-usearch_global command, the
-table present 2 different type of entries: hit (H) or no hit (N). Each
-query sequence is compared to all other sequences, and the best hit
-(\-\-maxaccept 1) or several hits (\-\-maxaccept >1) are reported
-(H). Output order may vary when using multiple threads. Column content
-varies with the type of entry (H or N):
+table present two different type of entries: hit (H) or no hit
+(N). Each query sequence is compared to all other sequences, and the
+best hit (\-\-maxaccept 1) or several hits (\-\-maxaccept > 1) are
+reported (H). Output order may vary when using multiple
+threads. Column content varies with the type of entry (H or N):
 .RS
 .RS
 .nr step 1 1
@@ -1896,26 +1900,26 @@ varies with the type of entry (H or N):
 Record type: H, or N.
 .IP \n+[step].
 Ordinal number of the target sequence (based on input order, starting
-from zero). Set to "*" for N.
+from zero). Set to '*' for N.
 .IP \n+[step].
-Sequence length. Set to "*" for N.
+Sequence length. Set to '*' for N.
 .IP \n+[step].
-Percentage of similarity with the target sequence. Set to "*" for N.
+Percentage of similarity with the target sequence. Set to '*' for N.
 .IP \n+[step].
-Match orientation + or -. . Set to "." for N.
+Match orientation + or -. . Set to '.' for N.
 .IP \n+[step].
-Not used, always set to zero for H, or "*" for N.
+Not used, always set to zero for H, or '*' for N.
 .IP \n+[step].
-Not used, always set to zero for H, or "*" for N.
+Not used, always set to zero for H, or '*' for N.
 .IP \n+[step].
 Compact representation of the pairwise alignment using the CIGAR
 format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion). The equal sign "=" indicates that the
-query is identical to the centroid sequence. Set to "*" for N.
+(deletion) and I (insertion). The equal sign '=' indicates that the
+query is identical to the centroid sequence. Set to '*' for N.
 .IP \n+[step].
 Label of the query sequence.
 .IP \n+[step].
-Label of the target centroid sequence. Set to "*" for N.
+Label of the target centroid sequence. Set to '*' for N.
 .RE
 .RE
 .TP
@@ -1930,8 +1934,8 @@ alignment.
 .TP
 .BI \-\-userfields \0string
 When using \-\-userout, select and order the fields written to the
-output file. Fields are separated by "+" (e.g. query+target+id). See
-the "Userfields" section for a complete list of fields.
+output file. Fields are separated by '+' (e.g. query+target+id). See
+the 'Userfields' section for a complete list of fields.
 .TP
 .BI \-\-userout \0filename
 Write user-defined tab-separated output to \fIfilename\fR. Select the
@@ -2010,7 +2014,7 @@ conserve the abundance annotations.
 .B \-\-sizeout
 When using \-\-relabel, \-\-relabel_md5 or \-\-relabel_sha1, preserve
 and report abundance annotations to the output fasta file (using the
-pattern ";size=\fIinteger\fR;").
+pattern ';size=\fIinteger\fR;').
 .TP
 .BI \-\-shuffle \0filename
 Pseudo-randomly shuffle the order of sequences contained in
@@ -2067,7 +2071,7 @@ for details.
 .TP
 .B \-\-sizeout
 When using \-\-relabel, report abundance annotations to the output
-fasta file (using the pattern ";size=\fIinteger\fR;").
+fasta file (using the pattern ';size=\fIinteger\fR;').
 .TP
 .BI \-\-sortbylength \0filename
 Sort by decreasing length the sequences contained in
@@ -2076,7 +2080,7 @@ Sort by decreasing length the sequences contained in
 .TP
 .BI \-\-sortbysize \0filename
 Sort by decreasing abundance the sequences contained in \fIfilename\fR
-(the pattern "[>;]size=\fIinteger\fR[;]" has to be present). See the
+(the pattern '[>;]size=\fIinteger\fR[;]' has to be present). See the
 options \-\-minsize and \-\-maxsize to eliminate rare and dominant
 sequences.
 .TP
@@ -2351,7 +2355,7 @@ openings and gap extensions. The field is set to 0 if there is no
 alignment.
 .TP
 .B target
-Target label. The field is set to "*" if there is no alignment.
+Target label. The field is set to '*' if there is no alignment.
 .TP
 .B tcov
 Fraction of the target sequence that is aligned with the query
@@ -2399,8 +2403,8 @@ field is set to 0 if there is no alignment.
 .TP
 .B tstrand
 Target strand orientation (+ or - for nucleotide sequences). Always
-set to "+", so reverse strand matches have tstrand "+" and qstrand
-"-". Empty field if there is no alignment.
+set to '+', so reverse strand matches have tstrand '+' and qstrand
+'-'. Empty field if there is no alignment.
 .RE
 .PP
 .\" ============================================================================
@@ -2451,7 +2455,7 @@ be more consistent.
 .\" ============================================================================
 .SH NOVELTIES
 \fBvsearch\fR introduces new commands and new options not present in
-usearch 7. They are described in the "Options" section of this
+usearch 7. They are described in the 'Options' section of this
 manual. Here is a short list:
 .RS
 .IP - 2
@@ -2557,7 +2561,7 @@ to the output file:
 .RE
 .PP
 Sort by decreasing abundance the sequences contained in
-\fIqueries.fas\fR (using the "size=\fIinteger\fR" information),
+\fIqueries.fas\fR (using the 'size=\fIinteger\fR' information),
 relabel the sequences while preserving the abundance information (with
 \-\-sizeout), keep only sequences with an abundance equal to or
 greater than 2:
@@ -2740,7 +2744,7 @@ with usearch,
 new userfields qilo, qihi, tilo, tihi give alignment coordinates
 ignoring terminal gaps,
 .IP -
-in \-\-uc output files, a perfect alignment is indicated with a "="
+in \-\-uc output files, a perfect alignment is indicated with a '='
 sign,
 .IP -
 the option \-\-cluster_fast now sorts sequences by decreasing length,
@@ -2813,7 +2817,7 @@ Changed to autotools build system.
 Several new commands and options. Bug fixes.
 .TP
 .BR v1.3.2\~ "released September 15th, 2015"
-Fixed memory leaks. Added "-h" shortcut for help. Removed extra "v" in
+Fixed memory leaks. Added '-h' shortcut for help. Removed extra 'v' in
 version number.
 .TP
 .BR v1.3.3\~ "released September 15th, 2015"
@@ -2956,7 +2960,7 @@ output (no matter if \-\-notrunclabels is in effect or not).
 Fixed a bug causing a segmentation fault when running
 \-\-usearch_global with an empty query sequence. Also fixed a bug
 causing imperfect alignments to be reported with an alignment string
-of "=" in uc output files. Fixed typos in man file. Fixed fasta/fastq
+of '=' in uc output files. Fixed typos in man file. Fixed fasta/fastq
 processing code regarding presence or absence of compression library
 header files.
 .TP

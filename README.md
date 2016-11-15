@@ -103,9 +103,10 @@ Please note that vsearch version 2.2.0 and later are able to directly output OTU
 
 ## Implementation details and initial assessment
 
-Please see the preprint for details:
+Please see the paper for details:
 
-Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a versatile open source tool for metagenomics. PeerJ Preprints 4:e2409v1 https://doi.org/10.7287/peerj.preprints.2409v1
+Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a versatile open source tool for metagenomics. PeerJ 4:e2584
+doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 
 ## Dependencies
@@ -236,10 +237,12 @@ Thanks to the following people for patches and other suggestions for improvement
 
 ## Citing VSEARCH
 
-The vsearch manuscript is now published in PeerJ Preprints: 
+Please cite the following publication if you use VSEARCH:
 
-Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a versatile open source tool for metagenomics. PeerJ Preprints 4:e2409v1 https://doi.org/10.7287/peerj.preprints.2409v1
+Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a versatile open source tool for metagenomics. PeerJ 4:e2584.
+doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
+Please note that citing any of the underlying algorithms, e.g. UCHIME, may also be appropriate.
 
 ## Test datasets
 
