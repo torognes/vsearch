@@ -646,7 +646,7 @@ void args_init(int argc, char **argv)
   opt_minsl = 0.0;
   opt_mintsize = 0;
   opt_minuniquesize = 0;
-  opt_minwordmatches = 0;
+  opt_minwordmatches = -1;
   opt_mismatch = -4;
   opt_mothur_shared_out = 0;
   opt_msaout = 0;
@@ -1047,6 +1047,8 @@ void args_init(int argc, char **argv)
 
         case 32:
           opt_minseqlength = args_getlong(optarg);
+          if (opt_minseqlength < 0)
+            fatal("The argument to --minseqlength must not be negative");
           break;
 
         case 33:
@@ -1504,6 +1506,8 @@ void args_init(int argc, char **argv)
 
         case 142:
           opt_minwordmatches = args_getlong(optarg);
+          if (opt_minwordmatches < 0)
+            fatal("The argument to --minwordmatches must not be negative");
           break;
 
         case 143:
@@ -1750,9 +1754,6 @@ void args_init(int argc, char **argv)
         opt_maxrejects = 32;
     }
 
-  if (opt_minseqlength < -1)
-    fatal("The argument to --minseqlength must not be negative");
-
   if (opt_maxaccepts < 0)
     fatal("The argument to --maxaccepts must not be negative");
 
@@ -1801,9 +1802,6 @@ void args_init(int argc, char **argv)
   if (opt_fastq_tail < 1)
     fatal("The argument to --fastq_tail must be positive");
 
-  if (opt_minwordmatches < 0)
-    fatal("The argument to --minwordmatches must not be negative");
-
   if ((opt_min_unmasked_pct < 0.0) && (opt_min_unmasked_pct > 100.0))
     fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
 
@@ -1849,7 +1847,9 @@ void args_init(int argc, char **argv)
 
 #endif
 
-  if (opt_minwordmatches == 0)
+  /* set defaults parameters, if not specified */
+
+  if (opt_minwordmatches < 0)
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
 
   if (opt_threads == 0)

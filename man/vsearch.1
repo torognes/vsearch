@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 10, 2016" "version 2.3.0" "USER COMMANDS"
+.TH vsearch 1 "November 16, 2016" "version 2.3.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -506,8 +506,8 @@ are represented by the cluster centroids. Taxonomy information will be
 included for the OTUs if available. Sample identifiers will be
 extracted from the headers of all sequences in the input file. If the
 header contains ';sample=abc123;' or ';barcodelabel=abc123;' or a
-similar string somewhere, then the given sample identifier (here
-'abc123') will be used. The semicolon is not mandatory at the
+similar string somewhere, then the given sample identifier
+(here 'abc123') will be used. The semicolon is not mandatory at the
 beginning or end of the header. The sample identifier may contain any
 printable character except semicolons. If no such sample label is
 found, the identifier in the initial part of the header will be used,
@@ -1779,7 +1779,8 @@ considered further. Default value is 12 for the default word length
 8. For word lengths 3-15, the default minimum word matches are 18, 17,
 16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the query
 sequence has fewer unique words than the number specified, all words
-in the query must match.
+in the query must match. If the argument is 0, no word matches are
+required.
 .TP
 .BI \-\-mismatch\~ "integer"
 Score assigned to a mismatch (i.e. different nucleotides) in the
@@ -3032,6 +3033,12 @@ and \-\-otutabout to the clustering and searching commands.
 Allowed zero-length sequences in FASTA and FASTQ files. Added
 \-\-fastq_trunclen_keep option. Fixed bug with output of OTU tables to
 pipes.
+.TP
+.BR v2.3.1\~ "released November 16th, 2016"
+Fixed bug where \-\-minwordmatches 0 was interpreted as the default
+minimum word matches for the given word length instead of zero. When
+used in combination with \-\-maxaccepts 0 and \-\-maxrejects 0 it will
+allow complete bypass of kmer-based heuristics.
 .RE
 .LP
 .\" ============================================================================

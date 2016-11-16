@@ -35,9 +35,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.3.0.tar.gz
-tar xzf v2.3.0.tar.gz
-cd vsearch-2.3.0
+wget https://github.com/torognes/vsearch/archive/v2.3.1.tar.gz
+tar xzf v2.3.1.tar.gz
+cd vsearch-2.3.1
 ./autogen.sh
 ./configure
 make
@@ -60,18 +60,18 @@ make install  # as root or sudo make install
 **Binary distribution** Starting with version 1.4.0, binary distribution files (.tar.gz) for GNU/Linux on x86-64 and Apple Mac OS X on x86-64 containing pre-compiled binaries as well as the documentation (man and pdf files) will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable for your system using the following commands if you are using a Linux system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.3.0/vsearch-2.3.0-linux-x86_64.tar.gz
-tar xzf vsearch-2.3.0-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.3.1/vsearch-2.3.1-linux-x86_64.tar.gz
+tar xzf vsearch-2.3.1-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Mac:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.3.0/vsearch-2.3.0-osx-x86_64.tar.gz
-tar xzf vsearch-2.3.0-osx-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.3.1/vsearch-2.3.1-osx-x86_64.tar.gz
+tar xzf vsearch-2.3.1-osx-x86_64.tar.gz
 ```
 
-You will now have the binary distribution in a folder called something like `vsearch-2.3.0-linux-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
+You will now have the binary distribution in a folder called something like `vsearch-2.3.1-linux-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
 
 
 **Old binaries** Older VSEARCH binaries (until version 1.1.3) are available [here](https://github.com/torognes/vsearch/releases) for [GNU/Linux on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-linux-x86_64) and [Apple Mac OS X on x86-64 systems](https://github.com/torognes/vsearch/blob/master/bin/vsearch-1.1.3-osx-x86_64). These executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`). Download the appropriate executable and make a symbolic link to the vsearch binary in a folder included in your `$PATH`. You may use the following commands, assuming `~/bin` is in your `$PATH` (substitute `linux` with `osx` in those lines if you're on a Mac):
@@ -265,17 +265,17 @@ doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq
 *Bioinformatics*, 27 (16): 2194-2200.
 doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
 
-* Guillou L., Bachar D., Audic S., Bass D., Berney C., Bittner L., Boutte C., Burgaud G., de Vargas C., Decelle J., del Campo J., Dolan J., Dunthorn M., Edvardsen B., Holzmann M., Kooistra W., Lara E., Lebescot N., Logares R., Mahé F., Massana R., Montresor M., Morard R., Not F., Pawlowski J., Probert I., Sauvadet A.-L., Siano R., Stoeck T., Vaulot D., Zimmermann P. & Christen R. (2013)
+* Guillou L, Bachar D, Audic S, Bass D, Berney C, Bittner L, Boutte C, Burgaud G, de Vargas C, Decelle J, del Campo J, Dolan J, Dunthorn M, Edvardsen B, Holzmann M, Kooistra W, Lara E, Lebescot N, Logares R, Mahé F, Massana R, Montresor M, Morard R, Not F, Pawlowski J, Probert I, Sauvadet A-L, Siano R, Stoeck T, Vaulot D, Zimmermann P & Christen R (2013)
 **The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.**
 *Nucleic Acids Research*, 41 (D1), D597-D604.
 doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
 
-* Karsenti E., González Acinas S., Bork P., Bowler C., de Vargas C., Raes J., Sullivan M. B., Arendt D., Benzoni F., Claverie J.-M., Follows M., Jaillon O., Gorsky G., Hingamp P., Iudicone D., Kandels-Lewis S., Krzic U., Not F., Ogata H., Pesant S., Reynaud E. G., Sardet C., Sieracki M. E., Speich S., Velayoudon D., Weissenbach J., Wincker P. & the Tara Oceans Consortium (2011)
+* Karsenti E, González Acinas S, Bork P, Bowler C, de Vargas C, Raes J, Sullivan M B, Arendt D, Benzoni F, Claverie J-M, Follows M, Jaillon O, Gorsky G, Hingamp P, Iudicone D, Kandels-Lewis S, Krzic U, Not F, Ogata H, Pesant S, Reynaud E G, Sardet C, Sieracki M E, Speich S, Velayoudon D, Weissenbach J, Wincker P & the Tara Oceans Consortium (2011)
 **A holistic approach to marine eco-systems biology.**
 *PLoS Biology*, 9(10), e1001177.
 doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
 
-* Logares R., Audic S., Bass D., Bittner L., Boutte C., Christen R., Claverie J.-M., Decelle J., Dolan J. R., Dunthorn M., Edvardsen B., Gobet A., Kooistra W. H. C. F., Mahé F., Not F., Ogata H., Pawlowski J., Pernice M. C., Romac S., Shalchian-Tabrizi K., Simon N., Stoeck T., Santini S., Siano R., Wincker P., Zingone A., Richards T., de Vargas C. & Massana R. (2014) **The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.**
+* Logares R, Audic S, Bass D, Bittner L, Boutte C, Christen R, Claverie J-M, Decelle J, Dolan J R, Dunthorn M, Edvardsen B, Gobet A, Kooistra W H C F, Mahé F, Not F, Ogata H, Pawlowski J, Pernice M C, Romac S, Shalchian-Tabrizi K, Simon N, Stoeck T, Santini S, Siano R, Wincker P, Zingone A, Richards T, de Vargas C & Massana R (2014) **The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.**
 *Current Biology*, 24(8), 813-821.
 doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
 
