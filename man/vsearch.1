@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 16, 2016" "version 2.3.1" "USER COMMANDS"
+.TH vsearch 1 "November 18, 2016" "version 2.3.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -725,8 +725,7 @@ C):
 .IP \n[step]. 4
 Record type: S, H, or C.
 .IP \n+[step].
-Cluster number (zero-based) for S and C, or ordinal number of the
-matching input sequence (zero-based).
+Cluster number (zero-based).
 .IP \n+[step].
 Centroid length (S), query length (H), or cluster size (C).
 .IP \n+[step].
@@ -861,8 +860,7 @@ content varies with the type of entry (S, H or C):
 .IP \n[step]. 4
 Record type: S, H, or C.
 .IP \n+[step].
-Cluster number (zero-based) for S and C, or ordinal number of the
-matching input sequence for H (zero-based).
+Cluster number (zero-based).
 .IP \n+[step].
 Sequence length (S, H), or cluster size (C).
 .IP \n+[step].
@@ -3039,6 +3037,12 @@ Fixed bug where \-\-minwordmatches 0 was interpreted as the default
 minimum word matches for the given word length instead of zero. When
 used in combination with \-\-maxaccepts 0 and \-\-maxrejects 0 it will
 allow complete bypass of kmer-based heuristics.
+.TP
+.BR v2.3.2\~ "released November 18th, 2016"
+Fixed bug where vsearch reported the ordinal number of the target
+sequence instead of the cluster number in column 2 on H-lines in the
+uc output file after clustering. For search and alignment commands
+both usearch and vsearch reports the target sequence number here.
 .RE
 .LP
 .\" ============================================================================

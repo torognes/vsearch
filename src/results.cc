@@ -193,7 +193,7 @@ void results_show_uc_one(FILE * fp,
 
       fprintf(fp,
               "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
-              hp->target,
+              clusterno,
               qseqlen,
               hp->id,
               hp->strand ? '-' : '+',
