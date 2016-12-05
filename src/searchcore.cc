@@ -161,33 +161,6 @@ bool search_enough_kmers(struct searchinfo_s * si,
   return (count >= opt_minwordmatches) || (count >= si->kmersamplecount);
 }
 
-inline void topscore_insert(int i, struct searchinfo_s * si)
-{
-  count_t count = si->kmers[i];
-  
-  /* ignore sequences with very few kmer matches */
-
-  if (!search_enough_kmers(si, count))
-    return;
-  
-  unsigned int seqno = dbindex_getmapping(i);
-  unsigned int length = db_getsequencelen(seqno);
-
-  elem_t novel;
-  novel.count = count;
-  novel.seqno = seqno;
-  novel.length = length;
-  
-  minheap_add(si->m, & novel);
-}
-
-void _mm_print_epi8(__m128i x)
-{
-  unsigned char * y = (unsigned char*)&x;
-  for (int i=0; i<16; i++)
-    printf("%s%02x", (i>0?" ":""), y[15-i]);
-}
-
 void search_topscores(struct searchinfo_s * si)
 {
   /*
@@ -228,9 +201,25 @@ void search_topscores(struct searchinfo_s * si)
         }
     }
 
+  int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
+
   for(int i=0; i < indexed_count; i++)
-    topscore_insert(i, si);
-  
+    {
+      count_t count = si->kmers[i];
+      if (count >= minmatches)
+        {
+          unsigned int seqno = dbindex_getmapping(i);
+          unsigned int length = db_getsequencelen(seqno);
+
+          elem_t novel;
+          novel.count = count;
+          novel.seqno = seqno;
+          novel.length = length;
+
+          minheap_add(si->m, & novel);
+        }
+    }
+
   minheap_sort(si->m);
 }
 
