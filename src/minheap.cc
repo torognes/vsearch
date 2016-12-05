@@ -63,22 +63,36 @@
 /* implement a priority queue with a min heap binary array structure */
 /* elements with the lowest count should be at the top (root) */
 
+/*
+  To keep track of the n best potential target sequences, we store
+  them in a min heap. The root element corresponds to the least good
+  target, while the best elements are found at the leaf nodes. This
+  makes it simple to decide whether a new target should be included or
+  not, because it just needs to be compared to the root note.  The
+  list will be fully sorted before use when we want to find the best
+  element and then the second best and so on.
+*/
+
 int
 elem_smaller(elem_t * a, elem_t * b)
 {
   /* return 1 if a is smaller than b, 0 if equal or greater */
   if (a->count < b->count)
     return 1;
-  else if (a->count > b->count)
-    return 0;
-  else if (a->length > b->length)
-    return 1;
-  else if (a->length < b->length)
-    return 0;
-  else if (a->seqno > b->seqno)
-    return 1;
   else
-    return 0;
+    if (a->count > b->count)
+      return 0;
+    else
+      if (a->length > b->length)
+        return 1;
+      else
+        if (a->length < b->length)
+          return 0;
+        else
+          if (a->seqno > b->seqno)
+            return 1;
+          else
+            return 0;
 }
 
 int minheap_compare(const void * a, const void * b)
@@ -86,10 +100,28 @@ int minheap_compare(const void * a, const void * b)
   elem_t * x = (elem_t*) a;
   elem_t * y = (elem_t*) b;
 
-  if (elem_smaller(x, y))
+  /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
+  /* first: lower count, larger length, lower seqno */
+
+  if (x->count < y->count)
     return -1;
   else
-    return +1;
+    if (x->count > y->count)
+      return +1;
+    else
+      if (x->length > y->length)
+        return -1;
+      else
+        if (x->length < y->length)
+          return +1;
+        else
+          if (x->seqno > y->seqno)
+            return -1;
+          else
+            if (x->seqno < y->seqno)
+              return +1;
+            else
+              return 0;
 }
 
 minheap_t *
