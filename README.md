@@ -14,7 +14,7 @@ We have implemented a tool called VSEARCH which supports *de novo* and reference
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X (10.7 or higher).
+VSEARCH binaries are provided for x86-64 systems running GNU/Linux or OS X (10.7 or higher). A beta version for 64-bit Windows (version 7 or higher) is also available.
 
 VSEARCH can directly read input query and database files that are compressed using gzip and bzip2 (.gz and .bz2) if the zlib and bzip2 libraries are available.
 
