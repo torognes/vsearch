@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 5, 2016" "version 2.3.3" "USER COMMANDS"
+.TH vsearch 1 "December 9, 2016" "version 2.3.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -650,12 +650,11 @@ that OTU. See the \-\-biomout option for further details.
 Output a sequence profile to a text file with the frequency of each
 nucleotide in each position in the multiple alignment for each
 cluster. There is a FASTA-like header line for each cluster, followed
-by the profile information in a tab-separated format. The columns are:
-position (1-based), consensus nucleotide, number of As, number of Cs,
-number of Gs, number of Ts or Us, and finally the number of gaps. If
-ambiguous nucleotide symbols are present, the numbers may be floating
-point numbers, otherwise they are integers. For instance, an 'R'
-counts 0.5 towards an A and 0.5 towards a G.
+by the profile information in a tab-separated format. The eight
+columns are: position (0-based), consensus nucleotide, number of As,
+number of Cs, number of Gs, number of Ts or Us, number of gap symbols,
+and finally the total number of ambiguous nucleotide symbols (B, D, H,
+K, M, N, R, S, Y, V or W). All numbers are integers.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask regions in sequences using the
@@ -3046,6 +3045,9 @@ both usearch and vsearch reports the target sequence number here.
 .TP
 .BR v2.3.3\~ "released December 5th, 2016"
 A minor speed improvement.
+.TP
+.BR v2.3.4\~ "released December 9th, 2016"
+Fixed bug in output of sequence profiles and updated documentation.
 .RE
 .LP
 .\" ============================================================================

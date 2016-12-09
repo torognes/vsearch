@@ -350,20 +350,13 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       for (int i=0; i<alnlen; i++)
         {
           fprintf(fp_profile, "%d\t%c", i, aln[i]);
-          int nongap_count = 0;
+          // A, C, G and T
           for (int c=0; c<4; c++)
-            {
-              int count = profile[4*i+c];
-              nongap_count += count;
-              if (count % 12 == 0)
-                fprintf(fp_profile, "\t%d", count / 12);
-              else
-                fprintf(fp_profile, "\t%.2f", 1.0 * count / 12.0);
-            }
-          if (nongap_count % 12 == 0)
-            fprintf(fp_profile, "\t%d", target_count - nongap_count / 12);
-          else
-            fprintf(fp_profile, "\t%.2f", 1.0 * target_count - 1.0 * nongap_count / 12.0);
+            fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+c]);
+          // Gap symbol
+          fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+5]);
+          // Ambiguous nucleotide (Ns and others)
+          fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+4]);
           fprintf(fp_profile, "\n");
         }
       fprintf(fp_profile, "\n");
