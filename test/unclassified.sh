@@ -214,6 +214,76 @@ C=$(printf ">seq1\nAACC\n>seq2\nGGTT\n" | \
 # clean
 unset C
 
+
+#*****************************************************************************#
+#                                                                             #
+#      Avoid progress indicator if stderr is not a terminal (issue 156)       #
+#                                                                             #
+#*****************************************************************************#
+
+# https://github.com/torognes/vsearch/issues/156
+# Avoid updating the progress indicator when stderr is not a terminal
+
+# In practice, stderr is not a tty when --log is used and is a
+# file. Maybe the issue should be renamed "Avoid writing progress
+# indicator to log file"?
+
+DESCRIPTION="do not output progress when stderr is a tty and stdout is a tty"
+"${VSEARCH}" \
+    --fastx_mask <(printf ">seq1\nACGTattggatcccttataTTA\n") \
+    --fastaout - 2>&1 | \
+    grep -q "Writing output" && \
+    failure "${DESCRIPTION}" || \
+        success  "${DESCRIPTION}"  # should we avoid visually mixed output?
+
+DESCRIPTION="output progress when stderr is a redirection and stdout is a tty"
+"${VSEARCH}" \
+    --fastx_mask <(printf ">seq1\nACGTattggatcccttataTTA\n") \
+    --fastaout - 2>&1 | \
+    grep -q "Writing output" && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="output progress when log, stderr and stdout are ttys"
+"${VSEARCH}" \
+    --fastx_mask <(printf ">seq1\nACGTattggatcccttataTTA\n") \
+    --log - \
+    --fastaout - 2>&1 | \
+    grep -q "Writing output" && \
+    success  "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="do not output progress when stderr is a redirection"
+"${VSEARCH}" \
+    --fastx_mask <(printf ">seq1\nACGTattggatcccttataTTA\n") \
+    --fastaout /dev/null 2>&1 | \
+    grep -q "Writing output" && \
+    failure "${DESCRIPTION}" || \
+        success  "${DESCRIPTION}"  # can vsearch know if stderr is
+                                   # attached to anything else than a
+                                   # tty?
+
+DESCRIPTION="do not output progress when log is a file and stderr is a redirection"
+PROGRESS=$(mktemp)
+"${VSEARCH}" \
+    --fastx_mask <(printf ">seq1\nACGTattggatcccttataTTA\n") \
+    --log ${PROGRESS} \
+    --fastaout - > /dev/null 2>> ${PROGRESS}
+grep -q "Writing output" ${PROGRESS} && \
+    failure "${DESCRIPTION}" || \
+        success  "${DESCRIPTION}"
+rm ${PROGRESS}
+
+DESCRIPTION="do not output progress when log is a process substitution (named pipe)"
+"${VSEARCH}" \
+    --fastx_mask <(printf ">seq1\nACGTattggatcccttataTTA\n") \
+    --log >(grep -q "Writing output" && echo yes) \
+    --fastaout - 2>&1 | \
+    grep -q "Writing output" && \
+    failure "${DESCRIPTION}" || \
+        success  "${DESCRIPTION}"
+
+
 #*****************************************************************************#
 #                                                                             #
 #         fastq_trunclen and discarded short sequences (issue 203)            #
