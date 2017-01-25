@@ -54,6 +54,7 @@ xstring.h
 
 if TARGET_PPC
 libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_a_CXXFLAGS = $(AM_CXXFLAGS) -mcpu=power8
 else
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2

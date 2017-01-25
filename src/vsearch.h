@@ -97,6 +97,7 @@
 
 #ifdef __LITTLE_ENDIAN__
 #define PROG_CPU "ppc64le"
+#include <altivec.h>
 #else
 #error Big endian ppc64 CPUs not supported
 #endif
@@ -380,6 +381,7 @@ extern int64_t opt_topn;
 extern int64_t opt_uc_allhits;
 extern int64_t opt_wordlength;
 
+extern int64_t altivec_present;
 extern int64_t mmx_present;
 extern int64_t sse_present;
 extern int64_t sse2_present;

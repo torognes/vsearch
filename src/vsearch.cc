@@ -252,6 +252,7 @@ int64_t opt_wordlength;
 
 /* cpu features available */
 
+int64_t altivec_present = 0;
 int64_t mmx_present = 0;
 int64_t sse_present = 0;
 int64_t sse2_present = 0;
@@ -276,13 +277,18 @@ abundance_t * global_abundance;
 char * STDIN_NAME = (char*) "/dev/stdin";
 char * STDOUT_NAME = (char*) "/dev/stdout";
 
+#ifndef __PPC__
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \
                         : "=a" (a), "=b" (b), "=c" (c), "=d" (d) \
                         : "a" (f1), "c" (f2));
+#endif
 
 void cpu_features_detect()
 {
+#ifdef __PPC__
+  altivec_present = 1;
+#else
   unsigned int a, b, c, d;
 
   cpuid(0, 0, a, b, c, d);
@@ -307,11 +313,14 @@ void cpu_features_detect()
       avx2_present = (b >>  5) & 1;
     }
   }
+#endif
 }
 
 void cpu_features_show()
 {
   fprintf(stderr, "CPU features:");
+  if (altivec_present)
+    fprintf(stderr, " altivec");
   if (mmx_present)
     fprintf(stderr, " mmx");
   if (sse_present)
