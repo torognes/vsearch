@@ -90,6 +90,21 @@
 #include <inttypes.h>
 #include <stdarg.h>
 
+#define PROG_NAME PACKAGE
+#define PROG_VERSION PACKAGE_VERSION
+
+#ifdef __PPC__
+
+#ifdef __LITTLE_ENDIAN__
+#define PROG_CPU "ppc64le"
+#else
+#error Big endian ppc64 CPUs not supported
+#endif
+
+#else
+
+#define PROG_CPU "x86_64"
+
 #ifdef __SSE2__
 #include <emmintrin.h>
 #endif
@@ -98,26 +113,27 @@
 #include <tmmintrin.h>
 #endif
 
-#define PROG_NAME PACKAGE
-#define PROG_VERSION PACKAGE_VERSION
+#endif
 
 #ifdef __APPLE__
-#define PROG_ARCH "osx_x86_64"
+#define PROG_OS "osx"
 #include <sys/resource.h>
 #include <sys/sysctl.h>
 #endif
 
 #ifdef __linux__
-#define PROG_ARCH "linux_x86_64"
+#define PROG_OS "linux"
 #include <sys/resource.h>
 #include <sys/sysinfo.h>
 #endif
 
 #ifdef _WIN32
-#define PROG_ARCH "win_x86_64"
+#define PROG_OS "win"
 #include <windows.h>
 #include <psapi.h>
 #endif
+
+#define PROG_ARCH PROG_OS "_" PROG_CPU
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>

@@ -52,24 +52,35 @@ util.h \
 vsearch.h \
 xstring.h
 
+if TARGET_PPC
+libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+else
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
+endif
 
-noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
+noinst_LIBRARIES = libcpu.a libcpu_sse2.a libcpu_ssse3.a libcityhash.a
 
 libcityhash_a_SOURCES = city.cc city.h
 
+if TARGET_WIN
 
-if ON_WINDOWS
 libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O2 -g -D_MSC_VER
 __top_builddir__bin_vsearch_LDFLAGS = -static
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a libregex.a
+__top_builddir__bin_vsearch_LDADD = libregex.a libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+
 else
+
 libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O2 -g
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
+
+if TARGET_PPC
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
+else
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+endif
+
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
