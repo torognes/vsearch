@@ -55,14 +55,14 @@ xstring.h
 if TARGET_PPC
 libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_a_CXXFLAGS = $(AM_CXXFLAGS) -mcpu=power8
+noinst_LIBRARIES = libcpu.a libcityhash.a
 else
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
+noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
 endif
-
-noinst_LIBRARIES = libcpu.a libcpu_sse2.a libcpu_ssse3.a libcityhash.a
 
 libcityhash_a_SOURCES = city.cc city.h
 
