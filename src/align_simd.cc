@@ -180,10 +180,18 @@ void dprofile_fill16(CELL * dprofile_word,
                      BYTE * dseq)
 {
 #ifdef __PPC__
+  const vector unsigned char reg_perm_lo =
+    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
+  
+  const vector unsigned char reg_perm_hi =
+    { 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+      0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
+  
   vector signed short reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   vector signed int   reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
   vector signed long  reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
-  vector signed long long  reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
+  vector signed long long  reg24,reg25,reg26,reg27, reg28, reg29, reg30, reg31;
 #else
   VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
@@ -241,14 +249,6 @@ void dprofile_fill16(CELL * dprofile_word,
       reg22 = (vector signed long) vec_vmrglw(reg13, reg15);
       reg23 = (vector signed long) vec_vmrghw(reg13, reg15);
 
-      const vector unsigned char reg_perm_lo =
-	{ 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-	  0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
-
-      const vector unsigned char reg_perm_hi =
-	{ 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-	  0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
-
       reg24 = (vector signed long long) vec_perm(reg16, reg18, reg_perm_lo);
       reg25 = (vector signed long long) vec_perm(reg16, reg18, reg_perm_hi);
       reg26 = (vector signed long long) vec_perm(reg17, reg19, reg_perm_lo);
@@ -258,9 +258,25 @@ void dprofile_fill16(CELL * dprofile_word,
       reg30 = (vector signed long long) vec_perm(reg21, reg23, reg_perm_lo);
       reg31 = (vector signed long long) vec_perm(reg21, reg23, reg_perm_hi);
 
-
+      vec_st(reg24, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j));
+      vec_st(reg25, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j));
+      vec_st(reg26, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j));
+      vec_st(reg27, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j));
+      vec_st(reg28, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j));
+      vec_st(reg29, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j));
+      vec_st(reg30, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j));
+      vec_st(reg31, 0, (vector signed long long *)
+	     (dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j));
 
 #else
+
       reg0  = _mm_load_si128((VECTOR_SHORT*)(score_matrix_word + d[0] + i));
       reg1  = _mm_load_si128((VECTOR_SHORT*)(score_matrix_word + d[1] + i));
       reg2  = _mm_load_si128((VECTOR_SHORT*)(score_matrix_word + d[2] + i));
@@ -330,6 +346,35 @@ void dprofile_fill16(CELL * dprofile_word,
   no bits set: go diagonally
 */
 
+#ifdef __PPC__
+
+vector unsigned char perm  = {   0,   8,  16,  24,  32,  40,  48,  56,
+			        64,  72,  80,  88,  96, 104, 112, 120 };
+
+#define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
+  H = vec_adds(H, V);							\
+  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(		\
+    (vector unsigned char) vec_cmpgt(F, H), perm), 3), 0, PATH);	\
+  H = vec_max(H, F);							\
+  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(		\
+    (vector unsigned char) vec_cmpgt(E, H), perm), 3), 2, PATH);	\
+  H = vec_max(H, E);							\
+  H_MIN = vec_min(H_MIN, H);						\
+  H_MAX = vec_max(H_MAX, H);						\
+  N = H;                                                                \
+  HF = vec_subs(H, QR_t);						\
+  F = vec_subs(F, R_t);							\
+  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(             \
+    (vector unsigned char) vec_cmpgt(F, HF), perm), 3), 4, PATH);       \
+  F = vec_max(F, HF);							\
+  HE = vec_subs(H, QR_q);						\
+  E = vec_subs(E, R_q);							\
+  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(             \
+    (vector unsigned char) vec_cmpgt(E, HE), perm), 3), 6, PATH);       \
+  E = vec_max(E, HE);
+
+#else
+
 #define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
   H = _mm_adds_epi16(H, V);                                             \
   *(PATH+0) = _mm_movemask_epi8(_mm_cmpgt_epi16(F, H));                 \
@@ -348,6 +393,7 @@ void dprofile_fill16(CELL * dprofile_word,
   *(PATH+3) = _mm_movemask_epi8(_mm_cmpgt_epi16(E, HE));                \
   E = _mm_max_epi16(E, HE);
 
+#endif
 
 void aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT * hep,
@@ -384,14 +430,26 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
 {
   VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
   VECTOR_SHORT * vp;
+#ifdef __PPC__
+  VECTOR_SHORT h_min = vec_splat_s16(0);
+  VECTOR_SHORT h_max = vec_splat_s16(0);
+#else
   VECTOR_SHORT h_min = _mm_setzero_si128();
   VECTOR_SHORT h_max = _mm_setzero_si128();
+#endif
   int64_t i;
 
+#ifdef __PPC__
+  f0 = vec_subs(f0, QR_t_0);
+  f1 = vec_subs(f1, QR_t_1);
+  f2 = vec_subs(f2, QR_t_2);
+  f3 = vec_subs(f3, QR_t_3);
+#else
   f0 = _mm_subs_epi16(f0, QR_t_0);
   f1 = _mm_subs_epi16(f1, QR_t_1);
   f2 = _mm_subs_epi16(f2, QR_t_2);
   f3 = _mm_subs_epi16(f3, QR_t_3);
+#endif
 
   for(i=0; i < ql - 1; i++)
     {
@@ -409,6 +467,16 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
          Then use signed subtraction to obtain the correct value.
       */
 
+#ifdef __PPC__
+      h4 = (vector short) vec_subs((vector unsigned short)h4, (vector unsigned short)Mm);
+      h4 = vec_subs(h4, M_QR_t_left);
+
+      E  = (vector short) vec_subs((vector unsigned short)E, (vector unsigned short)Mm);
+      E  = vec_subs(E, M_QR_t_left);
+      E  = vec_subs(E, M_QR_q_interior);
+
+      M_QR_t_left = vec_adds(M_QR_t_left, M_R_t_left);
+#else
       h4 = _mm_subs_epu16(h4, Mm);
       h4 = _mm_subs_epi16(h4, M_QR_t_left);
 
@@ -417,6 +485,7 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
       E  = _mm_subs_epi16(E, M_QR_q_interior);
 
       M_QR_t_left = _mm_adds_epi16(M_QR_t_left, M_R_t_left);
+#endif
 
       ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+ 0,
                 QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
@@ -442,9 +511,15 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
 
   E  = hep[2*i+1];
 
+#ifdef __PPC__
+  E = (vector short) vec_subs((vector unsigned short)E, (vector unsigned short)Mm);
+  E = vec_subs(E, M_QR_t_left);
+  E = vec_subs(E, M_QR_q_right);
+#else
   E  = _mm_subs_epu16(E, Mm);
   E  = _mm_subs_epi16(E, M_QR_t_left);
   E  = _mm_subs_epi16(E, M_QR_q_right);
+#endif
   
   ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+ 0,
             QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
@@ -497,14 +572,26 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
 {
   VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
   VECTOR_SHORT * vp;
+#ifdef __PPC__
+  VECTOR_SHORT h_min = vec_splat_s16(0);
+  VECTOR_SHORT h_max = vec_splat_s16(0);
+#else
   VECTOR_SHORT h_min = _mm_setzero_si128();
   VECTOR_SHORT h_max = _mm_setzero_si128();
+#endif
   int64_t i;
 
+#ifdef __PPC__
+  f0 = vec_subs(f0, QR_t_0);
+  f1 = vec_subs(f1, QR_t_1);
+  f2 = vec_subs(f2, QR_t_2);
+  f3 = vec_subs(f3, QR_t_3);
+#else
   f0 = _mm_subs_epi16(f0, QR_t_0);
   f1 = _mm_subs_epi16(f1, QR_t_1);
   f2 = _mm_subs_epi16(f2, QR_t_2);
   f3 = _mm_subs_epi16(f3, QR_t_3);
+#endif
 
   for(i=0; i < ql - 1; i++)
     {

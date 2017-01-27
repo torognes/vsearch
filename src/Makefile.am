@@ -1,6 +1,11 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
+if TARGET_PPC
+AM_CXXFLAGS=-Wall -Wsign-compare -O2 -g -mcpu=power8
+else
 AM_CXXFLAGS=-Wall -Wsign-compare -O2 -g
+endif
+
 AM_CFLAGS=$(AM_CXXFLAGS)
 
 export MACOSX_DEPLOYMENT_TARGET
@@ -54,7 +59,6 @@ xstring.h
 
 if TARGET_PPC
 libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-libcpu_a_CXXFLAGS = $(AM_CXXFLAGS) -mcpu=power8
 noinst_LIBRARIES = libcpu.a libcityhash.a
 else
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)

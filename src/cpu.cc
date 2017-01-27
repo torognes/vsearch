@@ -90,7 +90,10 @@ void increment_counters_from_bitmap(unsigned short * counters,
       vector bool char r3;
       vector signed short r4, r5;
 
-      r0 = (vector unsigned char) vec_lvehx(0, p);
+      /* load unaligned short into vector register */
+      /* alternative: use vec_lvehx, vec_lvsr, vec_perm */
+      
+      r0 = * (vector unsigned char *) p;
       p++;
 
       r1 = vec_perm(r0, c0, c1);
