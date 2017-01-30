@@ -1078,11 +1078,38 @@ void search16(s16info_s * s,
 
   uint64_t next_id = 0;
   uint64_t done = 0;
-  
-  T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
 
-  R_query_left = _mm_set1_epi16(s->penalty_gap_extension_query_left);
   
+#ifdef __PPC__
+
+  const vector short T0_init = { 0, 0, 0, 0, 0, 0, 0, -1 };
+  T0 = T0_init;
+  R_query_left = vec_splat_s16(s->penalty_gap_extension_query_left);
+
+  QR_query_interior = vec_splat_s16(s->penalty_gap_open_query_interior + 
+                                     s->penalty_gap_extension_query_interior);
+  R_query_interior  = vec_splat_s16(s->penalty_gap_extension_query_interior);
+
+  QR_query_right  = vec_splat_s16(s->penalty_gap_open_query_right + 
+                                   s->penalty_gap_extension_query_right);
+  R_query_right  = vec_splat_s16(s->penalty_gap_extension_query_right);
+  
+  QR_target_left  = vec_splat_s16(s->penalty_gap_open_target_left + 
+                                   s->penalty_gap_extension_target_left);
+  R_target_left  = vec_splat_s16(s->penalty_gap_extension_target_left);
+  
+  QR_target_interior = vec_splat_s16(s->penalty_gap_open_target_interior + 
+                                     s->penalty_gap_extension_target_interior);
+  R_target_interior = vec_splat_s16(s->penalty_gap_extension_target_interior);
+  
+  QR_target_right  = vec_splat_s16(s->penalty_gap_open_target_right + 
+                                   s->penalty_gap_extension_target_right);
+  R_target_right  = vec_splat_s16(s->penalty_gap_extension_target_right);
+
+#else
+
+  T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
+  R_query_left = _mm_set1_epi16(s->penalty_gap_extension_query_left);
   QR_query_interior = _mm_set1_epi16(s->penalty_gap_open_query_interior + 
                                      s->penalty_gap_extension_query_interior);
   R_query_interior  = _mm_set1_epi16(s->penalty_gap_extension_query_interior);
@@ -1102,6 +1129,10 @@ void search16(s16info_s * s,
   QR_target_right  = _mm_set1_epi16(s->penalty_gap_open_target_right + 
                                    s->penalty_gap_extension_target_right);
   R_target_right  = _mm_set1_epi16(s->penalty_gap_extension_target_right);
+
+#endif
+
+  
   
   hep = (VECTOR_SHORT*) hearray;
   qp = (VECTOR_SHORT**) q_start;
@@ -1141,6 +1172,23 @@ void search16(s16info_s * s,
   short score_min = SHRT_MIN + gap_penalty_max;
   short score_max = SHRT_MAX;
 
+#ifdef __PPC__
+  for(int i=0; i<4; i++)
+    {
+      S[i] = vec_splat_s16(0);
+      dseqalloc[i] = vec_splat_s16(0);
+    }
+  
+  VECTOR_SHORT H0 = vec_splat_s16(0);
+  VECTOR_SHORT H1 = vec_splat_s16(0);
+  VECTOR_SHORT H2 = vec_splat_s16(0);
+  VECTOR_SHORT H3 = vec_splat_s16(0);
+
+  VECTOR_SHORT F0 = vec_splat_s16(0);
+  VECTOR_SHORT F1 = vec_splat_s16(0);
+  VECTOR_SHORT F2 = vec_splat_s16(0);
+  VECTOR_SHORT F3 = vec_splat_s16(0);
+#else
   for(int i=0; i<4; i++)
     {
       S[i] = _mm_setzero_si128();
@@ -1156,6 +1204,7 @@ void search16(s16info_s * s,
   VECTOR_SHORT F1 = _mm_setzero_si128();
   VECTOR_SHORT F2 = _mm_setzero_si128();
   VECTOR_SHORT F3 = _mm_setzero_si128();
+#endif
   
   int easy = 0;
 
@@ -1197,10 +1246,35 @@ void search16(s16info_s * s,
       else
         {
           /* one or more sequences ended */
-          VECTOR_SHORT QR_diff = _mm_subs_epi16(QR_target_right,
+
+#ifdef __PPC__
+          VECTOR_SHORT QR_diff = vec_subs(QR_target_right,
                                            QR_target_interior);
-          VECTOR_SHORT R_diff  = _mm_subs_epi16(R_target_right,
+          VECTOR_SHORT R_diff  = vec_subs(R_target_right,
                                            R_target_interior);
+          for(unsigned int j=0; j<CDEPTH; j++)
+            {
+              VECTOR_SHORT M = vec_splat_s16(0);
+              VECTOR_SHORT T = T0;
+              for(int c=0; c<CHANNELS; c++)
+                {
+                  if ((d_begin[c] == d_end[c]) &&
+                      (j >= ((d_length[c]+3) % 4)))
+                    {
+                      M = vec_xor(M, T);
+                    }
+                  T = _mm_slli_si128(T, 2);
+                }
+              QR_target[j] = vec_adds(QR_target_interior, 
+                                           vec_and(QR_diff, M));
+              R_target[j]  = vec_adds(R_target_interior,
+                                           vec_and(R_diff, M));
+            }
+#else
+          VECTOR_SHORT QR_diff = _mm_subs_epi16(QR_target_right,
+						QR_target_interior);
+          VECTOR_SHORT R_diff  = _mm_subs_epi16(R_target_right,
+						R_target_interior);
           for(unsigned int j=0; j<CDEPTH; j++)
             {
               VECTOR_SHORT M = _mm_setzero_si128();
@@ -1215,10 +1289,11 @@ void search16(s16info_s * s,
                   T = _mm_slli_si128(T, 2);
                 }
               QR_target[j] = _mm_adds_epi16(QR_target_interior, 
-                                           _mm_and_si128(QR_diff, M));
+					    _mm_and_si128(QR_diff, M));
               R_target[j]  = _mm_adds_epi16(R_target_interior,
-                                           _mm_and_si128(R_diff, M));
+					    _mm_and_si128(R_diff, M));
             }
+#endif
         }
 
       VECTOR_SHORT h_min, h_max;
@@ -1241,8 +1316,13 @@ void search16(s16info_s * s,
             {
               signed short h_min_array[8];
               signed short h_max_array[8];
+#ifdef __PPC__
+	      *(VECTOR_SHORT*)h_min_array = h_min;
+	      *(VECTOR_SHORT*)h_max_array = h_max;
+#else
               _mm_storeu_si128((VECTOR_SHORT*)h_min_array, h_min);
               _mm_storeu_si128((VECTOR_SHORT*)h_max_array, h_max);
+#endif
               signed short h_min_c = h_min_array[c];
               signed short h_max_c = h_max_array[c];
               if ((h_min_c <= score_min) || (h_max_c >= score_max))
@@ -1257,7 +1337,11 @@ void search16(s16info_s * s,
 
       easy = 1;
       
+#ifdef __PPC__
+      M = vec_splat_s16(0);
+#else
       M = _mm_setzero_si128();
+#endif
       T = T0;
       for (int c=0; c<CHANNELS; c++)
       {
@@ -1279,7 +1363,11 @@ void search16(s16info_s * s,
         {
           /* sequence in channel c ended. change of sequence */
 
-          M = _mm_xor_si128(M, T);
+#ifdef __PPC__
+          M = vec_xor(M, T);
+#else
+	  M = _mm_xor_si128(M, T);
+#endif
 
           int64_t cand_id = seq_id[c];
           
@@ -1400,13 +1488,23 @@ void search16(s16info_s * s,
           
       /* make masked versions of QR and R for gaps in target */
 
+#ifdef __PPC__
+      M_QR_target_left = vec_and(M, QR_target_left);
+      M_R_target_left = vec_and(M, R_target_left);
+#else
       M_QR_target_left = _mm_and_si128(M, QR_target_left);
       M_R_target_left = _mm_and_si128(M, R_target_left);
+#endif
       
       /* make masked versions of QR for gaps in query at target left end */
 
+#ifdef __PPC__
+      M_QR_query_interior = vec_and(M, QR_query_interior);
+      M_QR_query_right = vec_and(M, QR_query_right);
+#else
       M_QR_query_interior = _mm_and_si128(M, QR_query_interior);
       M_QR_query_right = _mm_and_si128(M, QR_query_right);
+#endif
 
       dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
       
@@ -1424,28 +1522,54 @@ void search16(s16info_s * s,
       else
         {
           /* one or more sequences ended */
-          VECTOR_SHORT QR_diff = _mm_subs_epi16(QR_target_right,
-                                           QR_target_interior);
-          VECTOR_SHORT R_diff  = _mm_subs_epi16(R_target_right,
-                                           R_target_interior);
+#ifdef __PPC__
+          VECTOR_SHORT QR_diff = vec_subs(QR_target_right,
+					  QR_target_interior);
+          VECTOR_SHORT R_diff  = vec_subs(R_target_right,
+					  R_target_interior);
           for(unsigned int j=0; j<CDEPTH; j++)
             {
-              VECTOR_SHORT M = _mm_setzero_si128();
+              VECTOR_SHORT M = vec_splat_s16(0);
               VECTOR_SHORT T = T0;
               for(int c=0; c<CHANNELS; c++)
                 {
                   if ((d_begin[c] == d_end[c]) &&
                       (j >= ((d_length[c]+3) % 4)))
                     {
-                      M = _mm_xor_si128(M, T);
+                      M = vec_xor(M, T);
                     }
                   T = _mm_slli_si128(T, 2);
                 }
-              QR_target[j] = _mm_adds_epi16(QR_target_interior, 
-                                            _mm_and_si128(QR_diff, M));
-              R_target[j]  = _mm_adds_epi16(R_target_interior,
-                                            _mm_and_si128(R_diff, M));
-            }
+              QR_target[j] = vec_adds(QR_target_interior, 
+				      vec_and(QR_diff, M));
+              R_target[j]  = vec_adds(R_target_interior,
+				      vec_and(R_diff, M));
+	    }
+#else
+	  VECTOR_SHORT QR_diff = _mm_subs_epi16(QR_target_right,
+						QR_target_interior);
+	  
+	  VECTOR_SHORT R_diff  = _mm_subs_epi16(R_target_right,
+						R_target_interior);
+          for(unsigned int j=0; j<CDEPTH; j++)
+            {
+	      VECTOR_SHORT M = _mm_setzero_si128();
+	      VECTOR_SHORT T = T0;
+	      for(int c=0; c<CHANNELS; c++)
+		{
+		  if ((d_begin[c] == d_end[c]) &&
+		      (j >= ((d_length[c]+3) % 4)))
+		    {
+		      M = _mm_xor_si128(M, T);
+		    }
+		  T = _mm_slli_si128(T, 2);
+		}
+	      QR_target[j] = _mm_adds_epi16(QR_target_interior, 
+					    _mm_and_si128(QR_diff, M));
+	      R_target[j]  = _mm_adds_epi16(R_target_interior,
+					    _mm_and_si128(R_diff, M));
+	    }
+#endif
         }
       
       VECTOR_SHORT h_min, h_max;
@@ -1472,8 +1596,13 @@ void search16(s16info_s * s,
             {
               signed short h_min_array[8];
               signed short h_max_array[8];
+#ifdef __PPC__
+	      *(VECTOR_SHORT*)h_min_array = h_min;
+	      *(VECTOR_SHORT*)h_max_array = h_max;
+#else
               _mm_storeu_si128((VECTOR_SHORT*)h_min_array, h_min);
               _mm_storeu_si128((VECTOR_SHORT*)h_max_array, h_max);
+#endif
               signed short h_min_c = h_min_array[c];
               signed short h_max_c = h_max_array[c];
               if ((h_min_c <= score_min) || 
@@ -1483,6 +1612,17 @@ void search16(s16info_s * s,
         }
     }
     
+#ifdef __PPC__
+    H0 = vec_subs(H3, R_query_left);
+    H1 = vec_subs(H0, R_query_left);
+    H2 = vec_subs(H1, R_query_left);
+    H3 = vec_subs(H2, R_query_left);
+
+    F0 = vec_subs(F3, R_query_left);
+    F1 = vec_subs(F0, R_query_left);
+    F2 = vec_subs(F1, R_query_left);
+    F3 = vec_subs(F2, R_query_left);
+#else
     H0 = _mm_subs_epi16(H3, R_query_left);
     H1 = _mm_subs_epi16(H0, R_query_left);
     H2 = _mm_subs_epi16(H1, R_query_left);
@@ -1492,6 +1632,7 @@ void search16(s16info_s * s,
     F1 = _mm_subs_epi16(F0, R_query_left);
     F2 = _mm_subs_epi16(F1, R_query_left);
     F3 = _mm_subs_epi16(F2, R_query_left);
+#endif
 
     dir += 4 * 4 * s->qlen;
     
