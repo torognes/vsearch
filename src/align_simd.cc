@@ -1084,32 +1084,30 @@ void search16(s16info_s * s,
 
   const vector short T0_init = { 0, 0, 0, 0, 0, 0, 0, -1 };
   T0 = T0_init;
-  R_query_left = vec_splat_s16(s->penalty_gap_extension_query_left);
 
-  QR_query_interior = vec_splat_s16(s->penalty_gap_open_query_interior + 
-                                     s->penalty_gap_extension_query_interior);
-  R_query_interior  = vec_splat_s16(s->penalty_gap_extension_query_interior);
+  R_query_left = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_left, 0, 0, 0, 0, 0, 0, 0}, 1);
 
-  QR_query_right  = vec_splat_s16(s->penalty_gap_open_query_right + 
-                                   s->penalty_gap_extension_query_right);
-  R_query_right  = vec_splat_s16(s->penalty_gap_extension_query_right);
+  QR_query_interior = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_query_interior + s->penalty_gap_extension_query_interior), 0, 0, 0, 0, 0, 0, 0}, 1);
+  R_query_interior  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_interior, 0, 0, 0, 0, 0, 0, 0}, 1);
+
+  QR_query_right  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_query_right + s->penalty_gap_extension_query_right), 0, 0, 0, 0, 0, 0, 0}, 1);
+  R_query_right  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_right, 0, 0, 0, 0, 0, 0, 0}, 1);
   
-  QR_target_left  = vec_splat_s16(s->penalty_gap_open_target_left + 
-                                   s->penalty_gap_extension_target_left);
-  R_target_left  = vec_splat_s16(s->penalty_gap_extension_target_left);
+  QR_target_left  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_left + s->penalty_gap_extension_target_left), 0, 0, 0, 0, 0, 0, 0}, 1);
+  R_target_left  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_left, 0, 0, 0, 0, 0, 0, 0}, 1);
   
-  QR_target_interior = vec_splat_s16(s->penalty_gap_open_target_interior + 
-                                     s->penalty_gap_extension_target_interior);
-  R_target_interior = vec_splat_s16(s->penalty_gap_extension_target_interior);
+  QR_target_interior = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_interior + s->penalty_gap_extension_target_interior), 0, 0, 0, 0, 0, 0, 0}, 1);
+  R_target_interior = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_interior, 0, 0, 0, 0, 0, 0, 0}, 1);
   
-  QR_target_right  = vec_splat_s16(s->penalty_gap_open_target_right + 
-                                   s->penalty_gap_extension_target_right);
-  R_target_right  = vec_splat_s16(s->penalty_gap_extension_target_right);
+  QR_target_right  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_right + s->penalty_gap_extension_target_right), 0, 0, 0, 0, 0, 0, 0}, 1);
+  R_target_right  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_right, 0, 0, 0, 0, 0, 0, 0}, 1);
 
 #else
 
   T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
+
   R_query_left = _mm_set1_epi16(s->penalty_gap_extension_query_left);
+
   QR_query_interior = _mm_set1_epi16(s->penalty_gap_open_query_interior + 
                                      s->penalty_gap_extension_query_interior);
   R_query_interior  = _mm_set1_epi16(s->penalty_gap_extension_query_interior);
@@ -1173,6 +1171,8 @@ void search16(s16info_s * s,
   short score_max = SHRT_MAX;
 
 #ifdef __PPC__
+  VECTOR_SHORT VZERO = vec_splat_s16(0);
+
   for(int i=0; i<4; i++)
     {
       S[i] = vec_splat_s16(0);
@@ -1263,7 +1263,7 @@ void search16(s16info_s * s,
                     {
                       M = vec_xor(M, T);
                     }
-                  T = _mm_slli_si128(T, 2);
+		  T = vec_sld(T, VZERO, 2);
                 }
               QR_target[j] = vec_adds(QR_target_interior, 
                                            vec_and(QR_diff, M));
@@ -1479,8 +1479,11 @@ void search16(s16info_s * s,
                 dseq[CHANNELS*j+c] = 0;
             }
         }
-        
+#ifdef __PPC__
+	T = vec_sld(T, VZERO, 2);
+#else
         T = _mm_slli_si128(T, 2);
+#endif
       }
 
       if (done == sequences)
@@ -1538,7 +1541,7 @@ void search16(s16info_s * s,
                     {
                       M = vec_xor(M, T);
                     }
-                  T = _mm_slli_si128(T, 2);
+		  T = vec_sld(T, VZERO, 2);
                 }
               QR_target[j] = vec_adds(QR_target_interior, 
 				      vec_and(QR_diff, M));
