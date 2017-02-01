@@ -180,18 +180,10 @@ void dprofile_fill16(CELL * dprofile_word,
                      BYTE * dseq)
 {
 #ifdef __PPC__
-  const vector unsigned char reg_perm_lo =
-    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
-  
-  const vector unsigned char reg_perm_hi =
-    { 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-      0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
-  
-  vector signed short reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-  vector signed int   reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
-  vector signed long  reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
-  vector signed long long  reg24,reg25,reg26,reg27, reg28, reg29, reg30, reg31;
+  vector signed short      reg0, reg1, reg2, reg3, reg4, reg5, reg6, reg7;
+  vector signed int        reg8, reg9, reg10,reg11,reg12,reg13,reg14,reg15;
+  vector signed long       reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
+  vector signed long long  reg24,reg25,reg26,reg27,reg28,reg29,reg30,reg31;
 #else
   VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
@@ -231,32 +223,32 @@ void dprofile_fill16(CELL * dprofile_word,
       reg6 = vec_ld(0, (VECTOR_SHORT*)(score_matrix_word + d[6] + i));
       reg7 = vec_ld(0, (VECTOR_SHORT*)(score_matrix_word + d[7] + i));
 
-      reg8  = (vector signed int) vec_vmrghh(reg0, reg1);
-      reg9  = (vector signed int) vec_vmrglh(reg0, reg1);
-      reg10 = (vector signed int) vec_vmrghh(reg2, reg3);
-      reg11 = (vector signed int) vec_vmrglh(reg2, reg3);
-      reg12 = (vector signed int) vec_vmrghh(reg4, reg5);
-      reg13 = (vector signed int) vec_vmrglh(reg4, reg5);
-      reg14 = (vector signed int) vec_vmrghh(reg6, reg7);
-      reg15 = (vector signed int) vec_vmrglh(reg6, reg7);
+      reg8  = (vector signed int) vec_mergeh(reg0, reg1);
+      reg9  = (vector signed int) vec_mergel(reg0, reg1);
+      reg10 = (vector signed int) vec_mergeh(reg2, reg3);
+      reg11 = (vector signed int) vec_mergel(reg2, reg3);
+      reg12 = (vector signed int) vec_mergeh(reg4, reg5);
+      reg13 = (vector signed int) vec_mergel(reg4, reg5);
+      reg14 = (vector signed int) vec_mergeh(reg6, reg7);
+      reg15 = (vector signed int) vec_mergel(reg6, reg7);
 
-      reg16 = (vector signed long) vec_vmrghw(reg8,  reg10);
-      reg17 = (vector signed long) vec_vmrglw(reg8,  reg10);
-      reg18 = (vector signed long) vec_vmrghw(reg12, reg14);
-      reg19 = (vector signed long) vec_vmrglw(reg12, reg14);
-      reg20 = (vector signed long) vec_vmrghw(reg9,  reg11);
-      reg21 = (vector signed long) vec_vmrglw(reg9,  reg11);
-      reg22 = (vector signed long) vec_vmrghw(reg13, reg15);
-      reg23 = (vector signed long) vec_vmrglw(reg13, reg15);
+      reg16 = (vector signed long) vec_mergeh(reg8,  reg10);
+      reg17 = (vector signed long) vec_mergel(reg8,  reg10);
+      reg18 = (vector signed long) vec_mergeh(reg12, reg14);
+      reg19 = (vector signed long) vec_mergel(reg12, reg14);
+      reg20 = (vector signed long) vec_mergeh(reg9,  reg11);
+      reg21 = (vector signed long) vec_mergel(reg9,  reg11);
+      reg22 = (vector signed long) vec_mergeh(reg13, reg15);
+      reg23 = (vector signed long) vec_mergel(reg13, reg15);
 
-      reg24 = (vector signed long long) vec_perm(reg16, reg18, reg_perm_lo);
-      reg25 = (vector signed long long) vec_perm(reg16, reg18, reg_perm_hi);
-      reg26 = (vector signed long long) vec_perm(reg17, reg19, reg_perm_lo);
-      reg27 = (vector signed long long) vec_perm(reg17, reg19, reg_perm_hi);
-      reg28 = (vector signed long long) vec_perm(reg20, reg22, reg_perm_lo);
-      reg29 = (vector signed long long) vec_perm(reg20, reg22, reg_perm_hi);
-      reg30 = (vector signed long long) vec_perm(reg21, reg23, reg_perm_lo);
-      reg31 = (vector signed long long) vec_perm(reg21, reg23, reg_perm_hi);
+      reg24 = (vector signed long long) vec_mergeh(reg16, reg18);
+      reg25 = (vector signed long long) vec_mergel(reg16, reg18);
+      reg26 = (vector signed long long) vec_mergeh(reg17, reg19);
+      reg27 = (vector signed long long) vec_mergel(reg17, reg19);
+      reg28 = (vector signed long long) vec_mergeh(reg20, reg22);
+      reg29 = (vector signed long long) vec_mergel(reg20, reg22);
+      reg30 = (vector signed long long) vec_mergeh(reg21, reg23);
+      reg31 = (vector signed long long) vec_mergel(reg21, reg23);
 
       vec_st(reg24, 0, (vector signed long long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j));
