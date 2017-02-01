@@ -1,9 +1,9 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
 if TARGET_PPC
-AM_CXXFLAGS=-Wall -Wsign-compare -O2 -g -mcpu=power8
+AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g -mcpu=power8
 else
-AM_CXXFLAGS=-Wall -Wsign-compare -O2 -g
+AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g
 endif
 
 AM_CFLAGS=$(AM_CXXFLAGS)

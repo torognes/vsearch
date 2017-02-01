@@ -90,3 +90,4 @@ void minheap_exit(minheap_t * m);
 void minheap_add(minheap_t * m, elem_t * n);
 elem_t minheap_pop(minheap_t * m);
 
+void minheap_dump(minheap_t * m);

@@ -2659,8 +2659,10 @@ int main(int argc, char** argv)
 
   dynlibs_open();
 
+#ifndef __PPC__
   if (!sse2_present)
     fatal("Sorry, this program requires a cpu with SSE2.");
+#endif
 
   global_abundance = abundance_init();
 

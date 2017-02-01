@@ -69,13 +69,11 @@ void increment_counters_from_bitmap(unsigned short * counters,
 				    unsigned char * bitmap,
 				    unsigned int totalbits)
 {
-  const vector unsigned char c0 =
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   const vector unsigned char c1 =
     { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
   const vector unsigned char c2 =
-    { 0x7f, 0xbf, 0xdf, 0xef, 0xf7, 0xfb, 0xfd, 0xfe,
-      0x7f, 0xbf, 0xdf, 0xef, 0xf7, 0xfb, 0xfd, 0xfe };
+    { 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
+      0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f };
   const vector unsigned char c3 =
     { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
@@ -90,18 +88,13 @@ void increment_counters_from_bitmap(unsigned short * counters,
       vector bool char r3;
       vector signed short r4, r5;
 
-      /* load unaligned short into vector register */
-      /* alternative: use vec_lvehx, vec_lvsr, vec_perm */
-      
       r0 = * (vector unsigned char *) p;
       p++;
-
-      r1 = vec_perm(r0, c0, c1);
+      r1 = vec_perm(r0, r0, c1);
       r2 = vec_or(r1, c2);
       r3 = vec_cmpeq(r2, c3);
-      r4 = (vector signed short) vec_vupklsb(r3);
-      r5 = (vector signed short) vec_vupkhsb(r3);
-
+      r4 = (vector signed short) vec_unpackl(r3);
+      r5 = (vector signed short) vec_unpackh(r3);
       *q = vec_subs(*q, r4);
       q++;
       *q = vec_subs(*q, r5);

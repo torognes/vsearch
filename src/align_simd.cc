@@ -231,23 +231,23 @@ void dprofile_fill16(CELL * dprofile_word,
       reg6 = vec_ld(0, (VECTOR_SHORT*)(score_matrix_word + d[6] + i));
       reg7 = vec_ld(0, (VECTOR_SHORT*)(score_matrix_word + d[7] + i));
 
-      reg8  = (vector signed int) vec_vmrglh(reg0, reg1);
-      reg9  = (vector signed int) vec_vmrghh(reg0, reg1);
-      reg10 = (vector signed int) vec_vmrglh(reg2, reg3);
-      reg11 = (vector signed int) vec_vmrghh(reg2, reg3);
-      reg12 = (vector signed int) vec_vmrglh(reg4, reg5);
-      reg13 = (vector signed int) vec_vmrghh(reg4, reg5);
-      reg14 = (vector signed int) vec_vmrglh(reg6, reg7);
-      reg15 = (vector signed int) vec_vmrghh(reg6, reg7);
+      reg8  = (vector signed int) vec_vmrghh(reg0, reg1);
+      reg9  = (vector signed int) vec_vmrglh(reg0, reg1);
+      reg10 = (vector signed int) vec_vmrghh(reg2, reg3);
+      reg11 = (vector signed int) vec_vmrglh(reg2, reg3);
+      reg12 = (vector signed int) vec_vmrghh(reg4, reg5);
+      reg13 = (vector signed int) vec_vmrglh(reg4, reg5);
+      reg14 = (vector signed int) vec_vmrghh(reg6, reg7);
+      reg15 = (vector signed int) vec_vmrglh(reg6, reg7);
 
-      reg16 = (vector signed long) vec_vmrglw(reg8,  reg10);
-      reg17 = (vector signed long) vec_vmrghw(reg8,  reg10);
-      reg18 = (vector signed long) vec_vmrglw(reg12, reg14);
-      reg19 = (vector signed long) vec_vmrghw(reg12, reg14);
-      reg20 = (vector signed long) vec_vmrglw(reg9,  reg11);
-      reg21 = (vector signed long) vec_vmrghw(reg9,  reg11);
-      reg22 = (vector signed long) vec_vmrglw(reg13, reg15);
-      reg23 = (vector signed long) vec_vmrghw(reg13, reg15);
+      reg16 = (vector signed long) vec_vmrghw(reg8,  reg10);
+      reg17 = (vector signed long) vec_vmrglw(reg8,  reg10);
+      reg18 = (vector signed long) vec_vmrghw(reg12, reg14);
+      reg19 = (vector signed long) vec_vmrglw(reg12, reg14);
+      reg20 = (vector signed long) vec_vmrghw(reg9,  reg11);
+      reg21 = (vector signed long) vec_vmrglw(reg9,  reg11);
+      reg22 = (vector signed long) vec_vmrghw(reg13, reg15);
+      reg23 = (vector signed long) vec_vmrglw(reg13, reg15);
 
       reg24 = (vector signed long long) vec_perm(reg16, reg18, reg_perm_lo);
       reg25 = (vector signed long long) vec_perm(reg16, reg18, reg_perm_hi);
@@ -348,29 +348,29 @@ void dprofile_fill16(CELL * dprofile_word,
 
 #ifdef __PPC__
 
-vector unsigned char perm  = {   0,   8,  16,  24,  32,  40,  48,  56,
-			        64,  72,  80,  88,  96, 104, 112, 120 };
+vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
+  			        56,  48,  40,  32,  24,  16,   8,   0 };
 
 #define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
   H = vec_adds(H, V);							\
-  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(		\
-    (vector unsigned char) vec_cmpgt(F, H), perm), 3), 0, PATH);	\
+  *(PATH+0) = vec_extract((vector unsigned short) vec_vbpermq		\
+    ((vector unsigned char) vec_cmpgt(F, H), perm), 4);			\
   H = vec_max(H, F);							\
-  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(		\
-    (vector unsigned char) vec_cmpgt(E, H), perm), 3), 2, PATH);	\
+  *(PATH+1) = vec_extract((vector unsigned short) vec_vbpermq		\
+    ((vector unsigned char) vec_cmpgt(E, H), perm), 4);			\
   H = vec_max(H, E);							\
   H_MIN = vec_min(H_MIN, H);						\
   H_MAX = vec_max(H_MAX, H);						\
   N = H;                                                                \
   HF = vec_subs(H, QR_t);						\
   F = vec_subs(F, R_t);							\
-  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(             \
-    (vector unsigned char) vec_cmpgt(F, HF), perm), 3), 4, PATH);       \
+  *(PATH+2) = vec_extract((vector unsigned short) vec_vbpermq		\
+    ((vector unsigned char) vec_cmpgt(F, HF), perm), 4);		\
   F = vec_max(F, HF);							\
   HE = vec_subs(H, QR_q);						\
   E = vec_subs(E, R_q);							\
-  vec_stvehx(vec_splat((vector unsigned short) vec_vbpermq(             \
-    (vector unsigned char) vec_cmpgt(E, HE), perm), 3), 6, PATH);       \
+  *(PATH+3) = vec_extract((vector unsigned short) vec_vbpermq		\
+    ((vector unsigned char) vec_cmpgt(E, HE), perm), 4);		\
   E = vec_max(E, HE);
 
 #else
@@ -1082,25 +1082,25 @@ void search16(s16info_s * s,
   
 #ifdef __PPC__
 
-  const vector short T0_init = { 0, 0, 0, 0, 0, 0, 0, -1 };
+  const vector short T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
   T0 = T0_init;
 
-  R_query_left = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_left, 0, 0, 0, 0, 0, 0, 0}, 1);
+  R_query_left = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_left, 0, 0, 0, 0, 0, 0, 0}, 0);
 
-  QR_query_interior = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_query_interior + s->penalty_gap_extension_query_interior), 0, 0, 0, 0, 0, 0, 0}, 1);
-  R_query_interior  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_interior, 0, 0, 0, 0, 0, 0, 0}, 1);
+  QR_query_interior = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_query_interior + s->penalty_gap_extension_query_interior), 0, 0, 0, 0, 0, 0, 0}, 0);
+  R_query_interior  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_interior, 0, 0, 0, 0, 0, 0, 0}, 0);
 
-  QR_query_right  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_query_right + s->penalty_gap_extension_query_right), 0, 0, 0, 0, 0, 0, 0}, 1);
-  R_query_right  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_right, 0, 0, 0, 0, 0, 0, 0}, 1);
+  QR_query_right  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_query_right + s->penalty_gap_extension_query_right), 0, 0, 0, 0, 0, 0, 0}, 0);
+  R_query_right  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_query_right, 0, 0, 0, 0, 0, 0, 0}, 0);
   
-  QR_target_left  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_left + s->penalty_gap_extension_target_left), 0, 0, 0, 0, 0, 0, 0}, 1);
-  R_target_left  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_left, 0, 0, 0, 0, 0, 0, 0}, 1);
+  QR_target_left  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_left + s->penalty_gap_extension_target_left), 0, 0, 0, 0, 0, 0, 0}, 0);
+  R_target_left  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_left, 0, 0, 0, 0, 0, 0, 0}, 0);
   
-  QR_target_interior = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_interior + s->penalty_gap_extension_target_interior), 0, 0, 0, 0, 0, 0, 0}, 1);
-  R_target_interior = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_interior, 0, 0, 0, 0, 0, 0, 0}, 1);
+  QR_target_interior = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_interior + s->penalty_gap_extension_target_interior), 0, 0, 0, 0, 0, 0, 0}, 0);
+  R_target_interior = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_interior, 0, 0, 0, 0, 0, 0, 0}, 0);
   
-  QR_target_right  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_right + s->penalty_gap_extension_target_right), 0, 0, 0, 0, 0, 0, 0}, 1);
-  R_target_right  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_right, 0, 0, 0, 0, 0, 0, 0}, 1);
+  QR_target_right  = vec_splat((VECTOR_SHORT){(short)(s->penalty_gap_open_target_right + s->penalty_gap_extension_target_right), 0, 0, 0, 0, 0, 0, 0}, 0);
+  R_target_right  = vec_splat((VECTOR_SHORT){s->penalty_gap_extension_target_right, 0, 0, 0, 0, 0, 0, 0}, 0);
 
 #else
 
@@ -1262,13 +1262,13 @@ void search16(s16info_s * s,
                       (j >= ((d_length[c]+3) % 4)))
                     {
                       M = vec_xor(M, T);
-                    }
+		    }
 		  T = vec_sld(T, VZERO, 2);
                 }
               QR_target[j] = vec_adds(QR_target_interior, 
-                                           vec_and(QR_diff, M));
+				      vec_and(QR_diff, M));
               R_target[j]  = vec_adds(R_target_interior,
-                                           vec_and(R_diff, M));
+				      vec_and(R_diff, M));
             }
 #else
           VECTOR_SHORT QR_diff = _mm_subs_epi16(QR_target_right,
