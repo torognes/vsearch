@@ -340,8 +340,8 @@ void dprofile_fill16(CELL * dprofile_word,
 
 #ifdef __PPC__
 
-vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
-  			        56,  48,  40,  32,  24,  16,   8,   0 };
+const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
+				     56,  48,  40,  32,  24,  16,   8,   0 };
 
 #define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
   H = vec_adds(H, V);							\
@@ -1163,7 +1163,7 @@ void search16(s16info_s * s,
   short score_max = SHRT_MAX;
 
 #ifdef __PPC__
-  VECTOR_SHORT VZERO = vec_splat_s16(0);
+  const VECTOR_SHORT VZERO = vec_splat_s16(0);
 
   for(int i=0; i<4; i++)
     {
