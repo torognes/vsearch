@@ -175,15 +175,23 @@ void dumpscorematrix(CELL * m)
 }
 
 
+const vector unsigned char perm_merge_long_low =
+  { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
+
+const vector unsigned char perm_merge_long_high =
+  { 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
+
 void dprofile_fill16(CELL * dprofile_word,
                      CELL * score_matrix_word,
                      BYTE * dseq)
 {
 #ifdef __PPC__
-  vector signed short      reg0, reg1, reg2, reg3, reg4, reg5, reg6, reg7;
-  vector signed int        reg8, reg9, reg10,reg11,reg12,reg13,reg14,reg15;
-  vector signed long       reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
-  vector signed long long  reg24,reg25,reg26,reg27,reg28,reg29,reg30,reg31;
+  vector signed short reg0, reg1, reg2, reg3, reg4, reg5, reg6, reg7;
+  vector signed int   reg8, reg9, reg10,reg11,reg12,reg13,reg14,reg15;
+  vector signed long  reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
+  vector signed long  reg24,reg25,reg26,reg27,reg28,reg29,reg30,reg31;
 #else
   VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
@@ -241,30 +249,30 @@ void dprofile_fill16(CELL * dprofile_word,
       reg22 = (vector signed long) vec_mergeh(reg13, reg15);
       reg23 = (vector signed long) vec_mergel(reg13, reg15);
 
-      reg24 = (vector signed long long) vec_mergeh(reg16, reg18);
-      reg25 = (vector signed long long) vec_mergel(reg16, reg18);
-      reg26 = (vector signed long long) vec_mergeh(reg17, reg19);
-      reg27 = (vector signed long long) vec_mergel(reg17, reg19);
-      reg28 = (vector signed long long) vec_mergeh(reg20, reg22);
-      reg29 = (vector signed long long) vec_mergel(reg20, reg22);
-      reg30 = (vector signed long long) vec_mergeh(reg21, reg23);
-      reg31 = (vector signed long long) vec_mergel(reg21, reg23);
+      reg24 = (vector signed long) vec_perm(reg16, reg18, perm_merge_long_low);
+      reg25 = (vector signed long) vec_perm(reg16, reg18, perm_merge_long_high);
+      reg26 = (vector signed long) vec_perm(reg17, reg19, perm_merge_long_low);
+      reg27 = (vector signed long) vec_perm(reg17, reg19, perm_merge_long_high);
+      reg28 = (vector signed long) vec_perm(reg20, reg22, perm_merge_long_low);
+      reg29 = (vector signed long) vec_perm(reg20, reg22, perm_merge_long_high);
+      reg30 = (vector signed long) vec_perm(reg21, reg23, perm_merge_long_low);
+      reg31 = (vector signed long) vec_perm(reg21, reg23, perm_merge_long_high);
 
-      vec_st(reg24, 0, (vector signed long long *)
+      vec_st(reg24, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j));
-      vec_st(reg25, 0, (vector signed long long *)
+      vec_st(reg25, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j));
-      vec_st(reg26, 0, (vector signed long long *)
+      vec_st(reg26, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j));
-      vec_st(reg27, 0, (vector signed long long *)
+      vec_st(reg27, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j));
-      vec_st(reg28, 0, (vector signed long long *)
+      vec_st(reg28, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j));
-      vec_st(reg29, 0, (vector signed long long *)
+      vec_st(reg29, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j));
-      vec_st(reg30, 0, (vector signed long long *)
+      vec_st(reg30, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j));
-      vec_st(reg31, 0, (vector signed long long *)
+      vec_st(reg31, 0, (vector signed long *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j));
 
 #else
