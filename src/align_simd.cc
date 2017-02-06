@@ -349,29 +349,37 @@ void dprofile_fill16(CELL * dprofile_word,
 #ifdef __PPC__
 
 const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
-				     56,  48,  40,  32,  24,  16,   8,   0 };
+				      56,  48,  40,  32,  24,  16,   8,   0 };
 
 #define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
-  H = vec_adds(H, V);							\
-  *(PATH+0) = vec_extract((vector unsigned short) vec_vbpermq		\
-    ((vector unsigned char) vec_cmpgt(F, H), perm), 4);			\
-  H = vec_max(H, F);							\
-  *(PATH+1) = vec_extract((vector unsigned short) vec_vbpermq		\
-    ((vector unsigned char) vec_cmpgt(E, H), perm), 4);			\
-  H = vec_max(H, E);							\
-  H_MIN = vec_min(H_MIN, H);						\
-  H_MAX = vec_max(H_MAX, H);						\
-  N = H;                                                                \
-  HF = vec_subs(H, QR_t);						\
-  F = vec_subs(F, R_t);							\
-  *(PATH+2) = vec_extract((vector unsigned short) vec_vbpermq		\
-    ((vector unsigned char) vec_cmpgt(F, HF), perm), 4);		\
-  F = vec_max(F, HF);							\
-  HE = vec_subs(H, QR_q);						\
-  E = vec_subs(E, R_q);							\
-  *(PATH+3) = vec_extract((vector unsigned short) vec_vbpermq		\
-    ((vector unsigned char) vec_cmpgt(E, HE), perm), 4);		\
-  E = vec_max(E, HE);
+  {									\
+    vector unsigned short W, X, Y, Z;					\
+    vector unsigned int WX, YZ;						\
+    H = vec_adds(H, V);							\
+    W = (vector unsigned short) vec_vbpermq				\
+      ((vector unsigned char) vec_cmpgt(F, H), perm);                   \
+    H = vec_max(H, F);							\
+    X = (vector unsigned short) vec_vbpermq			        \
+      ((vector unsigned char) vec_cmpgt(E, H), perm);	                \
+    H = vec_max(H, E);							\
+    H_MIN = vec_min(H_MIN, H);						\
+    H_MAX = vec_max(H_MAX, H);						\
+    N = H;								\
+    HF = vec_subs(H, QR_t);						\
+    F = vec_subs(F, R_t);						\
+    Y = (vector unsigned short) vec_vbpermq				\
+      ((vector unsigned char) vec_cmpgt(F, HF), perm);     	        \
+    F = vec_max(F, HF);							\
+    HE = vec_subs(H, QR_q);						\
+    E = vec_subs(E, R_q);						\
+    Z = (vector unsigned short) vec_vbpermq				\
+      ((vector unsigned char) vec_cmpgt(E, HE), perm);	                \
+    E = vec_max(E, HE);							\
+    WX = (vector unsigned int) vec_mergel(W, X);			\
+    YZ = (vector unsigned int) vec_mergel(Y, Z);			\
+    *((unsigned long *)(PATH)) = vec_extract((vector unsigned long)	\
+					     vec_mergeh(WX,YZ), 0);	\
+  }
 
 #else
 
