@@ -586,11 +586,11 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
 
       ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+0,
                 QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+4
+      ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+4,
                 QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      ALIGNCORE(h2, h7, f2, vp[2], dir+16*i+8
+      ALIGNCORE(h2, h7, f2, vp[2], dir+16*i+8,
                 QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], dir+16*i+12
+      ALIGNCORE(h3, h8, f3, vp[3], dir+16*i+12,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 
       hep[2*i+0] = h8;
