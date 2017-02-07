@@ -174,11 +174,6 @@ void dumpscorematrix(CELL * m)
     }
 }
 
-
-void dprofile_fill16(CELL * dprofile_word,
-                     CELL * score_matrix_word,
-                     BYTE * dseq)
-{
 #ifdef __PPC__
   const vector unsigned char perm_merge_long_low =
     { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -187,7 +182,13 @@ void dprofile_fill16(CELL * dprofile_word,
   const vector unsigned char perm_merge_long_high =
     { 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
       0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
+#endif
 
+void dprofile_fill16(CELL * dprofile_word,
+                     CELL * score_matrix_word,
+                     BYTE * dseq)
+{
+#ifdef __PPC__
   vector signed short reg0, reg1, reg2, reg3, reg4, reg5, reg6, reg7;
   vector signed int   reg8, reg9, reg10,reg11,reg12,reg13,reg14,reg15;
   vector signed long  reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
@@ -346,12 +347,17 @@ void dprofile_fill16(CELL * dprofile_word,
   no bits set: go diagonally
 */
 
+/*
+  On PPC the fifth parameter is a vector for the result in the lower 64 bits.
+  On x86_64 the fifth parameter is the address to write the result to.
+*/
+
 #ifdef __PPC__
 
 const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
 				      56,  48,  40,  32,  24,  16,   8,   0 };
 
-#define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
+#define ALIGNCORE(H, N, F, V, RES, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX)	\
   {									\
     vector unsigned short W, X, Y, Z;					\
     vector unsigned int WX, YZ;						\
@@ -377,8 +383,7 @@ const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
     E = vec_max(E, HE);							\
     WX = (vector unsigned int) vec_mergel(W, X);			\
     YZ = (vector unsigned int) vec_mergel(Y, Z);			\
-    *((unsigned long *)(PATH)) = vec_extract((vector unsigned long)	\
-					     vec_mergeh(WX,YZ), 0);	\
+    RES = (vector unsigned long) vec_mergeh(WX, YZ);			\
   }
 
 #else
@@ -436,28 +441,22 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
                         int64_t ql,
                         unsigned short * dir)
 {
+#ifdef __PPC__
+
   VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
   VECTOR_SHORT * vp;
-#ifdef __PPC__
+
   VECTOR_SHORT h_min = vec_splat_s16(0);
   VECTOR_SHORT h_max = vec_splat_s16(0);
-#else
-  VECTOR_SHORT h_min = _mm_setzero_si128();
-  VECTOR_SHORT h_max = _mm_setzero_si128();
-#endif
+
+  vector unsigned long RES1, RES2, RES;
+  
   int64_t i;
 
-#ifdef __PPC__
   f0 = vec_subs(f0, QR_t_0);
   f1 = vec_subs(f1, QR_t_1);
   f2 = vec_subs(f2, QR_t_2);
   f3 = vec_subs(f3, QR_t_3);
-#else
-  f0 = _mm_subs_epi16(f0, QR_t_0);
-  f1 = _mm_subs_epi16(f1, QR_t_1);
-  f2 = _mm_subs_epi16(f2, QR_t_2);
-  f3 = _mm_subs_epi16(f3, QR_t_3);
-#endif
 
   for(i=0; i < ql - 1; i++)
     {
@@ -475,16 +474,107 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
          Then use signed subtraction to obtain the correct value.
       */
 
-#ifdef __PPC__
-      h4 = (vector short) vec_subs((vector unsigned short)h4, (vector unsigned short)Mm);
+      h4 = (vector short) vec_subs((vector unsigned short) h4,
+				   (vector unsigned short) Mm);
       h4 = vec_subs(h4, M_QR_t_left);
 
-      E  = (vector short) vec_subs((vector unsigned short)E, (vector unsigned short)Mm);
+      E  = (vector short) vec_subs((vector unsigned short) E,
+				   (vector unsigned short) Mm);
       E  = vec_subs(E, M_QR_t_left);
       E  = vec_subs(E, M_QR_q_interior);
 
       M_QR_t_left = vec_adds(M_QR_t_left, M_R_t_left);
+
+      ALIGNCORE(h0, h5, f0, vp[0], RES1,
+                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
+      ALIGNCORE(h1, h6, f1, vp[1], RES2,
+                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
+      RES = vec_perm(RES1, RES2, perm_merge_long_low);
+      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+
+      ALIGNCORE(h2, h7, f2, vp[2], RES1,
+                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
+      ALIGNCORE(h3, h8, f3, vp[3], RES2,
+                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
+      RES = vec_perm(RES1, RES2, perm_merge_long_low);
+      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+
+      hep[2*i+0] = h8;
+      hep[2*i+1] = E;
+
+      h0 = h4;
+      h1 = h5;
+      h2 = h6;
+      h3 = h7;
+    }
+
+  /* the final round - using query gap penalties for right end */
+  
+  vp = qp[i+0];
+
+  E  = hep[2*i+1];
+
+  E = (vector short) vec_subs((vector unsigned short) E,
+			      (vector unsigned short) Mm);
+  E = vec_subs(E, M_QR_t_left);
+  E = vec_subs(E, M_QR_q_right);
+
+  ALIGNCORE(h0, h5, f0, vp[0], RES1,
+	    QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
+  ALIGNCORE(h1, h6, f1, vp[1], RES2,
+	    QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
+  RES = vec_perm(RES1, RES2, perm_merge_long_low);
+  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+
+  ALIGNCORE(h2, h7, f2, vp[2], RES1,
+	    QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
+  ALIGNCORE(h3, h8, f3, vp[3], RES2,
+	    QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
+  RES = vec_perm(RES1, RES2, perm_merge_long_low);
+  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+  
+  hep[2*i+0] = h8;
+  hep[2*i+1] = E;
+
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
+
+  *_h_min = h_min;
+  *_h_max = h_max;
+
 #else
+
+  VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
+  VECTOR_SHORT * vp;
+
+  VECTOR_SHORT h_min = _mm_setzero_si128();
+  VECTOR_SHORT h_max = _mm_setzero_si128();
+
+  int64_t i;
+
+  f0 = _mm_subs_epi16(f0, QR_t_0);
+  f1 = _mm_subs_epi16(f1, QR_t_1);
+  f2 = _mm_subs_epi16(f2, QR_t_2);
+  f3 = _mm_subs_epi16(f3, QR_t_3);
+
+  for(i=0; i < ql - 1; i++)
+    {
+      vp = qp[i+0];
+
+      h4 = hep[2*i+0];
+
+      E  = hep[2*i+1];
+
+      /*
+         Initialize selected h and e values for next/this round.
+         First zero those cells where a new sequence starts
+         by using an unsigned saturated subtraction of a huge value to
+         set it to zero.
+         Then use signed subtraction to obtain the correct value.
+      */
+
       h4 = _mm_subs_epu16(h4, Mm);
       h4 = _mm_subs_epi16(h4, M_QR_t_left);
 
@@ -493,15 +583,14 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
       E  = _mm_subs_epi16(E, M_QR_q_interior);
 
       M_QR_t_left = _mm_adds_epi16(M_QR_t_left, M_R_t_left);
-#endif
 
-      ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+ 0,
+      ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+0,
                 QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+ 4,
+      ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+4
                 QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      ALIGNCORE(h2, h7, f2, vp[2], dir+16*i+ 8,
+      ALIGNCORE(h2, h7, f2, vp[2], dir+16*i+8
                 QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], dir+16*i+12,
+      ALIGNCORE(h3, h8, f3, vp[3], dir+16*i+12
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 
       hep[2*i+0] = h8;
@@ -519,16 +608,11 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
 
   E  = hep[2*i+1];
 
-#ifdef __PPC__
-  E = (vector short) vec_subs((vector unsigned short)E, (vector unsigned short)Mm);
-  E = vec_subs(E, M_QR_t_left);
-  E = vec_subs(E, M_QR_q_right);
-#else
+
   E  = _mm_subs_epu16(E, Mm);
   E  = _mm_subs_epi16(E, M_QR_t_left);
   E  = _mm_subs_epi16(E, M_QR_q_right);
-#endif
-  
+
   ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+ 0,
             QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
   ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+ 4,
@@ -548,6 +632,8 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
 
   *_h_min = h_min;
   *_h_max = h_max;
+
+#endif
 }
 
 void aligncolumns_rest(VECTOR_SHORT * Sm,
@@ -578,28 +664,100 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
                        int64_t ql,
                        unsigned short * dir)
 {
+#ifdef __PPC__
+
   VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
   VECTOR_SHORT * vp;
-#ifdef __PPC__
+
   VECTOR_SHORT h_min = vec_splat_s16(0);
   VECTOR_SHORT h_max = vec_splat_s16(0);
-#else
-  VECTOR_SHORT h_min = _mm_setzero_si128();
-  VECTOR_SHORT h_max = _mm_setzero_si128();
-#endif
+
+  vector unsigned long RES1, RES2, RES;
+  
   int64_t i;
 
-#ifdef __PPC__
   f0 = vec_subs(f0, QR_t_0);
   f1 = vec_subs(f1, QR_t_1);
   f2 = vec_subs(f2, QR_t_2);
   f3 = vec_subs(f3, QR_t_3);
+
+  for(i=0; i < ql - 1; i++)
+    {
+      vp = qp[i+0];
+
+      h4 = hep[2*i+0];
+
+      E  = hep[2*i+1];
+
+      ALIGNCORE(h0, h5, f0, vp[0], RES1,
+                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
+      ALIGNCORE(h1, h6, f1, vp[1], RES2,
+                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
+      RES = vec_perm(RES1, RES2, perm_merge_long_low);
+      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+
+      ALIGNCORE(h2, h7, f2, vp[2], RES1,
+                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
+      ALIGNCORE(h3, h8, f3, vp[3], RES2,
+                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
+      RES = vec_perm(RES1, RES2, perm_merge_long_low);
+      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+
+      hep[2*i+0] = h8;
+      hep[2*i+1] = E;
+
+      h0 = h4;
+      h1 = h5;
+      h2 = h6;
+      h3 = h7;
+    }
+
+  /* the final round - using query gap penalties for right end */
+  
+  vp = qp[i+0];
+
+  E  = hep[2*i+1];
+  
+  ALIGNCORE(h0, h5, f0, vp[0], RES1,
+	    QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
+  ALIGNCORE(h1, h6, f1, vp[1], RES2,
+	    QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
+  RES = vec_perm(RES1, RES2, perm_merge_long_low);
+  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+
+  ALIGNCORE(h2, h7, f2, vp[2], RES1,
+	    QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
+  ALIGNCORE(h3, h8, f3, vp[3], RES2,
+	    QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
+  RES = vec_perm(RES1, RES2, perm_merge_long_low);
+  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+
+  hep[2*i+0] = h8;
+  hep[2*i+1] = E;
+
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
+
+  *_h_min = h_min;
+  *_h_max = h_max;
+
 #else
+
+  VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
+  VECTOR_SHORT * vp;
+
+  VECTOR_SHORT h_min = _mm_setzero_si128();
+  VECTOR_SHORT h_max = _mm_setzero_si128();
+
+  int64_t i;
+
   f0 = _mm_subs_epi16(f0, QR_t_0);
   f1 = _mm_subs_epi16(f1, QR_t_1);
   f2 = _mm_subs_epi16(f2, QR_t_2);
   f3 = _mm_subs_epi16(f3, QR_t_3);
-#endif
+
 
   for(i=0; i < ql - 1; i++)
     {
@@ -652,6 +810,8 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
 
   *_h_min = h_min;
   *_h_max = h_max;
+
+#endif
 }
 
 inline void pushop(s16info_s * s, char newop)

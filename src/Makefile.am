@@ -72,13 +72,13 @@ libcityhash_a_SOURCES = city.cc city.h
 
 if TARGET_WIN
 
-libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O2 -g -D_MSC_VER
+libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O3 -g -D_MSC_VER
 __top_builddir__bin_vsearch_LDFLAGS = -static
 __top_builddir__bin_vsearch_LDADD = libregex.a libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 
 else
 
-libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O2 -g
+libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O3 -g
 
 if TARGET_PPC
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
