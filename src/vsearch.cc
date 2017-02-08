@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -2100,7 +2100,8 @@ void cmd_help()
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
               " Output\n"
-              "  --log FILENAME              output statistics\n"
+              "  --log FILENAME              output file for statistics with --fastq_stats\n"
+              "  --output FILENAME           output file for statistics with --fastq_eestats\n"
               "\n"
               "Filtering\n"
               "  --fastx_filter FILENAME     filter and truncate sequences in FASTA/FASTQ file\n"

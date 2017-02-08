@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -170,7 +170,7 @@ fastx_handle fastx_open(const char * filename)
   if (fstat(fileno(h->fp), & fs))
     fatal("Unable to fstat on input file (%s)", filename);
 
-  h->is_pipe = ! S_ISREG(fs.st_mode);
+  h->is_pipe = S_ISFIFO(fs.st_mode);
 
   h->file_size = 0;
 

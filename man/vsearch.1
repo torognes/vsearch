@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 9, 2016" "version 2.3.4" "USER COMMANDS"
+.TH vsearch 1 "February 8, 2017" "version 2.4.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -125,16 +125,16 @@ processing.
 Comparing nucleotide sequences is at the core of \fBvsearch\fR. To
 speed up comparisons, \fBvsearch\fR implements an extremely fast
 Needleman-Wunsch algorithm, making use of the Streaming SIMD
-Extensions (SSE2) of post-2003 x86-64 CPUs. If SSE2 instructions are
-not available, \fBvsearch\fR exits with an error message. Memory usage
-increases rapidly with sequence length: for example comparing two
-sequences of length 1 kb requires 8 MB of memory per thread, and
-comparing two 10 kb sequences requires 800 MB of memory per
-thread. For comparisons involving sequences with a length product
-greater than 25 million (for example two sequences of length 5 kb),
-\fBvsearch\fR uses a slower alignment method described by Hirschberg
-(1975) and Myers and Miller (1988), with much smaller memory
-requirements.
+Extensions (SSE2) of post-2003 x86-64 CPUs.  If SSE2 instructions are
+not available, \fBvsearch\fR exits with an error message. On Power8
+CPUs it will use AltiVec/VSX/VMX instructions. Memory usage increases
+rapidly with sequence length: for example comparing two sequences of
+length 1 kb requires 8 MB of memory per thread, and comparing two 10
+kb sequences requires 800 MB of memory per thread. For comparisons
+involving sequences with a length product greater than 25 million (for
+example two sequences of length 5 kb), \fBvsearch\fR uses a slower
+alignment method described by Hirschberg (1975) and Myers and Miller
+(1988), with much smaller memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR accept as input fasta or fastq files containing one or
@@ -2598,7 +2598,7 @@ Source code and binaries are available at
 .PP
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014-2016, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
+Copyright (C) 2014-2017, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
 .PP
 All rights reserved.
 .PP
@@ -3048,6 +3048,12 @@ A minor speed improvement.
 .TP
 .BR v2.3.4\~ "released December 9th, 2016"
 Fixed bug in output of sequence profiles and updated documentation.
+.TP
+.BR v2.4.0\~ "released February 8th, 2017"
+Added support for Linux on Power8 systems (ppc64le) and Windows on
+x86_64. Improved detection of pipes when reading FASTA and FASTQ
+files. Corrected option for specifiying output from fastq_eestats
+command in help text.
 .RE
 .LP
 .\" ============================================================================
