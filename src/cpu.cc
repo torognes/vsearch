@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -60,8 +60,49 @@
 
 #include "vsearch.h"
 
-/* This file contains code dependent on special cpu features (e.g. ssse3) */
-/* The file will be compiled several times with different cpu options */
+/* This file contains code dependent on special cpu features. */
+/* The file may be compiled several times with different cpu options. */
+
+#ifdef __PPC__
+
+void increment_counters_from_bitmap(unsigned short * counters,
+				    unsigned char * bitmap,
+				    unsigned int totalbits)
+{
+  const vector unsigned char c1 =
+    { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
+  const vector unsigned char c2 =
+    { 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
+      0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f };
+  const vector unsigned char c3 =
+    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+
+  unsigned short * p = (unsigned short *)(bitmap);
+  vector signed short * q = (vector signed short *) (counters);
+  int r = (totalbits + 15) / 16;
+   
+  for(int j=0; j<r; j++)
+    {
+      vector unsigned char r0, r1, r2;
+      vector bool char r3;
+      vector signed short r4, r5;
+
+      r0 = * (vector unsigned char *) p;
+      p++;
+      r1 = vec_perm(r0, r0, c1);
+      r2 = vec_or(r1, c2);
+      r3 = vec_cmpeq(r2, c3);
+      r4 = (vector signed short) vec_unpackl(r3);
+      r5 = (vector signed short) vec_unpackh(r3);
+      *q = vec_subs(*q, r4);
+      q++;
+      *q = vec_subs(*q, r5);
+      q++;
+    }
+}
+
+#else
 
 #ifdef SSSE3
 void increment_counters_from_bitmap_ssse3(unsigned short * counters,
@@ -128,3 +169,5 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
       q++;
     }
 }
+
+#endif

@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -71,6 +71,6 @@ bitmap_t * bitmap_init(unsigned int size)
 void bitmap_free(bitmap_t* b)
 {
   if (b->bitmap)
-    free(b->bitmap);
-  free(b);
+    xfree(b->bitmap);
+  xfree(b);
 }

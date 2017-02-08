@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2016, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -60,20 +60,20 @@
 
 #include "vsearch.h"
 
-static long line_pos;
+static int64_t line_pos;
 
 static char * q_seq;
 static char * d_seq;
 
-static long q_start;
-static long d_start;
+static int64_t q_start;
+static int64_t d_start;
 
-static long q_pos;
-static long d_pos;
+static int64_t q_pos;
+static int64_t d_pos;
 
-static long q_strand;
+static int64_t q_strand;
 
-static long alignlen;
+static int64_t alignlen;
 
 static char * q_line;
 static char * a_line;
@@ -87,8 +87,8 @@ static int headwidth = 5;
 static const char * q_name;
 static const char * d_name;
 
-static long q_len;
-static long d_len;
+static int64_t q_len;
+static int64_t d_len;
 
 inline int nt_identical(char a, char b)
 {
@@ -98,11 +98,11 @@ inline int nt_identical(char a, char b)
     return 0;
 }
 
-inline void putop(char c, long len)
+inline void putop(char c, int64_t len)
 {
-  long delta = q_strand ? -1 : +1;
+  int64_t delta = q_strand ? -1 : +1;
 
-  long count = len;
+  int64_t count = len;
   while(count)
     {
       if (line_pos == 0)
@@ -152,24 +152,24 @@ inline void putop(char c, long len)
           a_line[line_pos] = 0;
           d_line[line_pos] = 0;
 
-          long q1 = q_start + 1;
+          int64_t q1 = q_start + 1;
           if (q1 > q_len)
             q1 = q_len;
 
-          long q2 = q_strand ? q_pos +2 : q_pos;
+          int64_t q2 = q_strand ? q_pos +2 : q_pos;
 
-          long d1 = d_start + 1;
+          int64_t d1 = d_start + 1;
           if (d1 > d_len)
             d1 = d_len;
 
-          long d2 = d_pos;
+          int64_t d2 = d_pos;
 
           fprintf(out, "\n");
-          fprintf(out, "%*s %*ld %c %s %ld\n", headwidth, q_name, poswidth,
+          fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
                   q1, q_strand ? '-' : '+', q_line, q2);
           fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                   "", a_line);
-          fprintf(out, "%*s %*ld %c %s %ld\n", headwidth, d_name, poswidth,
+          fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
                   d1, '+', d_line, d2);
 
           line_pos = 0;
@@ -180,15 +180,15 @@ inline void putop(char c, long len)
 
 void align_show(FILE * f,
                 char * seq1,
-                long seq1len,
-                long seq1off,
+                int64_t seq1len,
+                int64_t seq1off,
                 const char * seq1name,
                 char * seq2,
-                long seq2len,
-                long seq2off,
+                int64_t seq2len,
+                int64_t seq2off,
                 const char * seq2name,
                 char * cigar,
-                long cigarlen,
+                int64_t cigarlen,
                 int numwidth,
                 int namewidth,
                 int alignwidth,
@@ -223,9 +223,9 @@ void align_show(FILE * f,
 
   while(p < e)
     {
-      long len;
+      int64_t len;
       int n;
-      if (!sscanf(p, "%ld%n", & len, & n))
+      if (!sscanf(p, "%" PRId64 "%n", & len, & n))
         {
           n = 0;
           len = 1;
@@ -237,9 +237,9 @@ void align_show(FILE * f,
   
   putop(0, 1);
 
-  free(q_line);
-  free(a_line);
-  free(d_line);
+  xfree(q_line);
+  xfree(a_line);
+  xfree(d_line);
 }
                
 char * align_getrow(char * seq, char * cigar, int alen, int origin)
@@ -251,9 +251,9 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
 
   while(*p)
     {
-      long len;
+      int64_t len;
       int n;
-      if (!sscanf(p, "%ld%n", & len, & n))
+      if (!sscanf(p, "%" PRId64 "%n", & len, & n))
         {
           n = 0;
           len = 1;
@@ -272,7 +272,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
       else
         {
           /* insert len gap symbols */
-          for(long i = 0; i < len; i++)
+          for(int64_t i = 0; i < len; i++)
             *r++ = '-';
         }
     }

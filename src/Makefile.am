@@ -1,6 +1,11 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-AM_CXXFLAGS=-Wall -Wsign-compare -O2 -g
+if TARGET_PPC
+AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g -mcpu=power8
+else
+AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g
+endif
+
 AM_CFLAGS=$(AM_CXXFLAGS)
 
 export MACOSX_DEPLOYMENT_TARGET
@@ -52,18 +57,36 @@ util.h \
 vsearch.h \
 xstring.h
 
+if TARGET_PPC
+libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+noinst_LIBRARIES = libcpu.a libcityhash.a
+else
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
-
-libcityhash_a_SOURCES = city.cc city.h citycrc.h
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
-
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
+endif
 
-__top_builddir__bin_vsearch_LDADD = libcpu_ssse3.a libcpu_sse2.a libcityhash.a
+libcityhash_a_SOURCES = city.cc city.h
+
+if TARGET_WIN
+
+libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O3 -g -D_MSC_VER
+__top_builddir__bin_vsearch_LDFLAGS = -static
+__top_builddir__bin_vsearch_LDADD = libregex.a libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+
+else
+
+libcityhash_a_CXXFLAGS = -Wall -Wno-sign-compare -O3 -g
+
+if TARGET_PPC
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
+else
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+endif
+
+endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
 abundance.cc \
@@ -107,4 +130,3 @@ unique.cc \
 userfields.cc \
 util.cc \
 vsearch.cc
-

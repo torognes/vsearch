@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -58,6 +58,11 @@
 
 */
 
+#ifdef __PPC__
+void increment_counters_from_bitmap(unsigned short * counters,
+				    unsigned char * bitmap,
+				    unsigned int totalbits);
+#else
 void increment_counters_from_bitmap_sse2(unsigned short * counters,
                                          unsigned char * bitmap,
                                          unsigned int totalbits);
@@ -65,3 +70,4 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
 void increment_counters_from_bitmap_ssse3(unsigned short * counters,
                                           unsigned char * bitmap,
                                           unsigned int totalbits);
+#endif

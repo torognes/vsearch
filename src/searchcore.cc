@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -185,12 +185,16 @@ void search_topscores(struct searchinfo_s * si)
       
       if (bitmap)
         {
+#ifdef __PPC__
+	  increment_counters_from_bitmap(si->kmers, bitmap, indexed_count);
+#else
           if (ssse3_present)
             increment_counters_from_bitmap_ssse3(si->kmers, 
                                                  bitmap, indexed_count);
           else
             increment_counters_from_bitmap_sse2(si->kmers,
                                                 bitmap, indexed_count);
+#endif
         }
       else
         {
@@ -223,7 +227,7 @@ void search_topscores(struct searchinfo_s * si)
   minheap_sort(si->m);
 }
 
-int seqncmp(char * a, char * b, unsigned long n)
+int seqncmp(char * a, char * b, uint64_t n)
 {
   for(unsigned int i = 0; i<n; i++)
     {
@@ -256,12 +260,12 @@ void align_trim(struct hit * hit)
   
   char * p = hit->nwalignment;
   char op;
-  long run;
+  int64_t run;
   if (*p)
     {
       run = 1;
       int scanlength = 0;
-      sscanf(p, "%ld%n", &run, &scanlength);
+      sscanf(p, "%" PRId64 "%n", &run, &scanlength);
       op = *(p+scanlength);
       if (op != 'M')
         {
@@ -285,7 +289,7 @@ void align_trim(struct hit * hit)
           while ((p > hit->nwalignment) && (*(p-1) <= '9'))
             p--;
           run = 1;
-          sscanf(p, "%ld", &run);
+          sscanf(p, "%" PRId64, &run);
           hit->trim_aln_right = e - p;
           if (op == 'D')
             hit->trim_q_right = run;
@@ -355,8 +359,8 @@ int search_acceptable_unaligned(struct searchinfo_s * si,
   char * qseq = si->qsequence;
   char * dlabel = db_getheader(target);
   char * dseq = db_getsequence(target);
-  long dseqlen = db_getsequencelen(target);
-  long tsize = db_getabundance(target);
+  int64_t dseqlen = db_getsequencelen(target);
+  int64_t tsize = db_getabundance(target);
 
   if (
       /* maxqsize */
@@ -518,16 +522,16 @@ void align_delayed(struct searchinfo_s * si)
             }
           else
             {
-              long target = hit->target;
-              long nwscore = nwscore_list[i];
+              int64_t target = hit->target;
+              int64_t nwscore = nwscore_list[i];
 
               char * nwcigar;
-              long nwalignmentlength;
-              long nwmatches;
-              long nwmismatches;
-              long nwgaps;
+              int64_t nwalignmentlength;
+              int64_t nwmatches;
+              int64_t nwmismatches;
+              int64_t nwgaps;
               
-              long dseqlen = db_getsequencelen(target);
+              int64_t dseqlen = db_getsequencelen(target);
 
               if (nwscore == SHRT_MAX)
                 {
@@ -538,7 +542,7 @@ void align_delayed(struct searchinfo_s * si)
                   char * dseq = db_getsequence(target);
                   
                   if (nwcigar_list[i])
-                    free(nwcigar_list[i]);
+                    xfree(nwcigar_list[i]);
                   
                   nwcigar = xstrdup(si->lma->align(si->qsequence,
                                                   dseq,
@@ -593,7 +597,7 @@ void align_delayed(struct searchinfo_s * si)
 
   /* free ignored alignments */
   while (i < target_count)
-    free(nwcigar_list[i++]);
+    xfree(nwcigar_list[i++]);
 
   si->finalized = si->hit_count;
 }
@@ -606,7 +610,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
 
   si->lma = new LinearMemoryAligner;
 
-  long * scorematrix = si->lma->scorematrix_create(opt_match, opt_mismatch);
+  int64_t * scorematrix = si->lma->scorematrix_create(opt_match, opt_mismatch);
 
   si->lma->set_parameters(scorematrix,
                           opt_gap_open_query_left,
@@ -679,7 +683,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
     align_delayed(si);
   
   delete si->lma;
-  free(scorematrix);
+  xfree(scorematrix);
 }
 
 struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
@@ -752,7 +756,7 @@ void search_joinhits(struct searchinfo_s * si_p,
           if (h->accepted)
             hits[a++] = *h;
           else if (h->aligned)
-            free(h->nwalignment);
+            xfree(h->nwalignment);
         }
     }
   

@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -137,8 +137,8 @@ minheap_init(int size)
 void
 minheap_exit(minheap_t * m)
 {
-  free(m->array);
-  free(m);
+  xfree(m->array);
+  xfree(m);
 }
 
 static int swaps = 0;
@@ -275,7 +275,7 @@ minheap_test()
   
   for(int i=samples; i>=0; i--)
     {
-      elem_t x = {(unsigned int)(random()),0,1};
+      elem_t x = {(unsigned int)(rand()),0,1};
       minheap_add(m, & x);
     }
 

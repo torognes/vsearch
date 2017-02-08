@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -60,10 +60,10 @@
 
 #include "vsearch.h"
 
-void fastq_fatal(unsigned long lineno, const char * msg)
+void fastq_fatal(uint64_t lineno, const char * msg)
 {
   char * string; 
-  if (asprintf(& string,
+  if (xsprintf(& string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
                msg) == -1)
@@ -72,7 +72,7 @@ void fastq_fatal(unsigned long lineno, const char * msg)
   if (string)
     {
       fatal(string);
-      free(string);
+      xfree(string);
     }
   else
     fatal("Out of memory");
@@ -81,24 +81,24 @@ void fastq_fatal(unsigned long lineno, const char * msg)
 void buffer_filter_extend(fastx_handle h,
                           struct fastx_buffer_s * dest_buffer,
                           char * source_buf,
-                          unsigned long len,
+                          uint64_t len,
                           unsigned int * char_action,
                           const unsigned char * char_mapping,
-                          unsigned long lineno_start)
+                          uint64_t lineno_start)
 {
   buffer_makespace(dest_buffer, len+1);
 
   /* Strip unwanted characters from the string and raise warnings or
      errors on certain characters. */
 
-  unsigned long lineno = lineno_start;
+  uint64_t lineno = lineno_start;
 
   char * p = source_buf;
   char * d = dest_buffer->data + dest_buffer->length;
   char * q = d;
   char msg[200];
 
-  for(unsigned long i = 0; i < len; i++)
+  for(uint64_t i = 0; i < len; i++)
     {
       char c = *p++;
       char m = char_action[(int)c];
@@ -170,12 +170,14 @@ bool fastq_next(fastx_handle h,
   h->header_buffer.data[0] = 0;
   h->sequence_buffer.length = 0;
   h->sequence_buffer.data[0] = 0;
+  h->plusline_buffer.length = 0;
+  h->plusline_buffer.data[0] = 0;
   h->quality_buffer.length = 0;
   h->quality_buffer.data[0] = 0;
 
   h->lineno_start = h->lineno;
 
-  unsigned long rest = fastx_file_fill_buffer(h);
+  uint64_t rest = fastx_file_fill_buffer(h);
 
   /* check end of file */
 
@@ -205,7 +207,7 @@ bool fastq_next(fastx_handle h,
                            rest);
 
       /* copy to header buffer */
-      unsigned long len = rest;
+      uint64_t len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
@@ -219,7 +221,7 @@ bool fastq_next(fastx_handle h,
       rest -= len;
     }
 
-  unsigned long lineno_seq = h->lineno;
+  uint64_t lineno_seq = h->lineno;
 
   /* read sequence line(s) */
   lf = 0;
@@ -241,7 +243,7 @@ bool fastq_next(fastx_handle h,
                            '\n', rest);
       
       /* copy to sequence buffer */
-      unsigned long len = rest;
+      uint64_t len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
@@ -263,11 +265,9 @@ bool fastq_next(fastx_handle h,
     fastq_fatal(lineno_seq, "Empty sequence line");
 #endif
 
-  unsigned long lineno_plus = h->lineno;
+  uint64_t lineno_plus = h->lineno;
 
   /* read + line */
-  fastx_buffer_s plusline_buffer;
-  buffer_init(&plusline_buffer);
 
   /* skip + character */
   h->file_buffer.position++;
@@ -288,14 +288,14 @@ bool fastq_next(fastx_handle h,
                            '\n',
                            rest);
       /* copy to plusline buffer */
-      unsigned long len = rest;
+      uint64_t len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
           len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
           h->lineno++;
         }
-      buffer_extend(& plusline_buffer,
+      buffer_extend(& h->plusline_buffer,
                     h->file_buffer.data + h->file_buffer.position,
                     len);
       h->file_buffer.position += len;
@@ -305,28 +305,26 @@ bool fastq_next(fastx_handle h,
   /* check that the plus line is empty or identical to @ line */
 
   bool plusline_invalid = 0;
-  if (h->header_buffer.length == plusline_buffer.length)
+  if (h->header_buffer.length == h->plusline_buffer.length)
     {
       if (memcmp(h->header_buffer.data,
-                 plusline_buffer.data,
+                 h->plusline_buffer.data,
                  h->header_buffer.length))
         plusline_invalid = 1;
     }
   else
     {
-      if ((plusline_buffer.length > 2) ||
-          ((plusline_buffer.length == 2) && (plusline_buffer.data[0] != '\r')))
+      if ((h->plusline_buffer.length > 2) ||
+          ((h->plusline_buffer.length == 2) && (h->plusline_buffer.data[0] != '\r')))
         plusline_invalid = 1;
     }
   if (plusline_invalid)
     fastq_fatal(lineno_plus, 
                 "'+' line must be empty or identical to header");
 
-  buffer_free(&plusline_buffer);
-
   /* read quality line(s) */
 
-  unsigned long lineno_qual = h->lineno;
+  uint64_t lineno_qual = h->lineno;
 
   lf = 0;
   while (1)
@@ -349,7 +347,7 @@ bool fastq_next(fastx_handle h,
                            '\n', rest);
       
       /* copy to quality buffer */
-      unsigned long len = rest;
+      uint64_t len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
@@ -386,37 +384,37 @@ char * fastq_get_quality(fastx_handle h)
   return h->quality_buffer.data;
 }
 
-unsigned long fastq_get_quality_length(fastx_handle h)
+uint64_t fastq_get_quality_length(fastx_handle h)
 {
   return h->quality_buffer.length;
 }
 
-unsigned long fastq_get_position(fastx_handle h)
+uint64_t fastq_get_position(fastx_handle h)
 {
   return h->file_position;
 }
 
-unsigned long fastq_get_size(fastx_handle h)
+uint64_t fastq_get_size(fastx_handle h)
 {
   return h->file_size;
 }
 
-unsigned long fastq_get_lineno(fastx_handle h)
+uint64_t fastq_get_lineno(fastx_handle h)
 {
   return h->lineno_start;
 }
 
-unsigned long fastq_get_seqno(fastx_handle h)
+uint64_t fastq_get_seqno(fastx_handle h)
 {
   return h->seqno;
 }
 
-unsigned long fastq_get_header_length(fastx_handle h)
+uint64_t fastq_get_header_length(fastx_handle h)
 {
   return h->header_buffer.length;
 }
 
-unsigned long fastq_get_sequence_length(fastx_handle h)
+uint64_t fastq_get_sequence_length(fastx_handle h)
 {
   return h->sequence_buffer.length;
 }
@@ -510,12 +508,12 @@ void fastq_print_relabel(FILE * fp,
   fastq_print_quality(fp, quality);
 }
 
-long fastq_get_abundance(fastx_handle h)
+int64_t fastq_get_abundance(fastx_handle h)
 {
   return abundance_get(global_abundance, h->header_buffer.data);
 }
 
-void fastq_print_db(FILE * fp, unsigned long seqno)
+void fastq_print_db(FILE * fp, uint64_t seqno)
 {
   char * hdr = db_getheader(seqno);
   char * seq = db_getsequence(seqno);

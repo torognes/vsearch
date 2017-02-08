@@ -2,7 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [2.3.4], [torognes@ifi.uio.no])
+AC_INIT([vsearch], [2.4.0], [torognes@ifi.uio.no])
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
@@ -24,6 +25,8 @@ AC_PROG_INSTALL
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([dl], [dlopen])
+#AC_CHECK_LIB([regex], [regexec])
+AC_CHECK_LIB([psapi], [GetProcessMemoryInfo])
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h fcntl.h float.h regex.h ctype.h locale.h limits.h string.h sys/time.h dlfcn.h])
@@ -82,10 +85,17 @@ if test "x${have_zlib}" = "xyes"; then
   AC_CHECK_HEADERS([zlib.h], [], [have_zlib=no])
 fi
 
+case $target in
+     powerpc64*) target_ppc="yes" ;;
+esac
+
+AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
+
 AM_CONDITIONAL(HAVE_BZLIB, test "x${have_bzip2}" = "xyes")
 AM_CONDITIONAL(HAVE_ZLIB, test "x${have_zlib}" = "xyes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x${have_pthreads}" = "xyes")
 AM_CONDITIONAL(HAVE_PS2PDF, test "x${have_ps2pdf}" = "xyes")
+AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_PROG_CC_C_O
 
 AC_CONFIG_FILES([Makefile

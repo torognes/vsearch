@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -186,82 +186,83 @@ int opt_slots;
 int opt_uchimeout5;
 int opt_usersort;
 int opt_version;
-long opt_dbmask;
-long opt_fasta_width;
-long opt_fastq_ascii;
-long opt_fastq_asciiout;
-long opt_fastq_maxdiffs;
-long opt_fastq_maxlen;
-long opt_fastq_maxmergelen;
-long opt_fastq_maxns;
-long opt_fastq_minlen;
-long opt_fastq_minmergelen;
-long opt_fastq_minovlen;
-long opt_fastq_qmax;
-long opt_fastq_qmaxout;
-long opt_fastq_qmin;
-long opt_fastq_qminout;
-long opt_fastq_stripleft;
-long opt_fastq_tail;
-long opt_fastq_trunclen;
-long opt_fastq_trunclen_keep;
-long opt_fastq_truncqual;
-long opt_fulldp;
-long opt_hardmask;
-long opt_iddef;
-long opt_idprefix;
-long opt_idsuffix;
-long opt_leftjust;
-long opt_match;
-long opt_maxaccepts;
-long opt_maxdiffs;
-long opt_maxgaps;
-long opt_maxhits;
-long opt_maxqsize;
-long opt_maxrejects;
-long opt_maxseqlength;
-long opt_maxsize;
-long opt_maxsubs;
-long opt_maxuniquesize;
-long opt_mincols;
-long opt_minseqlength;
-long opt_minsize;
-long opt_mintsize;
-long opt_minuniquesize;
-long opt_minwordmatches;
-long opt_mismatch;
-long opt_notrunclabels;
-long opt_output_no_hits;
-long opt_qmask;
-long opt_randseed;
-long opt_rightjust;
-long opt_rowlen;
-long opt_sample_size;
-long opt_self;
-long opt_selfid;
-long opt_sizein;
-long opt_sizeout;
-long opt_strand;
-long opt_threads;
-long opt_top_hits_only;
-long opt_topn;
-long opt_uc_allhits;
-long opt_wordlength;
+int64_t opt_dbmask;
+int64_t opt_fasta_width;
+int64_t opt_fastq_ascii;
+int64_t opt_fastq_asciiout;
+int64_t opt_fastq_maxdiffs;
+int64_t opt_fastq_maxlen;
+int64_t opt_fastq_maxmergelen;
+int64_t opt_fastq_maxns;
+int64_t opt_fastq_minlen;
+int64_t opt_fastq_minmergelen;
+int64_t opt_fastq_minovlen;
+int64_t opt_fastq_qmax;
+int64_t opt_fastq_qmaxout;
+int64_t opt_fastq_qmin;
+int64_t opt_fastq_qminout;
+int64_t opt_fastq_stripleft;
+int64_t opt_fastq_tail;
+int64_t opt_fastq_trunclen;
+int64_t opt_fastq_trunclen_keep;
+int64_t opt_fastq_truncqual;
+int64_t opt_fulldp;
+int64_t opt_hardmask;
+int64_t opt_iddef;
+int64_t opt_idprefix;
+int64_t opt_idsuffix;
+int64_t opt_leftjust;
+int64_t opt_match;
+int64_t opt_maxaccepts;
+int64_t opt_maxdiffs;
+int64_t opt_maxgaps;
+int64_t opt_maxhits;
+int64_t opt_maxqsize;
+int64_t opt_maxrejects;
+int64_t opt_maxseqlength;
+int64_t opt_maxsize;
+int64_t opt_maxsubs;
+int64_t opt_maxuniquesize;
+int64_t opt_mincols;
+int64_t opt_minseqlength;
+int64_t opt_minsize;
+int64_t opt_mintsize;
+int64_t opt_minuniquesize;
+int64_t opt_minwordmatches;
+int64_t opt_mismatch;
+int64_t opt_notrunclabels;
+int64_t opt_output_no_hits;
+int64_t opt_qmask;
+int64_t opt_randseed;
+int64_t opt_rightjust;
+int64_t opt_rowlen;
+int64_t opt_sample_size;
+int64_t opt_self;
+int64_t opt_selfid;
+int64_t opt_sizein;
+int64_t opt_sizeout;
+int64_t opt_strand;
+int64_t opt_threads;
+int64_t opt_top_hits_only;
+int64_t opt_topn;
+int64_t opt_uc_allhits;
+int64_t opt_wordlength;
 
 /* Other variables */
 
 /* cpu features available */
 
-long mmx_present = 0;
-long sse_present = 0;
-long sse2_present = 0;
-long sse3_present = 0;
-long ssse3_present = 0;
-long sse41_present = 0;
-long sse42_present = 0;
-long popcnt_present = 0;
-long avx_present = 0;
-long avx2_present = 0;
+int64_t altivec_present = 0;
+int64_t mmx_present = 0;
+int64_t sse_present = 0;
+int64_t sse2_present = 0;
+int64_t sse3_present = 0;
+int64_t ssse3_present = 0;
+int64_t sse41_present = 0;
+int64_t sse42_present = 0;
+int64_t popcnt_present = 0;
+int64_t avx_present = 0;
+int64_t avx2_present = 0;
 
 static char * progname;
 static char progheader[80];
@@ -276,13 +277,18 @@ abundance_t * global_abundance;
 char * STDIN_NAME = (char*) "/dev/stdin";
 char * STDOUT_NAME = (char*) "/dev/stdout";
 
+#ifndef __PPC__
 #define cpuid(f1, f2, a, b, c, d)                                \
   __asm__ __volatile__ ("cpuid"                                  \
                         : "=a" (a), "=b" (b), "=c" (c), "=d" (d) \
                         : "a" (f1), "c" (f2));
+#endif
 
 void cpu_features_detect()
 {
+#ifdef __PPC__
+  altivec_present = 1;
+#else
   unsigned int a, b, c, d;
 
   cpuid(0, 0, a, b, c, d);
@@ -307,11 +313,14 @@ void cpu_features_detect()
       avx2_present = (b >>  5) & 1;
     }
   }
+#endif
 }
 
 void cpu_features_show()
 {
   fprintf(stderr, "CPU features:");
+  if (altivec_present)
+    fprintf(stderr, " altivec");
   if (mmx_present)
     fprintf(stderr, " mmx");
   if (sse_present)
@@ -493,11 +502,11 @@ void args_get_gap_penalty_string(char * arg, int is_open)
 }
 
 
-long args_getlong(char * arg)
+int64_t args_getlong(char * arg)
 {
   int len = 0;
-  long temp = 0;
-  int ret = sscanf(arg, "%ld%n", &temp, &len);
+  int64_t temp = 0;
+  int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
   if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
     fatal("Illegal option argument");
   return temp;
@@ -969,7 +978,7 @@ void args_init(int argc, char **argv)
           break;
 
         case 13:
-          opt_threads = (long) args_getdouble(optarg);
+          opt_threads = (int64_t) args_getdouble(optarg);
           break;
 
         case 14:
@@ -1769,11 +1778,16 @@ void args_init(int argc, char **argv)
   if ((opt_iddef < 0) || (opt_iddef > 4))
     fatal("The argument to --iddef must in the range 0 to 4");
 
+#if 0
+
   if (opt_match <= 0)
     fatal("The argument to --match must be positive");
 
   if (opt_mismatch >= 0)
     fatal("The argument to --mismatch must be negative");
+
+#endif
+
 
   if (opt_alignwidth < 0)
     fatal("The argument to --alignwidth must not be negative");
@@ -1853,7 +1867,7 @@ void args_init(int argc, char **argv)
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
 
   if (opt_threads == 0)
-    opt_threads = sysconf(_SC_NPROCESSORS_ONLN);
+    opt_threads = arch_get_cores();
 
   /* set default opt_minseqlength depending on command */
 
@@ -2086,7 +2100,8 @@ void cmd_help()
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
               " Output\n"
-              "  --log FILENAME              output statistics\n"
+              "  --log FILENAME              output file for statistics with --fastq_stats\n"
+              "  --output FILENAME           output file for statistics with --fastq_eestats\n"
               "\n"
               "Filtering\n"
               "  --fastx_filter FILENAME     filter and truncate sequences in FASTA/FASTQ file\n"
@@ -2384,7 +2399,7 @@ void cmd_rereplicate()
 void cmd_derep()
 {
   if ((!opt_output) && (!opt_uc))
-    fatal("Output file for derepl_fulllength must be specified with --output or --uc");
+    fatal("Output file for derep_fulllength must be specified with --output or --uc");
 
   if (opt_derep_fulllength)
     derep_fulllength();
@@ -2446,7 +2461,7 @@ void cmd_none()
     fprintf(stderr,
             "For help, please enter: %s --help\n"
             "\n"
-            "For further details, please see the manual by entering: man vsearch\n"
+            "For further details, please see the manual.\n"
             "\n"
             "Example commands:\n"
             "\n"
@@ -2585,7 +2600,7 @@ void fillheader()
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
-           sysconf(_SC_NPROCESSORS_ONLN));
+           arch_get_cores());
 }
 
 void getentirecommandline(int argc, char** argv)
@@ -2594,13 +2609,14 @@ void getentirecommandline(int argc, char** argv)
   for (int i=0; i<argc; i++)
     len += strlen(argv[i]);
 
-  cmdline = (char*) xmalloc(len+argc+1);
+  cmdline = (char*) xmalloc(len+argc);
   cmdline[0] = 0;
 
   for (int i=0; i<argc; i++)
     {
+      if (i>0)
+        strcat(cmdline, " ");
       strcat(cmdline, argv[i]);
-      strcat(cmdline, " ");
     }
 }
 
@@ -2617,13 +2633,12 @@ void show_header()
 int main(int argc, char** argv)
 {
   fillheader();
+
   getentirecommandline(argc, argv);
 
   cpu_features_detect();
 
   args_init(argc, argv);
-
-  dynlibs_open();
 
   if (opt_log)
     {
@@ -2643,8 +2658,12 @@ int main(int argc, char** argv)
 
   show_header();
 
+  dynlibs_open();
+
+#ifndef __PPC__
   if (!sse2_present)
     fatal("Sorry, this program requires a cpu with SSE2.");
+#endif
 
   global_abundance = abundance_init();
 
@@ -2700,7 +2719,6 @@ int main(int argc, char** argv)
 
   if (opt_log)
     {
-
       time_finish = time(0);
       struct tm tm_finish;
       localtime_r(& time_finish, & tm_finish);
@@ -2709,10 +2727,11 @@ int main(int argc, char** argv)
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Finished %s", time_string);
 
-      time_t time_diff = time_finish - time_start;
+      double time_diff = difftime(time_finish, time_start);
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "Elapsed time %02lu:%02lu\n",
-              time_diff / 60, time_diff % 60);
+      fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
+              floor(time_diff / 60.0),
+              floor(time_diff - 60.0 * floor(time_diff / 60.0)));
       double maxmem = arch_get_memused() / 1048576.0;
       if (maxmem < 1024.0)
         fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
@@ -2721,9 +2740,7 @@ int main(int argc, char** argv)
       fclose(fp_log);
     }
 
-  free(cmdline);
-
+  xfree(cmdline);
   abundance_exit(global_abundance);
-
   dynlibs_close();
 }

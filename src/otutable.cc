@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -60,10 +60,6 @@
 
 #include "vsearch.h"
 
-#include <string>
-#include <set>
-#include <map>
-
 
 /*
 
@@ -80,9 +76,9 @@
 
 typedef std::set<std::string> string_set_t;
 typedef std::pair<std::string, std::string> string_pair_t;
-typedef std::map<string_pair_t, unsigned long> string_pair_map_t;
+typedef std::map<string_pair_t, uint64_t> string_pair_map_t;
 typedef std::map<std::string, std::string> otu_tax_map_t;
-typedef std::map<std::string, unsigned long> string_no_map_t;
+typedef std::map<std::string, uint64_t> string_no_map_t;
 
 struct otutable_s
 {
@@ -131,7 +127,7 @@ void otutable_done()
   otutable.otu_sample_count.clear();
 }
 
-void otutable_add(char * query_header, char * target_header, long abundance)
+void otutable_add(char * query_header, char * target_header, int64_t abundance)
 {
   /* read sample annotation in query */
 
@@ -195,7 +191,7 @@ void otutable_add(char * query_header, char * target_header, long abundance)
       strncpy(tax_name, start_tax, len_tax);
       tax_name[len_tax] = 0;
       otutable.otu_tax_map[otu_name] = tax_name;
-      free(tax_name);
+      xfree(tax_name);
     }
 
   /* store data */
@@ -207,13 +203,13 @@ void otutable_add(char * query_header, char * target_header, long abundance)
   otutable.otu_sample_count[string_pair_t(otu_name,sample_name)]
     += abundance;
 
-  free(otu_name);
-  free(sample_name);
+  xfree(otu_name);
+  xfree(sample_name);
 }
 
 void otutable_print_otutabout(FILE * fp)
 {
-  long progress = 0;
+  int64_t progress = 0;
   progress_init("Writing OTU table (classic)", otutable.otu_set.size());
 
   fprintf(fp, "#OTU ID");
@@ -236,7 +232,7 @@ void otutable_print_otutabout(FILE * fp)
            it_sample != otutable.sample_set.end();
            it_sample++)
         { 
-          unsigned long a = 0;
+          uint64_t a = 0;
           if ((it_map != otutable.otu_sample_count.end()) &&
               (it_map->first.first == *it_otu) &&
               (it_map->first.second == *it_sample))
@@ -244,7 +240,7 @@ void otutable_print_otutabout(FILE * fp)
               a = it_map->second;
               it_map++;
             }
-          fprintf(fp, "\t%ld", a);
+          fprintf(fp, "\t%" PRIu64, a);
         }
       if (! otutable.otu_tax_map.empty())
         {
@@ -262,11 +258,11 @@ void otutable_print_otutabout(FILE * fp)
 
 void otutable_print_mothur_shared_out(FILE * fp)
 {
-  long progress = 0;
+  int64_t progress = 0;
   progress_init("Writing OTU table (mothur)", otutable.sample_set.size());
 
   fprintf(fp, "label\tGroup\tnumOtus");
-  long numotus = 0;
+  int64_t numotus = 0;
   for (string_set_t::iterator it_otu = otutable.otu_set.begin();
        it_otu != otutable.otu_set.end();
        it_otu++)
@@ -283,13 +279,13 @@ void otutable_print_mothur_shared_out(FILE * fp)
        it_sample != otutable.sample_set.end();
        it_sample++)
     {
-      fprintf(fp, "vsearch\t%s\t%ld", it_sample->c_str(), numotus);
+      fprintf(fp, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
       
       for (string_set_t::iterator it_otu = otutable.otu_set.begin();
            it_otu != otutable.otu_set.end();
            it_otu++)
         {
-          unsigned long a = 0;
+          uint64_t a = 0;
           if ((it_map != otutable.sample_otu_count.end()) &&
               (it_map->first.first == *it_sample) &&
               (it_map->first.second == *it_otu))
@@ -297,7 +293,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
               a = it_map->second;
               it_map++;
             }
-          fprintf(fp, "\t%ld", a);
+          fprintf(fp, "\t%" PRIu64, a);
         }
 
       fprintf(fp, "\n");
@@ -308,11 +304,11 @@ void otutable_print_mothur_shared_out(FILE * fp)
 
 void otutable_print_biomout(FILE * fp)
 {
-  long progress = 0;
+  int64_t progress = 0;
   progress_init("Writing OTU table (biom 1.0)", otutable.otu_sample_count.size());
 
-  long rows = otutable.otu_set.size();
-  long columns = otutable.sample_set.size();
+  int64_t rows = otutable.otu_set.size();
+  int64_t columns = otutable.sample_set.size();
 
   static time_t time_now = time(0);
   struct tm tm_now;
@@ -330,7 +326,7 @@ void otutable_print_biomout(FILE * fp)
           "\t\"date\": \"%s\",\n"
           "\t\"matrix_type\": \"sparse\",\n"
           "\t\"matrix_element_type\": \"int\",\n"
-          "\t\"shape\": [%ld,%ld],\n",
+          "\t\"shape\": [%" PRId64 ",%" PRId64 "],\n",
           opt_biomout,
           PROG_NAME, PROG_VERSION,
           date,
@@ -338,7 +334,7 @@ void otutable_print_biomout(FILE * fp)
           columns);
   
   string_no_map_t otu_no_map;
-  unsigned long otu_no = 0;
+  uint64_t otu_no = 0;
 
   fprintf(fp, "\t\"rows\":[");
   for (string_set_t::iterator it_otu = otutable.otu_set.begin();
@@ -367,7 +363,7 @@ void otutable_print_biomout(FILE * fp)
   fprintf(fp, "\t],\n");
 
   string_no_map_t sample_no_map;
-  unsigned long sample_no = 0;
+  uint64_t sample_no = 0;
 
   fprintf(fp, "\t\"columns\":[");
   for (string_set_t::iterator it_sample = otutable.sample_set.begin();
@@ -394,7 +390,7 @@ void otutable_print_biomout(FILE * fp)
       otu_no = otu_no_map[it_map->first.first];
       sample_no = sample_no_map[it_map->first.second];
 
-      fprintf(fp, "\n\t\t[%ld,%ld,%lu]", otu_no, sample_no, it_map->second);
+      fprintf(fp, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map->second);
       first = false;
       progress_update(++progress);
     }

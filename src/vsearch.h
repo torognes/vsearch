@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -58,10 +58,22 @@
 
 */
 
+#define __STDC_FORMAT_MACROS 1
+#define __restrict
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <regex.h>
+
+#include <string>
+#include <set>
+#include <map>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -72,15 +84,27 @@
 #include <locale.h>
 #include <math.h>
 #include <ctype.h>
-#include <regex.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <float.h>
-#include <dlfcn.h>
+#include <inttypes.h>
+#include <stdarg.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#define PROG_NAME PACKAGE
+#define PROG_VERSION PACKAGE_VERSION
+
+#ifdef __PPC__
+
+#ifdef __LITTLE_ENDIAN__
+#define PROG_CPU "ppc64le"
+#include <altivec.h>
+#else
+#error Big endian ppc64 CPUs not supported
 #endif
+
+#else
+
+#define PROG_CPU "x86_64"
 
 #ifdef __SSE2__
 #include <emmintrin.h>
@@ -90,10 +114,30 @@
 #include <tmmintrin.h>
 #endif
 
+#endif
+
 #ifdef __APPLE__
+#define PROG_OS "osx"
+#include <sys/resource.h>
 #include <sys/sysctl.h>
-#else
+#endif
+
+#ifdef __linux__
+#define PROG_OS "linux"
+#include <sys/resource.h>
 #include <sys/sysinfo.h>
+#endif
+
+#ifdef _WIN32
+#define PROG_OS "win"
+#include <windows.h>
+#include <psapi.h>
+#endif
+
+#define PROG_ARCH PROG_OS "_" PROG_CPU
+
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
 #endif
 
 #ifdef HAVE_ZLIB_H
@@ -104,16 +148,16 @@
 #include <bzlib.h>
 #endif
 
-#include "dynlibs.h"
 #include "city.h"
-#include "citycrc.h"
 #include "md5.h"
 #include "sha1.h"
+
+#include "arch.h"
+#include "dynlibs.h"
 #include "util.h"
 #include "xstring.h"
 #include "align_simd.h"
 #include "maps.h"
-#include "arch.h"
 #include "abundance.h"
 #include "db.h"
 #include "align.h"
@@ -148,15 +192,6 @@
 #include "eestats.h"
 #include "rerep.h"
 #include "otutable.h"
-
-#define PROG_NAME PACKAGE
-#define PROG_VERSION PACKAGE_VERSION
-
-#ifdef __APPLE__
-#define PROG_ARCH "osx_x86_64"
-#else
-#define PROG_ARCH "linux_x86_64"
-#endif
 
 /* options */
 
@@ -284,78 +319,79 @@ extern int opt_slots;
 extern int opt_uchimeout5;
 extern int opt_usersort;
 extern int opt_version;
-extern long opt_dbmask;
-extern long opt_fasta_width;
-extern long opt_fastq_ascii;
-extern long opt_fastq_asciiout;
-extern long opt_fastq_maxdiffs;
-extern long opt_fastq_maxlen;
-extern long opt_fastq_maxmergelen;
-extern long opt_fastq_maxns;
-extern long opt_fastq_minlen;
-extern long opt_fastq_minmergelen;
-extern long opt_fastq_minovlen;
-extern long opt_fastq_qmax;
-extern long opt_fastq_qmaxout;
-extern long opt_fastq_qmin;
-extern long opt_fastq_qminout;
-extern long opt_fastq_stripleft;
-extern long opt_fastq_tail;
-extern long opt_fastq_trunclen;
-extern long opt_fastq_trunclen_keep;
-extern long opt_fastq_truncqual;
-extern long opt_fulldp;
-extern long opt_hardmask;
-extern long opt_iddef;
-extern long opt_idprefix;
-extern long opt_idsuffix;
-extern long opt_leftjust;
-extern long opt_match;
-extern long opt_maxaccepts;
-extern long opt_maxdiffs;
-extern long opt_maxgaps;
-extern long opt_maxhits;
-extern long opt_maxqsize;
-extern long opt_maxrejects;
-extern long opt_maxseqlength;
-extern long opt_maxsize;
-extern long opt_maxsubs;
-extern long opt_maxuniquesize;
-extern long opt_mincols;
-extern long opt_minseqlength;
-extern long opt_minsize;
-extern long opt_mintsize;
-extern long opt_minuniquesize;
-extern long opt_minwordmatches;
-extern long opt_mismatch;
-extern long opt_notrunclabels;
-extern long opt_output_no_hits;
-extern long opt_qmask;
-extern long opt_randseed;
-extern long opt_rightjust;
-extern long opt_rowlen;
-extern long opt_sample_size;
-extern long opt_self;
-extern long opt_selfid;
-extern long opt_sizein;
-extern long opt_sizeout;
-extern long opt_strand;
-extern long opt_threads;
-extern long opt_top_hits_only;
-extern long opt_topn;
-extern long opt_uc_allhits;
-extern long opt_wordlength;
+extern int64_t opt_dbmask;
+extern int64_t opt_fasta_width;
+extern int64_t opt_fastq_ascii;
+extern int64_t opt_fastq_asciiout;
+extern int64_t opt_fastq_maxdiffs;
+extern int64_t opt_fastq_maxlen;
+extern int64_t opt_fastq_maxmergelen;
+extern int64_t opt_fastq_maxns;
+extern int64_t opt_fastq_minlen;
+extern int64_t opt_fastq_minmergelen;
+extern int64_t opt_fastq_minovlen;
+extern int64_t opt_fastq_qmax;
+extern int64_t opt_fastq_qmaxout;
+extern int64_t opt_fastq_qmin;
+extern int64_t opt_fastq_qminout;
+extern int64_t opt_fastq_stripleft;
+extern int64_t opt_fastq_tail;
+extern int64_t opt_fastq_trunclen;
+extern int64_t opt_fastq_trunclen_keep;
+extern int64_t opt_fastq_truncqual;
+extern int64_t opt_fulldp;
+extern int64_t opt_hardmask;
+extern int64_t opt_iddef;
+extern int64_t opt_idprefix;
+extern int64_t opt_idsuffix;
+extern int64_t opt_leftjust;
+extern int64_t opt_match;
+extern int64_t opt_maxaccepts;
+extern int64_t opt_maxdiffs;
+extern int64_t opt_maxgaps;
+extern int64_t opt_maxhits;
+extern int64_t opt_maxqsize;
+extern int64_t opt_maxrejects;
+extern int64_t opt_maxseqlength;
+extern int64_t opt_maxsize;
+extern int64_t opt_maxsubs;
+extern int64_t opt_maxuniquesize;
+extern int64_t opt_mincols;
+extern int64_t opt_minseqlength;
+extern int64_t opt_minsize;
+extern int64_t opt_mintsize;
+extern int64_t opt_minuniquesize;
+extern int64_t opt_minwordmatches;
+extern int64_t opt_mismatch;
+extern int64_t opt_notrunclabels;
+extern int64_t opt_output_no_hits;
+extern int64_t opt_qmask;
+extern int64_t opt_randseed;
+extern int64_t opt_rightjust;
+extern int64_t opt_rowlen;
+extern int64_t opt_sample_size;
+extern int64_t opt_self;
+extern int64_t opt_selfid;
+extern int64_t opt_sizein;
+extern int64_t opt_sizeout;
+extern int64_t opt_strand;
+extern int64_t opt_threads;
+extern int64_t opt_top_hits_only;
+extern int64_t opt_topn;
+extern int64_t opt_uc_allhits;
+extern int64_t opt_wordlength;
 
-extern long mmx_present;
-extern long sse_present;
-extern long sse2_present;
-extern long sse3_present;
-extern long ssse3_present;
-extern long sse41_present;
-extern long sse42_present;
-extern long popcnt_present;
-extern long avx_present;
-extern long avx2_present;
+extern int64_t altivec_present;
+extern int64_t mmx_present;
+extern int64_t sse_present;
+extern int64_t sse2_present;
+extern int64_t sse3_present;
+extern int64_t ssse3_present;
+extern int64_t sse41_present;
+extern int64_t sse42_present;
+extern int64_t popcnt_present;
+extern int64_t avx_present;
+extern int64_t avx2_present;
 
 extern FILE * fp_log;
 

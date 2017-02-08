@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2016, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -60,7 +60,7 @@
 
 void otutable_init();
 void otutable_done();
-void otutable_add(char * query_header, char * target_header, long abundance);
+void otutable_add(char * query_header, char * target_header, int64_t abundance);
 void otutable_print_otutabout(FILE * fp);
 void otutable_print_mothur_shared_out(FILE * fp);
 void otutable_print_biomout(FILE * fp);

@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -67,13 +67,13 @@ int fastq_get_qual(char q)
 
   if (qual < opt_fastq_qmin)
     {
-      snprintf(msg, 200, "FASTQ quality value (%d) below qmin (%ld)",
+      snprintf(msg, 200, "FASTQ quality value (%d) below qmin (%" PRId64 ")",
                qual, opt_fastq_qmin);
       fatal(msg);
     }
   else if (qual > opt_fastq_qmax)
     {
-      snprintf(msg, 200, "FASTQ quality value (%d) above qmax (%ld)",
+      snprintf(msg, 200, "FASTQ quality value (%d) above qmax (%" PRId64 ")",
                qual, opt_fastq_qmax);
       fatal(msg);
     }
@@ -93,7 +93,7 @@ void filter(bool fastq_only, char * filename)
   if ((opt_fastqout || opt_fastqout_discarded) && ! h->is_fastq)
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
 
-  unsigned long filesize = fastx_get_size(h);
+  uint64_t filesize = fastx_get_size(h);
 
   FILE * fp_fastaout = 0;
   FILE * fp_fastqout = 0;
@@ -128,7 +128,7 @@ void filter(bool fastq_only, char * filename)
         fatal("Unable to open fastq output file for writing");
     }
 
-  unsigned long header_alloc = 0;
+  uint64_t header_alloc = 0;
   char * header = 0;
   if (opt_relabel)
     {
@@ -138,20 +138,20 @@ void filter(bool fastq_only, char * filename)
 
   progress_init("Reading input file", filesize);
 
-  long kept = 0;
-  long discarded = 0;
-  long truncated = 0;
+  int64_t kept = 0;
+  int64_t discarded = 0;
+  int64_t truncated = 0;
 
   char hex_md5[LEN_HEX_DIG_MD5];
   char hex_sha1[LEN_HEX_DIG_SHA1];
 
   while(fastx_next(h, 0, chrmap_no_change))
     {
-      long length = fastx_get_sequence_length(h);
+      int64_t length = fastx_get_sequence_length(h);
       char * d = fastx_get_header(h);
       char * p = fastx_get_sequence(h);
       char * q = fastx_get_quality(h);
-      long abundance = fastx_get_abundance(h);
+      int64_t abundance = fastx_get_abundance(h);
       
       /* strip initial part */
       if (opt_fastq_stripleft > 0)
@@ -187,7 +187,7 @@ void filter(bool fastq_only, char * filename)
       double ee = 0.0;
       if (h->is_fastq)
         {
-          for (long i = 0; i < length; i++)
+          for (int64_t i = 0; i < length; i++)
             {
               int qual = fastq_get_qual(q[i]);
               ee += exp10(- qual / 10.0);
@@ -203,8 +203,8 @@ void filter(bool fastq_only, char * filename)
         }
 
       /* count n's */
-      long ncount = 0;
-      for (long i = 0; i < length; i++)
+      int64_t ncount = 0;
+      for (int64_t i = 0; i < length; i++)
         {
           int pc = p[i];
           if ((pc == 'N') || (pc == 'n'))
@@ -222,7 +222,7 @@ void filter(bool fastq_only, char * filename)
 
           kept++;
 
-          if ((unsigned long)(length) < fastx_get_sequence_length(h))
+          if ((uint64_t)(length) < fastx_get_sequence_length(h))
             {
               truncated++;
               p[length] = 0;
@@ -249,7 +249,7 @@ void filter(bool fastq_only, char * filename)
               if (opt_relabel)
                 {
                   (void) snprintf(header, header_alloc,
-                                  "%s%ld", opt_relabel, kept);
+                                  "%s%" PRId64, opt_relabel, kept);
                   d = header;
                 }
               else if (opt_relabel_md5)
@@ -297,7 +297,7 @@ void filter(bool fastq_only, char * filename)
             {
               if (opt_relabel)
                 {
-                  (void) snprintf(header, header_alloc, "%s%ld", opt_relabel, discarded);
+                  (void) snprintf(header, header_alloc, "%s%" PRId64, opt_relabel, discarded);
                   d = header;
                 }
               else if (opt_relabel_md5)
@@ -323,13 +323,13 @@ void filter(bool fastq_only, char * filename)
   progress_done();
 
   fprintf(stderr,
-          "%ld sequences kept (of which %ld truncated), %ld sequences discarded.\n",
+          "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
           kept,
           truncated,
           discarded);
 
   if (header)
-    free(header);
+    xfree(header);
 
   if (opt_fastaout)
     fclose(fp_fastaout);
@@ -358,10 +358,10 @@ void fastx_filter()
 
 void fastq_chars()
 {
-  unsigned long sequence_chars[256];
-  unsigned long quality_chars[256];
-  unsigned long tail_chars[256];
-  unsigned long total_chars = 0;
+  uint64_t sequence_chars[256];
+  uint64_t quality_chars[256];
+  uint64_t tail_chars[256];
+  uint64_t total_chars = 0;
   int maxrun[256];
 
   for(int c=0; c<256; c++)
@@ -374,17 +374,17 @@ void fastq_chars()
 
   fastx_handle h = fastq_open(opt_fastq_chars);
 
-  unsigned long filesize = fastq_get_size(h);
+  uint64_t filesize = fastq_get_size(h);
 
   progress_init("Reading fastq file", filesize);
 
-  unsigned long seq_count = 0;
+  uint64_t seq_count = 0;
   
   int qmin_n = 255, qmax_n = 0;
 
   while(fastq_next(h, 0, chrmap_upcase))
     {
-      long len = fastq_get_sequence_length(h);
+      int64_t len = fastq_get_sequence_length(h);
       char * p = fastq_get_sequence(h);
       char * q = fastq_get_quality(h);
 
@@ -394,7 +394,7 @@ void fastq_chars()
       int run_char = -1;
       int run = 0;
       
-      long i = 0;
+      int64_t i = 0;
       while(i<len)
         {
           int pc = *p++;
@@ -446,7 +446,7 @@ void fastq_chars()
 
   fastq_close(h);
   
-  fprintf(stderr, "Read %lu sequences.\n", seq_count);
+  fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
 
   char qmin = 0;
   char qmax = 0;
@@ -510,7 +510,7 @@ void fastq_chars()
     {
       if (sequence_chars[c] > 0)
         {
-          fprintf(stderr, "     %c %10lu %5.1f%% %6d",
+          fprintf(stderr, "     %c %10" PRIu64 " %5.1f%% %6d",
                   c,
                   sequence_chars[c],
                   100.0 * sequence_chars[c] / total_chars,
@@ -534,7 +534,7 @@ void fastq_chars()
     {
       if (quality_chars[c] > 0)
         {
-          fprintf(stderr, " '%c'  %5d  %5.1f%%  %10lu\n",
+          fprintf(stderr, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                   c,
                   c,
                   100.0 * quality_chars[c] / total_chars,
@@ -552,14 +552,14 @@ void fastq_stats()
 {
   fastx_handle h = fastq_open(opt_fastq_stats);
 
-  unsigned long filesize = fastq_get_size(h);
+  uint64_t filesize = fastq_get_size(h);
 
   progress_init("Reading fastq file", filesize);
 
-  unsigned long seq_count = 0;
-  unsigned long symbols = 0;
+  uint64_t seq_count = 0;
+  uint64_t symbols = 0;
   
-  long read_length_alloc = 512;
+  int64_t read_length_alloc = 512;
 
   int * read_length_table = (int*) xmalloc(sizeof(int) * read_length_alloc);
   memset(read_length_table, 0, sizeof(int) * read_length_alloc);
@@ -576,13 +576,13 @@ void fastq_stats()
   double * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
   memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
 
-  long len_min = LONG_MAX;
-  long len_max = 0;
+  int64_t len_min = LONG_MAX;
+  int64_t len_max = 0;
   
   int qmin = +1000;
   int qmax = -1000;
 
-  unsigned long quality_chars[256];
+  uint64_t quality_chars[256];
   for(int c=0; c<256; c++)
     quality_chars[c] = 0;
   
@@ -590,7 +590,7 @@ void fastq_stats()
     {
       seq_count++;
 
-      long len = fastq_get_sequence_length(h);
+      int64_t len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
 
       /* update length statistics */
@@ -640,7 +640,7 @@ void fastq_stats()
       
       double ee = 0.0;
       int qmin_this = 1000;
-      for(long i=0; i < len; i++)
+      for(int64_t i=0; i < len; i++)
         {
           int qc = q[i];
 
@@ -648,8 +648,8 @@ void fastq_stats()
           if ((qual < opt_fastq_qmin) || (qual > opt_fastq_qmax))
             {
               char * msg;
-              if (asprintf(& msg,
-"FASTQ quality value (%d) out of range (%ld-%ld).\n"
+              if (xsprintf(& msg,
+"FASTQ quality value (%d) out of range (%" PRId64 "-%" PRId64 ").\n"
 "Please adjust the FASTQ quality base character or range with the\n"
 "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n"
 "diagnosis with suggested values, please run vsearch --fastq_chars file.",
@@ -657,7 +657,7 @@ void fastq_stats()
                 fatal(msg);
               else
                 fatal("Out of memory");
-              free(msg);
+              xfree(msg);
             }
           
           quality_chars[qc]++;
@@ -699,17 +699,17 @@ void fastq_stats()
   /* compute various distributions */
 
   int * length_dist = (int*) xmalloc(sizeof(int) * (len_max+1));
-  long * symb_dist = (long*) xmalloc(sizeof(long) * (len_max+1));
+  int64_t * symb_dist = (int64_t*) xmalloc(sizeof(int64_t) * (len_max+1));
 
   double * rate_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
   double * avgq_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
   double * avgee_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
   double * avgp_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
 
-  long length_accum = 0;
-  long symb_accum = 0;
+  int64_t length_accum = 0;
+  int64_t symb_accum = 0;
 
-  for(long i = 0; i <= len_max; i++)
+  for(int64_t i = 0; i <= len_max; i++)
     {
       length_accum += read_length_table[i];
       length_dist[i] = length_accum;
@@ -717,8 +717,8 @@ void fastq_stats()
       symb_accum += seq_count - length_accum;
       symb_dist[i] = symb_accum;
 
-      long q = 0;
-      long x = 0;
+      int64_t q = 0;
+      int64_t x = 0;
       double e_sum = 0.0;
       for(int c=qmin; c<=qmax; c++)
         {
@@ -741,10 +741,10 @@ void fastq_stats()
       fprintf(fp_log, "      L           N      Pct   AccPct\n");
       fprintf(fp_log, "-------  ----------  -------  -------\n");
       
-      for(long i = len_max; i >= len_min; i--)
+      for(int64_t i = len_max; i >= len_min; i--)
         {
           if (read_length_table[i] > 0)
-            fprintf(fp_log, "%2s%5ld  %10d   %5.1lf%%   %5.1lf%%\n",
+            fprintf(fp_log, "%2s%5" PRId64 "  %10d   %5.1lf%%   %5.1lf%%\n",
                     (i == len_max ? ">=" : "  "),
                     i,
                     read_length_table[i],
@@ -757,14 +757,14 @@ void fastq_stats()
       fprintf(fp_log, "ASCII    Q       Pe           N      Pct   AccPct\n");
       fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
 
-      long qual_accum = 0;
+      int64_t qual_accum = 0;
       for(int c = qmax ; c >= qmin ; c--)
         {
           if (quality_chars[c] > 0)
             {
               qual_accum += quality_chars[c];
               fprintf(fp_log,
-                      "    %c  %3ld  %7.5lf  %10lu  %6.1lf%%  %6.1lf%%\n",
+                      "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                       c,
                       c - opt_fastq_ascii,
                       q2p(c - opt_fastq_ascii),
@@ -778,7 +778,7 @@ void fastq_stats()
       fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
       fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
-      for(long i = 2; i <= len_max; i++)
+      for(int64_t i = 2; i <= len_max; i++)
         {
           double PctRecs = 100.0 * (seq_count - length_dist[i-1]) / seq_count;
           double AvgQ = avgq_dist[i-1];
@@ -787,7 +787,7 @@ void fastq_stats()
           double Rate = rate_dist[i-1];
 
           fprintf(fp_log,
-                  "%5ld  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
+                  "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
                   i,
                   PctRecs,
                   AvgQ,
@@ -802,9 +802,9 @@ void fastq_stats()
       fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
       fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
       
-      for(long i = len_max+1; i >= 1; i--)
+      for(int64_t i = len_max+1; i >= 1; i--)
         {
-          long read_count[4];
+          int64_t read_count[4];
           double read_percentage[4];
           
           for(int z=0; z<4; z++)
@@ -819,7 +819,7 @@ void fastq_stats()
           if (read_count[0] > 0)
             {
               fprintf(fp_log,
-                      "%5ld  %7ld  %7ld  %7ld  %7ld  "
+                      "%5" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  "
                       "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
                       i,
                       read_count[0], read_count[1],
@@ -835,54 +835,54 @@ void fastq_stats()
       fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
       fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
-      for(long i = len_max; i >= len_max/2; i--)
+      for(int64_t i = len_max; i >= len_max/2; i--)
         {
           double read_percentage[4];
           
           for(int z=0; z<4; z++)
             read_percentage[z] = 100.0 * q_length_table[4*(i-1)+z] / seq_count;
 
-          fprintf(fp_log, "%5ld  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
+          fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
                   i,
                   read_percentage[0], read_percentage[1],
                   read_percentage[2], read_percentage[3]);
         }
 
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "%10lu  Recs (%.1lfM), 0 too long\n",
+      fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too int64_t\n",
               seq_count, seq_count / 1.0e6);
       fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
       fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);
     }
   
-  free(read_length_table);
-  free(qual_length_table);
-  free(ee_length_table);
-  free(q_length_table);
-  free(sumee_length_table);
+  xfree(read_length_table);
+  xfree(qual_length_table);
+  xfree(ee_length_table);
+  xfree(q_length_table);
+  xfree(sumee_length_table);
 
-  free(length_dist);
-  free(symb_dist);
-  free(rate_dist);
-  free(avgq_dist);
-  free(avgee_dist);
-  free(avgp_dist);
+  xfree(length_dist);
+  xfree(symb_dist);
+  xfree(rate_dist);
+  xfree(avgq_dist);
+  xfree(avgee_dist);
+  xfree(avgp_dist);
 
   fastq_close(h);
   
-  fprintf(stderr, "Read %lu sequences.\n", seq_count);
+  fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
 }
 
 void fastx_revcomp()
 {
-  unsigned long buffer_alloc = 512;
+  uint64_t buffer_alloc = 512;
   char * seq_buffer = (char*) xmalloc(buffer_alloc);
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
-  unsigned long header_alloc = 512;
+  uint64_t header_alloc = 512;
   char * header = (char*) xmalloc(header_alloc);
 
-  unsigned long suffix_length = opt_label_suffix ? strlen(opt_label_suffix) : 0;
+  uint64_t suffix_length = opt_label_suffix ? strlen(opt_label_suffix) : 0;
 
   fastx_handle h = fastx_open(opt_fastx_revcomp);
 
@@ -892,7 +892,7 @@ void fastx_revcomp()
   if (opt_fastqout && ! h->is_fastq)
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
 
-  unsigned long filesize = fastx_get_size(h);
+  uint64_t filesize = fastx_get_size(h);
 
   FILE * fp_fastaout = 0;
   FILE * fp_fastqout = 0;
@@ -920,7 +920,7 @@ void fastx_revcomp()
     {
       /* header */
       
-      unsigned long hlen = fastx_get_header_length(h);
+      uint64_t hlen = fastx_get_header_length(h);
 
       if (hlen + suffix_length + 1 > header_alloc)
         {
@@ -938,7 +938,7 @@ void fastx_revcomp()
 
       /* sequence */
 
-      unsigned long length = fastx_get_sequence_length(h);
+      uint64_t length = fastx_get_sequence_length(h);
 
       if (length + 1 > buffer_alloc)
         {
@@ -958,7 +958,7 @@ void fastx_revcomp()
       if (fastx_is_fastq(h))
         {
           /* reverse quality values */
-          for(unsigned long i=0; i<length; i++)
+          for(uint64_t i=0; i<length; i++)
             qual_buffer[i] = q[length-1-i];
           qual_buffer[length] = 0;
         }
@@ -981,9 +981,9 @@ void fastx_revcomp()
 
   fastx_close(h);
 
-  free(header);
-  free(seq_buffer);
-  free(qual_buffer);
+  xfree(header);
+  xfree(seq_buffer);
+  xfree(qual_buffer);
 }
 
 void fastq_convert()
@@ -993,7 +993,7 @@ void fastq_convert()
   if (!h)
     fatal("Unable to open FASTQ file");
 
-  unsigned long filesize = fastq_get_size(h);
+  uint64_t filesize = fastq_get_size(h);
 
   FILE * fp_fastqout = 0;
 
@@ -1011,19 +1011,19 @@ void fastq_convert()
 
       /* sequence */
 
-      unsigned long length = fastq_get_sequence_length(h);
+      uint64_t length = fastq_get_sequence_length(h);
       char * sequence = fastq_get_sequence(h);
 
       /* convert quality values */
       
       char * quality = fastq_get_quality(h);
-      for(unsigned long i=0; i<length; i++)
+      for(uint64_t i=0; i<length; i++)
         {
           int q = quality[i] - opt_fastq_ascii;
           if (q < opt_fastq_qmin)
             {
               fprintf(stderr,
-                      "\nFASTQ quality score (%d) below minimum (%ld) in entry no %lu starting on line %lu\n", 
+                      "\nFASTQ quality score (%d) below minimum (%" PRId64 ") in entry no %" PRIu64 " starting on line %" PRIu64 "\n", 
                       q,
                       opt_fastq_qmin,
                       fastq_get_seqno(h) + 1,
@@ -1033,7 +1033,7 @@ void fastq_convert()
           if (q > opt_fastq_qmax)
             {
               fprintf(stderr,
-                      "\nFASTQ quality score (%d) above maximum (%ld) in entry no %lu starting on line %lu\n", 
+                      "\nFASTQ quality score (%d) above maximum (%" PRId64 ") in entry no %" PRIu64 " starting on line %" PRIu64 "\n", 
                       q,
                       opt_fastq_qmax,
                       fastq_get_seqno(h) + 1,

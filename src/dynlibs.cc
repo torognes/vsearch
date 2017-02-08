@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -61,12 +61,17 @@
 #include "vsearch.h"
 
 #ifdef HAVE_ZLIB_H
-#ifdef __APPLE__
+# ifdef _WIN32
+const char gz_libname[] = "zlib1.dll";
+HMODULE gz_lib;
+# else
+#  ifdef __APPLE__
 const char gz_libname[] = "libz.dylib";
-#else
+#  else
 const char gz_libname[] = "libz.so";
-#endif
+#  endif
 void * gz_lib;
+# endif
 gzFile (*gzdopen_p)(int, const char *);
 int (*gzclose_p)(gzFile);
 int (*gzread_p)(gzFile, void *, unsigned);
@@ -77,43 +82,69 @@ const char * (*gzerror_p)(gzFile, int*);
 #endif
 
 #ifdef HAVE_BZLIB_H
-#ifdef __APPLE__
+# ifdef _WIN32
+const char bz2_libname[] = "libbz2.dll";
+HMODULE bz2_lib;
+# else
+#  ifdef __APPLE__
 const char bz2_libname[] = "libbz2.dylib";
-#else
+#  else
 const char bz2_libname[] = "libbz2.so";
-#endif
+#  endif
 void * bz2_lib;
+# endif
 BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
 void (*BZ2_bzReadClose_p)(int*, BZFILE*);
 int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 #endif
 
+#ifdef _WIN32
+FARPROC arch_dlsym(HMODULE handle, const char * symbol)
+#else
+void * arch_dlsym(void * handle, const char * symbol)
+#endif
+{
+#ifdef _WIN32
+  return GetProcAddress(handle, symbol);
+#else
+  return dlsym(handle, symbol);
+#endif
+}
+
 void dynlibs_open()
 {
 #ifdef HAVE_ZLIB_H
+#ifdef _WIN32
+  gz_lib = LoadLibraryA(gz_libname);
+#else
   gz_lib = dlopen(gz_libname, RTLD_LAZY);
+#endif
   if (gz_lib)
     {
-      gzdopen_p = (gzFile (*)(int, const char*)) dlsym(gz_lib, "gzdopen");
-      gzclose_p = (int (*)(gzFile)) dlsym(gz_lib, "gzclose");
-      gzread_p = (int (*)(gzFile, void*, unsigned)) dlsym(gz_lib, "gzread");
-      gzgetc_p = (int (*)(gzFile)) dlsym(gz_lib, "gzgetc");
-      gzrewind_p = (int (*)(gzFile)) dlsym(gz_lib, "gzrewind");
-      gzerror_p = (const char * (*)(gzFile, int*)) dlsym(gz_lib, "gzerror");
-      gzungetc_p = (int (*)(int, gzFile)) dlsym(gz_lib, "gzungetc");
+      gzdopen_p = (gzFile (*)(int, const char*)) arch_dlsym(gz_lib, "gzdopen");
+      gzclose_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzclose");
+      gzread_p = (int (*)(gzFile, void*, unsigned)) arch_dlsym(gz_lib, "gzread");
+      gzgetc_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzgetc");
+      gzrewind_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzrewind");
+      gzerror_p = (const char * (*)(gzFile, int*)) arch_dlsym(gz_lib, "gzerror");
+      gzungetc_p = (int (*)(int, gzFile)) arch_dlsym(gz_lib, "gzungetc");
     }
 #endif
 
 #ifdef HAVE_BZLIB_H
+#ifdef _WIN32
+  bz2_lib = LoadLibraryA(bz2_libname);
+#else
   bz2_lib = dlopen(bz2_libname, RTLD_LAZY);
+#endif
   if (bz2_lib)
     {
       BZ2_bzReadOpen_p = (BZFILE* (*)(int*, FILE*, int, int, void*, int))
-        dlsym(bz2_lib, "BZ2_bzReadOpen");
+        arch_dlsym(bz2_lib, "BZ2_bzReadOpen");
       BZ2_bzReadClose_p = (void (*)(int*, BZFILE*))
-        dlsym(bz2_lib, "BZ2_bzReadClose");
+        arch_dlsym(bz2_lib, "BZ2_bzReadClose");
       BZ2_bzRead_p = (int (*)(int*, BZFILE*, void*, int))
-        dlsym(bz2_lib, "BZ2_bzRead");
+        arch_dlsym(bz2_lib, "BZ2_bzRead");
     }
 #endif
 }
@@ -122,12 +153,20 @@ void dynlibs_close()
 {
 #ifdef HAVE_ZLIB_H
   if (gz_lib)
+#ifdef _WIN32
+    FreeLibrary(gz_lib);
+#else
     dlclose(gz_lib);
+#endif
   gz_lib = 0;
 #endif
 #ifdef HAVE_BZLIB_H
   if (bz2_lib)
+#ifdef _WIN32
+    FreeLibrary(bz2_lib);
+#else
     dlclose(bz2_lib);
+#endif
   bz2_lib = 0;
 #endif
 }

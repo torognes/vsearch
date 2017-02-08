@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -90,7 +90,7 @@ static FILE * fp_otutabout = 0;
 static FILE * fp_mothur_shared_out = 0;
 static FILE * fp_biomout = 0;
 
-void add_hit(struct searchinfo_s * si, unsigned long seqno)
+void add_hit(struct searchinfo_s * si, uint64_t seqno)
 {
   if (search_acceptable_unaligned(si, seqno))
     {
@@ -111,7 +111,7 @@ void add_hit(struct searchinfo_s * si, unsigned long seqno)
       hp->matches = si->qseqlen;
       hp->mismatches = 0;
       
-      int ret = asprintf(&hp->nwalignment, "%dM", si->qseqlen);
+      int ret = xsprintf(&hp->nwalignment, "%dM", si->qseqlen);
       if ((ret == -1) || (!hp->nwalignment))
         fatal("Out of memory");
       
@@ -149,19 +149,19 @@ void search_exact_onequery(struct searchinfo_s * si)
   dbhash_search_info_s info;
 
   char * seq = si->qsequence;
-  unsigned long seqlen = si->qseqlen;
+  uint64_t seqlen = si->qseqlen;
   char * normalized = (char*) xmalloc(seqlen+1);
   string_normalize(normalized, seq, seqlen);
 
   si->hit_count = 0;
 
-  long ret = dbhash_search_first(normalized, seqlen, & info);
+  int64_t ret = dbhash_search_first(normalized, seqlen, & info);
   while (ret >= 0)
     {
       add_hit(si, ret);
       ret = dbhash_search_next(&info);
     }
-  free(normalized);
+  xfree(normalized);
 }
 
 void search_exact_output_results(int hit_count,
@@ -175,7 +175,7 @@ void search_exact_output_results(int hit_count,
   pthread_mutex_lock(&mutex_output);
 
   /* show results */
-  long toreport = MIN(opt_maxhits, hit_count);
+  int64_t toreport = MIN(opt_maxhits, hit_count);
 
   if (fp_alnout)
     results_show_alnout(fp_alnout,
@@ -299,7 +299,7 @@ void search_exact_output_results(int hit_count,
   pthread_mutex_unlock(&mutex_output);
 }
 
-int search_exact_query(long t)
+int search_exact_query(int64_t t)
 {
   for (int s = 0; s < opt_strand; s++)
     {
@@ -338,14 +338,14 @@ int search_exact_query(long t)
   /* free memory for alignment strings */
   for(int i=0; i<hit_count; i++)
     if (hits[i].aligned)
-      free(hits[i].nwalignment);
+      xfree(hits[i].nwalignment);
 
-  free(hits);
+  xfree(hits);
 
   return hit_count;
 }
 
-void search_exact_thread_run(long t)
+void search_exact_thread_run(int64_t t)
 {
   while (1)
     {
@@ -392,7 +392,7 @@ void search_exact_thread_run(long t)
           strcpy(si_plus[t].qsequence, qseq);
           
           /* get progress as amount of input file read */
-          unsigned long progress = fasta_get_position(query_fasta_h);
+          uint64_t progress = fasta_get_position(query_fasta_h);
 
           /* let other threads read input */
           pthread_mutex_unlock(&mutex_input);
@@ -450,16 +450,16 @@ void search_exact_thread_init(struct searchinfo_s * si)
 void search_exact_thread_exit(struct searchinfo_s * si)
 {
   /* thread specific clean up */
-  free(si->hits);
+  xfree(si->hits);
   if (si->query_head)
-    free(si->query_head);
+    xfree(si->query_head);
   if (si->qsequence)
-    free(si->qsequence);
+    xfree(si->qsequence);
 }
 
 void * search_exact_thread_worker(void * vp)
 {
-  long t = (long) vp;
+  int64_t t = (int64_t) vp;
   search_exact_thread_run(t);
   return 0;
 }
@@ -478,7 +478,7 @@ void search_exact_thread_worker_run()
       if (si_minus)
         search_exact_thread_init(si_minus+t);
       if (pthread_create(pthread+t, &attr,
-                         search_exact_thread_worker, (void*)(long)t))
+                         search_exact_thread_worker, (void*)(int64_t)t))
         fatal("Cannot create thread");
     }
 
@@ -622,7 +622,7 @@ void search_exact_done()
   dbhash_close();
 
   db_free();
-  free(dbmatched);
+  xfree(dbmatched);
 
   if (opt_dbmatched)
     fclose(fp_dbmatched);
@@ -683,10 +683,10 @@ void search_exact(char * cmdline, char * progheader)
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);
 
-  free(pthread);
-  free(si_plus);
+  xfree(pthread);
+  xfree(si_plus);
   if (si_minus)
-    free(si_minus);
+    xfree(si_minus);
 
   fasta_close(query_fasta_h);
 
@@ -720,7 +720,7 @@ void search_exact(char * cmdline, char * progheader)
 
   if (opt_dbmatched || opt_dbnotmatched)
     {
-      for(long i=0; i<seqcount; i++)
+      for(int64_t i=0; i<seqcount; i++)
         if (dbmatched[i])
           {
             if (opt_dbmatched)

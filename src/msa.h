@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -68,4 +68,4 @@ struct msa_target_s
 void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list,
-         long totalabundance);
+         int64_t totalabundance);

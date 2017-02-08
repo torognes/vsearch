@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -71,7 +71,7 @@ static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
 static int qmatches;
 static int queries;
-static long progress = 0;
+static int64_t progress = 0;
 static FILE * fp_alnout = 0;
 static FILE * fp_samout = 0;
 static FILE * fp_userout = 0;
@@ -114,7 +114,7 @@ void allpairs_output_results(int hit_count,
                              char * qsequence_rc)
 {
   /* show results */
-  long toreport = MIN(opt_maxhits, hit_count);
+  int64_t toreport = MIN(opt_maxhits, hit_count);
 
   if (fp_alnout)
     results_show_alnout(fp_alnout,
@@ -230,7 +230,7 @@ void allpairs_output_results(int hit_count,
     }
 }
 
-void allpairs_thread_run(long t)
+void allpairs_thread_run(int64_t t)
 {
   struct searchinfo_s sia;
 
@@ -266,7 +266,7 @@ void allpairs_thread_run(long t)
 
   LinearMemoryAligner lma;
 
-  long * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
 
   lma.set_parameters(scorematrix,
                      opt_gap_open_query_left,
@@ -356,13 +356,13 @@ void allpairs_thread_run(long t)
                   struct hit * hit = si->hits + h;
                   
                   unsigned int target = pseqnos[h];
-                  long nwscore = pscores[h];
+                  int64_t nwscore = pscores[h];
                   
                   char * nwcigar;
-                  long nwalignmentlength;
-                  long nwmatches;
-                  long nwmismatches;
-                  long nwgaps;
+                  int64_t nwalignmentlength;
+                  int64_t nwmatches;
+                  int64_t nwmismatches;
+                  int64_t nwgaps;
                   
                   if (nwscore == SHRT_MAX)
                     {
@@ -371,10 +371,10 @@ void allpairs_thread_run(long t)
                          linear memory aligner */
                       
                       char * tseq = db_getsequence(target);
-                      long tseqlen = db_getsequencelen(target);
+                      int64_t tseqlen = db_getsequencelen(target);
                       
                       if (pcigar[h])
-                        free(pcigar[h]);
+                        xfree(pcigar[h]);
                       
                       nwcigar = xstrdup(lma.align(si->qsequence,
                                                  tseq,
@@ -418,7 +418,7 @@ void allpairs_thread_run(long t)
                   hit->matches = nwalignmentlength - hit->nwdiff;
                   hit->mismatches = hit->nwdiff - hit->nwindels;
                   
-                  long dseqlen = db_getsequencelen(target);
+                  int64_t dseqlen = db_getsequencelen(target);
                   hit->shortest = MIN(si->qseqlen, dseqlen);
                   hit->longest = MAX(si->qseqlen, dseqlen);
                   
@@ -459,7 +459,7 @@ void allpairs_thread_run(long t)
           /* free memory for alignment strings */
           for(int i=0; i < si->hit_count; i++)
             if (si->hits[i].aligned)
-              free(si->hits[i].nwalignment);
+              xfree(si->hits[i].nwalignment);
         }
       else
         {
@@ -470,28 +470,28 @@ void allpairs_thread_run(long t)
         }
     }
 
-  free(finalhits);
+  xfree(finalhits);
 
-  free(pcigar);
-  free(pgaps);
-  free(pmismatches);
-  free(pmatches);
-  free(paligned);
-  free(pscores);
-  free(pseqnos);
+  xfree(pcigar);
+  xfree(pgaps);
+  xfree(pmismatches);
+  xfree(pmatches);
+  xfree(paligned);
+  xfree(pscores);
+  xfree(pseqnos);
 
   search16_exit(si->s);
 
   nw_exit(nw);
 
-  free(scorematrix);
+  xfree(scorematrix);
 
-  free(si->hits);
+  xfree(si->hits);
 }
 
 void * allpairs_thread_worker(void * vp)
 {
-  long t = (long) vp;
+  int64_t t = (int64_t) vp;
   allpairs_thread_run(t);
   return 0;
 }
@@ -507,7 +507,7 @@ void allpairs_thread_worker_run()
   for(int t=0; t<opt_threads; t++)
     {
       if (pthread_create(pthread+t, &attr,
-                         allpairs_thread_worker, (void*)(long)t))
+                         allpairs_thread_worker, (void*)(int64_t)t))
         fatal("Cannot create thread");
     }
 
@@ -612,7 +612,7 @@ void allpairs_global(char * cmdline, char * progheader)
   pthread_mutex_init(&mutex_output, NULL);
 
   progress = 0;
-  progress_init("Aligning", MAX(0,((long)seqcount)*((long)seqcount-1))/2);
+  progress_init("Aligning", MAX(0,((int64_t)seqcount)*((int64_t)seqcount-1))/2);
   allpairs_thread_worker_run();
   progress_done();
   
@@ -629,7 +629,7 @@ void allpairs_global(char * cmdline, char * progheader)
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);
 
-  free(pthread);
+  xfree(pthread);
 
   /* clean up, global */
   db_free();

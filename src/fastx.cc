@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -95,14 +95,14 @@ void buffer_init(struct fastx_buffer_s * buffer)
 void buffer_free(struct fastx_buffer_s * buffer)
 {
   if (buffer->data)
-    free(buffer->data);
+    xfree(buffer->data);
   buffer->data = 0;
   buffer->alloc = 0;
   buffer->length = 0;
   buffer->position = 0;
 }
 
-void buffer_makespace(struct fastx_buffer_s * buffer, unsigned long x)
+void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x)
 {
   /* make sure there is space for x more chars in buffer */
 
@@ -133,7 +133,7 @@ void buffer_truncate(struct fastx_buffer_s * buffer, bool truncateatspace)
 
 void buffer_extend(struct fastx_buffer_s * dest_buffer,
                   char * source_buf,
-                  unsigned long len)
+                  uint64_t len)
 {
   buffer_makespace(dest_buffer, len+1);
   memcpy(dest_buffer->data + dest_buffer->length,
@@ -170,7 +170,7 @@ fastx_handle fastx_open(const char * filename)
   if (fstat(fileno(h->fp), & fs))
     fatal("Unable to fstat on input file (%s)", filename);
 
-  h->is_pipe = ! S_ISREG(fs.st_mode);
+  h->is_pipe = S_ISFIFO(fs.st_mode);
 
   h->file_size = 0;
 
@@ -256,7 +256,7 @@ fastx_handle fastx_open(const char * filename)
 
   /* start filling up file buffer */
 
-  unsigned long rest = fastx_file_fill_buffer(h);
+  uint64_t rest = fastx_file_fill_buffer(h);
   
   if (rest < 2)
     fatal("File too small");
@@ -323,6 +323,7 @@ fastx_handle fastx_open(const char * filename)
 
   buffer_init(& h->header_buffer);
   buffer_init(& h->sequence_buffer);
+  buffer_init(& h->plusline_buffer);
   buffer_init(& h->quality_buffer);
 
   h->stripped_all = 0;
@@ -351,7 +352,7 @@ void fastx_close(fastx_handle h)
       fprintf(stderr, "WARNING: invalid characters stripped from fastq file:");
       for (int i=0; i<256;i++)
         if (h->stripped[i])
-          fprintf(stderr, " %c(%lu)", i, h->stripped[i]);
+          fprintf(stderr, " %c(%" PRIu64 ")", i, h->stripped[i]);
       fprintf(stderr, "\n");
 
       if (opt_log)
@@ -359,7 +360,7 @@ void fastx_close(fastx_handle h)
           fprintf(fp_log, "WARNING: invalid characters stripped from fastq file:");
           for (int i=0; i<256;i++)
             if (h->stripped[i])
-              fprintf(fp_log, " %c(%lu)", i, h->stripped[i]);
+              fprintf(fp_log, " %c(%" PRIu64 ")", i, h->stripped[i]);
           fprintf(fp_log, "\n");
         }
     }
@@ -397,6 +398,7 @@ void fastx_close(fastx_handle h)
   buffer_free(& h->file_buffer);
   buffer_free(& h->header_buffer);
   buffer_free(& h->sequence_buffer);
+  buffer_free(& h->plusline_buffer);
   buffer_free(& h->quality_buffer);
 
   h->file_size = 0;
@@ -405,20 +407,20 @@ void fastx_close(fastx_handle h)
   h->lineno = 0;
   h->seqno = -1;
 
-  free(h);
+  xfree(h);
   h=0;
 }
 
-unsigned long fastx_file_fill_buffer(fastx_handle h)
+uint64_t fastx_file_fill_buffer(fastx_handle h)
 {
   /* read more data if necessary */
-  unsigned long rest = h->file_buffer.length - h->file_buffer.position;
+  uint64_t rest = h->file_buffer.length - h->file_buffer.position;
 
   if (rest > 0)
     return rest;
   else
     {
-      unsigned long space = h->file_buffer.alloc - h->file_buffer.length;
+      uint64_t space = h->file_buffer.alloc - h->file_buffer.length;
 
       if (space == 0)
         {
@@ -504,7 +506,7 @@ bool fastx_next(fastx_handle h,
     return fasta_next(h, truncateatspace, char_mapping);
 }
 
-unsigned long fastx_get_position(fastx_handle h)
+uint64_t fastx_get_position(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_position(h);
@@ -513,7 +515,7 @@ unsigned long fastx_get_position(fastx_handle h)
 }
 
 
-unsigned long fastx_get_size(fastx_handle h)
+uint64_t fastx_get_size(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_size(h);
@@ -522,7 +524,7 @@ unsigned long fastx_get_size(fastx_handle h)
 }
 
 
-unsigned long fastx_get_lineno(fastx_handle h)
+uint64_t fastx_get_lineno(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_lineno(h);
@@ -531,7 +533,7 @@ unsigned long fastx_get_lineno(fastx_handle h)
 }
 
 
-unsigned long fastx_get_seqno(fastx_handle h)
+uint64_t fastx_get_seqno(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_seqno(h);
@@ -555,7 +557,7 @@ char * fastx_get_sequence(fastx_handle h)
     return fasta_get_sequence(h);
 }
 
-unsigned long fastx_get_header_length(fastx_handle h)
+uint64_t fastx_get_header_length(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_header_length(h);
@@ -563,7 +565,7 @@ unsigned long fastx_get_header_length(fastx_handle h)
     return fasta_get_header_length(h);
 }
 
-unsigned long fastx_get_sequence_length(fastx_handle h)
+uint64_t fastx_get_sequence_length(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_sequence_length(h);
@@ -580,7 +582,7 @@ char * fastx_get_quality(fastx_handle h)
     return 0;
 }
 
-long fastx_get_abundance(fastx_handle h)
+int64_t fastx_get_abundance(fastx_handle h)
 {
   if (h->is_fastq)
     return fastq_get_abundance(h);

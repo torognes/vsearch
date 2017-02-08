@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -64,7 +64,7 @@ void results_show_fastapairs_one(FILE * fp,
                                  struct hit * hp,
                                  char * query_head,
                                  char * qsequence,
-                                 long qseqlen,
+                                 int64_t qseqlen,
                                  char * rc)
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
@@ -79,7 +79,7 @@ void results_show_fastapairs_one(FILE * fp,
       fasta_print_sequence(fp,
                            qrow + hp->trim_q_left + hp->trim_t_left,
                            hp->internal_alignmentlength, 0);
-      free(qrow);
+      xfree(qrow);
       
       char * trow = align_getrow(db_getsequence(hp->target),
                                  hp->nwalignment,
@@ -89,7 +89,7 @@ void results_show_fastapairs_one(FILE * fp,
       fasta_print_sequence(fp,
                            trow + hp->trim_q_left + hp->trim_t_left,
                            hp->internal_alignmentlength, 0);
-      free(trow);
+      xfree(trow);
       
       fprintf(fp, "\n");
     }
@@ -100,7 +100,7 @@ void results_show_blast6out_one(FILE * fp,
                                 struct hit * hp,
                                 char * query_head,
                                 char * qsequence, 
-                                long qseqlen,
+                                int64_t qseqlen,
                                 char * rc)
 {
 
@@ -142,7 +142,7 @@ void results_show_blast6out_one(FILE * fp,
         }
       
       fprintf(fp,
-              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%lu\t%d\t%d\n",
+              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
               query_head,
               db_getheader(hp->target),
               hp->id,
@@ -166,7 +166,7 @@ void results_show_uc_one(FILE * fp,
                          struct hit * hp,
                          char * query_head,
                          char * qsequence,
-                         long qseqlen,
+                         int64_t qseqlen,
                          char * rc,
                          int clusterno)
 {
@@ -189,10 +189,10 @@ void results_show_uc_one(FILE * fp,
   if (hp)
     {
       bool perfect = (hp->matches == qseqlen) &&
-        ((unsigned long)(qseqlen) == db_getsequencelen(hp->target));
+        ((uint64_t)(qseqlen) == db_getsequencelen(hp->target));
 
       fprintf(fp,
-              "H\t%d\t%ld\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
+              "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
               clusterno,
               qseqlen,
               hp->id,
@@ -207,7 +207,7 @@ void results_show_uc_one(FILE * fp,
 
 void results_show_userout_one(FILE * fp, struct hit * hp,
                               char * query_head,
-                              char * qsequence, long qseqlen,
+                              char * qsequence, int64_t qseqlen,
                               char * rc)
 {
 
@@ -224,7 +224,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
       int field = userfields_requested[c];
           
       char * tsequence = 0;
-      long tseqlen = 0;
+      int64_t tseqlen = 0;
       char * t_head = 0;
 
       if (hp)
@@ -264,31 +264,31 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%d", hp ? hp->internal_indels : 0);
           break;
         case 8: /* qlo */
-          fprintf(fp, "%ld", hp ? (hp->strand ? qseqlen : 1) : 0);
+          fprintf(fp, "%" PRId64, hp ? (hp->strand ? qseqlen : 1) : 0);
           break;
         case 9: /* qhi */
-          fprintf(fp, "%ld", hp ? (hp->strand ? 1 : qseqlen) : 0);
+          fprintf(fp, "%" PRId64, hp ? (hp->strand ? 1 : qseqlen) : 0);
           break;
         case 10: /* tlo */
           fprintf(fp, "%d", hp ? 1 : 0);
           break;
         case 11: /* thi */
-          fprintf(fp, "%ld", tseqlen);
+          fprintf(fp, "%" PRId64, tseqlen);
           break;
         case 12: /* pv */
           fprintf(fp, "%d", hp ? hp->matches : 0);
           break;
         case 13: /* ql */
-          fprintf(fp, "%ld", qseqlen);
+          fprintf(fp, "%" PRId64, qseqlen);
           break;
         case 14: /* tl */
-          fprintf(fp, "%ld", hp ? tseqlen : 0);
+          fprintf(fp, "%" PRId64, hp ? tseqlen : 0);
           break;
         case 15: /* qs */
-          fprintf(fp, "%ld", qseqlen);
+          fprintf(fp, "%" PRId64, qseqlen);
           break;
         case 16: /* ts */
-          fprintf(fp, "%ld", hp ? tseqlen : 0);
+          fprintf(fp, "%" PRId64, hp ? tseqlen : 0);
           break;
         case 17: /* alnlen */
           fprintf(fp, "%d", hp ? hp->internal_alignmentlength : 0);
@@ -331,7 +331,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
               fprintf(fp, "%.*s",
                       (int)(hp->internal_alignmentlength),
                       qrow + hp->trim_q_left + hp->trim_t_left);
-              free(qrow);
+              xfree(qrow);
             }
           break;
         case 27: /* trow */
@@ -344,7 +344,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
               fprintf(fp, "%.*s",
                       (int)(hp->internal_alignmentlength),
                       trow + hp->trim_q_left + hp->trim_t_left);
-              free(trow);
+              xfree(trow);
             }
           break;
         case 28: /* qframe */
@@ -389,13 +389,13 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%d", hp ? hp->trim_q_left + 1 : 0);
           break;
         case 40: /* qihi */
-          fprintf(fp, "%ld", hp ? qseqlen - hp->trim_q_right : 0);
+          fprintf(fp, "%" PRId64, hp ? qseqlen - hp->trim_q_right : 0);
           break;
         case 41: /* tilo */
           fprintf(fp, "%d", hp ? hp->trim_t_left + 1 : 0);
           break;
         case 42: /* tihi */
-          fprintf(fp, "%ld", hp ? tseqlen - hp->trim_t_right : 0);
+          fprintf(fp, "%" PRId64, hp ? tseqlen - hp->trim_t_right : 0);
           break;
         }
     }
@@ -407,7 +407,7 @@ void results_show_alnout(FILE * fp,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         long qseqlen,
+                         int64_t qseqlen,
                          char * rc)
 {
   /* http://drive5.com/usearch/manual/alnout.html */
@@ -428,7 +428,7 @@ void results_show_alnout(FILE * fp,
           if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
 
-          fprintf(fp,"%3.0f%% %6lu  %s\n",
+          fprintf(fp,"%3.0f%% %6" PRIu64 "  %s\n",
                   hp->id,
                   db_getsequencelen(hp->target),
                   db_getheader(hp->target));
@@ -445,16 +445,16 @@ void results_show_alnout(FILE * fp,
           
 
           char * dseq = db_getsequence(hp->target);
-          long dseqlen = db_getsequencelen(hp->target);
+          int64_t dseqlen = db_getsequencelen(hp->target);
           
           char dummy;
-          int qlenlen = snprintf(&dummy, 1, "%ld", qseqlen);
-          int tlenlen = snprintf(&dummy, 1, "%ld", dseqlen);
+          int qlenlen = snprintf(&dummy, 1, "%" PRId64, qseqlen);
+          int tlenlen = snprintf(&dummy, 1, "%" PRId64, dseqlen);
           int numwidth = MAX(qlenlen, tlenlen);
           
-          fprintf(fp," Query %*ldnt >%s\n", numwidth,
+          fprintf(fp," Query %*" PRId64 "nt >%s\n", numwidth,
                   qseqlen, query_head);
-          fprintf(fp,"Target %*ldnt >%s\n", numwidth,
+          fprintf(fp,"Target %*" PRId64 "nt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
           
           int rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
@@ -612,14 +612,14 @@ void results_show_samheader(FILE * fp,
     {
       fprintf(fp, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
       
-      for(unsigned long i=0; i<db_getsequencecount(); i++)
+      for(uint64_t i=0; i<db_getsequencecount(); i++)
         {
           char md5hex[LEN_HEX_DIG_MD5];
           get_hex_seq_digest_md5(md5hex,
                                  db_getsequence(i),
                                  db_getsequencelen(i));
           fprintf(fp,
-                  "@SQ\tSN:%s\tLN:%lu\tM5:%s\tUR:file:%s\n",
+                  "@SQ\tSN:%s\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
                   db_getheader(i),
                   db_getsequencelen(i),
                   md5hex,
@@ -639,7 +639,7 @@ void results_show_samout(FILE * fp,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         long qseqlen,
+                         int64_t qseqlen,
                          char * rc)
 {
   /* 
@@ -704,18 +704,21 @@ void results_show_samout(FILE * fp,
                             & md);
 
           fprintf(fp,
-                  "%s\t%u\t%s\t%lu\t%u\t%s\t%s\t%lu\t%lu\t%s\t%s\t"
+                  "%s\t%u\t%s\t%" PRIu64
+                  "\t%u\t%s\t%s\t%" PRIu64
+                  "\t%" PRIu64
+                  "\t%s\t%s\t"
                   "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
                   "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
                   query_head,
                   0x10 * hp->strand | (t>0 ? 0x100 : 0),
                   db_getheader(hp->target),
-                  1UL,
+                  (uint64_t) 1,
                   255,
                   cigar.get_string(),
                   "*",
-                  0UL,
-                  0UL,
+                  (uint64_t) 0,
+                  (uint64_t) 0,
                   hp->strand ? rc : qsequence,
                   "*",
                   hp->id,
@@ -731,16 +734,16 @@ void results_show_samout(FILE * fp,
   else if (opt_output_no_hits)
     {
       fprintf(fp,
-              "%s\t%u\t%s\t%lu\t%u\t%s\t%s\t%lu\t%lu\t%s\t%s\n",
+              "%s\t%u\t%s\t%" PRIu64 "\t%u\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
               query_head,
               0x04,
               "*",
-              0UL,
+              (uint64_t) 0,
               255,
               "*",
               "*",
-              0UL,
-              0UL,
+              (uint64_t) 0,
+              (uint64_t) 0,
               qsequence,
               "*");
     }

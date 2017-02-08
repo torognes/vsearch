@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -79,28 +79,26 @@
 #define LEN_HEX_DIG_MD5 (2*LEN_DIG_MD5+1)
 #define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
 
-long gcd(long a, long b);
 void fatal(const char * msg);
 void fatal(const char * format, const char * message);
-void * xmalloc(size_t size);
-void * xrealloc(void * ptr, size_t size);
 char * xstrdup(const char *s);
 char * xstrchrnul(char *s, int c);
-unsigned long hash_cityhash64(char * s, unsigned long n);
-long getusec(void);
+int xsprintf(char * * ret, const char * format, ...);
+uint64_t hash_cityhash64(char * s, uint64_t n);
+int64_t getusec(void);
 void show_rusage();
 
-void progress_init(const char * prompt, unsigned long size);
-void progress_update(unsigned long progress);
+void progress_init(const char * prompt, uint64_t size);
+void progress_update(uint64_t progress);
 void progress_done();
 
 void random_init();
-long random_int(long n);
-unsigned long random_ulong(unsigned long n);
+int64_t random_int(int64_t n);
+uint64_t random_ulong(uint64_t n);
 
 void string_normalize(char * normalized, char * s, unsigned int len);
 
-void reverse_complement(char * rc, char * seq, long len);
+void reverse_complement(char * rc, char * seq, int64_t len);
 
 void fprint_hex(FILE * fp, unsigned char * data, int len);
 

@@ -9,6 +9,8 @@
 /config.h
 /config.log
 /config.status
+/config.guess
+/config.sub
 /stamp-h1
 Makefile
 aclocal.m4

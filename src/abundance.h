@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2015, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2017, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -67,13 +67,13 @@ abundance_t * abundance_init(void);
 
 void abundance_exit(abundance_t * a);
 
-long abundance_get(abundance_t * a, char * header);
+int64_t abundance_get(abundance_t * a, char * header);
 
 void abundance_fprint_header_with_size(abundance_t * a,
                                        FILE * fp,
                                        char * header,
                                        int header_length,
-                                       unsigned long size);
+                                       uint64_t size);
 
 void abundance_fprint_header_strip_size(abundance_t * a,
                                         FILE * fp,
