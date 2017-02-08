@@ -191,8 +191,8 @@ void dprofile_fill16(CELL * dprofile_word,
 #ifdef __PPC__
   vector signed short reg0, reg1, reg2, reg3, reg4, reg5, reg6, reg7;
   vector signed int   reg8, reg9, reg10,reg11,reg12,reg13,reg14,reg15;
-  vector signed long  reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
-  vector signed long  reg24,reg25,reg26,reg27,reg28,reg29,reg30,reg31;
+  vector signed long long  reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
+  vector signed long long  reg24,reg25,reg26,reg27,reg28,reg29,reg30,reg31;
 #else
   VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
@@ -241,39 +241,47 @@ void dprofile_fill16(CELL * dprofile_word,
       reg14 = (vector signed int) vec_mergeh(reg6, reg7);
       reg15 = (vector signed int) vec_mergel(reg6, reg7);
 
-      reg16 = (vector signed long) vec_mergeh(reg8,  reg10);
-      reg17 = (vector signed long) vec_mergel(reg8,  reg10);
-      reg18 = (vector signed long) vec_mergeh(reg12, reg14);
-      reg19 = (vector signed long) vec_mergel(reg12, reg14);
-      reg20 = (vector signed long) vec_mergeh(reg9,  reg11);
-      reg21 = (vector signed long) vec_mergel(reg9,  reg11);
-      reg22 = (vector signed long) vec_mergeh(reg13, reg15);
-      reg23 = (vector signed long) vec_mergel(reg13, reg15);
+      reg16 = (vector signed long long) vec_mergeh(reg8,  reg10);
+      reg17 = (vector signed long long) vec_mergel(reg8,  reg10);
+      reg18 = (vector signed long long) vec_mergeh(reg12, reg14);
+      reg19 = (vector signed long long) vec_mergel(reg12, reg14);
+      reg20 = (vector signed long long) vec_mergeh(reg9,  reg11);
+      reg21 = (vector signed long long) vec_mergel(reg9,  reg11);
+      reg22 = (vector signed long long) vec_mergeh(reg13, reg15);
+      reg23 = (vector signed long long) vec_mergel(reg13, reg15);
 
-      reg24 = (vector signed long) vec_perm(reg16, reg18, perm_merge_long_low);
-      reg25 = (vector signed long) vec_perm(reg16, reg18, perm_merge_long_high);
-      reg26 = (vector signed long) vec_perm(reg17, reg19, perm_merge_long_low);
-      reg27 = (vector signed long) vec_perm(reg17, reg19, perm_merge_long_high);
-      reg28 = (vector signed long) vec_perm(reg20, reg22, perm_merge_long_low);
-      reg29 = (vector signed long) vec_perm(reg20, reg22, perm_merge_long_high);
-      reg30 = (vector signed long) vec_perm(reg21, reg23, perm_merge_long_low);
-      reg31 = (vector signed long) vec_perm(reg21, reg23, perm_merge_long_high);
+      reg24 = (vector signed long long) vec_perm
+	(reg16, reg18, perm_merge_long_low);
+      reg25 = (vector signed long long) vec_perm
+	(reg16, reg18, perm_merge_long_high);
+      reg26 = (vector signed long long) vec_perm
+	(reg17, reg19, perm_merge_long_low);
+      reg27 = (vector signed long long) vec_perm
+	(reg17, reg19, perm_merge_long_high);
+      reg28 = (vector signed long long) vec_perm
+	(reg20, reg22, perm_merge_long_low);
+      reg29 = (vector signed long long) vec_perm
+	(reg20, reg22, perm_merge_long_high);
+      reg30 = (vector signed long long) vec_perm
+	(reg21, reg23, perm_merge_long_low);
+      reg31 = (vector signed long long) vec_perm
+	(reg21, reg23, perm_merge_long_high);
 
-      vec_st(reg24, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg24, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j));
-      vec_st(reg25, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg25, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j));
-      vec_st(reg26, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg26, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j));
-      vec_st(reg27, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg27, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j));
-      vec_st(reg28, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg28, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j));
-      vec_st(reg29, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg29, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j));
-      vec_st(reg30, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg30, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j));
-      vec_st(reg31, 0, (vector signed long *)
+      vec_st((vector unsigned char)reg31, 0, (vector unsigned char *)
 	     (dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j));
 
 #else
@@ -354,6 +362,14 @@ void dprofile_fill16(CELL * dprofile_word,
 
 #ifdef __PPC__
 
+/* Handle differences between GNU and IBM compilers */
+
+#ifdef __IBMCPP__
+#define VECTORBYTEPERMUTE vec_bperm
+#else
+#define VECTORBYTEPERMUTE vec_vbpermq
+#endif
+
 const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
 				      56,  48,  40,  32,  24,  16,   8,   0 };
 
@@ -361,11 +377,13 @@ const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
   {									\
     vector unsigned short W, X, Y, Z;					\
     vector unsigned int WX, YZ;						\
-    H = vec_adds(H, V);							\
-    W = (vector unsigned short) vec_vbpermq				\
+    vector short VV;							\
+    VV = vec_ld(0, &(V));						\
+    H = vec_adds(H, VV);						\
+    W = (vector unsigned short) VECTORBYTEPERMUTE			\
       ((vector unsigned char) vec_cmpgt(F, H), perm);                   \
     H = vec_max(H, F);							\
-    X = (vector unsigned short) vec_vbpermq			        \
+    X = (vector unsigned short) VECTORBYTEPERMUTE			\
       ((vector unsigned char) vec_cmpgt(E, H), perm);	                \
     H = vec_max(H, E);							\
     H_MIN = vec_min(H_MIN, H);						\
@@ -373,17 +391,17 @@ const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
     N = H;								\
     HF = vec_subs(H, QR_t);						\
     F = vec_subs(F, R_t);						\
-    Y = (vector unsigned short) vec_vbpermq				\
+    Y = (vector unsigned short) VECTORBYTEPERMUTE			\
       ((vector unsigned char) vec_cmpgt(F, HF), perm);     	        \
     F = vec_max(F, HF);							\
     HE = vec_subs(H, QR_q);						\
     E = vec_subs(E, R_q);						\
-    Z = (vector unsigned short) vec_vbpermq				\
+    Z = (vector unsigned short) VECTORBYTEPERMUTE			\
       ((vector unsigned char) vec_cmpgt(E, HE), perm);	                \
     E = vec_max(E, HE);							\
     WX = (vector unsigned int) vec_mergel(W, X);			\
     YZ = (vector unsigned int) vec_mergel(Y, Z);			\
-    RES = (vector unsigned long) vec_mergeh(WX, YZ);			\
+    RES = (vector unsigned long long) vec_mergeh(WX, YZ);		\
   }
 
 #else
@@ -449,7 +467,7 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT h_min = vec_splat_s16(0);
   VECTOR_SHORT h_max = vec_splat_s16(0);
 
-  vector unsigned long RES1, RES2, RES;
+  vector unsigned long long RES1, RES2, RES;
   
   int64_t i;
 
@@ -490,14 +508,16 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
       ALIGNCORE(h1, h6, f1, vp[1], RES2,
                 QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
       RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+      vec_st((vector unsigned char) RES, 0,
+	     (vector unsigned char *)(dir+16*i+0));
 
       ALIGNCORE(h2, h7, f2, vp[2], RES1,
                 QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
       ALIGNCORE(h3, h8, f3, vp[3], RES2,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
       RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+      vec_st((vector unsigned char) RES, 0,
+	     (vector unsigned char *)(dir+16*i+8));
 
       hep[2*i+0] = h8;
       hep[2*i+1] = E;
@@ -524,14 +544,16 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
   ALIGNCORE(h1, h6, f1, vp[1], RES2,
 	    QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
   RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+  vec_st((vector unsigned char) RES, 0,
+	 (vector unsigned char *)(dir+16*i+0));
 
   ALIGNCORE(h2, h7, f2, vp[2], RES1,
 	    QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
   ALIGNCORE(h3, h8, f3, vp[3], RES2,
 	    QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
   RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+  vec_st((vector unsigned char) RES, 0,
+	 (vector unsigned char *)(dir+16*i+8));
   
   hep[2*i+0] = h8;
   hep[2*i+1] = E;
@@ -672,7 +694,7 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT h_min = vec_splat_s16(0);
   VECTOR_SHORT h_max = vec_splat_s16(0);
 
-  vector unsigned long RES1, RES2, RES;
+  vector unsigned long long RES1, RES2, RES;
   
   int64_t i;
 
@@ -694,14 +716,16 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
       ALIGNCORE(h1, h6, f1, vp[1], RES2,
                 QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
       RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+      vec_st((vector unsigned char) RES, 0,
+	     (vector unsigned char *)(dir+16*i+0));
 
       ALIGNCORE(h2, h7, f2, vp[2], RES1,
                 QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
       ALIGNCORE(h3, h8, f3, vp[3], RES2,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
       RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+      vec_st((vector unsigned char) RES, 0,
+	     (vector unsigned char *)(dir+16*i+8));
 
       hep[2*i+0] = h8;
       hep[2*i+1] = E;
@@ -723,14 +747,16 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
   ALIGNCORE(h1, h6, f1, vp[1], RES2,
 	    QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
   RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+0));
+  vec_st((vector unsigned char) RES, 0,
+	 (vector unsigned char *)(dir+16*i+0));
 
   ALIGNCORE(h2, h7, f2, vp[2], RES1,
 	    QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
   ALIGNCORE(h3, h8, f3, vp[3], RES2,
 	    QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
   RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  vec_st(RES, 0, (vector unsigned long *)(dir+16*i+8));
+  vec_st((vector unsigned char) RES, 0,
+	 (vector unsigned char *)(dir+16*i+8));
 
   hep[2*i+0] = h8;
   hep[2*i+1] = E;
