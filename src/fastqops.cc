@@ -561,17 +561,17 @@ void fastq_stats()
   
   int64_t read_length_alloc = 512;
 
-  int * read_length_table = (int*) xmalloc(sizeof(int) * read_length_alloc);
-  memset(read_length_table, 0, sizeof(int) * read_length_alloc);
+  uint64_t * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc);
+  memset(read_length_table, 0, sizeof(uint64_t) * read_length_alloc);
 
-  int * qual_length_table = (int*) xmalloc(sizeof(int) * read_length_alloc * 256);
-  memset(qual_length_table, 0, sizeof(int) * read_length_alloc * 256);
+  uint64_t * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc * 256);
+  memset(qual_length_table, 0, sizeof(uint64_t) * read_length_alloc * 256);
 
-  int * ee_length_table = (int *) xmalloc(sizeof(int) * read_length_alloc * 4);
-  memset(ee_length_table, 0, sizeof(int) * read_length_alloc * 4);
+  uint64_t * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
+  memset(ee_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
 
-  int * q_length_table = (int *) xmalloc(sizeof(int) * read_length_alloc * 4);
-  memset(q_length_table, 0, sizeof(int) * read_length_alloc * 4);
+  uint64_t * q_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
+  memset(q_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
 
   double * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
   memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
@@ -597,25 +597,25 @@ void fastq_stats()
 
       if (len+1 > read_length_alloc)
         {
-          read_length_table = (int*) xrealloc(read_length_table,
-                                              sizeof(int) * (len+1));
+          read_length_table = (uint64_t*) xrealloc(read_length_table,
+                                              sizeof(uint64_t) * (len+1));
           memset(read_length_table + read_length_alloc, 0, 
-                 sizeof(int) * (len + 1 - read_length_alloc));
+                 sizeof(uint64_t) * (len + 1 - read_length_alloc));
 
-          qual_length_table = (int*) xrealloc(qual_length_table,
-                                              sizeof(int) * (len+1) * 256);
+          qual_length_table = (uint64_t*) xrealloc(qual_length_table,
+                                              sizeof(uint64_t) * (len+1) * 256);
           memset(qual_length_table + 256 * read_length_alloc, 0, 
-                 sizeof(int) * (len + 1 - read_length_alloc) * 256);
+                 sizeof(uint64_t) * (len + 1 - read_length_alloc) * 256);
 
-          ee_length_table = (int*) xrealloc(ee_length_table,
-                                            sizeof(int) * (len+1) * 4);
+          ee_length_table = (uint64_t*) xrealloc(ee_length_table,
+                                            sizeof(uint64_t) * (len+1) * 4);
           memset(ee_length_table + 4 * read_length_alloc, 0, 
-                 sizeof(int) * (len + 1 - read_length_alloc) * 4);
+                 sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
-          q_length_table = (int*) xrealloc(q_length_table,
-                                           sizeof(int) * (len+1) * 4);
+          q_length_table = (uint64_t*) xrealloc(q_length_table,
+                                           sizeof(uint64_t) * (len+1) * 4);
           memset(q_length_table + 4 * read_length_alloc, 0, 
-                 sizeof(int) * (len + 1 - read_length_alloc) * 4);
+                 sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
           sumee_length_table = (double *) xrealloc(sumee_length_table,
                                                    sizeof(double) * (len+1));
@@ -698,7 +698,7 @@ void fastq_stats()
 
   /* compute various distributions */
 
-  int * length_dist = (int*) xmalloc(sizeof(int) * (len_max+1));
+  uint64_t * length_dist = (uint64_t*) xmalloc(sizeof(uint64_t) * (len_max+1));
   int64_t * symb_dist = (int64_t*) xmalloc(sizeof(int64_t) * (len_max+1));
 
   double * rate_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
@@ -744,7 +744,7 @@ void fastq_stats()
       for(int64_t i = len_max; i >= len_min; i--)
         {
           if (read_length_table[i] > 0)
-            fprintf(fp_log, "%2s%5" PRId64 "  %10d   %5.1lf%%   %5.1lf%%\n",
+            fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                     (i == len_max ? ">=" : "  "),
                     i,
                     read_length_table[i],
@@ -849,7 +849,7 @@ void fastq_stats()
         }
 
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too int64_t\n",
+      fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
               seq_count, seq_count / 1.0e6);
       fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
       fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);

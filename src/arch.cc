@@ -70,7 +70,7 @@ uint64_t arch_get_memused()
   GetProcessMemoryInfo(GetCurrentProcess(),
                        &pmc,
                        sizeof(PROCESS_MEMORY_COUNTERS));
-  return pmc.WorkingSetSize;
+  return pmc.PeakWorkingSetSize;
 
 #else
 

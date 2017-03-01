@@ -97,15 +97,15 @@ void fastq_eestats()
   
   int64_t ee_size = ee_start(len_alloc, resolution);
   
-  int * read_length_table = (int*) xmalloc(sizeof(int) * len_alloc);
-  memset(read_length_table, 0, sizeof(int) * len_alloc);
+  uint64_t * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * len_alloc);
+  memset(read_length_table, 0, sizeof(uint64_t) * len_alloc);
   
-  int * qual_length_table = (int*) xmalloc(sizeof(int) * len_alloc *
+  uint64_t * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * len_alloc *
                                            (max_quality+1));
-  memset(qual_length_table, 0, sizeof(int) * len_alloc * (max_quality+1));
+  memset(qual_length_table, 0, sizeof(uint64_t) * len_alloc * (max_quality+1));
   
-  int * ee_length_table = (int*) xmalloc(sizeof(int) * ee_size);
-  memset(ee_length_table, 0, sizeof(int) * ee_size);
+  uint64_t * ee_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * ee_size);
+  memset(ee_length_table, 0, sizeof(uint64_t) * ee_size);
 
   double * sum_ee_length_table = (double*) xmalloc(sizeof(double) * len_alloc);
   memset(sum_ee_length_table, 0, sizeof(double) * len_alloc);
@@ -131,20 +131,20 @@ void fastq_eestats()
         {
           int64_t new_ee_size = ee_start(new_alloc, resolution);
 
-          read_length_table = (int*) xrealloc(read_length_table,
-                                              sizeof(int) * new_alloc);
+          read_length_table = (uint64_t*) xrealloc(read_length_table,
+                                              sizeof(uint64_t) * new_alloc);
           memset(read_length_table + len_alloc, 0, 
-                 sizeof(int) * (new_alloc - len_alloc));
+                 sizeof(uint64_t) * (new_alloc - len_alloc));
           
-          qual_length_table = (int*) xrealloc(qual_length_table, sizeof(int) *
+          qual_length_table = (uint64_t*) xrealloc(qual_length_table, sizeof(uint64_t) *
                                               new_alloc * (max_quality+1));
           memset(qual_length_table + (max_quality+1) * len_alloc, 0, 
-                 sizeof(int) * (new_alloc - len_alloc) * (max_quality+1));
+                 sizeof(uint64_t) * (new_alloc - len_alloc) * (max_quality+1));
           
-          ee_length_table = (int*) xrealloc(ee_length_table, sizeof(int) * 
+          ee_length_table = (uint64_t*) xrealloc(ee_length_table, sizeof(uint64_t) * 
                                             new_ee_size);
           memset(ee_length_table + ee_size, 0,
-                 sizeof(int) * (new_ee_size - ee_size));
+                 sizeof(uint64_t) * (new_ee_size - ee_size));
           
           sum_ee_length_table = (double*) xrealloc(sum_ee_length_table,
                                               sizeof(double) * new_alloc);
@@ -210,7 +210,7 @@ void fastq_eestats()
 
           ee += pe;
 
-          int e_int = MIN(resolution*(i+1), (int)(resolution * ee));
+          int64_t e_int = MIN(resolution*(i+1), (int)(resolution * ee));
           ee_length_table[ee_start(i, resolution) + e_int]++;
 
           sum_ee_length_table[i] += ee;
@@ -285,9 +285,9 @@ void fastq_eestats()
       int64_t max_errors = resolution * (i+1);
 
       n = 0;
-      for(int e=0; e<=max_errors; e++)
+      for(int64_t e=0; e<=max_errors; e++)
         {
-          int x = ee_length_table[ee_offset + e];
+          int64_t x = ee_length_table[ee_offset + e];
           n += x;
 
           if ((min_ee<0) && (x > 0))
