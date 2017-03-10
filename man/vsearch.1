@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 1, 2017" "version 2.4.1" "USER COMMANDS"
+.TH vsearch 1 "March 10, 2017" "version 2.4.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -1054,7 +1054,7 @@ with the \-\-fastq_maxns are also discarded (no limit by
 default). Staggered reads are not merged unless the
 \-\-fastq_allowmergestagger option is specified. The minimum length of
 the overlap region between the reads may be specified with the
-\-\-minovlen option (default 10), and the overlap region may not
+\-\-minovlen option (default 16), and the overlap region may not
 include more mismatches than specified with the \-\-maxdiffs option (5
 by default), otherwise the read pair is discarded. The mimimum and
 maximum length of the merged sequence may be specified with the
@@ -3058,6 +3058,11 @@ command in help text.
 Fixed an overflow bug in fastq_stats and fastq_eestats affecting
 analysis of very large FASTQ files. Fixed maximum memory usage
 reporting on Windows.
+.TP
+.BR v2.4.2\~ "released March 10th, 2017"
+Default value for fastq_minovlen increased to 16 in accordance with
+help text and for compatibility with usearch. Minor changes for
+improved accuracy of paired-end read merging.
 .RE
 .LP
 .\" ============================================================================
