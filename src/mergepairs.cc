@@ -62,10 +62,22 @@
 
 #define INPUTCHUNKSIZE 10000
 
+#define NEWMERGE
+
+#ifdef NEWMERGE
+
+const double merge_minscore =  20.0;
+const double merge_giveup   = -20.0;
+const double merge_bias = 0.0;
+
+#else
+
 /* scores */
 
 const double alpha = 4.0;
 const double beta = -22.0;
+
+#endif
 
 /* static variables */
 
@@ -97,7 +109,6 @@ static char merge_qual_diff[128][128];
 static double match_score[128][128];
 static double mism_score[128][128];
 static double q2p[128];
-static double ambig_score;
 
 typedef struct merge_data_s
 {
@@ -138,7 +149,7 @@ FILE * fileopenw(char * filename)
   return fp;
 }
 
-int get_qual(char q)
+inline int get_qual(char q)
 {
   int qual = q - opt_fastq_ascii;
   char msg[200];
@@ -158,7 +169,7 @@ int get_qual(char q)
   return qual;
 }
 
-double q_to_p(int q)
+inline double q_to_p(int q)
 {
   int x = q - opt_fastq_ascii;
   if (x < 2)
@@ -170,8 +181,6 @@ double q_to_p(int q)
 void precompute_qual()
 {
   /* Precompute tables of scores etc */
-
-  ambig_score = alpha * 0.25 + beta * 0.75;
 
   for (int x = 33; x < 126; x++)
     {
@@ -196,6 +205,30 @@ void precompute_qual()
           q = opt_fastq_ascii + MIN(round(-10.0*log10(p)), opt_fastq_qmaxout);
           merge_qual_diff[x][y] = q;
 
+#ifdef NEWMERGE
+
+          /* Match */
+
+          /* probability that they really are similar,
+             given that they look similar and have
+             error probabilites of px and py, resp. */
+
+          p = 1.0 - px - py + px * py * 4.0 / 3.0;
+
+          match_score[x][y] = log(p/0.25) + merge_bias;
+
+          /* Mismatch */
+
+          /* Probability that they are similar
+             given that they look different and have
+             error probabilities of px and py, resp. */
+
+          p = (px + py) / 3.0 - px * py * 4.0 / 9.0;
+
+          mism_score[x][y] = log(p/0.25) + merge_bias;
+
+#else
+
           /* Score weights from PEAR */
 
           /* Match */
@@ -218,6 +251,7 @@ void precompute_qual()
 
           mism_score[x][y] = beta * p;
 
+#endif
         }
     }
 }
@@ -427,6 +461,7 @@ double overlap_score(merge_data_t * ip,
   int64_t fwd_pos = fwd_pos_start;
   int64_t rev_pos = rev_pos_start;
   double score = 0.0;
+
   int64_t diffs = 0;
 
   for (int64_t j=0; j < overlap; j++)
@@ -443,6 +478,12 @@ double overlap_score(merge_data_t * ip,
       else
         {
           score += mism_score[fwd_qual][rev_qual];
+
+#ifdef NEWMERGE
+          if (score < merge_giveup)
+            return score;
+#endif
+
           diffs++;
           if (diffs > opt_fastq_maxdiffs)
             return -1000.0;
@@ -486,7 +527,14 @@ int64_t optimize(merge_data_t * ip)
         }
     }
 
+#ifdef NEWMERGE
+  if (best_score >= merge_minscore)
+    return best_i;
+  else
+    return 0;
+#else
   return best_i;
+#endif
 }
 
 void process(merge_data_t * ip)
