@@ -62,22 +62,9 @@
 
 #define INPUTCHUNKSIZE 10000
 
-#define NEWMERGE
-
-#ifdef NEWMERGE
-
-const double merge_minscore =  20.0;
-const double merge_giveup   = -20.0;
-const double merge_bias = 0.0;
-
-#else
-
-/* scores */
-
-const double alpha = 4.0;
-const double beta = -22.0;
-
-#endif
+const double merge_minscore =   1.0;
+const double merge_bias     =  -0.9; // -0.8; neg. bias favours short overlaps
+const double gap_penalty    =  20.0;
 
 /* static variables */
 
@@ -93,9 +80,6 @@ static fastx_handle fastq_rev;
 static int64_t merged = 0;
 static int64_t notmerged = 0;
 static int64_t total = 0;
-static char * merged_sequence = 0;
-static char * merged_quality = 0;
-static char * merged_header = 0;
 static pthread_t * pthread;
 static pthread_attr_t attr;
 static pthread_mutex_t mutex_input;
@@ -116,7 +100,6 @@ typedef struct merge_data_s
   char * rev_header;
   char * fwd_sequence;
   char * rev_sequence;
-  char * rev_seq_comp;
   char * fwd_quality;
   char * rev_quality;
   int64_t header_alloc;
@@ -182,12 +165,12 @@ void precompute_qual()
 {
   /* Precompute tables of scores etc */
 
-  for (int x = 33; x < 126; x++)
+  for (int x = 33; x <= 126; x++)
     {
       double px = q_to_p(x);
       q2p[x] = px;
 
-      for (int y = 33; y < 126; y++)
+      for (int y = 33; y <= 126; y++)
         {
           double py = q_to_p(y);
 
@@ -204,8 +187,6 @@ void precompute_qual()
           p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
           q = opt_fastq_ascii + MIN(round(-10.0*log10(p)), opt_fastq_qmaxout);
           merge_qual_diff[x][y] = q;
-
-#ifdef NEWMERGE
 
           /* Match */
 
@@ -226,32 +207,6 @@ void precompute_qual()
           p = (px + py) / 3.0 - px * py * 4.0 / 9.0;
 
           mism_score[x][y] = log(p/0.25) + merge_bias;
-
-#else
-
-          /* Score weights from PEAR */
-
-          /* Match */
-
-          /* probability that they really are similar,
-             given that they look similar and have
-             error probabilites of px and py, resp. */
-
-          p = 1.0 - px - py + px * py * 4.0 / 3.0;
-
-          match_score[x][y] = alpha * p;
-
-          /* Mismatch */
-
-          /* Probability that they really are different,
-             given that they look different and have
-             error probabilities of px and py, resp. */
-
-          p = 1.0 - (px + py) / 3.0 + px * py * 4.0 / 9.0;
-
-          mism_score[x][y] = beta * p;
-
-#endif
         }
     }
 }
@@ -398,7 +353,7 @@ void merge(merge_data_t * ip)
       if (has_fwd && has_rev)
         {
           char fwd_sym = ip->fwd_sequence[fwd_pos];
-          char rev_sym = ip->rev_seq_comp[rev_pos];
+          char rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
           char fwd_qual = ip->fwd_quality[fwd_pos];
           char rev_qual = ip->rev_quality[rev_pos];
 
@@ -421,7 +376,7 @@ void merge(merge_data_t * ip)
         }
       else
         {
-          sym = ip->rev_seq_comp[rev_pos];
+          sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
           qual = ip->rev_quality[rev_pos];
         }
 
@@ -453,47 +408,98 @@ void merge(merge_data_t * ip)
     }
 }
 
-double overlap_score(merge_data_t * ip,
-                     int64_t fwd_pos_start,
-                     int64_t rev_pos_start,
-                     int64_t overlap)
-{
-  int64_t fwd_pos = fwd_pos_start;
-  int64_t rev_pos = rev_pos_start;
-  double score = 0.0;
-
-  int64_t diffs = 0;
-
-  for (int64_t j=0; j < overlap; j++)
-    {
-      char fwd_sym = ip->fwd_sequence[fwd_pos];
-      char rev_sym = ip->rev_seq_comp[rev_pos];
-      unsigned int fwd_qual = ip->fwd_quality[fwd_pos];
-      unsigned int rev_qual = ip->rev_quality[rev_pos];
-      fwd_pos--;
-      rev_pos++;
-
-      if (fwd_sym == rev_sym)
-        score += match_score[fwd_qual][rev_qual];
-      else
-        {
-          score += mism_score[fwd_qual][rev_qual];
-
-#ifdef NEWMERGE
-          if (score < merge_giveup)
-            return score;
-#endif
-
-          diffs++;
-          if (diffs > opt_fastq_maxdiffs)
-            return -1000.0;
-        }
-    }
-  return score;
-}
-
 int64_t optimize(merge_data_t * ip)
 {
+  // i = position in forward sequence
+  // j = position in reverse sequence
+  // m = length of forward sequence (after truncation)
+  // n = length of reverse sequence (after truncation)
+
+  int64_t m = ip->fwd_trunc;
+  int64_t n = ip->rev_trunc;
+
+  double h[m];
+  
+  for (int i = 0; i < m; i++)
+    h[i] = 0.0;
+
+  double best_score = 0.0;
+  int64_t best_i = 0;
+  
+  int64_t j_min = n > m ? n - m : 0;
+
+  for (int64_t j = n-1; j >= j_min; j--)
+    {
+      char rev_sym = chrmap_complement[(int)(ip->rev_sequence[j])];
+      unsigned int rev_qual = ip->rev_quality[j];
+
+      int64_t i_min = m > n ? m - j - 1 : n - j - 1;
+      
+      double v, f;
+
+      if (i_min == 0)
+        {
+          v = - (n-1-j) * gap_penalty;
+        }
+      else
+        {
+          v = h[i_min - 1];
+        }
+
+      f = - (n-j+1) * gap_penalty;
+
+      f = - 1e20; /* illegal gap unless staggered */
+
+      for (int64_t i = i_min; i < m; i++)
+        {
+          double temp = h[i];
+
+          double e = temp - gap_penalty;
+
+          char fwd_sym = ip->fwd_sequence[i];
+          unsigned int fwd_qual = ip->fwd_quality[i];
+          
+          double match =
+            fwd_sym == rev_sym ?
+            match_score[fwd_qual][rev_qual] :
+            mism_score[fwd_qual][rev_qual];
+          
+          double g = v + match;
+          
+          if (g >= e)
+            if (g >= f)
+              v = g;
+            else
+              v = f;
+          else
+            if (e >= f)
+              v = e;
+            else
+              v = f;
+          
+          h[i] = v;
+
+          f = v - gap_penalty;
+
+          v = temp;
+        }
+      
+      double final = h[m-1];
+      if (final > best_score)
+        {
+          best_score = final;
+          best_i = n - j;
+        }
+    }
+  
+  if (best_score >= merge_minscore)
+    return best_i;
+  else
+    return 0;
+
+#if 0
+
+
   int64_t i1 = 1;
 
   i1 = MAX(i1, ip->fwd_trunc + ip->rev_trunc - opt_fastq_maxmergelen);
@@ -504,8 +510,9 @@ int64_t optimize(merge_data_t * ip)
 
   i2 = MIN(i2, ip->fwd_trunc + ip->rev_trunc - opt_fastq_minmergelen);
 
-  int64_t best_i = 0;
   double best_score = 0.0;
+  int64_t best_i = 0;
+  int64_t best_diffs = 0;
 
   for(int64_t i = i1; i <= i2; i++)
     {
@@ -515,26 +522,49 @@ int64_t optimize(merge_data_t * ip)
       int64_t fwd_pos_start = ip->fwd_trunc - fwd_3prime_overhang - 1;
       int64_t rev_pos_start = ip->rev_trunc - rev_3prime_overhang - overlap;
 
-      double score = overlap_score(ip,
-                                   fwd_pos_start,
-                                   rev_pos_start,
-                                   overlap);
-
+      int64_t fwd_pos = fwd_pos_start;
+      int64_t rev_pos = rev_pos_start;
+      double score = 0.0;
+      
+      int64_t diffs = 0;
+      
+      for (int64_t j=0; j < overlap; j++)
+        {
+          char fwd_sym = ip->fwd_sequence[fwd_pos];
+          char rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+          
+          unsigned int fwd_qual = ip->fwd_quality[fwd_pos];
+          unsigned int rev_qual = ip->rev_quality[rev_pos];
+          fwd_pos--;
+          rev_pos++;
+          
+          if (fwd_sym == rev_sym)
+            score += match_score[fwd_qual][rev_qual];
+          else
+            {
+              score += mism_score[fwd_qual][rev_qual];
+              diffs++;
+              
+              if (score < merge_giveup)
+                break;
+            }
+        }
+      
       if (score > best_score)
         {
           best_score = score;
           best_i = i;
+          best_diffs = diffs;
         }
     }
-
-#ifdef NEWMERGE
-  if (best_score >= merge_minscore)
+  
+  if ((best_score >= merge_minscore) && (best_diffs <= opt_fastq_maxdiffs))
     return best_i;
   else
     return 0;
-#else
-  return best_i;
+
 #endif
+
 }
 
 void process(merge_data_t * ip)
@@ -655,7 +685,6 @@ bool read_pair(merge_data_t * ip)
           ip->seq_alloc = seq_needed;
           ip->fwd_sequence = (char*) xrealloc(ip->fwd_sequence, seq_needed);
           ip->rev_sequence = (char*) xrealloc(ip->rev_sequence, seq_needed);
-          ip->rev_seq_comp = (char*) xrealloc(ip->rev_seq_comp, seq_needed);
           ip->fwd_quality  = (char*) xrealloc(ip->fwd_quality, seq_needed);
           ip->rev_quality  = (char*) xrealloc(ip->rev_quality, seq_needed);
 
@@ -690,18 +719,10 @@ bool read_pair(merge_data_t * ip)
       strcpy(ip->fwd_quality,  fastq_get_quality(fastq_fwd));
       strcpy(ip->rev_quality,  fastq_get_quality(fastq_rev));
 
-      /* make a complementary sequence of the reverse sequence */
-
-      for(int64_t i=0; i<ip->rev_length; i++)
-        ip->rev_seq_comp[i] = chrmap_complement[(int)(ip->rev_sequence[i])];
-      ip->rev_seq_comp[ip->rev_length] = 0;
-
       ip->merged_header[0] = 0;
       ip->merged_sequence[0] = 0;
       ip->merged_quality[0] = 0;
-
       ip->merged = 0;
-
       ip->pair_no = total++;
 
       return 1;
@@ -722,7 +743,6 @@ void pair()
       ip->rev_header = 0;
       ip->fwd_sequence = 0;
       ip->rev_sequence = 0;
-      ip->rev_seq_comp = 0;
       ip->fwd_quality = 0;
       ip->rev_quality = 0;
       ip->header_alloc = 0;
@@ -778,8 +798,6 @@ void pair()
         xfree(ip->fwd_sequence);
       if (ip->rev_sequence)
         xfree(ip->rev_sequence);
-      if (ip->rev_seq_comp)
-        xfree(ip->rev_seq_comp);
       if (ip->fwd_quality)
         xfree(ip->fwd_quality);
       if (ip->rev_quality)
@@ -907,11 +925,4 @@ void fastq_mergepairs()
   fastq_rev = 0;
   fastq_close(fastq_fwd);
   fastq_fwd = 0;
-
-  if (merged_sequence)
-    xfree(merged_sequence);
-  if (merged_quality)
-    xfree(merged_quality);
-  if (merged_header)
-    xfree(merged_header);
 }
