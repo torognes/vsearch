@@ -446,6 +446,8 @@ double overlap_score(merge_data_t * ip,
           diffs++;
           if (diffs > opt_fastq_maxdiffs)
             return -1000.0;
+          if (100.0 * diffs / overlap > opt_fastq_maxdiffpct)
+            return -1000.0;
         }
     }
   return score;

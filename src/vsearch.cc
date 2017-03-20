@@ -191,6 +191,7 @@ int64_t opt_fasta_width;
 int64_t opt_fastq_ascii;
 int64_t opt_fastq_asciiout;
 int64_t opt_fastq_maxdiffs;
+int64_t opt_fastq_maxdiffpct;
 int64_t opt_fastq_maxlen;
 int64_t opt_fastq_maxmergelen;
 int64_t opt_fastq_maxns;
@@ -572,6 +573,7 @@ void args_init(int argc, char **argv)
   opt_fastq_eestats = 0;
   opt_fastq_filter = 0;
   opt_fastq_maxdiffs = 5;
+  opt_fastq_maxdiffpct = 100;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
   opt_fastq_maxlen = LONG_MAX;
@@ -901,6 +903,7 @@ void args_init(int argc, char **argv)
     {"mothur_shared_out",     required_argument, 0, 0 },
     {"biomout",               required_argument, 0, 0 },
     {"fastq_trunclen_keep",   required_argument, 0, 0 },
+    {"fastq_maxdiffpct",        required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1679,6 +1682,10 @@ void args_init(int argc, char **argv)
           opt_fastq_trunclen_keep = args_getlong(optarg);
           break;
 
+        case 182:
+          opt_fastq_maxdiffpct = args_getlong(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2162,6 +2169,7 @@ void cmd_help()
               "  --fastq_allowmergestagger   Allow merging of staggered reads\n"
               "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
               "  --fastq_maxdiffs INT        maximum number of different bases in overlap (5)\n"
+              "  --fastq_maxdiffpct INT      maximum percentage of different bases in overlap (100)\n"
               "  --fastq_maxee REAL          maximum expected error value for merged sequence\n"
               "  --fastq_maxmergelen         maximum length of entire merged sequence\n"
               "  --fastq_maxns INT           maximum number of N's\n"
