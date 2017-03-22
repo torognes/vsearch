@@ -62,9 +62,15 @@
 
 #define INPUTCHUNKSIZE 10000
 
-const double merge_minscore =   1.0;
-const double merge_bias     =  -0.9; // -0.8; neg. bias favours short overlaps
-const double gap_penalty    =  20.0;
+// scores in bits
+
+const double merge_minscore =     1.0;
+const double gap_penalty    =  1000.0;
+
+/* fragment length distribution */
+
+const double mean = 300.0;
+const double sigma = 30.0;
 
 /* static variables */
 
@@ -80,6 +86,8 @@ static fastx_handle fastq_rev;
 static int64_t merged = 0;
 static int64_t notmerged = 0;
 static int64_t total = 0;
+static double sum_squared_fragment_length = 0.0;
+static double sum_fragment_length = 0.0;
 static pthread_t * pthread;
 static pthread_attr_t attr;
 static pthread_mutex_t mutex_input;
@@ -93,6 +101,26 @@ static char merge_qual_diff[128][128];
 static double match_score[128][128];
 static double mism_score[128][128];
 static double q2p[128];
+
+static double sum_ee_fwd = 0.0;
+static double sum_ee_rev = 0.0;
+static double sum_ee_merged = 0.0;
+static uint64_t sum_errors_fwd = 0.0;
+static uint64_t sum_errors_rev = 0.0;
+
+/* reasons for not merging:
+   - input seq too short (after truncation)
+   - input seq too long
+   - too many Ns in input
+   - no significant overlap found
+   - too many differences (maxdiff)
+   - staggered
+   - indels in overlap region
+   - potential repeats in overlap region / multiple overlaps
+   - merged sequence too long
+   - merged sequence too short
+*/
+
 
 typedef struct merge_data_s
 {
@@ -112,6 +140,7 @@ typedef struct merge_data_s
   char * merged_header;
   char * merged_sequence;
   char * merged_quality;
+  int64_t merged_length;
   int64_t merged_header_alloc;
   int64_t merged_seq_alloc;
   double ee_merged;
@@ -121,6 +150,12 @@ typedef struct merge_data_s
   int64_t rev_errors;
   int64_t offset;
   bool merged;
+  char * cigar;
+  int64_t cigar_length;
+  int64_t fwd_merge_start;
+  int64_t fwd_merge_end;
+  int64_t rev_merge_start;
+  int64_t rev_merge_end;
 } merge_data_t;
 
 FILE * fileopenw(char * filename)
@@ -190,23 +225,21 @@ void precompute_qual()
 
           /* Match */
 
-          /* probability that they really are similar,
-             given that they look similar and have
-             error probabilites of px and py, resp. */
+          /* observed match,
+             probability that they truly are identical,
+             if error probabilites of px and py, resp. */
 
           p = 1.0 - px - py + px * py * 4.0 / 3.0;
-
-          match_score[x][y] = log(p/0.25) + merge_bias;
+          match_score[x][y] = log2(p/0.25);
 
           /* Mismatch */
 
-          /* Probability that they are similar
-             given that they look different and have
-             error probabilities of px and py, resp. */
-
-          p = (px + py) / 3.0 - px * py * 4.0 / 9.0;
-
-          mism_score[x][y] = log(p/0.25) + merge_bias;
+          /* observed mismatch,
+             probability that they truly are identical,
+             if error probabilites of px and py, resp. */
+          
+          /* Error: p = (px + py) / 3.0 - px * py * 4.0 / 9.0; */
+          mism_score[x][y] = log2((1-p)/0.75);
         }
     }
 }
@@ -250,6 +283,14 @@ void merge_sym(char * sym,       char * qual,
 void keep(merge_data_t * ip)
 {
   merged++;
+  sum_fragment_length += ip->merged_length;
+  sum_squared_fragment_length += ip->merged_length * ip->merged_length;
+
+  sum_ee_merged += ip->ee_merged;
+  sum_ee_fwd += ip->ee_fwd;
+  sum_ee_rev += ip->ee_rev;
+  sum_errors_fwd += ip->fwd_errors;
+  sum_errors_rev += ip->rev_errors;
 
   if (opt_fastqout)
     {
@@ -317,82 +358,194 @@ void discard(merge_data_t * ip)
 
 void merge(merge_data_t * ip)
 {
-  /* The offset is the distance between the (truncated) 3' ends of the two
-     sequences */
+  /* find offset at left side of merged region */
 
-  int64_t rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
-    ip->offset - ip->fwd_trunc : 0;
-  int64_t fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
-    ip->fwd_trunc - ip->offset : 0;
-  int64_t mergelen = ip->fwd_trunc + ip->rev_trunc - ip->offset;
+  int64_t insertions = 0;
+  int64_t deletions = 0;
+  char * p = ip->cigar;
+  while (char c = *p++)
+    {
+      if (c == 'I')
+        insertions++;
+      if (c == 'D')
+        deletions++;
+    }
+
+  /* The offset is the distance (overlap) between
+     the (truncated) 3' ends of the two sequences */
+
+  /* adjust offset for position in forward sequence */
+
+  int64_t adjusted_offset = ip->offset + deletions - insertions;
+  
+  /* length of 5' overhang of the forward sequence not merged
+     with the reverse sequence */
+
+  int64_t fwd_5prime_overhang = ip->fwd_trunc > adjusted_offset ?
+    ip->fwd_trunc - adjusted_offset : 0;
 
   ip->ee_merged = 0.0;
   ip->ee_fwd = 0.0;
   ip->ee_rev = 0.0;
-
-  int64_t fwd_pos = 0;
-  int64_t rev_pos = ip->rev_trunc - 1 +
-    fwd_5prime_overhang - rev_3prime_overhang;
-
   ip->fwd_errors = 0;
   ip->rev_errors = 0;
 
-  for(int64_t i = 0; i < mergelen; i++)
+  char sym, qual;
+  char fwd_sym, fwd_qual, rev_sym, rev_qual;
+  int64_t fwd_pos, rev_pos, merged_pos;
+  double ee;
+
+  merged_pos = 0;
+
+  // 5' overhang in forward sequence
+
+  fwd_pos = 0;
+  
+  while(fwd_pos < fwd_5prime_overhang)
     {
-      bool has_fwd = 0;
-      if ((fwd_pos >= 0) && (fwd_pos < ip->fwd_trunc))
-        has_fwd = 1;
+      sym = ip->fwd_sequence[fwd_pos];
+      qual = ip->fwd_quality[fwd_pos];
+      
+      ip->merged_sequence[merged_pos] = sym;
+      ip->merged_quality[merged_pos] = qual;
 
-      bool has_rev = 0;
-      if ((rev_pos >= 0) && (rev_pos < ip->rev_trunc))
-        has_rev = 1;
+      ee = q2p[(unsigned)qual];
+      ip->ee_merged += ee;
+      ip->ee_fwd += ee;
 
-      char sym;
-      char qual;
+      fwd_pos++;
+      merged_pos++;
+    }
+  
+  // merged region
+  
+  // find start
 
-      if (has_fwd && has_rev)
+  int64_t rev_3prime_overhang = adjusted_offset > ip->fwd_trunc ?
+    adjusted_offset - ip->fwd_trunc : 0;
+
+  rev_pos = ip->rev_trunc - 1 - rev_3prime_overhang;
+
+  p = ip->cigar + ip->cigar_length;
+
+  //  while ((fwd_pos < ip->fwd_trunc) && (rev_pos >= 0))
+
+  while (p > ip->cigar)
+    {
+      char c = *--p;
+
+      switch (c)
         {
-          char fwd_sym = ip->fwd_sequence[fwd_pos];
-          char rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
-          char fwd_qual = ip->fwd_quality[fwd_pos];
-          char rev_qual = ip->rev_quality[rev_pos];
-
+        case 'M':
+          
+          fwd_sym = ip->fwd_sequence[fwd_pos];
+          rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+          fwd_qual = ip->fwd_quality[fwd_pos];
+          rev_qual = ip->rev_quality[rev_pos];
+          
           merge_sym(& sym,
                     & qual,
                     fwd_qual < 2 ? 'N' : fwd_sym,
                     rev_qual < 2 ? 'N' : rev_sym,
                     fwd_qual,
                     rev_qual);
-
+          
           if (sym != fwd_sym)
-            (ip->fwd_errors)++;
+            ip->fwd_errors++;
           if (sym != rev_sym)
-            (ip->rev_errors)++;
-        }
-      else if (has_fwd)
-        {
-          sym = ip->fwd_sequence[fwd_pos];
+            ip->rev_errors++;
+          
+          ip->merged_sequence[merged_pos] = sym;
+          ip->merged_quality[merged_pos] = qual;
+          ip->ee_merged += q2p[(unsigned)qual];
+          ip->ee_fwd += q2p[(unsigned)fwd_qual];
+          ip->ee_rev += q2p[(unsigned)rev_qual];
+          
+          fwd_pos++;
+          rev_pos--;
+          merged_pos++;
+          break;
+
+        case 'D':
+
+          /* base in forward read only */
+
           qual = ip->fwd_quality[fwd_pos];
-        }
-      else
-        {
-          sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+          ee = q2p[(unsigned)qual];
+
+          // printf("Merge with D, qual %d ee %f\n", qual-33, ee);
+
+          // best: ee < 0.003 & always -> 1333
+          // always, never -> 1341 
+          // never, always -> 1354
+          // always, always -> 1338
+          // never, never -> 1348
+          
+          if (1)
+            {
+              sym = ip->fwd_sequence[fwd_pos];
+              
+              ip->merged_sequence[merged_pos] = sym;
+              ip->merged_quality[merged_pos] = opt_fastq_ascii + 2; // qual;
+              merged_pos++;
+              
+              ip->ee_merged += ee;
+              ip->ee_fwd += ee;
+            }
+
+          fwd_pos++;
+
+          break;
+          
+        case 'I':
+          
+          /* base in reverse read only */
+
           qual = ip->rev_quality[rev_pos];
+          ee = q2p[(unsigned)qual];
+
+          //          printf("Merge with I, qual %d ee %f\n", qual-33, ee);
+          
+          if (0)
+            {
+              sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+              
+              ip->merged_sequence[merged_pos] = sym;
+              ip->merged_quality[merged_pos] = qual;
+              merged_pos++;
+              
+              ip->ee_merged += ee;
+              ip->ee_rev += ee;
+              
+            }
+
+          rev_pos--;
+
+          break;
         }
+    }
 
-      ip->merged_sequence[i] = sym;
-      ip->merged_quality[i] = qual;
-      ip->ee_merged += q2p[(unsigned)qual];
+  // 5' overhang in reverse sequence
 
-      if (has_fwd)
-        ip->ee_fwd += q2p[(unsigned)(ip->fwd_quality[fwd_pos])];
-      if (has_rev)
-        ip->ee_rev += q2p[(unsigned)(ip->rev_quality[rev_pos])];
+  while (rev_pos >= 0)
+    {
+      sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+      qual = ip->rev_quality[rev_pos];
+      
+      ip->merged_sequence[merged_pos] = sym;
+      ip->merged_quality[merged_pos] = qual;
+      merged_pos++;
 
-      fwd_pos++;
+      ee = q2p[(unsigned)qual];
+      ip->ee_merged += ee;
+      ip->ee_rev += ee;
+
       rev_pos--;
     }
 
+  int64_t mergelen = merged_pos;
+  ip->merged_length = mergelen;
+  
   ip->merged_sequence[mergelen] = 0;
   ip->merged_quality[mergelen] = 0;
 
@@ -408,6 +561,15 @@ void merge(merge_data_t * ip)
     }
 }
 
+double normal_dist_prob_density(double x, double mean, double stdev)
+{
+  return exp(-0.5 * (x - mean) * (x - mean) / (stdev * stdev)) /
+    sqrt(2.0 * M_PI * stdev * stdev);
+}
+
+
+static int cigarcount = 0;
+
 int64_t optimize(merge_data_t * ip)
 {
   // i = position in forward sequence
@@ -419,14 +581,21 @@ int64_t optimize(merge_data_t * ip)
   int64_t n = ip->rev_trunc;
 
   double h[m];
-  
+  char trace[m][n];
+  int gapped[m];
+
   for (int i = 0; i < m; i++)
-    h[i] = 0.0;
+    {
+      h[i] = 0.0;
+      gapped[i] = 0;
+    }
 
   double best_score = 0.0;
   int64_t best_i = 0;
   
   int64_t j_min = n > m ? n - m : 0;
+
+  int hits = 0;
 
   for (int64_t j = n-1; j >= j_min; j--)
     {
@@ -466,18 +635,31 @@ int64_t optimize(merge_data_t * ip)
           
           double g = v + match;
           
+          char dir;
           if (g >= e)
             if (g >= f)
-              v = g;
+              {
+                v = g; dir = 'M';
+              }
             else
-              v = f;
+              {
+                v = f; dir = 'D';
+              }
           else
             if (e >= f)
-              v = e;
+              {
+                v = e; dir = 'I';
+              }
             else
-              v = f;
+              {
+                v = f; dir = 'D';
+              }
           
           h[i] = v;
+          trace[i][j] = dir;
+
+          if (dir != 'M')
+            gapped[i-(n-1-j)] = 1;
 
           f = v - gap_penalty;
 
@@ -485,6 +667,44 @@ int64_t optimize(merge_data_t * ip)
         }
       
       double final = h[m-1];
+      bool has_gap = gapped[m-1];
+
+      if (has_gap)
+        final = -1000.0;
+      
+      double len = m + j; // m + n - (n-j) = m+j
+
+      /* correct for deviation from normal distribution */
+
+      /* 2x250bp MiSeq len 300 stdev 30, no gaps: 0 or 1 err on 100X cov. */
+      /* 2x250bp MiSeq len 450 stdev 30, no gaps: 21845 errors on 100X cov. */
+      /* lacking merge of 21589 reads, 205 wrong insert, 51 fp (of 928300) */
+      /* generally, too much overlap */
+
+      double prob = normal_dist_prob_density(len, mean, sigma);
+      double prob_max = normal_dist_prob_density(mean, mean, sigma);
+      
+      double adjust = log2(prob/prob_max);
+
+#if 0
+      final += adjust;
+#endif
+      
+#if 0
+      final = final / (2.0*len);
+#endif
+
+      if (final > 0)
+        {
+#if 0
+          fprintf(stderr, 
+                  "len=%.0f, prob=%f, adjust=%f, final=%f\n",
+                  len, prob, adjust, final);
+#endif
+          hits++;
+        }
+
+
       if (final > best_score)
         {
           best_score = final;
@@ -492,8 +712,105 @@ int64_t optimize(merge_data_t * ip)
         }
     }
   
+#if 0
+  if (hits > 1)
+    fprintf(stderr, "Seq: %s Hits: %d\n", ip->fwd_header, hits);
+#endif
+
   if (best_score >= merge_minscore)
-    return best_i;
+    {
+
+      ip->fwd_merge_end = m - 1;
+      ip->rev_merge_end = n - best_i;
+
+#if 1
+      char * cigar = ip->cigar;
+      char * p = cigar;
+
+      int64_t i = m - 1;
+      int64_t j = n - best_i;
+      
+      char c = 0;
+
+      int qual = -1;
+
+      while ((i>=0) && (j<n))
+        {
+          c = trace[i][j];
+          *p++ = c;
+          
+          switch(c)
+            {
+            case 'M':
+              i--;
+              j++;
+              break;
+            case 'I':
+              qual = ip->rev_quality[j];
+              j++;
+              break;
+            case 'D':
+              qual = ip->fwd_quality[i];
+              i--;
+              break;
+            }
+        }
+      *p = 0;
+      ip->cigar_length = p - cigar;
+
+      if (c == 'M')
+        {
+          ip->fwd_merge_start = i+1;
+          ip->rev_merge_start = j-1;
+        }
+      else if (c == 'I')
+        {
+          ip->fwd_merge_start = i;
+          ip->rev_merge_start = j-1;
+        }
+      else if (c == 'D')
+        {
+          ip->fwd_merge_start = i+1;
+          ip->rev_merge_start = j;
+        }
+
+      if (qual >= 0)
+        return 0; // Do not align sequences with gaps
+
+#if 0
+      if (qual >= 0)
+        {
+          fprintf(stderr, "R1: %s CIGAR (%d): ", ip->fwd_header, ++cigarcount);
+
+          char last = 0;
+          int64_t run = 0;
+          while (p > cigar)
+            {
+              char op = *--p;
+              if (op == last)
+                run++;
+              else
+                {
+                  if (run > 1)
+                    fprintf(stderr, "%c%" PRIi64, last, run);
+                  else
+                    fprintf(stderr, "%c", last);
+                  run = 1;
+                  last = op;
+                }
+            }
+          if (run > 1)
+            fprintf(stderr, "%c%" PRIi64, last, run);
+          else if (run)
+            fprintf(stderr, "%c", last);
+          fprintf(stderr, " Qual: %d", qual - (int)opt_fastq_ascii);
+          fprintf(stderr, "\n");
+        }
+#endif
+
+#endif      
+      return best_i;
+    }
   else
     return 0;
 
@@ -685,9 +1002,8 @@ bool read_pair(merge_data_t * ip)
           ip->seq_alloc = seq_needed;
           ip->fwd_sequence = (char*) xrealloc(ip->fwd_sequence, seq_needed);
           ip->rev_sequence = (char*) xrealloc(ip->rev_sequence, seq_needed);
-          ip->fwd_quality  = (char*) xrealloc(ip->fwd_quality, seq_needed);
-          ip->rev_quality  = (char*) xrealloc(ip->rev_quality, seq_needed);
-
+          ip->fwd_quality  = (char*) xrealloc(ip->fwd_quality,  seq_needed);
+          ip->rev_quality  = (char*) xrealloc(ip->rev_quality,  seq_needed);
         }
 
       int64_t merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
@@ -699,6 +1015,7 @@ bool read_pair(merge_data_t * ip)
                                                  merged_seq_needed);
           ip->merged_quality = (char*) xrealloc(ip->merged_quality,
                                                 merged_seq_needed);
+          ip->cigar = (char*) xrealloc(ip->cigar, merged_seq_needed);
         }
 
       int64_t merged_header_needed = fwd_header_len + suffix_len + 1;
@@ -724,6 +1041,7 @@ bool read_pair(merge_data_t * ip)
       ip->merged_quality[0] = 0;
       ip->merged = 0;
       ip->pair_no = total++;
+      ip->cigar[0] = 0;
 
       return 1;
     }
@@ -750,6 +1068,7 @@ void pair()
       ip->fwd_length = 0;
       ip->rev_length = 0;
       ip->pair_no = 0;
+      ip->cigar = 0;
     }
 
   bool more = 1;
@@ -802,6 +1121,8 @@ void pair()
         xfree(ip->fwd_quality);
       if (ip->rev_quality)
         xfree(ip->rev_quality);
+      if (ip->cigar)
+        xfree(ip->cigar);
     }
 
   xfree(merge_buffer);
@@ -904,6 +1225,41 @@ void fastq_mergepairs()
           notmerged,
           100.0 * notmerged / total);
 
+  double mean = sum_fragment_length / merged;
+  double stdev = sqrt((sum_squared_fragment_length
+                       - 2.0 * mean * sum_fragment_length
+                       + mean * mean * merged)
+                      / (merged + 0.0));
+  
+  fprintf(stderr,
+          "%10.2f  Mean fragment length\n",
+          mean);
+  
+  fprintf(stderr,
+          "%10.2f  Standard deviation of fragment length\n",
+          stdev);
+
+  fprintf(stderr,
+          "%10.2f  Mean expected error in merged sequences\n",
+          sum_ee_merged / merged);
+
+  fprintf(stderr,
+          "%10.2f  Mean expected error in forward sequences\n",
+          sum_ee_fwd / merged);
+
+  fprintf(stderr,
+          "%10.2f  Mean expected error in reverse sequences\n",
+          sum_ee_rev / merged);
+  
+  fprintf(stderr,
+          "%10.2f  Mean observed errors in merged region of forward sequences\n",
+          1.0 * sum_errors_fwd / merged);
+
+  fprintf(stderr,
+          "%10.2f  Mean observed errors in merged region of reverse sequences\n",
+          1.0 * sum_errors_rev / merged);
+
+  
   /* clean up */
 
   if (opt_eetabbedout)
