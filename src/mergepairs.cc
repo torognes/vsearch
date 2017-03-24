@@ -64,12 +64,12 @@
 
 // scores in bits
 
-const double merge_minscore =     1.0;
-const double gap_penalty    =  1000.0;
+const double merge_minscore =    16.0;
+const double gap_penalty    =     5.7;
 
 /* fragment length distribution */
 
-const double mean = 300.0;
+const double mean = 450.0;
 const double sigma = 30.0;
 
 /* static variables */
@@ -230,6 +230,7 @@ void precompute_qual()
              if error probabilites of px and py, resp. */
 
           p = 1.0 - px - py + px * py * 4.0 / 3.0;
+          //          match_score[x][y] = log2(p/0.25);
           match_score[x][y] = log2(p/0.25);
 
           /* Mismatch */
@@ -667,12 +668,17 @@ int64_t optimize(merge_data_t * ip)
         }
       
       double final = h[m-1];
+
+#if 0
       bool has_gap = gapped[m-1];
 
       if (has_gap)
         final = -1000.0;
+#endif
       
       double len = m + j; // m + n - (n-j) = m+j
+
+      double overlap = m + n - len;
 
       /* correct for deviation from normal distribution */
 
@@ -691,10 +697,14 @@ int64_t optimize(merge_data_t * ip)
 #endif
       
 #if 0
-      final = final / (2.0*len);
+      final = overlap / ((2*overlap - final) * (2*overlap - final) + 1); 
 #endif
 
-      if (final > 0)
+#if 0
+      final = final / overlap;
+#endif
+
+      if (final >= merge_minscore)
         {
 #if 0
           fprintf(stderr, 
@@ -1240,10 +1250,6 @@ void fastq_mergepairs()
           stdev);
 
   fprintf(stderr,
-          "%10.2f  Mean expected error in merged sequences\n",
-          sum_ee_merged / merged);
-
-  fprintf(stderr,
           "%10.2f  Mean expected error in forward sequences\n",
           sum_ee_fwd / merged);
 
@@ -1252,12 +1258,20 @@ void fastq_mergepairs()
           sum_ee_rev / merged);
   
   fprintf(stderr,
+          "%10.2f  Mean expected error in merged sequences\n",
+          sum_ee_merged / merged);
+
+  fprintf(stderr,
           "%10.2f  Mean observed errors in merged region of forward sequences\n",
           1.0 * sum_errors_fwd / merged);
 
   fprintf(stderr,
           "%10.2f  Mean observed errors in merged region of reverse sequences\n",
           1.0 * sum_errors_rev / merged);
+
+  fprintf(stderr,
+          "%10.2f  Mean observed errors in merged region\n",
+          1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
 
   
   /* clean up */
