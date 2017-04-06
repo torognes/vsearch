@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 10, 2017" "version 2.4.2" "USER COMMANDS"
+.TH vsearch 1 "April 6, 2017" "version 2.4.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -2580,8 +2580,8 @@ Frédéric Mahé.
 .PP
 Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016)
 VSEARCH: a versatile open source tool for metagenomics.
-\fIPeerJ Preprints\fR 4:e2409v1
-<https://doi.org/10.7287/peerj.preprints.2409v1>
+\fIPeerJ\fR 4:e2584 doi: 10.7717/peerj.2584
+<https://doi.org/10.7717/peerj.2584>
 .PP
 .\" ============================================================================
 .SH REPORTING BUGS
@@ -2667,10 +2667,6 @@ for the MD5 message digest algorithm.
 .IP -
 \fBvsearch\fR includes public domain code written by Steve Reid and
 others for the SHA1 message digest algorithm.
-.IP -
-\fBvsearch\fR includes statistical data from PEAR
-<https://github.com/xflouris/PEAR> by Zhang, Kobert, Flouri and
-Stamatakis. Used with permission.
 .IP -
 \fBvsearch\fR binaries may include code from the zlib library,
 copyright Jean-Loup Gailly and Mark Adler.
@@ -3063,6 +3059,11 @@ reporting on Windows.
 Default value for fastq_minovlen increased to 16 in accordance with
 help text and for compatibility with usearch. Minor changes for
 improved accuracy of paired-end read merging.
+.TP
+.BR v2.4.3\~ "released April 6th, 2017"
+Fixed bug with progress bar for shuffling. Fixed missing N-lines in UC
+files with usearch_global, search_exact and allpairs_global when the
+output_no_hits option was not specified.
 .RE
 .LP
 .\" ============================================================================
