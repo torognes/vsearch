@@ -90,7 +90,7 @@ void shuffle()
       deck[j] = t;
 
       passed++;
-      progress_update(i);
+      progress_update(passed);
     }
   progress_done();
   show_rusage();

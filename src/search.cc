@@ -172,7 +172,7 @@ void search_output_results(int hit_count,
                                        qsequence_rc);
         }
     }
-  else if (opt_output_no_hits)
+  else
     {
       if (fp_uc)
         results_show_uc_one(fp_uc,
@@ -183,21 +183,24 @@ void search_output_results(int hit_count,
                             qsequence_rc,
                             0);
       
-      if (fp_userout)
-        results_show_userout_one(fp_userout,
-                                 0,
-                                 query_head, 
-                                 qsequence,
-                                 qseqlen,
-                                 qsequence_rc);
-      
-      if (fp_blast6out)
-        results_show_blast6out_one(fp_blast6out,
-                                   0,
-                                   query_head,
-                                   qsequence,
-                                   qseqlen,
-                                   qsequence_rc);
+      if (opt_output_no_hits)
+        {
+          if (fp_userout)
+            results_show_userout_one(fp_userout,
+                                     0,
+                                     query_head,
+                                     qsequence,
+                                     qseqlen,
+                                     qsequence_rc);
+
+          if (fp_blast6out)
+            results_show_blast6out_one(fp_blast6out,
+                                       0,
+                                       query_head,
+                                       qsequence,
+                                       qseqlen,
+                                       qsequence_rc);
+        }
     }
 
   if (hit_count)
