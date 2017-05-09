@@ -785,10 +785,12 @@ using sequence headers and sequence input order. Sequence comparisons
 are case insensitive, and T and U are considered identical.
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
-Discard sequences with an abundance value greater than \fIinteger\fR.
+Discard sequences with a post-dereplication abundance value greater
+than \fIinteger\fR.
 .TP
 .BI \-\-minuniquesize\~ "positive integer"
-Discard sequences with an abundance value smaller than \fIinteger\fR.
+Discard sequences with a post-dereplication abundance value smaller
+than \fIinteger\fR.
 .TP
 .BI \-\-output \0filename
 Write the dereplicated sequences to \fIfilename\fR, in fasta format
