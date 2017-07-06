@@ -2271,7 +2271,6 @@ void cmd_help()
               "  --uc_allhits                show all, not just top hit with uc output\n"
               "  --userfields STRING         fields to output in userout file\n"
               "  --userout FILENAME          filename for user-defined tab-separated output\n"
-              "  --wordlength INT            length of words for database index 3-15 (8)\n"
               "\n"
               "Shuffling and sorting\n"
               "  --shuffle FILENAME          shuffle order of sequences in FASTA file randomly\n"
