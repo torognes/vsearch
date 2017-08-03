@@ -1869,7 +1869,8 @@ name of the target sequence matching with the next read of the query
 position of the primary alignment of the next read of the query (for
 mate reads only, ignored and always set to 0).
 .IP \n+[step].
-target sequence length.
+target sequence length (for multi-segment targets, ignored and always
+set to 0).
 .IP \n+[step].
 query sequence (complete, not only the segment aligned to the target
 as usearch does).
@@ -1877,7 +1878,8 @@ as usearch does).
 quality string (ignored, always set to '*').
 .RE
 .TP
-Optional fields (number and order of fields may vary):
+Optional fields for query-target matches (number and order of fields
+may vary):
 .RS
 .nr step 12 1
 .IP \n[step]. 4
