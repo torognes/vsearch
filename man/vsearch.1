@@ -1830,15 +1830,74 @@ Width of alignment lines in \-\-alnout output. The default value is
 64. Set to 0 to eliminate wrapping.
 .TP
 .B \-\-samheader
-Include header lines to the sam file when \-\-samout is specified. The
-header includes @HD, @SQ and @PG lines, but no read group (@RG)
-information. By default no header lines are written.
+Include header lines to the SAM file when \-\-samout is specified. The
+header includes lines starting with @HD, @SQ and @PG, but no @RG lines
+(see <https://github.com/samtools/hts-specs>). By default no header
+line is written.
 .TP
 .BI \-\-samout \0filename
-Write alignment results to \fIfilename\fR in the SAM format. For a
-description of the format, see
-<https://github.com/samtools/hts-specs>. Output order may vary when
-using multiple threads.
+Write alignment results to \fIfilename\fR using the SAM format (a
+tab-separated text file). When using the \-\-samheader option, the SAM
+file starts with header lines. Each non-header line is a SAM record,
+which represents either a query-target alignment or the absence of
+match for a query (output order may vary when using multiple
+threads). Each record contains 11 mandatory fields and optional fields
+(see <https://github.com/samtools/hts-specs> for a complete
+description of the format):
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+query sequence label.
+.IP \n+[step].
+combination of bitwise flags. Possible values are: 0 (top hit), 4 (no
+hit), 16 (reverse-complemented hit), 256 (secondary hit, i.e. all hits
+except the top hit).
+.IP \n+[step].
+target sequence label.
+.IP \n+[step].
+first position of a target aligned with the query (always 1 for global
+pairwise alignments, 0 if there is no match).
+.IP \n+[step].
+mapping quality (ignored, always set to '*').
+.IP \n+[step].
+CIGAR string (set to '*' if there is no match).
+.IP \n+[step].
+name of the target sequence matching with the next read of the query
+(for mate reads only, ignored and always set to '*').
+.IP \n+[step].
+position of the primary alignment of the next read of the query (for
+mate reads only, ignored and always set to 0).
+.IP \n+[step].
+target sequence length.
+.IP \n+[step].
+query sequence (complete, not only the segment aligned to the target
+as usearch does).
+.IP \n+[step].
+quality string (ignored, always set to '*').
+.RE
+.TP
+Optional fields (number and order of fields may vary):
+.RS
+.nr step 12 1
+.IP \n[step]. 4
+AS:i:? alignment score (i.e. percentage of identity).
+.IP \n+[step].
+XN:i:? next best alignment score (always set to 0).
+.IP \n+[step].
+XM:i:? number of mismatches.
+.IP \n+[step].
+XO:i:? number of gap openings (excluding terminal gaps).
+.IP \n+[step].
+XG:i:? number of gap extensions (excluding terminal gaps).
+.IP \n+[step].
+NM:i:? edit distance to the target (sum of XM and XG).
+.IP \n+[step].
+MD:Z:? string for mismatching positions.
+.IP \n+[step].
+YT:Z:UU string representing the alignment type.
+.RE
+.RE
 .TP
 .BI \-\-search_exact \0filename
 Search for exact full-length matches to the query sequences contained
