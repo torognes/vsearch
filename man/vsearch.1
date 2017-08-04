@@ -1653,7 +1653,7 @@ CD-HIT definition: (matching columns) / (shortest sequence length).
 .IP \n+[step].
 edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
-edit distance excluding terminal gaps (same as \-\-id).
+edit distance excluding terminal gaps (default definition for \-\-id).
 .IP \n+[step].
 Marine Biological Lab definition counting each extended gap (internal
 or terminal) as a single difference: 1.0 - [(mismatches +
@@ -1957,7 +1957,7 @@ threads. Column content varies with the type of entry (H or N):
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-Record type: H, or N.
+Record type: H, or N ('hit' or 'no hit').
 .IP \n+[step].
 Ordinal number of the target sequence (based on input order, starting
 from zero). Set to '*' for N.
