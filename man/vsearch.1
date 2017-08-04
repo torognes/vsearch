@@ -1056,11 +1056,11 @@ with the \-\-fastq_maxns are also discarded (no limit by
 default). Staggered reads are not merged unless the
 \-\-fastq_allowmergestagger option is specified. The minimum length of
 the overlap region between the reads may be specified with the
-\-\-minovlen option (default 16), and the overlap region may not
-include more mismatches than specified with the \-\-maxdiffs option (5
-by default), otherwise the read pair is discarded. The mimimum and
-maximum length of the merged sequence may be specified with the
-\-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
+\-\-fastq_minovlen option (default 16), and the overlap region may not
+include more mismatches than specified with the \-\-fastq_maxdiffs
+option (5 by default), otherwise the read pair is discarded. The
+mimimum and maximum length of the merged sequence may be specified
+with the \-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
 respectively. Other relevant options are: \-\-fastq_ascii,
 \-\-fastq_maxee, \-\-fastq_nostagger, \-\-fastq_qmax, \-\-fastq_qmin,
 and \-\-label_suffix.
@@ -1076,7 +1076,7 @@ merged sequence. The default is 1.
 .TP
 .BI \-\-fastq_minovlen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the minimum overlap between
-the merged reads. The default is 10.
+the merged reads. The default is 16.
 .TP
 .B \-\-fastq_nostagger
 When using \-\-fastq_mergepairs, forbid the merging of staggered read
