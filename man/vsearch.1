@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "April 6, 2017" "version 2.4.3" "USER COMMANDS"
+.TH vsearch 1 "August 23, 2017" "version 2.4.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -601,7 +601,7 @@ Marine Biological Lab definition counting each extended gap (internal
 or terminal) as a single difference: 1.0 - [(mismatches +
 gaps)/(longest sequence length)]
 .IP \n+[step].
-BLAST definition, equivalent to \-\-iddef 2 in a context of global
+BLAST definition, equivalent to \-\-iddef 1 in a context of global
 pairwise alignment.
 .RE
 .RE
@@ -1659,7 +1659,7 @@ Marine Biological Lab definition counting each extended gap (internal
 or terminal) as a single difference: 1.0 - [(mismatches +
 gaps)/(longest sequence length)]
 .IP \n+[step].
-BLAST definition, equivalent to \-\-iddef 2 for global pairwise
+BLAST definition, equivalent to \-\-iddef 1 for global pairwise
 alignments.
 .RE
 .PP
@@ -2324,8 +2324,8 @@ longest sequence in the pairwise alignment as denominator: 100 * (1.0
 .TP
 .B id4
 BLAST definition of the percentage of identity (real value ranging
-from 0.0 to 100.0), equivalent to \-\-iddef 2 in a context of global
-pairwise alignment.
+from 0.0 to 100.0), equivalent to \-\-iddef 1 in a context of global
+pairwise alignment. The field id4 is always equal to the field id1.
 .TP
 .B ids
 Number of matches in the alignment (zero or positive integer value).
