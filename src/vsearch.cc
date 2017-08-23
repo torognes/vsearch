@@ -1966,6 +1966,20 @@ void args_init(int argc, char **argv)
       *stdout_opt = STDOUT_NAME;
 }
 
+void show_publication()
+{
+  fprintf(stdout,
+          "Rognes T, Flouri T, Nichols B, Quince C, Mahe F (2016)\n"
+          "VSEARCH: a versatile open source tool for metagenomics\n"
+          "PeerJ 4:e2584 doi: 10.7717/peerj.2584 https://doi.org/10.7717/peerj.2584\n"
+          "\n");
+}
+
+void cmd_version()
+{
+  if (! opt_quiet)
+    show_publication();
+}
 
 void cmd_help()
 {
@@ -1974,6 +1988,8 @@ void cmd_help()
 
   if (! opt_quiet)
     {
+      show_publication();
+
       fprintf(stdout,
               "Usage: %s [OPTIONS]\n", progname);
 
@@ -2713,8 +2729,7 @@ int main(int argc, char** argv)
   else if (opt_rereplicate)
     cmd_rereplicate();
   else if (opt_version)
-    {
-    }
+    cmd_version();
   else
     cmd_none();
 
