@@ -2341,7 +2341,7 @@ void cmd_allpairs_global()
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
-      (!opt_samout))
+      (!opt_samout) && (!opt_fastapairs))
     fatal("No output files specified");
 
   if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
@@ -2359,7 +2359,8 @@ void cmd_usearch_global()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
-      (!opt_biomout) && (!opt_mothur_shared_out))
+      (!opt_biomout) && (!opt_mothur_shared_out) &&
+      (!opt_fastapairs))
     fatal("No output files specified");
 
   if (!opt_db)
@@ -2380,7 +2381,8 @@ void cmd_search_exact()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
-      (!opt_biomout) && (!opt_mothur_shared_out))
+      (!opt_biomout) && (!opt_mothur_shared_out) &&
+      (!opt_fastapairs))
     fatal("No output files specified");
 
   if (!opt_db)
