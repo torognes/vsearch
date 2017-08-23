@@ -249,25 +249,25 @@ void db_read(const char * filename, int upcase)
   if (discarded_short)
     {
       fprintf(stderr,
-              "WARNING: %" PRId64 " sequences shorter than %" PRId64 " nucleotides discarded.\n",
-              discarded_short, opt_minseqlength);
+              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_minseqlength, discarded_short, (discarded_short == 1 ? "sequence" : "sequences"));
 
       if (opt_log)
         fprintf(fp_log,
-                "WARNING: %" PRId64 " sequences shorter than %" PRId64 " nucleotides discarded.\n\n",
-                discarded_short, opt_minseqlength);
+              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+              opt_minseqlength, discarded_short, (discarded_short == 1 ? "sequence" : "sequences"));
     }
   
   if (discarded_long)
     {
       fprintf(stderr,
-              "WARNING: %" PRId64 " sequences longer than %" PRId64 " nucleotides discarded.\n",
-              discarded_long, opt_maxseqlength);
+              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_maxseqlength, discarded_long, (discarded_long == 1 ? "sequence" : "sequences"));
 
       if (opt_log)
         fprintf(fp_log,
-                "WARNING: %" PRId64 " sequences longer than %" PRId64 " nucleotides discarded.\n\n",
-                discarded_long, opt_maxseqlength);
+              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+              opt_maxseqlength, discarded_long, (discarded_long == 1 ? "sequence" : "sequences"));
     }
 
   show_rusage();
