@@ -349,7 +349,7 @@ void fastx_close(fastx_handle h)
 
   if (h->stripped_all)
     {
-      fprintf(stderr, "WARNING: invalid characters stripped from fastq file:");
+      fprintf(stderr, "WARNING: invalid characters stripped from %s file:", (h->is_fastq ? "fastq" : "fasta"));
       for (int i=0; i<256;i++)
         if (h->stripped[i])
           fprintf(stderr, " %c(%" PRIu64 ")", i, h->stripped[i]);
@@ -357,7 +357,7 @@ void fastx_close(fastx_handle h)
 
       if (opt_log)
         {
-          fprintf(fp_log, "WARNING: invalid characters stripped from fastq file:");
+          fprintf(fp_log, "WARNING: invalid characters stripped from %s file:", (h->is_fastq ? "fastq" : "fasta"));
           for (int i=0; i<256;i++)
             if (h->stripped[i])
               fprintf(fp_log, " %c(%" PRIu64 ")", i, h->stripped[i]);
