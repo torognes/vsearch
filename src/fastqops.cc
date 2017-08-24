@@ -802,17 +802,14 @@ void fastq_stats()
       fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
       fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
       
-      for(int64_t i = len_max+1; i >= 1; i--)
+      for(int64_t i = len_max; i >= 1; i--)
         {
           int64_t read_count[4];
           double read_percentage[4];
           
           for(int z=0; z<4; z++)
             {
-              if (i>=2)
-                read_count[z] = ee_length_table[4*(i-2)+z];
-              else
-                read_count[z] = seq_count;
+              read_count[z] = ee_length_table[4*(i-1)+z];
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
             }
           
