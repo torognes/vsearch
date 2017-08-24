@@ -230,6 +230,9 @@ void fastq_eestats()
       int64_t reads = read_length_table[i];
       double pctrecs = 100.0 * reads / seq_count;
       
+
+      /* q */
+
       double min_q = -1.0;
       double low_q = -1.0;
       double med_q = -1.0;
@@ -241,23 +244,26 @@ void fastq_eestats()
       for(int q=0; q<=max_quality; q++)
         {
           double x = qual_length_table[(max_quality+1)*i+q];
-          qsum += q * x;
-          n += x;
-          
-          if ((min_q<0) && (x > 0))
-            min_q = q;
-
-          if ((low_q<0) && (n >= 0.25 * reads))
-            low_q = q;
-
-          if ((med_q<0) && (n >= 0.50 * reads))
-            med_q = q;
-
-          if ((hi_q<0)  && (n >= 0.75 * reads))
-            hi_q = q;
 
           if (x > 0)
-            max_q = q;
+            {
+              qsum += q * x;
+              n += x;
+          
+              if (min_q<0)
+                min_q = q;
+
+              if ((low_q<0) && (n >= 0.25 * reads))
+                low_q = q;
+
+              if ((med_q<0) && (n >= 0.50 * reads))
+                med_q = q;
+
+              if ((hi_q<0)  && (n >= 0.75 * reads))
+                hi_q = q;
+
+              max_q = q;
+            }
         }
 
       double mean_q = 1.0 * qsum / reads;
@@ -265,12 +271,41 @@ void fastq_eestats()
 
       /* pe */
 
-      double min_pe = q2p(max_q);
-      double low_pe = q2p(hi_q);
-      double med_pe = q2p(med_q);
-      double hi_pe = q2p(low_q);
-      double max_pe = q2p(min_q);
-      double mean_pe = sum_pe_length_table[i] / reads;
+      double min_pe = -1.0;
+      double low_pe = -1.0;
+      double med_pe = -1.0;
+      double hi_pe  = -1.0;
+      double max_pe = -1.0;
+
+      double pesum = 0;
+      n = 0;
+      for(int q=max_quality; q>=0; q--)
+        {
+          double x = qual_length_table[(max_quality+1)*i+q];
+
+          if (x > 0)
+            {
+              double pe = q2p(q);
+              pesum += pe * x;
+              n += x;
+
+              if (min_pe<0)
+                min_pe = pe;
+
+              if ((low_pe<0) && (n >= 0.25 * reads))
+                low_pe = pe;
+
+              if ((med_pe<0) && (n >= 0.50 * reads))
+                med_pe = pe;
+
+              if ((hi_pe<0)  && (n >= 0.75 * reads))
+                hi_pe = pe;
+
+              max_pe = pe;
+            }
+        }
+
+      double mean_pe = 1.0 * pesum / reads;
 
 
       /* expected errors */
@@ -288,22 +323,25 @@ void fastq_eestats()
       for(int64_t e=0; e<=max_errors; e++)
         {
           int64_t x = ee_length_table[ee_offset + e];
-          n += x;
-
-          if ((min_ee<0) && (x > 0))
-            min_ee = e;
-
-          if ((low_ee<0) && (n >= 0.25 * reads))
-            low_ee = e;
-          
-          if ((med_ee<0) && (n >= 0.50 * reads))
-            med_ee = e;
-          
-          if ((hi_ee<0)  && (n >= 0.75 * reads))
-            hi_ee = e;
 
           if (x > 0)
-            max_ee = e;
+            {
+              n += x;
+
+              if (min_ee<0)
+                min_ee = e;
+
+              if ((low_ee<0) && (n >= 0.25 * reads))
+                low_ee = e;
+          
+              if ((med_ee<0) && (n >= 0.50 * reads))
+                med_ee = e;
+          
+              if ((hi_ee<0)  && (n >= 0.75 * reads))
+                hi_ee = e;
+
+              max_ee = e;
+            }
         }
 
       double mean_ee = sum_ee_length_table[i] / reads;
