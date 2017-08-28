@@ -547,8 +547,6 @@ void fastq_chars()
 
   if (opt_log)
     {
-      fprintf(fp_log, "\n");
-
       fprintf(fp_log, "Read %" PRIu64 " sequences.\n", seq_count);
 
       fprintf(fp_log, "Qmin %d, QMax %d, Range %d\n",
@@ -808,7 +806,6 @@ void fastq_stats()
 
   if (fp_log)
     {
-      fprintf(fp_log, "\n");
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Read length distribution\n");
       fprintf(fp_log, "      L           N      Pct   AccPct\n");

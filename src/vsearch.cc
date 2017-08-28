@@ -2672,7 +2672,7 @@ int main(int argc, char** argv)
       struct tm tm_start;
       localtime_r(& time_start, & tm_start);
       strftime(time_string, 26, "%c", & tm_start);
-      fprintf(fp_log, "Started  %s", time_string);
+      fprintf(fp_log, "Started  %s\n", time_string);
     }
 
   show_header();

@@ -101,19 +101,19 @@ void buffer_filter_extend(fastx_handle h,
   for(uint64_t i = 0; i < len; i++)
     {
       char c = *p++;
-      char m = char_action[(int)c];
+      char m = char_action[(unsigned char)c];
 
       switch(m)
         {
         case 0:
           /* stripped */
           h->stripped_all++;
-          h->stripped[(int)c]++;
+          h->stripped[(unsigned char)c]++;
           break;
               
         case 1:
           /* legal character */
-          *q++ = char_mapping[(int)(c)];
+          *q++ = char_mapping[(unsigned char)(c)];
           break;
           
         case 2:
@@ -127,7 +127,7 @@ void buffer_filter_extend(fastx_handle h,
             snprintf(msg,
                      200,
                      "Illegal unprintable character %#.2x (hexadecimal)",
-                     c);
+                     (unsigned char) c);
           fastq_fatal(lineno, msg);
           break;
               
