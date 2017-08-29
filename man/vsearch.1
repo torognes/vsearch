@@ -1191,7 +1191,11 @@ position with a quality \fIQ\fR below 5, 10, 15 or 20 (option
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
-number of bases from the beginning of the reads.
+number of bases from the left end of the reads.
+.TP
+.BI \-\-fastq_stripright\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
+number of bases from the right end of the reads.
 .TP
 .BI \-\-fastq_tail\~ "positive integer"
 When using \-\-fastq_chars, count the number of times a series of
@@ -1242,17 +1246,17 @@ specified with the \-\-fastaout_discarded and \-\-fastqout_discarded
 options. The input format (FASTA or FASTQ) is automatically
 detected. Output can not be written to FASTQ files if the input is in
 FASTA format. Sequences may be shortened using the options
-\-\-fastq_stripleft, \-\-fastq_truncee, \-\-fastq_trunclen and
-\-\-fastq_truncqual. The sequences may be filtered using the options
-\-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
-\-\-fastq_maxns, \-\-fastq_minlen and \-\-fastq_trunclen. If
-shortening results in an empty sequence, it is discarded. The
-sequences are first shortened and then filtered based on the remaining
-bases. If no shortening or filtering options are given, all sequences
-are written to the output files, possibly after conversion from FASTQ
-to FASTA format. The \-\-relabel option may be used to relabel the
-output sequences. The \-\-eeout may be used to output the expected
-number of errors in each sequence.
+\-\-fastq_stripleft, \-\-fastq_stripright, \-\-fastq_truncee,
+\-\-fastq_trunclen and \-\-fastq_truncqual. The sequences may be
+filtered using the options \-\-fastq_maxee, \-\-fastq_maxee_rate,
+\-\-fastq_maxlen, \-\-fastq_maxns, \-\-fastq_minlen and
+\-\-fastq_trunclen. If shortening results in an empty sequence, it is
+discarded. The sequences are first shortened and then filtered based
+on the remaining bases. If no shortening or filtering options are
+given, all sequences are written to the output files, possibly after
+conversion from FASTQ to FASTA format. The \-\-relabel option may be
+used to relabel the output sequences. The \-\-eeout may be used to
+output the expected number of errors in each sequence.
 .TP
 .BI \-\-fastx_revcomp \0filename
 Reverse-complement the sequences in the given FASTA or FASTQ file to a

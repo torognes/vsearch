@@ -202,6 +202,7 @@ int64_t opt_fastq_qmaxout;
 int64_t opt_fastq_qmin;
 int64_t opt_fastq_qminout;
 int64_t opt_fastq_stripleft;
+int64_t opt_fastq_stripright;
 int64_t opt_fastq_tail;
 int64_t opt_fastq_trunclen;
 int64_t opt_fastq_trunclen_keep;
@@ -590,6 +591,7 @@ void args_init(int argc, char **argv)
   opt_fastq_qminout = 0;
   opt_fastq_stats = 0;
   opt_fastq_stripleft = 0;
+  opt_fastq_stripright = 0;
   opt_fastq_tail = 4;
   opt_fastq_truncee = DBL_MAX;
   opt_fastq_trunclen = -1;
@@ -901,6 +903,7 @@ void args_init(int argc, char **argv)
     {"mothur_shared_out",     required_argument, 0, 0 },
     {"biomout",               required_argument, 0, 0 },
     {"fastq_trunclen_keep",   required_argument, 0, 0 },
+    {"fastq_stripright",      required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1679,6 +1682,10 @@ void args_init(int argc, char **argv)
           opt_fastq_trunclen_keep = args_getlong(optarg);
           break;
 
+        case 182:
+          opt_fastq_stripright = args_getlong(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2132,6 +2139,7 @@ void cmd_help()
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
               "  --fastq_stripleft INT       bases on the left to delete\n"
+              "  --fastq_stripright INT      bases on the right to delete\n"
               "  --fastq_truncee REAL        maximum total expected error for truncation\n"
               "  --fastq_trunclen INT        truncate reads to length INT (discard if shorter)\n"
               "  --fastq_trunclen_keep INT   truncate reads to length INT (keep if shorter)\n"

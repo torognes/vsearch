@@ -335,6 +335,7 @@ extern int64_t opt_fastq_qmaxout;
 extern int64_t opt_fastq_qmin;
 extern int64_t opt_fastq_qminout;
 extern int64_t opt_fastq_stripleft;
+extern int64_t opt_fastq_stripright;
 extern int64_t opt_fastq_tail;
 extern int64_t opt_fastq_trunclen;
 extern int64_t opt_fastq_trunclen_keep;

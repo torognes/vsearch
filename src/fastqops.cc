@@ -169,7 +169,16 @@ void filter(bool fastq_only, char * filename)
               length = 0;
             }
         }
-      
+
+      /* strip right end */
+      if (opt_fastq_stripright > 0)
+        {
+          if (opt_fastq_stripright < length)
+            length -= opt_fastq_stripright;
+          else
+            length = 0;
+        }
+
       /* truncate trailing part */
       if (opt_fastq_trunclen >= 0)
         {
