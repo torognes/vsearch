@@ -2144,6 +2144,8 @@ void cmd_help()
               "  --fastq_trunclen INT        truncate reads to length INT (discard if shorter)\n"
               "  --fastq_trunclen_keep INT   truncate reads to length INT (keep if shorter)\n"
               "  --fastq_truncqual INT       minimum base quality value for truncation\n"
+              "  --maxsize INT               maximum abundance\n"
+              "  --minsize INT               minimum abundance\n"
               " Output\n"
               "  --eeout                     include expected errors in output\n"
               "  --fastaout FILENAME         FASTA output filename for passed sequences\n"

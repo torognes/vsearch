@@ -225,7 +225,9 @@ void filter(bool fastq_only, char * filename)
           ((opt_fastq_trunclen < 0) || (length >= opt_fastq_trunclen)) &&
           (ncount <= opt_fastq_maxns) &&
           (ee <= opt_fastq_maxee) &&
-          ((length == 0) || (ee / length <= opt_fastq_maxee_rate)))
+          ((length == 0) || (ee / length <= opt_fastq_maxee_rate)) &&
+          ((opt_minsize == 0) || (abundance >= opt_minsize)) &&
+          ((opt_maxsize == 0) || (abundance <= opt_maxsize)))
         {
           /* keep the sequence */
 

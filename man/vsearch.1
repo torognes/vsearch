@@ -1247,10 +1247,11 @@ options. The input format (FASTA or FASTQ) is automatically
 detected. Output can not be written to FASTQ files if the input is in
 FASTA format. Sequences may be shortened using the options
 \-\-fastq_stripleft, \-\-fastq_stripright, \-\-fastq_truncee,
-\-\-fastq_trunclen and \-\-fastq_truncqual. The sequences may be
-filtered using the options \-\-fastq_maxee, \-\-fastq_maxee_rate,
-\-\-fastq_maxlen, \-\-fastq_maxns, \-\-fastq_minlen and
-\-\-fastq_trunclen. If shortening results in an empty sequence, it is
+\-\-fastq_trunclen, \-\-fastq_trunclen_keep and
+\-\-fastq_truncqual. The sequences may be filtered using the options
+\-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
+\-\-fastq_maxns, \-\-fastq_minlen, \-\-fastq_trunclen, \-\-maxsize,
+and \-\-minsize. If shortening results in an empty sequence, it is
 discarded. The sequences are first shortened and then filtered based
 on the remaining bases. If no shortening or filtering options are
 given, all sequences are written to the output files, possibly after
@@ -1267,6 +1268,14 @@ to a FASTQ file due to missing base quality scores.
 .BI \-\-label_suffix\~ string
 When using \-\-fastx_revcomp or \-\-fastq_mergepairs, add the suffix
 \fIstring\fR to sequence headers.
+.TP
+.BI \-\-maxsize\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
+an abundance higher than the specified value.
+.TP
+.BI \-\-minsize\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
+an abundance lower than the specified value.
 .TP
 .BI \-\-output \0filename
 When using \-\-fastq_eestats, write tabulated results to
