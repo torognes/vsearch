@@ -324,6 +324,7 @@ extern int64_t opt_fasta_width;
 extern int64_t opt_fastq_ascii;
 extern int64_t opt_fastq_asciiout;
 extern int64_t opt_fastq_maxdiffs;
+extern int64_t opt_fastq_maxdiffpct;
 extern int64_t opt_fastq_maxlen;
 extern int64_t opt_fastq_maxmergelen;
 extern int64_t opt_fastq_maxns;
