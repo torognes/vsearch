@@ -71,6 +71,7 @@ bool opt_fastq_allowmergestagger;
 bool opt_fastq_eeout;
 bool opt_fastq_nostagger;
 bool opt_gzip_decompress;
+bool opt_no_progress;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
@@ -661,6 +662,7 @@ void args_init(int argc, char **argv)
   opt_mismatch = -4;
   opt_mothur_shared_out = 0;
   opt_msaout = 0;
+  opt_no_progress = 0;
   opt_nonchimeras = 0;
   opt_notmatched = 0;
   opt_notrunclabels = 0;
@@ -904,6 +906,7 @@ void args_init(int argc, char **argv)
     {"biomout",               required_argument, 0, 0 },
     {"fastq_trunclen_keep",   required_argument, 0, 0 },
     {"fastq_stripright",      required_argument, 0, 0 },
+    {"no_progress",           no_argument,       0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1686,6 +1689,10 @@ void args_init(int argc, char **argv)
           opt_fastq_stripright = args_getlong(optarg);
           break;
 
+        case 183:
+          opt_no_progress = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2010,6 +2017,7 @@ void cmd_help()
               "  --log FILENAME              write messages, timing and memory info to file\n"
               "  --maxseqlength INT          maximum sequence length (50000)\n"
               "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
+              "  --no_progress               do not show progress indicator\n"
               "  --notrunclabels             do not truncate labels at first space\n"
               "  --quiet                     output just warnings and fatal errors to stderr\n"
               "  --threads INT               number of threads to use, zero for all cores (0)\n"

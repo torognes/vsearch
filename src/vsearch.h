@@ -204,6 +204,7 @@ extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
 extern bool opt_gzip_decompress;
+extern bool opt_no_progress;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;
 extern bool opt_relabel_md5;
