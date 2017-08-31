@@ -46,7 +46,7 @@ FASTA/FASTQ file processing:
 \fBvsearch\fR \-\-fastq_convert \fIfastqfile\fR \-\-fastqout
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
-\fBvsearch\fR \-\-fastq_eestats \fIfastqfile\fR
+\fBvsearch\fR (\-\-fastq_eestats | \-\-fastq_eestats2) \fIfastqfile\fR
 \-\-output \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
@@ -901,11 +901,11 @@ the quality encoding and the range of quality score values used. To
 convert between different FASTQ file variants, use the
 \-\-fastq_convert command. Statistical analysis of the quality and
 length of the sequences in a FASTQ file may be performed with the
-\-\-fastq_stats and \-\-fastq_eestats commands. Sequences may be
-shortened, filtered and converted by the \-\-fastq_filter or
-\-\-fastx_filter commands. Paired-end reads can be merged using the
-\-\-fastq_mergepairs command. Finally, the \-\-fastx_revcomp command
-reverse-complements sequences.
+\-\-fastq_stats, \-\-fastq_eestats, and \-\-fastq_eestats2
+commands. Sequences may be shortened, filtered and converted by the
+\-\-fastq_filter or \-\-fastx_filter commands. Paired-end reads can be
+merged using the \-\-fastq_mergepairs command. Finally, the
+\-\-fastx_revcomp command reverse-complements sequences.
 .PP
 .TP 9
 .B \-\-eeout
@@ -1008,6 +1008,30 @@ EE distributions, the following statistics are included: minimum value
 (Hi), and maximum value (Max). The quality encoding and the range of
 quality values may be specified with \-\-fastq_ascii \-\-fastq_qmin
 and \-\-fastq_qmax.
+.TP
+.BI \-\-fastq_eestats2 \0filename
+Analyze the specified FASTQ file and report statistics on the number
+of sequences that would be retained at a combination of selected
+cutoffs for length truncation and maximum expected errors, that could
+potentially be used as arguments to the \-\-fastq_trunclen and
+\-\-fastq_maxee options to the \-\-fastq_filter command.  The result,
+a table of two or more columns, is written to the file specified with
+the \-\-output option. There is a line for each length truncation
+cutoff. The first column on each line contains the selected truncation
+length, while the following columns contain the number of sequences
+and, in parenthesis, the percentage of sequences that would be
+retained at the selected EE levels.  The truncation length cutoffs may
+be specified with the \-\-length_cutoffs option and requires a list of
+three comma-separated integers indicating the shortest cutoff, the
+longest cutoff, and the increment between cutoffs. The longest cutoff
+may be specified with a star (*) which indicates that the limit is
+equal to the longest sequence in the input file. The default setting
+is "50,*,50" meaning that truncation lengths of 50, 100, 150 and so on
+up to the longest sequence length should be used.  The maximum
+expected error (EE) cutoffs may be specified with the \-\-ee_cutoffs
+option which requires a comma-separated list of floating point numbers
+as its argument. The default setting is "0.5,1.0,2.0" that indicates
+that expected error levels of 0.5, 1.0 and 2.0 should be used.
 .TP
 .BI \-\-fastq_filter \0filename
 Shorten and/or filter sequences in the given FASTQ file. Similar to
@@ -1281,9 +1305,10 @@ When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
 an abundance lower than the specified value.
 .TP
 .BI \-\-output \0filename
-When using \-\-fastq_eestats, write tabulated results to
-\fIfilename\fR. See \-\-fastq_eestats's documentation for a complete
-description of the table.
+When using \-\-fastq_eestats or \-\-fastq_eestats2, write tabulated
+results to \fIfilename\fR. See \-\-fastq_eestats's and
+\-\-fastq_eestats2's documentation for a complete description of the
+table.
 .TP
 .B \-\-relabel_keep
 When using \-\-relabel, keep the old identifier in the header after a
@@ -2553,7 +2578,7 @@ processing, shuffling, sorting)
 .IP -
 shuffle (shuffling)
 .IP -
-fastq_eestats, fastq_maxlen, fastq_truncee (FASTQ processing)
+fastq_eestats, fastq_eestats2, fastq_maxlen, fastq_truncee (FASTQ processing)
 .IP -
 fastaout_discarded, fastqout_discarded (subsampling)
 .IP -

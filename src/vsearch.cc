@@ -105,6 +105,7 @@ char * opt_fastapairs;
 char * opt_fastq_chars;
 char * opt_fastq_convert;
 char * opt_fastq_eestats;
+char * opt_fastq_eestats2;
 char * opt_fastq_filter;
 char * opt_fastq_mergepairs;
 char * opt_fastq_stats;
@@ -143,6 +144,7 @@ char * opt_uchimealns;
 char * opt_uchimeout;
 char * opt_usearch_global;
 char * opt_userout;
+double * opt_ee_cutoffs_values;
 double opt_abskew;
 double opt_dn;
 double opt_fastq_maxee;
@@ -169,6 +171,7 @@ double opt_xn;
 int opt_acceptall;
 int opt_alignwidth;
 int opt_cons_truncate;
+int opt_ee_cutoffs_count;
 int opt_gap_extension_query_interior;
 int opt_gap_extension_query_left;
 int opt_gap_extension_query_right;
@@ -182,6 +185,9 @@ int opt_gap_open_target_interior;
 int opt_gap_open_target_left;
 int opt_gap_open_target_right;
 int opt_help;
+int opt_length_cutoffs_shortest;
+int opt_length_cutoffs_longest;
+int opt_length_cutoffs_increment;
 int opt_mindiffs;
 int opt_slots;
 int opt_uchimeout5;
@@ -345,6 +351,71 @@ void cpu_features_show()
     fprintf(stderr, " avx2");
   fprintf(stderr, "\n");
 }
+
+void args_get_ee_cutoffs(char * arg)
+{
+  /* get comma-separated list of floating point numbers */
+  /* save in ee_cutoffs_count and ee_cutoffs_values */
+
+  int commas = 0;
+  for (size_t i=0; i<strlen(arg); i++)
+    if (arg[i] == ',')
+      commas++;
+
+  opt_ee_cutoffs_count = 0;
+  opt_ee_cutoffs_values = (double*) xrealloc(opt_ee_cutoffs_values, (commas+1) * sizeof(double));
+
+  char * s = arg;
+  while(1)
+    {
+      double val = 0;
+      int skip = 0;
+
+      if ((sscanf(s, "%lf%n", &val, &skip) != 1) || (val <= 0.0))
+        fatal("Invalid arguments to ee_cutoffs");
+
+      opt_ee_cutoffs_values[opt_ee_cutoffs_count++] = val;
+
+      s += skip;
+
+      if (*s == ',')
+        s++;
+      else if (*s == 0)
+        break;
+      else
+        fatal("Invalid arguments to ee_cutoffs");
+    }
+}
+
+void args_get_length_cutoffs(char * arg)
+{
+  /* get comma-separated list of 3 integers: */
+  /* smallest, largest and increment. */
+  /* second value may be * indicating no limit */
+  /* save in length_cutoffs_{smallest,largest,increment} */
+
+  int skip = 0;
+  if (sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
+    {
+      if ((size_t)skip < strlen(arg))
+        fatal("Invalid arguments to length_cutoffs");
+    }
+  else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
+    {
+      if ((size_t)skip < strlen(arg))
+        fatal("Invalid arguments to length_cutoffs");
+      opt_length_cutoffs_longest = INT_MAX;
+    }
+  else
+    fatal("Invalid arguments to length_cutoffs");
+
+  if ((opt_length_cutoffs_shortest < 1) ||
+      (opt_length_cutoffs_shortest > opt_length_cutoffs_longest) ||
+      (opt_length_cutoffs_increment < 1))
+    fatal("Invalid arguments to length_cutoffs");
+
+}
+
 
 
 void args_get_gap_penalty_string(char * arg, int is_open)
@@ -556,6 +627,11 @@ void args_init(int argc, char **argv)
   opt_derep_fulllength = 0;
   opt_derep_prefix = 0;
   opt_dn = 1.4;
+  opt_ee_cutoffs_count = 3;
+  opt_ee_cutoffs_values = (double*) xmalloc(opt_ee_cutoffs_count * sizeof(double));
+  opt_ee_cutoffs_values[0] = 0.5;
+  opt_ee_cutoffs_values[1] = 1.0;
+  opt_ee_cutoffs_values[2] = 2.0;
   opt_eeout = 0;
   opt_eetabbedout = 0;
   opt_fastaout_notmerged_fwd = 0;
@@ -572,6 +648,7 @@ void args_init(int argc, char **argv)
   opt_fastq_convert = 0;
   opt_fastq_eeout = 0;
   opt_fastq_eestats = 0;
+  opt_fastq_eestats2 = 0;
   opt_fastq_filter = 0;
   opt_fastq_maxdiffs = 5;
   opt_fastq_maxee = DBL_MAX;
@@ -626,6 +703,9 @@ void args_init(int argc, char **argv)
   opt_idsuffix = 0;
   opt_label_suffix = 0;
   opt_leftjust = 0;
+  opt_length_cutoffs_increment = 50;
+  opt_length_cutoffs_longest = INT_MAX;
+  opt_length_cutoffs_shortest = 50;
   opt_log = 0;
   opt_maskfasta = 0;
   opt_match = 2;
@@ -907,6 +987,9 @@ void args_init(int argc, char **argv)
     {"fastq_trunclen_keep",   required_argument, 0, 0 },
     {"fastq_stripright",      required_argument, 0, 0 },
     {"no_progress",           no_argument,       0, 0 },
+    {"fastq_eestats2",        required_argument, 0, 0 },
+    {"ee_cutoffs",            required_argument, 0, 0 },
+    {"length_cutoffs",        required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1693,6 +1776,18 @@ void args_init(int argc, char **argv)
           opt_no_progress = 1;
           break;
 
+        case 184:
+          opt_fastq_eestats2 = optarg;
+          break;
+
+        case 185:
+          args_get_ee_cutoffs(optarg);
+          break;
+
+        case 186:
+          args_get_length_cutoffs(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1759,6 +1854,8 @@ void args_init(int argc, char **argv)
   if (opt_fastq_mergepairs)
     commands++;
   if (opt_fastq_eestats)
+    commands++;
+  if (opt_fastq_eestats2)
     commands++;
   if (opt_rereplicate)
     commands++;
@@ -2126,13 +2223,16 @@ void cmd_help()
               "FASTQ quality statistics\n"
               "  --fastq_stats FILENAME      report statistics on FASTQ file\n"
               "  --fastq_eestats FILENAME    quality score and expected error statistics\n"
+              "  --fastq_eestats2 FILENAME   expected error and length cutoff statistics\n"
               " Parameters\n"
+              "  --ee_cutoffs REAL,...       fastq_eestats2 expected error cutoffs (0.5,1,2)\n"
               "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
+              "  --length_cutoffs INT,INT,INT fastq_eestats2 length (min,max,incr) (50,*,50)\n"
               " Output\n"
-              "  --log FILENAME              output file for statistics with --fastq_stats\n"
-              "  --output FILENAME           output file for statistics with --fastq_eestats\n"
+              "  --log FILENAME              output file for fastq_stats statistics\n"
+              "  --output FILENAME           output file for fastq_eestats(2) statistics\n"
               "\n"
               "Filtering\n"
               "  --fastx_filter FILENAME     filter and truncate sequences in FASTA/FASTQ file\n"
@@ -2465,6 +2565,14 @@ void cmd_fastq_eestats()
   fastq_eestats();
 }
 
+void cmd_fastq_eestats2()
+{
+  if (!opt_output)
+    fatal("Output file for fastq_eestats2 must be specified with --output");
+
+  fastq_eestats2();
+}
+
 void cmd_subsample()
 {
   if ((!opt_fastaout) && (!opt_fastqout))
@@ -2511,6 +2619,7 @@ void cmd_none()
             "vsearch --fastq_chars FILENAME\n"
             "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
             "vsearch --fastq_eestats FILENAME --output FILENAME\n"
+            "vsearch --fastq_eestats2 FILENAME --output FILENAME\n"
             "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
             "vsearch --fastq_stats FILENAME --log FILENAME\n"
             "vsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\n"
@@ -2746,6 +2855,8 @@ int main(int argc, char** argv)
     cmd_fastq_mergepairs();
   else if (opt_fastq_eestats)
     cmd_fastq_eestats();
+  else if (opt_fastq_eestats2)
+    cmd_fastq_eestats2();
   else if (opt_rereplicate)
     cmd_rereplicate();
   else if (opt_version)

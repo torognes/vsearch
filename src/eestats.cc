@@ -89,30 +89,30 @@ void fastq_eestats()
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
-  
+
   int64_t len_alloc = 10;
 
   const int resolution = 1000;
   int max_quality = opt_fastq_qmax - opt_fastq_qmin + 1;
-  
+
   int64_t ee_size = ee_start(len_alloc, resolution);
-  
+
   uint64_t * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * len_alloc);
   memset(read_length_table, 0, sizeof(uint64_t) * len_alloc);
-  
+
   uint64_t * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * len_alloc *
                                            (max_quality+1));
   memset(qual_length_table, 0, sizeof(uint64_t) * len_alloc * (max_quality+1));
-  
+
   uint64_t * ee_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * ee_size);
   memset(ee_length_table, 0, sizeof(uint64_t) * ee_size);
 
   double * sum_ee_length_table = (double*) xmalloc(sizeof(double) * len_alloc);
   memset(sum_ee_length_table, 0, sizeof(double) * len_alloc);
-  
+
   double * sum_pe_length_table = (double*) xmalloc(sizeof(double) * len_alloc);
   memset(sum_pe_length_table, 0, sizeof(double) * len_alloc);
-  
+
   int64_t len_min = LONG_MAX;
   int64_t len_max = 0;
 
@@ -133,27 +133,27 @@ void fastq_eestats()
 
           read_length_table = (uint64_t*) xrealloc(read_length_table,
                                               sizeof(uint64_t) * new_alloc);
-          memset(read_length_table + len_alloc, 0, 
+          memset(read_length_table + len_alloc, 0,
                  sizeof(uint64_t) * (new_alloc - len_alloc));
-          
+
           qual_length_table = (uint64_t*) xrealloc(qual_length_table, sizeof(uint64_t) *
                                               new_alloc * (max_quality+1));
-          memset(qual_length_table + (max_quality+1) * len_alloc, 0, 
+          memset(qual_length_table + (max_quality+1) * len_alloc, 0,
                  sizeof(uint64_t) * (new_alloc - len_alloc) * (max_quality+1));
-          
-          ee_length_table = (uint64_t*) xrealloc(ee_length_table, sizeof(uint64_t) * 
+
+          ee_length_table = (uint64_t*) xrealloc(ee_length_table, sizeof(uint64_t) *
                                             new_ee_size);
           memset(ee_length_table + ee_size, 0,
                  sizeof(uint64_t) * (new_ee_size - ee_size));
-          
+
           sum_ee_length_table = (double*) xrealloc(sum_ee_length_table,
                                               sizeof(double) * new_alloc);
-          memset(sum_ee_length_table + len_alloc, 0, 
+          memset(sum_ee_length_table + len_alloc, 0,
                  sizeof(double) * (new_alloc - len_alloc));
 
           sum_pe_length_table = (double*) xrealloc(sum_pe_length_table,
                                               sizeof(double) * new_alloc);
-          memset(sum_pe_length_table + len_alloc, 0, 
+          memset(sum_pe_length_table + len_alloc, 0,
                  sizeof(double) * (new_alloc - len_alloc));
 
           len_alloc = new_alloc;
@@ -164,9 +164,9 @@ void fastq_eestats()
         len_min = len;
       if (len > len_max)
         len_max = len;
-      
+
       /* update quality statistics */
-      
+
       symbols += len;
 
       double ee = 0.0;
@@ -178,7 +178,7 @@ void fastq_eestats()
           /* quality score */
 
           int qual = q[i] - opt_fastq_ascii;
-          
+
           char msg[200];
 
           if (qual < opt_fastq_qmin)
@@ -229,7 +229,7 @@ void fastq_eestats()
     {
       int64_t reads = read_length_table[i];
       double pctrecs = 100.0 * reads / seq_count;
-      
+
 
       /* q */
 
@@ -249,7 +249,7 @@ void fastq_eestats()
             {
               qsum += q * x;
               n += x;
-          
+
               if (min_q<0)
                 min_q = q;
 
@@ -333,10 +333,10 @@ void fastq_eestats()
 
               if ((low_ee<0) && (n >= 0.25 * reads))
                 low_ee = e;
-          
+
               if ((med_ee<0) && (n >= 0.50 * reads))
                 med_ee = e;
-          
+
               if ((hi_ee<0)  && (n >= 0.75 * reads))
                 hi_ee = e;
 
@@ -362,12 +362,190 @@ void fastq_eestats()
               min_pe, low_pe, med_pe, mean_pe, hi_pe, max_pe,
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
     }
-  
+
   xfree(read_length_table);
   xfree(qual_length_table);
   xfree(ee_length_table);
   xfree(sum_ee_length_table);
   xfree(sum_pe_length_table);
+
+  fclose(fp_output);
+
+  fastq_close(h);
+}
+
+void fastq_eestats2()
+{
+  fastx_handle h = fastq_open(opt_fastq_eestats2);
+
+  uint64_t filesize = fastq_get_size(h);
+
+  FILE * fp_output = 0;
+
+  if (opt_output)
+    {
+      fp_output = fopen(opt_output, "w");
+      if (!fp_output)
+        fatal("Unable to open output file for writing");
+    }
+
+  progress_init("Reading fastq file", filesize);
+
+  uint64_t seq_count = 0;
+  uint64_t symbols = 0;
+  uint64_t longest = 0;
+
+  int len_steps = 0;
+
+  uint64_t * count_table = 0;
+
+  while(fastq_next(h, 0, chrmap_upcase))
+    {
+      seq_count++;
+
+      uint64_t len = fastq_get_sequence_length(h);
+      char * q = fastq_get_quality(h);
+
+      /* update length statistics */
+
+      if (len > longest)
+        {
+          longest = len;
+          int new_len_steps = 1 + MAX(0, (MIN(longest, (uint64_t)opt_length_cutoffs_longest) - opt_length_cutoffs_shortest) / opt_length_cutoffs_increment);
+
+          if (new_len_steps > len_steps)
+            {
+              count_table = (uint64_t *) xrealloc(count_table, sizeof(uint64_t) * new_len_steps * opt_ee_cutoffs_count);
+              memset(count_table + len_steps * opt_ee_cutoffs_count, 0, sizeof(uint64_t) * (new_len_steps - len_steps) * opt_ee_cutoffs_count);
+              len_steps = new_len_steps;
+            }
+        }
+
+      /* update quality statistics */
+
+      symbols += len;
+
+      double ee = 0.0;
+
+      for(uint64_t i=0; i < len; i++)
+        {
+          /* quality score */
+
+          int qual = q[i] - opt_fastq_ascii;
+
+          char msg[200];
+
+          if (qual < opt_fastq_qmin)
+            {
+              snprintf(msg, 200, "FASTQ quality value (%d) below qmin (%" PRId64 ")",
+                       qual, opt_fastq_qmin);
+              fatal(msg);
+            }
+          else if (qual > opt_fastq_qmax)
+            {
+              snprintf(msg, 200, "FASTQ quality value (%d) above qmax (%" PRId64 ")",
+                       qual, opt_fastq_qmax);
+              fatal(msg);
+            }
+
+          if (qual < 0)
+            qual = 0;
+
+          double pe = q2p(qual);
+
+          ee += pe;
+
+          for (int x = 0; x < len_steps; x++)
+            {
+              uint64_t len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
+              if (i+1 == len_cutoff)
+                for (int y = 0; y < opt_ee_cutoffs_count; y++)
+                  if (ee <= opt_ee_cutoffs_values[y])
+                    count_table[x * opt_ee_cutoffs_count + y]++;
+            }
+        }
+
+      for (int x = 0; x < len_steps; x++)
+        {
+          uint64_t len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
+          if (len < len_cutoff)
+            for (int y = 0; y < opt_ee_cutoffs_count; y++)
+              if (ee <= opt_ee_cutoffs_values[y])
+                count_table[x * opt_ee_cutoffs_count + y]++;
+        }
+
+      progress_update(fastq_get_position(h));
+    }
+  progress_done();
+
+  fprintf(fp_output,
+          "%" PRIu64 " reads, max len %" PRIu64 ", avg %.1f\n\n",
+          seq_count, longest, 1.0 * symbols / seq_count);
+
+  fprintf(fp_output, "Length");
+  for (int y = 0; y < opt_ee_cutoffs_count; y++)
+    fprintf(fp_output, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
+  fprintf(fp_output, "\n");
+  fprintf(fp_output, "------");
+  for (int y = 0; y < opt_ee_cutoffs_count; y++)
+    fprintf(fp_output, "   ----------------");
+  fprintf(fp_output, "\n");
+
+  for (int x = 0; x < len_steps; x++)
+    {
+      int len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
+
+      if (len_cutoff > opt_length_cutoffs_longest)
+        break;
+
+      fprintf(fp_output, "%6d", len_cutoff);
+
+      for (int y = 0; y < opt_ee_cutoffs_count; y++)
+        fprintf(fp_output,
+                "   %8" PRIu64 "(%5.1f%%)",
+                count_table[x * opt_ee_cutoffs_count + y],
+                100.0 * count_table[x * opt_ee_cutoffs_count + y] / seq_count);
+      fprintf(fp_output, "\n");
+    }
+
+  if (fp_log)
+    {
+      fprintf(fp_log,
+              "%" PRIu64 " reads, max len %" PRIu64 ", avg %.1f\n\n",
+              seq_count, longest, 1.0 * symbols / seq_count);
+
+      fprintf(fp_log, "Length");
+      for (int y = 0; y < opt_ee_cutoffs_count; y++)
+        fprintf(fp_log, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
+      fprintf(fp_log, "\n");
+      fprintf(fp_log, "------");
+      for (int y = 0; y < opt_ee_cutoffs_count; y++)
+        fprintf(fp_log, "   ----------------");
+      fprintf(fp_log, "\n");
+
+      for (int x = 0; x < len_steps; x++)
+        {
+          int len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
+
+          if (len_cutoff > opt_length_cutoffs_longest)
+            break;
+
+          fprintf(fp_log, "%6d", len_cutoff);
+
+          for (int y = 0; y < opt_ee_cutoffs_count; y++)
+            fprintf(fp_log,
+                    "   %8" PRIu64 "(%5.1f%%)",
+                    count_table[x * opt_ee_cutoffs_count + y],
+                    100.0 * count_table[x * opt_ee_cutoffs_count + y] / seq_count);
+          fprintf(fp_log, "\n");
+        }
+    }
+
+  if (count_table)
+    {
+      xfree(count_table);
+      count_table = 0;
+    }
 
   fclose(fp_output);
 

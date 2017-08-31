@@ -59,3 +59,4 @@
 */
 
 void fastq_eestats();
+void fastq_eestats2();
