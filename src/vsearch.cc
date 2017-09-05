@@ -119,6 +119,7 @@ char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
 char * opt_label_suffix;
 char * opt_log;
+char * opt_makeudb_usearch;
 char * opt_maskfasta;
 char * opt_matched;
 char * opt_mothur_shared_out;
@@ -707,6 +708,7 @@ void args_init(int argc, char **argv)
   opt_length_cutoffs_longest = INT_MAX;
   opt_length_cutoffs_shortest = 50;
   opt_log = 0;
+  opt_makeudb_usearch = 0;
   opt_maskfasta = 0;
   opt_match = 2;
   opt_matched = 0;
@@ -990,6 +992,7 @@ void args_init(int argc, char **argv)
     {"fastq_eestats2",        required_argument, 0, 0 },
     {"ee_cutoffs",            required_argument, 0, 0 },
     {"length_cutoffs",        required_argument, 0, 0 },
+    {"makeudb_usearch",       required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1788,6 +1791,10 @@ void args_init(int argc, char **argv)
           args_get_length_cutoffs(optarg);
           break;
 
+        case 187:
+          opt_makeudb_usearch = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1858,6 +1865,8 @@ void args_init(int argc, char **argv)
   if (opt_fastq_eestats2)
     commands++;
   if (opt_rereplicate)
+    commands++;
+  if (opt_makeudb_usearch)
     commands++;
 
   if (commands > 1)
@@ -2406,7 +2415,6 @@ void cmd_help()
               "  --uc_allhits                show all, not just top hit with uc output\n"
               "  --userfields STRING         fields to output in userout file\n"
               "  --userout FILENAME          filename for user-defined tab-separated output\n"
-              "  --wordlength INT            length of words for database index 3-15 (8)\n"
               "\n"
               "Shuffling and sorting\n"
               "  --shuffle FILENAME          shuffle order of sequences in FASTA file randomly\n"
@@ -2448,6 +2456,20 @@ void cmd_help()
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   update abundance information in output\n"
               "  --xsize                     strip abundance information in output\n"
+              "\n"
+              "UDB files\n"
+              "  --makeudb_usearch FILE      make UDB file from given FASTA file\n"
+              " Parameters\n"
+              "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "  --wordlength INT            length of words for database index 3-15 (8)\n"
+              /*
+              "  --udb2fasta FILE            output FASTA file from given UDB file\n"
+              "  --udbinfo FILE              show information about UDB file\n"
+              "  --udbstats FILE             report statistics about indexed words in UDB file\n"
+              */
+              " Output\n"
+              "  --output FILE               UDB output file\n"
           );
     }
 }
@@ -2590,6 +2612,13 @@ void cmd_maskfasta()
     fatal("Output file for masking must be specified with --output");
 
   maskfasta();
+}
+
+void cmd_makeudb_usearch()
+{
+  if (!opt_output)
+    fatal("UDB output file must be specified with --output");
+  dbindex_udb_write();
 }
 
 void cmd_fastx_mask()
@@ -2861,6 +2890,8 @@ int main(int argc, char** argv)
     cmd_rereplicate();
   else if (opt_version)
     cmd_version();
+  else if (opt_makeudb_usearch)
+    cmd_makeudb_usearch();
   else
     cmd_none();
 

@@ -252,6 +252,7 @@ extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
 extern char * opt_label_suffix;
 extern char * opt_log;
+extern char * opt_makeudb_usearch;
 extern char * opt_maskfasta;
 extern char * opt_matched;
 extern char * opt_mothur_shared_out;

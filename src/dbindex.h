@@ -71,6 +71,7 @@ void dbindex_prepare(int use_bitmap, int seqmask);
 void dbindex_addallsequences(int seqmask);
 void dbindex_addsequence(unsigned int seqno, int seqmask);
 void dbindex_free();
+void dbindex_udb_write();
 
 inline unsigned char * dbindex_getbitmap(unsigned int kmer)
 {
