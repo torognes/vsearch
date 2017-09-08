@@ -2381,7 +2381,7 @@ void cmd_help()
               "  --search_exact FILENAME     filename of queries for exact match search\n"
               "  --usearch_global FILENAME   filename of queries for global alignment search\n"
               " Data\n"
-              "  --db FILENAME               filename for FASTA formatted database for search\n"
+              "  --db FILENAME               name of UDB or FASTA database for search\n"
               " Parameters\n"
               "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
               "  --fulldp                    full dynamic programming alignment (always on)\n"
@@ -2492,15 +2492,13 @@ void cmd_help()
               "  --makeudb_usearch FILE      make UDB file from given FASTA file\n"
               "  --udb2fasta FILE            output FASTA file from given UDB file\n"
               "  --udbinfo FILE              show information about UDB file\n"
+              "  --udbstats FILE             report statistics about indexed words in UDB file\n"
               " Parameters\n"
               "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --wordlength INT            length of words for database index 3-15 (8)\n"
-              /*
-              "  --udbstats FILE             report statistics about indexed words in UDB file\n"
-              */
               " Output\n"
-              "  --output FILE               UDB output file\n"
+              "  --output FILE               UDB or FAST output file\n"
           );
     }
 }
