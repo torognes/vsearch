@@ -62,16 +62,31 @@
 
 #define MEMCHUNK 16777216
 
-static fastx_handle h;
+static fastx_handle h = 0;
 static bool is_fastq = 0;
 static uint64_t sequences = 0;
 static uint64_t nucleotides = 0;
-static uint64_t longest;
-static uint64_t shortest;
-static uint64_t longestheader;
+static uint64_t longest = 0;
+static uint64_t shortest = 0;
+static uint64_t longestheader = 0;
 
-seqinfo_t * seqindex;
-char * datap;
+seqinfo_t * seqindex = 0;
+char * datap = 0;
+
+void db_setinfo(bool new_is_fastq,
+                uint64_t new_sequences,
+                uint64_t new_nucleotides,
+                uint64_t new_longest,
+                uint64_t new_shortest,
+                uint64_t new_longestheader)
+{
+  is_fastq = new_is_fastq;
+  sequences = new_sequences;
+  nucleotides = new_nucleotides;
+  longest = new_longest;
+  shortest = new_shortest;
+  longestheader = new_longestheader;
+}
 
 bool db_is_fastq()
 {
@@ -88,8 +103,6 @@ char * db_getquality(uint64_t seqno)
 
 void db_read(const char * filename, int upcase)
 {
-  /* compile regexp for abundance pattern */
-
   h = fastx_open(filename);
 
   if (!h)

@@ -192,6 +192,7 @@
 #include "eestats.h"
 #include "rerep.h"
 #include "otutable.h"
+#include "udb.h"
 
 /* options */
 
@@ -271,6 +272,9 @@ extern char * opt_search_exact;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
+extern char * opt_udb2fasta;
+extern char * opt_udbinfo;
+extern char * opt_udbstats;
 extern char * opt_uc;
 extern char * opt_uchime_denovo;
 extern char * opt_uchime_ref;

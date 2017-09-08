@@ -538,21 +538,34 @@ void search_prep(char * cmdline, char * progheader)
         fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
     }
 
-  db_read(opt_db, 0);
+  /* check if it may be an UDB file */
+
+  bool is_udb = udb_detect_isudb(opt_db);
+
+  if (is_udb)
+    udb_read(opt_db);
+  else
+    db_read(opt_db, 0);
 
   results_show_samheader(fp_samout, cmdline, opt_db);
 
-  if (opt_dbmask == MASK_DUST)
-    dust_all();
-  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
-    hardmask_all();
+  if (!is_udb)
+    {
+      if (opt_dbmask == MASK_DUST)
+        dust_all();
+      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+        hardmask_all();
+    }
 
   show_rusage();
 
   seqcount = db_getsequencecount();
 
-  dbindex_prepare(1, opt_dbmask);
-  dbindex_addallsequences(opt_dbmask);
+  if (!is_udb)
+    {
+      dbindex_prepare(1, opt_dbmask);
+      dbindex_addallsequences(opt_dbmask);
+    }
 
   /* tophits = the maximum number of hits we need to store */
 

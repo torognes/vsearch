@@ -87,7 +87,7 @@ int64_t abundance_get(abundance_t * a, char * header)
       if (number > 0)
         abundance = number;
       else
-        fatal("Invalid (zero) abundance annotation in fasta header");
+        fatal("Invalid (zero) abundance annotation in FASTA file header");
     }
   return abundance;
 }

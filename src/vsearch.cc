@@ -138,6 +138,9 @@ char * opt_search_exact;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
+char * opt_udb2fasta;
+char * opt_udbinfo;
+char * opt_udbstats;
 char * opt_uc;
 char * opt_uchime_denovo;
 char * opt_uchime_ref;
@@ -784,6 +787,9 @@ void args_init(int argc, char **argv)
   opt_threads = 0;
   opt_top_hits_only = 0;
   opt_topn = LONG_MAX;
+  opt_udb2fasta = 0;
+  opt_udbinfo = 0;
+  opt_udbstats = 0;
   opt_uc = 0;
   opt_uc_allhits = 0;
   opt_uchime_denovo = 0;
@@ -993,6 +999,9 @@ void args_init(int argc, char **argv)
     {"ee_cutoffs",            required_argument, 0, 0 },
     {"length_cutoffs",        required_argument, 0, 0 },
     {"makeudb_usearch",       required_argument, 0, 0 },
+    {"udb2fasta",             required_argument, 0, 0 },
+    {"udbinfo",               required_argument, 0, 0 },
+    {"udbstats",              required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1795,6 +1804,18 @@ void args_init(int argc, char **argv)
           opt_makeudb_usearch = optarg;
           break;
 
+        case 188:
+          opt_udb2fasta = optarg;
+          break;
+
+        case 189:
+          opt_udbinfo = optarg;
+          break;
+
+        case 190:
+          opt_udbstats = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1867,6 +1888,12 @@ void args_init(int argc, char **argv)
   if (opt_rereplicate)
     commands++;
   if (opt_makeudb_usearch)
+    commands++;
+  if (opt_udb2fasta)
+    commands++;
+  if (opt_udbinfo)
+    commands++;
+  if (opt_udbstats)
     commands++;
 
   if (commands > 1)
@@ -2021,6 +2048,7 @@ void args_init(int argc, char **argv)
       & opt_fastx_mask,
       & opt_fastx_revcomp,
       & opt_fastx_subsample,
+      & opt_makeudb_usearch,
       & opt_maskfasta,
       & opt_rereplicate,
       & opt_reverse,
@@ -2030,6 +2058,9 @@ void args_init(int argc, char **argv)
       & opt_sortbysize,
       & opt_uchime_denovo,
       & opt_uchime_ref,
+      & opt_udb2fasta,
+      & opt_udbinfo,
+      & opt_udbstats,
       & opt_usearch_global,
       0
     };
@@ -2459,13 +2490,13 @@ void cmd_help()
               "\n"
               "UDB files\n"
               "  --makeudb_usearch FILE      make UDB file from given FASTA file\n"
+              "  --udb2fasta FILE            output FASTA file from given UDB file\n"
+              "  --udbinfo FILE              show information about UDB file\n"
               " Parameters\n"
               "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --wordlength INT            length of words for database index 3-15 (8)\n"
               /*
-              "  --udb2fasta FILE            output FASTA file from given UDB file\n"
-              "  --udbinfo FILE              show information about UDB file\n"
               "  --udbstats FILE             report statistics about indexed words in UDB file\n"
               */
               " Output\n"
@@ -2618,7 +2649,14 @@ void cmd_makeudb_usearch()
 {
   if (!opt_output)
     fatal("UDB output file must be specified with --output");
-  dbindex_udb_write();
+  udb_make();
+}
+
+void cmd_udb2fasta()
+{
+  if (!opt_output)
+    fatal("FASTA output file must be specified with --output");
+  udb_fasta();
 }
 
 void cmd_fastx_mask()
@@ -2892,6 +2930,12 @@ int main(int argc, char** argv)
     cmd_version();
   else if (opt_makeudb_usearch)
     cmd_makeudb_usearch();
+  else if (opt_udb2fasta)
+    cmd_udb2fasta();
+  else if (opt_udbinfo)
+    udb_info();
+  else if (opt_udbstats)
+    udb_stats();
   else
     cmd_none();
 

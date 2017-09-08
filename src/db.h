@@ -117,3 +117,10 @@ void db_sortbyabundance();
 
 bool db_is_fastq();
 char * db_getquality(uint64_t seqno);
+
+void db_setinfo(bool new_is_fastq,
+                uint64_t new_sequences,
+                uint64_t new_nucleotides,
+                uint64_t new_longest,
+                uint64_t new_shortest,
+                uint64_t new_longestheader);

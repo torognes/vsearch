@@ -71,7 +71,7 @@ void rereplicate()
     {
       fp_output = fopen(opt_output, "w");
       if (!fp_output)
-        fatal("Unable to open fasta output file for writing");
+        fatal("Unable to open FASTA output file for writing");
     }
 
   fastx_handle fh = fasta_open(opt_rereplicate);

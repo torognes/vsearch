@@ -104,28 +104,28 @@ void filter(bool fastq_only, char * filename)
     {
       fp_fastaout = fopen(opt_fastaout, "w");
       if (!fp_fastaout)
-        fatal("Unable to open fasta output file for writing");
+        fatal("Unable to open FASTA output file for writing");
     }
 
   if (opt_fastqout)
     {
       fp_fastqout = fopen(opt_fastqout, "w");
       if (!fp_fastqout)
-        fatal("Unable to open fastq output file for writing");
+        fatal("Unable to open FASTQ output file for writing");
     }
 
   if (opt_fastaout_discarded)
     {
       fp_fastaout_discarded = fopen(opt_fastaout_discarded, "w");
       if (!fp_fastaout_discarded)
-        fatal("Unable to open fasta output file for writing");
+        fatal("Unable to open FASTA output file for writing");
     }
 
   if (opt_fastqout_discarded)
     {
       fp_fastqout_discarded = fopen(opt_fastqout_discarded, "w");
       if (!fp_fastqout_discarded)
-        fatal("Unable to open fastq output file for writing");
+        fatal("Unable to open FASTQ output file for writing");
     }
 
   uint64_t header_alloc = 0;
@@ -387,7 +387,7 @@ void fastq_chars()
 
   uint64_t filesize = fastq_get_size(h);
 
-  progress_init("Reading fastq file", filesize);
+  progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
   
@@ -636,7 +636,7 @@ void fastq_stats()
 
   uint64_t filesize = fastq_get_size(h);
 
-  progress_init("Reading fastq file", filesize);
+  progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
@@ -979,20 +979,20 @@ void fastx_revcomp()
     {
       fp_fastaout = fopen(opt_fastaout, "w");
       if (!fp_fastaout)
-        fatal("Unable to open fasta output file for writing");
+        fatal("Unable to open FASTA output file for writing");
     }
 
   if (opt_fastqout)
     {
       fp_fastqout = fopen(opt_fastqout, "w");
       if (!fp_fastqout)
-        fatal("Unable to open fastq output file for writing");
+        fatal("Unable to open FASTQ output file for writing");
     }
 
   if (h->is_fastq)
-    progress_init("Reading fastq file", filesize);
+    progress_init("Reading FASTQ file", filesize);
   else
-    progress_init("Reading fasta file", filesize);
+    progress_init("Reading FASTA file", filesize);
 
   while(fastx_next(h, 0, chrmap_no_change))
     {
@@ -1077,9 +1077,9 @@ void fastq_convert()
 
   fp_fastqout = fopen(opt_fastqout, "w");
   if (!fp_fastqout)
-    fatal("Unable to open fastq output file for writing");
+    fatal("Unable to open FASTQ output file for writing");
 
-  progress_init("Reading fastq file", filesize);
+  progress_init("Reading FASTQ file", filesize);
 
   while(fastq_next(h, 0, chrmap_no_change))
     {

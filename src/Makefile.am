@@ -51,6 +51,7 @@ shuffle.h \
 sortbylength.h \
 sortbysize.h \
 subsample.h \
+udb.h \
 unique.h \
 userfields.h \
 util.h \
@@ -126,6 +127,7 @@ shuffle.cc \
 sortbylength.cc \
 sortbysize.cc \
 subsample.cc \
+udb.cc \
 unique.cc \
 userfields.cc \
 util.cc \

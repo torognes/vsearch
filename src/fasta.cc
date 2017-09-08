@@ -123,13 +123,13 @@ void fasta_filter_sequence(fastx_handle h,
           if ((c>=32) && (c<127))
             snprintf(msg,
                      200,
-                     "illegal character '%c' on line %" PRIu64 " in fasta file",
+                     "illegal character '%c' on line %" PRIu64 " in FASTA file",
                      (unsigned char)c,
                      h->lineno);
           else
             snprintf(msg,
                      200,
-                     "illegal unprintable character %#.2x (hexadecimal) on line %" PRIu64 " in fasta file",
+                     "illegal unprintable character %#.2x (hexadecimal) on line %" PRIu64 " in FASTA file",
                      (unsigned char) c,
                      h->lineno);
           fatal(msg);

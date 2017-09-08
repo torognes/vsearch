@@ -85,7 +85,7 @@ void fastq_eestats()
         fatal("Unable to open output file for writing");
     }
 
-  progress_init("Reading fastq file", filesize);
+  progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
@@ -389,7 +389,7 @@ void fastq_eestats2()
         fatal("Unable to open output file for writing");
     }
 
-  progress_init("Reading fastq file", filesize);
+  progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
