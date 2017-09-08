@@ -161,10 +161,14 @@ void udb_make()
         {
           if (kmercount[i] > 0)
             {
-              written = write(fd_output, kmerindex+kmerhash[i], 4*kmercount[i]);
+              written = write(fd_output,
+                              kmerindex+kmerhash[i],
+                              4 * kmercount[i]);
               if (written != 4 * kmercount[i])
                 fatal("Unable to write to UDB file");
             }
+          else
+            written = 0;
         }
       progress += written;
       progress_update(progress);
@@ -916,6 +920,8 @@ bool udb_detect_isudb(const char * filename)
   return 0;
 }
 
+static unsigned int udb_dbaccel = 0;
+
 void udb_read(const char * filename)
 {
   /*
@@ -924,7 +930,6 @@ void udb_read(const char * filename)
      dbindex_count : number of indexed sequences
   */
 
-  unsigned int udb_dbaccel = 0;
   unsigned int seqcount = 0;
   unsigned int udb_wordlength = 0;
   uint64 nucleotides = 0;
