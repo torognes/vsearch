@@ -89,7 +89,7 @@ ssize_t largewrite(int fd, void * buf, size_t nbyte, off_t offset)
   for(uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
     {
       uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t byteswritten = write(fd, ((char*)buf) + i, rem);
+      uint64_t byteswritten = pwrite(fd, ((char*)buf) + i, rem, offset + i);
 
       if (byteswritten != rem)
         fatal("Unable to write to UDB file");
@@ -162,17 +162,14 @@ void udb_make()
   buffer[13] = (unsigned int) seqcount; /* antall sekvenser */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
-  ssize_t written = largewrite(fd_output, buffer, 50 * 4, 0);
-  pos += written;
+  pos += largewrite(fd_output, buffer, 50 * 4, 0);
 
   /* write 4^wordlength uint32's with word match counts */
-  written = largewrite(fd_output, kmercount, 4 * kmerhashsize, pos);
-  pos += written;
+  pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos);
 
   /* 3BDU */
   buffer[0] = 0x55444233; /* 3BDU UDB3 */
-  written = largewrite(fd_output, buffer, 1 * 4, pos);
-  pos += written;
+  pos += largewrite(fd_output, buffer, 1 * 4, pos);
 
   /* lists of sequence no's with matches for all words */
   for(unsigned int i = 0; i < kmerhashsize; i++)
@@ -184,18 +181,16 @@ void udb_make()
           for (unsigned int j = 0; j < seqcount; j++)
             if (bitmap_get(kmerbitmap[i], j))
               buffer[elements++] = j;
-          written = largewrite(fd_output, buffer, 4 * elements, pos);
-          pos += written;
+          pos += largewrite(fd_output, buffer, 4 * elements, pos);
         }
       else
         {
           if (kmercount[i] > 0)
             {
-              written = largewrite(fd_output,
-                                   kmerindex+kmerhash[i],
-                                   4 * kmercount[i],
-                                   pos);
-              pos += written;
+              pos += largewrite(fd_output,
+                                kmerindex + kmerhash[i],
+                                4 * kmercount[i],
+                                pos);
             }
         }
     }
@@ -214,8 +209,7 @@ void udb_make()
   buffer[6] = (unsigned int)(header_characters >> 32);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
-  written = largewrite(fd_output, buffer, 4 * 8, pos);
-  pos += written;
+  pos += largewrite(fd_output, buffer, 4 * 8, pos);
 
   /* indices to headers (uint32) */
   unsigned int sum = 0;
@@ -224,29 +218,25 @@ void udb_make()
       buffer[i] = sum;
       sum += db_getheaderlen(i) + 1;
     }
-  written = largewrite(fd_output, buffer, 4 * seqcount, pos);
-  pos += written;
+  pos += largewrite(fd_output, buffer, 4 * seqcount, pos);
 
   /* headers (ascii, zero terminated, not padded) */
   for (unsigned int i = 0; i < seqcount; i++)
     {
       unsigned int len = db_getheaderlen(i);
-      written = largewrite(fd_output, db_getheader(i), len+1, pos);
-      pos += written;
+      pos += largewrite(fd_output, db_getheader(i), len + 1, pos);
     }
 
   /* sequence lengths (uint32) */
   for (unsigned int i = 0; i < seqcount; i++)
     buffer[i] = db_getsequencelen(i);
-  written = largewrite(fd_output, buffer, 4 * seqcount, pos);
-  pos += written;
+  pos += largewrite(fd_output, buffer, 4 * seqcount, pos);
 
   /* sequences (ascii, no term, no pad) */
   for (unsigned int i = 0; i < seqcount; i++)
     {
       unsigned int len = db_getsequencelen(i);
-      written = largewrite(fd_output, db_getsequence(i), len, pos);
-      pos += written;
+      pos += largewrite(fd_output, db_getsequence(i), len, pos);
     }
 
   if (close(fd_output) != 0)
@@ -286,13 +276,8 @@ void udb_fasta()
 
   unsigned int buffer[50];
   off_t pos = 0;
-  unsigned int bytesread = largepread(fd_udb, buffer, 4 * 50, pos);
 
-  if (bytesread != 4 * 50)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * 50;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4 * 50, pos);
 
   if ((buffer[0]  != 0x55444246) ||
       (buffer[2] != 32) ||
@@ -311,13 +296,7 @@ void udb_fasta()
   uint64_t kmerhashsize = 1 << (2 * wordlength);
   unsigned int * wordcountbuffer = (unsigned int *) xmalloc(4 * kmerhashsize);
 
-  bytesread = largepread(fd_udb, wordcountbuffer, 4 * kmerhashsize, pos);
-
-  if (bytesread != 4 * kmerhashsize)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * kmerhashsize;
-  progress_update(pos);
+  pos += largepread(fd_udb, wordcountbuffer, 4 * kmerhashsize, pos);
 
   uint64_t wordmatches = 0;
   for(uint64_t i = 0; i < kmerhashsize; i++)
@@ -327,13 +306,7 @@ void udb_fasta()
 
   /* signature */
 
-  bytesread = largepread(fd_udb, buffer, 4, pos);
-
-  if (bytesread != 4)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4, pos);
 
   if (buffer[0] != 0x55444233)
     fatal("Invalid UDB file");
@@ -347,13 +320,7 @@ void udb_fasta()
 
   /* new header */
 
-  bytesread = largepread(fd_udb, buffer, 4 * 8, pos);
-
-  if (bytesread != 4 * 8)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * 8;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4 * 8, pos);
 
   if ((buffer[0] != 0x55444234) ||
       (buffer[1] != 0x005e0db3) ||
@@ -368,13 +335,7 @@ void udb_fasta()
 
   int * header_index = (int *) xmalloc(4 * seqcount);
 
-  bytesread = largepread(fd_udb, header_index, 4 * seqcount, pos);
-
-  if (bytesread != 4 * seqcount)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * seqcount;
-  progress_update(pos);
+  pos += largepread(fd_udb, header_index, 4 * seqcount, pos);
 
   unsigned last = 0;
   for(unsigned int i = 0; i < seqcount; i++)
@@ -389,25 +350,13 @@ void udb_fasta()
 
   char * headers = (char *) xmalloc(hd);
 
-  bytesread = largepread(fd_udb, headers, hd, pos);
-
-  if (bytesread != hd)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += hd;
-  progress_update(pos);
+  pos += largepread(fd_udb, headers, hd, pos);
 
   /* sequence lengths */
 
   int * sequence_lengths = (int *) xmalloc(4 * seqcount);
 
-  bytesread = largepread(fd_udb, sequence_lengths, 4 * seqcount, pos);
-
-  if (bytesread != 4 * seqcount)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * seqcount;
-  progress_update(pos);
+  pos += largepread(fd_udb, sequence_lengths, 4 * seqcount, pos);
 
   uint64_t sum = 0;
   unsigned int longest = 0;
@@ -425,13 +374,7 @@ void udb_fasta()
 
   char * sequences = (char *) xmalloc(nt);
 
-  bytesread = largepread(fd_udb, sequences, nt, pos);
-
-  if (bytesread != nt)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += nt;
-  progress_update(pos);
+  pos += largepread(fd_udb, sequences, nt, pos);
 
   /* close UDB file */
 
@@ -451,15 +394,6 @@ void udb_fasta()
                   headers + header_index[i],
                   seq,
                   len);
-
-      /*
-      fprintf(fp_output,
-              ">%s\n%.*s\n",
-              headers + header_index[i],
-              len,
-              seq);
-      */
-
       seq += len;
       progress_update(i+1);
     }
@@ -478,7 +412,7 @@ void udb_info()
   if (! fd_udbinfo)
     fatal("Unable to open UDB file for reading");
 
-  unsigned int bytesread = read(fd_udbinfo, buffer, 4 * 50);
+  uint64_t bytesread = read(fd_udbinfo, buffer, 4 * 50);
   if (bytesread != 4 * 50)
     fatal("Unable to read from UDB file or invalid UDB file");
 
@@ -570,13 +504,8 @@ void udb_stats()
 
   unsigned int buffer[50];
   off_t pos = 0;
-  uint64_t bytesread = largepread(fd_udb, buffer, 4 * 50, pos);
 
-  if (bytesread != 4 * 50)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * 50;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4 * 50, pos);
 
   if ((buffer[0]  != 0x55444246) ||
       (buffer[2] != 32) ||
@@ -597,13 +526,7 @@ void udb_stats()
 
   unsigned int * wordcountbuffer = (unsigned int *) xmalloc(4 * kmerhashsize);
 
-  bytesread = largepread(fd_udb, wordcountbuffer, 4 * kmerhashsize, pos);
-
-  if (bytesread != 4 * kmerhashsize)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * kmerhashsize;
-  progress_update(pos);
+  pos += largepread(fd_udb, wordcountbuffer, 4 * kmerhashsize, pos);
 
   uint64_t * kmerhash = (uint64_t *) xmalloc(sizeof(uint64_t) * kmerhashsize);
   uint64_t wordmatches = 0;
@@ -629,13 +552,7 @@ void udb_stats()
 
   /* signature */
 
-  bytesread = largepread(fd_udb, buffer, 4, pos);
-
-  if (bytesread != 4)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4, pos);
 
   if (buffer[0] != 0x55444233)
     fatal("Invalid UDB file");
@@ -644,23 +561,11 @@ void udb_stats()
 
   unsigned int * kmerindex = (unsigned int *) xmalloc(4 * wordmatches);
 
-  bytesread = largepread(fd_udb, kmerindex, 4 * wordmatches, pos);
-
-  if (bytesread != 4 * wordmatches)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * wordmatches;
-  progress_update(pos);
+  pos += largepread(fd_udb, kmerindex, 4 * wordmatches, pos);
 
   /* new header */
 
-  bytesread = largepread(fd_udb, buffer, 4 * 8, pos);
-
-  if (bytesread != 4 * 8)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * 8;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4 * 8, pos);
 
   if ((buffer[0] != 0x55444234) ||
       (buffer[1] != 0x005e0db3) ||
@@ -675,13 +580,7 @@ void udb_stats()
 
   int * header_index = (int *) xmalloc(4 * seqcount);
 
-  bytesread = largepread(fd_udb, header_index, 4 * seqcount, pos);
-
-  if (bytesread != 4 * seqcount)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * seqcount;
-  progress_update(pos);
+  pos += largepread(fd_udb, header_index, 4 * seqcount, pos);
 
   unsigned last = 0;
   for(unsigned int i = 0; i < seqcount; i++)
@@ -696,25 +595,13 @@ void udb_stats()
 
   char * headers = (char *) xmalloc(hd);
 
-  bytesread = largepread(fd_udb, headers, hd, pos);
-
-  if (bytesread != hd)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += hd;
-  progress_update(pos);
+  pos += largepread(fd_udb, headers, hd, pos);
 
   /* sequence lengths */
 
   int * sequence_lengths = (int *) xmalloc(4 * seqcount);
 
-  bytesread = largepread(fd_udb, sequence_lengths, 4 * seqcount, pos);
-
-  if (bytesread != 4 * seqcount)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * seqcount;
-  progress_update(pos);
+  pos += largepread(fd_udb, sequence_lengths, 4 * seqcount, pos);
 
   uint64_t sum = 0;
   unsigned int longest = 0;
@@ -732,13 +619,7 @@ void udb_stats()
 
   char * sequences = (char *) xmalloc(nt);
 
-  bytesread = largepread(fd_udb, sequences, nt, pos);
-
-  if (bytesread != nt)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += nt;
-  progress_update(pos);
+  pos += largepread(fd_udb, sequences, nt, pos);
 
   /* close UDB file */
 
@@ -924,7 +805,7 @@ bool udb_detect_isudb(const char * filename)
     fatal("Unable to open input file for reading (%s)", filename);
 
   unsigned int magic = 0;
-  unsigned int bytesread = read(fd, & magic, 4);
+  uint64_t bytesread = read(fd, & magic, 4);
   close(fd);
 
   if ((bytesread == 4) && (magic == 0x55444246))
@@ -971,13 +852,8 @@ void udb_read(const char * filename)
 
   unsigned int buffer[50];
   off_t pos = 0;
-  unsigned int bytesread = largepread(fd_udb, buffer, 4 * 50, pos);
 
-  if (bytesread != 4 * 50)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * 50;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4 * 50, pos);
 
   if ((buffer[0]  != 0x55444246) ||
       (buffer[2] != 32) ||
@@ -1005,13 +881,7 @@ void udb_read(const char * filename)
   kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
   kmerbitmap = (bitmap_t * *) xmalloc(kmerhashsize * sizeof(bitmap_t**));
 
-  bytesread = largepread(fd_udb, kmercount, 4 * kmerhashsize, pos);
-
-  if (bytesread != 4 * kmerhashsize)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * kmerhashsize;
-  progress_update(pos);
+  pos += largepread(fd_udb, kmercount, 4 * kmerhashsize, pos);
 
   kmerindexsize = 0;
   for(uint64_t i = 0; i < kmerhashsize; i++)
@@ -1022,28 +892,16 @@ void udb_read(const char * filename)
 
   /* signature */
 
-  bytesread = largepread(fd_udb, buffer, 4, pos);
-
-  if (bytesread != 4)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4, pos);
 
   if (buffer[0] != 0x55444233)
     fatal("Invalid UDB file");
 
   /* sequence numbers for word matches */
 
-  kmerindex = (unsigned int *) xmalloc(kmerindexsize * sizeof(unsigned int));
+  kmerindex = (unsigned int *) xmalloc(kmerindexsize * 4);
 
-  bytesread = largepread(fd_udb, kmerindex, 4 * kmerindexsize, pos);
-
-  if (bytesread != sizeof(unsigned int) * kmerindexsize)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * kmerindexsize;
-  progress_update(pos);
+  pos += largepread(fd_udb, kmerindex, 4 * kmerindexsize, pos);
 
   /* Create bitmaps for the most frequent words */
 
@@ -1064,13 +922,7 @@ void udb_read(const char * filename)
 
   /* new header */
 
-  bytesread = largepread(fd_udb, buffer, 4 * 8, pos);
-
-  if (bytesread != 4 * 8)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * 8;
-  progress_update(pos);
+  pos += largepread(fd_udb, buffer, 4 * 8, pos);
 
   if ((buffer[0] != 0x55444234) ||
       (buffer[1] != 0x005e0db3) ||
@@ -1087,13 +939,7 @@ void udb_read(const char * filename)
 
   int * header_index = (int *) xmalloc(4 * seqcount);
 
-  bytesread = largepread(fd_udb, header_index, 4 * seqcount, pos);
-
-  if (bytesread != 4 * seqcount)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * seqcount;
-  progress_update(pos);
+  pos += largepread(fd_udb, header_index, 4 * seqcount, pos);
 
   unsigned last = 0;
   for(unsigned int i = 0; i < seqcount; i++)
@@ -1119,13 +965,7 @@ void udb_read(const char * filename)
 
   datap = (char *) xmalloc(udb_headerchars + nucleotides + seqcount);
 
-  bytesread = largepread(fd_udb, datap, udb_headerchars, pos);
-
-  if (bytesread != udb_headerchars)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += udb_headerchars;
-  progress_update(pos);
+  pos += largepread(fd_udb, datap, udb_headerchars, pos);
 
   /* get abundances and longest header */
 
@@ -1142,13 +982,7 @@ void udb_read(const char * filename)
 
   int * sequence_lengths = (int *) xmalloc(4 * seqcount);
 
-  bytesread = largepread(fd_udb, sequence_lengths, 4 * seqcount, pos);
-
-  if (bytesread != 4 * seqcount)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += 4 * seqcount;
-  progress_update(pos);
+  pos += largepread(fd_udb, sequence_lengths, 4 * seqcount, pos);
 
   uint64_t sum = 0;
   unsigned int shortest = UINT_MAX;
@@ -1182,13 +1016,7 @@ void udb_read(const char * filename)
 
   /* sequences */
 
-  bytesread = largepread(fd_udb, datap + udb_headerchars, nucleotides, pos);
-
-  if (bytesread != nucleotides)
-    fatal("Unable to read from UDB file or invalid UDB file");
-
-  pos += nucleotides;
-  progress_update(pos);
+  pos += largepread(fd_udb, datap + udb_headerchars, nucleotides, pos);
 
   if (pos != filesize)
     fatal("Incorrect UDB file size");
