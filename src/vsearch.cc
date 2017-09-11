@@ -2489,16 +2489,16 @@ void cmd_help()
               "  --xsize                     strip abundance information in output\n"
               "\n"
               "UDB files\n"
-              "  --makeudb_usearch FILE      make UDB file from given FASTA file\n"
-              "  --udb2fasta FILE            output FASTA file from given UDB file\n"
-              "  --udbinfo FILE              show information about UDB file\n"
-              "  --udbstats FILE             report statistics about indexed words in UDB file\n"
+              "  --makeudb_usearch FILENAME  make UDB file from given FASTA file\n"
+              "  --udb2fasta FILENAME        output FASTA file from given UDB file\n"
+              "  --udbinfo FILENAME          show information about UDB file\n"
+              "  --udbstats FILENAME         report statistics about indexed words in UDB file\n"
               " Parameters\n"
               "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
               "  --hardmask                  mask by replacing with N instead of lower case\n"
               "  --wordlength INT            length of words for database index 3-15 (8)\n"
               " Output\n"
-              "  --output FILE               UDB or FAST output file\n"
+              "  --output FILENAME           UDB or FASTA output file\n"
           );
     }
 }

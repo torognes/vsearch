@@ -543,7 +543,7 @@ void search_prep(char * cmdline, char * progheader)
   bool is_udb = udb_detect_isudb(opt_db);
 
   if (is_udb)
-    udb_read(opt_db);
+    udb_read(opt_db, 1, 1);
   else
     db_read(opt_db, 0);
 
