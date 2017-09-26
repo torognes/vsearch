@@ -2587,7 +2587,7 @@ void cmd_rereplicate()
 void cmd_derep()
 {
   if ((!opt_output) && (!opt_uc))
-    fatal("Output file for derep_fulllength must be specified with --output or --uc");
+    fatal("Output file for dereplication must be specified with --output or --uc");
 
   if (opt_derep_fulllength)
     derep_fulllength();
