@@ -116,23 +116,36 @@
 
 #endif
 
-#ifdef __APPLE__
-#define PROG_OS "osx"
-#include <sys/resource.h>
-#include <sys/sysctl.h>
-#endif
-
-#ifdef __linux__
-#define PROG_OS "linux"
-#include <sys/resource.h>
-#include <sys/sysinfo.h>
-#endif
 
 #ifdef _WIN32
+
 #define PROG_OS "win"
 #include <windows.h>
 #include <psapi.h>
+
+#else
+
+#ifdef __APPLE__
+
+#define PROG_OS "macos"
+#include <sys/sysctl.h>
+
+#else
+
+#ifdef __linux__
+#define PROG_OS "linux"
+#else
+#define PROG_OS "unknown"
 #endif
+
+#include <sys/sysinfo.h>
+
+#endif
+
+#include <sys/resource.h>
+
+#endif
+
 
 #define PROG_ARCH PROG_OS "_" PROG_CPU
 
