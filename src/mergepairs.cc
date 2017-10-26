@@ -374,11 +374,11 @@ void discard(merge_data_t * ip)
     case minlen:
       failed_minlen++;
       break;
-      
+
     case maxlen:
       failed_maxlen++;
       break;
-      
+
     case maxns:
       failed_maxns++;
       break;
@@ -475,12 +475,12 @@ void merge(merge_data_t * ip)
   // 5' overhang in forward sequence
 
   fwd_pos = 0;
-  
+
   while(fwd_pos < fwd_5prime_overhang)
     {
       sym = ip->fwd_sequence[fwd_pos];
       qual = ip->fwd_quality[fwd_pos];
-      
+
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
 
@@ -491,9 +491,9 @@ void merge(merge_data_t * ip)
       fwd_pos++;
       merged_pos++;
     }
-  
+
   // Merged region
-  
+
   int64_t rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
     ip->offset - ip->fwd_trunc : 0;
 
@@ -505,25 +505,25 @@ void merge(merge_data_t * ip)
       rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
       fwd_qual = ip->fwd_quality[fwd_pos];
       rev_qual = ip->rev_quality[rev_pos];
-      
+
       merge_sym(& sym,
                 & qual,
                 fwd_qual < 2 ? 'N' : fwd_sym,
                 rev_qual < 2 ? 'N' : rev_sym,
                 fwd_qual,
                 rev_qual);
-      
+
       if (sym != fwd_sym)
         ip->fwd_errors++;
       if (sym != rev_sym)
         ip->rev_errors++;
-      
+
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
       ip->ee_merged += q2p[(unsigned)qual];
       ip->ee_fwd += q2p[(unsigned)fwd_qual];
       ip->ee_rev += q2p[(unsigned)rev_qual];
-      
+
       fwd_pos++;
       rev_pos--;
       merged_pos++;
@@ -535,7 +535,7 @@ void merge(merge_data_t * ip)
     {
       sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
       qual = ip->rev_quality[rev_pos];
-      
+
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
       merged_pos++;
@@ -549,7 +549,7 @@ void merge(merge_data_t * ip)
 
   int64_t mergelen = merged_pos;
   ip->merged_length = mergelen;
-  
+
   ip->merged_sequence[mergelen] = 0;
   ip->merged_quality[mergelen] = 0;
 
@@ -607,9 +607,9 @@ int64_t optimize(merge_data_t * ip,
               if (hits > 1)
                 break;
             }
-          
+
           /* for each interesting diagonal */
-          
+
           int64_t fwd_3prime_overhang = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
           int64_t rev_3prime_overhang = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
           int64_t overlap = i - fwd_3prime_overhang - rev_3prime_overhang;
@@ -627,7 +627,7 @@ int64_t optimize(merge_data_t * ip,
           for (int64_t j=0; j < overlap; j++)
             {
               /* for each pair of bases in the overlap */
-              
+
               char fwd_sym = ip->fwd_sequence[fwd_pos];
               char rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
               unsigned int fwd_qual = ip->fwd_quality[fwd_pos];
@@ -698,7 +698,7 @@ int64_t optimize(merge_data_t * ip,
       ip->reason = minscore;
       return 0;
     }
-  
+
   if (best_i < opt_fastq_minovlen)
     {
       ip->reason = minovlen;
@@ -1099,7 +1099,7 @@ void fastq_mergepairs()
                        - 2.0 * mean * sum_fragment_length
                        + mean * mean * merged)
                       / (merged + 0.0));
-  
+
   if (notmerged > 0)
     fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
 
@@ -1107,22 +1107,22 @@ void fastq_mergepairs()
     fprintf(stderr,
             "%10" PRIu64 "  undefined reason\n",
             failed_undefined);
-  
+
   if (failed_minlen)
     fprintf(stderr,
             "%10" PRIu64 "  reads too short (after truncation)\n",
             failed_minlen);
-  
+
   if (failed_maxlen)
     fprintf(stderr,
             "%10" PRIu64 "  reads too long (after truncation)\n",
             failed_maxlen);
-  
+
   if (failed_maxns)
     fprintf(stderr,
             "%10" PRIu64 "  too many N's\n",
             failed_maxns);
-  
+
   if (failed_nokmers)
     fprintf(stderr,
             "%10" PRIu64 "  too few kmers found on same diagonal\n",
@@ -1132,42 +1132,42 @@ void fastq_mergepairs()
     fprintf(stderr,
             "%10" PRIu64 "  potential tandem repeat\n",
             failed_repeat);
-  
+
   if (failed_maxdiffs)
     fprintf(stderr,
             "%10" PRIu64 "  too many differences\n",
             failed_maxdiffs);
-  
+
   if (failed_minscore)
     fprintf(stderr,
             "%10" PRIu64 "  alignment score too low, or score drop to high\n",
             failed_minscore);
-  
+
   if (failed_minovlen)
     fprintf(stderr,
             "%10" PRIu64 "  overlap too short\n",
             failed_minovlen);
-  
+
   if (failed_maxee)
     fprintf(stderr,
             "%10" PRIu64 "  expected error too high\n",
             failed_maxee);
-  
+
   if (failed_minmergelen)
     fprintf(stderr,
             "%10" PRIu64 "  merged fragment too short\n",
             failed_minmergelen);
-  
+
   if (failed_maxmergelen)
     fprintf(stderr,
             "%10" PRIu64 "  merged fragment too long\n",
             failed_maxmergelen);
-  
+
   if (failed_staggered)
     fprintf(stderr,
             "%10" PRIu64 "  staggered read pairs\n",
             failed_staggered);
-  
+
   if (failed_indel)
     fprintf(stderr,
             "%10" PRIu64 "  indel errors\n",
@@ -1180,7 +1180,7 @@ void fastq_mergepairs()
   fprintf(stderr,
           "%10.2f  Mean fragment length\n",
           mean);
-  
+
   fprintf(stderr,
           "%10.2f  Standard deviation of fragment length\n",
           stdev);
@@ -1192,7 +1192,7 @@ void fastq_mergepairs()
   fprintf(stderr,
           "%10.2f  Mean expected error in reverse sequences\n",
           sum_ee_rev / merged);
-  
+
   fprintf(stderr,
           "%10.2f  Mean expected error in merged sequences\n",
           sum_ee_merged / merged);
@@ -1209,7 +1209,7 @@ void fastq_mergepairs()
           "%10.2f  Mean observed errors in merged region\n",
           1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
 
-  
+
   /* clean up */
 
   if (opt_eetabbedout)

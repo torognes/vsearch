@@ -65,12 +65,10 @@ uint64_t * kmerhash;
 unsigned int * kmerindex;
 bitmap_t * * kmerbitmap;
 unsigned int * dbindex_map;
-
-static unsigned int kmerhashsize;
-static uint64_t kmerindexsize;
+unsigned int kmerhashsize;
+uint64_t kmerindexsize;
 unsigned int dbindex_count;
-
-static uhandle_s * dbindex_uh;
+uhandle_s * dbindex_uh;
 
 #define BITMAP_THRESHOLD 8
 
@@ -99,7 +97,10 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
     {
       unsigned int kmer = uniquelist[i];
       if (kmerbitmap[kmer])
-        bitmap_set(kmerbitmap[kmer], dbindex_count);
+        {
+          kmercount[kmer]++;
+          bitmap_set(kmerbitmap[kmer], dbindex_count);
+        }
       else
         kmerindex[kmerhash[kmer]+(kmercount[kmer]++)] = dbindex_count;
     }
@@ -109,7 +110,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
 void dbindex_addallsequences(int seqmask)
 {
   unsigned int seqcount = db_getsequencecount();
-  progress_init("Creating index of unique k-mers", seqcount);
+  progress_init("Creating k-mer index", seqcount);
   for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
       dbindex_addsequence(seqno, seqmask);
@@ -130,7 +131,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
-  progress_init("Counting unique k-mers", seqcount);
+  progress_init("Counting k-mers", seqcount);
   for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
       unsigned int uniquecount;

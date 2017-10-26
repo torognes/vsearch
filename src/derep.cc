@@ -345,15 +345,26 @@ void derep_fulllength()
   
   average = 1.0 * sumsize / clusters;
 
-  if (!opt_quiet)
-    fprintf(stderr,
-            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
-            clusters, average, median, maxsize);
-
-  if (opt_log)
-    fprintf(fp_log,
-            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
-            clusters, average, median, maxsize);
+  if (clusters < 1)
+    {
+      if (!opt_quiet)
+        fprintf(stderr,
+                "0 unique sequences\n");
+      if (opt_log)
+        fprintf(fp_log,
+                "0 unique sequences\n\n");
+    }
+  else
+    {
+      if (!opt_quiet)
+        fprintf(stderr,
+                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
+                clusters, average, median, maxsize);
+      if (opt_log)
+        fprintf(fp_log,
+                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
+                clusters, average, median, maxsize);
+    }
 
   show_rusage();
   
@@ -694,15 +705,26 @@ void derep_prefix()
   
   average = 1.0 * sumsize / clusters;
 
-  if (!opt_quiet)
-    fprintf(stderr,
-            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
-            clusters, average, median, maxsize);
-
-  if (opt_log)
-    fprintf(fp_log,
-            "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
-            clusters, average, median, maxsize);
+  if (clusters < 1)
+    {
+      if (!opt_quiet)
+        fprintf(stderr,
+                "0 unique sequences\n");
+      if (opt_log)
+        fprintf(fp_log,
+                "0 unique sequences\n\n");
+    }
+  else
+    {
+      if (!opt_quiet)
+        fprintf(stderr,
+                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
+                clusters, average, median, maxsize);
+      if (opt_log)
+        fprintf(fp_log,
+                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
+                clusters, average, median, maxsize);
+    }
 
   show_rusage();
   

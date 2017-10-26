@@ -447,9 +447,8 @@ void results_show_alnout(FILE * fp,
           char * dseq = db_getsequence(hp->target);
           int64_t dseqlen = db_getsequencelen(hp->target);
           
-          char dummy;
-          int qlenlen = snprintf(&dummy, 1, "%" PRId64, qseqlen);
-          int tlenlen = snprintf(&dummy, 1, "%" PRId64, dseqlen);
+          int qlenlen = snprintf(0, 0, "%" PRId64, qseqlen);
+          int tlenlen = snprintf(0, 0, "%" PRId64, dseqlen);
           int numwidth = MAX(qlenlen, tlenlen);
           
           fprintf(fp," Query %*" PRId64 "nt >%s\n", numwidth,

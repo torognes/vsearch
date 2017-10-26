@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "April 6, 2017" "version 2.4.3" "USER COMMANDS"
+.TH vsearch 1 "October 25, 2017" "version 2.5.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -46,7 +46,7 @@ FASTA/FASTQ file processing:
 \fBvsearch\fR \-\-fastq_convert \fIfastqfile\fR \-\-fastqout
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
-\fBvsearch\fR \-\-fastq_eestats \fIfastqfile\fR
+\fBvsearch\fR (\-\-fastq_eestats | \-\-fastq_eestats2) \fIfastqfile\fR
 \-\-output \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
@@ -253,6 +253,9 @@ All \fBvsearch\fR operations discard sequences of length smaller than
 \fIinteger\fR: 1 nucleotide by default for sorting or shuffling, 32
 nucleotides for clustering, dereplication or searching.
 .TP
+.B \-\-no_progress
+Do not show the gradually increasing progress indicator.
+.TP
 .B \-\-notrunclabels
 Do not truncate sequence labels at first space or tab, use the full
 header in output files.
@@ -280,7 +283,7 @@ Chimera detection options:
 .RS
 Chimera detection is based on a scoring function controlled by five
 options (\-\-dn, \-\-mindiffs, \-\-mindiv, \-\-minh,
-\-\-xn). Sequences are first sorted by decreasing abundance ,if
+\-\-xn). Sequences are first sorted by decreasing abundance, if
 available, and compared on their \fIplus\fR strand only (case
 insensitive).
 .PP
@@ -597,11 +600,12 @@ edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
 edit distance excluding terminal gaps (same as \-\-id).
 .IP \n+[step].
-Marine Biological Lab definition counting each extended gap (internal
-or terminal) as a single difference: 1.0 - [(mismatches +
-gaps)/(longest sequence length)]
+Marine Biological Lab definition counting each gap opening (internal
+or terminal) as a single mismatch, whether or not the gap was
+extended: 1.0 - [(mismatches + gap openings)/(longest sequence
+length)]
 .IP \n+[step].
-BLAST definition, equivalent to \-\-iddef 2 in a context of global
+BLAST definition, equivalent to \-\-iddef 1 in a context of global
 pairwise alignment.
 .RE
 .RE
@@ -897,11 +901,11 @@ the quality encoding and the range of quality score values used. To
 convert between different FASTQ file variants, use the
 \-\-fastq_convert command. Statistical analysis of the quality and
 length of the sequences in a FASTQ file may be performed with the
-\-\-fastq_stats and \-\-fastq_eestats commands. Sequences may be
-shortened, filtered and converted by the \-\-fastq_filter or
-\-\-fastx_filter commands. Paired-end reads can be merged using the
-\-\-fastq_mergepairs command. Finally, the \-\-fastx_revcomp command
-reverse-complements sequences.
+\-\-fastq_stats, \-\-fastq_eestats, and \-\-fastq_eestats2
+commands. Sequences may be shortened, filtered and converted by the
+\-\-fastq_filter or \-\-fastx_filter commands. Paired-end reads can be
+merged using the \-\-fastq_mergepairs command. Finally, the
+\-\-fastx_revcomp command reverse-complements sequences.
 .PP
 .TP 9
 .B \-\-eeout
@@ -1005,6 +1009,30 @@ EE distributions, the following statistics are included: minimum value
 quality values may be specified with \-\-fastq_ascii \-\-fastq_qmin
 and \-\-fastq_qmax.
 .TP
+.BI \-\-fastq_eestats2 \0filename
+Analyze the specified FASTQ file and report statistics on the number
+of sequences that would be retained at a combination of selected
+cutoffs for length truncation and maximum expected errors, that could
+potentially be used as arguments to the \-\-fastq_trunclen and
+\-\-fastq_maxee options to the \-\-fastq_filter command.  The result,
+a table of two or more columns, is written to the file specified with
+the \-\-output option. There is a line for each length truncation
+cutoff. The first column on each line contains the selected truncation
+length, while the following columns contain the number of sequences
+and, in parenthesis, the percentage of sequences that would be
+retained at the selected EE levels.  The truncation length cutoffs may
+be specified with the \-\-length_cutoffs option and requires a list of
+three comma-separated integers indicating the shortest cutoff, the
+longest cutoff, and the increment between cutoffs. The longest cutoff
+may be specified with a star (*) which indicates that the limit is
+equal to the longest sequence in the input file. The default setting
+is "50,*,50" meaning that truncation lengths of 50, 100, 150 and so on
+up to the longest sequence length should be used.  The maximum
+expected error (EE) cutoffs may be specified with the \-\-ee_cutoffs
+option which requires a comma-separated list of floating point numbers
+as its argument. The default setting is "0.5,1.0,2.0" that indicates
+that expected error levels of 0.5, 1.0 and 2.0 should be used.
+.TP
 .BI \-\-fastq_filter \0filename
 Shorten and/or filter sequences in the given FASTQ file. Similar to
 the \-\-fastx_filter command, but works only on FASTQ files. See
@@ -1056,11 +1084,11 @@ with the \-\-fastq_maxns are also discarded (no limit by
 default). Staggered reads are not merged unless the
 \-\-fastq_allowmergestagger option is specified. The minimum length of
 the overlap region between the reads may be specified with the
-\-\-minovlen option (default 16), and the overlap region may not
-include more mismatches than specified with the \-\-maxdiffs option (5
-by default), otherwise the read pair is discarded. The mimimum and
-maximum length of the merged sequence may be specified with the
-\-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
+\-\-fastq_minovlen option (default 16), and the overlap region may not
+include more mismatches than specified with the \-\-fastq_maxdiffs
+option (5 by default), otherwise the read pair is discarded. The
+mimimum and maximum length of the merged sequence may be specified
+with the \-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
 respectively. Other relevant options are: \-\-fastq_ascii,
 \-\-fastq_maxee, \-\-fastq_nostagger, \-\-fastq_qmax, \-\-fastq_qmin,
 and \-\-label_suffix.
@@ -1076,7 +1104,7 @@ merged sequence. The default is 1.
 .TP
 .BI \-\-fastq_minovlen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the minimum overlap between
-the merged reads. The default is 10.
+the merged reads. The default is 16.
 .TP
 .B \-\-fastq_nostagger
 When using \-\-fastq_mergepairs, forbid the merging of staggered read
@@ -1190,7 +1218,11 @@ position with a quality \fIQ\fR below 5, 10, 15 or 20 (option
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
-number of bases from the beginning of the reads.
+number of bases from the left end of the reads.
+.TP
+.BI \-\-fastq_stripright\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
+number of bases from the right end of the reads.
 .TP
 .BI \-\-fastq_tail\~ "positive integer"
 When using \-\-fastq_chars, count the number of times a series of
@@ -1241,17 +1273,18 @@ specified with the \-\-fastaout_discarded and \-\-fastqout_discarded
 options. The input format (FASTA or FASTQ) is automatically
 detected. Output can not be written to FASTQ files if the input is in
 FASTA format. Sequences may be shortened using the options
-\-\-fastq_stripleft, \-\-fastq_truncee, \-\-fastq_trunclen and
+\-\-fastq_stripleft, \-\-fastq_stripright, \-\-fastq_truncee,
+\-\-fastq_trunclen, \-\-fastq_trunclen_keep and
 \-\-fastq_truncqual. The sequences may be filtered using the options
 \-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
-\-\-fastq_maxns, \-\-fastq_minlen and \-\-fastq_trunclen. If
-shortening results in an empty sequence, it is discarded. The
-sequences are first shortened and then filtered based on the remaining
-bases. If no shortening or filtering options are given, all sequences
-are written to the output files, possibly after conversion from FASTQ
-to FASTA format. The \-\-relabel option may be used to relabel the
-output sequences. The \-\-eeout may be used to output the expected
-number of errors in each sequence.
+\-\-fastq_maxns, \-\-fastq_minlen, \-\-fastq_trunclen, \-\-maxsize,
+and \-\-minsize. If shortening results in an empty sequence, it is
+discarded. The sequences are first shortened and then filtered based
+on the remaining bases. If no shortening or filtering options are
+given, all sequences are written to the output files, possibly after
+conversion from FASTQ to FASTA format. The \-\-relabel option may be
+used to relabel the output sequences. The \-\-eeout may be used to
+output the expected number of errors in each sequence.
 .TP
 .BI \-\-fastx_revcomp \0filename
 Reverse-complement the sequences in the given FASTA or FASTQ file to a
@@ -1263,10 +1296,19 @@ to a FASTQ file due to missing base quality scores.
 When using \-\-fastx_revcomp or \-\-fastq_mergepairs, add the suffix
 \fIstring\fR to sequence headers.
 .TP
+.BI \-\-maxsize\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
+an abundance higher than the specified value.
+.TP
+.BI \-\-minsize\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
+an abundance lower than the specified value.
+.TP
 .BI \-\-output \0filename
-When using \-\-fastq_eestats, write tabulated results to
-\fIfilename\fR. See \-\-fastq_eestats's documentation for a complete
-description of the table.
+When using \-\-fastq_eestats or \-\-fastq_eestats2, write tabulated
+results to \fIfilename\fR. See \-\-fastq_eestats's and
+\-\-fastq_eestats2's documentation for a complete description of the
+table.
 .TP
 .B \-\-relabel_keep
 When using \-\-relabel, keep the old identifier in the header after a
@@ -1653,14 +1695,15 @@ CD-HIT definition: (matching columns) / (shortest sequence length).
 .IP \n+[step].
 edit distance: (matching columns) / (alignment length).
 .IP \n+[step].
-edit distance excluding terminal gaps (same as \-\-id).
+edit distance excluding terminal gaps (default definition for \-\-id).
 .IP \n+[step].
-Marine Biological Lab definition counting each extended gap (internal
-or terminal) as a single difference: 1.0 - [(mismatches +
-gaps)/(longest sequence length)]
+Marine Biological Lab definition counting each gap opening (internal
+or terminal) as a single mismatch, whether or not the gap was
+extended: 1.0 - [(mismatches + gap openings)/(longest sequence
+length)]
 .IP \n+[step].
-BLAST definition, equivalent to \-\-iddef 2 in a context of global
-pairwise alignment.
+BLAST definition, equivalent to \-\-iddef 1 for global pairwise
+alignments.
 .RE
 .PP
 The option \-\-userfields accepts the fields id0 to id4, in addition
@@ -1830,15 +1873,76 @@ Width of alignment lines in \-\-alnout output. The default value is
 64. Set to 0 to eliminate wrapping.
 .TP
 .B \-\-samheader
-Include header lines to the sam file when \-\-samout is specified. The
-header includes @HD, @SQ and @PG lines, but no read group (@RG)
-information. By default no header lines are written.
+Include header lines to the SAM file when \-\-samout is specified. The
+header includes lines starting with @HD, @SQ and @PG, but no @RG lines
+(see <https://github.com/samtools/hts-specs>). By default no header
+line is written.
 .TP
 .BI \-\-samout \0filename
-Write alignment results to \fIfilename\fR in the SAM format. For a
-description of the format, see
-<https://github.com/samtools/hts-specs>. Output order may vary when
-using multiple threads.
+Write alignment results to \fIfilename\fR using the SAM format (a
+tab-separated text file). When using the \-\-samheader option, the SAM
+file starts with header lines. Each non-header line is a SAM record,
+which represents either a query-target alignment or the absence of
+match for a query (output order may vary when using multiple
+threads). Each record contains 11 mandatory fields and optional fields
+(see <https://github.com/samtools/hts-specs> for a complete
+description of the format):
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+query sequence label.
+.IP \n+[step].
+combination of bitwise flags. Possible values are: 0 (top hit), 4 (no
+hit), 16 (reverse-complemented hit), 256 (secondary hit, i.e. all hits
+except the top hit).
+.IP \n+[step].
+target sequence label.
+.IP \n+[step].
+first position of a target aligned with the query (always 1 for global
+pairwise alignments, 0 if there is no match).
+.IP \n+[step].
+mapping quality (ignored, always set to '*').
+.IP \n+[step].
+CIGAR string (set to '*' if there is no match).
+.IP \n+[step].
+name of the target sequence matching with the next read of the query
+(for mate reads only, ignored and always set to '*').
+.IP \n+[step].
+position of the primary alignment of the next read of the query (for
+mate reads only, ignored and always set to 0).
+.IP \n+[step].
+target sequence length (for multi-segment targets, ignored and always
+set to 0).
+.IP \n+[step].
+query sequence (complete, not only the segment aligned to the target
+as usearch does).
+.IP \n+[step].
+quality string (ignored, always set to '*').
+.RE
+.TP
+Optional fields for query-target matches (number and order of fields
+may vary):
+.RS
+.nr step 12 1
+.IP \n[step]. 4
+AS:i:? alignment score (i.e. percentage of identity).
+.IP \n+[step].
+XN:i:? next best alignment score (always set to 0).
+.IP \n+[step].
+XM:i:? number of mismatches.
+.IP \n+[step].
+XO:i:? number of gap openings (excluding terminal gaps).
+.IP \n+[step].
+XG:i:? number of gap extensions (excluding terminal gaps).
+.IP \n+[step].
+NM:i:? edit distance to the target (sum of XM and XG).
+.IP \n+[step].
+MD:Z:? string for mismatching positions.
+.IP \n+[step].
+YT:Z:UU string representing the alignment type.
+.RE
+.RE
 .TP
 .BI \-\-search_exact \0filename
 Search for exact full-length matches to the query sequences contained
@@ -1896,7 +2000,7 @@ threads. Column content varies with the type of entry (H or N):
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-Record type: H, or N.
+Record type: H, or N ('hit' or 'no hit').
 .IP \n+[step].
 Ordinal number of the target sequence (based on input order, starting
 from zero). Set to '*' for N.
@@ -2079,7 +2183,7 @@ Sort by decreasing length the sequences contained in
 .TP
 .BI \-\-sortbysize \0filename
 Sort by decreasing abundance the sequences contained in \fIfilename\fR
-(the pattern '[>;]size=\fIinteger\fR[;]' has to be present). See the
+(missing abundance values are assumed to be ';size=1'). See the
 options \-\-minsize and \-\-maxsize to eliminate rare and dominant
 sequences.
 .TP
@@ -2256,15 +2360,16 @@ is an alias for the field id.
 .TP
 .B id3
 Marine Biological Lab definition of the percentage of identity (real
-value ranging from 0.0 to 100.0), counting each extended gap (internal
-or terminal) as a single difference and using the length of the
-longest sequence in the pairwise alignment as denominator: 100 * (1.0
-- [(mismatches + gaps) / (longest sequence length)]).
+value ranging from 0.0 to 100.0), counting each gap opening (internal
+or terminal) as a single mismatch, whether or not the gap was
+extended, and using the length of the longest sequence in the pairwise
+alignment as denominator: 100 * (1.0 - [(mismatches + gaps) / (longest
+sequence length)]).
 .TP
 .B id4
 BLAST definition of the percentage of identity (real value ranging
-from 0.0 to 100.0), equivalent to \-\-iddef 2 in a context of global
-pairwise alignment.
+from 0.0 to 100.0), equivalent to \-\-iddef 1 in a context of global
+pairwise alignment. The field id4 is always equal to the field id1.
 .TP
 .B ids
 Number of matches in the alignment (zero or positive integer value).
@@ -2473,7 +2578,7 @@ processing, shuffling, sorting)
 .IP -
 shuffle (shuffling)
 .IP -
-fastq_eestats, fastq_maxlen, fastq_truncee (FASTQ processing)
+fastq_eestats, fastq_eestats2, fastq_maxlen, fastq_truncee (FASTQ processing)
 .IP -
 fastaout_discarded, fastqout_discarded (subsampling)
 .IP -
@@ -3066,6 +3171,21 @@ improved accuracy of paired-end read merging.
 Fixed bug with progress bar for shuffling. Fixed missing N-lines in UC
 files with usearch_global, search_exact and allpairs_global when the
 output_no_hits option was not specified.
+.TP
+.BR v2.4.4\~ "released August 28th, 2017"
+Fixed a few minor bugs, improved error messages and updated
+documentation.
+.TP
+.BR v2.5.0\~ "released October 5th, 2017"
+Support for UDB database files. New commands: fastq_stripright,
+fastq_eestats2, makeudb_usearch, udb2fasta, udbinfo, and udbstats. New
+general option: no_progress. New options minsize and maxsize to
+fastx_filter. Minor bug fixes, error message improvements and
+documentation updates.
+.TP
+.BR v2.5.1\~ "released October 25th, 2017"
+Fixed bug with bad default value of 1 instead of 32 for minseqlength
+when using the makeudb_usearch command.
 .RE
 .LP
 .\" ============================================================================

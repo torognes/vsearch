@@ -1255,35 +1255,51 @@ void cluster(char * dbname,
 
   progress_done();
 
-  if (!opt_quiet)
+  if (clusters < 1)
     {
-      fprintf(stderr,
-              "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
-              clusters,
-              abundance_min,
-              abundance_max,
-              1.0 * seqcount / clusters);
-      fprintf(stderr,
-              "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
-              singletons,
-              100.0 * singletons / seqcount, 
-              100.0 * singletons / clusters);
+      if (!opt_quiet)
+        {
+          fprintf(stderr, "Clusters: 0\n");
+          fprintf(stderr, "Singletons: 0\n");
+        }
+      if (opt_log)
+        {
+          fprintf(fp_log, "Clusters: 0\n");
+          fprintf(fp_log, "Singletons: 0\n");
+        }
     }
-
-  if (opt_log)
+  else
     {
-      fprintf(fp_log,
-              "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
-              clusters,
-              abundance_min,
-              abundance_max,
-              1.0 * seqcount / clusters);
-      fprintf(fp_log,
-              "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
-              singletons,
-              100.0 * singletons / seqcount, 
-              100.0 * singletons / clusters);
-      fprintf(fp_log, "\n");
+      if (!opt_quiet)
+        {
+          fprintf(stderr,
+                  "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
+                  clusters,
+                  abundance_min,
+                  abundance_max,
+                  1.0 * seqcount / clusters);
+          fprintf(stderr,
+                  "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
+                  singletons,
+                  100.0 * singletons / seqcount,
+                  100.0 * singletons / clusters);
+        }
+
+      if (opt_log)
+        {
+          fprintf(fp_log,
+                  "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
+                  clusters,
+                  abundance_min,
+                  abundance_max,
+                  1.0 * seqcount / clusters);
+          fprintf(fp_log,
+                  "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
+                  singletons,
+                  100.0 * singletons / seqcount,
+                  100.0 * singletons / clusters);
+          fprintf(fp_log, "\n");
+        }
     }
 
   if (opt_clusterout_sort)

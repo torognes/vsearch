@@ -65,11 +65,11 @@ static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_chunk;
 static const uint64_t progress_granularity = 200;
-static bool progress_terminal;
+static bool progress_show;
 
 void progress_init(const char * prompt, uint64_t size)
 {
-  progress_terminal = isatty(fileno(stderr));
+  progress_show = isatty(fileno(stderr)) && (!opt_quiet) && (!opt_no_progress);
   progress_prompt = prompt;
   progress_size = size;
   progress_chunk = size < progress_granularity ?
@@ -79,30 +79,29 @@ void progress_init(const char * prompt, uint64_t size)
   if (! opt_quiet)
     {
       fprintf(stderr, "%s", prompt);
-      if (progress_terminal)
+      if (progress_show)
         fprintf(stderr, " %.0f%%", 0.0);
     }
 }
 
 void progress_update(uint64_t progress)
 {
-  if ((! opt_quiet) && progress_terminal)
-    if (progress >= progress_next)
-      {
-        if (progress_size > 0)
-          fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
-                  100.0 * progress / progress_size);
-        else
-          fprintf(stderr, "  \r%s 0%%", progress_prompt);
-        progress_next = progress + progress_chunk;
-      }
+  if (progress_show && (progress >= progress_next))
+    {
+      if (progress_size > 0)
+        fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
+                100.0 * progress / progress_size);
+      else
+        fprintf(stderr, "  \r%s 0%%", progress_prompt);
+      progress_next = progress + progress_chunk;
+    }
 }
 
 void progress_done()
 {
   if (! opt_quiet)
     {
-      if (progress_terminal)
+      if (progress_show)
         fprintf(stderr, "  \r%s", progress_prompt);
       fprintf(stderr, " %.0f%%\n", 100.0);
     }

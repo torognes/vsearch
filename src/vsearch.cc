@@ -71,6 +71,7 @@ bool opt_fastq_allowmergestagger;
 bool opt_fastq_eeout;
 bool opt_fastq_nostagger;
 bool opt_gzip_decompress;
+bool opt_no_progress;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
@@ -104,6 +105,7 @@ char * opt_fastapairs;
 char * opt_fastq_chars;
 char * opt_fastq_convert;
 char * opt_fastq_eestats;
+char * opt_fastq_eestats2;
 char * opt_fastq_filter;
 char * opt_fastq_mergepairs;
 char * opt_fastq_stats;
@@ -117,6 +119,7 @@ char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
 char * opt_label_suffix;
 char * opt_log;
+char * opt_makeudb_usearch;
 char * opt_maskfasta;
 char * opt_matched;
 char * opt_mothur_shared_out;
@@ -135,6 +138,9 @@ char * opt_search_exact;
 char * opt_shuffle;
 char * opt_sortbylength;
 char * opt_sortbysize;
+char * opt_udb2fasta;
+char * opt_udbinfo;
+char * opt_udbstats;
 char * opt_uc;
 char * opt_uchime_denovo;
 char * opt_uchime_ref;
@@ -142,6 +148,7 @@ char * opt_uchimealns;
 char * opt_uchimeout;
 char * opt_usearch_global;
 char * opt_userout;
+double * opt_ee_cutoffs_values;
 double opt_abskew;
 double opt_dn;
 double opt_fastq_maxee;
@@ -168,6 +175,7 @@ double opt_xn;
 int opt_acceptall;
 int opt_alignwidth;
 int opt_cons_truncate;
+int opt_ee_cutoffs_count;
 int opt_gap_extension_query_interior;
 int opt_gap_extension_query_left;
 int opt_gap_extension_query_right;
@@ -181,6 +189,9 @@ int opt_gap_open_target_interior;
 int opt_gap_open_target_left;
 int opt_gap_open_target_right;
 int opt_help;
+int opt_length_cutoffs_shortest;
+int opt_length_cutoffs_longest;
+int opt_length_cutoffs_increment;
 int opt_mindiffs;
 int opt_slots;
 int opt_uchimeout5;
@@ -202,6 +213,7 @@ int64_t opt_fastq_qmaxout;
 int64_t opt_fastq_qmin;
 int64_t opt_fastq_qminout;
 int64_t opt_fastq_stripleft;
+int64_t opt_fastq_stripright;
 int64_t opt_fastq_tail;
 int64_t opt_fastq_trunclen;
 int64_t opt_fastq_trunclen_keep;
@@ -343,6 +355,71 @@ void cpu_features_show()
     fprintf(stderr, " avx2");
   fprintf(stderr, "\n");
 }
+
+void args_get_ee_cutoffs(char * arg)
+{
+  /* get comma-separated list of floating point numbers */
+  /* save in ee_cutoffs_count and ee_cutoffs_values */
+
+  int commas = 0;
+  for (size_t i=0; i<strlen(arg); i++)
+    if (arg[i] == ',')
+      commas++;
+
+  opt_ee_cutoffs_count = 0;
+  opt_ee_cutoffs_values = (double*) xrealloc(opt_ee_cutoffs_values, (commas+1) * sizeof(double));
+
+  char * s = arg;
+  while(1)
+    {
+      double val = 0;
+      int skip = 0;
+
+      if ((sscanf(s, "%lf%n", &val, &skip) != 1) || (val <= 0.0))
+        fatal("Invalid arguments to ee_cutoffs");
+
+      opt_ee_cutoffs_values[opt_ee_cutoffs_count++] = val;
+
+      s += skip;
+
+      if (*s == ',')
+        s++;
+      else if (*s == 0)
+        break;
+      else
+        fatal("Invalid arguments to ee_cutoffs");
+    }
+}
+
+void args_get_length_cutoffs(char * arg)
+{
+  /* get comma-separated list of 3 integers: */
+  /* smallest, largest and increment. */
+  /* second value may be * indicating no limit */
+  /* save in length_cutoffs_{smallest,largest,increment} */
+
+  int skip = 0;
+  if (sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
+    {
+      if ((size_t)skip < strlen(arg))
+        fatal("Invalid arguments to length_cutoffs");
+    }
+  else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
+    {
+      if ((size_t)skip < strlen(arg))
+        fatal("Invalid arguments to length_cutoffs");
+      opt_length_cutoffs_longest = INT_MAX;
+    }
+  else
+    fatal("Invalid arguments to length_cutoffs");
+
+  if ((opt_length_cutoffs_shortest < 1) ||
+      (opt_length_cutoffs_shortest > opt_length_cutoffs_longest) ||
+      (opt_length_cutoffs_increment < 1))
+    fatal("Invalid arguments to length_cutoffs");
+
+}
+
 
 
 void args_get_gap_penalty_string(char * arg, int is_open)
@@ -554,6 +631,11 @@ void args_init(int argc, char **argv)
   opt_derep_fulllength = 0;
   opt_derep_prefix = 0;
   opt_dn = 1.4;
+  opt_ee_cutoffs_count = 3;
+  opt_ee_cutoffs_values = (double*) xmalloc(opt_ee_cutoffs_count * sizeof(double));
+  opt_ee_cutoffs_values[0] = 0.5;
+  opt_ee_cutoffs_values[1] = 1.0;
+  opt_ee_cutoffs_values[2] = 2.0;
   opt_eeout = 0;
   opt_eetabbedout = 0;
   opt_fastaout_notmerged_fwd = 0;
@@ -570,6 +652,7 @@ void args_init(int argc, char **argv)
   opt_fastq_convert = 0;
   opt_fastq_eeout = 0;
   opt_fastq_eestats = 0;
+  opt_fastq_eestats2 = 0;
   opt_fastq_filter = 0;
   opt_fastq_maxdiffs = 5;
   opt_fastq_maxee = DBL_MAX;
@@ -590,6 +673,7 @@ void args_init(int argc, char **argv)
   opt_fastq_qminout = 0;
   opt_fastq_stats = 0;
   opt_fastq_stripleft = 0;
+  opt_fastq_stripright = 0;
   opt_fastq_tail = 4;
   opt_fastq_truncee = DBL_MAX;
   opt_fastq_trunclen = -1;
@@ -623,7 +707,11 @@ void args_init(int argc, char **argv)
   opt_idsuffix = 0;
   opt_label_suffix = 0;
   opt_leftjust = 0;
+  opt_length_cutoffs_increment = 50;
+  opt_length_cutoffs_longest = INT_MAX;
+  opt_length_cutoffs_shortest = 50;
   opt_log = 0;
+  opt_makeudb_usearch = 0;
   opt_maskfasta = 0;
   opt_match = 2;
   opt_matched = 0;
@@ -659,6 +747,7 @@ void args_init(int argc, char **argv)
   opt_mismatch = -4;
   opt_mothur_shared_out = 0;
   opt_msaout = 0;
+  opt_no_progress = 0;
   opt_nonchimeras = 0;
   opt_notmatched = 0;
   opt_notrunclabels = 0;
@@ -698,6 +787,9 @@ void args_init(int argc, char **argv)
   opt_threads = 0;
   opt_top_hits_only = 0;
   opt_topn = LONG_MAX;
+  opt_udb2fasta = 0;
+  opt_udbinfo = 0;
+  opt_udbstats = 0;
   opt_uc = 0;
   opt_uc_allhits = 0;
   opt_uchime_denovo = 0;
@@ -901,6 +993,15 @@ void args_init(int argc, char **argv)
     {"mothur_shared_out",     required_argument, 0, 0 },
     {"biomout",               required_argument, 0, 0 },
     {"fastq_trunclen_keep",   required_argument, 0, 0 },
+    {"fastq_stripright",      required_argument, 0, 0 },
+    {"no_progress",           no_argument,       0, 0 },
+    {"fastq_eestats2",        required_argument, 0, 0 },
+    {"ee_cutoffs",            required_argument, 0, 0 },
+    {"length_cutoffs",        required_argument, 0, 0 },
+    {"makeudb_usearch",       required_argument, 0, 0 },
+    {"udb2fasta",             required_argument, 0, 0 },
+    {"udbinfo",               required_argument, 0, 0 },
+    {"udbstats",              required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1679,6 +1780,42 @@ void args_init(int argc, char **argv)
           opt_fastq_trunclen_keep = args_getlong(optarg);
           break;
 
+        case 182:
+          opt_fastq_stripright = args_getlong(optarg);
+          break;
+
+        case 183:
+          opt_no_progress = 1;
+          break;
+
+        case 184:
+          opt_fastq_eestats2 = optarg;
+          break;
+
+        case 185:
+          args_get_ee_cutoffs(optarg);
+          break;
+
+        case 186:
+          args_get_length_cutoffs(optarg);
+          break;
+
+        case 187:
+          opt_makeudb_usearch = optarg;
+          break;
+
+        case 188:
+          opt_udb2fasta = optarg;
+          break;
+
+        case 189:
+          opt_udbinfo = optarg;
+          break;
+
+        case 190:
+          opt_udbstats = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1746,7 +1883,17 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_fastq_eestats)
     commands++;
+  if (opt_fastq_eestats2)
+    commands++;
   if (opt_rereplicate)
+    commands++;
+  if (opt_makeudb_usearch)
+    commands++;
+  if (opt_udb2fasta)
+    commands++;
+  if (opt_udbinfo)
+    commands++;
+  if (opt_udbstats)
     commands++;
 
   if (commands > 1)
@@ -1874,7 +2021,8 @@ void args_init(int argc, char **argv)
   if (opt_minseqlength < 0)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
-          opt_usearch_global || opt_derep_fulllength || opt_derep_prefix )
+          opt_usearch_global || opt_derep_fulllength || opt_derep_prefix ||
+          opt_makeudb_usearch)
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;
@@ -1901,6 +2049,7 @@ void args_init(int argc, char **argv)
       & opt_fastx_mask,
       & opt_fastx_revcomp,
       & opt_fastx_subsample,
+      & opt_makeudb_usearch,
       & opt_maskfasta,
       & opt_rereplicate,
       & opt_reverse,
@@ -1910,6 +2059,9 @@ void args_init(int argc, char **argv)
       & opt_sortbysize,
       & opt_uchime_denovo,
       & opt_uchime_ref,
+      & opt_udb2fasta,
+      & opt_udbinfo,
+      & opt_udbstats,
       & opt_usearch_global,
       0
     };
@@ -1966,6 +2118,20 @@ void args_init(int argc, char **argv)
       *stdout_opt = STDOUT_NAME;
 }
 
+void show_publication()
+{
+  fprintf(stdout,
+          "Rognes T, Flouri T, Nichols B, Quince C, Mahe F (2016)\n"
+          "VSEARCH: a versatile open source tool for metagenomics\n"
+          "PeerJ 4:e2584 doi: 10.7717/peerj.2584 https://doi.org/10.7717/peerj.2584\n"
+          "\n");
+}
+
+void cmd_version()
+{
+  if (! opt_quiet)
+    show_publication();
+}
 
 void cmd_help()
 {
@@ -1974,6 +2140,8 @@ void cmd_help()
 
   if (! opt_quiet)
     {
+      show_publication();
+
       fprintf(stdout,
               "Usage: %s [OPTIONS]\n", progname);
 
@@ -1987,6 +2155,7 @@ void cmd_help()
               "  --log FILENAME              write messages, timing and memory info to file\n"
               "  --maxseqlength INT          maximum sequence length (50000)\n"
               "  --minseqlength INT          min seq length (clust/derep/search: 32, other:1)\n"
+              "  --no_progress               do not show progress indicator\n"
               "  --notrunclabels             do not truncate labels at first space\n"
               "  --quiet                     output just warnings and fatal errors to stderr\n"
               "  --threads INT               number of threads to use, zero for all cores (0)\n"
@@ -2095,13 +2264,16 @@ void cmd_help()
               "FASTQ quality statistics\n"
               "  --fastq_stats FILENAME      report statistics on FASTQ file\n"
               "  --fastq_eestats FILENAME    quality score and expected error statistics\n"
+              "  --fastq_eestats2 FILENAME   expected error and length cutoff statistics\n"
               " Parameters\n"
+              "  --ee_cutoffs REAL,...       fastq_eestats2 expected error cutoffs (0.5,1,2)\n"
               "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
+              "  --length_cutoffs INT,INT,INT fastq_eestats2 length (min,max,incr) (50,*,50)\n"
               " Output\n"
-              "  --log FILENAME              output file for statistics with --fastq_stats\n"
-              "  --output FILENAME           output file for statistics with --fastq_eestats\n"
+              "  --log FILENAME              output file for fastq_stats statistics\n"
+              "  --output FILENAME           output file for fastq_eestats(2) statistics\n"
               "\n"
               "Filtering\n"
               "  --fastx_filter FILENAME     filter and truncate sequences in FASTA/FASTQ file\n"
@@ -2116,9 +2288,13 @@ void cmd_help()
               "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
               "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
               "  --fastq_stripleft INT       bases on the left to delete\n"
+              "  --fastq_stripright INT      bases on the right to delete\n"
               "  --fastq_truncee REAL        maximum total expected error for truncation\n"
-              "  --fastq_trunclen INT        read length for sequence truncation\n"
+              "  --fastq_trunclen INT        truncate reads to length INT (discard if shorter)\n"
+              "  --fastq_trunclen_keep INT   truncate reads to length INT (keep if shorter)\n"
               "  --fastq_truncqual INT       minimum base quality value for truncation\n"
+              "  --maxsize INT               maximum abundance\n"
+              "  --minsize INT               minimum abundance\n"
               " Output\n"
               "  --eeout                     include expected errors in output\n"
               "  --fastaout FILENAME         FASTA output filename for passed sequences\n"
@@ -2206,7 +2382,7 @@ void cmd_help()
               "  --search_exact FILENAME     filename of queries for exact match search\n"
               "  --usearch_global FILENAME   filename of queries for global alignment search\n"
               " Data\n"
-              "  --db FILENAME               filename for FASTA formatted database for search\n"
+              "  --db FILENAME               name of UDB or FASTA database for search\n"
               " Parameters\n"
               "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
               "  --fulldp                    full dynamic programming alignment (always on)\n"
@@ -2312,6 +2488,18 @@ void cmd_help()
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   update abundance information in output\n"
               "  --xsize                     strip abundance information in output\n"
+              "\n"
+              "UDB files\n"
+              "  --makeudb_usearch FILENAME  make UDB file from given FASTA file\n"
+              "  --udb2fasta FILENAME        output FASTA file from given UDB file\n"
+              "  --udbinfo FILENAME          show information about UDB file\n"
+              "  --udbstats FILENAME         report statistics about indexed words in UDB file\n"
+              " Parameters\n"
+              "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
+              "  --hardmask                  mask by replacing with N instead of lower case\n"
+              "  --wordlength INT            length of words for database index 3-15 (8)\n"
+              " Output\n"
+              "  --output FILENAME           UDB or FASTA output file\n"
           );
     }
 }
@@ -2323,7 +2511,7 @@ void cmd_allpairs_global()
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
-      (!opt_samout))
+      (!opt_samout) && (!opt_fastapairs))
     fatal("No output files specified");
 
   if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
@@ -2341,7 +2529,8 @@ void cmd_usearch_global()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
-      (!opt_biomout) && (!opt_mothur_shared_out))
+      (!opt_biomout) && (!opt_mothur_shared_out) &&
+      (!opt_fastapairs))
     fatal("No output files specified");
 
   if (!opt_db)
@@ -2362,7 +2551,8 @@ void cmd_search_exact()
       (!opt_matched) && (!opt_notmatched) &&
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
-      (!opt_biomout) && (!opt_mothur_shared_out))
+      (!opt_biomout) && (!opt_mothur_shared_out) &&
+      (!opt_fastapairs))
     fatal("No output files specified");
 
   if (!opt_db)
@@ -2398,7 +2588,7 @@ void cmd_rereplicate()
 void cmd_derep()
 {
   if ((!opt_output) && (!opt_uc))
-    fatal("Output file for derep_fulllength must be specified with --output or --uc");
+    fatal("Output file for dereplication must be specified with --output or --uc");
 
   if (opt_derep_fulllength)
     derep_fulllength();
@@ -2427,13 +2617,21 @@ void cmd_fastq_eestats()
   fastq_eestats();
 }
 
+void cmd_fastq_eestats2()
+{
+  if (!opt_output)
+    fatal("Output file for fastq_eestats2 must be specified with --output");
+
+  fastq_eestats2();
+}
+
 void cmd_subsample()
 {
   if ((!opt_fastaout) && (!opt_fastqout))
     fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
 
   if ((opt_sample_pct > 0) == (opt_sample_size > 0))
-    fatal("Specify either --sample_pct or --sample_size, not both");
+    fatal("Specify either --sample_pct or --sample_size");
 
   subsample();
 }
@@ -2444,6 +2642,20 @@ void cmd_maskfasta()
     fatal("Output file for masking must be specified with --output");
 
   maskfasta();
+}
+
+void cmd_makeudb_usearch()
+{
+  if (!opt_output)
+    fatal("UDB output file must be specified with --output");
+  udb_make();
+}
+
+void cmd_udb2fasta()
+{
+  if (!opt_output)
+    fatal("FASTA output file must be specified with --output");
+  udb_fasta();
 }
 
 void cmd_fastx_mask()
@@ -2473,6 +2685,7 @@ void cmd_none()
             "vsearch --fastq_chars FILENAME\n"
             "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
             "vsearch --fastq_eestats FILENAME --output FILENAME\n"
+            "vsearch --fastq_eestats2 FILENAME --output FILENAME\n"
             "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
             "vsearch --fastq_stats FILENAME --log FILENAME\n"
             "vsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\n"
@@ -2652,7 +2865,7 @@ int main(int argc, char** argv)
       struct tm tm_start;
       localtime_r(& time_start, & tm_start);
       strftime(time_string, 26, "%c", & tm_start);
-      fprintf(fp_log, "Started  %s", time_string);
+      fprintf(fp_log, "Started  %s\n", time_string);
     }
 
   show_header();
@@ -2708,11 +2921,20 @@ int main(int argc, char** argv)
     cmd_fastq_mergepairs();
   else if (opt_fastq_eestats)
     cmd_fastq_eestats();
+  else if (opt_fastq_eestats2)
+    cmd_fastq_eestats2();
   else if (opt_rereplicate)
     cmd_rereplicate();
   else if (opt_version)
-    {
-    }
+    cmd_version();
+  else if (opt_makeudb_usearch)
+    cmd_makeudb_usearch();
+  else if (opt_udb2fasta)
+    cmd_udb2fasta();
+  else if (opt_udbinfo)
+    udb_info();
+  else if (opt_udbstats)
+    udb_stats();
   else
     cmd_none();
 

@@ -103,19 +103,19 @@ void fasta_filter_sequence(fastx_handle h,
 
   while ((c = *p++))
     {
-      char m = char_action[(int)c];
+      char m = char_action[(unsigned char)c];
 
       switch(m)
         {
         case 0:
           /* stripped */
           h->stripped_all++;
-          h->stripped[(int)c]++;
+          h->stripped[(unsigned char)c]++;
           break;
               
         case 1:
           /* legal character */
-          *q++ = char_mapping[(int)(c)];
+          *q++ = char_mapping[(unsigned char)(c)];
           break;
           
         case 2:
@@ -123,14 +123,14 @@ void fasta_filter_sequence(fastx_handle h,
           if ((c>=32) && (c<127))
             snprintf(msg,
                      200,
-                     "illegal character '%c' on line %" PRIu64 " in fasta file",
-                     c,
+                     "illegal character '%c' on line %" PRIu64 " in FASTA file",
+                     (unsigned char)c,
                      h->lineno);
           else
             snprintf(msg,
                      200,
-                     "illegal unprintable character %#.2x (hexadecimal) on line %" PRIu64 " in fasta file",
-                     c,
+                     "illegal unprintable character %#.2x (hexadecimal) on line %" PRIu64 " in FASTA file",
+                     (unsigned char) c,
                      h->lineno);
           fatal(msg);
           break;

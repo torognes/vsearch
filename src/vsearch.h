@@ -116,23 +116,36 @@
 
 #endif
 
-#ifdef __APPLE__
-#define PROG_OS "osx"
-#include <sys/resource.h>
-#include <sys/sysctl.h>
-#endif
-
-#ifdef __linux__
-#define PROG_OS "linux"
-#include <sys/resource.h>
-#include <sys/sysinfo.h>
-#endif
 
 #ifdef _WIN32
+
 #define PROG_OS "win"
 #include <windows.h>
 #include <psapi.h>
+
+#else
+
+#ifdef __APPLE__
+
+#define PROG_OS "macos"
+#include <sys/sysctl.h>
+
+#else
+
+#ifdef __linux__
+#define PROG_OS "linux"
+#else
+#define PROG_OS "unknown"
 #endif
+
+#include <sys/sysinfo.h>
+
+#endif
+
+#include <sys/resource.h>
+
+#endif
+
 
 #define PROG_ARCH PROG_OS "_" PROG_CPU
 
@@ -192,6 +205,7 @@
 #include "eestats.h"
 #include "rerep.h"
 #include "otutable.h"
+#include "udb.h"
 #include "kmerhash.h"
 
 /* options */
@@ -205,6 +219,7 @@ extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
 extern bool opt_gzip_decompress;
+extern bool opt_no_progress;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;
 extern bool opt_relabel_md5;
@@ -238,6 +253,7 @@ extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
 extern char * opt_fastq_convert;
 extern char * opt_fastq_eestats;
+extern char * opt_fastq_eestats2;
 extern char * opt_fastq_filter;
 extern char * opt_fastq_mergepairs;
 extern char * opt_fastq_stats;
@@ -251,6 +267,7 @@ extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
 extern char * opt_label_suffix;
 extern char * opt_log;
+extern char * opt_makeudb_usearch;
 extern char * opt_maskfasta;
 extern char * opt_matched;
 extern char * opt_mothur_shared_out;
@@ -269,6 +286,9 @@ extern char * opt_search_exact;
 extern char * opt_shuffle;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
+extern char * opt_udb2fasta;
+extern char * opt_udbinfo;
+extern char * opt_udbstats;
 extern char * opt_uc;
 extern char * opt_uchime_denovo;
 extern char * opt_uchime_ref;
@@ -276,6 +296,7 @@ extern char * opt_uchimealns;
 extern char * opt_uchimeout;
 extern char * opt_usearch_global;
 extern char * opt_userout;
+extern double * opt_ee_cutoffs_values;
 extern double opt_abskew;
 extern double opt_dn;
 extern double opt_fastq_maxee;
@@ -302,6 +323,10 @@ extern double opt_xn;
 extern int opt_acceptall;
 extern int opt_alignwidth;
 extern int opt_cons_truncate;
+extern int opt_ee_cutoffs_count;
+extern int opt_length_cutoffs_increment;
+extern int opt_length_cutoffs_longest;
+extern int opt_length_cutoffs_shortest;
 extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_query_left;
 extern int opt_gap_extension_query_right;
@@ -336,6 +361,7 @@ extern int64_t opt_fastq_qmaxout;
 extern int64_t opt_fastq_qmin;
 extern int64_t opt_fastq_qminout;
 extern int64_t opt_fastq_stripleft;
+extern int64_t opt_fastq_stripright;
 extern int64_t opt_fastq_tail;
 extern int64_t opt_fastq_trunclen;
 extern int64_t opt_fastq_trunclen_keep;

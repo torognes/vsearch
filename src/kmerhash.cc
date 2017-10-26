@@ -105,7 +105,7 @@ inline void kh_insert_kmer(struct kh_handle_s * kh, int k, unsigned int kmer, un
   unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
   while(kh->hash[j].pos)
     j = (j + 1) & kh->hash_mask;
-  
+
   kh->hash[j].kmer = kmer;
   kh->hash[j].pos = pos;
 
@@ -156,7 +156,7 @@ void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
       kmer <<= 2UL;
       kmer |= chrmap_2bit[c];
       kmer &= kmer_mask;
-      
+
       if (!bad)
         kh_insert_kmer(kh, k, kmer, pos - k + 1 + 1); /* 1-based pos of start of kmer */
     }
@@ -188,7 +188,7 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
       kmer <<= 2UL;
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
-      
+
       if (!bad)
         {
           /* find matching buckets in hash */
@@ -232,10 +232,10 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
 #endif
 #endif
       int c = diag_counts[d];
-      
+
       if (c >= minmatch)
         good_diags++;
-      
+
       if (c > best_diag_count)
         {
           best_diag_count = c;
@@ -275,7 +275,7 @@ void kh_find_diagonals(struct kh_handle_s * kh,
       kmer <<= 2UL;
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
-      
+
       if (!bad)
         {
           /* find matching buckets in hash */
