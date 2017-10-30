@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 25, 2017" "version 2.5.1" "USER COMMANDS"
+.TH vsearch 1 "October 30, 2017" "version 2.5.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3186,6 +3186,10 @@ documentation updates.
 .BR v2.5.1\~ "released October 25th, 2017"
 Fixed bug with bad default value of 1 instead of 32 for minseqlength
 when using the makeudb_usearch command.
+.TP
+.BR v2.5.2\~ "released October 30th, 2017"
+Fixed bug with where '-' as an argument to the fastq_eestats2 option
+was treated literally instead of equivalent to stdin.
 .RE
 .LP
 .\" ============================================================================

@@ -2042,6 +2042,7 @@ void args_init(int argc, char **argv)
       & opt_fastq_chars,
       & opt_fastq_convert,
       & opt_fastq_eestats,
+      & opt_fastq_eestats2,
       & opt_fastq_filter,
       & opt_fastq_mergepairs,
       & opt_fastq_stats,
