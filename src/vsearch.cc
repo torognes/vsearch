@@ -663,7 +663,7 @@ void args_init(int argc, char **argv)
   opt_fastq_mergepairs = 0;
   opt_fastq_minlen = 1;
   opt_fastq_minmergelen = 0;
-  opt_fastq_minovlen = 16;
+  opt_fastq_minovlen = 10;
   opt_fastq_nostagger = 1;
   opt_fastqout_notmerged_fwd = 0;
   opt_fastqout_notmerged_rev = 0;

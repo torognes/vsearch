@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 30, 2017" "version 2.5.2" "USER COMMANDS"
+.TH vsearch 1 "November 10, 2017" "version 2.6.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -1066,32 +1066,31 @@ When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
 discard sequences with more than the specified number of N's.
 .TP
 .BI \-\-fastq_mergepairs\0 filename
-Merge paired-end sequence reads into one sequence. The method has some
-similarities to the PEAR algorithm (Zhang, Kobert, Flouri &
-Stamatakis, 2014). The forward reads are specified as the argument to
-this option and the reverse reads are specified with the \-\-reverse
-option. The merged sequences are output to the file(s) specified with
-the \-\-fastaout or \-\-fastqout options. The non-merged reads can be
-output to the files specified with the \-\-fastaout_notmerged_fwd,
-\-\-fastaout_notmerged_rev, \-\-fastqout_notmerged_fwd and
-\-\-fastqout_notmerged_rev options. Statistics may be output to the
-file specified with the \-\-eetabbedout option. Sequences are
-truncated as specified with the \-\-fastq_truncqual option to remove
-low-quality bases in the 3' end. Sequences shorter than specified with
-\-\-fastq_minlen (after truncation) are discarded (1 by
-default). Sequences with too many ambiguous bases (N's), as specified
-with the \-\-fastq_maxns are also discarded (no limit by
-default). Staggered reads are not merged unless the
-\-\-fastq_allowmergestagger option is specified. The minimum length of
-the overlap region between the reads may be specified with the
-\-\-fastq_minovlen option (default 16), and the overlap region may not
-include more mismatches than specified with the \-\-fastq_maxdiffs
+Merge paired-end sequence reads into one sequence. The forward reads
+are specified as the argument to this option and the reverse reads are
+specified with the \-\-reverse option. The merged sequences are output
+to the file(s) specified with the \-\-fastaout or \-\-fastqout
+options. The non-merged reads can be output to the files specified
+with the \-\-fastaout_notmerged_fwd, \-\-fastaout_notmerged_rev,
+\-\-fastqout_notmerged_fwd and \-\-fastqout_notmerged_rev
+options. Statistics may be output to the file specified with the
+\-\-eetabbedout option. Sequences are truncated as specified with the
+\-\-fastq_truncqual option to remove low-quality bases in the 3'
+end. Sequences shorter than specified with \-\-fastq_minlen (after
+truncation) are discarded (1 by default). Sequences with too many
+ambiguous bases (N's), as specified with the \-\-fastq_maxns are also
+discarded (no limit by default). Staggered reads are not merged unless
+the \-\-fastq_allowmergestagger option is specified. The minimum
+length of the overlap region between the reads may be specified with
+the \-\-fastq_minovlen option (default 10), and the overlap region may
+not include more mismatches than specified with the \-\-fastq_maxdiffs
 option (5 by default), otherwise the read pair is discarded. The
 mimimum and maximum length of the merged sequence may be specified
 with the \-\-fastq_minmergelen and \-\-fastq_maxmergelen options,
 respectively. Other relevant options are: \-\-fastq_ascii,
-\-\-fastq_maxee, \-\-fastq_nostagger, \-\-fastq_qmax, \-\-fastq_qmin,
-and \-\-label_suffix.
+\-\-fastq_maxee, \-\-fastq_nostagger, \-\-fastq_qmax,
+\-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout, and
+\-\-label_suffix.
 .TP
 .BI \-\-fastq_minlen\~ "positive integer"
 When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
@@ -1104,7 +1103,7 @@ merged sequence. The default is 1.
 .TP
 .BI \-\-fastq_minovlen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the minimum overlap between
-the merged reads. The default is 16.
+the merged reads. The default is 10.
 .TP
 .B \-\-fastq_nostagger
 When using \-\-fastq_mergepairs, forbid the merging of staggered read
@@ -3190,6 +3189,10 @@ when using the makeudb_usearch command.
 .BR v2.5.2\~ "released October 30th, 2017"
 Fixed bug with where '-' as an argument to the fastq_eestats2 option
 was treated literally instead of equivalent to stdin.
+.TP
+.BR v2.6.0\~ "released November 10th, 2017"
+Rewritten paired-end reads merger with improved accuracy. Decreased
+default value for fastq_minovlen option from 16 to 10.
 .RE
 .LP
 .\" ============================================================================
