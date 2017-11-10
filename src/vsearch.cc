@@ -654,7 +654,7 @@ void args_init(int argc, char **argv)
   opt_fastq_eestats = 0;
   opt_fastq_eestats2 = 0;
   opt_fastq_filter = 0;
-  opt_fastq_maxdiffs = 5;
+  opt_fastq_maxdiffs = 10;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
   opt_fastq_maxlen = LONG_MAX;
