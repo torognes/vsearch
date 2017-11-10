@@ -32,6 +32,7 @@ fasta.h \
 fastq.h \
 fastqops.h \
 fastx.h \
+kmerhash.h \
 linmemalign.h \
 maps.h \
 mask.h \
@@ -108,6 +109,7 @@ fasta.cc \
 fastq.cc \
 fastqops.cc \
 fastx.cc \
+kmerhash.cc \
 linmemalign.cc \
 maps.cc \
 mask.cc \

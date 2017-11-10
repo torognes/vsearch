@@ -206,6 +206,7 @@
 #include "rerep.h"
 #include "otutable.h"
 #include "udb.h"
+#include "kmerhash.h"
 
 /* options */
 
