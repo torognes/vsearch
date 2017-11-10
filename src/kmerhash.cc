@@ -99,7 +99,10 @@ void kh_exit(struct kh_handle_s * kh)
   xfree(kh);
 }
 
-inline void kh_insert_kmer(struct kh_handle_s * kh, int k, unsigned int kmer, unsigned int pos)
+inline void kh_insert_kmer(struct kh_handle_s * kh,
+                           int k,
+                           unsigned int kmer,
+                           unsigned int pos)
 {
   /* find free bucket in hash */
   unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
@@ -108,11 +111,6 @@ inline void kh_insert_kmer(struct kh_handle_s * kh, int k, unsigned int kmer, un
 
   kh->hash[j].kmer = kmer;
   kh->hash[j].pos = pos;
-
-#if 0
-  printf("Inserted kmer=%d at pos=%d in hash bucket=%d\n",
-         kmer, pos, j);
-#endif
 }
 
 void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
@@ -158,7 +156,10 @@ void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
       kmer &= kmer_mask;
 
       if (!bad)
-        kh_insert_kmer(kh, k, kmer, pos - k + 1 + 1); /* 1-based pos of start of kmer */
+        {
+          /* 1-based pos of start of kmer */
+          kh_insert_kmer(kh, k, kmer, pos - k + 1 + 1);
+        }
     }
 }
 
@@ -199,12 +200,6 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
                 {
                   int fpos = kh->hash[j].pos - 1;
                   int diag = fpos - (pos - k + 1);
-
-#if 0
-                  printf("Found kmer=%d pos=%d in hash bucket=%d, diag=%d count=%d\n",
-                         kmer, fpos + 1, j, diag, diag >= 0 ? diag_counts[diag] : -1);
-#endif
-
                   if (diag >= 0)
                     diag_counts[diag]++;
                 }
@@ -216,21 +211,11 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
   int best_diag_count = -1;
   int best_diag = -1;
   int good_diags = 0;
-  
+
   for(int d = 0; d < kh->maxpos - k + 1; d++)
     {
-#if 1
       int diag_len = kh->maxpos - d;
       int minmatch = MAX(1, diag_len - k + 1 - k * MAX(diag_len / 20, 0));
-      //      minmatch = 6;
-#if 0
-      if (diag_counts[d] > minmatch)
-        {
-          fprintf(stderr, "Good diagonal: d=%d, count=%d\n",
-                  d, diag_counts[d]);
-        }
-#endif
-#endif
       int c = diag_counts[d];
 
       if (c >= minmatch)
@@ -279,7 +264,6 @@ void kh_find_diagonals(struct kh_handle_s * kh,
       if (!bad)
         {
           /* find matching buckets in hash */
-
           unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
           while(kh->hash[j].pos)
             {
@@ -287,11 +271,9 @@ void kh_find_diagonals(struct kh_handle_s * kh,
                 {
                   int fpos = kh->hash[j].pos - 1;
                   int diag = len + fpos - (pos - k + 1);
-
                   if (diag >= 0)
                     diags[diag]++;
                 }
-
               j = (j + 1) & kh->hash_mask;
             }
         }

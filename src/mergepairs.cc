@@ -61,7 +61,6 @@
 #include "vsearch.h"
 
 #define INPUTCHUNKSIZE 10000
-#define NEWDEFAULTS 1
 
 /* scores in bits */
 
@@ -137,7 +136,7 @@ static uint64_t failed_nokmers = 0;
    - merged sequence too short
    - merged sequence too long
    - expected error too high
-   - alignment score too low, insignificant
+   - alignment score too low, insignificant, potential indel
    - too few kmers on same diag found
 */
 
@@ -575,7 +574,6 @@ int64_t optimize(merge_data_t * ip,
 {
   /* ungapped alignment in each diagonal */
 
-
   int64_t i1 = 1;
   int64_t i2 = ip->fwd_trunc + ip->rev_trunc - 1;
 
@@ -610,11 +608,16 @@ int64_t optimize(merge_data_t * ip,
 
           /* for each interesting diagonal */
 
-          int64_t fwd_3prime_overhang = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
-          int64_t rev_3prime_overhang = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
-          int64_t overlap = i - fwd_3prime_overhang - rev_3prime_overhang;
-          int64_t fwd_pos_start = ip->fwd_trunc - fwd_3prime_overhang - 1;
-          int64_t rev_pos_start = ip->rev_trunc - rev_3prime_overhang - overlap;
+          int64_t fwd_3prime_overhang
+            = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
+          int64_t rev_3prime_overhang
+            = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
+          int64_t overlap
+            = i - fwd_3prime_overhang - rev_3prime_overhang;
+          int64_t fwd_pos_start
+            = ip->fwd_trunc - fwd_3prime_overhang - 1;
+          int64_t rev_pos_start
+            = ip->rev_trunc - rev_3prime_overhang - overlap;
 
           int64_t fwd_pos = fwd_pos_start;
           int64_t rev_pos = rev_pos_start;
@@ -628,10 +631,14 @@ int64_t optimize(merge_data_t * ip,
             {
               /* for each pair of bases in the overlap */
 
-              char fwd_sym = ip->fwd_sequence[fwd_pos];
-              char rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+              char fwd_sym
+                = ip->fwd_sequence[fwd_pos];
+              char rev_sym
+                = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+
               unsigned int fwd_qual = ip->fwd_quality[fwd_pos];
               unsigned int rev_qual = ip->rev_quality[rev_pos];
+
               fwd_pos--;
               rev_pos++;
 
@@ -662,12 +669,6 @@ int64_t optimize(merge_data_t * ip,
         }
 
     }
-
-#if 0
-  fprintf(stderr,
-          "Best: score = %.2f, i = %d, diffs = %d, start = %d, end = %d, overlap = %d\n",
-          best_score, (int)best_i, (int)best_diffs, (int)best_start, (int)best_end, (int)best_overlap);
-#endif
 
   if (hits > 1)
     {
@@ -1032,16 +1033,6 @@ void pair_all()
 void fastq_mergepairs()
 {
 
-#if NEWDEFAULTS
-
-  /* set new defaults */
-
-  opt_fastq_minovlen = 1;
-  opt_fastq_maxdiffs = 10000;
-  opt_fastq_qmax = 93;
-
-#endif
-
   /* open input files */
 
   fastq_fwd = fastq_open(opt_fastq_mergepairs);
@@ -1198,11 +1189,11 @@ void fastq_mergepairs()
           sum_ee_merged / merged);
 
   fprintf(stderr,
-          "%10.2f  Mean observed errors in merged region of forward sequences\n",
+        "%10.2f  Mean observed errors in merged region of forward sequences\n",
           1.0 * sum_errors_fwd / merged);
 
   fprintf(stderr,
-          "%10.2f  Mean observed errors in merged region of reverse sequences\n",
+        "%10.2f  Mean observed errors in merged region of reverse sequences\n",
           1.0 * sum_errors_rev / merged);
 
   fprintf(stderr,
