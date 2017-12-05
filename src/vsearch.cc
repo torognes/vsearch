@@ -2962,6 +2962,10 @@ int main(int argc, char** argv)
       fclose(fp_log);
     }
 
+  if (opt_ee_cutoffs_values)
+    xfree(opt_ee_cutoffs_values);
+  opt_ee_cutoffs_values = 0;
+
   xfree(cmdline);
   abundance_exit(global_abundance);
   dynlibs_close();
