@@ -60,14 +60,19 @@
 
 #include "vsearch.h"
 
+/* chunk constants */
+
+static const int chunk_size = 500; /* read pairs per chunk */
+static const int chunk_factor = 2; /* chunks per thread */
+
 /* scores in bits */
 
-const int k                        = 5;
-const double merge_minscore        = 16.0;
-const double merge_dropmax         = 16.0;
-const int merge_mindiagcount       = 4;
-const int merge_minrepeatdiagcount = 12;
-const double merge_mismatchmax     = -4.0;
+static const int k                        = 5;
+static const double merge_minscore        = 16.0;
+static const double merge_dropmax         = 16.0;
+static const int merge_mindiagcount       = 4;
+static const int merge_minrepeatdiagcount = 12;
+static const double merge_mismatchmax     = -4.0;
 
 /* static variables */
 
@@ -155,8 +160,8 @@ enum state_enum
   {
     empty,
     filled,
-    processed,
-    finished
+    inprogress,
+    processed
   };
 
 typedef struct merge_data_s
@@ -202,11 +207,11 @@ typedef struct chunk_s
 static chunk_t * chunks; /* pointer to array of chunks */
 
 static int chunk_count;
-static int chunk_size;
 static int chunk_read_next;
 static int chunk_process_next;
 static int chunk_write_next;
-static int chunk_read_more = 1;
+static bool finished_reading = false;
+static bool finished_all = false;
 static int pairs_read = 0;
 static int pairs_processed = 0;
 static int pairs_written = 0;
@@ -989,60 +994,64 @@ void free_merge_data(merge_data_t * ip)
     xfree(ip->merged_quality);
 }
 
-#if 0
-
-void pair_chunk(int64_t t)
+inline void chunk_perform_read()
 {
-  /* old */
-
-  struct kh_handle_s * kmerhash = kh_init();
-
-  merge_data_t * merge_buffer = (merge_data_t*)
-    xmalloc(INPUTCHUNKSIZE * sizeof(merge_data_t));
-
-  for(int64_t i=0; i<INPUTCHUNKSIZE; i++)
-    init_merge_data(merge_buffer + i);
-
-  bool more = 1;
-  while (more)
+  while((!finished_reading) && (chunks[chunk_read_next].state == empty))
     {
-      pthread_mutex_lock(&mutex_input);
+      pthread_mutex_unlock(&mutex_chunks);
       progress_update(fastq_get_position(fastq_fwd));
-      int64_t pairs = 0;
-      while (more && (pairs < INPUTCHUNKSIZE))
+      int r = 0;
+      while ((r < chunk_size) &&
+             read_pair(chunks[chunk_read_next].merge_data + r))
+        r++;
+      chunks[chunk_read_next].size = r;
+      pthread_mutex_lock(&mutex_chunks);
+      pairs_read += r;
+      if (r > 0)
         {
-          more = read_pair(merge_buffer + pairs);
-          if (more)
-            pairs++;
+          chunks[chunk_read_next].state = filled;
+          chunk_read_next = (chunk_read_next + 1) % chunk_count;
         }
-      pthread_mutex_unlock(&mutex_input);
-
-      for(int64_t i=0; i<pairs; i++)
-        process(merge_buffer + i, kmerhash);
-
-      pthread_mutex_lock(&mutex_output);
-      while(output_next < merge_buffer[0].pair_no)
-        pthread_cond_wait(&cond_output, &mutex_output);
-
-      for(int64_t i=0; i<pairs; i++)
-        {
-          keep_or_discard(merge_buffer + i);
-          output_next++;
-        }
-
-      pthread_cond_broadcast(&cond_output);
-      pthread_mutex_unlock(&mutex_output);
+      if (r < chunk_size)
+        finished_reading = true;
+      pthread_cond_broadcast(&cond_chunks);
     }
-
-  for(int64_t i=0; i<INPUTCHUNKSIZE; i++)
-    free_merge_data(merge_buffer + i);
-
-  kh_exit(kmerhash);
-
-  xfree(merge_buffer);
 }
 
-#endif
+inline void chunk_perform_write()
+{
+  while (chunks[chunk_write_next].state == processed)
+    {
+      pthread_mutex_unlock(&mutex_chunks);
+      for(int i = 0; i < chunks[chunk_write_next].size; i++)
+        keep_or_discard(chunks[chunk_write_next].merge_data + i);
+      pthread_mutex_lock(&mutex_chunks);
+      pairs_written += chunks[chunk_write_next].size;
+      chunks[chunk_write_next].state = empty;
+      if (finished_reading && (pairs_written >= pairs_read))
+        finished_all = true;
+      chunk_write_next = (chunk_write_next + 1) % chunk_count;
+      pthread_cond_broadcast(&cond_chunks);
+    }
+}
+
+inline void chunk_perform_process(struct kh_handle_s * kmerhash)
+{
+  int chunk_current = chunk_process_next;
+  if (chunks[chunk_current].state == filled)
+    {
+      chunks[chunk_current].state = inprogress;
+      chunk_process_next = (chunk_current + 1) % chunk_count;
+      pthread_cond_broadcast(&cond_chunks);
+      pthread_mutex_unlock(&mutex_chunks);
+      for(int i=0; i<chunks[chunk_current].size; i++)
+        process(chunks[chunk_current].merge_data + i, kmerhash);
+      pthread_mutex_lock(&mutex_chunks);
+      pairs_processed += chunks[chunk_current].size;
+      chunks[chunk_current].state = processed;
+      pthread_cond_broadcast(&cond_chunks);
+    }
+}
 
 void * pair_worker(void * vp)
 {
@@ -1054,103 +1063,102 @@ void * pair_worker(void * vp)
 
   pthread_mutex_lock(&mutex_chunks);
 
-  bool term = 0;
-
-  while (! term)
+  while (! finished_all)
     {
-      bool wait = 1;
-
-      if (t == opt_threads - 1)
+      if (opt_threads == 1)
         {
-          /* last thread only - the only thread writing */
-          while(1)
+          /* One thread does it all */
+          chunk_perform_read();
+          chunk_perform_process(kmerhash);
+          chunk_perform_write();
+        }
+      else if (opt_threads == 2)
+        {
+          if (t == 0)
             {
-              int chunk_current = chunk_write_next;
-              if (chunks[chunk_current].state == processed)
-                {
-                  pthread_mutex_unlock(&mutex_chunks);
+              /* first thread reads and processes */
+              while (!
+                     (
+                      finished_all
+                      ||
+                      (chunks[chunk_process_next].state == filled)
+                      ||
+                      ((!finished_reading) &&
+                       chunks[chunk_read_next].state == empty)))
+                pthread_cond_wait(&cond_chunks, &mutex_chunks);
 
-                  for(int64_t i = 0; i < chunks[chunk_current].size; i++)
-                    keep_or_discard(chunks[chunk_current].merge_data + i);
-                  chunk_write_next = (chunk_current + 1) % chunk_count;
+              chunk_perform_read();
+              chunk_perform_process(kmerhash);
+            }
+          else /* t == 1 */
+            {
+              /* second thread writes and processes */
+              while (!
+                     (
+                      finished_all
+                      ||
+                      (chunks[chunk_process_next].state == filled)
+                      ||
+                      (chunks[chunk_write_next].state == processed)
+                      )
+                     )
+                pthread_cond_wait(&cond_chunks, &mutex_chunks);
 
-                  pthread_mutex_lock(&mutex_chunks);
-                  pairs_written += chunks[chunk_current].size;
-                  chunks[chunk_current].state = empty;
-                  pthread_cond_broadcast(&cond_chunks);
-                  wait = 0;
-                }
-              else
-                break;
+              chunk_perform_write();
+              chunk_perform_process(kmerhash);
             }
         }
-
-      if (t == 0)
+      else
         {
-          /* first thread only, the only thread reading */
-
-          while(1)
+          if (t == 0)
             {
-              int chunk_current = chunk_read_next;
-              if (chunk_read_more && chunks[chunk_current].state == empty)
-                {
-                  pthread_mutex_unlock(&mutex_chunks);
+              /* first thread reads and processes */
+              while (!
+                     (
+                      finished_all
+                      ||
+                      ((!finished_reading) &&
+                       (chunks[chunk_read_next].state == empty))
+                      ||
+                      (chunks[chunk_process_next].state == filled)
+                      )
+                     )
+                pthread_cond_wait(&cond_chunks, &mutex_chunks);
 
-                  progress_update(fastq_get_position(fastq_fwd));
-                  int r = 0;
-                  while ((r < chunk_size) &&
-                         read_pair(chunks[chunk_current].merge_data + r))
-                    r++;
-                  chunks[chunk_current].size = r;
-                  chunk_read_next = (chunk_current + 1) % chunk_count;
-
-                  pthread_mutex_lock(&mutex_chunks);
-                  pairs_read += r;
-                  wait = 0;
-                  if (r < chunk_size)
-                    chunk_read_more = 0;
-                  if (r > 0)
-                    {
-                      chunks[chunk_current].state = filled;
-                      /* wake up for processing */
-                      pthread_cond_broadcast(&cond_chunks);
-                    }
-                  if (r < chunk_size)
-                    break;
-                }
-              else
-                break;
+              chunk_perform_read();
+              chunk_perform_process(kmerhash);
             }
-        }
-
-      /* all threads */
-
-      if (1) // t>0) // (t > 0) && (t < opt_threads-1))
-        {
-          int chunk_current = chunk_process_next;
-          if (chunks[chunk_current].state == filled)
+          else if (t == opt_threads - 1)
             {
-              /* process sequences */
-              chunk_process_next = (chunk_current + 1) % chunk_count;
-              pthread_mutex_unlock(&mutex_chunks);
+              /* last thread writes and processes */
+              while (!
+                     (
+                      finished_all
+                      ||
+                      (chunks[chunk_write_next].state == processed)
+                      ||
+                      (chunks[chunk_process_next].state == filled)
+                      )
+                     )
+                pthread_cond_wait(&cond_chunks, &mutex_chunks);
 
-              for(int64_t i=0; i<chunks[chunk_current].size; i++)
-                process(chunks[chunk_current].merge_data + i, kmerhash);
-
-              pthread_mutex_lock(&mutex_chunks);
-              pairs_processed += chunks[chunk_current].size;
-              chunks[chunk_current].state = processed;
-              pthread_cond_broadcast(&cond_chunks);
-              wait = 0;
+              chunk_perform_write();
+              chunk_perform_process(kmerhash);
             }
-        }
+          else
+            {
+              /* the other threads are only processing */
+              while (!
+                     (
+                      finished_all
+                      ||
+                      (chunks[chunk_process_next].state == filled)
+                      )
+                     )
+                pthread_cond_wait(&cond_chunks, &mutex_chunks);
 
-      if ((! chunk_read_more) && (pairs_read == pairs_written))
-        term = 1;
-      else if (wait)
-        {
-          //          fprintf(stderr, "Thread %ld waiting...\n", t);
-          pthread_cond_wait(&cond_chunks, &mutex_chunks);
+              chunk_perform_process(kmerhash);
+            }
         }
     }
 
@@ -1166,8 +1174,7 @@ void pair_all()
 {
   /* prepare chunks */
 
-  chunk_count = 2 * opt_threads;
-  chunk_size = 512;
+  chunk_count = chunk_factor * opt_threads;
   chunk_read_next = 0;
   chunk_process_next = 0;
   chunk_write_next = 0;
