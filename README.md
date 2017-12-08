@@ -185,7 +185,7 @@ File | Description
 **fastq.cc** | FASTQ file parser
 **fastqops.cc** | FASTQ file statistics etc
 **fastx.cc** | Detection of FASTA and FASTQ files, wrapper for FASTA and FASTQ parsers
-**kmerhash.cc* | Hash for kmers used by paired-end read merger
+**kmerhash.cc** | Hash for kmers used by paired-end read merger
 **linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
