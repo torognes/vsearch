@@ -83,15 +83,21 @@ static FILE * fp_fastqout_notmerged_rev = 0;
 static FILE * fp_fastaout_notmerged_fwd = 0;
 static FILE * fp_fastaout_notmerged_rev = 0;
 static FILE * fp_eetabbedout = 0;
+
 static fastx_handle fastq_fwd;
 static fastx_handle fastq_rev;
+
 static int64_t merged = 0;
 static int64_t notmerged = 0;
 static int64_t total = 0;
+
+static double sum_read_length = 0.0;
 static double sum_squared_fragment_length = 0.0;
 static double sum_fragment_length = 0.0;
+
 static pthread_t * pthread;
 static pthread_attr_t attr;
+
 static char merge_qual_same[128][128];
 static char merge_qual_diff[128][128];
 static double match_score[128][128];
@@ -199,7 +205,7 @@ typedef struct merge_data_s
 
 typedef struct chunk_s
 {
-  int size; /* size of merge_data = number of pairs of reads*/
+  int size; /* size of merge_data = number of pairs of reads */
   state_enum state; /* state of chunk: empty, read, processed */
   merge_data_t * merge_data; /* data for merging */
 } chunk_t;
@@ -213,7 +219,6 @@ static int chunk_write_next;
 static bool finished_reading = false;
 static bool finished_all = false;
 static int pairs_read = 0;
-static int pairs_processed = 0;
 static int pairs_written = 0;
 
 static pthread_mutex_t mutex_chunks;
@@ -889,6 +894,8 @@ bool read_pair(merge_data_t * ip)
       ip->rev_length = fastq_get_sequence_length(fastq_rev);
       int64_t seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
 
+      sum_read_length += ip->fwd_length + ip->rev_length;
+
       if (seq_needed > ip->seq_alloc)
         {
           ip->seq_alloc = seq_needed;
@@ -897,6 +904,7 @@ bool read_pair(merge_data_t * ip)
           ip->fwd_quality  = (char*) xrealloc(ip->fwd_quality,  seq_needed);
           ip->rev_quality  = (char*) xrealloc(ip->rev_quality,  seq_needed);
         }
+
 
       int64_t merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
 
@@ -1047,7 +1055,6 @@ inline void chunk_perform_process(struct kh_handle_s * kmerhash)
       for(int i=0; i<chunks[chunk_current].size; i++)
         process(chunks[chunk_current].merge_data + i, kmerhash);
       pthread_mutex_lock(&mutex_chunks);
-      pairs_processed += chunks[chunk_current].size;
       chunks[chunk_current].state = processed;
       pthread_cond_broadcast(&cond_chunks);
     }
@@ -1292,6 +1299,8 @@ void fastq_mergepairs()
                        + mean * mean * merged)
                       / (merged + 0.0));
 
+  double mean_read_length = sum_read_length / (2.0 * pairs_read);
+
   if (notmerged > 0)
     fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
 
@@ -1364,6 +1373,14 @@ void fastq_mergepairs()
     fprintf(stderr,
             "%10" PRIu64 "  indel errors\n",
             failed_indel);
+
+  fprintf(stderr, "\n");
+
+  fprintf(stderr, "Statistics of all reads:\n");
+
+  fprintf(stderr,
+          "%10.2f  Mean read length\n",
+          mean_read_length);
 
   fprintf(stderr, "\n");
 
