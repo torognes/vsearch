@@ -459,14 +459,15 @@ void fastq_print_with_ee(FILE * fp, char * header,
   fastq_print_quality(fp, quality);
 }
 
-void fastq_print_relabel(FILE * fp,
+void fastq_print_general(FILE * fp,
                          char * seq,
                          int len,
                          char * header,
                          int header_len,
                          char * quality,
                          int abundance,
-                         int ordinal)
+                         int ordinal,
+                         double ee)
 {
   fprintf(fp, "@");
   if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
@@ -503,9 +504,38 @@ void fastq_print_relabel(FILE * fp,
     {
       fprintf(fp, "%s", header);
     }
+  if (ee >= 0)
+    fprintf(fp, ";ee=%6.4lf;", ee);
   fprintf(fp, "\n");
   fastq_print_sequence(fp, seq);
   fastq_print_quality(fp, quality);
+}
+
+void fastq_print_relabel(FILE * fp,
+                         char * seq,
+                         int len,
+                         char * header,
+                         int header_len,
+                         char * quality,
+                         int abundance,
+                         int ordinal)
+{
+  fastq_print_general(fp, seq, len, header, header_len,
+                      quality, abundance, ordinal, -1.0);
+}
+
+void fastq_print_relabel_ee(FILE * fp,
+                            char * seq,
+                            int len,
+                            char * header,
+                            int header_len,
+                            char * quality,
+                            int abundance,
+                            int ordinal,
+                            double ee)
+{
+  fastq_print_general(fp, seq, len, header, header_len,
+                      quality, abundance, ordinal, ee);
 }
 
 int64_t fastq_get_abundance(fastx_handle h)

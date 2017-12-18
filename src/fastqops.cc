@@ -142,9 +142,6 @@ void filter(bool fastq_only, char * filename)
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  char hex_md5[LEN_HEX_DIG_MD5];
-  char hex_sha1[LEN_HEX_DIG_SHA1];
-
   while(fastx_next(h, 0, chrmap_no_change))
     {
       int64_t length = fastx_get_sequence_length(h);
@@ -257,27 +254,25 @@ void filter(bool fastq_only, char * filename)
             }
           if (opt_fastqout)
             {
-              if (opt_relabel)
-                {
-                  (void) snprintf(header, header_alloc,
-                                  "%s%" PRId64, opt_relabel, kept);
-                  d = header;
-                }
-              else if (opt_relabel_md5)
-                {
-                  get_hex_seq_digest_md5(hex_md5, p, length);
-                  d = hex_md5;
-                }
-              else if (opt_relabel_sha1)
-                {
-                  get_hex_seq_digest_sha1(hex_sha1, p, length);
-                  d = hex_sha1;
-                }
-              
               if (opt_eeout || opt_fastq_eeout)
-                fastq_print_with_ee(fp_fastqout, d, p, q, ee);
+                fastq_print_relabel_ee(fp_fastqout,
+                                       p,
+                                       length,
+                                       d,
+                                       fastx_get_header_length(h),
+                                       q,
+                                       abundance,
+                                       kept,
+                                       ee);
               else
-                fastq_print(fp_fastqout, d, p, q);
+                fastq_print_relabel(fp_fastqout,
+                                    p,
+                                    length,
+                                    d,
+                                    fastx_get_header_length(h),
+                                    q,
+                                    abundance,
+                                    kept);
             }
         }
       else
@@ -306,26 +301,25 @@ void filter(bool fastq_only, char * filename)
 
           if (opt_fastqout_discarded)
             {
-              if (opt_relabel)
-                {
-                  (void) snprintf(header, header_alloc, "%s%" PRId64, opt_relabel, discarded);
-                  d = header;
-                }
-              else if (opt_relabel_md5)
-                {
-                  get_hex_seq_digest_md5(hex_md5, p, length);
-                  d = hex_md5;
-                }
-              else if (opt_relabel_sha1)
-                {
-                  get_hex_seq_digest_sha1(hex_sha1, p, length);
-                  d = hex_sha1;
-                }
-
               if (opt_eeout || opt_fastq_eeout)
-                fastq_print_with_ee(fp_fastqout_discarded, d, p, q, ee);
+                fastq_print_relabel_ee(fp_fastqout_discarded,
+                                       p,
+                                       length,
+                                       d,
+                                       fastx_get_header_length(h),
+                                       q,
+                                       abundance,
+                                       discarded,
+                                       ee);
               else
-                fastq_print(fp_fastqout_discarded, d, p, q);
+                fastq_print_relabel(fp_fastqout_discarded,
+                                    p,
+                                    length,
+                                    d,
+                                    fastx_get_header_length(h),
+                                    q,
+                                    abundance,
+                                    discarded);
             }
         }
 
@@ -333,11 +327,19 @@ void filter(bool fastq_only, char * filename)
     }
   progress_done();
 
-  fprintf(stderr,
-          "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
-          kept,
-          truncated,
-          discarded);
+  if (! opt_quiet)
+    fprintf(stderr,
+            "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
+            kept,
+            truncated,
+            discarded);
+
+  if (opt_log)
+    fprintf(fp_log,
+            "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
+            kept,
+            truncated,
+            discarded);
 
   if (header)
     xfree(header);

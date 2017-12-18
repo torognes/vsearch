@@ -803,15 +803,36 @@ int eval_parents(struct chimera_info_s * ci)
           fprintf(fp_uchimealns, "\n");
           fprintf(fp_uchimealns, "----------------------------------------"
                   "--------------------------------\n");
-          fprintf(fp_uchimealns, "Query   (%5d nt) %s\n",
-                  ci->query_len, ci->query_head);
-          fprintf(fp_uchimealns, "ParentA (%5" PRIu64 " nt) %s\n",
-                  db_getsequencelen(seqno_a),
-                  db_getheader(seqno_a));
-          fprintf(fp_uchimealns, "ParentB (%5" PRIu64 " nt) %s\n",
-                  db_getsequencelen(seqno_b),
-                  db_getheader(seqno_b));
-          fprintf(fp_uchimealns, "\n");
+          fprintf(fp_uchimealns, "Query   (%5d nt) ",
+                  ci->query_len);
+          if (opt_xsize)
+            abundance_fprint_header_strip_size(global_abundance,
+                                               fp_uchimealns,
+                                               ci->query_head,
+                                               ci->query_head_len);
+          else
+            fprintf(fp_uchimealns, "%s", ci->query_head);
+
+          fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
+                  db_getsequencelen(seqno_a));
+          if (opt_xsize)
+            abundance_fprint_header_strip_size(global_abundance,
+                                               fp_uchimealns,
+                                               db_getheader(seqno_a),
+                                               db_getheaderlen(seqno_a));
+          else
+            fprintf(fp_uchimealns, "%s", db_getheader(seqno_a));
+
+          fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
+                  db_getsequencelen(seqno_b));
+          if (opt_xsize)
+            abundance_fprint_header_strip_size(global_abundance,
+                                               fp_uchimealns,
+                                               db_getheader(seqno_b),
+                                               db_getheaderlen(seqno_b));
+          else
+            fprintf(fp_uchimealns, "%s", db_getheader(seqno_b));
+          fprintf(fp_uchimealns, "\n\n");
 
           int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
           qpos = 0;
@@ -883,53 +904,76 @@ int eval_parents(struct chimera_info_s * ci)
 
       if (opt_uchimeout)
         {
-          if (opt_uchimeout5)
+          fprintf(fp_uchimeout, "%.4f\t", best_h);
+
+          if (opt_xsize)
             {
-              fprintf(fp_uchimeout,
-                      "%.4f\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
-                      "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
-                      best_h,
-                      ci->query_head,
-                      db_getheader(seqno_a),
-                      db_getheader(seqno_b),
-                      QM,
-                      QA,
-                      QB,
-                      AB,
-                      QT,
-                      best_left_y,
-                      best_left_n,
-                      best_left_a,
-                      best_right_y,
-                      best_right_n,
-                      best_right_a,
-                      divdiff,
-                      status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
+              abundance_fprint_header_strip_size(global_abundance,
+                                                 fp_uchimeout,
+                                                 ci->query_head,
+                                                 ci->query_head_len);
+              fprintf(fp_uchimeout, "\t");
+              abundance_fprint_header_strip_size(global_abundance,
+                                                 fp_uchimeout,
+                                                 db_getheader(seqno_a),
+                                                 db_getheaderlen(seqno_a));
+              fprintf(fp_uchimeout, "\t");
+              abundance_fprint_header_strip_size(global_abundance,
+                                                 fp_uchimeout,
+                                                 db_getheader(seqno_b),
+                                                 db_getheaderlen(seqno_b));
+              fprintf(fp_uchimeout, "\t");
             }
           else
             {
               fprintf(fp_uchimeout,
-                      "%.4f\t%s\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
-                      "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
-                      best_h,
+                      "%s\t%s\t%s\t",
                       ci->query_head,
                       db_getheader(seqno_a),
-                      db_getheader(seqno_b),
-                      db_getheader(QA >= QB ? seqno_a : seqno_b),
-                      QM,
-                      QA,
-                      QB,
-                      AB,
-                      QT,
-                      best_left_y,
-                      best_left_n,
-                      best_left_a,
-                      best_right_y,
-                      best_right_n,
-                      best_right_a,
-                      divdiff,
-                      status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
+                      db_getheader(seqno_b));
             }
+
+          if(! opt_uchimeout5)
+            {
+              if (opt_xsize)
+                {
+                  if (QA >= QB)
+                    abundance_fprint_header_strip_size(global_abundance,
+                                                       fp_uchimeout,
+                                                       db_getheader(seqno_a),
+                                                       db_getheaderlen(seqno_a));
+                  else
+                    abundance_fprint_header_strip_size(global_abundance,
+                                                       fp_uchimeout,
+                                                       db_getheader(seqno_b),
+                                                       db_getheaderlen(seqno_b));
+                  fprintf(fp_uchimeout, "\t");
+                }
+              else
+                {
+                  if (QA >= QB)
+                    fprintf(fp_uchimeout, "%s\t", db_getheader(seqno_a));
+                  else
+                    fprintf(fp_uchimeout, "%s\t", db_getheader(seqno_b));
+                }
+            }
+
+          fprintf(fp_uchimeout,
+                  "%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
+                  "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
+                  QM,
+                  QA,
+                  QB,
+                  AB,
+                  QT,
+                  best_left_y,
+                  best_left_n,
+                  best_left_a,
+                  best_right_y,
+                  best_right_n,
+                  best_right_a,
+                  divdiff,
+                  status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
         }
       pthread_mutex_unlock(&mutex_output);
     }
@@ -1093,7 +1137,6 @@ void fasta_print_with_score(FILE * fp,
                             double score)
 {
   int alloc = strlen(head) + strlen(score_name) + log10(MAX(score,1)) + 16;
-  //  printf("alloc: %d\n", alloc);
   char * newheader = (char*) xmalloc(alloc);
   if (head[strlen(head)-1] == ';')
     snprintf(newheader, alloc, "%s%s=%.4lf;", head, score_name, score);
@@ -1114,7 +1157,6 @@ void fasta_print_relabel_with_score(FILE * fp,
                                     double score)
 {
   int alloc = head_len + strlen(score_name) + log10(MAX(score,1)) + 16;
-  //printf("head_len: %d   alloc: %d\n", head_len, alloc);
   char * newheader = (char*) xmalloc(alloc);
   if (header[head_len-1] == ';')
     snprintf(newheader, alloc, "%s%s=%.4lf;", header, score_name, score);
@@ -1334,17 +1376,24 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           if (opt_chimeras)
             {
               if (opt_fasta_score)
-                fasta_print_with_score(fp_chimeras,
-                                       ci->query_head,
-                                       ci->query_seq,
-                                       ci->query_len,
-                                       opt_uchime_ref ? "uchime_ref" : "uchime_denovo",
-                                       ci->best_h);
+                fasta_print_relabel_with_score(fp_chimeras,
+                                               ci->query_seq,
+                                               ci->query_len,
+                                               ci->query_head,
+                                               ci->query_head_len,
+                                               ci->query_size,
+                                               chimera_count,
+                                               opt_uchime_ref ?
+                                               "uchime_ref" : "uchime_denovo",
+                                               ci->best_h);
               else
-                fasta_print(fp_chimeras,
-                            ci->query_head,
-                            ci->query_seq,
-                            ci->query_len);
+                fasta_print_relabel(fp_chimeras,
+                                    ci->query_seq,
+                                    ci->query_len,
+                                    ci->query_head,
+                                    ci->query_head_len,
+                                    ci->query_size,
+                                    chimera_count);
             }
         }
       
@@ -1355,17 +1404,24 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           if (opt_borderline)
             {
               if (opt_fasta_score)
-                fasta_print_with_score(fp_borderline,
-                                       ci->query_head,
-                                       ci->query_seq,
-                                       ci->query_len,
-                                       opt_uchime_ref ? "uchime_ref" : "uchime_denovo",
-                                       ci->best_h);
+                fasta_print_relabel_with_score(fp_borderline,
+                                               ci->query_seq,
+                                               ci->query_len,
+                                               ci->query_head,
+                                               ci->query_head_len,
+                                               ci->query_size,
+                                               borderline_count,
+                                               opt_uchime_ref ?
+                                               "uchime_ref" : "uchime_denovo",
+                                               ci->best_h);
               else
-                fasta_print(fp_borderline,
-                            ci->query_head,
-                            ci->query_seq,
-                            ci->query_len);
+                fasta_print_relabel(fp_borderline,
+                                    ci->query_seq,
+                                    ci->query_len,
+                                    ci->query_head,
+                                    ci->query_head_len,
+                                    ci->query_size,
+                                    borderline_count);
             }
         }
 
@@ -1377,16 +1433,22 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           /* output no parents, no chimeras */
           if ((status < 2) && opt_uchimeout)
             {
+              fprintf(fp_uchimeout, "0.0000\t");
+
+              if (opt_xsize)
+                abundance_fprint_header_strip_size(global_abundance,
+                                                   fp_uchimeout,
+                                                   ci->query_head,
+                                                   ci->query_head_len);
+              else
+                fprintf(fp_uchimeout, "%s", ci->query_head);
+
               if (opt_uchimeout5)
                 fprintf(fp_uchimeout,
-                        "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*"
-                        "\t0\t0\t0\t0\t0\t0\t*\tN\n",
-                        ci->query_head);
+                        "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
               else
                 fprintf(fp_uchimeout,
-                        "0.0000\t%s\t*\t*\t*\t*\t*\t*\t*\t*"
-                        "\t0\t0\t0\t0\t0\t0\t*\tN\n",
-                        ci->query_head);
+                        "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
             }
           
           /* uchime_denovo: add non-chimeras to db */
