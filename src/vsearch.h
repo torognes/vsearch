@@ -421,5 +421,3 @@ extern int64_t avx_present;
 extern int64_t avx2_present;
 
 extern FILE * fp_log;
-
-extern abundance_t * global_abundance;

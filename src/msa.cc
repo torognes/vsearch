@@ -254,12 +254,15 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
       /* print header & sequence */
       if (fp_msaout)
-        {
-          fprintf(fp_msaout, ">%s%s\n", j ? "" : "*", 
-                  db_getheader(target_seqno));
-          fasta_print_sequence(fp_msaout, aln, alnlen, opt_fasta_width);
-        }
-    }  
+        fasta_print_general(fp_msaout,
+                            j ? "" : "*",
+                            aln, 
+                            alnlen,
+                            db_getheader(target_seqno),
+                            db_getheaderlen(target_seqno),
+                            db_getabundance(target_seqno), 
+                            0, -1, -1, 0, 0.0);
+    }
 
   if (rc_buffer)
     xfree(rc_buffer);
@@ -323,30 +326,33 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   if (fp_consout)
     {
-      fasta_print_relabel_cluster(fp_consout,
-                                  cons,
-                                  conslen,
-                                  db_getheader(centroid_seqno),
-                                  db_getheaderlen(centroid_seqno),
-                                  totalabundance,
-                                  cluster+1,
-                                  target_count,
-                                  opt_clusterout_id,
-                                  cluster);
+      fasta_print_general(fp_consout,
+                          "consensus=",
+                          cons,
+                          conslen,
+                          db_getheader(centroid_seqno),
+                          db_getheaderlen(centroid_seqno),
+                          totalabundance,
+                          cluster+1,
+                          target_count,
+                          opt_clusterout_id ? cluster : -1,
+                          0, 0.0);
     }
   
   if (fp_profile)
     {
-      fasta_print_relabel_cluster(fp_profile,
-                                  0,
-                                  0,
-                                  db_getheader(centroid_seqno),
-                                  db_getheaderlen(centroid_seqno),
-                                  totalabundance,
-                                  cluster+1,
-                                  target_count,
-                                  opt_clusterout_id,
-                                  cluster);
+      fasta_print_general(fp_profile,
+                          "consensus=",
+                          0,
+                          0,
+                          db_getheader(centroid_seqno),
+                          db_getheaderlen(centroid_seqno),
+                          totalabundance,
+                          cluster+1,
+                          target_count,
+                          opt_clusterout_id ? cluster : -1,
+                          0, 0.0);
+
       for (int i=0; i<alnlen; i++)
         {
           fprintf(fp_profile, "%d\t%c", i, aln[i]);

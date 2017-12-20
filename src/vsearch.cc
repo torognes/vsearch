@@ -284,8 +284,6 @@ static time_t time_finish;
 
 FILE * fp_log = 0;
 
-abundance_t * global_abundance;
-
 char * STDIN_NAME = (char*) "/dev/stdin";
 char * STDOUT_NAME = (char*) "/dev/stdout";
 
@@ -2878,8 +2876,6 @@ int main(int argc, char** argv)
     fatal("Sorry, this program requires a cpu with SSE2.");
 #endif
 
-  global_abundance = abundance_init();
-
   if (opt_help)
     cmd_help();
   else if (opt_allpairs_global)
@@ -2967,6 +2963,5 @@ int main(int argc, char** argv)
   opt_ee_cutoffs_values = 0;
 
   xfree(cmdline);
-  abundance_exit(global_abundance);
   dynlibs_close();
 }

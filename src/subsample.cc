@@ -177,23 +177,26 @@ void subsample()
           samples++;
 
           if (opt_fastaout)
-            fasta_print_relabel(fp_fastaout,
+            fasta_print_general(fp_fastaout,
+                                0,
                                 db_getsequence(i),
                                 db_getsequencelen(i),
                                 db_getheader(i),
                                 db_getheaderlen(i),
                                 ab_sub,
-                                samples);
+                                samples,
+                                -1, -1, 0, 0.0);
 
           if (opt_fastqout)
-            fastq_print_relabel(fp_fastqout,
+            fastq_print_general(fp_fastqout,
                                 db_getsequence(i),
                                 db_getsequencelen(i),
                                 db_getheader(i),
                                 db_getheaderlen(i),
                                 db_getquality(i),
                                 ab_sub,
-                                samples);
+                                samples,
+                                0, 0.0);
         }
 
       if (ab_discarded > 0)
@@ -201,23 +204,26 @@ void subsample()
           discarded++;
 
           if (opt_fastaout_discarded)
-            fasta_print_relabel(fp_fastaout_discarded,
+            fasta_print_general(fp_fastaout_discarded,
+                                0,
                                 db_getsequence(i),
                                 db_getsequencelen(i),
                                 db_getheader(i),
                                 db_getheaderlen(i),
                                 ab_discarded,
-                                discarded);
-
+                                discarded,
+                                -1, -1, 0, 0.0);
+          
           if (opt_fastqout_discarded)
-            fastq_print_relabel(fp_fastqout_discarded,
+            fastq_print_general(fp_fastqout_discarded,
                                 db_getsequence(i),
                                 db_getsequencelen(i),
                                 db_getheader(i),
                                 db_getheaderlen(i),
                                 db_getquality(i),
                                 ab_discarded,
-                                discarded);
+                                discarded,
+                                0, 0.0);
         }
       progress_update(i);
     }

@@ -449,8 +449,8 @@ void udb_read(const char * filename,
       progress_init("Parsing abundances", seqcount);
       for(unsigned int i = 0; i < seqcount; i++)
         {
-          seqindex[i].size = abundance_get(global_abundance,
-                                           datap + seqindex[i].header_p);
+          seqindex[i].size = abundance_get(datap + seqindex[i].header_p,
+                                           seqindex[i].headerlen);
           progress_update(i+1);
         }
       progress_done();
@@ -532,7 +532,7 @@ void udb_fasta()
   progress_init("Writing FASTA file", seqcount);
   for(unsigned int i = 0; i < seqcount; i++)
     {
-      fasta_print_db(fp_output, i);
+      fasta_print_db_relabel(fp_output, i, i+1);
       progress_update(i+1);
     }
   progress_done();

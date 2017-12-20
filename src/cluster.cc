@@ -74,6 +74,9 @@ typedef struct clusterinfo_s
 static clusterinfo_t * clusterinfo = 0;
 static int clusters = 0;
 
+static int count_matched = 0;
+static int count_notmatched = 0;
+
 static int64_t * cluster_abundance;
 
 static FILE * fp_centroids = 0;
@@ -356,6 +359,7 @@ void cluster_core_results_hit(struct hit * best,
                               char * qsequence_rc,
                               int qsize)
 {
+  count_matched++;
 
   if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
     {
@@ -406,7 +410,15 @@ void cluster_core_results_hit(struct hit * best,
                                qsequence, qseqlen, qsequence_rc);
   
   if (opt_matched)
-    fasta_print(fp_matched, query_head, qsequence, qseqlen);
+    fasta_print_general(fp_matched,
+                        0,
+                        qsequence,
+                        qseqlen,
+                        query_head,
+                        strlen(query_head),
+                        qsize,
+                        count_matched,
+                        -1, -1, 0, 0.0);
 }
 
 void cluster_core_results_nohit(int clusterno,
@@ -416,6 +428,7 @@ void cluster_core_results_nohit(int clusterno,
                                 char * qsequence_rc,
                                 int qsize)
 {
+  count_notmatched++;
 
   if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
     {
@@ -447,7 +460,15 @@ void cluster_core_results_nohit(int clusterno,
     }
   
   if (opt_notmatched)
-    fasta_print(fp_notmatched, query_head, qsequence, qseqlen);
+    fasta_print_general(fp_notmatched,
+                        0,
+                        qsequence,
+                        qseqlen,
+                        query_head,
+                        strlen(query_head),
+                        qsize,
+                        count_notmatched,
+                        -1, -1, 0, 0.0);
 }
 
 int compare_kmersample(const void * a, const void * b)
@@ -1188,6 +1209,7 @@ void cluster(char * dbname,
     fn_clusters = (char *) xmalloc(strlen(opt_clusters) + 25);
 
   int lastcluster = -1;
+  int ordinal = 0;
 
   for(int i=0; i<seqcount; i++)
     {
@@ -1201,30 +1223,29 @@ void cluster(char * dbname,
           /* the first sequence is always the centroid */
 
           if (opt_centroids)
-            {
-              fasta_print_relabel(fp_centroids,
-                                  db_getsequence(seqno),
-                                  db_getsequencelen(seqno),
-                                  db_getheader(seqno),
-                                  db_getheaderlen(seqno),
-                                  cluster_abundance[clusterno],
-                                  clusterno+1);
-            }
+            fasta_print_general(fp_centroids,
+                                0,
+                                db_getsequence(seqno),
+                                db_getsequencelen(seqno),
+                                db_getheader(seqno),
+                                db_getheaderlen(seqno),
+                                cluster_abundance[clusterno],
+                                clusterno+1,
+                                -1, -1, 0, 0.0);
 
           if (opt_uc)
-            {
-              fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                      clusterno,
-                      cluster_abundance[clusterno],
-                      db_getheader(seqno));
-            }
-
+            fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+                    clusterno,
+                    cluster_abundance[clusterno],
+                    db_getheader(seqno));
+          
           if (opt_clusters)
             {
               /* close previous (except for first time) and open new file */
               if (lastcluster != -1)
                 fclose(fp_clusters);
               
+              ordinal = 0;
               sprintf(fn_clusters, "%s%d", opt_clusters, clusterno);
               fp_clusters = fopen(fn_clusters, "w");
               if (!fp_clusters)
@@ -1237,7 +1258,10 @@ void cluster(char * dbname,
       /* performed for all sequences */
 
       if (opt_clusters)
-        fasta_print_db(fp_clusters, seqno);
+        {
+          ordinal++;
+          fasta_print_db_relabel(fp_clusters, seqno, ordinal);
+        }
       
       progress_update(i);
     }

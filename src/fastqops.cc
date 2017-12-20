@@ -239,41 +239,30 @@ void filter(bool fastq_only, char * filename)
             }
 
           if (opt_fastaout)
-            {
-              if (opt_eeout || opt_fastq_eeout)
-                fasta_print_relabel_ee(fp_fastaout,
-                                       p, length,
-                                       d, fastx_get_header_length(h),
-                                       abundance, kept,
-                                       ee);
-              else
-                fasta_print_relabel(fp_fastaout,
-                                    p, length,
-                                    d, fastx_get_header_length(h),
-                                    abundance, kept);
-            }
+            fasta_print_general(fp_fastaout,
+                                0,
+                                p,
+                                length,
+                                d,
+                                fastx_get_header_length(h),
+                                abundance,
+                                kept,
+                                -1,
+                                -1,
+                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
+                                ee);
+
           if (opt_fastqout)
-            {
-              if (opt_eeout || opt_fastq_eeout)
-                fastq_print_relabel_ee(fp_fastqout,
-                                       p,
-                                       length,
-                                       d,
-                                       fastx_get_header_length(h),
-                                       q,
-                                       abundance,
-                                       kept,
-                                       ee);
-              else
-                fastq_print_relabel(fp_fastqout,
-                                    p,
-                                    length,
-                                    d,
-                                    fastx_get_header_length(h),
-                                    q,
-                                    abundance,
-                                    kept);
-            }
+            fastq_print_general(fp_fastqout,
+                                p,
+                                length,
+                                d,
+                                fastx_get_header_length(h),
+                                q,
+                                abundance,
+                                kept,
+                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
+                                ee);
         }
       else
         {
@@ -281,46 +270,31 @@ void filter(bool fastq_only, char * filename)
 
           discarded++;
 
-          p = fastx_get_sequence(h);
-          q = fastx_get_quality(h);
-
           if (opt_fastaout_discarded)
-            {
-              if (opt_eeout || opt_fastq_eeout)
-                fasta_print_relabel_ee(fp_fastaout_discarded,
-                                       p, length,
-                                       d, fastx_get_header_length(h),
-                                       abundance, discarded,
-                                       ee);
-              else
-                fasta_print_relabel(fp_fastaout_discarded,
-                                    p, length,
-                                    d, fastx_get_header_length(h),
-                                    abundance, discarded);
-            }
+            fasta_print_general(fp_fastaout_discarded,
+                                0,
+                                p,
+                                length,
+                                d,
+                                fastx_get_header_length(h),
+                                abundance,
+                                discarded,
+                                -1,
+                                -1,
+                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
+                                ee);
 
           if (opt_fastqout_discarded)
-            {
-              if (opt_eeout || opt_fastq_eeout)
-                fastq_print_relabel_ee(fp_fastqout_discarded,
-                                       p,
-                                       length,
-                                       d,
-                                       fastx_get_header_length(h),
-                                       q,
-                                       abundance,
-                                       discarded,
-                                       ee);
-              else
-                fastq_print_relabel(fp_fastqout_discarded,
-                                    p,
-                                    length,
-                                    d,
-                                    fastx_get_header_length(h),
-                                    q,
-                                    abundance,
-                                    discarded);
-            }
+            fastq_print_general(fp_fastqout_discarded,
+                                p,
+                                length,
+                                d,
+                                fastx_get_header_length(h),
+                                q,
+                                abundance,
+                                discarded,
+                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
+                                ee);
         }
 
       progress_update(fastx_get_position(h));
@@ -996,8 +970,12 @@ void fastx_revcomp()
   else
     progress_init("Reading FASTA file", filesize);
 
+  int count = 0;
+
   while(fastx_next(h, 0, chrmap_no_change))
     {
+      count++;
+      
       /* header */
       
       uint64_t hlen = fastx_get_header_length(h);
@@ -1044,11 +1022,27 @@ void fastx_revcomp()
         }
 
       if (opt_fastaout)
-        fasta_print(fp_fastaout, header, seq_buffer, length);
+        fasta_print_general(fp_fastaout,
+                            0,
+                            seq_buffer,
+                            length,
+                            header,
+                            hlen,
+                            0,
+                            count,
+                            -1, -1, 0, 0.0);
 
       if (opt_fastqout)
-        fastq_print(fp_fastqout, header, seq_buffer, qual_buffer);
-                    
+        fastq_print_general(fp_fastqout,
+                            seq_buffer,
+                            length,
+                            header,
+                            hlen,
+                            qual_buffer,
+                            0,
+                            count,
+                            0, 0.0);
+      
       progress_update(fastx_get_position(h));
     }
   progress_done();

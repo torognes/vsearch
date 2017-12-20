@@ -80,12 +80,12 @@ void fasta_truncate_header(fastx_handle h, bool truncateatspace)
   /* Truncate the zero-terminated header string by inserting a new
      terminator (zero byte) at the first space/tab character
      (if truncateatspace) or first linefeed. */
-  
+
   if (truncateatspace)
     h->header_buffer.length = strcspn(h->header_buffer.data, " \t\n");
   else
     h->header_buffer.length = strcspn(h->header_buffer.data, "\n");
-  
+
   h->header_buffer.data[h->header_buffer.length] = 0;
 }
 
@@ -112,12 +112,12 @@ void fasta_filter_sequence(fastx_handle h,
           h->stripped_all++;
           h->stripped[(unsigned char)c]++;
           break;
-              
+
         case 1:
           /* legal character */
           *q++ = char_mapping[(unsigned char)(c)];
           break;
-          
+
         case 2:
           /* fatal character */
           if ((c>=32) && (c<127))
@@ -134,7 +134,7 @@ void fasta_filter_sequence(fastx_handle h,
                      h->lineno);
           fatal(msg);
           break;
-              
+
         case 3:
           /* silently stripped chars (whitespace) */
           break;
@@ -170,7 +170,7 @@ bool fasta_next(fastx_handle h,
   /* read header */
 
   /* check initial > character */
-  
+
   if (h->file_buffer.data[h->file_buffer.position] != '>')
     {
       fprintf(stderr, "Found character %02x\n", (unsigned char)(h->file_buffer.data[h->file_buffer.position]));
@@ -186,7 +186,7 @@ bool fasta_next(fastx_handle h,
       rest = fastx_file_fill_buffer(h);
       if (rest == 0)
         fatal("Invalid FASTA - header must be terminated with newline");
-      
+
       /* find LF */
       lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n',
@@ -249,7 +249,7 @@ bool fasta_next(fastx_handle h,
 
 int64_t fasta_get_abundance(fastx_handle h)
 {
-  return abundance_get(global_abundance, h->header_buffer.data);
+  return abundance_get(h->header_buffer.data, h->header_buffer.length);
 }
 
 uint64_t fasta_get_position(fastx_handle h)
@@ -295,18 +295,13 @@ char * fasta_get_sequence(fastx_handle h)
 
 /* fasta output */
 
-void fasta_print_header(FILE * fp, const char * hdr)
-{
-  fprintf(fp, ">%s\n", hdr);
-}
-
 void fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width)
 {
   /*
      The actual length of the sequence may be longer than "len", but only
      "len" characters are printed.
 
-     Specify width of lines - zero (or <1)  means linearize (all on one line).
+     Specify width of lines - zero (or <1) means linearize (all on one line).
   */
 
   if (width < 1)
@@ -325,19 +320,12 @@ void fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width)
 void fasta_print(FILE * fp, const char * hdr,
                  char * seq, uint64_t len)
 {
-  fasta_print_header(fp, hdr);
-  fasta_print_sequence(fp, seq, len, opt_fasta_width);
-}
-
-void fasta_print_ee(FILE * fp, const char * hdr,
-                    char * seq, uint64_t len,
-                    double ee)
-{
-  fprintf(fp, ">%s;%6.4lf;\n", hdr, ee);
+  fprintf(fp, ">%s\n", hdr);
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
 void fasta_print_general(FILE * fp,
+                         const char * prefix,
                          char * seq,
                          int len,
                          char * header,
@@ -345,52 +333,40 @@ void fasta_print_general(FILE * fp,
                          int abundance,
                          int ordinal,
                          int clustersize,
-                         bool showclusterid,
                          int clusterid,
-                         double ee)
+                         const char * score_name,
+                         double score)
 {
   fprintf(fp, ">");
 
-  if (clustersize > 0)
-    fprintf(fp, "centroid=");
+  if (prefix)
+    fprintf(fp, "%s", prefix);
 
-  if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
-    {
-      if (opt_relabel_sha1)
-        fprint_seq_digest_sha1(fp, seq, len);
-      else if (opt_relabel_md5)
-        fprint_seq_digest_md5(fp, seq, len);
-      else
-        fprintf(fp, "%s%d", opt_relabel, ordinal);
-    }
+  if (opt_relabel_sha1)
+    fprint_seq_digest_sha1(fp, seq, len);
+  else if (opt_relabel_md5)
+    fprint_seq_digest_md5(fp, seq, len);
+  else if (opt_relabel && (ordinal > 0))
+    fprintf(fp, "%s%d", opt_relabel, ordinal);
+  else if (opt_xsize || (opt_sizeout && abundance > 0))
+    abundance_fprint_header_strip_size(fp, header, header_len);
   else
-    {
-      if (opt_sizeout || opt_xsize)
-        abundance_fprint_header_strip_size(global_abundance,
-                                           fp,
-                                           header,
-                                           header_len);
-      else
-        fprintf(fp, "%s", header);
-    }
-
-  if ((clustersize > 0) || opt_sizeout || showclusterid || (ee >= 0.0))
-    fprintf(fp, ";");
+    fprintf(fp, "%s", header);
 
   if (clustersize > 0)
-    fprintf(fp, "seqs=%d;", clustersize);
+    fprintf(fp, ";seqs=%d", clustersize);
 
-  if (opt_sizeout)
-    fprintf(fp, "size=%u;", abundance);
+  if (clusterid >= 0)
+    fprintf(fp, ";clusterid=%d", clusterid);
 
-  if (showclusterid)
-    fprintf(fp, "clusterid=%d;", clusterid);
+  if ((abundance > 0) && opt_sizeout)
+    fprintf(fp, ";size=%u", abundance);
 
-  if (ee >= 0.0)
-    fprintf(fp, "ee=%6.4lf;", ee);
+  if (score_name)
+    fprintf(fp, ";%s=%.4lf", score_name, score);
 
   if (opt_relabel_keep &&
-      ((opt_relabel || opt_relabel_sha1 || opt_relabel_md5)))
+      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5))
     fprintf(fp, " %s", header);
 
   fprintf(fp, "\n");
@@ -399,119 +375,32 @@ void fasta_print_general(FILE * fp,
     fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
-
-void fasta_print_relabel_cluster(FILE * fp,
-                                 char * seq,
-                                 int len,
-                                 char * header,
-                                 int header_len,
-                                 int abundance,
-                                 int ordinal,
-                                 int clustersize,
-                                 bool showclusterid,
-                                 int clusterid)
-{
-  fasta_print_general(fp, seq, len, header, header_len,
-                      abundance, ordinal,
-                      clustersize, showclusterid, clusterid,
-                      -1.0);
-}
-
-void fasta_print_relabel_ee(FILE * fp,
-                            char * seq,
-                            int len,
-                            char * header,
-                            int header_len,
-                            int abundance,
-                            int ordinal,
-                            double ee)
-{
-  fasta_print_general(fp, seq, len, header, header_len,
-                      abundance, ordinal,
-                      0, 0, 0,
-                      ee);
-}
-
-void fasta_print_relabel(FILE * fp,
-                         char * seq,
-                         int len,
-                         char * header,
-                         int header_len,
-                         int abundance,
-                         int ordinal)
-{
-  fasta_print_general(fp, seq, len, header, header_len,
-                      abundance, ordinal,
-                      0, 0, 0,
-                      -1.0);
-}
-
 void fasta_print_db_relabel(FILE * fp,
                             uint64_t seqno,
                             int ordinal)
 {
-  fasta_print_relabel(fp,
+  fasta_print_general(fp,
+                      0,
                       db_getsequence(seqno),
                       db_getsequencelen(seqno),
                       db_getheader(seqno),
                       db_getheaderlen(seqno),
                       db_getabundance(seqno),
-                      ordinal);
-}
-
-void fasta_print_db_sequence(FILE * fp, uint64_t seqno)
-{
-  char * seq = db_getsequence(seqno);
-  int64_t seqlen = db_getsequencelen(seqno);
-  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
+                      ordinal,
+                      -1, -1,
+                      0, 0.0);
 }
 
 void fasta_print_db(FILE * fp, uint64_t seqno)
 {
-  char * hdr = db_getheader(seqno);
-  char * seq = db_getsequence(seqno);
-  int64_t seqlen = db_getsequencelen(seqno);
-
-  fasta_print_header(fp, hdr);
-  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
+  fasta_print_general(fp,
+                      0,
+                      db_getsequence(seqno),
+                      db_getsequencelen(seqno),
+                      db_getheader(seqno),
+                      db_getheaderlen(seqno),
+                      db_getabundance(seqno),
+                      0,
+                      -1, -1,
+                      0, 0.0);
 }
-
-void fasta_print_db_size(FILE * fp, uint64_t seqno, uint64_t size)
-{
-  char * hdr = db_getheader(seqno);
-  int hdrlen = db_getheaderlen(seqno);
-  
-  fprintf(fp, ">");
-  abundance_fprint_header_with_size(global_abundance,
-                                    fp,
-                                    hdr,
-                                    hdrlen,
-                                    size);
-  fprintf(fp, "\n");
-
-  char * seq = db_getsequence(seqno);
-  int64_t seqlen = db_getsequencelen(seqno);
-
-  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
-}
-
-void fasta_print_db_strip_size(FILE * fp, uint64_t seqno)
-{
-  /* write FASTA but remove abundance information, as with --xsize option */
-
-  char * hdr = db_getheader(seqno);
-  int hdrlen = db_getheaderlen(seqno);
-
-  fprintf(fp, ">");
-  abundance_fprint_header_strip_size(global_abundance,
-                                     fp,
-                                     hdr,
-                                     hdrlen);
-  fprintf(fp, "\n");
-
-  char * seq = db_getsequence(seqno);
-  int64_t seqlen = db_getsequencelen(seqno);
-
-  fasta_print_sequence(fp, seq, seqlen, opt_fasta_width);
-}
-

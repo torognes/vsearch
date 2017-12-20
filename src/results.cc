@@ -75,22 +75,38 @@ void results_show_fastapairs_one(FILE * fp,
                                  hp->nwalignment,
                                  hp->nwalignmentlength,
                                  0);
-      fasta_print_header(fp, query_head);
-      fasta_print_sequence(fp,
-                           qrow + hp->trim_q_left + hp->trim_t_left,
-                           hp->internal_alignmentlength, 0);
+      fasta_print_general(fp,
+                          0,
+                          qrow + hp->trim_q_left + hp->trim_t_left,
+                          hp->internal_alignmentlength,
+                          query_head,
+                          strlen(query_head),
+                          0,
+                          0,
+                          -1,
+                          -1,
+                          0,
+                          0.0);
       xfree(qrow);
-      
+
       char * trow = align_getrow(db_getsequence(hp->target),
                                  hp->nwalignment,
                                  hp->nwalignmentlength,
                                  1);
-      fasta_print_header(fp, db_getheader(hp->target));
-      fasta_print_sequence(fp,
-                           trow + hp->trim_q_left + hp->trim_t_left,
-                           hp->internal_alignmentlength, 0);
+      fasta_print_general(fp,
+                          0,
+                          trow + hp->trim_q_left + hp->trim_t_left,
+                          hp->internal_alignmentlength,
+                          db_getheader(hp->target),
+                          db_getheaderlen(hp->target),
+                          0,
+                          0,
+                          -1,
+                          -1,
+                          0,
+                          0.0);
       xfree(trow);
-      
+
       fprintf(fp, "\n");
     }
 }

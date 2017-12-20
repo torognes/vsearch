@@ -60,30 +60,77 @@
 
 #include "vsearch.h"
 
-abundance_t * abundance_init(void)
+bool header_find_attribute(const char * header,
+                           int header_length,
+                           const char * attribute,
+                           int * start,
+                           int * end)
 {
- abundance_t * a = (abundance_t *) xmalloc(sizeof(abundance_t));
- if (regcomp(&a->regex, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-   fatal("Compilation of regular expression for abundance annotation failed");
- return a;
+  /*
+    Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
+    in the header string, where "size=" is the specified attribute.
+  */
+
+  const char * digit_chars = "0123456789";
+
+  if ((! header) || (! attribute))
+    return false;
+
+  int hlen = header_length;
+  int alen = strlen(attribute);
+
+  int i = 0;
+
+  while (i < hlen - alen)
+    {
+      char * r = strstr(header + i, attribute);
+
+      /* no match */
+      if (r == NULL)
+        break;
+
+      i = r - header;
+
+      /* check for ';' in front */
+      if ((i > 0) && (header[i-1] != ';'))
+        {
+          i += alen + 1;
+          continue;
+        }
+
+      int digits = (int) strspn(header + i + alen, digit_chars);
+
+      /* check for at least one digit */
+      if (digits == 0)
+        {
+          i += alen + 1;
+          continue;
+        }
+
+      /* check for ';' after */
+      if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
+        {
+          i += alen + digits + 2;
+          continue;
+        }
+
+      /* ok */
+      * start = i;
+      * end = i + alen + digits;
+      return true;
+    }
+  return false;
 }
 
-void abundance_exit(abundance_t * a)
-{
-  regfree(&a->regex);
-  xfree(a);
-}
-
-int64_t abundance_get(abundance_t * a, char * header)
+int64_t abundance_get(char * header, int header_length)
 {
   /* read size/abundance annotation */
-  
   int64_t abundance = 1;
-  regmatch_t pmatch[4];
-  
-  if (!regexec(&a->regex, header, 4, pmatch, 0))
+  int start = 0;
+  int end = 0;
+  if (header_find_attribute(header, header_length, "size=", & start, & end))
     {
-      int64_t number = atol(header + pmatch[2].rm_so);
+      int64_t number = atol(header + start + 5);
       if (number > 0)
         abundance = number;
       else
@@ -92,90 +139,29 @@ int64_t abundance_get(abundance_t * a, char * header)
   return abundance;
 }
 
-void abundance_fprint_header_with_size(abundance_t * a,
-                                       FILE * fp,
-                                       char * header,
-                                       int header_length,
-                                       uint64_t size)
-{
-  /* remove any previous size annotation */
-  /* regexp search for "(^|;)(\d+)(;|$)" */
-  /* replace by ';' if not at either end */
-
-  regmatch_t pmatch[1];
-
-  if (!regexec(&a->regex, header, 1, pmatch, 0))
-    {
-      int pat_start = pmatch[0].rm_so;
-      int pat_end = pmatch[0].rm_eo;
-
-      fprintf(fp,
-              "%.*s%s%.*s%ssize=%" PRIu64 ";",
-              pat_start, header,
-              (pat_start > 0 ? ";" : ""),
-              header_length - pat_end, header + pat_end,
-              (((pat_end < header_length) &&
-                (header[header_length - 1] != ';')) ? ";" : ""),
-              size);
-    }
-  else
-    {
-      fprintf(fp,
-              "%s%ssize=%" PRIu64 ";",
-              header,
-              (((header_length == 0) || 
-                (header[header_length - 1] != ';')) ? ";" : ""),
-              size);
-    }
-}
-
-void abundance_fprint_header_strip_size(abundance_t * a,
-                                        FILE * fp,
+void abundance_fprint_header_strip_size(FILE * fp,
                                         char * header,
                                         int header_length)
 {
-  regmatch_t pmatch[1];
-
-  if (!regexec(&a->regex, header, 1, pmatch, 0))
+  int start = 0;
+  int end = 0;
+  if (header_find_attribute(header, header_length, "size=", & start, & end))
     {
-      int pat_start = pmatch[0].rm_so;
-      int pat_end = pmatch[0].rm_eo;
-
-      fprintf(fp,
-              "%.*s%s%.*s",
-              pat_start, header,
-              ((pat_start > 0) && (pat_end < header_length)) ? ";" : "",
-              header_length - pat_end, header + pat_end);
+      if (start <= 1)
+        {
+          if (end < header_length)
+            fprintf(fp, "%s", header + end + 1);
+        }
+      else
+        {
+          if (end == header_length)
+            fprintf(fp, "%.*s", start - 1, header);
+          else
+            fprintf(fp, "%.*s;%.*s",
+                    start - 1, header,
+                    header_length - end - 1, header + end + 1);
+        }
     }
   else
     fprintf(fp, "%s", header);
-}
-
-char * abundance_strip_size(abundance_t * a,
-                            char * header,
-                            int header_length)
-{
-  int ret;
-  char * temp = 0;
-  regmatch_t pmatch[1];
-  
-
-  if (!regexec(&a->regex, header, 1, pmatch, 0))
-    {
-      int pat_start = pmatch[0].rm_so;
-      int pat_end = pmatch[0].rm_eo;
-
-      ret = xsprintf(&temp,
-                     "%.*s%s%.*s",
-                     pat_start, header,
-                     ((pat_start > 0) && (pat_end < header_length)) ? ";" : "",
-                     header_length - pat_end, header + pat_end);
-    }
-  else
-    ret = xsprintf(&temp, "%s", header);
-  
-  if (ret == -1)
-    fatal("Out of memory");
-  
-  return temp;
 }

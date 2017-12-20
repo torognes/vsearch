@@ -250,7 +250,7 @@ void maskfasta()
   progress_init("Writing output", seqcount);
   for(int i=0; i<seqcount; i++)
     {
-      fasta_print_db(fp_output, i);
+      fasta_print_db_relabel(fp_output, i, i+1);
       progress_update(i);
     }
   progress_done();
@@ -329,10 +329,26 @@ void fastx_mask()
           kept++;
 
           if (opt_fastaout)
-            fasta_print_db(fp_fastaout, i);
+            fasta_print_general(fp_fastaout,
+                                0,
+                                seq,
+                                len,
+                                db_getheader(i),
+                                db_getheaderlen(i),
+                                db_getabundance(i),
+                                kept,
+                                -1, -1, 0, 0.0);
 
           if (opt_fastqout)
-            fastq_print_db(fp_fastqout, i);
+            fastq_print_general(fp_fastqout,
+                                seq,
+                                len,
+                                db_getheader(i),
+                                db_getheaderlen(i),
+                                db_getquality(i),
+                                db_getabundance(i),
+                                kept,
+                                0, 0.0);
         }
 
       progress_update(i);

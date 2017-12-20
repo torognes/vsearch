@@ -361,32 +361,32 @@ void keep(merge_data_t * ip)
 
   if (opt_fastqout)
     {
-      if (opt_fastq_eeout || opt_eeout)
-        fastq_print_with_ee(fp_fastqout,
-                            ip->merged_header,
-                            ip->merged_sequence,
-                            ip->merged_quality,
-                            ip->ee_merged);
-      else
-        fastq_print(fp_fastqout,
-                    ip->merged_header,
-                    ip->merged_sequence,
-                    ip->merged_quality);
+      fastq_print_general(fp_fastqout,
+                          ip->merged_sequence,
+                          ip->merged_length,
+                          ip->merged_header,
+                          strlen(ip->merged_header),
+                          ip->merged_quality,
+                          0,
+                          merged,
+                          (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
+                          ip->ee_merged);
     }
 
   if (opt_fastaout)
     {
-      if (opt_fastq_eeout || opt_eeout)
-        fasta_print_ee(fp_fastaout,
-                       ip->merged_header,
-                       ip->merged_sequence,
-                       strlen(ip->merged_sequence),
-                       ip->ee_merged);
-      else
-        fasta_print(fp_fastaout,
-                    ip->merged_header,
-                    ip->merged_sequence,
-                    strlen(ip->merged_sequence));
+      fasta_print_general(fp_fastaout,
+                          0,
+                          ip->merged_sequence,
+                          ip->merged_length,
+                          ip->merged_header,
+                          strlen(ip->merged_header),
+                          0,
+                          merged,
+                          -1,
+                          -1,
+                          (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
+                          ip->ee_merged);
     }
 
   if (opt_eetabbedout)
@@ -461,28 +461,50 @@ void discard(merge_data_t * ip)
   notmerged++;
 
   if (opt_fastqout_notmerged_fwd)
-    fastq_print(fp_fastqout_notmerged_fwd,
-                ip->fwd_header,
-                ip->fwd_sequence,
-                ip->fwd_quality);
-
+    fastq_print_general(fp_fastqout_notmerged_fwd,
+                        ip->fwd_sequence,
+                        ip->fwd_length,
+                        ip->fwd_header,
+                        strlen(ip->fwd_header),
+                        ip->fwd_quality,
+                        0,
+                        notmerged,
+                        0, 0.0);
+                        
   if (opt_fastqout_notmerged_rev)
-    fastq_print(fp_fastqout_notmerged_rev,
-                ip->rev_header,
-                ip->rev_sequence,
-                ip->rev_quality);
+    fastq_print_general(fp_fastqout_notmerged_rev,
+                        ip->rev_sequence,
+                        ip->rev_length,
+                        ip->rev_header,
+                        strlen(ip->rev_header),
+                        ip->rev_quality,
+                        0,
+                        notmerged,
+                        0, 0.0);
 
   if (opt_fastaout_notmerged_fwd)
-    fasta_print(fp_fastaout_notmerged_fwd,
-                ip->fwd_header,
-                ip->fwd_sequence,
-                ip->fwd_length);
-
+    fasta_print_general(fp_fastaout_notmerged_fwd,
+                        0,
+                        ip->fwd_sequence,
+                        ip->fwd_length,
+                        ip->fwd_header,
+                        strlen(ip->fwd_header),
+                        0,
+                        notmerged,
+                        -1, -1,
+                        0, 0.0);
+                        
   if (opt_fastaout_notmerged_rev)
-    fasta_print(fp_fastaout_notmerged_rev,
-                ip->rev_header,
-                ip->rev_sequence,
-                ip->rev_length);
+    fasta_print_general(fp_fastaout_notmerged_rev,
+                        0,
+                        ip->rev_sequence,
+                        ip->rev_length,
+                        ip->rev_header,
+                        strlen(ip->rev_header),
+                        0,
+                        notmerged,
+                        -1, -1,
+                        0, 0.0);
 }
 
 void merge(merge_data_t * ip)

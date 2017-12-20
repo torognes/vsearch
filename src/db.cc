@@ -142,9 +142,7 @@ void db_read(const char * filename, int upcase)
     {
       size_t headerlength = fastx_get_header_length(h);
       size_t sequencelength = fastx_get_sequence_length(h);
-
-      unsigned int abundance = abundance_get(global_abundance,
-                                             fastx_get_header(h));
+      unsigned int abundance = fastx_get_abundance(h);
       
       if (sequencelength < (size_t)opt_minseqlength)
         {

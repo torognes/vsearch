@@ -62,13 +62,13 @@
 
 void fastq_fatal(uint64_t lineno, const char * msg)
 {
-  char * string; 
+  char * string;
   if (xsprintf(& string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
                msg) == -1)
     fatal("Out of memory");
-  
+
   if (string)
     {
       fatal(string);
@@ -110,12 +110,12 @@ void buffer_filter_extend(fastx_handle h,
           h->stripped_all++;
           h->stripped[(unsigned char)c]++;
           break;
-              
+
         case 1:
           /* legal character */
           *q++ = char_mapping[(unsigned char)(c)];
           break;
-          
+
         case 2:
           /* fatal character */
           if ((c>=32) && (c<127))
@@ -130,7 +130,7 @@ void buffer_filter_extend(fastx_handle h,
                      (unsigned char) c);
           fastq_fatal(lineno, msg);
           break;
-              
+
         case 3:
           /* silently stripped chars (whitespace) */
           break;
@@ -187,7 +187,7 @@ bool fastq_next(fastx_handle h,
   /* read header */
 
   /* check initial @ character */
-  
+
   if (h->file_buffer.data[h->file_buffer.position] != '@')
     fastq_fatal(h->lineno, "Header line must start with '@' character");
   h->file_buffer.position++;
@@ -200,7 +200,7 @@ bool fastq_next(fastx_handle h,
       rest = fastx_file_fill_buffer(h);
       if (rest == 0)
         fastq_fatal(h->lineno, "Unexpected end of file");
-      
+
       /* find LF */
       lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n',
@@ -233,7 +233,7 @@ bool fastq_next(fastx_handle h,
       /* cannot end here */
       if (rest == 0)
         fastq_fatal(h->lineno, "Unexpected end of file");
-      
+
       /* end when new line starting with + is seen */
       if (lf && (h->file_buffer.data[h->file_buffer.position] == '+'))
         break;
@@ -241,7 +241,7 @@ bool fastq_next(fastx_handle h,
       /* find LF */
       lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n', rest);
-      
+
       /* copy to sequence buffer */
       uint64_t len = rest;
       if (lf)
@@ -272,7 +272,7 @@ bool fastq_next(fastx_handle h,
   /* skip + character */
   h->file_buffer.position++;
   rest--;
-  
+
   lf = 0;
   while (lf == 0)
     {
@@ -282,7 +282,7 @@ bool fastq_next(fastx_handle h,
       /* cannot end here */
       if (rest == 0)
         fastq_fatal(h->lineno, "Unexpected end of file");
-      
+
       /* find LF */
       lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n',
@@ -319,7 +319,7 @@ bool fastq_next(fastx_handle h,
         plusline_invalid = 1;
     }
   if (plusline_invalid)
-    fastq_fatal(lineno_plus, 
+    fastq_fatal(lineno_plus,
                 "'+' line must be empty or identical to header");
 
   /* read quality line(s) */
@@ -335,17 +335,17 @@ bool fastq_next(fastx_handle h,
       /* end if no more data */
       if (rest == 0)
         break;
-      
+
       /* end if next entry starts : LF + '@' + correct length */
-      if (lf && 
+      if (lf &&
           (h->file_buffer.data[h->file_buffer.position] == '@') &&
           (h->quality_buffer.length == h->sequence_buffer.length))
         break;
-      
+
       /* find LF */
       lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n', rest);
-      
+
       /* copy to quality buffer */
       uint64_t len = rest;
       if (lf)
@@ -429,6 +429,11 @@ char * fastq_get_sequence(fastx_handle h)
   return h->sequence_buffer.data;
 }
 
+int64_t fastq_get_abundance(fastx_handle h)
+{
+  return abundance_get(h->header_buffer.data, h->header_buffer.length);
+}
+
 void fastq_print_header(FILE * fp, char * header)
 {
   fprintf(fp, "@%s\n", header);
@@ -451,14 +456,6 @@ void fastq_print(FILE * fp, char * header, char * sequence, char * quality)
   fastq_print_quality(fp, quality);
 }
 
-void fastq_print_with_ee(FILE * fp, char * header,
-                         char * sequence, char * quality, double ee)
-{
-  fprintf(fp, "@%s;ee=%6.4lf\n", header, ee);
-  fastq_print_sequence(fp, sequence);
-  fastq_print_quality(fp, quality);
-}
-
 void fastq_print_general(FILE * fp,
                          char * seq,
                          int len,
@@ -467,89 +464,36 @@ void fastq_print_general(FILE * fp,
                          char * quality,
                          int abundance,
                          int ordinal,
-                         double ee)
+                         const char * score_name,
+                         double score)
 {
   fprintf(fp, "@");
-  if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
-    {
-      if (opt_relabel_sha1)
-        fprint_seq_digest_sha1(fp, seq, len);
-      else if (opt_relabel_md5)
-        fprint_seq_digest_md5(fp, seq, len);
-      else
-        fprintf(fp, "%s%d", opt_relabel, ordinal);
 
-      if (opt_sizeout)
-        fprintf(fp, ";size=%u;", abundance);
-
-      if (opt_relabel_keep)
-        fprintf(fp, " %s", header);
-    }
-  else if (opt_sizeout)
-    {
-      abundance_fprint_header_with_size(global_abundance,
-                                        fp,
-                                        header,
-                                        header_len,
-                                        abundance);
-    }
-  else if (opt_xsize)
-    {
-      abundance_fprint_header_strip_size(global_abundance,
-                                         fp,
-                                         header,
-                                         header_len);
-    }
+  if (opt_relabel_sha1)
+    fprint_seq_digest_sha1(fp, seq, len);
+  else if (opt_relabel_md5)
+    fprint_seq_digest_md5(fp, seq, len);
+  else if (opt_relabel && (ordinal > 0))
+    fprintf(fp, "%s%d", opt_relabel, ordinal);
+  else if (opt_xsize || (opt_sizeout && (abundance > 0)))
+    abundance_fprint_header_strip_size(fp,
+                                       header,
+                                       header_len);
   else
-    {
-      fprintf(fp, "%s", header);
-    }
-  if (ee >= 0)
-    fprintf(fp, ";ee=%6.4lf;", ee);
+    fprintf(fp, "%s", header);
+
+  if ((abundance > 0) && opt_sizeout)
+    fprintf(fp, ";size=%u", abundance);
+
+  if (score_name)
+    fprintf(fp, ";%s=%.4lf", score_name, score);
+
+  if (opt_relabel_keep &&
+      ((opt_relabel && (ordinal > 0))|| opt_relabel_sha1 || opt_relabel_md5))
+    fprintf(fp, " %s", header);
+
   fprintf(fp, "\n");
+
   fastq_print_sequence(fp, seq);
   fastq_print_quality(fp, quality);
-}
-
-void fastq_print_relabel(FILE * fp,
-                         char * seq,
-                         int len,
-                         char * header,
-                         int header_len,
-                         char * quality,
-                         int abundance,
-                         int ordinal)
-{
-  fastq_print_general(fp, seq, len, header, header_len,
-                      quality, abundance, ordinal, -1.0);
-}
-
-void fastq_print_relabel_ee(FILE * fp,
-                            char * seq,
-                            int len,
-                            char * header,
-                            int header_len,
-                            char * quality,
-                            int abundance,
-                            int ordinal,
-                            double ee)
-{
-  fastq_print_general(fp, seq, len, header, header_len,
-                      quality, abundance, ordinal, ee);
-}
-
-int64_t fastq_get_abundance(fastx_handle h)
-{
-  return abundance_get(global_abundance, h->header_buffer.data);
-}
-
-void fastq_print_db(FILE * fp, uint64_t seqno)
-{
-  char * hdr = db_getheader(seqno);
-  char * seq = db_getsequence(seqno);
-  char * qual = db_getquality(seqno);
-
-  fastq_print_header(fp, hdr);
-  fastq_print_sequence(fp, seq);
-  fastq_print_quality(fp, qual);
 }
