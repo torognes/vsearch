@@ -207,6 +207,7 @@
 #include "otutable.h"
 #include "udb.h"
 #include "kmerhash.h"
+#include "denoise.h"
 
 /* options */
 
@@ -294,6 +295,7 @@ extern char * opt_uchime_denovo;
 extern char * opt_uchime_ref;
 extern char * opt_uchimealns;
 extern char * opt_uchimeout;
+extern char * opt_unoise;
 extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double * opt_ee_cutoffs_values;

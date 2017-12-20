@@ -146,6 +146,7 @@ char * opt_uchime_denovo;
 char * opt_uchime_ref;
 char * opt_uchimealns;
 char * opt_uchimeout;
+char * opt_unoise;
 char * opt_usearch_global;
 char * opt_userout;
 double * opt_ee_cutoffs_values;
@@ -797,6 +798,7 @@ void args_init(int argc, char **argv)
   opt_uchimealns = 0;
   opt_uchimeout = 0;
   opt_uchimeout5 = 0;
+  opt_unoise = 0;
   opt_usearch_global = 0;
   opt_userout = 0;
   opt_usersort = 0;
@@ -1002,6 +1004,7 @@ void args_init(int argc, char **argv)
     {"udb2fasta",             required_argument, 0, 0 },
     {"udbinfo",               required_argument, 0, 0 },
     {"udbstats",              required_argument, 0, 0 },
+    {"unoise",                required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1816,6 +1819,10 @@ void args_init(int argc, char **argv)
           opt_udbstats = optarg;
           break;
 
+        case 191:
+          opt_unoise = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1894,6 +1901,8 @@ void args_init(int argc, char **argv)
   if (opt_udbinfo)
     commands++;
   if (opt_udbstats)
+    commands++;
+  if (opt_unoise)
     commands++;
 
   if (commands > 1)
@@ -2022,7 +2031,7 @@ void args_init(int argc, char **argv)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
           opt_usearch_global || opt_derep_fulllength || opt_derep_prefix ||
-          opt_makeudb_usearch)
+          opt_makeudb_usearch || opt_unoise)
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;
@@ -2063,6 +2072,7 @@ void args_init(int argc, char **argv)
       & opt_udb2fasta,
       & opt_udbinfo,
       & opt_udbstats,
+      & opt_unoise,
       & opt_usearch_global,
       0
     };
@@ -2197,6 +2207,7 @@ void cmd_help()
               "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
               "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
               "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
+              "  --unoise FILENAME\n"
               " Parameters (most searching options also apply)\n"
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
               "  --id REAL                   reject if identity lower, accepted values: 0-1.0\n"
@@ -2743,6 +2754,21 @@ void cmd_cluster()
   else if (opt_cluster_size)
     cluster_size(cmdline, progheader);
 }
+  
+void cmd_unoise()
+{
+  if ((!opt_alnout) && (!opt_userout) &&
+      (!opt_uc) && (!opt_blast6out) &&
+      (!opt_matched) && (!opt_notmatched) &&
+      (!opt_centroids) && (!opt_clusters) &&
+      (!opt_consout) && (!opt_msaout) &&
+      (!opt_samout) && (!opt_profile) &&
+      (!opt_otutabout) && (!opt_biomout) &&
+      (!opt_mothur_shared_out))
+    fatal("No output files specified");
+
+  unoise(cmdline, progheader);
+}
 
 void cmd_uchime()
 {
@@ -2936,6 +2962,8 @@ int main(int argc, char** argv)
     udb_info();
   else if (opt_udbstats)
     udb_stats();
+  else if (opt_unoise)
+    cmd_unoise();
   else
     cmd_none();
 
