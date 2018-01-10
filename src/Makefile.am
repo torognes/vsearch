@@ -25,7 +25,6 @@ cpu.h \
 db.h \
 dbhash.h \
 dbindex.h \
-denoise.h \
 derep.h \
 dynlibs.h \
 eestats.h \
@@ -103,7 +102,6 @@ cluster.cc \
 db.cc \
 dbhash.cc \
 dbindex.cc \
-denoise.cc \
 derep.cc \
 dynlibs.cc \
 eestats.cc \

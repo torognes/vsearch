@@ -207,7 +207,6 @@
 #include "otutable.h"
 #include "udb.h"
 #include "kmerhash.h"
-#include "denoise.h"
 
 /* options */
 
@@ -320,6 +319,7 @@ extern double opt_minsl;
 extern double opt_query_cov;
 extern double opt_sample_pct;
 extern double opt_target_cov;
+extern double opt_unoise_alpha;
 extern double opt_weak_id;
 extern double opt_xn;
 extern int opt_acceptall;

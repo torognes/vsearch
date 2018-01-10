@@ -171,6 +171,7 @@ double opt_minsl;
 double opt_query_cov;
 double opt_sample_pct;
 double opt_target_cov;
+double opt_unoise_alpha;
 double opt_weak_id;
 double opt_xn;
 int opt_acceptall;
@@ -739,7 +740,7 @@ void args_init(int argc, char **argv)
   opt_minh = 0.28;
   opt_minqt = 0.0;
   opt_minseqlength = -1;
-  opt_minsize = 0;
+  opt_minsize = -1;
   opt_minsizeratio = 0.0;
   opt_minsl = 0.0;
   opt_mintsize = 0;
@@ -799,6 +800,7 @@ void args_init(int argc, char **argv)
   opt_uchimeout = 0;
   opt_uchimeout5 = 0;
   opt_unoise = 0;
+  opt_unoise_alpha = 2.0;
   opt_usearch_global = 0;
   opt_userout = 0;
   opt_usersort = 0;
@@ -1005,6 +1007,7 @@ void args_init(int argc, char **argv)
     {"udbinfo",               required_argument, 0, 0 },
     {"udbstats",              required_argument, 0, 0 },
     {"unoise",                required_argument, 0, 0 },
+    {"unoise_alpha",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1822,6 +1825,10 @@ void args_init(int argc, char **argv)
         case 191:
           opt_unoise = optarg;
           break;
+        
+        case 192:
+          opt_unoise_alpha = args_getdouble(optarg);
+          break;
 
         default:
           fatal("Internal error in option parsing");
@@ -2025,6 +2032,15 @@ void args_init(int argc, char **argv)
   if (opt_threads == 0)
     opt_threads = arch_get_cores();
 
+  /* set default opt_minsize depending on command */
+  if (opt_minsize < 0)
+    {
+      if (opt_unoise)
+        opt_minsize = 8;
+      else
+        opt_minsize = 0;
+    }
+    
   /* set default opt_minseqlength depending on command */
 
   if (opt_minseqlength < 0)
