@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 18, 2017" "version 2.6.2" "USER COMMANDS"
+.TH vsearch 1 "February 7, 2018" "version 2.6.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -24,10 +24,11 @@ Chimera detection:
 Clustering:
 .RS
 \fBvsearch\fR (\-\-cluster_fast | \-\-cluster_size |
-\-\-cluster_smallmem) \fIfastafile\fR (\-\-alnout | \-\-biomout |
-\-\-blast6out | \-\-centroids | \-\-clusters | \-\-mothur_shared_out |
-\-\-msaout | \-\-otutabout | \-\-profile | \-\-samout | \-\-uc |
-\-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR [\fIoptions\fR]
+\-\-cluster_smallmem | \-\-cluster_unoise) \fIfastafile\fR (\-\-alnout
+| \-\-biomout | \-\-blast6out | \-\-centroids | \-\-clusters |
+\-\-mothur_shared_out | \-\-msaout | \-\-otutabout | \-\-profile |
+\-\-samout | \-\-uc | \-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR
+[\fIoptions\fR]
 .PP
 .RE
 Dereplication and rereplication:
@@ -486,11 +487,11 @@ file.
 Clustering options:
 .RS
 .PP
-\fBvsearch\fR implements a single-pass, greedy star-clustering
-algorithm, similar to the algorithms implemented in usearch, DNAclust
-and sumaclust for example. Important parameters are the global
-clustering threshold (\-\-id) and the pairwise identity definition
-(\-\-iddef).
+\fBvsearch\fR implements a single-pass, greedy centroid-based
+clustering algorithm, similar to the algorithms implemented in
+usearch, DNAclust and sumaclust for example. Important parameters are
+the global clustering threshold (\-\-id) and the pairwise identity
+definition (\-\-iddef).
 .PP
 Input sequences are masked as specified with the \-\-qmask and
 \-\-hardmask options.
@@ -559,6 +560,13 @@ Clusterize the fasta sequences in \fIfilename\fR without automatically
 modifying their order beforehand. Sequence are expected to be sorted
 by decreasing sequence length, unless \-\-usersort is used.
 .TP
+.BI \-\-cluster_unoise \0filename
+Perform denoising of the fasta sequences in \fIfilename\fR according
+to the UNOISE version 3 algorithm by Robert Edgar, but without the
+chimera removal step. The options \-\-minsize (default 8) and \-\-unoise_alpha
+(default 2.0) may be specified. Chimera removal (\fIde novo\fR) should be performed
+afterwards with \-\-abskew 16.
+.TP
 .BI \-\-clusters \0string
 Output each cluster to a separate fasta file using the prefix
 \fIstring\fR and a ticker (0, 1, 2, etc.) to construct the path and
@@ -609,6 +617,10 @@ BLAST definition, equivalent to \-\-iddef 1 in a context of global
 pairwise alignment.
 .RE
 .RE
+.TP
+.BI \-\-minsize\~ "positive integer"
+Specify the minimum abundance of sequences for denoising using
+\-\-cluster_unoise. The default is 8.
 .TP
 .BI \-\-msaout \0filename
 Output a multiple sequence alignment and a consensus sequence for each
@@ -751,6 +763,10 @@ Label of the query sequence (H), or of the centroid sequence (S, C).
 Label of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .RE
+.TP
+.BI \-\-unoise_alpha\~ real
+Specify the alpha parameter to the \-\-cluster_unoise command. The
+default i 2.0.
 .TP
 .B \-\-usersort
 When using \-\-cluster_smallmem, allow any sequence input order, not
