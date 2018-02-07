@@ -143,8 +143,7 @@ void db_read(const char * filename, int upcase)
     {
       size_t headerlength = fastx_get_header_length(h);
       size_t sequencelength = fastx_get_sequence_length(h);
-      int64_t sequenceabundance = fasta_get_abundance(h);
-      unsigned int abundance = fastx_get_abundance(h);
+      int64_t abundance = fastx_get_abundance(h);
       
       if (sequencelength < (size_t)opt_minseqlength)
         {
@@ -154,7 +153,7 @@ void db_read(const char * filename, int upcase)
         {
           discarded_long++;
         }
-      else if (opt_unoise && (sequenceabundance < (int64_t)opt_minsize))
+      else if (opt_cluster_unoise && (abundance < (int64_t)opt_minsize))
         {
           discarded_unoise++;
         }

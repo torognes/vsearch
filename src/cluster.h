@@ -61,5 +61,4 @@
 void cluster_smallmem(char * cmdline, char * progheader);
 void cluster_fast(char * cmdline, char * progheader);
 void cluster_size(char * cmdline, char * progheader);
-
-void unoise(char * cmdline, char * progheader);
+void cluster_unoise(char * cmdline, char * progheader);

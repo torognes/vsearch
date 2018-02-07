@@ -451,7 +451,7 @@ int search_acceptable_aligned(struct searchinfo_s * si,
       /* maxdiffs */
       (hit->mismatches + hit->internal_indels <= opt_maxdiffs))
     {
-      if (opt_unoise)
+      if (opt_cluster_unoise)
         {
           int d = hit->mismatches;
           double skew = 1.0 * si->qsize / db_getabundance(hit->target);

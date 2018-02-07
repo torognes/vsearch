@@ -1112,7 +1112,7 @@ void cluster(char * dbname,
   
   if (opt_cluster_fast)
     db_sortbylength();
-  else if (opt_cluster_size || opt_unoise)
+  else if (opt_cluster_size || opt_cluster_unoise)
     db_sortbyabundance();
 
   dbindex_prepare(1, opt_qmask);
@@ -1485,7 +1485,7 @@ void cluster_size(char * cmdline, char * progheader)
   cluster(opt_cluster_size, cmdline, progheader);
 }
 
-void unoise(char * cmdline, char * progheader)
+void cluster_unoise(char * cmdline, char * progheader)
 {
-  cluster(opt_unoise, cmdline, progheader);
+  cluster(opt_cluster_unoise, cmdline, progheader);
 }

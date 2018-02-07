@@ -89,6 +89,7 @@ char * opt_chimeras;
 char * opt_cluster_fast;
 char * opt_cluster_size;
 char * opt_cluster_smallmem;
+char * opt_cluster_unoise;
 char * opt_clusters;
 char * opt_consout;
 char * opt_db;
@@ -146,7 +147,6 @@ char * opt_uchime_denovo;
 char * opt_uchime_ref;
 char * opt_uchimealns;
 char * opt_uchimeout;
-char * opt_unoise;
 char * opt_usearch_global;
 char * opt_userout;
 double * opt_ee_cutoffs_values;
@@ -619,6 +619,7 @@ void args_init(int argc, char **argv)
   opt_cluster_fast = 0;
   opt_cluster_size = 0;
   opt_cluster_smallmem = 0;
+  opt_cluster_unoise = 0;
   opt_clusterout_id = 0;
   opt_clusterout_sort = 0;
   opt_clusters = 0;
@@ -797,7 +798,6 @@ void args_init(int argc, char **argv)
   opt_uchimealns = 0;
   opt_uchimeout = 0;
   opt_uchimeout5 = 0;
-  opt_unoise = 0;
   opt_unoise_alpha = 2.0;
   opt_usearch_global = 0;
   opt_userout = 0;
@@ -1004,7 +1004,7 @@ void args_init(int argc, char **argv)
     {"udb2fasta",             required_argument, 0, 0 },
     {"udbinfo",               required_argument, 0, 0 },
     {"udbstats",              required_argument, 0, 0 },
-    {"unoise",                required_argument, 0, 0 },
+    {"cluster_unoise",        required_argument, 0, 0 },
     {"unoise_alpha",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
@@ -1821,9 +1821,9 @@ void args_init(int argc, char **argv)
           break;
 
         case 191:
-          opt_unoise = optarg;
+          opt_cluster_unoise = optarg;
           break;
-        
+
         case 192:
           opt_unoise_alpha = args_getdouble(optarg);
           break;
@@ -1907,7 +1907,7 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_udbstats)
     commands++;
-  if (opt_unoise)
+  if (opt_cluster_unoise)
     commands++;
 
   if (commands > 1)
@@ -2033,19 +2033,19 @@ void args_init(int argc, char **argv)
   /* set default opt_minsize depending on command */
   if (opt_minsize < 0)
     {
-      if (opt_unoise)
+      if (opt_cluster_unoise)
         opt_minsize = 8;
       else
         opt_minsize = 0;
     }
-    
+
   /* set default opt_minseqlength depending on command */
 
   if (opt_minseqlength < 0)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
           opt_usearch_global || opt_derep_fulllength || opt_derep_prefix ||
-          opt_makeudb_usearch || opt_unoise)
+          opt_makeudb_usearch || opt_cluster_unoise)
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;
@@ -2059,6 +2059,7 @@ void args_init(int argc, char **argv)
       & opt_cluster_fast,
       & opt_cluster_size,
       & opt_cluster_smallmem,
+      & opt_cluster_unoise,
       & opt_db,
       & opt_derep_fulllength,
       & opt_derep_prefix,
@@ -2086,7 +2087,6 @@ void args_init(int argc, char **argv)
       & opt_udb2fasta,
       & opt_udbinfo,
       & opt_udbstats,
-      & opt_unoise,
       & opt_usearch_global,
       0
     };
@@ -2221,7 +2221,7 @@ void cmd_help()
               "  --cluster_fast FILENAME     cluster sequences after sorting by length\n"
               "  --cluster_size FILENAME     cluster sequences after sorting by abundance\n"
               "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n"
-              "  --unoise FILENAME           denoise Illumina amplicon reads\n"
+              "  --cluster_unoise FILENAME   denoise Illumina amplicon reads\n"
               " Parameters (most searching options also apply)\n"
               "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n"
               "  --id REAL                   reject if identity lower, accepted values: 0-1.0\n"
@@ -2230,8 +2230,8 @@ void cmd_help()
               "  --sizein                    propagate abundance annotation from input\n"
               "  --strand plus|both          cluster using plus or both strands (plus)\n"
               "  --usersort                  indicate sequences not pre-sorted by length\n"
-              "  --minsize INT               minimum abundance (UNOISE only) (8)\n"
-              "  --unoise_alpha REAL         alpha parameter (UNOISE only) (2.0)\n"
+              "  --minsize INT               minimum abundance (unoise only) (8)\n"
+              "  --unoise_alpha REAL         alpha parameter (unoise only) (2.0)\n"
               " Output\n"
               "  --biomout FILENAME          filename for OTU table output in biom 1.0 format\n"
               "  --centroids FILENAME        output centroid sequences to FASTA file\n"
@@ -2760,8 +2760,9 @@ void cmd_cluster()
       (!opt_mothur_shared_out))
     fatal("No output files specified");
 
-  if ((opt_id < 0.0) || (opt_id > 1.0))
-    fatal("Identity between 0.0 and 1.0 must be specified with --id");
+  if (!opt_cluster_unoise)
+    if ((opt_id < 0.0) || (opt_id > 1.0))
+      fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
   if (opt_cluster_fast)
     cluster_fast(cmdline, progheader);
@@ -2769,21 +2770,8 @@ void cmd_cluster()
     cluster_smallmem(cmdline, progheader);
   else if (opt_cluster_size)
     cluster_size(cmdline, progheader);
-}
-  
-void cmd_unoise()
-{
-  if ((!opt_alnout) && (!opt_userout) &&
-      (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_centroids) && (!opt_clusters) &&
-      (!opt_consout) && (!opt_msaout) &&
-      (!opt_samout) && (!opt_profile) &&
-      (!opt_otutabout) && (!opt_biomout) &&
-      (!opt_mothur_shared_out))
-    fatal("No output files specified");
-
-  unoise(cmdline, progheader);
+  else if (opt_cluster_unoise)
+    cluster_unoise(cmdline, progheader);
 }
 
 void cmd_uchime()
@@ -2938,7 +2926,7 @@ int main(int argc, char** argv)
     cmd_subsample();
   else if (opt_maskfasta)
     cmd_maskfasta();
-  else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size)
+  else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size || opt_cluster_unoise)
     cmd_cluster();
   else if (opt_uchime_denovo || opt_uchime_ref)
     cmd_uchime();
@@ -2976,8 +2964,6 @@ int main(int argc, char** argv)
     udb_info();
   else if (opt_udbstats)
     udb_stats();
-  else if (opt_unoise)
-    cmd_unoise();
   else
     cmd_none();
 
