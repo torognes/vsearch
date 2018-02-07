@@ -251,6 +251,7 @@ The main contributors to VSEARCH:
 
 Special thanks to the following people for patches, suggestions, computer access etc:
 
+* Davide Albanese
 * Colin Brislawn
 * Jeff Epler
 * Christopher M. Sullivan
