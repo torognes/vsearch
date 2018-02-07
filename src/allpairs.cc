@@ -81,6 +81,9 @@ static FILE * fp_fastapairs = 0;
 static FILE * fp_matched = 0;
 static FILE * fp_notmatched = 0;
 
+static int count_matched = 0;
+static int count_notmatched = 0;
+
 inline int allpairs_hit_compare_typed(struct hit * x, struct hit * y)
 {
   // high id, then low id
@@ -213,23 +216,31 @@ void allpairs_output_results(int hit_count,
 
   if (hit_count)
     {
+      count_matched++;
       if (opt_matched)
-        {
-          fasta_print(fp_matched,
-                      query_head,
-                      qsequence,
-                      qseqlen);
-        }
+        fasta_print_general(fp_matched,
+                            0,
+                            qsequence,
+                            qseqlen,
+                            query_head,
+                            strlen(query_head),
+                            0,
+                            count_matched,
+                            -1, -1, 0, 0.0);
     }
   else
     {
+      count_notmatched++;
       if (opt_notmatched)
-        {
-          fasta_print(fp_notmatched,
-                      query_head,
-                      qsequence,
-                      qseqlen);
-        }
+        fasta_print_general(fp_notmatched,
+                            0,
+                            qsequence,
+                            qseqlen,
+                            query_head,
+                            strlen(query_head),
+                            0,
+                            count_notmatched,
+                            -1, -1, 0, 0.0);
     }
 }
 

@@ -78,26 +78,13 @@ uint64_t fastq_get_quality_length(fastx_handle h);
 
 void fastq_print(FILE * fp, char * header, char * sequence, char * quality);
 
-void fastq_print_with_ee(FILE * fp, char * header, char * sequence,
-                         char * quality, double ee);
-
-void fastq_print_relabel(FILE * fp,
+void fastq_print_general(FILE * fp,
                          char * seq,
                          int len,
                          char * header,
                          int header_len,
                          char * quality,
                          int abundance,
-                         int ordinal);
-
-void fastq_print_relabel_ee(FILE * fp,
-                            char * seq,
-                            int len,
-                            char * header,
-                            int header_len,
-                            char * quality,
-                            int abundance,
-                            int ordinal,
-                            double ee);
-
-void fastq_print_db(FILE * fp, uint64_t seqno);
+                         int ordinal,
+                         const char * score_name,
+                         double score);

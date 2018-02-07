@@ -58,28 +58,16 @@
 
 */
 
-typedef struct abundance_s
-{
-  regex_t regex;
-} abundance_t;
+int64_t abundance_get(char * header, int header_length);
 
-abundance_t * abundance_init(void);
-
-void abundance_exit(abundance_t * a);
-
-int64_t abundance_get(abundance_t * a, char * header);
-
-void abundance_fprint_header_with_size(abundance_t * a,
-                                       FILE * fp,
+void abundance_fprint_header_with_size(FILE * fp,
                                        char * header,
                                        int header_length,
                                        uint64_t size);
 
-void abundance_fprint_header_strip_size(abundance_t * a,
-                                        FILE * fp,
+void abundance_fprint_header_strip_size(FILE * fp,
                                         char * header,
                                         int header_length);
 
-char * abundance_strip_size(abundance_t * a,
-                            char * header,
+char * abundance_strip_size(char * header,
                             int header_length);

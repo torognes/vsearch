@@ -90,13 +90,15 @@ void rereplicate()
         {
           i++;
           if (opt_output)
-            fasta_print_relabel(fp_output,
+            fasta_print_general(fp_output,
+                                0,
                                 fasta_get_sequence(fh),
                                 fasta_get_sequence_length(fh),
                                 fasta_get_header(fh),
                                 fasta_get_header_length(fh),
                                 1,
-                                i);
+                                i,
+                                -1, -1, 0, 0.0);
         }
 
       progress_update(fasta_get_position(fh));

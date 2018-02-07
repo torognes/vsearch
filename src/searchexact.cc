@@ -90,6 +90,9 @@ static FILE * fp_otutabout = 0;
 static FILE * fp_mothur_shared_out = 0;
 static FILE * fp_biomout = 0;
 
+static int count_matched = 0;
+static int count_notmatched = 0;
+
 void add_hit(struct searchinfo_s * si, uint64_t seqno)
 {
   if (search_acceptable_unaligned(si, seqno))
@@ -279,19 +282,31 @@ void search_exact_output_results(int hit_count,
 
   if (hit_count)
     {
+      count_matched++;
       if (opt_matched)
-        fasta_print(fp_matched,
-                    query_head,
-                    qsequence,
-                    qseqlen);
+        fasta_print_general(fp_matched,
+                            0,
+                            qsequence,
+                            qseqlen,
+                            query_head,
+                            strlen(query_head),
+                            qsize,
+                            count_matched,
+                            -1, -1, 0, 0.0);
     }
   else
     {
+      count_notmatched++;
       if (opt_notmatched)
-        fasta_print(fp_notmatched,
-                    query_head,
-                    qsequence,
-                    qseqlen);
+        fasta_print_general(fp_notmatched,
+                            0,
+                            qsequence,
+                            qseqlen,
+                            query_head,
+                            strlen(query_head),
+                            qsize,
+                            count_notmatched,
+                            -1, -1, 0, 0.0);
     }
 
   /* update matching db sequences */
@@ -721,26 +736,41 @@ void search_exact(char * cmdline, char * progheader)
 
   otutable_done();
 
+  int count_dbmatched = 0;
+  int count_dbnotmatched = 0;
+
   if (opt_dbmatched || opt_dbnotmatched)
     {
       for(int64_t i=0; i<seqcount; i++)
         if (dbmatched[i])
           {
+            count_dbmatched++;
             if (opt_dbmatched)
-              {
-                if (opt_sizeout)
-                  fasta_print_db_size(fp_dbmatched, i, dbmatched[i]);
-                else
-                  fasta_print_db(fp_dbmatched, i);
-              }
+              fasta_print_general(fp_dbmatched,
+                                  0,
+                                  db_getsequence(i),
+                                  db_getsequencelen(i),
+                                  db_getheader(i),
+                                  db_getheaderlen(i),
+                                  dbmatched[i],
+                                  count_dbmatched,
+                                  -1, -1, 0, 0.0);
           }
         else
           {
+            count_dbnotmatched++;
             if (opt_dbnotmatched)
-              fasta_print_db(fp_dbnotmatched, i);
+              fasta_print_general(fp_dbnotmatched,
+                                  0,
+                                  db_getsequence(i),
+                                  db_getsequencelen(i),
+                                  db_getheader(i),
+                                  db_getheaderlen(i),
+                                  0,
+                                  count_dbnotmatched,
+                                  -1, -1, 0, 0.0);
           }
     }
-
 
   search_exact_done();
 }

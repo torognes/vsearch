@@ -79,53 +79,27 @@ int64_t fasta_get_abundance(fastx_handle h);
 
 /* fasta output */
 
-void fasta_print_header(FILE * fp, const char * hdr);
+void fasta_print(FILE * fp,
+                 const char * hdr,
+                 char * seq,
+                 uint64_t len);
 
-void fasta_print_sequence(FILE * fp, char * seq,
-                          uint64_t len, int width);
-
-void fasta_print(FILE * fp, const char * hdr,
-                 char * seq, uint64_t len);
-
-void fasta_print_ee(FILE * fp, const char * hdr,
-                    char * seq, uint64_t len,
-                    double ee);
-
-void fasta_print_relabel_cluster(FILE * fp,
-                                 char * seq,
-                                 int len,
-                                 char * header,
-                                 int header_len,
-                                 int abundance,
-                                 int ordinal,
-                                 int clustersize,
-                                 bool showclusterid,
-                                 int clusterid);
-
-void fasta_print_relabel_ee(FILE * fp,
-                            char * seq,
-                            int len,
-                            char * header,
-                            int header_len,
-                            int abundance,
-                            int ordinal,
-                            double ee);
-
-void fasta_print_relabel(FILE * fp,
+void fasta_print_general(FILE * fp,
+                         const char * prefix,
                          char * seq,
                          int len,
                          char * header,
                          int header_len,
                          int abundance,
-                         int ordinal);
+                         int ordinal,
+                         int clustersize,
+                         int clusterid,
+                         const char * score_name,
+                         double score);
 
-void fasta_print_db(FILE * fp, uint64_t seqno);
+void fasta_print_db(FILE * fp,
+                    uint64_t seqno);
 
-void fasta_print_db_sequence(FILE * fp, uint64_t seqno);
-
-void fasta_print_db_size(FILE * fp, uint64_t seqno,
-                         uint64_t size);
-
-void fasta_print_db_strip_size(FILE * fp, uint64_t seqno);
-
-void fasta_print_db_relabel(FILE * fp, uint64_t seqno, int ordinal);
+void fasta_print_db_relabel(FILE * fp,
+                            uint64_t seqno,
+                            int ordinal);
