@@ -1112,9 +1112,9 @@ void cluster(char * dbname,
   
   if (opt_cluster_fast)
     db_sortbylength();
-  else if (opt_cluster_size)
+  else if (opt_cluster_size || opt_unoise)
     db_sortbyabundance();
-  
+
   dbindex_prepare(1, opt_qmask);
   
   /* tophits = the maximum number of hits we need to store */
@@ -1483,4 +1483,9 @@ void cluster_smallmem(char * cmdline, char * progheader)
 void cluster_size(char * cmdline, char * progheader)
 {
   cluster(opt_cluster_size, cmdline, progheader);
+}
+
+void unoise(char * cmdline, char * progheader)
+{
+  cluster(opt_unoise, cmdline, progheader);
 }

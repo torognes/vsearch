@@ -451,19 +451,43 @@ int search_acceptable_aligned(struct searchinfo_s * si,
       /* maxdiffs */
       (hit->mismatches + hit->internal_indels <= opt_maxdiffs))
     {
-      if (hit->id >= 100.0 * opt_id)
+      if (opt_unoise)
         {
-          /* accepted */
-          hit->accepted = 1;
-          hit->weak = 0;
-          return 1;
+          int d = hit->mismatches;
+          double skew = 1.0 * si->qsize / db_getabundance(hit->target);
+          double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * d + 1);
+
+          if (skew <= beta || d == 0)
+            {
+              /* accepted */
+              hit->accepted = 1;
+              hit->weak = 0;
+              return 1;
+            }
+          else
+            {
+              /* rejected, but weak hit */
+              hit->rejected = 1;
+              hit->weak = 1;
+              return 0;
+            }
         }
       else
         {
-          /* rejected, but weak hit */
-          hit->rejected = 1;
-          hit->weak = 1;
-          return 0;
+          if (hit->id >= 100.0 * opt_id)
+            {
+              /* accepted */
+              hit->accepted = 1;
+              hit->weak = 0;
+              return 1;
+            }
+          else
+            {
+              /* rejected, but weak hit */
+              hit->rejected = 1;
+              hit->weak = 1;
+              return 0;
+            }
         }
     }
   else

@@ -126,6 +126,7 @@ void db_read(const char * filename, int upcase)
 
   int64_t discarded_short = 0;
   int64_t discarded_long = 0;
+  int64_t discarded_unoise = 0;
 
   /* allocate space for data */
   uint64_t dataalloc = 0;
@@ -142,6 +143,7 @@ void db_read(const char * filename, int upcase)
     {
       size_t headerlength = fastx_get_header_length(h);
       size_t sequencelength = fastx_get_sequence_length(h);
+      int64_t sequenceabundance = fasta_get_abundance(h);
       unsigned int abundance = fastx_get_abundance(h);
       
       if (sequencelength < (size_t)opt_minseqlength)
@@ -151,6 +153,10 @@ void db_read(const char * filename, int upcase)
       else if (sequencelength > (size_t)opt_maxseqlength)
         {
           discarded_long++;
+        }
+      else if (opt_unoise && (sequenceabundance < (int64_t)opt_minsize))
+        {
+          discarded_unoise++;
         }
       else
         {
@@ -281,6 +287,18 @@ void db_read(const char * filename, int upcase)
               opt_maxseqlength, discarded_long, (discarded_long == 1 ? "sequence" : "sequences"));
     }
 
+    if (discarded_unoise)
+    {
+      fprintf(stderr,
+              "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_minsize, discarded_unoise, (discarded_unoise == 1 ? "sequence" : "sequences"));
+
+      if (opt_log)
+        fprintf(fp_log,
+              "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_minsize, discarded_unoise, (discarded_unoise == 1 ? "sequence" : "sequences"));
+    }
+            
   show_rusage();
 }
 
