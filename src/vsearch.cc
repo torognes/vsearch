@@ -144,6 +144,8 @@ char * opt_udbinfo;
 char * opt_udbstats;
 char * opt_uc;
 char * opt_uchime_denovo;
+char * opt_uchime2_denovo;
+char * opt_uchime3_denovo;
 char * opt_uchime_ref;
 char * opt_uchimealns;
 char * opt_uchimeout;
@@ -605,7 +607,7 @@ void args_init(int argc, char **argv)
 
   progname = argv[0];
 
-  opt_abskew = 2.0;
+  opt_abskew = -1.0;
   opt_acceptall = 0;
   opt_alignwidth = 80;
   opt_allpairs_global = 0;
@@ -794,6 +796,8 @@ void args_init(int argc, char **argv)
   opt_uc = 0;
   opt_uc_allhits = 0;
   opt_uchime_denovo = 0;
+  opt_uchime2_denovo = 0;
+  opt_uchime3_denovo = 0;
   opt_uchime_ref = 0;
   opt_uchimealns = 0;
   opt_uchimeout = 0;
@@ -1006,6 +1010,8 @@ void args_init(int argc, char **argv)
     {"udbstats",              required_argument, 0, 0 },
     {"cluster_unoise",        required_argument, 0, 0 },
     {"unoise_alpha",          required_argument, 0, 0 },
+    {"uchime2_denovo",        required_argument, 0, 0 },
+    {"uchime3_denovo",        required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1827,6 +1833,14 @@ void args_init(int argc, char **argv)
         case 192:
           opt_unoise_alpha = args_getdouble(optarg);
           break;
+        
+        case 193:
+          opt_uchime2_denovo = optarg;
+          break;
+
+        case 194:
+          opt_uchime3_denovo = optarg;
+          break;
 
         default:
           fatal("Internal error in option parsing");
@@ -1909,6 +1923,11 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_cluster_unoise)
     commands++;
+  if (opt_uchime2_denovo)
+    commands++;
+  if (opt_uchime3_denovo)
+    commands++;
+
 
   if (commands > 1)
     fatal("More than one command specified");
@@ -2038,6 +2057,15 @@ void args_init(int argc, char **argv)
       else
         opt_minsize = 0;
     }
+      
+  /* set default opt_abskew depending on command */
+  if (opt_abskew < 0.0)
+    {
+      if (opt_uchime3_denovo)
+        opt_abskew = 16.0;
+      else
+        opt_abskew = 2.0;
+    }
 
   /* set default opt_minseqlength depending on command */
 
@@ -2083,6 +2111,8 @@ void args_init(int argc, char **argv)
       & opt_sortbylength,
       & opt_sortbysize,
       & opt_uchime_denovo,
+      & opt_uchime2_denovo,
+      & opt_uchime3_denovo,
       & opt_uchime_ref,
       & opt_udb2fasta,
       & opt_udbinfo,
@@ -2188,15 +2218,17 @@ void cmd_help()
               "\n"
               "Chimera detection\n"
               "  --uchime_denovo FILENAME    detect chimeras de novo\n"
+              "  --uchime2_denovo FILENAME   detect chimeras de novo in a set of denoised amplicons\n"
+              "  --uchime3_denovo FILENAME   detect chimeras de novo in a set of denoised amplicons\n"
               "  --uchime_ref FILENAME       detect chimeras using a reference database\n"
               " Data\n"
               "  --db FILENAME               reference database for --uchime_ref\n"
               " Parameters\n"
-              "  --abskew REAL               min abundance ratio of parent vs chimera (2.0)\n"
+              "  --abskew REAL               min abundance ratio of parent vs chimera (2.0, 16.0 for uchime3)\n"
               "  --dn REAL                   'no' vote pseudo-count (1.4)\n"
-              "  --mindiffs INT              minimum number of differences in segment (3)\n"
-              "  --mindiv REAL               minimum divergence from closest parent (0.8)\n"
-              "  --minh REAL                 minimum score (0.28)\n"
+              "  --mindiffs INT              minimum number of differences in segment (ignored in uchime2/3) (3)\n"
+              "  --mindiv REAL               minimum divergence from closest parent (ignored in uchime2/3) (0.8)\n"
+              "  --minh REAL                 minimum score (ignored in uchime2/3) (0.28)\n"
               "  --sizein                    propagate abundance annotation from input\n"
               "  --self                      exclude identical labels for --uchime_ref\n"
               "  --selfid                    exclude identical sequences for --uchime_ref\n"
@@ -2789,14 +2821,17 @@ void cmd_uchime()
   if (opt_dn <= 0.0)
     fatal("Argument to --dn must be > 0");
 
-  if (opt_mindiffs <= 0)
-    fatal("Argument to --mindiffs must be > 0");
+  if ((!opt_uchime2_denovo) && (!opt_uchime3_denovo))
+  {
+    if (opt_mindiffs <= 0)
+      fatal("Argument to --mindiffs must be > 0");
 
-  if (opt_mindiv <= 0.0)
-    fatal("Argument to --mindiv must be > 0");
+    if (opt_mindiv <= 0.0)
+      fatal("Argument to --mindiv must be > 0");
 
-  if (opt_minh <= 0.0)
-    fatal("Argument to --minh must be > 0");
+    if (opt_minh <= 0.0)
+      fatal("Argument to --minh must be > 0");
+  }
 
 #if 0
   if (opt_abskew <= 1.0)
@@ -2928,7 +2963,7 @@ int main(int argc, char** argv)
     cmd_maskfasta();
   else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size || opt_cluster_unoise)
     cmd_cluster();
-  else if (opt_uchime_denovo || opt_uchime_ref)
+  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo)
     cmd_uchime();
   else if (opt_fastq_chars)
     fastq_chars();

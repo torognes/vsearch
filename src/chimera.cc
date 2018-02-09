@@ -785,14 +785,20 @@ int eval_parents(struct chimera_info_s * ci)
       int sumL = best_left_n + best_left_a + best_left_y;
       int sumR = best_right_n + best_right_a + best_right_y;
 
-      if (best_h >= opt_minh)
+      if (opt_uchime2_denovo || opt_uchime3_denovo)
         {
-          status = 3;
-          if ((divdiff >= opt_mindiv) &&
-              (sumL >= opt_mindiffs) &&
-              (sumR >= opt_mindiffs))
-            status = 4;
+          if ((QM == 100.0) && (QT < 100.0))
+          status = 4;
         }
+      else
+        if (best_h >= opt_minh)
+          {
+            status = 3;
+            if ((divdiff >= opt_mindiv) &&
+                (sumL >= opt_mindiffs) &&
+                (sumR >= opt_mindiffs))
+              status = 4;
+          }
 
       /* print alignment */
 
@@ -978,7 +984,7 @@ int eval_parents(struct chimera_info_s * ci)
   0: no parents, non-chimeric
   1: score < 0 (no alignment), non-chimeric
   2: score < minh, non-chimeric
-  3: score >= minh, suspicious
+  3: score >= minh, suspicious -> not available with uchime2_denovo and uchime3_denovo
   4: score >= minh && (divdiff >= opt_mindiv) && ..., chimeric
 */
 
@@ -1279,9 +1285,9 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                 xfree(ci->nwcigar[i]);
                       
               nwcigar = xstrdup(lma.align(ci->query_seq,
-                                         tseq,
-                                         ci->query_len,
-                                         tseqlen));
+                                          tseq,
+                                          ci->query_len,
+                                          tseqlen));
               lma.alignstats(nwcigar,
                              ci->query_seq,
                              tseq,
@@ -1393,7 +1399,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             }
           
           /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo)
+          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
             dbindex_addsequence(seqno, opt_qmask);
 
           if (opt_nonchimeras)
@@ -1503,10 +1509,10 @@ void chimera()
   opt_self = 1;
   opt_selfid = 1;
 
-  if (opt_uchime_denovo)
+  if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
     opt_threads = 1;
 
-  if (opt_uchime_denovo)
+  if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
     opt_maxsizeratio = 1.0 / opt_abskew;
 
   tophits = opt_maxaccepts + opt_maxrejects;
@@ -1526,6 +1532,8 @@ void chimera()
   pthread_mutex_init(&mutex_input, NULL);
   pthread_mutex_init(&mutex_output, NULL);
 
+  char * denovo_dbname = NULL;
+
   /* prepare queries / database */
   if (opt_uchime_ref)
     {
@@ -1543,7 +1551,15 @@ void chimera()
     }
   else
     {
-      db_read(opt_uchime_denovo, 0);
+      
+      if (opt_uchime_denovo)
+        denovo_dbname = opt_uchime_denovo;
+      else if (opt_uchime2_denovo)
+        denovo_dbname = opt_uchime2_denovo;
+      else // opt_uchime3_denovo
+        denovo_dbname = opt_uchime3_denovo;
+
+      db_read(denovo_dbname, 0);
 
       if (opt_qmask == MASK_DUST)
         dust_all();
@@ -1601,7 +1617,7 @@ void chimera()
       if (opt_uchime_ref)
         fprintf(fp_log, "%s", opt_uchime_ref);
       else
-        fprintf(fp_log, "%s", opt_uchime_denovo);
+        fprintf(fp_log, "%s", denovo_dbname);
       fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
               chimera_count,
               seqno, 
