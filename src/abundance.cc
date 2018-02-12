@@ -83,7 +83,7 @@ bool header_find_attribute(const char * header,
 
   while (i < hlen - alen)
     {
-      char * r = strstr(header + i, attribute);
+      const char * r = strstr(header + i, attribute);
 
       /* no match */
       if (r == NULL)
