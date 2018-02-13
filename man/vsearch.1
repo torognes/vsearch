@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "February 7, 2018" "version 2.6.2" "USER COMMANDS"
+.TH vsearch 1 "February 13, 2018" "version 2.7.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -12,9 +12,9 @@ for metagenomics, genomics, and population genetics.
 .ad l
 Chimera detection:
 .RS
-\fBvsearch\fR \-\-uchime_denovo \fIfastafile\fR (\-\-chimeras |
-\-\-nonchimeras | \-\-uchimealns | \-\-uchimeout) \fIoutputfile\fR
-[\fIoptions\fR]
+\fBvsearch\fR (\-\-uchime_denovo | \-\-uchime2_denovo |
+\-\-uchime3_denovo) \fIfastafile\fR (\-\-chimeras | \-\-nonchimeras |
+\-\-uchimealns | \-\-uchimeout) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-uchime_ref \fIfastafile\fR (\-\-chimeras |
 \-\-nonchimeras | \-\-uchimealns | \-\-uchimeout) \fIoutputfile\fR
@@ -195,7 +195,8 @@ or '/dev/stdout' for output files,
 .IP -
 a named pipe created with the command mkfifo,
 .IP -
-a process substitution '<(command)' as input or '>(command)' as output.
+a process substitution '<(command)' as input or '>(command)' as
+output.
 .RE
 .PP
 \fBvsearch\fR can automatically read compressed gzip or bzip2 files if
@@ -305,10 +306,10 @@ When using \-\-uchime_denovo, the abundance skew is used to
 distinguish in a three-way alignment which sequence is the chimera and
 which are the parents. The assumption is that chimeras appear later in
 the PCR amplification process and are therefore less abundant than
-their parents. For \-\-uchime3_denovo the default value is 16.0. For the other
-commands, the default value is 2.0, which means that the parents
-should be at least 2 times more abundant than their chimera. Any
-positive value equal or greater than 1.0 can be used.
+their parents. For \-\-uchime3_denovo the default value is 16.0. For
+the other commands, the default value is 2.0, which means that the
+parents should be at least 2 times more abundant than their
+chimera. Any positive value equal or greater than 1.0 can be used.
 .TP
 .BI \-\-alignwidth\~ "positive integer"
 When using \-\-uchimealns, set the width of the three-way alignments
@@ -341,18 +342,18 @@ chimeras, non-chimeras and borderline sequences, using the format
 ';uchime_denovo=\fIfloat\fR;'.
 .TP
 .BI \-\-mindiffs\~ "positive integer"
-Minimum number of differences per segment (default value is 3). The parameter is
-ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
+Minimum number of differences per segment (default value is 3). The
+parameter is ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
 .TP
 .BI \-\-mindiv \0real
-Minimum divergence from closest parent (default value is 0.8). The parameter is
-ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
+Minimum divergence from closest parent (default value is 0.8). The
+parameter is ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
 .TP
 .BI \-\-minh \0real
 Minimum score (\fIh\fR). Increasing this value tends to reduce the
 number of false positives and to decrease sensitivity. Default value
-is 0.28, and values ranging from 0.0 to 1.0 included are accepted. The parameter
-is ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
+is 0.28, and values ranging from 0.0 to 1.0 included are accepted. The
+parameter is ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
 .TP
 .BI \-\-nonchimeras \0filename
 Output non-chimeric sequences to \fIfilename\fR, in fasta
@@ -412,17 +413,17 @@ sequences in \fIfilename\fR by decreasing abundance beforehand (see
 the sorting section for details). Multithreading is not supported.
 .TP
 .BI \-\-uchime2_denovo \0filename
-Detect chimeras present in the fasta-formatted \fIfilename\fR, using the 
-UCHIME2 algorithm. This algorithm is designed for denoised amplicons (see
-\-\-cluster_unoise). Automatically sort the sequences in \fIfilename\fR by 
-decreasing abundance beforehand (see the sorting section for details). 
-Multithreading is not supported.
+Detect chimeras present in the fasta-formatted \fIfilename\fR, using
+the UCHIME2 algorithm. This algorithm is designed for denoised
+amplicons (see \-\-cluster_unoise). Automatically sort the sequences
+in \fIfilename\fR by decreasing abundance beforehand (see the sorting
+section for details).  Multithreading is not supported.
 .TP
 .BI \-\-uchime3_denovo \0filename
-Detect chimeras present in the fasta-formatted \fIfilename\fR, using the 
-UCHIME2 algorithm. The only difference from \-\-uchime2_denovo is that the 
-default minimum abundance skew (\-\-abskew) is set to 16.0 rather
-than 2.0.
+Detect chimeras present in the fasta-formatted \fIfilename\fR, using
+the UCHIME2 algorithm. The only difference from \-\-uchime2_denovo is
+that the default minimum abundance skew (\-\-abskew) is set to 16.0
+rather than 2.0.
 .TP
 .BI \-\-uchime_ref \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR by
@@ -580,9 +581,9 @@ by decreasing sequence length, unless \-\-usersort is used.
 .BI \-\-cluster_unoise \0filename
 Perform denoising of the fasta sequences in \fIfilename\fR according
 to the UNOISE version 3 algorithm by Robert Edgar, but without the
-chimera removal step. The options \-\-minsize (default 8) and \-\-unoise_alpha
-(default 2.0) may be specified. Chimera removal (\fIde novo\fR) should be performed
-afterwards with \-\-abskew 16.
+chimera removal step. The options \-\-minsize (default 8) and
+\-\-unoise_alpha (default 2.0) may be specified. Chimera removal
+(\fIde novo\fR) should be performed afterwards with \-\-abskew 16.
 .TP
 .BI \-\-clusters \0string
 Output each cluster to a separate fasta file using the prefix
@@ -600,10 +601,10 @@ are skipped, except for terminal gaps.
 This command is ignored. A warning is issued.
 .\" .TP
 .\" .B \-\-cons_truncate
-.\" when using the \-\-consout option to build consensus sequences, do not
-.\" ignore terminal gaps. That option skips terminal columns if they
-.\" contain a majority of gaps, yielding shorter consensus sequences than
-.\" when using \-\-consout alone.
+.\" when using the \-\-consout option to build consensus sequences,
+.\" do not ignore terminal gaps. That option skips terminal columns
+.\" if they contain a majority of gaps, yielding shorter consensus
+.\" sequences than when using \-\-consout alone.
 .TP
 .BI \-\-id \0real
 Do not add the target to the cluster if the pairwise identity with the
@@ -1330,12 +1331,12 @@ When using \-\-fastx_revcomp or \-\-fastq_mergepairs, add the suffix
 \fIstring\fR to sequence headers.
 .TP
 .BI \-\-maxsize\~ "positive integer"
-When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
-an abundance higher than the specified value.
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences
+with an abundance higher than the specified value.
 .TP
 .BI \-\-minsize\~ "positive integer"
-When using \-\-fastq_filter or \-\-fastx_filter, discard sequences with
-an abundance lower than the specified value.
+When using \-\-fastq_filter or \-\-fastx_filter, discard sequences
+with an abundance lower than the specified value.
 .TP
 .BI \-\-output \0filename
 When using \-\-fastq_eestats or \-\-fastq_eestats2, write tabulated
@@ -1364,7 +1365,8 @@ When using \-\-fastq_mergepairs, specify the FASTQ file containing
 containing the reverse reads.
 .TP
 .B \-\-xsize
-Strip abundance information from the headers when writing the output file.
+Strip abundance information from the headers when writing the output
+file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -1718,8 +1720,8 @@ columns) / (alignment length - terminal gaps). That definition can be
 modified by \-\-iddef.
 .TP
 .BI \-\-iddef\~ "0|1|2|3|4"
-Change the pairwise identity definition used in \-\-id. Values accepted
-are:
+Change the pairwise identity definition used in \-\-id. Values
+accepted are:
 .RS
 .RS
 .nr step 0 1
@@ -1872,11 +1874,12 @@ Write query sequences not matching database target sequences to
 \fIfilename\fR, in fasta format.
 .TP
 .BI \-\-otutabout \0filename
-Write search results to an OTU table in the classic tab-separated plain text
-format. The query file contains the samples, while the database file
-contains the OTUs. Sample and OTU identifiers are extracted from the
-header of these sequences. See the \-\-mothur_shared_out option in the
-Clustering section for further details.
+Write search results to an OTU table in the classic tab-separated
+plain text format. The query file contains the samples, while the
+database file contains the OTUs. Sample and OTU identifiers are
+extracted from the header of these sequences. See the
+\-\-mothur_shared_out option in the Clustering section for further
+details.
 .TP
 .B \-\-output_no_hits
 Write both matching and non-matching queries to \-\-alnout,
@@ -2596,10 +2599,11 @@ usearch 7. They are described in the 'Options' section of this
 manual. Here is a short list:
 .RS
 .IP - 2
-uchime2_denovo, uchime3_denovo, alignwidth, borderline, fasta_score (chimera 
-checking)
+uchime2_denovo, uchime3_denovo, alignwidth, borderline, fasta_score
+(chimera checking)
 .IP -
-cluster_size, cluster_unoise, clusterout_id, clusterout_sort, profile (clustering)
+cluster_size, cluster_unoise, clusterout_id, clusterout_sort, profile
+(clustering)
 .IP -
 fasta_width, gzip_decompress, bzip2_decompress (general option)
 .IP -
@@ -2612,7 +2616,8 @@ processing, shuffling, sorting)
 .IP -
 shuffle (shuffling)
 .IP -
-fastq_eestats, fastq_eestats2, fastq_maxlen, fastq_truncee (FASTQ processing)
+fastq_eestats, fastq_eestats2, fastq_maxlen, fastq_truncee (FASTQ
+processing)
 .IP -
 fastaout_discarded, fastqout_discarded (subsampling)
 .IP -
@@ -2738,7 +2743,8 @@ Source code and binaries are available at
 .PP
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014-2017, Torbjørn Rognes, Frédéric Mahé and Tomás Flouri
+Copyright (C) 2014-2017, Torbjørn Rognes, Frédéric Mahé and Tomás
+Flouri
 .PP
 All rights reserved.
 .PP
@@ -3238,6 +3244,12 @@ Improved parallelisation of paired end reads merging.
 .BR v2.6.2\~ "released December 18th, 2017"
 Fixed option xsize that was partially inactive for commands
 uchime_denovo, uchime_ref, and fastx_filter.
+.TP
+.BR v2.7.0\~ "released February 13th, 2018"
+Added commands cluster_unoise, uchime2_denovo and uchime3_denovo
+contributed by Davide Albanese based on Robert Edgar's
+papers. Refactored fasta and fastq print functions as well as code for
+extraction of abundance and other attributes from the headers.
 .RE
 .LP
 .\" ============================================================================
