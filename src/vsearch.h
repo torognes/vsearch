@@ -292,6 +292,8 @@ extern char * opt_udbinfo;
 extern char * opt_udbstats;
 extern char * opt_uc;
 extern char * opt_uchime_denovo;
+extern char * opt_uchime2_denovo;
+extern char * opt_uchime3_denovo;
 extern char * opt_uchime_ref;
 extern char * opt_uchimealns;
 extern char * opt_uchimeout;

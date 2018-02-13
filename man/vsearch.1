@@ -305,7 +305,8 @@ When using \-\-uchime_denovo, the abundance skew is used to
 distinguish in a three-way alignment which sequence is the chimera and
 which are the parents. The assumption is that chimeras appear later in
 the PCR amplification process and are therefore less abundant than
-their parents. The default value is 2.0, which means that the parents
+their parents. For \-\-uchime3_denovo the default value is 16.0. For the other
+commands, the default value is 2.0, which means that the parents
 should be at least 2 times more abundant than their chimera. Any
 positive value equal or greater than 1.0 can be used.
 .TP
@@ -315,7 +316,7 @@ When using \-\-uchimealns, set the width of the three-way alignments
 .TP
 .BI \-\-borderline \0filename
 Output borderline chimeric sequences to \fIfilename\fR, in fasta
-format.  Borderline chimeric sequences are sequences that have a high
+format. Borderline chimeric sequences are sequences that have a high
 enough score but which are not sufficiently different from their
 closest parent.
 .TP
@@ -340,15 +341,18 @@ chimeras, non-chimeras and borderline sequences, using the format
 ';uchime_denovo=\fIfloat\fR;'.
 .TP
 .BI \-\-mindiffs\~ "positive integer"
-Minimum number of differences per segment (default value is 3).
+Minimum number of differences per segment (default value is 3). The parameter is
+ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
 .TP
 .BI \-\-mindiv \0real
-Minimum divergence from closest parent (default value is 0.8).
+Minimum divergence from closest parent (default value is 0.8). The parameter is
+ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
 .TP
 .BI \-\-minh \0real
 Minimum score (\fIh\fR). Increasing this value tends to reduce the
 number of false positives and to decrease sensitivity. Default value
-is 0.28, and values ranging from 0.0 to 1.0 included are accepted.
+is 0.28, and values ranging from 0.0 to 1.0 included are accepted. The parameter
+is ignored with \-\-uchime2_denovo and \-\-uchime3_denovo.
 .TP
 .BI \-\-nonchimeras \0filename
 Output non-chimeric sequences to \fIfilename\fR, in fasta
@@ -406,6 +410,19 @@ Detect chimeras present in the fasta-formatted \fIfilename\fR, without
 external references (i.e. \fIde novo\fR). Automatically sort the
 sequences in \fIfilename\fR by decreasing abundance beforehand (see
 the sorting section for details). Multithreading is not supported.
+.TP
+.BI \-\-uchime2_denovo \0filename
+Detect chimeras present in the fasta-formatted \fIfilename\fR, using the 
+UCHIME2 algorithm. This algorithm is designed for denoised amplicons (see
+\-\-cluster_unoise). Automatically sort the sequences in \fIfilename\fR by 
+decreasing abundance beforehand (see the sorting section for details). 
+Multithreading is not supported.
+.TP
+.BI \-\-uchime3_denovo \0filename
+Detect chimeras present in the fasta-formatted \fIfilename\fR, using the 
+UCHIME2 algorithm. The only difference from \-\-uchime2_denovo is that the 
+default minimum abundance skew (\-\-abskew) is set to 16.0 rather
+than 2.0.
 .TP
 .BI \-\-uchime_ref \0filename
 Detect chimeras present in the fasta-formatted \fIfilename\fR by
@@ -2579,9 +2596,10 @@ usearch 7. They are described in the 'Options' section of this
 manual. Here is a short list:
 .RS
 .IP - 2
-alignwidth, borderline, fasta_score (chimera checking)
+uchime2_denovo, uchime3_denovo, alignwidth, borderline, fasta_score (chimera 
+checking)
 .IP -
-cluster_size, clusterout_id, clusterout_sort, profile (clustering)
+cluster_size, cluster_unoise, clusterout_id, clusterout_sort, profile (clustering)
 .IP -
 fasta_width, gzip_decompress, bzip2_decompress (general option)
 .IP -
