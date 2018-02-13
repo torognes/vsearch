@@ -788,7 +788,7 @@ int eval_parents(struct chimera_info_s * ci)
       if (opt_uchime2_denovo || opt_uchime3_denovo)
         {
           if ((QM == 100.0) && (QT < 100.0))
-          status = 4;
+            status = 4;
         }
       else
         if (best_h >= opt_minh)
