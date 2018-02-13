@@ -110,6 +110,15 @@ Subsampling:
 \-\-sample_size \fIpositive integer\fR) [\fIoptions\fR]
 .PP
 .RE
+UDB database handling:
+.RS
+\fBvsearch\fR \-\-makeudb_usearch \fIfastafile\fR \-\-output \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-udb2fasta \fIudbfile\fR \-\-output \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR (\-\-udbinfo | \-\-udbstats) \fIudbfile\fR [\fIoptions\fR]
+.PP
+.RE
 .\" left and right justified (default)
 .ad b 
 .\" ============================================================================
@@ -1630,7 +1639,9 @@ alignments). Always set to 0.
 .BI \-\-db \0filename
 Compare query sequences (specified with \-\-usearch_global) to the
 fasta-formatted target sequences contained in \fIfilename\fR, using
-global pairwise alignment.
+global pairwise alignment. Alternatively, the name of a preformatted
+UDB database created using the makeudb_usearch command (see below) may
+be specified.
 .TP
 .BI \-\-dbmask\~ "none|dust|soft"
 Mask regions in the target database sequences using the dust method or
@@ -2340,6 +2351,59 @@ Write abundance information to the output file.
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
 file.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+UDB options:
+.RS
+Databases to be used with the \-\-usearch_global command may be
+prepared from FASTA files and stored to a binary UDB formatted file in
+order to speed up searching. This may be worthwhile when searching a
+large database repeatedly. The sequences are indexed and stored in a
+way that can be quickly loaded into memory. The commands and options
+below can be used to create and inspect UDB files. An UDB file may be
+specified with the \-\-db option instead of a FASTA formatted file
+with the \-\-usearch_global command.
+.PP
+.TP 9
+.BI \-\-dbmask\~ "none|dust|soft"
+Specify the sequence masking method used with the \-\-makeudb_usearch
+command, either none, dust or soft. No masking is performed when none
+is specified. When dust is specified, the DUST algorithm will be used
+for masking low complexity regions (short repeats and skewed
+composition). Lower case letters in the input file will be masked when
+soft is specified (soft masking).
+.TP
+.B \-\-hardmask
+Mask sequences by replacing letters with N for the \-\-makeudb_usearch
+command. The default is to use lower case letters (soft masking).
+.TP
+.BI \-\-makeudb_usearch \0filename
+Create an UDB database file from the FASTA-formatted sequences in the
+file with the given \fIfilename\fR. The UDB database is written to the
+file specified with the \-\-output option.
+.TP
+.BI \-\-output \0filename
+Specify the \fIfilename\fR of a FASTA or UDB output file for the
+\-\-makeudb_usearch or the \-\-udb2fasta command, respectively.
+.TP
+.BI \-\-udb2fasta \0filename
+Read the UDB database in the file with the given \fIfilename\fR and
+output the sequences in FASTA format in the file specified by the
+\-\-output option.
+.TP
+.BI \-\-udbinfo \0filename
+Show information about the UDB database in the file with the given
+\fIfilename\fR.
+.TP
+.BI \-\-udbstats \0filename
+Report statistics about the indexed words in the UDB database in the
+file with the given \fIfilename\fR.
+.TP
+.BI \-\-wordlength\~ "positive integer"
+Specify the length of the words to be used when creating the UDB
+database index using the \-\-makeudb_usearch command. Valid numbers
+range from 3 to 15. The default is 8.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
