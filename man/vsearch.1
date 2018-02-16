@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "February 13, 2018" "version 2.7.0" "USER COMMANDS"
+.TH vsearch 1 "February 16, 2018" "version 2.7.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3315,6 +3315,11 @@ Added commands cluster_unoise, uchime2_denovo and uchime3_denovo
 contributed by Davide Albanese based on Robert Edgar's
 papers. Refactored fasta and fastq print functions as well as code for
 extraction of abundance and other attributes from the headers.
+.TP
+.BR v2.7.1\~ "released February 16th, 2018"
+Fix several bugs on Windows related to large files, use of "-" as a
+file name to mean stdin or stdout, alignment errors, missed kmers and
+corrupted UDB files. Added documentation of UDB-related commands.
 .RE
 .LP
 .\" ============================================================================
