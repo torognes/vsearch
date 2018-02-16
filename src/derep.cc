@@ -579,12 +579,12 @@ void derep_prefix()
 
       /* compute hashes of all prefixes */
 
-      uint64_t fnv1a_hash = 14695981039346656037UL;
+      uint64_t fnv1a_hash = 14695981039346656037ULL;
       prefix_hashes[0] = fnv1a_hash;
       for(unsigned int j = 0; j < seqlen; j++)
         {
           fnv1a_hash ^= seq_up[j];
-          fnv1a_hash *= 1099511628211UL;
+          fnv1a_hash *= 1099511628211ULL;
           prefix_hashes[j+1] = fnv1a_hash;
         }
 

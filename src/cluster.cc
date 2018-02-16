@@ -1134,7 +1134,7 @@ void cluster(char * dbname,
 
   if (opt_log)
     {
-      uint64_t slots = 1UL << (opt_wordlength << 1UL);
+      uint64_t slots = 1ULL << (opt_wordlength << 1ULL);
       fprintf(fp_log, "\n");
       fprintf(fp_log, "      Alphabet  nt\n");
       fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);

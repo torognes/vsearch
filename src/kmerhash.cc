@@ -147,11 +147,11 @@ void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
     {
       int c = *s++;
 
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= maskmap[c];
       bad &= kmer_mask;
 
-      kmer <<= 2UL;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[c];
       kmer &= kmer_mask;
 
@@ -182,11 +182,11 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
     {
       int c = *s--;
 
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= maskmap[c];
       bad &= kmer_mask;
 
-      kmer <<= 2UL;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
 
@@ -253,11 +253,11 @@ void kh_find_diagonals(struct kh_handle_s * kh,
     {
       int c = *s--;
 
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= chrmap_mask_ambig[c];
       bad &= kmer_mask;
 
-      kmer <<= 2UL;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
 

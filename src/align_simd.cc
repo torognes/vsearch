@@ -891,10 +891,10 @@ void backtrack16(s16info_s * s,
   uint64_t qlen = s->qlen;
   char * qseq = s->qseq;
 
-  uint64_t maskup      = 3UL << (2*channel+ 0);
-  uint64_t maskleft    = 3UL << (2*channel+16);
-  uint64_t maskextup   = 3UL << (2*channel+32);
-  uint64_t maskextleft = 3UL << (2*channel+48);
+  uint64_t maskup      = 3ULL << (2*channel+ 0);
+  uint64_t maskleft    = 3ULL << (2*channel+16);
+  uint64_t maskextup   = 3ULL << (2*channel+32);
+  uint64_t maskextleft = 3ULL << (2*channel+48);
 
 #if 0
 

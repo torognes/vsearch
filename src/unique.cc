@@ -147,21 +147,21 @@ void unique_count_bitmap(struct uhandle_s * uh,
         xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
     }
   
-  uint64_t size = 1UL << (k << 1UL);
+  uint64_t size = 1ULL << (k << 1ULL);
   
   /* reallocate bitmap arrays if necessary */
   
   if (uh->bitmap_size < size)
     {
-      uh->bitmap = (uint64_t *) xrealloc(uh->bitmap, size >> 3UL);
+      uh->bitmap = (uint64_t *) xrealloc(uh->bitmap, size >> 3ULL);
       uh->bitmap_size = size;
     }
   
-  memset(uh->bitmap, 0, size >> 3UL);
+  memset(uh->bitmap, 0, size >> 3ULL);
 
   uint64_t bad = 0;
   uint64_t kmer = 0;
-  uint64_t mask = size - 1UL;
+  uint64_t mask = size - 1ULL;
   char * s = seq;
   char * e1 = s + k-1;
   char * e2 = s + seqlen;
@@ -173,10 +173,10 @@ void unique_count_bitmap(struct uhandle_s * uh,
   
   while (s < e1)
     {
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= maskmap[(int)(*s)];
 
-      kmer <<= 2UL;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[(int)(*s++)];
     }
 
@@ -184,18 +184,18 @@ void unique_count_bitmap(struct uhandle_s * uh,
 
   while (s < e2)
     {
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= maskmap[(int)(*s)];
       bad &= mask;
 
-      kmer <<= 2UL;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
 
       if (!bad)
         {
-          uint64_t x = kmer >> 6UL;
-          uint64_t y = 1UL << (kmer & 63UL);
+          uint64_t x = kmer >> 6ULL;
+          uint64_t y = 1ULL << (kmer & 63ULL);
           if (!(uh->bitmap[x] & y))
             {
               /* not seen before */
@@ -241,7 +241,7 @@ void unique_count_hash(struct uhandle_s * uh,
   uint64_t bad = 0;
   uint64_t j;
   unsigned int kmer = 0;
-  unsigned int mask = (1<<(2*k)) - 1;
+  unsigned int mask = (1ULL<<(2ULL*k)) - 1ULL;
   char * s = seq;
   char * e1 = s + k-1;
   char * e2 = s + seqlen;
@@ -253,10 +253,10 @@ void unique_count_hash(struct uhandle_s * uh,
 
   while (s < e1)
     {
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= maskmap[(int)(*s)];
 
-      kmer <<= 2;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[(int)(*s++)];
     }
 
@@ -264,11 +264,11 @@ void unique_count_hash(struct uhandle_s * uh,
 
   while (s < e2)
     {
-      bad <<= 2UL;
+      bad <<= 2ULL;
       bad |= maskmap[(int)(*s)];
       bad &= mask;
 
-      kmer <<= 2;
+      kmer <<= 2ULL;
       kmer |= chrmap_2bit[(int)(*s++)];
       kmer &= mask;
 
@@ -321,8 +321,8 @@ int unique_count_shared(struct uhandle_s * uh,
       for(int i = 0; i<listlen; i++)
         {
           unsigned int kmer = list[i];
-          uint64_t x = kmer >> 6UL;
-          uint64_t y = 1UL << (kmer & 63UL);
+          uint64_t x = kmer >> 6ULL;
+          uint64_t y = 1ULL << (kmer & 63ULL);
           if (uh->bitmap[x] & y)
             count++;
         }
