@@ -149,14 +149,14 @@ void derep_fulllength()
 
   if (opt_output)
     {
-      fp_output = fopen(opt_output, "w");
+      fp_output = fopen_output(opt_output);
       if (!fp_output)
         fatal("Unable to open output file for writing");
     }
 
   if (opt_uc)
     {
-      fp_uc = fopen(opt_uc, "w");
+      fp_uc = fopen_output(opt_uc);
       if (!fp_uc)
         fatal("Unable to open output (uc) file for writing");
     }
@@ -488,14 +488,14 @@ void derep_prefix()
 
   if (opt_output)
     {
-      fp_output = fopen(opt_output, "w");
+      fp_output = fopen_output(opt_output);
       if (!fp_output)
         fatal("Unable to open output file for writing");
     }
 
   if (opt_uc)
     {
-      fp_uc = fopen(opt_uc, "w");
+      fp_uc = fopen_output(opt_uc);
       if (!fp_uc)
         fatal("Unable to open output (uc) file for writing");
     }

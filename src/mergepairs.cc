@@ -228,7 +228,7 @@ static pthread_cond_t cond_chunks;
 FILE * fileopenw(char * filename)
 {
   FILE * fp = 0;
-  fp = fopen(filename, "w");
+  fp = fopen_output(filename);
   if (!fp)
     fatal("Unable to open file for writing (%s)", filename);
   return fp;

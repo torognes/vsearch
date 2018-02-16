@@ -2078,99 +2078,6 @@ void args_init(int argc, char **argv)
       else
         opt_minseqlength = 1;
     }
-
-  /* replace filename "-" by "/dev/stdin" for input file options */
-
-  char * * stdin_options[] =
-    {
-      & opt_allpairs_global,
-      & opt_cluster_fast,
-      & opt_cluster_size,
-      & opt_cluster_smallmem,
-      & opt_cluster_unoise,
-      & opt_db,
-      & opt_derep_fulllength,
-      & opt_derep_prefix,
-      & opt_fastq_chars,
-      & opt_fastq_convert,
-      & opt_fastq_eestats,
-      & opt_fastq_eestats2,
-      & opt_fastq_filter,
-      & opt_fastq_mergepairs,
-      & opt_fastq_stats,
-      & opt_fastx_filter,
-      & opt_fastx_mask,
-      & opt_fastx_revcomp,
-      & opt_fastx_subsample,
-      & opt_makeudb_usearch,
-      & opt_maskfasta,
-      & opt_rereplicate,
-      & opt_reverse,
-      & opt_search_exact,
-      & opt_shuffle,
-      & opt_sortbylength,
-      & opt_sortbysize,
-      & opt_uchime_denovo,
-      & opt_uchime2_denovo,
-      & opt_uchime3_denovo,
-      & opt_uchime_ref,
-      & opt_udb2fasta,
-      & opt_udbinfo,
-      & opt_udbstats,
-      & opt_usearch_global,
-      0
-    };
-
-  int i = 0;
-  while(char * * stdin_opt = stdin_options[i++])
-    if ((*stdin_opt) && (!strcmp(*stdin_opt, "-")))
-      *stdin_opt = STDIN_NAME;
-
-
-  /* replace filename "-" by "/dev/stdout" for output file options */
-
-  char * * stdout_options[] =
-    {
-      & opt_alnout,
-      & opt_biomout,
-      & opt_blast6out,
-      & opt_borderline,
-      & opt_centroids,
-      & opt_chimeras,
-      & opt_consout,
-      & opt_dbmatched,
-      & opt_dbnotmatched,
-      & opt_eetabbedout,
-      & opt_fastaout,
-      & opt_fastaout_discarded,
-      & opt_fastaout_notmerged_fwd,
-      & opt_fastaout_notmerged_rev,
-      & opt_fastapairs,
-      & opt_fastqout,
-      & opt_fastqout_discarded,
-      & opt_fastqout_notmerged_fwd,
-      & opt_fastqout_notmerged_rev,
-      & opt_log,
-      & opt_matched,
-      & opt_mothur_shared_out,
-      & opt_msaout,
-      & opt_otutabout,
-      & opt_nonchimeras,
-      & opt_notmatched,
-      & opt_output,
-      & opt_profile,
-      & opt_samout,
-      & opt_uc,
-      & opt_uchimealns,
-      & opt_uchimeout,
-      & opt_userout,
-      0
-    };
-
-  int o = 0;
-  while(char * * stdout_opt = stdout_options[o++])
-    if ((*stdout_opt) && (!strcmp(*stdout_opt, "-")))
-      *stdout_opt = STDOUT_NAME;
 }
 
 void show_publication()
@@ -2920,7 +2827,7 @@ int main(int argc, char** argv)
 
   if (opt_log)
     {
-      fp_log = fopen(opt_log, "w");
+      fp_log = fopen_output(opt_log);
       if (!fp_log)
         fatal("Unable to open log file for writing");
       fprintf(fp_log, "%s\n", progheader);

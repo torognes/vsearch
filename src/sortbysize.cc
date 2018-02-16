@@ -96,7 +96,7 @@ int sortbysize_compare(const void * a, const void * b)
 
 void sortbysize()
 {
-  FILE * fp_output = fopen(opt_output, "w");
+  FILE * fp_output = fopen_output(opt_output);
   if (!fp_output)
     fatal("Unable to open sortbysize output file for writing");
 

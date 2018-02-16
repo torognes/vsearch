@@ -69,7 +69,7 @@ void rereplicate()
 
   if (opt_output)
     {
-      fp_output = fopen(opt_output, "w");
+      fp_output = fopen_output(opt_output);
       if (!fp_output)
         fatal("Unable to open FASTA output file for writing");
     }

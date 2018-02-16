@@ -354,4 +354,32 @@ void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen)
   fprintf(fp, "%s", digest);
 }
 
+FILE * fopen_input(const char * filename)
+{
+  /* open the input stream given by filename, but use stdin if name is - */
+  if (strcmp(filename, "-") == 0)
+    {
+      int fd = dup(STDIN_FILENO);
+      if (fd < 0)
+        return NULL;
+      else
+        return fdopen(fd, "rb");
+    }
+  else
+    return fopen(filename, "rb");
+}
 
+FILE * fopen_output(const char * filename)
+{
+  /* open the output stream given by filename, but use stdout if name is - */
+  if (strcmp(filename, "-") == 0)
+    {
+      int fd = dup(STDOUT_FILENO);
+      if (fd < 0)
+        return NULL;
+      else
+        return fdopen(fd, "w");
+    }
+  else
+    return fopen(filename, "w");
+}

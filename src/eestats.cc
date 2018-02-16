@@ -80,7 +80,7 @@ void fastq_eestats()
 
   if (opt_output)
     {
-      fp_output = fopen(opt_output, "w");
+      fp_output = fopen_output(opt_output);
       if (!fp_output)
         fatal("Unable to open output file for writing");
     }
@@ -384,7 +384,7 @@ void fastq_eestats2()
 
   if (opt_output)
     {
-      fp_output = fopen(opt_output, "w");
+      fp_output = fopen_output(opt_output);
       if (!fp_output)
         fatal("Unable to open output file for writing");
     }

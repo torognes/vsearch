@@ -1479,7 +1479,7 @@ void open_chimera_file(FILE * * f, char * name)
 {
   if (name)
     {
-      *f = fopen(name, "w");
+      *f = fopen_output(name);
       if (!*f)
         fatal("Unable to open file %s for writing", name);
     }

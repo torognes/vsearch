@@ -147,7 +147,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 
 #if 0
   /* dump kmer counts */
-  FILE * f = fopen("kmercounts.txt", "w");
+  FILE * f = fopen_output("kmercounts.txt");
   for(unsigned int kmer=0; kmer < kmerhashsize; kmer++)
     {
       fprint_kmer(f, 8, kmer);

@@ -158,7 +158,7 @@ fastx_handle fastx_open(const char * filename)
   int bzError = 0;
 #endif
  
-  h->fp = fopen(filename, "rb");
+  h->fp = fopen_input(filename);
   if (!h->fp)
     fatal("Unable to open file for reading (%s)", filename);
 
@@ -208,7 +208,7 @@ fastx_handle fastx_open(const char * filename)
       /* rewind was not enough */
 
       fclose(h->fp);
-      h->fp = fopen(filename, "rb");
+      h->fp = fopen_input(filename);
       if (!h->fp)
         fatal("Unable to open file for reading (%s)", filename);
     }

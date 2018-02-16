@@ -232,7 +232,7 @@ void hardmask_all()
 
 void maskfasta()
 {
-  FILE * fp_output = fopen(opt_output, "w");
+  FILE * fp_output = fopen_output(opt_output);
   if (!fp_output)
     fatal("Unable to open mask output file for writing");
 
@@ -267,14 +267,14 @@ void fastx_mask()
 
   if (opt_fastaout)
     {
-      fp_fastaout = fopen(opt_fastaout, "w");
+      fp_fastaout = fopen_output(opt_fastaout);
       if (!fp_fastaout)
         fatal("Unable to open mask output FASTA file for writing");
     }
 
   if (opt_fastqout)
     {
-      fp_fastqout = fopen(opt_fastqout, "w");
+      fp_fastqout = fopen_output(opt_fastqout);
       if (!fp_fastqout)
         fatal("Unable to open mask output FASTQ file for writing");
     }

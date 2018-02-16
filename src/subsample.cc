@@ -69,28 +69,28 @@ void subsample()
 
   if (opt_fastaout)
     {
-      fp_fastaout = fopen(opt_fastaout, "w");
+      fp_fastaout = fopen_output(opt_fastaout);
       if (!fp_fastaout)
         fatal("Unable to open FASTA output file for writing");
     }
 
   if (opt_fastaout_discarded)
     {
-      fp_fastaout_discarded = fopen(opt_fastaout_discarded, "w");
+      fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
       if (!fp_fastaout_discarded)
         fatal("Unable to open FASTA output file for writing");
     }
 
   if (opt_fastqout)
     {
-      fp_fastqout = fopen(opt_fastqout, "w");
+      fp_fastqout = fopen_output(opt_fastqout);
       if (!fp_fastqout)
         fatal("Unable to open FASTQ output file for writing");
     }
 
   if (opt_fastqout_discarded)
     {
-      fp_fastqout_discarded = fopen(opt_fastqout_discarded, "w");
+      fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
       if (!fp_fastqout_discarded)
         fatal("Unable to open FASTQ output file for writing");
     }

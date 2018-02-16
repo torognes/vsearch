@@ -1010,21 +1010,21 @@ void cluster(char * dbname,
 {
   if (opt_centroids)
     {
-      fp_centroids = fopen(opt_centroids, "w");
+      fp_centroids = fopen_output(opt_centroids);
       if (!fp_centroids)
         fatal("Unable to open centroids file for writing");
     }
 
   if (opt_uc)
     {
-      fp_uc = fopen(opt_uc, "w");
+      fp_uc = fopen_output(opt_uc);
       if (!fp_uc)
         fatal("Unable to open uc file for writing");
     }
 
   if (opt_alnout)
     {
-      fp_alnout = fopen(opt_alnout, "w");
+      fp_alnout = fopen_output(opt_alnout);
       if (! fp_alnout)
         fatal("Unable to open alignment output file for writing");
 
@@ -1034,63 +1034,63 @@ void cluster(char * dbname,
 
   if (opt_samout)
     {
-      fp_samout = fopen(opt_samout, "w");
+      fp_samout = fopen_output(opt_samout);
       if (! fp_samout)
         fatal("Unable to open SAM output file for writing");
     }
 
   if (opt_userout)
     {
-      fp_userout = fopen(opt_userout, "w");
+      fp_userout = fopen_output(opt_userout);
       if (! fp_userout)
         fatal("Unable to open user-defined output file for writing");
     }
 
   if (opt_blast6out)
     {
-      fp_blast6out = fopen(opt_blast6out, "w");
+      fp_blast6out = fopen_output(opt_blast6out);
       if (! fp_blast6out)
         fatal("Unable to open blast6-like output file for writing");
     }
 
   if (opt_fastapairs)
     {
-      fp_fastapairs = fopen(opt_fastapairs, "w");
+      fp_fastapairs = fopen_output(opt_fastapairs);
       if (! fp_fastapairs)
         fatal("Unable to open fastapairs output file for writing");
     }
 
   if (opt_matched)
     {
-      fp_matched = fopen(opt_matched, "w");
+      fp_matched = fopen_output(opt_matched);
       if (! fp_matched)
         fatal("Unable to open matched output file for writing");
     }
 
   if (opt_notmatched)
     {
-      fp_notmatched = fopen(opt_notmatched, "w");
+      fp_notmatched = fopen_output(opt_notmatched);
       if (! fp_notmatched)
         fatal("Unable to open notmatched output file for writing");
     }
 
   if (opt_otutabout)
     {
-      fp_otutabout = fopen(opt_otutabout, "w");
+      fp_otutabout = fopen_output(opt_otutabout);
       if (! fp_otutabout)
         fatal("Unable to open OTU table (text format) output file for writing");
     }
 
   if (opt_mothur_shared_out)
     {
-      fp_mothur_shared_out = fopen(opt_mothur_shared_out, "w");
+      fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
       if (! fp_mothur_shared_out)
         fatal("Unable to open OTU table (mothur format) output file for writing");
     }
 
   if (opt_biomout)
     {
-      fp_biomout = fopen(opt_biomout, "w");
+      fp_biomout = fopen_output(opt_biomout);
       if (! fp_biomout)
         fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
     }
@@ -1247,7 +1247,7 @@ void cluster(char * dbname,
               
               ordinal = 0;
               sprintf(fn_clusters, "%s%d", opt_clusters, clusterno);
-              fp_clusters = fopen(fn_clusters, "w");
+              fp_clusters = fopen_output(fn_clusters);
               if (!fp_clusters)
                 fatal("Unable to open clusters file for writing");
             }
@@ -1347,15 +1347,15 @@ void cluster(char * dbname,
       FILE * fp_profile = 0;
 
       if (opt_msaout)
-        if (!(fp_msaout = fopen(opt_msaout, "w")))
+        if (!(fp_msaout = fopen_output(opt_msaout)))
           fatal("Unable to open msaout file");
 
       if (opt_consout)
-        if (!(fp_consout = fopen(opt_consout, "w")))
+        if (!(fp_consout = fopen_output(opt_consout)))
           fatal("Unable to open consout file");
 
       if (opt_profile)
-        if (!(fp_profile = fopen(opt_profile, "w")))
+        if (!(fp_profile = fopen_output(opt_profile)))
           fatal("Unable to open profile file");
 
       lastcluster = -1;
