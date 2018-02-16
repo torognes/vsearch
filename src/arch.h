@@ -58,6 +58,12 @@
 
 */
 
+#ifdef _WIN32
+typedef struct __stat64 xstat_t;
+#else
+typedef struct stat xstat_t;
+#endif
+
 uint64_t arch_get_memused();
 uint64_t arch_get_memtotal();
 long arch_get_cores();
@@ -67,3 +73,11 @@ uint64_t arch_random();
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 void xfree(void * ptr);
+
+int xfstat(int fd, xstat_t * buf);
+int xstat(const char * path, xstat_t  * buf);
+uint64_t xlseek(int fd, uint64_t offset, int whence);
+uint64_t xftello(FILE * stream);
+
+int xopen_read(const char * path);
+int xopen_write(const char * path);

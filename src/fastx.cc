@@ -164,23 +164,16 @@ fastx_handle fastx_open(const char * filename)
 
   /* Get mode and size of original (uncompressed) file */
 
-  struct stat fs;
-  h->file_size = 0;
-
-  if (fstat(fileno(h->fp), & fs))
-    fatal("Unable to fstat on input file (%s)", filename);
+  xstat_t fs;
+  if (xfstat(fileno(h->fp), & fs))
+    fatal("Unable to get status for input file (%s)", filename);
 
   h->is_pipe = S_ISFIFO(fs.st_mode);
 
-  h->file_size = 0;
-
-  if (! h->is_pipe)
-    {
-      if (fseek(h->fp, 0, SEEK_END))
-        fatal("Unable to seek in input file (%s)", filename);
-      h->file_size = ftell(h->fp);
-      rewind(h->fp);
-    }
+  if (h->is_pipe)
+    h->file_size = 0;
+  else
+    h->file_size = fs.st_size;
 
   if (opt_gzip_decompress)
     {
@@ -483,12 +476,12 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
             {
               /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
               int fd = dup(fileno(h->fp));
-              h->file_position = lseek(fd, 0, SEEK_CUR);
+              h->file_position = xlseek(fd, 0, SEEK_CUR);
               close(fd);
             }
           else
 #endif
-            h->file_position = ftell(h->fp);
+            h->file_position = xftello(h->fp);
         }
 
       h->file_buffer.length += bytes_read;
