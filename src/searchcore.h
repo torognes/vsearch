@@ -142,6 +142,8 @@ struct searchinfo_s
   int finalized;
 };
 
+void search_topscores(struct searchinfo_s * si);
+
 void search_onequery(struct searchinfo_s * si, int seqmask);
 
 struct hit * search_findbest2_byid(struct searchinfo_s * si_p,

@@ -58,54 +58,5 @@
 
 */
 
-#include "vsearch.h"
+void sintax();
 
-void shuffle()
-{
-  FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
-    fatal("Unable to open shuffle output file for writing");
-
-  db_read(opt_shuffle, 0);
-  show_rusage();
-
-  int dbsequencecount = db_getsequencecount();
-  int * deck = (int*) xmalloc(dbsequencecount * sizeof(int));
-
-  for(int i=0; i<dbsequencecount; i++)
-    deck[i] = i;
-
-  int passed = 0;
-  progress_init("Shuffling", dbsequencecount-1);
-  for(int i=dbsequencecount-1; i>0; i--)
-    {
-      /* generate a random number j in the range 0 to i, inclusive */
-      int j = random_int(i+1);
-
-      /* exchange elements i and j */
-      int t = deck[i];
-      deck[i] = deck[j];
-      deck[j] = t;
-
-      passed++;
-      progress_update(passed);
-    }
-  progress_done();
-  show_rusage();
-
-  passed = MIN(dbsequencecount, opt_topn);
-
-  progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
-    {
-      fasta_print_db_relabel(fp_output, deck[i], i+1);
-      progress_update(i);
-    }
-  progress_done();
-
-  show_rusage();
-
-  xfree(deck);
-  db_free();
-  fclose(fp_output);
-}

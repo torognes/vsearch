@@ -137,8 +137,10 @@ char * opt_reverse;
 char * opt_samout;
 char * opt_search_exact;
 char * opt_shuffle;
+char * opt_sintax;
 char * opt_sortbylength;
 char * opt_sortbysize;
+char * opt_tabbedout;
 char * opt_udb2fasta;
 char * opt_udbinfo;
 char * opt_udbstats;
@@ -172,6 +174,7 @@ double opt_minsizeratio;
 double opt_minsl;
 double opt_query_cov;
 double opt_sample_pct;
+double opt_sintax_cutoff;
 double opt_target_cov;
 double opt_unoise_alpha;
 double opt_weak_id;
@@ -779,6 +782,8 @@ void args_init(int argc, char **argv)
   opt_self = 0;
   opt_selfid = 0;
   opt_shuffle = 0;
+  opt_sintax = 0;
+  opt_sintax_cutoff = 0.0;
   opt_sizein = 0;
   opt_sizeorder = 0;
   opt_sizeout = 0;
@@ -786,6 +791,7 @@ void args_init(int argc, char **argv)
   opt_sortbylength = 0;
   opt_sortbysize = 0;
   opt_strand = 1;
+  opt_tabbedout = 0;
   opt_target_cov = 0.0;
   opt_threads = 0;
   opt_top_hits_only = 0;
@@ -1012,6 +1018,9 @@ void args_init(int argc, char **argv)
     {"unoise_alpha",          required_argument, 0, 0 },
     {"uchime2_denovo",        required_argument, 0, 0 },
     {"uchime3_denovo",        required_argument, 0, 0 },
+    {"sintax",                required_argument, 0, 0 },
+    {"sintax_cutoff",         required_argument, 0, 0 },
+    {"tabbedout",             required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1842,6 +1851,18 @@ void args_init(int argc, char **argv)
           opt_uchime3_denovo = optarg;
           break;
 
+        case 195:
+          opt_sintax = optarg;
+          break;
+
+        case 196:
+          opt_sintax_cutoff = args_getdouble(optarg);
+          break;
+
+        case 197:
+          opt_tabbedout = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1926,6 +1947,8 @@ void args_init(int argc, char **argv)
   if (opt_uchime2_denovo)
     commands++;
   if (opt_uchime3_denovo)
+    commands++;
+  if (opt_sintax)
     commands++;
 
 
@@ -2014,6 +2037,10 @@ void args_init(int argc, char **argv)
   if (opt_gzip_decompress && opt_bzip2_decompress)
     fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
 
+  if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0))
+    fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
+
+
   /* TODO: check valid range of gap penalties */
 
   /* adapt/adjust parameters */
@@ -2073,7 +2100,7 @@ void args_init(int argc, char **argv)
     {
       if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
           opt_usearch_global || opt_derep_fulllength || opt_derep_prefix ||
-          opt_makeudb_usearch || opt_cluster_unoise)
+          opt_makeudb_usearch || opt_cluster_unoise || opt_sintax)
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;
@@ -2456,6 +2483,14 @@ void cmd_help()
               "  --sizeout                   update abundance information in output\n"
               "  --xsize                     strip abundance information in output\n"
               "\n"
+              "Taxonomic classification\n"
+              "  --sintax FILENAME           classify sequences in given FASTA/FASTQ file\n"
+              " Parameters\n"
+              "  --db FILENAME               taxnomic reference db in given FASTA or UDB file\n"
+              "  --sintax_cutoff REAL        confidence value cutoff level (0.0)\n"
+              " Output\n"
+              "  --tabbedout FILENAME        write results to given tab-delimited file\n"
+              "\n"
               "UDB files\n"
               "  --makeudb_usearch FILENAME  make UDB file from given FASTA file\n"
               "  --udb2fasta FILENAME        output FASTA file from given UDB file\n"
@@ -2817,6 +2852,8 @@ void show_header()
 
 int main(int argc, char** argv)
 {
+  random_init();
+
   fillheader();
 
   getentirecommandline(argc, argv);
@@ -2906,6 +2943,8 @@ int main(int argc, char** argv)
     udb_info();
   else if (opt_udbstats)
     udb_stats();
+  else if (opt_sintax)
+    sintax();
   else
     cmd_none();
 

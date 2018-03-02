@@ -49,6 +49,7 @@ searchexact.h \
 showalign.h \
 sha1.h \
 shuffle.h \
+sintax.h \
 sortbylength.h \
 sortbysize.h \
 subsample.h \
@@ -126,6 +127,7 @@ searchexact.cc \
 sha1.c \
 showalign.cc \
 shuffle.cc \
+sintax.cc \
 sortbylength.cc \
 sortbysize.cc \
 subsample.cc \

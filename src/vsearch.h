@@ -207,6 +207,7 @@
 #include "otutable.h"
 #include "udb.h"
 #include "kmerhash.h"
+#include "sintax.h"
 
 /* options */
 
@@ -229,8 +230,8 @@ extern bool opt_sizeorder;
 extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
-extern char * opt_blast6out;
 extern char * opt_biomout;
+extern char * opt_blast6out;
 extern char * opt_borderline;
 extern char * opt_centroids;
 extern char * opt_chimeras;
@@ -253,8 +254,8 @@ extern char * opt_fastaout_notmerged_rev;
 extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
 extern char * opt_fastq_convert;
-extern char * opt_fastq_eestats;
 extern char * opt_fastq_eestats2;
+extern char * opt_fastq_eestats;
 extern char * opt_fastq_filter;
 extern char * opt_fastq_mergepairs;
 extern char * opt_fastq_stats;
@@ -285,18 +286,20 @@ extern char * opt_reverse;
 extern char * opt_samout;
 extern char * opt_search_exact;
 extern char * opt_shuffle;
+extern char * opt_sintax;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;
-extern char * opt_udb2fasta;
-extern char * opt_udbinfo;
-extern char * opt_udbstats;
+extern char * opt_tabbedout;
 extern char * opt_uc;
-extern char * opt_uchime_denovo;
 extern char * opt_uchime2_denovo;
 extern char * opt_uchime3_denovo;
+extern char * opt_uchime_denovo;
 extern char * opt_uchime_ref;
 extern char * opt_uchimealns;
 extern char * opt_uchimeout;
+extern char * opt_udb2fasta;
+extern char * opt_udbinfo;
+extern char * opt_udbstats;
 extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double * opt_ee_cutoffs_values;
@@ -320,6 +323,7 @@ extern double opt_minsizeratio;
 extern double opt_minsl;
 extern double opt_query_cov;
 extern double opt_sample_pct;
+extern double opt_sintax_cutoff;
 extern double opt_target_cov;
 extern double opt_unoise_alpha;
 extern double opt_weak_id;
@@ -328,9 +332,6 @@ extern int opt_acceptall;
 extern int opt_alignwidth;
 extern int opt_cons_truncate;
 extern int opt_ee_cutoffs_count;
-extern int opt_length_cutoffs_increment;
-extern int opt_length_cutoffs_longest;
-extern int opt_length_cutoffs_shortest;
 extern int opt_gap_extension_query_interior;
 extern int opt_gap_extension_query_left;
 extern int opt_gap_extension_query_right;
@@ -344,6 +345,9 @@ extern int opt_gap_open_target_interior;
 extern int opt_gap_open_target_left;
 extern int opt_gap_open_target_right;
 extern int opt_help;
+extern int opt_length_cutoffs_increment;
+extern int opt_length_cutoffs_longest;
+extern int opt_length_cutoffs_shortest;
 extern int opt_mindiffs;
 extern int opt_slots;
 extern int opt_uchimeout5;

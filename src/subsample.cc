@@ -120,8 +120,6 @@ void subsample()
   for(int i=0; i<dbsequencecount; i++)
     abundance[i] = 0;
 
-  random_init();
-
   uint64_t n;                              /* number of reads to sample */
   if (opt_sample_size)
     n = opt_sample_size;
