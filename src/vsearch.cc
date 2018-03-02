@@ -2486,7 +2486,7 @@ void cmd_help()
               "Taxonomic classification\n"
               "  --sintax FILENAME           classify sequences in given FASTA/FASTQ file\n"
               " Parameters\n"
-              "  --db FILENAME               taxnomic reference db in given FASTA or UDB file\n"
+              "  --db FILENAME               taxonomic reference db in given FASTA or UDB file\n"
               "  --sintax_cutoff REAL        confidence value cutoff level (0.0)\n"
               " Output\n"
               "  --tabbedout FILENAME        write results to given tab-delimited file\n"
