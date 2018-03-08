@@ -2852,8 +2852,6 @@ void show_header()
 
 int main(int argc, char** argv)
 {
-  random_init();
-
   fillheader();
 
   getentirecommandline(argc, argv);
@@ -2877,6 +2875,8 @@ int main(int argc, char** argv)
       strftime(time_string, 26, "%c", & tm_start);
       fprintf(fp_log, "Started  %s\n", time_string);
     }
+
+  random_init();
 
   show_header();
 
