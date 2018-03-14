@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/torognes/vsearch.svg?branch=master)](https://travis-ci.org/torognes/vsearch)
+
 # VSEARCH
 
 ## Introduction
@@ -136,6 +138,8 @@ When compiling VSEARCH the header files for the following two optional libraries
 On Windows these libraries are called zlib1.dll and bz2.dll.
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
+
+To create the PDF file with the manual the ps2pdf tool is required. It is part of the ghostscript package.
 
 
 ## VSEARCH license and third party licenses
