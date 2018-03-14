@@ -1,0 +1,18 @@
+language:
+- cpp
+
+os:
+- linux
+- osx
+
+compiler:
+- g++
+- clang
+
+install:
+- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install ghostscript; else brew install ghostscript; fi
+
+script:
+- ./autogen.sh
+- ./configure
+- make
