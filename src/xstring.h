@@ -65,16 +65,16 @@ class xstring
   char * string;
   size_t length;
   size_t alloc;
-  
+
  public:
-  
+
   xstring()
     {
       length = 0;
       alloc = 0;
       string = 0;
     }
-  
+
   ~xstring()
     {
       if (alloc > 0)
@@ -88,7 +88,7 @@ class xstring
   {
     length = 0;
   }
-  
+
   char * get_string()
   {
     if (length > 0)
@@ -114,7 +114,7 @@ class xstring
     length += 1;
     string[length] = 0;
   }
-  
+
   void add_d(int d)
   {
     int needed = snprintf(0, 0, "%d", d);
@@ -128,7 +128,7 @@ class xstring
     sprintf(string + length, "%d", d);
     length += needed;
   }
-  
+
   void add_s(char * s)
   {
     size_t needed = strlen(s);

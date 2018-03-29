@@ -110,7 +110,7 @@ void subsample()
   else
     for(int i=0; i<dbsequencecount; i++)
       mass_total += db_getabundance(i);
-  
+
   fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
           mass_total, dbsequencecount);
 
@@ -136,7 +136,7 @@ void subsample()
 
   uint64_t mass =                          /* mass of current amplicon */
     opt_sizein ? db_getabundance(0) : 1;
-  
+
   progress_init("Subsampling", mass_total);
   while (x > 0)
     {
@@ -211,7 +211,7 @@ void subsample()
                                 ab_discarded,
                                 discarded,
                                 -1, -1, 0, 0.0);
-          
+
           if (opt_fastqout_discarded)
             fastq_print_general(fp_fastqout_discarded,
                                 db_getsequence(i),

@@ -98,7 +98,7 @@ void dbhash_open(uint64_t maxelements)
       dbhash_shift++;
     }
   dbhash_mask = dbhash_size - 1;
-  
+
   dbhash_table = (struct dbhash_bucket_s *)
     xmalloc(sizeof(dbhash_bucket_s) * dbhash_size);
   memset(dbhash_table, 0, sizeof(dbhash_bucket_s) * dbhash_size);
@@ -119,7 +119,7 @@ int64_t dbhash_search_first(char * seq,
                         uint64_t seqlen,
                         struct dbhash_search_info_s * info)
 {
-  
+
   uint64_t hash = hash_cityhash64(seq, seqlen);
   info->hash = hash;
   info->seq = seq;
@@ -138,7 +138,7 @@ int64_t dbhash_search_first(char * seq,
     }
 
   info->index = index;
-  
+
   if (bitmap_get(dbhash_bitmap, index))
     return bp->seqno;
   else
@@ -164,7 +164,7 @@ int64_t dbhash_search_next(struct dbhash_search_info_s * info)
     }
 
   info->index = index;
-  
+
   if (bitmap_get(dbhash_bitmap, index))
     return bp->seqno;
   else
@@ -174,11 +174,11 @@ int64_t dbhash_search_next(struct dbhash_search_info_s * info)
 void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
 {
   struct dbhash_search_info_s info;
-  
+
   int64_t ret = dbhash_search_first(seq, seqlen, & info);
   while (ret >= 0)
     ret = dbhash_search_next(&info);
-  
+
   bitmap_set(dbhash_bitmap, info.index);
   struct dbhash_bucket_s * bp = dbhash_table + info.index;
   bp->hash = info.hash;

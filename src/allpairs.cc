@@ -125,7 +125,7 @@ void allpairs_output_results(int hit_count,
                         toreport,
                         query_head,
                         qsequence,
-                        qseqlen, 
+                        qseqlen,
                         qsequence_rc);
 
   if (fp_samout)
@@ -134,23 +134,23 @@ void allpairs_output_results(int hit_count,
                         toreport,
                         query_head,
                         qsequence,
-                        qseqlen, 
+                        qseqlen,
                         qsequence_rc);
 
   if (toreport)
     {
       double top_hit_id = hits[0].id;
-      
+
       for(int t = 0; t < toreport; t++)
         {
           struct hit * hp = hits + t;
 
           if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
-              
+
           if (fp_fastapairs)
             results_show_fastapairs_one(fp_fastapairs,
-                                        hp, 
+                                        hp,
                                         query_head,
                                         qsequence,
                                         qseqlen,
@@ -165,15 +165,15 @@ void allpairs_output_results(int hit_count,
                                   qseqlen,
                                   qsequence_rc,
                                   hp->target);
-              
+
           if (fp_userout)
             results_show_userout_one(fp_userout,
                                      hp,
-                                     query_head, 
+                                     query_head,
                                      qsequence,
                                      qseqlen,
                                      qsequence_rc);
-              
+
           if (fp_blast6out)
             results_show_blast6out_one(fp_blast6out,
                                        hp,
@@ -193,7 +193,7 @@ void allpairs_output_results(int hit_count,
                             qseqlen,
                             qsequence_rc,
                             0);
-      
+
       if (opt_output_no_hits)
         {
           if (fp_userout)
@@ -249,7 +249,7 @@ void allpairs_thread_run(int64_t t)
   struct searchinfo_s sia;
 
   struct searchinfo_s * si = & sia;
-  
+
   si->strand = 0;
   si->query_head_alloc = 0;
   si->seq_alloc = 0;
@@ -298,9 +298,9 @@ void allpairs_thread_run(int64_t t)
 
   /* allocate memory for alignment results */
   unsigned int maxhits = seqcount;
-  unsigned int * pseqnos = 
+  unsigned int * pseqnos =
     (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
-  CELL * pscores = 
+  CELL * pscores =
     (CELL*) xmalloc(sizeof(CELL) * maxhits);
   unsigned short * paligned =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
@@ -314,13 +314,13 @@ void allpairs_thread_run(int64_t t)
 
   struct hit * finalhits
     = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
-  
+
   bool cont = 1;
 
   while (cont)
     {
       pthread_mutex_lock(&mutex_input);
-      
+
       int query_no = queries;
 
       if (query_no < seqcount)
@@ -341,19 +341,19 @@ void allpairs_thread_run(int64_t t)
           si->accepts = 0;
           si->hit_count = 0;
 
-          for(int target = si->query_no + 1; 
+          for(int target = si->query_no + 1;
               target < seqcount; target++)
             {
               if (opt_acceptall || search_acceptable_unaligned(si, target))
                 pseqnos[si->hit_count++] = target;
             }
-          
+
           if (si->hit_count)
             {
               /* perform alignments */
 
               search16_qprep(si->s, si->qsequence, si->qseqlen);
-              
+
               search16(si->s,
                        si->hit_count,
                        pseqnos,
@@ -363,33 +363,33 @@ void allpairs_thread_run(int64_t t)
                        pmismatches,
                        pgaps,
                        pcigar);
-              
+
               /* convert to hit structure */
               for (int h = 0; h < si->hit_count; h++)
                 {
                   struct hit * hit = si->hits + h;
-                  
+
                   unsigned int target = pseqnos[h];
                   int64_t nwscore = pscores[h];
-                  
+
                   char * nwcigar;
                   int64_t nwalignmentlength;
                   int64_t nwmatches;
                   int64_t nwmismatches;
                   int64_t nwgaps;
-                  
+
                   if (nwscore == SHRT_MAX)
                     {
                       /* In case the SIMD aligner cannot align,
                          perform a new alignment with the
                          linear memory aligner */
-                      
+
                       char * tseq = db_getsequence(target);
                       int64_t tseqlen = db_getsequencelen(target);
-                      
+
                       if (pcigar[h])
                         xfree(pcigar[h]);
-                      
+
                       nwcigar = xstrdup(lma.align(si->qsequence,
                                                  tseq,
                                                  si->qseqlen,
@@ -411,16 +411,16 @@ void allpairs_thread_run(int64_t t)
                       nwmismatches = pmismatches[h];
                       nwgaps = pgaps[h];
                     }
-                  
+
                   hit->target = target;
                   hit->strand = 0;
                   hit->count = 0;
-                  
+
                   hit->accepted = 0;
                   hit->rejected = 0;
                   hit->aligned = 1;
                   hit->weak = 0;
-                  
+
                   hit->nwscore = nwscore;
                   hit->nwdiff = nwalignmentlength - nwmatches;
                   hit->nwgaps = nwgaps;
@@ -431,27 +431,27 @@ void allpairs_thread_run(int64_t t)
                   hit->nwalignment = nwcigar;
                   hit->matches = nwalignmentlength - hit->nwdiff;
                   hit->mismatches = hit->nwdiff - hit->nwindels;
-                  
+
                   int64_t dseqlen = db_getsequencelen(target);
                   hit->shortest = MIN(si->qseqlen, dseqlen);
                   hit->longest = MAX(si->qseqlen, dseqlen);
-                  
+
                   /* trim alignment, compute numbers excluding terminal gaps */
                   align_trim(hit);
-                  
+
                   /* test accept/reject criteria after alignment */
                   if (opt_acceptall || search_acceptable_aligned(si, hit))
                     finalhits[si->accepts++] = *hit;
                 }
-              
+
               /* sort hits */
               qsort(finalhits, si->accepts,
                     sizeof(struct hit), allpairs_hit_compare);
             }
-          
+
           /* lock mutex for update of global data and output */
           pthread_mutex_lock(&mutex_output);
-          
+
           /* output results */
           allpairs_output_results(si->accepts,
                                   finalhits,
@@ -459,17 +459,17 @@ void allpairs_thread_run(int64_t t)
                                   si->qseqlen,
                                   si->qsequence,
                                   0);
-          
+
           /* update stats */
           if (si->accepts)
             qmatches++;
-          
+
           /* show progress */
           progress += seqcount - query_no - 1;
           progress_update(progress);
-          
+
           pthread_mutex_unlock(&mutex_output);
-          
+
           /* free memory for alignment strings */
           for(int i=0; i < si->hit_count; i++)
             if (si->hits[i].aligned)
@@ -516,7 +516,7 @@ void allpairs_thread_worker_run()
 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
+
   /* init and create worker threads, put them into stand-by mode */
   for(int t=0; t<opt_threads; t++)
     {
@@ -629,14 +629,14 @@ void allpairs_global(char * cmdline, char * progheader)
   progress_init("Aligning", MAX(0,((int64_t)seqcount)*((int64_t)seqcount-1))/2);
   allpairs_thread_worker_run();
   progress_done();
-  
+
   if (!opt_quiet)
-    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
+    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n",
             qmatches, queries, 100.0 * qmatches / queries);
 
   if (opt_log)
     {
-      fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n\n", 
+      fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n\n",
               qmatches, queries, 100.0 * qmatches / queries);
     }
 

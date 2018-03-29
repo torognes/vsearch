@@ -68,7 +68,7 @@ void results_show_fastapairs_one(FILE * fp,
                                  char * rc)
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
-  
+
   if (hp)
     {
       char * qrow = align_getrow(hp->strand ? rc : qsequence,
@@ -115,14 +115,14 @@ void results_show_fastapairs_one(FILE * fp,
 void results_show_blast6out_one(FILE * fp,
                                 struct hit * hp,
                                 char * query_head,
-                                char * qsequence, 
+                                char * qsequence,
                                 int64_t qseqlen,
                                 char * rc)
 {
 
-  /* 
+  /*
      http://www.drive5.com/usearch/manual/blast6out.html
-  
+
      query label
      target label
      percent identity
@@ -139,11 +139,11 @@ void results_show_blast6out_one(FILE * fp,
      Note that USEARCH shows 13 fields when there is no hit,
      but only 12 when there is a hit. Fixed in VSEARCH.
   */
-  
+
   if (hp)
     {
       int qstart, qend;
-      
+
       if (hp->strand)
         {
           /* minus strand */
@@ -156,7 +156,7 @@ void results_show_blast6out_one(FILE * fp,
           qstart = 1;
           qend = qseqlen;
         }
-      
+
       fprintf(fp,
               "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
               query_head,
@@ -238,7 +238,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
         fprintf(fp, "\t");
 
       int field = userfields_requested[c];
-          
+
       char * tsequence = 0;
       int64_t tseqlen = 0;
       char * t_head = 0;
@@ -321,7 +321,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
         case 21: /* bits */
           fprintf(fp, "%d", 0);
           break;
-        case 22: /* aln */ 
+        case 22: /* aln */
           if (hp)
             align_fprint_uncompressed_alignment(fp, hp->nwalignment);
           break;
@@ -434,13 +434,13 @@ void results_show_alnout(FILE * fp,
 
       fprintf(fp,"Query >%s\n", query_head);
       fprintf(fp," %%Id   TLen  Target\n");
-      
+
       double top_hit_id = hits[0].id;
 
       for(int t = 0; t < hitcount; t++)
         {
           struct hit * hp = hits + t;
-          
+
           if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
 
@@ -453,25 +453,25 @@ void results_show_alnout(FILE * fp,
       for(int t = 0; t < hitcount; t++)
         {
           struct hit * hp = hits + t;
-          
+
           if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
 
           fprintf(fp,"\n");
-          
+
 
           char * dseq = db_getsequence(hp->target);
           int64_t dseqlen = db_getsequencelen(hp->target);
-          
+
           int qlenlen = snprintf(0, 0, "%" PRId64, qseqlen);
           int tlenlen = snprintf(0, 0, "%" PRId64, dseqlen);
           int numwidth = MAX(qlenlen, tlenlen);
-          
+
           fprintf(fp," Query %*" PRId64 "nt >%s\n", numwidth,
                   qseqlen, query_head);
           fprintf(fp,"Target %*" PRId64 "nt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
-          
+
           int rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
 
           align_show(fp,
@@ -484,13 +484,13 @@ void results_show_alnout(FILE * fp,
                      hp->trim_t_left,
                      "Tgt",
                      hp->nwalignment + hp->trim_aln_left,
-                     strlen(hp->nwalignment) 
+                     strlen(hp->nwalignment)
                      - hp->trim_aln_left - hp->trim_aln_right,
                      numwidth,
                      3,
                      rowlen,
                      hp->strand);
-          
+
           fprintf(fp, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
                   hp->internal_alignmentlength,
                   hp->matches,
@@ -531,10 +531,10 @@ void build_sam_strings(char * alignment,
                        xstring * md)
 {
   /*
-    convert cigar to sam format: 
+    convert cigar to sam format:
     add "1" to operations without run length
     flip direction of indels in cigar string
-    
+
     build MD-string with substitutions
   */
 
@@ -602,7 +602,7 @@ void build_sam_strings(char * alignment,
               matched = 0;
               flag = 1;
             }
-          
+
           md->add_c('^');
           for(int i=0; i<run; i++)
             md->add_c(targetseq[tpos++]);
@@ -626,7 +626,7 @@ void results_show_samheader(FILE * fp,
   if (opt_samout && opt_samheader)
     {
       fprintf(fp, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
-      
+
       for(uint64_t i=0; i<db_getsequencecount(); i++)
         {
           char md5hex[LEN_HEX_DIG_MD5];
@@ -657,11 +657,11 @@ void results_show_samout(FILE * fp,
                          int64_t qseqlen,
                          char * rc)
 {
-  /* 
+  /*
      SAM format output
-     
-     http://samtools.github.io/hts-specs/SAMv1.pdf 
-     http://www.drive5.com/usearch/manual/sam_files.html 
+
+     http://samtools.github.io/hts-specs/SAMv1.pdf
+     http://www.drive5.com/usearch/manual/sam_files.html
      http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#sam-output
      http://davetang.org/muse/2011/01/28/perl-and-sam/
 
@@ -678,7 +678,7 @@ void results_show_samout(FILE * fp,
      10: seq, segment of sequence
      11: qual, ascii of phred based quality+33 (*)
      12: optional tags (tag:type:value)
-     
+
      Optional tags AS, XN, XM, XO, XG, NM, MD and YT used in usearch8.
 
      Usearch8:
@@ -693,18 +693,18 @@ void results_show_samout(FILE * fp,
      YT:Z:UU string representing alignment type
 
   */
-  
+
   if (hitcount > 0)
     {
       double top_hit_id = hits[0].id;
-      
+
       for(int t = 0; t < hitcount; t++)
         {
           struct hit * hp = hits + t;
-          
+
           if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
-          
+
           /*
 
           */

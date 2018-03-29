@@ -12,10 +12,10 @@ Still 100% Public Domain
 
 Corrected a problem which generated improper hash values on 16 bit machines
 Routine SHA1Update changed from
-	void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int
+  void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int
 len)
 to
-	void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned
+  void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned
 long len)
 
 The 'len' parameter was declared an int which works fine on 32 bit machines.
@@ -117,13 +117,13 @@ void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64]);
 #ifdef VERBOSE  /* SAK */
 void SHAPrintContext(SHA1_CTX *context, char *msg){
   printf("%s (%d,%d) %x %x %x %x %x\n",
-	 msg,
-	 context->count[0], context->count[1],
-	 context->state[0],
-	 context->state[1],
-	 context->state[2],
-	 context->state[3],
-	 context->state[4]);
+    msg,
+    context->count[0], context->count[1],
+    context->state[0],
+    context->state[1],
+    context->state[2],
+    context->state[3],
+    context->state[4]);
 }
 #endif /* VERBOSE */
 
@@ -253,7 +253,7 @@ void SHA1_Final(SHA1_CTX* context, uint8_t digest[SHA1_DIGEST_SIZE])
     memset(context->buffer, 0, 64);
     memset(context->state, 0, 20);
     memset(context->count, 0, 8);
-    memset(finalcount, 0, 8);	/* SWR */
+    memset(finalcount, 0, 8); /* SWR */
 
 #ifdef SHA1HANDSOFF  /* make SHA1Transform overwrite its own static vars */
     SHA1_Transform(context->state, context->buffer);
@@ -272,7 +272,7 @@ FILE* file;
 
     if (argc > 2) {
         puts("Public domain SHA-1 implementation - by Steve Reid <sreid@sea-to-sky.net>");
-        puts("Modified for 16 bit environments 7/98 - by James H. Brown <jbrown@burgoyne.com>");	/* JHB */
+        puts("Modified for 16 bit environments 7/98 - by James H. Brown <jbrown@burgoyne.com>");  /* JHB */
         puts("Produces the SHA-1 hash of a file, or stdin if no file is specified.");
         return(0);
     }
@@ -299,7 +299,7 @@ FILE* file;
         putchar(' ');
     }
     putchar('\n');
-    return(0);	/* JHB */
+    return(0);  /* JHB */
 }
 #endif
 
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
         SHA1_Init(&context);
         SHA1_Update(&context, (uint8_t*)test_data[k], strlen(test_data[k]));
         SHA1_Final(&context, digest);
-	digest_to_hex(digest, output);
+  digest_to_hex(digest, output);
 
         if (strcmp(output, test_results[k])) {
             fprintf(stdout, "FAIL\n");

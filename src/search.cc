@@ -112,7 +112,7 @@ void search_output_results(int hit_count,
                         toreport,
                         query_head,
                         qsequence,
-                        qseqlen, 
+                        qseqlen,
                         qsequence_rc);
 
   if (fp_samout)
@@ -121,7 +121,7 @@ void search_output_results(int hit_count,
                         toreport,
                         query_head,
                         qsequence,
-                        qseqlen, 
+                        qseqlen,
                         qsequence_rc);
 
   if (toreport)
@@ -139,10 +139,10 @@ void search_output_results(int hit_count,
 
           if (opt_top_hits_only && (hp->id < top_hit_id))
             break;
-              
+
           if (fp_fastapairs)
             results_show_fastapairs_one(fp_fastapairs,
-                                        hp, 
+                                        hp,
                                         query_head,
                                         qsequence,
                                         qseqlen,
@@ -157,15 +157,15 @@ void search_output_results(int hit_count,
                                   qseqlen,
                                   qsequence_rc,
                                   hp->target);
-              
+
           if (fp_userout)
             results_show_userout_one(fp_userout,
                                      hp,
-                                     query_head, 
+                                     query_head,
                                      qsequence,
                                      qseqlen,
                                      qsequence_rc);
-              
+
           if (fp_blast6out)
             results_show_blast6out_one(fp_blast6out,
                                        hp,
@@ -185,7 +185,7 @@ void search_output_results(int hit_count,
                             qseqlen,
                             qsequence_rc,
                             0);
-      
+
       if (opt_output_no_hits)
         {
           if (fp_userout)
@@ -239,7 +239,7 @@ void search_output_results(int hit_count,
   for (int i=0; i < hit_count; i++)
     if (hits[i].accepted)
       dbmatched[hits[i].target]++;
-  
+
   pthread_mutex_unlock(&mutex_output);
 }
 
@@ -294,7 +294,7 @@ void search_thread_run(int64_t t)
   while (1)
     {
       pthread_mutex_lock(&mutex_input);
-      
+
       if (fasta_next(query_fasta_h,
                      ! opt_notrunclabels,
                      chrmap_no_change))
@@ -305,26 +305,26 @@ void search_thread_run(int64_t t)
           int qseqlen = fasta_get_sequence_length(query_fasta_h);
           int query_no = fasta_get_seqno(query_fasta_h);
           int qsize = fasta_get_abundance(query_fasta_h);
-          
+
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
-              
+
               si->query_head_len = query_head_len;
               si->qseqlen = qseqlen;
               si->query_no = query_no;
               si->qsize = qsize;
               si->strand = s;
-              
+
               /* allocate more memory for header and sequence, if necessary */
-              
+
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
                   si->query_head = (char*)
                     xrealloc(si->query_head, (size_t)(si->query_head_alloc));
                 }
-              
+
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
@@ -332,17 +332,17 @@ void search_thread_run(int64_t t)
                     xrealloc(si->qsequence, (size_t)(si->seq_alloc));
                 }
             }
-              
+
           /* plus strand: copy header and sequence */
           strcpy(si_plus[t].query_head, qhead);
           strcpy(si_plus[t].qsequence, qseq);
-          
+
           /* get progress as amount of input file read */
           uint64_t progress = fasta_get_position(query_fasta_h);
 
           /* let other threads read input */
           pthread_mutex_unlock(&mutex_input);
-          
+
           /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
             {
@@ -351,9 +351,9 @@ void search_thread_run(int64_t t)
                                  si_plus[t].qsequence,
                                  si_plus[t].qseqlen);
             }
-          
+
           int match = search_query(t);
-          
+
           /* lock mutex for update of global data and output */
           pthread_mutex_lock(&mutex_output);
 
@@ -442,7 +442,7 @@ void search_thread_worker_run()
 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
+
   /* init and create worker threads, put them into stand-by mode */
   for(int t=0; t<opt_threads; t++)
     {
@@ -651,14 +651,14 @@ void usearch_global(char * cmdline, char * progheader)
   query_fasta_h = fasta_open(opt_usearch_global);
 
   /* allocate memory for thread info */
-  si_plus = (struct searchinfo_s *) xmalloc(opt_threads * 
+  si_plus = (struct searchinfo_s *) xmalloc(opt_threads *
                                             sizeof(struct searchinfo_s));
   if (opt_strand > 1)
-    si_minus = (struct searchinfo_s *) xmalloc(opt_threads * 
+    si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
                                                sizeof(struct searchinfo_s));
   else
     si_minus = 0;
-  
+
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
@@ -668,7 +668,7 @@ void usearch_global(char * cmdline, char * progheader)
   progress_init("Searching", fasta_get_size(query_fasta_h));
   search_thread_worker_run();
   progress_done();
-  
+
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);
 
@@ -680,11 +680,11 @@ void usearch_global(char * cmdline, char * progheader)
   fasta_close(query_fasta_h);
 
   if (!opt_quiet)
-    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", 
+    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n",
             qmatches, queries, 100.0 * qmatches / queries);
 
   if (opt_log)
-    fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n", 
+    fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n",
             qmatches, queries, 100.0 * qmatches / queries);
 
   if (opt_biomout)

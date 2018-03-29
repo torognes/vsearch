@@ -129,7 +129,7 @@ int unique_compare(const void * a, const void * b)
 }
 
 
-void unique_count_bitmap(struct uhandle_s * uh, 
+void unique_count_bitmap(struct uhandle_s * uh,
                          int k,
                          int seqlen,
                          char * seq,
@@ -146,17 +146,17 @@ void unique_count_bitmap(struct uhandle_s * uh,
       uh->list = (unsigned int *)
         xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
     }
-  
+
   uint64_t size = 1ULL << (k << 1ULL);
-  
+
   /* reallocate bitmap arrays if necessary */
-  
+
   if (uh->bitmap_size < size)
     {
       uh->bitmap = (uint64_t *) xrealloc(uh->bitmap, size >> 3ULL);
       uh->bitmap_size = size;
     }
-  
+
   memset(uh->bitmap, 0, size >> 3ULL);
 
   uint64_t bad = 0;
@@ -170,7 +170,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
 
   unsigned int * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
-  
+
   while (s < e1)
     {
       bad <<= 2ULL;
@@ -209,7 +209,7 @@ void unique_count_bitmap(struct uhandle_s * uh,
   *list = uh->list;
 }
 
-void unique_count_hash(struct uhandle_s * uh, 
+void unique_count_hash(struct uhandle_s * uh,
                        int k,
                        int seqlen,
                        char * seq,
@@ -228,16 +228,16 @@ void unique_count_hash(struct uhandle_s * uh,
       uh->list = (unsigned int *)
         xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
     }
-  
+
   /* hashtable variant */
 
   uh->size = 1;
   while (uh->size < 2*seqlen)
     uh->size *= 2;
   uh->hash_mask = uh->size - 1;
-      
+
   memset(uh->hash, 0, sizeof(struct bucket_s) * uh->size);
-      
+
   uint64_t bad = 0;
   uint64_t j;
   unsigned int kmer = 0;
@@ -247,7 +247,7 @@ void unique_count_hash(struct uhandle_s * uh,
   char * e2 = s + seqlen;
   if (e2 < e1)
     e1 = e2;
-      
+
   unsigned int * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
 
@@ -278,7 +278,7 @@ void unique_count_hash(struct uhandle_s * uh,
           j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
           while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
             j = (j + 1) & uh->hash_mask;
-              
+
           if (!(uh->hash[j].count))
             {
               /* not seen before */
@@ -288,12 +288,12 @@ void unique_count_hash(struct uhandle_s * uh,
             }
         }
     }
-      
+
   *listlen = unique;
   *list = uh->list;
 }
 
-void unique_count(struct uhandle_s * uh, 
+void unique_count(struct uhandle_s * uh,
                   int k,
                   int seqlen,
                   char * seq,
@@ -314,7 +314,7 @@ int unique_count_shared(struct uhandle_s * uh,
 {
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
-  
+
   int count = 0;
   if (k<10)
     {

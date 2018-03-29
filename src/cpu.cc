@@ -66,8 +66,8 @@
 #ifdef __PPC__
 
 void increment_counters_from_bitmap(unsigned short * counters,
-				    unsigned char * bitmap,
-				    unsigned int totalbits)
+            unsigned char * bitmap,
+            unsigned int totalbits)
 {
   const vector unsigned char c1 =
     { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -81,7 +81,7 @@ void increment_counters_from_bitmap(unsigned short * counters,
   unsigned short * p = (unsigned short *)(bitmap);
   vector signed short * q = (vector signed short *) (counters);
   int r = (totalbits + 15) / 16;
-   
+
   for(int j=0; j<r; j++)
     {
       vector unsigned char r0, r1, r2;
@@ -117,12 +117,12 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
   /*
     Increment selected elements in an array of 16 bit counters.
     The counters to increment are indicated by 1's in the bitmap.
-    
+
     We read 16 bytes from the bitmap, but use only two bytes (16 bits).
     Convert these 16 bits into 16 bytes with either 0x00 or 0xFF.
     Extend these to 16 words (32 bytes) with either 0x0000 or 0xFFFF.
     Use these values to increment 16 words in an array by subtraction.
-    
+
     See article below for some hints:
     http://stackoverflow.com/questions/21622212/
     how-to-perform-the-inverse-of-mm256-movemask-epi8-vpmovmskb
@@ -137,7 +137,7 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
     _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
 #endif
 
-  const __m128i c2 = 
+  const __m128i c2 =
     _mm_set_epi32(0x7fbfdfef, 0xf7fbfdfe, 0x7fbfdfef, 0xf7fbfdfe);
 
   const __m128i c3 =
@@ -146,7 +146,7 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
   unsigned short * p = (unsigned short *)(bitmap);
   __m128i * q = (__m128i *)(counters);
   int r = (totalbits + 15) / 16;
-   
+
   for(int j=0; j<r; j++)
     {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
