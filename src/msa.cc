@@ -327,7 +327,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   if (fp_consout)
     {
       fasta_print_general(fp_consout,
-                          "consensus=",
+                          "centroid=",
                           cons,
                           conslen,
                           db_getheader(centroid_seqno),
@@ -342,7 +342,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   if (fp_profile)
     {
       fasta_print_general(fp_profile,
-                          "consensus=",
+                          "centroid=",
                           0,
                           0,
                           db_getheader(centroid_seqno),
