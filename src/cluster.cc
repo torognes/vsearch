@@ -149,7 +149,7 @@ inline int compare_byclusterabundance(const void * a, const void * b)
 inline void cluster_query_core(struct searchinfo_s * si)
 {
   /* the main core function for clustering */
-  
+
   /* get sequence etc */
   int seqno = si->query_no;
   si->query_head_len = db_getheaderlen(seqno);
@@ -160,7 +160,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
     reverse_complement(si->qsequence, db_getsequence(seqno), si->qseqlen);
   else
     strcpy(si->qsequence, db_getsequence(seqno));
-  
+
   /* perform search */
   search_onequery(si, opt_qmask);
 }
@@ -221,7 +221,7 @@ void threads_wakeup(int queries)
       pthread_cond_signal(&tip->cond);
       pthread_mutex_unlock(&tip->mutex);
     }
-  
+
   /* wait for theads to finish their work */
   for(int t=0; t < threads; t++)
     {
@@ -237,10 +237,10 @@ void threads_init()
 {
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
+
   /* allocate memory for thread info */
   ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
-  
+
   /* init and create worker threads */
   for(int t=0; t < opt_threads; t++)
     {
@@ -259,7 +259,7 @@ void threads_exit()
   for(int t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
-      
+
       /* tell worker to quit */
       pthread_mutex_lock(&tip->mutex);
       tip->work = -1;
@@ -321,7 +321,7 @@ void cluster_query_exit(struct searchinfo_s * si)
   unique_exit(si->uh);
   minheap_exit(si->m);
   nw_exit(si->nw);
-  
+
   if (si->qsequence)
     xfree(si->qsequence);
   if (si->hits)
@@ -382,17 +382,17 @@ void cluster_core_results_hit(struct hit * best,
                         best, query_head,
                         qsequence, qseqlen, qsequence_rc,
                         clusterno);
-  
+
   if (fp_alnout)
     results_show_alnout(fp_alnout,
                         best, 1, query_head,
                         qsequence, qseqlen, qsequence_rc);
-  
+
   if (fp_samout)
     results_show_samout(fp_samout,
                         best, 1, query_head,
                         qsequence, qseqlen, qsequence_rc);
-  
+
   if (fp_fastapairs)
     results_show_fastapairs_one(fp_fastapairs,
                                 best,
@@ -400,15 +400,15 @@ void cluster_core_results_hit(struct hit * best,
                                 qsequence,
                                 qseqlen,
                                 qsequence_rc);
-  
+
   if (fp_userout)
-    results_show_userout_one(fp_userout, best, query_head, 
+    results_show_userout_one(fp_userout, best, query_head,
                              qsequence, qseqlen, qsequence_rc);
-  
+
   if (fp_blast6out)
     results_show_blast6out_one(fp_blast6out, best, query_head,
                                qsequence, qseqlen, qsequence_rc);
-  
+
   if (opt_matched)
     fasta_print_general(fp_matched,
                         0,
@@ -447,18 +447,18 @@ void cluster_core_results_nohit(int clusterno,
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
               clusters, qseqlen, query_head);
     }
-  
+
   if (opt_output_no_hits)
     {
       if (fp_userout)
-        results_show_userout_one(fp_userout, 0, query_head, 
+        results_show_userout_one(fp_userout, 0, query_head,
                                  qsequence, qseqlen, qsequence_rc);
-      
+
       if (fp_blast6out)
         results_show_blast6out_one(fp_blast6out, 0, query_head,
                                    qsequence, qseqlen, qsequence_rc);
     }
-  
+
   if (opt_notmatched)
     fasta_print_general(fp_notmatched,
                         0,
@@ -475,7 +475,7 @@ int compare_kmersample(const void * a, const void * b)
 {
   unsigned int x = * (unsigned int *) a;
   unsigned int y = * (unsigned int *) b;
-  
+
   if (x < y)
     return -1;
   else if (x > y)
@@ -527,7 +527,7 @@ void cluster_core_parallel()
                      opt_gap_extension_target_interior,
                      opt_gap_extension_query_right,
                      opt_gap_extension_target_right);
-  
+
   int aligncount = 0;
 
   int lastlength = INT_MAX;
@@ -544,7 +544,7 @@ void cluster_core_parallel()
       /* read query sequences into the search info (si) for each thread */
 
       int queries = 0;
-      
+
       for(int i = 0; i < max_queries; i++)
         {
           if (seqno < seqcount)
@@ -574,7 +574,7 @@ void cluster_core_parallel()
 
       /* perform work in threads */
       threads_wakeup(queries);
-      
+
       /* analyse results */
       int extra_count = 0;
 
@@ -582,7 +582,7 @@ void cluster_core_parallel()
         {
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m = opt_strand > 1 ? si_minus + i : 0;
-          
+
           for(int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
@@ -593,11 +593,11 @@ void cluster_core_parallel()
                 {
                   /* Check if there is a hit with one of the non-matching
                      extra sequences just analysed in this round */
-                  
+
                   for (int j=0; j<extra_count; j++)
                     {
                       struct searchinfo_s * sic = si_plus + extra_list[j];
-                      
+
                       /* find the number of shared unique kmers */
                       unsigned int shared
                         = unique_count_shared(si->uh,
@@ -609,12 +609,12 @@ void cluster_core_parallel()
                       if (search_enough_kmers(si, shared))
                         {
                           unsigned int length = sic->qseqlen;
-                          
+
                           /* Go through the list of hits and see if the current
                              match is better than any on the list in terms of
                              more shared kmers (or shorter length if equal
                              no of kmers). Determine insertion point (x). */
-                          
+
                           int x = si->hit_count;
                           while ((x > 0) &&
                                  ((si->hits[x-1].count < shared) ||
@@ -622,11 +622,11 @@ void cluster_core_parallel()
                                    (db_getsequencelen(si->hits[x-1].target)
                                     > length))))
                             x--;
-                          
+
                           if (x < opt_maxaccepts + opt_maxrejects - 1)
                             {
                               /* insert into list at position x */
-                              
+
                               /* trash bottom element if no more space */
                               if (si->hit_count >= opt_maxaccepts + opt_maxrejects - 1)
                                 {
@@ -634,15 +634,15 @@ void cluster_core_parallel()
                                     xfree(si->hits[si->hit_count-1].nwalignment);
                                   si->hit_count--;
                                 }
-                              
+
                               /* move the rest down */
                               for(int z = si->hit_count; z > x; z--)
                                 si->hits[z] = si->hits[z-1];
-                              
+
                               /* init new hit */
                               struct hit * hit = si->hits + x;
                               si->hit_count++;
-                              
+
                               hit->target = sic->query_no;
                               hit->strand = si->strand;
                               hit->count = shared;
@@ -651,30 +651,30 @@ void cluster_core_parallel()
                               hit->aligned = 0;
                               hit->weak = 0;
                               hit->nwalignment = 0;
-                              
+
                               added++;
                             }
                         }
                     }
                 }
-              
+
               /* now go through the hits and determine final status of each */
 
               if (added)
                 {
                   si->rejects = 0;
                   si->accepts = 0;
-                  
+
                   /* set all statuses to undetermined */
-                  
+
                   for(int t=0; t< si->hit_count; t++)
                     {
                       si->hits[t].accepted = 0;
                       si->hits[t].rejected = 0;
                     }
-                  
+
                   for(int t = 0;
-                      (si->accepts < opt_maxaccepts) && 
+                      (si->accepts < opt_maxaccepts) &&
                         (si->rejects < opt_maxrejects) &&
                         (t < si->hit_count);
                       t++)
@@ -688,12 +688,12 @@ void cluster_core_parallel()
                           if (search_acceptable_unaligned(si, target))
                             {
                               aligncount++;
-                              
+
                               /* perform vectorized alignment */
                               /* but only using 1 sequence ! */
 
                               unsigned int nwtarget = target;
-                              
+
                               int64_t nwscore;
                               int64_t nwalignmentlength;
                               int64_t nwmatches;
@@ -707,7 +707,7 @@ void cluster_core_parallel()
                               unsigned short snwmatches;
                               unsigned short snwmismatches;
                               unsigned short snwgaps;
-                              
+
                               search16(si->s,
                                        1,
                                        & nwtarget,
@@ -717,7 +717,7 @@ void cluster_core_parallel()
                                        & snwmismatches,
                                        & snwgaps,
                                        & nwcigar);
-                              
+
                               int64_t tseqlen = db_getsequencelen(target);
 
                               if (snwscore == SHRT_MAX)
@@ -725,12 +725,12 @@ void cluster_core_parallel()
                                   /* In case the SIMD aligner cannot align,
                                      perform a new alignment with the
                                      linear memory aligner */
-                                  
+
                                   char * tseq = db_getsequence(target);
-                                  
+
                                   if (nwcigar)
                                     xfree(nwcigar);
-                                  
+
                                   nwcigar = xstrdup(lma.align(si->qsequence,
                                                              tseq,
                                                              si->qseqlen,
@@ -753,11 +753,11 @@ void cluster_core_parallel()
                                   nwmismatches = snwmismatches;
                                   nwgaps = snwgaps;
                                 }
-                              
+
 
                               int64_t nwdiff = nwalignmentlength - nwmatches;
                               int64_t nwindels = nwdiff - nwmismatches;
-                              
+
                               hit->aligned = 1;
                               hit->nwalignment = nwcigar;
                               hit->nwscore = nwscore;
@@ -771,10 +771,10 @@ void cluster_core_parallel()
                               hit->nwid = 100.0 *
                                 (nwalignmentlength - hit->nwdiff) /
                                 nwalignmentlength;
-                              
+
                               hit->shortest = MIN(si->qseqlen, tseqlen);
                               hit->longest = MAX(si->qseqlen, tseqlen);
-                              
+
                               /* trim alignment and compute numbers
                                  excluding terminal gaps */
                               align_trim(hit);
@@ -786,7 +786,7 @@ void cluster_core_parallel()
                               si->rejects++;
                             }
                         }
-                          
+
                       if (! hit->rejected)
                         {
                           /* test accept/reject criteria after alignment */
@@ -798,7 +798,7 @@ void cluster_core_parallel()
                     }
 
                   /* delete all undetermined hits */
-                  
+
                   int new_hit_count = si->hit_count;
                   for(int t=si->hit_count-1; t>=0; t--)
                     {
@@ -820,14 +820,14 @@ void cluster_core_parallel()
             best = search_findbest2_bysize(si_p, si_m);
           else
             best = search_findbest2_byid(si_p, si_m);
-            
+
           int myseqno = si_p->query_no;
-          
+
           if (best)
             {
               /* a hit was found, cluster current sequence with hit */
               int target = best->target;
-              
+
               /* output intermediate results to uc etc */
               cluster_core_results_hit(best,
                                        clusterinfo[target].clusterno,
@@ -847,19 +847,19 @@ void cluster_core_parallel()
           else
             {
               /* no hit found; add it to the list of extra sequences
-                 that must be considered by the coming queries in this 
+                 that must be considered by the coming queries in this
                  round */
               extra_list[extra_count++] = i;
-              
+
               /* update cluster info about this sequence */
               clusterinfo[myseqno].seqno = myseqno;
               clusterinfo[myseqno].clusterno = clusters;
               clusterinfo[myseqno].cigar = 0;
               clusterinfo[myseqno].strand = 0;
-              
+
               /* add current sequence to database */
               dbindex_addsequence(myseqno, opt_qmask);
-              
+
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(clusters,
                                          si_p->query_head,
@@ -869,7 +869,7 @@ void cluster_core_parallel()
                                          si_p->qsize);
               clusters++;
             }
-          
+
           /* free alignments */
           for (int s = 0; s < opt_strand; s++)
             {
@@ -882,7 +882,7 @@ void cluster_core_parallel()
 
           sum_nucleotides += si_p->qseqlen;
         }
-      
+
       progress_update(sum_nucleotides);
     }
   progress_done();
@@ -951,7 +951,7 @@ void cluster_core_serial()
         best = search_findbest2_bysize(si_p, si_m);
       else
         best = search_findbest2_byid(si_p, si_m);
-      
+
       if (best)
         {
           int target = best->target;
@@ -983,7 +983,7 @@ void cluster_core_serial()
                                      si_p->qsize);
           clusters++;
         }
-      
+
       /* free alignments */
       for (int s = 0; s < opt_strand; s++)
         {
@@ -1004,7 +1004,7 @@ void cluster_core_serial()
 }
 
 
-void cluster(char * dbname, 
+void cluster(char * dbname,
              char * cmdline,
              char * progheader)
 {
@@ -1105,18 +1105,18 @@ void cluster(char * dbname,
     dust_all();
   else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
     hardmask_all();
-  
+
   show_rusage();
-  
+
   seqcount = db_getsequencecount();
-  
+
   if (opt_cluster_fast)
     db_sortbylength();
   else if (opt_cluster_size || opt_cluster_unoise)
     db_sortbyabundance();
 
   dbindex_prepare(1, opt_qmask);
-  
+
   /* tophits = the maximum number of hits we need to store */
 
   if ((opt_maxrejects == 0) || (opt_maxrejects > seqcount))
@@ -1146,7 +1146,7 @@ void cluster(char * dbname,
       fprintf(fp_log, "         Slots  %" PRIu64 " (%.1fk)\n", slots, slots/1000.0);
       fprintf(fp_log, "       DBAccel  100%%\n");
       fprintf(fp_log, "\n");
-    }      
+    }
 
   if (opt_threads == 1)
     cluster_core_serial();
@@ -1169,7 +1169,7 @@ void cluster(char * dbname,
       cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
       cluster_size[clusterno]++;
     }
-      
+
   int64_t abundance_min = LONG_MAX;
   int64_t abundance_max = 0;
   int size_max = 0;
@@ -1238,23 +1238,23 @@ void cluster(char * dbname,
                     clusterno,
                     cluster_abundance[clusterno],
                     db_getheader(seqno));
-          
+
           if (opt_clusters)
             {
               /* close previous (except for first time) and open new file */
               if (lastcluster != -1)
                 fclose(fp_clusters);
-              
+
               ordinal = 0;
               sprintf(fn_clusters, "%s%d", opt_clusters, clusterno);
               fp_clusters = fopen_output(fn_clusters);
               if (!fp_clusters)
                 fatal("Unable to open clusters file for writing");
             }
-          
+
           lastcluster = clusterno;
         }
-      
+
       /* performed for all sequences */
 
       if (opt_clusters)
@@ -1262,7 +1262,7 @@ void cluster(char * dbname,
           ordinal++;
           fasta_print_db_relabel(fp_clusters, seqno, ordinal);
         }
-      
+
       progress_update(i);
     }
 
@@ -1464,7 +1464,7 @@ void cluster(char * dbname,
     fclose(fp_uc);
   if (fp_centroids)
     fclose(fp_centroids);
-  
+
   dbindex_free();
   db_free();
   show_rusage();

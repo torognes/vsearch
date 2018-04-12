@@ -188,7 +188,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   if (!opt_quiet)
     fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
-  
+
   /* reset counts */
   memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
@@ -197,9 +197,9 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 
   /* allocate space for mapping from indexno to seqno */
   dbindex_map = (unsigned int *) xmalloc(seqcount * sizeof(unsigned int));
-  
+
   dbindex_count = 0;
-  
+
   show_rusage();
 }
 

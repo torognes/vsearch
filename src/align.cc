@@ -121,7 +121,7 @@ inline void finishop(char ** cigarendp, char * op, int * count)
   1. left/insert/e (gap in query sequence (qseq))
   2. up/delete/f (gap in database sequence (dseq))
   3. align/diag/h (match/mismatch)
-  
+
   qseq: the reference/query/upper/vertical/from sequence
   dseq: the sample/database/lower/horisontal/to sequence
 
@@ -212,7 +212,7 @@ void nw_align(char * dseq,
 
   int64_t h, n, e, f, h_e, h_f;
   int64_t *hep;
-  
+
   int64_t qlen = qend - qseq;
   int64_t dlen = dend - dseq;
 
@@ -265,17 +265,17 @@ void nw_align(char * dseq,
     for(i=0; i<qlen; i++)
     {
       char * d = nw->dir + qlen*j+i;
-      
+
       n = *hep;
       e = *(hep+1);
       h += getscore(score_matrix, dseq[j], qseq[i]);
-      
+
       if (f > h)
-        {  
+        {
           h = f;
           *d |= maskup;
         }
-      
+
       if (e > h)
         {
           h = e;
@@ -294,7 +294,7 @@ void nw_align(char * dseq,
           h_e = h - gapopen_q_right - gapextend_q_right;
           e -= gapextend_q_right;
         }
-      
+
       if (j < dlen-1)
         {
           h_f = h - gapopen_t_interior - gapextend_t_interior;
@@ -321,9 +321,9 @@ void nw_align(char * dseq,
       hep += 2;
     }
   }
-  
+
   int64_t dist = nw->hearray[2*qlen-2];
-  
+
   /* backtrack: count differences and save alignment in cigar string */
 
   int64_t score = 0;
@@ -348,7 +348,7 @@ void nw_align(char * dseq,
     int64_t gapextend_q = (i < qlen) ? gapextend_q_interior : gapextend_q_right;
     int64_t gapopen_t   = (j < dlen) ? gapopen_t_interior   : gapopen_t_right;
     int64_t gapextend_t = (j < dlen) ? gapextend_t_interior : gapextend_t_right;
-  
+
     int d = nw->dir[qlen*(j-1)+(i-1)];
 
     alength++;
@@ -401,7 +401,7 @@ void nw_align(char * dseq,
       pushop('M', &cigarend, &op, &count);
     }
   }
-  
+
   while(i>0)
   {
     alength++;

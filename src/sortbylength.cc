@@ -147,7 +147,7 @@ void sortbylength()
     fprintf(fp_log, "Median length: %.0f\n", median);
 
   show_rusage();
-  
+
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);

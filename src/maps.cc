@@ -65,7 +65,7 @@
   fatal symbols: .-
   fatal: ascii 0-26 except tab (9), newline (10 and 13), vt (11), formfeed (12)
   stripped: !"#$&'()+,/0123456789:;<=>?@JO[\]^_`jo{|}~ and chrs 9-13, 127
-  
+
   includes both amino acid and nucleotide sequences, adapt to nt only
 */
 
@@ -136,7 +136,7 @@ unsigned int char_fq_action_seq[256] =
 
 unsigned int char_fq_action_qual[256] =
   {
-    /* 
+    /*
     Quality characters, any from 33 to 126 is valid.
     CR (^M) silently stripped.
     LF is newline.
@@ -166,7 +166,7 @@ unsigned int char_fq_action_qual[256] =
 
 unsigned int chrmap_2bit[256] =
   {
-    /* 
+    /*
 
        Map from ascii to 2-bit nucleotide code
 
@@ -177,7 +177,7 @@ unsigned int chrmap_2bit[256] =
        All others: 0
 
     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-    P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _              
+    P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
 
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -225,7 +225,7 @@ unsigned int chrmap_4bit[256] =
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
-    
+
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -255,7 +255,7 @@ unsigned int chrmap_mask_lower[256] =
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
-    
+
      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
@@ -308,7 +308,7 @@ unsigned int chrmap_mask_ambig[256] =
 const unsigned char chrmap_complement[256] =
   {
     /*
-      
+
       Map from ascii to ascii, complementary nucleotide
 
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
@@ -339,10 +339,10 @@ const unsigned char chrmap_complement[256] =
 const unsigned char chrmap_normalize[256] =
   {
     /*
-      
+
       Map from ascii to ascii
       Convert to upper case nucleotide, and replace U by T
-      
+
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
@@ -371,10 +371,10 @@ const unsigned char chrmap_normalize[256] =
 const unsigned char chrmap_upcase[256] =
   {
     /*
-      
+
       Map from ascii to ascii
       Convert to upper case nucleotide
-      
+
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
@@ -403,9 +403,9 @@ const unsigned char chrmap_upcase[256] =
 const unsigned char chrmap_no_change[256] =
   {
     /*
-      
+
       Map from ascii to ascii - no change
-      
+
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
