@@ -65,7 +65,7 @@ struct uhandle_s * unique_init();
 
 void unique_exit(struct uhandle_s * u);
 
-void unique_count(struct uhandle_s * uh, 
+void unique_count(struct uhandle_s * uh,
                   int k,
                   int seqlen,
                   char * seq,

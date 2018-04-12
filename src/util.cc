@@ -121,7 +121,7 @@ void  __attribute__((noreturn)) fatal(const char * msg)
   exit(EXIT_FAILURE);
 }
 
-void  __attribute__((noreturn)) fatal(const char * format, 
+void  __attribute__((noreturn)) fatal(const char * format,
                                       const char * message)
 {
   fprintf(stderr, "\n\n");
@@ -189,14 +189,14 @@ void show_rusage()
 #if 0
   double user_time = 0.0;
   double system_time = 0.0;
-  
+
   arch_get_user_system_time(&user_time, &system_time);
 
   double megabytes = arch_get_memused() / 1024.0 / 1024.0;
-  
+
   fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
           user_time, system_time, megabytes);
-  
+
   if (opt_log)
     fprintf(fp_log, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
             user_time, system_time, megabytes);

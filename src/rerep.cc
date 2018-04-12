@@ -85,7 +85,7 @@ void rereplicate()
     {
       n++;
       int64_t abundance = fasta_get_abundance(fh);
-      
+
       for(int64_t j=0; j<abundance; j++)
         {
           i++;
@@ -104,7 +104,7 @@ void rereplicate()
       progress_update(fasta_get_position(fh));
     }
   progress_done();
-  
+
   fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
 
   fasta_close(fh);

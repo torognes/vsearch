@@ -166,7 +166,7 @@ void derep_fulllength()
   show_rusage();
 
   int64_t dbsequencecount = db_getsequencecount();
-  
+
   /* adjust size of hash table for 2/3 fill rate */
 
   int64_t hashtablesize = 1;
@@ -206,7 +206,7 @@ void derep_fulllength()
 
   char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
   char * rc_seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
-  
+
   progress_init("Dereplicating", dbsequencecount);
   for(int64_t i=0; i<dbsequencecount; i++)
     {
@@ -231,7 +231,7 @@ void derep_fulllength()
       uint64_t hash = HASH(seq_up, seqlen);
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
-      
+
       while (
 #ifdef BITMAP
              (hash_is_occupied(j))
@@ -251,7 +251,7 @@ void derep_fulllength()
               j = 0;
             }
         }
-          
+
       if ((opt_strand > 1) && !bp->size)
         {
           /* no match on plus strand */
@@ -260,7 +260,7 @@ void derep_fulllength()
           uint64_t rc_hash = HASH(rc_seq_up, seqlen);
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
           uint64_t k = rc_hash & hash_mask;
-          
+
           while (
 #ifdef BITMAP
                  (hash_is_occupied(j))
@@ -325,7 +325,7 @@ void derep_fulllength()
 
   xfree(seq_up);
   xfree(rc_seq_up);
-  
+
   show_rusage();
 
 
@@ -342,7 +342,7 @@ void derep_fulllength()
         median = (hashtable[(clusters/2)-1].size +
                   hashtable[clusters/2].size) / 2.0;
     }
-  
+
   average = 1.0 * sumsize / clusters;
 
   if (clusters < 1)
@@ -367,7 +367,7 @@ void derep_fulllength()
     }
 
   show_rusage();
-  
+
 
   /* count selected */
 
@@ -431,7 +431,7 @@ void derep_fulllength()
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
-          
+
           for (unsigned int next = nextseqtab[bp->seqno_first];
                next != terminal;
                next = nextseqtab[next])
@@ -445,7 +445,7 @@ void derep_fulllength()
         }
       progress_done();
       show_rusage();
-      
+
       progress_init("Writing uc file, second part", clusters);
       for (int64_t i=0; i<clusters; i++)
         {
@@ -473,7 +473,7 @@ void derep_fulllength()
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
     }
-  
+
   xfree(match_strand);
   xfree(nextseqtab);
   xfree(hashtable);
@@ -501,13 +501,13 @@ void derep_prefix()
     }
 
   db_read(opt_derep_prefix, 0);
-  
+
   db_sortbylength_shortest_first();
 
   show_rusage();
 
   int64_t dbsequencecount = db_getsequencecount();
-  
+
   /* adjust size of hash table for 2/3 fill rate */
 
   int64_t hashtablesize = 1;
@@ -542,9 +542,9 @@ void derep_prefix()
 
   unsigned int len_longest = db_getlongestsequence();
   unsigned int len_shortest = db_getshortestsequence();
-  uint64_t * prefix_hashes = (uint64_t *) 
+  uint64_t * prefix_hashes = (uint64_t *)
     xmalloc(sizeof(uint64_t) * (len_longest+1));
-  
+
   progress_init("Dereplicating", dbsequencecount);
   for(int64_t i=0; i<dbsequencecount; i++)
     {
@@ -557,19 +557,19 @@ void derep_prefix()
       uint64_t ab = opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
-      /* 
+      /*
          Look for matching identical or prefix sequences.
-         
+
          Use a hash function that can quickly be applied iteratively on longer
          and longer sequences.
-         
+
          Hash values are generated for all prefixes and saved.
 
          Should start at exact sequence and then try shorter and shorter
          sequences.
-         
+
          No need to check shorter sequences than the shortest in the database.
-         
+
          Three cases:
          1) Exact match: Update count, point to next
          2) Prefix match: Mark old, insert new, update count, point to next
@@ -594,7 +594,7 @@ void derep_prefix()
 
       uint64_t hash = prefix_hashes[prefix_len];
       struct bucket * bp = hashtable + (hash & hash_mask);
-      
+
       while ((bp->size) &&
              ((bp->deleted) ||
               (bp->hash != hash) ||
@@ -619,20 +619,20 @@ void derep_prefix()
           unsigned int last = bp->seqno_last;
           nextseqtab[last] = i;
           bp->seqno_last = i;
-          
+
           if (bp->size > maxsize)
             maxsize = bp->size;
         }
       else
         {
           /* look for prefix match */
-          
+
           while((! bp->size) && (prefix_len > len_shortest))
             {
               prefix_len--;
               hash = prefix_hashes[prefix_len];
               bp = hashtable + (hash & hash_mask);
-              
+
               while ((bp->size) &&
                      ((bp->deleted) ||
                       (bp->hash != hash) ||
@@ -646,7 +646,7 @@ void derep_prefix()
                     bp = hashtable;
                 }
             }
-          
+
           if (bp->size)
             {
               /* prefix match */
@@ -656,7 +656,7 @@ void derep_prefix()
               unsigned int last = bp->seqno_last;
               unsigned int size = bp->size;
               bp->deleted = true;
-              
+
               /* create new hash entry */
               bp = orig_bp;
               bp->size = size + ab;
@@ -664,7 +664,7 @@ void derep_prefix()
               bp->seqno_first = i;
               nextseqtab[i] = first;
               bp->seqno_last = last;
-              
+
               if (bp->size > maxsize)
                 maxsize = bp->size;
             }
@@ -675,21 +675,21 @@ void derep_prefix()
               orig_bp->hash = orig_hash;
               orig_bp->seqno_first = i;
               orig_bp->seqno_last = i;
-              
+
               if (ab > maxsize)
                 maxsize = ab;
               clusters++;
             }
         }
-      
+
       progress_update(i);
     }
   progress_done();
-  
+
   xfree(prefix_hashes);
 
   xfree(seq_up);
-  
+
   show_rusage();
 
   progress_init("Sorting", 1);
@@ -704,7 +704,7 @@ void derep_prefix()
         median = (hashtable[(clusters/2)-1].size +
                   hashtable[clusters/2].size) / 2.0;
     }
-  
+
   average = 1.0 * sumsize / clusters;
 
   if (clusters < 1)
@@ -729,7 +729,7 @@ void derep_prefix()
     }
 
   show_rusage();
-  
+
   /* count selected */
 
   int64_t selected = 0;
@@ -792,7 +792,7 @@ void derep_prefix()
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
-          
+
           for (unsigned int next = nextseqtab[bp->seqno_first];
                next != terminal;
                next = nextseqtab[next])
@@ -804,7 +804,7 @@ void derep_prefix()
         }
       progress_done();
       show_rusage();
-      
+
       progress_init("Writing uc file, second part", clusters);
       for (int64_t i=0; i<clusters; i++)
         {
@@ -832,7 +832,7 @@ void derep_prefix()
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
     }
-  
+
   xfree(nextseqtab);
   xfree(hashtable);
   db_free();

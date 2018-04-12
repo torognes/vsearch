@@ -72,7 +72,7 @@ int wo(int len, const char *s, int *beg, int *end)
   int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
     return 0;
-  
+
   int bestv = 0;
   int besti = 0;
   int bestj = 0;
@@ -90,9 +90,9 @@ int wo(int len, const char *s, int *beg, int *end)
   for (int i=0; i < l1; i++)
     {
       memset(counts, 0, sizeof(counts));
-      
+
       int sum = 0;
-      
+
       for (int j = dust_word-1; j<len-i; j++)
         {
           word = words[i+j];
@@ -101,7 +101,7 @@ int wo(int len, const char *s, int *beg, int *end)
             {
               sum += c;
               int v = 10 * sum / j;
-              
+
               if (v > bestv)
                 {
                   bestv = v;
@@ -112,10 +112,10 @@ int wo(int len, const char *s, int *beg, int *end)
           counts[word]++;
         }
     }
-  
+
   *beg = besti;
   *end = besti + bestj;
-  
+
   return bestv;
 }
 
@@ -139,7 +139,7 @@ void dust(char * m, int len)
     {
       int l = (len > i + dust_window) ? dust_window : len-i;
       int v = wo(l, s+i, &a, &b);
-      
+
       if (v > dust_level)
         {
           if (opt_hardmask)
@@ -148,7 +148,7 @@ void dust(char * m, int len)
           else
             for(int j=a+i; j<=b+i; j++)
               m[j] = s[j] | 0x20;
-          
+
           if (b < dust_window2)
             i += dust_window2 - b;
         }
@@ -218,7 +218,7 @@ void dust_all()
 void hardmask(char * seq, int len)
 {
   /* convert all lower case letters in seq to N */
-  
+
   for(int j=0; j<len; j++)
     if (seq[j] & 0x20)
       seq[j] = 'N';
@@ -371,7 +371,7 @@ void fastx_mask()
       if (opt_max_unmasked_pct < 100.0)
         fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, opt_max_unmasked_pct);
       fprintf(fp_log, "%d sequences kept\n", kept);
-    }   
+    }
 
   show_rusage();
   db_free();

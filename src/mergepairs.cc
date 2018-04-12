@@ -470,7 +470,7 @@ void discard(merge_data_t * ip)
                         0,
                         notmerged,
                         0, 0.0);
-                        
+
   if (opt_fastqout_notmerged_rev)
     fastq_print_general(fp_fastqout_notmerged_rev,
                         ip->rev_sequence,
@@ -493,7 +493,7 @@ void discard(merge_data_t * ip)
                         notmerged,
                         -1, -1,
                         0, 0.0);
-                        
+
   if (opt_fastaout_notmerged_rev)
     fasta_print_general(fp_fastaout_notmerged_rev,
                         0,

@@ -85,7 +85,7 @@ struct otutable_s
   regex_t regex_sample;
   regex_t regex_otu;
   regex_t regex_tax;
-  
+
   string_set_t otu_set;
   string_set_t sample_set;
   string_pair_map_t sample_otu_count;
@@ -98,17 +98,17 @@ static otutable_s otutable;
 void otutable_init()
 {
   /* compile regular expression matchers */
-  
+
   if (regcomp(&otutable.regex_sample,
               "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
               REG_EXTENDED))
     fatal("Compilation of regular expression for sample annotation failed");
-  
+
   if (regcomp(&otutable.regex_otu,
               "(^|;)otu=([^;]*)($|;)",
               REG_EXTENDED))
     fatal("Compilation of regular expression for otu annotation failed");
-  
+
   if (regcomp(&otutable.regex_tax,
               "(^|;)tax=([^;]*)($|;)",
               REG_EXTENDED))
@@ -173,7 +173,7 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
   char * otu_name = (char *) xmalloc(len_otu+1);
   strncpy(otu_name, start_otu, len_otu);
   otu_name[len_otu] = 0;
-  
+
 
   /* read tax annotation in target */
 
@@ -231,7 +231,7 @@ void otutable_print_otutabout(FILE * fp)
       for (string_set_t::iterator it_sample = otutable.sample_set.begin();
            it_sample != otutable.sample_set.end();
            it_sample++)
-        { 
+        {
           uint64_t a = 0;
           if ((it_map != otutable.otu_sample_count.end()) &&
               (it_map->first.first == *it_otu) &&
@@ -280,7 +280,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
        it_sample++)
     {
       fprintf(fp, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
-      
+
       for (string_set_t::iterator it_otu = otutable.otu_set.begin();
            it_otu != otutable.otu_set.end();
            it_otu++)
@@ -332,7 +332,7 @@ void otutable_print_biomout(FILE * fp)
           date,
           rows,
           columns);
-  
+
   string_no_map_t otu_no_map;
   uint64_t otu_no = 0;
 

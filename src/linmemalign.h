@@ -65,7 +65,7 @@ class LinearMemoryAligner
   int64_t cigar_alloc;
   int64_t cigar_length;
   char * cigar_string;
-  
+
   char * a_seq;
   char * b_seq;
 
@@ -94,7 +94,7 @@ class LinearMemoryAligner
   int64_t * EE;
   int64_t * XX;
   int64_t * YY;
-  
+
   void cigar_reset();
 
   void cigar_flush();
@@ -105,7 +105,7 @@ class LinearMemoryAligner
   {
     /* return substitution score for replacing symbol at position x in a
        with symbol at position y in b */
-    return scorematrix[chrmap_4bit[(int)(b_seq[y])] * 16 + 
+    return scorematrix[chrmap_4bit[(int)(b_seq[y])] * 16 +
                        chrmap_4bit[(int)(a_seq[x])]];
   }
 
@@ -119,7 +119,7 @@ class LinearMemoryAligner
             bool a_right,     /* includes right end of a */
             bool b_left,      /* includes left end of b  */
             bool b_right);    /* includes right end of b */
-  
+
   void alloc_vectors(size_t N);
 
   void show_matrix();
@@ -129,9 +129,9 @@ public:
   LinearMemoryAligner();
 
   ~LinearMemoryAligner();
-  
+
   int64_t * scorematrix_create(int64_t match, int64_t mismatch);
-  
+
   void set_parameters(int64_t * _scorematrix,
                       int64_t _gap_open_query_left,
                       int64_t _gap_open_target_left,
@@ -145,7 +145,7 @@ public:
                       int64_t _gap_extension_target_interior,
                       int64_t _gap_extension_query_right,
                       int64_t _gap_extension_target_right);
-  
+
   char * align(char * _a_seq,
                char * _b_seq,
                int64_t M,

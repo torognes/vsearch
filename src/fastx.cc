@@ -110,7 +110,7 @@ void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x)
     {
       /* alloc space for x more characters,
          but round up to nearest block size */
-      buffer->alloc = 
+      buffer->alloc =
         ((buffer->length + x + FASTX_BUFFER_ALLOC - 1) / FASTX_BUFFER_ALLOC)
         * FASTX_BUFFER_ALLOC;
       buffer->data = (char*) xrealloc(buffer->data, buffer->alloc);
@@ -122,12 +122,12 @@ void buffer_truncate(struct fastx_buffer_s * buffer, bool truncateatspace)
   /* Truncate the zero-terminated header string by inserting a new
      terminator (zero byte) at the first space/tab character
      (if truncateatspace) or first linefeed. */
-  
+
   if (truncateatspace)
     buffer->length = strcspn(buffer->data, " \t\n");
   else
     buffer->length = strcspn(buffer->data, "\n");
-  
+
   buffer->data[buffer->length] = 0;
 }
 
@@ -157,7 +157,7 @@ fastx_handle fastx_open(const char * filename)
   h->fp_bz = 0;
   int bzError = 0;
 #endif
- 
+
   h->fp = fopen_input(filename);
   if (!h->fp)
     fatal("Unable to open file for reading (%s)", filename);
@@ -250,7 +250,7 @@ fastx_handle fastx_open(const char * filename)
   /* start filling up file buffer */
 
   uint64_t rest = fastx_file_fill_buffer(h);
-  
+
   if (rest < 2)
     fatal("File too small");
 
@@ -274,30 +274,30 @@ fastx_handle fastx_open(const char * filename)
   if (filetype == 0)
     {
       /* close files if unrecognized file type */
-      
+
       switch(h->format)
         {
         case FORMAT_PLAIN:
           break;
-          
+
         case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
           (*gzclose_p)(h->fp_gz);
           h->fp_gz = 0;
           break;
 #endif
-          
+
         case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
           (*BZ2_bzReadClose_p)(&bzError, h->fp_bz);
           h->fp_bz = 0;
           break;
 #endif
-          
+
         default:
           fatal("Internal error");
         }
-      
+
       fclose(h->fp);
       h->fp = 0;
 

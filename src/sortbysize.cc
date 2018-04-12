@@ -105,7 +105,7 @@ void sortbysize()
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
-  
+
   progress_init("Getting sizes", dbsequencecount);
 
   sortinfo = (struct sortinfo_s*) xmalloc(dbsequencecount * sizeof(sortinfo_s));
@@ -115,7 +115,7 @@ void sortbysize()
   for(int i=0; i<dbsequencecount; i++)
     {
       int64_t size = db_getabundance(i);
-      
+
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
           sortinfo[passed].seqno = i;
@@ -126,13 +126,13 @@ void sortbysize()
     }
 
   progress_done();
-  
+
   show_rusage();
 
   progress_init("Sorting", 100);
   qsort(sortinfo, passed, sizeof(sortinfo_s), sortbysize_compare);
   progress_done();
-  
+
   double median = 0.0;
   if (passed > 0)
     {
@@ -150,7 +150,7 @@ void sortbysize()
     fprintf(fp_log, "Median abundance: %.0f\n", median);
 
   show_rusage();
-  
+
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
@@ -161,7 +161,7 @@ void sortbysize()
     }
   progress_done();
   show_rusage();
-  
+
   xfree(sortinfo);
   db_free();
   fclose(fp_output);

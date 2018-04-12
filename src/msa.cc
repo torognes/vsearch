@@ -144,7 +144,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
               break;
             }
         }
-    }  
+    }
 
   /* find total alignment length */
   int alnlen = 0;
@@ -157,7 +157,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   memset(profile, 0, PROFSIZE * sizeof(int) * alnlen);
   aln = (char *) xmalloc(alnlen+1);
   char * cons = (char *) xmalloc(alnlen+1);
-  
+
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
   for(int i=0; i < target_count; i++)
@@ -174,12 +174,12 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   /* blank line before each msa */
   if (fp_msaout)
     fprintf(fp_msaout, "\n");
-  
+
   for(int j=0; j<target_count; j++)
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
-      
+
       if (target_list[j].strand)
         {
           reverse_complement(rc_buffer, target_seq,
@@ -213,7 +213,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
               sscanf(p, "%" PRId64 "%n", &run, &scanlength);
               p += scanlength;
               char op = *p++;
-              
+
               if (op == 'D')
                 {
                   for(int x=0; x < maxi[qpos]; x++)
@@ -232,23 +232,23 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                       if (!inserted)
                         for(int y=0; y < maxi[qpos]; y++)
                           msa_add('-');
-                      
+
                       if (op == 'M')
                         msa_add(target_seq[tpos++]);
                       else
                         msa_add('-');
-                      
+
                       qpos++;
                       inserted = 0;
                     }
                 }
             }
         }
-      
+
       if (!inserted)
         for(int x=0; x < maxi[qpos]; x++)
           msa_add('-');
-      
+
       /* end of sequence string */
       aln[alnpos] = 0;
 
@@ -256,11 +256,11 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       if (fp_msaout)
         fasta_print_general(fp_msaout,
                             j ? "" : "*",
-                            aln, 
+                            aln,
                             alnlen,
                             db_getheader(target_seqno),
                             db_getheaderlen(target_seqno),
-                            db_getabundance(target_seqno), 
+                            db_getabundance(target_seqno),
                             0, -1, -1, 0, 0.0);
     }
 
@@ -338,7 +338,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                           opt_clusterout_id ? cluster : -1,
                           0, 0.0);
     }
-  
+
   if (fp_profile)
     {
       fasta_print_general(fp_profile,

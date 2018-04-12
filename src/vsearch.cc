@@ -1842,7 +1842,7 @@ void args_init(int argc, char **argv)
         case 192:
           opt_unoise_alpha = args_getdouble(optarg);
           break;
-        
+
         case 193:
           opt_uchime2_denovo = optarg;
           break;
@@ -2084,7 +2084,7 @@ void args_init(int argc, char **argv)
       else
         opt_minsize = 0;
     }
-      
+
   /* set default opt_abskew depending on command */
   if (opt_abskew < 0.0)
     {
