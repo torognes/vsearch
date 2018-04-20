@@ -1,11 +1,12 @@
 .\" ============================================================================
-.TH vsearch 1 "February 16, 2018" "version 2.7.1" "USER COMMANDS"
+.TH vsearch 1 "April 20, 2018" "version 2.7.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
 rereplication, FASTA/FASTQ file processing, masking, pairwise
-alignment, searching, shuffling, sorting and subsampling of amplicons
-for metagenomics, genomics, and population genetics.
+alignment, searching, shuffling, sorting, subsampling, and taxonomic
+classification of amplicons for metagenomics, genomics, and population
+genetics.
 .\" ============================================================================
 .SH SYNOPSIS
 .\" left justified, ragged right
@@ -108,6 +109,13 @@ Subsampling:
 \fBvsearch\fR \-\-fastx_subsample \fIfastafile\fR (\-\-fastaout |
 \-\-fastqout) \fIoutputfile\fR (\-\-sample_pct \fIreal\fR |
 \-\-sample_size \fIpositive integer\fR) [\fIoptions\fR]
+.PP
+.RE
+Taxonomic classification:
+.RS
+\fBvsearch\fR \-\-sintax \fIfastafile\fR \-\-db \fIfastafile\fR
+\-\-tabbedout \fIoutputfile\fR [\-\-sintax_cutoff \fIreal\fR]
+[\fIoptions\fR]
 .PP
 .RE
 UDB database handling:
@@ -2355,6 +2363,56 @@ file.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
+Taxonomic classification options:
+.RS
+The vsearch command \-\-sintax will classify the input sequences
+according to the Sintax algorithm as described by Robert Edgar (2016)
+in SINTAX: a simple non-Bayesian taxonomy classifier for 16S and ITS
+sequences, BioRxiv, 074161. Preprint. doi: https://doi.org/10.1101/074161.
+
+The name of the fasta file containing the input sequences to be
+classified is given as an argument to the \-\-sintax command. The reference
+sequence database is specified with the \-\-db option. The results are
+written in a tab delimited text file whose name is specified with the
+\-\-tabbedout option. The \-\-sintax_cutoff option may be used to set a
+minimum level of bootstrap support for the taxonomic ranks to be reported.
+
+Multithreading is supported. Databases in UDB files are supported.
+The strand option may be specified.
+
+The reference database must contain taxonomic information in the
+header of each sequence in the form of a string starting with ";tax="
+and followed by a comma-separated list of up to eight taxonomic
+identifiers. Each taxonomic identifier must start with an indication
+of the rank by one of the letters d (for domain) k (kingdom), p
+(phylum), c (class), o (order), f (family), g (genus), or s
+(species). The letter is followed by a colon (:) and the name of that
+rank. Commas and semicolons are not allowed in the name of the rank.
+
+Example: ">X80725_S000004313;tax=d:Bacteria,p:Proteobacteria,c:Gammaproteobacteria,o:Enterobacteriales,f:Enterobacteriaceae,g:Escherichia/Shigella,s:Escherichia_coli".
+.PP
+.TP 9
+.BI \-\-db \0filename
+Read the reference sequences from \fIfilename\fR, in FASTA, FASTQ or UDB format. These sequences needs to be annotated with taxonomy.
+.TP
+.BI \-\-sintax_cutoff\~ "real"
+Specify a minimum level of bootstrap support for the taxonomic ranks that will be included in column 4 of the output file. For instance 0.9, corresponding to 90%.
+.TP
+.BI \-\-sintax \0filename
+Read the input sequences from \fIfilename\fR, in FASTA or FASTQ format.
+.TP
+.BI \-\-tabbedout \0filename
+Write the results to \fIfilename\fR, in a tab-separated text
+format. Column 1 contains the query label. Column 2 contains the
+predicted taxonomy in the same format as for the reference data, with
+bootstrap support indicated in parentheses after each rank. Column 3
+contains the strand. If the \-\-sintax_cutoff option is used, the
+predicted taxonomy will be repeated in column 4 while omitting the
+bootstrap values and including only the ranks with support at or above
+the threshold.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
 UDB options:
 .RS
 Databases to be used with the \-\-usearch_global command may be
@@ -3320,6 +3378,10 @@ extraction of abundance and other attributes from the headers.
 Fix several bugs on Windows related to large files, use of "-" as a
 file name to mean stdin or stdout, alignment errors, missed kmers and
 corrupted UDB files. Added documentation of UDB-related commands.
+.TP
+.BR v2.7.2\~ "released April 20th, 2018"
+Added the sintax command for taxonomic classification. Fixed a bug with
+incorrect FASTA headers of consensus sequences after clustering.
 .RE
 .LP
 .\" ============================================================================
