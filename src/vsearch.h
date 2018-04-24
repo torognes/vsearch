@@ -305,6 +305,7 @@ extern char * opt_userout;
 extern double * opt_ee_cutoffs_values;
 extern double opt_abskew;
 extern double opt_dn;
+extern double opt_fastq_maxdiffpct;
 extern double opt_fastq_maxee;
 extern double opt_fastq_maxee_rate;
 extern double opt_fastq_truncee;

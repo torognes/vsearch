@@ -1096,6 +1096,13 @@ non-matching nucleotides allowed in the overlap region. That option
 has a strong influence on the merging success rate. The default
 value is 10.
 .TP
+.BI \-\-fastq_maxdiffpct\~ real
+When using \-\-fastq_mergepairs, specify the maximum percentage of
+non-matching nucleotides allowed in the overlap region. The default
+value is 100.0%. There are other more sophisticated rules in the
+merging algorithm that will discard read pairs with a high fraction of
+mismatches.
+.TP
 .BI \-\-fastq_maxee\~ real
 When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
 discard sequences with more than the specified number of expected
@@ -1134,12 +1141,14 @@ ambiguous bases (N's), as specified with the \-\-fastq_maxns are also
 discarded (no limit by default). Staggered reads are not merged unless
 the \-\-fastq_allowmergestagger option is specified. The minimum
 length of the overlap region between the reads may be specified with
-the \-\-fastq_minovlen option (default 10), and the overlap region may
+the \-\-fastq_minovlen option (default 10). The overlap region may
 not include more mismatches than specified with the \-\-fastq_maxdiffs
-option (10 by default), otherwise the read pair is discarded.
-Additional rules will avoid merging of reads that cannot be aligned
-reliably and unambiguously. The mimimum and maximum length of the
-merged sequence may be specified with the \-\-fastq_minmergelen and
+option (10 by default) or a higher percentage of mismatches than
+specified with the \-\-fastq_maxdiffpct option (100.0% by default),
+otherwise the read pair is discarded. Additional rules will avoid
+merging of reads that cannot be aligned reliably and
+unambiguously. The mimimum and maximum length of the merged sequence
+may be specified with the \-\-fastq_minmergelen and
 \-\-fastq_maxmergelen options, respectively. Other relevant options
 are: \-\-fastq_ascii, \-\-fastq_maxee, \-\-fastq_nostagger,
 \-\-fastq_qmax, \-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
