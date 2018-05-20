@@ -67,10 +67,10 @@ static struct sortinfo_s
   unsigned int seqno;
 } * sortinfo;
 
-int sortbylength_compare(const void * a, const void * b)
+int sortbylength_compare(const void* a, const void* b)
 {
-  struct sortinfo_s * x = (struct sortinfo_s *) a;
-  struct sortinfo_s * y = (struct sortinfo_s *) b;
+  struct sortinfo_s* x = (struct sortinfo_s*) a;
+  struct sortinfo_s* y = (struct sortinfo_s*) b;
 
   /* longest first, then most abundant, then by label, otherwise keep order */
 
@@ -78,31 +78,30 @@ int sortbylength_compare(const void * a, const void * b)
     return +1;
   else if (x->length > y->length)
     return -1;
+  else if (x->size < y->size)
+    return +1;
+  else if (x->size > y->size)
+    return -1;
   else
-    if (x->size < y->size)
-      return +1;
-    else if (x->size > y->size)
-      return -1;
+  {
+    int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+    if (r != 0)
+      return r;
     else
-      {
-        int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-        if (r != 0)
-          return r;
-        else
-          {
-            if (x->seqno < y->seqno)
-              return -1;
-            else if (x->seqno > y->seqno)
-              return +1;
-            else
-              return 0;
-          }
-      }
+    {
+      if (x->seqno < y->seqno)
+        return -1;
+      else if (x->seqno > y->seqno)
+        return +1;
+      else
+        return 0;
+    }
+  }
 }
 
 void sortbylength()
 {
-  FILE * fp_output = fopen_output(opt_output);
+  FILE* fp_output = fopen_output(opt_output);
   if (!fp_output)
     fatal("Unable to open sortbylength output file for writing");
 
@@ -110,19 +109,19 @@ void sortbylength()
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
-  sortinfo = (struct sortinfo_s *) xmalloc(dbsequencecount * sizeof(sortinfo_s));
+  sortinfo = (struct sortinfo_s*) xmalloc(dbsequencecount * sizeof(sortinfo_s));
 
   int passed = 0;
 
   progress_init("Getting lengths", dbsequencecount);
-  for(int i=0; i<dbsequencecount; i++)
-    {
-      sortinfo[passed].seqno = i;
-      sortinfo[passed].length = db_getsequencelen(i);
-      sortinfo[passed].size = db_getabundance(i);
-      passed++;
-      progress_update(i);
-    }
+  for (int i = 0; i < dbsequencecount; i++)
+  {
+    sortinfo[passed].seqno = i;
+    sortinfo[passed].length = db_getsequencelen(i);
+    sortinfo[passed].size = db_getabundance(i);
+    passed++;
+    progress_update(i);
+  }
   progress_done();
   show_rusage();
 
@@ -132,13 +131,13 @@ void sortbylength()
 
   double median = 0.0;
   if (passed > 0)
-    {
-      if (passed % 2)
-        median = sortinfo[(passed-1)/2].length;
-      else
-        median = (sortinfo[(passed/2)-1].length +
-                  sortinfo[passed/2].length) / 2.0;
-    }
+  {
+    if (passed % 2)
+      median = sortinfo[(passed - 1) / 2].length;
+    else
+      median =
+        (sortinfo[(passed / 2) - 1].length + sortinfo[passed / 2].length) / 2.0;
+  }
 
   if (!opt_quiet)
     fprintf(stderr, "Median length: %.0f\n", median);
@@ -151,11 +150,11 @@ void sortbylength()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
-    {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
-      progress_update(i);
-    }
+  for (int i = 0; i < passed; i++)
+  {
+    fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
+    progress_update(i);
+  }
   progress_done();
   show_rusage();
 

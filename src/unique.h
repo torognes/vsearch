@@ -61,19 +61,19 @@
 struct bucket_s;
 struct uhandle_s;
 
-struct uhandle_s * unique_init();
+struct uhandle_s* unique_init();
 
-void unique_exit(struct uhandle_s * u);
+void unique_exit(struct uhandle_s* u);
 
-void unique_count(struct uhandle_s * uh,
+void unique_count(struct uhandle_s* uh,
                   int k,
                   int seqlen,
-                  char * seq,
-                  unsigned int * listlen,
-                  unsigned int * * list,
+                  char* seq,
+                  unsigned int* listlen,
+                  unsigned int** list,
                   int seqmask);
 
-int unique_count_shared(struct uhandle_s * uh,
+int unique_count_shared(struct uhandle_s* uh,
                         int k,
                         int listlen,
-                        unsigned int * list);
+                        unsigned int* list);

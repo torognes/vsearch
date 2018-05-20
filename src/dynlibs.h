@@ -59,26 +59,26 @@
 */
 
 #ifdef HAVE_ZLIB_H
-#ifdef _WIN32
+#  ifdef _WIN32
 extern HMODULE gz_lib;
-#else
-extern void * gz_lib;
-#endif
-extern gzFile (*gzdopen_p)(int, const char *);
+#  else
+extern void* gz_lib;
+#  endif
+extern gzFile (*gzdopen_p)(int, const char*);
 extern int (*gzclose_p)(gzFile);
 extern int (*gzread_p)(gzFile, void*, unsigned);
 extern int (*gzgetc_p)(gzFile);
 extern int (*gzrewind_p)(gzFile);
 extern int (*gzungetc_p)(int, gzFile);
-extern const char * (*gzerror_p)(gzFile, int*);
+extern const char* (*gzerror_p)(gzFile, int*);
 #endif
 
 #ifdef HAVE_BZLIB_H
-#ifdef _WIN32
+#  ifdef _WIN32
 extern HMODULE bz2_lib;
-#else
-extern void * bz2_lib;
-#endif
+#  else
+extern void* bz2_lib;
+#  endif
 extern BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
 extern void (*BZ2_bzReadClose_p)(int*, BZFILE*);
 extern int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);

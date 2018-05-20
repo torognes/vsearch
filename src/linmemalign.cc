@@ -111,54 +111,55 @@ LinearMemoryAligner::~LinearMemoryAligner()
     xfree(YY);
 }
 
-int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch)
+int64_t* LinearMemoryAligner::scorematrix_create(int64_t match,
+                                                 int64_t mismatch)
 {
-  int64_t * newscorematrix = (int64_t*) xmalloc(16*16*sizeof(int64_t));
+  int64_t* newscorematrix = (int64_t*) xmalloc(16 * 16 * sizeof(int64_t));
 
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      {
-        int64_t value;
-        if ((i==0) || (j==0) || (i>4) || (j>4))
-          value = 0;
-        else if (i==j)
-          value = match;
-        else
-          value = mismatch;
-        newscorematrix[16*i+j] = value;
-      }
+  for (int i = 0; i < 16; i++)
+    for (int j = 0; j < 16; j++)
+    {
+      int64_t value;
+      if ((i == 0) || (j == 0) || (i > 4) || (j > 4))
+        value = 0;
+      else if (i == j)
+        value = match;
+      else
+        value = mismatch;
+      newscorematrix[16 * i + j] = value;
+    }
   return newscorematrix;
 }
 
 void LinearMemoryAligner::alloc_vectors(size_t x)
 {
   if (vector_alloc < x)
-    {
-      vector_alloc = x;
+  {
+    vector_alloc = x;
 
-      if (HH)
-        xfree(HH);
-      if (EE)
-        xfree(EE);
-      if (XX)
-        xfree(XX);
-      if (YY)
-        xfree(YY);
+    if (HH)
+      xfree(HH);
+    if (EE)
+      xfree(EE);
+    if (XX)
+      xfree(XX);
+    if (YY)
+      xfree(YY);
 
-      HH = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-      EE = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-      XX = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-      YY = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-    }
+    HH = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
+    EE = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
+    XX = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
+    YY = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
+  }
 }
 
 void LinearMemoryAligner::cigar_reset()
 {
   if (cigar_alloc < 1)
-    {
-      cigar_alloc = 64;
-      cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
-    }
+  {
+    cigar_alloc = 64;
+    cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
+  }
   cigar_string[0] = 0;
   cigar_length = 0;
   op = 0;
@@ -171,57 +172,55 @@ void LinearMemoryAligner::cigar_flush()
   {
     while (1)
     {
-      /* try writing string until enough memory has been allocated */
+      /* try writing string until enough memory has been
+       * allocated */
 
       int64_t rest = cigar_alloc - cigar_length;
       int n;
       if (op_run > 1)
-        n = snprintf(cigar_string + cigar_length,
-                     rest,
-                     "%" PRId64 "%c", op_run, op);
+        n = snprintf(cigar_string + cigar_length, rest, "%" PRId64 "%c", op_run,
+                     op);
       else
-        n = snprintf(cigar_string + cigar_length,
-                     rest,
-                     "%c", op);
+        n = snprintf(cigar_string + cigar_length, rest, "%c", op);
       if (n < 0)
-        {
-          fatal("snprintf returned a negative number.\n");
-        }
+      {
+        fatal("snprintf returned a negative number.\n");
+      }
       else if (n >= rest)
-        {
-          cigar_alloc += MAX(n - rest + 1, 64);
-          cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
-        }
+      {
+        cigar_alloc += MAX(n - rest + 1, 64);
+        cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
+      }
       else
-        {
-          cigar_length += n;
-          break;
-        }
+      {
+        cigar_length += n;
+        break;
+      }
     }
   }
 }
 
 void LinearMemoryAligner::cigar_add(char _op, int64_t run)
+{
+  if (op == _op)
+    op_run += run;
+  else
   {
-    if (op == _op)
-      op_run += run;
-    else
-      {
-        cigar_flush();
-        op = _op;
-        op_run = run;
-      }
+    cigar_flush();
+    op = _op;
+    op_run = run;
   }
+}
 
 void LinearMemoryAligner::show_matrix()
 {
-  for(int i=0; i<16; i++)
-    {
-      printf("%2d:", i);
-      for(int j=0; j<16; j++)
-        printf(" %2" PRId64, scorematrix[16*i+j]);
-      printf("\n");
-    }
+  for (int i = 0; i < 16; i++)
+  {
+    printf("%2d:", i);
+    for (int j = 0; j < 16; j++)
+      printf(" %2" PRId64, scorematrix[16 * i + j]);
+    printf("\n");
+  }
 }
 
 void LinearMemoryAligner::diff(int64_t a_start,
@@ -236,341 +235,319 @@ void LinearMemoryAligner::diff(int64_t a_start,
                                bool b_right)     /* includes right end of b */
 {
   if (b_len == 0)
+  {
+    /* B and possibly A is empty */
+    if (a_len > 0)
     {
-      /* B and possibly A is empty */
-      if (a_len > 0)
-        {
-          // Delete a_len from A
-          // AAA
-          // ---
+      /* Delete a_len from A
+       * AAA
+       * --- */
 
-          cigar_add('D', a_len);
-        }
+      cigar_add('D', a_len);
     }
+  }
   else if (a_len == 0)
-    {
-      /* A is empty, B is not */
+  {
+    /* A is empty, B is not */
 
-      // Delete b_len from B
-      // ---
-      // BBB
+    /* Delete b_len from B
+     * ---
+     * BBB */
 
-      cigar_add('I', b_len);
-    }
+    cigar_add('I', b_len);
+  }
   else if (a_len == 1)
+  {
+    /* Convert 1 symbol from A to b_len symbols from B
+     * b_len >= 1 */
+
+    int64_t MaxScore;
+    int64_t best;
+
+    int64_t Score = 0;
+
+    /* First possibility
+     *
+     * Delete 1 from A, Insert b_len from B
+     * A----
+     * -BBBB
+     *
+     * gap penalty for gap in B of length 1 */
+
+    if (!gap_b_left)
+      Score -= b_left ? go_t_l : go_t_i;
+
+    Score -= b_left ? ge_t_l : ge_t_i;
+
+    /* gap penalty for gap in A of length b_len */
+
+    Score -= a_right ? go_q_r + b_len * ge_q_r : go_q_i + b_len * ge_q_i;
+
+    MaxScore = Score;
+    best = -1;
+
+    /* Second possibility
+     *
+     * Insert b_len from B, Delete 1 from A
+     * ----A
+     * BBBB-
+     *
+     * gap penalty for gap in A of length b_len */
+
+    Score -= a_left ? go_q_l + b_len * ge_q_l : go_q_i + b_len * ge_q_i;
+
+    /* gap penalty for gap in B of length 1 */
+
+    if (!gap_b_right)
+      Score -= b_right ? go_t_r : go_t_i;
+
+    Score -= b_right ? ge_t_r : ge_t_i;
+
+    if (Score > MaxScore)
     {
-      /*
-        Convert 1 symbol from A to b_len symbols from B
-        b_len >= 1
-      */
-
-
-      int64_t MaxScore;
-      int64_t best;
-
-      int64_t Score = 0;
-
-      /* First possibility */
-
-      // Delete 1 from A, Insert b_len from B
-      // A----
-      // -BBBB
-
-      /* gap penalty for gap in B of length 1 */
-
-      if (! gap_b_left)
-        Score -= b_left ? go_t_l : go_t_i;
-
-      Score -= b_left ? ge_t_l : ge_t_i;
-
-      /* gap penalty for gap in A of length b_len */
-
-      Score -= a_right ? go_q_r + b_len * ge_q_r : go_q_i + b_len * ge_q_i;
-
       MaxScore = Score;
-      best = -1;
+      best = b_len;
+    }
 
+    /* Third possibility
+     *
+     * Insert zero or more from B, replace 1, insert rest of B
+     * -A--
+     * BBBB */
 
-      /* Second possibility */
+    for (int64_t j = 0; j < b_len; j++)
+    {
+      Score = 0;
 
-      // Insert b_len from B, Delete 1 from A
-      // ----A
-      // BBBB-
+      if (j > 0)
+        Score -= a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i;
 
-      /* gap penalty for gap in A of length b_len */
+      Score += subst_score(a_start, b_start + j);
 
-      Score -= a_left ? go_q_l + b_len * ge_q_l : go_q_i + b_len * ge_q_i;
-
-      /* gap penalty for gap in B of length 1 */
-
-      if (! gap_b_right)
-        Score -= b_right ? go_t_r : go_t_i;
-
-      Score -= b_right ? ge_t_r : ge_t_i;
+      if (j < b_len - 1)
+        Score -= a_right ? go_q_r + (b_len - 1 - j) * ge_q_r
+                         : go_q_i + (b_len - 1 - j) * ge_q_i;
 
       if (Score > MaxScore)
-        {
-          MaxScore = Score;
-          best = b_len;
-        }
-
-
-      /* Third possibility */
-
-      for (int64_t j = 0; j < b_len; j++)
-        {
-          // Insert zero or more from B, replace 1, insert rest of B
-          // -A--
-          // BBBB
-
-          Score = 0;
-
-          if (j > 0)
-            Score -= a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i;
-
-          Score += subst_score(a_start, b_start + j);
-
-          if (j < b_len - 1)
-            Score -= a_right ?
-              go_q_r + (b_len-1-j) * ge_q_r :
-              go_q_i + (b_len-1-j) * ge_q_i;
-
-          if (Score > MaxScore)
-            {
-              MaxScore = Score;
-              best = j;
-            }
-        }
-
-      if (best == -1)
-        {
-          cigar_add('D', 1);
-          cigar_add('I', b_len);
-        }
-      else if (best == b_len)
-        {
-          cigar_add('I', b_len);
-          cigar_add('D', 1);
-        }
-      else
-        {
-          if (best > 0)
-            cigar_add('I', best);
-          cigar_add('M', 1);
-          if (best < b_len - 1)
-            cigar_add('I', b_len - 1 - best);
-        }
+      {
+        MaxScore = Score;
+        best = j;
+      }
     }
-  else
+
+    if (best == -1)
     {
-      /* a_len >= 2, b_len >= 1 */
-
-      int64_t I = a_len / 2;
-      int64_t i, j;
-
-      // Compute HH & EE in forward phase
-      // Upper part
-
-      /* initialize HH and EE for values corresponding to
-         empty seq A vs B of j symbols,
-         i.e. a gap of length j in A                 */
-
-      HH[0] = 0;
-      EE[0] = 0;
-
-      for (j = 1; j <= b_len; j++)
-        {
-          HH[j] = - (a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i);
-          EE[j] = LONG_MIN;
-        }
-
-      /* compute matrix */
-
-      for (i = 1; i <= I; i++)
-        {
-          int64_t p = HH[0];
-
-          int64_t h = - (b_left ?
-                      (gap_b_left ? 0 : go_t_l) + i * ge_t_l :
-                      (gap_b_left ? 0 : go_t_i) + i * ge_t_i);
-
-          HH[0] = h;
-          int64_t f = LONG_MIN;
-
-          for (j = 1; j <= b_len; j++)
-            {
-              f = MAX(f, h - go_q_i) - ge_q_i;
-              if (b_right && (j==b_len))
-                EE[j] = MAX(EE[j], HH[j] - go_t_r) - ge_t_r;
-              else
-                EE[j] = MAX(EE[j], HH[j] - go_t_i) - ge_t_i;
-
-              h = p + subst_score(a_start + i - 1, b_start + j - 1);
-
-              if (f > h)
-                h = f;
-              if (EE[j] > h)
-                h = EE[j];
-              p = HH[j];
-              HH[j] = h;
-            }
-        }
-
-      EE[0] = HH[0];
-
-      // Compute XX & YY in reverse phase
-      // Lower part
-
-      /* initialize XX and YY */
-
-      XX[0] = 0;
-      YY[0] = 0;
-
-      for (j = 1; j <= b_len; j++)
-        {
-          XX[j] = - (a_right ? go_q_r + j * ge_q_r : go_q_i + j * ge_q_i);
-          YY[j] = LONG_MIN;
-        }
-
-      /* compute matrix */
-
-      for (i = 1; i <= a_len - I; i++)
-        {
-          int64_t p = XX[0];
-
-          int64_t h = - (b_right ?
-                      (gap_b_right ? 0 : go_t_r) + i * ge_t_r :
-                      (gap_b_right ? 0 : go_t_i) + i * ge_t_i);
-          XX[0] = h;
-          int64_t f = LONG_MIN;
-
-          for (j = 1; j <= b_len; j++)
-            {
-              f = MAX(f, h - go_q_i) - ge_q_i;
-              if (b_left && (j==b_len))
-                YY[j] = MAX(YY[j], XX[j] - go_t_l) - ge_t_l;
-              else
-                YY[j] = MAX(YY[j], XX[j] - go_t_i) - ge_t_i;
-
-              h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
-
-              if (f > h)
-                h = f;
-              if (YY[j] > h)
-                h = YY[j];
-              p = XX[j];
-              XX[j] = h;
-            }
-        }
-
-      YY[0] = XX[0];
-
-
-      /* find maximum score along division line */
-
-      int64_t MaxScore0 = LONG_MIN;
-      int64_t best0 = -1;
-
-      /* solutions with diagonal at break */
-
-      for (j=0; j <= b_len; j++)
-        {
-          int64_t Score = HH[j] + XX[b_len - j];
-
-          if (Score > MaxScore0)
-            {
-              MaxScore0 = Score;
-              best0 = j;
-            }
-        }
-
-      int64_t MaxScore1 = LONG_MIN;
-      int64_t best1 = -1;
-
-      /* solutions that end with a gap in b from both ends at break */
-
-      for (j=0; j <= b_len; j++)
-        {
-          int64_t g;
-          if (b_left && (j==0))
-            g = go_t_l;
-          else if (b_right && (j==b_len))
-            g = go_t_r;
-          else
-            g = go_t_i;
-
-          int64_t Score = EE[j] + YY[b_len - j] + g;
-
-          if (Score > MaxScore1)
-            {
-              MaxScore1 = Score;
-              best1 = j;
-            }
-        }
-
-      int64_t P;
-      int64_t best;
-
-      if (MaxScore0 > MaxScore1)
-        {
-          P = 0;
-          best = best0;
-        }
-      else if (MaxScore1 > MaxScore0)
-        {
-          P = 1;
-          best = best1;
-        }
-      else
-        {
-          if (best0 <= best1)
-            {
-              P = 0;
-              best = best0;
-            }
-          else
-            {
-              P = 1;
-              best = best1;
-            }
-        }
-
-      /* recursively compute upper left and lower right parts */
-
-      if (P == 0)
-        {
-          diff(a_start,               b_start,
-               I,                     best,
-               gap_b_left,            false,
-               a_left,                false,
-               b_left,                b_right && (best == b_len));
-
-          diff(a_start + I,           b_start + best,
-               a_len - I,             b_len - best,
-               false,                 gap_b_right,
-               false,                 a_right,
-               b_left && (best == 0), b_right);
-        }
-      else if (P == 1)
-        {
-          diff(a_start,               b_start,
-               I - 1,                 best,
-               gap_b_left,            true,
-               a_left,                false,
-               b_left,                b_right && (best == b_len));
-
-          cigar_add('D', 2);
-
-          diff(a_start + I + 1,       b_start + best,
-               a_len - I - 1,         b_len - best,
-               true,                  gap_b_right,
-               false,                 a_right,
-               b_left && (best == 0), b_right);
-        }
+      cigar_add('D', 1);
+      cigar_add('I', b_len);
     }
+    else if (best == b_len)
+    {
+      cigar_add('I', b_len);
+      cigar_add('D', 1);
+    }
+    else
+    {
+      if (best > 0)
+        cigar_add('I', best);
+      cigar_add('M', 1);
+      if (best < b_len - 1)
+        cigar_add('I', b_len - 1 - best);
+    }
+  }
+  else
+  {
+    /* a_len >= 2, b_len >= 1 */
+
+    int64_t I = a_len / 2;
+    int64_t i, j;
+
+    /* Compute HH & EE in forward phase
+     * Upper part */
+
+    /* initialize HH and EE for values corresponding to empty seq A vs B of j
+     * symbols, i.e. a gap of length j in A */
+
+    HH[0] = 0;
+    EE[0] = 0;
+
+    for (j = 1; j <= b_len; j++)
+    {
+      HH[j] = -(a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i);
+      EE[j] = LONG_MIN;
+    }
+
+    /* compute matrix */
+
+    for (i = 1; i <= I; i++)
+    {
+      int64_t p = HH[0];
+
+      int64_t h = -(b_left ? (gap_b_left ? 0 : go_t_l) + i * ge_t_l
+                           : (gap_b_left ? 0 : go_t_i) + i * ge_t_i);
+
+      HH[0] = h;
+      int64_t f = LONG_MIN;
+
+      for (j = 1; j <= b_len; j++)
+      {
+        f = MAX(f, h - go_q_i) - ge_q_i;
+        if (b_right && (j == b_len))
+          EE[j] = MAX(EE[j], HH[j] - go_t_r) - ge_t_r;
+        else
+          EE[j] = MAX(EE[j], HH[j] - go_t_i) - ge_t_i;
+
+        h = p + subst_score(a_start + i - 1, b_start + j - 1);
+
+        if (f > h)
+          h = f;
+        if (EE[j] > h)
+          h = EE[j];
+        p = HH[j];
+        HH[j] = h;
+      }
+    }
+
+    EE[0] = HH[0];
+
+    /* Compute XX & YY in reverse phase
+     * Lower part */
+
+    /* initialize XX and YY */
+
+    XX[0] = 0;
+    YY[0] = 0;
+
+    for (j = 1; j <= b_len; j++)
+    {
+      XX[j] = -(a_right ? go_q_r + j * ge_q_r : go_q_i + j * ge_q_i);
+      YY[j] = LONG_MIN;
+    }
+
+    /* compute matrix */
+
+    for (i = 1; i <= a_len - I; i++)
+    {
+      int64_t p = XX[0];
+
+      int64_t h = -(b_right ? (gap_b_right ? 0 : go_t_r) + i * ge_t_r
+                            : (gap_b_right ? 0 : go_t_i) + i * ge_t_i);
+      XX[0] = h;
+      int64_t f = LONG_MIN;
+
+      for (j = 1; j <= b_len; j++)
+      {
+        f = MAX(f, h - go_q_i) - ge_q_i;
+        if (b_left && (j == b_len))
+          YY[j] = MAX(YY[j], XX[j] - go_t_l) - ge_t_l;
+        else
+          YY[j] = MAX(YY[j], XX[j] - go_t_i) - ge_t_i;
+
+        h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
+
+        if (f > h)
+          h = f;
+        if (YY[j] > h)
+          h = YY[j];
+        p = XX[j];
+        XX[j] = h;
+      }
+    }
+
+    YY[0] = XX[0];
+
+    /* find maximum score along division line */
+
+    int64_t MaxScore0 = LONG_MIN;
+    int64_t best0 = -1;
+
+    /* solutions with diagonal at break */
+
+    for (j = 0; j <= b_len; j++)
+    {
+      int64_t Score = HH[j] + XX[b_len - j];
+
+      if (Score > MaxScore0)
+      {
+        MaxScore0 = Score;
+        best0 = j;
+      }
+    }
+
+    int64_t MaxScore1 = LONG_MIN;
+    int64_t best1 = -1;
+
+    /* solutions that end with a gap in b from both ends at break */
+
+    for (j = 0; j <= b_len; j++)
+    {
+      int64_t g;
+      if (b_left && (j == 0))
+        g = go_t_l;
+      else if (b_right && (j == b_len))
+        g = go_t_r;
+      else
+        g = go_t_i;
+
+      int64_t Score = EE[j] + YY[b_len - j] + g;
+
+      if (Score > MaxScore1)
+      {
+        MaxScore1 = Score;
+        best1 = j;
+      }
+    }
+
+    int64_t P;
+    int64_t best;
+
+    if (MaxScore0 > MaxScore1)
+    {
+      P = 0;
+      best = best0;
+    }
+    else if (MaxScore1 > MaxScore0)
+    {
+      P = 1;
+      best = best1;
+    }
+    else
+    {
+      if (best0 <= best1)
+      {
+        P = 0;
+        best = best0;
+      }
+      else
+      {
+        P = 1;
+        best = best1;
+      }
+    }
+
+    /* recursively compute upper left and lower right parts */
+
+    if (P == 0)
+    {
+      diff(a_start, b_start, I, best, gap_b_left, false, a_left, false, b_left,
+           b_right && (best == b_len));
+
+      diff(a_start + I, b_start + best, a_len - I, b_len - best, false,
+           gap_b_right, false, a_right, b_left && (best == 0), b_right);
+    }
+    else if (P == 1)
+    {
+      diff(a_start, b_start, I - 1, best, gap_b_left, true, a_left, false,
+           b_left, b_right && (best == b_len));
+
+      cigar_add('D', 2);
+
+      diff(a_start + I + 1, b_start + best, a_len - I - 1, b_len - best, true,
+           gap_b_right, false, a_right, b_left && (best == 0), b_right);
+    }
+  }
 }
 
-void LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
+void LinearMemoryAligner::set_parameters(int64_t* _scorematrix,
                                          int64_t _gap_open_query_left,
                                          int64_t _gap_open_target_left,
                                          int64_t _gap_open_query_interior,
@@ -605,12 +582,10 @@ void LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
   r = _gap_extension_query_interior;
 }
 
-
-
-char * LinearMemoryAligner::align(char * _a_seq,
-                                  char * _b_seq,
-                                  int64_t a_len,
-                                  int64_t b_len)
+char* LinearMemoryAligner::align(char* _a_seq,
+                                 char* _b_seq,
+                                 int64_t a_len,
+                                 int64_t b_len)
 {
   /* copy parameters */
   a_seq = _a_seq;
@@ -620,7 +595,7 @@ char * LinearMemoryAligner::align(char * _a_seq,
   cigar_reset();
 
   /* allocate enough memory for vectors */
-  alloc_vectors(b_len+1);
+  alloc_vectors(b_len + 1);
 
   /* perform alignment */
   diff(0, 0, a_len, b_len, 0, 0, true, true, true, true);
@@ -632,14 +607,14 @@ char * LinearMemoryAligner::align(char * _a_seq,
   return cigar_string;
 }
 
-void LinearMemoryAligner::alignstats(char * cigar,
-                                     char * _a_seq,
-                                     char * _b_seq,
-                                     int64_t * _nwscore,
-                                     int64_t * _nwalignmentlength,
-                                     int64_t * _nwmatches,
-                                     int64_t * _nwmismatches,
-                                     int64_t * _nwgaps)
+void LinearMemoryAligner::alignstats(char* cigar,
+                                     char* _a_seq,
+                                     char* _b_seq,
+                                     int64_t* _nwscore,
+                                     int64_t* _nwalignmentlength,
+                                     int64_t* _nwmatches,
+                                     int64_t* _nwmismatches,
+                                     int64_t* _nwgaps)
 {
   a_seq = _a_seq;
   b_seq = _b_seq;
@@ -653,62 +628,62 @@ void LinearMemoryAligner::alignstats(char * cigar,
   int64_t a_pos = 0;
   int64_t b_pos = 0;
 
-  char * p = cigar;
+  char* p = cigar;
 
   int64_t g;
 
   while (*p)
+  {
+    int64_t run = 1;
+    int scanlength = 0;
+    sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+    p += scanlength;
+    switch (*p++)
     {
-      int64_t run = 1;
-      int scanlength = 0;
-      sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-      p += scanlength;
-      switch (*p++)
-        {
-        case 'M':
-          nwalignmentlength += run;
-          for(int64_t k=0; k<run; k++)
-            {
-              nwscore += subst_score(a_pos, b_pos);
+    case 'M':
+      nwalignmentlength += run;
+      for (int64_t k = 0; k < run; k++)
+      {
+        nwscore += subst_score(a_pos, b_pos);
 
-              if (chrmap_4bit[(int)(a_seq[a_pos])] ==
-                  chrmap_4bit[(int)(b_seq[b_pos])])
-                nwmatches++;
-              else
-                nwmismatches++;
+        if (chrmap_4bit[(int) (a_seq[a_pos])]
+            == chrmap_4bit[(int) (b_seq[b_pos])])
+          nwmatches++;
+        else
+          nwmismatches++;
 
-              a_pos++;
-              b_pos++;
-            }
-          break;
+        a_pos++;
+        b_pos++;
+      }
+      break;
 
-        case 'I':
-          if ((a_pos == 0) && (b_pos == 0))
-            g = go_q_l + run * ge_q_l;
-          else if (*p == 0)
-            g = go_q_r + run * ge_q_r;
-          else
-            g = go_q_i + run * ge_q_i;
-          nwscore -= g;
-          nwgaps++;
-          nwalignmentlength += run;
-          b_pos += run;
-          break;
+    case 'I':
+      if ((a_pos == 0) && (b_pos == 0))
+        g = go_q_l + run * ge_q_l;
+      else if (*p == 0)
+        g = go_q_r + run * ge_q_r;
+      else
+        g = go_q_i + run * ge_q_i;
+      nwscore -= g;
+      nwgaps++;
+      nwalignmentlength += run;
+      b_pos += run;
+      break;
 
-        case 'D':
-          if ((a_pos == 0) && (b_pos == 0))
-            g = go_t_l + run * ge_t_l;
-          else if (*p == 0)
-            g = go_t_r + run * ge_t_r;
-          else
-            g = go_t_i + run * ge_t_i;
-          nwscore -= g;
-          nwgaps++;
-          nwalignmentlength += run;
-          a_pos += run;
-          break;
-        }
+    case 'D':
+      if ((a_pos == 0) && (b_pos == 0))
+        g = go_t_l + run * ge_t_l;
+      else if (*p == 0)
+        g = go_t_r + run * ge_t_r;
+      else
+        g = go_t_i + run * ge_t_i;
+      nwscore -= g;
+      nwgaps++;
+      nwalignmentlength += run;
+      a_pos += run;
+      break;
     }
+  }
 
   *_nwscore = nwscore;
   *_nwalignmentlength = nwalignmentlength;
@@ -716,4 +691,3 @@ void LinearMemoryAligner::alignstats(char * cigar,
   *_nwmismatches = nwmismatches;
   *_nwgaps = nwgaps;
 }
-

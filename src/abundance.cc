@@ -60,20 +60,18 @@
 
 #include "vsearch.h"
 
-bool header_find_attribute(const char * header,
+bool header_find_attribute(const char* header,
                            int header_length,
-                           const char * attribute,
-                           int * start,
-                           int * end)
+                           const char* attribute,
+                           int* start,
+                           int* end)
 {
-  /*
-    Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
-    in the header string, where "size=" is the specified attribute.
-  */
+  /* Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$) in the
+   * header string, where "size=" is the specified attribute. */
 
-  const char * digit_chars = "0123456789";
+  const char* digit_chars = "0123456789";
 
-  if ((! header) || (! attribute))
+  if ((!header) || (!attribute))
     return false;
 
   int hlen = header_length;
@@ -82,86 +80,85 @@ bool header_find_attribute(const char * header,
   int i = 0;
 
   while (i < hlen - alen)
+  {
+    char* r = (char*) strstr(header + i, attribute);
+
+    /* no match */
+    if (r == NULL)
+      break;
+
+    i = r - header;
+
+    /* check for ';' in front */
+    if ((i > 0) && (header[i - 1] != ';'))
     {
-      char * r = (char *) strstr(header + i, attribute);
-
-      /* no match */
-      if (r == NULL)
-        break;
-
-      i = r - header;
-
-      /* check for ';' in front */
-      if ((i > 0) && (header[i-1] != ';'))
-        {
-          i += alen + 1;
-          continue;
-        }
-
-      int digits = (int) strspn(header + i + alen, digit_chars);
-
-      /* check for at least one digit */
-      if (digits == 0)
-        {
-          i += alen + 1;
-          continue;
-        }
-
-      /* check for ';' after */
-      if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
-        {
-          i += alen + digits + 2;
-          continue;
-        }
-
-      /* ok */
-      * start = i;
-      * end = i + alen + digits;
-      return true;
+      i += alen + 1;
+      continue;
     }
+
+    int digits = (int) strspn(header + i + alen, digit_chars);
+
+    /* check for at least one digit */
+    if (digits == 0)
+    {
+      i += alen + 1;
+      continue;
+    }
+
+    /* check for ';' after */
+    if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
+    {
+      i += alen + digits + 2;
+      continue;
+    }
+
+    /* ok */
+    *start = i;
+    *end = i + alen + digits;
+    return true;
+  }
   return false;
 }
 
-int64_t abundance_get(char * header, int header_length)
+int64_t abundance_get(char* header, int header_length)
 {
   /* read size/abundance annotation */
   int64_t abundance = 1;
   int start = 0;
   int end = 0;
-  if (header_find_attribute(header, header_length, "size=", & start, & end))
-    {
-      int64_t number = atol(header + start + 5);
-      if (number > 0)
-        abundance = number;
-      else
-        fatal("Invalid (zero) abundance annotation in FASTA file header");
-    }
+  if (header_find_attribute(header, header_length, "size=", &start, &end))
+  {
+    int64_t number = atol(header + start + 5);
+    if (number > 0)
+      abundance = number;
+    else
+      fatal("Invalid (zero) abundance annotation in FASTA file header");
+  }
   return abundance;
 }
 
-void abundance_fprint_header_strip_size(FILE * fp,
-                                        char * header,
+void abundance_fprint_header_strip_size(FILE* fp,
+                                        char* header,
                                         int header_length)
 {
   int start = 0;
   int end = 0;
-  if (header_find_attribute(header, header_length, "size=", & start, & end))
+  if (header_find_attribute(header, header_length, "size=", &start, &end))
+  {
+    if (start <= 1)
     {
-      if (start <= 1)
-        {
-          if (end < header_length)
-            fprintf(fp, "%s", header + end + 1);
-        }
-      else
-        {
-          if (end == header_length)
-            fprintf(fp, "%.*s", start - 1, header);
-          else
-            fprintf(fp, "%.*s;%.*s",
-                    start - 1, header,
-                    header_length - end - 1, header + end + 1);
-        }
+      if (end < header_length)
+        fprintf(fp, "%s", header + end + 1);
     }
+    else
+    {
+      if (end == header_length)
+        fprintf(fp, "%.*s", start - 1, header);
+      else
+        fprintf(fp, "%.*s;%.*s", start - 1, header, header_length - end - 1,
+                header + end + 1);
+    }
+  }
   else
     fprintf(fp, "%s", header);
 }

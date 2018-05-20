@@ -58,20 +58,20 @@
 
 */
 
-char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
+char* align_getrow(char* seq, char* cigar, int alignlen, int origin);
 
-void align_fprint_uncompressed_alignment(FILE * f, char * cigar);
+void align_fprint_uncompressed_alignment(FILE* f, char* cigar);
 
-void align_show(FILE * f,
-                char * seq1,
+void align_show(FILE* f,
+                char* seq1,
                 int64_t seq1len,
                 int64_t seq1off,
-                const char * seq1name,
-                char * seq2,
+                const char* seq1name,
+                char* seq2,
                 int64_t seq2len,
                 int64_t seq2off,
-                const char * seq2name,
-                char * cigar,
+                const char* seq2name,
+                char* cigar,
                 int64_t cigarlen,
                 int numwidth,
                 int namewidth,

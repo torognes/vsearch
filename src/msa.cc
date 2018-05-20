@@ -64,110 +64,113 @@
 
 #define PROFSIZE 6
 
-static char * aln;
+static char* aln;
 static int alnpos;
-static int * profile;
+static int* profile;
 
 void msa_add(char c)
 {
-  int * p = profile + PROFSIZE * alnpos;
+  int* p = profile + PROFSIZE * alnpos;
 
-  switch(toupper(c))
-    {
-    case 'A':
-      p[0]++;
-      break;
-    case 'C':
-      p[1]++;
-      break;
-    case 'G':
-      p[2]++;
-      break;
-    case 'T':
-    case 'U':
-      p[3]++;
-      break;
-    case 'R':
-    case 'Y':
-    case 'S':
-    case 'W':
-    case 'K':
-    case 'M':
-    case 'B':
-    case 'D':
-    case 'H':
-    case 'V':
-    case 'N':
-      p[4]++;
-      break;
-    case '-':
-      p[5]++;
-      break;
-    }
+  switch (toupper(c))
+  {
+  case 'A':
+    p[0]++;
+    break;
+  case 'C':
+    p[1]++;
+    break;
+  case 'G':
+    p[2]++;
+    break;
+  case 'T':
+  case 'U':
+    p[3]++;
+    break;
+  case 'R':
+  case 'Y':
+  case 'S':
+  case 'W':
+  case 'K':
+  case 'M':
+  case 'B':
+  case 'D':
+  case 'H':
+  case 'V':
+  case 'N':
+    p[4]++;
+    break;
+  case '-':
+    p[5]++;
+    break;
+  }
 
   aln[alnpos++] = c;
 }
 
-void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
+void msa(FILE* fp_msaout,
+         FILE* fp_consout,
+         FILE* fp_profile,
          int cluster,
-         int target_count, struct msa_target_s * target_list,
+         int target_count,
+         struct msa_target_s* target_list,
          int64_t totalabundance)
 {
   int centroid_seqno = target_list[0].seqno;
   int centroid_len = db_getsequencelen(centroid_seqno);
 
   /* find max insertions in front of each position in the centroid sequence */
-  int * maxi = (int *) xmalloc((centroid_len + 1) * sizeof(int));
+  int* maxi = (int*) xmalloc((centroid_len + 1) * sizeof(int));
   memset(maxi, 0, (centroid_len + 1) * sizeof(int));
 
-  for(int j=1; j<target_count; j++)
+  for (int j = 1; j < target_count; j++)
+  {
+    char* p = target_list[j].cigar;
+    char* e = p + strlen(p);
+    int pos = 0;
+    while (p < e)
     {
-      char * p = target_list[j].cigar;
-      char * e = p + strlen(p);
-      int pos = 0;
-      while (p < e)
-        {
-          int64_t run = 1;
-          int scanlength = 0;
-          sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-          p += scanlength;
-          char op = *p++;
-          switch (op)
-            {
-            case 'M':
-            case 'I':
-              pos += run;
-              break;
-            case 'D':
-              if (run > maxi[pos])
-                maxi[pos] = run;
-              break;
-            }
-        }
+      int64_t run = 1;
+      int scanlength = 0;
+      sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+      p += scanlength;
+      char op = *p++;
+      switch (op)
+      {
+      case 'M':
+      case 'I':
+        pos += run;
+        break;
+      case 'D':
+        if (run > maxi[pos])
+          maxi[pos] = run;
+        break;
+      }
     }
+  }
 
   /* find total alignment length */
   int alnlen = 0;
-  for(int i=0; i < centroid_len+1; i++)
+  for (int i = 0; i < centroid_len + 1; i++)
     alnlen += maxi[i];
   alnlen += centroid_len;
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  profile = (int *) xmalloc(PROFSIZE * sizeof(int) * alnlen);
+  profile = (int*) xmalloc(PROFSIZE * sizeof(int) * alnlen);
   memset(profile, 0, PROFSIZE * sizeof(int) * alnlen);
-  aln = (char *) xmalloc(alnlen+1);
-  char * cons = (char *) xmalloc(alnlen+1);
+  aln = (char*) xmalloc(alnlen + 1);
+  char* cons = (char*) xmalloc(alnlen + 1);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
-  for(int i=0; i < target_count; i++)
+  for (int i = 0; i < target_count; i++)
     if (target_list[i].strand)
-      {
-        int64_t len = db_getsequencelen(target_list[i].seqno);
-        if (len > longest_reversed)
-          longest_reversed = len;
-      }
-  char * rc_buffer = 0;
+    {
+      int64_t len = db_getsequencelen(target_list[i].seqno);
+      if (len > longest_reversed)
+        longest_reversed = len;
+    }
+  char* rc_buffer = 0;
   if (longest_reversed > 0)
     rc_buffer = (char*) xmalloc(longest_reversed + 1);
 
@@ -175,94 +178,90 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   if (fp_msaout)
     fprintf(fp_msaout, "\n");
 
-  for(int j=0; j<target_count; j++)
+  for (int j = 0; j < target_count; j++)
+  {
+    int target_seqno = target_list[j].seqno;
+    char* target_seq = db_getsequence(target_seqno);
+
+    if (target_list[j].strand)
     {
-      int target_seqno = target_list[j].seqno;
-      char * target_seq = db_getsequence(target_seqno);
-
-      if (target_list[j].strand)
-        {
-          reverse_complement(rc_buffer, target_seq,
-                             db_getsequencelen(target_seqno));
-          target_seq = rc_buffer;
-        }
-
-      int inserted = 0;
-      int qpos = 0;
-      int tpos = 0;
-      alnpos = 0;
-
-      if (!j)
-        {
-          for(int x=0; x < centroid_len; x++)
-            {
-              for(int y=0; y < maxi[qpos]; y++)
-                msa_add('-');
-              msa_add(target_seq[tpos++]);
-              qpos++;
-            }
-        }
-      else
-        {
-          char * p = target_list[j].cigar;
-          char * e = p + strlen(p);
-          while (p < e)
-            {
-              int64_t run = 1;
-              int scanlength = 0;
-              sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-              p += scanlength;
-              char op = *p++;
-
-              if (op == 'D')
-                {
-                  for(int x=0; x < maxi[qpos]; x++)
-                    {
-                      if (x < run)
-                        msa_add(target_seq[tpos++]);
-                      else
-                        msa_add('-');
-                    }
-                  inserted = 1;
-                }
-              else
-                {
-                  for(int x=0; x < run; x++)
-                    {
-                      if (!inserted)
-                        for(int y=0; y < maxi[qpos]; y++)
-                          msa_add('-');
-
-                      if (op == 'M')
-                        msa_add(target_seq[tpos++]);
-                      else
-                        msa_add('-');
-
-                      qpos++;
-                      inserted = 0;
-                    }
-                }
-            }
-        }
-
-      if (!inserted)
-        for(int x=0; x < maxi[qpos]; x++)
-          msa_add('-');
-
-      /* end of sequence string */
-      aln[alnpos] = 0;
-
-      /* print header & sequence */
-      if (fp_msaout)
-        fasta_print_general(fp_msaout,
-                            j ? "" : "*",
-                            aln,
-                            alnlen,
-                            db_getheader(target_seqno),
-                            db_getheaderlen(target_seqno),
-                            db_getabundance(target_seqno),
-                            0, -1, -1, 0, 0.0);
+      reverse_complement(rc_buffer, target_seq,
+                         db_getsequencelen(target_seqno));
+      target_seq = rc_buffer;
     }
+
+    int inserted = 0;
+    int qpos = 0;
+    int tpos = 0;
+    alnpos = 0;
+
+    if (!j)
+    {
+      for (int x = 0; x < centroid_len; x++)
+      {
+        for (int y = 0; y < maxi[qpos]; y++)
+          msa_add('-');
+        msa_add(target_seq[tpos++]);
+        qpos++;
+      }
+    }
+    else
+    {
+      char* p = target_list[j].cigar;
+      char* e = p + strlen(p);
+      while (p < e)
+      {
+        int64_t run = 1;
+        int scanlength = 0;
+        sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+        p += scanlength;
+        char op = *p++;
+
+        if (op == 'D')
+        {
+          for (int x = 0; x < maxi[qpos]; x++)
+          {
+            if (x < run)
+              msa_add(target_seq[tpos++]);
+            else
+              msa_add('-');
+          }
+          inserted = 1;
+        }
+        else
+        {
+          for (int x = 0; x < run; x++)
+          {
+            if (!inserted)
+              for (int y = 0; y < maxi[qpos]; y++)
+                msa_add('-');
+
+            if (op == 'M')
+              msa_add(target_seq[tpos++]);
+            else
+              msa_add('-');
+
+            qpos++;
+            inserted = 0;
+          }
+        }
+      }
+    }
+
+    if (!inserted)
+      for (int x = 0; x < maxi[qpos]; x++)
+        msa_add('-');
+
+    /* end of sequence string */
+    aln[alnpos] = 0;
+
+    /* print header & sequence */
+    if (fp_msaout)
+      fasta_print_general(fp_msaout, j ? "" : "*", aln, alnlen,
+                          db_getheader(target_seqno),
+                          db_getheaderlen(target_seqno),
+                          db_getabundance(target_seqno), 0, -1, -1, 0, 0.0);
+  }
 
   if (rc_buffer)
     xfree(rc_buffer);
@@ -276,47 +275,47 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   int left_censored = maxi[0];
   int right_censored = maxi[centroid_len];
 
-  for(int i=0; i<alnlen; i++)
+  for (int i = 0; i < alnlen; i++)
+  {
+    if ((i < left_censored) || (i >= alnlen - right_censored))
     {
-      if ((i < left_censored) || (i >= alnlen - right_censored))
-        {
-          aln[i] = '+';
-        }
-      else
-        {
-          /* find most common symbol of A, C, G and T */
-          char best_sym = 0;
-          int best_count = 0;
-          for(int c=0; c<4; c++)
-            {
-              int count = profile[PROFSIZE*i+c];
-              if (count > best_count)
-                {
-                  best_count = count;
-                  best_sym = c+1;
-                }
-            }
-
-          /* if no A, C, G, or T, check if there are any N's */
-          int n_count = profile[PROFSIZE*i+4];
-          if ((best_count == 0) && (n_count > 0))
-            {
-              best_count = n_count;
-              best_sym = 15; // N
-            }
-
-          /* compare to the number of gap symbols */
-          int gap_count = profile[PROFSIZE*i+5];
-          if (best_count >= gap_count)
-            {
-              char sym = sym_nt_4bit[(int)best_sym];
-              aln[i] = sym;
-              cons[conslen++] = sym;
-            }
-          else
-            aln[i] = '-';
-        }
+      aln[i] = '+';
     }
+    else
+    {
+      /* find most common symbol of A, C, G and T */
+      char best_sym = 0;
+      int best_count = 0;
+      for (int c = 0; c < 4; c++)
+      {
+        int count = profile[PROFSIZE * i + c];
+        if (count > best_count)
+        {
+          best_count = count;
+          best_sym = c + 1;
+        }
+      }
+
+      /* if no A, C, G, or T, check if there are any N's */
+      int n_count = profile[PROFSIZE * i + 4];
+      if ((best_count == 0) && (n_count > 0))
+      {
+        best_count = n_count;
+        best_sym = 15; // N
+      }
+
+      /* compare to the number of gap symbols */
+      int gap_count = profile[PROFSIZE * i + 5];
+      if (best_count >= gap_count)
+      {
+        char sym = sym_nt_4bit[(int) best_sym];
+        aln[i] = sym;
+        cons[conslen++] = sym;
+      }
+      else
+        aln[i] = '-';
+    }
+  }
 
   aln[alnlen] = 0;
   cons[conslen] = 0;
@@ -325,48 +324,34 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
     fasta_print(fp_msaout, "consensus", aln, alnlen);
 
   if (fp_consout)
-    {
-      fasta_print_general(fp_consout,
-                          "centroid=",
-                          cons,
-                          conslen,
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster+1,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          0, 0.0);
-    }
+  {
+    fasta_print_general(
+      fp_consout, "centroid=", cons, conslen, db_getheader(centroid_seqno),
+      db_getheaderlen(centroid_seqno), totalabundance, cluster + 1,
+      target_count, opt_clusterout_id ? cluster : -1, 0, 0.0);
+  }
 
   if (fp_profile)
-    {
-      fasta_print_general(fp_profile,
-                          "centroid=",
-                          0,
-                          0,
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster+1,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          0, 0.0);
+  {
+    fasta_print_general(
+      fp_profile, "centroid=", 0, 0, db_getheader(centroid_seqno),
+      db_getheaderlen(centroid_seqno), totalabundance, cluster + 1,
+      target_count, opt_clusterout_id ? cluster : -1, 0, 0.0);
 
-      for (int i=0; i<alnlen; i++)
-        {
-          fprintf(fp_profile, "%d\t%c", i, aln[i]);
-          // A, C, G and T
-          for (int c=0; c<4; c++)
-            fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+c]);
-          // Gap symbol
-          fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+5]);
-          // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+4]);
-          fprintf(fp_profile, "\n");
-        }
+    for (int i = 0; i < alnlen; i++)
+    {
+      fprintf(fp_profile, "%d\t%c", i, aln[i]);
+      // A, C, G and T
+      for (int c = 0; c < 4; c++)
+        fprintf(fp_profile, "\t%d", profile[PROFSIZE * i + c]);
+      // Gap symbol
+      fprintf(fp_profile, "\t%d", profile[PROFSIZE * i + 5]);
+      // Ambiguous nucleotide (Ns and others)
+      fprintf(fp_profile, "\t%d", profile[PROFSIZE * i + 4]);
       fprintf(fp_profile, "\n");
     }
+    fprintf(fp_profile, "\n");
+  }
 
   xfree(maxi);
   xfree(aln);

@@ -60,11 +60,11 @@
 
 #include "vsearch.h"
 
-bitmap_t * bitmap_init(unsigned int size)
+bitmap_t* bitmap_init(unsigned int size)
 {
-  bitmap_t * b = (bitmap_t*) xmalloc(sizeof(bitmap_t));
+  bitmap_t* b = (bitmap_t*) xmalloc(sizeof(bitmap_t));
   b->size = size;
-  b->bitmap = (unsigned char *) xmalloc((size+7)/8);
+  b->bitmap = (unsigned char*) xmalloc((size + 7) / 8);
   return b;
 }
 

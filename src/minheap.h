@@ -65,29 +65,22 @@ typedef struct topscore
   unsigned int length;
 } elem_t;
 
-
 typedef struct minheap_s
 {
   int alloc;
   int count;
-  elem_t * array;
+  elem_t* array;
 } minheap_t;
 
-inline int minheap_isempty(minheap_t * m)
-{
-  return !m->count;
-}
+inline int minheap_isempty(minheap_t* m) { return !m->count; }
 
-inline void minheap_empty(minheap_t * m)
-{
-  m->count = 0;
-}
+inline void minheap_empty(minheap_t* m) { m->count = 0; }
 
-elem_t minheap_poplast(minheap_t * m);
-void minheap_sort(minheap_t * m);
-minheap_t * minheap_init(int size);
-void minheap_exit(minheap_t * m);
-void minheap_add(minheap_t * m, elem_t * n);
-elem_t minheap_pop(minheap_t * m);
+elem_t minheap_poplast(minheap_t* m);
+void minheap_sort(minheap_t* m);
+minheap_t* minheap_init(int size);
+void minheap_exit(minheap_t* m);
+void minheap_add(minheap_t* m, elem_t* n);
+elem_t minheap_pop(minheap_t* m);
 
-void minheap_dump(minheap_t * m);
+void minheap_dump(minheap_t* m);

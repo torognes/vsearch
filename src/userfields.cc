@@ -60,106 +60,68 @@
 
 #include "vsearch.h"
 
-static const char * userfields_names[] =
-  {
-    "query",  // 0
-    "target", // 1
-    "evalue", // 2
-    "id",     // 3
-    "pctpv",
-    "pctgaps",
-    "pairs",
-    "gaps",
-    "qlo",
-    "qhi",
-    "tlo",
-    "thi",
-    "pv",
-    "ql",
-    "tl",
-    "qs",
-    "ts",
-    "alnlen",
-    "opens",
-    "exts",
-    "raw",
-    "bits",
-    "aln",
-    "caln",
-    "qstrand",
-    "tstrand",
-    "qrow",
-    "trow",
-    "qframe",
-    "tframe",
-    "mism",
-    "ids",
-    "qcov",
-    "tcov",  // 33
-    "id0",
-    "id1",
-    "id2",
-    "id3",
-    "id4", // 38
-    "qilo", // 39
-    "qihi",
-    "tilo",
-    "tihi", // 42
-    0
-  };
+static const char* userfields_names[] = {
+  /* 0       1           2        3       4         5          6        7 */
+  "query",   "target",  "evalue", "id",   "pctpv",  "pctgaps", "pairs", "gaps",
+  "qlo",     "qhi",     "tlo",    "thi",  "pv",     "ql",      "tl",    "qs",
+  "ts",      "alnlen",  "opens",  "exts", "raw",    "bits",    "aln",   "caln",
+  "qstrand", "tstrand", "qrow",   "trow", "qframe", "tframe",  "mism",  "ids",
+  "qcov",    "tcov",    "id0",    "id1",  "id2",    "id3",     "id4",   "qilo",
+  "qihi",    "tilo",    "tihi",   0};
 
-int * userfields_requested = 0;
+int* userfields_requested = 0;
 int userfields_requested_count = 0;
 
-int parse_userfields_arg(char * arg)
+int parse_userfields_arg(char* arg)
 {
-  // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
-  // and returns 1 if it is ok or 0 if not.
+  /* Parses the userfields option argument, e.g. query+target+id+alnlen+mism and
+   * returns 1 if it is ok or 0 if not. */
 
-  char * p = arg;
-  char * e = p + strlen(p); // pointer to end of string
+  char* p = arg;
+  char* e = p + strlen(p); /* pointer to end of string */
 
   userfields_requested_count = 1;
-  while(p<e)
+  while (p < e)
     if (*p++ == '+')
       userfields_requested_count++;
 
-  userfields_requested = (int*) xmalloc(sizeof(int) * (uint64_t)userfields_requested_count);
+  userfields_requested =
+    (int*) xmalloc(sizeof(int) * (uint64_t) userfields_requested_count);
 
   p = arg;
 
-  char * q;
+  char* q;
 
   int fields = 0;
 
-  while(1)
+  while (1)
+  {
+    q = strchr(p, '+');
+    if (!q)
+      q = e;
+
+    uint64_t n = (uint64_t)(q - p);
+
+    char** u = (char**) userfields_names;
+
+    while (*u)
     {
-      q = strchr(p, '+');
-      if (!q)
-        q = e;
-
-      uint64_t n = (uint64_t)(q - p);
-
-      char ** u = (char**) userfields_names;
-
-      while (*u)
-        {
-          if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
-            break;
-          u++;
-        }
-
-      if (!*u)    // reached end of list -> unrecognized field
-        return 0; // bad argument
-
-      int i = (int)(((const char**)u) - userfields_names);
-      userfields_requested[fields++] = i;
-
-      p = q;
-
-      if (p == e)  // reached end of argument
-        return 1;
-
-      p++;
+      if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
+        break;
+      u++;
     }
+
+    if (!*u)    // reached end of list -> unrecognized field
+      return 0; // bad argument
+
+    int i = (int) (((const char**) u) - userfields_names);
+    userfields_requested[fields++] = i;
+
+    p = q;
+
+    if (p == e) // reached end of argument
+      return 1;
+
+    p++;
+  }
 }

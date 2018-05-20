@@ -62,34 +62,30 @@ static char empty_string[1] = "";
 
 class xstring
 {
-  char * string;
+  char* string;
   size_t length;
   size_t alloc;
 
- public:
-
+public:
   xstring()
-    {
-      length = 0;
-      alloc = 0;
-      string = 0;
-    }
+  {
+    length = 0;
+    alloc = 0;
+    string = 0;
+  }
 
   ~xstring()
-    {
-      if (alloc > 0)
-        free(string);
-      alloc = 0;
-      string = 0;
-      length = 0;
-    }
-
-  void empty()
   {
+    if (alloc > 0)
+      free(string);
+    alloc = 0;
+    string = 0;
     length = 0;
   }
 
-  char * get_string()
+  void empty() { length = 0; }
+
+  char* get_string()
   {
     if (length > 0)
       return string;
@@ -97,19 +93,16 @@ class xstring
       return empty_string;
   }
 
-  size_t get_length()
-  {
-    return length;
-  }
+  size_t get_length() { return length; }
 
   void add_c(char c)
   {
     size_t needed = 1;
     if (length + needed + 1 > alloc)
-      {
-        alloc = length + needed + 1;
-        string = (char*) xrealloc(string, alloc);
-      }
+    {
+      alloc = length + needed + 1;
+      string = (char*) xrealloc(string, alloc);
+    }
     string[length] = c;
     length += 1;
     string[length] = 0;
@@ -121,22 +114,22 @@ class xstring
     if (needed < 0)
       fatal("snprintf failed");
     if (length + needed + 1 > alloc)
-      {
-        alloc = length + needed + 1;
-        string = (char*) xrealloc(string, alloc);
-      }
+    {
+      alloc = length + needed + 1;
+      string = (char*) xrealloc(string, alloc);
+    }
     sprintf(string + length, "%d", d);
     length += needed;
   }
 
-  void add_s(char * s)
+  void add_s(char* s)
   {
     size_t needed = strlen(s);
     if (length + needed + 1 > alloc)
-      {
-        alloc = length + needed + 1;
-        string = (char*) xrealloc(string, alloc);
-      }
+    {
+      alloc = length + needed + 1;
+      string = (char*) xrealloc(string, alloc);
+    }
     strcpy(string + length, s);
     length += needed;
   }

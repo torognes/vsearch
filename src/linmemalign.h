@@ -64,12 +64,12 @@ class LinearMemoryAligner
   int64_t op_run;
   int64_t cigar_alloc;
   int64_t cigar_length;
-  char * cigar_string;
+  char* cigar_string;
 
-  char * a_seq;
-  char * b_seq;
+  char* a_seq;
+  char* b_seq;
 
-  int64_t * scorematrix;
+  int64_t* scorematrix;
 
   int64_t q;
   int64_t r;
@@ -90,10 +90,10 @@ class LinearMemoryAligner
 
   size_t vector_alloc;
 
-  int64_t * HH;
-  int64_t * EE;
-  int64_t * XX;
-  int64_t * YY;
+  int64_t* HH;
+  int64_t* EE;
+  int64_t* XX;
+  int64_t* YY;
 
   void cigar_reset();
 
@@ -103,10 +103,10 @@ class LinearMemoryAligner
 
   inline int64_t subst_score(int64_t x, int64_t y)
   {
-    /* return substitution score for replacing symbol at position x in a
-       with symbol at position y in b */
-    return scorematrix[chrmap_4bit[(int)(b_seq[y])] * 16 +
-                       chrmap_4bit[(int)(a_seq[x])]];
+    /* return substitution score for replacing symbol at position x
+       in a with symbol at position y in b */
+    return scorematrix[chrmap_4bit[(int) (b_seq[y])] * 16
+                       + chrmap_4bit[(int) (a_seq[x])]];
   }
 
   void diff(int64_t a_start,
@@ -125,14 +125,13 @@ class LinearMemoryAligner
   void show_matrix();
 
 public:
-
   LinearMemoryAligner();
 
   ~LinearMemoryAligner();
 
-  int64_t * scorematrix_create(int64_t match, int64_t mismatch);
+  int64_t* scorematrix_create(int64_t match, int64_t mismatch);
 
-  void set_parameters(int64_t * _scorematrix,
+  void set_parameters(int64_t* _scorematrix,
                       int64_t _gap_open_query_left,
                       int64_t _gap_open_target_left,
                       int64_t _gap_open_query_interior,
@@ -146,18 +145,14 @@ public:
                       int64_t _gap_extension_query_right,
                       int64_t _gap_extension_target_right);
 
-  char * align(char * _a_seq,
-               char * _b_seq,
-               int64_t M,
-               int64_t N);
+  char* align(char* _a_seq, char* _b_seq, int64_t M, int64_t N);
 
-  void alignstats(char * cigar,
-                  char * a_seq,
-                  char * b_seq,
-                  int64_t * nwscore,
-                  int64_t * nwalignmentlength,
-                  int64_t * nwmatches,
-                  int64_t * nwmismatches,
-                  int64_t * nwgaps);
-
+  void alignstats(char* cigar,
+                  char* a_seq,
+                  char* b_seq,
+                  int64_t* nwscore,
+                  int64_t* nwalignmentlength,
+                  int64_t* nwmatches,
+                  int64_t* nwmismatches,
+                  int64_t* nwgaps);
 };

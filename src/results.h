@@ -58,51 +58,49 @@
 
 */
 
-void results_show_alnout(FILE * fp,
-                         struct hit * hits,
+void results_show_alnout(FILE* fp,
+                         struct hit* hits,
                          int hitcount,
-                         char * query_head,
-                         char * qsequence,
+                         char* query_head,
+                         char* qsequence,
                          int64_t qseqlen,
-                         char * rc);
+                         char* rc);
 
-void results_show_blast6out_one(FILE * fp,
-                                struct hit * hp,
-                                char * query_head,
-                                char * qsequence,
+void results_show_blast6out_one(FILE* fp,
+                                struct hit* hp,
+                                char* query_head,
+                                char* qsequence,
                                 int64_t qseqlen,
-                                char * rc);
+                                char* rc);
 
-void results_show_uc_one(FILE * fp,
-                         struct hit * hp,
-                         char * query_head,
-                         char * qsequence,
+void results_show_uc_one(FILE* fp,
+                         struct hit* hp,
+                         char* query_head,
+                         char* qsequence,
                          int64_t qseqlen,
-                         char * rc,
+                         char* rc,
                          int clusterno);
 
-void results_show_userout_one(FILE * fp,
-                              struct hit * hp,
-                              char * query_head,
-                              char * qsequence,
+void results_show_userout_one(FILE* fp,
+                              struct hit* hp,
+                              char* query_head,
+                              char* qsequence,
                               int64_t qseqlen,
-                              char * rc);
+                              char* rc);
 
-void results_show_fastapairs_one(FILE * fp,
-                                 struct hit * hp,
-                                 char * query_head,
-                                 char * qsequence,
+void results_show_fastapairs_one(FILE* fp,
+                                 struct hit* hp,
+                                 char* query_head,
+                                 char* qsequence,
                                  int64_t qseqlen,
-                                 char * rc);
+                                 char* rc);
 
-void results_show_samheader(FILE * fp,
-                            char * cmdline,
-                            char * dbname);
+void results_show_samheader(FILE* fp, char* cmdline, char* dbname);
 
-void results_show_samout(FILE * fp,
-                         struct hit * hits,
+void results_show_samout(FILE* fp,
+                         struct hit* hits,
                          int hitcount,
-                         char * query_head,
-                         char * qsequence,
+                         char* query_head,
+                         char* qsequence,
                          int64_t qseqlen,
-                         char * rc);
+                         char* rc);

@@ -60,12 +60,10 @@
 
 #include "vsearch.h"
 
-/*
-  Find the unique kmers or words in a given sequence.
-  Unique is now defined as all different words occuring at least once.
-  Earlier it was defined as those words occuring exactly once, but
-  that caused a problem when searching for sequences with many repeats.
-*/
+/* Find the unique kmers or words in a given sequence. Unique is now defined as
+ * all different words occuring at least once. Earlier it was defined as those
+ * words occuring exactly once, but that caused a problem when searching for
+ * sequences with many repeats. */
 
 #define HASH CityHash64
 
@@ -77,25 +75,25 @@ struct bucket_s
 
 struct uhandle_s
 {
-  struct bucket_s * hash;
-  unsigned int * list;
+  struct bucket_s* hash;
+  unsigned int* list;
   unsigned int hash_mask;
   int size;
   int alloc;
 
   uint64_t bitmap_size;
-  uint64_t * bitmap;
+  uint64_t* bitmap;
 };
 
-struct uhandle_s * unique_init()
+struct uhandle_s* unique_init()
 {
-  uhandle_s * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
+  uhandle_s* uh = (struct uhandle_s*) xmalloc(sizeof(struct uhandle_s));
 
   uh->alloc = 2048;
   uh->size = 0;
   uh->hash_mask = uh->alloc - 1;
-  uh->hash = (struct bucket_s *) xmalloc(sizeof(struct bucket_s) * uh->alloc);
-  uh->list = (unsigned int *) xmalloc(sizeof(unsigned int) * uh->alloc);
+  uh->hash = (struct bucket_s*) xmalloc(sizeof(struct bucket_s) * uh->alloc);
+  uh->list = (unsigned int*) xmalloc(sizeof(unsigned int) * uh->alloc);
 
   uh->bitmap_size = 0;
   uh->bitmap = 0;
@@ -103,7 +101,7 @@ struct uhandle_s * unique_init()
   return uh;
 }
 
-void unique_exit(struct uhandle_s * uh)
+void unique_exit(struct uhandle_s* uh)
 {
   if (uh->bitmap)
     xfree(uh->bitmap);
@@ -114,125 +112,123 @@ void unique_exit(struct uhandle_s * uh)
   xfree(uh);
 }
 
-int unique_compare(const void * a, const void * b)
+int unique_compare(const void* a, const void* b)
 {
-  unsigned int * x = (unsigned int*) a;
-  unsigned int * y = (unsigned int*) b;
+  unsigned int* x = (unsigned int*) a;
+  unsigned int* y = (unsigned int*) b;
 
-  if (x<y)
+  if (x < y)
     return -1;
+  else if (x > y)
+    return +1;
   else
-    if (x>y)
-      return +1;
-    else
-      return 0;
+    return 0;
 }
 
-
-void unique_count_bitmap(struct uhandle_s * uh,
+void unique_count_bitmap(struct uhandle_s* uh,
                          int k,
                          int seqlen,
-                         char * seq,
-                         unsigned int * listlen,
-                         unsigned int * * list,
+                         char* seq,
+                         unsigned int* listlen,
+                         unsigned int** list,
                          int seqmask)
 {
   /* if necessary, reallocate list of unique kmers */
 
   if (uh->alloc < seqlen)
-    {
-      while (uh->alloc < seqlen)
-        uh->alloc *= 2;
-      uh->list = (unsigned int *)
-        xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
-    }
+  {
+    while (uh->alloc < seqlen)
+      uh->alloc *= 2;
+    uh->list =
+      (unsigned int*) xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
+  }
 
   uint64_t size = 1ULL << (k << 1ULL);
 
   /* reallocate bitmap arrays if necessary */
 
   if (uh->bitmap_size < size)
-    {
-      uh->bitmap = (uint64_t *) xrealloc(uh->bitmap, size >> 3ULL);
-      uh->bitmap_size = size;
-    }
+  {
+    uh->bitmap = (uint64_t*) xrealloc(uh->bitmap, size >> 3ULL);
+    uh->bitmap_size = size;
+  }
 
   memset(uh->bitmap, 0, size >> 3ULL);
 
   uint64_t bad = 0;
   uint64_t kmer = 0;
   uint64_t mask = size - 1ULL;
-  char * s = seq;
-  char * e1 = s + k-1;
-  char * e2 = s + seqlen;
+  char* s = seq;
+  char* e1 = s + k - 1;
+  char* e2 = s + seqlen;
   if (e2 < e1)
     e1 = e2;
 
-  unsigned int * maskmap = (seqmask != MASK_NONE) ?
-    chrmap_mask_lower : chrmap_mask_ambig;
+  unsigned int* maskmap =
+    (seqmask != MASK_NONE) ? chrmap_mask_lower : chrmap_mask_ambig;
 
   while (s < e1)
-    {
-      bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
+  {
+    bad <<= 2ULL;
+    bad |= maskmap[(int) (*s)];
 
-      kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
-    }
+    kmer <<= 2ULL;
+    kmer |= chrmap_2bit[(int) (*s++)];
+  }
 
   int unique = 0;
 
   while (s < e2)
+  {
+    bad <<= 2ULL;
+    bad |= maskmap[(int) (*s)];
+    bad &= mask;
+
+    kmer <<= 2ULL;
+    kmer |= chrmap_2bit[(int) (*s++)];
+    kmer &= mask;
+
+    if (!bad)
     {
-      bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
-      bad &= mask;
-
-      kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
-      kmer &= mask;
-
-      if (!bad)
-        {
-          uint64_t x = kmer >> 6ULL;
-          uint64_t y = 1ULL << (kmer & 63ULL);
-          if (!(uh->bitmap[x] & y))
-            {
-              /* not seen before */
-              uh->list[unique++] = kmer;
-              uh->bitmap[x] |= y;
-            }
-        }
+      uint64_t x = kmer >> 6ULL;
+      uint64_t y = 1ULL << (kmer & 63ULL);
+      if (!(uh->bitmap[x] & y))
+      {
+        /* not seen before */
+        uh->list[unique++] = kmer;
+        uh->bitmap[x] |= y;
+      }
     }
+  }
 
   *listlen = unique;
   *list = uh->list;
 }
 
-void unique_count_hash(struct uhandle_s * uh,
+void unique_count_hash(struct uhandle_s* uh,
                        int k,
                        int seqlen,
-                       char * seq,
-                       unsigned int * listlen,
-                       unsigned int * * list,
+                       char* seq,
+                       unsigned int* listlen,
+                       unsigned int** list,
                        int seqmask)
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
-  if (uh->alloc < 2*seqlen)
-    {
-      while (uh->alloc < 2*seqlen)
-        uh->alloc *= 2;
-      uh->hash = (struct bucket_s *)
-        xrealloc(uh->hash, sizeof(struct bucket_s) * uh->alloc);
-      uh->list = (unsigned int *)
-        xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
-    }
+  if (uh->alloc < 2 * seqlen)
+  {
+    while (uh->alloc < 2 * seqlen)
+      uh->alloc *= 2;
+    uh->hash = (struct bucket_s*) xrealloc(uh->hash,
+                                           sizeof(struct bucket_s) * uh->alloc);
+    uh->list =
+      (unsigned int*) xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
+  }
 
   /* hashtable variant */
 
   uh->size = 1;
-  while (uh->size < 2*seqlen)
+  while (uh->size < 2 * seqlen)
     uh->size *= 2;
   uh->hash_mask = uh->size - 1;
 
@@ -241,103 +237,103 @@ void unique_count_hash(struct uhandle_s * uh,
   uint64_t bad = 0;
   uint64_t j;
   unsigned int kmer = 0;
-  unsigned int mask = (1ULL<<(2ULL*k)) - 1ULL;
-  char * s = seq;
-  char * e1 = s + k-1;
-  char * e2 = s + seqlen;
+  unsigned int mask = (1ULL << (2ULL * k)) - 1ULL;
+  char* s = seq;
+  char* e1 = s + k - 1;
+  char* e2 = s + seqlen;
   if (e2 < e1)
     e1 = e2;
 
-  unsigned int * maskmap = (seqmask != MASK_NONE) ?
-    chrmap_mask_lower : chrmap_mask_ambig;
+  unsigned int* maskmap =
+    (seqmask != MASK_NONE) ? chrmap_mask_lower : chrmap_mask_ambig;
 
   while (s < e1)
-    {
-      bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
+  {
+    bad <<= 2ULL;
+    bad |= maskmap[(int) (*s)];
 
-      kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
-    }
+    kmer <<= 2ULL;
+    kmer |= chrmap_2bit[(int) (*s++)];
+  }
 
   uint64_t unique = 0;
 
   while (s < e2)
+  {
+    bad <<= 2ULL;
+    bad |= maskmap[(int) (*s)];
+    bad &= mask;
+
+    kmer <<= 2ULL;
+    kmer |= chrmap_2bit[(int) (*s++)];
+    kmer &= mask;
+
+    if (!bad)
     {
-      bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
-      bad &= mask;
+      /* find free appropriate bucket in hash */
+      j = HASH((char*) &kmer, (k + 3) / 4) & uh->hash_mask;
+      while ((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+        j = (j + 1) & uh->hash_mask;
 
-      kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
-      kmer &= mask;
-
-      if (!bad)
-        {
-          /* find free appropriate bucket in hash */
-          j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
-          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
-            j = (j + 1) & uh->hash_mask;
-
-          if (!(uh->hash[j].count))
-            {
-              /* not seen before */
-              uh->list[unique++] = kmer;
-              uh->hash[j].kmer = kmer;
-              uh->hash[j].count = 1;
-            }
-        }
+      if (!(uh->hash[j].count))
+      {
+        /* not seen before */
+        uh->list[unique++] = kmer;
+        uh->hash[j].kmer = kmer;
+        uh->hash[j].count = 1;
+      }
     }
+  }
 
   *listlen = unique;
   *list = uh->list;
 }
 
-void unique_count(struct uhandle_s * uh,
+void unique_count(struct uhandle_s* uh,
                   int k,
                   int seqlen,
-                  char * seq,
-                  unsigned int * listlen,
-                  unsigned int * * list,
+                  char* seq,
+                  unsigned int* listlen,
+                  unsigned int** list,
                   int seqmask)
 {
-  if (k<10)
+  if (k < 10)
     unique_count_bitmap(uh, k, seqlen, seq, listlen, list, seqmask);
   else
     unique_count_hash(uh, k, seqlen, seq, listlen, list, seqmask);
 }
 
-int unique_count_shared(struct uhandle_s * uh,
+int unique_count_shared(struct uhandle_s* uh,
                         int k,
                         int listlen,
-                        unsigned int * list)
+                        unsigned int* list)
 {
-  /* counts how many of the kmers in list are present in the
-     (already computed) hash or bitmap */
+  /* counts how many of the kmers in list are present in the (already computed)
+   * hash or bitmap */
 
   int count = 0;
-  if (k<10)
+  if (k < 10)
+  {
+    for (int i = 0; i < listlen; i++)
     {
-      for(int i = 0; i<listlen; i++)
-        {
-          unsigned int kmer = list[i];
-          uint64_t x = kmer >> 6ULL;
-          uint64_t y = 1ULL << (kmer & 63ULL);
-          if (uh->bitmap[x] & y)
-            count++;
-        }
+      unsigned int kmer = list[i];
+      uint64_t x = kmer >> 6ULL;
+      uint64_t y = 1ULL << (kmer & 63ULL);
+      if (uh->bitmap[x] & y)
+        count++;
     }
+  }
   else
+  {
+    for (int i = 0; i < listlen; i++)
     {
-      for(int i = 0; i<listlen; i++)
-        {
-          unsigned int kmer = list[i];
-          uint64_t j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
-          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
-            j = (j + 1) & uh->hash_mask;
-          if (uh->hash[j].count)
-            count++;
-        }
+      unsigned int kmer = list[i];
+      uint64_t j = HASH((char*) &kmer, (k + 3) / 4) & uh->hash_mask;
+      while ((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+        j = (j + 1) & uh->hash_mask;
+      if (uh->hash[j].count)
+        count++;
     }
+  }
   return count;
 }

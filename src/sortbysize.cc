@@ -66,10 +66,10 @@ static struct sortinfo_s
   unsigned int seqno;
 } * sortinfo;
 
-int sortbysize_compare(const void * a, const void * b)
+int sortbysize_compare(const void* a, const void* b)
 {
-  struct sortinfo_s * x = (struct sortinfo_s *) a;
-  struct sortinfo_s * y = (struct sortinfo_s *) b;
+  struct sortinfo_s* x = (struct sortinfo_s*) a;
+  struct sortinfo_s* y = (struct sortinfo_s*) b;
 
   /* highest abundance first, then by label, otherwise keep order */
 
@@ -78,25 +78,25 @@ int sortbysize_compare(const void * a, const void * b)
   else if (x->size > y->size)
     return -1;
   else
+  {
+    int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+    if (r != 0)
+      return r;
+    else
     {
-      int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-      if (r != 0)
-        return r;
+      if (x->seqno < y->seqno)
+        return -1;
+      else if (x->seqno > y->seqno)
+        return +1;
       else
-        {
-          if (x->seqno < y->seqno)
-            return -1;
-          else if (x->seqno > y->seqno)
-            return +1;
-          else
-            return 0;
-        }
+        return 0;
     }
+  }
 }
 
 void sortbysize()
 {
-  FILE * fp_output = fopen_output(opt_output);
+  FILE* fp_output = fopen_output(opt_output);
   if (!fp_output)
     fatal("Unable to open sortbysize output file for writing");
 
@@ -112,18 +112,18 @@ void sortbysize()
 
   int passed = 0;
 
-  for(int i=0; i<dbsequencecount; i++)
-    {
-      int64_t size = db_getabundance(i);
+  for (int i = 0; i < dbsequencecount; i++)
+  {
+    int64_t size = db_getabundance(i);
 
-      if((size >= opt_minsize) && (size <= opt_maxsize))
-        {
-          sortinfo[passed].seqno = i;
-          sortinfo[passed].size = (unsigned int) size;
-          passed++;
-        }
-      progress_update(i);
+    if ((size >= opt_minsize) && (size <= opt_maxsize))
+    {
+      sortinfo[passed].seqno = i;
+      sortinfo[passed].size = (unsigned int) size;
+      passed++;
     }
+    progress_update(i);
+  }
 
   progress_done();
 
@@ -135,15 +135,15 @@ void sortbysize()
 
   double median = 0.0;
   if (passed > 0)
-    {
-      if (passed % 2)
-        median = sortinfo[(passed-1)/2].size;
-      else
-        median = (sortinfo[(passed/2)-1].size +
-                  sortinfo[passed/2].size) / 2.0;
-    }
+  {
+    if (passed % 2)
+      median = sortinfo[(passed - 1) / 2].size;
+    else
+      median =
+        (sortinfo[(passed / 2) - 1].size + sortinfo[passed / 2].size) / 2.0;
+  }
 
-  if (! opt_quiet)
+  if (!opt_quiet)
     fprintf(stderr, "Median abundance: %.0f\n", median);
 
   if (opt_log)
@@ -154,11 +154,11 @@ void sortbysize()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
-    {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
-      progress_update(i);
-    }
+  for (int i = 0; i < passed; i++)
+  {
+    fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
+    progress_update(i);
+  }
   progress_done();
   show_rusage();
 

@@ -67,23 +67,22 @@ uint64_t arch_get_memused()
 #ifdef _WIN32
 
   PROCESS_MEMORY_COUNTERS pmc;
-  GetProcessMemoryInfo(GetCurrentProcess(),
-                       &pmc,
+  GetProcessMemoryInfo(GetCurrentProcess(), &pmc,
                        sizeof(PROCESS_MEMORY_COUNTERS));
   return pmc.PeakWorkingSetSize;
 
 #else
 
   struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
+  getrusage(RUSAGE_SELF, &r_usage);
 
-# ifdef __APPLE__
+#  ifdef __APPLE__
   /* Mac: ru_maxrss gives the size in bytes */
   return r_usage.ru_maxrss;
-# else
+#  else
   /* Linux: ru_maxrss gives the size in kilobytes  */
   return r_usage.ru_maxrss * 1024;
-# endif
+#  endif
 
 #endif
 }
@@ -99,10 +98,10 @@ uint64_t arch_get_memtotal()
 
 #elif defined(__APPLE__)
 
-  int mib [] = { CTL_HW, HW_MEMSIZE };
+  int mib[] = {CTL_HW, HW_MEMSIZE};
   int64_t ram = 0;
   size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
+  if (sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
     fatal("Cannot determine amount of RAM");
   return ram;
 
@@ -135,7 +134,7 @@ long arch_get_cores()
 #endif
 }
 
-void arch_get_user_system_time(double * user_time, double * system_time)
+void arch_get_user_system_time(double* user_time, double* system_time)
 {
   *user_time = 0;
   *system_time = 0;
@@ -152,11 +151,11 @@ void arch_get_user_system_time(double * user_time, double * system_time)
   *system_time = ul.QuadPart * 100.0e-9;
 #else
   struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  * user_time = r_usage.ru_utime.tv_sec * 1.0
-    + r_usage.ru_utime.tv_usec * 1.0e-6;
-  * system_time = r_usage.ru_stime.tv_sec * 1.0
-    + r_usage.ru_stime.tv_usec * 1.0e-6;
+  getrusage(RUSAGE_SELF, &r_usage);
+  *user_time =
+    r_usage.ru_utime.tv_sec * 1.0 + r_usage.ru_utime.tv_usec * 1.0e-6;
+  *system_time =
+    r_usage.ru_stime.tv_sec * 1.0 + r_usage.ru_stime.tv_usec * 1.0e-6;
 #endif
 }
 
@@ -165,27 +164,27 @@ void arch_srandom()
   /* initialize pseudo-random number generator */
   unsigned int seed = opt_randseed;
   if (seed == 0)
-    {
+  {
 #ifdef _WIN32
-      srand(GetTickCount());
+    srand(GetTickCount());
 #else
-      int fd = open("/dev/urandom", O_RDONLY);
-      if (fd < 0)
-        fatal("Unable to open /dev/urandom");
-      if (read(fd, & seed, sizeof(seed)) < 0)
-        fatal("Unable to read from /dev/urandom");
-      close(fd);
-      srandom(seed);
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd < 0)
+      fatal("Unable to open /dev/urandom");
+    if (read(fd, &seed, sizeof(seed)) < 0)
+      fatal("Unable to read from /dev/urandom");
+    close(fd);
+    srandom(seed);
 #endif
-    }
+  }
   else
-    {
+  {
 #ifdef _WIN32
-      srand(seed);
+    srand(seed);
 #else
-      srandom(seed);
+    srandom(seed);
 #endif
-    }
+  }
 }
 
 uint64_t arch_random()
@@ -197,15 +196,15 @@ uint64_t arch_random()
 #endif
 }
 
-void * xmalloc(size_t size)
+void* xmalloc(size_t size)
 {
   if (size == 0)
     size = 1;
-  void * t = 0;
+  void* t = 0;
 #ifdef _WIN32
   t = _aligned_malloc(size, memalignment);
 #else
-  if (posix_memalign(& t, memalignment, size))
+  if (posix_memalign(&t, memalignment, size))
     t = 0;
 #endif
   if (!t)
@@ -213,35 +212,35 @@ void * xmalloc(size_t size)
   return t;
 }
 
-void * xrealloc(void *ptr, size_t size)
+void* xrealloc(void* ptr, size_t size)
 {
   if (size == 0)
     size = 1;
 #ifdef _WIN32
-  void * t = _aligned_realloc(ptr, size, memalignment);
+  void* t = _aligned_realloc(ptr, size, memalignment);
 #else
-  void * t = realloc(ptr, size);
+  void* t = realloc(ptr, size);
 #endif
   if (!t)
     fatal("Unable to reallocate enough memory.");
   return t;
 }
 
-void xfree(void * ptr)
+void xfree(void* ptr)
 {
   if (ptr)
-    {
+  {
 #ifdef _WIN32
-      _aligned_free(ptr);
+    _aligned_free(ptr);
 #else
-      free(ptr);
+    free(ptr);
 #endif
-    }
+  }
   else
     fatal("Trying to free a null pointer");
 }
 
-int xfstat(int fd, xstat_t * buf)
+int xfstat(int fd, xstat_t* buf)
 {
 #ifdef _WIN32
   return _fstat64(fd, buf);
@@ -250,7 +249,7 @@ int xfstat(int fd, xstat_t * buf)
 #endif
 }
 
-int xstat(const char * path, xstat_t  * buf)
+int xstat(const char* path, xstat_t* buf)
 {
 #ifdef _WIN32
   return _stat64(path, buf);
@@ -268,7 +267,7 @@ uint64_t xlseek(int fd, uint64_t offset, int whence)
 #endif
 }
 
-uint64_t xftello(FILE * stream)
+uint64_t xftello(FILE* stream)
 {
 #ifdef _WIN32
   return _ftelli64(stream);
@@ -277,7 +276,7 @@ uint64_t xftello(FILE * stream)
 #endif
 }
 
-int xopen_read(const char * path)
+int xopen_read(const char* path)
 {
 #ifdef _WIN32
   return _open(path, _O_RDONLY | _O_BINARY);
@@ -286,15 +285,12 @@ int xopen_read(const char * path)
 #endif
 }
 
-int xopen_write(const char * path)
+int xopen_write(const char* path)
 {
 #ifdef _WIN32
-  return _open(path,
-               _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
+  return _open(path, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
                _S_IREAD | _S_IWRITE);
 #else
-  return open(path,
-              O_WRONLY | O_CREAT | O_TRUNC,
-              S_IRUSR | S_IWUSR);
+  return open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 #endif
 }

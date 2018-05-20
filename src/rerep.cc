@@ -65,14 +65,14 @@ void rereplicate()
 {
   opt_xsize = 1;
 
-  FILE * fp_output = 0;
+  FILE* fp_output = 0;
 
   if (opt_output)
-    {
-      fp_output = fopen_output(opt_output);
-      if (!fp_output)
-        fatal("Unable to open FASTA output file for writing");
-    }
+  {
+    fp_output = fopen_output(opt_output);
+    if (!fp_output)
+      fatal("Unable to open FASTA output file for writing");
+  }
 
   fastx_handle fh = fasta_open(opt_rereplicate);
   int64_t filesize = fasta_get_size(fh);
@@ -81,31 +81,26 @@ void rereplicate()
 
   int64_t i = 0;
   int64_t n = 0;
-  while (fasta_next(fh, ! opt_notrunclabels, chrmap_no_change))
+  while (fasta_next(fh, !opt_notrunclabels, chrmap_no_change))
+  {
+    n++;
+    int64_t abundance = fasta_get_abundance(fh);
+
+    for (int64_t j = 0; j < abundance; j++)
     {
-      n++;
-      int64_t abundance = fasta_get_abundance(fh);
-
-      for(int64_t j=0; j<abundance; j++)
-        {
-          i++;
-          if (opt_output)
-            fasta_print_general(fp_output,
-                                0,
-                                fasta_get_sequence(fh),
-                                fasta_get_sequence_length(fh),
-                                fasta_get_header(fh),
-                                fasta_get_header_length(fh),
-                                1,
-                                i,
-                                -1, -1, 0, 0.0);
-        }
-
-      progress_update(fasta_get_position(fh));
+      i++;
+      if (opt_output)
+        fasta_print_general(fp_output, 0, fasta_get_sequence(fh),
+                            fasta_get_sequence_length(fh), fasta_get_header(fh),
+                            fasta_get_header_length(fh), 1, i, -1, -1, 0, 0.0);
     }
+
+    progress_update(fasta_get_position(fh));
+  }
   progress_done();
 
-  fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
+  fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n",
+          i, n);
 
   fasta_close(fh);
 
