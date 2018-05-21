@@ -62,8 +62,8 @@
 
 static int64_t line_pos;
 
-static char * q_seq;
-static char * d_seq;
+static char* q_seq;
+static char* d_seq;
 
 static int64_t q_start;
 static int64_t d_start;
@@ -75,24 +75,24 @@ static int64_t q_strand;
 
 static int64_t alignlen;
 
-static char * q_line;
-static char * a_line;
-static char * d_line;
+static char* q_line;
+static char* a_line;
+static char* d_line;
 
-static FILE * out;
+static FILE* out;
 
 static int poswidth = 3;
 static int headwidth = 5;
 
-static const char * q_name;
-static const char * d_name;
+static const char* q_name;
+static const char* d_name;
 
 static int64_t q_len;
 static int64_t d_len;
 
 inline int nt_identical(char a, char b)
 {
-  if (chrmap_4bit[(int)a] == chrmap_4bit[(int)b])
+  if (chrmap_4bit[(int) a] == chrmap_4bit[(int) b])
     return 1;
   else
     return 0;
@@ -103,91 +103,90 @@ inline void putop(char c, int64_t len)
   int64_t delta = q_strand ? -1 : +1;
 
   int64_t count = len;
-  while(count)
+  while (count)
+  {
+    if (line_pos == 0)
     {
-      if (line_pos == 0)
-        {
-          q_start = q_pos;
-          d_start = d_pos;
-        }
-
-      char qs;
-      char ds;
-
-      switch(c)
-        {
-        case 'M':
-          qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
-          ds = d_seq[d_pos];
-          q_pos += delta;
-          d_pos += 1;
-          q_line[line_pos] = qs;
-          a_line[line_pos] = nt_identical(qs, ds) ? '|' : ' ';
-          d_line[line_pos] = ds;
-          line_pos++;
-          break;
-
-        case 'D':
-          qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
-          q_pos += delta;
-          q_line[line_pos] = qs;
-          a_line[line_pos] = ' ';
-          d_line[line_pos] = '-';
-          line_pos++;
-          break;
-
-        case 'I':
-          ds = d_seq[d_pos];
-          d_pos += 1;
-          q_line[line_pos] = '-';
-          a_line[line_pos] = ' ';
-          d_line[line_pos] = ds;
-          line_pos++;
-          break;
-        }
-
-      if ((line_pos == alignlen) || ((c == 0) && (line_pos > 0)))
-        {
-          q_line[line_pos] = 0;
-          a_line[line_pos] = 0;
-          d_line[line_pos] = 0;
-
-          int64_t q1 = q_start + 1;
-          if (q1 > q_len)
-            q1 = q_len;
-
-          int64_t q2 = q_strand ? q_pos +2 : q_pos;
-
-          int64_t d1 = d_start + 1;
-          if (d1 > d_len)
-            d1 = d_len;
-
-          int64_t d2 = d_pos;
-
-          fprintf(out, "\n");
-          fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
-                  q1, q_strand ? '-' : '+', q_line, q2);
-          fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
-                  "", a_line);
-          fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
-                  d1, '+', d_line, d2);
-
-          line_pos = 0;
-        }
-      count--;
+      q_start = q_pos;
+      d_start = d_pos;
     }
+
+    char qs;
+    char ds;
+
+    switch (c)
+    {
+    case 'M':
+      qs = q_strand ? chrmap_complement[(int) (q_seq[q_pos])] : q_seq[q_pos];
+      ds = d_seq[d_pos];
+      q_pos += delta;
+      d_pos += 1;
+      q_line[line_pos] = qs;
+      a_line[line_pos] = nt_identical(qs, ds) ? '|' : ' ';
+      d_line[line_pos] = ds;
+      line_pos++;
+      break;
+
+    case 'D':
+      qs = q_strand ? chrmap_complement[(int) (q_seq[q_pos])] : q_seq[q_pos];
+      q_pos += delta;
+      q_line[line_pos] = qs;
+      a_line[line_pos] = ' ';
+      d_line[line_pos] = '-';
+      line_pos++;
+      break;
+
+    case 'I':
+      ds = d_seq[d_pos];
+      d_pos += 1;
+      q_line[line_pos] = '-';
+      a_line[line_pos] = ' ';
+      d_line[line_pos] = ds;
+      line_pos++;
+      break;
+    }
+
+    if ((line_pos == alignlen) || ((c == 0) && (line_pos > 0)))
+    {
+      q_line[line_pos] = 0;
+      a_line[line_pos] = 0;
+      d_line[line_pos] = 0;
+
+      int64_t q1 = q_start + 1;
+      if (q1 > q_len)
+        q1 = q_len;
+
+      int64_t q2 = q_strand ? q_pos + 2 : q_pos;
+
+      int64_t d1 = d_start + 1;
+      if (d1 > d_len)
+        d1 = d_len;
+
+      int64_t d2 = d_pos;
+
+      fprintf(out, "\n");
+      fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name,
+              poswidth, q1, q_strand ? '-' : '+', q_line, q2);
+      fprintf(out, "%*s %*s   %s\n", headwidth, "", poswidth, "", a_line);
+      fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name,
+              poswidth, d1, '+', d_line, d2);
+
+      line_pos = 0;
+    }
+    count--;
+  }
 }
 
-void align_show(FILE * f,
-                char * seq1,
+void align_show(FILE* f,
+                char* seq1,
                 int64_t seq1len,
                 int64_t seq1off,
-                const char * seq1name,
-                char * seq2,
+                const char* seq1name,
+                char* seq2,
                 int64_t seq2len,
                 int64_t seq2off,
-                const char * seq2name,
-                char * cigar,
+                const char* seq2name,
+                char* cigar,
                 int64_t cigarlen,
                 int numwidth,
                 int namewidth,
@@ -205,35 +204,35 @@ void align_show(FILE * f,
   d_len = seq2len;
   d_name = seq2name;
 
-  char * p = cigar;
-  char * e = p + cigarlen;
+  char* p = cigar;
+  char* e = p + cigarlen;
 
   poswidth = numwidth;
   headwidth = namewidth;
   alignlen = alignwidth;
 
-  q_line = (char*) xmalloc(alignwidth+1);
-  a_line = (char*) xmalloc(alignwidth+1);
-  d_line = (char*) xmalloc(alignwidth+1);
+  q_line = (char*) xmalloc(alignwidth + 1);
+  a_line = (char*) xmalloc(alignwidth + 1);
+  d_line = (char*) xmalloc(alignwidth + 1);
 
   q_pos = strand ? seq1len - 1 - seq1off : seq1off;
   d_pos = seq2off;
 
   line_pos = 0;
 
-  while(p < e)
+  while (p < e)
+  {
+    int64_t len;
+    int n;
+    if (!sscanf(p, "%" PRId64 "%n", &len, &n))
     {
-      int64_t len;
-      int n;
-      if (!sscanf(p, "%" PRId64 "%n", & len, & n))
-        {
-          n = 0;
-          len = 1;
-        }
-      p += n;
-      char op = *p++;
-      putop(op, len);
+      n = 0;
+      len = 1;
     }
+    p += n;
+    char op = *p++;
+    putop(op, len);
+  }
 
   putop(0, 1);
 
@@ -242,65 +241,64 @@ void align_show(FILE * f,
   xfree(d_line);
 }
 
-char * align_getrow(char * seq, char * cigar, int alen, int origin)
+char* align_getrow(char* seq, char* cigar, int alen, int origin)
 {
-  char * row = (char*) xmalloc(alen+1);
-  char * r = row;
-  char * p = cigar;
-  char * s = seq;
+  char* row = (char*) xmalloc(alen + 1);
+  char* r = row;
+  char* p = cigar;
+  char* s = seq;
 
-  while(*p)
+  while (*p)
+  {
+    int64_t len;
+    int n;
+    if (!sscanf(p, "%" PRId64 "%n", &len, &n))
     {
-      int64_t len;
-      int n;
-      if (!sscanf(p, "%" PRId64 "%n", & len, & n))
-        {
-          n = 0;
-          len = 1;
-        }
-      p += n;
-      char op = *p++;
-
-      if ((op == 'M') ||
-          ((op == 'D') && (origin == 0)) ||
-          ((op == 'I') && (origin == 1)))
-        {
-          strncpy(r, s, len);
-          r += len;
-          s += len;
-        }
-      else
-        {
-          /* insert len gap symbols */
-          for(int64_t i = 0; i < len; i++)
-            *r++ = '-';
-        }
+      n = 0;
+      len = 1;
     }
+    p += n;
+    char op = *p++;
+
+    if ((op == 'M') || ((op == 'D') && (origin == 0))
+        || ((op == 'I') && (origin == 1)))
+    {
+      strncpy(r, s, len);
+      r += len;
+      s += len;
+    }
+    else
+    {
+      /* insert len gap symbols */
+      for (int64_t i = 0; i < len; i++)
+        *r++ = '-';
+    }
+  }
 
   *r = 0;
   return row;
 }
 
-void align_fprint_uncompressed_alignment(FILE * f, char * cigar)
+void align_fprint_uncompressed_alignment(FILE* f, char* cigar)
 {
-  char * p = cigar;
-  while(*p)
+  char* p = cigar;
+  while (*p)
+  {
+    if (*p > '9')
+      fprintf(f, "%c", *p++);
+    else
     {
-      if (*p > '9')
-        fprintf(f, "%c", *p++);
+      int n = 0;
+      char c = 0;
+      int x = 0;
+      if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
+      {
+        for (int i = 0; i < n; i++)
+          fprintf(f, "%c", c);
+        p += x;
+      }
       else
-        {
-          int n = 0;
-          char c = 0;
-          int x = 0;
-          if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
-            {
-              for(int i = 0; i<n; i++)
-                fprintf(f, "%c", c);
-              p += x;
-            }
-          else
-            fatal("bad alignment string");
-        }
+        fatal("bad alignment string");
     }
+  }
 }

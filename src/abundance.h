@@ -58,16 +58,15 @@
 
 */
 
-int64_t abundance_get(char * header, int header_length);
+int64_t abundance_get(char* header, int header_length);
 
-void abundance_fprint_header_with_size(FILE * fp,
-                                       char * header,
+void abundance_fprint_header_with_size(FILE* fp,
+                                       char* header,
                                        int header_length,
                                        uint64_t size);
 
-void abundance_fprint_header_strip_size(FILE * fp,
-                                        char * header,
+void abundance_fprint_header_strip_size(FILE* fp,
+                                        char* header,
                                         int header_length);
 
-char * abundance_strip_size(char * header,
-                            int header_length);
+char* abundance_strip_size(char* header, int header_length);

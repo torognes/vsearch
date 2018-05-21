@@ -58,4 +58,4 @@
 
 */
 
-void search_exact(char * cmdline, char * progheader);
+void search_exact(char* cmdline, char* progheader);

@@ -60,82 +60,67 @@
 
 #include "vsearch.h"
 
-/* implement a priority queue with a min heap binary array structure */
-/* elements with the lowest count should be at the top (root) */
+/* implement a priority queue with a min heap binary array structure  elements
+ * with the lowest count should be at the top (root) */
 
-/*
-  To keep track of the n best potential target sequences, we store
-  them in a min heap. The root element corresponds to the least good
-  target, while the best elements are found at the leaf nodes. This
-  makes it simple to decide whether a new target should be included or
-  not, because it just needs to be compared to the root note.  The
-  list will be fully sorted before use when we want to find the best
-  element and then the second best and so on.
-*/
+/* To keep track of the n best potential target sequences, we store them in a
+ * min heap. The root element corresponds to the least good target, while the
+ * best elements are found at the leaf nodes. This makes it simple to decide
+ * whether a new target should be included or not, because it just needs to be
+ * compared to the root note.  The list will be fully sorted before use when we
+ * want to find the best element and then the second best and so on. */
 
-int
-elem_smaller(elem_t * a, elem_t * b)
+int elem_smaller(elem_t* a, elem_t* b)
 {
   /* return 1 if a is smaller than b, 0 if equal or greater */
   if (a->count < b->count)
     return 1;
+  else if (a->count > b->count)
+    return 0;
+  else if (a->length > b->length)
+    return 1;
+  else if (a->length < b->length)
+    return 0;
+  else if (a->seqno > b->seqno)
+    return 1;
   else
-    if (a->count > b->count)
-      return 0;
-    else
-      if (a->length > b->length)
-        return 1;
-      else
-        if (a->length < b->length)
-          return 0;
-        else
-          if (a->seqno > b->seqno)
-            return 1;
-          else
-            return 0;
+    return 0;
 }
 
-int minheap_compare(const void * a, const void * b)
+int minheap_compare(const void* a, const void* b)
 {
-  elem_t * x = (elem_t*) a;
-  elem_t * y = (elem_t*) b;
+  elem_t* x = (elem_t*) a;
+  elem_t* y = (elem_t*) b;
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
 
   if (x->count < y->count)
     return -1;
+  else if (x->count > y->count)
+    return +1;
+  else if (x->length > y->length)
+    return -1;
+  else if (x->length < y->length)
+    return +1;
+  else if (x->seqno > y->seqno)
+    return -1;
+  else if (x->seqno < y->seqno)
+    return +1;
   else
-    if (x->count > y->count)
-      return +1;
-    else
-      if (x->length > y->length)
-        return -1;
-      else
-        if (x->length < y->length)
-          return +1;
-        else
-          if (x->seqno > y->seqno)
-            return -1;
-          else
-            if (x->seqno < y->seqno)
-              return +1;
-            else
-              return 0;
+    return 0;
 }
 
-minheap_t *
-minheap_init(int size)
+minheap_t* minheap_init(int size)
 {
-  minheap_t * m = (minheap_t *) xmalloc(sizeof(minheap_t));
+  minheap_t* m = (minheap_t*) xmalloc(sizeof(minheap_t));
   m->alloc = size;
-  m->array = (elem_t *) xmalloc(size * sizeof(elem_t));
+  m->array = (elem_t*) xmalloc(size * sizeof(elem_t));
   m->count = 0;
   return m;
 }
 
-void
-minheap_exit(minheap_t * m)
+void minheap_exit(minheap_t* m)
 {
   xfree(m->array);
   xfree(m);
@@ -143,64 +128,61 @@ minheap_exit(minheap_t * m)
 
 static int swaps = 0;
 
-void
-minheap_replaceroot(minheap_t * m, elem_t tmp)
+void minheap_replaceroot(minheap_t* m, elem_t tmp)
 {
-  /* remove the element at the root, then swap children up
-     to the root and insert tmp at suitable place */
+  /* remove the element at the root, then swap children up to the root and
+   * insert tmp at suitable place */
 
   /* start with root */
   int p = 0;
-  int c = 2*p+1;
+  int c = 2 * p + 1;
 
   /* while at least one child */
   while (c < m->count)
+  {
+    /* if two children: swap with the one with smallest value */
+    if ((c + 1 < m->count) && (elem_smaller(m->array + c + 1, m->array + c)))
+      c++;
+
+    /* swap parent and child if child has lower value */
+    if (elem_smaller(m->array + c, &tmp))
     {
-      /* if two children: swap with the one with smallest value */
-      if ((c + 1 < m->count) && (elem_smaller(m->array + c + 1, m->array + c)))
-        c++;
-
-      /* swap parent and child if child has lower value */
-      if (elem_smaller(m->array + c, &tmp))
-        {
-          m->array[p] = m->array[c];
-          swaps++;
-        }
-      else
-        break;
-
-      /* step down */
-      p = c;
-      c = 2*p+1;
+      m->array[p] = m->array[c];
+      swaps++;
     }
+    else
+      break;
+
+    /* step down */
+    p = c;
+    c = 2 * p + 1;
+  }
 
   m->array[p] = tmp;
 }
 
-
-void
-minheap_add(minheap_t * m, elem_t * n)
+void minheap_add(minheap_t* m, elem_t* n)
 {
   if (m->count < m->alloc)
-    {
-      /* space for another item at end; swap upwards */
+  {
+    /* space for another item at end; swap upwards */
 
-      int i = m->count++;
-      int p = (i-1)/2;
-      while ((i>0) && elem_smaller(n, m->array+p))
-        {
-          m->array[i] = m->array[p];
-          i = p;
-          p = (i-1)/2;
-          swaps++;
-        }
-      m->array[i] = *n;
-    }
-  else if (elem_smaller(m->array, n))
+    int i = m->count++;
+    int p = (i - 1) / 2;
+    while ((i > 0) && elem_smaller(n, m->array + p))
     {
-      /* replace the root if new element is larger than root */
-      minheap_replaceroot(m, *n);
+      m->array[i] = m->array[p];
+      i = p;
+      p = (i - 1) / 2;
+      swaps++;
     }
+    m->array[i] = *n;
+  }
+  else if (elem_smaller(m->array, n))
+  {
+    /* replace the root if new element is larger than root */
+    minheap_replaceroot(m, *n);
+  }
 }
 
 #if 0
@@ -217,46 +199,42 @@ minheap_empty(minheap_t * m)
 }
 #endif
 
-elem_t
-minheap_pop(minheap_t * m)
+elem_t minheap_pop(minheap_t* m)
 {
   /* return top element and restore order */
-  static elem_t zero = {0,0,0};
+  static elem_t zero = {0, 0, 0};
 
   if (m->count)
+  {
+    elem_t top = m->array[0];
+    m->count--;
+    if (m->count)
     {
-      elem_t top = m->array[0];
-      m->count--;
-      if (m->count)
-        {
-          elem_t tmp = m->array[m->count];
-          minheap_replaceroot(m, tmp);
-        }
-      return top;
+      elem_t tmp = m->array[m->count];
+      minheap_replaceroot(m, tmp);
     }
+    return top;
+  }
   else
     return zero;
 }
 
-void
-minheap_sort(minheap_t * m)
+void minheap_sort(minheap_t* m)
 {
   qsort(m->array, m->count, sizeof(elem_t), minheap_compare);
 }
 
-void
-minheap_dump(minheap_t * m)
+void minheap_dump(minheap_t* m)
 {
-  for(int i=0; i < m->count; i++)
-    printf("%s%u", i>0 ? " " : "", m->array[i].count);
+  for (int i = 0; i < m->count; i++)
+    printf("%s%u", i > 0 ? " " : "", m->array[i].count);
   printf("\n");
 }
 
-elem_t
-minheap_poplast(minheap_t * m)
+elem_t minheap_poplast(minheap_t* m)
 {
   /* return top element and restore order */
-  static elem_t zero = {0,0,0};
+  static elem_t zero = {0, 0, 0};
 
   if (m->count)
     return m->array[--m->count];
@@ -264,28 +242,26 @@ minheap_poplast(minheap_t * m)
     return zero;
 }
 
-
-void
-minheap_test()
+void minheap_test()
 {
-  minheap_t * m = minheap_init(10000000);
+  minheap_t* m = minheap_init(10000000);
 
   int samples = 10000000;
   swaps = 0;
 
-  for(int i=samples; i>=0; i--)
-    {
-      elem_t x = {(unsigned int)(rand()),0,1};
-      minheap_add(m, & x);
-    }
+  for (int i = samples; i >= 0; i--)
+  {
+    elem_t x = {(unsigned int) (rand()), 0, 1};
+    minheap_add(m, &x);
+  }
 
   minheap_sort(m);
 
-  while(! minheap_isempty(m))
-    {
-      elem_t x = minheap_poplast(m);
-      printf("%u\n", x.count);
-    }
+  while (!minheap_isempty(m))
+  {
+    elem_t x = minheap_poplast(m);
+    printf("%u\n", x.count);
+  }
 
   printf("Swaps: %d\n\n", swaps);
 

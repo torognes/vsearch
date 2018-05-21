@@ -58,48 +58,41 @@
 
 */
 
-
 /* fasta input */
 
 void fasta_open_rest(fastx_handle h);
-fastx_handle fasta_open(const char * filename);
+fastx_handle fasta_open(const char* filename);
 void fasta_close(fastx_handle h);
 bool fasta_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping);
+                const unsigned char* char_mapping);
 uint64_t fasta_get_position(fastx_handle h);
 uint64_t fasta_get_size(fastx_handle h);
 uint64_t fasta_get_lineno(fastx_handle h);
 uint64_t fasta_get_seqno(fastx_handle h);
-char * fasta_get_header(fastx_handle h);
-char * fasta_get_sequence(fastx_handle h);
+char* fasta_get_header(fastx_handle h);
+char* fasta_get_sequence(fastx_handle h);
 uint64_t fasta_get_header_length(fastx_handle h);
 uint64_t fasta_get_sequence_length(fastx_handle h);
 int64_t fasta_get_abundance(fastx_handle h);
 
 /* fasta output */
 
-void fasta_print(FILE * fp,
-                 const char * hdr,
-                 char * seq,
-                 uint64_t len);
+void fasta_print(FILE* fp, const char* hdr, char* seq, uint64_t len);
 
-void fasta_print_general(FILE * fp,
-                         const char * prefix,
-                         char * seq,
+void fasta_print_general(FILE* fp,
+                         const char* prefix,
+                         char* seq,
                          int len,
-                         char * header,
+                         char* header,
                          int header_len,
                          int abundance,
                          int ordinal,
                          int clustersize,
                          int clusterid,
-                         const char * score_name,
+                         const char* score_name,
                          double score);
 
-void fasta_print_db(FILE * fp,
-                    uint64_t seqno);
+void fasta_print_db(FILE* fp, uint64_t seqno);
 
-void fasta_print_db_relabel(FILE * fp,
-                            uint64_t seqno,
-                            int ordinal);
+void fasta_print_db_relabel(FILE* fp, uint64_t seqno, int ordinal);

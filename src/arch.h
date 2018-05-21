@@ -67,17 +67,17 @@ typedef struct stat xstat_t;
 uint64_t arch_get_memused();
 uint64_t arch_get_memtotal();
 long arch_get_cores();
-void arch_get_user_system_time(double * user_time, double * system_time);
+void arch_get_user_system_time(double* user_time, double* system_time);
 void arch_srandom();
 uint64_t arch_random();
-void * xmalloc(size_t size);
-void * xrealloc(void * ptr, size_t size);
-void xfree(void * ptr);
+void* xmalloc(size_t size);
+void* xrealloc(void* ptr, size_t size);
+void xfree(void* ptr);
 
-int xfstat(int fd, xstat_t * buf);
-int xstat(const char * path, xstat_t  * buf);
+int xfstat(int fd, xstat_t* buf);
+int xstat(const char* path, xstat_t* buf);
 uint64_t xlseek(int fd, uint64_t offset, int whence);
-uint64_t xftello(FILE * stream);
+uint64_t xftello(FILE* stream);
 
-int xopen_read(const char * path);
-int xopen_write(const char * path);
+int xopen_read(const char* path);
+int xopen_write(const char* path);

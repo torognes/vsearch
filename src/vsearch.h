@@ -62,7 +62,7 @@
 #define __restrict
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <regex.h>
@@ -95,70 +95,68 @@
 
 #ifdef __PPC__
 
-#ifdef __LITTLE_ENDIAN__
-#define PROG_CPU "ppc64le"
-#include <altivec.h>
-#else
-#error Big endian ppc64 CPUs not supported
-#endif
+#  ifdef __LITTLE_ENDIAN__
+#    define PROG_CPU "ppc64le"
+#    include <altivec.h>
+#  else
+#    error Big endian ppc64 CPUs not supported
+#  endif
 
 #else
 
-#define PROG_CPU "x86_64"
+#  define PROG_CPU "x86_64"
 
-#ifdef __SSE2__
-#include <emmintrin.h>
+#  ifdef __SSE2__
+#    include <emmintrin.h>
+#  endif
+
+#  ifdef __SSSE3__
+#    include <tmmintrin.h>
+#  endif
+
 #endif
-
-#ifdef __SSSE3__
-#include <tmmintrin.h>
-#endif
-
-#endif
-
 
 #ifdef _WIN32
 
-#define PROG_OS "win"
-#include <windows.h>
-#include <psapi.h>
+#  define PROG_OS "win"
+#  include <windows.h>
+#  include <psapi.h>
 
 #else
 
-#ifdef __APPLE__
+#  ifdef __APPLE__
 
-#define PROG_OS "macos"
-#include <sys/sysctl.h>
+#    define PROG_OS "macos"
+#    include <sys/sysctl.h>
 
-#else
+#  else
 
-#ifdef __linux__
-#define PROG_OS "linux"
-#else
-#define PROG_OS "unknown"
+#    ifdef __linux__
+#      define PROG_OS "linux"
+#    else
+#      define PROG_OS "unknown"
+#    endif
+
+#    include <sys/sysinfo.h>
+
+#  endif
+
+#  include <sys/resource.h>
+
 #endif
-
-#include <sys/sysinfo.h>
-
-#endif
-
-#include <sys/resource.h>
-
-#endif
-
 
 #define PROG_ARCH PROG_OS "_" PROG_CPU
 
 #ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
+#  include <dlfcn.h>
 #endif
 
 #ifdef HAVE_ZLIB_H
-#include <zlib.h>
+#  include <zlib.h>
 #endif
 
 #ifdef HAVE_BZLIB_H
-#include <bzlib.h>
+#  include <bzlib.h>
 #endif
 
 #include "city.h"
@@ -228,81 +226,81 @@ extern bool opt_relabel_sha1;
 extern bool opt_samheader;
 extern bool opt_sizeorder;
 extern bool opt_xsize;
-extern char * opt_allpairs_global;
-extern char * opt_alnout;
-extern char * opt_biomout;
-extern char * opt_blast6out;
-extern char * opt_borderline;
-extern char * opt_centroids;
-extern char * opt_chimeras;
-extern char * opt_cluster_fast;
-extern char * opt_cluster_size;
-extern char * opt_cluster_smallmem;
-extern char * opt_cluster_unoise;
-extern char * opt_clusters;
-extern char * opt_consout;
-extern char * opt_db;
-extern char * opt_dbmatched;
-extern char * opt_dbnotmatched;
-extern char * opt_derep_fulllength;
-extern char * opt_derep_prefix;
-extern char * opt_eetabbedout;
-extern char * opt_fastaout;
-extern char * opt_fastaout_discarded;
-extern char * opt_fastaout_notmerged_fwd;
-extern char * opt_fastaout_notmerged_rev;
-extern char * opt_fastapairs;
-extern char * opt_fastq_chars;
-extern char * opt_fastq_convert;
-extern char * opt_fastq_eestats2;
-extern char * opt_fastq_eestats;
-extern char * opt_fastq_filter;
-extern char * opt_fastq_mergepairs;
-extern char * opt_fastq_stats;
-extern char * opt_fastqout;
-extern char * opt_fastqout_discarded;
-extern char * opt_fastqout_notmerged_fwd;
-extern char * opt_fastqout_notmerged_rev;
-extern char * opt_fastx_filter;
-extern char * opt_fastx_mask;
-extern char * opt_fastx_revcomp;
-extern char * opt_fastx_subsample;
-extern char * opt_label_suffix;
-extern char * opt_log;
-extern char * opt_makeudb_usearch;
-extern char * opt_maskfasta;
-extern char * opt_matched;
-extern char * opt_mothur_shared_out;
-extern char * opt_msaout;
-extern char * opt_nonchimeras;
-extern char * opt_notmatched;
-extern char * opt_otutabout;
-extern char * opt_output;
-extern char * opt_pattern;
-extern char * opt_profile;
-extern char * opt_relabel;
-extern char * opt_rereplicate;
-extern char * opt_reverse;
-extern char * opt_samout;
-extern char * opt_search_exact;
-extern char * opt_shuffle;
-extern char * opt_sintax;
-extern char * opt_sortbylength;
-extern char * opt_sortbysize;
-extern char * opt_tabbedout;
-extern char * opt_uc;
-extern char * opt_uchime2_denovo;
-extern char * opt_uchime3_denovo;
-extern char * opt_uchime_denovo;
-extern char * opt_uchime_ref;
-extern char * opt_uchimealns;
-extern char * opt_uchimeout;
-extern char * opt_udb2fasta;
-extern char * opt_udbinfo;
-extern char * opt_udbstats;
-extern char * opt_usearch_global;
-extern char * opt_userout;
-extern double * opt_ee_cutoffs_values;
+extern char* opt_allpairs_global;
+extern char* opt_alnout;
+extern char* opt_biomout;
+extern char* opt_blast6out;
+extern char* opt_borderline;
+extern char* opt_centroids;
+extern char* opt_chimeras;
+extern char* opt_cluster_fast;
+extern char* opt_cluster_size;
+extern char* opt_cluster_smallmem;
+extern char* opt_cluster_unoise;
+extern char* opt_clusters;
+extern char* opt_consout;
+extern char* opt_db;
+extern char* opt_dbmatched;
+extern char* opt_dbnotmatched;
+extern char* opt_derep_fulllength;
+extern char* opt_derep_prefix;
+extern char* opt_eetabbedout;
+extern char* opt_fastaout;
+extern char* opt_fastaout_discarded;
+extern char* opt_fastaout_notmerged_fwd;
+extern char* opt_fastaout_notmerged_rev;
+extern char* opt_fastapairs;
+extern char* opt_fastq_chars;
+extern char* opt_fastq_convert;
+extern char* opt_fastq_eestats2;
+extern char* opt_fastq_eestats;
+extern char* opt_fastq_filter;
+extern char* opt_fastq_mergepairs;
+extern char* opt_fastq_stats;
+extern char* opt_fastqout;
+extern char* opt_fastqout_discarded;
+extern char* opt_fastqout_notmerged_fwd;
+extern char* opt_fastqout_notmerged_rev;
+extern char* opt_fastx_filter;
+extern char* opt_fastx_mask;
+extern char* opt_fastx_revcomp;
+extern char* opt_fastx_subsample;
+extern char* opt_label_suffix;
+extern char* opt_log;
+extern char* opt_makeudb_usearch;
+extern char* opt_maskfasta;
+extern char* opt_matched;
+extern char* opt_mothur_shared_out;
+extern char* opt_msaout;
+extern char* opt_nonchimeras;
+extern char* opt_notmatched;
+extern char* opt_otutabout;
+extern char* opt_output;
+extern char* opt_pattern;
+extern char* opt_profile;
+extern char* opt_relabel;
+extern char* opt_rereplicate;
+extern char* opt_reverse;
+extern char* opt_samout;
+extern char* opt_search_exact;
+extern char* opt_shuffle;
+extern char* opt_sintax;
+extern char* opt_sortbylength;
+extern char* opt_sortbysize;
+extern char* opt_tabbedout;
+extern char* opt_uc;
+extern char* opt_uchime2_denovo;
+extern char* opt_uchime3_denovo;
+extern char* opt_uchime_denovo;
+extern char* opt_uchime_ref;
+extern char* opt_uchimealns;
+extern char* opt_uchimeout;
+extern char* opt_udb2fasta;
+extern char* opt_udbinfo;
+extern char* opt_udbstats;
+extern char* opt_usearch_global;
+extern char* opt_userout;
+extern double* opt_ee_cutoffs_values;
 extern double opt_abskew;
 extern double opt_dn;
 extern double opt_fastq_maxdiffpct;
@@ -429,4 +427,4 @@ extern int64_t popcnt_present;
 extern int64_t avx_present;
 extern int64_t avx2_present;
 
-extern FILE * fp_log;
+extern FILE* fp_log;

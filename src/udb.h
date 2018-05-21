@@ -58,10 +58,8 @@
 
 */
 
-bool udb_detect_isudb(const char * filename);
-void udb_read(const char * filename,
-              bool create_bitmaps,
-              bool parse_abundances);
+bool udb_detect_isudb(const char* filename);
+void udb_read(const char* filename, bool create_bitmaps, bool parse_abundances);
 void udb_fasta();
 void udb_info();
 void udb_make();

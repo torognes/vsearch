@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-static pthread_t * pthread;
+static pthread_t* pthread;
 
 /* global constants/data, no need for synchronization */
 static int seqcount; /* number of database sequences */
@@ -72,183 +72,127 @@ static pthread_mutex_t mutex_output;
 static int qmatches;
 static int queries;
 static int64_t progress = 0;
-static FILE * fp_alnout = 0;
-static FILE * fp_samout = 0;
-static FILE * fp_userout = 0;
-static FILE * fp_blast6out = 0;
-static FILE * fp_uc = 0;
-static FILE * fp_fastapairs = 0;
-static FILE * fp_matched = 0;
-static FILE * fp_notmatched = 0;
+static FILE* fp_alnout = 0;
+static FILE* fp_samout = 0;
+static FILE* fp_userout = 0;
+static FILE* fp_blast6out = 0;
+static FILE* fp_uc = 0;
+static FILE* fp_fastapairs = 0;
+static FILE* fp_matched = 0;
+static FILE* fp_notmatched = 0;
 
 static int count_matched = 0;
 static int count_notmatched = 0;
 
-inline int allpairs_hit_compare_typed(struct hit * x, struct hit * y)
+inline int allpairs_hit_compare_typed(struct hit* x, struct hit* y)
 {
   // high id, then low id
   // early target, then late target
 
   if (x->id > y->id)
     return -1;
+  else if (x->id < y->id)
+    return +1;
+  else if (x->target < y->target)
+    return -1;
+  else if (x->target > y->target)
+    return +1;
   else
-    if (x->id < y->id)
-      return +1;
-    else
-      if (x->target < y->target)
-        return -1;
-      else
-        if (x->target > y->target)
-          return +1;
-        else
-          return 0;
+    return 0;
 }
 
-int allpairs_hit_compare(const void * a, const void * b)
+int allpairs_hit_compare(const void* a, const void* b)
 {
-  return allpairs_hit_compare_typed((struct hit *) a, (struct hit *) b);
+  return allpairs_hit_compare_typed((struct hit*) a, (struct hit*) b);
 }
 
 void allpairs_output_results(int hit_count,
-                             struct hit * hits,
-                             char * query_head,
+                             struct hit* hits,
+                             char* query_head,
                              int qseqlen,
-                             char * qsequence,
-                             char * qsequence_rc)
+                             char* qsequence,
+                             char* qsequence_rc)
 {
   /* show results */
   int64_t toreport = MIN(opt_maxhits, hit_count);
 
   if (fp_alnout)
-    results_show_alnout(fp_alnout,
-                        hits,
-                        toreport,
-                        query_head,
-                        qsequence,
-                        qseqlen,
-                        qsequence_rc);
+    results_show_alnout(fp_alnout, hits, toreport, query_head, qsequence,
+                        qseqlen, qsequence_rc);
 
   if (fp_samout)
-    results_show_samout(fp_samout,
-                        hits,
-                        toreport,
-                        query_head,
-                        qsequence,
-                        qseqlen,
-                        qsequence_rc);
+    results_show_samout(fp_samout, hits, toreport, query_head, qsequence,
+                        qseqlen, qsequence_rc);
 
   if (toreport)
+  {
+    double top_hit_id = hits[0].id;
+
+    for (int t = 0; t < toreport; t++)
     {
-      double top_hit_id = hits[0].id;
+      struct hit* hp = hits + t;
 
-      for(int t = 0; t < toreport; t++)
-        {
-          struct hit * hp = hits + t;
+      if (opt_top_hits_only && (hp->id < top_hit_id))
+        break;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
-            break;
+      if (fp_fastapairs)
+        results_show_fastapairs_one(fp_fastapairs, hp, query_head, qsequence,
+                                    qseqlen, qsequence_rc);
 
-          if (fp_fastapairs)
-            results_show_fastapairs_one(fp_fastapairs,
-                                        hp,
-                                        query_head,
-                                        qsequence,
-                                        qseqlen,
-                                        qsequence_rc);
-
-          if (fp_uc)
-            if ((t==0) || opt_uc_allhits)
-              results_show_uc_one(fp_uc,
-                                  hp,
-                                  query_head,
-                                  qsequence,
-                                  qseqlen,
-                                  qsequence_rc,
-                                  hp->target);
-
-          if (fp_userout)
-            results_show_userout_one(fp_userout,
-                                     hp,
-                                     query_head,
-                                     qsequence,
-                                     qseqlen,
-                                     qsequence_rc);
-
-          if (fp_blast6out)
-            results_show_blast6out_one(fp_blast6out,
-                                       hp,
-                                       query_head,
-                                       qsequence,
-                                       qseqlen,
-                                       qsequence_rc);
-        }
-    }
-  else
-    {
       if (fp_uc)
-        results_show_uc_one(fp_uc,
-                            0,
-                            query_head,
-                            qsequence,
-                            qseqlen,
-                            qsequence_rc,
-                            0);
+        if ((t == 0) || opt_uc_allhits)
+          results_show_uc_one(fp_uc, hp, query_head, qsequence, qseqlen,
+                              qsequence_rc, hp->target);
 
-      if (opt_output_no_hits)
-        {
-          if (fp_userout)
-            results_show_userout_one(fp_userout,
-                                     0,
-                                     query_head,
-                                     qsequence,
-                                     qseqlen,
-                                     qsequence_rc);
+      if (fp_userout)
+        results_show_userout_one(fp_userout, hp, query_head, qsequence, qseqlen,
+                                 qsequence_rc);
 
-          if (fp_blast6out)
-            results_show_blast6out_one(fp_blast6out,
-                                       0,
-                                       query_head,
-                                       qsequence,
-                                       qseqlen,
-                                       qsequence_rc);
-        }
+      if (fp_blast6out)
+        results_show_blast6out_one(fp_blast6out, hp, query_head, qsequence,
+                                   qseqlen, qsequence_rc);
     }
+  }
+  else
+  {
+    if (fp_uc)
+      results_show_uc_one(fp_uc, 0, query_head, qsequence, qseqlen,
+                          qsequence_rc, 0);
+
+    if (opt_output_no_hits)
+    {
+      if (fp_userout)
+        results_show_userout_one(fp_userout, 0, query_head, qsequence, qseqlen,
+                                 qsequence_rc);
+
+      if (fp_blast6out)
+        results_show_blast6out_one(fp_blast6out, 0, query_head, qsequence,
+                                   qseqlen, qsequence_rc);
+    }
+  }
 
   if (hit_count)
-    {
-      count_matched++;
-      if (opt_matched)
-        fasta_print_general(fp_matched,
-                            0,
-                            qsequence,
-                            qseqlen,
-                            query_head,
-                            strlen(query_head),
-                            0,
-                            count_matched,
-                            -1, -1, 0, 0.0);
-    }
+  {
+    count_matched++;
+    if (opt_matched)
+      fasta_print_general(fp_matched, 0, qsequence, qseqlen, query_head,
+                          strlen(query_head), 0, count_matched, -1, -1, 0, 0.0);
+  }
   else
-    {
-      count_notmatched++;
-      if (opt_notmatched)
-        fasta_print_general(fp_notmatched,
-                            0,
-                            qsequence,
-                            qseqlen,
-                            query_head,
-                            strlen(query_head),
-                            0,
-                            count_notmatched,
-                            -1, -1, 0, 0.0);
-    }
+  {
+    count_notmatched++;
+    if (opt_notmatched)
+      fasta_print_general(fp_notmatched, 0, qsequence, qseqlen, query_head,
+                          strlen(query_head), 0, count_notmatched, -1, -1, 0,
+                          0.0);
+  }
 }
 
 void allpairs_thread_run(int64_t t)
 {
   struct searchinfo_s sia;
 
-  struct searchinfo_s * si = & sia;
+  struct searchinfo_s* si = &sia;
 
   si->strand = 0;
   si->query_head_alloc = 0;
@@ -258,231 +202,194 @@ void allpairs_thread_run(int64_t t)
   si->m = 0;
   si->finalized = 0;
 
-  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
+  si->hits = (struct hit*) xmalloc(sizeof(struct hit) * seqcount);
 
-  struct nwinfo_s * nw = nw_init();
+  struct nwinfo_s* nw = nw_init();
 
-  si->s = search16_init(opt_match,
-                        opt_mismatch,
-                        opt_gap_open_query_left,
-                        opt_gap_open_target_left,
-                        opt_gap_open_query_interior,
-                        opt_gap_open_target_interior,
-                        opt_gap_open_query_right,
-                        opt_gap_open_target_right,
-                        opt_gap_extension_query_left,
-                        opt_gap_extension_target_left,
-                        opt_gap_extension_query_interior,
-                        opt_gap_extension_target_interior,
-                        opt_gap_extension_query_right,
-                        opt_gap_extension_target_right);
-
+  si->s = search16_init(
+    opt_match, opt_mismatch, opt_gap_open_query_left, opt_gap_open_target_left,
+    opt_gap_open_query_interior, opt_gap_open_target_interior,
+    opt_gap_open_query_right, opt_gap_open_target_right,
+    opt_gap_extension_query_left, opt_gap_extension_target_left,
+    opt_gap_extension_query_interior, opt_gap_extension_target_interior,
+    opt_gap_extension_query_right, opt_gap_extension_target_right);
 
   LinearMemoryAligner lma;
 
-  int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  int64_t* scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
 
-  lma.set_parameters(scorematrix,
-                     opt_gap_open_query_left,
-                     opt_gap_open_target_left,
-                     opt_gap_open_query_interior,
-                     opt_gap_open_target_interior,
-                     opt_gap_open_query_right,
-                     opt_gap_open_target_right,
-                     opt_gap_extension_query_left,
-                     opt_gap_extension_target_left,
-                     opt_gap_extension_query_interior,
-                     opt_gap_extension_target_interior,
-                     opt_gap_extension_query_right,
-                     opt_gap_extension_target_right);
+  lma.set_parameters(
+    scorematrix, opt_gap_open_query_left, opt_gap_open_target_left,
+    opt_gap_open_query_interior, opt_gap_open_target_interior,
+    opt_gap_open_query_right, opt_gap_open_target_right,
+    opt_gap_extension_query_left, opt_gap_extension_target_left,
+    opt_gap_extension_query_interior, opt_gap_extension_target_interior,
+    opt_gap_extension_query_right, opt_gap_extension_target_right);
 
   /* allocate memory for alignment results */
   unsigned int maxhits = seqcount;
-  unsigned int * pseqnos =
-    (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
-  CELL * pscores =
-    (CELL*) xmalloc(sizeof(CELL) * maxhits);
-  unsigned short * paligned =
+  unsigned int* pseqnos =
+    (unsigned int*) xmalloc(sizeof(unsigned int) * maxhits);
+  CELL* pscores = (CELL*) xmalloc(sizeof(CELL) * maxhits);
+  unsigned short* paligned =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  unsigned short * pmatches =
+  unsigned short* pmatches =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  unsigned short * pmismatches =
+  unsigned short* pmismatches =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  unsigned short * pgaps =
+  unsigned short* pgaps =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
   char** pcigar = (char**) xmalloc(sizeof(char*) * maxhits);
 
-  struct hit * finalhits
-    = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
+  struct hit* finalhits = (struct hit*) xmalloc(sizeof(struct hit) * seqcount);
 
   bool cont = 1;
 
   while (cont)
+  {
+    pthread_mutex_lock(&mutex_input);
+
+    int query_no = queries;
+
+    if (query_no < seqcount)
     {
-      pthread_mutex_lock(&mutex_input);
+      queries++;
 
-      int query_no = queries;
+      /* let other threads read input */
+      pthread_mutex_unlock(&mutex_input);
 
-      if (query_no < seqcount)
+      /* init search info */
+      si->query_no = query_no;
+      si->qsize = db_getabundance(query_no);
+      si->query_head_len = db_getheaderlen(query_no);
+      si->query_head = db_getheader(query_no);
+      si->qseqlen = db_getsequencelen(query_no);
+      si->qsequence = db_getsequence(query_no);
+      si->rejects = 0;
+      si->accepts = 0;
+      si->hit_count = 0;
+
+      for (int target = si->query_no + 1; target < seqcount; target++)
+      {
+        if (opt_acceptall || search_acceptable_unaligned(si, target))
+          pseqnos[si->hit_count++] = target;
+      }
+
+      if (si->hit_count)
+      {
+        /* perform alignments */
+
+        search16_qprep(si->s, si->qsequence, si->qseqlen);
+
+        search16(si->s, si->hit_count, pseqnos, pscores, paligned, pmatches,
+                 pmismatches, pgaps, pcigar);
+
+        /* convert to hit structure */
+        for (int h = 0; h < si->hit_count; h++)
         {
-          queries++;
+          struct hit* hit = si->hits + h;
 
-          /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
+          unsigned int target = pseqnos[h];
+          int64_t nwscore = pscores[h];
 
-          /* init search info */
-          si->query_no = query_no;
-          si->qsize = db_getabundance(query_no);
-          si->query_head_len = db_getheaderlen(query_no);
-          si->query_head = db_getheader(query_no);
-          si->qseqlen = db_getsequencelen(query_no);
-          si->qsequence = db_getsequence(query_no);
-          si->rejects = 0;
-          si->accepts = 0;
-          si->hit_count = 0;
+          char* nwcigar;
+          int64_t nwalignmentlength;
+          int64_t nwmatches;
+          int64_t nwmismatches;
+          int64_t nwgaps;
 
-          for(int target = si->query_no + 1;
-              target < seqcount; target++)
-            {
-              if (opt_acceptall || search_acceptable_unaligned(si, target))
-                pseqnos[si->hit_count++] = target;
-            }
+          if (nwscore == SHRT_MAX)
+          {
+            /* In case the SIMD aligner cannot align, perform a new alignment
+             * with the linear memory aligner */
 
-          if (si->hit_count)
-            {
-              /* perform alignments */
+            char* tseq = db_getsequence(target);
+            int64_t tseqlen = db_getsequencelen(target);
 
-              search16_qprep(si->s, si->qsequence, si->qseqlen);
+            if (pcigar[h])
+              xfree(pcigar[h]);
 
-              search16(si->s,
-                       si->hit_count,
-                       pseqnos,
-                       pscores,
-                       paligned,
-                       pmatches,
-                       pmismatches,
-                       pgaps,
-                       pcigar);
+            nwcigar =
+              xstrdup(lma.align(si->qsequence, tseq, si->qseqlen, tseqlen));
+            lma.alignstats(nwcigar, si->qsequence, tseq, &nwscore,
+                           &nwalignmentlength, &nwmatches, &nwmismatches,
+                           &nwgaps);
+          }
+          else
+          {
+            nwcigar = pcigar[h];
+            nwalignmentlength = paligned[h];
+            nwmatches = pmatches[h];
+            nwmismatches = pmismatches[h];
+            nwgaps = pgaps[h];
+          }
 
-              /* convert to hit structure */
-              for (int h = 0; h < si->hit_count; h++)
-                {
-                  struct hit * hit = si->hits + h;
+          hit->target = target;
+          hit->strand = 0;
+          hit->count = 0;
 
-                  unsigned int target = pseqnos[h];
-                  int64_t nwscore = pscores[h];
+          hit->accepted = 0;
+          hit->rejected = 0;
+          hit->aligned = 1;
+          hit->weak = 0;
 
-                  char * nwcigar;
-                  int64_t nwalignmentlength;
-                  int64_t nwmatches;
-                  int64_t nwmismatches;
-                  int64_t nwgaps;
+          hit->nwscore = nwscore;
+          hit->nwdiff = nwalignmentlength - nwmatches;
+          hit->nwgaps = nwgaps;
+          hit->nwindels = nwalignmentlength - nwmatches - nwmismatches;
+          hit->nwalignmentlength = nwalignmentlength;
+          hit->nwid =
+            100.0 * (nwalignmentlength - hit->nwdiff) / nwalignmentlength;
+          hit->nwalignment = nwcigar;
+          hit->matches = nwalignmentlength - hit->nwdiff;
+          hit->mismatches = hit->nwdiff - hit->nwindels;
 
-                  if (nwscore == SHRT_MAX)
-                    {
-                      /* In case the SIMD aligner cannot align,
-                         perform a new alignment with the
-                         linear memory aligner */
+          int64_t dseqlen = db_getsequencelen(target);
+          hit->shortest = MIN(si->qseqlen, dseqlen);
+          hit->longest = MAX(si->qseqlen, dseqlen);
 
-                      char * tseq = db_getsequence(target);
-                      int64_t tseqlen = db_getsequencelen(target);
+          /* trim alignment, compute numbers excluding terminal gaps */
+          align_trim(hit);
 
-                      if (pcigar[h])
-                        xfree(pcigar[h]);
-
-                      nwcigar = xstrdup(lma.align(si->qsequence,
-                                                 tseq,
-                                                 si->qseqlen,
-                                                 tseqlen));
-                      lma.alignstats(nwcigar,
-                                     si->qsequence,
-                                     tseq,
-                                     & nwscore,
-                                     & nwalignmentlength,
-                                     & nwmatches,
-                                     & nwmismatches,
-                                     & nwgaps);
-                    }
-                  else
-                    {
-                      nwcigar = pcigar[h];
-                      nwalignmentlength = paligned[h];
-                      nwmatches = pmatches[h];
-                      nwmismatches = pmismatches[h];
-                      nwgaps = pgaps[h];
-                    }
-
-                  hit->target = target;
-                  hit->strand = 0;
-                  hit->count = 0;
-
-                  hit->accepted = 0;
-                  hit->rejected = 0;
-                  hit->aligned = 1;
-                  hit->weak = 0;
-
-                  hit->nwscore = nwscore;
-                  hit->nwdiff = nwalignmentlength - nwmatches;
-                  hit->nwgaps = nwgaps;
-                  hit->nwindels = nwalignmentlength - nwmatches - nwmismatches;
-                  hit->nwalignmentlength = nwalignmentlength;
-                  hit->nwid = 100.0 * (nwalignmentlength - hit->nwdiff) /
-                    nwalignmentlength;
-                  hit->nwalignment = nwcigar;
-                  hit->matches = nwalignmentlength - hit->nwdiff;
-                  hit->mismatches = hit->nwdiff - hit->nwindels;
-
-                  int64_t dseqlen = db_getsequencelen(target);
-                  hit->shortest = MIN(si->qseqlen, dseqlen);
-                  hit->longest = MAX(si->qseqlen, dseqlen);
-
-                  /* trim alignment, compute numbers excluding terminal gaps */
-                  align_trim(hit);
-
-                  /* test accept/reject criteria after alignment */
-                  if (opt_acceptall || search_acceptable_aligned(si, hit))
-                    finalhits[si->accepts++] = *hit;
-                }
-
-              /* sort hits */
-              qsort(finalhits, si->accepts,
-                    sizeof(struct hit), allpairs_hit_compare);
-            }
-
-          /* lock mutex for update of global data and output */
-          pthread_mutex_lock(&mutex_output);
-
-          /* output results */
-          allpairs_output_results(si->accepts,
-                                  finalhits,
-                                  si->query_head,
-                                  si->qseqlen,
-                                  si->qsequence,
-                                  0);
-
-          /* update stats */
-          if (si->accepts)
-            qmatches++;
-
-          /* show progress */
-          progress += seqcount - query_no - 1;
-          progress_update(progress);
-
-          pthread_mutex_unlock(&mutex_output);
-
-          /* free memory for alignment strings */
-          for(int i=0; i < si->hit_count; i++)
-            if (si->hits[i].aligned)
-              xfree(si->hits[i].nwalignment);
+          /* test accept/reject criteria after alignment */
+          if (opt_acceptall || search_acceptable_aligned(si, hit))
+            finalhits[si->accepts++] = *hit;
         }
-      else
-        {
-          /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
 
-          cont = 0;
-        }
+        /* sort hits */
+        qsort(finalhits, si->accepts, sizeof(struct hit), allpairs_hit_compare);
+      }
+
+      /* lock mutex for update of global data and output */
+      pthread_mutex_lock(&mutex_output);
+
+      /* output results */
+      allpairs_output_results(si->accepts, finalhits, si->query_head,
+                              si->qseqlen, si->qsequence, 0);
+
+      /* update stats */
+      if (si->accepts)
+        qmatches++;
+
+      /* show progress */
+      progress += seqcount - query_no - 1;
+      progress_update(progress);
+
+      pthread_mutex_unlock(&mutex_output);
+
+      /* free memory for alignment strings */
+      for (int i = 0; i < si->hit_count; i++)
+        if (si->hits[i].aligned)
+          xfree(si->hits[i].nwalignment);
     }
+    else
+    {
+      /* let other threads read input */
+      pthread_mutex_unlock(&mutex_input);
+
+      cont = 0;
+    }
+  }
 
   xfree(finalhits);
 
@@ -503,7 +410,7 @@ void allpairs_thread_run(int64_t t)
   xfree(si->hits);
 }
 
-void * allpairs_thread_worker(void * vp)
+void* allpairs_thread_worker(void* vp)
 {
   int64_t t = (int64_t) vp;
   allpairs_thread_run(t);
@@ -518,25 +425,24 @@ void allpairs_thread_worker_run()
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t=0; t<opt_threads; t++)
-    {
-      if (pthread_create(pthread+t, &attr,
-                         allpairs_thread_worker, (void*)(int64_t)t))
-        fatal("Cannot create thread");
-    }
+  for (int t = 0; t < opt_threads; t++)
+  {
+    if (pthread_create(pthread + t, &attr, allpairs_thread_worker,
+                       (void*) (int64_t) t))
+      fatal("Cannot create thread");
+  }
 
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
-    {
-      if (pthread_join(pthread[t], NULL))
-        fatal("Cannot join thread");
-    }
+  for (int t = 0; t < opt_threads; t++)
+  {
+    if (pthread_join(pthread[t], NULL))
+      fatal("Cannot join thread");
+  }
 
   pthread_attr_destroy(&attr);
 }
 
-
-void allpairs_global(char * cmdline, char * progheader)
+void allpairs_global(char* cmdline, char* progheader)
 {
   opt_strand = 1;
   opt_uc_allhits = 1;
@@ -544,63 +450,63 @@ void allpairs_global(char * cmdline, char * progheader)
   /* open output files */
 
   if (opt_alnout)
-    {
-      fp_alnout = fopen_output(opt_alnout);
-      if (! fp_alnout)
-        fatal("Unable to open alignment output file for writing");
+  {
+    fp_alnout = fopen_output(opt_alnout);
+    if (!fp_alnout)
+      fatal("Unable to open alignment output file for writing");
 
-      fprintf(fp_alnout, "%s\n", cmdline);
-      fprintf(fp_alnout, "%s\n", progheader);
-    }
+    fprintf(fp_alnout, "%s\n", cmdline);
+    fprintf(fp_alnout, "%s\n", progheader);
+  }
 
   if (opt_samout)
-    {
-      fp_samout = fopen_output(opt_samout);
-      if (! fp_samout)
-        fatal("Unable to open SAM output file for writing");
-    }
+  {
+    fp_samout = fopen_output(opt_samout);
+    if (!fp_samout)
+      fatal("Unable to open SAM output file for writing");
+  }
 
   if (opt_userout)
-    {
-      fp_userout = fopen_output(opt_userout);
-      if (! fp_userout)
-        fatal("Unable to open user-defined output file for writing");
-    }
+  {
+    fp_userout = fopen_output(opt_userout);
+    if (!fp_userout)
+      fatal("Unable to open user-defined output file for writing");
+  }
 
   if (opt_blast6out)
-    {
-      fp_blast6out = fopen_output(opt_blast6out);
-      if (! fp_blast6out)
-        fatal("Unable to open blast6-like output file for writing");
-    }
+  {
+    fp_blast6out = fopen_output(opt_blast6out);
+    if (!fp_blast6out)
+      fatal("Unable to open blast6-like output file for writing");
+  }
 
   if (opt_uc)
-    {
-      fp_uc = fopen_output(opt_uc);
-      if (! fp_uc)
-        fatal("Unable to open uc output file for writing");
-    }
+  {
+    fp_uc = fopen_output(opt_uc);
+    if (!fp_uc)
+      fatal("Unable to open uc output file for writing");
+  }
 
   if (opt_fastapairs)
-    {
-      fp_fastapairs = fopen_output(opt_fastapairs);
-      if (! fp_fastapairs)
-        fatal("Unable to open fastapairs output file for writing");
-    }
+  {
+    fp_fastapairs = fopen_output(opt_fastapairs);
+    if (!fp_fastapairs)
+      fatal("Unable to open fastapairs output file for writing");
+  }
 
   if (opt_matched)
-    {
-      fp_matched = fopen_output(opt_matched);
-      if (! fp_matched)
-        fatal("Unable to open matched output file for writing");
-    }
+  {
+    fp_matched = fopen_output(opt_matched);
+    if (!fp_matched)
+      fatal("Unable to open matched output file for writing");
+  }
 
   if (opt_notmatched)
-    {
-      fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
-        fatal("Unable to open notmatched output file for writing");
-    }
+  {
+    fp_notmatched = fopen_output(opt_notmatched);
+    if (!fp_notmatched)
+      fatal("Unable to open notmatched output file for writing");
+  }
 
   db_read(opt_allpairs_global, 0);
 
@@ -619,26 +525,27 @@ void allpairs_global(char * cmdline, char * progheader)
   qmatches = 0;
   queries = 0;
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  pthread = (pthread_t*) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
   pthread_mutex_init(&mutex_input, NULL);
   pthread_mutex_init(&mutex_output, NULL);
 
   progress = 0;
-  progress_init("Aligning", MAX(0,((int64_t)seqcount)*((int64_t)seqcount-1))/2);
+  progress_init("Aligning",
+                MAX(0, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);
   allpairs_thread_worker_run();
   progress_done();
 
   if (!opt_quiet)
-    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n",
-            qmatches, queries, 100.0 * qmatches / queries);
+    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n", qmatches,
+            queries, 100.0 * qmatches / queries);
 
   if (opt_log)
-    {
-      fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n\n",
-              qmatches, queries, 100.0 * qmatches / queries);
-    }
+  {
+    fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n\n", qmatches,
+            queries, 100.0 * qmatches / queries);
+  }
 
   pthread_mutex_destroy(&mutex_output);
   pthread_mutex_destroy(&mutex_input);

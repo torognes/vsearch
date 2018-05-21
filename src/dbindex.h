@@ -58,17 +58,17 @@
 
 */
 
-extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
-extern uint64_t * kmerhash;  /* index into the list below for each kmer */
-extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
-extern bitmap_t * * kmerbitmap;
-extern unsigned int * dbindex_map;
+extern unsigned int* kmercount; /* number of matching seqnos for each kmer */
+extern uint64_t* kmerhash;      /* index into the list below for each kmer */
+extern unsigned int* kmerindex; /* the list of matching seqnos for kmers */
+extern bitmap_t** kmerbitmap;
+extern unsigned int* dbindex_map;
 extern unsigned int dbindex_count;
 extern unsigned int kmerhashsize;
 extern uint64_t kmerindexsize;
-extern uhandle_s * dbindex_uh;
+extern uhandle_s* dbindex_uh;
 
-void fprint_kmer(FILE * f, unsigned int k, uint64_t kmer);
+void fprint_kmer(FILE* f, unsigned int k, uint64_t kmer);
 
 void dbindex_prepare(int use_bitmap, int seqmask);
 void dbindex_addallsequences(int seqmask);
@@ -76,7 +76,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask);
 void dbindex_free();
 void dbindex_udb_write();
 
-inline unsigned char * dbindex_getbitmap(unsigned int kmer)
+inline unsigned char* dbindex_getbitmap(unsigned int kmer)
 {
   if (kmerbitmap[kmer])
     return kmerbitmap[kmer]->bitmap;
@@ -89,7 +89,7 @@ inline unsigned int dbindex_getmatchcount(unsigned int kmer)
   return kmercount[kmer];
 }
 
-inline unsigned int * dbindex_getmatchlist(unsigned int kmer)
+inline unsigned int* dbindex_getmatchlist(unsigned int kmer)
 {
   return kmerindex + kmerhash[kmer];
 }
@@ -99,7 +99,4 @@ inline unsigned int dbindex_getmapping(unsigned int index)
   return dbindex_map[index];
 }
 
-inline unsigned int dbindex_getcount()
-{
-  return dbindex_count;
-}
+inline unsigned int dbindex_getcount() { return dbindex_count; }

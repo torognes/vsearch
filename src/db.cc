@@ -70,8 +70,8 @@ static uint64_t longest = 0;
 static uint64_t shortest = 0;
 static uint64_t longestheader = 0;
 
-seqinfo_t * seqindex = 0;
-char * datap = 0;
+seqinfo_t* seqindex = 0;
+char* datap = 0;
 
 void db_setinfo(bool new_is_fastq,
                 uint64_t new_sequences,
@@ -88,12 +88,9 @@ void db_setinfo(bool new_is_fastq,
   longestheader = new_longestheader;
 }
 
-bool db_is_fastq()
-{
-  return is_fastq;
-}
+bool db_is_fastq() { return is_fastq; }
 
-char * db_getquality(uint64_t seqno)
+char* db_getquality(uint64_t seqno)
 {
   if (is_fastq)
     return datap + seqindex[seqno].qual_p;
@@ -101,7 +98,7 @@ char * db_getquality(uint64_t seqno)
     return 0;
 }
 
-void db_read(const char * filename, int upcase)
+void db_read(const char* filename, int upcase)
 {
   h = fastx_open(filename);
 
@@ -112,8 +109,8 @@ void db_read(const char * filename, int upcase)
 
   int64_t filesize = fastx_get_size(h);
 
-  char * prompt = 0;
-  if (xsprintf(& prompt, "Reading file %s", filename) == -1)
+  char* prompt = 0;
+  if (xsprintf(&prompt, "Reading file %s", filename) == -1)
     fatal("Out of memory");
 
   progress_init(prompt, filesize);
@@ -137,194 +134,166 @@ void db_read(const char * filename, int upcase)
   size_t seqindex_alloc = 0;
   seqindex = 0;
 
-  while(fastx_next(h,
-                   ! opt_notrunclabels,
-                   upcase ? chrmap_upcase : chrmap_no_change))
+  while (fastx_next(h, !opt_notrunclabels,
+                    upcase ? chrmap_upcase : chrmap_no_change))
+  {
+    size_t headerlength = fastx_get_header_length(h);
+    size_t sequencelength = fastx_get_sequence_length(h);
+    int64_t abundance = fastx_get_abundance(h);
+
+    if (sequencelength < (size_t) opt_minseqlength)
     {
-      size_t headerlength = fastx_get_header_length(h);
-      size_t sequencelength = fastx_get_sequence_length(h);
-      int64_t abundance = fastx_get_abundance(h);
-
-      if (sequencelength < (size_t)opt_minseqlength)
-        {
-          discarded_short++;
-        }
-      else if (sequencelength > (size_t)opt_maxseqlength)
-        {
-          discarded_long++;
-        }
-      else if (opt_cluster_unoise && (abundance < (int64_t)opt_minsize))
-        {
-          discarded_unoise++;
-        }
-      else
-        {
-          /* grow space for data, if necessary */
-          size_t dataalloc_old = dataalloc;
-          size_t needed = datalen + headerlength + 1 + sequencelength + 1;
-          if (is_fastq)
-            needed += sequencelength + 1;
-          while (dataalloc < needed)
-            dataalloc += MEMCHUNK;
-          if (dataalloc > dataalloc_old)
-            datap = (char *) xrealloc(datap, dataalloc);
-
-          /* store the header */
-          size_t header_p = datalen;
-          memcpy(datap + header_p,
-                 fastx_get_header(h),
-                 headerlength + 1);
-          datalen += headerlength + 1;
-
-          /* store sequence */
-          size_t sequence_p = datalen;
-          memcpy(datap + sequence_p,
-                 fastx_get_sequence(h),
-                 sequencelength + 1);
-          datalen += sequencelength + 1;
-
-          size_t quality_p = datalen;
-          if (is_fastq)
-            {
-              /* store quality */
-              memcpy(datap+quality_p,
-                     fastx_get_quality(h),
-                     sequencelength + 1);
-              datalen += sequencelength + 1;
-            }
-
-          /* grow space for index, if necessary */
-          size_t seqindex_alloc_old = seqindex_alloc;
-          while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
-            seqindex_alloc += MEMCHUNK;
-          if (seqindex_alloc > seqindex_alloc_old)
-            seqindex = (seqinfo_t *) xrealloc(seqindex, seqindex_alloc);
-
-          /* update index */
-          seqinfo_t * seqindex_p = seqindex + sequences;
-          seqindex_p->headerlen = headerlength;
-          seqindex_p->seqlen = sequencelength;
-          seqindex_p->header_p = header_p;
-          seqindex_p->seq_p = sequence_p;
-          seqindex_p->qual_p = quality_p;
-          seqindex_p->size = abundance;
-
-          /* update statistics */
-          sequences++;
-          nucleotides += sequencelength;
-          if (sequencelength > longest)
-            longest = sequencelength;
-          if (sequencelength < shortest)
-            shortest = sequencelength;
-          if (headerlength > longestheader)
-            longestheader = headerlength;
-        }
-      progress_update(fastx_get_position(h));
+      discarded_short++;
     }
+    else if (sequencelength > (size_t) opt_maxseqlength)
+    {
+      discarded_long++;
+    }
+    else if (opt_cluster_unoise && (abundance < (int64_t) opt_minsize))
+    {
+      discarded_unoise++;
+    }
+    else
+    {
+      /* grow space for data, if necessary */
+      size_t dataalloc_old = dataalloc;
+      size_t needed = datalen + headerlength + 1 + sequencelength + 1;
+      if (is_fastq)
+        needed += sequencelength + 1;
+      while (dataalloc < needed)
+        dataalloc += MEMCHUNK;
+      if (dataalloc > dataalloc_old)
+        datap = (char*) xrealloc(datap, dataalloc);
+
+      /* store the header */
+      size_t header_p = datalen;
+      memcpy(datap + header_p, fastx_get_header(h), headerlength + 1);
+      datalen += headerlength + 1;
+
+      /* store sequence */
+      size_t sequence_p = datalen;
+      memcpy(datap + sequence_p, fastx_get_sequence(h), sequencelength + 1);
+      datalen += sequencelength + 1;
+
+      size_t quality_p = datalen;
+      if (is_fastq)
+      {
+        /* store quality */
+        memcpy(datap + quality_p, fastx_get_quality(h), sequencelength + 1);
+        datalen += sequencelength + 1;
+      }
+
+      /* grow space for index, if necessary */
+      size_t seqindex_alloc_old = seqindex_alloc;
+      while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
+        seqindex_alloc += MEMCHUNK;
+      if (seqindex_alloc > seqindex_alloc_old)
+        seqindex = (seqinfo_t*) xrealloc(seqindex, seqindex_alloc);
+
+      /* update index */
+      seqinfo_t* seqindex_p = seqindex + sequences;
+      seqindex_p->headerlen = headerlength;
+      seqindex_p->seqlen = sequencelength;
+      seqindex_p->header_p = header_p;
+      seqindex_p->seq_p = sequence_p;
+      seqindex_p->qual_p = quality_p;
+      seqindex_p->size = abundance;
+
+      /* update statistics */
+      sequences++;
+      nucleotides += sequencelength;
+      if (sequencelength > longest)
+        longest = sequencelength;
+      if (sequencelength < shortest)
+        shortest = sequencelength;
+      if (headerlength > longestheader)
+        longestheader = headerlength;
+    }
+    progress_update(fastx_get_position(h));
+  }
 
   progress_done();
   xfree(prompt);
   fastx_close(h);
 
   if (!opt_quiet)
-    {
-      if (sequences > 0)
-        fprintf(stderr,
-                "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64 ", max %'" PRIu64 ", avg %'.0f\n",
-                db_getnucleotidecount(),
-                db_getsequencecount(),
-                db_getshortestsequence(),
-                db_getlongestsequence(),
-                db_getnucleotidecount() * 1.0 / db_getsequencecount());
-      else
-        fprintf(stderr,
-                "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
-                db_getnucleotidecount(),
-                db_getsequencecount());
-    }
+  {
+    if (sequences > 0)
+      fprintf(stderr,
+              "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
+              ", max %'" PRIu64 ", avg %'.0f\n",
+              db_getnucleotidecount(), db_getsequencecount(),
+              db_getshortestsequence(), db_getlongestsequence(),
+              db_getnucleotidecount() * 1.0 / db_getsequencecount());
+    else
+      fprintf(stderr, "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+              db_getnucleotidecount(), db_getsequencecount());
+  }
 
   if (opt_log)
-    {
-      if (sequences > 0)
-        fprintf(fp_log,
-                "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64 ", max %'" PRIu64 ", avg %'.0f\n\n",
-                db_getnucleotidecount(),
-                db_getsequencecount(),
-                db_getshortestsequence(),
-                db_getlongestsequence(),
-                db_getnucleotidecount() * 1.0 / db_getsequencecount());
-      else
-        fprintf(fp_log,
-                "%'" PRIu64 " nt in %'" PRIu64 " seqs\n\n",
-                db_getnucleotidecount(),
-                db_getsequencecount());
-    }
+  {
+    if (sequences > 0)
+      fprintf(fp_log,
+              "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
+              ", max %'" PRIu64 ", avg %'.0f\n\n",
+              db_getnucleotidecount(), db_getsequencecount(),
+              db_getshortestsequence(), db_getlongestsequence(),
+              db_getnucleotidecount() * 1.0 / db_getsequencecount());
+    else
+      fprintf(fp_log, "%'" PRIu64 " nt in %'" PRIu64 " seqs\n\n",
+              db_getnucleotidecount(), db_getsequencecount());
+  }
 
   /* Warn about discarded sequences */
 
   if (discarded_short)
-    {
-      fprintf(stderr,
-              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minseqlength, discarded_short, (discarded_short == 1 ? "sequence" : "sequences"));
+  {
+    fprintf(stderr, "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+            opt_minseqlength, discarded_short,
+            (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
-        fprintf(fp_log,
-              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-              opt_minseqlength, discarded_short, (discarded_short == 1 ? "sequence" : "sequences"));
-    }
+    if (opt_log)
+      fprintf(fp_log, "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+              opt_minseqlength, discarded_short,
+              (discarded_short == 1 ? "sequence" : "sequences"));
+  }
 
   if (discarded_long)
-    {
-      fprintf(stderr,
-              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_maxseqlength, discarded_long, (discarded_long == 1 ? "sequence" : "sequences"));
+  {
+    fprintf(stderr, "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+            opt_maxseqlength, discarded_long,
+            (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
-        fprintf(fp_log,
-              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-              opt_maxseqlength, discarded_long, (discarded_long == 1 ? "sequence" : "sequences"));
-    }
+    if (opt_log)
+      fprintf(fp_log, "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+              opt_maxseqlength, discarded_long,
+              (discarded_long == 1 ? "sequence" : "sequences"));
+  }
 
-    if (discarded_unoise)
-    {
-      fprintf(stderr,
-              "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minsize, discarded_unoise, (discarded_unoise == 1 ? "sequence" : "sequences"));
+  if (discarded_unoise)
+  {
+    fprintf(stderr, "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
+            opt_minsize, discarded_unoise,
+            (discarded_unoise == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
-        fprintf(fp_log,
-              "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minsize, discarded_unoise, (discarded_unoise == 1 ? "sequence" : "sequences"));
-    }
+    if (opt_log)
+      fprintf(fp_log, "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_minsize, discarded_unoise,
+              (discarded_unoise == 1 ? "sequence" : "sequences"));
+  }
 
   show_rusage();
 }
 
-uint64_t db_getsequencecount()
-{
-  return sequences;
-}
+uint64_t db_getsequencecount() { return sequences; }
 
-uint64_t db_getnucleotidecount()
-{
-  return nucleotides;
-}
+uint64_t db_getnucleotidecount() { return nucleotides; }
 
-uint64_t db_getlongestheader()
-{
-  return longestheader;
-}
+uint64_t db_getlongestheader() { return longestheader; }
 
-uint64_t db_getlongestsequence()
-{
-  return longest;
-}
+uint64_t db_getlongestsequence() { return longest; }
 
-uint64_t db_getshortestsequence()
-{
-  return shortest;
-}
+uint64_t db_getshortestsequence() { return shortest; }
 
 void db_free()
 {
@@ -334,10 +303,10 @@ void db_free()
     xfree(seqindex);
 }
 
-int compare_bylength(const void * a, const void * b)
+int compare_bylength(const void* a, const void* b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  seqinfo_t* x = (seqinfo_t*) a;
+  seqinfo_t* y = (seqinfo_t*) b;
 
   /* longest first, then by abundance, then by label, otherwise keep order */
 
@@ -346,33 +315,33 @@ int compare_bylength(const void * a, const void * b)
   else if (x->seqlen > y->seqlen)
     return -1;
   else
+  {
+    if (x->size < y->size)
+      return +1;
+    else if (x->size > y->size)
+      return -1;
+    else
     {
-      if (x->size < y->size)
-        return +1;
-      else if (x->size > y->size)
-        return -1;
+      int r = strcmp(datap + x->header_p, datap + y->header_p);
+      if (r != 0)
+        return r;
       else
-        {
-          int r = strcmp(datap + x->header_p, datap + y->header_p);
-          if (r != 0)
-            return r;
-          else
-            {
-              if (x < y)
-                return -1;
-              else if (x > y)
-                return +1;
-              else
-                return 0;
-            }
-        }
+      {
+        if (x < y)
+          return -1;
+        else if (x > y)
+          return +1;
+        else
+          return 0;
+      }
     }
+  }
 }
 
-int compare_bylength_shortest_first(const void * a, const void * b)
+int compare_bylength_shortest_first(const void* a, const void* b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  seqinfo_t* x = (seqinfo_t*) a;
+  seqinfo_t* y = (seqinfo_t*) b;
 
   /* shortest first, then by abundance, then by label, otherwise keep order */
 
@@ -381,33 +350,33 @@ int compare_bylength_shortest_first(const void * a, const void * b)
   else if (x->seqlen > y->seqlen)
     return +1;
   else
+  {
+    if (x->size < y->size)
+      return +1;
+    else if (x->size > y->size)
+      return -1;
+    else
     {
-      if (x->size < y->size)
-        return +1;
-      else if (x->size > y->size)
-        return -1;
+      int r = strcmp(datap + x->header_p, datap + y->header_p);
+      if (r != 0)
+        return r;
       else
-        {
-          int r = strcmp(datap + x->header_p, datap + y->header_p);
-          if (r != 0)
-            return r;
-          else
-            {
-              if (x < y)
-                return -1;
-              else if (x > y)
-                return +1;
-              else
-                return 0;
-            }
-        }
+      {
+        if (x < y)
+          return -1;
+        else if (x > y)
+          return +1;
+        else
+          return 0;
+      }
     }
+  }
 }
 
-inline int compare_byabundance(const void * a, const void * b)
+inline int compare_byabundance(const void* a, const void* b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  seqinfo_t* x = (seqinfo_t*) a;
+  seqinfo_t* y = (seqinfo_t*) b;
 
   /* most abundant first, then by label, otherwise keep order */
 
@@ -416,20 +385,20 @@ inline int compare_byabundance(const void * a, const void * b)
   else if (x->size < y->size)
     return +1;
   else
+  {
+    int r = strcmp(datap + x->header_p, datap + y->header_p);
+    if (r != 0)
+      return r;
+    else
     {
-      int r = strcmp(datap + x->header_p, datap + y->header_p);
-      if (r != 0)
-        return r;
+      if (x < y)
+        return -1;
+      else if (x > y)
+        return +1;
       else
-        {
-          if (x < y)
-            return -1;
-          else if (x > y)
-            return +1;
-          else
-            return 0;
-        }
+        return 0;
     }
+  }
 }
 
 void db_sortbylength()
@@ -442,7 +411,8 @@ void db_sortbylength()
 void db_sortbylength_shortest_first()
 {
   progress_init("Sorting by length", 100);
-  qsort(seqindex, sequences, sizeof(seqinfo_t), compare_bylength_shortest_first);
+  qsort(seqindex, sequences, sizeof(seqinfo_t),
+        compare_bylength_shortest_first);
   progress_done();
 }
 
@@ -452,5 +422,3 @@ void db_sortbyabundance()
   qsort(seqindex, sequences, sizeof(seqinfo_t), compare_byabundance);
   progress_done();
 }
-
-

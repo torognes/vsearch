@@ -59,32 +59,32 @@
 */
 
 void fastq_open_rest(fastx_handle h);
-fastx_handle fastq_open(const char * filename);
+fastx_handle fastq_open(const char* filename);
 void fastq_close(fastx_handle h);
 bool fastq_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping);
+                const unsigned char* char_mapping);
 uint64_t fastq_get_position(fastx_handle h);
 uint64_t fastq_get_size(fastx_handle h);
 uint64_t fastq_get_lineno(fastx_handle h);
 uint64_t fastq_get_seqno(fastx_handle h);
-char * fastq_get_header(fastx_handle h);
-char * fastq_get_sequence(fastx_handle h);
-char * fastq_get_quality(fastx_handle h);
+char* fastq_get_header(fastx_handle h);
+char* fastq_get_sequence(fastx_handle h);
+char* fastq_get_quality(fastx_handle h);
 int64_t fastq_get_abundance(fastx_handle h);
 uint64_t fastq_get_header_length(fastx_handle h);
 uint64_t fastq_get_sequence_length(fastx_handle h);
 uint64_t fastq_get_quality_length(fastx_handle h);
 
-void fastq_print(FILE * fp, char * header, char * sequence, char * quality);
+void fastq_print(FILE* fp, char* header, char* sequence, char* quality);
 
-void fastq_print_general(FILE * fp,
-                         char * seq,
+void fastq_print_general(FILE* fp,
+                         char* seq,
                          int len,
-                         char * header,
+                         char* header,
                          int header_len,
-                         char * quality,
+                         char* quality,
                          int abundance,
                          int ordinal,
-                         const char * score_name,
+                         const char* score_name,
                          double score);
