@@ -1366,7 +1366,7 @@ void fastq_mergepairs()
 
   if (failed_repeat)
     fprintf(stderr,
-            "%10" PRIu64 "  potential tandem repeat\n",
+            "%10" PRIu64 "  multiple potential alignments\n",
             failed_repeat);
 
   if (failed_maxdiffs)

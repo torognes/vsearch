@@ -60,8 +60,6 @@
 
 #include "vsearch.h"
 
-//#define BITMAP
-
 #define HASH hash_cityhash64
 
 struct bucket
@@ -71,23 +69,11 @@ struct bucket
   unsigned int seqno_last;
   unsigned int size;
   bool deleted;
+  char * header;
+  char * seq;
 };
 
-#ifdef BITMAP
-unsigned char * hash_occupied = 0;
-
-void hash_set_occupied(uint64_t hashindex)
-{
-  hash_occupied[(hashindex) >> 3] |= 1 << (hashindex & 7);
-}
-
-int hash_is_occupied(uint64_t hashindex)
-{
-  return hash_occupied[(hashindex) >> 3] & (1 << (hashindex & 7));
-}
-#endif
-
-int derep_compare(const void * a, const void * b)
+int derep_compare_prefix(const void * a, const void * b)
 {
   struct bucket * x = (struct bucket *) a;
   struct bucket * y = (struct bucket *) b;
@@ -123,6 +109,43 @@ int derep_compare(const void * a, const void * b)
     }
 }
 
+int derep_compare_full(const void * a, const void * b)
+{
+  struct bucket * x = (struct bucket *) a;
+  struct bucket * y = (struct bucket *) b;
+
+  /* highest abundance first, then by label, otherwise keep order */
+
+  if (x->deleted > y->deleted)
+    return +1;
+  else if (x->deleted < y->deleted)
+    return -1;
+  else
+    {
+      if (x->size < y->size)
+        return +1;
+      else if (x->size > y->size)
+        return -1;
+      else
+        {
+          if (x->size == 0)
+            return 0;
+          int r = strcmp(x->header, y->header);
+          if (r != 0)
+            return r;
+          else
+            {
+              if (x->seqno_first < y->seqno_first)
+                return -1;
+              else if (x->seqno_first > y->seqno_first)
+                return +1;
+              else
+                return 0;
+            }
+        }
+    }
+}
+
 int seqcmp(char * a, char * b, int n)
 {
   char * p = a;
@@ -142,8 +165,50 @@ int seqcmp(char * a, char * b, int n)
   return chrmap_4bit[(int)(*p)] - chrmap_4bit[(int)(*q)];
 }
 
+void rehash(struct bucket * * hashtableref, int64_t alloc_clusters)
+{
+  /*
+    double the size of the hash table:
+
+    - allocate the new hash table
+    - rehash all entries from the old to the new table
+    - free the old table
+    - update variables
+  */
+
+  struct bucket * old_hashtable = * hashtableref;
+  uint64_t old_hashtablesize = 2 * alloc_clusters;
+  uint64_t new_hashtablesize = 2 * old_hashtablesize;
+  uint64_t new_hash_mask = new_hashtablesize - 1;
+
+  struct bucket * new_hashtable =
+    (struct bucket *) xmalloc(sizeof(bucket) * new_hashtablesize);
+  memset(new_hashtable, 0, sizeof(bucket) * new_hashtablesize);
+
+  /* rehash all */
+  for(uint64_t i = 0; i < old_hashtablesize; i++)
+    {
+      struct bucket * old_bp = old_hashtable + i;
+      if (old_bp->size)
+        {
+          uint64_t k = old_bp->hash & new_hash_mask;
+          while (new_hashtable[k].size)
+            k = (k + 1) & new_hash_mask;
+          struct bucket * new_bp = new_hashtable + k;
+
+          * new_bp = * old_bp;
+        }
+    }
+
+  xfree(old_hashtable);
+  * hashtableref = new_hashtable;
+}
+
+
 void derep_fulllength()
 {
+  show_rusage();
+
   FILE * fp_output = 0;
   FILE * fp_uc = 0;
 
@@ -161,57 +226,131 @@ void derep_fulllength()
         fatal("Unable to open output (uc) file for writing");
     }
 
-  db_read(opt_derep_fulllength, 0);
+  fastx_handle h = fastx_open(opt_derep_fulllength);
 
   show_rusage();
 
-  int64_t dbsequencecount = db_getsequencecount();
+  if (!h)
+    fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
 
-  /* adjust size of hash table for 2/3 fill rate */
+  uint64_t filesize = fastx_get_size(h);
 
-  int64_t hashtablesize = 1;
-  int hash_shift = 0;
-  while (3 * dbsequencecount > 2 * hashtablesize)
-    {
-      hashtablesize <<= 1;
-      hash_shift++;
-    }
-  int hash_mask = hashtablesize - 1;
 
+  /* allocate initial mem for 1M sequences of length 1023 */
+
+  uint64_t alloc_clusters = 1024 * 1024;
+  uint64_t alloc_seqs = 1024 * 1024;
+  int64_t alloc_seqlen = 1023;
+
+  uint64_t hashtablesize = 2 * alloc_clusters;
+  uint64_t hash_mask = hashtablesize - 1;
   struct bucket * hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
-
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
 
-#ifdef BITMAP
-  hash_occupied =
-    (unsigned char *) xmalloc(hashtablesize / 8);
-  memset(hash_occupied, 0, hashtablesize / 8);
-#endif
+  show_rusage();
 
-  int64_t clusters = 0;
+  /* alloc and init table of links to other sequences in cluster */
+
+  unsigned int * nextseqtab =
+    (unsigned int*) xmalloc(sizeof(unsigned int) * alloc_seqs);
+  const unsigned int terminal = (unsigned int)(-1);
+  memset(nextseqtab, terminal, sizeof(unsigned int) * alloc_seqs);
+
+  show_rusage();
+
+  char * match_strand = (char *) xmalloc(alloc_seqs);
+  memset(match_strand, 0, alloc_seqs);
+
+  show_rusage();
+
+  char * seq_up = (char*) xmalloc(alloc_seqlen + 1);
+  char * rc_seq_up = (char*) xmalloc(alloc_seqlen + 1);
+
+  char * prompt = 0;
+  if (xsprintf(& prompt, "Dereplicating file %s", opt_derep_fulllength) == -1)
+    fatal("Out of memory");
+
+  progress_init(prompt, filesize);
+
+  uint64_t sequencecount = 0;
+  uint64_t nucleotidecount = 0;
+  int64_t shortest = INT64_MAX;
+  int64_t longest = 0;
+  uint64_t discarded_short = 0;
+  uint64_t discarded_long = 0;
+  uint64_t clusters = 0;
   int64_t sumsize = 0;
   uint64_t maxsize = 0;
   double median = 0.0;
   double average = 0.0;
 
-  /* alloc and init table of links to other sequences in cluster */
-
-  unsigned int * nextseqtab = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
-  const unsigned int terminal = (unsigned int)(-1);
-  memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
-
-  char * match_strand = (char *) xmalloc(dbsequencecount);
-  memset(match_strand, 0, dbsequencecount);
-
-  char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
-  char * rc_seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
-
-  progress_init("Dereplicating", dbsequencecount);
-  for(int64_t i=0; i<dbsequencecount; i++)
+  while(fastx_next(h, 0, chrmap_no_change))
     {
-      unsigned int seqlen = db_getsequencelen(i);
-      char * seq = db_getsequence(i);
+      int64_t seqlen = fastx_get_sequence_length(h);
+
+      if (seqlen < opt_minseqlength)
+        {
+          discarded_short++;
+          continue;
+        }
+
+      if (seqlen > opt_maxseqlength)
+        {
+          discarded_long++;
+          continue;
+        }
+
+      nucleotidecount += seqlen;
+      if (seqlen > longest)
+        longest = seqlen;
+      if (seqlen < shortest)
+        shortest = seqlen;
+
+      /* check allocations */
+
+      if (seqlen > alloc_seqlen)
+        {
+          alloc_seqlen = seqlen;
+          seq_up = (char*) xrealloc(seq_up, alloc_seqlen + 1);
+          rc_seq_up = (char*) xrealloc(rc_seq_up, alloc_seqlen + 1);
+
+          show_rusage();
+        }
+
+      if (sequencecount + 1 > alloc_seqs)
+        {
+          uint64_t new_alloc_seqs = 2 * alloc_seqs;
+
+          nextseqtab =
+            (unsigned int*) xrealloc(nextseqtab,
+                                     sizeof(unsigned int) * new_alloc_seqs);
+          memset(nextseqtab + alloc_seqs,
+                 terminal,
+                 sizeof(unsigned int) * alloc_seqs);
+
+          match_strand = (char *) xrealloc(match_strand, new_alloc_seqs);
+          memset(match_strand + alloc_seqs, 0, alloc_seqs);
+
+          alloc_seqs = new_alloc_seqs;
+
+          show_rusage();
+        }
+
+      if (clusters + 1 > alloc_clusters)
+        {
+          uint64_t new_alloc_clusters = 2 * alloc_clusters;
+
+          rehash(& hashtable, alloc_clusters);
+
+          alloc_clusters = new_alloc_clusters;
+          hashtablesize = 2 * alloc_clusters;
+          hash_mask = hashtablesize - 1;
+
+          show_rusage();
+        }
+
+      char * seq = fastx_get_sequence(h);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up, seq, seqlen);
@@ -232,24 +371,13 @@ void derep_fulllength()
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
-      while (
-#ifdef BITMAP
-             (hash_is_occupied(j))
-#else
-             (bp->size)
-#endif
+      while ((bp->size)
              &&
-             ((bp->hash != hash) ||
-              (seqlen != db_getsequencelen(bp->seqno_first)) ||
-              (seqcmp(seq_up, db_getsequence(bp->seqno_first), seqlen))))
+             ((hash != bp->hash) ||
+              (seqcmp(seq_up, bp->seq, seqlen))))
         {
-          bp++;
-          j++;
-          if (bp >= hashtable + hashtablesize)
-            {
-              bp = hashtable;
-              j = 0;
-            }
+          j = (j+1) & hash_mask;
+          bp = hashtable + j;
         }
 
       if ((opt_strand > 1) && !bp->size)
@@ -258,40 +386,28 @@ void derep_fulllength()
           /* check minus strand as well */
 
           uint64_t rc_hash = HASH(rc_seq_up, seqlen);
-          struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
           uint64_t k = rc_hash & hash_mask;
+          struct bucket * rc_bp = hashtable + k;
 
-          while (
-#ifdef BITMAP
-                 (hash_is_occupied(j))
-#else
-                 (rc_bp->size)
-#endif
+          while ((rc_bp->size)
                  &&
-                 ((rc_bp->hash != rc_hash) ||
-                  (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
-                  (seqcmp(rc_seq_up,
-                          db_getsequence(rc_bp->seqno_first),
-                          seqlen))))
+                 ((rc_hash != rc_bp->hash) ||
+                  (seqcmp(rc_seq_up, rc_bp->seq, seqlen))))
             {
-              rc_bp++;
-              k++;
-              if (rc_bp >= hashtable + hashtablesize)
-                {
-                  rc_bp = hashtable;
-                  k++;
-                }
+              k = (k+1) & hash_mask;
+              rc_bp = hashtable + k;
             }
 
           if (rc_bp->size)
             {
               bp = rc_bp;
               j = k;
-              match_strand[i] = 1;
+              match_strand[sequencecount] = 1;
             }
         }
 
-      int64_t ab = opt_sizein ? db_getabundance(i) : 1;
+      int abundance = fastx_get_abundance(h);
+      int64_t ab = opt_sizein ? abundance : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -299,40 +415,114 @@ void derep_fulllength()
           /* at least one identical sequence already */
           bp->size += ab;
           unsigned int last = bp->seqno_last;
-          nextseqtab[last] = i;
-          bp->seqno_last = i;
+          nextseqtab[last] = sequencecount;
+          bp->seqno_last = sequencecount;
         }
       else
         {
           /* no identical sequences yet */
+          char * header = fastx_get_header(h);
+
           bp->size = ab;
           bp->hash = hash;
-          bp->seqno_first = i;
-          bp->seqno_last = i;
+          bp->seqno_first = sequencecount;
+          bp->seqno_last = sequencecount;
+          bp->seq = xstrdup(seq);
+          bp->header = xstrdup(header);
           clusters++;
         }
 
       if (bp->size > maxsize)
         maxsize = bp->size;
 
-#ifdef BITMAP
-      hash_set_occupied(j);
-#endif
+      sequencecount++;
 
-      progress_update(i);
+      progress_update(fastx_get_position(h));
     }
   progress_done();
+  xfree(prompt);
+  fastx_close(h);
+
+  show_rusage();
+
+  if (!opt_quiet)
+    {
+      if (sequencecount > 0)
+        fprintf(stderr,
+                "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
+                ", max %'" PRIu64 ", avg %'.0f\n",
+                nucleotidecount,
+                sequencecount,
+                shortest,
+                longest,
+                nucleotidecount * 1.0 / sequencecount);
+      else
+        fprintf(stderr,
+                "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                nucleotidecount,
+                sequencecount);
+    }
+
+  if (opt_log)
+    {
+      if (sequencecount > 0)
+        fprintf(fp_log,
+                "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
+                ", max %'" PRIu64 ", avg %'.0f\n",
+                nucleotidecount,
+                sequencecount,
+                shortest,
+                longest,
+                nucleotidecount * 1.0 / sequencecount);
+      else
+        fprintf(fp_log,
+                "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                nucleotidecount,
+                sequencecount);
+    }
+
+  if (discarded_short)
+    {
+      fprintf(stderr,
+              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_minseqlength,
+              discarded_short,
+              (discarded_short == 1 ? "sequence" : "sequences"));
+
+      if (opt_log)
+        fprintf(fp_log,
+                "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+                opt_minseqlength,
+                discarded_short,
+                (discarded_short == 1 ? "sequence" : "sequences"));
+    }
+
+  if (discarded_long)
+    {
+      fprintf(stderr,
+              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+              opt_maxseqlength,
+              discarded_long,
+              (discarded_long == 1 ? "sequence" : "sequences"));
+
+      if (opt_log)
+        fprintf(fp_log,
+                "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+                opt_maxseqlength,
+                discarded_long,
+                (discarded_long == 1 ? "sequence" : "sequences"));
+    }
 
   xfree(seq_up);
   xfree(rc_seq_up);
 
   show_rusage();
 
-
   progress_init("Sorting", 1);
-  qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
+  qsort(hashtable, hashtablesize, sizeof(struct bucket), derep_compare_full);
   progress_done();
 
+  show_rusage();
 
   if (clusters > 0)
     {
@@ -358,32 +548,34 @@ void derep_fulllength()
     {
       if (!opt_quiet)
         fprintf(stderr,
-                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
+                "%" PRId64
+                " unique sequences, avg cluster %.1lf, median %.0f, max %"
+                PRIu64 "\n",
                 clusters, average, median, maxsize);
       if (opt_log)
         fprintf(fp_log,
-                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
+                "%" PRId64
+                " unique sequences, avg cluster %.1lf, median %.0f, max %"
+                PRIu64 "\n\n",
                 clusters, average, median, maxsize);
     }
 
-  show_rusage();
-
-
   /* count selected */
 
-  int64_t selected = 0;
-  for (int64_t i=0; i<clusters; i++)
+  uint64_t selected = 0;
+  for (uint64_t i=0; i<clusters; i++)
     {
       struct bucket * bp = hashtable + i;
       int64_t size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
           selected++;
-          if (selected == opt_topn)
+          if (selected == (uint64_t) opt_topn)
             break;
         }
     }
 
+  show_rusage();
 
   /* write output */
 
@@ -392,7 +584,7 @@ void derep_fulllength()
       progress_init("Writing output file", clusters);
 
       int64_t relabel_count = 0;
-      for (int64_t i=0; i<clusters; i++)
+      for (uint64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
@@ -401,10 +593,10 @@ void derep_fulllength()
               relabel_count++;
               fasta_print_general(fp_output,
                                   0,
-                                  db_getsequence(bp->seqno_first),
-                                  db_getsequencelen(bp->seqno_first),
-                                  db_getheader(bp->seqno_first),
-                                  db_getheaderlen(bp->seqno_first),
+                                  bp->seq,
+                                  strlen(bp->seq),
+                                  bp->header,
+                                  strlen(bp->header),
                                   size,
                                   relabel_count,
                                   -1, -1, 0, 0.0);
@@ -423,11 +615,11 @@ void derep_fulllength()
   if (opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
-      for (int64_t i=0; i<clusters; i++)
+      for (uint64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          char * h =  db_getheader(bp->seqno_first);
-          int64_t len = db_getsequencelen(bp->seqno_first);
+          char * h =  bp->header;
+          int64_t len = strlen(bp->seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
@@ -444,42 +636,60 @@ void derep_fulllength()
           progress_update(i);
         }
       progress_done();
-      show_rusage();
 
       progress_init("Writing uc file, second part", clusters);
-      for (int64_t i=0; i<clusters; i++)
+      for (uint64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, bp->size, db_getheader(bp->seqno_first));
+                  i, bp->size, bp->header);
           progress_update(i);
         }
       fclose(fp_uc);
       progress_done();
-      show_rusage();
     }
+
+  show_rusage();
 
   if (selected < clusters)
     {
       if (!opt_quiet)
         fprintf(stderr,
-                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n",
+                "%" PRId64 " uniques written, %"
+                PRId64 " clusters discarded (%.1f%%)\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
 
       if (opt_log)
         fprintf(fp_log,
-                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n\n",
+                "%" PRId64 " uniques written, %"
+                PRId64 " clusters discarded (%.1f%%)\n\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
     }
 
+  show_rusage();
+
+  /* Free all seqs and headers */
+
+  for (uint64_t i=0; i<clusters; i++)
+    {
+      struct bucket * bp = hashtable + i;
+      if (bp->size)
+        {
+          xfree(bp->seq);
+          xfree(bp->header);
+        }
+    }
+
+  show_rusage();
+
   xfree(match_strand);
   xfree(nextseqtab);
   xfree(hashtable);
-  db_free();
-}
 
+  show_rusage();
+}
 
 void derep_prefix()
 {
@@ -532,7 +742,8 @@ void derep_prefix()
 
   /* alloc and init table of links to other sequences in cluster */
 
-  unsigned int * nextseqtab = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
+  unsigned int * nextseqtab
+    = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
   const unsigned int terminal = (unsigned int)(-1);
   memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
 
@@ -693,7 +904,7 @@ void derep_prefix()
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
+  qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare_prefix);
   progress_done();
 
   if (clusters > 0)
@@ -720,11 +931,15 @@ void derep_prefix()
     {
       if (!opt_quiet)
         fprintf(stderr,
-                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n",
+                "%" PRId64
+                " unique sequences, avg cluster %.1lf, median %.0f, max %"
+                PRIu64 "\n",
                 clusters, average, median, maxsize);
       if (opt_log)
         fprintf(fp_log,
-                "%" PRId64 " unique sequences, avg cluster %.1lf, median %.0f, max %" PRIu64 "\n\n",
+                "%" PRId64
+                " unique sequences, avg cluster %.1lf, median %.0f, max %"
+                PRIu64 "\n\n",
                 clusters, average, median, maxsize);
     }
 
@@ -822,13 +1037,15 @@ void derep_prefix()
     {
       if (!opt_quiet)
         fprintf(stderr,
-                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n",
+                "%" PRId64 " uniques written, %" PRId64
+                " clusters discarded (%.1f%%)\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
 
       if (opt_log)
         fprintf(fp_log,
-                "%" PRId64 " uniques written, %" PRId64 " clusters discarded (%.1f%%)\n\n",
+                "%" PRId64 " uniques written, %" PRId64
+                " clusters discarded (%.1f%%)\n\n",
                 selected, clusters - selected,
                 100.0 * (clusters - selected) / clusters);
     }

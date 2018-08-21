@@ -149,12 +149,12 @@ void abundance_fprint_header_strip_size(FILE * fp,
     {
       if (start <= 1)
         {
-          if (end < header_length)
+          if (end < header_length - 1)
             fprintf(fp, "%s", header + end + 1);
         }
       else
         {
-          if (end == header_length)
+          if (end >= header_length - 1)
             fprintf(fp, "%.*s", start - 1, header);
           else
             fprintf(fp, "%.*s;%.*s",
