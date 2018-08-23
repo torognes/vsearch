@@ -14,8 +14,8 @@ MACOSX_DEPLOYMENT_TARGET="10.7"
 
 # Set default gcc and g++ options
 
-CFLAGS='-g -march=native'
-CXXFLAGS='-g -march=native'
+CFLAGS='-Wall -O3 -g -march=native'
+CXXFLAGS="${CFLAGS}"
 
 # Checks for programs.
 AC_PROG_CXX
