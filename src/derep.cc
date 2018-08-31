@@ -257,6 +257,15 @@ void derep_fulllength()
   const unsigned int terminal = (unsigned int)(-1);
   memset(nextseqtab, terminal, sizeof(unsigned int) * alloc_seqs);
 
+  /* alloc and init table of pointers to the headers */
+
+  char ** headertab = 0;
+  if (opt_uc)
+    {
+      headertab = (char **) xmalloc(sizeof(char*) * alloc_seqs);
+      memset(headertab, 0, sizeof(char*) * alloc_seqs);
+    }
+
   show_rusage();
 
   char * match_strand = (char *) xmalloc(alloc_seqs);
@@ -328,6 +337,13 @@ void derep_fulllength()
           memset(nextseqtab + alloc_seqs,
                  terminal,
                  sizeof(unsigned int) * alloc_seqs);
+
+          if (opt_uc)
+            {
+              headertab = (char**) xrealloc(headertab,
+                                            sizeof(char*) * new_alloc_seqs);
+              memset(headertab + alloc_seqs, 0, sizeof(char*) * alloc_seqs);
+            }
 
           match_strand = (char *) xrealloc(match_strand, new_alloc_seqs);
           memset(match_strand + alloc_seqs, 0, alloc_seqs);
@@ -406,6 +422,7 @@ void derep_fulllength()
             }
         }
 
+      char * header = fastx_get_header(h);
       int abundance = fastx_get_abundance(h);
       int64_t ab = opt_sizein ? abundance : 1;
       sumsize += ab;
@@ -417,12 +434,12 @@ void derep_fulllength()
           unsigned int last = bp->seqno_last;
           nextseqtab[last] = sequencecount;
           bp->seqno_last = sequencecount;
+          if (opt_uc)
+            headertab[sequencecount] = xstrdup(header);
         }
       else
         {
           /* no identical sequences yet */
-          char * header = fastx_get_header(h);
-
           bp->size = ab;
           bp->hash = hash;
           bp->seqno_first = sequencecount;
@@ -631,7 +648,7 @@ void derep_fulllength()
                     "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                     i, len, 100.0,
                     (match_strand[next] ? "-" : "+"),
-                    db_getheader(next), h);
+                    headertab[next], h);
 
           progress_update(i);
         }
@@ -680,6 +697,14 @@ void derep_fulllength()
           xfree(bp->seq);
           xfree(bp->header);
         }
+    }
+
+  if (opt_uc)
+    {
+      for (uint64_t i=0; i<alloc_seqs; i++)
+        if (headertab[i])
+          xfree(headertab[i]);
+      xfree(headertab);
     }
 
   show_rusage();
