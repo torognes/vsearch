@@ -111,8 +111,13 @@ void subsample()
     for(int i=0; i<dbsequencecount; i++)
       mass_total += db_getabundance(i);
 
-  fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
-          mass_total, dbsequencecount);
+  if (! opt_quiet)
+    fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
+            mass_total, dbsequencecount);
+
+  if (opt_log)
+    fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
+            mass_total, dbsequencecount);
 
 
   int * abundance = (int*) xmalloc(dbsequencecount * sizeof(int));
@@ -229,7 +234,10 @@ void subsample()
 
   xfree(abundance);
 
-  fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
+  if (! opt_quiet)
+    fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
+  if (opt_log)
+    fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
 
   db_free();
 
