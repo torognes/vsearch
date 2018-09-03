@@ -236,10 +236,11 @@ void derep_fulllength()
   uint64_t filesize = fastx_get_size(h);
 
 
-  /* allocate initial mem for 1M sequences of length 1023 */
+  /* allocate initial memory for 1024 clusters
+     with sequences of length 1023 */
 
-  uint64_t alloc_clusters = 1024 * 1024;
-  uint64_t alloc_seqs = 1024 * 1024;
+  uint64_t alloc_clusters = 1024;
+  uint64_t alloc_seqs = 1024;
   int64_t alloc_seqlen = 1023;
 
   uint64_t hashtablesize = 2 * alloc_clusters;
@@ -250,26 +251,29 @@ void derep_fulllength()
 
   show_rusage();
 
-  /* alloc and init table of links to other sequences in cluster */
-
-  unsigned int * nextseqtab =
-    (unsigned int*) xmalloc(sizeof(unsigned int) * alloc_seqs);
+  unsigned int * nextseqtab = 0;
   const unsigned int terminal = (unsigned int)(-1);
-  memset(nextseqtab, terminal, sizeof(unsigned int) * alloc_seqs);
-
-  /* alloc and init table of pointers to the headers */
-
   char ** headertab = 0;
+  char * match_strand = 0;
+
   if (opt_uc)
     {
+      /* If the uc option is in effect we need to keep some extra info.
+         Allocate and init memory for this. */
+
+      /* Links to other sequences in cluster */
+      nextseqtab =
+        (unsigned int*) xmalloc(sizeof(unsigned int) * alloc_seqs);
+      memset(nextseqtab, terminal, sizeof(unsigned int) * alloc_seqs);
+
+      /* Pointers to the header strings */
       headertab = (char **) xmalloc(sizeof(char*) * alloc_seqs);
       memset(headertab, 0, sizeof(char*) * alloc_seqs);
+
+      /* Matching strand */
+      match_strand = (char *) xmalloc(alloc_seqs);
+      memset(match_strand, 0, alloc_seqs);
     }
-
-  show_rusage();
-
-  char * match_strand = (char *) xmalloc(alloc_seqs);
-  memset(match_strand, 0, alloc_seqs);
 
   show_rusage();
 
@@ -327,7 +331,7 @@ void derep_fulllength()
           show_rusage();
         }
 
-      if (sequencecount + 1 > alloc_seqs)
+      if (opt_uc && (sequencecount + 1 > alloc_seqs))
         {
           uint64_t new_alloc_seqs = 2 * alloc_seqs;
 
@@ -338,12 +342,9 @@ void derep_fulllength()
                  terminal,
                  sizeof(unsigned int) * alloc_seqs);
 
-          if (opt_uc)
-            {
-              headertab = (char**) xrealloc(headertab,
-                                            sizeof(char*) * new_alloc_seqs);
-              memset(headertab + alloc_seqs, 0, sizeof(char*) * alloc_seqs);
-            }
+          headertab = (char**) xrealloc(headertab,
+                                        sizeof(char*) * new_alloc_seqs);
+          memset(headertab + alloc_seqs, 0, sizeof(char*) * alloc_seqs);
 
           match_strand = (char *) xrealloc(match_strand, new_alloc_seqs);
           memset(match_strand + alloc_seqs, 0, alloc_seqs);
@@ -418,7 +419,8 @@ void derep_fulllength()
             {
               bp = rc_bp;
               j = k;
-              match_strand[sequencecount] = 1;
+              if (opt_uc)
+                match_strand[sequencecount] = 1;
             }
         }
 
@@ -431,11 +433,14 @@ void derep_fulllength()
         {
           /* at least one identical sequence already */
           bp->size += ab;
-          unsigned int last = bp->seqno_last;
-          nextseqtab[last] = sequencecount;
-          bp->seqno_last = sequencecount;
+
           if (opt_uc)
-            headertab[sequencecount] = xstrdup(header);
+            {
+              unsigned int last = bp->seqno_last;
+              nextseqtab[last] = sequencecount;
+              bp->seqno_last = sequencecount;
+              headertab[sequencecount] = xstrdup(header);
+            }
         }
       else
         {
@@ -705,12 +710,12 @@ void derep_fulllength()
         if (headertab[i])
           xfree(headertab[i]);
       xfree(headertab);
+      xfree(nextseqtab);
+      xfree(match_strand);
     }
 
   show_rusage();
 
-  xfree(match_strand);
-  xfree(nextseqtab);
   xfree(hashtable);
 
   show_rusage();
