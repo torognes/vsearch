@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "August 31, 2018" "version 2.8.3" "USER COMMANDS"
+.TH vsearch 1 "September 3, 2018" "version 2.8.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3409,6 +3409,11 @@ option.
 .TP
 .BR v2.8.3\~ "released August 31st, 2018"
 Fix for segmentation fault for \-\-derep_fulllength with \-\-uc.
+.TP
+.BR v2.8.4\~ "released September 3rd, 2018"
+Further reduce memory requirements for dereplication when not using
+the uc option. Fix output during subsampling when quiet or log options
+are in effect.
 .RE
 .LP
 .\" ============================================================================
