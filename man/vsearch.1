@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 3, 2018" "version 2.8.4" "USER COMMANDS"
+.TH vsearch 1 "September 26, 2018" "version 2.8.5" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3414,6 +3414,10 @@ Fix for segmentation fault for \-\-derep_fulllength with \-\-uc.
 Further reduce memory requirements for dereplication when not using
 the uc option. Fix output during subsampling when quiet or log options
 are in effect.
+.TP
+.BR v2.8.5\~ "released September 26th, 2018"
+Fixed a bug in fastq_eestats2 that caused the values for large lengths
+to be much too high when the input sequences had varying lengths.
 .RE
 .LP
 .\" ============================================================================

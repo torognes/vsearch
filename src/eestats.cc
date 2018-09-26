@@ -465,15 +465,6 @@ void fastq_eestats2()
             }
         }
 
-      for (int x = 0; x < len_steps; x++)
-        {
-          uint64_t len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
-          if (len < len_cutoff)
-            for (int y = 0; y < opt_ee_cutoffs_count; y++)
-              if (ee <= opt_ee_cutoffs_values[y])
-                count_table[x * opt_ee_cutoffs_count + y]++;
-        }
-
       progress_update(fastq_get_position(h));
     }
   progress_done();
