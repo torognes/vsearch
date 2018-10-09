@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 26, 2018" "version 2.8.5" "USER COMMANDS"
+.TH vsearch 1 "October 9, 2018" "version 2.8.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3418,6 +3418,11 @@ are in effect.
 .BR v2.8.5\~ "released September 26th, 2018"
 Fixed a bug in fastq_eestats2 that caused the values for large lengths
 to be much too high when the input sequences had varying lengths.
+.TP
+.BR v2.8.6\~ "released October 9th, 2018"
+Fixed a bug introduced in version 2.8.2 that caused derep_fulllength
+to include the full FASTA header in its output instead of stopping at
+the first space (unless the notrunclabels option is in effect).
 .RE
 .LP
 .\" ============================================================================
