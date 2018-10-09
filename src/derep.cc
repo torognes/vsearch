@@ -298,7 +298,7 @@ void derep_fulllength()
   double median = 0.0;
   double average = 0.0;
 
-  while(fastx_next(h, 0, chrmap_no_change))
+  while(fastx_next(h, ! opt_notrunclabels, chrmap_no_change))
     {
       int64_t seqlen = fastx_get_sequence_length(h);
 
