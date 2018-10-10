@@ -211,6 +211,7 @@
 #include "udb.h"
 #include "kmerhash.h"
 #include "sintax.h"
+#include "fastqjoin.h"
 
 /* options */
 
@@ -260,6 +261,7 @@ extern char * opt_fastq_convert;
 extern char * opt_fastq_eestats2;
 extern char * opt_fastq_eestats;
 extern char * opt_fastq_filter;
+extern char * opt_fastq_join;
 extern char * opt_fastq_mergepairs;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
@@ -270,6 +272,8 @@ extern char * opt_fastx_filter;
 extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
+extern char * opt_join_padgap;
+extern char * opt_join_padgapq;
 extern char * opt_label_suffix;
 extern char * opt_log;
 extern char * opt_makeudb_usearch;

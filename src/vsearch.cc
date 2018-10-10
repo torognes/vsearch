@@ -108,6 +108,7 @@ char * opt_fastq_convert;
 char * opt_fastq_eestats;
 char * opt_fastq_eestats2;
 char * opt_fastq_filter;
+char * opt_fastq_join;
 char * opt_fastq_mergepairs;
 char * opt_fastq_stats;
 char * opt_fastqout;
@@ -118,6 +119,8 @@ char * opt_fastx_filter;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
+char * opt_join_padgap;
+char * opt_join_padgapq;
 char * opt_label_suffix;
 char * opt_log;
 char * opt_makeudb_usearch;
@@ -661,6 +664,7 @@ void args_init(int argc, char **argv)
   opt_fastq_eestats = 0;
   opt_fastq_eestats2 = 0;
   opt_fastq_filter = 0;
+  opt_fastq_join = 0;
   opt_fastq_maxdiffpct = 100.0;
   opt_fastq_maxdiffs = 10;
   opt_fastq_maxee = DBL_MAX;
@@ -713,6 +717,8 @@ void args_init(int argc, char **argv)
   opt_iddef = 2;
   opt_idprefix = 0;
   opt_idsuffix = 0;
+  opt_join_padgap = 0;
+  opt_join_padgapq = 0;
   opt_label_suffix = 0;
   opt_leftjust = 0;
   opt_length_cutoffs_increment = 50;
@@ -1024,6 +1030,9 @@ void args_init(int argc, char **argv)
     {"sintax_cutoff",         required_argument, 0, 0 },
     {"tabbedout",             required_argument, 0, 0 },
     {"fastq_maxdiffpct",      required_argument, 0, 0 },
+    {"fastq_join",            required_argument, 0, 0 },
+    {"join_padgap",           required_argument, 0, 0 },
+    {"join_padgapq",          required_argument, 0, 0 },
     { 0, 0, 0, 0 }
   };
 
@@ -1870,6 +1879,18 @@ void args_init(int argc, char **argv)
           opt_fastq_maxdiffpct = args_getdouble(optarg);
           break;
 
+        case 199:
+          opt_fastq_join = optarg;
+          break;
+
+        case 200:
+          opt_join_padgap = optarg;
+          break;
+
+        case 201:
+          opt_join_padgapq = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1956,6 +1977,8 @@ void args_init(int argc, char **argv)
   if (opt_uchime3_denovo)
     commands++;
   if (opt_sintax)
+    commands++;
+  if (opt_fastq_join)
     commands++;
 
 
@@ -2331,6 +2354,16 @@ void cmd_help()
               " Output\n"
               "  --output FILENAME           output to specified FASTA file\n"
               "\n"
+              "Paired-end reads joining\n"
+              "  --fastq_join FILENAME       join paired-end reads into one sequence with gap\n"
+              " Data\n"
+              "  --reverse FILENAME          specify FASTQ file with reverse reads\n"
+              "  --join_padgap STRING        sequence string used for padding (NNNNNNNN)\n"
+              "  --join_padgapq STRING       quality string used for padding (IIIIIIII)\n"
+              " Output\n"
+              "  --fastaout FILENAME         FASTA output filename for joined sequences\n"
+              "  --fastqout FILENAME         FASTQ output filename for joined sequences\n"
+              "\n"
               "Paired-end reads merging\n"
               "  --fastq_mergepairs FILENAME merge paired-end reads into one sequence\n"
               " Data\n"
@@ -2696,6 +2729,7 @@ void cmd_none()
             "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
             "vsearch --fastq_eestats FILENAME --output FILENAME\n"
             "vsearch --fastq_eestats2 FILENAME --output FILENAME\n"
+            "vsearch --fastq_join FILENAME --reverse FILENAME --fastqout FILENAME\n"
             "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
             "vsearch --fastq_stats FILENAME --log FILENAME\n"
             "vsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\n"
@@ -2939,6 +2973,8 @@ int main(int argc, char** argv)
     cmd_fastq_eestats();
   else if (opt_fastq_eestats2)
     cmd_fastq_eestats2();
+  else if (opt_fastq_join)
+    fastq_join();
   else if (opt_rereplicate)
     cmd_rereplicate();
   else if (opt_version)

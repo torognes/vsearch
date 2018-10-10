@@ -30,6 +30,7 @@ dynlibs.h \
 eestats.h \
 fasta.h \
 fastq.h \
+fastqjoin.h \
 fastqops.h \
 fastx.h \
 kmerhash.h \
@@ -108,6 +109,7 @@ dynlibs.cc \
 eestats.cc \
 fasta.cc \
 fastq.cc \
+fastqjoin.cc \
 fastqops.cc \
 fastx.cc \
 kmerhash.cc \
