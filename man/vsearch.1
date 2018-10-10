@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 9, 2018" "version 2.8.6" "USER COMMANDS"
+.TH vsearch 1 "October 10, 2018" "version 2.9.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -54,6 +54,10 @@ FASTA/FASTQ file processing:
 \fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
 \-\-fastaout_discarded | \-\-fastqout | \-\-fastqout_discarded)
 \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastq_join \fIfastqfile\fR \-\-reverse
+\fIfastqfile\fR (\-\-fastaout | \-\-fastqout) \fIoutputfile\fR
+[\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_mergepairs \fIfastqfile\fR \-\-reverse
 \fIfastqfile\fR (\-\-fastaout | \-\-fastqout |
@@ -1091,6 +1095,22 @@ Shorten and/or filter sequences in the given FASTQ file. Similar to
 the \-\-fastx_filter command, but works only on FASTQ files. See
 \-\-fastx_filter for details.
 .TP
+.BI \-\-fastq_join\0 filename
+Join paired-end sequence reads into one sequence and add a gap between
+them using a padding sequence. The sequences are not merged as with
+the fastq_mergepairs command, but simply joined with a gap. The
+forward reads are specified as the argument to this option and the
+reverse reads are specified with the \-\-reverse option. The resulting
+sequences consist of the forward read, the padding sequence and the
+reverse complement of the reverse read. The padding sequence is
+specified with the \-\-join_padgap option and the padding quality is
+specified with the \-\-join_padgapq option. The default padding
+sequence string is NNNNNNNN and the default padding quality string is
+IIIIIIII, corresponding to a base quality score of 40 (a very high
+quality score with error probability 0.0001). The joined sequences are
+output to the file(s) specified with the \-\-fastaout or \-\-fastqout
+options.
+.TP
 .BI \-\-fastq_maxdiffs\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the maximum number of
 non-matching nucleotides allowed in the overlap region. That option
@@ -1354,6 +1374,16 @@ file specified with the \-\-fastaout and/or \-\-fastqout options. If
 the input file is in FASTA format, the output can not be written back
 to a FASTQ file due to missing base quality scores.
 .TP
+.BI \-\-join_padgap\~ string
+When running \-\-fastq_join, use the \fIstring\fR as a sequence
+padding string. The default is NNNNNNNN (8 N's).
+.TP
+.BI \-\-join_padgapq\~ string
+When running \-\-fastq_join, use the \fIstring\fR as a quality padding
+string. The default is a string of I's equal in length to the sequence
+padding string. The letter I corresponds to a base quality score of 40
+indicating a very high quality base with error probability of 0.0001.
+.TP
 .BI \-\-label_suffix\~ string
 When using \-\-fastx_revcomp or \-\-fastq_mergepairs, add the suffix
 \fIstring\fR to sequence headers.
@@ -1389,8 +1419,8 @@ Please see the description of the same option under Chimera detection
 for details.
 .TP
 .BI \-\-reverse \0filename
-When using \-\-fastq_mergepairs, specify the FASTQ file containing
-containing the reverse reads.
+When using \-\-fastq_mergepairs or \-\-fastq_join, specify the FASTQ
+file containing containing the reverse reads.
 .TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
@@ -3423,6 +3453,9 @@ to be much too high when the input sequences had varying lengths.
 Fixed a bug introduced in version 2.8.2 that caused derep_fulllength
 to include the full FASTA header in its output instead of stopping at
 the first space (unless the notrunclabels option is in effect).
+.TP
+.BR v2.9.0\~ "released October 10th, 2018"
+Added the fastq_join command.
 .RE
 .LP
 .\" ============================================================================
