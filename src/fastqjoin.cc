@@ -219,7 +219,7 @@ void fastq_join()
 
   progress_done();
 
-  if (fastq_next(fastq_rev, 0, chrmap_nochange))
+  if (fastq_next(fastq_rev, 0, chrmap_no_change))
     fatal("More reverse reads than forward reads");
 
   fprintf(stderr,
