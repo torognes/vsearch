@@ -878,17 +878,18 @@ for details.
 .TP
 .BI \-\-rereplicate \0filename
 Duplicate each sequence the number of times indicated by the abundance
-of each sequence in the specified file. The sequence labels are
-identical for the same sequence, unless \-\-relabel, \-\-relabel_sha1
-or \-\-relabel_md5 is used to create unique labels. Output is written
-to the file specified with the \-\-output option, in FASTA format. The
-output file does not contain abundance information unless \-\-sizeout
-is specified, in which case an abundance of 1 is used.
+of each sequence in the specified file (option \-\-sizein is always
+implied). The sequence labels are identical for the same sequence,
+unless \-\-relabel, \-\-relabel_sha1 or \-\-relabel_md5 is used to
+create unique labels. Output is written to the file specified with the
+\-\-output option, in FASTA format. The output file does not contain
+abundance information unless \-\-sizeout is specified, in which case
+an abundance of 1 is used.
 .TP
 .B \-\-sizein
 Take into account the abundance annotations present in the input fasta
 file (search for the pattern '[>;]size=\fIinteger\fR[;]' in sequence
-headers).
+headers). That option is active by default when rereplicating.
 .TP
 .B \-\-sizeout
 Add abundance annotations to the output fasta file (add the pattern
