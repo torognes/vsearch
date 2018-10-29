@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [2.9.0], [torognes@ifi.uio.no])
+AC_INIT([vsearch], [2.9.1], [torognes@ifi.uio.no])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
@@ -14,8 +14,8 @@ MACOSX_DEPLOYMENT_TARGET="10.7"
 
 # Set default gcc and g++ options
 
-CFLAGS='-g -march=native'
-CXXFLAGS='-g -march=native'
+CFLAGS='-g'
+CXXFLAGS='-g'
 
 # Checks for programs.
 AC_PROG_CXX

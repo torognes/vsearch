@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 10, 2018" "version 2.9.0" "USER COMMANDS"
+.TH vsearch 1 "October 29, 2018" "version 2.9.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3457,6 +3457,12 @@ the first space (unless the notrunclabels option is in effect).
 .TP
 .BR v2.9.0\~ "released October 10th, 2018"
 Added the fastq_join command.
+.TP
+.BR v2.9.1\~ "released October 29th, 2018"
+Changed compiler options that select the target cpu and tuning to
+allow the software to run on any 64-bit x86 system, while tuning for
+more modern variants. Avoid illegal instruction error on some
+architectures. Update documentation of rereplicate command.
 .RE
 .LP
 .\" ============================================================================
