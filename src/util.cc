@@ -114,7 +114,7 @@ void  __attribute__((noreturn)) fatal(const char * msg)
   fprintf(stderr, "\n\n");
   fprintf(stderr, "Fatal error: %s\n", msg);
 
-  if (opt_log)
+  if (fp_log)
     {
       fprintf(fp_log, "\n\n");
       fprintf(fp_log, "Fatal error: %s\n", msg);

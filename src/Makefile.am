@@ -47,6 +47,7 @@ results.h \
 search.h \
 searchcore.h \
 searchexact.h \
+sffconvert.h \
 showalign.h \
 sha1.h \
 shuffle.h \
@@ -126,6 +127,7 @@ results.cc \
 search.cc \
 searchcore.cc \
 searchexact.cc \
+sffconvert.cc \
 sha1.c \
 showalign.cc \
 shuffle.cc \

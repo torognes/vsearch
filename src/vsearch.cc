@@ -77,6 +77,7 @@ bool opt_relabel_keep;
 bool opt_relabel_md5;
 bool opt_relabel_sha1;
 bool opt_samheader;
+bool opt_sff_clip;
 bool opt_sizeorder;
 bool opt_xsize;
 char * opt_allpairs_global;
@@ -139,6 +140,7 @@ char * opt_rereplicate;
 char * opt_reverse;
 char * opt_samout;
 char * opt_search_exact;
+char * opt_sff_convert;
 char * opt_shuffle;
 char * opt_sintax;
 char * opt_sortbylength;
@@ -789,6 +791,8 @@ void args_init(int argc, char **argv)
   opt_search_exact = 0;
   opt_self = 0;
   opt_selfid = 0;
+  opt_sff_convert = 0;
+  opt_sff_clip = 0;
   opt_shuffle = 0;
   opt_sintax = 0;
   opt_sintax_cutoff = 0.0;
@@ -1033,7 +1037,9 @@ void args_init(int argc, char **argv)
     {"fastq_join",            required_argument, 0, 0 },
     {"join_padgap",           required_argument, 0, 0 },
     {"join_padgapq",          required_argument, 0, 0 },
-    { 0, 0, 0, 0 }
+    {"sff_convert",           required_argument, 0, 0 },
+    {"sff_clip",              no_argument,       0, 0 },
+    { 0,                      0,                 0, 0 }
   };
 
   int option_count = sizeof(long_options) / sizeof(struct option);
@@ -1891,6 +1897,14 @@ void args_init(int argc, char **argv)
           opt_join_padgapq = optarg;
           break;
 
+        case 202:
+          opt_sff_convert = optarg;
+          break;
+
+        case 203:
+          opt_sff_clip = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -1980,6 +1994,8 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_fastq_join)
     commands++;
+  if (opt_sff_convert)
+    commands++;
 
 
   if (commands > 1)
@@ -2061,8 +2077,20 @@ void args_init(int argc, char **argv)
   if (opt_fastq_qmin > opt_fastq_qmax)
     fatal("The argument to --fastq_qmin cannot be larger than to --fastq_qmax");
 
+  if (opt_fastq_ascii + opt_fastq_qmin < 33)
+    fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
+
+  if (opt_fastq_ascii + opt_fastq_qmax > 126)
+    fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
+
   if (opt_fastq_qminout > opt_fastq_qmaxout)
     fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
+
+  if (opt_fastq_asciiout + opt_fastq_qminout < 33)
+    fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
+
+  if (opt_fastq_asciiout + opt_fastq_qmaxout > 126)
+    fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
 
   if (opt_gzip_decompress && opt_bzip2_decompress)
     fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
@@ -2243,10 +2271,20 @@ void cmd_help()
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
-              "  --sizeorder                 sort accepted centroids by abundance (AGC)\n"
+              "  --sizeorder                 sort accepted centroids by abundance, AGC\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
               "  --uc FILENAME               specify filename for UCLUST-like output\n"
               "  --xsize                     strip abundance information in output\n"
+              "\n"
+              "Convert SFF to FASTQ\n"
+              "  --sff_convert FILENAME      convert given SFF file to FASTQ format\n"
+              " Parameters\n"
+              "  --sff_clip                  clip ends of sequences as indicated in file (no)\n"
+              "  --fastq_asciiout INT        FASTQ output quality score ASCII base char (33)\n"
+              "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n"
+              "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n"
+              " Output\n"
+              "  --fastqout FILENAME         output converted sequences to given FASTQ file\n"
               "\n"
               "Dereplication and rereplication\n"
               "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
@@ -2989,6 +3027,8 @@ int main(int argc, char** argv)
     udb_stats();
   else if (opt_sintax)
     sintax();
+  else if (opt_sff_convert)
+    sff_convert();
   else
     cmd_none();
 

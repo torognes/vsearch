@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 29, 2018" "version 2.9.1" "USER COMMANDS"
+.TH vsearch 1 "December 6, 2018" "version 2.10.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -70,6 +70,9 @@ FASTA/FASTQ file processing:
 .PP
 \fBvsearch\fR \-\-fastx_revcomp \fIfastxfile\fR (\-\-fastaout |
 \-\-fastqout) \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-sff_convert \fIsff-file\fR \-\-fastqout
+\fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
 Masking:
@@ -962,8 +965,9 @@ length of the sequences in a FASTQ file may be performed with the
 \-\-fastq_stats, \-\-fastq_eestats, and \-\-fastq_eestats2
 commands. Sequences may be shortened, filtered and converted by the
 \-\-fastq_filter or \-\-fastx_filter commands. Paired-end reads can be
-merged using the \-\-fastq_mergepairs command. Finally, the
-\-\-fastx_revcomp command reverse-complements sequences.
+merged using the \-\-fastq_mergepairs command. The \-\-fastx_revcomp
+command reverse-complements sequences. Finally, the \-\-sff_convert
+command can be used to convert SFF files to FASTQ.
 .PP
 .TP 9
 .B \-\-eeout
@@ -1014,9 +1018,9 @@ Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
 Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64).
 .TP
 .BI \-\-fastq_asciiout\~ "positive integer"
-When using \-\-fastq_convert, define the ASCII character number used
-as the basis for the FASTQ quality score when writing FASTQ output
-files. The default is 33.
+When using \-\-fastq_convert or \-\-sff_convert, define the ASCII
+character number used as the basis for the FASTQ quality score when
+writing FASTQ output files. The default is 33.
 .TP
 .BI \-\-fastq_chars \0filename
 Summarize the composition of sequence and quality strings contained in
@@ -1040,7 +1044,7 @@ Convert between the different variants of the FASTQ file format. The
 quality encoding of the input file must be specified with the
 \-\-fastq_ascii option (either 33 or 64, the default is 33), and the
 output quality encoding must be specified with the \-\-fastq_asciiout
-option (default 33). The mimimum and maximum output quality scores may
+option (default 33). The minimum and maximum output quality scores may
 be limited using the \-\-fastq_qminout and \-\-fastq_qmaxout
 options. The output file is specified with the \-\-fastqout option.
 .TP
@@ -1200,10 +1204,10 @@ files. The default is 41, which is usual for recent Sanger/Illumina
 1.8+ files.
 .TP
 .BI \-\-fastq_qmaxout\~ "positive integer"
-When using \-\-fastq_convert, specify the maximum quality score used
-when writing FASTQ files. The default is 41, which is usual for recent
-Sanger/Illumina 1.8+ files. Older formats may use a maximum quality
-score of 40.
+When using \-\-fastq_convert or \-\-sff_convert, specify the maximum
+quality score used when writing FASTQ files. The default is 41, which
+is usual for recent Sanger/Illumina 1.8+ files. Older formats may use
+a maximum quality score of 40.
 .TP
 .BI \-\-fastq_qmin\~ "positive integer"
 Specify the minimum quality score accepted for FASTQ files. The
@@ -1211,10 +1215,10 @@ default is 0, which is usual for recent Sanger/Illumina 1.8+
 files. Older formats may use scores between -5 and 2.
 .TP
 .BI \-\-fastq_qminout\~ "positive integer"
-When using \-\-fastq_convert, specify the minimum quality score used
-when writing FASTQ files. The default is 0, which is usual for
-Sanger/Illumina 1.8+ files. Older versions of the format may use
-scores between -5 and 2.
+When using \-\-fastq_convert or \-\-sff_convert, specify the minimum
+quality score used when writing FASTQ files. The default is 0, which
+is usual for Sanger/Illumina 1.8+ files. Older versions of the format
+may use scores between -5 and 2.
 .TP
 .BI \-\-fastq_stats \0filename
 Analyze a FASTQ file and report the number of reads it contains. The
@@ -1422,6 +1426,21 @@ for details.
 .BI \-\-reverse \0filename
 When using \-\-fastq_mergepairs or \-\-fastq_join, specify the FASTQ
 file containing containing the reverse reads.
+.TP
+.BI \-\-sff_convert \0filename
+Convert the given SFF file to FASTQ. The FASTQ output file is
+specified with the \-\-fastqout option. The sequence may be clipped as
+specied in the SFF file if the option \-\-sff_clip is specified,
+otherwise no clipping occurs. Bases that would have been clipped are
+converted to lower case, while the rest is in upper case. The output
+quality encoding may be specified with the \-\-fastq_asciiout option
+(default 33). The minimum and maximum output quality scores may be
+limited using the \-\-fastq_qminout and \-\-fastq_qmaxout options.
+.TP
+.BI \-\-sff_clip
+Specifies that the sequences converted by the \-\-sff_convert command
+should be clipped in both ends as indicated in the SFF file. By
+default no clipping is performed.
 .TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
@@ -3463,6 +3482,11 @@ Changed compiler options that select the target cpu and tuning to
 allow the software to run on any 64-bit x86 system, while tuning for
 more modern variants. Avoid illegal instruction error on some
 architectures. Update documentation of rereplicate command.
+.TP
+.BR v2.10.0\~ "released December 6th, 2018"
+Added the sff_convert commmand to convert SFF files to FASTQ. Added
+some additional option argument checks. Fixed segmentation fault bug
+after some fatal errors when a log file was specified.
 .RE
 .LP
 .\" ============================================================================
