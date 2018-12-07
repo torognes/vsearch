@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 6, 2018" "version 2.10.0" "USER COMMANDS"
+.TH vsearch 1 "December 7, 2018" "version 2.10.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3487,6 +3487,12 @@ architectures. Update documentation of rereplicate command.
 Added the sff_convert commmand to convert SFF files to FASTQ. Added
 some additional option argument checks. Fixed segmentation fault bug
 after some fatal errors when a log file was specified.
+.TP
+.BR v2.10.1\~ "released December 7th, 2018"
+Improved sff_convert command. It will now read several variants of the
+SFF format. It is also able to read from a pipe. Warnings are given if
+there are minor problems. Errors messages have been improved. Minor
+speed and memory usage improvements.
 .RE
 .LP
 .\" ============================================================================
