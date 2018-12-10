@@ -150,8 +150,8 @@ bool sintax_parse_tax(const char * header,
 void sintax_split(int seqno, int * level_start, int * level_len)
 {
   /* Parse taxonomy string into the following parts
-     k kingdom
      d domain
+     k kingdom
      p phylum
      c class
      o order
