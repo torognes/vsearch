@@ -86,7 +86,7 @@ static pthread_attr_t attr;
 static fastx_handle query_fastx_h;
 
 const int tax_levels = 8;
-const char * tax_letters = "kdpcofgs";
+const char * tax_letters = "dkpcofgs";
 const int subset_size = 32;
 const int bootstrap_count = 100;
 
