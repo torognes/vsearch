@@ -185,15 +185,15 @@ void search_topscores(struct searchinfo_s * si)
 
       if (bitmap)
         {
-#ifdef __PPC__
-          increment_counters_from_bitmap(si->kmers, bitmap, indexed_count);
-#else
+#ifdef __x86_64__
           if (ssse3_present)
             increment_counters_from_bitmap_ssse3(si->kmers,
                                                  bitmap, indexed_count);
           else
             increment_counters_from_bitmap_sse2(si->kmers,
                                                 bitmap, indexed_count);
+#else
+          increment_counters_from_bitmap(si->kmers, bitmap, indexed_count);
 #endif
         }
       else

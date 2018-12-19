@@ -96,7 +96,17 @@
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION
 
-#ifdef __PPC__
+#ifdef __x86_64__
+
+#define PROG_CPU "x86_64"
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+#ifdef __SSSE3__
+#include <tmmintrin.h>
+#endif
+
+#elif __PPC__
 
 #ifdef __LITTLE_ENDIAN__
 #define PROG_CPU "ppc64le"
@@ -105,17 +115,14 @@
 #error Big endian ppc64 CPUs not supported
 #endif
 
+#elif __aarch64__
+
+#define PROG_CPU "aarch64"
+#include <arm_neon.h>
+
 #else
 
-#define PROG_CPU "x86_64"
-
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-
-#ifdef __SSSE3__
-#include <tmmintrin.h>
-#endif
+#error Unknown architecture (not ppc64le, aarch64 or x86_64)
 
 #endif
 

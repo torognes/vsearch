@@ -16,7 +16,7 @@ We have implemented a tool called VSEARCH which supports *de novo* and reference
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-VSEARCH binaries are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) and Windows (64-bit, version 7 or higher), as well as ppc64le systems running GNU/Linux.
+VSEARCH binaries are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) and Windows (64-bit, version 7 or higher), as well as for 64-bit little-endian POWER8 (ppc64le) and 64-bit ARMv8 systems (aarch64) running GNU/Linux. VSEARCH contains dedicated SIMD code for these three processors architectures (SSE2, AltiVec/VMX/VSX, Neon).
 
 VSEARCH can directly read input query and database files that are compressed using gzip and bzip2 (.gz and .bz2) if the zlib and bzip2 libraries are available.
 
@@ -24,7 +24,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -37,9 +37,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.10.2.tar.gz
-tar xzf v2.10.2.tar.gz
-cd vsearch-2.10.2
+wget https://github.com/torognes/vsearch/archive/v2.10.3.tar.gz
+tar xzf v2.10.3.tar.gz
+cd vsearch-2.10.3
 ./autogen.sh
 ./configure
 make
@@ -47,8 +47,6 @@ make install  # as root or sudo make install
 ```
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autotools (version 2.63 or later) and the gcc compiler is required to build vsearch.
-
-The IBM XL C++ compiler is recommended on ppc64le systems.
 
 The Windows binary was compiled using the [Mingw-w64](https://mingw-w64.org/) C++ cross-compiler.
 
@@ -65,41 +63,48 @@ make install  # as root or sudo make install
 
 **Binary distribution** Starting with version 1.4.0, binary distribution files containing pre-compiled binaries as well as the documentation will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`).
 
-Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) and Windows (64-bit, version 7 or higher), as well as ppc64le systems running GNU/Linux.
+Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) and Windows (64-bit, version 7 or higher), as well as POWER8 (ppc64le) and 64-bit AMDv8 (aarch64) systems running GNU/Linux.
 
 Download the appropriate executable for your system using the following commands if you are using a Linux x86_64 system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch-2.10.2-linux-x86_64.tar.gz
-tar xzf vsearch-2.10.2-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch-2.10.3-linux-x86_64.tar.gz
+tar xzf vsearch-2.10.3-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Linux ppc64le system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch-2.10.2-linux-ppc64le.tar.gz
-tar xzf vsearch-2.10.2-linux-ppc64le.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch-2.10.3-linux-ppc64le.tar.gz
+tar xzf vsearch-2.10.3-linux-ppc64le.tar.gz
+```
+
+Or these commands if you are using a Linux aarch64 system:
+
+```sh
+wget https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch-2.10.3-linux-aarch64.tar.gz
+tar xzf vsearch-2.10.3-linux-aarch64.tar.gz
 ```
 
 Or these commands if you are using a Mac:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch-2.10.2-macos-x86_64.tar.gz
-tar xzf vsearch-2.10.2-macos-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch-2.10.3-macos-x86_64.tar.gz
+tar xzf vsearch-2.10.3-macos-x86_64.tar.gz
 ```
 
 Or if you are using Windows, download and extract (unzip) the contents of this file:
 
 ```
-https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch-2.10.2-win-x86_64.zip
+https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch-2.10.3-win-x86_64.zip
 ```
 
-Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.10.2-linux-x86_64` or `vsearch-2.10.2-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
+Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.10.3-linux-x86_64` or `vsearch-2.10.3-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
 
-Windows: You will now have the binary distribution in a folder called `vsearch-2.10.2-win-x86_64`. The vsearch executable is called `vsearch.exe`. The manual in PDF format is called `vsearch_manual.pdf`.
+Windows: You will now have the binary distribution in a folder called `vsearch-2.10.3-win-x86_64`. The vsearch executable is called `vsearch.exe`. The manual in PDF format is called `vsearch_manual.pdf`.
 
 
-**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.10.2/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
+**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.10.3/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
 
 
 ## Plugins, packages, and wrappers
@@ -187,6 +192,7 @@ File | Description
 **eestats.cc** | Produce statistics for fastq_eestats command
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
+**fastqjoin.cc** | FASTQ paired-end reads joining
 **fastqops.cc** | FASTQ file statistics etc
 **fastx.cc** | Detection of FASTA and FASTQ files, wrapper for FASTA and FASTQ parsers
 **kmerhash.cc** | Hash for kmers used by paired-end read merger
@@ -203,6 +209,7 @@ File | Description
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
 **searchexact.cc** | Exact search functions
+**sffconvert.cc** | SFF to FASTQ file conversion
 **sha1.c** | SHA1 message digest
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
 **shuffle.cc** | Shuffle sequences
@@ -230,14 +237,6 @@ or you could send an email to [torognes@ifi.uio.no](mailto:torognes@ifi.uio.no?s
 ## Limitations
 
 VSEARCH is designed for rather short sequences, and will be slow when sequences are longer than about 5,000 bp. This is because it always performs optimal global alignment on selected sequences.
-
-
-## Future work
-
-Some issues to work on:
-
-* testing and debugging
-* heuristics for alignment of long sequences (e.g. banded alignment around selected diagonals)?
 
 
 ## The VSEARCH team

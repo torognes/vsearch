@@ -58,16 +58,15 @@
 
 */
 
-#ifdef __PPC__
-void increment_counters_from_bitmap(unsigned short * counters,
-                                    unsigned char * bitmap,
-                                    unsigned int totalbits);
-#else
+#ifdef __x86_64__
 void increment_counters_from_bitmap_sse2(unsigned short * counters,
                                          unsigned char * bitmap,
                                          unsigned int totalbits);
-
 void increment_counters_from_bitmap_ssse3(unsigned short * counters,
                                           unsigned char * bitmap,
                                           unsigned int totalbits);
+#else
+void increment_counters_from_bitmap(unsigned short * counters,
+                                    unsigned char * bitmap,
+                                    unsigned int totalbits);
 #endif

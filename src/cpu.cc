@@ -63,7 +63,59 @@
 /* This file contains code dependent on special cpu features. */
 /* The file may be compiled several times with different cpu options. */
 
-#ifdef __PPC__
+#ifdef __aarch64__
+
+void increment_counters_from_bitmap(unsigned short * counters,
+                                    unsigned char * bitmap,
+                                    unsigned int totalbits)
+{
+  const uint8x16_t c1 =
+    { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
+      0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
+
+  unsigned short * p = (unsigned short *)(bitmap);
+  int16x8_t * q = (int16x8_t *)(counters);
+  int r = (totalbits + 15) / 16;
+
+  for(int j=0; j<r; j++)
+    {
+      uint16x8_t r0;
+      uint8x16_t r1, r2, r3, r4;
+      int16x8_t r5, r6;
+
+      // load and duplicate short
+      r0 = vdupq_n_u16(*p);
+      p++;
+
+      // cast to bytes
+      r1 = vreinterpretq_u8_u16(r0);
+
+      // bit test with mask giving 0x00 or 0xff
+      r2 = vtstq_u8(r1, c1);
+
+      // transpose to duplicate even bytes
+      r3 = vtrn1q_u8(r2, r2);
+
+      // transpose to duplicate odd bytes
+      r4 = vtrn2q_u8(r2, r2);
+
+      // cast to signed 0x0000 or 0xffff
+      r5 = vreinterpretq_s16_u8(r3);
+
+      // cast to signed 0x0000 or 0xffff
+      r6 = vreinterpretq_s16_u8(r4);
+
+      // subtract signed 0 or -1 (i.e add 0 or 1) with saturation to counter
+      *q = vqsubq_s16(*q, r5);
+      q++;
+
+      // subtract signed 0 or 1 (i.e. add 0 or 1) with saturation to counter
+      *q = vqsubq_s16(*q, r6);
+      q++;
+    }
+}
+
+#elif __PPC__
 
 void increment_counters_from_bitmap(unsigned short * counters,
                                     unsigned char * bitmap,
@@ -102,7 +154,7 @@ void increment_counters_from_bitmap(unsigned short * counters,
     }
 }
 
-#else
+#elif __x86_64__
 
 #ifdef SSSE3
 void increment_counters_from_bitmap_ssse3(unsigned short * counters,
@@ -169,5 +221,9 @@ void increment_counters_from_bitmap_sse2(unsigned short * counters,
       q++;
     }
 }
+
+#else
+
+#error Unknown architecture
 
 #endif
