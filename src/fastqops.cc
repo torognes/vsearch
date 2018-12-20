@@ -889,7 +889,7 @@ void fastq_stats()
       fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
       fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
-      for(int64_t i = len_max; i >= len_max/2; i--)
+      for(int64_t i = len_max; i >= MAX(1, len_max/2); i--)
         {
           double read_percentage[4];
 
