@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -197,15 +197,28 @@ void results_show_uc_one(FILE * fp,
     strand: + or -
     0
     0
-    compressed alignment, e.g. 9I92M14D, or "=" if prefect alignment
+    compressed alignment, e.g. 9I92M14D, or "=" if perfect alignment
     query label
     target label
   */
 
   if (hp)
     {
-      bool perfect = (hp->matches == qseqlen) &&
-        ((uint64_t)(qseqlen) == db_getsequencelen(hp->target));
+      bool perfect;
+
+      if (opt_cluster_fast)
+        {
+          /* cluster_fast */
+          /* use = for identical sequences ignoring terminal gaps */
+          perfect = (hp->matches == hp->internal_alignmentlength);
+        }
+      else
+        {
+          /* cluster_size, cluster_smallmem, cluster_unoise */
+          /* usearch_global, search_exact, allpairs_global */
+          /* use = for strictly identical sequences */
+          perfect = (hp->matches == hp->nwalignmentlength);
+        }
 
       fprintf(fp,
               "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",

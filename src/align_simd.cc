@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -162,7 +162,7 @@ const uint16x8_t neon_mask =
 typedef __m128i VECTOR_SHORT;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
-#define v_load(a) _mm_load_si128((VECTOR_SHORT *)a)
+#define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
 #define v_store(a, b) _mm_store_si128((VECTOR_SHORT *)(a), (b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
