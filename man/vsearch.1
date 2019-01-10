@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 4, 2019" "version 2.10.4" "USER COMMANDS"
+.TH vsearch 1 "January 10, 2019" "version 2.10.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -836,7 +836,8 @@ Merge strictly identical sequences contained in
 \fIfilename\fR. Identical sequences are defined as having the same
 length and the same string of nucleotides (case insensitive, T and U
 are considered the same). See the options \-\-sizein and \-\-sizeout
-to take into account and compute abundance values.
+to take into account and compute abundance values. This command does
+not support multithreading.
 .TP
 .BI \-\-derep_prefix \0filename
 Merge sequences with identical prefixes contained in \fIfilename\fR.
@@ -846,7 +847,8 @@ sequence is identical to the prefix of two or more longer sequences,
 it is clustered with the shortest of them. If they are equally long,
 it is clustered with the most abundant. Remaining ties are solved
 using sequence headers and sequence input order. Sequence comparisons
-are case insensitive, and T and U are considered identical.
+are case insensitive, and T and U are considered identical. This
+command does not support multithreading.
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
 Discard sequences with a post-dereplication abundance value greater
