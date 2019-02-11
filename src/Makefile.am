@@ -37,6 +37,7 @@ fastq.h \
 fastqjoin.h \
 fastqops.h \
 fastx.h \
+filter.h \
 kmerhash.h \
 linmemalign.h \
 maps.h \
@@ -126,6 +127,7 @@ fastq.cc \
 fastqjoin.cc \
 fastqops.cc \
 fastx.cc \
+filter.cc \
 kmerhash.cc \
 linmemalign.cc \
 maps.cc \

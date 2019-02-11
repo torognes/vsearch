@@ -58,7 +58,5 @@
 
 */
 
-void fastq_chars();
-void fastq_convert();
-void fastq_stats();
-void fastx_revcomp();
+void fastq_filter();
+void fastx_filter();
