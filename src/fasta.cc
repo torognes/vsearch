@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -249,7 +249,7 @@ bool fasta_next(fastx_handle h,
 
 int64_t fasta_get_abundance(fastx_handle h)
 {
-  return abundance_get(h->header_buffer.data, h->header_buffer.length);
+  return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 
 uint64_t fasta_get_position(fastx_handle h)
@@ -332,6 +332,7 @@ void fasta_print_general(FILE * fp,
                          int header_len,
                          int abundance,
                          int ordinal,
+                         double ee,
                          int clustersize,
                          int clusterid,
                          const char * score_name,
@@ -348,10 +349,16 @@ void fasta_print_general(FILE * fp,
     fprint_seq_digest_md5(fp, seq, len);
   else if (opt_relabel && (ordinal > 0))
     fprintf(fp, "%s%d", opt_relabel, ordinal);
-  else if (opt_xsize || (opt_sizeout && abundance > 0))
-    abundance_fprint_header_strip_size(fp, header, header_len);
   else
-    fprintf(fp, "%s", header);
+    {
+      bool xsize = opt_xsize || (opt_sizeout && (abundance > 0));
+      bool xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      header_fprint_strip_size_ee(fp,
+                                  header,
+                                  header_len,
+                                  xsize,
+                                  xee);
+    }
 
   if (clustersize > 0)
     fprintf(fp, ";seqs=%d", clustersize);
@@ -359,8 +366,11 @@ void fasta_print_general(FILE * fp,
   if (clusterid >= 0)
     fprintf(fp, ";clusterid=%d", clusterid);
 
-  if ((abundance > 0) && opt_sizeout)
+  if (opt_sizeout && (abundance > 0))
     fprintf(fp, ";size=%u", abundance);
+
+  if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
+    fprintf(fp, ";ee=%.4lf", ee);
 
   if (score_name)
     fprintf(fp, ";%s=%.4lf", score_name, score);
@@ -387,6 +397,7 @@ void fasta_print_db_relabel(FILE * fp,
                       db_getheaderlen(seqno),
                       db_getabundance(seqno),
                       ordinal,
+                      -1.0,
                       -1, -1,
                       0, 0.0);
 }
@@ -401,6 +412,7 @@ void fasta_print_db(FILE * fp, uint64_t seqno)
                       db_getheaderlen(seqno),
                       db_getabundance(seqno),
                       0,
+                      -1.0,
                       -1, -1,
                       0, 0.0);
 }

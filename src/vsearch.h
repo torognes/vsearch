@@ -189,7 +189,7 @@
 #include "xstring.h"
 #include "align_simd.h"
 #include "maps.h"
-#include "abundance.h"
+#include "attributes.h"
 #include "db.h"
 #include "align.h"
 #include "unique.h"
@@ -249,6 +249,7 @@ extern bool opt_relabel_sha1;
 extern bool opt_samheader;
 extern bool opt_sff_clip;
 extern bool opt_sizeorder;
+extern bool opt_xee;
 extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
@@ -271,8 +272,10 @@ extern char * opt_derep_prefix;
 extern char * opt_eetabbedout;
 extern char * opt_fastaout;
 extern char * opt_fastaout_discarded;
+extern char * opt_fastaout_discarded_rev;
 extern char * opt_fastaout_notmerged_fwd;
 extern char * opt_fastaout_notmerged_rev;
+extern char * opt_fastaout_rev;
 extern char * opt_fastapairs;
 extern char * opt_fastq_chars;
 extern char * opt_fastq_convert;
@@ -284,6 +287,8 @@ extern char * opt_fastq_mergepairs;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
 extern char * opt_fastqout_discarded;
+extern char * opt_fastqout_discarded_rev;
+extern char * opt_fastqout_rev;
 extern char * opt_fastqout_notmerged_fwd;
 extern char * opt_fastqout_notmerged_rev;
 extern char * opt_fastx_filter;

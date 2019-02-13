@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -261,7 +261,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                             db_getheader(target_seqno),
                             db_getheaderlen(target_seqno),
                             db_getabundance(target_seqno),
-                            0, -1, -1, 0, 0.0);
+                            0, -1.0, -1, -1, 0, 0.0);
     }
 
   if (rc_buffer)
@@ -334,6 +334,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                           db_getheaderlen(centroid_seqno),
                           totalabundance,
                           cluster+1,
+                          -1.0,
                           target_count,
                           opt_clusterout_id ? cluster : -1,
                           0, 0.0);
@@ -349,6 +350,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                           db_getheaderlen(centroid_seqno),
                           totalabundance,
                           cluster+1,
+                          -1.0,
                           target_count,
                           opt_clusterout_id ? cluster : -1,
                           0, 0.0);

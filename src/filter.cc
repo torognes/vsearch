@@ -80,25 +80,155 @@ inline int fastq_get_qual(char q)
   return qual;
 }
 
+struct analysis_res
+{
+  bool discarded;
+  bool truncated;
+  int start;
+  int length;
+  double ee;
+};
+
+struct analysis_res analyse(fastx_handle h)
+{
+  struct analysis_res res = { false, false, 0, 0, -1.0 };
+  res.length = fastx_get_sequence_length(h);
+  int64_t old_length = res.length;
+
+  /* strip left (5') end */
+  if (opt_fastq_stripleft < res.length)
+    {
+      res.start += opt_fastq_stripleft;
+      res.length -= opt_fastq_stripleft;
+    }
+  else
+    {
+      res.start = res.length;
+      res.length = 0;
+    }
+
+  /* strip right (3') end */
+  if (opt_fastq_stripright < res.length)
+    res.length -= opt_fastq_stripright;
+  else
+    res.length = 0;
+
+  /* truncate trailing (3') part */
+  if (opt_fastq_trunclen >= 0)
+    if (res.length > opt_fastq_trunclen)
+      res.length = opt_fastq_trunclen;
+
+  /* truncate trailing (3') part, but keep if short */
+  if (opt_fastq_trunclen_keep >= 0)
+    if (res.length > opt_fastq_trunclen_keep)
+      res.length = opt_fastq_trunclen_keep;
+
+  if (h->is_fastq)
+    {
+      /* truncate by quality and expected errors (ee) */
+      res.ee = 0.0;
+      char * q = fastx_get_quality(h) + res.start;
+      for (int64_t i = 0; i < res.length; i++)
+        {
+          int qual = fastq_get_qual(q[i]);
+          double e = exp10(-0.1 * qual);
+          res.ee += e;
+
+          if ((qual <= opt_fastq_truncqual) ||
+              (res.ee > opt_fastq_truncee))
+            {
+              res.ee -= e;
+              res.length = i;
+              break;
+            }
+        }
+
+      /* filter by expected errors (ee) */
+      if (res.ee > opt_fastq_maxee)
+        res.discarded = true;
+      if ((res.length > 0) && (res.ee / res.length > opt_fastq_maxee_rate))
+        res.discarded = true;
+    }
+
+  /* filter by length */
+  if ((opt_fastq_trunclen >= 0) && (res.length < opt_fastq_trunclen))
+    res.discarded = true;
+  if (res.length < opt_fastq_minlen)
+    res.discarded = true;
+  if (res.length > opt_fastq_maxlen)
+    res.discarded = true;
+
+  /* filter by n's */
+  int64_t ncount = 0;
+  char * p = fastx_get_sequence(h) + res.start;
+  for (int64_t i = 0; i < res.length; i++)
+    {
+      int pc = p[i];
+      if ((pc == 'N') || (pc == 'n'))
+        ncount++;
+    }
+  if (ncount > opt_fastq_maxns)
+    res.discarded = true;
+
+  /* filter by abundance */
+  int64_t abundance = fastx_get_abundance(h);
+  if ((opt_minsize > 0) && (abundance < opt_minsize))
+    res.discarded = true;
+  if ((opt_maxsize > 0) && (abundance > opt_maxsize))
+    res.discarded = true;
+
+  res.truncated = res.length < old_length;
+
+  return res;
+}
+
 void filter(bool fastq_only, char * filename)
 {
-  fastx_handle h = fastx_open(filename);
+  if ((!opt_fastqout) && (!opt_fastaout) &&
+      (!opt_fastqout_discarded) && (!opt_fastaout_discarded) &&
+      (!opt_fastqout_rev) && (!opt_fastaout_rev) &&
+      (!opt_fastqout_discarded_rev) && (!opt_fastaout_discarded_rev))
+    fatal("No output files specified");
 
-  if (!h)
+  fastx_handle h1 = 0;
+  fastx_handle h2 = 0;
+
+  h1 = fastx_open(filename);
+
+  if (!h1)
     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
 
-  if (fastq_only && ! h->is_fastq)
+  if (fastq_only && ! h1->is_fastq)
     fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
 
-  if ((opt_fastqout || opt_fastqout_discarded) && ! h->is_fastq)
-    fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
+  if ((opt_fastqout || opt_fastqout_discarded) && ! h1->is_fastq)
+    fatal("Cannot write FASTQ output with FASTA input file (no quality scores)");
 
-  uint64_t filesize = fastx_get_size(h);
+  uint64_t filesize = fastx_get_size(h1);
+
+  if (opt_reverse)
+    {
+      h2 = fastx_open(opt_reverse);
+
+      if (!h2)
+        fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
+
+      if (fastq_only && ! h2->is_fastq)
+        fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
+
+      if ((opt_fastqout_rev || opt_fastqout_discarded_rev) && ! h2->is_fastq)
+        fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
+    }
 
   FILE * fp_fastaout = 0;
   FILE * fp_fastqout = 0;
   FILE * fp_fastaout_discarded = 0;
   FILE * fp_fastqout_discarded = 0;
+
+  FILE * fp_fastaout_rev = 0;
+  FILE * fp_fastqout_rev = 0;
+  FILE * fp_fastaout_discarded_rev = 0;
+  FILE * fp_fastqout_discarded_rev = 0;
 
   if (opt_fastaout)
     {
@@ -128,12 +258,35 @@ void filter(bool fastq_only, char * filename)
         fatal("Unable to open FASTQ output file for writing");
     }
 
-  uint64_t header_alloc = 0;
-  char * header = 0;
-  if (opt_relabel)
+  if (h2)
     {
-      header_alloc = strlen(opt_relabel) + 25;
-      header = (char*) xmalloc(header_alloc);
+      if (opt_fastaout_rev)
+        {
+          fp_fastaout_rev = fopen_output(opt_fastaout_rev);
+          if (!fp_fastaout_rev)
+            fatal("Unable to open FASTA output file for writing");
+        }
+
+      if (opt_fastqout_rev)
+        {
+          fp_fastqout_rev = fopen_output(opt_fastqout_rev);
+          if (!fp_fastqout_rev)
+            fatal("Unable to open FASTQ output file for writing");
+        }
+
+      if (opt_fastaout_discarded_rev)
+        {
+          fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
+          if (!fp_fastaout_discarded_rev)
+            fatal("Unable to open FASTA output file for writing");
+        }
+
+      if (opt_fastqout_discarded_rev)
+        {
+          fp_fastqout_discarded_rev = fopen_output(opt_fastqout_discarded_rev);
+          if (!fp_fastqout_discarded_rev)
+            fatal("Unable to open FASTQ output file for writing");
+        }
     }
 
   progress_init("Reading input file", filesize);
@@ -142,164 +295,151 @@ void filter(bool fastq_only, char * filename)
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  while(fastx_next(h, 0, chrmap_no_change))
+  while(fastx_next(h1, 0, chrmap_no_change))
     {
-      int64_t length = fastx_get_sequence_length(h);
-      char * d = fastx_get_header(h);
-      char * p = fastx_get_sequence(h);
-      char * q = fastx_get_quality(h);
-      int64_t abundance = fastx_get_abundance(h);
+      if (h2 && ! fastx_next(h2, 0, chrmap_no_change))
+        fatal("More forward reads than reverse reads");
 
-      /* strip initial part */
-      if (opt_fastq_stripleft > 0)
+      struct analysis_res res1 = { false, false, 0, 0, 0.0 } ;
+      struct analysis_res res2 = { false, false, 0, 0, -1.0 } ;
+
+      res1 = analyse(h1);
+      if (h2)
+        res2 = analyse(h2);
+
+      if (res1.discarded || res2.discarded)
         {
-          if (opt_fastq_stripleft < length)
-            {
-              p += opt_fastq_stripleft;
-              q += opt_fastq_stripleft;
-              length -= opt_fastq_stripleft;
-            }
-          else
-            {
-              p += length;
-              q += length;
-              length = 0;
-            }
-        }
-
-      /* strip right end */
-      if (opt_fastq_stripright > 0)
-        {
-          if (opt_fastq_stripright < length)
-            length -= opt_fastq_stripright;
-          else
-            length = 0;
-        }
-
-      /* truncate trailing part */
-      if (opt_fastq_trunclen >= 0)
-        {
-          if (length >= opt_fastq_trunclen)
-            length = opt_fastq_trunclen;
-          else
-            length = 0;
-        }
-
-      /* truncate trailing part, but keep if short */
-      if ((opt_fastq_trunclen_keep >= 0) && (length > opt_fastq_trunclen_keep))
-        length = opt_fastq_trunclen_keep;
-
-      /* quality and ee truncation */
-      double ee = 0.0;
-      if (h->is_fastq)
-        {
-          for (int64_t i = 0; i < length; i++)
-            {
-              int qual = fastq_get_qual(q[i]);
-              ee += exp10(- qual / 10.0);
-
-              if ((qual <= opt_fastq_truncqual) ||
-                  (ee > opt_fastq_truncee))
-                {
-                  ee -= exp10(- qual / 10.0);
-                  length = i;
-                  break;
-                }
-            }
-        }
-
-      /* count n's */
-      int64_t ncount = 0;
-      for (int64_t i = 0; i < length; i++)
-        {
-          int pc = p[i];
-          if ((pc == 'N') || (pc == 'n'))
-            ncount++;
-        }
-
-      if ((length >= opt_fastq_minlen) &&
-          (length <= opt_fastq_maxlen) &&
-          ((opt_fastq_trunclen < 0) || (length >= opt_fastq_trunclen)) &&
-          (ncount <= opt_fastq_maxns) &&
-          (ee <= opt_fastq_maxee) &&
-          ((length == 0) || (ee / length <= opt_fastq_maxee_rate)) &&
-          ((opt_minsize == 0) || (abundance >= opt_minsize)) &&
-          ((opt_maxsize == 0) || (abundance <= opt_maxsize)))
-        {
-          /* keep the sequence */
-
-          kept++;
-
-          if ((uint64_t)(length) < fastx_get_sequence_length(h))
-            {
-              truncated++;
-              p[length] = 0;
-              if (h->is_fastq)
-                q[length] = 0;
-            }
-
-          if (opt_fastaout)
-            fasta_print_general(fp_fastaout,
-                                0,
-                                p,
-                                length,
-                                d,
-                                fastx_get_header_length(h),
-                                abundance,
-                                kept,
-                                -1,
-                                -1,
-                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
-                                ee);
-
-          if (opt_fastqout)
-            fastq_print_general(fp_fastqout,
-                                p,
-                                length,
-                                d,
-                                fastx_get_header_length(h),
-                                q,
-                                abundance,
-                                kept,
-                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
-                                ee);
-        }
-      else
-        {
-          /* discard the sequence */
+          /* discard the sequence(s) */
 
           discarded++;
 
           if (opt_fastaout_discarded)
             fasta_print_general(fp_fastaout_discarded,
                                 0,
-                                p,
-                                length,
-                                d,
-                                fastx_get_header_length(h),
-                                abundance,
+                                fastx_get_sequence(h1) + res1.start,
+                                res1.length,
+                                fastx_get_header(h1),
+                                fastx_get_header_length(h1),
+                                fastx_get_abundance(h1),
                                 discarded,
+                                res1.ee,
                                 -1,
                                 -1,
-                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
-                                ee);
+                                0,
+                                0.0);
 
           if (opt_fastqout_discarded)
             fastq_print_general(fp_fastqout_discarded,
-                                p,
-                                length,
-                                d,
-                                fastx_get_header_length(h),
-                                q,
-                                abundance,
+                                fastx_get_sequence(h1) + res1.start,
+                                res1.length,
+                                fastx_get_header(h1),
+                                fastx_get_header_length(h1),
+                                fastx_get_quality(h1) + res1.start,
+                                fastx_get_abundance(h1),
                                 discarded,
-                                (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
-                                ee);
+                                res1.ee);
+
+          if (h2)
+            {
+              if (opt_fastaout_discarded_rev)
+                fasta_print_general(fp_fastaout_discarded_rev,
+                                    0,
+                                    fastx_get_sequence(h2) + res2.start,
+                                    res2.length,
+                                    fastx_get_header(h2),
+                                    fastx_get_header_length(h2),
+                                    fastx_get_abundance(h2),
+                                    discarded,
+                                    res2.ee,
+                                    -1,
+                                    -1,
+                                    0,
+                                    0.0);
+
+              if (opt_fastqout_discarded_rev)
+                fastq_print_general(fp_fastqout_discarded_rev,
+                                    fastx_get_sequence(h2) + res2.start,
+                                    res2.length,
+                                    fastx_get_header(h2),
+                                    fastx_get_header_length(h2),
+                                    fastx_get_quality(h2) + res2.start,
+                                    fastx_get_abundance(h2),
+                                    discarded,
+                                    res2.ee);
+            }
+        }
+      else
+        {
+          /* keep the sequence(s) */
+
+          kept++;
+
+          if (res1.truncated || res2.truncated)
+            truncated++;
+
+          if (opt_fastaout)
+            fasta_print_general(fp_fastaout,
+                                0,
+                                fastx_get_sequence(h1) + res1.start,
+                                res1.length,
+                                fastx_get_header(h1),
+                                fastx_get_header_length(h1),
+                                fastx_get_abundance(h1),
+                                kept,
+                                res1.ee,
+                                -1,
+                                -1,
+                                0,
+                                0.0);
+
+          if (opt_fastqout)
+            fastq_print_general(fp_fastqout,
+                                fastx_get_sequence(h1) + res1.start,
+                                res1.length,
+                                fastx_get_header(h1),
+                                fastx_get_header_length(h1),
+                                fastx_get_quality(h1) + res1.start,
+                                fastx_get_abundance(h1),
+                                kept,
+                                res1.ee);
+
+          if (h2)
+            {
+              if (opt_fastaout_rev)
+                fasta_print_general(fp_fastaout_rev,
+                                    0,
+                                    fastx_get_sequence(h1) + res2.start,
+                                    res2.length,
+                                    fastx_get_header(h2),
+                                    fastx_get_header_length(h2),
+                                    fastx_get_abundance(h2),
+                                    kept,
+                                    res2.ee,
+                                    -1,
+                                    -1,
+                                    0,
+                                    0.0);
+
+              if (opt_fastqout_rev)
+                fastq_print_general(fp_fastqout_rev,
+                                    fastx_get_sequence(h2) + res2.start,
+                                    res2.length,
+                                    fastx_get_header(h2),
+                                    fastx_get_header_length(h2),
+                                    fastx_get_quality(h2) + res2.start,
+                                    fastx_get_abundance(h2),
+                                    kept,
+                                    res2.ee);
+            }
         }
 
-      progress_update(fastx_get_position(h));
+      progress_update(fastx_get_position(h1));
     }
+
   progress_done();
+
+  if (h2 && fastx_next(h2, 0, chrmap_no_change))
+    fatal("More reverse reads than forward reads");
 
   if (! opt_quiet)
     fprintf(stderr,
@@ -315,8 +455,22 @@ void filter(bool fastq_only, char * filename)
             truncated,
             discarded);
 
-  if (header)
-    xfree(header);
+  if (h2)
+    {
+      if (opt_fastaout_rev)
+        fclose(fp_fastaout_rev);
+
+      if (opt_fastqout_rev)
+        fclose(fp_fastqout_rev);
+
+      if (opt_fastaout_discarded_rev)
+        fclose(fp_fastaout_discarded_rev);
+
+      if (opt_fastqout_discarded_rev)
+        fclose(fp_fastqout_discarded_rev);
+
+      fastx_close(h2);
+    }
 
   if (opt_fastaout)
     fclose(fp_fastaout);
@@ -330,7 +484,7 @@ void filter(bool fastq_only, char * filename)
   if (opt_fastqout_discarded)
     fclose(fp_fastqout_discarded);
 
-  fastx_close(h);
+  fastx_close(h1);
 }
 
 void fastq_filter()

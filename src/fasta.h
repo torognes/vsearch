@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -92,6 +92,7 @@ void fasta_print_general(FILE * fp,
                          int header_len,
                          int abundance,
                          int ordinal,
+                         double ee,
                          int clustersize,
                          int clusterid,
                          const char * score_name,

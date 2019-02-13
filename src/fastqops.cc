@@ -747,6 +747,7 @@ void fastx_revcomp()
                             hlen,
                             0,
                             count,
+                            -1.0,
                             -1, -1, 0, 0.0);
 
       if (opt_fastqout)
@@ -758,7 +759,7 @@ void fastx_revcomp()
                             qual_buffer,
                             0,
                             count,
-                            0, 0.0);
+                            -1.0);
 
       progress_update(fastx_get_position(h));
     }
@@ -794,6 +795,7 @@ void fastq_convert()
 
   progress_init("Reading FASTQ file", filesize);
 
+  int j = 1;
   while(fastq_next(h, 0, chrmap_no_change))
     {
       /* header */
@@ -844,8 +846,10 @@ void fastq_convert()
         }
       quality[length] = 0;
 
-      fastq_print(fp_fastqout, header, sequence, quality);
+      int hlen = fastq_get_header_length(h);
+      fastq_print_general(fp_fastqout, sequence, length, header, hlen, quality, 0, j, -1.0);
 
+      j++;
       progress_update(fastq_get_position(h));
     }
 

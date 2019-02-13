@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -335,7 +335,7 @@ void sff_convert()
                           read_name,
                           strlen(read_name),
                           qual + clip_start,
-                          0, 0, 0, 0);
+                          0, 0, -1.0);
 
       xfree(read_name);
       xfree(bases);

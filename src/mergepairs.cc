@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -372,7 +372,6 @@ void keep(merge_data_t * ip)
                           ip->merged_quality,
                           0,
                           merged,
-                          (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
                           ip->ee_merged);
     }
 
@@ -386,10 +385,11 @@ void keep(merge_data_t * ip)
                           strlen(ip->merged_header),
                           0,
                           merged,
+                          ip->ee_merged,
                           -1,
                           -1,
-                          (opt_eeout || opt_fastq_eeout) ? "ee" : 0,
-                          ip->ee_merged);
+                          0,
+                          0.0);
     }
 
   if (opt_eetabbedout)
@@ -476,7 +476,7 @@ void discard(merge_data_t * ip)
                         ip->fwd_quality,
                         0,
                         notmerged,
-                        0, 0.0);
+                        -1.0);
 
   if (opt_fastqout_notmerged_rev)
     fastq_print_general(fp_fastqout_notmerged_rev,
@@ -487,7 +487,7 @@ void discard(merge_data_t * ip)
                         ip->rev_quality,
                         0,
                         notmerged,
-                        0, 0.0);
+                        -1.0);
 
   if (opt_fastaout_notmerged_fwd)
     fasta_print_general(fp_fastaout_notmerged_fwd,
@@ -498,6 +498,7 @@ void discard(merge_data_t * ip)
                         strlen(ip->fwd_header),
                         0,
                         notmerged,
+                        -1.0,
                         -1, -1,
                         0, 0.0);
 
@@ -510,6 +511,7 @@ void discard(merge_data_t * ip)
                         strlen(ip->rev_header),
                         0,
                         notmerged,
+                        -1.0,
                         -1, -1,
                         0, 0.0);
 }

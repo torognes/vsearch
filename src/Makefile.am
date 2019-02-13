@@ -15,11 +15,11 @@ AM_CFLAGS=$(AM_CXXFLAGS)
 export MACOSX_DEPLOYMENT_TARGET
 
 VSEARCHHEADERS=\
-abundance.h \
 align.h \
 align_simd.h \
 allpairs.h \
 arch.h \
+attributes.h \
 bitmap.h \
 chimera.h \
 city.h \
@@ -108,11 +108,11 @@ endif
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
-abundance.cc \
 align.cc \
 align_simd.cc \
 allpairs.cc \
 arch.cc \
+attributes.cc \
 bitmap.cc \
 chimera.cc \
 cluster.cc \

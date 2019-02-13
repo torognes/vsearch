@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -79,6 +79,7 @@ bool opt_relabel_sha1;
 bool opt_samheader;
 bool opt_sff_clip;
 bool opt_sizeorder;
+bool opt_xee;
 bool opt_xsize;
 char * opt_allpairs_global;
 char * opt_alnout;
@@ -101,8 +102,10 @@ char * opt_derep_prefix;
 char * opt_eetabbedout;
 char * opt_fastaout;
 char * opt_fastaout_discarded;
+char * opt_fastaout_discarded_rev;
 char * opt_fastaout_notmerged_fwd;
 char * opt_fastaout_notmerged_rev;
+char * opt_fastaout_rev;
 char * opt_fastapairs;
 char * opt_fastq_chars;
 char * opt_fastq_convert;
@@ -114,8 +117,10 @@ char * opt_fastq_mergepairs;
 char * opt_fastq_stats;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
+char * opt_fastqout_discarded_rev;
 char * opt_fastqout_notmerged_fwd;
 char * opt_fastqout_notmerged_rev;
+char * opt_fastqout_rev;
 char * opt_fastx_filter;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
@@ -668,6 +673,8 @@ void args_init(int argc, char **argv)
   opt_fasta_width = 80;
   opt_fastaout = 0;
   opt_fastaout_discarded = 0;
+  opt_fastaout_discarded_rev = 0;
+  opt_fastaout_rev = 0;
   opt_fastapairs = 0;
   opt_fastq_allowmergestagger = 0;
   opt_fastq_ascii = 33;
@@ -707,6 +714,8 @@ void args_init(int argc, char **argv)
   opt_fastq_truncqual = LONG_MIN;
   opt_fastqout = 0;
   opt_fastqout_discarded = 0;
+  opt_fastqout_discarded_rev = 0;
+  opt_fastqout_rev = 0;
   opt_fastx_filter = 0;
   opt_fastx_mask = 0;
   opt_fastx_revcomp = 0;
@@ -841,6 +850,7 @@ void args_init(int argc, char **argv)
   opt_wordlength = 8;
   opt_xn = 8.0;
   opt_xsize = 0;
+  opt_xee = 0;
 
   opterr = 1;
 
@@ -1051,6 +1061,11 @@ void args_init(int argc, char **argv)
     {"join_padgapq",          required_argument, 0, 0 },
     {"sff_convert",           required_argument, 0, 0 },
     {"sff_clip",              no_argument,       0, 0 },
+    {"fastaout_rev",          required_argument, 0, 0 },
+    {"fastaout_discarded_rev",required_argument, 0, 0 },
+    {"fastqout_rev",          required_argument, 0, 0 },
+    {"fastqout_discarded_rev",required_argument, 0, 0 },
+    {"xee",                   no_argument,       0, 0 },
     { 0,                      0,                 0, 0 }
   };
 
@@ -1917,6 +1932,26 @@ void args_init(int argc, char **argv)
           opt_sff_clip = 1;
           break;
 
+        case 204:
+          opt_fastaout_rev = optarg;
+          break;
+
+        case 205:
+          opt_fastaout_discarded_rev = optarg;
+          break;
+
+        case 206:
+          opt_fastqout_rev = optarg;
+          break;
+
+        case 207:
+          opt_fastqout_discarded_rev = optarg;
+          break;
+
+        case 208:
+          opt_xee = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2349,39 +2384,6 @@ void cmd_help()
               "  --log FILENAME              output file for fastq_stats statistics\n"
               "  --output FILENAME           output file for fastq_eestats(2) statistics\n"
               "\n"
-              "Filtering\n"
-              "  --fastx_filter FILENAME     filter and truncate sequences in FASTA/FASTQ file\n"
-              "  --fastq_filter FILENAME     filter and truncate sequences in FASTQ file\n"
-              " Parameters\n"
-              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
-              "  --fastq_maxee REAL          maximum expected error value for filter\n"
-              "  --fastq_maxee_rate REAL     maximum expected error rate for filter\n"
-              "  --fastq_maxlen INT          maximum length of sequence for filter\n"
-              "  --fastq_maxns INT           maximum number of N's for filter\n"
-              "  --fastq_minlen INT          minimum length of sequence for filter\n"
-              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
-              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
-              "  --fastq_stripleft INT       bases on the left to delete\n"
-              "  --fastq_stripright INT      bases on the right to delete\n"
-              "  --fastq_truncee REAL        maximum total expected error for truncation\n"
-              "  --fastq_trunclen INT        truncate reads to length INT (discard if shorter)\n"
-              "  --fastq_trunclen_keep INT   truncate reads to length INT (keep if shorter)\n"
-              "  --fastq_truncqual INT       minimum base quality value for truncation\n"
-              "  --maxsize INT               maximum abundance\n"
-              "  --minsize INT               minimum abundance\n"
-              " Output\n"
-              "  --eeout                     include expected errors in output\n"
-              "  --fastaout FILENAME         FASTA output filename for passed sequences\n"
-              "  --fastaout_discarded FNAME  FASTA filename for discarded sequences\n"
-              "  --fastqout FILENAME         FASTQ output filename for passed sequences\n"
-              "  --fastqout_discarded FNAME  FASTQ filename for discarded sequences\n"
-              "  --relabel STRING            relabel filtered sequences with given prefix\n"
-              "  --relabel_keep              keep the old label after the new when relabelling\n"
-              "  --relabel_md5               relabel filtered sequences with md5 digest\n"
-              "  --relabel_sha1              relabel filtered sequences with sha1 digest\n"
-              "  --sizeout                   include abundance information when relabelling\n"
-              "  --xsize                     strip abundance information in output\n"
-              "\n"
               "Masking (new)\n"
               "  --fastx_mask FILENAME       mask sequences in the given FASTA or FASTQ file\n"
               " Parameters\n"
@@ -2440,11 +2442,12 @@ void cmd_help()
               "  --fastaout FILENAME         FASTA output filename for merged sequences\n"
               "  --fastaout_notmerged_fwd FN FASTA filename for non-merged forward sequences\n"
               "  --fastaout_notmerged_rev FN FASTA filename for non-merged reverse sequences\n"
-              "  --fastq_eeout               include expected errors in FASTQ output\n"
+              "  --fastq_eeout               include expected errors (ee) in FASTQ output\n"
               "  --fastqout FILENAME         FASTQ output filename for merged sequences\n"
               "  --fastqout_notmerged_fwd FN FASTQ filename for non-merged forward sequences\n"
               "  --fastqout_notmerged_rev FN FASTQ filename for non-merged reverse sequences\n"
               "  --label_suffix              suffix to append to label of merged sequences\n"
+              "  --xee                       remove expected errors (ee) info from output\n"
               "\n"
               "Pairwise alignment\n"
               "  --allpairs_global FILENAME  perform global alignment of all sequence pairs\n"
@@ -2581,6 +2584,45 @@ void cmd_help()
               "  --sintax_cutoff REAL        confidence value cutoff level (0.0)\n"
               " Output\n"
               "  --tabbedout FILENAME        write results to given tab-delimited file\n"
+              "\n"
+              "Trimming and filtering\n"
+              "  --fastx_filter FILENAME     trim and filter sequences in FASTA/FASTQ file\n"
+              "  --fastq_filter FILENAME     trim and filter sequences in FASTQ file\n"
+              "  --reverse FILENAME          FASTQ file with other end of paired-end reads\n"
+              " Parameters\n"
+              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
+              "  --fastq_maxee REAL          discard if expected error value is higher\n"
+              "  --fastq_maxee_rate REAL     discard if expected error rate is higher\n"
+              "  --fastq_maxlen INT          discard if length of sequence is longer\n"
+              "  --fastq_maxns INT           discard if number of N's is higher\n"
+              "  --fastq_minlen INT          discard if length of sequence is shorter\n"
+              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
+              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
+              "  --fastq_stripleft INT       delete given number of bases from the 5' end\n"
+              "  --fastq_stripright INT      delete given number of bases from the 3' end\n"
+              "  --fastq_truncee REAL        truncate to given maximum expected error\n"
+              "  --fastq_trunclen INT        truncate to given length (discard if shorter)\n"
+              "  --fastq_trunclen_keep INT   truncate to given length (keep if shorter)\n"
+              "  --fastq_truncqual INT       truncate to given minimum base quality\n"
+              "  --maxsize INT               discard if abundance of sequence is above\n"
+              "  --minsize INT               discard if abundance of sequence is below\n"
+              " Output\n"
+              "  --eeout                     include expected errors in output\n"
+              "  --fastaout FN               FASTA filename for passed sequences\n"
+              "  --fastaout_discarded FN     FASTA filename for discarded sequences\n"
+              "  --fastaout_discarded_rev FN FASTA filename for discarded reverse sequences\n"
+              "  --fastaout_rev FN           FASTA filename for passed reverse sequences\n"
+              "  --fastqout FN               FASTQ filename for passed sequences\n"
+              "  --fastqout_discarded FN     FASTQ filename for discarded sequences\n"
+              "  --fastqout_discarded_rev FN FASTQ filename for discarded reverse sequences\n"
+              "  --fastqout_rev FN           FASTQ filename for passed reverse sequences\n"
+              "  --relabel STRING            relabel filtered sequences with given prefix\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
+              "  --relabel_md5               relabel filtered sequences with md5 digest\n"
+              "  --relabel_sha1              relabel filtered sequences with sha1 digest\n"
+              "  --sizeout                   include abundance information when relabelling\n"
+              "  --xee                       remove expected errors (ee) info from output\n"
+              "  --xsize                     strip abundance information in output\n"
               "\n"
               "UDB files\n"
               "  --makeudb_usearch FILENAME  make UDB file from given FASTA file\n"
@@ -2875,22 +2917,6 @@ void cmd_uchime()
   chimera();
 }
 
-void cmd_fastq_filter()
-{
-  if ((!opt_fastqout) && (!opt_fastaout) &&
-      (!opt_fastqout_discarded) && (!opt_fastaout_discarded))
-    fatal("No output files specified");
-  fastq_filter();
-}
-
-void cmd_fastx_filter()
-{
-  if ((!opt_fastqout) && (!opt_fastaout) &&
-      (!opt_fastqout_discarded) && (!opt_fastaout_discarded))
-    fatal("No output files specified");
-  fastx_filter();
-}
-
 void cmd_fastq_mergepairs()
 {
   if (!opt_reverse)
@@ -3006,9 +3032,9 @@ int main(int argc, char** argv)
   else if (opt_fastq_stats)
     fastq_stats();
   else if (opt_fastq_filter)
-    cmd_fastq_filter();
+    fastq_filter();
   else if (opt_fastx_filter)
-    cmd_fastx_filter();
+    fastx_filter();
   else if (opt_fastx_revcomp)
     cmd_fastx_revcomp();
   else if (opt_search_exact)

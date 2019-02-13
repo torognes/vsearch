@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 10, 2019" "version 2.10.4" "USER COMMANDS"
+.TH vsearch 1 "February 13, 2019" "version 2.11.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -51,9 +51,9 @@ FASTA/FASTQ file processing:
 \fBvsearch\fR (\-\-fastq_eestats | \-\-fastq_eestats2) \fIfastqfile\fR
 \-\-output \fIoutputfile\fR [\fIoptions\fR]
 .PP
-\fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR (\-\-fastaout |
-\-\-fastaout_discarded | \-\-fastqout | \-\-fastqout_discarded)
-\fIoutputfile\fR [\fIoptions\fR]
+\fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR [\-\-reverse
+\fIfastqfile\fR] (\-\-fastaout | \-\-fastaout_discarded | \-\-fastqout |
+\-\-fastqout_discarded \-\-fastaout_rev | \-\-fastaout_discarded_rev | \-\-fastqout_rev | \-\-fastqout_discarded_rev) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_join \fIfastqfile\fR \-\-reverse
 \fIfastqfile\fR (\-\-fastaout | \-\-fastqout) \fIoutputfile\fR
@@ -68,7 +68,11 @@ FASTA/FASTQ file processing:
 \fBvsearch\fR \-\-fastq_stats \fIfastqfile\fR
 [\-\-log \fIlogfile\fR] [\fIoptions\fR]
 .PP
-\fBvsearch\fR \-\-fastx_revcomp \fIfastxfile\fR (\-\-fastaout |
+\fBvsearch\fR \-\-fastx_filter \fIinputfile\fR [\-\-reverse
+\fIinputfile\fR] (\-\-fastaout | \-\-fastaout_discarded | \-\-fastqout |
+\-\-fastqout_discarded \-\-fastaout_rev | \-\-fastaout_discarded_rev | \-\-fastqout_rev | \-\-fastqout_discarded_rev) \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastx_revcomp \fIinputfile\fR (\-\-fastaout |
 \-\-fastqout) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-sff_convert \fIsff-file\fR \-\-fastqout
@@ -957,15 +961,15 @@ file.
 FASTA/FASTQ file processing options:
 .RS
 .PP
-Analyse, shorten, filter, convert or merge sequences in FASTQ files,
-or reverse complement sequences in FASTA or FASTQ files. The
+Analyse, trim, filter, convert or merge sequences in FASTQ files, or
+reverse complement sequences in FASTA or FASTQ files. The
 \-\-fastq_chars command can be used to analyse FASTQ files to identify
 the quality encoding and the range of quality score values used. To
 convert between different FASTQ file variants, use the
 \-\-fastq_convert command. Statistical analysis of the quality and
 length of the sequences in a FASTQ file may be performed with the
 \-\-fastq_stats, \-\-fastq_eestats, and \-\-fastq_eestats2
-commands. Sequences may be shortened, filtered and converted by the
+commands. Sequences may be trimmed, filtered and converted by the
 \-\-fastq_filter or \-\-fastx_filter commands. Paired-end reads can be
 merged using the \-\-fastq_mergepairs command. The \-\-fastx_revcomp
 command reverse-complements sequences. Finally, the \-\-sff_convert
@@ -975,7 +979,9 @@ command can be used to convert SFF files to FASTQ.
 .B \-\-eeout
 When using \-\-fastq_filter or \-\-fastq_mergepairs, include the
 number of expected errors (ee) in the sequence header of FASTQ and
-FASTA files. This option is a synonym of the \-\-fastq_eeout option.
+FASTA files. This option is a synonym of the \-\-fastq_eeout
+option. Use the \-\-xee option to remove this information from
+headers.
 .TP
 .BI \-\-eetabbedout \0filename
 When specified with the \-\-fastq_mergepairs command, write statistics
@@ -992,6 +998,11 @@ When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
 write to the given FASTA-formatted file the sequences passing the
 filter, or the merged sequences.
 .TP
+.BI \-\-fastaout_rev \0filename
+When using \-\-fastq_filter, or \-\-fastx_filter,
+write to the given FASTA-formatted file the reverse reads passing the
+filter.
+.TP
 .BI \-\-fastaout_notmerged_fwd \0filename
 When using \-\-fastq_mergepairs, write forward reads not merged to the
 specified FASTA file.
@@ -1003,6 +1014,11 @@ specified FASTA file.
 .BI \-\-fastaout_discarded \0filename
 Write sequences that do not pass the filter of the \-\-fastq_filter or
 \-\-fastx_filter command to the given FASTA-formatted file.
+.TP
+.BI \-\-fastaout_discarded_rev \0filename
+Write reverse reads that do not pass the filter of the
+\-\-fastq_filter or \-\-fastx_filter command to the given
+FASTA-formatted file.
 .TP
 .B \-\-fastq_allowmergestagger
 When using \-\-fastq_mergepairs, allow to merge staggered read
@@ -1051,9 +1067,11 @@ be limited using the \-\-fastq_qminout and \-\-fastq_qmaxout
 options. The output file is specified with the \-\-fastqout option.
 .TP
 .B \-\-fastq_eeout
-When using \-\-fastq_filter or \-\-fastq_mergepairs, include the
-number of expected errors (ee) in the sequence header of FASTQ and
-FASTA files. This option is a synonym of the \-\-eeout option.
+When using \-\-fastq_filter, \-\-fastx_filter or \-\-fastq_mergepairs,
+include the number of expected errors (ee) in the sequence header of
+FASTQ and FASTA files. This option is a synonym of the \-\-eeout
+option. Use the \-\-xee option to remove this information from
+headers.
 .TP
 .BI \-\-fastq_eestats \0filename
 Analyze a FASTQ file and report statistics on the distributions of
@@ -1098,7 +1116,7 @@ as its argument. The default setting is "0.5,1.0,2.0" that indicates
 that expected error levels of 0.5, 1.0 and 2.0 should be used.
 .TP
 .BI \-\-fastq_filter \0filename
-Shorten and/or filter sequences in the given FASTQ file. Similar to
+Trim and/or filter sequences in the given FASTQ file. Similar to
 the \-\-fastx_filter command, but works only on FASTQ files. See
 \-\-fastx_filter for details.
 .TP
@@ -1341,8 +1359,17 @@ When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
 write to the given FASTQ-formatted file the sequences passing the
 filter, or the merged sequences.
 .TP
+.BI \-\-fastqout_rev \0filename
+When using \-\-fastq_filter or \-\-fastx_filter,
+write to the given FASTQ-formatted file the reverse reads passing the
+filter.
+.TP
 .BI \-\-fastqout_discarded \0filename
 When using \-\-fastq_filter or \-\-fastx_filter, write sequences that
+do not pass the filter to the given FASTQ-formatted file.
+.TP
+.BI \-\-fastqout_discarded_rev \0filename
+When using \-\-fastq_filter or \-\-fastx_filter, write reverse reads that
 do not pass the filter to the given FASTQ-formatted file.
 .TP
 .BI \-\-fastqout_notmerged_fwd \0filename
@@ -1354,26 +1381,34 @@ When using \-\-fastq_mergepairs, write reverse reads not merged to the
 specified FASTQ file.
 .TP
 .BI \-\-fastx_filter \0filename
-Shorten and/or filter the sequences in the given FASTA or FASTQ file
-and output the remaining sequences to the FASTQ file specified with
-the \-\-fastqout option and to the FASTA file specified with the
-\-\-fastaout option. The discarded sequences are written to the files
+Trim and/or filter the sequences in the given FASTA or FASTQ file and
+output the remaining sequences to the FASTQ file specified with the
+\-\-fastqout option and/or to the FASTA file specified with the
+\-\-fastaout option. Discarded sequences are written to the files
 specified with the \-\-fastaout_discarded and \-\-fastqout_discarded
 options. The input format (FASTA or FASTQ) is automatically
-detected. Output can not be written to FASTQ files if the input is in
-FASTA format. Sequences may be shortened using the options
-\-\-fastq_stripleft, \-\-fastq_stripright, \-\-fastq_truncee,
-\-\-fastq_trunclen, \-\-fastq_trunclen_keep and
-\-\-fastq_truncqual. The sequences may be filtered using the options
+detected. If the input consists of paired sequences, an input file
+with reverse reads may be specified with the \-\-reverse option, and
+corresponding output will be written to the files specified with the
+\-\-fastqout_rev, \-\-fastaout_rev, \-\-fastqout_discarded_rev, and
+\-\-fastaout_discarded_rev options. Output can not be written to FASTQ files
+if the input is in FASTA format. The sequences are first trimmed and
+then filtered based on the remaining bases. Sequences may be trimmed
+using the options \-\-fastq_stripleft, \-\-fastq_stripright,
+\-\-fastq_truncee, \-\-fastq_trunclen, \-\-fastq_trunclen_keep and
+\-\-fastq_truncqual.  The sequences may be filtered using the options
 \-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
-\-\-fastq_maxns, \-\-fastq_minlen, \-\-fastq_trunclen, \-\-maxsize,
-and \-\-minsize. If shortening results in an empty sequence, it is
-discarded. The sequences are first shortened and then filtered based
-on the remaining bases. If no shortening or filtering options are
-given, all sequences are written to the output files, possibly after
-conversion from FASTQ to FASTA format. The \-\-relabel option may be
-used to relabel the output sequences. The \-\-eeout may be used to
-output the expected number of errors in each sequence.
+\-\-fastq_maxns, \-\-fastq_minlen (default 1), \-\-fastq_trunclen,
+\-\-maxsize, and \-\-minsize. Sequences not satisfying the
+requirements are discarded. For pairs of sequences, both sequences in
+a pair must satisfy the requirements, otherwise both are
+discarded. If no shortening or filtering options are given, all
+sequences are written to the output files, possibly after conversion
+from FASTQ to FASTA format. The \-\-relabel option may be used to
+relabel the output sequences. The \-\-eeout option may be used to output the
+expected number of errors in each sequence. After all sequences have
+been processed, the number of kept and discarded sequences will be
+shown, as well as how many of the kept sequences were trimmed.
 .TP
 .BI \-\-fastx_revcomp \0filename
 Reverse-complement the sequences in the given FASTA or FASTQ file to a
@@ -1426,8 +1461,9 @@ Please see the description of the same option under Chimera detection
 for details.
 .TP
 .BI \-\-reverse \0filename
-When using \-\-fastq_mergepairs or \-\-fastq_join, specify the FASTQ
-file containing containing the reverse reads.
+When using \-\-fastq_filter, \-\-fastx_filter, \-\-fastq_mergepairs or
+\-\-fastq_join, specify the FASTQ file containing containing the
+reverse reads.
 .TP
 .BI \-\-sff_convert \0filename
 Convert the given SFF file to FASTQ. The FASTQ output file is
@@ -1447,6 +1483,11 @@ default no clipping is performed.
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
 file.
+.TP
+.B \-\-xee
+Strip information about expected errors (ee) from the output file
+headers. This information is added by the \-\-fastq_eeout and
+\-\-eeout options.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -3508,6 +3549,12 @@ Fixed serious bug in x86_64 SIMD alignment code introduced in version
 2.10.3. Added link to BioConda in README. Fixed bug in fastq_stats
 with sequence length 1. Fixed use of equals symbol in UC files for
 identical sequences with cluster_fast.
+.TP
+.BR v2.11.0\~ "released February 13th, 2019"
+Added ability to trim and filter paired-end reads using the reverse
+option with the fastx_filter and fastq_filter commands. Added \-\-xee
+option to remove ee attributes from FASTA headers. Minor invisible
+improvement to the progress indicator.
 .RE
 .LP
 .\" ============================================================================

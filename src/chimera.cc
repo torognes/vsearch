@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -812,27 +812,27 @@ int eval_parents(struct chimera_info_s * ci)
           fprintf(fp_uchimealns, "Query   (%5d nt) ",
                   ci->query_len);
           if (opt_xsize)
-            abundance_fprint_header_strip_size(fp_uchimealns,
-                                               ci->query_head,
-                                               ci->query_head_len);
+            header_fprint_strip_size(fp_uchimealns,
+                                     ci->query_head,
+                                     ci->query_head_len);
           else
             fprintf(fp_uchimealns, "%s", ci->query_head);
 
           fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
                   db_getsequencelen(seqno_a));
           if (opt_xsize)
-            abundance_fprint_header_strip_size(fp_uchimealns,
-                                               db_getheader(seqno_a),
-                                               db_getheaderlen(seqno_a));
+            header_fprint_strip_size(fp_uchimealns,
+                                     db_getheader(seqno_a),
+                                     db_getheaderlen(seqno_a));
           else
             fprintf(fp_uchimealns, "%s", db_getheader(seqno_a));
 
           fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
                   db_getsequencelen(seqno_b));
           if (opt_xsize)
-            abundance_fprint_header_strip_size(fp_uchimealns,
-                                               db_getheader(seqno_b),
-                                               db_getheaderlen(seqno_b));
+            header_fprint_strip_size(fp_uchimealns,
+                                     db_getheader(seqno_b),
+                                     db_getheaderlen(seqno_b));
           else
             fprintf(fp_uchimealns, "%s", db_getheader(seqno_b));
           fprintf(fp_uchimealns, "\n\n");
@@ -911,17 +911,17 @@ int eval_parents(struct chimera_info_s * ci)
 
           if (opt_xsize)
             {
-              abundance_fprint_header_strip_size(fp_uchimeout,
-                                                 ci->query_head,
-                                                 ci->query_head_len);
+              header_fprint_strip_size(fp_uchimeout,
+                                       ci->query_head,
+                                       ci->query_head_len);
               fprintf(fp_uchimeout, "\t");
-              abundance_fprint_header_strip_size(fp_uchimeout,
-                                                 db_getheader(seqno_a),
-                                                 db_getheaderlen(seqno_a));
+              header_fprint_strip_size(fp_uchimeout,
+                                       db_getheader(seqno_a),
+                                       db_getheaderlen(seqno_a));
               fprintf(fp_uchimeout, "\t");
-              abundance_fprint_header_strip_size(fp_uchimeout,
-                                                 db_getheader(seqno_b),
-                                                 db_getheaderlen(seqno_b));
+              header_fprint_strip_size(fp_uchimeout,
+                                       db_getheader(seqno_b),
+                                       db_getheaderlen(seqno_b));
               fprintf(fp_uchimeout, "\t");
             }
           else
@@ -938,13 +938,13 @@ int eval_parents(struct chimera_info_s * ci)
               if (opt_xsize)
                 {
                   if (QA >= QB)
-                    abundance_fprint_header_strip_size(fp_uchimeout,
-                                                       db_getheader(seqno_a),
-                                                       db_getheaderlen(seqno_a));
+                    header_fprint_strip_size(fp_uchimeout,
+                                             db_getheader(seqno_a),
+                                             db_getheaderlen(seqno_a));
                   else
-                    abundance_fprint_header_strip_size(fp_uchimeout,
-                                                       db_getheader(seqno_b),
-                                                       db_getheaderlen(seqno_b));
+                    header_fprint_strip_size(fp_uchimeout,
+                                             db_getheader(seqno_b),
+                                             db_getheaderlen(seqno_b));
                   fprintf(fp_uchimeout, "\t");
                 }
               else
@@ -1343,6 +1343,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                                 ci->query_head_len,
                                 ci->query_size,
                                 chimera_count,
+                                -1.0,
                                 -1,
                                 -1,
                                 opt_fasta_score ?
@@ -1365,6 +1366,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                                 ci->query_head_len,
                                 ci->query_size,
                                 borderline_count,
+                                -1.0,
                                 -1,
                                 -1,
                                 opt_fasta_score ?
@@ -1384,9 +1386,9 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
               fprintf(fp_uchimeout, "0.0000\t");
 
               if (opt_xsize)
-                abundance_fprint_header_strip_size(fp_uchimeout,
-                                                   ci->query_head,
-                                                   ci->query_head_len);
+                header_fprint_strip_size(fp_uchimeout,
+                                         ci->query_head,
+                                         ci->query_head_len);
               else
                 fprintf(fp_uchimeout, "%s", ci->query_head);
 
@@ -1411,6 +1413,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                                 ci->query_head_len,
                                 ci->query_size,
                                 nonchimera_count,
+                                -1.0,
                                 -1,
                                 -1,
                                 opt_fasta_score ?

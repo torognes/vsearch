@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -455,8 +455,8 @@ void udb_read(const char * filename,
       progress_init("Parsing abundances", seqcount);
       for(unsigned int i = 0; i < seqcount; i++)
         {
-          seqindex[i].size = abundance_get(datap + seqindex[i].header_p,
-                                           seqindex[i].headerlen);
+          seqindex[i].size = header_get_size(datap + seqindex[i].header_p,
+                                             seqindex[i].headerlen);
           progress_update(i+1);
         }
       progress_done();

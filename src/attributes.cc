@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2018, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2019, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -64,14 +64,17 @@ bool header_find_attribute(const char * header,
                            int header_length,
                            const char * attribute,
                            int * start,
-                           int * end)
+                           int * end,
+                           bool allow_decimal)
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
     in the header string, where "size=" is the specified attribute.
+    If allow_decimal is true, a dot (.) is allowed within the digits.
   */
 
   const char * digit_chars = "0123456789";
+  const char * digit_chars_decimal = "0123456789.";
 
   if ((! header) || (! attribute))
     return false;
@@ -98,7 +101,9 @@ bool header_find_attribute(const char * header,
           continue;
         }
 
-      int digits = (int) strspn(header + i + alen, digit_chars);
+      int digits
+        = (int) strspn(header + i + alen,
+                       (allow_decimal ? digit_chars_decimal : digit_chars));
 
       /* check for at least one digit */
       if (digits == 0)
@@ -122,13 +127,18 @@ bool header_find_attribute(const char * header,
   return false;
 }
 
-int64_t abundance_get(char * header, int header_length)
+int64_t header_get_size(char * header, int header_length)
 {
   /* read size/abundance annotation */
   int64_t abundance = 1;
   int start = 0;
   int end = 0;
-  if (header_find_attribute(header, header_length, "size=", & start, & end))
+  if (header_find_attribute(header,
+                            header_length,
+                            "size=",
+                            & start,
+                            & end,
+                            false))
     {
       int64_t number = atol(header + start + 5);
       if (number > 0)
@@ -139,29 +149,109 @@ int64_t abundance_get(char * header, int header_length)
   return abundance;
 }
 
-void abundance_fprint_header_strip_size(FILE * fp,
-                                        char * header,
-                                        int header_length)
+void header_fprint_strip_size_ee(FILE * fp,
+                                 char * header,
+                                 int header_length,
+                                 bool strip_size,
+                                 bool strip_ee)
 {
-  int start = 0;
-  int end = 0;
-  if (header_find_attribute(header, header_length, "size=", & start, & end))
+  int attributes = 0;
+  int attribute_start[2];
+  int attribute_end[2];
+
+  /* look for size attribute */
+
+  int size_start = 0;
+  int size_end = 0;
+  bool size_found = false;
+  if (strip_size)
+    size_found = header_find_attribute(header,
+                                       header_length,
+                                       "size=",
+                                       & size_start,
+                                       & size_end,
+                                       false);
+  if (size_found)
     {
-      if (start <= 1)
+      attribute_start[attributes] = size_start;
+      attribute_end[attributes] = size_end;
+      attributes++;
+    }
+
+  /* look for ee attribute */
+
+  int ee_start = 0;
+  int ee_end = 0;
+  bool ee_found = false;
+  if (strip_ee)
+    ee_found = header_find_attribute(header,
+                                     header_length,
+                                     "ee=",
+                                     & ee_start,
+                                     & ee_end,
+                                     true);
+  if (ee_found)
+    {
+      attribute_start[attributes] = ee_start;
+      attribute_end[attributes] = ee_end;
+      attributes++;
+    }
+
+  /* sort */
+
+  if (attributes > 1)
+    {
+      if (attribute_start[0] > attribute_start[1])
         {
-          if (end < header_length - 1)
-            fprintf(fp, "%s", header + end + 1);
-        }
-      else
-        {
-          if (end >= header_length - 1)
-            fprintf(fp, "%.*s", start - 1, header);
-          else
-            fprintf(fp, "%.*s;%.*s",
-                    start - 1, header,
-                    header_length - end - 1, header + end + 1);
+          /* swap */
+
+          int s = attribute_start[0];
+          int e = attribute_end[0];
+          attribute_start[0] = attribute_start[1];
+          attribute_end[0] = attribute_end[1];
+          attribute_start[1] = s;
+          attribute_end[1] = e;
         }
     }
+
+  /* print */
+
+  if (attributes == 0)
+    {
+      fprintf(fp, "%.*s", header_length, header);
+    }
   else
-    fprintf(fp, "%s", header);
+    {
+      int prev_end = 0;
+      for (int i = 0; i < attributes; i++)
+        {
+          /* print part of header in front of this attribute */
+          if (attribute_start[i] > prev_end + 1)
+            {
+              fprintf(fp, "%.*s",
+                      attribute_start[i] - prev_end - 1,
+                      header + prev_end);
+            }
+          prev_end = attribute_end[i];
+        }
+
+      /* print the rest, if any */
+      if (header_length > prev_end + 1)
+        {
+          fprintf(fp, "%.*s",
+                  header_length - prev_end,
+                  header + prev_end);
+        }
+    }
+}
+
+void header_fprint_strip_size(FILE * fp,
+                              char * header,
+                              int header_length)
+{
+  header_fprint_strip_size_ee(fp,
+                              header,
+                              header_length,
+                              true,
+                              false);
 }
