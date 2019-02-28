@@ -2874,7 +2874,7 @@ void cmd_cluster()
   if (!opt_cluster_unoise)
     if ((opt_id < 0.0) || (opt_id > 1.0))
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
- 
+
   if (opt_cluster_fast)
     cluster_fast(cmdline, progheader);
   else if (opt_cluster_smallmem)
