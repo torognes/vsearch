@@ -775,11 +775,11 @@ void args_init(int argc, char **argv)
   opt_minh = 0.28;
   opt_minqt = 0.0;
   opt_minseqlength = -1;
-  opt_minsize = -1;
+  opt_minsize = 1;
   opt_minsizeratio = 0.0;
   opt_minsl = 0.0;
   opt_mintsize = 0;
-  opt_minuniquesize = 0;
+  opt_minuniquesize = 1;
   opt_minwordmatches = -1;
   opt_mismatch = -4;
   opt_mothur_shared_out = 0;
@@ -2159,6 +2159,18 @@ void args_init(int argc, char **argv)
 
   if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0))
     fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
+
+  if (opt_minuniquesize < 0)
+    fatal("The argument to minuniquesize must be at least 1");
+
+  if (opt_maxuniquesize < 0)
+    fatal("The argument to maxuniquesize must be at least 1");
+
+  if (opt_minsize < 0)
+    fatal("The argument to minsize must be at least 1");
+
+  if (opt_maxsize < 0)
+    fatal("The argument to maxsize must be at least 1");
 
 
   /* TODO: check valid range of gap penalties */

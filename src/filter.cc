@@ -172,9 +172,9 @@ struct analysis_res analyse(fastx_handle h)
 
   /* filter by abundance */
   int64_t abundance = fastx_get_abundance(h);
-  if ((opt_minsize > 0) && (abundance < opt_minsize))
+  if (abundance < opt_minsize)
     res.discarded = true;
-  if ((opt_maxsize > 0) && (abundance > opt_maxsize))
+  if (abundance > opt_maxsize)
     res.discarded = true;
 
   res.truncated = res.length < old_length;
