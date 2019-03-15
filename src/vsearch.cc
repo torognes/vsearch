@@ -775,7 +775,7 @@ void args_init(int argc, char **argv)
   opt_minh = 0.28;
   opt_minqt = 0.0;
   opt_minseqlength = -1;
-  opt_minsize = 1;
+  opt_minsize = 0;
   opt_minsizeratio = 0.0;
   opt_minsl = 0.0;
   opt_mintsize = 0;
@@ -1201,6 +1201,8 @@ void args_init(int argc, char **argv)
 
         case 27:
           opt_minsize = args_getlong(optarg);
+          if (opt_minsize <= 0)
+            fatal("The argument to --minsize must be at least 1");
           break;
 
         case 28:
@@ -2166,9 +2168,6 @@ void args_init(int argc, char **argv)
   if (opt_maxuniquesize < 0)
     fatal("The argument to maxuniquesize must be at least 1");
 
-  if (opt_minsize < 0)
-    fatal("The argument to minsize must be at least 1");
-
   if (opt_maxsize < 0)
     fatal("The argument to maxsize must be at least 1");
 
@@ -2209,12 +2208,12 @@ void args_init(int argc, char **argv)
     opt_threads = arch_get_cores();
 
   /* set default opt_minsize depending on command */
-  if (opt_minsize < 0)
+  if (opt_minsize == 0)
     {
       if (opt_cluster_unoise)
         opt_minsize = 8;
       else
-        opt_minsize = 0;
+        opt_minsize = 1;
     }
 
   /* set default opt_abskew depending on command */
