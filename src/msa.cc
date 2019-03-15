@@ -62,30 +62,31 @@
 
 /* Compute consensus sequence and msa of clustered sequences */
 
+typedef uint64_t prof_type;
 #define PROFSIZE 6
 
 static char * aln;
 static int alnpos;
-static int * profile;
+static prof_type * profile;
 
-void msa_add(char c)
+void msa_add(char c, prof_type abundance)
 {
-  int * p = profile + PROFSIZE * alnpos;
+  prof_type * p = profile + PROFSIZE * alnpos;
 
   switch(toupper(c))
     {
     case 'A':
-      p[0]++;
+      p[0] += abundance;
       break;
     case 'C':
-      p[1]++;
+      p[1] += abundance;
       break;
     case 'G':
-      p[2]++;
+      p[2] += abundance;
       break;
     case 'T':
     case 'U':
-      p[3]++;
+      p[3] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -98,10 +99,10 @@ void msa_add(char c)
     case 'H':
     case 'V':
     case 'N':
-      p[4]++;
+      p[4] += abundance;
       break;
     case '-':
-      p[5]++;
+      p[5] += abundance;
       break;
     }
 
@@ -153,8 +154,8 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   alnlen += centroid_len;
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  profile = (int *) xmalloc(PROFSIZE * sizeof(int) * alnlen);
-  memset(profile, 0, PROFSIZE * sizeof(int) * alnlen);
+  profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
+  memset(profile, 0, PROFSIZE * sizeof(prof_type) * alnlen);
   aln = (char *) xmalloc(alnlen+1);
   char * cons = (char *) xmalloc(alnlen+1);
 
@@ -179,6 +180,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
+      prof_type target_abundance = db_getabundance(target_seqno);
 
       if (target_list[j].strand)
         {
@@ -197,8 +199,8 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
           for(int x=0; x < centroid_len; x++)
             {
               for(int y=0; y < maxi[qpos]; y++)
-                msa_add('-');
-              msa_add(target_seq[tpos++]);
+                msa_add('-', target_abundance);
+              msa_add(target_seq[tpos++], target_abundance);
               qpos++;
             }
         }
@@ -219,9 +221,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                   for(int x=0; x < maxi[qpos]; x++)
                     {
                       if (x < run)
-                        msa_add(target_seq[tpos++]);
+                        msa_add(target_seq[tpos++], target_abundance);
                       else
-                        msa_add('-');
+                        msa_add('-', target_abundance);
                     }
                   inserted = 1;
                 }
@@ -231,12 +233,12 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                     {
                       if (!inserted)
                         for(int y=0; y < maxi[qpos]; y++)
-                          msa_add('-');
+                          msa_add('-', target_abundance);
 
                       if (op == 'M')
-                        msa_add(target_seq[tpos++]);
+                        msa_add(target_seq[tpos++], target_abundance);
                       else
-                        msa_add('-');
+                        msa_add('-', target_abundance);
 
                       qpos++;
                       inserted = 0;
@@ -247,7 +249,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
       if (!inserted)
         for(int x=0; x < maxi[qpos]; x++)
-          msa_add('-');
+          msa_add('-', target_abundance);
 
       /* end of sequence string */
       aln[alnpos] = 0;
@@ -286,10 +288,10 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         {
           /* find most common symbol of A, C, G and T */
           char best_sym = 0;
-          int best_count = 0;
+          prof_type best_count = 0;
           for(int c=0; c<4; c++)
             {
-              int count = profile[PROFSIZE*i+c];
+              prof_type count = profile[PROFSIZE*i+c];
               if (count > best_count)
                 {
                   best_count = count;
@@ -298,7 +300,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          int n_count = profile[PROFSIZE*i+4];
+          prof_type n_count = profile[PROFSIZE*i+4];
           if ((best_count == 0) && (n_count > 0))
             {
               best_count = n_count;
@@ -306,7 +308,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
             }
 
           /* compare to the number of gap symbols */
-          int gap_count = profile[PROFSIZE*i+5];
+          prof_type gap_count = profile[PROFSIZE*i+5];
           if (best_count >= gap_count)
             {
               char sym = sym_nt_4bit[(int)best_sym];
@@ -360,11 +362,11 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
           fprintf(fp_profile, "%d\t%c", i, aln[i]);
           // A, C, G and T
           for (int c=0; c<4; c++)
-            fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+c]);
+            fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+c]);
           // Gap symbol
-          fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+5]);
+          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+5]);
           // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%d", profile[PROFSIZE*i+4]);
+          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+4]);
           fprintf(fp_profile, "\n");
         }
       fprintf(fp_profile, "\n");
