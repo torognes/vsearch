@@ -2124,6 +2124,9 @@ void args_init(int argc, char **argv)
   if (opt_min_unmasked_pct > opt_max_unmasked_pct)
     fatal("The argument to --min_unmasked_pct cannot be larger than to --max_unmasked_pct");
 
+  if ((opt_fastq_ascii != 33) && (opt_fastq_ascii != 64))
+    fatal("The argument to --fastq_ascii must be 33 or 64");
+
   if (opt_fastq_qmin > opt_fastq_qmax)
     fatal("The argument to --fastq_qmin cannot be larger than to --fastq_qmax");
 
@@ -2135,6 +2138,9 @@ void args_init(int argc, char **argv)
 
   if (opt_fastq_qminout > opt_fastq_qmaxout)
     fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
+
+  if ((opt_fastq_asciiout != 33) && (opt_fastq_asciiout != 64))
+    fatal("The argument to --fastq_asciiout must be 33 or 64");
 
   if (opt_fastq_asciiout + opt_fastq_qminout < 33)
     fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
