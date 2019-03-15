@@ -2112,6 +2112,12 @@ void args_init(int argc, char **argv)
   if (opt_relabel_sha1 && opt_relabel_md5)
     fatal("Specify either --relabel_sha1 or --relabel_md5, not both");
 
+  if (opt_relabel && opt_relabel_md5)
+    fatal("Specify either --relabel or --relabel_md5, not both");
+
+  if (opt_relabel && opt_relabel_sha1)
+    fatal("Specify either --relabel or --relabel_sha1, not both");
+
   if (opt_fastq_tail < 1)
     fatal("The argument to --fastq_tail must be positive");
 
