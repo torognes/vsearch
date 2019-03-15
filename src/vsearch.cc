@@ -2162,13 +2162,13 @@ void args_init(int argc, char **argv)
   if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0))
     fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
 
-  if (opt_minuniquesize < 0)
+  if (opt_minuniquesize < 1)
     fatal("The argument to minuniquesize must be at least 1");
 
-  if (opt_maxuniquesize < 0)
+  if (opt_maxuniquesize < 1)
     fatal("The argument to maxuniquesize must be at least 1");
 
-  if (opt_maxsize < 0)
+  if (opt_maxsize < 1)
     fatal("The argument to maxsize must be at least 1");
 
 
