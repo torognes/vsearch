@@ -173,7 +173,7 @@ void fastq_chars()
 
   char fastq_ascii, fastq_qmin, fastq_qmax;
 
-  if (qmin < 59)
+  if ((qmin < 59) || (qmax < 75))
     fastq_ascii = 33;
   else
     fastq_ascii = 64;
