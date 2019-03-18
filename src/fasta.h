@@ -76,6 +76,7 @@ char * fasta_get_sequence(fastx_handle h);
 uint64_t fasta_get_header_length(fastx_handle h);
 uint64_t fasta_get_sequence_length(fastx_handle h);
 int64_t fasta_get_abundance(fastx_handle h);
+int64_t fasta_get_abundance_and_presence(fastx_handle h);
 
 /* fasta output */
 

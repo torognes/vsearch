@@ -72,6 +72,7 @@ char * fastq_get_header(fastx_handle h);
 char * fastq_get_sequence(fastx_handle h);
 char * fastq_get_quality(fastx_handle h);
 int64_t fastq_get_abundance(fastx_handle h);
+int64_t fastq_get_abundance_and_presence(fastx_handle h);
 uint64_t fastq_get_header_length(fastx_handle h);
 uint64_t fastq_get_sequence_length(fastx_handle h);
 uint64_t fastq_get_quality_length(fastx_handle h);

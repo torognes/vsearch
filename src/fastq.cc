@@ -431,6 +431,18 @@ char * fastq_get_sequence(fastx_handle h)
 
 int64_t fastq_get_abundance(fastx_handle h)
 {
+  // return 1 if not present
+  int64_t size = header_get_size(h->header_buffer.data,
+                                 h->header_buffer.length);
+  if (size > 0)
+    return size;
+  else
+    return 1;
+}
+
+int64_t fastq_get_abundance_and_presence(fastx_handle h)
+{
+  // return 0 if not present
   return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 

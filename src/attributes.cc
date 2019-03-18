@@ -130,7 +130,7 @@ bool header_find_attribute(const char * header,
 int64_t header_get_size(char * header, int header_length)
 {
   /* read size/abundance annotation */
-  int64_t abundance = 1;
+  int64_t abundance = 0;
   int start = 0;
   int end = 0;
   if (header_find_attribute(header,

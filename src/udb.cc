@@ -455,8 +455,12 @@ void udb_read(const char * filename,
       progress_init("Parsing abundances", seqcount);
       for(unsigned int i = 0; i < seqcount; i++)
         {
-          seqindex[i].size = header_get_size(datap + seqindex[i].header_p,
-                                             seqindex[i].headerlen);
+          int64_t size = header_get_size(datap + seqindex[i].header_p,
+                                         seqindex[i].headerlen);
+          if (size > 0)
+            seqindex[i].size = size;
+          else
+            seqindex[i].size = 1;
           progress_update(i+1);
         }
       progress_done();
