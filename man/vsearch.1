@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "February 28, 2019" "version 2.11.1" "USER COMMANDS"
+.TH vsearch 1 "March 19, 2019" "version 2.12.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -624,7 +624,8 @@ Output cluster consensus sequences to \fIfilename\fR. For each
 cluster, a multiple alignment is computed, and a consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
-are skipped, except for terminal gaps.
+are skipped, except for terminal gaps. If the \-\-sizein
+option is specified, sequence abundances will be taken into account.
 .TP
 .B \-\-cons_truncate
 This command is ignored. A warning is issued.
@@ -677,7 +678,8 @@ whose accuracy can decrease significantly when using low pairwise
 identity thresholds. The consensus sequence is constructed by taking
 the majority symbol (nucleotide or gap) from each column of the
 alignment. Columns containing a majority of gaps are skipped, except
-for terminal gaps.
+for terminal gaps. If the \-\-sizein option is specified, sequence
+abundances will be taken into account when computing the consensus.
 .TP
 .BI \-\-mothur_shared_out \0filename
 Output an OTU table in the mothur 'shared' tab-separated plain text
@@ -716,7 +718,8 @@ by the profile information in a tab-separated format. The eight
 columns are: position (0-based), consensus nucleotide, number of As,
 number of Cs, number of Gs, number of Ts or Us, number of gap symbols,
 and finally the total number of ambiguous nucleotide symbols (B, D, H,
-K, M, N, R, S, Y, V or W). All numbers are integers.
+K, M, N, R, S, Y, V or W). All numbers are integers. If the \-\-sizein
+option is specified, sequence abundances will be taken into account.
 .TP
 .BI \-\-qmask\~ "none|dust|soft"
 Mask regions in sequences using the
@@ -1033,12 +1036,14 @@ default is to discard staggered pairs.
 Define the ASCII character number used as the basis for the FASTQ
 quality score. The default is 33, which is used by the Sanger /
 Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
-Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64).
+Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64). Only 33
+and 64 are valid arguments.
 .TP
 .BI \-\-fastq_asciiout\~ "positive integer"
 When using \-\-fastq_convert or \-\-sff_convert, define the ASCII
 character number used as the basis for the FASTQ quality score when
-writing FASTQ output files. The default is 33.
+writing FASTQ output files. The default is 33. Only 33 and 64 are
+valid arguments.
 .TP
 .BI \-\-fastq_chars \0filename
 Summarize the composition of sequence and quality strings contained in
@@ -2385,7 +2390,8 @@ Write the sequences not sampled to \fIfilename\fR, in fasta format.
 Define the ASCII character number used as the basis for the FASTQ
 quality score. The default is 33, which is used by the Sanger /
 Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
-Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64).
+Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64). Only 33
+and 64 are valid arguments.
 .TP
 .BI \-\-fastq_qmax\~ "positive integer"
 Specify the maximum quality score accepted when reading FASTQ
@@ -3559,6 +3565,13 @@ improvement to the progress indicator.
 .BR v2.11.1\~ "released February 28th, 2019"
 Minor change to the handling of the weak_id and id options when using
 cluster_unoise.
+.TP
+.BR v2.12.0\~ "released March 19th, 2019"
+Take sequence abundance into account when computing consensus
+sequences or profiles after clustering. Warn when rereplicating
+sequences without abundance info. Guess offset 33 in more cases with
+fastq_chars. Stricter checking of option arguments and option
+combinations.
 .RE
 .LP
 .\" ============================================================================
