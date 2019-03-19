@@ -180,7 +180,8 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
-      prof_type target_abundance = db_getabundance(target_seqno);
+      prof_type target_abundance = opt_sizein ?
+        db_getabundance(target_seqno) : 1;
 
       if (target_list[j].strand)
         {
