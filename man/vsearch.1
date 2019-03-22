@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 19, 2019" "version 2.12.0" "USER COMMANDS"
+.TH vsearch 1 "March 22, 2019" "version 2.12.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -41,6 +41,23 @@ Dereplication and rereplication:
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
+Extraction of sequences:
+.RS
+\fBvsearch\fR \-\-fastx_getseq \fIfastafile\fR (\-\-fastaout |
+\-\-fastqout | \-\-notmatched | \-\-notmatchedfq) \fIoutputfile\fR
+\-\-label \fIlabel\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastx_getseqs \fIfastafile\fR (\-\-fastaout |
+\-\-fastqout | \-\-notmatched | \-\-notmatchedfq) \fIoutputfile\fR
+(\-\-label \fIlabel\fR \ \-\-labels \fIlabelfile\fR | \-\-label_word
+\fIlabel\fR | \-\-label_words \fIlabelfile\fR) [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-fastx_getsubseq \fIfastafile\fR (\-\-fastaout |
+\-\-fastqout | \-\-notmatched | \-\-notmatchedfq) \fIoutputfile\fR
+\-\-label \fIlabel\fR [\-\-subseq_start \fIposition\fR]
+[\-\-subseq_end \fIposition\fR] [\fIoptions\fR]
+.PP
+.RE
 FASTA/FASTQ file processing:
 .RS
 \fBvsearch\fR \-\-fastq_chars \fIfastqfile\fR [\fIoptions\fR]
@@ -52,8 +69,10 @@ FASTA/FASTQ file processing:
 \-\-output \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_filter \fIfastqfile\fR [\-\-reverse
-\fIfastqfile\fR] (\-\-fastaout | \-\-fastaout_discarded | \-\-fastqout |
-\-\-fastqout_discarded \-\-fastaout_rev | \-\-fastaout_discarded_rev | \-\-fastqout_rev | \-\-fastqout_discarded_rev) \fIoutputfile\fR [\fIoptions\fR]
+\fIfastqfile\fR] (\-\-fastaout | \-\-fastaout_discarded | \-\-fastqout
+| \-\-fastqout_discarded \-\-fastaout_rev | \-\-fastaout_discarded_rev
+| \-\-fastqout_rev | \-\-fastqout_discarded_rev) \fIoutputfile\fR
+[\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_join \fIfastqfile\fR \-\-reverse
 \fIfastqfile\fR (\-\-fastaout | \-\-fastqout) \fIoutputfile\fR
@@ -69,8 +88,10 @@ FASTA/FASTQ file processing:
 [\-\-log \fIlogfile\fR] [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastx_filter \fIinputfile\fR [\-\-reverse
-\fIinputfile\fR] (\-\-fastaout | \-\-fastaout_discarded | \-\-fastqout |
-\-\-fastqout_discarded \-\-fastaout_rev | \-\-fastaout_discarded_rev | \-\-fastqout_rev | \-\-fastqout_discarded_rev) \fIoutputfile\fR [\fIoptions\fR]
+\fIinputfile\fR] (\-\-fastaout | \-\-fastaout_discarded | \-\-fastqout
+| \-\-fastqout_discarded \-\-fastaout_rev | \-\-fastaout_discarded_rev
+| \-\-fastqout_rev | \-\-fastqout_discarded_rev) \fIoutputfile\fR
+[\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastx_revcomp \fIinputfile\fR (\-\-fastaout |
 \-\-fastqout) \fIoutputfile\fR [\fIoptions\fR]
@@ -131,11 +152,14 @@ Taxonomic classification:
 .RE
 UDB database handling:
 .RS
-\fBvsearch\fR \-\-makeudb_usearch \fIfastafile\fR \-\-output \fIoutputfile\fR [\fIoptions\fR]
+\fBvsearch\fR \-\-makeudb_usearch \fIfastafile\fR \-\-output
+\fIoutputfile\fR [\fIoptions\fR]
 .PP
-\fBvsearch\fR \-\-udb2fasta \fIudbfile\fR \-\-output \fIoutputfile\fR [\fIoptions\fR]
+\fBvsearch\fR \-\-udb2fasta \fIudbfile\fR \-\-output \fIoutputfile\fR
+[\fIoptions\fR]
 .PP
-\fBvsearch\fR (\-\-udbinfo | \-\-udbstats) \fIudbfile\fR [\fIoptions\fR]
+\fBvsearch\fR (\-\-udbinfo | \-\-udbstats) \fIudbfile\fR
+[\fIoptions\fR]
 .PP
 .RE
 .\" left and right justified (default)
@@ -958,6 +982,139 @@ Label of the centroid sequence (H), or set to '*' (S, C).
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
 file.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+Extraction options:
+.RS
+.PP
+Sequences with headers matching certain criteria can be extracted from
+FASTA and FASTQ files using the \-\-fastx_getseq, \-\-fastx_getseqs
+and \-\-fastx_getsubseq commands.
+.PP
+The \-\-fastx_getseq command requires the header to match a label
+specified with the \-\-label option.  If the \-\-label_substr_match
+option is given, the label may be a substring located anywhere in the
+header, otherwise the entire header must match the label. These
+matches are not case-sensitive. The headers in the input file are
+truncated at the first space or tab character unless the
+\-\-notrunclabels option is given.  The matching sequences will be
+written to the files specified with the \-\-fastaout and \-\-fastqout
+options, in FASTA and FASTQ format, respectively. Sequences that do
+not match are written to the files specified with the \-\-notmatched
+and \-\-notmatchedfq options, respectively.
+.PP
+The \-\-fastx_getsubseq command is similar to the \-\-fastx_getseq
+command, but will extract a subsequence of the matching sequences. The
+start position is specifed with the \-\-subseq_start option and the
+end position is specified with the \-\-subseq_end option. The
+positions are 1-based, meaning that the first symbol of the sequence
+is at position 1. If the start or end position option is not
+specified, the default is to start at the first position and end at
+the last position in the sequence.
+.PP
+The \-\-fastx_getseqs command is similar to the \-\-fastx_getseq
+command but allows more flexibility in specifying the label(s) to be
+matched. A single label may be specified using the \-\-label option as
+described above. Alternatively, a file containing a list of labels to
+be matched may be specified with the \-\-labels option. The file must
+be a plain text file with one label on each line. The \-\-label_word
+and \-\-label_words options may be used to specify either a single
+word or a file containing a list of words, respectively, to be
+matched. Words are defined as character sequences delimited either by
+a character that is not alpha-numeric (A-Z, a-z, or 0-9) or by the
+beginning or end of the header. Word matching is case-sensitive. The
+\-\-label_field option will limit the matching of words to a certain
+field in the header.
+.PP
+.TP 9
+.BI \-\-fastaout \0filename
+Write the extracted sequences in FASTA format to the file with the
+given name.
+.TP
+.BI \-\-fastqout \0filename
+Write the extracted sequences in FASTQ format to the file with the
+given name. This option is illegal if the input is in FASTA format.
+.TP
+.BI \-\-fastx_getseq \0filename
+Extract sequences from the given FASTA or FASTQ file. Specify a label
+to match using the \-\-label option. Output files are specified with
+the \-\-fastaout, \-\-fastqout, \-\-notmatched and \-\-notmatchedfq
+options.
+.TP
+.BI \-\-fastx_getseqs \0filename
+Extract sequences from the given FASTA or FASTQ file. Specify the
+label or labels to match using one of the following options: \-\-label,
+\-\-labels, \-\-label_word, or \-\-label_words. Output
+files are specified with the \-\-fastaout, \-\-fastqout,
+\-\-notmatched and \-\-notmatchedfq options.
+.TP
+.BI \-\-fastx_getsubseq \0filename
+Extract a certain part of some of the sequences in the given FASTA or
+FASTQ file. Specify labels to match using the \-\-label
+option. Specify the subsequence range to be extracted with the
+\-\-subseq_start and \-\-subseq_end options. Output files are
+specified with the \-\-fastaout, \-\-fastqout, \-\-notmatched and
+\-\-notmatchedfq options.
+.TP
+.BI \-\-label \0string
+Specifiy the label to match in the sequence header. Unless the
+\-\-label_substr_match option is given, the label must match the
+entire header. The comparison is not case-sensitive.
+.TP
+.BI \-\-label_field \0string
+Specify a field name to be used when matching using the \-\-label_word
+or \-\-label_words option. The field name is a string like "abc" that
+must precede the word to be matched with an equals sign (=) in
+between. The field must be delimited by semicolons or the beginning or
+end of the header. The following header will match the label 123 in
+the field abc: "seq1;abc=123".
+.TP
+.BI \-\-label_substr_match
+The labels specified with the \-\-label or the \-\-labels option may
+match anywhere in the header if this option is given. Otherwise a
+label needs to match the entire header.
+.TP
+.BI \-\-label_word \0string
+Specifiy a word to match in the sequence header. Words are defined as
+strings delimited by either the start or end of the header or by any
+symbol that is not a letter (A-Z, a-z) or digit (0-9). The comparison is
+case-sensitive.
+.TP
+.BI \-\-label_words \0filename
+Specify a file containing words to be matched against the sequence
+headers. The plain text file must contain one word on each line.
+Words are defined as strings delimited by either the start or end of
+the header or by any symbol that is not a letter (A-Z, a-z) or digit
+(0-9). The comparison is case-sensitive.
+.TP
+.BI \-\-labels \0filename
+Specify a file containing labels to be matched against the sequence
+headers. The plain text file must contain one label on each
+line. Unless the \-\-label_substr_match option is given, a label must
+match the entire header. The comparison is not case-sensitive.
+.TP
+.BI \-\-notmatched \0filename
+Write the sequences that were not extracted to the file with the given
+name, in FASTA format.
+.TP
+.BI \-\-notmatchedfq \0filename
+Write the sequences that were not extracted to the file with the given
+name, in FASTQ format. This option is illegal if the input is in FASTA
+format.
+.TP
+.BI \-\-subseq_end\~ "positive integer"
+Specifiy the end position in the sequences when extracting
+subsequences using the \-\-fastx_getsubseq command. Positions are
+1-based, so the sequences start at position 1. The default is to end
+at the end of the sequence if this option is not specified.
+.TP
+.BI \-\-subseq_start\~ "positive integer"
+Specifiy the starting position in the sequences when extracting
+subsequences using the \-\-fastx_getsubseq command. Positions are
+1-based, so the sequences start at position 1. The default is to start
+at the beginning of the sequence (position 1), if this option is not
+specified.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -2478,17 +2635,17 @@ The vsearch command \-\-sintax will classify the input sequences
 according to the Sintax algorithm as described by Robert Edgar (2016)
 in SINTAX: a simple non-Bayesian taxonomy classifier for 16S and ITS
 sequences, BioRxiv, 074161. Preprint. doi: https://doi.org/10.1101/074161.
-
+.PP
 The name of the fasta file containing the input sequences to be
 classified is given as an argument to the \-\-sintax command. The reference
 sequence database is specified with the \-\-db option. The results are
 written in a tab delimited text file whose name is specified with the
 \-\-tabbedout option. The \-\-sintax_cutoff option may be used to set a
 minimum level of bootstrap support for the taxonomic ranks to be reported.
-
+.PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
-
+.PP
 The reference database must contain taxonomic information in the
 header of each sequence in the form of a string starting with ";tax="
 and followed by a comma-separated list of up to eight taxonomic
@@ -2497,15 +2654,18 @@ of the rank by one of the letters d (for domain) k (kingdom), p
 (phylum), c (class), o (order), f (family), g (genus), or s
 (species). The letter is followed by a colon (:) and the name of that
 rank. Commas and semicolons are not allowed in the name of the rank.
-
+.PP
 Example: ">X80725_S000004313;tax=d:Bacteria,p:Proteobacteria,c:Gammaproteobacteria,o:Enterobacteriales,f:Enterobacteriaceae,g:Escherichia/Shigella,s:Escherichia_coli".
 .PP
 .TP 9
 .BI \-\-db \0filename
-Read the reference sequences from \fIfilename\fR, in FASTA, FASTQ or UDB format. These sequences needs to be annotated with taxonomy.
+Read the reference sequences from \fIfilename\fR, in FASTA, FASTQ or
+UDB format. These sequences needs to be annotated with taxonomy.
 .TP
 .BI \-\-sintax_cutoff\~ "real"
-Specify a minimum level of bootstrap support for the taxonomic ranks that will be included in column 4 of the output file. For instance 0.9, corresponding to 90%.
+Specify a minimum level of bootstrap support for the taxonomic ranks
+that will be included in column 4 of the output file. For instance
+0.9, corresponding to 90%.
 .TP
 .BI \-\-sintax \0filename
 Read the input sequences from \fIfilename\fR, in FASTA or FASTQ format.

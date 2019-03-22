@@ -71,6 +71,7 @@ bool opt_fastq_allowmergestagger;
 bool opt_fastq_eeout;
 bool opt_fastq_nostagger;
 bool opt_gzip_decompress;
+bool opt_label_substr_match;
 bool opt_no_progress;
 bool opt_quiet;
 bool opt_relabel_keep;
@@ -125,9 +126,17 @@ char * opt_fastx_filter;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
+char * opt_fastx_getseq;
+char * opt_fastx_getseqs;
+char * opt_fastx_getsubseq;
 char * opt_join_padgap;
 char * opt_join_padgapq;
+char * opt_label;
+char * opt_labels;
 char * opt_label_suffix;
+char * opt_label_word;
+char * opt_label_words;
+char * opt_label_field;
 char * opt_log;
 char * opt_makeudb_usearch;
 char * opt_maskfasta;
@@ -136,6 +145,7 @@ char * opt_mothur_shared_out;
 char * opt_msaout;
 char * opt_nonchimeras;
 char * opt_notmatched;
+char * opt_notmatchedfq;
 char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
@@ -272,6 +282,8 @@ int64_t opt_selfid;
 int64_t opt_sizein;
 int64_t opt_sizeout;
 int64_t opt_strand;
+int64_t opt_subseq_start;
+int64_t opt_subseq_end;
 int64_t opt_threads;
 int64_t opt_top_hits_only;
 int64_t opt_topn;
@@ -733,6 +745,9 @@ void args_init(int argc, char **argv)
   opt_gap_open_target_interior=20;
   opt_gap_open_target_left=2;
   opt_gap_open_target_right=2;
+  opt_fastx_getseq = 0;
+  opt_fastx_getseqs = 0;
+  opt_fastx_getsubseq = 0;
   opt_gzip_decompress = 0;
   opt_hardmask = 0;
   opt_help = 0;
@@ -742,7 +757,13 @@ void args_init(int argc, char **argv)
   opt_idsuffix = 0;
   opt_join_padgap = 0;
   opt_join_padgapq = 0;
+  opt_label = 0;
+  opt_label_substr_match = false;
   opt_label_suffix = 0;
+  opt_labels = 0;
+  opt_label_field = 0;
+  opt_label_word = 0;
+  opt_label_words = 0;
   opt_leftjust = 0;
   opt_length_cutoffs_increment = 50;
   opt_length_cutoffs_longest = INT_MAX;
@@ -787,6 +808,7 @@ void args_init(int argc, char **argv)
   opt_no_progress = 0;
   opt_nonchimeras = 0;
   opt_notmatched = 0;
+  opt_notmatched = 0;
   opt_notrunclabels = 0;
   opt_otutabout = 0;
   opt_output = 0;
@@ -824,6 +846,8 @@ void args_init(int argc, char **argv)
   opt_sortbylength = 0;
   opt_sortbysize = 0;
   opt_strand = 1;
+  opt_subseq_start = 1;
+  opt_subseq_end = LONG_MAX;
   opt_tabbedout = 0;
   opt_target_cov = 0.0;
   opt_threads = 0;
@@ -1066,6 +1090,18 @@ void args_init(int argc, char **argv)
     {"fastqout_rev",          required_argument, 0, 0 },
     {"fastqout_discarded_rev",required_argument, 0, 0 },
     {"xee",                   no_argument,       0, 0 },
+    {"fastx_getseq",          required_argument, 0, 0 },
+    {"fastx_getseqs",         required_argument, 0, 0 },
+    {"fastx_getsubseq",       required_argument, 0, 0 },
+    {"label_substr_match",    no_argument,       0, 0 },
+    {"label",                 required_argument, 0, 0 },
+    {"subseq_start",          required_argument, 0, 0 },
+    {"subseq_end",            required_argument, 0, 0 },
+    {"notmatchedfq",          required_argument, 0, 0 },
+    {"label_field",           required_argument, 0, 0 },
+    {"label_word",            required_argument, 0, 0 },
+    {"label_words",           required_argument, 0, 0 },
+    {"labels",                required_argument, 0, 0 },
     { 0,                      0,                 0, 0 }
   };
 
@@ -1954,6 +1990,54 @@ void args_init(int argc, char **argv)
           opt_xee = 1;
           break;
 
+        case 209:
+          opt_fastx_getseq = optarg;
+          break;
+
+        case 210:
+          opt_fastx_getseqs = optarg;
+          break;
+
+        case 211:
+          opt_fastx_getsubseq = optarg;
+          break;
+
+        case 212:
+          opt_label_substr_match = true;
+          break;
+
+        case 213:
+          opt_label = optarg;
+          break;
+
+        case 214:
+          opt_subseq_start = args_getlong(optarg);
+          break;
+
+        case 215:
+          opt_subseq_end = args_getlong(optarg);
+          break;
+
+        case 216:
+          opt_notmatchedfq = optarg;
+          break;
+
+        case 217:
+          opt_label_field = optarg;
+          break;
+
+        case 218:
+          opt_label_word = optarg;
+          break;
+
+        case 219:
+          opt_label_words = optarg;
+          break;
+
+        case 220:
+          opt_labels = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2045,7 +2129,12 @@ void args_init(int argc, char **argv)
     commands++;
   if (opt_sff_convert)
     commands++;
-
+  if (opt_fastx_getseq)
+    commands++;
+  if (opt_fastx_getseqs)
+    commands++;
+  if (opt_fastx_getsubseq)
+    commands++;
 
   if (commands > 1)
     fatal("More than one command specified");
@@ -3093,6 +3182,12 @@ int main(int argc, char** argv)
     sintax();
   else if (opt_sff_convert)
     sff_convert();
+  else if (opt_fastx_getseq)
+    fastx_getseq();
+  else if (opt_fastx_getseqs)
+    fastx_getseqs();
+  else if (opt_fastx_getsubseq)
+    fastx_getsubseq();
   else
     cmd_none();
 

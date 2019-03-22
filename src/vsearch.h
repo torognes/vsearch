@@ -229,6 +229,7 @@
 #include "sintax.h"
 #include "fastqjoin.h"
 #include "sffconvert.h"
+#include "getseq.h"
 
 /* options */
 
@@ -241,6 +242,7 @@ extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
 extern bool opt_gzip_decompress;
+extern bool opt_label_substr_match;
 extern bool opt_no_progress;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;
@@ -292,12 +294,20 @@ extern char * opt_fastqout_rev;
 extern char * opt_fastqout_notmerged_fwd;
 extern char * opt_fastqout_notmerged_rev;
 extern char * opt_fastx_filter;
+extern char * opt_fastx_getseq;
+extern char * opt_fastx_getseqs;
+extern char * opt_fastx_getsubseq;
 extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
 extern char * opt_join_padgap;
 extern char * opt_join_padgapq;
+extern char * opt_label;
 extern char * opt_label_suffix;
+extern char * opt_labels;
+extern char * opt_label_word;
+extern char * opt_label_words;
+extern char * opt_label_field;
 extern char * opt_log;
 extern char * opt_makeudb_usearch;
 extern char * opt_maskfasta;
@@ -306,6 +316,7 @@ extern char * opt_mothur_shared_out;
 extern char * opt_msaout;
 extern char * opt_nonchimeras;
 extern char * opt_notmatched;
+extern char * opt_notmatchedfq;
 extern char * opt_otutabout;
 extern char * opt_output;
 extern char * opt_pattern;
@@ -442,6 +453,8 @@ extern int64_t opt_selfid;
 extern int64_t opt_sizein;
 extern int64_t opt_sizeout;
 extern int64_t opt_strand;
+extern int64_t opt_subseq_start;
+extern int64_t opt_subseq_end;
 extern int64_t opt_threads;
 extern int64_t opt_top_hits_only;
 extern int64_t opt_topn;

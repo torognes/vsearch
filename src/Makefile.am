@@ -38,6 +38,7 @@ fastqjoin.h \
 fastqops.h \
 fastx.h \
 filter.h \
+getseq.h \
 kmerhash.h \
 linmemalign.h \
 maps.h \
@@ -128,6 +129,7 @@ fastqjoin.cc \
 fastqops.cc \
 fastx.cc \
 filter.cc \
+getseq.cc \
 kmerhash.cc \
 linmemalign.cc \
 maps.cc \

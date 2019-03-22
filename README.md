@@ -198,6 +198,7 @@ File | Description
 **fastqops.cc** | FASTQ file statistics etc
 **fastx.cc** | Detection of FASTA and FASTQ files, wrapper for FASTA and FASTQ parsers
 **filter.cc** | Trimming and filtering of sequences in FASTA and FASTQ files
+**getseq.cc** | Extraction of sequences based on header labels
 **kmerhash.cc** | Hash for kmers used by paired-end read merger
 **linmemalign.cc** | Linear memory global sequence aligner
 **maps.cc** | Various character mapping arrays
