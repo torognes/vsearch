@@ -160,7 +160,7 @@ bool test_label_match(fastx_handle h)
       char * needle = opt_label;
       int wlen = strlen(needle);
       if (opt_label_substr_match)
-        return strcasestr(header, needle);
+        return xstrcasestr(header, needle);
       else
         return (hlen == wlen) && ! strcasecmp(header, needle);
     }
@@ -169,7 +169,7 @@ bool test_label_match(fastx_handle h)
       if (opt_label_substr_match)
         {
           for (int i = 0; i < labels_count; i++)
-            if (strcasestr(header, labels_data[i]))
+            if (xstrcasestr(header, labels_data[i]))
               return true;
         }
       else

@@ -58,6 +58,7 @@
 
 */
 
+#define _GNU_SOURCE 1
 #define __STDC_CONSTANT_MACROS 1
 #define __STDC_FORMAT_MACROS 1
 #define __STDC_LIMIT_MACROS 1
@@ -132,6 +133,7 @@
 #define PROG_OS "win"
 #include <windows.h>
 #include <psapi.h>
+#include <shlwapi.h>
 #define bswap_16(x) _byteswap_ushort(x)
 #define bswap_32(x) _byteswap_ulong(x)
 #define bswap_64(x) _byteswap_uint64(x)

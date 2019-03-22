@@ -81,3 +81,5 @@ uint64_t xftello(FILE * stream);
 
 int xopen_read(const char * path);
 int xopen_write(const char * path);
+
+const char * xstrcasestr(const char * haystack, const char * needle);

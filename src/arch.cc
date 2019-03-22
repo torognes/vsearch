@@ -298,3 +298,12 @@ int xopen_write(const char * path)
               S_IRUSR | S_IWUSR);
 #endif
 }
+
+const char * xstrcasestr(const char * haystack, const char * needle)
+{
+#ifdef _WIN32
+  return StrStrIA(haystack, needle);
+#else
+  return strcasestr(haystack, needle);
+#endif
+}
