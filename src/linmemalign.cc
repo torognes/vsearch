@@ -119,9 +119,9 @@ int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatc
     for(int j=0; j<16; j++)
       {
         int64_t value;
-        if ((i==0) || (j==0) || (i>4) || (j>4))
+        if (ambiguous_4bit[i] || ambiguous_4bit[j])
           value = 0;
-        else if (i==j)
+        else if (i == j)
           value = match;
         else
           value = mismatch;
@@ -671,7 +671,7 @@ void LinearMemoryAligner::alignstats(char * cigar,
             {
               nwscore += subst_score(a_pos, b_pos);
 
-              if (chrmap_4bit[(int)(a_seq[a_pos])] ==
+              if (chrmap_4bit[(int)(a_seq[a_pos])] &
                   chrmap_4bit[(int)(b_seq[b_pos])])
                 nwmatches++;
               else

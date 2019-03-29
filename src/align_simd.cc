@@ -920,7 +920,7 @@ void backtrack16(s16info_s * s,
     }
     else
     {
-      if (chrmap_4bit[(int)(qseq[i])] == chrmap_4bit[(int)(dseq[j])])
+      if (chrmap_4bit[(int)(qseq[i])] & chrmap_4bit[(int)(dseq[j])])
         matches++;
       else
         mismatches++;
@@ -995,27 +995,16 @@ struct s16info_s * search16_init(CELL score_match,
     for(int j=0; j<16; j++)
       {
         CELL value;
-        if (i==j)
-          value = opt_match;
-        else if ((i==0) || (j==0) || (i>4) || (j>4))
+        if (ambiguous_4bit[i] || ambiguous_4bit[j])
           value = 0;
+        else if (i == j)
+          value = opt_match;
         else
           value = opt_mismatch;
         ((CELL*)(&s->matrix))[16*i+j] = value;
-      }
-
-  for(int i=0; i<16; i++)
-    for(int j=0; j<16; j++)
-      {
-        CELL value;
-        if ((i==0) || (j==0) || (i>4) || (j>4))
-          value = 0;
-        else if (i==j)
-          value = opt_match;
-        else
-          value = opt_mismatch;
         scorematrix[i][j] = value;
       }
+
 
   s->penalty_gap_open_query_left = penalty_gap_open_query_left;
   s->penalty_gap_open_query_interior = penalty_gap_open_query_interior;

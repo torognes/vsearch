@@ -169,14 +169,6 @@ void nw_exit(struct nwinfo_s * nw)
   xfree(nw);
 }
 
-inline int nt_identical(char a, char b)
-{
-  if (chrmap_4bit[(int)a] == chrmap_4bit[(int)b])
-    return 1;
-  else
-    return 0;
-}
-
 inline int64_t getscore(int64_t * score_matrix, char a, char b)
 {
   return score_matrix[(chrmap_4bit[(int)a]<<4) + chrmap_4bit[(int)b]];
@@ -394,7 +386,7 @@ void nw_align(char * dseq,
     else
     {
       score += getscore(score_matrix, dseq[j-1], qseq[i-1]);
-      if (nt_identical(dseq[j-1], qseq[i-1]))
+      if (chrmap_4bit[(int)(dseq[j-1])] & chrmap_4bit[(int)(qseq[i-1])])
         matches++;
       i--;
       j--;

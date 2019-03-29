@@ -232,7 +232,7 @@ int find_best_parents(struct chimera_info_s * ci)
             case 'M':
               for(int k=0; k<run; k++)
                 {
-                  if (chrmap_4bit[(int)(qseq[qpos])] ==
+                  if (chrmap_4bit[(int)(qseq[qpos])] &
                       chrmap_4bit[(int)(tseq[tpos])])
                     ci->match[i * ci->query_len + qpos] = 1;
                   qpos++;
@@ -510,9 +510,9 @@ int eval_parents(struct chimera_info_s * ci)
 
   for(int i = 0; i < alnlen; i++)
     {
-      char qsym  = chrmap_4bit[(int)(ci->qaln   [i])];
-      char p1sym = chrmap_4bit[(int)(ci->paln[0][i])];
-      char p2sym = chrmap_4bit[(int)(ci->paln[1][i])];
+      unsigned int qsym  = chrmap_4bit[(int)(ci->qaln   [i])];
+      unsigned int p1sym = chrmap_4bit[(int)(ci->paln[0][i])];
+      unsigned int p2sym = chrmap_4bit[(int)(ci->paln[1][i])];
 
       /* mark positions to ignore in voting */
 
@@ -526,8 +526,10 @@ int eval_parents(struct chimera_info_s * ci)
             ci->ignore[i+1] = 1;
         }
 
-      /* ignore ambigous symbols */
-      if ((qsym>4) || (p1sym>4) || (p2sym>4))
+      /* ignore ambiguous symbols */
+      if ((ambiguous_4bit[qsym]) ||
+          (ambiguous_4bit[p1sym]) ||
+          (ambiguous_4bit[p2sym]))
         ci->ignore[i] = 1;
 
       /* lower case parent symbols that differ from query */

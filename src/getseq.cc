@@ -123,7 +123,7 @@ void read_labels_file(char * filename)
     {
       if (!opt_quiet)
         fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
-      
+
       if (opt_log)
         fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
     }
@@ -294,14 +294,14 @@ void getseq(char * filename)
       if ((! (opt_label || opt_labels || opt_label_word || opt_label_words)) ||
           (opt_label && opt_labels && opt_label_word && opt_label_words))
         fatal("Specify one label option (label, labels, label_word or label_words)");
-      
+
       if (opt_labels)
         read_labels_file(opt_labels);
 
       if (opt_label_words)
         read_labels_file(opt_label_words);
     }
-  
+
   fastx_handle h1 = 0;
 
   h1 = fastx_open(filename);
@@ -311,7 +311,7 @@ void getseq(char * filename)
 
   if ((opt_fastqout || opt_notmatchedfq) && ! h1->is_fastq)
     fatal("Cannot write FASTQ output from FASTA input");
-  
+
   uint64_t filesize = fastx_get_size(h1);
 
   FILE * fp_fastaout = 0;

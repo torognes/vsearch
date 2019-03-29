@@ -61,6 +61,8 @@
 extern char sym_nt_2bit[5];
 extern char sym_nt_4bit[17];
 
+extern unsigned int ambiguous_4bit[16];
+
 extern unsigned int char_fasta_action[256];
 extern unsigned int char_fq_action_seq[256];
 extern unsigned int char_fq_action_qual[256];

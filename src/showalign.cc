@@ -90,14 +90,6 @@ static const char * d_name;
 static int64_t q_len;
 static int64_t d_len;
 
-inline int nt_identical(char a, char b)
-{
-  if (chrmap_4bit[(int)a] == chrmap_4bit[(int)b])
-    return 1;
-  else
-    return 0;
-}
-
 inline void putop(char c, int64_t len)
 {
   int64_t delta = q_strand ? -1 : +1;
@@ -113,6 +105,7 @@ inline void putop(char c, int64_t len)
 
       char qs;
       char ds;
+      unsigned int qs4, ds4;
 
       switch(c)
         {
@@ -122,7 +115,16 @@ inline void putop(char c, int64_t len)
           q_pos += delta;
           d_pos += 1;
           q_line[line_pos] = qs;
-          a_line[line_pos] = nt_identical(qs, ds) ? '|' : ' ';
+
+          qs4 = chrmap_4bit[(int)qs];
+          ds4 = chrmap_4bit[(int)ds];
+          if ((qs4 == ds4) && (! ambiguous_4bit[qs4]))
+            a_line[line_pos] = '|';
+          else if (qs4 & ds4)
+            a_line[line_pos] = '+';
+          else
+            a_line[line_pos] = ' ';
+
           d_line[line_pos] = ds;
           line_pos++;
           break;
