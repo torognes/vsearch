@@ -129,13 +129,13 @@ void  __attribute__((noreturn)) fatal(const char * msg)
 void  __attribute__((noreturn)) fatal(const char * format,
                                       const char * message)
 {
-  fprintf(stderr, "\n\n");
+  fprintf(stderr, "\n\nFatal error: ");
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
 
   if (opt_log)
     {
-      fprintf(fp_log, "\n\n");
+      fprintf(fp_log, "\n\nFatal error: ");
       fprintf(fp_log, format, message);
       fprintf(fp_log, "\n");
     }

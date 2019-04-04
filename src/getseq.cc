@@ -291,8 +291,17 @@ void getseq(char * filename)
     }
   else if (opt_fastx_getseqs)
     {
-      if ((! (opt_label || opt_labels || opt_label_word || opt_label_words)) ||
-          (opt_label && opt_labels && opt_label_word && opt_label_words))
+      int label_options = 0;
+      if (opt_label)
+        label_options++;
+      if (opt_labels)
+        label_options++;
+      if (opt_label_word)
+        label_options++;
+      if (opt_label_words)
+        label_options++;
+
+      if (label_options != 1)
         fatal("Specify one label option (label, labels, label_word or label_words)");
 
       if (opt_labels)

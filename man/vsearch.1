@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 22, 2019" "version 2.12.0" "USER COMMANDS"
+.TH vsearch 1 "April 3, 2019" "version 2.12.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -259,15 +259,28 @@ gzip or bzip2 data if the options \-\-gzip_decompress or
 progress indicator is not updated.
 .\" ----------------------------------------------------------------------------
 .SS Options
-\fBvsearch\fR recognizes a large number of command-line options. For
-easier navigation, options are grouped below by theme (chimera
-detection, clustering, dereplication and rereplication, FASTA/FASTQ
-file processing, masking, pairwise alignment, searching, shuffling,
-sorting, and subsampling). We start with the general options that
-apply to all themes. Options may start with a single (\-) or double
-dash (\-\-). Option names may be shortened as long as they are not
-ambiguous (e.g. \-\-derep_f).
+\fBvsearch\fR recognizes a large number of command-line commands and
+options. For easier navigation, options are grouped below by theme
+(chimera detection, clustering, dereplication and rereplication,
+FASTA/FASTQ file processing, masking, pairwise alignment, searching,
+shuffling, sorting, and subsampling). We start with the general
+options that apply to all themes. Options may start with a single (\-)
+or double dash (\-\-). Option names may be shortened as long as they
+are not ambiguous (e.g. \-\-derep_f).
+.RE
 .PP
+.\" ----------------------------------------------------------------------------
+Help and version commands:
+.PP
+.RS
+.B \-\-help | \-h
+Display help text and exit.
+.TP
+.B \-\-version | \-v
+Output version information and exit.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
 General options:
 .RS
 .TP 9
@@ -295,7 +308,7 @@ program version, amount of memory available, number of cores and
 command line options, and if need be, informational messages, warnings
 and fatal errors. The start and finish times are also recorded as well
 as the elapsed time and the maximum amount of memory consumed. The
-different \fBvsearch\fB commands can also write additional
+different \fBvsearch\fR commands can also write additional
 informations to the log file.
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
@@ -2527,7 +2540,7 @@ and the sampling is performed as if the input sequences were
 rereplicated, subsampled and dereplicated before being written to the
 output file. The extraction is performed as a random sampling with a
 uniform distribution among the input sequences and is performed
-without replacement. The input file is specified with
+without replacement. The input file is specified with the
 \-\-fastx_subsample option, the output files are specified with the
 \-\-fastaout and \-\-fastqout options and the amount of sequences to
 be sampled is specified with the \-\-sample_pct or \-\-sample_size
