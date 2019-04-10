@@ -3339,7 +3339,7 @@ void args_init(int argc, char **argv)
         option_fastq_qmin,
         option_gzip_decompress,
         option_log,
-        option_manseqlength,
+        option_maxseqlength,
         option_minseqlength,
         option_no_progress,
         option_notrunclabels,
