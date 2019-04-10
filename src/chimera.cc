@@ -1511,14 +1511,14 @@ void chimera()
   opt_maxrejects = rejects;
   opt_id = chimera_id;
   opt_strand = 1;
-  opt_self = 1;
-  opt_selfid = 1;
 
   if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
-    opt_threads = 1;
-
-  if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
-    opt_maxsizeratio = 1.0 / opt_abskew;
+    {
+      opt_self = 1;
+      opt_selfid = 1;
+      opt_threads = 1;
+      opt_maxsizeratio = 1.0 / opt_abskew;
+    }
 
   tophits = opt_maxaccepts + opt_maxrejects;
 
