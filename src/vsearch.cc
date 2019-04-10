@@ -3707,53 +3707,58 @@ void args_init(int argc, char **argv)
   /* check that only valid options are specified */
   int invalid_options = 0;
 
-  for (int i = 0; i < options_count; i++)
+  if (commands == 0)
+    fprintf(stderr, "WARNING: No valid command specified.\n");
+  else
     {
-      if (options_selected[i])
+      for (int i = 0; i < options_count; i++)
         {
-          int j = 0;
-          bool ok = false;
-          while (valid_options[k][j] >= 0)
+          if (options_selected[i])
             {
-              if (valid_options[k][j] == i)
+              int j = 0;
+              bool ok = false;
+              while (valid_options[k][j] >= 0)
                 {
-                  ok = true;
-                  break;
+                  if (valid_options[k][j] == i)
+                    {
+                      ok = true;
+                      break;
+                    }
+                  j++;
                 }
-              j++;
-            }
-          if (! ok)
-            {
-              invalid_options++;
+              if (! ok)
+                {
+                  invalid_options++;
 
-              if (invalid_options == 1)
-                {
-                  fprintf(stderr,
-                          "Fatal error: Invalid options to command %s\n",
-                          long_options[command_options[k]].name);
-                  fprintf(stderr,
-                          "Invalid option(s):");
+                  if (invalid_options == 1)
+                    {
+                      fprintf(stderr,
+                              "Fatal error: Invalid options to command %s\n",
+                              long_options[command_options[k]].name);
+                      fprintf(stderr,
+                              "Invalid option(s):");
+                    }
+                  fprintf(stderr, " --%s",
+                          long_options[i].name);
                 }
-              fprintf(stderr, " --%s",
-                      long_options[i].name);
             }
         }
-    }
 
-  if (invalid_options > 0)
-    {
-      fprintf(stderr, "\nThe valid options for the %s command are:",
-              long_options[command_options[k]].name);
-      int count = 0;
-      for(int j = 1; valid_options[k][j] >= 0; j++)
+      if (invalid_options > 0)
         {
-          fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
-          count++;
+          fprintf(stderr, "\nThe valid options for the %s command are:",
+                  long_options[command_options[k]].name);
+          int count = 0;
+          for(int j = 1; valid_options[k][j] >= 0; j++)
+            {
+              fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
+              count++;
+            }
+          if (! count)
+            fprintf(stderr, " (none)");
+          fprintf(stderr, "\n");
+          exit(EXIT_FAILURE);
         }
-      if (! count)
-        fprintf(stderr, " (none)");
-      fprintf(stderr, "\n");
-      exit(EXIT_FAILURE);
     }
 
   if (opt_cluster_unoise)
