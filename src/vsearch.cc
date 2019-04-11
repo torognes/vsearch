@@ -3708,7 +3708,15 @@ void args_init(int argc, char **argv)
   int invalid_options = 0;
 
   if (commands == 0)
-    fprintf(stderr, "WARNING: No valid command specified.\n");
+    {
+      /* check if any options are specified */
+      bool any_options = false;
+      for (int i = 0; i < options_count; i++)
+        if (options_selected[i])
+          any_options = true;
+      if (any_options)
+        fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
+    }
   else
     {
       for (int i = 0; i < options_count; i++)
@@ -4571,12 +4579,11 @@ void cmd_none()
             "vsearch --uchime_denovo FILENAME --nonchimeras FILENAME\n"
             "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
             "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
-            "vsearch --version\n"
             "\n"
             "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, derep_prefix,\n"
             "                fastq_filter, fastq_join, fastx_getseqs, fastx_getsubseqs,\n"
             "                maskfasta, rereplicate, uchime2_denovo, uchime3_denovo,\n"
-            "                udb2fasta, udbinfo, udbstats\n"
+            "                udb2fasta, udbinfo, udbstats, version\n"
             "\n",
             progname);
 }

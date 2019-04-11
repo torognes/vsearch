@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "April 3, 2019" "version 2.12.0" "USER COMMANDS"
+.TH vsearch 1 "April 11, 2019" "version 2.13.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -230,11 +230,21 @@ comparisons, otherwise they are treated as normal symbols.
 .PP
 When comparing sequences during chimera detection, dereplication,
 searching and clustering, T and U are considered identical, regardless
-of their case. If two symbols are not identical, their alignment
-result in a negative mismatch score (default -4), except if one or
-both of the symbols are ambiguous (RYSWKMDBHVN) in which case the
-score is zero. Alignment of two identical ambiguous symbols (for
-example, R vs R) also receives a score of zero.
+of their case. When aligning sequences, identical symbols will receive
+a positive match score (default +2). If two symbols are not identical,
+their alignment result in a negative mismatch score (default
+-4). Aligning a pair of symbols where at least one of them is an
+ambiguous symbol (BDHKMNRSVWY) will always result in a score of
+zero. Alignment of two identical ambiguous symbols (for example, R vs
+R) also receives a score of zero. When computing the amount of
+similarity by counting matches and mismatches after alignment,
+ambiguous nucleotide symbols will count as matching to other symbols
+if they have at least one of the nucleotides (ACGTU) they may
+represent in common. For example: W will match A and T, but also any
+of MRVHDN. When showing alignments (for example with the \-\-alnout
+option) matches involving ambiguous symbols will be shown with a plus
+character (+) between them while exact matches between non-ambiguous
+symbols will be shown with a vertical bar character (|).
 .PP
 \fBvsearch\fR can read data from standard files and write to standard
 files, but it can also read from pipes and write to pipes! For
@@ -3745,6 +3755,14 @@ sequences or profiles after clustering. Warn when rereplicating
 sequences without abundance info. Guess offset 33 in more cases with
 fastq_chars. Stricter checking of option arguments and option
 combinations.
+.TP
+.BR v2.13.0\~ "released April 11th, 2019"
+Added the \-\-fastx_getseq, \-\-fastx_getseqs and \-\-fastx_getsubseq
+commands to extract sequences from a FASTA or FASTQ file based on
+their labels. Improved handling of ambiguous nucleotide
+symbols. Corrected behaviour of \-\-uchime_ref command with and
+options \-\-self and \-\-selfid. Strict detection of illegal options
+for each command.
 .RE
 .LP
 .\" ============================================================================
