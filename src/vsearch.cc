@@ -2789,6 +2789,7 @@ void args_init(int argc, char **argv)
         option_sizein,
         option_sizeout,
         option_strand,
+        option_threads,
         option_topn,
         option_uc,
         option_xee,
@@ -2815,6 +2816,7 @@ void args_init(int argc, char **argv)
         option_sizein,
         option_sizeout,
         option_strand,
+        option_threads,
         option_topn,
         option_uc,
         option_xee,
@@ -2828,6 +2830,7 @@ void args_init(int argc, char **argv)
         option_log,
         option_no_progress,
         option_quiet,
+        option_threads,
         -1 },
 
       { option_fastq_convert,
@@ -2849,6 +2852,7 @@ void args_init(int argc, char **argv)
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -2863,6 +2867,7 @@ void args_init(int argc, char **argv)
         option_no_progress,
         option_output,
         option_quiet,
+        option_threads,
         -1 },
 
       { option_fastq_eestats2,
@@ -2877,6 +2882,7 @@ void args_init(int argc, char **argv)
         option_no_progress,
         option_output,
         option_quiet,
+        option_threads,
         -1 },
 
       { option_fastq_filter,
@@ -2919,6 +2925,7 @@ void args_init(int argc, char **argv)
         option_reverse,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -2942,6 +2949,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_sha1,
         option_reverse,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -2999,6 +3007,7 @@ void args_init(int argc, char **argv)
         option_no_progress,
         option_output,
         option_quiet,
+        option_threads,
         -1 },
 
       { option_fastx_filter,
@@ -3042,6 +3051,7 @@ void args_init(int argc, char **argv)
         option_reverse,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3067,6 +3077,7 @@ void args_init(int argc, char **argv)
         option_relabel_keep,
         option_relabel_md5,
         option_relabel_sha1,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3095,6 +3106,7 @@ void args_init(int argc, char **argv)
         option_relabel_keep,
         option_relabel_md5,
         option_relabel_sha1,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3122,6 +3134,7 @@ void args_init(int argc, char **argv)
         option_relabel_sha1,
         option_subseq_end,
         option_subseq_start,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3147,6 +3160,7 @@ void args_init(int argc, char **argv)
         option_relabel_keep,
         option_relabel_md5,
         option_relabel_sha1,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3169,6 +3183,7 @@ void args_init(int argc, char **argv)
         option_relabel_keep,
         option_relabel_md5,
         option_relabel_sha1,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3197,14 +3212,21 @@ void args_init(int argc, char **argv)
         option_sample_size,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
 
       { option_h,
+        option_log,
+        option_quiet,
+        option_threads,
         -1 },
 
       { option_help,
+        option_log,
+        option_quiet,
+        option_threads,
         -1 },
 
       { option_makeudb_usearch,
@@ -3217,6 +3239,7 @@ void args_init(int argc, char **argv)
         option_notrunclabels,
         option_output,
         option_quiet,
+        option_threads,
         option_wordlength,
         -1 },
 
@@ -3239,6 +3262,7 @@ void args_init(int argc, char **argv)
         option_relabel_keep,
         option_relabel_md5,
         option_relabel_sha1,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3258,6 +3282,7 @@ void args_init(int argc, char **argv)
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3329,6 +3354,7 @@ void args_init(int argc, char **argv)
         option_no_progress,
         option_quiet,
         option_sff_clip,
+        option_threads,
         -1 },
 
       { option_shuffle,
@@ -3351,6 +3377,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_sha1,
         option_sizeout,
+        option_threads,
         option_topn,
         option_xee,
         option_xsize,
@@ -3394,6 +3421,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_sha1,
         option_sizeout,
+        option_threads,
         option_topn,
         option_xee,
         option_xsize,
@@ -3420,6 +3448,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_sha1,
         option_sizeout,
+        option_threads,
         option_topn,
         option_xee,
         option_xsize,
@@ -3453,6 +3482,7 @@ void args_init(int argc, char **argv)
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_uchimealns,
         option_uchimeout,
         option_uchimeout5,
@@ -3489,6 +3519,7 @@ void args_init(int argc, char **argv)
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_uchimealns,
         option_uchimeout,
         option_uchimeout5,
@@ -3525,6 +3556,7 @@ void args_init(int argc, char **argv)
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_uchimealns,
         option_uchimeout,
         option_uchimeout5,
@@ -3584,6 +3616,7 @@ void args_init(int argc, char **argv)
         option_relabel_keep,
         option_relabel_md5,
         option_relabel_sha1,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -3591,12 +3624,14 @@ void args_init(int argc, char **argv)
       { option_udbinfo,
         option_log,
         option_quiet,
+        option_threads,
         -1 },
 
       { option_udbstats,
         option_log,
         option_no_progress,
         option_quiet,
+        option_threads,
         -1 },
 
       { option_usearch_global,
@@ -3686,9 +3721,15 @@ void args_init(int argc, char **argv)
         -1 },
 
       { option_v,
+        option_log,
+        option_quiet,
+        option_threads,
         -1 },
 
       { option_version,
+        option_log,
+        option_quiet,
+        option_threads,
         -1 }
     };
 
@@ -3767,6 +3808,23 @@ void args_init(int argc, char **argv)
           fprintf(stderr, "\n");
           exit(EXIT_FAILURE);
         }
+    }
+
+  /* multi-threaded commands */
+
+  if (opt_allpairs_global || opt_cluster_fast || opt_cluster_size ||
+      opt_cluster_smallmem || opt_cluster_unoise || opt_fastq_mergepairs ||
+      opt_fastx_mask || opt_maskfasta || opt_search_exact || opt_sintax ||
+      opt_uchime_ref || opt_usearch_global)
+    {
+      if (opt_threads == 0)
+        opt_threads = arch_get_cores();
+    }
+  else
+    {
+      if (opt_threads > 1)
+        fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[command_options[k]].name);
+      opt_threads = 1;
     }
 
   if (opt_cluster_unoise)
@@ -3922,9 +3980,6 @@ void args_init(int argc, char **argv)
 
   if (opt_minwordmatches < 0)
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
-
-  if (opt_threads == 0)
-    opt_threads = arch_get_cores();
 
   /* set default opt_minsize depending on command */
   if (opt_minsize == 0)

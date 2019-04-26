@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "April 11, 2019" "version 2.13.0" "USER COMMANDS"
+.TH vsearch 1 "April 26, 2019" "version 2.13.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -309,9 +309,6 @@ When reading from a pipe streaming gzip-compressed data, decompress
 the data. That option is not needed when reading from a standard
 gzip-compressed file.
 .TP
-.B \-\-help | \-h
-Display help text and exit.
-.TP
 .BI \-\-log \0filename
 Write messages to the specified log file. Information written includes
 program version, amount of memory available, number of cores and
@@ -347,11 +344,9 @@ should be lesser or equal to the number of available CPU cores. The
 default is to use all available resources and to launch one thread per
 logical core. The following commands are multi-threaded:
 allpairs_global, cluster_fast, cluster_size, cluster_smallmem,
-fastq_mergepairs, maskfasta, search_exact, uchime_ref, and
-usearch_global. Only one thread is used for the other commands.
-.TP
-.B \-\-version | \-v
-Output version information and exit.
+cluster_unoise, fastq_mergepairs, fastx_mask, maskfasta, search_exact,
+sintax, uchime_ref, and usearch_global. Only one thread is used for
+the other commands.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
