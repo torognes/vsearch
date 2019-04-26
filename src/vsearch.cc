@@ -3812,6 +3812,9 @@ void args_init(int argc, char **argv)
 
   /* multi-threaded commands */
 
+  if ((opt_threads < 0) || (opt_threads > 1024))
+    fatal("The argument to --threads must be in the range 0 (default) to 1024");
+
   if (opt_allpairs_global || opt_cluster_fast || opt_cluster_size ||
       opt_cluster_smallmem || opt_cluster_unoise || opt_fastq_mergepairs ||
       opt_fastx_mask || opt_maskfasta || opt_search_exact || opt_sintax ||
@@ -3846,9 +3849,6 @@ void args_init(int argc, char **argv)
 
   if (opt_maxrejects < 0)
     fatal("The argument to --maxrejects must not be negative");
-
-  if ((opt_threads < 0) || (opt_threads > 1024))
-    fatal("The argument to --threads must be in the range 0 (default) to 1024");
 
   if ((opt_wordlength < 3) || (opt_wordlength > 15))
     fatal("The argument to --wordlength must be in the range 3 to 15");
