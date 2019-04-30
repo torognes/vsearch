@@ -159,7 +159,7 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
                   h->lineno);
 
           if (fp_log)
-            fprintf(stderr,
+            fprintf(fp_log,
                     "\n\n"
                     "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
                     "Unprintable ASCII character no %d on or right before line %"
