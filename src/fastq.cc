@@ -221,8 +221,6 @@ bool fastq_next(fastx_handle h,
       rest -= len;
     }
 
-  fastx_filter_header(h, truncateatspace);
-
   uint64_t lineno_seq = h->lineno;
 
   /* read sequence line(s) */
@@ -373,6 +371,8 @@ bool fastq_next(fastx_handle h,
   if (h->sequence_buffer.length != h->quality_buffer.length)
     fastq_fatal(lineno_qual,
                 "Sequence and quality lines must be equally long");
+
+  fastx_filter_header(h, truncateatspace);
 
   h->seqno++;
 
