@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "April 26, 2019" "version 2.13.1" "USER COMMANDS"
+.TH vsearch 1 "April 30, 2019" "version 2.13.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -3764,6 +3764,10 @@ Minor changes to the allowed options for each command. All commands
 now allow the log, quiet and threads options. If more than 1 thread is
 specified for commands that are not multi-threaded, a warning will be
 issued. Minor changes to the manual.
+.TP
+.BR v2.13.2\~ "released April 30th, 2019"
+Fixed bug related to improper handling of newlines on Windows.
+Allowed option strand plus to uchime_ref for compatibility.
 .RE
 .LP
 .\" ============================================================================

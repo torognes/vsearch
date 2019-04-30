@@ -1510,7 +1510,9 @@ void chimera()
   opt_maxaccepts = few;
   opt_maxrejects = rejects;
   opt_id = chimera_id;
-  opt_strand = 1;
+
+  if (opt_strand != 1)
+    fatal("Only --strand plus is allowed with uchime_ref.");
 
   if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
     {

@@ -72,7 +72,6 @@ void buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char * source_buf,
                    uint64_t len);
 void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x);
-void buffer_truncate(struct fastx_buffer_s * buffer, bool truncateatspace);
 
 struct fastx_s
 {
@@ -115,6 +114,7 @@ typedef struct fastx_s * fastx_handle;
 /* fastx input */
 
 bool fastx_is_fastq(fastx_handle h);
+void fastx_filter_header(fastx_handle h, bool truncateatspace);
 fastx_handle fastx_open(const char * filename);
 void fastx_close(fastx_handle h);
 bool fastx_next(fastx_handle h,

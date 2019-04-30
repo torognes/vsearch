@@ -117,20 +117,6 @@ void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x)
     }
 }
 
-void buffer_truncate(struct fastx_buffer_s * buffer, bool truncateatspace)
-{
-  /* Truncate the zero-terminated header string by inserting a new
-     terminator (zero byte) at the first space/tab character
-     (if truncateatspace) or first linefeed. */
-
-  if (truncateatspace)
-    buffer->length = strcspn(buffer->data, " \t\n");
-  else
-    buffer->length = strcspn(buffer->data, "\n");
-
-  buffer->data[buffer->length] = 0;
-}
-
 void buffer_extend(struct fastx_buffer_s * dest_buffer,
                   char * source_buf,
                   uint64_t len)
@@ -141,6 +127,78 @@ void buffer_extend(struct fastx_buffer_s * dest_buffer,
          len);
   dest_buffer->length += len;
   dest_buffer->data[dest_buffer->length] = 0;
+}
+
+void fastx_filter_header(fastx_handle h, bool truncateatspace)
+{
+  /* filter and truncate header */
+
+  char * p = h->header_buffer.data;
+  char * q = p;
+
+  while (true)
+    {
+      unsigned char c = *p++;
+      unsigned int m = char_header_action[c];
+
+      switch(m)
+        {
+        case 1:
+          /* legal, printable character */
+          *q++ = c;
+          break;
+
+        case 2:
+          /* illegal, fatal */
+          fprintf(stderr,
+                  "\n\n"
+                  "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
+                  "Unprintable ASCII character no %d on or right before line %"
+                  PRIu64 ".\n",
+                  c,
+                  h->lineno);
+
+          if (fp_log)
+            fprintf(stderr,
+                    "\n\n"
+                    "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
+                    "Unprintable ASCII character no %d on or right before line %"
+                    PRIu64 ".\n",
+                    c,
+                    h->lineno);
+
+          exit(EXIT_FAILURE);
+          break;
+
+        case 5:
+        case 6:
+          /* tab or space */
+          /* conditional end of line */
+          if (truncateatspace)
+            goto end_of_line;
+
+          *q++ = c;
+          break;
+
+        case 0:
+          /* null */
+        case 3:
+          /* cr */
+        case 4:
+          /* lf */
+          /* end of line */
+          goto end_of_line;
+
+        default:
+          fatal("Internal error");
+          break;
+        }
+    }
+
+ end_of_line:
+  /* add a null character at the end */
+  *q = 0;
+  h->header_buffer.length = q - h->header_buffer.data;
 }
 
 fastx_handle fastx_open(const char * filename)

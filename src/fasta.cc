@@ -75,20 +75,6 @@ void fasta_close(fastx_handle h)
   fastx_close(h);
 }
 
-void fasta_truncate_header(fastx_handle h, bool truncateatspace)
-{
-  /* Truncate the zero-terminated header string by inserting a new
-     terminator (zero byte) at the first space/tab character
-     (if truncateatspace) or first linefeed. */
-
-  if (truncateatspace)
-    h->header_buffer.length = strcspn(h->header_buffer.data, " \t\n");
-  else
-    h->header_buffer.length = strcspn(h->header_buffer.data, "\n");
-
-  h->header_buffer.data[h->header_buffer.length] = 0;
-}
-
 void fasta_filter_sequence(fastx_handle h,
                            unsigned int * char_action,
                            const unsigned char * char_mapping)
@@ -123,13 +109,13 @@ void fasta_filter_sequence(fastx_handle h,
           if ((c>=32) && (c<127))
             snprintf(msg,
                      200,
-                     "illegal character '%c' on line %" PRIu64 " in FASTA file",
+                     "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
                      (unsigned char)c,
                      h->lineno);
           else
             snprintf(msg,
                      200,
-                     "illegal unprintable character %#.2x (hexadecimal) on line %" PRIu64 " in FASTA file",
+                     "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
                      (unsigned char) c,
                      h->lineno);
           fatal(msg);
@@ -241,7 +227,7 @@ bool fasta_next(fastx_handle h,
 
   h->seqno++;
 
-  fasta_truncate_header(h, truncateatspace);
+  fastx_filter_header(h, truncateatspace);
   fasta_filter_sequence(h, char_fasta_action, char_mapping);
 
   return 1;
