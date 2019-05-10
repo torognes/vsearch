@@ -4022,7 +4022,29 @@ void show_publication()
 void cmd_version()
 {
   if (! opt_quiet)
-    show_publication();
+    {
+      show_publication();
+
+#ifdef HAVE_ZLIB_H
+      printf("Compiled with support for gzip-compressed files,");
+      if (gz_lib)
+        printf(" and the library is loaded.\n");
+      else
+        printf(" but the library was not found.\n");
+#else
+      printf("Compiled without support for gzip-compressed files.\n");
+#endif
+
+#ifdef HAVE_BZLIB_H
+      printf("Compiled with support for bzip2-compressed files,");
+      if (bz2_lib)
+        printf(" and the library is loaded.\n");
+      else
+        printf(" but the library was not found.\n");
+#else
+      printf("Compiled without support for bzip2-compressed files.\n");
+#endif
+    }
 }
 
 void cmd_help()
