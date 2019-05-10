@@ -100,12 +100,7 @@
 #ifdef __x86_64__
 
 #define PROG_CPU "x86_64"
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-#ifdef __SSSE3__
-#include <tmmintrin.h>
-#endif
+#include <x86intrin.h>
 
 #elif __PPC__
 
@@ -138,30 +133,50 @@
 #define bswap_32(x) _byteswap_ulong(x)
 #define bswap_64(x) _byteswap_uint64(x)
 
-#else
-
-#ifdef __APPLE__
+#elif __APPLE__
 
 #define PROG_OS "macos"
 #include <sys/sysctl.h>
 #include <libkern/OSByteOrder.h>
+#include <sys/resource.h>
 #define bswap_16(x) OSSwapInt16(x)
 #define bswap_32(x) OSSwapInt32(x)
 #define bswap_64(x) OSSwapInt64(x)
 
-#else
+#elif __linux__
 
-#ifdef __linux__
 #define PROG_OS "linux"
-#else
-#define PROG_OS "unknown"
-#endif
-
 #include <sys/sysinfo.h>
 #include <byteswap.h>
+#include <sys/resource.h>
 
-#endif
+#elif __FreeBSD__
 
+#define PROG_OS "freebsd"
+#include <sys/sysinfo.h>
+#include <sys/resource.h>
+#include <sys/endian.h>
+#define bswap_16(x) bswap16(x)
+#define bswap_32(x) bswap32(x)
+#define bswap_64(x) bswap64(x)
+
+#elif __NetBSD__
+
+#define PROG_OS "netbsd"
+#include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/bswap.h>
+#define bswap_16(x) bswap16(x)
+#define bswap_32(x) bswap32(x)
+#define bswap_64(x) bswap64(x)
+/* Alters behavior, but NetBSD 7 does not have getopt_long_only() */
+#define getopt_long_only getopt_long
+
+#else
+
+#define PROG_OS "unknown"
+#include <sys/sysinfo.h>
+#include <byteswap.h>
 #include <sys/resource.h>
 
 #endif
