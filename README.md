@@ -109,15 +109,17 @@ Windows: You will now have the binary distribution in a folder called `vsearch-2
 
 ## Plugins, packages, and wrappers
 
-**QIIME 2 plugin** Thanks to the [QIIME 2](https://github.com/qiime2) team, there is now a plugin called [q2-vsearch](https://github.com/qiime2/q2-vsearch) for [QIIME 2](https://qiime2.org).
-
 **Conda package** Thanks to the [BioConda](https://bioconda.github.io/) team, there is now a [vsearch package](https://anaconda.org/bioconda/vsearch) in [Conda](https://conda.io/).
-
-**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a [vsearch package](https://github.com/Homebrew/homebrew-science/pull/2409) for [Homebrew](http://brew.sh/) has been made.
 
 **Debian package** Thanks to the [Debian Med](https://www.debian.org/devel/debian-med/) team, there is now a [vsearch](https://packages.debian.org/sid/vsearch) package in [Debian](https://www.debian.org/).
 
+**FreeBSD ports package** Thanks to [Jason Bacon](https://github.com/outpaddling), a [vsearch](https://www.freebsd.org/cgi/ports.cgi?query=vsearch&stype=all) [FreeBSD ports](https://www.freebsd.org/ports/) package is available. Install the binary package with `pkg install vsearch`, or build from source with additional optimizations.
+
 **Galaxy wrapper** Thanks to the work of the [Intergalactic Utilities Commission](https://wiki.galaxyproject.org/IUC) members, vsearch is now part of the [Galaxy ToolShed](https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/).
+
+**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a [vsearch package](https://github.com/Homebrew/homebrew-science/pull/2409) for [Homebrew](http://brew.sh/) has been made.
+
+**QIIME 2 plugin** Thanks to the [QIIME 2](https://github.com/qiime2) team, there is now a plugin called [q2-vsearch](https://github.com/qiime2/q2-vsearch) for [QIIME 2](https://qiime2.org).
 
 
 ## Converting output to a biom file for use in QIIME and other software
