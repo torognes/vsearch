@@ -16,7 +16,7 @@ We have implemented a tool called VSEARCH which supports *de novo* and reference
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-VSEARCH binaries are provided for GNU/Linux on three processor architectures: x86-64, 64-bit little-endian POWER8 (ppc64le) and 64-bit ARMv8 (aarch64). VSEARCH contains dedicated SIMD code for these three processors architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon). Binaries are also provided for MacOS (version 10.9 Mavericks or later) and Windows (64-bit, version 7 or higher).
+[VSEARCH binaries](https://github.com/torognes/vsearch/releases/latest) are provided for GNU/Linux on three processor architectures: x86-64, 64-bit little-endian POWER8 (ppc64le) and 64-bit ARMv8 (aarch64). VSEARCH contains dedicated SIMD code for these three processors architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon). Binaries are also provided for MacOS (version 10.9 Mavericks or later) and Windows (64-bit, version 7 or higher).
 
 | CPU \ OS      | GNU/Linux     | MacOS  | Windows   |
 | ------------- | :-----------: | :----: | :-------: |
