@@ -16,7 +16,15 @@ We have implemented a tool called VSEARCH which supports *de novo* and reference
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-VSEARCH binaries are provided for x86-64 systems running GNU/Linux, macOS (version 10.9 (Mavericks) or later) and Windows (64-bit, version 7 or higher), as well as for 64-bit little-endian POWER8 (ppc64le) and 64-bit ARMv8 systems (aarch64) running GNU/Linux. VSEARCH contains dedicated SIMD code for these three processors architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon). The source code should also compile on [FreeBSD](https://www.freebsd.org/) and [NetBSD](https://www.netbsd.org/) systems.
+VSEARCH binaries are provided for GNU/Linux on three processor architectures: x86-64, 64-bit little-endian POWER8 (ppc64le) and 64-bit ARMv8 (aarch64). VSEARCH contains dedicated SIMD code for these three processors architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon). Binaries are also provided for MacOS (version 10.9 Mavericks or later) and Windows (64-bit, version 7 or higher).
+
+| CPU \ OS      | GNU/Linux     | MacOS  | Windows   |
+| ------------- | :-----------: | :----: | :-------: |
+| x86_64        |  ✔            |  ✔     |  ✔        |
+| ARMv8         |  ✔            |        |           |
+| POWER8        |  ✔            |        |           |
+
+The source code should also compile on [FreeBSD](https://www.freebsd.org/) and [NetBSD](https://www.netbsd.org/) systems.
 
 VSEARCH can directly read input query and database files that are compressed using gzip and bzip2 (.gz and .bz2) if the zlib and bzip2 libraries are available.
 
