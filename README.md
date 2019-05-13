@@ -127,6 +127,8 @@ Windows: You will now have the binary distribution in a folder called `vsearch-2
 
 **Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a [vsearch package](https://github.com/Homebrew/homebrew-science/pull/2409) for [Homebrew](http://brew.sh/) has been made.
 
+**Pkgsrc package** Thanks to [Jason Bacon](https://github.com/outpaddling), a vsearch (https://www.pkgsrc.org)[pkgsrc] package is available for NetBSD and other UNIX-like systems. Install the binary package with `pkgin install vsearch`, or build from source with additional optimizations.
+
 **QIIME 2 plugin** Thanks to the [QIIME 2](https://github.com/qiime2) team, there is now a plugin called [q2-vsearch](https://github.com/qiime2/q2-vsearch) for [QIIME 2](https://qiime2.org).
 
 
