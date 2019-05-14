@@ -26,7 +26,7 @@ VSEARCH stands for vectorized search, as the tool takes advantage of parallelism
 
 Various packages, plugins and wrappers are also available from other sources - see [below](https://github.com/torognes/vsearch#packages-plugins-and-wrappers).
 
-The source code should also compile on [FreeBSD](https://www.freebsd.org/) and [NetBSD](https://www.netbsd.org/) systems.
+The source code compiles correctly with gcc (versions 4.8 to 9.1) and llvm-clang (3.8 to 9.0). The source code should also compile on [FreeBSD](https://www.freebsd.org/) and [NetBSD](https://www.netbsd.org/) systems.
 
 VSEARCH can directly read input query and database files that are compressed using gzip and bzip2 (.gz and .bz2) if the zlib and bzip2 libraries are available.
 
