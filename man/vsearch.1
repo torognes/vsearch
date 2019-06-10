@@ -850,9 +850,9 @@ Not used, always set to '*' (S, C) or to zero (H).
 .IP \n+[step].
 set to '*' (S, C) or, for H, compact representation of the pairwise
 alignment using the CIGAR format (Compact Idiosyncratic Gapped
-Alignment Report): M (match), D (deletion) and I (insertion). The
-equal sign '=' indicates that the query is identical to the centroid
-sequence.
+Alignment Report): M (match/mismatch), D (deletion) and I
+(insertion). The equal sign '=' indicates that the query is identical
+to the centroid sequence.
 .IP \n+[step].
 Label of the query sequence (H), or of the centroid sequence (S, C).
 .IP \n+[step].
@@ -1845,9 +1845,9 @@ Not used, always set to zero.
 Not used, always set to zero.
 .IP \n+[step].
 Compact representation of the pairwise alignment using the CIGAR
-format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion). The equal sign '=' indicates that the
-query is identical to the centroid sequence.
+format (Compact Idiosyncratic Gapped Alignment Report): M
+(match/mismatch), D (deletion) and I (insertion). The equal sign '='
+indicates that the query is identical to the centroid sequence.
 .IP \n+[step].
 Label of the query sequence.
 .IP \n+[step].
@@ -2359,9 +2359,10 @@ Not used, always set to zero for H, or '*' for N.
 Not used, always set to zero for H, or '*' for N.
 .IP \n+[step].
 Compact representation of the pairwise alignment using the CIGAR
-format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion). The equal sign '=' indicates that the
-query is identical to the centroid sequence. Set to '*' for N.
+format (Compact Idiosyncratic Gapped Alignment Report): M
+(match/mismatch), D (deletion) and I (insertion). The equal sign '='
+indicates that the query is identical to the centroid sequence. Set
+to '*' for N.
 .IP \n+[step].
 Label of the query sequence.
 .IP \n+[step].
@@ -2774,8 +2775,9 @@ Bit score (not computed for nucleotide alignments). Always set to 0.
 .TP
 .B caln
 Compact representation of the pairwise alignment using the CIGAR
-format (Compact Idiosyncratic Gapped Alignment Report): M (match), D
-(deletion) and I (insertion). Empty field if there is no alignment.
+format (Compact Idiosyncratic Gapped Alignment Report): M
+(match/mismatch), D (deletion) and I (insertion). Empty field if there
+is no alignment.
 .TP
 .B evalue
 E-value (not computed for nucleotide alignments). Always set to -1.
