@@ -641,7 +641,10 @@ void fastq_stats()
 
   fastq_close(h);
 
-  fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
+  if (!opt_quiet)
+    {
+        fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
+    }
 }
 
 void fastx_revcomp()
