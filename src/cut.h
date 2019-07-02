@@ -58,15 +58,4 @@
 
 */
 
-#ifdef __x86_64__
-void increment_counters_from_bitmap_sse2(count_t * counters,
-                                         unsigned char * bitmap,
-                                         unsigned int totalbits);
-void increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char * bitmap,
-                                          unsigned int totalbits);
-#else
-void increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char * bitmap,
-                                    unsigned int totalbits);
-#endif
+void cut();

@@ -26,6 +26,7 @@ city.h \
 citycrc.h \
 cluster.h \
 cpu.h \
+cut.h \
 db.h \
 dbhash.h \
 dbindex.h \
@@ -117,6 +118,7 @@ attributes.cc \
 bitmap.cc \
 chimera.cc \
 cluster.cc \
+cut.cc \
 db.cc \
 dbhash.cc \
 dbindex.cc \

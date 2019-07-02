@@ -216,7 +216,7 @@ void sintax_analyse(char * query_head,
   int level_match[tax_levels];
 
   /* check number of successful bootstraps */
-  if (count >= bootstrap_count / 2)
+  if (count >= (bootstrap_count+1) / 2)
     {
       char * best_h = db_getheader(best_seqno);
 

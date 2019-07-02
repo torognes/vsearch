@@ -95,6 +95,8 @@ char * opt_cluster_smallmem;
 char * opt_cluster_unoise;
 char * opt_clusters;
 char * opt_consout;
+char * opt_cut;
+char * opt_cut_pattern;
 char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
@@ -123,12 +125,12 @@ char * opt_fastqout_notmerged_fwd;
 char * opt_fastqout_notmerged_rev;
 char * opt_fastqout_rev;
 char * opt_fastx_filter;
-char * opt_fastx_mask;
-char * opt_fastx_revcomp;
-char * opt_fastx_subsample;
 char * opt_fastx_getseq;
 char * opt_fastx_getseqs;
 char * opt_fastx_getsubseq;
+char * opt_fastx_mask;
+char * opt_fastx_revcomp;
+char * opt_fastx_subsample;
 char * opt_join_padgap;
 char * opt_join_padgapq;
 char * opt_label;
@@ -665,6 +667,8 @@ void args_init(int argc, char **argv)
   opt_clusters = 0;
   opt_cons_truncate = 0;
   opt_consout = 0;
+  opt_cut = 0;
+  opt_cut_pattern = 0;
   opt_db = 0;
   opt_dbmask = MASK_DUST;
   opt_dbmatched = 0;
@@ -1100,7 +1104,9 @@ void args_init(int argc, char **argv)
     option_label_field,
     option_label_word,
     option_label_words,
-    option_labels
+    option_labels,
+    option_cut,
+    option_cut_pattern
   };
 
   static struct option long_options[] =
@@ -1326,6 +1332,8 @@ void args_init(int argc, char **argv)
     {"label_word",            required_argument, 0, 0 },
     {"label_words",           required_argument, 0, 0 },
     {"labels",                required_argument, 0, 0 },
+    {"cut",                   required_argument, 0, 0 },
+    {"cut_pattern",           required_argument, 0, 0 },
     { 0,                      0,                 0, 0 }
   };
 
@@ -2263,6 +2271,14 @@ void args_init(int argc, char **argv)
           opt_labels = optarg;
           break;
 
+        case option_cut:
+          opt_cut = optarg;
+          break;
+
+        case option_cut_pattern:
+          opt_cut_pattern = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2283,6 +2299,7 @@ void args_init(int argc, char **argv)
       option_cluster_size,
       option_cluster_smallmem,
       option_cluster_unoise,
+      option_cut,
       option_derep_fulllength,
       option_derep_prefix,
       option_fastq_chars,
@@ -2765,6 +2782,27 @@ void args_init(int argc, char **argv)
         option_weak_id,
         option_wordlength,
         option_xdrop_nw,
+        option_xee,
+        option_xsize,
+        -1 },
+
+      { option_cut,
+        option_bzip2_decompress,
+        option_cut_pattern,
+        option_fasta_width,
+        option_fastaout,
+        option_fastaout_discarded,
+        option_fastaout_discarded_rev,
+        option_fastaout_rev,
+        option_gzip_decompress,
+        option_log,
+        option_no_progress,
+        option_notrunclabels,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_sha1,
         option_xee,
         option_xsize,
         -1 },
@@ -4896,6 +4934,8 @@ int main(int argc, char** argv)
     fastx_getseqs();
   else if (opt_fastx_getsubseq)
     fastx_getsubseq();
+  else if (opt_cut)
+    cut();
   else
     cmd_none();
 

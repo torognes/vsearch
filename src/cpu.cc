@@ -65,7 +65,7 @@
 
 #ifdef __aarch64__
 
-void increment_counters_from_bitmap(unsigned short * counters,
+void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char * bitmap,
                                     unsigned int totalbits)
 {
@@ -117,7 +117,7 @@ void increment_counters_from_bitmap(unsigned short * counters,
 
 #elif __PPC__
 
-void increment_counters_from_bitmap(unsigned short * counters,
+void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char * bitmap,
                                     unsigned int totalbits)
 {
@@ -157,11 +157,11 @@ void increment_counters_from_bitmap(unsigned short * counters,
 #elif __x86_64__
 
 #ifdef SSSE3
-void increment_counters_from_bitmap_ssse3(unsigned short * counters,
+void increment_counters_from_bitmap_ssse3(count_t * counters,
                                           unsigned char * bitmap,
                                           unsigned int totalbits)
 #else
-void increment_counters_from_bitmap_sse2(unsigned short * counters,
+void increment_counters_from_bitmap_sse2(count_t * counters,
                                          unsigned char * bitmap,
                                          unsigned int totalbits)
 #endif
