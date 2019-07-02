@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "May 10, 2019" "version 2.13.4" "USER COMMANDS"
+.TH vsearch 1 "July 2, 2019" "version 2.13.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -117,6 +117,13 @@ Pairwise alignment:
 [\fIoptions\fR]
 .PP
 .RE
+Restriction site cutting:
+.RS
+\fBvsearch\fR \-\-cut \fIfastafile\fR \-\-cut_pattern \fIpattern\fR
+(\-\-fastaout | \-\-fastaout_rev | \-\-fastaout_discarded |
+\-\-fastaout_discarded_rev) \fIoutputfile\fR [\fIoptions\fR]
+.PP
+.RE
 Searching:
 .RS
 \fBvsearch\fR \-\-search_exact \fIfastafile\fR \-\-db \fIfastafile\fR
@@ -163,7 +170,7 @@ UDB database handling:
 .PP
 .RE
 .\" left and right justified (default)
-.ad b 
+.ad b
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular diversity studies generate large
@@ -1788,6 +1795,54 @@ mask.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
+Restriction site cutting options:
+.RS
+.PP
+The input sequences in the file specified with the \-\-cut command are
+cut into fragments at all restriction sites matching the pattern given
+with the \-\-cut_pattern option. The fragments on the forward strand
+are written to the file specified with the \-\-fastaout file and the
+fragments on the reverse strand are written to the file specified with
+the \-\-fastaout_rev option. Input sequences that do not match are
+written to the file specified with the option \-\-fastaout_discarded,
+and their reverse complement are also written to the file specfied
+with the \-\-fastaout_discarded_rev option. The relabel options
+(\-\-relabel, \-\-relabel_keep, \-\-relabel_md5, and \-\-relabel_sha1)
+may be used to relabel the output sequences).
+.TP 9
+.BI \-\-cut \0filename
+Specify the input file with sequences in FASTA format.
+.TP
+.BI \-\-cut_pattern \0string
+Specify the restriction site cutting pattern and positions. The
+pattern is a string of lower- or uppercase letters specifying the
+nucleotides that must match, and may include ambiguous nucleotide
+symbols. The special characters "^" (circumflex) and "_" (underscore)
+are used to indicate the cutting position on the forward and reverse
+strand, respectively. For example, the pattern "G^AATT_C" is the
+pattern for the EcoRI restriction site. For such palindromic patterns
+(identical to its reverse complement) the command will output all
+possible fragments on both strands. For non-palindromic sites, it may
+be necessary to run the command also on the reverse complemented input
+sequences. Exactly one cutting site on each strand must be indicated.
+.TP
+.BI \-\-fastaout \0filename
+Specify the output file for the resulting fragments on the forward
+strand.
+.TP
+.BI \-\-fastaout_rev \0filename
+Specify the output file for the resulting fragments on the reverse
+strand.
+.TP
+.BI \-\-fastaout_discarded \0filename
+Specify the output file for the non-matching sequences.
+.TP
+.BI \-\-fastaout_discarded_rev \0filename
+Specify the output file for the non-matching seqeunces, reverse
+complemented.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
 Pairwise alignment options:
 .RS
 .PP
@@ -2895,7 +2950,7 @@ is no alignment.
 .TP
 .B qs
 Query segment length. Always equal to query sequence length.
-.\" The meaning of that field is not clear to us. 
+.\" The meaning of that field is not clear to us.
 .TP
 .B qstrand
 Query strand orientation (+ or - for nucleotide sequences). Empty
@@ -3131,7 +3186,7 @@ greater than 2:
 2
 .RE
 .PP
-.\" 
+.\"
 .\" ============================================================================
 .SH AUTHORS
 Implementation by Torbjørn Rognes and Tomás Flouri, documentation by
@@ -3782,6 +3837,10 @@ Fixed bug in FASTQ parsing introduced in version 2.13.2.
 Added information about support for gzip- and bzip2-compressed input
 files to the output of the version command. Adapted source code for
 compilation on FreeBSD and NetBSD systems.
+.TP
+.BR v2.13.5\~ "released July 2nd, 2019"
+Added cut command to fragment sequences at restriction sites. Silenced
+output from the fastq_stats command if quiet option was given. Updated manual.
 .RE
 .LP
 .\" ============================================================================
