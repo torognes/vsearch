@@ -10,7 +10,7 @@ compiler:
 - clang
 
 install:
-- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install ghostscript; else brew install ghostscript; fi
+- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install ghostscript; sudo apt-get install groff; else brew install ghostscript; fi
 
 script:
 - ./autogen.sh
