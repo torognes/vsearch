@@ -2,21 +2,33 @@
 
 dist_man_MANS = vsearch.1
 
+doc_DATA = vsearch_manual.html
+
+vsearch_manual.html : vsearch.1
+	sed -e 's/\\-/-/g' $< | \
+	if [ $$(uname) == "Darwin" ] ; then \
+		iconv -f UTF-8 -t ISO-8859-1 ; \
+	else \
+		cat ; \
+	fi | \
+	groff -t -m mandoc -m www -Thtml > $@
+
+CLEANFILES = vsearch_manual.html
+
+
 if HAVE_PS2PDF
 
-doc_DATA = vsearch_manual.pdf
+doc_DATA += vsearch_manual.pdf
 
 vsearch_manual.pdf : vsearch.1
-	TEMP=$$(mktemp temp.XXXXXXXX) ; \
+	sed -e 's/\\-/-/g' $< | \
 	if [ $$(uname) == "Darwin" ] ; then \
-		sed -e 's/\\-/-/g' $< | \
-		iconv -f UTF-8 -t ISO-8859-1 > $$TEMP ; \
+		iconv -f UTF-8 -t ISO-8859-1 ; \
 	else \
-		sed -e 's/\\-/-/g' $< > $$TEMP ; \
-	fi ; \
-	man -t ./$$TEMP | ps2pdf -sPAPERSIZE=a4 - $@ ; \
-	rm $$TEMP
+		cat ; \
+	fi | \
+	groff -t -m mandoc -T ps -P -pa4 | ps2pdf - $@
 
-CLEANFILES=vsearch_manual.pdf
+CLEANFILES += vsearch_manual.pdf
 
 endif
