@@ -296,7 +296,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
               if (count > best_count)
                 {
                   best_count = count;
-                  best_sym = c+1;
+                  best_sym = 1 << c;
                 }
             }
 
