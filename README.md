@@ -34,7 +34,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.13.6/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.13.7/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -47,9 +47,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.13.6.tar.gz
-tar xzf v2.13.6.tar.gz
-cd vsearch-2.13.6
+wget https://github.com/torognes/vsearch/archive/v2.13.7.tar.gz
+tar xzf v2.13.7.tar.gz
+cd vsearch-2.13.7
 ./autogen.sh
 ./configure
 make
