@@ -3447,7 +3447,13 @@ void args_init(int argc, char **argv)
         option_log,
         option_no_progress,
         option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
         option_sff_clip,
+        option_sizeout,
         option_threads,
         -1 },
 

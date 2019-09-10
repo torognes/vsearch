@@ -335,7 +335,7 @@ void sff_convert()
                           read_name,
                           strlen(read_name),
                           qual + clip_start,
-                          0, 0, -1.0);
+                          1, read_no + 1, -1.0);
 
       xfree(read_name);
       xfree(bases);
