@@ -446,6 +446,12 @@ int64_t fastq_get_abundance_and_presence(fastx_handle h)
   return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 
+inline void fprint_seq_label(FILE * fp, char * seq, int len)
+{
+  /* normalize first? */
+  fprintf(fp, "%.*s", len, seq);
+}
+
 void fastq_print_general(FILE * fp,
                          char * seq,
                          int len,
@@ -458,7 +464,9 @@ void fastq_print_general(FILE * fp,
 {
   fprintf(fp, "@");
 
-  if (opt_relabel_sha1)
+  if (opt_relabel_self)
+    fprint_seq_label(fp, seq, len);
+  else if (opt_relabel_sha1)
     fprint_seq_digest_sha1(fp, seq, len);
   else if (opt_relabel_md5)
     fprint_seq_digest_md5(fp, seq, len);
@@ -482,7 +490,7 @@ void fastq_print_general(FILE * fp,
     fprintf(fp, ";ee=%.4lf", ee);
 
   if (opt_relabel_keep &&
-      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5))
+      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     fprintf(fp, " %.*s", header_len, header);
 
   fprintf(fp, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);

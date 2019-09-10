@@ -322,6 +322,12 @@ void fasta_print(FILE * fp, const char * hdr,
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
+inline void fprint_seq_label(FILE * fp, char * seq, int len)
+{
+  /* normalize first? */
+  fprintf(fp, "%.*s", len, seq);
+}
+
 void fasta_print_general(FILE * fp,
                          const char * prefix,
                          char * seq,
@@ -341,7 +347,9 @@ void fasta_print_general(FILE * fp,
   if (prefix)
     fprintf(fp, "%s", prefix);
 
-  if (opt_relabel_sha1)
+  if (opt_relabel_self)
+    fprint_seq_label(fp, seq, len);
+  else if (opt_relabel_sha1)
     fprint_seq_digest_sha1(fp, seq, len);
   else if (opt_relabel_md5)
     fprint_seq_digest_md5(fp, seq, len);
@@ -374,7 +382,7 @@ void fasta_print_general(FILE * fp,
     fprintf(fp, ";%s=%.4lf", score_name, score);
 
   if (opt_relabel_keep &&
-      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5))
+      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     fprintf(fp, " %s", header);
 
   fprintf(fp, "\n");

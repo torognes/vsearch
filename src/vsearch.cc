@@ -76,6 +76,7 @@ bool opt_no_progress;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
+bool opt_relabel_self;
 bool opt_relabel_sha1;
 bool opt_samheader;
 bool opt_sff_clip;
@@ -826,6 +827,7 @@ void args_init(int argc, char **argv)
   opt_relabel = 0;
   opt_relabel_keep = 0;
   opt_relabel_md5 = 0;
+  opt_relabel_self = 0;
   opt_relabel_sha1 = 0;
   opt_rereplicate = 0;
   opt_reverse = 0;
@@ -1051,6 +1053,7 @@ void args_init(int argc, char **argv)
     option_relabel,
     option_relabel_keep,
     option_relabel_md5,
+    option_relabel_self,
     option_relabel_sha1,
     option_rereplicate,
     option_reverse,
@@ -1278,6 +1281,7 @@ void args_init(int argc, char **argv)
     {"relabel",               required_argument, 0, 0 },
     {"relabel_keep",          no_argument,       0, 0 },
     {"relabel_md5",           no_argument,       0, 0 },
+    {"relabel_self",          no_argument,       0, 0 },
     {"relabel_sha1",          no_argument,       0, 0 },
     {"rereplicate",           required_argument, 0, 0 },
     {"reverse",               required_argument, 0, 0 },
@@ -2279,6 +2283,10 @@ void args_init(int argc, char **argv)
           opt_cut_pattern = optarg;
           break;
 
+        case option_relabel_self:
+          opt_relabel_self = 1;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2342,7 +2350,7 @@ void args_init(int argc, char **argv)
 
   const int commands_count = sizeof(command_options) / sizeof(int);
 
-  const int valid_options[][91] =
+  const int valid_options[][92] =
     {
       {
         option_allpairs_global,
@@ -2400,6 +2408,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rightjust,
         option_rowlen,
@@ -2488,6 +2497,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rightjust,
         option_rowlen,
@@ -2578,6 +2588,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rightjust,
         option_rowlen,
@@ -2668,6 +2679,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rightjust,
         option_rowlen,
@@ -2760,6 +2772,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rightjust,
         option_rowlen,
@@ -2802,6 +2815,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_xee,
         option_xsize,
@@ -2823,6 +2837,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -2850,6 +2865,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -2887,6 +2903,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -2959,6 +2976,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_reverse,
         option_sizein,
@@ -2985,6 +3003,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_reverse,
         option_threads,
@@ -3028,6 +3047,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_reverse,
         option_threads,
@@ -3085,6 +3105,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_reverse,
         option_sizein,
@@ -3114,6 +3135,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_threads,
         option_xee,
@@ -3143,6 +3165,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_threads,
         option_xee,
@@ -3169,6 +3192,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_subseq_end,
         option_subseq_start,
@@ -3197,6 +3221,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_threads,
         option_xee,
@@ -3220,6 +3245,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_threads,
         option_xee,
@@ -3245,6 +3271,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sample_pct,
         option_sample_size,
@@ -3299,6 +3326,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_threads,
         option_xee,
@@ -3317,6 +3345,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -3365,6 +3394,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rowlen,
         option_samheader,
@@ -3413,6 +3443,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizeout,
         option_threads,
@@ -3457,6 +3488,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizeout,
         option_threads,
@@ -3484,6 +3516,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizeout,
         option_threads,
@@ -3517,6 +3550,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -3554,6 +3588,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -3591,6 +3626,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_sizein,
         option_sizeout,
@@ -3630,6 +3666,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_self,
         option_selfid,
@@ -3654,6 +3691,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_threads,
         option_xee,
@@ -3734,6 +3772,7 @@ void args_init(int argc, char **argv)
         option_relabel,
         option_relabel_keep,
         option_relabel_md5,
+        option_relabel_self,
         option_relabel_sha1,
         option_rightjust,
         option_rowlen,
@@ -3924,14 +3963,9 @@ void args_init(int argc, char **argv)
   if (opt_sample_size < 0)
     fatal("The argument to --sample_size must not be negative");
 
-  if (opt_relabel_sha1 && opt_relabel_md5)
-    fatal("Specify either --relabel_sha1 or --relabel_md5, not both");
-
-  if (opt_relabel && opt_relabel_md5)
-    fatal("Specify either --relabel or --relabel_md5, not both");
-
-  if (opt_relabel && opt_relabel_sha1)
-    fatal("Specify either --relabel or --relabel_sha1, not both");
+  if (((opt_relabel ? 1 : 0) +
+       opt_relabel_md5 + opt_relabel_self + opt_relabel_sha1) > 1)
+    fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
 
   if (opt_fastq_tail < 1)
     fatal("The argument to --fastq_tail must be positive");
@@ -4139,6 +4173,7 @@ void cmd_help()
               "  --relabel STRING            relabel nonchimeras with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   include abundance information when relabelling\n"
               "  --uchimealns FILENAME       output chimera alignments to file\n"
@@ -4175,6 +4210,7 @@ void cmd_help()
               "  --relabel STRING            relabel centroids with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeorder                 sort accepted centroids by abundance, AGC\n"
               "  --sizeout                   write cluster abundances to centroid file\n"
@@ -4205,6 +4241,7 @@ void cmd_help()
               "  --relabel STRING            relabel with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   write abundance annotation to output\n"
               "  --topn INT                  output only n most abundant sequences after derep\n"
@@ -4418,6 +4455,7 @@ void cmd_help()
               "  --relabel STRING            relabel sequences with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   include abundance information when relabelling\n"
               "  --topn INT                  output just first n sequences\n"
@@ -4441,6 +4479,7 @@ void cmd_help()
               "  --relabel STRING            relabel sequences with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   update abundance information in output\n"
               "  --xsize                     strip abundance information in output\n"
@@ -4487,6 +4526,7 @@ void cmd_help()
               "  --relabel STRING            relabel filtered sequences with given prefix\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel filtered sequences with md5 digest\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel filtered sequences with sha1 digest\n"
               "  --sizeout                   include abundance information when relabelling\n"
               "  --xee                       remove expected errors (ee) info from output\n"

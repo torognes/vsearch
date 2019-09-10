@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 2, 2019" "version 2.13.7" "USER COMMANDS"
+.TH vsearch 1 "September 5, 2019" "version 2.13.7" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -493,6 +493,10 @@ generates a 128-bit (16-byte) digest that is represented by 16
 hexadecimal numbers (using 32 symbols among 0123456789abcdef). Use
 \-\-sizeout to conserve the abundance annotations.
 .\" The probablity of collision for two sequences is 1/2^128
+.TAG relabel_self
+.TP
+.B \-\-relabel_self
+Relabel sequences using each sequence itself as a label.
 .TAG relabel_sha1
 .TP
 .B \-\-relabel_sha1
@@ -670,15 +674,16 @@ header. The OTU identifier may contain any printable character except
 semicolons. If no such OTU label is found, the identifier in the
 initial part of the header will be used, and all characters except
 semicolons are allowed. Alternatively, OTU identifers can be generated
-using the relabelling options (\-\-relabel, \-\-relabel_sha1 or
-\-\-relabel_md5). Taxonomy information, if present, will also be
-extracted from the headers of the centroid sequences. If the header
-contains ';tax=Homo_sapiens;' or a similar string somewhere, then the
-given taxonomy information (here 'Homo_sapiens') will be used. The
-semicolon is not mandatory at the beginning or end of the header. The
-taxonomy information may contain any printable character except
-semicolons. If an OTU table in the biom version 2.1 HDF5 file format
-is required, the biom utility may be used as described at
+using the relabelling options (\-\-relabel, \-\-relabel_self,
+\-\-relabel_sha1, or \-\-relabel_md5). Taxonomy information, if
+present, will also be extracted from the headers of the centroid
+sequences. If the header contains ';tax=Homo_sapiens;' or a similar
+string somewhere, then the given taxonomy information
+(here 'Homo_sapiens') will be used. The semicolon is not mandatory at
+the beginning or end of the header. The taxonomy information may
+contain any printable character except semicolons. If an OTU table in
+the biom version 2.1 HDF5 file format is required, the biom utility
+may be used as described at
 .URL http://biom-format.org/documentation/biom_conversion.html "(link)"
 <http://biom-format.org/documentation/biom_conversion.html>.
 .TAG centroids
@@ -864,6 +869,12 @@ When relabelling, keep the old identifier in the header after a space.
 Relabel sequence identifiers in the output files produced by
 \-\-consout, \-\-profile and \-\-centroids options. Please see the
 description of the same option under Chimera detection for details.
+.TAG relabel_self
+.TP
+.B \-\-relabel_self
+Relabel sequence identifiers in the output files produced by
+\-\-consout, \-\-profile and \-\-centroids options. Please see the
+description of the same option under Chimera detection for details.
 .TAG relabel_sha1
 .TP
 .B \-\-relabel_sha1
@@ -1027,6 +1038,11 @@ When relabelling, keep the old identifier in the header after a space.
 Please see the description of the same option under Chimera detection
 for details.
 .TP
+.TAG relabel_self
+.B \-\-relabel_self
+Please see the description of the same option under Chimera detection
+for details.
+.TP
 .TAG relabel_sha1
 .B \-\-relabel_sha1
 Please see the description of the same option under Chimera detection
@@ -1037,11 +1053,11 @@ for details.
 Duplicate each sequence the number of times indicated by the abundance
 of each sequence in the specified file (option \-\-sizein is always
 implied). The sequence labels are identical for the same sequence,
-unless \-\-relabel, \-\-relabel_sha1 or \-\-relabel_md5 is used to
-create unique labels. Output is written to the file specified with the
-\-\-output option, in FASTA format. The output file does not contain
-abundance information unless \-\-sizeout is specified, in which case
-an abundance of 1 is used.
+unless \-\-relabel, \-\-relabel_self, \-\-relabel_sha1 or
+\-\-relabel_md5 is used to create unique labels. Output is written to
+the file specified with the \-\-output option, in FASTA format. The
+output file does not contain abundance information unless \-\-sizeout
+is specified, in which case an abundance of 1 is used.
 .TAG sizein
 .TP
 .B \-\-sizein
@@ -1822,6 +1838,11 @@ for details.
 .BI \-\-relabel_md5
 Please see the description of the same option under Chimera detection
 for details.
+.TAG relabel_self
+.TP
+.BI \-\-relabel_self
+Please see the description of the same option under Chimera detection
+for details.
 .TAG relabel_sha1
 .TP
 .BI \-\-relabel_sha1
@@ -2014,8 +2035,8 @@ the \-\-fastaout_rev option. Input sequences that do not match are
 written to the file specified with the option \-\-fastaout_discarded,
 and their reverse complement are also written to the file specfied
 with the \-\-fastaout_discarded_rev option. The relabel options
-(\-\-relabel, \-\-relabel_keep, \-\-relabel_md5, and \-\-relabel_sha1)
-may be used to relabel the output sequences).
+(\-\-relabel, \-\-relabel_self, \-\-relabel_keep, \-\-relabel_md5, and
+\-\-relabel_sha1) may be used to relabel the output sequences).
 .TAG cut
 .TP 9
 .BI \-\-cut \0filename
@@ -2793,6 +2814,10 @@ inputs give the same result. The MD5 digest generates a 128-bit
 (16-byte) digest that is represented by 16 hexadecimal numbers (using
 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve the
 abundance annotations.
+.TAG relabel_self
+.TP
+.B \-\-relabel_self
+Relabel sequences using the sequence itself as the label.
 .TAG relabel_sha1
 .TP
 .B \-\-relabel_sha1
@@ -2807,9 +2832,9 @@ conserve the abundance annotations.
 .TAG sizeout
 .TP
 .B \-\-sizeout
-When using \-\-relabel, \-\-relabel_md5 or \-\-relabel_sha1, preserve
-and report abundance annotations to the output fasta file (using the
-pattern ';size=\fIinteger\fR;').
+When using \-\-relabel, \-\-relabel_self, \-\-relabel_md5 or
+\-\-relabel_sha1, preserve and report abundance annotations to the
+output fasta file (using the pattern ';size=\fIinteger\fR;').
 .TAG shuffle
 .TP
 .BI \-\-shuffle \0filename
@@ -2867,6 +2892,11 @@ When relabelling, keep the old identifier in the header after a space.
 .TAG relabel_md5
 .TP
 .BI \-\-relabel_md5
+Please see the description of the same option under Chimera detection
+for details.
+.TAG relabel_self
+.TP
+.BI \-\-relabel_self
 Please see the description of the same option under Chimera detection
 for details.
 .TAG relabel_sha1
@@ -2998,6 +3028,10 @@ inputs give the same result. The MD5 digest generates a 128-bit
 (16-byte) digest that is represented by 16 hexadecimal numbers (using
 32 symbols among 0123456789abcdef). Use \-\-sizeout to conserve the
 abundance annotations.
+.TAG relabel_self
+.TP
+.B \-\-relabel_self
+Relabel sequences using the sequence itself as the label.
 .TAG relabel_sha1
 .TP
 .B \-\-relabel_sha1
@@ -3426,8 +3460,8 @@ iddef (clustering, pairwise alignment, searching)
 .IP -
 maxuniquesize (dereplication)
 .IP -
-relabel_md5 and relabel_sha1 (chimera detection, dereplication, FASTQ
-processing, shuffling, sorting)
+relabel_md5, relabel_self and relabel_sha1 (chimera detection,
+dereplication, FASTQ processing, shuffling, sorting)
 .IP -
 shuffle (shuffling)
 .IP -

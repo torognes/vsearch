@@ -338,6 +338,11 @@ char * relabel_otu(int clusterno, char * sequence, int seqlen)
       label = (char*) xmalloc(strlen(opt_relabel) + 21);
       sprintf(label, "%s%d", opt_relabel, clusterno+1);
     }
+  else if (opt_relabel_self)
+    {
+      label = (char*) xmalloc(seqlen + 1);
+      sprintf(label, "%.*s", seqlen, sequence);
+    }
   else if (opt_relabel_sha1)
     {
       label = (char*) xmalloc(LEN_HEX_DIG_SHA1);
@@ -363,7 +368,7 @@ void cluster_core_results_hit(struct hit * best,
 
   if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
     {
-      if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
+      if (opt_relabel || opt_relabel_self || opt_relabel_sha1 || opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno,
                                      db_getsequence(best->target),
@@ -433,7 +438,7 @@ void cluster_core_results_nohit(int clusterno,
 
   if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
     {
-      if (opt_relabel || opt_relabel_sha1 || opt_relabel_md5)
+      if (opt_relabel || opt_relabel_self || opt_relabel_sha1 || opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno, qsequence, qseqlen);
           otutable_add(query_head, label, qsize);
