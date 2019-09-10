@@ -2300,6 +2300,8 @@ void args_init(int argc, char **argv)
   if (optind < argc)
     fatal("Unrecognized string on command line (%s)", argv[optind]);
 
+  /* Below is a list of all command names, in alphabetical order. */
+
   int command_options[] =
     {
       option_allpairs_global,
@@ -2349,6 +2351,11 @@ void args_init(int argc, char **argv)
     };
 
   const int commands_count = sizeof(command_options) / sizeof(int);
+
+  /*
+    Below is a list of all the options that are valid for each command.
+    The first line is the command and the lines below are the valid options.
+  */
 
   const int valid_options[][92] =
     {
@@ -2817,6 +2824,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_xee,
         option_xsize,
         -1 },
@@ -3006,6 +3015,8 @@ void args_init(int argc, char **argv)
         option_relabel_self,
         option_relabel_sha1,
         option_reverse,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3050,6 +3061,8 @@ void args_init(int argc, char **argv)
         option_relabel_self,
         option_relabel_sha1,
         option_reverse,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3137,6 +3150,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3144,6 +3159,7 @@ void args_init(int argc, char **argv)
 
       { option_fastx_getseqs,
         option_bzip2_decompress,
+        option_fasta_width,
         option_fastaout,
         option_fastq_ascii,
         option_fastq_qmax,
@@ -3167,6 +3183,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3194,6 +3212,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_subseq_end,
         option_subseq_start,
         option_threads,
@@ -3223,6 +3243,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3247,6 +3269,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3328,6 +3352,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
@@ -3445,6 +3471,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
         option_sizeout,
         option_threads,
         option_topn,
@@ -3490,6 +3517,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
         option_sizeout,
         option_threads,
         option_topn,
@@ -3518,6 +3546,7 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
         option_sizeout,
         option_threads,
         option_topn,
@@ -3693,6 +3722,8 @@ void args_init(int argc, char **argv)
         option_relabel_md5,
         option_relabel_self,
         option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_threads,
         option_xee,
         option_xsize,
