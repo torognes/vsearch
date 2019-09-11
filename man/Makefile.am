@@ -2,7 +2,12 @@
 
 dist_man_MANS = vsearch.1
 
-doc_DATA = vsearch_manual.html
+doc_DATA =
+CLEANFILES =
+
+if HAVE_MAN_HTML
+
+doc_DATA += vsearch_manual.html
 
 vsearch_manual.html : vsearch.1
 	sed -e 's/\\-/-/g' $< | \
@@ -13,7 +18,9 @@ vsearch_manual.html : vsearch.1
 	fi | \
 	groff -t -m mandoc -m www -Thtml > $@
 
-CLEANFILES = vsearch_manual.html
+CLEANFILES += vsearch_manual.html
+
+endif
 
 
 if HAVE_PS2PDF
