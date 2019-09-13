@@ -1408,7 +1408,7 @@ void fastq_mergepairs()
 
   if (failed_minscore)
     fprintf(stderr,
-            "%10" PRIu64 "  alignment score too low, or score drop to high\n",
+            "%10" PRIu64 "  alignment score too low, or score drop too high\n",
             failed_minscore);
 
   if (failed_minovlen)
