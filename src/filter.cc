@@ -433,7 +433,7 @@ void filter(bool fastq_only, char * filename)
               if (opt_fastaout_rev)
                 fasta_print_general(fp_fastaout_rev,
                                     0,
-                                    fastx_get_sequence(h1) + res2.start,
+                                    fastx_get_sequence(h2) + res2.start,
                                     res2.length,
                                     fastx_get_header(h2),
                                     fastx_get_header_length(h2),
