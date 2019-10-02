@@ -70,7 +70,7 @@ static char * * labels_data = 0;
 
 void read_labels_file(char * filename)
 {
-  FILE * fp_labels = fopen_input(filename, "r");
+  FILE * fp_labels = fopen_input(filename);
   if (! fp_labels)
     fatal("Unable to open labels file (%s)", filename);
 
