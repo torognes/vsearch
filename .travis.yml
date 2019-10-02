@@ -10,9 +10,13 @@ compiler:
 - clang
 
 install:
-- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install ghostscript; sudo apt-get install groff; else brew install ghostscript; fi
+- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y ghostscript groff valgrind ; else brew install ghostscript; brew install valgrind ; fi
 
 script:
 - ./autogen.sh
 - ./configure
 - make
+- export PATH=$PWD/bin:$PATH
+- git clone https://github.com/frederic-mahe/vsearch-tests.git
+- cd vsearch-tests
+- bash ./run_all_tests.sh
