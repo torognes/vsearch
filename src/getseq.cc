@@ -63,14 +63,14 @@
 
 #include "vsearch.h"
 
-int labels_alloc = 0;
-int labels_count = 0;
-int labels_longest = 0;
-char * * labels_data = 0;
+static int labels_alloc = 0;
+static int labels_count = 0;
+static int labels_longest = 0;
+static char * * labels_data = 0;
 
 void read_labels_file(char * filename)
 {
-  FILE * fp_labels = fopen(filename, "r");
+  FILE * fp_labels = fopen_input(filename, "r");
   if (! fp_labels)
     fatal("Unable to open labels file (%s)", filename);
 

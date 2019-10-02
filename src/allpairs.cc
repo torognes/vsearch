@@ -248,6 +248,8 @@ void allpairs_output_results(int hit_count,
 
 void allpairs_thread_run(int64_t t)
 {
+  (void) t;
+
   struct searchinfo_s sia;
 
   struct searchinfo_s * si = & sia;

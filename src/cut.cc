@@ -212,8 +212,8 @@ int cut_one(fastx_handle h,
                             0,
                             0.0);
 
-      if (opt_fastaout_rev)
-        fasta_print_general(fp_fastaout_rev,
+      if (opt_fastaout_discarded_rev)
+        fasta_print_general(fp_faestaout_discarded_rev,
                             0,
                             rc,
                             seq_length,

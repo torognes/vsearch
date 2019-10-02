@@ -168,7 +168,6 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
                     h->lineno);
 
           exit(EXIT_FAILURE);
-          break;
 
         case 5:
         case 6:

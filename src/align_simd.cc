@@ -129,7 +129,7 @@ const vector unsigned char perm_merge_long_high =
 #define v_xor(a, b) vec_xor((a), (b))
 #define v_shift_left(a) vec_sld((a), v_zero, 2)
 
-#elif __aarch64__
+#elif defined __aarch64__
 
 typedef int16x8_t VECTOR_SHORT;
 
@@ -975,6 +975,9 @@ struct s16info_s * search16_init(CELL score_match,
                                  CELL penalty_gap_extension_query_right,
                                  CELL penalty_gap_extension_target_right)
 {
+  (void) score_match;
+  (void) score_mismatch;
+
   /* prepare alloc of qtable, dprofile, hearray, dir */
   struct s16info_s * s = (struct s16info_s *)
     xmalloc(sizeof(struct s16info_s));
@@ -1304,21 +1307,21 @@ void search16(s16info_s * s,
                                        R_target_interior);
           for(unsigned int j=0; j<CDEPTH; j++)
             {
-              VECTOR_SHORT M = v_zero;
+              VECTOR_SHORT MM = v_zero;
               VECTOR_SHORT TT = T0;
               for(int c=0; c<CHANNELS; c++)
                 {
                   if ((d_begin[c] == d_end[c]) &&
                       (j >= ((d_length[c]+3) % 4)))
                     {
-                      M = v_xor(M, TT);
+                      MM = v_xor(MM, TT);
                     }
                   TT = v_shift_left(TT);
                 }
               QR_target[j] = v_add(QR_target_interior,
-                                   v_and(QR_diff, M));
+                                   v_and(QR_diff, MM));
               R_target[j]  = v_add(R_target_interior,
-                                   v_and(R_diff, M));
+                                   v_and(R_diff, MM));
             }
         }
 
@@ -1533,21 +1536,21 @@ void search16(s16info_s * s,
                                        R_target_interior);
           for(unsigned int j=0; j<CDEPTH; j++)
             {
-              VECTOR_SHORT M = v_zero;
+              VECTOR_SHORT MM = v_zero;
               VECTOR_SHORT TT = T0;
               for(int c=0; c<CHANNELS; c++)
                 {
                   if ((d_begin[c] == d_end[c]) &&
                       (j >= ((d_length[c]+3) % 4)))
                     {
-                      M = v_xor(M, TT);
+                      MM = v_xor(MM, TT);
                     }
                   TT = v_shift_left(TT);
                 }
               QR_target[j] = v_add(QR_target_interior,
-                                   v_and(QR_diff, M));
+                                   v_and(QR_diff, MM));
               R_target[j]  = v_add(R_target_interior,
-                                   v_and(R_diff, M));
+                                   v_and(R_diff, MM));
             }
         }
 

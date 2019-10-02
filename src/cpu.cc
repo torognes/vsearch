@@ -115,7 +115,7 @@ void increment_counters_from_bitmap(count_t * counters,
     }
 }
 
-#elif __PPC__
+#elif defined __PPC__
 
 void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char * bitmap,

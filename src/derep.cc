@@ -641,11 +641,11 @@ void derep_fulllength()
       for (uint64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          char * h =  bp->header;
+          char * hh =  bp->header;
           int64_t len = strlen(bp->seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, h);
+                  i, len, hh);
 
           for (unsigned int next = nextseqtab[bp->seqno_first];
                next != terminal;
@@ -654,7 +654,7 @@ void derep_fulllength()
                     "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                     i, len, 100.0,
                     (match_strand[next] ? "-" : "+"),
-                    headertab[next], h);
+                    headertab[next], hh);
 
           progress_update(i);
         }
