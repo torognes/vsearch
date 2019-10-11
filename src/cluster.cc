@@ -180,21 +180,21 @@ void * threads_worker(void * vp)
 {
   int64_t t = (int64_t) vp;
   thread_info_s * tip = ti + t;
-  pthread_mutex_lock(&tip->mutex);
+  xpthread_mutex_lock(&tip->mutex);
   /* loop until signalled to quit */
   while (tip->work >= 0)
     {
       /* wait for work available */
       if (tip->work == 0)
-        pthread_cond_wait(&tip->cond, &tip->mutex);
+        xpthread_cond_wait(&tip->cond, &tip->mutex);
       if (tip->work > 0)
         {
           cluster_worker(t);
           tip->work = 0;
-          pthread_cond_signal(&tip->cond);
+          xpthread_cond_signal(&tip->cond);
         }
     }
-  pthread_mutex_unlock(&tip->mutex);
+  xpthread_mutex_unlock(&tip->mutex);
   return 0;
 }
 
@@ -216,27 +216,27 @@ void threads_wakeup(int queries)
       query_next += tip->query_count;
       threads_rest--;
 
-      pthread_mutex_lock(&tip->mutex);
+      xpthread_mutex_lock(&tip->mutex);
       tip->work = 1;
-      pthread_cond_signal(&tip->cond);
-      pthread_mutex_unlock(&tip->mutex);
+      xpthread_cond_signal(&tip->cond);
+      xpthread_mutex_unlock(&tip->mutex);
     }
 
   /* wait for theads to finish their work */
   for(int t=0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
-      pthread_mutex_lock(&tip->mutex);
+      xpthread_mutex_lock(&tip->mutex);
       while (tip->work > 0)
-        pthread_cond_wait(&tip->cond, &tip->mutex);
-      pthread_mutex_unlock(&tip->mutex);
+        xpthread_cond_wait(&tip->cond, &tip->mutex);
+      xpthread_mutex_unlock(&tip->mutex);
     }
 }
 
 void threads_init()
 {
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  xpthread_attr_init(&attr);
+  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* allocate memory for thread info */
   ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
@@ -246,10 +246,9 @@ void threads_init()
     {
       thread_info_t * tip = ti + t;
       tip->work = 0;
-      pthread_mutex_init(&tip->mutex, 0);
-      pthread_cond_init(&tip->cond, 0);
-      if (pthread_create(&tip->thread, &attr, threads_worker, (void*)(int64_t)t))
-        fatal("Cannot create thread");
+      xpthread_mutex_init(&tip->mutex, 0);
+      xpthread_cond_init(&tip->cond, 0);
+      xpthread_create(&tip->thread, &attr, threads_worker, (void*)(int64_t)t);
     }
 }
 
@@ -261,20 +260,19 @@ void threads_exit()
       struct thread_info_s * tip = ti + t;
 
       /* tell worker to quit */
-      pthread_mutex_lock(&tip->mutex);
+      xpthread_mutex_lock(&tip->mutex);
       tip->work = -1;
-      pthread_cond_signal(&tip->cond);
-      pthread_mutex_unlock(&tip->mutex);
+      xpthread_cond_signal(&tip->cond);
+      xpthread_mutex_unlock(&tip->mutex);
 
       /* wait for worker to quit */
-      if (pthread_join(tip->thread, 0))
-        fatal("Cannot join thread");
+      xpthread_join(tip->thread, 0);
 
-      pthread_cond_destroy(&tip->cond);
-      pthread_mutex_destroy(&tip->mutex);
+      xpthread_cond_destroy(&tip->cond);
+      xpthread_mutex_destroy(&tip->mutex);
     }
   xfree(ti);
-  pthread_attr_destroy(&attr);
+  xpthread_attr_destroy(&attr);
 }
 
 void cluster_query_init(struct searchinfo_s * si)

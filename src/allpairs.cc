@@ -323,7 +323,7 @@ void allpairs_thread_run(int64_t t)
 
   while (cont)
     {
-      pthread_mutex_lock(&mutex_input);
+      xpthread_mutex_lock(&mutex_input);
 
       int query_no = queries;
 
@@ -332,7 +332,7 @@ void allpairs_thread_run(int64_t t)
           queries++;
 
           /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
+          xpthread_mutex_unlock(&mutex_input);
 
           /* init search info */
           si->query_no = query_no;
@@ -454,7 +454,7 @@ void allpairs_thread_run(int64_t t)
             }
 
           /* lock mutex for update of global data and output */
-          pthread_mutex_lock(&mutex_output);
+          xpthread_mutex_lock(&mutex_output);
 
           /* output results */
           allpairs_output_results(si->accepts,
@@ -472,7 +472,7 @@ void allpairs_thread_run(int64_t t)
           progress += seqcount - query_no - 1;
           progress_update(progress);
 
-          pthread_mutex_unlock(&mutex_output);
+          xpthread_mutex_unlock(&mutex_output);
 
           /* free memory for alignment strings */
           for(int i=0; i < si->hit_count; i++)
@@ -482,7 +482,7 @@ void allpairs_thread_run(int64_t t)
       else
         {
           /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
+          xpthread_mutex_unlock(&mutex_input);
 
           cont = 0;
         }
@@ -518,25 +518,19 @@ void allpairs_thread_worker_run()
 {
   /* initialize threads, start them, join them and return */
 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  xpthread_attr_init(&attr);
+  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
   for(int t=0; t<opt_threads; t++)
-    {
-      if (pthread_create(pthread+t, &attr,
-                         allpairs_thread_worker, (void*)(int64_t)t))
-        fatal("Cannot create thread");
-    }
+    xpthread_create(pthread+t, &attr,
+                    allpairs_thread_worker, (void*)(int64_t)t);
 
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
-    {
-      if (pthread_join(pthread[t], NULL))
-        fatal("Cannot join thread");
-    }
+    xpthread_join(pthread[t], NULL);
 
-  pthread_attr_destroy(&attr);
+  xpthread_attr_destroy(&attr);
 }
 
 
@@ -626,8 +620,8 @@ void allpairs_global(char * cmdline, char * progheader)
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  pthread_mutex_init(&mutex_input, NULL);
-  pthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, NULL);
+  xpthread_mutex_init(&mutex_output, NULL);
 
   progress = 0;
   progress_init("Aligning", MAX(0,((int64_t)seqcount)*((int64_t)seqcount-1))/2);
@@ -644,8 +638,8 @@ void allpairs_global(char * cmdline, char * progheader)
               qmatches, queries, 100.0 * qmatches / queries);
     }
 
-  pthread_mutex_destroy(&mutex_output);
-  pthread_mutex_destroy(&mutex_input);
+  xpthread_mutex_destroy(&mutex_output);
+  xpthread_mutex_destroy(&mutex_input);
 
   xfree(pthread);
 

@@ -103,7 +103,7 @@ void search_output_results(int hit_count,
                            char * qsequence_rc,
                            int qsize)
 {
-  pthread_mutex_lock(&mutex_output);
+  xpthread_mutex_lock(&mutex_output);
 
   /* show results */
   int64_t toreport = MIN(opt_maxhits, hit_count);
@@ -244,7 +244,7 @@ void search_output_results(int hit_count,
     if (hits[i].accepted)
       dbmatched[hits[i].target]++;
 
-  pthread_mutex_unlock(&mutex_output);
+  xpthread_mutex_unlock(&mutex_output);
 }
 
 int search_query(int64_t t)
@@ -297,7 +297,7 @@ void search_thread_run(int64_t t)
 {
   while (1)
     {
-      pthread_mutex_lock(&mutex_input);
+      xpthread_mutex_lock(&mutex_input);
 
       if (fasta_next(query_fasta_h,
                      ! opt_notrunclabels,
@@ -345,7 +345,7 @@ void search_thread_run(int64_t t)
           uint64_t progress = fasta_get_position(query_fasta_h);
 
           /* let other threads read input */
-          pthread_mutex_unlock(&mutex_input);
+          xpthread_mutex_unlock(&mutex_input);
 
           /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
@@ -359,7 +359,7 @@ void search_thread_run(int64_t t)
           int match = search_query(t);
 
           /* lock mutex for update of global data and output */
-          pthread_mutex_lock(&mutex_output);
+          xpthread_mutex_lock(&mutex_output);
 
           /* update stats */
           queries++;
@@ -374,11 +374,11 @@ void search_thread_run(int64_t t)
           /* show progress */
           progress_update(progress);
 
-          pthread_mutex_unlock(&mutex_output);
+          xpthread_mutex_unlock(&mutex_output);
         }
       else
         {
-          pthread_mutex_unlock(&mutex_input);
+          xpthread_mutex_unlock(&mutex_input);
           break;
         }
     }
@@ -448,8 +448,8 @@ void search_thread_worker_run()
 {
   /* initialize threads, start them, join them and return */
 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  xpthread_attr_init(&attr);
+  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
   for(int t=0; t<opt_threads; t++)
@@ -457,22 +457,20 @@ void search_thread_worker_run()
       search_thread_init(si_plus+t);
       if (si_minus)
         search_thread_init(si_minus+t);
-      if (pthread_create(pthread+t, &attr,
-                         search_thread_worker, (void*)(int64_t)t))
-        fatal("Cannot create thread");
+      xpthread_create(pthread+t, &attr,
+                      search_thread_worker, (void*)(int64_t)t);
     }
 
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
     {
-      if (pthread_join(pthread[t], NULL))
-        fatal("Cannot join thread");
+      xpthread_join(pthread[t], NULL);
       search_thread_exit(si_plus+t);
       if (si_minus)
         search_thread_exit(si_minus+t);
     }
 
-  pthread_attr_destroy(&attr);
+  xpthread_attr_destroy(&attr);
 }
 
 
@@ -672,15 +670,15 @@ void usearch_global(char * cmdline, char * progheader)
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  pthread_mutex_init(&mutex_input, NULL);
-  pthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, NULL);
+  xpthread_mutex_init(&mutex_output, NULL);
 
   progress_init("Searching", fasta_get_size(query_fasta_h));
   search_thread_worker_run();
   progress_done();
 
-  pthread_mutex_destroy(&mutex_output);
-  pthread_mutex_destroy(&mutex_input);
+  xpthread_mutex_destroy(&mutex_output);
+  xpthread_mutex_destroy(&mutex_input);
 
   xfree(pthread);
   xfree(si_plus);

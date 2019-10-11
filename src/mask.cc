@@ -167,18 +167,18 @@ void * dust_all_worker(void * vp)
 {
   while(1)
     {
-      pthread_mutex_lock(&mutex);
+      xpthread_mutex_lock(&mutex);
       int seqno = nextseq;
       if (seqno < seqcount)
         {
           nextseq++;
           progress_update(seqno);
-          pthread_mutex_unlock(&mutex);
+          xpthread_mutex_unlock(&mutex);
           dust(db_getsequence(seqno), db_getsequencelen(seqno));
         }
       else
         {
-          pthread_mutex_unlock(&mutex);
+          xpthread_mutex_unlock(&mutex);
           break;
         }
     }
@@ -191,26 +191,24 @@ void dust_all()
   seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
-  pthread_mutex_init(&mutex, NULL);
+  xpthread_mutex_init(&mutex, NULL);
 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  xpthread_attr_init(&attr);
+  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   for(int t=0; t<opt_threads; t++)
-    if (pthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t))
-      fatal("Cannot create thread");
+    xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
 
   for(int t=0; t<opt_threads; t++)
-    if (pthread_join(pthread[t], NULL))
-      fatal("Cannot join thread");
+    xpthread_join(pthread[t], NULL);
 
   xfree(pthread);
 
-  pthread_attr_destroy(&attr);
+  xpthread_attr_destroy(&attr);
 
-  pthread_mutex_destroy(&mutex);
+  xpthread_mutex_destroy(&mutex);
 
   progress_done();
 }

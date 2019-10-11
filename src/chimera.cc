@@ -804,7 +804,7 @@ int eval_parents(struct chimera_info_s * ci)
 
       /* print alignment */
 
-      pthread_mutex_lock(&mutex_output);
+      xpthread_mutex_lock(&mutex_output);
 
       if (opt_uchimealns && (status == 4))
         {
@@ -975,7 +975,7 @@ int eval_parents(struct chimera_info_s * ci)
                   divdiff,
                   status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
         }
-      pthread_mutex_unlock(&mutex_output);
+      xpthread_mutex_unlock(&mutex_output);
     }
 
   return status;
@@ -1158,7 +1158,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
     {
       /* get next sequence */
 
-      pthread_mutex_lock(&mutex_input);
+      xpthread_mutex_lock(&mutex_input);
 
       if (opt_uchime_ref)
         {
@@ -1179,7 +1179,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             }
           else
             {
-              pthread_mutex_unlock(&mutex_input);
+              xpthread_mutex_unlock(&mutex_input);
               break; /* end while loop */
             }
         }
@@ -1200,12 +1200,12 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             }
           else
             {
-              pthread_mutex_unlock(&mutex_input);
+              xpthread_mutex_unlock(&mutex_input);
               break; /* end while loop */
             }
         }
 
-      pthread_mutex_unlock(&mutex_input);
+      xpthread_mutex_unlock(&mutex_input);
 
 
 
@@ -1326,7 +1326,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       /* output results */
 
-      pthread_mutex_lock(&mutex_output);
+      xpthread_mutex_lock(&mutex_output);
 
       total_count++;
       total_abundance += ci->query_size;
@@ -1437,7 +1437,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       seqno++;
 
-      pthread_mutex_unlock(&mutex_output);
+      xpthread_mutex_unlock(&mutex_output);
     }
 
   if (allhits_list)
@@ -1457,27 +1457,19 @@ void * chimera_thread_worker(void * vp)
 
 void chimera_threads_run()
 {
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  xpthread_attr_init(&attr);
+  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* create worker threads */
   for(int64_t t=0; t<opt_threads; t++)
-    {
-      if (pthread_create(pthread+t, & attr,
-                         chimera_thread_worker, (void*)t))
-        {
-          fatal("Cannot create thread");
-        }
-    }
+    xpthread_create(pthread+t, & attr,
+                    chimera_thread_worker, (void*)t);
 
   /* finish worker threads */
   for(int t=0; t<opt_threads; t++)
-    {
-      if (pthread_join(pthread[t], NULL))
-        fatal("Cannot join thread");
-    }
+    xpthread_join(pthread[t], NULL);
 
-  pthread_attr_destroy(&attr);
+  xpthread_attr_destroy(&attr);
 }
 
 void open_chimera_file(FILE * * f, char * name)
@@ -1536,8 +1528,8 @@ void chimera()
                                           sizeof(struct chimera_info_s));
 
   /* init mutexes for input and output */
-  pthread_mutex_init(&mutex_input, NULL);
-  pthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, NULL);
+  xpthread_mutex_init(&mutex_output, NULL);
 
   char * denovo_dbname = NULL;
 
@@ -1638,8 +1630,8 @@ void chimera()
   dbindex_free();
   db_free();
 
-  pthread_mutex_destroy(&mutex_output);
-  pthread_mutex_destroy(&mutex_input);
+  xpthread_mutex_destroy(&mutex_output);
+  xpthread_mutex_destroy(&mutex_input);
 
   xfree(cia);
   xfree(pthread);
