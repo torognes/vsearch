@@ -78,7 +78,7 @@ class xstring
   ~xstring()
     {
       if (alloc > 0)
-        free(string);
+        xfree(string);
       alloc = 0;
       string = 0;
       length = 0;
