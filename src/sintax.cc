@@ -121,7 +121,7 @@ bool sintax_parse_tax(const char * header,
       char * r = (char *) strstr(header + i, attribute);
 
       /* no match */
-      if (r == nullptr)
+      if (r == NULL)
         break;
 
       i = r - header;
@@ -552,7 +552,7 @@ void sintax_thread_worker_run()
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
     {
-      xpthread_join(pthread[t], nullptr);
+      xpthread_join(pthread[t], NULL);
       sintax_thread_exit(si_plus+t);
       if (si_minus)
         sintax_thread_exit(si_minus+t);
@@ -615,8 +615,8 @@ void sintax()
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, nullptr);
-  xpthread_mutex_init(&mutex_output, nullptr);
+  xpthread_mutex_init(&mutex_input, NULL);
+  xpthread_mutex_init(&mutex_output, NULL);
 
   /* run */
 
