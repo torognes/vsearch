@@ -191,7 +191,7 @@ void dust_all()
   seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
-  xpthread_mutex_init(&mutex, NULL);
+  xpthread_mutex_init(&mutex, nullptr);
 
   xpthread_attr_init(&attr);
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -202,7 +202,7 @@ void dust_all()
     xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
 
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   xfree(pthread);
 

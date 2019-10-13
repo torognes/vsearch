@@ -291,7 +291,7 @@ fastx_handle fastx_open(const char * filename)
         fatal("Files compressed with bzip2 are not supported");
       if (! (h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
                                          BZ_VERBOSE_0, BZ_MORE_MEM,
-                                         NULL, 0)))
+                                         nullptr, 0)))
         fatal("Unable to open bzip2 compressed file (%s)", filename);
 #else
       fatal("Files compressed with bzip2 are not supported");

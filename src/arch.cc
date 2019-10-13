@@ -102,7 +102,7 @@ uint64_t arch_get_memtotal()
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
   size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
+  if(sysctl(mib, 2, &ram, &length, nullptr, 0) == -1)
     fatal("Cannot determine amount of RAM");
   return ram;
 

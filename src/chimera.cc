@@ -1467,7 +1467,7 @@ void chimera_threads_run()
 
   /* finish worker threads */
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   xpthread_attr_destroy(&attr);
 }
@@ -1528,10 +1528,10 @@ void chimera()
                                           sizeof(struct chimera_info_s));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
-  char * denovo_dbname = NULL;
+  char * denovo_dbname = nullptr;
 
   /* prepare queries / database */
   if (opt_uchime_ref)

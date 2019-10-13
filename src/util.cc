@@ -366,7 +366,7 @@ FILE * fopen_input(const char * filename)
     {
       int fd = dup(STDIN_FILENO);
       if (fd < 0)
-        return NULL;
+        return nullptr;
       else
         return fdopen(fd, "rb");
     }
@@ -381,7 +381,7 @@ FILE * fopen_output(const char * filename)
     {
       int fd = dup(STDOUT_FILENO);
       if (fd < 0)
-        return NULL;
+        return nullptr;
       else
         return fdopen(fd, "w");
     }

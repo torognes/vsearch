@@ -528,7 +528,7 @@ void allpairs_thread_worker_run()
 
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   xpthread_attr_destroy(&attr);
 }
@@ -620,8 +620,8 @@ void allpairs_global(char * cmdline, char * progheader)
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
   progress = 0;
   progress_init("Aligning", MAX(0,((int64_t)seqcount)*((int64_t)seqcount-1))/2);

@@ -1260,7 +1260,7 @@ void pair_all()
         init_merge_data(chunks[i].merge_data + j);
     }
 
-  xpthread_mutex_init(&mutex_chunks, NULL);
+  xpthread_mutex_init(&mutex_chunks, nullptr);
   xpthread_cond_init(&cond_chunks, 0);
 
   /* prepare threads */
@@ -1275,7 +1275,7 @@ void pair_all()
   /* wait for threads to terminate */
 
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   /* free threads */
 

@@ -464,7 +464,7 @@ void search_thread_worker_run()
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
     {
-      xpthread_join(pthread[t], NULL);
+      xpthread_join(pthread[t], nullptr);
       search_thread_exit(si_plus+t);
       if (si_minus)
         search_thread_exit(si_minus+t);
@@ -670,8 +670,8 @@ void usearch_global(char * cmdline, char * progheader)
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
   progress_init("Searching", fasta_get_size(query_fasta_h));
   search_thread_worker_run();
