@@ -3223,9 +3223,9 @@ value).
 Number of columns containing a gap (zero or positive integer value).
 .TP
 .B id
-Percentage of identity (real value ranging from 0.0 to 100.0). The
-percentage identity is defined as 100 * (matching columns) /
-(alignment length - terminal gaps).
+The percentage of identity, according to the identity definition
+specified by the \-\-iddef option.  Equal to id0, id1, id2, id3 or id4
+below. By default the same as id2.
 .TP
 .B id0
 CD-HIT definition of the percentage of identity (real value ranging
@@ -3240,8 +3240,7 @@ length).
 .TP
 .B id2
 The percentage of identity (real value ranging from 0.0 to 100.0) is
-defined as the edit distance, excluding terminal gaps. The field id2
-is an alias for the field id.
+defined as the edit distance, excluding terminal gaps.
 .TP
 .B id3
 Marine Biological Lab definition of the percentage of identity (real
