@@ -1353,14 +1353,6 @@ void fastq_mergepairs()
           notmerged,
           100.0 * notmerged / total);
 
-  double mean = sum_fragment_length / merged;
-  double stdev = sqrt((sum_squared_fragment_length
-                       - 2.0 * mean * sum_fragment_length
-                       + mean * mean * merged)
-                      / (merged + 0.0));
-
-  double mean_read_length = sum_read_length / (2.0 * pairs_read);
-
   if (notmerged > 0)
     fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
 
@@ -1443,46 +1435,57 @@ void fastq_mergepairs()
 
   fprintf(stderr, "Statistics of all reads:\n");
 
+  double mean_read_length = sum_read_length / (2.0 * pairs_read);
+
   fprintf(stderr,
           "%10.2f  Mean read length\n",
           mean_read_length);
 
-  fprintf(stderr, "\n");
+  if (merged > 0)
+    {
+      fprintf(stderr, "\n");
 
-  fprintf(stderr, "Statistics of merged reads:\n");
+      fprintf(stderr, "Statistics of merged reads:\n");
 
-  fprintf(stderr,
-          "%10.2f  Mean fragment length\n",
-          mean);
+      double mean = sum_fragment_length / merged;
 
-  fprintf(stderr,
-          "%10.2f  Standard deviation of fragment length\n",
-          stdev);
+      fprintf(stderr,
+              "%10.2f  Mean fragment length\n",
+              mean);
 
-  fprintf(stderr,
-          "%10.2f  Mean expected error in forward sequences\n",
-          sum_ee_fwd / merged);
+      double stdev = sqrt((sum_squared_fragment_length
+                           - 2.0 * mean * sum_fragment_length
+                           + mean * mean * merged)
+                          / (merged + 0.0));
 
-  fprintf(stderr,
-          "%10.2f  Mean expected error in reverse sequences\n",
-          sum_ee_rev / merged);
+      fprintf(stderr,
+              "%10.2f  Standard deviation of fragment length\n",
+              stdev);
 
-  fprintf(stderr,
-          "%10.2f  Mean expected error in merged sequences\n",
-          sum_ee_merged / merged);
+      fprintf(stderr,
+              "%10.2f  Mean expected error in forward sequences\n",
+              sum_ee_fwd / merged);
 
-  fprintf(stderr,
-        "%10.2f  Mean observed errors in merged region of forward sequences\n",
-          1.0 * sum_errors_fwd / merged);
+      fprintf(stderr,
+              "%10.2f  Mean expected error in reverse sequences\n",
+              sum_ee_rev / merged);
 
-  fprintf(stderr,
-        "%10.2f  Mean observed errors in merged region of reverse sequences\n",
-          1.0 * sum_errors_rev / merged);
+      fprintf(stderr,
+              "%10.2f  Mean expected error in merged sequences\n",
+              sum_ee_merged / merged);
 
-  fprintf(stderr,
-          "%10.2f  Mean observed errors in merged region\n",
-          1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
+      fprintf(stderr,
+              "%10.2f  Mean observed errors in merged region of forward sequences\n",
+              1.0 * sum_errors_fwd / merged);
 
+      fprintf(stderr,
+              "%10.2f  Mean observed errors in merged region of reverse sequences\n",
+              1.0 * sum_errors_rev / merged);
+
+      fprintf(stderr,
+              "%10.2f  Mean observed errors in merged region\n",
+              1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
+    }
 
   /* clean up */
 
