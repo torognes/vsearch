@@ -808,6 +808,7 @@ void fastq_convert()
       /* header */
 
       char * header = fastq_get_header(h);
+      int64_t abundance = fastq_get_abundance(h);
 
       /* sequence */
 
@@ -823,7 +824,9 @@ void fastq_convert()
           if (q < opt_fastq_qmin)
             {
               fprintf(stderr,
-                      "\nFASTQ quality score (%d) below minimum (%" PRId64 ") in entry no %" PRIu64 " starting on line %" PRIu64 "\n",
+                      "\nFASTQ quality score (%d) below minimum (%" PRId64
+                      ") in entry no %" PRIu64
+                      " starting on line %" PRIu64 "\n",
                       q,
                       opt_fastq_qmin,
                       fastq_get_seqno(h) + 1,
@@ -833,7 +836,9 @@ void fastq_convert()
           if (q > opt_fastq_qmax)
             {
               fprintf(stderr,
-                      "\nFASTQ quality score (%d) above maximum (%" PRId64 ") in entry no %" PRIu64 " starting on line %" PRIu64 "\n",
+                      "\nFASTQ quality score (%d) above maximum (%" PRId64
+                      ") in entry no %" PRIu64
+                      " starting on line %" PRIu64 "\n",
                       q,
                       opt_fastq_qmax,
                       fastq_get_seqno(h) + 1,
@@ -854,7 +859,15 @@ void fastq_convert()
       quality[length] = 0;
 
       int hlen = fastq_get_header_length(h);
-      fastq_print_general(fp_fastqout, sequence, length, header, hlen, quality, 0, j, -1.0);
+      fastq_print_general(fp_fastqout,
+                          sequence,
+                          length,
+                          header,
+                          hlen,
+                          quality,
+                          abundance,
+                          j,
+                          -1.0);
 
       j++;
       progress_update(fastq_get_position(h));
