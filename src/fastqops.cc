@@ -713,6 +713,10 @@ void fastx_revcomp()
       else
         snprintf(header, header_alloc, "%s", d);
 
+      hlen += suffix_length;
+
+      int64_t abundance = fastx_get_abundance(h);
+
 
       /* sequence */
 
@@ -748,7 +752,7 @@ void fastx_revcomp()
                             length,
                             header,
                             hlen,
-                            0,
+                            abundance,
                             count,
                             -1.0,
                             -1, -1, 0, 0.0);
@@ -760,7 +764,7 @@ void fastx_revcomp()
                             header,
                             hlen,
                             qual_buffer,
-                            0,
+                            abundance,
                             count,
                             -1.0);
 
