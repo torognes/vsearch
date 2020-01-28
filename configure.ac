@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [2.14.1], [torognes@ifi.uio.no])
+AC_INIT([vsearch], [2.14.2], [torognes@ifi.uio.no])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
