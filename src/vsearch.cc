@@ -3324,6 +3324,7 @@ void args_init(int argc, char **argv)
         option_gzip_decompress,
         option_hardmask,
         option_log,
+        option_minseqlength,
         option_no_progress,
         option_notrunclabels,
         option_output,
