@@ -392,7 +392,7 @@ Input sequences are masked as specified with the \-\-qmask and
 \-\-hardmask options. Masking of the database for reference based
 chimera detection is specified with the \-\-dbmask option.
 .PP
-In \fIde novo\fR mode, input fasta file should present abundance
+In \fIde novo\fR mode, input fasta file must present abundance
 annotations (i.e. a pattern [;]size=\fIinteger\fR[;] in the fasta
 header). Input order matters for chimera detection, so we recommend to
 sort sequences by decreasing abundance (default of
@@ -521,8 +521,14 @@ false-positive rate in reference sequences).
 When using \-\-uchime_ref, ignore a reference sequence when its
 nucleotide sequence is strictly identical to the nucleotidic sequence
 of the query.
-.TAG sizeout
 .TP
+.B \-\-sizein
+In \fIde novo\fR mode, abundance annotations
+(pattern '[>;]size=\fIinteger\fR[;]') present in sequence headers are
+taken into account by default (\-\-sizein is always implied). This
+option is ignored by \-\-uchime_ref.
+.TP
+.TAG sizeout
 .B \-\-sizeout
 When relabelling, add abundance annotations to fasta headers (using
 the format ';size=\fIinteger\fR;').
