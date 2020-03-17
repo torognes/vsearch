@@ -202,9 +202,8 @@ several nucleotidic entries. In fasta files, each nucleotidic entry is
 made of a header and a sequence. The header is defined as the string
 comprised between the '>' symbol and the first space, tab or the end
 of the line, whichever comes first. Additionally, if the header
-matches
-'>[;]size=\fIinteger\fR;label', '>label;size=\fIinteger\fR;label' or
-'>label;size=\fIinteger\fR[;]', \fBvsearch\fR interpret
+matches '>[;]size=\fIinteger\fR;label', '>label;size=\fIinteger\fR;label'
+or '>label;size=\fIinteger\fR[;]', \fBvsearch\fR interpret
 \fIinteger\fR as the number of occurrences (or abundance) of the
 sequence in the study. That abundance information is used or created
 during chimera detection, clustering, dereplication, sorting and
@@ -444,8 +443,8 @@ chimera scoring function (default value is 1.4).
 .TP
 .B \-\-fasta_score
 Add the chimera score to the headers in the fasta output files for
-chimeras, non-chimeras and borderline sequences, using the format
-';uchime_denovo=\fIfloat\fR;'.
+chimeras, non-chimeras and borderline sequences, using the
+format ';uchime_denovo=\fIfloat\fR;'.
 .TAG mindiffs
 .TP
 .BI \-\-mindiffs\~ "positive integer"
@@ -907,8 +906,8 @@ greedy clustering (DGC).
 .TAG sizeout
 .TP
 .B \-\-sizeout
-Add abundance annotations to the output fasta files (add the pattern
-';size=\fIinteger\fR;' to sequence headers). If \-\-sizein is
+Add abundance annotations to the output fasta files (add the
+pattern ';size=\fIinteger\fR;' to sequence headers). If \-\-sizein is
 specified, abundance annotations are reported to output files, and
 each cluster centroid receives a new abundance value corresponding to
 the total abundance of the amplicons included in the cluster
@@ -1027,8 +1026,8 @@ Write the dereplicated sequences to \fIfilename\fR, in fasta format
 and sorted by decreasing abundance. Identical sequences receive the
 header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
-indicated at the end of their fasta header using the pattern
-';size=\fIinteger\fR;'.
+indicated at the end of their fasta header using the
+pattern ';size=\fIinteger\fR;'.
 .TP
 .TAG relabel
 .BI \-\-relabel \0string
@@ -1073,8 +1072,8 @@ headers). That option is active by default when rereplicating.
 .TAG sizeout
 .TP
 .B \-\-sizeout
-Add abundance annotations to the output fasta file (add the pattern
-';size=\fIinteger\fR;' to sequence headers).  If \-\-sizein is
+Add abundance annotations to the output fasta file (add the
+pattern ';size=\fIinteger\fR;' to sequence headers). If \-\-sizein is
 specified, each unique sequence receives a new abundance value
 corresponding to its total abundance (sum of the abundances of its
 occurrences). If \-\-sizein is not specified, input abundances are set
@@ -3397,8 +3396,8 @@ field is set to 0 if there is no alignment.
 .TP
 .B tstrand
 Target strand orientation (+ or - for nucleotide sequences). Always
-set to '+', so reverse strand matches have tstrand '+' and qstrand
-'-'. Empty field if there is no alignment.
+set to '+', so reverse strand matches have tstrand '+' and
+qstrand '\-'. Empty field if there is no alignment.
 .RE
 .PP
 .\" ============================================================================
