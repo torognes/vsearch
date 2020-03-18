@@ -436,9 +436,11 @@ parents, or sufficiently close relatives, are not present in the
 database.
 .TAG dn
 .TP
-.BI \-\-dn \0real
-No vote pseudo-count, corresponding to the parameter \fIn\fR in the
-chimera scoring function (default value is 1.4).
+.BI \-\-dn\~ "strictly positive real number"
+pseudo-count prior on the number of no votes, corresponding to the
+parameter \fIn\fR in the chimera scoring function (default value is
+1.4). Increasing \-\-dn reduces the likelihood of tagging a sequence
+as a chimera (less false positives, but also more false negatives).
 .TAG fasta_score
 .TP
 .B \-\-fasta_score
