@@ -626,13 +626,15 @@ When using \-\-uchimeout, write chimera detection results using a
 17\-field, tab\-separated uchime\-like format (drop the 5th field of
 \-\-uchimeout), compatible with usearch version 5 and earlier
 versions.
+.TP
 .TAG xn
+.BI \-\-xn\~ "strictly positive real number"
+weight of no votes, corresponding to the parameter \fIbeta\fR in the
+scoring function (default value is 8.0). Increasing \-\-xn reduces the
+likelihood of tagging a sequence as a chimera (less false positives,
+but also more false negatives).
 .TP
-.BI \-\-xn \0real
-No vote weight, corresponding to the parameter \fIbeta\fR in the
-scoring function (default value is 8.0).
 .TAG xsize
-.TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
 file.
