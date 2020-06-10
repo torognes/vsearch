@@ -323,6 +323,13 @@ void sintax_query(int64_t t)
   int boot_count[2];
   unsigned int best_count[2];
 
+  best_count[0] = 0;
+  best_count[1] = 0;
+  best_seqno[0] = 0;
+  best_seqno[1] = 0;
+  boot_count[0] = 0;
+  boot_count[1] = 0;
+
   int qseqlen = si_plus[t].qseqlen;
   char * query_head = si_plus[t].query_head;
 
@@ -343,10 +350,6 @@ void sintax_query(int64_t t)
                    & kmersamplecount, & kmersample, MASK_NONE);
 
       /* perform 100 bootstraps */
-
-      best_count[s] = 0;
-      best_seqno[s] = 0;
-      boot_count[s] = 0;
 
       if (kmersamplecount >= subset_size)
         {
