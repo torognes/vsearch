@@ -782,7 +782,7 @@ void args_init(int argc, char **argv)
   opt_maxaccepts = 1;
   opt_maxdiffs = INT_MAX;
   opt_maxgaps = INT_MAX;
-  opt_maxhits = LONG_MAX;
+  opt_maxhits = 0;
   opt_maxid = 1.0;
   opt_maxqsize = INT_MAX;
   opt_maxqt = DBL_MAX;
@@ -4056,6 +4056,9 @@ void args_init(int argc, char **argv)
   if (opt_maxsize < 1)
     fatal("The argument to maxsize must be at least 1");
 
+  if (opt_maxhits < 0)
+    fatal("The argument to maxhits cannot be negative");
+
 
   /* TODO: check valid range of gap penalties */
 
@@ -4085,6 +4088,9 @@ void args_init(int argc, char **argv)
 #endif
 
   /* set defaults parameters, if not specified */
+
+  if (opt_maxhits == 0)
+    opt_maxhits = LONG_MAX;
 
   if (opt_minwordmatches < 0)
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];

@@ -2421,11 +2421,11 @@ Reject the sequence match if the alignment contains at least
 \fIinteger\fR insertions or deletions.
 .TAG maxhits
 .TP
-.BI \-\-maxhits\~ "positive integer"
+.BI \-\-maxhits\~ "non-negative integer"
 Maximum number of hits to show once the search is terminated (hits are
-sorted by decreasing identity). Unlimited by default. That option
-applies to \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-samout,
-\-\-uc, or \-\-userout output files.
+sorted by decreasing identity). Unlimited by default or if the
+argument it zero. This option applies to \-\-alnout, \-\-blast6out,
+\-\-fastapairs, \-\-samout, \-\-uc, or \-\-userout output files.
 .TAG maxid
 .TP
 .BI \-\-maxid \0real
