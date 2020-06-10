@@ -169,6 +169,28 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
 
           exit(EXIT_FAILURE);
 
+        case 7:
+          /* Non-ASCII but acceptable */
+          fprintf(stderr,
+                  "\n"
+                  "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
+                  "Character no %d (0x%2x) on or right before line %"
+                  PRIu64 ".\n",
+                  c, c,
+                  h->lineno);
+
+          if (fp_log)
+            fprintf(fp_log,
+                    "\n"
+                    "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
+                    "Character no %d (0x%2x) on or right before line %"
+                    PRIu64 ".\n",
+                    c, c,
+                    h->lineno);
+
+          *q++ = c;
+          break;
+
         case 5:
         case 6:
           /* tab or space */

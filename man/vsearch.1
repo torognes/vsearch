@@ -198,16 +198,21 @@ alignment method described by Hirschberg (1975) and Myers and Miller
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR accept as input fasta or fastq files containing one or
-several nucleotidic entries. In fasta files, each nucleotidic entry is
-made of a header and a sequence. The header is defined as the string
-comprised between the '>' symbol and the first space, tab or the end
-of the line, whichever comes first. Additionally, if the header
-matches '>[;]size=\fIinteger\fR;label', '>label;size=\fIinteger\fR;label'
-or '>label;size=\fIinteger\fR[;]', \fBvsearch\fR interpret
-\fIinteger\fR as the number of occurrences (or abundance) of the
-sequence in the study. That abundance information is used or created
-during chimera detection, clustering, dereplication, sorting and
-searching.
+several nucleotidic entries. In fasta files, each entry is made of a
+header and a sequence. The header is defined as the string comprised
+between the initial '>' symbol and the first space, tab or the end of
+the line, unless the \-\-notrunclabels option is in effect, in which
+case the entire line is included. The header should contain printable
+ascii characters (33-126). The program will terminate with a fatal
+error if there are unprintable ascii characters. A warning will be
+issued if non-ascii characters (128-255) are encountered.
+.PP
+If the header matches '>[;]size=\fIinteger\fR;label',
+'>label;size=\fIinteger\fR;label' or '>label;size=\fIinteger\fR[;]',
+\fBvsearch\fR interpret \fIinteger\fR as the number of occurrences (or
+abundance) of the sequence in the study. That abundance information is
+used or created during chimera detection, clustering, dereplication,
+sorting and searching.
 .PP
 The sequence is defined as a string of IUPAC symbols
 (ACGTURYSWKMDBHVN), starting after the end of the identifier line and
