@@ -34,7 +34,7 @@ vsearch_manual.pdf : vsearch.1
 	else \
 		cat ; \
 	fi | \
-	groff -t -m mandoc -T ps -P -pa4 | ps2pdf - $@
+	groff -W space -t -m mandoc -T ps -P -pa4 | ps2pdf - $@
 
 CLEANFILES += vsearch_manual.pdf
 
