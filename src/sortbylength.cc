@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-static struct sortinfo_s
+static struct sortinfo_length_s
 {
   unsigned int length;
   unsigned int size;
@@ -69,8 +69,8 @@ static struct sortinfo_s
 
 int sortbylength_compare(const void * a, const void * b)
 {
-  struct sortinfo_s * x = (struct sortinfo_s *) a;
-  struct sortinfo_s * y = (struct sortinfo_s *) b;
+  struct sortinfo_length_s * x = (struct sortinfo_length_s *) a;
+  struct sortinfo_length_s * y = (struct sortinfo_length_s *) b;
 
   /* longest first, then most abundant, then by label, otherwise keep order */
 
@@ -110,7 +110,8 @@ void sortbylength()
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
-  sortinfo = (struct sortinfo_s *) xmalloc(dbsequencecount * sizeof(sortinfo_s));
+  sortinfo = (struct sortinfo_length_s *)
+    xmalloc(dbsequencecount * sizeof(sortinfo_length_s));
 
   int passed = 0;
 
@@ -127,7 +128,7 @@ void sortbylength()
   show_rusage();
 
   progress_init("Sorting", 100);
-  qsort(sortinfo, passed, sizeof(sortinfo_s), sortbylength_compare);
+  qsort(sortinfo, passed, sizeof(sortinfo_length_s), sortbylength_compare);
   progress_done();
 
   double median = 0.0;
