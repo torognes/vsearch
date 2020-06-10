@@ -4118,6 +4118,9 @@ void args_init(int argc, char **argv)
       else
         opt_minseqlength = 1;
     }
+
+  if (opt_sintax)
+    opt_notrunclabels = 1;
 }
 
 void show_publication()

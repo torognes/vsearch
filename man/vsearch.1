@@ -357,7 +357,8 @@ Do not show the gradually increasing progress indicator.
 .TP
 .B \-\-notrunclabels
 Do not truncate sequence labels at first space or tab, use the full
-header in output files.
+header in output files. Turned off by default for all commands except
+the sintax command.
 .TAG quiet
 .TP
 .B \-\-quiet
@@ -3107,6 +3108,9 @@ of the rank by one of the letters d (for domain) k (kingdom), p
 rank. Commas and semicolons are not allowed in the name of the rank.
 .PP
 Example: ">X80725_S000004313;\:tax=d:Bacteria,\:p:Proteobacteria,\:c:Gammaproteobacteria,\:o:Enterobacteriales,\:f:Enterobacteriaceae,\:g:Escherichia/Shigella,\:s:Escherichia_coli".
+.PP
+The option \-\-notrunclabels is turned on by default for this command,
+allowing spaces in the taxonomic identifiers.
 .PP
 .TAG db
 .TP 9
