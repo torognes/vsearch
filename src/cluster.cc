@@ -1242,7 +1242,9 @@ void cluster(char * dbname,
                                 cluster_abundance[clusterno],
                                 clusterno+1,
                                 -1.0,
-                                -1, -1, 0, 0.0);
+                                -1,
+                                opt_clusterout_id ? clusterno : -1,
+                                0, 0.0);
 
           if (opt_uc)
             fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
