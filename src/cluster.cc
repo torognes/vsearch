@@ -1197,12 +1197,17 @@ void cluster(char * dbname,
     }
 
 
-  /* Sort clusters */
+  /* Sort sequences in clusters by their abundance or ordinal number */
   /* Sequences in same cluster must always come right after each other. */
   /* The centroid sequence must be the first in each cluster. */
 
   progress_init("Sorting clusters", clusters);
-  qsort(clusterinfo, seqcount, sizeof(clusterinfo_t), compare_byclusterno);
+  if (opt_clusterout_sort)
+    qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
+          compare_byclusterabundance);
+  else
+    qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
+          compare_byclusterno);
   progress_done();
 
   progress_init("Writing clusters", seqcount);
@@ -1330,15 +1335,6 @@ void cluster(char * dbname,
                   100.0 * singletons / clusters);
           fprintf(fp_log, "\n");
         }
-    }
-
-  if (opt_clusterout_sort)
-    {
-      /* Optionally sort clusters by abundance */
-      progress_init("Sorting clusters by abundance", clusters);
-      qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
-            compare_byclusterabundance);
-      progress_done();
     }
 
   if (opt_msaout || opt_consout || opt_profile)
