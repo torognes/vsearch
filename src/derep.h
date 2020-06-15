@@ -59,4 +59,5 @@
 */
 
 void derep_fulllength();
+void derep_id();
 void derep_prefix();

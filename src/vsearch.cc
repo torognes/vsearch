@@ -102,6 +102,7 @@ char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
 char * opt_derep_fulllength;
+char * opt_derep_id;
 char * opt_derep_prefix;
 char * opt_eetabbedout;
 char * opt_fastaout;
@@ -675,6 +676,7 @@ void args_init(int argc, char **argv)
   opt_dbmatched = 0;
   opt_dbnotmatched = 0;
   opt_derep_fulllength = 0;
+  opt_derep_id = 0;
   opt_derep_prefix = 0;
   opt_dn = 1.4;
   opt_ee_cutoffs_count = 3;
@@ -914,6 +916,7 @@ void args_init(int argc, char **argv)
     option_dbmatched,
     option_dbnotmatched,
     option_derep_fulllength,
+    option_derep_id,
     option_derep_prefix,
     option_dn,
     option_ee_cutoffs,
@@ -1142,6 +1145,7 @@ void args_init(int argc, char **argv)
     {"dbmatched",             required_argument, 0, 0 },
     {"dbnotmatched",          required_argument, 0, 0 },
     {"derep_fulllength",      required_argument, 0, 0 },
+    {"derep_id",              required_argument, 0, 0 },
     {"derep_prefix",          required_argument, 0, 0 },
     {"dn",                    required_argument, 0, 0 },
     {"ee_cutoffs",            required_argument, 0, 0 },
@@ -2287,6 +2291,10 @@ void args_init(int argc, char **argv)
           opt_relabel_self = 1;
           break;
 
+        case option_derep_id:
+          opt_derep_id = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2311,6 +2319,7 @@ void args_init(int argc, char **argv)
       option_cluster_unoise,
       option_cut,
       option_derep_fulllength,
+      option_derep_id,
       option_derep_prefix,
       option_fastq_chars,
       option_fastq_convert,
@@ -2831,6 +2840,34 @@ void args_init(int argc, char **argv)
         -1 },
 
       { option_derep_fulllength,
+        option_bzip2_decompress,
+        option_fasta_width,
+        option_gzip_decompress,
+        option_log,
+        option_maxseqlength,
+        option_maxuniquesize,
+        option_minseqlength,
+        option_minuniquesize,
+        option_no_progress,
+        option_notrunclabels,
+        option_output,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
+        option_strand,
+        option_threads,
+        option_topn,
+        option_uc,
+        option_xee,
+        option_xsize,
+        -1 },
+
+      { option_derep_id,
         option_bzip2_decompress,
         option_fasta_width,
         option_gzip_decompress,
@@ -4276,6 +4313,7 @@ void cmd_help()
               "\n"
               "Dereplication and rereplication\n"
               "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
+              "  --derep_id FILENAME         dereplicate using both identifiers and sequences\n"
               "  --derep_prefix FILENAME     dereplicate sequences in file based on prefixes\n"
               "  --rereplicate FILENAME      rereplicate sequences in the given FASTA file\n"
               " Parameters\n"
@@ -4682,6 +4720,8 @@ void cmd_derep()
 
   if (opt_derep_fulllength)
     derep_fulllength();
+  else if (opt_derep_id)
+    derep_id();
   else
     {
       if (opt_strand > 1)
@@ -4974,7 +5014,7 @@ int main(int argc, char** argv)
     cmd_sortbysize();
   else if (opt_sortbylength)
     cmd_sortbylength();
-  else if (opt_derep_fulllength || opt_derep_prefix)
+  else if (opt_derep_fulllength || opt_derep_id || opt_derep_prefix)
     cmd_derep();
   else if (opt_shuffle)
     cmd_shuffle();

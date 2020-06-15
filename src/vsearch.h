@@ -291,6 +291,7 @@ extern char * opt_db;
 extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
 extern char * opt_derep_fulllength;
+extern char * opt_derep_id;
 extern char * opt_derep_prefix;
 extern char * opt_eetabbedout;
 extern char * opt_fastaout;
