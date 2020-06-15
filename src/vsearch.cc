@@ -4154,9 +4154,16 @@ void args_init(int argc, char **argv)
 
   if (opt_minseqlength < 0)
     {
-      if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size ||
-          opt_usearch_global || opt_derep_fulllength || opt_derep_prefix ||
-          opt_makeudb_usearch || opt_cluster_unoise || opt_sintax)
+      if (opt_cluster_fast ||
+          opt_cluster_size ||
+          opt_cluster_smallmem ||
+          opt_cluster_unoise ||
+          opt_derep_fulllength ||
+          opt_derep_id ||
+          opt_derep_prefix ||
+          opt_makeudb_usearch ||
+          opt_sintax ||
+          opt_usearch_global)
         opt_minseqlength = 32;
       else
         opt_minseqlength = 1;

@@ -34,7 +34,7 @@ Clustering:
 .RE
 Dereplication and rereplication:
 .RS
-\fBvsearch\fR (\-\-derep_fulllength | \-\-derep_prefix)
+\fBvsearch\fR (\-\-derep_fulllength | \-\-derep_id | \-\-derep_prefix)
 \fIfastafile\fR (\-\-output | \-\-uc) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-rereplicate \fIfastafile\fR \-\-output
@@ -353,7 +353,8 @@ greater than \fIinteger\fR (50,000 nucleotides by default).
 .BI \-\-minseqlength\~ "positive integer"
 All \fBvsearch\fR operations discard sequences of length smaller than
 \fIinteger\fR: 1 nucleotide by default for sorting or shuffling, 32
-nucleotides for clustering, dereplication or searching.
+nucleotides for clustering and dereplication as well as the commands
+\-\-makeudb_usearch, \-\-sintax, and \-\-usearch_global.
 .TAG no_progress
 .TP
 .B \-\-no_progress
@@ -1009,6 +1010,12 @@ length and the same string of nucleotides (case insensitive, T and U
 are considered the same). See the options \-\-sizein and \-\-sizeout
 to take into account and compute abundance values. This command does
 not support multithreading.
+.TAG derep_id
+.TP 9
+.BI \-\-derep_id \0filename
+Merge strictly identical sequences contained in \fIfilename\fR, as
+with the \-\-derep_fulllength command, but the sequence labels
+(identifiers) on the header line need to be identical too.
 .TAG derep_prefix
 .TP
 .BI \-\-derep_prefix \0filename
