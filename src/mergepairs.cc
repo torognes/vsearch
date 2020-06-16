@@ -310,13 +310,17 @@ void precompute_qual()
 
           /* Match */
           p = px * py / 3.0 / (1.0 - px - py + 4.0 * px * py / 3.0);
-          q = opt_fastq_ascii + MIN(round(-10.0*log10(p)), opt_fastq_qmaxout);
-          merge_qual_same[x][y] = q;
+          q = round(-10.0 * log10(p));
+          q = MIN(q, opt_fastq_qmaxout);
+          q = MAX(q, opt_fastq_qminout);
+          merge_qual_same[x][y] = opt_fastq_ascii + q;
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
-          q = opt_fastq_ascii + MIN(round(-10.0*log10(p)), opt_fastq_qmaxout);
-          merge_qual_diff[x][y] = q;
+          q = round(-10.0 * log10(p));
+          q = MIN(q, opt_fastq_qmaxout);
+          q = MAX(q, opt_fastq_qminout);
+          merge_qual_diff[x][y] = opt_fastq_ascii + q;
 
           /*
             observed match,

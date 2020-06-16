@@ -3083,6 +3083,7 @@ void args_init(int argc, char **argv)
         option_fastq_qmax,
         option_fastq_qmaxout,
         option_fastq_qmin,
+        option_fastq_qminout,
         option_fastq_truncqual,
         option_fastqout,
         option_fastqout_notmerged_fwd,
