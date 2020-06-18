@@ -4434,7 +4434,7 @@ void cmd_help()
               "  --fastqout FILENAME         FASTQ output filename for merged sequences\n"
               "  --fastqout_notmerged_fwd FN FASTQ filename for non-merged forward sequences\n"
               "  --fastqout_notmerged_rev FN FASTQ filename for non-merged reverse sequences\n"
-              "  --label_suffix              suffix to append to label of merged sequences\n"
+              "  --label_suffix STRING       suffix to append to label of merged sequences\n"
               "  --xee                       remove expected errors (ee) info from output\n"
               "\n"
               "Pairwise alignment\n"

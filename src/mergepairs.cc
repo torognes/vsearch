@@ -188,11 +188,9 @@ typedef struct merge_data_s
   int64_t fwd_trunc;
   int64_t rev_trunc;
   int64_t pair_no;
-  char * merged_header;
   char * merged_sequence;
   char * merged_quality;
   int64_t merged_length;
-  int64_t merged_header_alloc;
   int64_t merged_seq_alloc;
   double ee_merged;
   double ee_fwd;
@@ -396,8 +394,8 @@ void keep(merge_data_t * ip)
       fastq_print_general(fp_fastqout,
                           ip->merged_sequence,
                           ip->merged_length,
-                          ip->merged_header,
-                          strlen(ip->merged_header),
+                          ip->fwd_header,
+                          strlen(ip->fwd_header),
                           ip->merged_quality,
                           0,
                           merged,
@@ -410,8 +408,8 @@ void keep(merge_data_t * ip)
                           0,
                           ip->merged_sequence,
                           ip->merged_length,
-                          ip->merged_header,
-                          strlen(ip->merged_header),
+                          ip->fwd_header,
+                          strlen(ip->fwd_header),
                           0,
                           merged,
                           ip->ee_merged,
@@ -649,12 +647,6 @@ void merge(merge_data_t * ip)
 
   if (ip->ee_merged <= opt_fastq_maxee)
     {
-      if (opt_label_suffix)
-        (void) sprintf(ip->merged_header, "%s%s",
-                       ip->fwd_header, opt_label_suffix);
-      else
-        strcpy(ip->merged_header, ip->fwd_header);
-
       ip->reason = ok;
       ip->merged = 1;
     }
@@ -936,8 +928,6 @@ void process(merge_data_t * ip,
 
 bool read_pair(merge_data_t * ip)
 {
-  int64_t suffix_len = opt_label_suffix ? strlen(opt_label_suffix) : 0;
-
   if (fastq_next(fastq_fwd, 0, chrmap_upcase))
     {
       if (! fastq_next(fastq_rev, 0, chrmap_upcase))
@@ -983,15 +973,6 @@ bool read_pair(merge_data_t * ip)
                                                 merged_seq_needed);
         }
 
-      int64_t merged_header_needed = fwd_header_len + suffix_len + 1;
-
-      if (merged_header_needed > ip->merged_header_alloc)
-        {
-          ip->merged_header_alloc = merged_header_needed;
-          ip->merged_header = (char*) xrealloc(ip->merged_header,
-                                               merged_header_needed);
-        }
-
       /* make local copies of the seq, header and qual */
 
       strcpy(ip->fwd_header,   fastq_get_header(fastq_fwd));
@@ -1001,7 +982,6 @@ bool read_pair(merge_data_t * ip)
       strcpy(ip->fwd_quality,  fastq_get_quality(fastq_fwd));
       strcpy(ip->rev_quality,  fastq_get_quality(fastq_rev));
 
-      ip->merged_header[0] = 0;
       ip->merged_sequence[0] = 0;
       ip->merged_quality[0] = 0;
       ip->merged = 0;
@@ -1039,8 +1019,6 @@ void init_merge_data(merge_data_t * ip)
   ip->reason = undefined;
   ip->merged_seq_alloc = 0;
   ip->merged_sequence = 0;
-  ip->merged_header = 0;
-  ip->merged_header_alloc = 0;
   ip->merged_quality = 0;
   ip->merged_length = 0;
 }
@@ -1060,8 +1038,6 @@ void free_merge_data(merge_data_t * ip)
   if (ip->rev_quality)
     xfree(ip->rev_quality);
 
-  if (ip->merged_header)
-    xfree(ip->merged_header);
   if (ip->merged_sequence)
     xfree(ip->merged_sequence);
   if (ip->merged_quality)

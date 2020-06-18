@@ -366,6 +366,9 @@ void fasta_print_general(FILE * fp,
                                   xee);
     }
 
+  if (opt_label_suffix)
+    fprintf(fp, "%s", opt_label_suffix);
+
   if (clustersize > 0)
     fprintf(fp, ";seqs=%d", clustersize);
 

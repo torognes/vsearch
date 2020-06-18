@@ -653,11 +653,6 @@ void fastx_revcomp()
   char * seq_buffer = (char*) xmalloc(buffer_alloc);
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
-  uint64_t header_alloc = 512;
-  char * header = (char*) xmalloc(header_alloc);
-
-  uint64_t suffix_length = opt_label_suffix ? strlen(opt_label_suffix) : 0;
-
   fastx_handle h = fastx_open(opt_fastx_revcomp);
 
   if (!h)
@@ -699,22 +694,7 @@ void fastx_revcomp()
       /* header */
 
       uint64_t hlen = fastx_get_header_length(h);
-
-      if (hlen + suffix_length + 1 > header_alloc)
-        {
-          header_alloc = hlen + suffix_length + 1;
-          header = (char*) xrealloc(header, header_alloc);
-        }
-
-      char * d = fastx_get_header(h);
-
-      if (opt_label_suffix)
-        snprintf(header, header_alloc, "%s%s", d, opt_label_suffix);
-      else
-        snprintf(header, header_alloc, "%s", d);
-
-      hlen += suffix_length;
-
+      char * header = fastx_get_header(h);
       int64_t abundance = fastx_get_abundance(h);
 
 
@@ -780,7 +760,6 @@ void fastx_revcomp()
 
   fastx_close(h);
 
-  xfree(header);
   xfree(seq_buffer);
   xfree(qual_buffer);
 }

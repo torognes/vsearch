@@ -498,6 +498,9 @@ void fastq_print_general(FILE * fp,
                                   xee);
     }
 
+  if (opt_label_suffix)
+    fprintf(fp, "%s", opt_label_suffix);
+
   if (opt_sizeout && (abundance > 0))
     fprintf(fp, ";size=%u", abundance);
 
