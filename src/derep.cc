@@ -387,9 +387,10 @@ void derep(char * input_filename, bool use_header)
         collision when the number of sequences is about 5e9.
       */
 
+      uint64_t hash_header = HASH(header, headerlen);
       uint64_t hash = HASH(seq_up, seqlen);
       if (use_header)
-        hash ^= HASH(header, headerlen);
+        hash ^= hash_header;
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
@@ -409,6 +410,8 @@ void derep(char * input_filename, bool use_header)
           /* check minus strand as well */
 
           uint64_t rc_hash = HASH(rc_seq_up, seqlen);
+          if (use_header)
+              rc_hash ^= hash_header;
           uint64_t k = rc_hash & hash_mask;
           struct bucket * rc_bp = hashtable + k;
 
