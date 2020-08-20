@@ -72,13 +72,11 @@ const char gz_libname[] = "libz.so";
 #  endif
 void * gz_lib;
 # endif
-gzFile (*gzdopen_p)(int, const char *);
-int (*gzclose_p)(gzFile);
-int (*gzread_p)(gzFile, void *, unsigned);
-int (*gzgetc_p)(gzFile);
-int (*gzrewind_p)(gzFile);
-int (*gzungetc_p)(int, gzFile);
-const char * (*gzerror_p)(gzFile, int*);
+
+gzFile ZEXPORT (*gzdopen_p) OF((int, const char *));
+int ZEXPORT (*gzclose_p) OF((gzFile));
+int ZEXPORT (*gzread_p) OF((gzFile, void *, unsigned));
+
 #endif
 
 #ifdef HAVE_BZLIB_H
@@ -98,19 +96,6 @@ void (*BZ2_bzReadClose_p)(int*, BZFILE*);
 int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 #endif
 
-#ifdef _WIN32
-FARPROC arch_dlsym(HMODULE handle, const char * symbol)
-#else
-void * arch_dlsym(void * handle, const char * symbol)
-#endif
-{
-#ifdef _WIN32
-  return GetProcAddress(handle, symbol);
-#else
-  return dlsym(handle, symbol);
-#endif
-}
-
 void dynlibs_open()
 {
 #ifdef HAVE_ZLIB_H
@@ -124,10 +109,8 @@ void dynlibs_open()
       gzdopen_p = (gzFile (*)(int, const char*)) arch_dlsym(gz_lib, "gzdopen");
       gzclose_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzclose");
       gzread_p = (int (*)(gzFile, void*, unsigned)) arch_dlsym(gz_lib, "gzread");
-      gzgetc_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzgetc");
-      gzrewind_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzrewind");
-      gzerror_p = (const char * (*)(gzFile, int*)) arch_dlsym(gz_lib, "gzerror");
-      gzungetc_p = (int (*)(int, gzFile)) arch_dlsym(gz_lib, "gzungetc");
+      if (!(gzdopen_p && gzclose_p && gzread_p))
+        fatal("Invalid compression library (zlib)");
     }
 #endif
 
@@ -145,6 +128,8 @@ void dynlibs_open()
         arch_dlsym(bz2_lib, "BZ2_bzReadClose");
       BZ2_bzRead_p = (int (*)(int*, BZFILE*, void*, int))
         arch_dlsym(bz2_lib, "BZ2_bzRead");
+      if (!(BZ2_bzReadOpen_p && BZ2_bzReadClose_p && BZ2_bzRead_p))
+        fatal("Invalid compression library (bz2)");
     }
 #endif
 }

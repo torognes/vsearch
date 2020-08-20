@@ -83,3 +83,9 @@ int xopen_read(const char * path);
 int xopen_write(const char * path);
 
 const char * xstrcasestr(const char * haystack, const char * needle);
+
+#ifdef _WIN32
+FARPROC arch_dlsym(HMODULE handle, const char * symbol);
+#else
+void * arch_dlsym(void * handle, const char * symbol);
+#endif

@@ -4192,7 +4192,23 @@ void cmd_version()
 #ifdef HAVE_ZLIB_H
       printf("Compiled with support for gzip-compressed files,");
       if (gz_lib)
-        printf(" and the library is loaded.\n");
+        {
+          printf(" and the library is loaded.\n");
+
+          char * (*zlibVersion_p)();
+          zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib,
+                                                    "zlibVersion");
+          char * gz_version = (*zlibVersion_p)();
+          uLong (*zlibCompileFlags_p)(void);
+          zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
+                                                        "zlibCompileFlags");
+          uLong flags = (*zlibCompileFlags_p)();
+
+          printf("zlib version %s, compile flags %lx", gz_version, flags);
+          if (flags & 0x0400)
+            printf(" (ZLIB_WINAPI)");
+          printf("\n");
+        }
       else
         printf(" but the library was not found.\n");
 #else

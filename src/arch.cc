@@ -307,3 +307,16 @@ const char * xstrcasestr(const char * haystack, const char * needle)
   return strcasestr(haystack, needle);
 #endif
 }
+
+#ifdef _WIN32
+FARPROC arch_dlsym(HMODULE handle, const char * symbol)
+#else
+void * arch_dlsym(void * handle, const char * symbol)
+#endif
+{
+#ifdef _WIN32
+  return GetProcAddress(handle, symbol);
+#else
+  return dlsym(handle, symbol);
+#endif
+}
