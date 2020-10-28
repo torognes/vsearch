@@ -223,11 +223,29 @@ void filter(bool fastq_only, char * filename)
   if (!h1)
     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
 
-  if (fastq_only && ! h1->is_fastq)
-    fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
-
-  if ((opt_fastqout || opt_fastqout_discarded) && ! h1->is_fastq)
-    fatal("Cannot write FASTQ output with FASTA input file (no quality scores)");
+  if (! h1->is_fastq)
+    {
+      if (fastq_only)
+        {
+          fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
+        }
+      else if (opt_eeout ||
+               (opt_fastq_ascii != 33) ||
+               opt_fastq_eeout ||
+               (opt_fastq_maxee < DBL_MAX) ||
+               (opt_fastq_maxee_rate < DBL_MAX) ||
+               opt_fastqout ||
+               (opt_fastq_qmax < 41) ||
+               (opt_fastq_qmin > 0) ||
+               (opt_fastq_truncee < DBL_MAX) ||
+               (opt_fastq_truncqual < LONG_MIN) ||
+               opt_fastqout_discarded ||
+               opt_fastqout_discarded_rev ||
+               opt_fastqout_rev)
+        {
+          fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
+        }
+    }
 
   uint64_t filesize = fastx_get_size(h1);
 
@@ -238,11 +256,32 @@ void filter(bool fastq_only, char * filename)
       if (!h2)
         fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
 
-      if (fastq_only && ! h2->is_fastq)
-        fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
+      if (h1->is_fastq != h2->is_fastq)
+        fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
 
-      if ((opt_fastqout_rev || opt_fastqout_discarded_rev) && ! h2->is_fastq)
-        fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
+      if (! h2->is_fastq)
+        {
+          if (fastq_only)
+            {
+              fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
+            }
+          else if (opt_eeout ||
+                   (opt_fastq_ascii != 33) ||
+                   opt_fastq_eeout ||
+                   (opt_fastq_maxee < DBL_MAX) ||
+                   (opt_fastq_maxee_rate < DBL_MAX) ||
+                   opt_fastqout ||
+                   (opt_fastq_qmax < 41) ||
+                   (opt_fastq_qmin > 0) ||
+                   (opt_fastq_truncee < DBL_MAX) ||
+                   (opt_fastq_truncqual < LONG_MIN) ||
+                   opt_fastqout_discarded ||
+                   opt_fastqout_discarded_rev ||
+                   opt_fastqout_rev)
+            {
+              fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
+            }
+        }
     }
 
   FILE * fp_fastaout = 0;
