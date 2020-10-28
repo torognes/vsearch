@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "October 28, 2020" "version 2.15.0" "USER COMMANDS"
+.TH vsearch 1 "October 28, 2020" "version 2.15.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -4291,6 +4291,13 @@ error messages when parsing FASTQ files. Add missing fastq_qminout
 option and fix label_suffix option for fastq_mergepairs. Add derep_id
 command that dereplicates based on both label and sequence. Remove
 compilation warnings.
+.TP
+.BR v2.15.1\~ "released October 28th, 2020"
+Fix for dereplication when including reverse complement sequences and
+headers. Make some extra checks when loading compression libraries and
+add more diagnostic output about them to the output of the version
+command. Report an error when fastx_filter is used with FASTA input
+and options that require FASTQ input. Update manual.
 .LP
 .\" ============================================================================
 .\" TODO:
