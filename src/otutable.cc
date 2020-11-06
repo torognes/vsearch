@@ -178,13 +178,12 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
   /* read tax annotation in target */
 
   regmatch_t pmatch_tax[4];
-  int len_tax;
   char * start_tax = target_header;
 
   if (!regexec(&otutable.regex_tax, target_header, 4, pmatch_tax, 0))
     {
       /* match: use the matching tax name */
-      len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
+      int len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
       start_tax += pmatch_tax[2].rm_so;
 
       char * tax_name = (char *) xmalloc(len_tax+1);
