@@ -214,7 +214,7 @@ void otutable_print_otutabout(FILE * fp)
   fprintf(fp, "#OTU ID");
   for (string_set_t::iterator it_sample = otutable.sample_set.begin();
        it_sample != otutable.sample_set.end();
-       it_sample++)
+       ++it_sample)
     fprintf(fp, "\t%s", it_sample->c_str());
   if (! otutable.otu_tax_map.empty())
     fprintf(fp, "\ttaxonomy");
@@ -223,13 +223,13 @@ void otutable_print_otutabout(FILE * fp)
   string_pair_map_t::iterator it_map = otutable.otu_sample_count.begin();
   for (string_set_t::iterator it_otu = otutable.otu_set.begin();
        it_otu != otutable.otu_set.end();
-       it_otu++)
+       ++it_otu)
     {
       fprintf(fp, "%s", it_otu->c_str());
 
       for (string_set_t::iterator it_sample = otutable.sample_set.begin();
            it_sample != otutable.sample_set.end();
-           it_sample++)
+           ++it_sample)
         {
           uint64_t a = 0;
           if ((it_map != otutable.otu_sample_count.end()) &&
@@ -237,7 +237,7 @@ void otutable_print_otutabout(FILE * fp)
               (it_map->first.second == *it_sample))
             {
               a = it_map->second;
-              it_map++;
+              ++it_map;
             }
           fprintf(fp, "\t%" PRIu64, a);
         }
@@ -264,11 +264,11 @@ void otutable_print_mothur_shared_out(FILE * fp)
   int64_t numotus = 0;
   for (string_set_t::iterator it_otu = otutable.otu_set.begin();
        it_otu != otutable.otu_set.end();
-       it_otu++)
+       ++it_otu)
     {
       const char * otu_name = it_otu->c_str();
       fprintf(fp, "\t%s", otu_name);
-      numotus++;
+      ++numotus;
     }
   fprintf(fp, "\n");
 
@@ -276,13 +276,13 @@ void otutable_print_mothur_shared_out(FILE * fp)
 
   for (string_set_t::iterator it_sample = otutable.sample_set.begin();
        it_sample != otutable.sample_set.end();
-       it_sample++)
+       ++it_sample)
     {
       fprintf(fp, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
 
       for (string_set_t::iterator it_otu = otutable.otu_set.begin();
            it_otu != otutable.otu_set.end();
-           it_otu++)
+           ++it_otu)
         {
           uint64_t a = 0;
           if ((it_map != otutable.sample_otu_count.end()) &&
@@ -290,7 +290,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
               (it_map->first.second == *it_otu))
             {
               a = it_map->second;
-              it_map++;
+              ++it_map;
             }
           fprintf(fp, "\t%" PRIu64, a);
         }
@@ -338,7 +338,7 @@ void otutable_print_biomout(FILE * fp)
   fprintf(fp, "\t\"rows\":[");
   for (string_set_t::iterator it_otu = otutable.otu_set.begin();
        it_otu != otutable.otu_set.end();
-       it_otu++)
+       ++it_otu)
     {
       if (it_otu != otutable.otu_set.begin())
         fprintf(fp, ",");
@@ -367,7 +367,7 @@ void otutable_print_biomout(FILE * fp)
   fprintf(fp, "\t\"columns\":[");
   for (string_set_t::iterator it_sample = otutable.sample_set.begin();
        it_sample != otutable.sample_set.end();
-       it_sample++)
+       ++it_sample)
     {
       if (it_sample != otutable.sample_set.begin())
         fprintf(fp, ",");
@@ -381,7 +381,7 @@ void otutable_print_biomout(FILE * fp)
 
   for (string_pair_map_t::iterator it_map = otutable.otu_sample_count.begin();
        it_map != otutable.otu_sample_count.end();
-       it_map++)
+       ++it_map)
     {
       if (!first)
         fprintf(fp, ",");
