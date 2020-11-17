@@ -15,7 +15,7 @@ MACOSX_DEPLOYMENT_TARGET="10.9"
 # Set default gcc and g++ options
 
 CFLAGS='-g'
-CXXFLAGS='-g -std=c++11'
+CXXFLAGS='-g'
 
 # Checks for programs.
 AC_PROG_CXX
