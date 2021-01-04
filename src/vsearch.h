@@ -73,6 +73,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <cstdlib>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -81,7 +82,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <stdlib.h>
 #include <time.h>
 #include <limits.h>
 #include <locale.h>
