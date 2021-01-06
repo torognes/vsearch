@@ -68,31 +68,30 @@
 #include "config.h"
 #endif
 
-#include <regex.h>
-
-#include <string>
-#include <set>
-#include <map>
+#include <cctype>
+#include <cfloat>
+#include <cinttypes>
+#include <climits>
+#include <clocale>
+#include <cmath>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <map>
+#include <set>
+#include <string>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <stdio.h>
-#include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <time.h>
-#include <limits.h>
-#include <locale.h>
-#include <math.h>
-#include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <float.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdarg.h>
+#include <regex.h>
 
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION
