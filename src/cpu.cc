@@ -137,7 +137,7 @@ void increment_counters_from_bitmap(count_t * counters,
   for(int j=0; j<r; j++)
     {
       vector unsigned char r0, r1, r2;
-      vector bool char r3;
+      vector __bool char r3;
       vector signed short r4, r5;
 
       r0 = * (vector unsigned char *) p;

@@ -107,6 +107,7 @@
 #ifdef __LITTLE_ENDIAN__
 #define PROG_CPU "ppc64le"
 #include <altivec.h>
+#undef bool
 #else
 #error Big endian ppc64 CPUs not supported
 #endif
