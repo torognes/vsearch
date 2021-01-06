@@ -72,10 +72,10 @@
 
 #define SHA_DIGEST_LENGTH SHA1_DIGEST_SIZE
 
-#define MD5_DIGEST_LENGTH 16
+constexpr int MD5_DIGEST_LENGTH {16};
 #define LEN_DIG_SHA1 SHA_DIGEST_LENGTH
 
-#define LEN_HEX_DIG_MD5 (2 * MD5_DIGEST_LENGTH + 1)
+constexpr int LEN_HEX_DIG_MD5 {2 * MD5_DIGEST_LENGTH + 1};
 #define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
 
 void fatal(const char * msg);
