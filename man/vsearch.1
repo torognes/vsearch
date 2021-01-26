@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 26, 2021" "version 2.15.1" "USER COMMANDS"
+.TH vsearch 1 "January 26, 2021" "version 2.15.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -4299,6 +4299,14 @@ headers. Make some extra checks when loading compression libraries and
 add more diagnostic output about them to the output of the version
 command. Report an error when fastx_filter is used with FASTA input
 and options that require FASTQ input. Update manual.
+.TP
+.BR v2.15.2\~ "released January 26th, 2021"
+No real functional changes, but some code and compilation
+changes. Compiles successfully on macOS running on Apple Silicon
+(ARMv8).  Binaries available. Code updated for C++11. Minor
+adaptations for Windows compatibility, including the use of the C++
+standard library for regular expressions. Minor changes for
+compatibility with Power8. Switch to C++ header files.
 .LP
 .\" ============================================================================
 .\" TODO:
