@@ -3,14 +3,13 @@ language:
 
 os:
 - linux
-- osx
 
 compiler:
 - g++
 - clang
 
 install:
-- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y ghostscript groff valgrind ; else brew install ghostscript; brew install valgrind ; fi
+- sudo apt-get install -y ghostscript groff valgrind
 
 script:
 - ./autogen.sh
