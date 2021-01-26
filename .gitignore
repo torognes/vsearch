@@ -22,3 +22,5 @@ install-sh
 missing
 Makefile.in
 .vscode
+.DS_Store
+.Tpo

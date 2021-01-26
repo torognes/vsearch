@@ -16,12 +16,12 @@ We have implemented a tool called VSEARCH which supports *de novo* and reference
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-[VSEARCH binaries](https://github.com/torognes/vsearch/releases/latest) are provided for GNU/Linux on three processor architectures: x86-64, 64-bit little-endian POWER8 (ppc64le) and 64-bit ARMv8 (aarch64). VSEARCH contains dedicated SIMD code for these three processors architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon). Binaries are also provided for MacOS (version 10.9 Mavericks or later) and Windows (64-bit, version 7 or higher).
+[VSEARCH binaries](https://github.com/torognes/vsearch/releases/latest) are provided for GNU/Linux on three 64-bit processor architectures: x86-64, POWER8 (ppc64le) and ARMv8 (aarch64). Binaries are also provided for MacOS (version 10.9 Mavericks or later) on Intel (x86-64) and Apple Silicon (ARMv8), as well as Windows (64-bit, version 7 or higher, on x86_64). VSEARCH contains dedicated SIMD code for the three processors architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon).
 
 | CPU \ OS      | GNU/Linux     | MacOS  | Windows   |
 | ------------- | :-----------: | :----: | :-------: |
 | x86_64        |  ✔            |  ✔     |  ✔        |
-| ARMv8         |  ✔            |        |           |
+| ARMv8         |  ✔            |  ✔     |           |
 | POWER8        |  ✔            |        |           |
 
 Various packages, plugins and wrappers are also available from other sources - see [below](https://github.com/torognes/vsearch#packages-plugins-and-wrappers).
@@ -56,7 +56,7 @@ make
 make install  # as root or sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autotools (version 2.63 or later) and the gcc compiler is required to build vsearch.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch.
 
 The Windows binary was compiled using the [Mingw-w64](https://mingw-w64.org/) C++ cross-compiler.
 
@@ -73,7 +73,7 @@ make install  # as root or sudo make install
 
 **Binary distribution** Starting with version 1.4.0, binary distribution files containing pre-compiled binaries as well as the documentation will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`).
 
-Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) and Windows (64-bit, version 7 or higher), as well as POWER8 (ppc64le) and 64-bit AMDv8 (aarch64) systems running GNU/Linux.
+Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) or Windows (64-bit, version 7 or higher), 64-bit AMDv8 (aarch64) systems running GNU/Linux or macOS, as well as POWER8 (ppc64le) systems running GNU/Linux.
 
 Download the appropriate executable for your system using the following commands if you are using a Linux x86_64 system:
 

@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 6, 2021" "version 2.15.1" "USER COMMANDS"
+.TH vsearch 1 "January 26, 2021" "version 2.15.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -187,14 +187,15 @@ speed up comparisons, \fBvsearch\fR implements an extremely fast
 Needleman-Wunsch algorithm, making use of the Streaming SIMD
 Extensions (SSE2) of post-2003 x86-64 CPUs.  If SSE2 instructions are
 not available, \fBvsearch\fR exits with an error message. On Power8
-CPUs it will use AltiVec/VSX/VMX instructions. Memory usage increases
-rapidly with sequence length: for example comparing two sequences of
-length 1 kb requires 8 MB of memory per thread, and comparing two 10
-kb sequences requires 800 MB of memory per thread. For comparisons
-involving sequences with a length product greater than 25 million (for
-example two sequences of length 5 kb), \fBvsearch\fR uses a slower
-alignment method described by Hirschberg (1975) and Myers and Miller
-(1988), with much smaller memory requirements.
+CPUs it will use AltiVec/VSX/VMX instructions, and on ARMv8 CPUs it
+will use Neon instructions. Memory usage increases rapidly with
+sequence length: for example comparing two sequences of length 1 kb
+requires 8 MB of memory per thread, and comparing two 10 kb sequences
+requires 800 MB of memory per thread. For comparisons involving
+sequences with a length product greater than 25 million (for example
+two sequences of length 5 kb), \fBvsearch\fR uses a slower alignment
+method described by Hirschberg (1975) and Myers and Miller (1988),
+with much smaller memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR accept as input fasta or fastq files containing one or

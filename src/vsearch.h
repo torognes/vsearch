@@ -84,6 +84,14 @@
 #include <set>
 #include <string>
 
+/* include appropriate regex library */
+
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#else
+#include <regex>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -91,7 +99,6 @@
 #include <getopt.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <regex.h>
 
 #define PROG_NAME PACKAGE
 #define PROG_VERSION PACKAGE_VERSION

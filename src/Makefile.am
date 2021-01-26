@@ -91,7 +91,7 @@ if TARGET_WIN
 
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -D_MSC_VER
 __top_builddir__bin_vsearch_LDFLAGS = -static
-__top_builddir__bin_vsearch_LDADD = libregex.a libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 
 else
 
