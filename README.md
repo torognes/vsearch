@@ -127,7 +127,7 @@ Windows: You will now have the binary distribution in a folder called `vsearch-2
 
 **Galaxy wrapper** Thanks to the work of the [Intergalactic Utilities Commission](https://wiki.galaxyproject.org/IUC) members, vsearch is now part of the [Galaxy ToolShed](https://toolshed.g2.bx.psu.edu/view/iuc/vsearch/).
 
-**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a [vsearch package](https://github.com/Homebrew/homebrew-science/pull/2409) for [Homebrew](http://brew.sh/) has been made.
+**Homebrew package** Thanks to [Torsten Seeman](https://github.com/tseemann), a [vsearch package](https://formulae.brew.sh/formula/vsearch) for [Homebrew](http://brew.sh/) has been made.
 
 **Pkgsrc package** Thanks to [Jason Bacon](https://github.com/outpaddling), a vsearch [pkgsrc](https://www.pkgsrc.org) package is available for NetBSD and other UNIX-like systems. Install the binary package with `pkgin install vsearch`, or build from source with additional optimizations.
 
