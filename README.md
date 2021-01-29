@@ -4,7 +4,7 @@
 
 ## Introduction
 
-The aim of this project is to create an alternative to the [USEARCH](http://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should:
+The aim of this project is to create an alternative to the [USEARCH](https://www.drive5.com/usearch/) tool developed by Robert C. Edgar (2010). The new tool should:
 
 * have open source code with an appropriate open source license
 * be free of charge, gratis
@@ -56,9 +56,9 @@ make
 make install  # as root or sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](http://www.zlib.net) and/or [bzip2](http://www.bzip.org) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch.
 
-The Windows binary was compiled using the [Mingw-w64](https://mingw-w64.org/) C++ cross-compiler.
+The Windows binary was compiled using the [Mingw-w64](http://mingw-w64.org/) C++ cross-compiler.
 
 **Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
@@ -171,7 +171,7 @@ The VSEARCH code is dual-licensed either under the GNU General Public License ve
 
 VSEARCH includes code from several other projects. We thank the authors for making their source code available.
 
-VSEARCH includes code from Google's [CityHash project](http://code.google.com/p/cityhash/) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
+VSEARCH includes code from Google's [CityHash project](https://github.com/google/cityhash) by Geoff Pike and Jyrki Alakuijala, providing some excellent hash functions available under a MIT license.
 
 VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in the public domain.
 
@@ -181,9 +181,9 @@ VSEARCH includes public domain code written by Steve Reid and others for the SHA
 
 The VSEARCH distribution includes code from GNU Autoconf which normally is available under the GNU General Public License, but may be distributed with the special autoconf configure script exception.
 
-VSEARCH may include code from the [zlib](http://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](http://www.zlib.net/zlib_license.html).
+VSEARCH may include code from the [zlib](https://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](https://www.zlib.net/zlib_license.html).
 
-VSEARCH may include code from the [bzip2](http://www.bzip.org) library copyright Julian R. Seward, distributed under a BSD-style license.
+VSEARCH may include code from the [bzip2](https://www.sourceware.org/bzip2/) library copyright Julian R. Seward, distributed under a BSD-style license.
 
 
 ## Code
@@ -243,7 +243,7 @@ File | Description
 **vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
 **xstring.h** | Code for a simple string class
 
-VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](http://www.bzip.org/) libraries are needed for this.
+VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](https://www.sourceware.org/bzip2/) libraries are needed for this.
 
 
 ## Bugs
@@ -294,9 +294,9 @@ Please note that citing any of the underlying algorithms, e.g. UCHIME, may also 
 
 Test datasets (found in the separate vsearch-data repository) were
 obtained from
-the [BioMarks project](http://biomarks.eu/) (Logares et al. 2014),
-the [TARA OCEANS project](http://oceans.taraexpeditions.org/) (Karsenti et al. 2011)
-and the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et al. 2012).
+the BioMarks project (Logares et al. 2014),
+the [TARA OCEANS project](https://oceans.taraexpeditions.org/en/) (Karsenti et al. 2011)
+and the [Protist Ribosomal Reference Database (PR<sup>2</sup>)](https://github.com/pr2database/pr2database) (Guillou et al. 2013).
 
 
 ## References
@@ -304,28 +304,28 @@ and the [Protist Ribosomal Database](http://ssu-rrna.org/) (Guillou et al. 2012)
 * Edgar RC (2010)
 **Search and clustering orders of magnitude faster than BLAST.**
 *Bioinformatics*, 26 (19): 2460-2461.
-doi:[10.1093/bioinformatics/btq461](http://dx.doi.org/10.1093/bioinformatics/btq461)
+doi:[10.1093/bioinformatics/btq461](https://doi.org/10.1093/bioinformatics/btq461)
 
 * Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011)
 **UCHIME improves sensitivity and speed of chimera detection.**
 *Bioinformatics*, 27 (16): 2194-2200.
-doi:[10.1093/bioinformatics/btr381](http://dx.doi.org/10.1093/bioinformatics/btr381)
+doi:[10.1093/bioinformatics/btr381](https://doi.org/10.1093/bioinformatics/btr381)
 
 * Guillou L, Bachar D, Audic S, Bass D, Berney C, Bittner L, Boutte C, Burgaud G, de Vargas C, Decelle J, del Campo J, Dolan J, Dunthorn M, Edvardsen B, Holzmann M, Kooistra W, Lara E, Lebescot N, Logares R, Mahé F, Massana R, Montresor M, Morard R, Not F, Pawlowski J, Probert I, Sauvadet A-L, Siano R, Stoeck T, Vaulot D, Zimmermann P & Christen R (2013)
 **The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.**
 *Nucleic Acids Research*, 41 (D1), D597-D604.
-doi:[10.1093/nar/gks1160](http://dx.doi.org/10.1093/nar/gks1160)
+doi:[10.1093/nar/gks1160](https://doi.org/10.1093/nar/gks1160)
 
 * Karsenti E, González Acinas S, Bork P, Bowler C, de Vargas C, Raes J, Sullivan M B, Arendt D, Benzoni F, Claverie J-M, Follows M, Jaillon O, Gorsky G, Hingamp P, Iudicone D, Kandels-Lewis S, Krzic U, Not F, Ogata H, Pesant S, Reynaud E G, Sardet C, Sieracki M E, Speich S, Velayoudon D, Weissenbach J, Wincker P & the Tara Oceans Consortium (2011)
 **A holistic approach to marine eco-systems biology.**
 *PLoS Biology*, 9(10), e1001177.
-doi:[10.1371/journal.pbio.1001177](http://dx.doi.org/10.1371/journal.pbio.1001177)
+doi:[10.1371/journal.pbio.1001177](https://doi.org/10.1371/journal.pbio.1001177)
 
 * Logares R, Audic S, Bass D, Bittner L, Boutte C, Christen R, Claverie J-M, Decelle J, Dolan J R, Dunthorn M, Edvardsen B, Gobet A, Kooistra W H C F, Mahé F, Not F, Ogata H, Pawlowski J, Pernice M C, Romac S, Shalchian-Tabrizi K, Simon N, Stoeck T, Santini S, Siano R, Wincker P, Zingone A, Richards T, de Vargas C & Massana R (2014) **The patterning of rare and abundant community assemblages in coastal marine-planktonic microbial eukaryotes.**
 *Current Biology*, 24(8), 813-821.
-doi:[10.1016/j.cub.2014.02.050](http://dx.doi.org/10.1016/j.cub.2014.02.050)
+doi:[10.1016/j.cub.2014.02.050](https://doi.org/10.1016/j.cub.2014.02.050)
 
 * Rognes T (2011)
 **Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation.**
 *BMC Bioinformatics*, 12: 221.
-doi:[10.1186/1471-2105-12-221](http://dx.doi.org/10.1186/1471-2105-12-221)
+doi:[10.1186/1471-2105-12-221](https://doi.org/10.1186/1471-2105-12-221)
