@@ -319,17 +319,9 @@ void sintax_analyse(char * query_head,
 void sintax_query(int64_t t)
 {
   int all_seqno[2][bootstrap_count];
-  int best_seqno[2];
-  int boot_count[2];
-  unsigned int best_count[2];
-
-  best_count[0] = 0;
-  best_count[1] = 0;
-  best_seqno[0] = 0;
-  best_seqno[1] = 0;
-  boot_count[0] = 0;
-  boot_count[1] = 0;
-
+  int best_seqno[2] = {0, 0};
+  int boot_count[2] = {0, 0};
+  unsigned int best_count[2] = {0, 0};
   int qseqlen = si_plus[t].qseqlen;
   char * query_head = si_plus[t].query_head;
 
