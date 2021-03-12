@@ -392,7 +392,7 @@ void otutable_print_biomout(FILE * fp)
         fprintf(fp, "null");
       else
         {
-          fprintf(fp, "{\"taxonomy\":\"");
+          fprintf(fp, R"({"taxonomy":")");
           otu_tax_map_t::iterator it
             = otutable->otu_tax_map.find(otu_name);
           if (it != otutable->otu_tax_map.end())
