@@ -709,12 +709,20 @@ void search_exact(char * cmdline, char * progheader)
   fasta_close(query_fasta_h);
 
   if (!opt_quiet)
-    fprintf(stderr, "Matching query sequences: %d of %d (%.2f%%)\n",
-            qmatches, queries, 100.0 * qmatches / queries);
+    {
+      fprintf(stderr, "Matching query sequences: %d of %d", qmatches, queries);
+      if (queries > 0)
+        fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+      fprintf(stderr, "\n");
+    }
 
   if (opt_log)
-    fprintf(fp_log, "Matching query sequences: %d of %d (%.2f%%)\n",
-            qmatches, queries, 100.0 * qmatches / queries);
+    {
+      fprintf(fp_log, "Matching query sequences: %d of %d", qmatches, queries);
+      if (queries > 0)
+        fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+      fprintf(fp_log, "\n");
+    }
 
   if (fp_biomout)
     {

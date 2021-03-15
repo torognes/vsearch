@@ -275,13 +275,20 @@ fastx_handle fastx_open(const char * filename)
       unsigned char magic[2];
 
       h->format = FORMAT_PLAIN;
-      if (fread(&magic, 1, 2, h->fp) < 2)
-        fatal("Unable to read from file (%s)", filename);
 
-      if (memcmp(magic, MAGIC_GZIP, 2) == 0)
-        h->format = FORMAT_GZIP;
-      else if (memcmp(magic, MAGIC_BZIP, 2) == 0)
-        h->format = FORMAT_BZIP;
+      size_t bytes_read = fread(&magic, 1, 2, h->fp);
+
+      if (bytes_read >= 2)
+        {
+          if (memcmp(magic, MAGIC_GZIP, 2) == 0)
+            h->format = FORMAT_GZIP;
+          else if (memcmp(magic, MAGIC_BZIP, 2) == 0)
+            h->format = FORMAT_BZIP;
+        }
+      else
+        {
+          /* consider it an empty file or a tiny fasta file, uncompressed */
+        }
 
       /* close and reopen to avoid problems with gzip library */
       /* rewind was not enough */
@@ -330,65 +337,71 @@ fastx_handle fastx_open(const char * filename)
 
   uint64_t rest = fastx_file_fill_buffer(h);
 
-  if (rest < 2)
-    fatal("File too small");
-
-
   /* examine first char and see if it starts with > or @ */
 
   int filetype = 0;
-  char * first = h->file_buffer.data;
+  h->is_empty = 1;
+  h->is_fastq = 0;
 
-  if (*first == '>')
+  if (rest > 0)
     {
-      filetype = 1;
-      h->is_fastq = 0;
-    }
-  else if (*first == '@')
-    {
-      filetype = 2;
-      h->is_fastq = 1;
-    }
+      h->is_empty = 0;
 
-  if (filetype == 0)
-    {
-      /* close files if unrecognized file type */
+      char * first = h->file_buffer.data;
 
-      switch(h->format)
+      if (*first == '>')
         {
-        case FORMAT_PLAIN:
-          break;
-
-        case FORMAT_GZIP:
-#ifdef HAVE_ZLIB_H
-          (*gzclose_p)(h->fp_gz);
-          h->fp_gz = 0;
-          break;
-#endif
-
-        case FORMAT_BZIP:
-#ifdef HAVE_BZLIB_H
-          (*BZ2_bzReadClose_p)(&bzError, h->fp_bz);
-          h->fp_bz = 0;
-          break;
-#endif
-
-        default:
-          fatal("Internal error");
+          filetype = 1;
+        }
+      else if (*first == '@')
+        {
+          filetype = 2;
+          h->is_fastq = 1;
         }
 
-      fclose(h->fp);
-      h->fp = 0;
+      if (filetype == 0)
+        {
+          /* close files if unrecognized file type */
 
-      if (memcmp(first, MAGIC_GZIP, 2) == 0)
-        fatal("File appears to be gzip compressed. Please use --gzip_decompress");
+          switch(h->format)
+            {
+            case FORMAT_PLAIN:
+              break;
 
-      if (memcmp(first, MAGIC_BZIP, 2) == 0)
-        fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
+            case FORMAT_GZIP:
+#ifdef HAVE_ZLIB_H
+              (*gzclose_p)(h->fp_gz);
+              h->fp_gz = 0;
+              break;
+#endif
 
-      fatal("File type not recognized.");
+            case FORMAT_BZIP:
+#ifdef HAVE_BZLIB_H
+              (*BZ2_bzReadClose_p)(&bzError, h->fp_bz);
+              h->fp_bz = 0;
+              break;
+#endif
 
-      return 0;
+            default:
+              fatal("Internal error");
+            }
+
+          fclose(h->fp);
+          h->fp = 0;
+
+          if (rest >= 2)
+            {
+              if (memcmp(first, MAGIC_GZIP, 2) == 0)
+                fatal("File appears to be gzip compressed. Please use --gzip_decompress");
+
+              if (memcmp(first, MAGIC_BZIP, 2) == 0)
+                fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
+            }
+
+          fatal("File type not recognized.");
+
+          return 0;
+        }
     }
 
   /* more initialization */
@@ -412,7 +425,7 @@ fastx_handle fastx_open(const char * filename)
 
 bool fastx_is_fastq(fastx_handle h)
 {
-  return h->is_fastq;
+  return h->is_fastq || h->is_empty;
 }
 
 void fastx_close(fastx_handle h)

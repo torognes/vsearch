@@ -482,8 +482,14 @@ void fastq_eestats2()
   progress_done();
 
   fprintf(fp_output,
-          "%" PRIu64 " reads, max len %" PRIu64 ", avg %.1f\n\n",
-          seq_count, longest, 1.0 * symbols / seq_count);
+          "%" PRIu64 " reads",
+          seq_count);
+
+  if (seq_count > 0)
+    fprintf(fp_output,
+            ", max len %" PRIu64 ", avg %.1f",
+            longest, 1.0 * symbols / seq_count);
+  fprintf(fp_output, "\n\n");
 
   fprintf(fp_output, "Length");
   for (int y = 0; y < opt_ee_cutoffs_count; y++)

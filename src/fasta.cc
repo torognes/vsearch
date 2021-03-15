@@ -64,7 +64,7 @@ fastx_handle fasta_open(const char * filename)
 {
   fastx_handle h = fastx_open(filename);
 
-  if (fastx_is_fastq(h))
+  if (fastx_is_fastq(h) && ! h->is_empty)
     fatal("FASTA file expected, FASTQ file found (%s)", filename);
 
   return h;

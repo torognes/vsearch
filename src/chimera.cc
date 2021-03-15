@@ -1590,26 +1590,59 @@ void chimera()
   progress_done();
 
   if (!opt_quiet)
-    fprintf(stderr,
-            "Found %d (%.1f%%) chimeras, %d (%.1f%%) non-chimeras,\n"
-            "and %d (%.1f%%) borderline sequences in %u unique sequences.\n"
-            "Taking abundance information into account, this corresponds to\n"
-            "%" PRId64 " (%.1f%%) chimeras, %" PRId64 " (%.1f%%) non-chimeras,\n"
-            "and %" PRId64 " (%.1f%%) borderline sequences in %" PRId64 " total sequences.\n",
-            chimera_count,
-            100.0 * chimera_count / total_count,
-            nonchimera_count,
-            100.0 * nonchimera_count / total_count,
-            borderline_count,
-            100.0 * borderline_count / total_count,
-            total_count,
-            chimera_abundance,
-            100.0 * chimera_abundance / total_abundance,
-            nonchimera_abundance,
-            100.0 * nonchimera_abundance / total_abundance,
-            borderline_abundance,
-            100.0 * borderline_abundance / total_abundance,
-            total_abundance);
+    {
+      if (total_count > 0)
+        fprintf(stderr,
+                "Found %d (%.1f%%) chimeras, "
+                "%d (%.1f%%) non-chimeras,\n"
+                "and %d (%.1f%%) borderline sequences "
+                "in %u unique sequences.\n",
+                chimera_count,
+                100.0 * chimera_count / total_count,
+                nonchimera_count,
+                100.0 * nonchimera_count / total_count,
+                borderline_count,
+                100.0 * borderline_count / total_count,
+                total_count);
+      else
+        fprintf(stderr,
+                "Found %d chimeras, "
+                "%d non-chimeras,\n"
+                "and %d borderline sequences "
+                "in %u unique sequences.\n",
+                chimera_count,
+                nonchimera_count,
+                borderline_count,
+                total_count);
+
+      if (total_abundance > 0)
+        fprintf(stderr,
+                "Taking abundance information into account, "
+                "this corresponds to\n"
+                "%" PRId64 " (%.1f%%) chimeras, "
+                "%" PRId64 " (%.1f%%) non-chimeras,\n"
+                "and %" PRId64 " (%.1f%%) borderline sequences "
+                "in %" PRId64 " total sequences.\n",
+                chimera_abundance,
+                100.0 * chimera_abundance / total_abundance,
+                nonchimera_abundance,
+                100.0 * nonchimera_abundance / total_abundance,
+                borderline_abundance,
+                100.0 * borderline_abundance / total_abundance,
+                total_abundance);
+      else
+        fprintf(stderr,
+                "Taking abundance information into account, "
+                "this corresponds to\n"
+                "%" PRId64 " chimeras, "
+                "%" PRId64 " non-chimeras,\n"
+                "and %" PRId64 " borderline sequences "
+                "in %" PRId64 " total sequences.\n",
+                chimera_abundance,
+                nonchimera_abundance,
+                borderline_abundance,
+                total_abundance);
+    }
 
   if (opt_log)
     {
@@ -1617,10 +1650,16 @@ void chimera()
         fprintf(fp_log, "%s", opt_uchime_ref);
       else
         fprintf(fp_log, "%s", denovo_dbname);
-      fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
-              chimera_count,
-              seqno,
-              100.0 * chimera_count / seqno);
+
+      if (seqno > 0)
+        fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
+                chimera_count,
+                seqno,
+                100.0 * chimera_count / seqno);
+      else
+        fprintf(fp_log, ": %d/%u chimeras\n",
+                chimera_count,
+                seqno);
     }
 
 

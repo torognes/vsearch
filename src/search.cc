@@ -689,24 +689,40 @@ void usearch_global(char * cmdline, char * progheader)
 
   if (!opt_quiet)
     {
-      fprintf(stderr, "Matching unique query sequences: %d of %d (%.2f%%)\n",
-              qmatches, queries, 100.0 * qmatches / queries);
+      fprintf(stderr, "Matching unique query sequences: %d of %d",
+              qmatches, queries);
+      if (queries > 0)
+        fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+      fprintf(stderr, "\n");
       if (opt_sizein)
-        fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
-                PRIu64 " (%.2f%%)\n",
-                qmatches_abundance, queries_abundance,
-                100.0 * qmatches_abundance / queries_abundance);
+        {
+          fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
+                  PRIu64,
+                  qmatches_abundance, queries_abundance);
+          if (queries_abundance > 0)
+            fprintf(stderr, " (%.2f%%)",
+                    100.0 * qmatches_abundance / queries_abundance);
+          fprintf(stderr, "\n");
+        }
     }
 
   if (opt_log)
     {
-      fprintf(fp_log, "Matching unique query sequences: %d of %d (%.2f%%)\n",
-              qmatches, queries, 100.0 * qmatches / queries);
+      fprintf(fp_log, "Matching unique query sequences: %d of %d",
+              qmatches, queries);
+      if (queries > 0)
+        fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+      fprintf(fp_log, "\n");
       if (opt_sizein)
-        fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
-                PRIu64 " (%.2f%%)\n",
-                qmatches_abundance, queries_abundance,
-                100.0 * qmatches_abundance / queries_abundance);
+        {
+          fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
+                  PRIu64,
+                  qmatches_abundance, queries_abundance);
+          if (queries_abundance > 0)
+            fprintf(fp_log, " (%.2f%%)",
+                    100.0 * qmatches_abundance / queries_abundance);
+          fprintf(fp_log, "\n");
+        }
     }
 
   if (opt_biomout)

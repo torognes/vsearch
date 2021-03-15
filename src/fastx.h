@@ -77,6 +77,7 @@ struct fastx_s
 {
   bool is_pipe;
   bool is_fastq;
+  bool is_empty;
 
   FILE * fp;
 

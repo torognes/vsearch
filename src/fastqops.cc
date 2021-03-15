@@ -185,66 +185,69 @@ void fastq_chars()
     {
       fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
 
-      fprintf(stderr, "Qmin %d, QMax %d, Range %d\n",
-              qmin, qmax, qmax-qmin+1);
-
-      fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-              fastq_qmin, fastq_qmax, fastq_ascii);
-
-      if (fastq_ascii == 64)
+      if (seq_count > 0)
         {
-          if (qmin < 64)
-            fprintf(stderr, "Guess: Solexa format (phred+64)\n");
-          else if (qmin < 66)
-            fprintf(stderr, "Guess: Illumina 1.3+ format (phred+64)\n");
-          else
-            fprintf(stderr, "Guess: Illumina 1.5+ format (phred+64)\n");
-        }
-      else
-        {
-          if (qmax > 73)
-            fprintf(stderr, "Guess: Illumina 1.8+ format (phred+33)\n");
-          else
-            fprintf(stderr, "Guess: Original Sanger format (phred+33)\n");
-        }
+          fprintf(stderr, "Qmin %d, QMax %d, Range %d\n",
+                  qmin, qmax, qmax-qmin+1);
 
-      fprintf(stderr, "\n");
-      fprintf(stderr, "Letter          N   Freq MaxRun\n");
-      fprintf(stderr, "------ ---------- ------ ------\n");
+          fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
+                  fastq_qmin, fastq_qmax, fastq_ascii);
 
-      for(int c=0; c<256; c++)
-        {
-          if (sequence_chars[c] > 0)
+          if (fastq_ascii == 64)
             {
-              fprintf(stderr, "     %c %10" PRIu64 " %5.1f%% %6d",
-                      c,
-                      sequence_chars[c],
-                      100.0 * sequence_chars[c] / total_chars,
-                      maxrun[c]);
-              if ((c == 'N') || (c == 'n'))
-                {
-                  if (qmin_n < qmax_n)
-                    fprintf(stderr, "  Q=%c..%c", qmin_n, qmax_n);
-                  else
-                    fprintf(stderr, "  Q=%c", qmin_n);
-                }
-              fprintf(stderr, "\n");
+              if (qmin < 64)
+                fprintf(stderr, "Guess: Solexa format (phred+64)\n");
+              else if (qmin < 66)
+                fprintf(stderr, "Guess: Illumina 1.3+ format (phred+64)\n");
+              else
+                fprintf(stderr, "Guess: Illumina 1.5+ format (phred+64)\n");
             }
-        }
-
-      fprintf(stderr, "\n");
-      fprintf(stderr, "Char  ASCII    Freq       Tails\n");
-      fprintf(stderr, "----  -----  ------  ----------\n");
-
-      for(int c=qmin; c<=qmax; c++)
-        {
-          if (quality_chars[c] > 0)
+          else
             {
-              fprintf(stderr, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                      c,
-                      c,
-                      100.0 * quality_chars[c] / total_chars,
-                      tail_chars[c]);
+              if (qmax > 73)
+                fprintf(stderr, "Guess: Illumina 1.8+ format (phred+33)\n");
+              else
+                fprintf(stderr, "Guess: Original Sanger format (phred+33)\n");
+            }
+
+          fprintf(stderr, "\n");
+          fprintf(stderr, "Letter          N   Freq MaxRun\n");
+          fprintf(stderr, "------ ---------- ------ ------\n");
+
+          for(int c=0; c<256; c++)
+            {
+              if (sequence_chars[c] > 0)
+                {
+                  fprintf(stderr, "     %c %10" PRIu64 " %5.1f%% %6d",
+                          c,
+                          sequence_chars[c],
+                          100.0 * sequence_chars[c] / total_chars,
+                          maxrun[c]);
+                  if ((c == 'N') || (c == 'n'))
+                    {
+                      if (qmin_n < qmax_n)
+                        fprintf(stderr, "  Q=%c..%c", qmin_n, qmax_n);
+                      else
+                        fprintf(stderr, "  Q=%c", qmin_n);
+                    }
+                  fprintf(stderr, "\n");
+                }
+            }
+
+          fprintf(stderr, "\n");
+          fprintf(stderr, "Char  ASCII    Freq       Tails\n");
+          fprintf(stderr, "----  -----  ------  ----------\n");
+
+          for(int c=qmin; c<=qmax; c++)
+            {
+              if (quality_chars[c] > 0)
+                {
+                  fprintf(stderr, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
+                          c,
+                          c,
+                          100.0 * quality_chars[c] / total_chars,
+                          tail_chars[c]);
+                }
             }
         }
     }
@@ -253,66 +256,69 @@ void fastq_chars()
     {
       fprintf(fp_log, "Read %" PRIu64 " sequences.\n", seq_count);
 
-      fprintf(fp_log, "Qmin %d, QMax %d, Range %d\n",
-              qmin, qmax, qmax-qmin+1);
-
-      fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-              fastq_qmin, fastq_qmax, fastq_ascii);
-
-      if (fastq_ascii == 64)
+      if (seq_count > 0)
         {
-          if (qmin < 64)
-            fprintf(fp_log, "Guess: Solexa format (phred+64)\n");
-          else if (qmin < 66)
-            fprintf(fp_log, "Guess: Illumina 1.3+ format (phred+64)\n");
-          else
-            fprintf(fp_log, "Guess: Illumina 1.5+ format (phred+64)\n");
-        }
-      else
-        {
-          if (qmax > 73)
-            fprintf(fp_log, "Guess: Illumina 1.8+ format (phred+33)\n");
-          else
-            fprintf(fp_log, "Guess: Original Sanger format (phred+33)\n");
-        }
+          fprintf(fp_log, "Qmin %d, QMax %d, Range %d\n",
+                  qmin, qmax, qmax-qmin+1);
 
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Letter          N   Freq MaxRun\n");
-      fprintf(fp_log, "------ ---------- ------ ------\n");
+          fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
+                  fastq_qmin, fastq_qmax, fastq_ascii);
 
-      for(int c=0; c<256; c++)
-        {
-          if (sequence_chars[c] > 0)
+          if (fastq_ascii == 64)
             {
-              fprintf(fp_log, "     %c %10" PRIu64 " %5.1f%% %6d",
-                      c,
-                      sequence_chars[c],
-                      100.0 * sequence_chars[c] / total_chars,
-                      maxrun[c]);
-              if ((c == 'N') || (c == 'n'))
-                {
-                  if (qmin_n < qmax_n)
-                    fprintf(fp_log, "  Q=%c..%c", qmin_n, qmax_n);
-                  else
-                    fprintf(fp_log, "  Q=%c", qmin_n);
-                }
-              fprintf(fp_log, "\n");
+              if (qmin < 64)
+                fprintf(fp_log, "Guess: Solexa format (phred+64)\n");
+              else if (qmin < 66)
+                fprintf(fp_log, "Guess: Illumina 1.3+ format (phred+64)\n");
+              else
+                fprintf(fp_log, "Guess: Illumina 1.5+ format (phred+64)\n");
             }
-        }
-
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
-      fprintf(fp_log, "----  -----  ------  ----------\n");
-
-      for(int c=qmin; c<=qmax; c++)
-        {
-          if (quality_chars[c] > 0)
+          else
             {
-              fprintf(fp_log, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                      c,
-                      c,
-                      100.0 * quality_chars[c] / total_chars,
-                      tail_chars[c]);
+              if (qmax > 73)
+                fprintf(fp_log, "Guess: Illumina 1.8+ format (phred+33)\n");
+              else
+                fprintf(fp_log, "Guess: Original Sanger format (phred+33)\n");
+            }
+
+          fprintf(fp_log, "\n");
+          fprintf(fp_log, "Letter          N   Freq MaxRun\n");
+          fprintf(fp_log, "------ ---------- ------ ------\n");
+
+          for(int c=0; c<256; c++)
+            {
+              if (sequence_chars[c] > 0)
+                {
+                  fprintf(fp_log, "     %c %10" PRIu64 " %5.1f%% %6d",
+                          c,
+                          sequence_chars[c],
+                          100.0 * sequence_chars[c] / total_chars,
+                          maxrun[c]);
+                  if ((c == 'N') || (c == 'n'))
+                    {
+                      if (qmin_n < qmax_n)
+                        fprintf(fp_log, "  Q=%c..%c", qmin_n, qmax_n);
+                      else
+                        fprintf(fp_log, "  Q=%c", qmin_n);
+                    }
+                  fprintf(fp_log, "\n");
+                }
+            }
+
+          fprintf(fp_log, "\n");
+          fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
+          fprintf(fp_log, "----  -----  ------  ----------\n");
+
+          for(int c=qmin; c<=qmax; c++)
+            {
+              if (quality_chars[c] > 0)
+                {
+                  fprintf(fp_log, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
+                          c,
+                          c,
+                          100.0 * quality_chars[c] / total_chars,
+                          tail_chars[c]);
+                }
             }
         }
     }
@@ -622,7 +628,8 @@ void fastq_stats()
       fprintf(fp_log, "\n");
       fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
               seq_count, seq_count / 1.0e6);
-      fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
+      if (seq_count > 0)
+        fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
       fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);
     }
 
@@ -658,7 +665,7 @@ void fastx_revcomp()
   if (!h)
     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
 
-  if (opt_fastqout && ! h->is_fastq)
+  if (opt_fastqout && ! (h->is_fastq || h->is_empty))
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
 
   uint64_t filesize = fastx_get_size(h);

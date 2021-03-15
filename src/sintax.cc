@@ -620,12 +620,20 @@ void sintax()
   progress_done();
 
   if (! opt_quiet)
-    fprintf(stderr, "Classified %d of %d sequences (%.2f%%)\n",
-            classified, queries, 100.0 * classified / queries);
+    {
+      fprintf(stderr, "Classified %d of %d sequences", classified, queries);
+      if (queries > 0)
+        fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
+      fprintf(stderr, "\n");
+    }
 
   if (opt_log)
-    fprintf(fp_log, "Classified %d of %d sequences (%.2f%%)\n",
-            classified, queries, 100.0 * classified / queries);
+    {
+      fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
+      if (queries > 0)
+        fprintf(fp_log, " (%.2f%%)", 100.0 * classified / queries);
+      fprintf(fp_log, "\n");
+    }
 
   /* clean up */
 

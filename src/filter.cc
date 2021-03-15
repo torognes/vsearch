@@ -223,7 +223,7 @@ void filter(bool fastq_only, char * filename)
   if (!h1)
     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
 
-  if (! h1->is_fastq)
+  if (! (h1->is_fastq || h1->is_empty))
     {
       if (fastq_only)
         {
@@ -259,7 +259,7 @@ void filter(bool fastq_only, char * filename)
       if (h1->is_fastq != h2->is_fastq)
         fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
 
-      if (! h2->is_fastq)
+      if (! (h2->is_fastq || h2->is_empty))
         {
           if (fastq_only)
             {

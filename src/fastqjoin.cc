@@ -238,8 +238,10 @@ void fastq_join()
   fastq_close(fastq_fwd);
   fastq_fwd = 0;
 
-  xfree(seq);
-  xfree(qual);
+  if (seq)
+    xfree(seq);
+  if (qual)
+    xfree(qual);
   xfree(padgap);
   xfree(padgapq);
 }

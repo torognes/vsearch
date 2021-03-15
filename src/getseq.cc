@@ -318,7 +318,7 @@ void getseq(char * filename)
   if (!h1)
     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
 
-  if ((opt_fastqout || opt_notmatchedfq) && ! h1->is_fastq)
+  if ((opt_fastqout || opt_notmatchedfq) && ! (h1->is_fastq || h1->is_empty))
     fatal("Cannot write FASTQ output from FASTA input");
 
   uint64_t filesize = fastx_get_size(h1);
@@ -448,18 +448,30 @@ void getseq(char * filename)
   progress_done();
 
   if (! opt_quiet)
-    fprintf(stderr,
-            "%" PRId64 " of %" PRId64 " sequences extracted (%.1lf%%)\n",
-            kept,
-            kept + discarded,
-            100.0 * kept / (kept + discarded));
+    {
+      fprintf(stderr,
+              "%" PRId64 " of %" PRId64 " sequences extracted",
+              kept,
+              kept + discarded);
+      if (kept + discarded > 0)
+        fprintf(stderr,
+                " (%.1lf%%)",
+                100.0 * kept / (kept + discarded));
+      fprintf(stderr, "\n");
+    }
 
   if (opt_log)
-    fprintf(fp_log,
-            "%" PRId64 " of %" PRId64 " sequences extracted (%.1lf%%)\n",
-            kept,
-            kept + discarded,
-            100.0 * kept / (kept + discarded));
+    {
+      fprintf(fp_log,
+              "%" PRId64 " of %" PRId64 " sequences extracted",
+              kept,
+              kept + discarded);
+      if (kept + discarded > 0)
+        fprintf(fp_log,
+                " (%.1lf%%)",
+                100.0 * kept / (kept + discarded));
+      fprintf(fp_log, "\n");
+    }
 
   if (opt_fastaout)
     fclose(fp_fastaout);

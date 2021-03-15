@@ -1312,7 +1312,8 @@ void fastq_mergepairs()
   uint64_t filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
 
-  pair_all();
+  if (! fastq_fwd->is_empty)
+    pair_all();
 
   progress_done();
 
@@ -1324,14 +1325,22 @@ void fastq_mergepairs()
           total);
 
   fprintf(stderr,
-          "%10" PRIu64 "  Merged (%.1lf%%)\n",
-          merged,
-          100.0 * merged / total);
+          "%10" PRIu64 "  Merged",
+          merged);
+  if (total > 0)
+    fprintf(stderr,
+            " (%.1lf%%)",
+            100.0 * merged / total);
+  fprintf(stderr, "\n");
 
   fprintf(stderr,
-          "%10" PRIu64 "  Not merged (%.1lf%%)\n",
-          notmerged,
-          100.0 * notmerged / total);
+          "%10" PRIu64 "  Not merged",
+          notmerged);
+  if (total > 0)
+    fprintf(stderr,
+            " (%.1lf%%)",
+            100.0 * notmerged / total);
+  fprintf(stderr, "\n");
 
   if (notmerged > 0)
     fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
@@ -1413,13 +1422,16 @@ void fastq_mergepairs()
 
   fprintf(stderr, "\n");
 
-  fprintf(stderr, "Statistics of all reads:\n");
+  if (total > 0)
+    {
+      fprintf(stderr, "Statistics of all reads:\n");
 
-  double mean_read_length = sum_read_length / (2.0 * pairs_read);
+      double mean_read_length = sum_read_length / (2.0 * pairs_read);
 
-  fprintf(stderr,
-          "%10.2f  Mean read length\n",
-          mean_read_length);
+      fprintf(stderr,
+              "%10.2f  Mean read length\n",
+              mean_read_length);
+    }
 
   if (merged > 0)
     {
