@@ -426,6 +426,7 @@ void fastx_close(fastx_handle h)
         if (h->stripped[i])
           fprintf(stderr, " %c(%" PRIu64 ")", i, h->stripped[i]);
       fprintf(stderr, "\n");
+      fprintf(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
 
       if (opt_log)
         {
@@ -434,6 +435,7 @@ void fastx_close(fastx_handle h)
             if (h->stripped[i])
               fprintf(fp_log, " %c(%" PRIu64 ")", i, h->stripped[i]);
           fprintf(fp_log, "\n");
+          fprintf(fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }
     }
 
@@ -661,4 +663,3 @@ int64_t fastx_get_abundance(fastx_handle h)
   else
     return fasta_get_abundance(h);
 }
-
