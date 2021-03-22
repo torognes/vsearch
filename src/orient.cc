@@ -62,8 +62,6 @@
 
 void orient()
 {
-  int seqcount; /* number of database sequences */
-
   fastx_handle query_h;
 
   FILE * fp_fastaout = 0;
@@ -138,8 +136,6 @@ void orient()
       else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
         hardmask_all();
     }
-
-  seqcount = db_getsequencecount();
 
   if (!is_udb)
     {
