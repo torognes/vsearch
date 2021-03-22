@@ -150,6 +150,7 @@ char * opt_msaout;
 char * opt_nonchimeras;
 char * opt_notmatched;
 char * opt_notmatchedfq;
+char * opt_orient;
 char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
@@ -817,6 +818,7 @@ void args_init(int argc, char **argv)
   opt_notmatched = 0;
   opt_notmatched = 0;
   opt_notrunclabels = 0;
+  opt_orient = 0;
   opt_otutabout = 0;
   opt_output = 0;
   opt_output_no_hits = 0;
@@ -879,7 +881,7 @@ void args_init(int argc, char **argv)
   opt_usersort = 0;
   opt_version = 0;
   opt_weak_id = 10.0;
-  opt_wordlength = 8;
+  opt_wordlength = 0;
   opt_xn = 8.0;
   opt_xsize = 0;
   opt_xee = 0;
@@ -1044,6 +1046,7 @@ void args_init(int argc, char **argv)
     option_notmatched,
     option_notmatchedfq,
     option_notrunclabels,
+    option_orient,
     option_otutabout,
     option_output,
     option_output_no_hits,
@@ -1273,6 +1276,7 @@ void args_init(int argc, char **argv)
     {"notmatched",            required_argument, 0, 0 },
     {"notmatchedfq",          required_argument, 0, 0 },
     {"notrunclabels",         no_argument,       0, 0 },
+    {"orient",                required_argument, 0, 0 },
     {"otutabout",             required_argument, 0, 0 },
     {"output",                required_argument, 0, 0 },
     {"output_no_hits",        no_argument,       0, 0 },
@@ -2295,6 +2299,10 @@ void args_init(int argc, char **argv)
           opt_derep_id = optarg;
           break;
 
+        case option_orient:
+          opt_orient = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2340,6 +2348,7 @@ void args_init(int argc, char **argv)
       option_help,
       option_makeudb_usearch,
       option_maskfasta,
+      option_orient,
       option_rereplicate,
       option_search_exact,
       option_sff_convert,
@@ -3398,6 +3407,34 @@ void args_init(int argc, char **argv)
         option_xsize,
         -1 },
 
+      { option_orient,
+        option_bzip2_decompress,
+        option_db,
+        option_dbmask,
+        option_fasta_width,
+        option_fastaout,
+        option_fastqout,
+        option_gzip_decompress,
+        option_log,
+        option_no_progress,
+        option_notmatched,
+        option_notrunclabels,
+        option_qmask,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
+        option_tabbedout,
+        option_threads,
+        option_wordlength,
+        option_xee,
+        option_xsize,
+        -1 },
+
       { option_rereplicate,
         option_bzip2_decompress,
         option_fasta_width,
@@ -4004,6 +4041,15 @@ void args_init(int argc, char **argv)
   if (opt_maxrejects < 0)
     fatal("The argument to --maxrejects must not be negative");
 
+  if (opt_wordlength == 0)
+    {
+      /* set default word length */
+      if (opt_orient)
+        opt_wordlength = 12;
+      else
+        opt_wordlength = 8;
+    }
+
   if ((opt_wordlength < 3) || (opt_wordlength > 15))
     fatal("The argument to --wordlength must be in the range 3 to 15");
 
@@ -4409,6 +4455,19 @@ void cmd_help()
               "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n"
               " Output\n"
               "  --output FILENAME           output to specified FASTA file\n"
+              "\n"
+              "Orient sequences in forward or reverse direction\n"
+              "  --orient FILENAME           orient sequences in given FASTA/FASTQ file\n"
+              " Data\n"
+              "  --db FILENAME               database of sequences in correct orientation\n"
+              "  --dbmask none|dust|soft     mask db seqs with dust, soft or no method (dust)\n"
+              "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
+              "  --wordlength INT            length of words used for matching 3-15 (12)\n"
+              " Output\n"
+              "  --fastaout FILENAME         FASTA output filename for oriented sequences\n"
+              "  --fastqout FILENAME         FASTQ output filenamr for oriented sequences\n"
+              "  --notmatched FILENAME       output filename for undetermined sequences\n"
+              "  --tabbedout FILENAME        output filename for result information\n"
               "\n"
               "Paired-end reads joining\n"
               "  --fastq_join FILENAME       join paired-end reads into one sequence with gap\n"
@@ -5097,6 +5156,8 @@ int main(int argc, char** argv)
     fastx_getsubseq();
   else if (opt_cut)
     cut();
+  else if (opt_orient)
+    orient();
   else
     cmd_none();
 

@@ -48,6 +48,7 @@ md5.h \
 mergepairs.h \
 minheap.h \
 msa.h \
+orient.h \
 otutable.h \
 rerep.h \
 results.h \
@@ -140,6 +141,7 @@ md5.c \
 mergepairs.cc \
 minheap.cc \
 msa.cc \
+orient.cc \
 otutable.cc \
 rerep.cc \
 results.cc \

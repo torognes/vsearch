@@ -255,6 +255,7 @@
 #include "sffconvert.h"
 #include "getseq.h"
 #include "cut.h"
+#include "orient.h"
 
 /* options */
 
@@ -346,6 +347,7 @@ extern char * opt_msaout;
 extern char * opt_nonchimeras;
 extern char * opt_notmatched;
 extern char * opt_notmatchedfq;
+extern char * opt_orient;
 extern char * opt_otutabout;
 extern char * opt_output;
 extern char * opt_pattern;

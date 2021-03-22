@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 26, 2021" "version 2.15.2" "USER COMMANDS"
+.TH vsearch 1 "March 22, 2021" "version 2.15.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -106,6 +106,13 @@ Masking:
 \-\-fastqout) \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-maskfasta \fIfastafile\fR \-\-output
+\fIoutputfile\fR [\fIoptions\fR]
+.PP
+.RE
+Orienting:
+.RS
+\fBvsearch\fR \-\-orient \fIfastxfile\fR \-\-db \fIfastafile\fR
+(\-\-fastaout | \-\-fastqout | \-\-notmatched | \-\-tabbedout)
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
 .RE
@@ -2054,6 +2061,67 @@ If the argument is dust, mask regions in sequences using the
 regions. This is the default. If the argument is soft, mask the lower
 case letters in the input sequence. If the argument is none, do not
 mask.
+.RE
+.PP
+.\" ----------------------------------------------------------------------------
+.TAG orienting-options
+Orienting options:
+.RS
+.PP
+The \-\-orient command can be used to orient the sequences in a given
+file in either the forward or the reverse complementary direction
+based on a reference database specified with the \-\-db option. The
+two strands of each input sequence are compared to the reference
+database using nucleotide words. If one of the strands share many more
+words with at least one sequence in the database than the other, that
+strand is chosen. The correctly oriented sequences may be written to a
+FASTA file specified with the \-\-fastaout, and to a FASTQ file
+specified with the \-\-fastqout option (as long as the input was also
+in FASTA format). If the result is uncertain, because the number of
+matching words is too similar, the original sequence is written to the
+file specified with the \-\-notmatched option. The results may also be
+written to a tab-delimited text file specified with the \-\-tabbedout
+option. This file will contain the query label, the direction (+, - or
+?), the number of matching words on the forward strand, and the number
+of matching words on the reverse complementary strand. By default, a
+word length of 12 is used for this command. The word length may be
+adjusted using the \-\-wordlength option. There has to be at least 4
+times as many matches on one strand than the other for a strand to be
+selected. In addition to the common options, the following options may
+also be specified for this command: \-\-dbmask, \-\-qmask,
+\-\-relabel, \-\-relabel_keep, \-\-relabel_md5, \-\-relabel_self,
+\-\-relabel_sha1, \-\-sizein, and \-\-sizeout.
+.PP
+.TAG db
+.TP 9
+.BI \-\-db \0filename
+Read the reference database from the given file. It may be in FASTA,
+FASTQ or UDB format. If an UDB file is used it should have been
+created with a wordlength of 12.
+.TAG fastaout
+.TP
+.BI \-\-fastaout \0filename
+Write the correctly oriented sequences to \fIfilename\fR, in fasta format.
+.TAG fastqout
+.TP
+.BI \-\-fastqout \0filename
+Write the correctly oriented sequences to \fIfilename\fR, in fastq format.
+.TAG notmatched
+.TP
+.BI \-\-notmatched \0filename
+Write the sequences with undetermined direction to \fIfilename\fR, in
+the orginal format.
+.TAG orient
+.TP
+.BI \-\-orient \0filename
+Orient the sequences in the given file.
+.TAG tabbedout
+.TP
+.BI \-\-tabbedout \0 filename
+Write the resuls to a tab-delimited text file with the specified
+filename. This file will contain the query label, the direction (+, -
+or ?), the number of matching words on the forward strand, and the
+number of matching words on the reverse complementary strand.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------

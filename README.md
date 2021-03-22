@@ -226,6 +226,7 @@ File | Description
 **mergepairs.cc** | Paired-end read merging
 **minheap.cc** | A minheap implementation for the list of top kmer matches
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
+**orient.cc** | Orient direction of sequences based on reference database
 **otutable.cc** | Generate OTU tables in various formats
 **rerep.cc** | Rereplication
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
