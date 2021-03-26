@@ -60,6 +60,25 @@
 
 #include "vsearch.h"
 
+unsigned int rc_kmer(unsigned int kmer)
+{
+  /* reverse complement a kmer where k = opt_wordlength */
+
+  unsigned int fwd = kmer;
+  unsigned int rev = 0;
+
+  for (int i = 0; i < opt_wordlength; i++)
+    {
+      unsigned int x = (fwd & 3U) ^ 3U;
+      fwd = fwd >> 2U;
+      rev = rev << 2U;
+      rev |= x;
+    }
+
+  return rev;
+}
+
+
 void orient()
 {
   fastx_handle query_h;
@@ -144,7 +163,6 @@ void orient()
     }
 
   uhandle_s * uh_fwd = unique_init();
-  uhandle_s * uh_rev = unique_init();
 
   size_t alloc = 0;
   char * qseq_rev = 0;
@@ -163,26 +181,7 @@ void orient()
       int qsize = fastx_get_abundance(query_h);
       char * query_qual_fwd = fastx_get_quality(query_h);
 
-      /* get reverse complementary sequence, alloc more mem if necessary */
-
-      if ((size_t)(qseqlen + 1) > alloc)
-        {
-          alloc = qseqlen + 1;
-          qseq_rev = (char*) xrealloc(qseq_rev, alloc);
-          if (fastx_is_fastq(query_h))
-            query_qual_rev = (char*) xrealloc(query_qual_rev, alloc);
-        }
-
-      reverse_complement(qseq_rev, qseq_fwd, qseqlen);
-
-      if (fastx_is_fastq(query_h))
-        {
-          for(int i = 0; i < qseqlen; i++)
-            query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
-          query_qual_rev[qseqlen] = 0;
-        }
-
-      /* find kmers on the forward strand */
+      /* find kmers in query sequence */
 
       unsigned int kmer_count_fwd;
       unsigned int * kmer_list_fwd;
@@ -190,23 +189,27 @@ void orient()
       unique_count(uh_fwd, opt_wordlength, qseqlen, qseq_fwd,
                    & kmer_count_fwd, & kmer_list_fwd, opt_qmask);
 
-      int count_fwd = 0;
+      /* count kmers matching on each strand */
+
+      unsigned int count_fwd = 0;
+      unsigned int count_rev = 0;
+      const unsigned int hits_factor = 8;
+
       for(unsigned int i = 0; i < kmer_count_fwd; i++)
-        if (dbindex_getmatchcount(kmer_list_fwd[i]) > 0)
-          count_fwd++;
+        {
+          unsigned int kmer_fwd = kmer_list_fwd[i];
+          unsigned int kmer_rev = rc_kmer(kmer_fwd);
 
-      /* find kmers on the reverse strand */
+          unsigned int hits_fwd = dbindex_getmatchcount(kmer_fwd);
+          unsigned int hits_rev = dbindex_getmatchcount(kmer_rev);
 
-      unsigned int kmer_count_rev;
-      unsigned int * kmer_list_rev;
+          /* require 8 times as many matches on one stand than the other */
 
-      unique_count(uh_rev, opt_wordlength, qseqlen, qseq_rev,
-                   & kmer_count_rev, & kmer_list_rev, opt_qmask);
-
-      int count_rev = 0;
-      for(unsigned int i = 0; i < kmer_count_rev; i++)
-        if (dbindex_getmatchcount(kmer_list_rev[i]) > 0)
-          count_rev++;
+          if (hits_fwd > hits_factor * hits_rev)
+            count_fwd++;
+          else if (hits_rev > hits_factor * hits_fwd)
+            count_rev++;
+        }
 
       /* get progress as amount of input file read */
 
@@ -217,8 +220,8 @@ void orient()
       queries++;
 
       int strand = 2;
-      int min_count = 1;
-      int min_factor = 4;
+      unsigned int min_count = 1;
+      unsigned int min_factor = 4;
 
       if ((count_fwd >= min_count) && (count_fwd >= min_factor * count_rev))
         {
@@ -262,6 +265,20 @@ void orient()
           matches_rev++;
           qmatches++;
 
+          /* alloc more mem if necessary to keep reverse sequence and qual */
+
+          if ((size_t)(qseqlen + 1) > alloc)
+            {
+              alloc = qseqlen + 1;
+              qseq_rev = (char*) xrealloc(qseq_rev, alloc);
+              if (fastx_is_fastq(query_h))
+                query_qual_rev = (char*) xrealloc(query_qual_rev, alloc);
+            }
+
+          /* get reverse complementary sequence */
+
+          reverse_complement(qseq_rev, qseq_fwd, qseqlen);
+
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
                                 0,
@@ -278,15 +295,26 @@ void orient()
                                 0.0);
 
           if (opt_fastqout)
-            fastq_print_general(fp_fastqout,
-                                qseq_rev,
-                                qseqlen,
-                                query_head,
-                                query_head_len,
-                                query_qual_rev,
-                                qsize,
-                                qmatches,
-                                -1.0);
+            {
+              /* reverse quality scores */
+
+              if (fastx_is_fastq(query_h))
+                {
+                  for(int i = 0; i < qseqlen; i++)
+                    query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
+                  query_qual_rev[qseqlen] = 0;
+                }
+
+              fastq_print_general(fp_fastqout,
+                                  qseq_rev,
+                                  qseqlen,
+                                  query_head,
+                                  query_head_len,
+                                  query_qual_rev,
+                                  qsize,
+                                  qmatches,
+                                  -1.0);
+            }
         }
       else
         {
@@ -349,7 +377,6 @@ void orient()
     xfree(query_qual_rev);
 
   unique_exit(uh_fwd);
-  unique_exit(uh_rev);
 
   dbindex_free();
   db_free();
