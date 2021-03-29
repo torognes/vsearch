@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 29, 2021" "version 2.16.0" "USER COMMANDS"
+.TH vsearch 1 "March 29, 2021" "version 2.17.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -4380,6 +4380,14 @@ compatibility with Power8. Switch to C++ header files.
 .BR v2.16.0\~ "released March 22nd, 2021"
 This version adds the orient command. It also handles empty input
 files properly. Documentation has been updated.
+.TP
+.BR v2.17.0\~ "released March 29nd, 2021"
+The fastq_mergepairs command has been changed. It now allows merging
+of sequences with overlaps as short as 5 bp if the \-\-fastq_minovlen
+option has been adjusted down from the default 10. In addition, much
+fewer pairs of reads should now be rejected with the reason 'multiple
+potential alignments' as the algorithm for detecting those have been
+changed.
 .LP
 .\" ============================================================================
 .\" TODO:
