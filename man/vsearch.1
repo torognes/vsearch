@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "March 22, 2021" "version 2.16.0" "USER COMMANDS"
+.TH vsearch 1 "March 29, 2021" "version 2.16.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em chimera detection, clustering, dereplication and
@@ -1569,12 +1569,12 @@ ambiguous bases (N's), as specified with the \-\-fastq_maxns are also
 discarded (no limit by default). Staggered reads are not merged unless
 the \-\-fastq_allowmergestagger option is specified. The minimum
 length of the overlap region between the reads may be specified with
-the \-\-fastq_minovlen option (default 10). The overlap region may not
-include more mismatches than specified with the \-\-fastq_maxdiffs
-option (10 by default) or a higher percentage of mismatches than
-specified with the \-\-fastq_maxdiffpct option (100.0% by default),
-otherwise the read pair is discarded. Additional rules will avoid
-merging of reads that cannot be aligned reliably and
+the \-\-fastq_minovlen option (at least 5, default 10). The overlap
+region may not include more mismatches than specified with the
+\-\-fastq_maxdiffs option (10 by default) or a higher percentage of
+mismatches than specified with the \-\-fastq_maxdiffpct option (100.0%
+by default), otherwise the read pair is discarded. Additional rules
+will avoid merging of reads that cannot be aligned reliably and
 unambiguously. The mimimum and maximum length of the merged sequence
 may be specified with the \-\-fastq_minmergelen and
 \-\-fastq_maxmergelen options, respectively. The quality value limits
@@ -1598,7 +1598,7 @@ merged sequence. The default is 1.
 .TP
 .BI \-\-fastq_minovlen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the minimum overlap between
-the merged reads. The default is 10.
+the merged reads. The default is 10. Must be at least 5.
 .TAG fastq_nostagger
 .TP
 .B \-\-fastq_nostagger

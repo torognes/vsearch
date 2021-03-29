@@ -68,10 +68,9 @@ static const int chunk_factor = 2; /* chunks per thread */
 /* scores in bits */
 
 static const int k                        = 5;
-static const double merge_minscore        = 16.0;
+static int merge_mindiagcount             = 4;
+static double merge_minscore              = 16.0;
 static const double merge_dropmax         = 16.0;
-static const int merge_mindiagcount       = 4;
-static const int merge_minrepeatdiagcount = 12;
 static const double merge_mismatchmax     = -4.0;
 
 /* static variables */
@@ -686,13 +685,6 @@ int64_t optimize(merge_data_t * ip,
         {
           kmers = 1;
 
-          if (diagcount >= merge_minrepeatdiagcount)
-            {
-              hits++;
-              if (hits > 1)
-                break;
-            }
-
           /* for each interesting diagonal */
 
           int64_t fwd_3prime_overhang
@@ -746,6 +738,9 @@ int64_t optimize(merge_data_t * ip,
 
           if (dropmax >= merge_dropmax)
             score = 0.0;
+
+          if (score >= merge_minscore)
+            hits++;
 
           if (score > best_score)
             {
@@ -1280,6 +1275,18 @@ void pair_all()
 
 void fastq_mergepairs()
 {
+  /* fatal error if specified overlap is too small */
+
+  if (opt_fastq_minovlen < 5)
+    fatal("Overlap specified with --fastq_minovlen must be at least 5");
+
+  /* relax default parameters in case of short overlaps */
+
+  if (opt_fastq_minovlen < 9)
+    {
+      merge_mindiagcount = opt_fastq_minovlen - 4;
+      merge_minscore = 1.6 * opt_fastq_minovlen;
+    }
 
   /* open input files */
 
