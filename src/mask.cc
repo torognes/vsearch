@@ -70,8 +70,10 @@ static const int bitmask = word_count - 1;
 int wo(int len, const char *s, int *beg, int *end)
 {
   int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
-  if (l1 < 0)
+  if (l1 < 0) {
     return 0;
+
+        }
 
   int bestv = 0;
   int besti = 0;
@@ -130,8 +132,10 @@ void dust(char * m, int len)
   if (! opt_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
-      for(int i=0; i < len; i++)
+      for(int i=0; i < len; i++) {
         m[i] = toupper(m[i]);
+
+        }
       m[len] = 0;
     }
 
@@ -142,15 +146,23 @@ void dust(char * m, int len)
 
       if (v > dust_level)
         {
-          if (opt_hardmask)
-            for(int j=a+i; j<=b+i; j++)
+          if (opt_hardmask) {
+            for(int j=a+i; j<=b+i; j++) {
               m[j] = 'N';
-          else
-            for(int j=a+i; j<=b+i; j++)
+
+        }
+          } else {
+            for(int j=a+i; j<=b+i; j++) {
               m[j] = s[j] | 0x20;
 
-          if (b < dust_window2)
+        }
+
+        }
+
+          if (b < dust_window2) {
             i += dust_window2 - b;
+
+        }
         }
     }
 
@@ -198,11 +210,15 @@ void dust_all()
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for(int t=0; t<opt_threads; t++)
+  for(int t=0; t<opt_threads; t++) {
     xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
 
-  for(int t=0; t<opt_threads; t++)
+        }
+
+  for(int t=0; t<opt_threads; t++) {
     xpthread_join(pthread[t], nullptr);
+
+        }
 
   xfree(pthread);
 
@@ -217,32 +233,42 @@ void hardmask(char * seq, int len)
 {
   /* convert all lower case letters in seq to N */
 
-  for(int j=0; j<len; j++)
-    if (seq[j] & 0x20)
+  for(int j=0; j<len; j++) {
+    if (seq[j] & 0x20) {
       seq[j] = 'N';
+
+        }
+
+        }
 }
 
 void hardmask_all()
 {
-  for(uint64_t i=0; i<db_getsequencecount(); i++)
+  for(uint64_t i=0; i<db_getsequencecount(); i++) {
     hardmask(db_getsequence(i), db_getsequencelen(i));
+
+        }
 }
 
 void maskfasta()
 {
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (!fp_output) {
     fatal("Unable to open mask output file for writing");
+
+        }
 
   db_read(opt_maskfasta, 0);
   show_rusage();
 
   seqcount = db_getsequencecount();
 
-  if (opt_qmask == MASK_DUST)
+  if (opt_qmask == MASK_DUST) {
     dust_all();
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  } else if ((opt_qmask == MASK_SOFT) && (opt_hardmask)) {
     hardmask_all();
+
+        }
   show_rusage();
 
   progress_init("Writing output", seqcount);
@@ -266,29 +292,37 @@ void fastx_mask()
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (!fp_fastaout)
+      if (!fp_fastaout) {
         fatal("Unable to open mask output FASTA file for writing");
+
+        }
     }
 
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (!fp_fastqout)
+      if (!fp_fastqout) {
         fatal("Unable to open mask output FASTQ file for writing");
+
+        }
     }
 
   db_read(opt_fastx_mask, 0);
   show_rusage();
 
-  if (fp_fastqout && ! db_is_fastq())
+  if (fp_fastqout && ! db_is_fastq()) {
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
+
+        }
 
   seqcount = db_getsequencecount();
 
-  if (opt_qmask == MASK_DUST)
+  if (opt_qmask == MASK_DUST) {
     dust_all();
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  } else if ((opt_qmask == MASK_SOFT) && (opt_hardmask)) {
     hardmask_all();
+
+        }
   show_rusage();
 
   int kept = 0;
@@ -306,27 +340,35 @@ void fastx_mask()
         }
       else if (opt_hardmask)
         {
-          for(int j=0; j<len; j++)
-            if (seq[j] != 'N')
+          for(int j=0; j<len; j++) {
+            if (seq[j] != 'N') {
               unmasked++;
+
+        }
+
+        }
         }
       else
         {
-          for(int j=0; j<len; j++)
-            if (isupper(seq[j]))
+          for(int j=0; j<len; j++) {
+            if (isupper(seq[j])) {
               unmasked++;
+
+        }
+
+        }
         }
       double unmasked_pct = 100.0 * unmasked / len;
 
-      if (unmasked_pct < opt_min_unmasked_pct)
+      if (unmasked_pct < opt_min_unmasked_pct) {
         discarded_less++;
-      else if (unmasked_pct >  opt_max_unmasked_pct)
+      } else if (unmasked_pct >  opt_max_unmasked_pct) {
         discarded_more++;
-      else
+      } else
         {
           kept++;
 
-          if (opt_fastaout)
+          if (opt_fastaout) {
             fasta_print_general(fp_fastaout,
                                 nullptr,
                                 seq,
@@ -338,7 +380,9 @@ void fastx_mask()
                                 -1.0,
                                 -1, -1, nullptr, 0.0);
 
-          if (opt_fastqout)
+        }
+
+          if (opt_fastqout) {
             fastq_print_general(fp_fastqout,
                                 seq,
                                 len,
@@ -348,6 +392,8 @@ void fastx_mask()
                                 db_getabundance(i),
                                 kept,
                                 -1.0);
+
+        }
         }
 
       progress_update(i);
@@ -356,27 +402,39 @@ void fastx_mask()
 
   if (!opt_quiet)
     {
-      if (opt_min_unmasked_pct > 0.0)
+      if (opt_min_unmasked_pct > 0.0) {
         fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, opt_min_unmasked_pct);
-      if (opt_max_unmasked_pct < 100.0)
+
+        }
+      if (opt_max_unmasked_pct < 100.0) {
         fprintf(stderr, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, opt_max_unmasked_pct);
+
+        }
       fprintf(stderr, "%d sequences kept\n", kept);
     }
 
   if (opt_log)
     {
-      if (opt_min_unmasked_pct > 0.0)
+      if (opt_min_unmasked_pct > 0.0) {
         fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, opt_min_unmasked_pct);
-      if (opt_max_unmasked_pct < 100.0)
+
+        }
+      if (opt_max_unmasked_pct < 100.0) {
         fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, opt_max_unmasked_pct);
+
+        }
       fprintf(fp_log, "%d sequences kept\n", kept);
     }
 
   show_rusage();
   db_free();
 
-  if (fp_fastaout)
+  if (fp_fastaout) {
     fclose(fp_fastaout);
-  if (fp_fastqout)
+
+        }
+  if (fp_fastqout) {
     fclose(fp_fastqout);
+
+        }
 }

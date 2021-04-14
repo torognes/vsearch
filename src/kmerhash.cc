@@ -94,8 +94,10 @@ struct kh_handle_s * kh_init()
 
 void kh_exit(struct kh_handle_s * kh)
 {
-  if (kh->hash)
+  if (kh->hash) {
     xfree(kh->hash);
+
+        }
   xfree(kh);
 }
 
@@ -106,8 +108,10 @@ inline void kh_insert_kmer(struct kh_handle_s * kh,
 {
   /* find free bucket in hash */
   unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
-  while(kh->hash[j].pos)
+  while(kh->hash[j].pos) {
     j = (j + 1) & kh->hash_mask;
+
+        }
 
   kh->hash[j].kmer = kmer;
   kh->hash[j].pos = pos;
@@ -122,15 +126,19 @@ void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
 
   if (kh->alloc < 2 * len)
     {
-      while (kh->alloc < 2 * len)
+      while (kh->alloc < 2 * len) {
         kh->alloc *= 2;
+
+        }
       kh->hash = (struct kh_bucket_s *)
         xrealloc(kh->hash, kh->alloc * sizeof(struct kh_bucket_s));
     }
 
   kh->size = 1;
-  while(kh->size < 2 * len)
+  while(kh->size < 2 * len) {
     kh->size *= 2;
+
+        }
   kh->hash_mask = kh->size - 1;
 
   kh->maxpos = len;
@@ -200,8 +208,10 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
                 {
                   int fpos = kh->hash[j].pos - 1;
                   int diag = fpos - (pos - k + 1);
-                  if (diag >= 0)
+                  if (diag >= 0) {
                     diag_counts[diag]++;
+
+        }
                 }
               j = (j + 1) & kh->hash_mask;
             }
@@ -218,8 +228,10 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
       int minmatch = MAX(1, diag_len - k + 1 - k * MAX(diag_len / 20, 0));
       int c = diag_counts[d];
 
-      if (c >= minmatch)
+      if (c >= minmatch) {
         good_diags++;
+
+        }
 
       if (c > best_diag_count)
         {
@@ -228,10 +240,12 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
         }
     }
 
-  if (good_diags == 1)
+  if (good_diags == 1) {
     return best_diag;
-  else
+  } else {
     return -1;
+
+        }
 }
 
 void kh_find_diagonals(struct kh_handle_s * kh,
@@ -271,8 +285,10 @@ void kh_find_diagonals(struct kh_handle_s * kh,
                 {
                   int fpos = kh->hash[j].pos - 1;
                   int diag = len + fpos - (pos - k + 1);
-                  if (diag >= 0)
+                  if (diag >= 0) {
                     diags[diag]++;
+
+        }
                 }
               j = (j + 1) & kh->hash_mask;
             }

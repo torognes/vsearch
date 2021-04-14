@@ -140,8 +140,10 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
               pos += run;
               break;
             case 'D':
-              if (run > maxi[pos])
+              if (run > maxi[pos]) {
                 maxi[pos] = run;
+
+        }
               break;
             }
         }
@@ -149,8 +151,10 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   /* find total alignment length */
   int alnlen = 0;
-  for(int i=0; i < centroid_len+1; i++)
+  for(int i=0; i < centroid_len+1; i++) {
     alnlen += maxi[i];
+
+        }
   alnlen += centroid_len;
 
   /* allocate memory for profile (for consensus) and aligned seq */
@@ -161,20 +165,28 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
-  for(int i=0; i < target_count; i++)
+  for(int i=0; i < target_count; i++) {
     if (target_list[i].strand)
       {
         int64_t len = db_getsequencelen(target_list[i].seqno);
-        if (len > longest_reversed)
+        if (len > longest_reversed) {
           longest_reversed = len;
+
+        }
       }
+
+        }
   char * rc_buffer = nullptr;
-  if (longest_reversed > 0)
+  if (longest_reversed > 0) {
     rc_buffer = (char*) xmalloc(longest_reversed + 1);
 
+        }
+
   /* blank line before each msa */
-  if (fp_msaout)
+  if (fp_msaout) {
     fprintf(fp_msaout, "\n");
+
+        }
 
   for(int j=0; j<target_count; j++)
     {
@@ -199,8 +211,10 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         {
           for(int x=0; x < centroid_len; x++)
             {
-              for(int y=0; y < maxi[qpos]; y++)
+              for(int y=0; y < maxi[qpos]; y++) {
                 msa_add('-', target_abundance);
+
+        }
               msa_add(target_seq[tpos++], target_abundance);
               qpos++;
             }
@@ -221,10 +235,12 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                 {
                   for(int x=0; x < maxi[qpos]; x++)
                     {
-                      if (x < run)
+                      if (x < run) {
                         msa_add(target_seq[tpos++], target_abundance);
-                      else
+                      } else {
                         msa_add('-', target_abundance);
+
+        }
                     }
                   inserted = 1;
                 }
@@ -232,14 +248,20 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                 {
                   for(int x=0; x < run; x++)
                     {
-                      if (!inserted)
-                        for(int y=0; y < maxi[qpos]; y++)
+                      if (!inserted) {
+                        for(int y=0; y < maxi[qpos]; y++) {
                           msa_add('-', target_abundance);
 
-                      if (op == 'M')
+        }
+
+        }
+
+                      if (op == 'M') {
                         msa_add(target_seq[tpos++], target_abundance);
-                      else
+                      } else {
                         msa_add('-', target_abundance);
+
+        }
 
                       qpos++;
                       inserted = 0;
@@ -248,15 +270,19 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
             }
         }
 
-      if (!inserted)
-        for(int x=0; x < maxi[qpos]; x++)
+      if (!inserted) {
+        for(int x=0; x < maxi[qpos]; x++) {
           msa_add('-', target_abundance);
+
+        }
+
+        }
 
       /* end of sequence string */
       aln[alnpos] = 0;
 
       /* print header & sequence */
-      if (fp_msaout)
+      if (fp_msaout) {
         fasta_print_general(fp_msaout,
                             j ? "" : "*",
                             aln,
@@ -265,10 +291,14 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                             db_getheaderlen(target_seqno),
                             db_getabundance(target_seqno),
                             0, -1.0, -1, -1, nullptr, 0.0);
+
+        }
     }
 
-  if (rc_buffer)
+  if (rc_buffer) {
     xfree(rc_buffer);
+
+        }
 
   /* consensus */
 
@@ -316,16 +346,20 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
               aln[i] = sym;
               cons[conslen++] = sym;
             }
-          else
+          else {
             aln[i] = '-';
+
+        }
         }
     }
 
   aln[alnlen] = 0;
   cons[conslen] = 0;
 
-  if (fp_msaout)
+  if (fp_msaout) {
     fasta_print(fp_msaout, "consensus", aln, alnlen);
+
+        }
 
   if (fp_consout)
     {
@@ -362,8 +396,10 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         {
           fprintf(fp_profile, "%d\t%c", i, aln[i]);
           // A, C, G and T
-          for (int c=0; c<4; c++)
+          for (int c=0; c<4; c++) {
             fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+c]);
+
+        }
           // Gap symbol
           fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+5]);
           // Ambiguous nucleotide (Ns and others)

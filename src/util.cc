@@ -79,8 +79,10 @@ void progress_init(const char * prompt, uint64_t size)
   if (! opt_quiet)
     {
       fprintf(stderr, "%s", prompt);
-      if (progress_show)
+      if (progress_show) {
         fprintf(stderr, " %d%%", 0);
+
+        }
     }
 }
 
@@ -97,8 +99,10 @@ void progress_update(uint64_t progress)
                   progress_pct);
           progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
         }
-      else
+      else {
         fprintf(stderr, "  \r%s 0%%", progress_prompt);
+
+        }
     }
 }
 
@@ -106,8 +110,10 @@ void progress_done()
 {
   if (! opt_quiet)
     {
-      if (progress_show)
+      if (progress_show) {
         fprintf(stderr, "  \r%s", progress_prompt);
+
+        }
       fprintf(stderr, " %d%%\n", 100);
     }
 }
@@ -155,10 +161,12 @@ char * xstrchrnul(char *s, int c)
 {
   char * r = strchr(s, c);
 
-  if (r)
+  if (r) {
     return r;
-  else
+  } else {
     return (char *)s + strlen(s);
+
+        }
 }
 
 int xsprintf(char * * ret, const char * format, ...)
@@ -167,8 +175,10 @@ int xsprintf(char * * ret, const char * format, ...)
   va_start(ap, format);
   int len = vsnprintf(nullptr, 0, format, ap);
   va_end(ap);
-  if (len < 0)
+  if (len < 0) {
     fatal("Error with vsnprintf in xsprintf");
+
+        }
   char * p = (char *) xmalloc(len + 1);
   va_start(ap, format);
   len = vsnprintf(p, len + 1, format, ap);
@@ -185,7 +195,9 @@ uint64_t hash_cityhash64(char * s, uint64_t n)
 int64_t getusec()
 {
   struct timeval tv;
-  if(gettimeofday(&tv,nullptr) != 0) return 0;
+  if(gettimeofday(&tv,nullptr) != 0) { return 0;
+
+        }
   return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
@@ -214,8 +226,10 @@ void reverse_complement(char * rc, char * seq, int64_t len)
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1. */
 
-  for(int64_t i=0; i<len; i++)
+  for(int64_t i=0; i<len; i++) {
     rc[i] = chrmap_complement[(int)(seq[len-1-i])];
+
+        }
   rc[len] = 0;
 }
 
@@ -238,8 +252,10 @@ int64_t random_int(int64_t n)
   int64_t random_max = RAND_MAX;
   int64_t limit = random_max - (random_max + 1) % n;
   int64_t r = arch_random();
-  while (r > limit)
+  while (r > limit) {
     r = arch_random();
+
+        }
   return r % n;
 }
 
@@ -254,9 +270,11 @@ uint64_t random_ulong(uint64_t n)
   uint64_t limit = random_max - (random_max - n + 1) % n;
   uint64_t r = ((arch_random() << 48) ^ (arch_random() << 32) ^
                 (arch_random() << 16) ^ (arch_random()));
-  while (r > limit)
+  while (r > limit) {
     r = ((arch_random() << 48) ^ (arch_random() << 32) ^
          (arch_random() << 16) ^ (arch_random()));
+
+        }
   return r % n;
 }
 
@@ -265,21 +283,27 @@ void string_normalize(char * normalized, char * s, unsigned int len)
   /* convert string to upper case and replace U by T */
   char * p = s;
   char * q = normalized;
-  for(unsigned int i=0; i<len; i++)
+  for(unsigned int i=0; i<len; i++) {
     *q++ = chrmap_normalize[(int)(*p++)];
+
+        }
   *q = 0;
 }
 
 void fprint_hex(FILE * fp, unsigned char * data, int len)
 {
-  for(int i=0; i<len; i++)
+  for(int i=0; i<len; i++) {
     fprintf(fp, "%02x", data[i]);
+
+        }
 }
 
 void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
 {
-  if (!md)
+  if (!md) {
     fatal("Error in computing SHA1 digest");
+
+        }
   SHA1_CTX c;
   SHA1_Init(&c);
   SHA1_Update(&c, d, n);
@@ -288,8 +312,10 @@ void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
 
 void MD5(void * d, unsigned long n, unsigned char * md)
 {
-  if (!md)
+  if (!md) {
     fatal("Error in computing MD5 digest");
+
+        }
   MD5_CTX c;
   MD5_Init(&c);
   MD5_Update(&c, d, n);
@@ -365,13 +391,17 @@ FILE * fopen_input(const char * filename)
   if (strcmp(filename, "-") == 0)
     {
       int fd = dup(STDIN_FILENO);
-      if (fd < 0)
+      if (fd < 0) {
         return nullptr;
-      else
+      } else {
         return fdopen(fd, "rb");
+
+        }
     }
-  else
+  else {
     return fopen(filename, "rb");
+
+        }
 }
 
 FILE * fopen_output(const char * filename)
@@ -380,11 +410,15 @@ FILE * fopen_output(const char * filename)
   if (strcmp(filename, "-") == 0)
     {
       int fd = dup(STDOUT_FILENO);
-      if (fd < 0)
+      if (fd < 0) {
         return nullptr;
-      else
+      } else {
         return fdopen(fd, "w");
+
+        }
     }
-  else
+  else {
     return fopen(filename, "w");
+
+        }
 }

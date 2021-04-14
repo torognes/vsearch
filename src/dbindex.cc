@@ -77,8 +77,10 @@ static unsigned int bitmap_mincount;
 void fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer)
 {
   uint64_t x = kmer;
-  for(unsigned int i=0; i<kk; i++)
+  for(unsigned int i=0; i<kk; i++) {
     fprintf(f, "%c", sym_nt_2bit[(x >> (2*(kk-i-1))) & 3]);
+
+        }
 }
 
 void dbindex_addsequence(unsigned int seqno, int seqmask)
@@ -101,8 +103,10 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
           kmercount[kmer]++;
           bitmap_set(kmerbitmap[kmer], dbindex_count);
         }
-      else
+      else {
         kmerindex[kmerhash[kmer]+(kmercount[kmer]++)] = dbindex_count;
+
+        }
     }
   dbindex_count++;
 }
@@ -139,8 +143,10 @@ void dbindex_prepare(int use_bitmap, int seqmask)
       unique_count(dbindex_uh, opt_wordlength,
                    db_getsequencelen(seqno), db_getsequence(seqno),
                    & uniquecount, & uniquelist, seqmask);
-      for(unsigned int i=0; i<uniquecount; i++)
+      for(unsigned int i=0; i<uniquecount; i++) {
         kmercount[uniquelist[i]]++;
+
+        }
       progress_update(seqno);
     }
   progress_done();
@@ -157,10 +163,12 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 #endif
 
   /* determine minimum kmer count for bitmap usage */
-  if (use_bitmap)
+  if (use_bitmap) {
     bitmap_mincount = seqcount / BITMAP_THRESHOLD;
-  else
+  } else {
     bitmap_mincount = seqcount + 1;
+
+        }
 
   /* allocate and zero bitmap pointers */
   kmerbitmap = (bitmap_t **) xmalloc(kmerhashsize * sizeof(bitmap_t *));
@@ -178,8 +186,10 @@ void dbindex_prepare(int use_bitmap, int seqmask)
           kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
           bitmap_reset_all(kmerbitmap[i]);
         }
-      else
+      else {
         sum += kmercount[i];
+
+        }
     }
   kmerindexsize = sum;
   kmerhash[kmerhashsize] = sum;
@@ -210,9 +220,13 @@ void dbindex_free()
   xfree(kmercount);
   xfree(dbindex_map);
 
-  for(unsigned int kmer=0; kmer<kmerhashsize; kmer++)
-    if (kmerbitmap[kmer])
+  for(unsigned int kmer=0; kmer<kmerhashsize; kmer++) {
+    if (kmerbitmap[kmer]) {
       bitmap_free(kmerbitmap[kmer]);
+
+        }
+
+        }
   xfree(kmerbitmap);
   unique_exit(dbindex_uh);
 }

@@ -223,15 +223,19 @@ struct s16info_s
 void _mm_print(VECTOR_SHORT x)
 {
   unsigned short * y = (unsigned short*)&x;
-  for (int i=0; i<8; i++)
+  for (int i=0; i<8; i++) {
     printf("%s%6d", (i>0?" ":""), y[7-i]);
+
+        }
 }
 
 void _mm_print2(VECTOR_SHORT x)
 {
   signed short * y = (signed short*)&x;
-  for (int i=0; i<8; i++)
+  for (int i=0; i<8; i++) {
     printf("%s%2d", (i>0?" ":""), y[7-i]);
+
+        }
 }
 
 void dprofile_dump16(CELL * dprofile)
@@ -244,8 +248,10 @@ void dprofile_dump16(CELL * dprofile)
     for(int k=0; k<CDEPTH; k++)
     {
       printf("[");
-      for(int j=0; j<CHANNELS; j++)
+      for(int j=0; j<CHANNELS; j++) {
         printf(" %3d", dprofile[CHANNELS*CDEPTH*i + CHANNELS*k + j]);
+
+        }
       printf("]");
     }
     printf("\n");
@@ -257,8 +263,10 @@ void dumpscorematrix(CELL * m)
   for(int i=0; i<16; i++)
     {
       printf("%2d %c", i, sym_nt_4bit[i]);
-      for(int j=0; j<16; j++)
+      for(int j=0; j<16; j++) {
         printf(" %2d", m[16*i+j]);
+
+        }
       printf("\n");
     }
 }
@@ -281,8 +289,10 @@ void dprofile_fill16(CELL * dprofile_word,
   for (int j=0; j<CDEPTH; j++)
   {
     int d[CHANNELS];
-    for(int z=0; z<CHANNELS; z++)
+    for(int z=0; z<CHANNELS; z++) {
       d[z] = dseq[j*CHANNELS+z] << 4;
+
+        }
 
     for(int i=0; i<16; i += 8)
     {
@@ -760,9 +770,9 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
 
 inline void pushop(s16info_s * s, char newop)
 {
-  if (newop == s->op)
+  if (newop == s->op) {
     s->opcount++;
-  else
+  } else
     {
       *--s->cigarend = s->op;
       if (s->opcount > 1)
@@ -906,24 +916,30 @@ void backtrack16(s16info_s * s,
     }
     else if (d & maskleft)
     {
-      if (s->op != 'I')
+      if (s->op != 'I') {
         gaps++;
+
+        }
       j--;
       pushop(s, 'I');
     }
     else if (d & maskup)
     {
-      if (s->op != 'D')
+      if (s->op != 'D') {
         gaps++;
+
+        }
       i--;
       pushop(s, 'D');
     }
     else
     {
-      if (chrmap_4bit[(int)(qseq[i])] & chrmap_4bit[(int)(dseq[j])])
+      if (chrmap_4bit[(int)(qseq[i])] & chrmap_4bit[(int)(dseq[j])]) {
         matches++;
-      else
+      } else {
         mismatches++;
+
+        }
       i--;
       j--;
       pushop(s, 'M');
@@ -933,8 +949,10 @@ void backtrack16(s16info_s * s,
   while(i>=0)
     {
       aligned++;
-      if (s->op != 'D')
+      if (s->op != 'D') {
         gaps++;
+
+        }
       i--;
       pushop(s, 'D');
     }
@@ -942,8 +960,10 @@ void backtrack16(s16info_s * s,
   while(j>=0)
     {
       aligned++;
-      if (s->op != 'I')
+      if (s->op != 'I') {
         gaps++;
+
+        }
       j--;
       pushop(s, 'I');
     }
@@ -994,19 +1014,23 @@ struct s16info_s * search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
-  for(int i=0; i<16; i++)
+  for(int i=0; i<16; i++) {
     for(int j=0; j<16; j++)
       {
         CELL value;
-        if (ambiguous_4bit[i] || ambiguous_4bit[j])
+        if (ambiguous_4bit[i] || ambiguous_4bit[j]) {
           value = 0;
-        else if (i == j)
+        } else if (i == j) {
           value = opt_match;
-        else
+        } else {
           value = opt_mismatch;
+
+        }
         ((CELL*)(&s->matrix))[16*i+j] = value;
         scorematrix[i][j] = value;
       }
+
+        }
 
 
   s->penalty_gap_open_query_left = penalty_gap_open_query_left;
@@ -1031,16 +1055,26 @@ struct s16info_s * search16_init(CELL score_match,
 void search16_exit(s16info_s * s)
 {
   /* free mem for dprofile, hearray, dir, qtable */
-  if (s->dir)
+  if (s->dir) {
     xfree(s->dir);
-  if (s->hearray)
+
+        }
+  if (s->hearray) {
     xfree(s->hearray);
-  if (s->dprofile)
+
+        }
+  if (s->dprofile) {
     xfree(s->dprofile);
-  if (s->qtable)
+
+        }
+  if (s->qtable) {
     xfree(s->qtable);
-  if (s->cigar)
+
+        }
+  if (s->cigar) {
     xfree(s->cigar);
+
+        }
   xfree(s);
 }
 
@@ -1049,17 +1083,23 @@ void search16_qprep(s16info_s * s, char * qseq, int qlen)
   s->qlen = qlen;
   s->qseq = qseq;
 
-  if (s->hearray)
+  if (s->hearray) {
     xfree(s->hearray);
+
+        }
   s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
   memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
 
-  if (s->qtable)
+  if (s->qtable) {
     xfree(s->qtable);
+
+        }
   s->qtable = (VECTOR_SHORT **) xmalloc(s->qlen * sizeof(VECTOR_SHORT*));
 
-  for(int i = 0; i < qlen; i++)
+  for(int i = 0; i < qlen; i++) {
     s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int)(qseq[i])];
+
+        }
 }
 
 void search16(s16info_s * s,
@@ -1089,21 +1129,25 @@ void search16(s16info_s * s,
           pmismatches[cand_id] = 0;
           pgaps[cand_id] = length;
 
-          if (length == 0)
+          if (length == 0) {
             pscores[cand_id] = 0;
-          else
+          } else {
             pscores[cand_id] =
               MAX(- s->penalty_gap_open_target_left -
                   length * s->penalty_gap_extension_target_left,
                   - s->penalty_gap_open_target_right -
                   length * s->penalty_gap_extension_target_right);
 
+        }
+
           char * cigar = nullptr;
           if (length > 0)
             {
               int ret = xsprintf(&cigar, "%ldI", length);
-              if ((ret < 2) || !cigar)
+              if ((ret < 2) || !cigar) {
                 fatal("Unable to allocate enough memory.");
+
+        }
             }
           else
             {
@@ -1123,8 +1167,10 @@ void search16(s16info_s * s,
       /* skip the very long sequences */
       if ((int64_t)(s->qlen) * dlen <= MAXSEQLENPRODUCT)
         {
-          if (dlen > maxdlen)
+          if (dlen > maxdlen) {
             maxdlen = dlen;
+
+        }
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
@@ -1134,8 +1180,10 @@ void search16(s16info_s * s,
   if (dirbuffersize > s->diralloc)
     {
       s->diralloc = dirbuffersize;
-      if (s->dir)
+      if (s->dir) {
         xfree(s->dir);
+
+        }
       s->dir = (unsigned short*) xmalloc(dirbuffersize *
                                          sizeof(unsigned short));
     }
@@ -1145,8 +1193,10 @@ void search16(s16info_s * s,
   if (s->qlen + s->maxdlen + 1 > s->cigaralloc)
     {
       s->cigaralloc = s->qlen + s->maxdlen + 1;
-      if (s->cigar)
+      if (s->cigar) {
         xfree(s->cigar);
+
+        }
       s->cigar = (char *) xmalloc(s->cigaralloc);
     }
 
@@ -1275,13 +1325,17 @@ void search16(s16info_s * s,
       {
         for(int j=0; j<CDEPTH; j++)
         {
-          if (d_begin[c] < d_end[c])
+          if (d_begin[c] < d_end[c]) {
             dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
-          else
+          } else {
             dseq[CHANNELS*j+c] = 0;
+
         }
-        if (d_begin[c] == d_end[c])
+        }
+        if (d_begin[c] == d_end[c]) {
           easy = 0;
+
+        }
       }
 
       dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
@@ -1350,8 +1404,10 @@ void search16(s16info_s * s,
               signed short h_min_c = ((signed short *)(& h_min_vector))[c];
               signed short h_max_c = ((signed short *)(& h_max_vector))[c];
               if ((h_min_c <= score_min) ||
-                  (h_max_c >= score_max))
+                  (h_max_c >= score_max)) {
                 overflow[c] = true;
+
+        }
             }
         }
     }
@@ -1373,13 +1429,17 @@ void search16(s16info_s * s,
 
           for(int j=0; j<CDEPTH; j++)
           {
-            if (d_begin[c] < d_end[c])
+            if (d_begin[c] < d_end[c]) {
               dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
-            else
+            } else {
               dseq[CHANNELS*j+c] = 0;
+
+        }
           }
-          if (d_begin[c] == d_end[c])
+          if (d_begin[c] == d_end[c]) {
             easy = 0;
+
+        }
         }
         else
         {
@@ -1475,13 +1535,17 @@ void search16(s16info_s * s,
 
               for(int j=0; j<CDEPTH; j++)
                 {
-                  if (d_begin[c] < d_end[c])
+                  if (d_begin[c] < d_end[c]) {
                     dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
-                  else
+                  } else {
                     dseq[CHANNELS*j+c] = 0;
+
+        }
                 }
-              if (d_begin[c] == d_end[c])
+              if (d_begin[c] == d_end[c]) {
                 easy = 0;
+
+        }
             }
           else
             {
@@ -1493,15 +1557,19 @@ void search16(s16info_s * s,
               d_end[c] = d_begin[c];
               d_length[c] = 0;
               d_offset[c] = 0;
-              for (int j=0; j<CDEPTH; j++)
+              for (int j=0; j<CDEPTH; j++) {
                 dseq[CHANNELS*j+c] = 0;
+
+        }
             }
         }
         T = v_shift_left(T);
       }
 
-      if (done == sequences)
+      if (done == sequences) {
         break;
+
+        }
 
       /* make masked versions of QR and R for gaps in target */
 
@@ -1583,8 +1651,10 @@ void search16(s16info_s * s,
               signed short h_min_c = ((signed short *)(& h_min_vector))[c];
               signed short h_max_c = ((signed short *)(& h_max_vector))[c];
               if ((h_min_c <= score_min) ||
-                  (h_max_c >= score_max))
+                  (h_max_c >= score_max)) {
                 overflow[c] = true;
+
+        }
             }
         }
     }
@@ -1601,7 +1671,9 @@ void search16(s16info_s * s,
 
     dir += 4 * 4 * s->qlen;
 
-    if (dir >= dirbuffer + dirbuffersize)
+    if (dir >= dirbuffer + dirbuffersize) {
       dir -= dirbuffersize;
+
+        }
   }
 }

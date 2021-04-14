@@ -70,7 +70,9 @@ bitmap_t * bitmap_init(unsigned int size)
 
 void bitmap_free(bitmap_t* b)
 {
-  if (b->bitmap)
+  if (b->bitmap) {
     xfree(b->bitmap);
+
+        }
   xfree(b);
 }

@@ -126,8 +126,10 @@ void fastq_eestats()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      if (!fp_output) {
         fatal("Unable to open output file for writing");
+
+        }
     }
 
   progress_init("Reading FASTQ file", filesize);
@@ -205,10 +207,14 @@ void fastq_eestats()
           ee_size = new_ee_size;
         }
 
-      if (len < len_min)
+      if (len < len_min) {
         len_min = len;
-      if (len > len_max)
+
+        }
+      if (len > len_max) {
         len_max = len;
+
+        }
 
       /* update quality statistics */
 
@@ -223,8 +229,10 @@ void fastq_eestats()
           /* quality score */
 
           int qual = fastq_get_qual_eestats(q[i]);
-          if (qual < 0)
+          if (qual < 0) {
             qual = 0;
+
+        }
           qual_length_table[(max_quality+1)*i + qual]++;
 
 
@@ -278,17 +286,25 @@ void fastq_eestats()
               qsum += q * x;
               n += x;
 
-              if (min_q<0)
+              if (min_q<0) {
                 min_q = q;
 
-              if ((low_q<0) && (n >= 0.25 * reads))
+        }
+
+              if ((low_q<0) && (n >= 0.25 * reads)) {
                 low_q = q;
 
-              if ((med_q<0) && (n >= 0.50 * reads))
+        }
+
+              if ((med_q<0) && (n >= 0.50 * reads)) {
                 med_q = q;
 
-              if ((hi_q<0)  && (n >= 0.75 * reads))
+        }
+
+              if ((hi_q<0)  && (n >= 0.75 * reads)) {
                 hi_q = q;
+
+        }
 
               max_q = q;
             }
@@ -317,17 +333,25 @@ void fastq_eestats()
               pesum += pe * x;
               n += x;
 
-              if (min_pe<0)
+              if (min_pe<0) {
                 min_pe = pe;
 
-              if ((low_pe<0) && (n >= 0.25 * reads))
+        }
+
+              if ((low_pe<0) && (n >= 0.25 * reads)) {
                 low_pe = pe;
 
-              if ((med_pe<0) && (n >= 0.50 * reads))
+        }
+
+              if ((med_pe<0) && (n >= 0.50 * reads)) {
                 med_pe = pe;
 
-              if ((hi_pe<0)  && (n >= 0.75 * reads))
+        }
+
+              if ((hi_pe<0)  && (n >= 0.75 * reads)) {
                 hi_pe = pe;
+
+        }
 
               max_pe = pe;
             }
@@ -356,17 +380,25 @@ void fastq_eestats()
             {
               n += x;
 
-              if (min_ee<0)
+              if (min_ee<0) {
                 min_ee = e;
 
-              if ((low_ee<0) && (n >= 0.25 * reads))
+        }
+
+              if ((low_ee<0) && (n >= 0.25 * reads)) {
                 low_ee = e;
 
-              if ((med_ee<0) && (n >= 0.50 * reads))
+        }
+
+              if ((med_ee<0) && (n >= 0.50 * reads)) {
                 med_ee = e;
 
-              if ((hi_ee<0)  && (n >= 0.75 * reads))
+        }
+
+              if ((hi_ee<0)  && (n >= 0.75 * reads)) {
                 hi_ee = e;
+
+        }
 
               max_ee = e;
             }
@@ -413,8 +445,10 @@ void fastq_eestats2()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      if (!fp_output) {
         fatal("Unable to open output file for writing");
+
+        }
     }
 
   progress_init("Reading FASTQ file", filesize);
@@ -460,8 +494,10 @@ void fastq_eestats2()
           /* quality score */
 
           int qual = fastq_get_qual_eestats(q[i]);
-          if (qual < 0)
+          if (qual < 0) {
             qual = 0;
+
+        }
 
           double pe = q2p(qual);
 
@@ -470,10 +506,16 @@ void fastq_eestats2()
           for (int x = 0; x < len_steps; x++)
             {
               uint64_t len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
-              if (i+1 == len_cutoff)
-                for (int y = 0; y < opt_ee_cutoffs_count; y++)
-                  if (ee <= opt_ee_cutoffs_values[y])
+              if (i+1 == len_cutoff) {
+                for (int y = 0; y < opt_ee_cutoffs_count; y++) {
+                  if (ee <= opt_ee_cutoffs_values[y]) {
                     count_table[x * opt_ee_cutoffs_count + y]++;
+
+        }
+
+        }
+
+        }
             }
         }
 
@@ -485,35 +527,45 @@ void fastq_eestats2()
           "%" PRIu64 " reads",
           seq_count);
 
-  if (seq_count > 0)
+  if (seq_count > 0) {
     fprintf(fp_output,
             ", max len %" PRIu64 ", avg %.1f",
             longest, 1.0 * symbols / seq_count);
+
+        }
   fprintf(fp_output, "\n\n");
 
   fprintf(fp_output, "Length");
-  for (int y = 0; y < opt_ee_cutoffs_count; y++)
+  for (int y = 0; y < opt_ee_cutoffs_count; y++) {
     fprintf(fp_output, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
+
+        }
   fprintf(fp_output, "\n");
   fprintf(fp_output, "------");
-  for (int y = 0; y < opt_ee_cutoffs_count; y++)
+  for (int y = 0; y < opt_ee_cutoffs_count; y++) {
     fprintf(fp_output, "   ----------------");
+
+        }
   fprintf(fp_output, "\n");
 
   for (int x = 0; x < len_steps; x++)
     {
       int len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
 
-      if (len_cutoff > opt_length_cutoffs_longest)
+      if (len_cutoff > opt_length_cutoffs_longest) {
         break;
+
+        }
 
       fprintf(fp_output, "%6d", len_cutoff);
 
-      for (int y = 0; y < opt_ee_cutoffs_count; y++)
+      for (int y = 0; y < opt_ee_cutoffs_count; y++) {
         fprintf(fp_output,
                 "   %8" PRIu64 "(%5.1f%%)",
                 count_table[x * opt_ee_cutoffs_count + y],
                 100.0 * count_table[x * opt_ee_cutoffs_count + y] / seq_count);
+
+        }
       fprintf(fp_output, "\n");
     }
 
@@ -524,28 +576,36 @@ void fastq_eestats2()
               seq_count, longest, 1.0 * symbols / seq_count);
 
       fprintf(fp_log, "Length");
-      for (int y = 0; y < opt_ee_cutoffs_count; y++)
+      for (int y = 0; y < opt_ee_cutoffs_count; y++) {
         fprintf(fp_log, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
+
+        }
       fprintf(fp_log, "\n");
       fprintf(fp_log, "------");
-      for (int y = 0; y < opt_ee_cutoffs_count; y++)
+      for (int y = 0; y < opt_ee_cutoffs_count; y++) {
         fprintf(fp_log, "   ----------------");
+
+        }
       fprintf(fp_log, "\n");
 
       for (int x = 0; x < len_steps; x++)
         {
           int len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
 
-          if (len_cutoff > opt_length_cutoffs_longest)
+          if (len_cutoff > opt_length_cutoffs_longest) {
             break;
+
+        }
 
           fprintf(fp_log, "%6d", len_cutoff);
 
-          for (int y = 0; y < opt_ee_cutoffs_count; y++)
+          for (int y = 0; y < opt_ee_cutoffs_count; y++) {
             fprintf(fp_log,
                     "   %8" PRIu64 "(%5.1f%%)",
                     count_table[x * opt_ee_cutoffs_count + y],
                     100.0 * count_table[x * opt_ee_cutoffs_count + y] / seq_count);
+
+        }
           fprintf(fp_log, "\n");
         }
     }

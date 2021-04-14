@@ -114,18 +114,24 @@ void otutable_init()
   /* compile regular expression matchers */
   if (regcomp(&otutable->regex_sample,
               "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
-              REG_EXTENDED))
+              REG_EXTENDED)) {
     fatal("Compilation of regular expression for sample annotation failed");
+
+        }
 
   if (regcomp(&otutable->regex_otu,
               "(^|;)otu=([^;]*)($|;)",
-              REG_EXTENDED))
+              REG_EXTENDED)) {
     fatal("Compilation of regular expression for otu annotation failed");
+
+        }
 
   if (regcomp(&otutable->regex_tax,
               "(^|;)tax=([^;]*)($|;)",
-              REG_EXTENDED))
+              REG_EXTENDED)) {
     fatal("Compilation of regular expression for taxonomy annotation failed");
+
+        }
 #endif
 }
 
@@ -259,10 +265,14 @@ void otutable_print_otutabout(FILE * fp)
   fprintf(fp, "#OTU ID");
   for (string_set_t::iterator it_sample = otutable->sample_set.begin();
        it_sample != otutable->sample_set.end();
-       ++it_sample)
+       ++it_sample) {
     fprintf(fp, "\t%s", it_sample->c_str());
-  if (! otutable->otu_tax_map.empty())
+
+        }
+  if (! otutable->otu_tax_map.empty()) {
     fprintf(fp, "\ttaxonomy");
+
+        }
   fprintf(fp, "\n");
 
   string_pair_map_t::iterator it_map = otutable->otu_sample_count.begin();
@@ -291,8 +301,10 @@ void otutable_print_otutabout(FILE * fp)
           fprintf(fp, "\t");
           otu_tax_map_t::iterator it
             = otutable->otu_tax_map.find(*it_otu);
-          if (it != otutable->otu_tax_map.end())
+          if (it != otutable->otu_tax_map.end()) {
             fprintf(fp, "%s", it->second.c_str());
+
+        }
         }
       fprintf(fp, "\n");
       progress_update(++progress);
@@ -384,19 +396,23 @@ void otutable_print_biomout(FILE * fp)
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
-      if (it_otu != otutable->otu_set.begin())
+      if (it_otu != otutable->otu_set.begin()) {
         fprintf(fp, ",");
+
+        }
       const char * otu_name = it_otu->c_str();
       fprintf(fp, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
-      if (otutable->otu_tax_map.empty())
+      if (otutable->otu_tax_map.empty()) {
         fprintf(fp, "null");
-      else
+      } else
         {
           fprintf(fp, R"({"taxonomy":")");
           otu_tax_map_t::iterator it
             = otutable->otu_tax_map.find(otu_name);
-          if (it != otutable->otu_tax_map.end())
+          if (it != otutable->otu_tax_map.end()) {
             fprintf(fp, "%s", it->second.c_str());
+
+        }
           fprintf(fp, "\"}");
         }
       fprintf(fp, "}");
@@ -413,8 +429,10 @@ void otutable_print_biomout(FILE * fp)
        it_sample != otutable->sample_set.end();
        ++it_sample)
     {
-      if (it_sample != otutable->sample_set.begin())
+      if (it_sample != otutable->sample_set.begin()) {
         fprintf(fp, ",");
+
+        }
       fprintf(fp, "\n\t\t{\"id\":\"%s\", \"metadata\":null}", it_sample->c_str());
       sample_no_map[*it_sample] = sample_no++;
     }
@@ -427,8 +445,10 @@ void otutable_print_biomout(FILE * fp)
        it_map != otutable->otu_sample_count.end();
        ++it_map)
     {
-      if (!first)
+      if (!first) {
         fprintf(fp, ",");
+
+        }
 
       otu_no = otu_no_map[it_map->first.first];
       sample_no = sample_no_map[it_map->first.second];

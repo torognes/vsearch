@@ -63,8 +63,10 @@
 void shuffle()
 {
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (!fp_output) {
     fatal("Unable to open shuffle output file for writing");
+
+        }
 
   db_read(opt_shuffle, 0);
   show_rusage();
@@ -72,8 +74,10 @@ void shuffle()
   int dbsequencecount = db_getsequencecount();
   int * deck = (int*) xmalloc(dbsequencecount * sizeof(int));
 
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i=0; i<dbsequencecount; i++) {
     deck[i] = i;
+
+        }
 
   int passed = 0;
   progress_init("Shuffling", dbsequencecount-1);

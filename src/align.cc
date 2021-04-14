@@ -75,9 +75,9 @@ static const char maskextleft =  8;
 
 inline void pushop(char newop, char ** cigarendp, char * op, int * count)
 {
-  if (newop == *op)
+  if (newop == *op) {
     (*count)++;
-  else
+  } else
   {
     *--*cigarendp = *op;
     if (*count > 1)
@@ -162,10 +162,14 @@ struct nwinfo_s * nw_init()
 
 void nw_exit(struct nwinfo_s * nw)
 {
-  if (nw->dir)
+  if (nw->dir) {
     xfree(nw->dir);
-  if (nw->hearray)
+
+        }
+  if (nw->hearray) {
     xfree(nw->hearray);
+
+        }
   xfree(nw);
 }
 
@@ -228,31 +232,37 @@ void nw_align(char * dseq,
   for(i=0; i<qlen; i++)
   {
     nw->hearray[2*i] = -gapopen_t_left - (i+1) * gapextend_t_left;
-    if (i < qlen-1)
+    if (i < qlen-1) {
       nw->hearray[2*i+1] =
         - gapopen_t_left - (i+1) * gapextend_t_left
         - gapopen_q_interior - gapextend_q_interior;
-    else
+    } else {
       nw->hearray[2*i+1] =
         - gapopen_t_left - (i+1) * gapextend_t_left
         - gapopen_q_right - gapextend_q_right;
+
+        }
   }
 
   for(j=0; j<dlen; j++)
   {
     hep = nw->hearray;
 
-    if (j == 0)
+    if (j == 0) {
       h = 0;
-    else
+    } else {
       h = - gapopen_q_left - j * gapextend_q_left;
 
-    if (j < dlen-1)
+        }
+
+    if (j < dlen-1) {
       f = - gapopen_q_left - (j+1) * gapextend_q_left
         - gapopen_t_interior - gapextend_t_interior;
-    else
+    } else {
       f = - gapopen_q_left - (j+1) * gapextend_q_left
         - gapopen_t_right - gapextend_t_right;
+
+        }
 
     for(i=0; i<qlen; i++)
     {
@@ -298,15 +308,19 @@ void nw_align(char * dseq,
           f -= gapextend_t_right;
         }
 
-      if (f > h_f)
+      if (f > h_f) {
         *d |= maskextup;
-      else
+      } else {
         f = h_f;
 
-      if (e > h_e)
+        }
+
+      if (e > h_e) {
         *d |= maskextleft;
-      else
+      } else {
         e = h_e;
+
+        }
 
       *(hep+1) = e;
       h = n;
@@ -386,8 +400,10 @@ void nw_align(char * dseq,
     else
     {
       score += getscore(score_matrix, dseq[j-1], qseq[i-1]);
-      if (chrmap_4bit[(int)(dseq[j-1])] & chrmap_4bit[(int)(qseq[i-1])])
+      if (chrmap_4bit[(int)(dseq[j-1])] & chrmap_4bit[(int)(qseq[i-1])]) {
         matches++;
+
+        }
       i--;
       j--;
       pushop('M', &cigarend, &op, &count);

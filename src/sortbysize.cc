@@ -73,23 +73,25 @@ int sortbysize_compare(const void * a, const void * b)
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->size < y->size)
+  if (x->size < y->size) {
     return +1;
-  else if (x->size > y->size)
+  } else if (x->size > y->size) {
     return -1;
-  else
+  } else
     {
       int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-      if (r != 0)
+      if (r != 0) {
         return r;
-      else
+      } else
         {
-          if (x->seqno < y->seqno)
+          if (x->seqno < y->seqno) {
             return -1;
-          else if (x->seqno > y->seqno)
+          } else if (x->seqno > y->seqno) {
             return +1;
-          else
+          } else {
             return 0;
+
+        }
         }
     }
 }
@@ -97,8 +99,10 @@ int sortbysize_compare(const void * a, const void * b)
 void sortbysize()
 {
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (!fp_output) {
     fatal("Unable to open sortbysize output file for writing");
+
+        }
 
   db_read(opt_sortbysize, 0);
 
@@ -137,18 +141,24 @@ void sortbysize()
   double median = 0.0;
   if (passed > 0)
     {
-      if (passed % 2)
+      if (passed % 2) {
         median = sortinfo[(passed-1)/2].size;
-      else
+      } else {
         median = (sortinfo[(passed/2)-1].size +
                   sortinfo[passed/2].size) / 2.0;
+
+        }
     }
 
-  if (! opt_quiet)
+  if (! opt_quiet) {
     fprintf(stderr, "Median abundance: %.0f\n", median);
 
-  if (opt_log)
+        }
+
+  if (opt_log) {
     fprintf(fp_log, "Median abundance: %.0f\n", median);
+
+        }
 
   show_rusage();
 

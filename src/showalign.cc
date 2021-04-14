@@ -118,12 +118,14 @@ inline void putop(char c, int64_t len)
 
           qs4 = chrmap_4bit[(int)qs];
           ds4 = chrmap_4bit[(int)ds];
-          if ((qs4 == ds4) && (! ambiguous_4bit[qs4]))
+          if ((qs4 == ds4) && (! ambiguous_4bit[qs4])) {
             a_line[line_pos] = '|';
-          else if (qs4 & ds4)
+          } else if (qs4 & ds4) {
             a_line[line_pos] = '+';
-          else
+          } else {
             a_line[line_pos] = ' ';
+
+        }
 
           d_line[line_pos] = ds;
           line_pos++;
@@ -155,14 +157,18 @@ inline void putop(char c, int64_t len)
           d_line[line_pos] = 0;
 
           int64_t q1 = q_start + 1;
-          if (q1 > q_len)
+          if (q1 > q_len) {
             q1 = q_len;
+
+        }
 
           int64_t q2 = q_strand ? q_pos +2 : q_pos;
 
           int64_t d1 = d_start + 1;
-          if (d1 > d_len)
+          if (d1 > d_len) {
             d1 = d_len;
+
+        }
 
           int64_t d2 = d_pos;
 
@@ -274,8 +280,10 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
       else
         {
           /* insert len gap symbols */
-          for(int64_t i = 0; i < len; i++)
+          for(int64_t i = 0; i < len; i++) {
             *r++ = '-';
+
+        }
         }
     }
 
@@ -288,21 +296,25 @@ void align_fprint_uncompressed_alignment(FILE * f, char * cigar)
   char * p = cigar;
   while(*p)
     {
-      if (*p > '9')
+      if (*p > '9') {
         fprintf(f, "%c", *p++);
-      else
+      } else
         {
           int n = 0;
           char c = 0;
           int x = 0;
           if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
             {
-              for(int i = 0; i<n; i++)
+              for(int i = 0; i<n; i++) {
                 fprintf(f, "%c", c);
+
+        }
               p += x;
             }
-          else
+          else {
             fatal("bad alignment string");
+
+        }
         }
     }
 }

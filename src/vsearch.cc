@@ -374,30 +374,54 @@ void cpu_features_detect()
 void cpu_features_show()
 {
   fprintf(stderr, "CPU features:");
-  if (neon_present)
+  if (neon_present) {
     fprintf(stderr, " neon");
-  if (altivec_present)
+
+        }
+  if (altivec_present) {
     fprintf(stderr, " altivec");
-  if (mmx_present)
+
+        }
+  if (mmx_present) {
     fprintf(stderr, " mmx");
-  if (sse_present)
+
+        }
+  if (sse_present) {
     fprintf(stderr, " sse");
-  if (sse2_present)
+
+        }
+  if (sse2_present) {
     fprintf(stderr, " sse2");
-  if (sse3_present)
+
+        }
+  if (sse3_present) {
     fprintf(stderr, " sse3");
-  if (ssse3_present)
+
+        }
+  if (ssse3_present) {
     fprintf(stderr, " ssse3");
-  if (sse41_present)
+
+        }
+  if (sse41_present) {
     fprintf(stderr, " sse4.1");
-  if (sse42_present)
+
+        }
+  if (sse42_present) {
     fprintf(stderr, " sse4.2");
-  if (popcnt_present)
+
+        }
+  if (popcnt_present) {
     fprintf(stderr, " popcnt");
-  if (avx_present)
+
+        }
+  if (avx_present) {
     fprintf(stderr, " avx");
-  if (avx2_present)
+
+        }
+  if (avx2_present) {
     fprintf(stderr, " avx2");
+
+        }
   fprintf(stderr, "\n");
 }
 
@@ -407,9 +431,13 @@ void args_get_ee_cutoffs(char * arg)
   /* save in ee_cutoffs_count and ee_cutoffs_values */
 
   int commas = 0;
-  for (size_t i=0; i<strlen(arg); i++)
-    if (arg[i] == ',')
+  for (size_t i=0; i<strlen(arg); i++) {
+    if (arg[i] == ',') {
       commas++;
+
+        }
+
+        }
 
   opt_ee_cutoffs_count = 0;
   opt_ee_cutoffs_values = (double*) xrealloc(opt_ee_cutoffs_values, (commas+1) * sizeof(double));
@@ -420,19 +448,23 @@ void args_get_ee_cutoffs(char * arg)
       double val = 0;
       int skip = 0;
 
-      if ((sscanf(s, "%lf%n", &val, &skip) != 1) || (val <= 0.0))
+      if ((sscanf(s, "%lf%n", &val, &skip) != 1) || (val <= 0.0)) {
         fatal("Invalid arguments to ee_cutoffs");
+
+        }
 
       opt_ee_cutoffs_values[opt_ee_cutoffs_count++] = val;
 
       s += skip;
 
-      if (*s == ',')
+      if (*s == ',') {
         s++;
-      else if (*s == 0)
+      } else if (*s == 0) {
         break;
-      else
+      } else {
         fatal("Invalid arguments to ee_cutoffs");
+
+        }
     }
 }
 
@@ -446,22 +478,30 @@ void args_get_length_cutoffs(char * arg)
   int skip = 0;
   if (sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
     {
-      if ((size_t)skip < strlen(arg))
+      if ((size_t)skip < strlen(arg)) {
         fatal("Invalid arguments to length_cutoffs");
+
+        }
     }
   else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
     {
-      if ((size_t)skip < strlen(arg))
+      if ((size_t)skip < strlen(arg)) {
         fatal("Invalid arguments to length_cutoffs");
+
+        }
       opt_length_cutoffs_longest = INT_MAX;
     }
-  else
+  else {
     fatal("Invalid arguments to length_cutoffs");
+
+        }
 
   if ((opt_length_cutoffs_shortest < 1) ||
       (opt_length_cutoffs_shortest > opt_length_cutoffs_longest) ||
-      (opt_length_cutoffs_increment < 1))
+      (opt_length_cutoffs_increment < 1)) {
     fatal("Invalid arguments to length_cutoffs");
+
+        }
 
 }
 
@@ -508,8 +548,10 @@ void args_get_gap_penalty_string(char * arg, int is_open)
           pen = 1000;
           p++;
         }
-      else
+      else {
         fatal("Invalid gap penalty argument (%s)", p);
+
+        }
 
       char * q = p;
 
@@ -549,11 +591,15 @@ void args_get_gap_penalty_string(char * arg, int is_open)
           p++;
         }
 
-      if (*p == '/')
+      if (*p == '/') {
         p++;
 
-      if (set_E && (set_L || set_R))
+        }
+
+      if (set_E && (set_L || set_R)) {
         fatal("Invalid gap penalty string (E and L or R) '%s'", q);
+
+        }
 
       if (set_E)
         {
@@ -582,42 +628,66 @@ void args_get_gap_penalty_string(char * arg, int is_open)
         {
           if (set_Q)
             {
-              if (set_L)
+              if (set_L) {
                 opt_gap_open_query_left = pen;
-              if (set_I)
+
+        }
+              if (set_I) {
                 opt_gap_open_query_interior = pen;
-              if (set_R)
+
+        }
+              if (set_R) {
                 opt_gap_open_query_right = pen;
+
+        }
             }
           if (set_T)
             {
-              if (set_L)
+              if (set_L) {
                 opt_gap_open_target_left = pen;
-              if (set_I)
+
+        }
+              if (set_I) {
                 opt_gap_open_target_interior = pen;
-              if (set_R)
+
+        }
+              if (set_R) {
                 opt_gap_open_target_right = pen;
+
+        }
             }
         }
       else
         {
           if (set_Q)
             {
-              if (set_L)
+              if (set_L) {
                 opt_gap_extension_query_left = pen;
-              if (set_I)
+
+        }
+              if (set_I) {
                 opt_gap_extension_query_interior = pen;
-              if (set_R)
+
+        }
+              if (set_R) {
                 opt_gap_extension_query_right = pen;
+
+        }
             }
           if (set_T)
             {
-              if (set_L)
+              if (set_L) {
                 opt_gap_extension_target_left = pen;
-              if (set_I)
+
+        }
+              if (set_I) {
                 opt_gap_extension_target_interior = pen;
-              if (set_R)
+
+        }
+              if (set_R) {
                 opt_gap_extension_target_right = pen;
+
+        }
             }
         }
     }
@@ -629,8 +699,10 @@ int64_t args_getlong(char * arg)
   int len = 0;
   int64_t temp = 0;
   int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
-  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
+  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg))) {
     fatal("Illegal option argument");
+
+        }
   return temp;
 }
 
@@ -639,8 +711,10 @@ double args_getdouble(char * arg)
   int len = 0;
   double temp = 0;
   int ret = sscanf(arg, "%lf%n", &temp, &len);
-  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
+  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg))) {
     fatal("Illegal option argument");
+
+        }
   return temp;
 }
 
@@ -1360,8 +1434,10 @@ void args_init(int argc, char **argv)
   while ((c = getopt_long_only(argc, argv, "", long_options,
                                &options_index)) == 0)
     {
-      if (options_index < options_count)
+      if (options_index < options_count) {
         options_selected[options_index] = true;
+
+        }
 
       switch(options_index)
         {
@@ -1415,12 +1491,14 @@ void args_init(int argc, char **argv)
           break;
 
         case option_strand:
-          if (strcasecmp(optarg, "plus") == 0)
+          if (strcasecmp(optarg, "plus") == 0) {
             opt_strand = 1;
-          else if (strcasecmp(optarg, "both") == 0)
+          } else if (strcasecmp(optarg, "both") == 0) {
             opt_strand = 2;
-          else
+          } else {
             fatal("The argument to --strand must be plus or both");
+
+        }
           break;
 
         case option_threads:
@@ -1440,8 +1518,10 @@ void args_init(int argc, char **argv)
           break;
 
         case option_userfields:
-          if (!parse_userfields_arg(optarg))
+          if (!parse_userfields_arg(optarg)) {
             fatal("Unrecognized userfield argument");
+
+        }
           break;
 
         case option_userout:
@@ -1482,8 +1562,10 @@ void args_init(int argc, char **argv)
 
         case option_minsize:
           opt_minsize = args_getlong(optarg);
-          if (opt_minsize <= 0)
+          if (opt_minsize <= 0) {
             fatal("The argument to --minsize must be at least 1");
+
+        }
           break;
 
         case option_maxsize:
@@ -1504,8 +1586,10 @@ void args_init(int argc, char **argv)
 
         case option_minseqlength:
           opt_minseqlength = args_getlong(optarg);
-          if (opt_minseqlength < 0)
+          if (opt_minseqlength < 0) {
             fatal("The argument to --minseqlength must not be negative");
+
+        }
           break;
 
         case option_minuniquesize:
@@ -1665,25 +1749,29 @@ void args_init(int argc, char **argv)
           break;
 
         case option_qmask:
-          if (strcasecmp(optarg, "none") == 0)
+          if (strcasecmp(optarg, "none") == 0) {
             opt_qmask = MASK_NONE;
-          else if (strcasecmp(optarg, "dust") == 0)
+          } else if (strcasecmp(optarg, "dust") == 0) {
             opt_qmask = MASK_DUST;
-          else if (strcasecmp(optarg, "soft") == 0)
+          } else if (strcasecmp(optarg, "soft") == 0) {
             opt_qmask = MASK_SOFT;
-          else
+          } else {
             opt_qmask = MASK_ERROR;
+
+        }
           break;
 
         case option_dbmask:
-          if (strcasecmp(optarg, "none") == 0)
+          if (strcasecmp(optarg, "none") == 0) {
             opt_dbmask = MASK_NONE;
-          else if (strcasecmp(optarg, "dust") == 0)
+          } else if (strcasecmp(optarg, "dust") == 0) {
             opt_dbmask = MASK_DUST;
-          else if (strcasecmp(optarg, "soft") == 0)
+          } else if (strcasecmp(optarg, "soft") == 0) {
             opt_dbmask = MASK_SOFT;
-          else
+          } else {
             opt_dbmask = MASK_ERROR;
+
+        }
           break;
 
         case option_cluster_smallmem:
@@ -1963,8 +2051,10 @@ void args_init(int argc, char **argv)
 
         case option_minwordmatches:
           opt_minwordmatches = args_getlong(optarg);
-          if (opt_minwordmatches < 0)
+          if (opt_minwordmatches < 0) {
             fatal("The argument to --minwordmatches must not be negative");
+
+        }
           break;
 
         case option_v:
@@ -2309,12 +2399,16 @@ void args_init(int argc, char **argv)
     }
 
   /* Terminate if ambiguous or illegal options have been detected */
-  if (c != -1)
+  if (c != -1) {
     exit(EXIT_FAILURE);
 
+        }
+
   /* Terminate after reporting any extra non-option arguments */
-  if (optind < argc)
+  if (optind < argc) {
     fatal("Unrecognized string on command line (%s)", argv[optind]);
+
+        }
 
   /* Below is a list of all command names, in alphabetical order. */
 
@@ -3927,14 +4021,18 @@ void args_init(int argc, char **argv)
   /* check that only one commmand is specified */
   int commands = 0;
   int k = -1;
-  for (int i = 0; i < commands_count; i++)
+  for (int i = 0; i < commands_count; i++) {
     if (options_selected[command_options[i]])
       {
         commands++;
         k = i;
       }
-  if (commands > 1)
+
+        }
+  if (commands > 1) {
     fatal("More than one command specified");
+
+        }
 
   /* check that only valid options are specified */
   int invalid_options = 0;
@@ -3943,11 +4041,17 @@ void args_init(int argc, char **argv)
     {
       /* check if any options are specified */
       bool any_options = false;
-      for (int i = 0; i < options_count; i++)
-        if (options_selected[i])
+      for (int i = 0; i < options_count; i++) {
+        if (options_selected[i]) {
           any_options = true;
-      if (any_options)
+
+        }
+
+        }
+      if (any_options) {
         fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
+
+        }
     }
   else
     {
@@ -3994,8 +4098,10 @@ void args_init(int argc, char **argv)
               fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
               count++;
             }
-          if (! count)
+          if (! count) {
             fprintf(stderr, " (none)");
+
+        }
           fprintf(stderr, "\n");
           exit(EXIT_FAILURE);
         }
@@ -4003,58 +4109,78 @@ void args_init(int argc, char **argv)
 
   /* multi-threaded commands */
 
-  if ((opt_threads < 0) || (opt_threads > 1024))
+  if ((opt_threads < 0) || (opt_threads > 1024)) {
     fatal("The argument to --threads must be in the range 0 (default) to 1024");
+
+        }
 
   if (opt_allpairs_global || opt_cluster_fast || opt_cluster_size ||
       opt_cluster_smallmem || opt_cluster_unoise || opt_fastq_mergepairs ||
       opt_fastx_mask || opt_maskfasta || opt_search_exact || opt_sintax ||
       opt_uchime_ref || opt_usearch_global)
     {
-      if (opt_threads == 0)
+      if (opt_threads == 0) {
         opt_threads = arch_get_cores();
+
+        }
     }
   else
     {
-      if (opt_threads > 1)
+      if (opt_threads > 1) {
         fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[command_options[k]].name);
+
+        }
       opt_threads = 1;
     }
 
-  if (opt_cluster_unoise)
+  if (opt_cluster_unoise) {
     opt_weak_id = 0.90;
-  else
-    if (opt_weak_id > opt_id)
+  } else
+    if (opt_weak_id > opt_id) {
       opt_weak_id = opt_id;
+
+        }
 
   if (opt_maxrejects == -1)
     {
-      if (opt_cluster_fast)
+      if (opt_cluster_fast) {
         opt_maxrejects = 8;
-      else
+      } else {
         opt_maxrejects = 32;
+
+        }
     }
 
-  if (opt_maxaccepts < 0)
+  if (opt_maxaccepts < 0) {
     fatal("The argument to --maxaccepts must not be negative");
 
-  if (opt_maxrejects < 0)
+        }
+
+  if (opt_maxrejects < 0) {
     fatal("The argument to --maxrejects must not be negative");
+
+        }
 
   if (opt_wordlength == 0)
     {
       /* set default word length */
-      if (opt_orient)
+      if (opt_orient) {
         opt_wordlength = 12;
-      else
+      } else {
         opt_wordlength = 8;
+
+        }
     }
 
-  if ((opt_wordlength < 3) || (opt_wordlength > 15))
+  if ((opt_wordlength < 3) || (opt_wordlength > 15)) {
     fatal("The argument to --wordlength must be in the range 3 to 15");
 
-  if ((opt_iddef < 0) || (opt_iddef > 4))
+        }
+
+  if ((opt_iddef < 0) || (opt_iddef > 4)) {
     fatal("The argument to --iddef must in the range 0 to 4");
+
+        }
 
 #if 0
 
@@ -4067,81 +4193,131 @@ void args_init(int argc, char **argv)
 #endif
 
 
-  if (opt_alignwidth < 0)
+  if (opt_alignwidth < 0) {
     fatal("The argument to --alignwidth must not be negative");
 
-  if (opt_rowlen < 0)
+        }
+
+  if (opt_rowlen < 0) {
     fatal("The argument to --rowlen must not be negative");
 
-  if (opt_qmask == MASK_ERROR)
+        }
+
+  if (opt_qmask == MASK_ERROR) {
     fatal("The argument to --qmask must be none, dust or soft");
 
-  if (opt_dbmask == MASK_ERROR)
+        }
+
+  if (opt_dbmask == MASK_ERROR) {
     fatal("The argument to --dbmask must be none, dust or soft");
 
-  if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0))
+        }
+
+  if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0)) {
     fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
 
-  if (opt_sample_size < 0)
+        }
+
+  if (opt_sample_size < 0) {
     fatal("The argument to --sample_size must not be negative");
 
+        }
+
   if (((opt_relabel ? 1 : 0) +
-       opt_relabel_md5 + opt_relabel_self + opt_relabel_sha1) > 1)
+       opt_relabel_md5 + opt_relabel_self + opt_relabel_sha1) > 1) {
     fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
 
-  if (opt_fastq_tail < 1)
+        }
+
+  if (opt_fastq_tail < 1) {
     fatal("The argument to --fastq_tail must be positive");
 
-  if ((opt_min_unmasked_pct < 0.0) && (opt_min_unmasked_pct > 100.0))
+        }
+
+  if ((opt_min_unmasked_pct < 0.0) && (opt_min_unmasked_pct > 100.0)) {
     fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
 
-  if ((opt_max_unmasked_pct < 0.0) && (opt_max_unmasked_pct > 100.0))
+        }
+
+  if ((opt_max_unmasked_pct < 0.0) && (opt_max_unmasked_pct > 100.0)) {
     fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
 
-  if (opt_min_unmasked_pct > opt_max_unmasked_pct)
+        }
+
+  if (opt_min_unmasked_pct > opt_max_unmasked_pct) {
     fatal("The argument to --min_unmasked_pct cannot be larger than to --max_unmasked_pct");
 
-  if ((opt_fastq_ascii != 33) && (opt_fastq_ascii != 64))
+        }
+
+  if ((opt_fastq_ascii != 33) && (opt_fastq_ascii != 64)) {
     fatal("The argument to --fastq_ascii must be 33 or 64");
 
-  if (opt_fastq_qmin > opt_fastq_qmax)
+        }
+
+  if (opt_fastq_qmin > opt_fastq_qmax) {
     fatal("The argument to --fastq_qmin cannot be larger than to --fastq_qmax");
 
-  if (opt_fastq_ascii + opt_fastq_qmin < 33)
+        }
+
+  if (opt_fastq_ascii + opt_fastq_qmin < 33) {
     fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
 
-  if (opt_fastq_ascii + opt_fastq_qmax > 126)
+        }
+
+  if (opt_fastq_ascii + opt_fastq_qmax > 126) {
     fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
 
-  if (opt_fastq_qminout > opt_fastq_qmaxout)
+        }
+
+  if (opt_fastq_qminout > opt_fastq_qmaxout) {
     fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
 
-  if ((opt_fastq_asciiout != 33) && (opt_fastq_asciiout != 64))
+        }
+
+  if ((opt_fastq_asciiout != 33) && (opt_fastq_asciiout != 64)) {
     fatal("The argument to --fastq_asciiout must be 33 or 64");
 
-  if (opt_fastq_asciiout + opt_fastq_qminout < 33)
+        }
+
+  if (opt_fastq_asciiout + opt_fastq_qminout < 33) {
     fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
 
-  if (opt_fastq_asciiout + opt_fastq_qmaxout > 126)
+        }
+
+  if (opt_fastq_asciiout + opt_fastq_qmaxout > 126) {
     fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
 
-  if (opt_gzip_decompress && opt_bzip2_decompress)
+        }
+
+  if (opt_gzip_decompress && opt_bzip2_decompress) {
     fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
 
-  if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0))
+        }
+
+  if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0)) {
     fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
 
-  if (opt_minuniquesize < 1)
+        }
+
+  if (opt_minuniquesize < 1) {
     fatal("The argument to minuniquesize must be at least 1");
 
-  if (opt_maxuniquesize < 1)
+        }
+
+  if (opt_maxuniquesize < 1) {
     fatal("The argument to maxuniquesize must be at least 1");
 
-  if (opt_maxsize < 1)
+        }
+
+  if (opt_maxsize < 1) {
     fatal("The argument to maxsize must be at least 1");
 
-  if (opt_maxhits < 0)
+        }
+
+  if (opt_maxhits < 0) {
     fatal("The argument to maxhits cannot be negative");
+
+        }
 
 
   /* TODO: check valid range of gap penalties */
@@ -4173,28 +4349,36 @@ void args_init(int argc, char **argv)
 
   /* set defaults parameters, if not specified */
 
-  if (opt_maxhits == 0)
+  if (opt_maxhits == 0) {
     opt_maxhits = LONG_MAX;
 
-  if (opt_minwordmatches < 0)
+        }
+
+  if (opt_minwordmatches < 0) {
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
+
+        }
 
   /* set default opt_minsize depending on command */
   if (opt_minsize == 0)
     {
-      if (opt_cluster_unoise)
+      if (opt_cluster_unoise) {
         opt_minsize = 8;
-      else
+      } else {
         opt_minsize = 1;
+
+        }
     }
 
   /* set default opt_abskew depending on command */
   if (opt_abskew < 0.0)
     {
-      if (opt_uchime3_denovo)
+      if (opt_uchime3_denovo) {
         opt_abskew = 16.0;
-      else
+      } else {
         opt_abskew = 2.0;
+
+        }
     }
 
   /* set default opt_minseqlength depending on command */
@@ -4210,14 +4394,18 @@ void args_init(int argc, char **argv)
           opt_derep_prefix ||
           opt_makeudb_usearch ||
           opt_sintax ||
-          opt_usearch_global)
+          opt_usearch_global) {
         opt_minseqlength = 32;
-      else
+      } else {
         opt_minseqlength = 1;
+
+        }
     }
 
-  if (opt_sintax)
+  if (opt_sintax) {
     opt_notrunclabels = 1;
+
+        }
 }
 
 void show_publication()
@@ -4251,22 +4439,28 @@ void cmd_version()
           uLong flags = (*zlibCompileFlags_p)();
 
           printf("zlib version %s, compile flags %lx", gz_version, flags);
-          if (flags & 0x0400)
+          if (flags & 0x0400) {
             printf(" (ZLIB_WINAPI)");
+
+        }
           printf("\n");
         }
-      else
+      else {
         printf(" but the library was not found.\n");
+
+        }
 #else
       printf("Compiled without support for gzip-compressed files.\n");
 #endif
 
 #ifdef HAVE_BZLIB_H
       printf("Compiled with support for bzip2-compressed files,");
-      if (bz2_lib)
+      if (bz2_lib) {
         printf(" and the library is loaded.\n");
-      else
+      } else {
         printf(" but the library was not found.\n");
+
+        }
 #else
       printf("Compiled without support for bzip2-compressed files.\n");
 #endif
@@ -4722,11 +4916,15 @@ void cmd_allpairs_global()
   if ((!opt_alnout) && (!opt_userout) &&
       (!opt_uc) && (!opt_blast6out) &&
       (!opt_matched) && (!opt_notmatched) &&
-      (!opt_samout) && (!opt_fastapairs))
+      (!opt_samout) && (!opt_fastapairs)) {
     fatal("No output files specified");
 
-  if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
+        }
+
+  if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0)))) {
     fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
+
+        }
 
   allpairs_global(cmdline, progheader);
 }
@@ -4741,14 +4939,20 @@ void cmd_usearch_global()
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
       (!opt_biomout) && (!opt_mothur_shared_out) &&
-      (!opt_fastapairs))
+      (!opt_fastapairs)) {
     fatal("No output files specified");
 
-  if (!opt_db)
+        }
+
+  if (!opt_db) {
     fatal("Database filename not specified with --db");
 
-  if ((opt_id < 0.0) || (opt_id > 1.0))
+        }
+
+  if ((opt_id < 0.0) || (opt_id > 1.0)) {
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
+
+        }
 
   usearch_global(cmdline, progheader);
 }
@@ -4763,125 +4967,157 @@ void cmd_search_exact()
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
       (!opt_biomout) && (!opt_mothur_shared_out) &&
-      (!opt_fastapairs))
+      (!opt_fastapairs)) {
     fatal("No output files specified");
 
-  if (!opt_db)
+        }
+
+  if (!opt_db) {
     fatal("Database filename not specified with --db");
+
+        }
 
   search_exact(cmdline, progheader);
 }
 
 void cmd_sortbysize()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("FASTA output file for sortbysize must be specified with --output");
+
+        }
 
   sortbysize();
 }
 
 void cmd_sortbylength()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("FASTA output file for sortbylength must be specified with --output");
+
+        }
 
   sortbylength();
 }
 
 void cmd_rereplicate()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("FASTA output file for rereplicate must be specified with --output");
+
+        }
 
   rereplicate();
 }
 
 void cmd_derep()
 {
-  if ((!opt_output) && (!opt_uc))
+  if ((!opt_output) && (!opt_uc)) {
     fatal("Output file for dereplication must be specified with --output or --uc");
 
-  if (opt_derep_fulllength)
+        }
+
+  if (opt_derep_fulllength) {
     derep_fulllength();
-  else if (opt_derep_id)
+  } else if (opt_derep_id) {
     derep_id();
-  else
+  } else
     {
-      if (opt_strand > 1)
+      if (opt_strand > 1) {
         fatal("Option '--strand both' not supported with --derep_prefix");
-      else
+      } else {
         derep_prefix();
+
+        }
     }
 }
 
 void cmd_shuffle()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("Output file for shuffling must be specified with --output");
+
+        }
 
   shuffle();
 }
 
 void cmd_fastq_eestats()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("Output file for fastq_eestats must be specified with --output");
+
+        }
 
   fastq_eestats();
 }
 
 void cmd_fastq_eestats2()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("Output file for fastq_eestats2 must be specified with --output");
+
+        }
 
   fastq_eestats2();
 }
 
 void cmd_subsample()
 {
-  if ((!opt_fastaout) && (!opt_fastqout))
+  if ((!opt_fastaout) && (!opt_fastqout)) {
     fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
 
-  if ((opt_sample_pct > 0) == (opt_sample_size > 0))
+        }
+
+  if ((opt_sample_pct > 0) == (opt_sample_size > 0)) {
     fatal("Specify either --sample_pct or --sample_size");
+
+        }
 
   subsample();
 }
 
 void cmd_maskfasta()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("Output file for masking must be specified with --output");
+
+        }
 
   maskfasta();
 }
 
 void cmd_makeudb_usearch()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("UDB output file must be specified with --output");
+
+        }
   udb_make();
 }
 
 void cmd_udb2fasta()
 {
-  if (!opt_output)
+  if (!opt_output) {
     fatal("FASTA output file must be specified with --output");
+
+        }
   udb_fasta();
 }
 
 void cmd_fastx_mask()
 {
-  if ((!opt_fastaout) && (!opt_fastqout))
+  if ((!opt_fastaout) && (!opt_fastqout)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
+
+        }
 
   fastx_mask();
 }
 
 void cmd_none()
 {
-  if (! opt_quiet)
+  if (! opt_quiet) {
     fprintf(stderr,
             "For help, please enter: %s --help | less\n"
             "For further details, please consult the manual by entering: man vsearch\n"
@@ -4920,20 +5156,26 @@ void cmd_none()
             "                udb2fasta, udbinfo, udbstats, version\n"
             "\n",
             progname);
+
+        }
 }
 
 void cmd_fastx_revcomp()
 {
-  if ((!opt_fastaout) && (!opt_fastqout))
+  if ((!opt_fastaout) && (!opt_fastqout)) {
     fatal("No output files specified");
+
+        }
 
   fastx_revcomp();
 }
 
 void cmd_fastq_convert()
 {
-  if (! opt_fastqout)
+  if (! opt_fastqout) {
     fatal("No output file specified with --fastqout");
+
+        }
 
   fastq_convert();
 }
@@ -4947,48 +5189,70 @@ void cmd_cluster()
       (!opt_consout) && (!opt_msaout) &&
       (!opt_samout) && (!opt_profile) &&
       (!opt_otutabout) && (!opt_biomout) &&
-      (!opt_mothur_shared_out))
+      (!opt_mothur_shared_out)) {
     fatal("No output files specified");
 
-  if (!opt_cluster_unoise)
-    if ((opt_id < 0.0) || (opt_id > 1.0))
+        }
+
+  if (!opt_cluster_unoise) {
+    if ((opt_id < 0.0) || (opt_id > 1.0)) {
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-  if (opt_cluster_fast)
+        }
+
+        }
+
+  if (opt_cluster_fast) {
     cluster_fast(cmdline, progheader);
-  else if (opt_cluster_smallmem)
+  } else if (opt_cluster_smallmem) {
     cluster_smallmem(cmdline, progheader);
-  else if (opt_cluster_size)
+  } else if (opt_cluster_size) {
     cluster_size(cmdline, progheader);
-  else if (opt_cluster_unoise)
+  } else if (opt_cluster_unoise) {
     cluster_unoise(cmdline, progheader);
+
+        }
 }
 
 void cmd_uchime()
 {
   if ((!opt_chimeras)  && (!opt_nonchimeras) &&
-      (!opt_uchimeout) && (!opt_uchimealns))
+      (!opt_uchimeout) && (!opt_uchimealns)) {
     fatal("No output files specified");
 
-  if (opt_uchime_ref && ! opt_db)
+        }
+
+  if (opt_uchime_ref && ! opt_db) {
     fatal("Database filename not specified with --db");
 
-  if (opt_xn <= 1.0)
+        }
+
+  if (opt_xn <= 1.0) {
     fatal("Argument to --xn must be > 1");
 
-  if (opt_dn <= 0.0)
+        }
+
+  if (opt_dn <= 0.0) {
     fatal("Argument to --dn must be > 0");
+
+        }
 
   if ((!opt_uchime2_denovo) && (!opt_uchime3_denovo))
   {
-    if (opt_mindiffs <= 0)
+    if (opt_mindiffs <= 0) {
       fatal("Argument to --mindiffs must be > 0");
 
-    if (opt_mindiv <= 0.0)
+        }
+
+    if (opt_mindiv <= 0.0) {
       fatal("Argument to --mindiv must be > 0");
 
-    if (opt_minh <= 0.0)
+        }
+
+    if (opt_minh <= 0.0) {
       fatal("Argument to --minh must be > 0");
+
+        }
   }
 
 #if 0
@@ -5001,16 +5265,20 @@ void cmd_uchime()
 
 void cmd_fastq_mergepairs()
 {
-  if (!opt_reverse)
+  if (!opt_reverse) {
     fatal("No reverse reads file specified with --reverse");
+
+        }
   if ((!opt_fastqout) &&
       (!opt_fastaout) &&
       (!opt_fastqout_notmerged_fwd) &&
       (!opt_fastqout_notmerged_rev) &&
       (!opt_fastaout_notmerged_fwd) &&
       (!opt_fastaout_notmerged_rev) &&
-      (!opt_eetabbedout))
+      (!opt_eetabbedout)) {
     fatal("No output files specified");
+
+        }
   fastq_mergepairs();
 }
 
@@ -5026,16 +5294,20 @@ void fillheader()
 void getentirecommandline(int argc, char** argv)
 {
   int len = 0;
-  for (int i=0; i<argc; i++)
+  for (int i=0; i<argc; i++) {
     len += strlen(argv[i]);
+
+        }
 
   cmdline = (char*) xmalloc(len+argc);
   cmdline[0] = 0;
 
   for (int i=0; i<argc; i++)
     {
-      if (i>0)
+      if (i>0) {
         strcat(cmdline, " ");
+
+        }
       strcat(cmdline, argv[i]);
     }
 }
@@ -5063,8 +5335,10 @@ int main(int argc, char** argv)
   if (opt_log)
     {
       fp_log = fopen_output(opt_log);
-      if (!fp_log)
+      if (!fp_log) {
         fatal("Unable to open log file for writing");
+
+        }
       fprintf(fp_log, "%s\n", progheader);
       fprintf(fp_log, "%s\n", cmdline);
 
@@ -5082,84 +5356,88 @@ int main(int argc, char** argv)
   dynlibs_open();
 
 #ifdef __x86_64__
-  if (!sse2_present)
+  if (!sse2_present) {
     fatal("Sorry, this program requires a cpu with SSE2.");
+
+        }
 #endif
 
-  if (opt_help)
+  if (opt_help) {
     cmd_help();
-  else if (opt_allpairs_global)
+  } else if (opt_allpairs_global) {
     cmd_allpairs_global();
-  else if (opt_usearch_global)
+  } else if (opt_usearch_global) {
     cmd_usearch_global();
-  else if (opt_sortbysize)
+  } else if (opt_sortbysize) {
     cmd_sortbysize();
-  else if (opt_sortbylength)
+  } else if (opt_sortbylength) {
     cmd_sortbylength();
-  else if (opt_derep_fulllength || opt_derep_id || opt_derep_prefix)
+  } else if (opt_derep_fulllength || opt_derep_id || opt_derep_prefix) {
     cmd_derep();
-  else if (opt_shuffle)
+  } else if (opt_shuffle) {
     cmd_shuffle();
-  else if (opt_fastx_subsample)
+  } else if (opt_fastx_subsample) {
     cmd_subsample();
-  else if (opt_maskfasta)
+  } else if (opt_maskfasta) {
     cmd_maskfasta();
-  else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size || opt_cluster_unoise)
+  } else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size || opt_cluster_unoise) {
     cmd_cluster();
-  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo)
+  } else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo) {
     cmd_uchime();
-  else if (opt_fastq_chars)
+  } else if (opt_fastq_chars) {
     fastq_chars();
-  else if (opt_fastq_stats)
+  } else if (opt_fastq_stats) {
     fastq_stats();
-  else if (opt_fastq_filter)
+  } else if (opt_fastq_filter) {
     fastq_filter();
-  else if (opt_fastx_filter)
+  } else if (opt_fastx_filter) {
     fastx_filter();
-  else if (opt_fastx_revcomp)
+  } else if (opt_fastx_revcomp) {
     cmd_fastx_revcomp();
-  else if (opt_search_exact)
+  } else if (opt_search_exact) {
     cmd_search_exact();
-  else if (opt_fastx_mask)
+  } else if (opt_fastx_mask) {
     cmd_fastx_mask();
-  else if (opt_fastq_convert)
+  } else if (opt_fastq_convert) {
     cmd_fastq_convert();
-  else if (opt_fastq_mergepairs)
+  } else if (opt_fastq_mergepairs) {
     cmd_fastq_mergepairs();
-  else if (opt_fastq_eestats)
+  } else if (opt_fastq_eestats) {
     cmd_fastq_eestats();
-  else if (opt_fastq_eestats2)
+  } else if (opt_fastq_eestats2) {
     cmd_fastq_eestats2();
-  else if (opt_fastq_join)
+  } else if (opt_fastq_join) {
     fastq_join();
-  else if (opt_rereplicate)
+  } else if (opt_rereplicate) {
     cmd_rereplicate();
-  else if (opt_version)
+  } else if (opt_version) {
     cmd_version();
-  else if (opt_makeudb_usearch)
+  } else if (opt_makeudb_usearch) {
     cmd_makeudb_usearch();
-  else if (opt_udb2fasta)
+  } else if (opt_udb2fasta) {
     cmd_udb2fasta();
-  else if (opt_udbinfo)
+  } else if (opt_udbinfo) {
     udb_info();
-  else if (opt_udbstats)
+  } else if (opt_udbstats) {
     udb_stats();
-  else if (opt_sintax)
+  } else if (opt_sintax) {
     sintax();
-  else if (opt_sff_convert)
+  } else if (opt_sff_convert) {
     sff_convert();
-  else if (opt_fastx_getseq)
+  } else if (opt_fastx_getseq) {
     fastx_getseq();
-  else if (opt_fastx_getseqs)
+  } else if (opt_fastx_getseqs) {
     fastx_getseqs();
-  else if (opt_fastx_getsubseq)
+  } else if (opt_fastx_getsubseq) {
     fastx_getsubseq();
-  else if (opt_cut)
+  } else if (opt_cut) {
     cut();
-  else if (opt_orient)
+  } else if (opt_orient) {
     orient();
-  else
+  } else {
     cmd_none();
+
+        }
 
   if (opt_log)
     {
@@ -5176,15 +5454,19 @@ int main(int argc, char** argv)
               floor(time_diff / 60.0),
               floor(time_diff - 60.0 * floor(time_diff / 60.0)));
       double maxmem = arch_get_memused() / 1048576.0;
-      if (maxmem < 1024.0)
+      if (maxmem < 1024.0) {
         fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
-      else
+      } else {
         fprintf(fp_log, "Max memory %.1lfGB\n", maxmem/1024.0);
+
+        }
       fclose(fp_log);
     }
 
-  if (opt_ee_cutoffs_values)
+  if (opt_ee_cutoffs_values) {
     xfree(opt_ee_cutoffs_values);
+
+        }
   opt_ee_cutoffs_values = nullptr;
 
   xfree(cmdline);

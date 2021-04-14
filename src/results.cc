@@ -232,8 +232,10 @@ void results_show_uc_one(FILE * fp,
               query_head,
               db_getheader(hp->target));
     }
-  else
+  else {
     fprintf(fp, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
+
+        }
 }
 
 void results_show_userout_one(FILE * fp, struct hit * hp,
@@ -249,8 +251,10 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
 
   for (int c = 0; c < userfields_requested_count; c++)
     {
-      if (c)
+      if (c) {
         fprintf(fp, "\t");
+
+        }
 
       int field = userfields_requested[c];
 
@@ -337,20 +341,28 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%d", 0);
           break;
         case 22: /* aln */
-          if (hp)
+          if (hp) {
             align_fprint_uncompressed_alignment(fp, hp->nwalignment);
+
+        }
           break;
         case 23: /* caln */
-          if (hp)
+          if (hp) {
             fprintf(fp, "%s", hp->nwalignment);
+
+        }
           break;
         case 24: /* qstrand */
-          if (hp)
+          if (hp) {
             fprintf(fp, "%c", hp->strand ? '-' : '+');
+
+        }
           break;
         case 25: /* tstrand */
-          if (hp)
+          if (hp) {
             fprintf(fp, "%c", '+');
+
+        }
           break;
         case 26: /* qrow */
           if (hp)
@@ -456,8 +468,10 @@ void results_show_alnout(FILE * fp,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only && (hp->id < top_hit_id)) {
             break;
+
+        }
 
           fprintf(fp,"%3.0f%% %6" PRIu64 "  %s\n",
                   hp->id,
@@ -469,8 +483,10 @@ void results_show_alnout(FILE * fp,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only && (hp->id < top_hit_id)) {
             break;
+
+        }
 
           fprintf(fp,"\n");
 
@@ -581,9 +597,9 @@ void build_sam_strings(char * alignment,
 
           for(int i=0; i<run; i++)
             {
-              if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
+              if (nucleotide_equal(queryseq[qpos], targetseq[tpos])) {
                 matched++;
-              else
+              } else
                 {
                   if (!flag)
                     {
@@ -619,8 +635,10 @@ void build_sam_strings(char * alignment,
             }
 
           md->add_c('^');
-          for(int i=0; i<run; i++)
+          for(int i=0; i<run; i++) {
             md->add_c(targetseq[tpos++]);
+
+        }
           flag = false;
           break;
         }
@@ -717,8 +735,10 @@ void results_show_samout(FILE * fp,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only && (hp->id < top_hit_id)) {
             break;
+
+        }
 
           /*
 

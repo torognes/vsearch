@@ -102,31 +102,41 @@ uint64_t fskip(FILE * fp, uint64_t length)
       uint64_t got = fread(buffer, 1, want, fp);
       skipped += got;
       rest -= got;
-      if (got < want)
+      if (got < want) {
         break;
+
+        }
     }
   return skipped;
 }
 
 void sff_convert()
 {
-  if (! opt_fastqout)
+  if (! opt_fastqout) {
     fatal("No output file for sff_convert specified with --fastqout.");
 
+        }
+
   FILE * fp_fastqout = fopen_output(opt_fastqout);
-  if (!fp_fastqout)
+  if (!fp_fastqout) {
     fatal("Unable to open FASTQ output file for writing.");
 
+        }
+
   FILE * fp_sff = fopen_input(opt_sff_convert);
-  if (!fp_sff)
+  if (!fp_sff) {
     fatal("Unable to open SFF input file for reading.");
+
+        }
 
   /* read and check header */
 
   uint64_t filepos = 0;
 
-  if (fread(&sff_header, 1, 31, fp_sff) < 31)
+  if (fread(&sff_header, 1, 31, fp_sff) < 31) {
     fatal("Unable to read from SFF file. File may be truncated.");
+
+        }
   filepos += 31;
 
   sff_header.magic_number    = bswap_32(sff_header.magic_number);
@@ -138,39 +148,57 @@ void sff_convert()
   sff_header.key_length      = bswap_16(sff_header.key_length);
   sff_header.flows_per_read  = bswap_16(sff_header.flows_per_read);
 
-  if (sff_header.magic_number != sff_magic)
+  if (sff_header.magic_number != sff_magic) {
     fatal("Invalid SFF file. Incorrect magic number. Must be 0x2e736666 (.sff).");
 
-  if (sff_header.version != 1)
+        }
+
+  if (sff_header.version != 1) {
     fatal("Invalid SFF file. Incorrect version. Must be 1.");
 
-  if (sff_header.flowgram_format_code != 1)
+        }
+
+  if (sff_header.flowgram_format_code != 1) {
     fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
 
-  if (sff_header.header_length != 8 * ((31 + sff_header.flows_per_read + sff_header.key_length + 7) / 8))
+        }
+
+  if (sff_header.header_length != 8 * ((31 + sff_header.flows_per_read + sff_header.key_length + 7) / 8)) {
     fatal("Invalid SFF file. Incorrect header length.");
 
-  if (sff_header.key_length != 4)
+        }
+
+  if (sff_header.key_length != 4) {
     fatal("Invalid SFF file. Incorrect key length. Must be 4.");
 
-  if ((sff_header.index_length > 0) && (sff_header.index_length < 8))
+        }
+
+  if ((sff_header.index_length > 0) && (sff_header.index_length < 8)) {
     fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
+
+        }
 
   /* read and check flow chars, key and padding */
 
-  if (fskip(fp_sff, sff_header.flows_per_read) < sff_header.flows_per_read)
+  if (fskip(fp_sff, sff_header.flows_per_read) < sff_header.flows_per_read) {
     fatal("Invalid SFF file. Unable to read flow characters. File may be truncated.");
+
+        }
   filepos += sff_header.flows_per_read;
 
   char * key_sequence = (char *) xmalloc(sff_header.key_length + 1);
-  if (fread(key_sequence, 1, sff_header.key_length, fp_sff) < sff_header.key_length)
+  if (fread(key_sequence, 1, sff_header.key_length, fp_sff) < sff_header.key_length) {
     fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
+
+        }
   key_sequence[sff_header.key_length] = 0;
   filepos += sff_header.key_length;
 
   uint32_t padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - 31;
-  if (fskip(fp_sff, padding_length) < padding_length)
+  if (fskip(fp_sff, padding_length) < padding_length) {
     fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
+
+        }
   filepos += padding_length;
 
   double totallength = 0.0;
@@ -182,8 +210,10 @@ void sff_convert()
   char index_kind[9];
 
   uint32_t index_padding = 0;
-  if ((sff_header.index_length & 7) > 0)
+  if ((sff_header.index_length & 7) > 0) {
     index_padding = 8 - (sff_header.index_length & 7);
+
+        }
 
   if (! opt_quiet)
     {
@@ -209,14 +239,18 @@ void sff_convert()
         {
           if (filepos == sff_header.index_offset)
             {
-              if (fread(index_kind, 1, 8, fp_sff) < 8)
+              if (fread(index_kind, 1, 8, fp_sff) < 8) {
                 fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
+
+        }
               filepos += 8;
               index_kind[8] = 0;
 
               uint64 index_size = sff_header.index_length - 8 + index_padding;
-              if (fskip(fp_sff, index_size) != index_size)
+              if (fskip(fp_sff, index_size) != index_size) {
                 fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
+
+        }
 
               filepos += index_size;
               index_done = true;
@@ -226,8 +260,10 @@ void sff_convert()
 
       /* read and check each read header */
 
-      if (fread(&read_header, 1, 16, fp_sff) < 16)
+      if (fread(&read_header, 1, 16, fp_sff) < 16) {
         fatal("Invalid SFF file. Unable to read read header. File may be truncated.");
+
+        }
       filepos += 16;
 
       read_header.read_header_length = bswap_16(read_header.read_header_length);
@@ -238,57 +274,83 @@ void sff_convert()
       read_header.clip_adapter_left = bswap_16(read_header.clip_adapter_left);
       read_header.clip_adapter_right = bswap_16(read_header.clip_adapter_right);
 
-      if (read_header.read_header_length != 8 * ((16 + read_header.name_length + 7) / 8))
+      if (read_header.read_header_length != 8 * ((16 + read_header.name_length + 7) / 8)) {
         fatal("Invalid SFF file. Incorrect read header length.");
-      if (read_header.clip_qual_left > read_header.number_of_bases)
+
+        }
+      if (read_header.clip_qual_left > read_header.number_of_bases) {
         fatal("Invalid SFF file. Incorrect clip_qual_left value.");
-      if (read_header.clip_adapter_left > read_header.number_of_bases)
+
+        }
+      if (read_header.clip_adapter_left > read_header.number_of_bases) {
         fatal("Invalid SFF file. Incorrect clip_adapter_left value.");
-      if (read_header.clip_qual_right > read_header.number_of_bases)
+
+        }
+      if (read_header.clip_qual_right > read_header.number_of_bases) {
         fatal("Invalid SFF file. Incorrect clip_qual_right value.");
-      if (read_header.clip_adapter_right > read_header.number_of_bases)
+
+        }
+      if (read_header.clip_adapter_right > read_header.number_of_bases) {
         fatal("Invalid SFF file. Incorrect clip_adapter_right value.");
 
+        }
+
       char * read_name = (char *) xmalloc(read_header.name_length + 1);
-      if (fread(read_name, 1, read_header.name_length, fp_sff) < read_header.name_length)
+      if (fread(read_name, 1, read_header.name_length, fp_sff) < read_header.name_length) {
         fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
+
+        }
       filepos += read_header.name_length;
       read_name[read_header.name_length] = 0;
 
       uint32_t read_header_padding_length = read_header.read_header_length - read_header.name_length - 16;
-      if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length)
+      if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length) {
         fatal("Invalid SFF file. Unable to read read header padding. File may be truncated.");
+
+        }
       filepos += read_header_padding_length;
 
       /* read and check the flowgram and sequence */
 
-      if (fskip(fp_sff, 2 * sff_header.flows_per_read) < sff_header.flows_per_read)
+      if (fskip(fp_sff, 2 * sff_header.flows_per_read) < sff_header.flows_per_read) {
         fatal("Invalid SFF file. Unable to read flowgram values. File may be truncated.");
+
+        }
       filepos += 2 * sff_header.flows_per_read;
 
-      if (fskip(fp_sff, read_header.number_of_bases) < read_header.number_of_bases)
+      if (fskip(fp_sff, read_header.number_of_bases) < read_header.number_of_bases) {
         fatal("Invalid SFF file. Unable to read flow indices. File may be truncated.");
+
+        }
       filepos += read_header.number_of_bases;
 
       char * bases = (char *) xmalloc(read_header.number_of_bases + 1);
-      if (fread(bases, 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      if (fread(bases, 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases) {
         fatal("Invalid SFF file. Unable to read read length. File may be truncated.");
+
+        }
       bases[read_header.number_of_bases] = 0;
       filepos += read_header.number_of_bases;
 
       char * qual = (char *) xmalloc(read_header.number_of_bases + 1);
-      if (fread(qual, 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      if (fread(qual, 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases) {
         fatal("Invalid SFF file. Unable to read quality scores. File may be truncated.");
+
+        }
       filepos += read_header.number_of_bases;
 
       /* convert quality scores to ascii characters */
       for(uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
         {
           int q = qual[base_no];
-          if (q < opt_fastq_qminout)
+          if (q < opt_fastq_qminout) {
             q = opt_fastq_qminout;
-          if (q > opt_fastq_qmaxout)
+
+        }
+          if (q > opt_fastq_qmaxout) {
             q = opt_fastq_qmaxout;
+
+        }
           qual[base_no] = opt_fastq_asciiout + q;
         }
       qual[read_header.number_of_bases] = 0;
@@ -297,8 +359,10 @@ void sff_convert()
       uint32_t read_data_padded_length = 8 * ((read_data_length + 7) / 8);
       uint32_t read_data_padding_length = read_data_padded_length - read_data_length;
 
-      if (fskip(fp_sff, read_data_padding_length) < read_data_padding_length)
+      if (fskip(fp_sff, read_data_padding_length) < read_data_padding_length) {
         fatal("Invalid SFF file. Unable to read read data padding. File may be truncated.");
+
+        }
       filepos += read_data_padding_length;
 
       uint32_t clip_start = 0;
@@ -310,10 +374,12 @@ void sff_convert()
       /* make the clipped bases lowercase and the rest uppercase */
       for (uint32_t i = 0; i < read_header.number_of_bases; i++)
         {
-          if ((i < clip_start) || (i >= clip_end))
+          if ((i < clip_start) || (i >= clip_end)) {
             bases[i] = tolower(bases[i]);
-          else
+          } else {
             bases[i] = toupper(bases[i]);
+
+        }
         }
 
       if (opt_sff_clip)
@@ -342,10 +408,14 @@ void sff_convert()
       xfree(qual);
 
       totallength += length;
-      if (length < minimum)
+      if (length < minimum) {
         minimum = length;
-      if (length > maximum)
+
+        }
+      if (length > maximum) {
         maximum = length;
+
+        }
 
       progress_update(read_no + 1);
     }
@@ -357,14 +427,18 @@ void sff_convert()
     {
       if (filepos == sff_header.index_offset)
         {
-          if (fread(index_kind, 1, 8, fp_sff) < 8)
+          if (fread(index_kind, 1, 8, fp_sff) < 8) {
             fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
+
+        }
           filepos += 8;
           index_kind[8] = 0;
 
           uint64 index_size = sff_header.index_length - 8;
-          if (fskip(fp_sff, index_size) != index_size)
+          if (fskip(fp_sff, index_size) != index_size) {
             fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
+
+        }
 
           filepos += index_size;
           index_done = true;
@@ -374,8 +448,10 @@ void sff_convert()
           if (index_padding > 0)
             {
               uint64_t got = fskip(fp_sff, index_padding);
-              if ((got < index_padding) && (got != 0))
+              if ((got < index_padding) && (got != 0)) {
                 fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n");
+
+        }
             }
         }
     }
@@ -383,15 +459,19 @@ void sff_convert()
   if (! index_done)
     {
       fprintf(stderr, "WARNING: SFF index missing\n");
-      if (opt_log)
+      if (opt_log) {
         fprintf(fp_log, "WARNING: SFF index missing\n");
+
+        }
     }
 
   if (index_odd)
     {
       fprintf(stderr, "WARNING: Index at unusual position in file\n");
-      if (opt_log)
+      if (opt_log) {
         fprintf(fp_log, "WARNING: Index at unusual position in file\n");
+
+        }
     }
 
   /* ignore the rest of file */
@@ -401,8 +481,10 @@ void sff_convert()
   if (fskip(fp_sff, 1) > 0)
     {
       fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n");
-      if (opt_log)
+      if (opt_log) {
         fprintf(fp_log, "WARNING: Additional data at end of SFF file ignored\n");
+
+        }
     }
 
   fclose(fp_sff);
@@ -412,26 +494,34 @@ void sff_convert()
 
   if (! opt_quiet)
     {
-      if (sff_header.index_length > 0)
+      if (sff_header.index_length > 0) {
         fprintf(stderr, "Index type:      %s\n", index_kind);
+
+        }
       fprintf(stderr, "\nSFF file read successfully.\n");
-      if (sff_header.number_of_reads > 0)
+      if (sff_header.number_of_reads > 0) {
         fprintf(stderr, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                 minimum,
                 average,
                 maximum);
+
+        }
     }
 
   if (opt_log)
     {
-      if (sff_header.index_length > 0)
+      if (sff_header.index_length > 0) {
         fprintf(fp_log, "Index type:      %s\n", index_kind);
+
+        }
       fprintf(fp_log, "\nSFF file read successfully.\n");
-      if (sff_header.number_of_reads > 0)
+      if (sff_header.number_of_reads > 0) {
         fprintf(fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                 minimum,
                 average,
                 maximum);
+
+        }
     }
 
   xfree(key_sequence);

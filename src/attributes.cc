@@ -76,8 +76,10 @@ bool header_find_attribute(const char * header,
   const char * digit_chars = "0123456789";
   const char * digit_chars_decimal = "0123456789.";
 
-  if ((! header) || (! attribute))
+  if ((! header) || (! attribute)) {
     return false;
+
+        }
 
   int hlen = header_length;
   int alen = strlen(attribute);
@@ -89,8 +91,10 @@ bool header_find_attribute(const char * header,
       char * r = (char *) strstr(header + i, attribute);
 
       /* no match */
-      if (r == nullptr)
+      if (r == nullptr) {
         break;
+
+        }
 
       i = r - header;
 
@@ -141,10 +145,12 @@ int64_t header_get_size(char * header, int header_length)
                             false))
     {
       int64_t number = atol(header + start + 5);
-      if (number > 0)
+      if (number > 0) {
         abundance = number;
-      else
+      } else {
         fatal("Invalid (zero) abundance annotation in FASTA file header");
+
+        }
     }
   return abundance;
 }
@@ -164,13 +170,15 @@ void header_fprint_strip_size_ee(FILE * fp,
   int size_start = 0;
   int size_end = 0;
   bool size_found = false;
-  if (strip_size)
+  if (strip_size) {
     size_found = header_find_attribute(header,
                                        header_length,
                                        "size=",
                                        & size_start,
                                        & size_end,
                                        false);
+
+        }
   if (size_found)
     {
       attribute_start[attributes] = size_start;
@@ -183,13 +191,15 @@ void header_fprint_strip_size_ee(FILE * fp,
   int ee_start = 0;
   int ee_end = 0;
   bool ee_found = false;
-  if (strip_ee)
+  if (strip_ee) {
     ee_found = header_find_attribute(header,
                                      header_length,
                                      "ee=",
                                      & ee_start,
                                      & ee_end,
                                      true);
+
+        }
   if (ee_found)
     {
       attribute_start[attributes] = ee_start;

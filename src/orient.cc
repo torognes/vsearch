@@ -96,11 +96,15 @@ void orient()
 
   /* check arguments */
 
-  if (! opt_db)
+  if (! opt_db) {
     fatal("Database not specified with --db");
 
-  if (! (opt_fastaout || opt_fastqout || opt_notmatched || opt_tabbedout))
+        }
+
+  if (! (opt_fastaout || opt_fastqout || opt_notmatched || opt_tabbedout)) {
     fatal("Output file not specified with --fastaout, --fastqout, --notmatched or --tabbedout");
+
+        }
 
   /* prepare reading of queries */
 
@@ -111,49 +115,63 @@ void orient()
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (! fp_fastaout) {
         fatal("Unable to open fasta output file for writing");
+
+        }
     }
 
   if (opt_fastqout)
     {
-      if (! fastx_is_fastq(query_h))
+      if (! fastx_is_fastq(query_h)) {
         fatal("Cannot write FASTQ output with FASTA input");
 
+        }
+
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (! fp_fastqout) {
         fatal("Unable to open fastq output file for writing");
+
+        }
     }
 
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (! fp_notmatched) {
         fatal("Unable to open notmatched output file for writing");
+
+        }
     }
 
   if (opt_tabbedout)
     {
       fp_tabbedout = fopen_output(opt_tabbedout);
-      if (! fp_tabbedout)
+      if (! fp_tabbedout) {
         fatal("Unable to open tabbedout output file for writing");
+
+        }
     }
 
   /* check if it may be an UDB file */
 
   bool is_udb = udb_detect_isudb(opt_db);
 
-  if (is_udb)
+  if (is_udb) {
     udb_read(opt_db, true, true);
-  else
+  } else {
     db_read(opt_db, 0);
+
+        }
 
   if (!is_udb)
     {
-      if (opt_dbmask == MASK_DUST)
+      if (opt_dbmask == MASK_DUST) {
         dust_all();
-      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+      } else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask)) {
         hardmask_all();
+
+        }
     }
 
   if (!is_udb)
@@ -205,10 +223,12 @@ void orient()
 
           /* require 8 times as many matches on one stand than the other */
 
-          if (hits_fwd > hits_factor * hits_rev)
+          if (hits_fwd > hits_factor * hits_rev) {
             count_fwd++;
-          else if (hits_rev > hits_factor * hits_fwd)
+          } else if (hits_rev > hits_factor * hits_fwd) {
             count_rev++;
+
+        }
         }
 
       /* get progress as amount of input file read */
@@ -231,7 +251,7 @@ void orient()
           matches_fwd++;
           qmatches++;
 
-          if (opt_fastaout)
+          if (opt_fastaout) {
             fasta_print_general(fp_fastaout,
                                 nullptr,
                                 qseq_fwd,
@@ -246,7 +266,9 @@ void orient()
                                 nullptr,
                                 0.0);
 
-          if (opt_fastqout)
+        }
+
+          if (opt_fastqout) {
             fastq_print_general(fp_fastqout,
                                 qseq_fwd,
                                 qseqlen,
@@ -256,6 +278,8 @@ void orient()
                                 qsize,
                                 qmatches,
                                 -1.0);
+
+        }
         }
       else if ((count_rev >= min_count) && (count_rev >= min_factor * count_fwd))
         {
@@ -271,15 +295,17 @@ void orient()
             {
               alloc = qseqlen + 1;
               qseq_rev = (char*) xrealloc(qseq_rev, alloc);
-              if (fastx_is_fastq(query_h))
+              if (fastx_is_fastq(query_h)) {
                 query_qual_rev = (char*) xrealloc(query_qual_rev, alloc);
+
+        }
             }
 
           /* get reverse complementary sequence */
 
           reverse_complement(qseq_rev, qseq_fwd, qseqlen);
 
-          if (opt_fastaout)
+          if (opt_fastaout) {
             fasta_print_general(fp_fastaout,
                                 nullptr,
                                 qseq_rev,
@@ -294,14 +320,18 @@ void orient()
                                 nullptr,
                                 0.0);
 
+        }
+
           if (opt_fastqout)
             {
               /* reverse quality scores */
 
               if (fastx_is_fastq(query_h))
                 {
-                  for(int i = 0; i < qseqlen; i++)
+                  for(int i = 0; i < qseqlen; i++) {
                     query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
+
+        }
                   query_qual_rev[qseqlen] = 0;
                 }
 
@@ -325,7 +355,7 @@ void orient()
 
           if (opt_notmatched)
             {
-              if (fastx_is_fastq(query_h))
+              if (fastx_is_fastq(query_h)) {
                 fastq_print_general(fp_notmatched,
                                     qseq_fwd,
                                     qseqlen,
@@ -335,7 +365,7 @@ void orient()
                                     qsize,
                                     notmatched,
                                     -1.0);
-              else
+              } else {
                 fasta_print_general(fp_notmatched,
                                     nullptr,
                                     qseq_fwd,
@@ -349,6 +379,8 @@ void orient()
                                     -1,
                                     nullptr,
                                     0.0);
+
+        }
             }
         }
 
@@ -371,44 +403,64 @@ void orient()
 
   /* clean up */
 
-  if (qseq_rev)
+  if (qseq_rev) {
     xfree(qseq_rev);
-  if (query_qual_rev)
+
+        }
+  if (query_qual_rev) {
     xfree(query_qual_rev);
+
+        }
 
   unique_exit(uh_fwd);
 
   dbindex_free();
   db_free();
 
-  if (opt_tabbedout)
+  if (opt_tabbedout) {
     fclose(fp_tabbedout);
-  if (opt_notmatched)
+
+        }
+  if (opt_notmatched) {
     fclose(fp_notmatched);
-  if (opt_fastqout)
+
+        }
+  if (opt_fastqout) {
     fclose(fp_fastqout);
-  if (opt_fastaout)
+
+        }
+  if (opt_fastaout) {
     fclose(fp_fastaout);
+
+        }
 
   fasta_close(query_h);
 
   if (!opt_quiet)
     {
       fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(stderr, " (%.2f%%)", 100.0 * matches_fwd / queries);
+
+        }
       fprintf(stderr, "\n");
       fprintf(stderr, "Reverse oriented sequences: %d", matches_rev);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(stderr, " (%.2f%%)", 100.0 * matches_rev / queries);
+
+        }
       fprintf(stderr, "\n");
       fprintf(stderr, "All oriented sequences:     %d", qmatches);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+
+        }
       fprintf(stderr, "\n");
       fprintf(stderr, "Not oriented sequences:     %d", notmatched);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(stderr, " (%.2f%%)", 100.0 * notmatched / queries);
+
+        }
       fprintf(stderr, "\n");
       fprintf(stderr, "Total number of sequences:  %d\n", queries);
     }
@@ -416,20 +468,28 @@ void orient()
   if (opt_log)
     {
       fprintf(fp_log, "Forward oriented sequences: %d", matches_fwd);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(fp_log, " (%.2f%%)", 100.0 * matches_fwd / queries);
+
+        }
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Reverse oriented sequences: %d", matches_rev);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(fp_log, " (%.2f%%)", 100.0 * matches_rev / queries);
+
+        }
       fprintf(fp_log, "\n");
       fprintf(fp_log, "All oriented sequences:     %d", qmatches);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+
+        }
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Not oriented sequences:     %d", notmatched);
-      if (queries > 0)
+      if (queries > 0) {
         fprintf(fp_log, " (%.2f%%)", 100.0 * notmatched / queries);
+
+        }
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Total number of sequences:  %d\n", queries);
     }

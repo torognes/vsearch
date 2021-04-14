@@ -78,10 +78,110 @@ void dbindex_udb_write();
 
 inline unsigned char * dbindex_getbitmap(unsigned int kmer)
 {
-  if (kmerbitmap[kmer])
+  if (kmerbitmap[kmer]) { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { {
     return kmerbitmap[kmer]->bitmap;
-  else
+  } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } else { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { {
     return nullptr;
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
+
+        }
 }
 
 inline unsigned int dbindex_getmatchcount(unsigned int kmer)
