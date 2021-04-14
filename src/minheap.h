@@ -75,7 +75,7 @@ typedef struct minheap_s
 
 inline int minheap_isempty(minheap_t * m)
 {
-  return !m->count;
+  return (m->count == 0);
 }
 
 inline void minheap_empty(minheap_t * m)
