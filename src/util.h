@@ -84,7 +84,7 @@ char * xstrdup(const char *s);
 char * xstrchrnul(char *s, int c);
 int xsprintf(char * * ret, const char * format, ...);
 uint64_t hash_cityhash64(char * s, uint64_t n);
-int64_t getusec(void);
+int64_t getusec();
 void show_rusage();
 
 void progress_init(const char * prompt, uint64_t size);

@@ -4245,7 +4245,7 @@ void cmd_version()
           zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib,
                                                     "zlibVersion");
           char * gz_version = (*zlibVersion_p)();
-          uLong (*zlibCompileFlags_p)(void);
+          uLong (*zlibCompileFlags_p)();
           zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
                                                         "zlibCompileFlags");
           uLong flags = (*zlibCompileFlags_p)();

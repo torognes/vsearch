@@ -182,7 +182,7 @@ uint64_t hash_cityhash64(char * s, uint64_t n)
   return CityHash64((const char*)s, n);
 }
 
-int64_t getusec(void)
+int64_t getusec()
 {
   struct timeval tv;
   if(gettimeofday(&tv,nullptr) != 0) return 0;
