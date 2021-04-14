@@ -1273,7 +1273,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 {
   chimera_thread_init(ci);
 
-  struct hit * allhits_list = (struct hit *) xmalloc(maxcandidates *
+  auto * allhits_list = (struct hit *) xmalloc(maxcandidates *
                                                      sizeof(struct hit));
 
   LinearMemoryAligner lma;

@@ -99,8 +99,8 @@ elem_smaller(elem_t * a, elem_t * b)
 
 int minheap_compare(const void * a, const void * b)
 {
-  elem_t * x = (elem_t*) a;
-  elem_t * y = (elem_t*) b;
+  auto * x = (elem_t*) a;
+  auto * y = (elem_t*) b;
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
@@ -131,7 +131,7 @@ int minheap_compare(const void * a, const void * b)
 minheap_t *
 minheap_init(int size)
 {
-  minheap_t * m = (minheap_t *) xmalloc(sizeof(minheap_t));
+  auto * m = (minheap_t *) xmalloc(sizeof(minheap_t));
   m->alloc = size;
   m->array = (elem_t *) xmalloc(size * sizeof(elem_t));
   m->count = 0;

@@ -263,7 +263,7 @@ void otutable_print_otutabout(FILE * fp)
   progress_init("Writing OTU table (classic)", otutable->otu_set.size());
 
   fprintf(fp, "#OTU ID");
-  for (string_set_t::iterator it_sample = otutable->sample_set.begin();
+  for (auto it_sample = otutable->sample_set.begin();
        it_sample != otutable->sample_set.end();
        ++it_sample) {
     fprintf(fp, "\t%s", it_sample->c_str());
@@ -275,14 +275,14 @@ void otutable_print_otutabout(FILE * fp)
         }
   fprintf(fp, "\n");
 
-  string_pair_map_t::iterator it_map = otutable->otu_sample_count.begin();
-  for (string_set_t::iterator it_otu = otutable->otu_set.begin();
+  auto it_map = otutable->otu_sample_count.begin();
+  for (auto it_otu = otutable->otu_set.begin();
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
       fprintf(fp, "%s", it_otu->c_str());
 
-      for (string_set_t::iterator it_sample = otutable->sample_set.begin();
+      for (auto it_sample = otutable->sample_set.begin();
            it_sample != otutable->sample_set.end();
            ++it_sample)
         {
@@ -299,7 +299,7 @@ void otutable_print_otutabout(FILE * fp)
       if (! otutable->otu_tax_map.empty())
         {
           fprintf(fp, "\t");
-          otu_tax_map_t::iterator it
+          auto it
             = otutable->otu_tax_map.find(*it_otu);
           if (it != otutable->otu_tax_map.end()) {
             fprintf(fp, "%s", it->second.c_str());
@@ -319,7 +319,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
 
   fprintf(fp, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
-  for (string_set_t::iterator it_otu = otutable->otu_set.begin();
+  for (auto it_otu = otutable->otu_set.begin();
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
@@ -329,15 +329,15 @@ void otutable_print_mothur_shared_out(FILE * fp)
     }
   fprintf(fp, "\n");
 
-  string_pair_map_t::iterator it_map = otutable->sample_otu_count.begin();
+  auto it_map = otutable->sample_otu_count.begin();
 
-  for (string_set_t::iterator it_sample = otutable->sample_set.begin();
+  for (auto it_sample = otutable->sample_set.begin();
        it_sample != otutable->sample_set.end();
        ++it_sample)
     {
       fprintf(fp, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
 
-      for (string_set_t::iterator it_otu = otutable->otu_set.begin();
+      for (auto it_otu = otutable->otu_set.begin();
            it_otu != otutable->otu_set.end();
            ++it_otu)
         {
@@ -392,7 +392,7 @@ void otutable_print_biomout(FILE * fp)
   uint64_t otu_no = 0;
 
   fprintf(fp, "\t\"rows\":[");
-  for (string_set_t::iterator it_otu = otutable->otu_set.begin();
+  for (auto it_otu = otutable->otu_set.begin();
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
@@ -407,7 +407,7 @@ void otutable_print_biomout(FILE * fp)
       } else
         {
           fprintf(fp, R"({"taxonomy":")");
-          otu_tax_map_t::iterator it
+          auto it
             = otutable->otu_tax_map.find(otu_name);
           if (it != otutable->otu_tax_map.end()) {
             fprintf(fp, "%s", it->second.c_str());
@@ -425,7 +425,7 @@ void otutable_print_biomout(FILE * fp)
   uint64_t sample_no = 0;
 
   fprintf(fp, "\t\"columns\":[");
-  for (string_set_t::iterator it_sample = otutable->sample_set.begin();
+  for (auto it_sample = otutable->sample_set.begin();
        it_sample != otutable->sample_set.end();
        ++it_sample)
     {
@@ -441,7 +441,7 @@ void otutable_print_biomout(FILE * fp)
   bool first = true;
   fprintf(fp, "\t\"data\": [");
 
-  for (string_pair_map_t::iterator it_map = otutable->otu_sample_count.begin();
+  for (auto it_map = otutable->otu_sample_count.begin();
        it_map != otutable->otu_sample_count.end();
        ++it_map)
     {

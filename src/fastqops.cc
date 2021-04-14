@@ -366,19 +366,19 @@ void fastq_stats()
 
   int64_t read_length_alloc = 512;
 
-  uint64_t * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc);
+  auto * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc);
   memset(read_length_table, 0, sizeof(uint64_t) * read_length_alloc);
 
-  uint64_t * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc * 256);
+  auto * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc * 256);
   memset(qual_length_table, 0, sizeof(uint64_t) * read_length_alloc * 256);
 
-  uint64_t * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
+  auto * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
   memset(ee_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
 
-  uint64_t * q_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
+  auto * q_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
   memset(q_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
 
-  double * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
+  auto * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
   memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
 
   int64_t len_min = LONG_MAX;
@@ -521,13 +521,13 @@ void fastq_stats()
 
   /* compute various distributions */
 
-  uint64_t * length_dist = (uint64_t*) xmalloc(sizeof(uint64_t) * (len_max+1));
-  int64_t * symb_dist = (int64_t*) xmalloc(sizeof(int64_t) * (len_max+1));
+  auto * length_dist = (uint64_t*) xmalloc(sizeof(uint64_t) * (len_max+1));
+  auto * symb_dist = (int64_t*) xmalloc(sizeof(int64_t) * (len_max+1));
 
-  double * rate_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
-  double * avgq_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
-  double * avgee_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
-  double * avgp_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
+  auto * rate_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
+  auto * avgq_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
+  auto * avgee_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
+  auto * avgp_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
 
   int64_t length_accum = 0;
   int64_t symb_accum = 0;

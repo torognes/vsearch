@@ -542,7 +542,7 @@ void sintax_thread_exit(struct searchinfo_s * si)
 
 void * sintax_thread_worker(void * vp)
 {
-  int64_t t = (int64_t) vp;
+  auto t = (int64_t) vp;
   sintax_thread_run(t);
   return nullptr;
 }

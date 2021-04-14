@@ -152,7 +152,7 @@ inline void finishop(char ** cigarendp, char * op, int * count)
 
 struct nwinfo_s * nw_init()
 {
-  struct nwinfo_s * nw = (struct nwinfo_s *) xmalloc(sizeof(struct nwinfo_s));
+  auto * nw = (struct nwinfo_s *) xmalloc(sizeof(struct nwinfo_s));
   nw->dir = nullptr;
   nw->dir_alloc = 0;
   nw->hearray = nullptr;

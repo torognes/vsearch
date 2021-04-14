@@ -1171,7 +1171,7 @@ void * pair_worker(void * vp)
 {
   /* new */
 
-  int64_t t = (int64_t) vp;
+  auto t = (int64_t) vp;
 
   struct kh_handle_s * kmerhash = kh_init();
 

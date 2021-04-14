@@ -111,8 +111,8 @@ static thread_info_t * ti;
 
 inline int compare_byclusterno(const void * a, const void * b)
 {
-  clusterinfo_t * x = (clusterinfo_t *) a;
-  clusterinfo_t * y = (clusterinfo_t *) b;
+  auto * x = (clusterinfo_t *) a;
+  auto * y = (clusterinfo_t *) b;
   if (x->clusterno < y->clusterno) {
     return -1;
   } else if (x->clusterno > y->clusterno) {
@@ -129,8 +129,8 @@ inline int compare_byclusterno(const void * a, const void * b)
 
 inline int compare_byclusterabundance(const void * a, const void * b)
 {
-  clusterinfo_t * x = (clusterinfo_t *) a;
-  clusterinfo_t * y = (clusterinfo_t *) b;
+  auto * x = (clusterinfo_t *) a;
+  auto * y = (clusterinfo_t *) b;
   if (cluster_abundance[x->clusterno] > cluster_abundance[y->clusterno]) {
     return -1;
   } else if (cluster_abundance[x->clusterno] < cluster_abundance[y->clusterno]) {
@@ -186,7 +186,7 @@ inline void cluster_worker(int64_t t)
 
 void * threads_worker(void * vp)
 {
-  int64_t t = (int64_t) vp;
+  auto t = (int64_t) vp;
   thread_info_s * tip = ti + t;
   xpthread_mutex_lock(&tip->mutex);
   /* loop until signalled to quit */
@@ -1486,7 +1486,7 @@ void cluster(char * dbname,
   if (opt_msaout || opt_consout || opt_profile)
     {
       int msa_target_count = 0;
-      struct msa_target_s * msa_target_list =
+      auto * msa_target_list =
         (struct msa_target_s *) xmalloc(sizeof(struct msa_target_s) * size_max);
       progress_init("Multiple alignments", seqcount);
 

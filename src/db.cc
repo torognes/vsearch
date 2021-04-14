@@ -372,8 +372,8 @@ void db_free()
 
 int compare_bylength(const void * a, const void * b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  auto * x = (seqinfo_t *) a;
+  auto * y = (seqinfo_t *) b;
 
   /* longest first, then by abundance, then by label, otherwise keep order */
 
@@ -409,8 +409,8 @@ int compare_bylength(const void * a, const void * b)
 
 int compare_bylength_shortest_first(const void * a, const void * b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  auto * x = (seqinfo_t *) a;
+  auto * y = (seqinfo_t *) b;
 
   /* shortest first, then by abundance, then by label, otherwise keep order */
 
@@ -446,8 +446,8 @@ int compare_bylength_shortest_first(const void * a, const void * b)
 
 inline int compare_byabundance(const void * a, const void * b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  auto * x = (seqinfo_t *) a;
+  auto * y = (seqinfo_t *) b;
 
   /* most abundant first, then by label, otherwise keep order */
 

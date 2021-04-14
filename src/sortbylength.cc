@@ -69,8 +69,8 @@ static struct sortinfo_length_s
 
 int sortbylength_compare(const void * a, const void * b)
 {
-  struct sortinfo_length_s * x = (struct sortinfo_length_s *) a;
-  struct sortinfo_length_s * y = (struct sortinfo_length_s *) b;
+  auto * x = (struct sortinfo_length_s *) a;
+  auto * y = (struct sortinfo_length_s *) b;
 
   /* longest first, then most abundant, then by label, otherwise keep order */
 

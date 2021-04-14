@@ -195,8 +195,8 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   const __m128i c3 =
     _mm_set_epi32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 
-  unsigned short * p = (unsigned short *)(bitmap);
-  __m128i * q = (__m128i *)(counters);
+  auto * p = (unsigned short *)(bitmap);
+  auto * q = (__m128i *)(counters);
   int r = (totalbits + 15) / 16;
 
   for(int j=0; j<r; j++)

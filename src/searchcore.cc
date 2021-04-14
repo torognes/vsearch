@@ -827,7 +827,7 @@ void search_joinhits(struct searchinfo_s * si_p,
         }
     }
 
-  struct hit * hits = (struct hit *) xmalloc(a * sizeof(struct hit));
+  auto * hits = (struct hit *) xmalloc(a * sizeof(struct hit));
 
   a = 0;
 

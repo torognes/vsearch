@@ -232,7 +232,7 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
 
 fastx_handle fastx_open(const char * filename)
 {
-  fastx_handle h = (fastx_handle) xmalloc(sizeof(struct fastx_s));
+  auto h = (fastx_handle) xmalloc(sizeof(struct fastx_s));
 
   h->fp = nullptr;
 

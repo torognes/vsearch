@@ -75,8 +75,8 @@ struct bucket
 
 int derep_compare_prefix(const void * a, const void * b)
 {
-  struct bucket * x = (struct bucket *) a;
-  struct bucket * y = (struct bucket *) b;
+  auto * x = (struct bucket *) a;
+  auto * y = (struct bucket *) b;
 
   /* highest abundance first, then by label, otherwise keep order */
 
@@ -113,8 +113,8 @@ int derep_compare_prefix(const void * a, const void * b)
 
 int derep_compare_full(const void * a, const void * b)
 {
-  struct bucket * x = (struct bucket *) a;
-  struct bucket * y = (struct bucket *) b;
+  auto * x = (struct bucket *) a;
+  auto * y = (struct bucket *) b;
 
   /* highest abundance first, then by label, otherwise keep order */
 
@@ -191,7 +191,7 @@ void rehash(struct bucket * * hashtableref, int64_t alloc_clusters)
   uint64_t new_hashtablesize = 2 * old_hashtablesize;
   uint64_t new_hash_mask = new_hashtablesize - 1;
 
-  struct bucket * new_hashtable =
+  auto * new_hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * new_hashtablesize);
   memset(new_hashtable, 0, sizeof(bucket) * new_hashtablesize);
 
@@ -264,14 +264,14 @@ void derep(char * input_filename, bool use_header)
 
   uint64_t hashtablesize = 2 * alloc_clusters;
   uint64_t hash_mask = hashtablesize - 1;
-  struct bucket * hashtable =
+  auto * hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
 
   show_rusage();
 
   unsigned int * nextseqtab = nullptr;
-  const unsigned int terminal = (unsigned int)(-1);
+  const auto terminal = (unsigned int)(-1);
   char ** headertab = nullptr;
   char * match_strand = nullptr;
 
@@ -838,7 +838,7 @@ void derep_prefix()
     }
   int hash_mask = hashtablesize - 1;
 
-  struct bucket * hashtable =
+  auto * hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
@@ -851,9 +851,9 @@ void derep_prefix()
 
   /* alloc and init table of links to other sequences in cluster */
 
-  unsigned int * nextseqtab
+  auto * nextseqtab
     = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
-  const unsigned int terminal = (unsigned int)(-1);
+  const auto terminal = (unsigned int)(-1);
   memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
 
   char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
@@ -862,7 +862,7 @@ void derep_prefix()
 
   unsigned int len_longest = db_getlongestsequence();
   unsigned int len_shortest = db_getshortestsequence();
-  uint64_t * prefix_hashes = (uint64_t *)
+  auto * prefix_hashes = (uint64_t *)
     xmalloc(sizeof(uint64_t) * (len_longest+1));
 
   progress_init("Dereplicating", dbsequencecount);

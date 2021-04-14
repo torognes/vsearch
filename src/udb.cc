@@ -72,8 +72,8 @@ typedef struct wordfreq
 
 int wc_compare(const void * a, const void * b)
 {
-  wordfreq_t * x = (wordfreq_t *) a;
-  wordfreq_t * y = (wordfreq_t *) b;
+  auto * x = (wordfreq_t *) a;
+  auto * y = (wordfreq_t *) b;
   if (x->count < y->count) {
     return -1;
   } else if (x->count > y->count) {
@@ -626,7 +626,7 @@ void udb_stats()
 
   /* analyze word counts */
 
-  wordfreq_t * freqtable = (wordfreq_t *) xmalloc
+  auto * freqtable = (wordfreq_t *) xmalloc
     (sizeof(wordfreq_t) * kmerhashsize);
 
   for(unsigned int i = 0; i < kmerhashsize; i++)
@@ -891,7 +891,7 @@ void udb_make()
   progress_init("Writing UDB file", progress_all);
 
   uint64_t buffersize = 4 * MAX(50, seqcount);
-  unsigned int * buffer = (unsigned int *) xmalloc(buffersize);
+  auto * buffer = (unsigned int *) xmalloc(buffersize);
   memset(buffer, 0, buffersize);
 
   /* Header */

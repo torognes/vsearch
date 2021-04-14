@@ -89,7 +89,7 @@ struct uhandle_s
 
 struct uhandle_s * unique_init()
 {
-  uhandle_s * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
+  auto * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
 
   uh->alloc = 2048;
   uh->size = 0;
@@ -122,8 +122,8 @@ void unique_exit(struct uhandle_s * uh)
 
 int unique_compare(const void * a, const void * b)
 {
-  unsigned int * x = (unsigned int*) a;
-  unsigned int * y = (unsigned int*) b;
+  auto * x = (unsigned int*) a;
+  auto * y = (unsigned int*) b;
 
   if (x<y) {
     return -1;

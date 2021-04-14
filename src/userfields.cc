@@ -144,7 +144,7 @@ int parse_userfields_arg(char * arg)
 
         }
 
-      uint64_t n = (uint64_t)(q - p);
+      auto n = (uint64_t)(q - p);
 
       char ** u = (char**) userfields_names;
 

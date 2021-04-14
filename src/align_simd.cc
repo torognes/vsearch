@@ -222,7 +222,7 @@ struct s16info_s
 
 void _mm_print(VECTOR_SHORT x)
 {
-  unsigned short * y = (unsigned short*)&x;
+  auto * y = (unsigned short*)&x;
   for (int i=0; i<8; i++) {
     printf("%s%6d", (i>0?" ":""), y[7-i]);
 
@@ -231,7 +231,7 @@ void _mm_print(VECTOR_SHORT x)
 
 void _mm_print2(VECTOR_SHORT x)
 {
-  signed short * y = (signed short*)&x;
+  auto * y = (signed short*)&x;
   for (int i=0; i<8; i++) {
     printf("%s%2d", (i>0?" ":""), y[7-i]);
 
@@ -999,7 +999,7 @@ struct s16info_s * search16_init(CELL score_match,
   (void) score_mismatch;
 
   /* prepare alloc of qtable, dprofile, hearray, dir */
-  struct s16info_s * s = (struct s16info_s *)
+  auto * s = (struct s16info_s *)
     xmalloc(sizeof(struct s16info_s));
 
   s->dprofile = (VECTOR_SHORT *) xmalloc(2*4*8*16);

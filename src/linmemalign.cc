@@ -123,7 +123,7 @@ LinearMemoryAligner::~LinearMemoryAligner()
 
 int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch)
 {
-  int64_t * newscorematrix = (int64_t*) xmalloc(16*16*sizeof(int64_t));
+  auto * newscorematrix = (int64_t*) xmalloc(16*16*sizeof(int64_t));
 
   for(int i=0; i<16; i++) {
     for(int j=0; j<16; j++)

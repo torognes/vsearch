@@ -330,21 +330,21 @@ void allpairs_thread_run(int64_t t)
 
   /* allocate memory for alignment results */
   unsigned int maxhits = seqcount;
-  unsigned int * pseqnos =
+  auto * pseqnos =
     (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
   CELL * pscores =
     (CELL*) xmalloc(sizeof(CELL) * maxhits);
-  unsigned short * paligned =
+  auto * paligned =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  unsigned short * pmatches =
+  auto * pmatches =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  unsigned short * pmismatches =
+  auto * pmismatches =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  unsigned short * pgaps =
+  auto * pgaps =
     (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
   char** pcigar = (char**) xmalloc(sizeof(char*) * maxhits);
 
-  struct hit * finalhits
+  auto * finalhits
     = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
 
   bool cont = true;
@@ -549,7 +549,7 @@ void allpairs_thread_run(int64_t t)
 
 void * allpairs_thread_worker(void * vp)
 {
-  int64_t t = (int64_t) vp;
+  auto t = (int64_t) vp;
   allpairs_thread_run(t);
   return nullptr;
 }

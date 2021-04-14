@@ -68,8 +68,8 @@ static struct sortinfo_size_s
 
 int sortbysize_compare(const void * a, const void * b)
 {
-  struct sortinfo_size_s * x = (struct sortinfo_size_s *) a;
-  struct sortinfo_size_s * y = (struct sortinfo_size_s *) b;
+  auto * x = (struct sortinfo_size_s *) a;
+  auto * y = (struct sortinfo_size_s *) b;
 
   /* highest abundance first, then by label, otherwise keep order */
 

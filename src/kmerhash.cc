@@ -79,7 +79,7 @@ struct kh_handle_s
 
 struct kh_handle_s * kh_init()
 {
-  kh_handle_s * kh =
+  auto * kh =
     (struct kh_handle_s *) xmalloc(sizeof(struct kh_handle_s));
 
   kh->maxpos = 0;
