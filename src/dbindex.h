@@ -81,7 +81,7 @@ inline unsigned char * dbindex_getbitmap(unsigned int kmer)
   if (kmerbitmap[kmer])
     return kmerbitmap[kmer]->bitmap;
   else
-    return 0;
+    return nullptr;
 }
 
 inline unsigned int dbindex_getmatchcount(unsigned int kmer)

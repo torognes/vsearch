@@ -670,8 +670,8 @@ void fastx_revcomp()
 
   uint64_t filesize = fastx_get_size(h);
 
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastqout = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastqout = nullptr;
 
   if (opt_fastaout)
     {
@@ -734,7 +734,7 @@ void fastx_revcomp()
 
       if (opt_fastaout)
         fasta_print_general(fp_fastaout,
-                            0,
+                            nullptr,
                             seq_buffer,
                             length,
                             header,
@@ -742,7 +742,7 @@ void fastx_revcomp()
                             abundance,
                             count,
                             -1.0,
-                            -1, -1, 0, 0.0);
+                            -1, -1, nullptr, 0.0);
 
       if (opt_fastqout)
         fastq_print_general(fp_fastqout,
@@ -780,7 +780,7 @@ void fastq_convert()
 
   uint64_t filesize = fastq_get_size(h);
 
-  FILE * fp_fastqout = 0;
+  FILE * fp_fastqout = nullptr;
 
   fp_fastqout = fopen_output(opt_fastqout);
   if (!fp_fastqout)

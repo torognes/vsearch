@@ -215,8 +215,8 @@ void filter(bool fastq_only, char * filename)
       (!opt_fastqout_discarded_rev) && (!opt_fastaout_discarded_rev))
     fatal("No output files specified");
 
-  fastx_handle h1 = 0;
-  fastx_handle h2 = 0;
+  fastx_handle h1 = nullptr;
+  fastx_handle h2 = nullptr;
 
   h1 = fastx_open(filename);
 
@@ -284,15 +284,15 @@ void filter(bool fastq_only, char * filename)
         }
     }
 
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastqout = 0;
-  FILE * fp_fastaout_discarded = 0;
-  FILE * fp_fastqout_discarded = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastqout = nullptr;
+  FILE * fp_fastaout_discarded = nullptr;
+  FILE * fp_fastqout_discarded = nullptr;
 
-  FILE * fp_fastaout_rev = 0;
-  FILE * fp_fastqout_rev = 0;
-  FILE * fp_fastaout_discarded_rev = 0;
-  FILE * fp_fastqout_discarded_rev = 0;
+  FILE * fp_fastaout_rev = nullptr;
+  FILE * fp_fastqout_rev = nullptr;
+  FILE * fp_fastaout_discarded_rev = nullptr;
+  FILE * fp_fastqout_discarded_rev = nullptr;
 
   if (opt_fastaout)
     {
@@ -379,7 +379,7 @@ void filter(bool fastq_only, char * filename)
 
           if (opt_fastaout_discarded)
             fasta_print_general(fp_fastaout_discarded,
-                                0,
+                                nullptr,
                                 fastx_get_sequence(h1) + res1.start,
                                 res1.length,
                                 fastx_get_header(h1),
@@ -389,7 +389,7 @@ void filter(bool fastq_only, char * filename)
                                 res1.ee,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
           if (opt_fastqout_discarded)
@@ -407,7 +407,7 @@ void filter(bool fastq_only, char * filename)
             {
               if (opt_fastaout_discarded_rev)
                 fasta_print_general(fp_fastaout_discarded_rev,
-                                    0,
+                                    nullptr,
                                     fastx_get_sequence(h2) + res2.start,
                                     res2.length,
                                     fastx_get_header(h2),
@@ -417,7 +417,7 @@ void filter(bool fastq_only, char * filename)
                                     res2.ee,
                                     -1,
                                     -1,
-                                    0,
+                                    nullptr,
                                     0.0);
 
               if (opt_fastqout_discarded_rev)
@@ -443,7 +443,7 @@ void filter(bool fastq_only, char * filename)
 
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 fastx_get_sequence(h1) + res1.start,
                                 res1.length,
                                 fastx_get_header(h1),
@@ -453,7 +453,7 @@ void filter(bool fastq_only, char * filename)
                                 res1.ee,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
           if (opt_fastqout)
@@ -471,7 +471,7 @@ void filter(bool fastq_only, char * filename)
             {
               if (opt_fastaout_rev)
                 fasta_print_general(fp_fastaout_rev,
-                                    0,
+                                    nullptr,
                                     fastx_get_sequence(h2) + res2.start,
                                     res2.length,
                                     fastx_get_header(h2),
@@ -481,7 +481,7 @@ void filter(bool fastq_only, char * filename)
                                     res2.ee,
                                     -1,
                                     -1,
-                                    0,
+                                    nullptr,
                                     0.0);
 
               if (opt_fastqout_rev)

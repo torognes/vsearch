@@ -165,8 +165,8 @@ bool fasta_next(fastx_handle h,
   h->file_buffer.position++;
   rest--;
 
-  char * lf = 0;
-  while (lf == 0)
+  char * lf = nullptr;
+  while (lf == nullptr)
     {
       /* get more data if buffer empty*/
       rest = fastx_file_fill_buffer(h);
@@ -399,7 +399,7 @@ void fasta_print_db_relabel(FILE * fp,
                             int ordinal)
 {
   fasta_print_general(fp,
-                      0,
+                      nullptr,
                       db_getsequence(seqno),
                       db_getsequencelen(seqno),
                       db_getheader(seqno),
@@ -408,13 +408,13 @@ void fasta_print_db_relabel(FILE * fp,
                       ordinal,
                       -1.0,
                       -1, -1,
-                      0, 0.0);
+                      nullptr, 0.0);
 }
 
 void fasta_print_db(FILE * fp, uint64_t seqno)
 {
   fasta_print_general(fp,
-                      0,
+                      nullptr,
                       db_getsequence(seqno),
                       db_getsequencelen(seqno),
                       db_getheader(seqno),
@@ -423,5 +423,5 @@ void fasta_print_db(FILE * fp, uint64_t seqno)
                       0,
                       -1.0,
                       -1, -1,
-                      0, 0.0);
+                      nullptr, 0.0);
 }

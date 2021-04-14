@@ -72,7 +72,7 @@ class xstring
     {
       length = 0;
       alloc = 0;
-      string = 0;
+      string = nullptr;
     }
 
   ~xstring()
@@ -80,7 +80,7 @@ class xstring
       if (alloc > 0)
         xfree(string);
       alloc = 0;
-      string = 0;
+      string = nullptr;
       length = 0;
     }
 
@@ -117,7 +117,7 @@ class xstring
 
   void add_d(int d)
   {
-    int needed = snprintf(0, 0, "%d", d);
+    int needed = snprintf(nullptr, 0, "%d", d);
     if (needed < 0)
       fatal("snprintf failed");
     if (length + needed + 1 > alloc)

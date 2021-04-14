@@ -182,7 +182,7 @@ void * dust_all_worker(void * vp)
           break;
         }
     }
-  return 0;
+  return nullptr;
 }
 
 void dust_all()
@@ -191,7 +191,7 @@ void dust_all()
   seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
-  xpthread_mutex_init(&mutex, NULL);
+  xpthread_mutex_init(&mutex, nullptr);
 
   xpthread_attr_init(&attr);
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -202,7 +202,7 @@ void dust_all()
     xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
 
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   xfree(pthread);
 
@@ -260,8 +260,8 @@ void maskfasta()
 
 void fastx_mask()
 {
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastqout = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastqout = nullptr;
 
   if (opt_fastaout)
     {
@@ -328,7 +328,7 @@ void fastx_mask()
 
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 seq,
                                 len,
                                 db_getheader(i),
@@ -336,7 +336,7 @@ void fastx_mask()
                                 db_getabundance(i),
                                 kept,
                                 -1.0,
-                                -1, -1, 0, 0.0);
+                                -1, -1, nullptr, 0.0);
 
           if (opt_fastqout)
             fastq_print_general(fp_fastqout,

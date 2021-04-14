@@ -65,7 +65,7 @@ void rereplicate()
 {
   opt_xsize = 1;
 
-  FILE * fp_output = 0;
+  FILE * fp_output = nullptr;
 
   if (opt_output)
     {
@@ -97,7 +97,7 @@ void rereplicate()
           i++;
           if (opt_output)
             fasta_print_general(fp_output,
-                                0,
+                                nullptr,
                                 fasta_get_sequence(fh),
                                 fasta_get_sequence_length(fh),
                                 fasta_get_header(fh),
@@ -105,7 +105,7 @@ void rereplicate()
                                 1,
                                 i,
                                 -1.0,
-                                -1, -1, 0, 0.0);
+                                -1, -1, nullptr, 0.0);
         }
 
       progress_update(fasta_get_position(fh));

@@ -250,7 +250,7 @@ void udb_read(const char * filename,
   if (! fd_udb)
     fatal("Unable to open UDB file for reading");
 
-  char * prompt = 0;
+  char * prompt = nullptr;
   if (xsprintf(& prompt, "Reading UDB file %s", filename) == -1)
     fatal("Out of memory");
 

@@ -75,13 +75,13 @@ static const double merge_mismatchmax     = -4.0;
 
 /* static variables */
 
-static FILE * fp_fastqout = 0;
-static FILE * fp_fastaout = 0;
-static FILE * fp_fastqout_notmerged_fwd = 0;
-static FILE * fp_fastqout_notmerged_rev = 0;
-static FILE * fp_fastaout_notmerged_fwd = 0;
-static FILE * fp_fastaout_notmerged_rev = 0;
-static FILE * fp_eetabbedout = 0;
+static FILE * fp_fastqout = nullptr;
+static FILE * fp_fastaout = nullptr;
+static FILE * fp_fastqout_notmerged_fwd = nullptr;
+static FILE * fp_fastqout_notmerged_rev = nullptr;
+static FILE * fp_fastaout_notmerged_fwd = nullptr;
+static FILE * fp_fastaout_notmerged_rev = nullptr;
+static FILE * fp_eetabbedout = nullptr;
 
 static fastx_handle fastq_fwd;
 static fastx_handle fastq_rev;
@@ -227,7 +227,7 @@ static pthread_cond_t cond_chunks;
 
 FILE * fileopenw(char * filename)
 {
-  FILE * fp = 0;
+  FILE * fp = nullptr;
   fp = fopen_output(filename);
   if (!fp)
     fatal("Unable to open file for writing (%s)", filename);
@@ -404,7 +404,7 @@ void keep(merge_data_t * ip)
   if (opt_fastaout)
     {
       fasta_print_general(fp_fastaout,
-                          0,
+                          nullptr,
                           ip->merged_sequence,
                           ip->merged_length,
                           ip->fwd_header,
@@ -414,7 +414,7 @@ void keep(merge_data_t * ip)
                           ip->ee_merged,
                           -1,
                           -1,
-                          0,
+                          nullptr,
                           0.0);
     }
 
@@ -517,7 +517,7 @@ void discard(merge_data_t * ip)
 
   if (opt_fastaout_notmerged_fwd)
     fasta_print_general(fp_fastaout_notmerged_fwd,
-                        0,
+                        nullptr,
                         ip->fwd_sequence,
                         ip->fwd_length,
                         ip->fwd_header,
@@ -526,11 +526,11 @@ void discard(merge_data_t * ip)
                         notmerged,
                         -1.0,
                         -1, -1,
-                        0, 0.0);
+                        nullptr, 0.0);
 
   if (opt_fastaout_notmerged_rev)
     fasta_print_general(fp_fastaout_notmerged_rev,
-                        0,
+                        nullptr,
                         ip->rev_sequence,
                         ip->rev_length,
                         ip->rev_header,
@@ -539,7 +539,7 @@ void discard(merge_data_t * ip)
                         notmerged,
                         -1.0,
                         -1, -1,
-                        0, 0.0);
+                        nullptr, 0.0);
 }
 
 void merge(merge_data_t * ip)
@@ -998,12 +998,12 @@ void keep_or_discard(merge_data_t * ip)
 
 void init_merge_data(merge_data_t * ip)
 {
-  ip->fwd_header = 0;
-  ip->rev_header = 0;
-  ip->fwd_sequence = 0;
-  ip->rev_sequence = 0;
-  ip->fwd_quality = 0;
-  ip->rev_quality = 0;
+  ip->fwd_header = nullptr;
+  ip->rev_header = nullptr;
+  ip->fwd_sequence = nullptr;
+  ip->rev_sequence = nullptr;
+  ip->fwd_quality = nullptr;
+  ip->rev_quality = nullptr;
   ip->header_alloc = 0;
   ip->seq_alloc = 0;
   ip->fwd_length = 0;
@@ -1013,8 +1013,8 @@ void init_merge_data(merge_data_t * ip)
   ip->pair_no = 0;
   ip->reason = undefined;
   ip->merged_seq_alloc = 0;
-  ip->merged_sequence = 0;
-  ip->merged_quality = 0;
+  ip->merged_sequence = nullptr;
+  ip->merged_quality = nullptr;
   ip->merged_length = 0;
 }
 
@@ -1210,7 +1210,7 @@ void * pair_worker(void * vp)
 
   kh_exit(kmerhash);
 
-  return 0;
+  return nullptr;
 }
 
 
@@ -1235,8 +1235,8 @@ void pair_all()
         init_merge_data(chunks[i].merge_data + j);
     }
 
-  xpthread_mutex_init(&mutex_chunks, NULL);
-  xpthread_cond_init(&cond_chunks, 0);
+  xpthread_mutex_init(&mutex_chunks, nullptr);
+  xpthread_cond_init(&cond_chunks, nullptr);
 
   /* prepare threads */
 
@@ -1250,7 +1250,7 @@ void pair_all()
   /* wait for threads to terminate */
 
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   /* free threads */
 
@@ -1267,10 +1267,10 @@ void pair_all()
       for (int j=0; j < chunk_size; j++)
         free_merge_data(chunks[i].merge_data + j);
       xfree(chunks[i].merge_data);
-      chunks[i].merge_data = 0;
+      chunks[i].merge_data = nullptr;
     }
   xfree(chunks);
-  chunks = 0;
+  chunks = nullptr;
 }
 
 void fastq_mergepairs()
@@ -1504,7 +1504,7 @@ void fastq_mergepairs()
     fclose(fp_fastqout);
 
   fastq_close(fastq_rev);
-  fastq_rev = 0;
+  fastq_rev = nullptr;
   fastq_close(fastq_fwd);
-  fastq_fwd = 0;
+  fastq_fwd = nullptr;
 }

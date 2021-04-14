@@ -98,7 +98,7 @@ struct uhandle_s * unique_init()
   uh->list = (unsigned int *) xmalloc(sizeof(unsigned int) * uh->alloc);
 
   uh->bitmap_size = 0;
-  uh->bitmap = 0;
+  uh->bitmap = nullptr;
 
   return uh;
 }

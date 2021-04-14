@@ -354,7 +354,7 @@ void otutable_print_biomout(FILE * fp)
   int64_t rows = otutable->otu_set.size();
   int64_t columns = otutable->sample_set.size();
 
-  static time_t time_now = time(0);
+  static time_t time_now = time(nullptr);
   struct tm * tm_now = localtime(& time_now);
   char date[50];
   strftime(date, 50, "%Y-%m-%dT%H:%M:%S", tm_now);

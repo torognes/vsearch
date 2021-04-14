@@ -187,8 +187,8 @@ bool fastq_next(fastx_handle h,
   h->file_buffer.position++;
   rest--;
 
-  char * lf = 0;
-  while (lf == 0)
+  char * lf = nullptr;
+  while (lf == nullptr)
     {
       /* get more data if buffer empty */
       rest = fastx_file_fill_buffer(h);
@@ -216,7 +216,7 @@ bool fastq_next(fastx_handle h,
     }
 
   /* read sequence line(s) */
-  lf = 0;
+  lf = nullptr;
   while (1)
     {
       /* get more data, if necessary */
@@ -274,8 +274,8 @@ bool fastq_next(fastx_handle h,
   h->file_buffer.position++;
   rest--;
 
-  lf = 0;
-  while (lf == 0)
+  lf = nullptr;
+  while (lf == nullptr)
     {
       /* get more data if buffer empty */
       rest = fastx_file_fill_buffer(h);
@@ -325,7 +325,7 @@ bool fastq_next(fastx_handle h,
 
   /* read quality line(s) */
 
-  lf = 0;
+  lf = nullptr;
   while (1)
     {
       /* get more data, if necessary */

@@ -143,7 +143,7 @@ void dynlibs_close()
 #else
     dlclose(gz_lib);
 #endif
-  gz_lib = 0;
+  gz_lib = nullptr;
 #endif
 #ifdef HAVE_BZLIB_H
   if (bz2_lib)
@@ -152,6 +152,6 @@ void dynlibs_close()
 #else
     dlclose(bz2_lib);
 #endif
-  bz2_lib = 0;
+  bz2_lib = nullptr;
 #endif
 }

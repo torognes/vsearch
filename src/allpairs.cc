@@ -72,14 +72,14 @@ static pthread_mutex_t mutex_output;
 static int qmatches;
 static int queries;
 static int64_t progress = 0;
-static FILE * fp_alnout = 0;
-static FILE * fp_samout = 0;
-static FILE * fp_userout = 0;
-static FILE * fp_blast6out = 0;
-static FILE * fp_uc = 0;
-static FILE * fp_fastapairs = 0;
-static FILE * fp_matched = 0;
-static FILE * fp_notmatched = 0;
+static FILE * fp_alnout = nullptr;
+static FILE * fp_samout = nullptr;
+static FILE * fp_userout = nullptr;
+static FILE * fp_blast6out = nullptr;
+static FILE * fp_uc = nullptr;
+static FILE * fp_fastapairs = nullptr;
+static FILE * fp_matched = nullptr;
+static FILE * fp_notmatched = nullptr;
 
 static int count_matched = 0;
 static int count_notmatched = 0;
@@ -187,7 +187,7 @@ void allpairs_output_results(int hit_count,
     {
       if (fp_uc)
         results_show_uc_one(fp_uc,
-                            0,
+                            nullptr,
                             query_head,
                             qsequence,
                             qseqlen,
@@ -198,7 +198,7 @@ void allpairs_output_results(int hit_count,
         {
           if (fp_userout)
             results_show_userout_one(fp_userout,
-                                     0,
+                                     nullptr,
                                      query_head,
                                      qsequence,
                                      qseqlen,
@@ -206,7 +206,7 @@ void allpairs_output_results(int hit_count,
 
           if (fp_blast6out)
             results_show_blast6out_one(fp_blast6out,
-                                       0,
+                                       nullptr,
                                        query_head,
                                        qsequence,
                                        qseqlen,
@@ -219,7 +219,7 @@ void allpairs_output_results(int hit_count,
       count_matched++;
       if (opt_matched)
         fasta_print_general(fp_matched,
-                            0,
+                            nullptr,
                             qsequence,
                             qseqlen,
                             query_head,
@@ -227,14 +227,14 @@ void allpairs_output_results(int hit_count,
                             0,
                             count_matched,
                             -1.0,
-                            -1, -1, 0, 0.0);
+                            -1, -1, nullptr, 0.0);
     }
   else
     {
       count_notmatched++;
       if (opt_notmatched)
         fasta_print_general(fp_notmatched,
-                            0,
+                            nullptr,
                             qsequence,
                             qseqlen,
                             query_head,
@@ -242,7 +242,7 @@ void allpairs_output_results(int hit_count,
                             0,
                             count_notmatched,
                             -1.0,
-                            -1, -1, 0, 0.0);
+                            -1, -1, nullptr, 0.0);
     }
 }
 
@@ -258,8 +258,8 @@ void allpairs_thread_run(int64_t t)
   si->query_head_alloc = 0;
   si->seq_alloc = 0;
   si->kmersamplecount = 0;
-  si->kmers = 0;
-  si->m = 0;
+  si->kmers = nullptr;
+  si->m = nullptr;
   si->finalized = 0;
 
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
@@ -462,7 +462,7 @@ void allpairs_thread_run(int64_t t)
                                   si->query_head,
                                   si->qseqlen,
                                   si->qsequence,
-                                  0);
+                                  nullptr);
 
           /* update stats */
           if (si->accepts)
@@ -511,7 +511,7 @@ void * allpairs_thread_worker(void * vp)
 {
   int64_t t = (int64_t) vp;
   allpairs_thread_run(t);
-  return 0;
+  return nullptr;
 }
 
 void allpairs_thread_worker_run()
@@ -528,7 +528,7 @@ void allpairs_thread_worker_run()
 
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   xpthread_attr_destroy(&attr);
 }
@@ -620,8 +620,8 @@ void allpairs_global(char * cmdline, char * progheader)
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
   progress = 0;
   progress_init("Aligning", MAX(0,((int64_t)seqcount)*((int64_t)seqcount-1))/2);

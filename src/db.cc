@@ -62,7 +62,7 @@
 
 #define MEMCHUNK 16777216
 
-static fastx_handle h = 0;
+static fastx_handle h = nullptr;
 static bool is_fastq = 0;
 static uint64_t sequences = 0;
 static uint64_t nucleotides = 0;
@@ -70,8 +70,8 @@ static uint64_t longest = 0;
 static uint64_t shortest = 0;
 static uint64_t longestheader = 0;
 
-seqinfo_t * seqindex = 0;
-char * datap = 0;
+seqinfo_t * seqindex = nullptr;
+char * datap = nullptr;
 
 void db_setinfo(bool new_is_fastq,
                 uint64_t new_sequences,
@@ -98,7 +98,7 @@ char * db_getquality(uint64_t seqno)
   if (is_fastq)
     return datap + seqindex[seqno].qual_p;
   else
-    return 0;
+    return nullptr;
 }
 
 void db_read(const char * filename, int upcase)
@@ -112,7 +112,7 @@ void db_read(const char * filename, int upcase)
 
   int64_t filesize = fastx_get_size(h);
 
-  char * prompt = 0;
+  char * prompt = nullptr;
   if (xsprintf(& prompt, "Reading file %s", filename) == -1)
     fatal("Out of memory");
 
@@ -130,12 +130,12 @@ void db_read(const char * filename, int upcase)
 
   /* allocate space for data */
   uint64_t dataalloc = 0;
-  datap = 0;
+  datap = nullptr;
   uint64_t datalen = 0;
 
   /* allocate space for index */
   size_t seqindex_alloc = 0;
-  seqindex = 0;
+  seqindex = nullptr;
 
   while(fastx_next(h,
                    ! opt_notrunclabels,

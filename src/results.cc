@@ -76,7 +76,7 @@ void results_show_fastapairs_one(FILE * fp,
                                  hp->nwalignmentlength,
                                  0);
       fasta_print_general(fp,
-                          0,
+                          nullptr,
                           qrow + hp->trim_q_left + hp->trim_t_left,
                           hp->internal_alignmentlength,
                           query_head,
@@ -86,7 +86,7 @@ void results_show_fastapairs_one(FILE * fp,
                           -1.0,
                           -1,
                           -1,
-                          0,
+                          nullptr,
                           0.0);
       xfree(qrow);
 
@@ -95,7 +95,7 @@ void results_show_fastapairs_one(FILE * fp,
                                  hp->nwalignmentlength,
                                  1);
       fasta_print_general(fp,
-                          0,
+                          nullptr,
                           trow + hp->trim_q_left + hp->trim_t_left,
                           hp->internal_alignmentlength,
                           db_getheader(hp->target),
@@ -105,7 +105,7 @@ void results_show_fastapairs_one(FILE * fp,
                           -1.0,
                           -1,
                           -1,
-                          0,
+                          nullptr,
                           0.0);
       xfree(trow);
 
@@ -254,9 +254,9 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
 
       int field = userfields_requested[c];
 
-      char * tsequence = 0;
+      char * tsequence = nullptr;
       int64_t tseqlen = 0;
-      char * t_head = 0;
+      char * t_head = nullptr;
 
       if (hp)
         {
@@ -478,8 +478,8 @@ void results_show_alnout(FILE * fp,
           char * dseq = db_getsequence(hp->target);
           int64_t dseqlen = db_getsequencelen(hp->target);
 
-          int qlenlen = snprintf(0, 0, "%" PRId64, qseqlen);
-          int tlenlen = snprintf(0, 0, "%" PRId64, dseqlen);
+          int qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
+          int tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
           int numwidth = MAX(qlenlen, tlenlen);
 
           fprintf(fp," Query %*" PRId64 "nt >%s\n", numwidth,

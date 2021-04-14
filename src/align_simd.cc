@@ -984,14 +984,14 @@ struct s16info_s * search16_init(CELL score_match,
 
   s->dprofile = (VECTOR_SHORT *) xmalloc(2*4*8*16);
   s->qlen = 0;
-  s->qseq = 0;
+  s->qseq = nullptr;
   s->maxdlen = 0;
-  s->dir = 0;
+  s->dir = nullptr;
   s->diralloc = 0;
-  s->hearray = 0;
-  s->qtable = 0;
-  s->cigar = 0;
-  s->cigarend = 0;
+  s->hearray = nullptr;
+  s->qtable = nullptr;
+  s->cigar = nullptr;
+  s->cigarend = nullptr;
   s->cigaralloc = 0;
 
   for(int i=0; i<16; i++)
@@ -1098,7 +1098,7 @@ void search16(s16info_s * s,
                   - s->penalty_gap_open_target_right -
                   length * s->penalty_gap_extension_target_right);
 
-          char * cigar = 0;
+          char * cigar = nullptr;
           if (length > 0)
             {
               int ret = xsprintf(&cigar, "%ldI", length);
@@ -1214,7 +1214,7 @@ void search16(s16info_s * s,
     {
       d_begin[c] = &zero;
       d_end[c] = d_begin[c];
-      d_address[c] = 0;
+      d_address[c] = nullptr;
       d_offset[c] = 0;
       d_length[c] = 0;
       seq_id[c] = -1;
@@ -1488,7 +1488,7 @@ void search16(s16info_s * s,
               /* no more sequences, empty channel */
 
               seq_id[c] = -1;
-              d_address[c] = 0;
+              d_address[c] = nullptr;
               d_begin[c] = &zero;
               d_end[c] = d_begin[c];
               d_length[c] = 0;

@@ -83,10 +83,10 @@ void orient()
 {
   fastx_handle query_h;
 
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastqout = 0;
-  FILE * fp_tabbedout = 0;
-  FILE * fp_notmatched = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastqout = nullptr;
+  FILE * fp_tabbedout = nullptr;
+  FILE * fp_notmatched = nullptr;
 
   int queries = 0;
   int qmatches = 0;
@@ -165,8 +165,8 @@ void orient()
   uhandle_s * uh_fwd = unique_init();
 
   size_t alloc = 0;
-  char * qseq_rev = 0;
-  char * query_qual_rev = 0;
+  char * qseq_rev = nullptr;
+  char * query_qual_rev = nullptr;
 
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
@@ -233,7 +233,7 @@ void orient()
 
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 qseq_fwd,
                                 qseqlen,
                                 query_head,
@@ -243,7 +243,7 @@ void orient()
                                 -1.0,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
           if (opt_fastqout)
@@ -281,7 +281,7 @@ void orient()
 
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 qseq_rev,
                                 qseqlen,
                                 query_head,
@@ -291,7 +291,7 @@ void orient()
                                 -1.0,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
           if (opt_fastqout)
@@ -337,7 +337,7 @@ void orient()
                                     -1.0);
               else
                 fasta_print_general(fp_notmatched,
-                                    0,
+                                    nullptr,
                                     qseq_fwd,
                                     qseqlen,
                                     query_head,
@@ -347,7 +347,7 @@ void orient()
                                     -1.0,
                                     -1,
                                     -1,
-                                    0,
+                                    nullptr,
                                     0.0);
             }
         }

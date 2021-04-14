@@ -165,7 +165,7 @@ int xsprintf(char * * ret, const char * format, ...)
 {
   va_list ap;
   va_start(ap, format);
-  int len = vsnprintf(0, 0, format, ap);
+  int len = vsnprintf(nullptr, 0, format, ap);
   va_end(ap);
   if (len < 0)
     fatal("Error with vsnprintf in xsprintf");
@@ -185,7 +185,7 @@ uint64_t hash_cityhash64(char * s, uint64_t n)
 int64_t getusec(void)
 {
   struct timeval tv;
-  if(gettimeofday(&tv,0) != 0) return 0;
+  if(gettimeofday(&tv,nullptr) != 0) return 0;
   return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
@@ -366,7 +366,7 @@ FILE * fopen_input(const char * filename)
     {
       int fd = dup(STDIN_FILENO);
       if (fd < 0)
-        return NULL;
+        return nullptr;
       else
         return fdopen(fd, "rb");
     }
@@ -381,7 +381,7 @@ FILE * fopen_output(const char * filename)
     {
       int fd = dup(STDOUT_FILENO);
       if (fd < 0)
-        return NULL;
+        return nullptr;
       else
         return fdopen(fd, "w");
     }

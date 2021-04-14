@@ -64,7 +64,7 @@
 
 FILE * join_fileopenw(char * filename)
 {
-  FILE * fp = 0;
+  FILE * fp = nullptr;
   fp = fopen_output(filename);
   if (!fp)
     fatal("Unable to open file for writing (%s)", filename);
@@ -73,11 +73,11 @@ FILE * join_fileopenw(char * filename)
 
 void fastq_join()
 {
-  FILE * fp_fastqout = 0;
-  FILE * fp_fastaout = 0;
+  FILE * fp_fastqout = nullptr;
+  FILE * fp_fastaout = nullptr;
 
-  fastx_handle fastq_fwd = 0;
-  fastx_handle fastq_rev = 0;
+  fastx_handle fastq_fwd = nullptr;
+  fastx_handle fastq_rev = nullptr;
 
   uint64_t total = 0;
 
@@ -89,8 +89,8 @@ void fastq_join()
   if ((!opt_fastqout) && (!opt_fastaout))
     fatal("No output files specified");
 
-  char * padgap = 0;
-  char * padgapq = 0;
+  char * padgap = nullptr;
+  char * padgapq = nullptr;
 
   if (opt_join_padgap)
     padgap = xstrdup(opt_join_padgap);
@@ -135,8 +135,8 @@ void fastq_join()
 
   uint64_t alloc = 0;
   uint64_t len = 0;
-  char * seq = 0;
-  char * qual = 0;
+  char * seq = nullptr;
+  char * qual = nullptr;
 
   while(fastq_next(fastq_fwd, 0, chrmap_no_change))
     {
@@ -199,7 +199,7 @@ void fastq_join()
       if (opt_fastaout)
         {
           fasta_print_general(fp_fastaout,
-                              0,
+                              nullptr,
                               seq,
                               len,
                               fastq_get_header(fastq_fwd),
@@ -209,7 +209,7 @@ void fastq_join()
                               -1.0,
                               -1,
                               -1,
-                              0,
+                              nullptr,
                               0);
         }
 
@@ -234,9 +234,9 @@ void fastq_join()
     fclose(fp_fastqout);
 
   fastq_close(fastq_rev);
-  fastq_rev = 0;
+  fastq_rev = nullptr;
   fastq_close(fastq_fwd);
-  fastq_fwd = 0;
+  fastq_fwd = nullptr;
 
   if (seq)
     xfree(seq);

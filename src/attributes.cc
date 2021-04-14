@@ -89,7 +89,7 @@ bool header_find_attribute(const char * header,
       char * r = (char *) strstr(header + i, attribute);
 
       /* no match */
-      if (r == NULL)
+      if (r == nullptr)
         break;
 
       i = r - header;

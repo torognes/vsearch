@@ -66,7 +66,7 @@
 static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
-static char * * labels_data = 0;
+static char * * labels_data = nullptr;
 
 void read_labels_file(char * filename)
 {
@@ -134,14 +134,14 @@ void free_labels()
   for(int i=0; i < labels_count; i++)
     free(labels_data[i]);
   free(labels_data);
-  labels_data = 0;
+  labels_data = nullptr;
 }
 
 bool test_label_match(fastx_handle h)
 {
   char * header = fastx_get_header(h);
   int hlen = fastx_get_header_length(h);
-  char * field_buffer = 0;
+  char * field_buffer = nullptr;
   int field_len = 0;
   if (opt_label_field)
     {
@@ -311,7 +311,7 @@ void getseq(char * filename)
         read_labels_file(opt_label_words);
     }
 
-  fastx_handle h1 = 0;
+  fastx_handle h1 = nullptr;
 
   h1 = fastx_open(filename);
 
@@ -323,10 +323,10 @@ void getseq(char * filename)
 
   uint64_t filesize = fastx_get_size(h1);
 
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastqout = 0;
-  FILE * fp_notmatched = 0;
-  FILE * fp_notmatchedfq = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastqout = nullptr;
+  FILE * fp_notmatched = nullptr;
+  FILE * fp_notmatchedfq = nullptr;
 
   if (opt_fastaout)
     {
@@ -384,7 +384,7 @@ void getseq(char * filename)
 
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 fastx_get_sequence(h1) + start - 1,
                                 length,
                                 fastx_get_header(h1),
@@ -394,7 +394,7 @@ void getseq(char * filename)
                                 -1.0,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
           if (opt_fastqout)
@@ -417,7 +417,7 @@ void getseq(char * filename)
 
           if (opt_notmatched)
             fasta_print_general(fp_notmatched,
-                                0,
+                                nullptr,
                                 fastx_get_sequence(h1) + start - 1,
                                 length,
                                 fastx_get_header(h1),
@@ -427,7 +427,7 @@ void getseq(char * filename)
                                 -1.0,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
           if (opt_notmatchedfq)

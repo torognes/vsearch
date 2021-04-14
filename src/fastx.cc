@@ -96,7 +96,7 @@ void buffer_free(struct fastx_buffer_s * buffer)
 {
   if (buffer->data)
     xfree(buffer->data);
-  buffer->data = 0;
+  buffer->data = nullptr;
   buffer->alloc = 0;
   buffer->length = 0;
   buffer->position = 0;
@@ -226,14 +226,14 @@ fastx_handle fastx_open(const char * filename)
 {
   fastx_handle h = (fastx_handle) xmalloc(sizeof(struct fastx_s));
 
-  h->fp = 0;
+  h->fp = nullptr;
 
 #ifdef HAVE_ZLIB_H
-  h->fp_gz = 0;
+  h->fp_gz = nullptr;
 #endif
 
 #ifdef HAVE_BZLIB_H
-  h->fp_bz = 0;
+  h->fp_bz = nullptr;
   int bzError = 0;
 #endif
 
@@ -320,7 +320,7 @@ fastx_handle fastx_open(const char * filename)
         fatal("Files compressed with bzip2 are not supported");
       if (! (h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
                                          BZ_VERBOSE_0, BZ_MORE_MEM,
-                                         NULL, 0)))
+                                         nullptr, 0)))
         fatal("Unable to open bzip2 compressed file (%s)", filename);
 #else
       fatal("Files compressed with bzip2 are not supported");
@@ -371,14 +371,14 @@ fastx_handle fastx_open(const char * filename)
             case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
               (*gzclose_p)(h->fp_gz);
-              h->fp_gz = 0;
+              h->fp_gz = nullptr;
               break;
 #endif
 
             case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
               (*BZ2_bzReadClose_p)(&bzError, h->fp_bz);
-              h->fp_bz = 0;
+              h->fp_bz = nullptr;
               break;
 #endif
 
@@ -387,7 +387,7 @@ fastx_handle fastx_open(const char * filename)
             }
 
           fclose(h->fp);
-          h->fp = 0;
+          h->fp = nullptr;
 
           if (rest >= 2)
             {
@@ -400,7 +400,7 @@ fastx_handle fastx_open(const char * filename)
 
           fatal("File type not recognized.");
 
-          return 0;
+          return nullptr;
         }
     }
 
@@ -464,14 +464,14 @@ void fastx_close(fastx_handle h)
     case FORMAT_GZIP:
 #ifdef HAVE_ZLIB_H
       (*gzclose_p)(h->fp_gz);
-      h->fp_gz = 0;
+      h->fp_gz = nullptr;
       break;
 #endif
 
     case FORMAT_BZIP:
 #ifdef HAVE_BZLIB_H
       (*BZ2_bzReadClose_p)(&bz_error, h->fp_bz);
-      h->fp_bz = 0;
+      h->fp_bz = nullptr;
       break;
 #endif
 
@@ -480,7 +480,7 @@ void fastx_close(fastx_handle h)
     }
 
   fclose(h->fp);
-  h->fp = 0;
+  h->fp = nullptr;
 
   buffer_free(& h->file_buffer);
   buffer_free(& h->header_buffer);
@@ -495,7 +495,7 @@ void fastx_close(fastx_handle h)
   h->seqno = -1;
 
   xfree(h);
-  h=0;
+  h=nullptr;
 }
 
 uint64_t fastx_file_fill_buffer(fastx_handle h)
@@ -666,7 +666,7 @@ char * fastx_get_quality(fastx_handle h)
   if (h->is_fastq)
     return fastq_get_quality(h);
   else
-    return 0;
+    return nullptr;
 }
 
 int64_t fastx_get_abundance(fastx_handle h)

@@ -168,7 +168,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
         if (len > longest_reversed)
           longest_reversed = len;
       }
-  char * rc_buffer = 0;
+  char * rc_buffer = nullptr;
   if (longest_reversed > 0)
     rc_buffer = (char*) xmalloc(longest_reversed + 1);
 
@@ -264,7 +264,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                             db_getheader(target_seqno),
                             db_getheaderlen(target_seqno),
                             db_getabundance(target_seqno),
-                            0, -1.0, -1, -1, 0, 0.0);
+                            0, -1.0, -1, -1, nullptr, 0.0);
     }
 
   if (rc_buffer)
@@ -340,14 +340,14 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                           -1.0,
                           target_count,
                           opt_clusterout_id ? cluster : -1,
-                          0, 0.0);
+                          nullptr, 0.0);
     }
 
   if (fp_profile)
     {
       fasta_print_general(fp_profile,
                           "centroid=",
-                          0,
+                          nullptr,
                           0,
                           db_getheader(centroid_seqno),
                           db_getheaderlen(centroid_seqno),
@@ -356,7 +356,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                           -1.0,
                           target_count,
                           opt_clusterout_id ? cluster : -1,
-                          0, 0.0);
+                          nullptr, 0.0);
 
       for (int i=0; i<alnlen; i++)
         {

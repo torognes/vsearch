@@ -105,10 +105,10 @@ static const char * userfields_names[] =
     "qihi",
     "tilo",
     "tihi", // 42
-    0
+    nullptr
   };
 
-int * userfields_requested = 0;
+int * userfields_requested = nullptr;
 int userfields_requested_count = 0;
 
 int parse_userfields_arg(char * arg)

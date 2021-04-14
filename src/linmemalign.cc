@@ -85,16 +85,16 @@
 
 LinearMemoryAligner::LinearMemoryAligner()
 {
-  scorematrix = 0;
+  scorematrix = nullptr;
 
   cigar_alloc = 0;
-  cigar_string = 0;
+  cigar_string = nullptr;
 
   vector_alloc = 0;
-  HH = 0;
-  EE = 0;
-  XX = 0;
-  YY = 0;
+  HH = nullptr;
+  EE = nullptr;
+  XX = nullptr;
+  YY = nullptr;
 }
 
 LinearMemoryAligner::~LinearMemoryAligner()

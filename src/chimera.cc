@@ -94,11 +94,11 @@ static int64_t chimera_abundance = 0;
 static int64_t nonchimera_abundance = 0;
 static int64_t borderline_abundance = 0;
 static int64_t total_abundance = 0;
-static FILE * fp_chimeras = 0;
-static FILE * fp_nonchimeras = 0;
-static FILE * fp_uchimealns = 0;
-static FILE * fp_uchimeout = 0;
-static FILE * fp_borderline = 0;
+static FILE * fp_chimeras = nullptr;
+static FILE * fp_nonchimeras = nullptr;
+static FILE * fp_uchimealns = nullptr;
+static FILE * fp_uchimeout = nullptr;
+static FILE * fp_borderline = nullptr;
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -992,8 +992,8 @@ int eval_parents(struct chimera_info_s * ci)
 
 void query_init(struct searchinfo_s * si)
 {
-  si->qsequence = 0;
-  si->kmers = 0;
+  si->qsequence = nullptr;
+  si->kmers = nullptr;
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
   si->kmers = (count_t *) xmalloc(db_getsequencecount() *
                                   sizeof(count_t) + 32);
@@ -1060,19 +1060,19 @@ void chimera_thread_init(struct chimera_info_s * ci)
 {
   ci->query_alloc = 0;
   ci->head_alloc = 0;
-  ci->query_head = 0;
-  ci->query_seq = 0;
-  ci->maxi = 0;
-  ci->maxsmooth = 0;
-  ci->match = 0;
-  ci->smooth = 0;
-  ci->paln[0] = 0;
-  ci->paln[1] = 0;
-  ci->qaln = 0;
-  ci->diffs = 0;
-  ci->votes = 0;
-  ci->model = 0;
-  ci->ignore = 0;
+  ci->query_head = nullptr;
+  ci->query_seq = nullptr;
+  ci->maxi = nullptr;
+  ci->maxsmooth = nullptr;
+  ci->match = nullptr;
+  ci->smooth = nullptr;
+  ci->paln[0] = nullptr;
+  ci->paln[1] = nullptr;
+  ci->qaln = nullptr;
+  ci->diffs = nullptr;
+  ci->votes = nullptr;
+  ci->model = nullptr;
+  ci->ignore = nullptr;
 
   for(int i = 0; i < parts; i++)
     query_init(ci->si + i);
@@ -1224,7 +1224,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             struct hit * hits;
             int hit_count;
             search_onequery(ci->si+i, opt_qmask);
-            search_joinhits(ci->si+i, 0, & hits, & hit_count);
+            search_joinhits(ci->si+i, nullptr, & hits, & hit_count);
             for(int j=0; j<hit_count; j++)
               if (hits[j].accepted)
                 allhits_list[allhits_count++] = hits[j];
@@ -1338,7 +1338,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_chimeras)
             fasta_print_general(fp_chimeras,
-                                0,
+                                nullptr,
                                 ci->query_seq,
                                 ci->query_len,
                                 ci->query_head,
@@ -1350,7 +1350,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                                 -1,
                                 opt_fasta_score ?
                                 ( opt_uchime_ref ?
-                                  "uchime_ref" : "uchime_denovo" ) : 0,
+                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
                                 ci->best_h);
         }
 
@@ -1361,7 +1361,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_borderline)
             fasta_print_general(fp_borderline,
-                                0,
+                                nullptr,
                                 ci->query_seq,
                                 ci->query_len,
                                 ci->query_head,
@@ -1373,7 +1373,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                                 -1,
                                 opt_fasta_score ?
                                 ( opt_uchime_ref ?
-                                  "uchime_ref" : "uchime_denovo" ) : 0,
+                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
                                 ci->best_h);
         }
 
@@ -1408,7 +1408,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
           if (opt_nonchimeras)
             fasta_print_general(fp_nonchimeras,
-                                0,
+                                nullptr,
                                 ci->query_seq,
                                 ci->query_len,
                                 ci->query_head,
@@ -1420,7 +1420,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                                 -1,
                                 opt_fasta_score ?
                                 ( opt_uchime_ref ?
-                                  "uchime_ref" : "uchime_denovo" ) : 0,
+                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
                                 ci->best_h);
         }
 
@@ -1467,7 +1467,7 @@ void chimera_threads_run()
 
   /* finish worker threads */
   for(int t=0; t<opt_threads; t++)
-    xpthread_join(pthread[t], NULL);
+    xpthread_join(pthread[t], nullptr);
 
   xpthread_attr_destroy(&attr);
 }
@@ -1481,7 +1481,7 @@ void open_chimera_file(FILE * * f, char * name)
         fatal("Unable to open file %s for writing", name);
     }
   else
-    *f = 0;
+    *f = nullptr;
 }
 
 void close_chimera_file(FILE * f)
@@ -1528,10 +1528,10 @@ void chimera()
                                           sizeof(struct chimera_info_s));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
-  char * denovo_dbname = NULL;
+  char * denovo_dbname = nullptr;
 
   /* prepare queries / database */
   if (opt_uchime_ref)

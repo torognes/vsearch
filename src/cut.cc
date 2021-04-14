@@ -115,7 +115,7 @@ int cut_one(fastx_handle h,
             {
               if (opt_fastaout)
                 fasta_print_general(fp_fastaout,
-                                    0,
+                                    nullptr,
                                     fasta_get_sequence(h) + frag_start,
                                     frag_length,
                                     fasta_get_header(h),
@@ -125,7 +125,7 @@ int cut_one(fastx_handle h,
                                     -1.0,
                                     -1,
                                     -1,
-                                    0,
+                                    nullptr,
                                     0.0);
             }
 
@@ -133,7 +133,7 @@ int cut_one(fastx_handle h,
             {
               if (opt_fastaout_rev)
                 fasta_print_general(fp_fastaout_rev,
-                                    0,
+                                    nullptr,
                                     rc + rc_start,
                                     rc_length,
                                     fasta_get_header(h),
@@ -143,7 +143,7 @@ int cut_one(fastx_handle h,
                                     -1.0,
                                     -1,
                                     -1,
-                                    0,
+                                    nullptr,
                                     0.0);
             }
 
@@ -159,7 +159,7 @@ int cut_one(fastx_handle h,
         {
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 fasta_get_sequence(h) + frag_start,
                                 frag_length,
                                 fasta_get_header(h),
@@ -169,7 +169,7 @@ int cut_one(fastx_handle h,
                                 -1.0,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
 
         }
@@ -181,7 +181,7 @@ int cut_one(fastx_handle h,
         {
           if (opt_fastaout_rev)
             fasta_print_general(fp_fastaout_rev,
-                                0,
+                                nullptr,
                                 rc + rc_start,
                                 rc_length,
                                 fasta_get_header(h),
@@ -191,7 +191,7 @@ int cut_one(fastx_handle h,
                                 -1.0,
                                 -1,
                                 -1,
-                                0,
+                                nullptr,
                                 0.0);
         }
     }
@@ -199,7 +199,7 @@ int cut_one(fastx_handle h,
     {
       if (opt_fastaout_discarded)
         fasta_print_general(fp_fastaout_discarded,
-                            0,
+                            nullptr,
                             fasta_get_sequence(h),
                             seq_length,
                             fasta_get_header(h),
@@ -209,12 +209,12 @@ int cut_one(fastx_handle h,
                             -1.0,
                             -1,
                             -1,
-                            0,
+                            nullptr,
                             0.0);
 
       if (opt_fastaout_discarded_rev)
         fasta_print_general(fp_fastaout_discarded_rev,
-                            0,
+                            nullptr,
                             rc,
                             seq_length,
                             fasta_get_header(h),
@@ -224,7 +224,7 @@ int cut_one(fastx_handle h,
                             -1.0,
                             -1,
                             -1,
-                            0,
+                            nullptr,
                             0.0);
     }
 
@@ -241,7 +241,7 @@ void cut()
       (!opt_fastaout_discarded_rev))
     fatal("No output files specified");
 
-  fastx_handle h = 0;
+  fastx_handle h = nullptr;
 
   h = fasta_open(opt_cut);
 
@@ -250,10 +250,10 @@ void cut()
 
   uint64_t filesize = fasta_get_size(h);
 
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastaout_discarded = 0;
-  FILE * fp_fastaout_rev = 0;
-  FILE * fp_fastaout_discarded_rev = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastaout_discarded = nullptr;
+  FILE * fp_fastaout_rev = nullptr;
+  FILE * fp_fastaout_discarded_rev = nullptr;
 
   if (opt_fastaout)
     {
@@ -285,7 +285,7 @@ void cut()
 
   char * pattern = opt_cut_pattern;
 
-  if (pattern == 0)
+  if (pattern == nullptr)
     fatal("No cut pattern string specified with --cut_pattern");
 
   int n = strlen(pattern);

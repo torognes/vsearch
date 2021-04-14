@@ -682,7 +682,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
       hit->accepted = 0;
       hit->aligned = 0;
       hit->weak = 0;
-      hit->nwalignment = 0;
+      hit->nwalignment = nullptr;
 
       /* Test some accept/reject criteria before alignment */
       if (search_acceptable_unaligned(si, e.seqno))
@@ -713,7 +713,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
 struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
                                    struct searchinfo_s * si_m)
 {
-  struct hit * best = 0;
+  struct hit * best = nullptr;
 
   for(int i=0; i < si_p->hit_count; i++)
     if ((!best) || (hit_compare_byid_typed(si_p->hits + i, best) < 0))
@@ -725,7 +725,7 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
         best = si_m->hits + i;
 
   if (best && ! best->accepted)
-    best = 0;
+    best = nullptr;
 
   return best;
 }
@@ -733,7 +733,7 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
                                      struct searchinfo_s * si_m)
 {
-  struct hit * best = 0;
+  struct hit * best = nullptr;
 
   for(int i=0; i < si_p->hit_count; i++)
     if ((!best) || (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
@@ -745,7 +745,7 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
         best = si_m->hits + i;
 
   if (best && ! best->accepted)
-    best = 0;
+    best = nullptr;
 
   return best;
 }

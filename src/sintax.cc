@@ -121,7 +121,7 @@ bool sintax_parse_tax(const char * header,
       char * r = (char *) strstr(header + i, attribute);
 
       /* no match */
-      if (r == NULL)
+      if (r == nullptr)
         break;
 
       i = r - header;
@@ -137,7 +137,7 @@ bool sintax_parse_tax(const char * header,
 
       /* find end (semicolon or end of header) */
       const char * s = strchr(header+i+alen, ';');
-      if (s == 0)
+      if (s == nullptr)
         * tax_end = hlen;
       else
         * tax_end = s - header;
@@ -498,14 +498,14 @@ void sintax_thread_init(struct searchinfo_s * si)
   si->uh = unique_init();
   si->kmers = (count_t *) xmalloc(seqcount * sizeof(count_t) + 32);
   si->m = minheap_init(tophits);
-  si->hits = 0;
+  si->hits = nullptr;
   si->qsize = 1;
   si->query_head_alloc = 0;
-  si->query_head = 0;
+  si->query_head = nullptr;
   si->seq_alloc = 0;
-  si->qsequence = 0;
-  si->nw = 0;
-  si->s = 0;
+  si->qsequence = nullptr;
+  si->nw = nullptr;
+  si->s = nullptr;
 }
 
 void sintax_thread_exit(struct searchinfo_s * si)
@@ -524,7 +524,7 @@ void * sintax_thread_worker(void * vp)
 {
   int64_t t = (int64_t) vp;
   sintax_thread_run(t);
-  return 0;
+  return nullptr;
 }
 
 void sintax_thread_worker_run()
@@ -547,7 +547,7 @@ void sintax_thread_worker_run()
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
     {
-      xpthread_join(pthread[t], NULL);
+      xpthread_join(pthread[t], nullptr);
       sintax_thread_exit(si_plus+t);
       if (si_minus)
         sintax_thread_exit(si_minus+t);
@@ -605,13 +605,13 @@ void sintax()
     si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
                                                sizeof(struct searchinfo_s));
   else
-    si_minus = 0;
+    si_minus = nullptr;
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
   /* run */
 

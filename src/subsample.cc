@@ -62,10 +62,10 @@
 
 void subsample()
 {
-  FILE * fp_fastaout = 0;
-  FILE * fp_fastaout_discarded = 0;
-  FILE * fp_fastqout = 0;
-  FILE * fp_fastqout_discarded = 0;
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastaout_discarded = nullptr;
+  FILE * fp_fastqout = nullptr;
+  FILE * fp_fastqout_discarded = nullptr;
 
   if (opt_fastaout)
     {
@@ -181,7 +181,7 @@ void subsample()
 
           if (opt_fastaout)
             fasta_print_general(fp_fastaout,
-                                0,
+                                nullptr,
                                 db_getsequence(i),
                                 db_getsequencelen(i),
                                 db_getheader(i),
@@ -189,7 +189,7 @@ void subsample()
                                 ab_sub,
                                 samples,
                                 -1.0,
-                                -1, -1, 0, 0.0);
+                                -1, -1, nullptr, 0.0);
 
           if (opt_fastqout)
             fastq_print_general(fp_fastqout,
@@ -209,7 +209,7 @@ void subsample()
 
           if (opt_fastaout_discarded)
             fasta_print_general(fp_fastaout_discarded,
-                                0,
+                                nullptr,
                                 db_getsequence(i),
                                 db_getsequencelen(i),
                                 db_getheader(i),
@@ -217,7 +217,7 @@ void subsample()
                                 ab_discarded,
                                 discarded,
                                 -1.0,
-                                -1, -1, 0, 0.0);
+                                -1, -1, nullptr, 0.0);
 
           if (opt_fastqout_discarded)
             fastq_print_general(fp_fastqout_discarded,

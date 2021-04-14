@@ -78,19 +78,19 @@ static uint64 qmatches_abundance;
 static int queries;
 static uint64 queries_abundance;
 static int * dbmatched;
-static FILE * fp_samout = 0;
-static FILE * fp_alnout = 0;
-static FILE * fp_userout = 0;
-static FILE * fp_blast6out = 0;
-static FILE * fp_uc = 0;
-static FILE * fp_fastapairs = 0;
-static FILE * fp_matched = 0;
-static FILE * fp_notmatched = 0;
-static FILE * fp_dbmatched = 0;
-static FILE * fp_dbnotmatched = 0;
-static FILE * fp_otutabout = 0;
-static FILE * fp_mothur_shared_out = 0;
-static FILE * fp_biomout = 0;
+static FILE * fp_samout = nullptr;
+static FILE * fp_alnout = nullptr;
+static FILE * fp_userout = nullptr;
+static FILE * fp_blast6out = nullptr;
+static FILE * fp_uc = nullptr;
+static FILE * fp_fastapairs = nullptr;
+static FILE * fp_matched = nullptr;
+static FILE * fp_notmatched = nullptr;
+static FILE * fp_dbmatched = nullptr;
+static FILE * fp_dbnotmatched = nullptr;
+static FILE * fp_otutabout = nullptr;
+static FILE * fp_mothur_shared_out = nullptr;
+static FILE * fp_biomout = nullptr;
 
 static int count_matched = 0;
 static int count_notmatched = 0;
@@ -181,7 +181,7 @@ void search_output_results(int hit_count,
     {
       if (fp_uc)
         results_show_uc_one(fp_uc,
-                            0,
+                            nullptr,
                             query_head,
                             qsequence,
                             qseqlen,
@@ -192,7 +192,7 @@ void search_output_results(int hit_count,
         {
           if (fp_userout)
             results_show_userout_one(fp_userout,
-                                     0,
+                                     nullptr,
                                      query_head,
                                      qsequence,
                                      qseqlen,
@@ -200,7 +200,7 @@ void search_output_results(int hit_count,
 
           if (fp_blast6out)
             results_show_blast6out_one(fp_blast6out,
-                                       0,
+                                       nullptr,
                                        query_head,
                                        qsequence,
                                        qseqlen,
@@ -213,7 +213,7 @@ void search_output_results(int hit_count,
       count_matched++;
       if (opt_matched)
         fasta_print_general(fp_matched,
-                            0,
+                            nullptr,
                             qsequence,
                             qseqlen,
                             query_head,
@@ -221,14 +221,14 @@ void search_output_results(int hit_count,
                             qsize,
                             count_matched,
                             -1.0,
-                            -1, -1, 0, 0.0);
+                            -1, -1, nullptr, 0.0);
     }
   else
     {
       count_notmatched++;
       if (opt_notmatched)
         fasta_print_general(fp_notmatched,
-                            0,
+                            nullptr,
                             qsequence,
                             qseqlen,
                             query_head,
@@ -236,7 +236,7 @@ void search_output_results(int hit_count,
                             qsize,
                             count_notmatched,
                             -1.0,
-                            -1, -1, 0, 0.0);
+                            -1, -1, nullptr, 0.0);
     }
 
   /* update matching db sequences */
@@ -271,7 +271,7 @@ int search_query(int64_t t)
   int hit_count;
 
   search_joinhits(si_plus + t,
-                  opt_strand > 1 ? si_minus + t : 0,
+                  opt_strand > 1 ? si_minus + t : nullptr,
                   & hits,
                   & hit_count);
 
@@ -280,7 +280,7 @@ int search_query(int64_t t)
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
                         si_plus[t].qsequence,
-                        opt_strand > 1 ? si_minus[t].qsequence : 0,
+                        opt_strand > 1 ? si_minus[t].qsequence : nullptr,
                         si_plus[t].qsize);
 
   /* free memory for alignment strings */
@@ -394,13 +394,13 @@ void search_thread_init(struct searchinfo_s * si)
     (sizeof(struct hit) * (tophits) * opt_strand);
   si->qsize = 1;
   si->query_head_alloc = 0;
-  si->query_head = 0;
+  si->query_head = nullptr;
   si->seq_alloc = 0;
-  si->qsequence = 0;
+  si->qsequence = nullptr;
 #ifdef COMPARENONVECTORIZED
   si->nw = nw_init();
 #else
-  si->nw = 0;
+  si->nw = nullptr;
 #endif
   si->s = search16_init(opt_match,
                         opt_mismatch,
@@ -441,7 +441,7 @@ void * search_thread_worker(void * vp)
 {
   int64_t t = (int64_t) vp;
   search_thread_run(t);
-  return 0;
+  return nullptr;
 }
 
 void search_thread_worker_run()
@@ -464,7 +464,7 @@ void search_thread_worker_run()
   /* finish and clean up worker threads */
   for(int t=0; t<opt_threads; t++)
     {
-      xpthread_join(pthread[t], NULL);
+      xpthread_join(pthread[t], nullptr);
       search_thread_exit(si_plus+t);
       if (si_minus)
         search_thread_exit(si_minus+t);
@@ -665,13 +665,13 @@ void usearch_global(char * cmdline, char * progheader)
     si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
                                                sizeof(struct searchinfo_s));
   else
-    si_minus = 0;
+    si_minus = nullptr;
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
   /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, NULL);
-  xpthread_mutex_init(&mutex_output, NULL);
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
 
   progress_init("Searching", fasta_get_size(query_fasta_h));
   search_thread_worker_run();
@@ -756,7 +756,7 @@ void usearch_global(char * cmdline, char * progheader)
             count_dbmatched++;
             if (opt_dbmatched)
               fasta_print_general(fp_dbmatched,
-                                  0,
+                                  nullptr,
                                   db_getsequence(i),
                                   db_getsequencelen(i),
                                   db_getheader(i),
@@ -764,14 +764,14 @@ void usearch_global(char * cmdline, char * progheader)
                                   dbmatched[i],
                                   count_dbmatched,
                                   -1.0,
-                                  -1, -1, 0, 0.0);
+                                  -1, -1, nullptr, 0.0);
           }
         else
           {
             count_dbnotmatched++;
             if (opt_dbnotmatched)
               fasta_print_general(fp_dbnotmatched,
-                                  0,
+                                  nullptr,
                                   db_getsequence(i),
                                   db_getsequencelen(i),
                                   db_getheader(i),
@@ -779,7 +779,7 @@ void usearch_global(char * cmdline, char * progheader)
                                   db_getabundance(i),
                                   count_dbnotmatched,
                                   -1.0,
-                                  -1, -1, 0, 0.0);
+                                  -1, -1, nullptr, 0.0);
           }
     }
 

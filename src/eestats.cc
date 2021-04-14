@@ -121,7 +121,7 @@ void fastq_eestats()
 
   uint64_t filesize = fastq_get_size(h);
 
-  FILE * fp_output = 0;
+  FILE * fp_output = nullptr;
 
   if (opt_output)
     {
@@ -408,7 +408,7 @@ void fastq_eestats2()
 
   uint64_t filesize = fastq_get_size(h);
 
-  FILE * fp_output = 0;
+  FILE * fp_output = nullptr;
 
   if (opt_output)
     {
@@ -425,7 +425,7 @@ void fastq_eestats2()
 
   int len_steps = 0;
 
-  uint64_t * count_table = 0;
+  uint64_t * count_table = nullptr;
 
   while(fastq_next(h, 0, chrmap_upcase))
     {
@@ -553,7 +553,7 @@ void fastq_eestats2()
   if (count_table)
     {
       xfree(count_table);
-      count_table = 0;
+      count_table = nullptr;
     }
 
   fclose(fp_output);

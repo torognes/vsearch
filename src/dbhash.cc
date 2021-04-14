@@ -110,9 +110,9 @@ void dbhash_open(uint64_t maxelements)
 void dbhash_close()
 {
   bitmap_free(dbhash_bitmap);
-  dbhash_bitmap = 0;
+  dbhash_bitmap = nullptr;
   xfree(dbhash_table);
-  dbhash_table = 0;
+  dbhash_table = nullptr;
 }
 
 int64_t dbhash_search_first(char * seq,

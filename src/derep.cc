@@ -210,8 +210,8 @@ void derep(char * input_filename, bool use_header)
 
   show_rusage();
 
-  FILE * fp_output = 0;
-  FILE * fp_uc = 0;
+  FILE * fp_output = nullptr;
+  FILE * fp_uc = nullptr;
 
   if (opt_output)
     {
@@ -252,10 +252,10 @@ void derep(char * input_filename, bool use_header)
 
   show_rusage();
 
-  unsigned int * nextseqtab = 0;
+  unsigned int * nextseqtab = nullptr;
   const unsigned int terminal = (unsigned int)(-1);
-  char ** headertab = 0;
-  char * match_strand = 0;
+  char ** headertab = nullptr;
+  char * match_strand = nullptr;
 
   if (opt_uc)
     {
@@ -281,7 +281,7 @@ void derep(char * input_filename, bool use_header)
   char * seq_up = (char*) xmalloc(alloc_seqlen + 1);
   char * rc_seq_up = (char*) xmalloc(alloc_seqlen + 1);
 
-  char * prompt = 0;
+  char * prompt = nullptr;
   if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
     fatal("Out of memory");
 
@@ -624,7 +624,7 @@ void derep(char * input_filename, bool use_header)
             {
               relabel_count++;
               fasta_print_general(fp_output,
-                                  0,
+                                  nullptr,
                                   bp->seq,
                                   strlen(bp->seq),
                                   bp->header,
@@ -632,7 +632,7 @@ void derep(char * input_filename, bool use_header)
                                   size,
                                   relabel_count,
                                   -1.0,
-                                  -1, -1, 0, 0.0);
+                                  -1, -1, nullptr, 0.0);
               if (relabel_count == opt_topn)
                 break;
             }
@@ -734,8 +734,8 @@ void derep(char * input_filename, bool use_header)
 
 void derep_prefix()
 {
-  FILE * fp_output = 0;
-  FILE * fp_uc = 0;
+  FILE * fp_output = nullptr;
+  FILE * fp_uc = nullptr;
 
   if (opt_output)
     {
@@ -1017,7 +1017,7 @@ void derep_prefix()
             {
               relabel_count++;
               fasta_print_general(fp_output,
-                                  0,
+                                  nullptr,
                                   db_getsequence(bp->seqno_first),
                                   db_getsequencelen(bp->seqno_first),
                                   db_getheader(bp->seqno_first),
@@ -1025,7 +1025,7 @@ void derep_prefix()
                                   size,
                                   relabel_count,
                                   -1.0,
-                                  -1, -1, 0, 0.0);
+                                  -1, -1, nullptr, 0.0);
               if (relabel_count == opt_topn)
                 break;
             }
