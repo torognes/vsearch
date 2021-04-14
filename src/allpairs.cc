@@ -406,11 +406,11 @@ void allpairs_thread_run(int64_t t)
                   unsigned int target = pseqnos[h];
                   int64_t nwscore = pscores[h];
 
-                  char * nwcigar;
-                  int64_t nwalignmentlength;
-                  int64_t nwmatches;
-                  int64_t nwmismatches;
-                  int64_t nwgaps;
+                  char * nwcigar {nullptr};
+                  int64_t nwalignmentlength {0};
+                  int64_t nwmatches {0};
+                  int64_t nwmismatches {0};
+                  int64_t nwgaps {0};
 
                   if (nwscore == SHRT_MAX)
                     {
