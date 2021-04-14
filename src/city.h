@@ -62,8 +62,8 @@
 #ifndef CITY_HASH_H_
 #define CITY_HASH_H_
 
-#include <stdlib.h>  // for size_t.
-#include <stdint.h>
+#include <cstdint>
+#include <cstdlib>  // for size_t.
 #include <utility>
 
 typedef uint8_t uint8;

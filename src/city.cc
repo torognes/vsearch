@@ -31,7 +31,7 @@
 #include <city.h>
 
 #include <algorithm>
-#include <string.h>  // for memcpy and memset
+#include <cstring>  // for memcpy and memset
 
 using namespace std;
 
