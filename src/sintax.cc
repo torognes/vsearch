@@ -232,8 +232,9 @@ void sintax_analyse(char * query_head,
 
       sintax_split(best_seqno, best_level_start, best_level_len);
 
-      for (int j = 0; j < tax_levels; j++) {
-        level_match[j] = 0;
+      for (int & j :
+        level_match) {
+        j = 0;
 
         }
 

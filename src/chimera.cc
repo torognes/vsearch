@@ -173,10 +173,11 @@ void realloc_arrays(struct chimera_info_s * ci)
 
       ci->query_seq = (char*) xrealloc(ci->query_seq, maxqlen + 1);
 
-      for(int i=0; i < parts; i++)
+      for(auto & i
+        : ci->si)
         {
           int maxpartlen = (maxqlen + parts - 1) / parts;
-          ci->si[i].qsequence = (char*) xrealloc(ci->si[i].qsequence,
+          i.qsequence = (char*) xrealloc(i.qsequence,
                                                 maxpartlen + 1);
         }
 
@@ -419,9 +420,10 @@ int eval_parents(struct chimera_info_s * ci)
   /* find max insertions in front of each position in the query sequence */
   memset(ci->maxi, 0, (ci->query_len + 1) * sizeof(int));
 
-  for(int j=0; j<2; j++)
+  for(int best_parent
+        : ci->best_parents)
     {
-      char * p = ci->nwcigar[ci->best_parents[j]];
+      char * p = ci->nwcigar[best_parent];
       char * e = p + strlen(p);
       int pos = 0;
       while (p < e)

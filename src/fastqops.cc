@@ -388,8 +388,9 @@ void fastq_stats()
   int qmax = -1000;
 
   uint64_t quality_chars[256];
-  for(int c=0; c<256; c++) {
-    quality_chars[c] = 0;
+  for(unsigned
+        long & quality_char : quality_chars) {
+    quality_char = 0;
 
         }
 

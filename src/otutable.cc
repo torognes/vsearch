@@ -263,10 +263,9 @@ void otutable_print_otutabout(FILE * fp)
   progress_init("Writing OTU table (classic)", otutable->otu_set.size());
 
   fprintf(fp, "#OTU ID");
-  for (auto it_sample = otutable->sample_set.begin();
-       it_sample != otutable->sample_set.end();
-       ++it_sample) {
-    fprintf(fp, "\t%s", it_sample->c_str());
+  for (const
+        auto & it_sample : otutable->sample_set) {
+    fprintf(fp, "\t%s", it_sample.c_str());
 
         }
   if (! otutable->otu_tax_map.empty()) {
@@ -319,11 +318,10 @@ void otutable_print_mothur_shared_out(FILE * fp)
 
   fprintf(fp, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
-  for (auto it_otu = otutable->otu_set.begin();
-       it_otu != otutable->otu_set.end();
-       ++it_otu)
+  for (const
+        auto & it_otu : otutable->otu_set)
     {
-      const char * otu_name = it_otu->c_str();
+      const char * otu_name = it_otu.c_str();
       fprintf(fp, "\t%s", otu_name);
       ++numotus;
     }
@@ -441,19 +439,18 @@ void otutable_print_biomout(FILE * fp)
   bool first = true;
   fprintf(fp, "\t\"data\": [");
 
-  for (auto it_map = otutable->otu_sample_count.begin();
-       it_map != otutable->otu_sample_count.end();
-       ++it_map)
+  for (auto
+        & it_map : otutable->otu_sample_count)
     {
       if (!first) {
         fprintf(fp, ",");
 
         }
 
-      otu_no = otu_no_map[it_map->first.first];
-      sample_no = sample_no_map[it_map->first.second];
+      otu_no = otu_no_map[it_map.first.first];
+      sample_no = sample_no_map[it_map.first.second];
 
-      fprintf(fp, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map->second);
+      fprintf(fp, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
       first = false;
       progress_update(++progress);
     }

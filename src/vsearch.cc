@@ -4041,8 +4041,9 @@ void args_init(int argc, char **argv)
     {
       /* check if any options are specified */
       bool any_options = false;
-      for (int i = 0; i < options_count; i++) {
-        if (options_selected[i]) {
+      for (bool i
+        : options_selected) {
+        if (i) {
           any_options = true;
 
         }
