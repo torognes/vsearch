@@ -63,7 +63,7 @@
 
 void rereplicate()
 {
-  opt_xsize = 1;
+  opt_xsize = true;
 
   FILE * fp_output = nullptr;
 

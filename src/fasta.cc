@@ -151,7 +151,7 @@ bool fasta_next(fastx_handle h,
   uint64_t rest = fastx_file_fill_buffer(h);
 
   if (rest == 0)
-    return 0;
+    return false;
 
   /* read header */
 
@@ -195,7 +195,7 @@ bool fasta_next(fastx_handle h,
 
   /* read one or more sequence lines */
 
-  while (1)
+  while (true)
     {
       /* get more data, if necessary */
       rest = fastx_file_fill_buffer(h);
@@ -230,7 +230,7 @@ bool fasta_next(fastx_handle h,
   fastx_filter_header(h, truncateatspace);
   fasta_filter_sequence(h, char_fasta_action, char_mapping);
 
-  return 1;
+  return true;
 }
 
 int64_t fasta_get_abundance(fastx_handle h)

@@ -138,11 +138,11 @@ void add_hit(struct searchinfo_s * si, uint64_t seqno)
       hp->shortest = si->qseqlen;
       hp->longest = si->qseqlen;
 
-      hp->aligned = 1;
+      hp->aligned = true;
 
-      hp->accepted = 0;
-      hp->rejected = 0;
-      hp->weak = 0;
+      hp->accepted = false;
+      hp->rejected = false;
+      hp->weak = false;
       (void) search_acceptable_aligned(si, hp);
     }
 }
@@ -367,7 +367,7 @@ int search_exact_query(int64_t t)
 
 void search_exact_thread_run(int64_t t)
 {
-  while (1)
+  while (true)
     {
       xpthread_mutex_lock(&mutex_input);
 

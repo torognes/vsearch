@@ -86,7 +86,7 @@ void fastq_chars()
 
   int qmin_n = 255, qmax_n = 0;
 
-  while(fastq_next(h, 0, chrmap_upcase))
+  while(fastq_next(h, false, chrmap_upcase))
     {
       int64_t len = fastq_get_sequence_length(h);
       char * p = fastq_get_sequence(h);
@@ -367,7 +367,7 @@ void fastq_stats()
   for(int c=0; c<256; c++)
     quality_chars[c] = 0;
 
-  while(fastq_next(h, 0, chrmap_upcase))
+  while(fastq_next(h, false, chrmap_upcase))
     {
       seq_count++;
 
@@ -694,7 +694,7 @@ void fastx_revcomp()
 
   int count = 0;
 
-  while(fastx_next(h, 0, chrmap_no_change))
+  while(fastx_next(h, false, chrmap_no_change))
     {
       count++;
 
@@ -789,7 +789,7 @@ void fastq_convert()
   progress_init("Reading FASTQ file", filesize);
 
   int j = 1;
-  while(fastq_next(h, 0, chrmap_no_change))
+  while(fastq_next(h, false, chrmap_no_change))
     {
       /* header */
 

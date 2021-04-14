@@ -415,7 +415,7 @@ void args_get_ee_cutoffs(char * arg)
   opt_ee_cutoffs_values = (double*) xrealloc(opt_ee_cutoffs_values, (commas+1) * sizeof(double));
 
   char * s = arg;
-  while(1)
+  while(true)
     {
       double val = 0;
       int skip = 0;
@@ -658,15 +658,15 @@ void args_init(int argc, char **argv)
   opt_blast6out = nullptr;
   opt_biomout = nullptr;
   opt_borderline = nullptr;
-  opt_bzip2_decompress = 0;
+  opt_bzip2_decompress = false;
   opt_centroids = nullptr;
   opt_chimeras = nullptr;
   opt_cluster_fast = nullptr;
   opt_cluster_size = nullptr;
   opt_cluster_smallmem = nullptr;
   opt_cluster_unoise = nullptr;
-  opt_clusterout_id = 0;
-  opt_clusterout_sort = 0;
+  opt_clusterout_id = false;
+  opt_clusterout_sort = false;
   opt_clusters = nullptr;
   opt_cons_truncate = 0;
   opt_consout = nullptr;
@@ -685,23 +685,23 @@ void args_init(int argc, char **argv)
   opt_ee_cutoffs_values[0] = 0.5;
   opt_ee_cutoffs_values[1] = 1.0;
   opt_ee_cutoffs_values[2] = 2.0;
-  opt_eeout = 0;
+  opt_eeout = false;
   opt_eetabbedout = nullptr;
   opt_fastaout_notmerged_fwd = nullptr;
   opt_fastaout_notmerged_rev = nullptr;
-  opt_fasta_score = 0;
+  opt_fasta_score = false;
   opt_fasta_width = 80;
   opt_fastaout = nullptr;
   opt_fastaout_discarded = nullptr;
   opt_fastaout_discarded_rev = nullptr;
   opt_fastaout_rev = nullptr;
   opt_fastapairs = nullptr;
-  opt_fastq_allowmergestagger = 0;
+  opt_fastq_allowmergestagger = false;
   opt_fastq_ascii = 33;
   opt_fastq_asciiout = 33;
   opt_fastq_chars = nullptr;
   opt_fastq_convert = nullptr;
-  opt_fastq_eeout = 0;
+  opt_fastq_eeout = false;
   opt_fastq_eestats = nullptr;
   opt_fastq_eestats2 = nullptr;
   opt_fastq_filter = nullptr;
@@ -717,7 +717,7 @@ void args_init(int argc, char **argv)
   opt_fastq_minlen = 1;
   opt_fastq_minmergelen = 0;
   opt_fastq_minovlen = 10;
-  opt_fastq_nostagger = 1;
+  opt_fastq_nostagger = true;
   opt_fastqout_notmerged_fwd = nullptr;
   opt_fastqout_notmerged_rev = nullptr;
   opt_fastq_qmax = 41;
@@ -756,7 +756,7 @@ void args_init(int argc, char **argv)
   opt_fastx_getseq = nullptr;
   opt_fastx_getseqs = nullptr;
   opt_fastx_getsubseq = nullptr;
-  opt_gzip_decompress = 0;
+  opt_gzip_decompress = false;
   opt_hardmask = 0;
   opt_help = 0;
   opt_id = -1.0;
@@ -813,7 +813,7 @@ void args_init(int argc, char **argv)
   opt_mismatch = -4;
   opt_mothur_shared_out = nullptr;
   opt_msaout = nullptr;
-  opt_no_progress = 0;
+  opt_no_progress = false;
   opt_nonchimeras = nullptr;
   opt_notmatched = nullptr;
   opt_notmatched = nullptr;
@@ -829,15 +829,15 @@ void args_init(int argc, char **argv)
   opt_quiet = false;
   opt_randseed = 0;
   opt_relabel = nullptr;
-  opt_relabel_keep = 0;
-  opt_relabel_md5 = 0;
-  opt_relabel_self = 0;
-  opt_relabel_sha1 = 0;
+  opt_relabel_keep = false;
+  opt_relabel_md5 = false;
+  opt_relabel_self = false;
+  opt_relabel_sha1 = false;
   opt_rereplicate = nullptr;
   opt_reverse = nullptr;
   opt_rightjust = 0;
   opt_rowlen = 64;
-  opt_samheader = 0;
+  opt_samheader = false;
   opt_samout = nullptr;
   opt_sample_pct = 0;
   opt_sample_size = 0;
@@ -845,12 +845,12 @@ void args_init(int argc, char **argv)
   opt_self = 0;
   opt_selfid = 0;
   opt_sff_convert = nullptr;
-  opt_sff_clip = 0;
+  opt_sff_clip = false;
   opt_shuffle = nullptr;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
   opt_sizein = 0;
-  opt_sizeorder = 0;
+  opt_sizeorder = false;
   opt_sizeout = 0;
   opt_slots = 0;
   opt_sortbylength = nullptr;
@@ -883,8 +883,8 @@ void args_init(int argc, char **argv)
   opt_weak_id = 10.0;
   opt_wordlength = 0;
   opt_xn = 8.0;
-  opt_xsize = 0;
-  opt_xee = 0;
+  opt_xsize = false;
+  opt_xee = false;
 
   opterr = 1;
 
@@ -1361,7 +1361,7 @@ void args_init(int argc, char **argv)
                                &options_index)) == 0)
     {
       if (options_index < options_count)
-        options_selected[options_index] = 1;
+        options_selected[options_index] = true;
 
       switch(options_index)
         {
@@ -1842,15 +1842,15 @@ void args_init(int argc, char **argv)
           break;
 
         case option_xsize:
-          opt_xsize = 1;
+          opt_xsize = true;
           break;
 
         case option_clusterout_id:
-          opt_clusterout_id = 1;
+          opt_clusterout_id = true;
           break;
 
         case option_clusterout_sort:
-          opt_clusterout_sort = 1;
+          opt_clusterout_sort = true;
           break;
 
         case option_borderline:
@@ -1858,11 +1858,11 @@ void args_init(int argc, char **argv)
           break;
 
         case option_relabel_sha1:
-          opt_relabel_sha1 = 1;
+          opt_relabel_sha1 = true;
           break;
 
         case option_relabel_md5:
-          opt_relabel_md5 = 1;
+          opt_relabel_md5 = true;
           break;
 
         case option_derep_prefix:
@@ -1914,7 +1914,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_eeout:
-          opt_eeout = 1;
+          opt_eeout = true;
           break;
 
         case option_fastq_ascii:
@@ -1954,11 +1954,11 @@ void args_init(int argc, char **argv)
           break;
 
         case option_samheader:
-          opt_samheader = 1;
+          opt_samheader = true;
           break;
 
         case option_sizeorder:
-          opt_sizeorder = 1;
+          opt_sizeorder = true;
           break;
 
         case option_minwordmatches:
@@ -1972,7 +1972,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_relabel_keep:
-          opt_relabel_keep = 1;
+          opt_relabel_keep = true;
           break;
 
         case option_search_exact:
@@ -2008,7 +2008,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_fastq_eeout:
-          opt_fastq_eeout = 1;
+          opt_fastq_eeout = true;
           break;
 
         case option_fastqout_notmerged_fwd:
@@ -2036,7 +2036,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_fastq_allowmergestagger:
-          opt_fastq_allowmergestagger = 1;
+          opt_fastq_allowmergestagger = true;
           break;
 
         case option_fastq_maxdiffs:
@@ -2060,7 +2060,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_fasta_score:
-          opt_fasta_score = 1;
+          opt_fasta_score = true;
           break;
 
         case option_fastq_eestats:
@@ -2092,11 +2092,11 @@ void args_init(int argc, char **argv)
           break;
 
         case option_gzip_decompress:
-          opt_gzip_decompress = 1;
+          opt_gzip_decompress = true;
           break;
 
         case option_bzip2_decompress:
-          opt_bzip2_decompress = 1;
+          opt_bzip2_decompress = true;
           break;
 
         case option_fastq_maxlen:
@@ -2132,7 +2132,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_no_progress:
-          opt_no_progress = 1;
+          opt_no_progress = true;
           break;
 
         case option_fastq_eestats2:
@@ -2212,7 +2212,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_sff_clip:
-          opt_sff_clip = 1;
+          opt_sff_clip = true;
           break;
 
         case option_fastaout_rev:
@@ -2232,7 +2232,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_xee:
-          opt_xee = 1;
+          opt_xee = true;
           break;
 
         case option_fastx_getseq:
@@ -2292,7 +2292,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_relabel_self:
-          opt_relabel_self = 1;
+          opt_relabel_self = true;
           break;
 
         case option_derep_id:

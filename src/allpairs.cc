@@ -319,7 +319,7 @@ void allpairs_thread_run(int64_t t)
   struct hit * finalhits
     = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
 
-  bool cont = 1;
+  bool cont = true;
 
   while (cont)
     {
@@ -420,10 +420,10 @@ void allpairs_thread_run(int64_t t)
                   hit->strand = 0;
                   hit->count = 0;
 
-                  hit->accepted = 0;
-                  hit->rejected = 0;
-                  hit->aligned = 1;
-                  hit->weak = 0;
+                  hit->accepted = false;
+                  hit->rejected = false;
+                  hit->aligned = true;
+                  hit->weak = false;
 
                   hit->nwscore = nwscore;
                   hit->nwdiff = nwalignmentlength - nwmatches;
@@ -484,7 +484,7 @@ void allpairs_thread_run(int64_t t)
           /* let other threads read input */
           xpthread_mutex_unlock(&mutex_input);
 
-          cont = 0;
+          cont = false;
         }
     }
 

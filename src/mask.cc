@@ -165,7 +165,7 @@ static int seqcount = 0;
 
 void * dust_all_worker(void * vp)
 {
-  while(1)
+  while(true)
     {
       xpthread_mutex_lock(&mutex);
       int seqno = nextseq;

@@ -647,7 +647,7 @@ void merge(merge_data_t * ip)
   if (ip->ee_merged <= opt_fastq_maxee)
     {
       ip->reason = ok;
-      ip->merged = 1;
+      ip->merged = true;
     }
   else
     {
@@ -814,9 +814,9 @@ int64_t optimize(merge_data_t * ip,
 void process(merge_data_t * ip,
              struct kh_handle_s * kmerhash)
 {
-  ip->merged = 0;
+  ip->merged = false;
 
-  bool skip = 0;
+  bool skip = false;
 
   /* check length */
 
@@ -824,14 +824,14 @@ void process(merge_data_t * ip,
       (ip->rev_length < opt_fastq_minlen))
     {
       ip->reason = minlen;
-      skip = 1;
+      skip = true;
     }
 
   if ((ip->fwd_length > opt_fastq_maxlen) ||
       (ip->rev_length > opt_fastq_maxlen))
     {
       ip->reason = maxlen;
-      skip = 1;
+      skip = true;
     }
 
   /* truncate sequences by quality */
@@ -849,7 +849,7 @@ void process(merge_data_t * ip,
       if (fwd_trunc < opt_fastq_minlen)
         {
           ip->reason = minlen;
-          skip = 1;
+          skip = true;
         }
     }
 
@@ -868,7 +868,7 @@ void process(merge_data_t * ip,
       if (rev_trunc < opt_fastq_minlen)
         {
           ip->reason = minlen;
-          skip = 1;
+          skip = true;
         }
     }
 
@@ -890,7 +890,7 @@ void process(merge_data_t * ip,
       if (fwd_ncount > opt_fastq_maxns)
         {
           ip->reason = maxns;
-          skip = 1;
+          skip = true;
         }
     }
 
@@ -906,7 +906,7 @@ void process(merge_data_t * ip,
       if (rev_ncount > opt_fastq_maxns)
         {
           ip->reason = maxns;
-          skip = 1;
+          skip = true;
         }
     }
 
@@ -923,9 +923,9 @@ void process(merge_data_t * ip,
 
 bool read_pair(merge_data_t * ip)
 {
-  if (fastq_next(fastq_fwd, 0, chrmap_upcase))
+  if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
-      if (! fastq_next(fastq_rev, 0, chrmap_upcase))
+      if (! fastq_next(fastq_rev, false, chrmap_upcase))
         fatal("More forward reads than reverse reads");
 
       /* allocate more memory if necessary */
@@ -979,13 +979,13 @@ bool read_pair(merge_data_t * ip)
 
       ip->merged_sequence[0] = 0;
       ip->merged_quality[0] = 0;
-      ip->merged = 0;
+      ip->merged = false;
       ip->pair_no = total++;
 
-      return 1;
+      return true;
     }
   else
-    return 0;
+    return false;
 }
 
 void keep_or_discard(merge_data_t * ip)
@@ -1324,7 +1324,7 @@ void fastq_mergepairs()
 
   progress_done();
 
-  if (fastq_next(fastq_rev, 1, chrmap_upcase))
+  if (fastq_next(fastq_rev, true, chrmap_upcase))
     fatal("More reverse reads than forward reads");
 
   fprintf(stderr,

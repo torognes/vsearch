@@ -147,7 +147,7 @@ bool udb_detect_isudb(const char * filename)
 
   bool is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
-    return 0;
+    return false;
 
   int fd = 0;
   fd = xopen_read(filename);
@@ -159,9 +159,9 @@ bool udb_detect_isudb(const char * filename)
   close(fd);
 
   if ((bytesread == 4) && (magic == 0x55444246))
-    return 1;
+    return true;
 
-  return 0;
+  return false;
 }
 
 void udb_info()
@@ -470,7 +470,7 @@ void udb_read(const char * filename,
 
   dbindex_uh = unique_init();
 
-  db_setinfo(0,
+  db_setinfo(false,
              seqcount,
              nucleotides,
              longest,
@@ -534,7 +534,7 @@ void udb_fasta()
 
   /* read UDB file */
 
-  udb_read(opt_udb2fasta, 0, 0);
+  udb_read(opt_udb2fasta, false, false);
 
   /* dump fasta */
 
@@ -558,7 +558,7 @@ void udb_stats()
 
   /* read UDB file */
 
-  udb_read(opt_udbstats, 0, 0);
+  udb_read(opt_udbstats, false, false);
 
   /* analyze word counts */
 

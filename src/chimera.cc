@@ -1154,7 +1154,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                      opt_gap_extension_query_right,
                      opt_gap_extension_target_right);
 
-  while(1)
+  while(true)
     {
       /* get next sequence */
 

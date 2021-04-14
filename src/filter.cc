@@ -359,9 +359,9 @@ void filter(bool fastq_only, char * filename)
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  while(fastx_next(h1, 0, chrmap_no_change))
+  while(fastx_next(h1, false, chrmap_no_change))
     {
-      if (h2 && ! fastx_next(h2, 0, chrmap_no_change))
+      if (h2 && ! fastx_next(h2, false, chrmap_no_change))
         fatal("More forward reads than reverse reads");
 
       struct analysis_res res1 = { false, false, 0, 0, 0.0 } ;
@@ -502,7 +502,7 @@ void filter(bool fastq_only, char * filename)
 
   progress_done();
 
-  if (h2 && fastx_next(h2, 0, chrmap_no_change))
+  if (h2 && fastx_next(h2, false, chrmap_no_change))
     fatal("More reverse reads than forward reads");
 
   if (! opt_quiet)
@@ -553,10 +553,10 @@ void filter(bool fastq_only, char * filename)
 
 void fastq_filter()
 {
-  filter(1, opt_fastq_filter);
+  filter(true, opt_fastq_filter);
 }
 
 void fastx_filter()
 {
-  filter(0, opt_fastx_filter);
+  filter(false, opt_fastx_filter);
 }

@@ -144,7 +144,7 @@ void orient()
   bool is_udb = udb_detect_isudb(opt_db);
 
   if (is_udb)
-    udb_read(opt_db, 1, 1);
+    udb_read(opt_db, true, true);
   else
     db_read(opt_db, 0);
 

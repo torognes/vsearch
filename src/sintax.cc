@@ -413,7 +413,7 @@ void sintax_query(int64_t t)
 
 void sintax_thread_run(int64_t t)
 {
-  while (1)
+  while (true)
     {
       xpthread_mutex_lock(&mutex_input);
 
@@ -581,7 +581,7 @@ void sintax()
   bool is_udb = udb_detect_isudb(opt_db);
 
   if (is_udb)
-    udb_read(opt_db, 1, 1);
+    udb_read(opt_db, true, true);
   else
     db_read(opt_db, 0);
 

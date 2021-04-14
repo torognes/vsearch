@@ -460,15 +460,15 @@ int search_acceptable_aligned(struct searchinfo_s * si,
           if (skew <= beta || d == 0)
             {
               /* accepted */
-              hit->accepted = 1;
-              hit->weak = 0;
+              hit->accepted = true;
+              hit->weak = false;
               return 1;
             }
           else
             {
               /* rejected, but weak hit */
-              hit->rejected = 1;
-              hit->weak = 1;
+              hit->rejected = true;
+              hit->weak = true;
               return 0;
             }
         }
@@ -477,15 +477,15 @@ int search_acceptable_aligned(struct searchinfo_s * si,
           if (hit->id >= 100.0 * opt_id)
             {
               /* accepted */
-              hit->accepted = 1;
-              hit->weak = 0;
+              hit->accepted = true;
+              hit->weak = false;
               return 1;
             }
           else
             {
               /* rejected, but weak hit */
-              hit->rejected = 1;
-              hit->weak = 1;
+              hit->rejected = true;
+              hit->weak = true;
               return 0;
             }
         }
@@ -493,8 +493,8 @@ int search_acceptable_aligned(struct searchinfo_s * si,
   else
     {
       /* rejected */
-      hit->rejected = 1;
-      hit->weak = 0;
+      hit->rejected = true;
+      hit->weak = false;
       return 0;
     }
 }
@@ -591,7 +591,7 @@ void align_delayed(struct searchinfo_s * si)
                   nwcigar = nwcigar_list[i];
                 }
 
-              hit->aligned = 1;
+              hit->aligned = true;
               hit->shortest = MIN(si->qseqlen, dseqlen);
               hit->longest = MAX(si->qseqlen, dseqlen);
               hit->nwalignment = nwcigar;
@@ -678,10 +678,10 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
       hit->target = e.seqno;
       hit->count = e.count;
       hit->strand = si->strand;
-      hit->rejected = 0;
-      hit->accepted = 0;
-      hit->aligned = 0;
-      hit->weak = 0;
+      hit->rejected = false;
+      hit->accepted = false;
+      hit->aligned = false;
+      hit->weak = false;
       hit->nwalignment = nullptr;
 
       /* Test some accept/reject criteria before alignment */
@@ -691,7 +691,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
         }
       else
         {
-          hit->rejected = 1;
+          hit->rejected = true;
         }
 
       si->hit_count++;

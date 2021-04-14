@@ -63,7 +63,7 @@
 #define MEMCHUNK 16777216
 
 static fastx_handle h = nullptr;
-static bool is_fastq = 0;
+static bool is_fastq = false;
 static uint64_t sequences = 0;
 static uint64_t nucleotides = 0;
 static uint64_t longest = 0;

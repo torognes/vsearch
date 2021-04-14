@@ -169,7 +169,7 @@ void LinearMemoryAligner::cigar_flush()
 {
   if (op_run > 0)
   {
-    while (1)
+    while (true)
     {
       /* try writing string until enough memory has been allocated */
 
@@ -623,7 +623,7 @@ char * LinearMemoryAligner::align(char * _a_seq,
   alloc_vectors(b_len+1);
 
   /* perform alignment */
-  diff(0, 0, a_len, b_len, 0, 0, true, true, true, true);
+  diff(0, 0, a_len, b_len, false, false, true, true, true, true);
 
   /* ensure entire cigar has been written */
   cigar_flush();

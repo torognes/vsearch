@@ -332,7 +332,7 @@ void cut()
   int64_t uncut = 0;
   int64_t matches = 0;
 
-  while(fasta_next(h, 0, chrmap_no_change))
+  while(fasta_next(h, false, chrmap_no_change))
     {
       int64_t m = cut_one(h,
                           fp_fastaout,

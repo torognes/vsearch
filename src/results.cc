@@ -563,7 +563,7 @@ void build_sam_strings(char * alignment,
   int tpos = 0;
 
   int matched = 0;
-  bool flag = 0; /* 1: MD string ends with a number */
+  bool flag = false; /* 1: MD string ends with a number */
 
   while(p < e)
     {
@@ -589,11 +589,11 @@ void build_sam_strings(char * alignment,
                     {
                       md->add_d(matched);
                       matched = 0;
-                      flag = 1;
+                      flag = true;
                     }
 
                   md->add_c(targetseq[tpos]);
-                  flag = 0;
+                  flag = false;
                 }
               qpos++;
               tpos++;
@@ -615,13 +615,13 @@ void build_sam_strings(char * alignment,
             {
               md->add_d(matched);
               matched = 0;
-              flag = 1;
+              flag = true;
             }
 
           md->add_c('^');
           for(int i=0; i<run; i++)
             md->add_c(targetseq[tpos++]);
-          flag = 0;
+          flag = false;
           break;
         }
     }
@@ -630,7 +630,7 @@ void build_sam_strings(char * alignment,
     {
       md->add_d(matched);
       matched = 0;
-      flag = 1;
+      flag = true;
     }
 }
 

@@ -138,9 +138,9 @@ void fastq_join()
   char * seq = nullptr;
   char * qual = nullptr;
 
-  while(fastq_next(fastq_fwd, 0, chrmap_no_change))
+  while(fastq_next(fastq_fwd, false, chrmap_no_change))
     {
-      if (! fastq_next(fastq_rev, 0, chrmap_no_change))
+      if (! fastq_next(fastq_rev, false, chrmap_no_change))
         fatal("More forward reads than reverse reads");
 
       uint64_t fwd_seq_length = fastq_get_sequence_length(fastq_fwd);
@@ -219,7 +219,7 @@ void fastq_join()
 
   progress_done();
 
-  if (fastq_next(fastq_rev, 0, chrmap_no_change))
+  if (fastq_next(fastq_rev, false, chrmap_no_change))
     fatal("More reverse reads than forward reads");
 
   fprintf(stderr,

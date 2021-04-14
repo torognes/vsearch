@@ -340,12 +340,12 @@ fastx_handle fastx_open(const char * filename)
   /* examine first char and see if it starts with > or @ */
 
   int filetype = 0;
-  h->is_empty = 1;
-  h->is_fastq = 0;
+  h->is_empty = true;
+  h->is_fastq = false;
 
   if (rest > 0)
     {
-      h->is_empty = 0;
+      h->is_empty = false;
 
       char * first = h->file_buffer.data;
 
@@ -356,7 +356,7 @@ fastx_handle fastx_open(const char * filename)
       else if (*first == '@')
         {
           filetype = 2;
-          h->is_fastq = 1;
+          h->is_fastq = true;
         }
 
       if (filetype == 0)

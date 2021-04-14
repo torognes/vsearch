@@ -132,7 +132,7 @@ int parse_userfields_arg(char * arg)
 
   int fields = 0;
 
-  while(1)
+  while(true)
     {
       q = strchr(p, '+');
       if (!q)

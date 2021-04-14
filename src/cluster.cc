@@ -651,10 +651,10 @@ void cluster_core_parallel()
                               hit->target = sic->query_no;
                               hit->strand = si->strand;
                               hit->count = shared;
-                              hit->accepted = 0;
-                              hit->rejected = 0;
-                              hit->aligned = 0;
-                              hit->weak = 0;
+                              hit->accepted = false;
+                              hit->rejected = false;
+                              hit->aligned = false;
+                              hit->weak = false;
                               hit->nwalignment = nullptr;
 
                               added++;
@@ -674,8 +674,8 @@ void cluster_core_parallel()
 
                   for(int t=0; t< si->hit_count; t++)
                     {
-                      si->hits[t].accepted = 0;
-                      si->hits[t].rejected = 0;
+                      si->hits[t].accepted = false;
+                      si->hits[t].rejected = false;
                     }
 
                   for(int t = 0;
@@ -763,7 +763,7 @@ void cluster_core_parallel()
                               int64_t nwdiff = nwalignmentlength - nwmatches;
                               int64_t nwindels = nwdiff - nwmismatches;
 
-                              hit->aligned = 1;
+                              hit->aligned = true;
                               hit->nwalignment = nwcigar;
                               hit->nwscore = nwscore;
                               hit->nwdiff = nwdiff;
@@ -787,7 +787,7 @@ void cluster_core_parallel()
                           else
                             {
                               /* rejection without alignment */
-                              hit->rejected = 1;
+                              hit->rejected = true;
                               si->rejects++;
                             }
                         }

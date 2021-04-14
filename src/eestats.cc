@@ -161,7 +161,7 @@ void fastq_eestats()
   int64_t len_min = LONG_MAX;
   int64_t len_max = 0;
 
-  while(fastq_next(h, 0, chrmap_upcase))
+  while(fastq_next(h, false, chrmap_upcase))
     {
       seq_count++;
 
@@ -427,7 +427,7 @@ void fastq_eestats2()
 
   uint64_t * count_table = nullptr;
 
-  while(fastq_next(h, 0, chrmap_upcase))
+  while(fastq_next(h, false, chrmap_upcase))
     {
       seq_count++;
 

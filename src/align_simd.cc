@@ -1265,7 +1265,7 @@ void search16(s16info_s * s,
 
   unsigned short * dir = dirbuffer;
 
-  while(1)
+  while(true)
   {
     if (easy)
     {

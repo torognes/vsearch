@@ -176,7 +176,7 @@ bool fastq_next(fastx_handle h,
   /* check end of file */
 
   if (rest == 0)
-    return 0;
+    return false;
 
   /* read header */
 
@@ -217,7 +217,7 @@ bool fastq_next(fastx_handle h,
 
   /* read sequence line(s) */
   lf = nullptr;
-  while (1)
+  while (true)
     {
       /* get more data, if necessary */
       rest = fastx_file_fill_buffer(h);
@@ -305,19 +305,19 @@ bool fastq_next(fastx_handle h,
 
   /* check that the plus line is empty or identical to @ line */
 
-  bool plusline_invalid = 0;
+  bool plusline_invalid = false;
   if (h->header_buffer.length == h->plusline_buffer.length)
     {
       if (memcmp(h->header_buffer.data,
                  h->plusline_buffer.data,
                  h->header_buffer.length))
-        plusline_invalid = 1;
+        plusline_invalid = true;
     }
   else
     {
       if ((h->plusline_buffer.length > 2) ||
           ((h->plusline_buffer.length == 2) && (h->plusline_buffer.data[0] != '\r')))
-        plusline_invalid = 1;
+        plusline_invalid = true;
     }
   if (plusline_invalid)
     fastq_fatal(h->lineno - (lf ? 1 : 0),
@@ -326,7 +326,7 @@ bool fastq_next(fastx_handle h,
   /* read quality line(s) */
 
   lf = nullptr;
-  while (1)
+  while (true)
     {
       /* get more data, if necessary */
       rest = fastx_file_fill_buffer(h);
@@ -391,7 +391,7 @@ bool fastq_next(fastx_handle h,
 
   h->seqno++;
 
-  return 1;
+  return true;
 }
 
 char * fastq_get_quality(fastx_handle h)

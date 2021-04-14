@@ -85,7 +85,7 @@ void read_labels_file(char * filename)
 
   progress_init("Reading labels", file_size);
 
-  while(1)
+  while(true)
     {
       const int buffer_size = 1024;
       char buffer[buffer_size];
@@ -193,7 +193,7 @@ bool test_label_match(fastx_handle h)
         }
       int wlen = strlen(needle);
       char * hit = header;
-      while (1)
+      while (true)
         {
           hit = strstr(hit, needle);
           if (hit)
@@ -234,7 +234,7 @@ bool test_label_match(fastx_handle h)
             }
           int wlen = strlen(needle);
           char * hit = header;
-          while (1)
+          while (true)
             {
               hit = strstr(hit, needle);
               if (hit)
