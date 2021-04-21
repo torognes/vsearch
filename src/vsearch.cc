@@ -5283,14 +5283,16 @@ void cmd_fastq_mergepairs()
   fastq_mergepairs();
 }
 
-void fillheader()
-{
+
+void fillheader() {
+  constexpr auto one_gigabyte {1024.0 * 1024.0 * 1024.0};
   snprintf(progheader, 80,
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
-           arch_get_memtotal() / 1024.0 / 1024.0 / 1024.0,
+           arch_get_memtotal() / one_gigabyte,
            arch_get_cores());
 }
+
 
 void getentirecommandline(int argc, char** argv)
 {
