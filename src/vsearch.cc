@@ -324,9 +324,9 @@ char * STDIN_NAME = (char*) "/dev/stdin";
 char * STDOUT_NAME = (char*) "/dev/stdout";
 
 #ifdef __x86_64__
-#define cpuid(f1, f2, a, b, c, d)                                \
-  __asm__ __volatile__ ("cpuid"                                  \
-                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d) \
+#define cpuid(f1, f2, a, b, c, d)                                       \
+  __asm__ __volatile__ ("cpuid"                                         \
+                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d)        \
                         : "a" (f1), "c" (f2));
 #endif
 
@@ -348,24 +348,24 @@ void cpu_features_detect()
   unsigned int maxlevel = a & 0xff;
 
   if (maxlevel >= 1)
-  {
-    cpuid(1, 0, a, b, c, d);
-    mmx_present    = (d >> 23) & 1;
-    sse_present    = (d >> 25) & 1;
-    sse2_present   = (d >> 26) & 1;
-    sse3_present   = (c >>  0) & 1;
-    ssse3_present  = (c >>  9) & 1;
-    sse41_present  = (c >> 19) & 1;
-    sse42_present  = (c >> 20) & 1;
-    popcnt_present = (c >> 23) & 1;
-    avx_present    = (c >> 28) & 1;
-
-    if (maxlevel >= 7)
     {
-      cpuid(7, 0, a, b, c, d);
-      avx2_present = (b >>  5) & 1;
+      cpuid(1, 0, a, b, c, d);
+      mmx_present    = (d >> 23) & 1;
+      sse_present    = (d >> 25) & 1;
+      sse2_present   = (d >> 26) & 1;
+      sse3_present   = (c >>  0) & 1;
+      ssse3_present  = (c >>  9) & 1;
+      sse41_present  = (c >> 19) & 1;
+      sse42_present  = (c >> 20) & 1;
+      popcnt_present = (c >> 23) & 1;
+      avx_present    = (c >> 28) & 1;
+
+      if (maxlevel >= 7)
+        {
+          cpuid(7, 0, a, b, c, d);
+          avx2_present = (b >>  5) & 1;
+        }
     }
-  }
 #else
 #error Unknown architecture
 #endif
@@ -377,51 +377,51 @@ void cpu_features_show()
   if (neon_present) {
     fprintf(stderr, " neon");
 
-        }
+  }
   if (altivec_present) {
     fprintf(stderr, " altivec");
 
-        }
+  }
   if (mmx_present) {
     fprintf(stderr, " mmx");
 
-        }
+  }
   if (sse_present) {
     fprintf(stderr, " sse");
 
-        }
+  }
   if (sse2_present) {
     fprintf(stderr, " sse2");
 
-        }
+  }
   if (sse3_present) {
     fprintf(stderr, " sse3");
 
-        }
+  }
   if (ssse3_present) {
     fprintf(stderr, " ssse3");
 
-        }
+  }
   if (sse41_present) {
     fprintf(stderr, " sse4.1");
 
-        }
+  }
   if (sse42_present) {
     fprintf(stderr, " sse4.2");
 
-        }
+  }
   if (popcnt_present) {
     fprintf(stderr, " popcnt");
 
-        }
+  }
   if (avx_present) {
     fprintf(stderr, " avx");
 
-        }
+  }
   if (avx2_present) {
     fprintf(stderr, " avx2");
 
-        }
+  }
   fprintf(stderr, "\n");
 }
 
@@ -435,9 +435,9 @@ void args_get_ee_cutoffs(char * arg)
     if (arg[i] == ',') {
       commas++;
 
-        }
+    }
 
-        }
+  }
 
   opt_ee_cutoffs_count = 0;
   opt_ee_cutoffs_values = (double*) xrealloc(opt_ee_cutoffs_values, (commas+1) * sizeof(double));
@@ -451,7 +451,7 @@ void args_get_ee_cutoffs(char * arg)
       if ((sscanf(s, "%lf%n", &val, &skip) != 1) || (val <= 0.0)) {
         fatal("Invalid arguments to ee_cutoffs");
 
-        }
+      }
 
       opt_ee_cutoffs_values[opt_ee_cutoffs_count++] = val;
 
@@ -464,7 +464,7 @@ void args_get_ee_cutoffs(char * arg)
       } else {
         fatal("Invalid arguments to ee_cutoffs");
 
-        }
+      }
     }
 }
 
@@ -481,27 +481,27 @@ void args_get_length_cutoffs(char * arg)
       if ((size_t)skip < strlen(arg)) {
         fatal("Invalid arguments to length_cutoffs");
 
-        }
+      }
     }
   else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
     {
       if ((size_t)skip < strlen(arg)) {
         fatal("Invalid arguments to length_cutoffs");
 
-        }
+      }
       opt_length_cutoffs_longest = INT_MAX;
     }
   else {
     fatal("Invalid arguments to length_cutoffs");
 
-        }
+  }
 
   if ((opt_length_cutoffs_shortest < 1) ||
       (opt_length_cutoffs_shortest > opt_length_cutoffs_longest) ||
       (opt_length_cutoffs_increment < 1)) {
     fatal("Invalid arguments to length_cutoffs");
 
-        }
+  }
 
 }
 
@@ -551,7 +551,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
       else {
         fatal("Invalid gap penalty argument (%s)", p);
 
-        }
+      }
 
       char * q = p;
 
@@ -594,12 +594,12 @@ void args_get_gap_penalty_string(char * arg, int is_open)
       if (*p == '/') {
         p++;
 
-        }
+      }
 
       if (set_E && (set_L || set_R)) {
         fatal("Invalid gap penalty string (E and L or R) '%s'", q);
 
-        }
+      }
 
       if (set_E)
         {
@@ -631,30 +631,30 @@ void args_get_gap_penalty_string(char * arg, int is_open)
               if (set_L) {
                 opt_gap_open_query_left = pen;
 
-        }
+              }
               if (set_I) {
                 opt_gap_open_query_interior = pen;
 
-        }
+              }
               if (set_R) {
                 opt_gap_open_query_right = pen;
 
-        }
+              }
             }
           if (set_T)
             {
               if (set_L) {
                 opt_gap_open_target_left = pen;
 
-        }
+              }
               if (set_I) {
                 opt_gap_open_target_interior = pen;
 
-        }
+              }
               if (set_R) {
                 opt_gap_open_target_right = pen;
 
-        }
+              }
             }
         }
       else
@@ -664,30 +664,30 @@ void args_get_gap_penalty_string(char * arg, int is_open)
               if (set_L) {
                 opt_gap_extension_query_left = pen;
 
-        }
+              }
               if (set_I) {
                 opt_gap_extension_query_interior = pen;
 
-        }
+              }
               if (set_R) {
                 opt_gap_extension_query_right = pen;
 
-        }
+              }
             }
           if (set_T)
             {
               if (set_L) {
                 opt_gap_extension_target_left = pen;
 
-        }
+              }
               if (set_I) {
                 opt_gap_extension_target_interior = pen;
 
-        }
+              }
               if (set_R) {
                 opt_gap_extension_target_right = pen;
 
-        }
+              }
             }
         }
     }
@@ -702,7 +702,7 @@ int64_t args_getlong(char * arg)
   if ((ret == 0) || (((unsigned int)(len)) < strlen(arg))) {
     fatal("Illegal option argument");
 
-        }
+  }
   return temp;
 }
 
@@ -714,7 +714,7 @@ double args_getdouble(char * arg)
   if ((ret == 0) || (((unsigned int)(len)) < strlen(arg))) {
     fatal("Illegal option argument");
 
-        }
+  }
   return temp;
 }
 
@@ -964,464 +964,464 @@ void args_init(int argc, char **argv)
 
   enum
   {
-    option_abskew,
-    option_acceptall,
-    option_alignwidth,
-    option_allpairs_global,
-    option_alnout,
-    option_band,
-    option_biomout,
-    option_blast6out,
-    option_borderline,
-    option_bzip2_decompress,
-    option_centroids,
-    option_chimeras,
-    option_cluster_fast,
-    option_cluster_size,
-    option_cluster_smallmem,
-    option_cluster_unoise,
-    option_clusterout_id,
-    option_clusterout_sort,
-    option_clusters,
-    option_cons_truncate,
-    option_consout,
-    option_cut,
-    option_cut_pattern,
-    option_db,
-    option_dbmask,
-    option_dbmatched,
-    option_dbnotmatched,
-    option_derep_fulllength,
-    option_derep_id,
-    option_derep_prefix,
-    option_dn,
-    option_ee_cutoffs,
-    option_eeout,
-    option_eetabbedout,
-    option_fasta_score,
-    option_fasta_width,
-    option_fastaout,
-    option_fastaout_discarded,
-    option_fastaout_discarded_rev,
-    option_fastaout_notmerged_fwd,
-    option_fastaout_notmerged_rev,
-    option_fastaout_rev,
-    option_fastapairs,
-    option_fastq_allowmergestagger,
-    option_fastq_ascii,
-    option_fastq_asciiout,
-    option_fastq_chars,
-    option_fastq_convert,
-    option_fastq_eeout,
-    option_fastq_eestats,
-    option_fastq_eestats2,
-    option_fastq_filter,
-    option_fastq_join,
-    option_fastq_maxdiffpct,
-    option_fastq_maxdiffs,
-    option_fastq_maxee,
-    option_fastq_maxee_rate,
-    option_fastq_maxlen,
-    option_fastq_maxmergelen,
-    option_fastq_maxns,
-    option_fastq_mergepairs,
-    option_fastq_minlen,
-    option_fastq_minmergelen,
-    option_fastq_minovlen,
-    option_fastq_nostagger,
-    option_fastq_qmax,
-    option_fastq_qmaxout,
-    option_fastq_qmin,
-    option_fastq_qminout,
-    option_fastq_stats,
-    option_fastq_stripleft,
-    option_fastq_stripright,
-    option_fastq_tail,
-    option_fastq_truncee,
-    option_fastq_trunclen,
-    option_fastq_trunclen_keep,
-    option_fastq_truncqual,
-    option_fastqout,
-    option_fastqout_discarded,
-    option_fastqout_discarded_rev,
-    option_fastqout_notmerged_fwd,
-    option_fastqout_notmerged_rev,
-    option_fastqout_rev,
-    option_fastx_filter,
-    option_fastx_getseq,
-    option_fastx_getseqs,
-    option_fastx_getsubseq,
-    option_fastx_mask,
-    option_fastx_revcomp,
-    option_fastx_subsample,
-    option_fulldp,
-    option_gapext,
-    option_gapopen,
-    option_gzip_decompress,
-    option_h,
-    option_hardmask,
-    option_help,
-    option_hspw,
-    option_id,
-    option_iddef,
-    option_idprefix,
-    option_idsuffix,
-    option_join_padgap,
-    option_join_padgapq,
-    option_label,
-    option_label_field,
-    option_label_substr_match,
-    option_label_suffix,
-    option_label_word,
-    option_label_words,
-    option_labels,
-    option_leftjust,
-    option_length_cutoffs,
-    option_log,
-    option_makeudb_usearch,
-    option_maskfasta,
-    option_match,
-    option_matched,
-    option_max_unmasked_pct,
-    option_maxaccepts,
-    option_maxdiffs,
-    option_maxgaps,
-    option_maxhits,
-    option_maxid,
-    option_maxqsize,
-    option_maxqt,
-    option_maxrejects,
-    option_maxseqlength,
-    option_maxsize,
-    option_maxsizeratio,
-    option_maxsl,
-    option_maxsubs,
-    option_maxuniquesize,
-    option_mid,
-    option_min_unmasked_pct,
-    option_mincols,
-    option_mindiffs,
-    option_mindiv,
-    option_minh,
-    option_minhsp,
-    option_minqt,
-    option_minseqlength,
-    option_minsize,
-    option_minsizeratio,
-    option_minsl,
-    option_mintsize,
-    option_minuniquesize,
-    option_minwordmatches,
-    option_mismatch,
-    option_mothur_shared_out,
-    option_msaout,
-    option_no_progress,
-    option_nonchimeras,
-    option_notmatched,
-    option_notmatchedfq,
-    option_notrunclabels,
-    option_orient,
-    option_otutabout,
-    option_output,
-    option_output_no_hits,
-    option_pattern,
-    option_profile,
-    option_qmask,
-    option_query_cov,
-    option_quiet,
-    option_randseed,
-    option_relabel,
-    option_relabel_keep,
-    option_relabel_md5,
-    option_relabel_self,
-    option_relabel_sha1,
-    option_rereplicate,
-    option_reverse,
-    option_rightjust,
-    option_rowlen,
-    option_samheader,
-    option_samout,
-    option_sample_pct,
-    option_sample_size,
-    option_search_exact,
-    option_self,
-    option_selfid,
-    option_sff_clip,
-    option_sff_convert,
-    option_shuffle,
-    option_sintax,
-    option_sintax_cutoff,
-    option_sizein,
-    option_sizeorder,
-    option_sizeout,
-    option_slots,
-    option_sortbylength,
-    option_sortbysize,
-    option_strand,
-    option_subseq_end,
-    option_subseq_start,
-    option_tabbedout,
-    option_target_cov,
-    option_threads,
-    option_top_hits_only,
-    option_topn,
-    option_uc,
-    option_uc_allhits,
-    option_uchime2_denovo,
-    option_uchime3_denovo,
-    option_uchime_denovo,
-    option_uchime_ref,
-    option_uchimealns,
-    option_uchimeout,
-    option_uchimeout5,
-    option_udb2fasta,
-    option_udbinfo,
-    option_udbstats,
-    option_unoise_alpha,
-    option_usearch_global,
-    option_userfields,
-    option_userout,
-    option_usersort,
-    option_v,
-    option_version,
-    option_weak_id,
-    option_wordlength,
-    option_xdrop_nw,
-    option_xee,
-    option_xn,
-    option_xsize
+   option_abskew,
+   option_acceptall,
+   option_alignwidth,
+   option_allpairs_global,
+   option_alnout,
+   option_band,
+   option_biomout,
+   option_blast6out,
+   option_borderline,
+   option_bzip2_decompress,
+   option_centroids,
+   option_chimeras,
+   option_cluster_fast,
+   option_cluster_size,
+   option_cluster_smallmem,
+   option_cluster_unoise,
+   option_clusterout_id,
+   option_clusterout_sort,
+   option_clusters,
+   option_cons_truncate,
+   option_consout,
+   option_cut,
+   option_cut_pattern,
+   option_db,
+   option_dbmask,
+   option_dbmatched,
+   option_dbnotmatched,
+   option_derep_fulllength,
+   option_derep_id,
+   option_derep_prefix,
+   option_dn,
+   option_ee_cutoffs,
+   option_eeout,
+   option_eetabbedout,
+   option_fasta_score,
+   option_fasta_width,
+   option_fastaout,
+   option_fastaout_discarded,
+   option_fastaout_discarded_rev,
+   option_fastaout_notmerged_fwd,
+   option_fastaout_notmerged_rev,
+   option_fastaout_rev,
+   option_fastapairs,
+   option_fastq_allowmergestagger,
+   option_fastq_ascii,
+   option_fastq_asciiout,
+   option_fastq_chars,
+   option_fastq_convert,
+   option_fastq_eeout,
+   option_fastq_eestats,
+   option_fastq_eestats2,
+   option_fastq_filter,
+   option_fastq_join,
+   option_fastq_maxdiffpct,
+   option_fastq_maxdiffs,
+   option_fastq_maxee,
+   option_fastq_maxee_rate,
+   option_fastq_maxlen,
+   option_fastq_maxmergelen,
+   option_fastq_maxns,
+   option_fastq_mergepairs,
+   option_fastq_minlen,
+   option_fastq_minmergelen,
+   option_fastq_minovlen,
+   option_fastq_nostagger,
+   option_fastq_qmax,
+   option_fastq_qmaxout,
+   option_fastq_qmin,
+   option_fastq_qminout,
+   option_fastq_stats,
+   option_fastq_stripleft,
+   option_fastq_stripright,
+   option_fastq_tail,
+   option_fastq_truncee,
+   option_fastq_trunclen,
+   option_fastq_trunclen_keep,
+   option_fastq_truncqual,
+   option_fastqout,
+   option_fastqout_discarded,
+   option_fastqout_discarded_rev,
+   option_fastqout_notmerged_fwd,
+   option_fastqout_notmerged_rev,
+   option_fastqout_rev,
+   option_fastx_filter,
+   option_fastx_getseq,
+   option_fastx_getseqs,
+   option_fastx_getsubseq,
+   option_fastx_mask,
+   option_fastx_revcomp,
+   option_fastx_subsample,
+   option_fulldp,
+   option_gapext,
+   option_gapopen,
+   option_gzip_decompress,
+   option_h,
+   option_hardmask,
+   option_help,
+   option_hspw,
+   option_id,
+   option_iddef,
+   option_idprefix,
+   option_idsuffix,
+   option_join_padgap,
+   option_join_padgapq,
+   option_label,
+   option_label_field,
+   option_label_substr_match,
+   option_label_suffix,
+   option_label_word,
+   option_label_words,
+   option_labels,
+   option_leftjust,
+   option_length_cutoffs,
+   option_log,
+   option_makeudb_usearch,
+   option_maskfasta,
+   option_match,
+   option_matched,
+   option_max_unmasked_pct,
+   option_maxaccepts,
+   option_maxdiffs,
+   option_maxgaps,
+   option_maxhits,
+   option_maxid,
+   option_maxqsize,
+   option_maxqt,
+   option_maxrejects,
+   option_maxseqlength,
+   option_maxsize,
+   option_maxsizeratio,
+   option_maxsl,
+   option_maxsubs,
+   option_maxuniquesize,
+   option_mid,
+   option_min_unmasked_pct,
+   option_mincols,
+   option_mindiffs,
+   option_mindiv,
+   option_minh,
+   option_minhsp,
+   option_minqt,
+   option_minseqlength,
+   option_minsize,
+   option_minsizeratio,
+   option_minsl,
+   option_mintsize,
+   option_minuniquesize,
+   option_minwordmatches,
+   option_mismatch,
+   option_mothur_shared_out,
+   option_msaout,
+   option_no_progress,
+   option_nonchimeras,
+   option_notmatched,
+   option_notmatchedfq,
+   option_notrunclabels,
+   option_orient,
+   option_otutabout,
+   option_output,
+   option_output_no_hits,
+   option_pattern,
+   option_profile,
+   option_qmask,
+   option_query_cov,
+   option_quiet,
+   option_randseed,
+   option_relabel,
+   option_relabel_keep,
+   option_relabel_md5,
+   option_relabel_self,
+   option_relabel_sha1,
+   option_rereplicate,
+   option_reverse,
+   option_rightjust,
+   option_rowlen,
+   option_samheader,
+   option_samout,
+   option_sample_pct,
+   option_sample_size,
+   option_search_exact,
+   option_self,
+   option_selfid,
+   option_sff_clip,
+   option_sff_convert,
+   option_shuffle,
+   option_sintax,
+   option_sintax_cutoff,
+   option_sizein,
+   option_sizeorder,
+   option_sizeout,
+   option_slots,
+   option_sortbylength,
+   option_sortbysize,
+   option_strand,
+   option_subseq_end,
+   option_subseq_start,
+   option_tabbedout,
+   option_target_cov,
+   option_threads,
+   option_top_hits_only,
+   option_topn,
+   option_uc,
+   option_uc_allhits,
+   option_uchime2_denovo,
+   option_uchime3_denovo,
+   option_uchime_denovo,
+   option_uchime_ref,
+   option_uchimealns,
+   option_uchimeout,
+   option_uchimeout5,
+   option_udb2fasta,
+   option_udbinfo,
+   option_udbstats,
+   option_unoise_alpha,
+   option_usearch_global,
+   option_userfields,
+   option_userout,
+   option_usersort,
+   option_v,
+   option_version,
+   option_weak_id,
+   option_wordlength,
+   option_xdrop_nw,
+   option_xee,
+   option_xn,
+   option_xsize
   };
 
   static struct option long_options[] =
-  {
-    {"abskew",                required_argument, nullptr, 0 },
-    {"acceptall",             no_argument,       nullptr, 0 },
-    {"alignwidth",            required_argument, nullptr, 0 },
-    {"allpairs_global",       required_argument, nullptr, 0 },
-    {"alnout",                required_argument, nullptr, 0 },
-    {"band",                  required_argument, nullptr, 0 },
-    {"biomout",               required_argument, nullptr, 0 },
-    {"blast6out",             required_argument, nullptr, 0 },
-    {"borderline",            required_argument, nullptr, 0 },
-    {"bzip2_decompress",      no_argument,       nullptr, 0 },
-    {"centroids",             required_argument, nullptr, 0 },
-    {"chimeras",              required_argument, nullptr, 0 },
-    {"cluster_fast",          required_argument, nullptr, 0 },
-    {"cluster_size",          required_argument, nullptr, 0 },
-    {"cluster_smallmem",      required_argument, nullptr, 0 },
-    {"cluster_unoise",        required_argument, nullptr, 0 },
-    {"clusterout_id",         no_argument,       nullptr, 0 },
-    {"clusterout_sort",       no_argument,       nullptr, 0 },
-    {"clusters",              required_argument, nullptr, 0 },
-    {"cons_truncate",         no_argument,       nullptr, 0 },
-    {"consout",               required_argument, nullptr, 0 },
-    {"cut",                   required_argument, nullptr, 0 },
-    {"cut_pattern",           required_argument, nullptr, 0 },
-    {"db",                    required_argument, nullptr, 0 },
-    {"dbmask",                required_argument, nullptr, 0 },
-    {"dbmatched",             required_argument, nullptr, 0 },
-    {"dbnotmatched",          required_argument, nullptr, 0 },
-    {"derep_fulllength",      required_argument, nullptr, 0 },
-    {"derep_id",              required_argument, nullptr, 0 },
-    {"derep_prefix",          required_argument, nullptr, 0 },
-    {"dn",                    required_argument, nullptr, 0 },
-    {"ee_cutoffs",            required_argument, nullptr, 0 },
-    {"eeout",                 no_argument,       nullptr, 0 },
-    {"eetabbedout",           required_argument, nullptr, 0 },
-    {"fasta_score",           no_argument,       nullptr, 0 },
-    {"fasta_width",           required_argument, nullptr, 0 },
-    {"fastaout",              required_argument, nullptr, 0 },
-    {"fastaout_discarded",    required_argument, nullptr, 0 },
-    {"fastaout_discarded_rev",required_argument, nullptr, 0 },
-    {"fastaout_notmerged_fwd",required_argument, nullptr, 0 },
-    {"fastaout_notmerged_rev",required_argument, nullptr, 0 },
-    {"fastaout_rev",          required_argument, nullptr, 0 },
-    {"fastapairs",            required_argument, nullptr, 0 },
-    {"fastq_allowmergestagger", no_argument,     nullptr, 0 },
-    {"fastq_ascii",           required_argument, nullptr, 0 },
-    {"fastq_asciiout",        required_argument, nullptr, 0 },
-    {"fastq_chars",           required_argument, nullptr, 0 },
-    {"fastq_convert",         required_argument, nullptr, 0 },
-    {"fastq_eeout",           no_argument,       nullptr, 0 },
-    {"fastq_eestats",         required_argument, nullptr, 0 },
-    {"fastq_eestats2",        required_argument, nullptr, 0 },
-    {"fastq_filter",          required_argument, nullptr, 0 },
-    {"fastq_join",            required_argument, nullptr, 0 },
-    {"fastq_maxdiffpct",      required_argument, nullptr, 0 },
-    {"fastq_maxdiffs",        required_argument, nullptr, 0 },
-    {"fastq_maxee",           required_argument, nullptr, 0 },
-    {"fastq_maxee_rate",      required_argument, nullptr, 0 },
-    {"fastq_maxlen",          required_argument, nullptr, 0 },
-    {"fastq_maxmergelen",     required_argument, nullptr, 0 },
-    {"fastq_maxns",           required_argument, nullptr, 0 },
-    {"fastq_mergepairs",      required_argument, nullptr, 0 },
-    {"fastq_minlen",          required_argument, nullptr, 0 },
-    {"fastq_minmergelen",     required_argument, nullptr, 0 },
-    {"fastq_minovlen",        required_argument, nullptr, 0 },
-    {"fastq_nostagger",       no_argument,       nullptr, 0 },
-    {"fastq_qmax",            required_argument, nullptr, 0 },
-    {"fastq_qmaxout",         required_argument, nullptr, 0 },
-    {"fastq_qmin",            required_argument, nullptr, 0 },
-    {"fastq_qminout",         required_argument, nullptr, 0 },
-    {"fastq_stats",           required_argument, nullptr, 0 },
-    {"fastq_stripleft",       required_argument, nullptr, 0 },
-    {"fastq_stripright",      required_argument, nullptr, 0 },
-    {"fastq_tail",            required_argument, nullptr, 0 },
-    {"fastq_truncee",         required_argument, nullptr, 0 },
-    {"fastq_trunclen",        required_argument, nullptr, 0 },
-    {"fastq_trunclen_keep",   required_argument, nullptr, 0 },
-    {"fastq_truncqual",       required_argument, nullptr, 0 },
-    {"fastqout",              required_argument, nullptr, 0 },
-    {"fastqout_discarded",    required_argument, nullptr, 0 },
-    {"fastqout_discarded_rev",required_argument, nullptr, 0 },
-    {"fastqout_notmerged_fwd",required_argument, nullptr, 0 },
-    {"fastqout_notmerged_rev",required_argument, nullptr, 0 },
-    {"fastqout_rev",          required_argument, nullptr, 0 },
-    {"fastx_filter",          required_argument, nullptr, 0 },
-    {"fastx_getseq",          required_argument, nullptr, 0 },
-    {"fastx_getseqs",         required_argument, nullptr, 0 },
-    {"fastx_getsubseq",       required_argument, nullptr, 0 },
-    {"fastx_mask",            required_argument, nullptr, 0 },
-    {"fastx_revcomp",         required_argument, nullptr, 0 },
-    {"fastx_subsample",       required_argument, nullptr, 0 },
-    {"fulldp",                no_argument,       nullptr, 0 },
-    {"gapext",                required_argument, nullptr, 0 },
-    {"gapopen",               required_argument, nullptr, 0 },
-    {"gzip_decompress",       no_argument,       nullptr, 0 },
-    {"h",                     no_argument,       nullptr, 0 },
-    {"hardmask",              no_argument,       nullptr, 0 },
-    {"help",                  no_argument,       nullptr, 0 },
-    {"hspw",                  required_argument, nullptr, 0 },
-    {"id",                    required_argument, nullptr, 0 },
-    {"iddef",                 required_argument, nullptr, 0 },
-    {"idprefix",              required_argument, nullptr, 0 },
-    {"idsuffix",              required_argument, nullptr, 0 },
-    {"join_padgap",           required_argument, nullptr, 0 },
-    {"join_padgapq",          required_argument, nullptr, 0 },
-    {"label",                 required_argument, nullptr, 0 },
-    {"label_field",           required_argument, nullptr, 0 },
-    {"label_substr_match",    no_argument,       nullptr, 0 },
-    {"label_suffix",          required_argument, nullptr, 0 },
-    {"label_word",            required_argument, nullptr, 0 },
-    {"label_words",           required_argument, nullptr, 0 },
-    {"labels",                required_argument, nullptr, 0 },
-    {"leftjust",              no_argument,       nullptr, 0 },
-    {"length_cutoffs",        required_argument, nullptr, 0 },
-    {"log",                   required_argument, nullptr, 0 },
-    {"makeudb_usearch",       required_argument, nullptr, 0 },
-    {"maskfasta",             required_argument, nullptr, 0 },
-    {"match",                 required_argument, nullptr, 0 },
-    {"matched",               required_argument, nullptr, 0 },
-    {"max_unmasked_pct",      required_argument, nullptr, 0 },
-    {"maxaccepts",            required_argument, nullptr, 0 },
-    {"maxdiffs",              required_argument, nullptr, 0 },
-    {"maxgaps",               required_argument, nullptr, 0 },
-    {"maxhits",               required_argument, nullptr, 0 },
-    {"maxid",                 required_argument, nullptr, 0 },
-    {"maxqsize",              required_argument, nullptr, 0 },
-    {"maxqt",                 required_argument, nullptr, 0 },
-    {"maxrejects",            required_argument, nullptr, 0 },
-    {"maxseqlength",          required_argument, nullptr, 0 },
-    {"maxsize",               required_argument, nullptr, 0 },
-    {"maxsizeratio",          required_argument, nullptr, 0 },
-    {"maxsl",                 required_argument, nullptr, 0 },
-    {"maxsubs",               required_argument, nullptr, 0 },
-    {"maxuniquesize",         required_argument, nullptr, 0 },
-    {"mid",                   required_argument, nullptr, 0 },
-    {"min_unmasked_pct",      required_argument, nullptr, 0 },
-    {"mincols",               required_argument, nullptr, 0 },
-    {"mindiffs",              required_argument, nullptr, 0 },
-    {"mindiv",                required_argument, nullptr, 0 },
-    {"minh",                  required_argument, nullptr, 0 },
-    {"minhsp",                required_argument, nullptr, 0 },
-    {"minqt",                 required_argument, nullptr, 0 },
-    {"minseqlength",          required_argument, nullptr, 0 },
-    {"minsize",               required_argument, nullptr, 0 },
-    {"minsizeratio",          required_argument, nullptr, 0 },
-    {"minsl",                 required_argument, nullptr, 0 },
-    {"mintsize",              required_argument, nullptr, 0 },
-    {"minuniquesize",         required_argument, nullptr, 0 },
-    {"minwordmatches",        required_argument, nullptr, 0 },
-    {"mismatch",              required_argument, nullptr, 0 },
-    {"mothur_shared_out",     required_argument, nullptr, 0 },
-    {"msaout",                required_argument, nullptr, 0 },
-    {"no_progress",           no_argument,       nullptr, 0 },
-    {"nonchimeras",           required_argument, nullptr, 0 },
-    {"notmatched",            required_argument, nullptr, 0 },
-    {"notmatchedfq",          required_argument, nullptr, 0 },
-    {"notrunclabels",         no_argument,       nullptr, 0 },
-    {"orient",                required_argument, nullptr, 0 },
-    {"otutabout",             required_argument, nullptr, 0 },
-    {"output",                required_argument, nullptr, 0 },
-    {"output_no_hits",        no_argument,       nullptr, 0 },
-    {"pattern",               required_argument, nullptr, 0 },
-    {"profile",               required_argument, nullptr, 0 },
-    {"qmask",                 required_argument, nullptr, 0 },
-    {"query_cov",             required_argument, nullptr, 0 },
-    {"quiet",                 no_argument,       nullptr, 0 },
-    {"randseed",              required_argument, nullptr, 0 },
-    {"relabel",               required_argument, nullptr, 0 },
-    {"relabel_keep",          no_argument,       nullptr, 0 },
-    {"relabel_md5",           no_argument,       nullptr, 0 },
-    {"relabel_self",          no_argument,       nullptr, 0 },
-    {"relabel_sha1",          no_argument,       nullptr, 0 },
-    {"rereplicate",           required_argument, nullptr, 0 },
-    {"reverse",               required_argument, nullptr, 0 },
-    {"rightjust",             no_argument,       nullptr, 0 },
-    {"rowlen",                required_argument, nullptr, 0 },
-    {"samheader",             no_argument,       nullptr, 0 },
-    {"samout",                required_argument, nullptr, 0 },
-    {"sample_pct",            required_argument, nullptr, 0 },
-    {"sample_size",           required_argument, nullptr, 0 },
-    {"search_exact",          required_argument, nullptr, 0 },
-    {"self",                  no_argument,       nullptr, 0 },
-    {"selfid",                no_argument,       nullptr, 0 },
-    {"sff_clip",              no_argument,       nullptr, 0 },
-    {"sff_convert",           required_argument, nullptr, 0 },
-    {"shuffle",               required_argument, nullptr, 0 },
-    {"sintax",                required_argument, nullptr, 0 },
-    {"sintax_cutoff",         required_argument, nullptr, 0 },
-    {"sizein",                no_argument,       nullptr, 0 },
-    {"sizeorder",             no_argument,       nullptr, 0 },
-    {"sizeout",               no_argument,       nullptr, 0 },
-    {"slots",                 required_argument, nullptr, 0 },
-    {"sortbylength",          required_argument, nullptr, 0 },
-    {"sortbysize",            required_argument, nullptr, 0 },
-    {"strand",                required_argument, nullptr, 0 },
-    {"subseq_end",            required_argument, nullptr, 0 },
-    {"subseq_start",          required_argument, nullptr, 0 },
-    {"tabbedout",             required_argument, nullptr, 0 },
-    {"target_cov",            required_argument, nullptr, 0 },
-    {"threads",               required_argument, nullptr, 0 },
-    {"top_hits_only",         no_argument,       nullptr, 0 },
-    {"topn",                  required_argument, nullptr, 0 },
-    {"uc",                    required_argument, nullptr, 0 },
-    {"uc_allhits",            no_argument,       nullptr, 0 },
-    {"uchime2_denovo",        required_argument, nullptr, 0 },
-    {"uchime3_denovo",        required_argument, nullptr, 0 },
-    {"uchime_denovo",         required_argument, nullptr, 0 },
-    {"uchime_ref",            required_argument, nullptr, 0 },
-    {"uchimealns",            required_argument, nullptr, 0 },
-    {"uchimeout",             required_argument, nullptr, 0 },
-    {"uchimeout5",            no_argument,       nullptr, 0 },
-    {"udb2fasta",             required_argument, nullptr, 0 },
-    {"udbinfo",               required_argument, nullptr, 0 },
-    {"udbstats",              required_argument, nullptr, 0 },
-    {"unoise_alpha",          required_argument, nullptr, 0 },
-    {"usearch_global",        required_argument, nullptr, 0 },
-    {"userfields",            required_argument, nullptr, 0 },
-    {"userout",               required_argument, nullptr, 0 },
-    {"usersort",              no_argument,       nullptr, 0 },
-    {"v",                     no_argument,       nullptr, 0 },
-    {"version",               no_argument,       nullptr, 0 },
-    {"weak_id",               required_argument, nullptr, 0 },
-    {"wordlength",            required_argument, nullptr, 0 },
-    {"xdrop_nw",              required_argument, nullptr, 0 },
-    {"xee",                   no_argument,       nullptr, 0 },
-    {"xn",                    required_argument, nullptr, 0 },
-    {"xsize",                 no_argument,       nullptr, 0 },
-    { nullptr,                      0,                 nullptr, 0 }
-  };
+    {
+     {"abskew",                required_argument, nullptr, 0 },
+     {"acceptall",             no_argument,       nullptr, 0 },
+     {"alignwidth",            required_argument, nullptr, 0 },
+     {"allpairs_global",       required_argument, nullptr, 0 },
+     {"alnout",                required_argument, nullptr, 0 },
+     {"band",                  required_argument, nullptr, 0 },
+     {"biomout",               required_argument, nullptr, 0 },
+     {"blast6out",             required_argument, nullptr, 0 },
+     {"borderline",            required_argument, nullptr, 0 },
+     {"bzip2_decompress",      no_argument,       nullptr, 0 },
+     {"centroids",             required_argument, nullptr, 0 },
+     {"chimeras",              required_argument, nullptr, 0 },
+     {"cluster_fast",          required_argument, nullptr, 0 },
+     {"cluster_size",          required_argument, nullptr, 0 },
+     {"cluster_smallmem",      required_argument, nullptr, 0 },
+     {"cluster_unoise",        required_argument, nullptr, 0 },
+     {"clusterout_id",         no_argument,       nullptr, 0 },
+     {"clusterout_sort",       no_argument,       nullptr, 0 },
+     {"clusters",              required_argument, nullptr, 0 },
+     {"cons_truncate",         no_argument,       nullptr, 0 },
+     {"consout",               required_argument, nullptr, 0 },
+     {"cut",                   required_argument, nullptr, 0 },
+     {"cut_pattern",           required_argument, nullptr, 0 },
+     {"db",                    required_argument, nullptr, 0 },
+     {"dbmask",                required_argument, nullptr, 0 },
+     {"dbmatched",             required_argument, nullptr, 0 },
+     {"dbnotmatched",          required_argument, nullptr, 0 },
+     {"derep_fulllength",      required_argument, nullptr, 0 },
+     {"derep_id",              required_argument, nullptr, 0 },
+     {"derep_prefix",          required_argument, nullptr, 0 },
+     {"dn",                    required_argument, nullptr, 0 },
+     {"ee_cutoffs",            required_argument, nullptr, 0 },
+     {"eeout",                 no_argument,       nullptr, 0 },
+     {"eetabbedout",           required_argument, nullptr, 0 },
+     {"fasta_score",           no_argument,       nullptr, 0 },
+     {"fasta_width",           required_argument, nullptr, 0 },
+     {"fastaout",              required_argument, nullptr, 0 },
+     {"fastaout_discarded",    required_argument, nullptr, 0 },
+     {"fastaout_discarded_rev",required_argument, nullptr, 0 },
+     {"fastaout_notmerged_fwd",required_argument, nullptr, 0 },
+     {"fastaout_notmerged_rev",required_argument, nullptr, 0 },
+     {"fastaout_rev",          required_argument, nullptr, 0 },
+     {"fastapairs",            required_argument, nullptr, 0 },
+     {"fastq_allowmergestagger", no_argument,     nullptr, 0 },
+     {"fastq_ascii",           required_argument, nullptr, 0 },
+     {"fastq_asciiout",        required_argument, nullptr, 0 },
+     {"fastq_chars",           required_argument, nullptr, 0 },
+     {"fastq_convert",         required_argument, nullptr, 0 },
+     {"fastq_eeout",           no_argument,       nullptr, 0 },
+     {"fastq_eestats",         required_argument, nullptr, 0 },
+     {"fastq_eestats2",        required_argument, nullptr, 0 },
+     {"fastq_filter",          required_argument, nullptr, 0 },
+     {"fastq_join",            required_argument, nullptr, 0 },
+     {"fastq_maxdiffpct",      required_argument, nullptr, 0 },
+     {"fastq_maxdiffs",        required_argument, nullptr, 0 },
+     {"fastq_maxee",           required_argument, nullptr, 0 },
+     {"fastq_maxee_rate",      required_argument, nullptr, 0 },
+     {"fastq_maxlen",          required_argument, nullptr, 0 },
+     {"fastq_maxmergelen",     required_argument, nullptr, 0 },
+     {"fastq_maxns",           required_argument, nullptr, 0 },
+     {"fastq_mergepairs",      required_argument, nullptr, 0 },
+     {"fastq_minlen",          required_argument, nullptr, 0 },
+     {"fastq_minmergelen",     required_argument, nullptr, 0 },
+     {"fastq_minovlen",        required_argument, nullptr, 0 },
+     {"fastq_nostagger",       no_argument,       nullptr, 0 },
+     {"fastq_qmax",            required_argument, nullptr, 0 },
+     {"fastq_qmaxout",         required_argument, nullptr, 0 },
+     {"fastq_qmin",            required_argument, nullptr, 0 },
+     {"fastq_qminout",         required_argument, nullptr, 0 },
+     {"fastq_stats",           required_argument, nullptr, 0 },
+     {"fastq_stripleft",       required_argument, nullptr, 0 },
+     {"fastq_stripright",      required_argument, nullptr, 0 },
+     {"fastq_tail",            required_argument, nullptr, 0 },
+     {"fastq_truncee",         required_argument, nullptr, 0 },
+     {"fastq_trunclen",        required_argument, nullptr, 0 },
+     {"fastq_trunclen_keep",   required_argument, nullptr, 0 },
+     {"fastq_truncqual",       required_argument, nullptr, 0 },
+     {"fastqout",              required_argument, nullptr, 0 },
+     {"fastqout_discarded",    required_argument, nullptr, 0 },
+     {"fastqout_discarded_rev",required_argument, nullptr, 0 },
+     {"fastqout_notmerged_fwd",required_argument, nullptr, 0 },
+     {"fastqout_notmerged_rev",required_argument, nullptr, 0 },
+     {"fastqout_rev",          required_argument, nullptr, 0 },
+     {"fastx_filter",          required_argument, nullptr, 0 },
+     {"fastx_getseq",          required_argument, nullptr, 0 },
+     {"fastx_getseqs",         required_argument, nullptr, 0 },
+     {"fastx_getsubseq",       required_argument, nullptr, 0 },
+     {"fastx_mask",            required_argument, nullptr, 0 },
+     {"fastx_revcomp",         required_argument, nullptr, 0 },
+     {"fastx_subsample",       required_argument, nullptr, 0 },
+     {"fulldp",                no_argument,       nullptr, 0 },
+     {"gapext",                required_argument, nullptr, 0 },
+     {"gapopen",               required_argument, nullptr, 0 },
+     {"gzip_decompress",       no_argument,       nullptr, 0 },
+     {"h",                     no_argument,       nullptr, 0 },
+     {"hardmask",              no_argument,       nullptr, 0 },
+     {"help",                  no_argument,       nullptr, 0 },
+     {"hspw",                  required_argument, nullptr, 0 },
+     {"id",                    required_argument, nullptr, 0 },
+     {"iddef",                 required_argument, nullptr, 0 },
+     {"idprefix",              required_argument, nullptr, 0 },
+     {"idsuffix",              required_argument, nullptr, 0 },
+     {"join_padgap",           required_argument, nullptr, 0 },
+     {"join_padgapq",          required_argument, nullptr, 0 },
+     {"label",                 required_argument, nullptr, 0 },
+     {"label_field",           required_argument, nullptr, 0 },
+     {"label_substr_match",    no_argument,       nullptr, 0 },
+     {"label_suffix",          required_argument, nullptr, 0 },
+     {"label_word",            required_argument, nullptr, 0 },
+     {"label_words",           required_argument, nullptr, 0 },
+     {"labels",                required_argument, nullptr, 0 },
+     {"leftjust",              no_argument,       nullptr, 0 },
+     {"length_cutoffs",        required_argument, nullptr, 0 },
+     {"log",                   required_argument, nullptr, 0 },
+     {"makeudb_usearch",       required_argument, nullptr, 0 },
+     {"maskfasta",             required_argument, nullptr, 0 },
+     {"match",                 required_argument, nullptr, 0 },
+     {"matched",               required_argument, nullptr, 0 },
+     {"max_unmasked_pct",      required_argument, nullptr, 0 },
+     {"maxaccepts",            required_argument, nullptr, 0 },
+     {"maxdiffs",              required_argument, nullptr, 0 },
+     {"maxgaps",               required_argument, nullptr, 0 },
+     {"maxhits",               required_argument, nullptr, 0 },
+     {"maxid",                 required_argument, nullptr, 0 },
+     {"maxqsize",              required_argument, nullptr, 0 },
+     {"maxqt",                 required_argument, nullptr, 0 },
+     {"maxrejects",            required_argument, nullptr, 0 },
+     {"maxseqlength",          required_argument, nullptr, 0 },
+     {"maxsize",               required_argument, nullptr, 0 },
+     {"maxsizeratio",          required_argument, nullptr, 0 },
+     {"maxsl",                 required_argument, nullptr, 0 },
+     {"maxsubs",               required_argument, nullptr, 0 },
+     {"maxuniquesize",         required_argument, nullptr, 0 },
+     {"mid",                   required_argument, nullptr, 0 },
+     {"min_unmasked_pct",      required_argument, nullptr, 0 },
+     {"mincols",               required_argument, nullptr, 0 },
+     {"mindiffs",              required_argument, nullptr, 0 },
+     {"mindiv",                required_argument, nullptr, 0 },
+     {"minh",                  required_argument, nullptr, 0 },
+     {"minhsp",                required_argument, nullptr, 0 },
+     {"minqt",                 required_argument, nullptr, 0 },
+     {"minseqlength",          required_argument, nullptr, 0 },
+     {"minsize",               required_argument, nullptr, 0 },
+     {"minsizeratio",          required_argument, nullptr, 0 },
+     {"minsl",                 required_argument, nullptr, 0 },
+     {"mintsize",              required_argument, nullptr, 0 },
+     {"minuniquesize",         required_argument, nullptr, 0 },
+     {"minwordmatches",        required_argument, nullptr, 0 },
+     {"mismatch",              required_argument, nullptr, 0 },
+     {"mothur_shared_out",     required_argument, nullptr, 0 },
+     {"msaout",                required_argument, nullptr, 0 },
+     {"no_progress",           no_argument,       nullptr, 0 },
+     {"nonchimeras",           required_argument, nullptr, 0 },
+     {"notmatched",            required_argument, nullptr, 0 },
+     {"notmatchedfq",          required_argument, nullptr, 0 },
+     {"notrunclabels",         no_argument,       nullptr, 0 },
+     {"orient",                required_argument, nullptr, 0 },
+     {"otutabout",             required_argument, nullptr, 0 },
+     {"output",                required_argument, nullptr, 0 },
+     {"output_no_hits",        no_argument,       nullptr, 0 },
+     {"pattern",               required_argument, nullptr, 0 },
+     {"profile",               required_argument, nullptr, 0 },
+     {"qmask",                 required_argument, nullptr, 0 },
+     {"query_cov",             required_argument, nullptr, 0 },
+     {"quiet",                 no_argument,       nullptr, 0 },
+     {"randseed",              required_argument, nullptr, 0 },
+     {"relabel",               required_argument, nullptr, 0 },
+     {"relabel_keep",          no_argument,       nullptr, 0 },
+     {"relabel_md5",           no_argument,       nullptr, 0 },
+     {"relabel_self",          no_argument,       nullptr, 0 },
+     {"relabel_sha1",          no_argument,       nullptr, 0 },
+     {"rereplicate",           required_argument, nullptr, 0 },
+     {"reverse",               required_argument, nullptr, 0 },
+     {"rightjust",             no_argument,       nullptr, 0 },
+     {"rowlen",                required_argument, nullptr, 0 },
+     {"samheader",             no_argument,       nullptr, 0 },
+     {"samout",                required_argument, nullptr, 0 },
+     {"sample_pct",            required_argument, nullptr, 0 },
+     {"sample_size",           required_argument, nullptr, 0 },
+     {"search_exact",          required_argument, nullptr, 0 },
+     {"self",                  no_argument,       nullptr, 0 },
+     {"selfid",                no_argument,       nullptr, 0 },
+     {"sff_clip",              no_argument,       nullptr, 0 },
+     {"sff_convert",           required_argument, nullptr, 0 },
+     {"shuffle",               required_argument, nullptr, 0 },
+     {"sintax",                required_argument, nullptr, 0 },
+     {"sintax_cutoff",         required_argument, nullptr, 0 },
+     {"sizein",                no_argument,       nullptr, 0 },
+     {"sizeorder",             no_argument,       nullptr, 0 },
+     {"sizeout",               no_argument,       nullptr, 0 },
+     {"slots",                 required_argument, nullptr, 0 },
+     {"sortbylength",          required_argument, nullptr, 0 },
+     {"sortbysize",            required_argument, nullptr, 0 },
+     {"strand",                required_argument, nullptr, 0 },
+     {"subseq_end",            required_argument, nullptr, 0 },
+     {"subseq_start",          required_argument, nullptr, 0 },
+     {"tabbedout",             required_argument, nullptr, 0 },
+     {"target_cov",            required_argument, nullptr, 0 },
+     {"threads",               required_argument, nullptr, 0 },
+     {"top_hits_only",         no_argument,       nullptr, 0 },
+     {"topn",                  required_argument, nullptr, 0 },
+     {"uc",                    required_argument, nullptr, 0 },
+     {"uc_allhits",            no_argument,       nullptr, 0 },
+     {"uchime2_denovo",        required_argument, nullptr, 0 },
+     {"uchime3_denovo",        required_argument, nullptr, 0 },
+     {"uchime_denovo",         required_argument, nullptr, 0 },
+     {"uchime_ref",            required_argument, nullptr, 0 },
+     {"uchimealns",            required_argument, nullptr, 0 },
+     {"uchimeout",             required_argument, nullptr, 0 },
+     {"uchimeout5",            no_argument,       nullptr, 0 },
+     {"udb2fasta",             required_argument, nullptr, 0 },
+     {"udbinfo",               required_argument, nullptr, 0 },
+     {"udbstats",              required_argument, nullptr, 0 },
+     {"unoise_alpha",          required_argument, nullptr, 0 },
+     {"usearch_global",        required_argument, nullptr, 0 },
+     {"userfields",            required_argument, nullptr, 0 },
+     {"userout",               required_argument, nullptr, 0 },
+     {"usersort",              no_argument,       nullptr, 0 },
+     {"v",                     no_argument,       nullptr, 0 },
+     {"version",               no_argument,       nullptr, 0 },
+     {"weak_id",               required_argument, nullptr, 0 },
+     {"wordlength",            required_argument, nullptr, 0 },
+     {"xdrop_nw",              required_argument, nullptr, 0 },
+     {"xee",                   no_argument,       nullptr, 0 },
+     {"xn",                    required_argument, nullptr, 0 },
+     {"xsize",                 no_argument,       nullptr, 0 },
+     { nullptr,                      0,                 nullptr, 0 }
+    };
 
   const int options_count = (sizeof(long_options) / sizeof(struct option)) - 1;
 
@@ -1437,7 +1437,7 @@ void args_init(int argc, char **argv)
       if (options_index < options_count) {
         options_selected[options_index] = true;
 
-        }
+      }
 
       switch(options_index)
         {
@@ -1498,7 +1498,7 @@ void args_init(int argc, char **argv)
           } else {
             fatal("The argument to --strand must be plus or both");
 
-        }
+          }
           break;
 
         case option_threads:
@@ -1521,7 +1521,7 @@ void args_init(int argc, char **argv)
           if (!parse_userfields_arg(optarg)) {
             fatal("Unrecognized userfield argument");
 
-        }
+          }
           break;
 
         case option_userout:
@@ -1565,7 +1565,7 @@ void args_init(int argc, char **argv)
           if (opt_minsize <= 0) {
             fatal("The argument to --minsize must be at least 1");
 
-        }
+          }
           break;
 
         case option_maxsize:
@@ -1589,7 +1589,7 @@ void args_init(int argc, char **argv)
           if (opt_minseqlength < 0) {
             fatal("The argument to --minseqlength must not be negative");
 
-        }
+          }
           break;
 
         case option_minuniquesize:
@@ -1758,7 +1758,7 @@ void args_init(int argc, char **argv)
           } else {
             opt_qmask = MASK_ERROR;
 
-        }
+          }
           break;
 
         case option_dbmask:
@@ -1771,7 +1771,7 @@ void args_init(int argc, char **argv)
           } else {
             opt_dbmask = MASK_ERROR;
 
-        }
+          }
           break;
 
         case option_cluster_smallmem:
@@ -2054,7 +2054,7 @@ void args_init(int argc, char **argv)
           if (opt_minwordmatches < 0) {
             fatal("The argument to --minwordmatches must not be negative");
 
-        }
+          }
           break;
 
         case option_v:
@@ -2402,64 +2402,64 @@ void args_init(int argc, char **argv)
   if (c != -1) {
     exit(EXIT_FAILURE);
 
-        }
+  }
 
   /* Terminate after reporting any extra non-option arguments */
   if (optind < argc) {
     fatal("Unrecognized string on command line (%s)", argv[optind]);
 
-        }
+  }
 
   /* Below is a list of all command names, in alphabetical order. */
 
   int command_options[] =
     {
-      option_allpairs_global,
-      option_cluster_fast,
-      option_cluster_size,
-      option_cluster_smallmem,
-      option_cluster_unoise,
-      option_cut,
-      option_derep_fulllength,
-      option_derep_id,
-      option_derep_prefix,
-      option_fastq_chars,
-      option_fastq_convert,
-      option_fastq_eestats,
-      option_fastq_eestats2,
-      option_fastq_filter,
-      option_fastq_join,
-      option_fastq_mergepairs,
-      option_fastq_stats,
-      option_fastx_filter,
-      option_fastx_getseq,
-      option_fastx_getseqs,
-      option_fastx_getsubseq,
-      option_fastx_mask,
-      option_fastx_revcomp,
-      option_fastx_subsample,
-      option_h,
-      option_help,
-      option_makeudb_usearch,
-      option_maskfasta,
-      option_orient,
-      option_rereplicate,
-      option_search_exact,
-      option_sff_convert,
-      option_shuffle,
-      option_sintax,
-      option_sortbylength,
-      option_sortbysize,
-      option_uchime2_denovo,
-      option_uchime3_denovo,
-      option_uchime_denovo,
-      option_uchime_ref,
-      option_udb2fasta,
-      option_udbinfo,
-      option_udbstats,
-      option_usearch_global,
-      option_v,
-      option_version
+     option_allpairs_global,
+     option_cluster_fast,
+     option_cluster_size,
+     option_cluster_smallmem,
+     option_cluster_unoise,
+     option_cut,
+     option_derep_fulllength,
+     option_derep_id,
+     option_derep_prefix,
+     option_fastq_chars,
+     option_fastq_convert,
+     option_fastq_eestats,
+     option_fastq_eestats2,
+     option_fastq_filter,
+     option_fastq_join,
+     option_fastq_mergepairs,
+     option_fastq_stats,
+     option_fastx_filter,
+     option_fastx_getseq,
+     option_fastx_getseqs,
+     option_fastx_getsubseq,
+     option_fastx_mask,
+     option_fastx_revcomp,
+     option_fastx_subsample,
+     option_h,
+     option_help,
+     option_makeudb_usearch,
+     option_maskfasta,
+     option_orient,
+     option_rereplicate,
+     option_search_exact,
+     option_sff_convert,
+     option_shuffle,
+     option_sintax,
+     option_sortbylength,
+     option_sortbysize,
+     option_uchime2_denovo,
+     option_uchime3_denovo,
+     option_uchime_denovo,
+     option_uchime_ref,
+     option_udb2fasta,
+     option_udbinfo,
+     option_udbstats,
+     option_usearch_global,
+     option_v,
+     option_version
     };
 
   const int commands_count = sizeof(command_options) / sizeof(int);
@@ -2471,1551 +2471,1551 @@ void args_init(int argc, char **argv)
 
   const int valid_options[][92] =
     {
-      {
-        option_allpairs_global,
-        option_acceptall,
-        option_alnout,
-        option_band,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastapairs,
-        option_fulldp,
-        option_gapext,
-        option_gapopen,
-        option_gzip_decompress,
-        option_hardmask,
-        option_hspw,
-        option_id,
-        option_iddef,
-        option_idprefix,
-        option_idsuffix,
-        option_leftjust,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxaccepts,
-        option_maxdiffs,
-        option_maxgaps,
-        option_maxhits,
-        option_maxid,
-        option_maxqsize,
-        option_maxqt,
-        option_maxrejects,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_maxsubs,
-        option_mid,
-        option_mincols,
-        option_minhsp,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsl,
-        option_mintsize,
-        option_minwordmatches,
-        option_mismatch,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_output_no_hits,
-        option_pattern,
-        option_qmask,
-        option_query_cov,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rightjust,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeout,
-        option_slots,
-        option_target_cov,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_userfields,
-        option_userout,
-        option_weak_id,
-        option_wordlength,
-        option_xdrop_nw,
-        option_xee,
-        option_xsize,
-        -1 },
+     {
+      option_allpairs_global,
+      option_acceptall,
+      option_alnout,
+      option_band,
+      option_blast6out,
+      option_bzip2_decompress,
+      option_fasta_width,
+      option_fastapairs,
+      option_fulldp,
+      option_gapext,
+      option_gapopen,
+      option_gzip_decompress,
+      option_hardmask,
+      option_hspw,
+      option_id,
+      option_iddef,
+      option_idprefix,
+      option_idsuffix,
+      option_leftjust,
+      option_log,
+      option_match,
+      option_matched,
+      option_maxaccepts,
+      option_maxdiffs,
+      option_maxgaps,
+      option_maxhits,
+      option_maxid,
+      option_maxqsize,
+      option_maxqt,
+      option_maxrejects,
+      option_maxseqlength,
+      option_maxsizeratio,
+      option_maxsl,
+      option_maxsubs,
+      option_mid,
+      option_mincols,
+      option_minhsp,
+      option_minqt,
+      option_minseqlength,
+      option_minsizeratio,
+      option_minsl,
+      option_mintsize,
+      option_minwordmatches,
+      option_mismatch,
+      option_no_progress,
+      option_notmatched,
+      option_notrunclabels,
+      option_output_no_hits,
+      option_pattern,
+      option_qmask,
+      option_query_cov,
+      option_quiet,
+      option_relabel,
+      option_relabel_keep,
+      option_relabel_md5,
+      option_relabel_self,
+      option_relabel_sha1,
+      option_rightjust,
+      option_rowlen,
+      option_samheader,
+      option_samout,
+      option_self,
+      option_selfid,
+      option_sizein,
+      option_sizeout,
+      option_slots,
+      option_target_cov,
+      option_threads,
+      option_top_hits_only,
+      option_uc,
+      option_userfields,
+      option_userout,
+      option_weak_id,
+      option_wordlength,
+      option_xdrop_nw,
+      option_xee,
+      option_xsize,
+      -1 },
 
-      { option_cluster_fast,
-        option_alnout,
-        option_band,
-        option_biomout,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_centroids,
-        option_clusterout_id,
-        option_clusterout_sort,
-        option_clusters,
-        option_cons_truncate,
-        option_consout,
-        option_fasta_width,
-        option_fastapairs,
-        option_fulldp,
-        option_gapext,
-        option_gapopen,
-        option_gzip_decompress,
-        option_hardmask,
-        option_hspw,
-        option_id,
-        option_iddef,
-        option_idprefix,
-        option_idsuffix,
-        option_leftjust,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxaccepts,
-        option_maxdiffs,
-        option_maxgaps,
-        option_maxhits,
-        option_maxid,
-        option_maxqsize,
-        option_maxqt,
-        option_maxrejects,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_maxsubs,
-        option_mid,
-        option_mincols,
-        option_minhsp,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsl,
-        option_mintsize,
-        option_minwordmatches,
-        option_mismatch,
-        option_mothur_shared_out,
-        option_msaout,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_otutabout,
-        option_output_no_hits,
-        option_pattern,
-        option_profile,
-        option_qmask,
-        option_query_cov,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rightjust,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeorder,
-        option_sizeout,
-        option_slots,
-        option_strand,
-        option_target_cov,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_userfields,
-        option_userout,
-        option_weak_id,
-        option_wordlength,
-        option_xdrop_nw,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_cluster_fast,
+       option_alnout,
+       option_band,
+       option_biomout,
+       option_blast6out,
+       option_bzip2_decompress,
+       option_centroids,
+       option_clusterout_id,
+       option_clusterout_sort,
+       option_clusters,
+       option_cons_truncate,
+       option_consout,
+       option_fasta_width,
+       option_fastapairs,
+       option_fulldp,
+       option_gapext,
+       option_gapopen,
+       option_gzip_decompress,
+       option_hardmask,
+       option_hspw,
+       option_id,
+       option_iddef,
+       option_idprefix,
+       option_idsuffix,
+       option_leftjust,
+       option_log,
+       option_match,
+       option_matched,
+       option_maxaccepts,
+       option_maxdiffs,
+       option_maxgaps,
+       option_maxhits,
+       option_maxid,
+       option_maxqsize,
+       option_maxqt,
+       option_maxrejects,
+       option_maxseqlength,
+       option_maxsizeratio,
+       option_maxsl,
+       option_maxsubs,
+       option_mid,
+       option_mincols,
+       option_minhsp,
+       option_minqt,
+       option_minseqlength,
+       option_minsizeratio,
+       option_minsl,
+       option_mintsize,
+       option_minwordmatches,
+       option_mismatch,
+       option_mothur_shared_out,
+       option_msaout,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_otutabout,
+       option_output_no_hits,
+       option_pattern,
+       option_profile,
+       option_qmask,
+       option_query_cov,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_rightjust,
+       option_rowlen,
+       option_samheader,
+       option_samout,
+       option_self,
+       option_selfid,
+       option_sizein,
+       option_sizeorder,
+       option_sizeout,
+       option_slots,
+       option_strand,
+       option_target_cov,
+       option_threads,
+       option_top_hits_only,
+       option_uc,
+       option_userfields,
+       option_userout,
+       option_weak_id,
+       option_wordlength,
+       option_xdrop_nw,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_cluster_size,
-        option_alnout,
-        option_band,
-        option_biomout,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_centroids,
-        option_clusterout_id,
-        option_clusterout_sort,
-        option_clusters,
-        option_cons_truncate,
-        option_consout,
-        option_fasta_width,
-        option_fastapairs,
-        option_fulldp,
-        option_gapext,
-        option_gapopen,
-        option_gzip_decompress,
-        option_hardmask,
-        option_hspw,
-        option_id,
-        option_iddef,
-        option_idprefix,
-        option_idsuffix,
-        option_leftjust,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxaccepts,
-        option_maxdiffs,
-        option_maxgaps,
-        option_maxhits,
-        option_maxid,
-        option_maxqsize,
-        option_maxqt,
-        option_maxrejects,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_maxsubs,
-        option_mid,
-        option_mincols,
-        option_minhsp,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsl,
-        option_mintsize,
-        option_minwordmatches,
-        option_mismatch,
-        option_mothur_shared_out,
-        option_msaout,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_otutabout,
-        option_output_no_hits,
-        option_pattern,
-        option_profile,
-        option_qmask,
-        option_query_cov,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rightjust,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeorder,
-        option_sizeout,
-        option_slots,
-        option_strand,
-        option_target_cov,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_userfields,
-        option_userout,
-        option_weak_id,
-        option_wordlength,
-        option_xdrop_nw,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_cluster_size,
+       option_alnout,
+       option_band,
+       option_biomout,
+       option_blast6out,
+       option_bzip2_decompress,
+       option_centroids,
+       option_clusterout_id,
+       option_clusterout_sort,
+       option_clusters,
+       option_cons_truncate,
+       option_consout,
+       option_fasta_width,
+       option_fastapairs,
+       option_fulldp,
+       option_gapext,
+       option_gapopen,
+       option_gzip_decompress,
+       option_hardmask,
+       option_hspw,
+       option_id,
+       option_iddef,
+       option_idprefix,
+       option_idsuffix,
+       option_leftjust,
+       option_log,
+       option_match,
+       option_matched,
+       option_maxaccepts,
+       option_maxdiffs,
+       option_maxgaps,
+       option_maxhits,
+       option_maxid,
+       option_maxqsize,
+       option_maxqt,
+       option_maxrejects,
+       option_maxseqlength,
+       option_maxsizeratio,
+       option_maxsl,
+       option_maxsubs,
+       option_mid,
+       option_mincols,
+       option_minhsp,
+       option_minqt,
+       option_minseqlength,
+       option_minsizeratio,
+       option_minsl,
+       option_mintsize,
+       option_minwordmatches,
+       option_mismatch,
+       option_mothur_shared_out,
+       option_msaout,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_otutabout,
+       option_output_no_hits,
+       option_pattern,
+       option_profile,
+       option_qmask,
+       option_query_cov,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_rightjust,
+       option_rowlen,
+       option_samheader,
+       option_samout,
+       option_self,
+       option_selfid,
+       option_sizein,
+       option_sizeorder,
+       option_sizeout,
+       option_slots,
+       option_strand,
+       option_target_cov,
+       option_threads,
+       option_top_hits_only,
+       option_uc,
+       option_userfields,
+       option_userout,
+       option_weak_id,
+       option_wordlength,
+       option_xdrop_nw,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_cluster_smallmem,
-        option_alnout,
-        option_band,
-        option_biomout,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_centroids,
-        option_clusterout_id,
-        option_clusterout_sort,
-        option_clusters,
-        option_cons_truncate,
-        option_consout,
-        option_fasta_width,
-        option_fastapairs,
-        option_fulldp,
-        option_gapext,
-        option_gapopen,
-        option_gzip_decompress,
-        option_hardmask,
-        option_hspw,
-        option_id,
-        option_iddef,
-        option_idprefix,
-        option_idsuffix,
-        option_leftjust,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxaccepts,
-        option_maxdiffs,
-        option_maxgaps,
-        option_maxhits,
-        option_maxid,
-        option_maxqsize,
-        option_maxqt,
-        option_maxrejects,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_maxsubs,
-        option_mid,
-        option_mincols,
-        option_minhsp,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsl,
-        option_mintsize,
-        option_minwordmatches,
-        option_mismatch,
-        option_mothur_shared_out,
-        option_msaout,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_otutabout,
-        option_output_no_hits,
-        option_pattern,
-        option_profile,
-        option_qmask,
-        option_query_cov,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rightjust,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeorder,
-        option_sizeout,
-        option_slots,
-        option_strand,
-        option_target_cov,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_userfields,
-        option_userout,
-        option_usersort,
-        option_weak_id,
-        option_wordlength,
-        option_xdrop_nw,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_cluster_smallmem,
+       option_alnout,
+       option_band,
+       option_biomout,
+       option_blast6out,
+       option_bzip2_decompress,
+       option_centroids,
+       option_clusterout_id,
+       option_clusterout_sort,
+       option_clusters,
+       option_cons_truncate,
+       option_consout,
+       option_fasta_width,
+       option_fastapairs,
+       option_fulldp,
+       option_gapext,
+       option_gapopen,
+       option_gzip_decompress,
+       option_hardmask,
+       option_hspw,
+       option_id,
+       option_iddef,
+       option_idprefix,
+       option_idsuffix,
+       option_leftjust,
+       option_log,
+       option_match,
+       option_matched,
+       option_maxaccepts,
+       option_maxdiffs,
+       option_maxgaps,
+       option_maxhits,
+       option_maxid,
+       option_maxqsize,
+       option_maxqt,
+       option_maxrejects,
+       option_maxseqlength,
+       option_maxsizeratio,
+       option_maxsl,
+       option_maxsubs,
+       option_mid,
+       option_mincols,
+       option_minhsp,
+       option_minqt,
+       option_minseqlength,
+       option_minsizeratio,
+       option_minsl,
+       option_mintsize,
+       option_minwordmatches,
+       option_mismatch,
+       option_mothur_shared_out,
+       option_msaout,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_otutabout,
+       option_output_no_hits,
+       option_pattern,
+       option_profile,
+       option_qmask,
+       option_query_cov,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_rightjust,
+       option_rowlen,
+       option_samheader,
+       option_samout,
+       option_self,
+       option_selfid,
+       option_sizein,
+       option_sizeorder,
+       option_sizeout,
+       option_slots,
+       option_strand,
+       option_target_cov,
+       option_threads,
+       option_top_hits_only,
+       option_uc,
+       option_userfields,
+       option_userout,
+       option_usersort,
+       option_weak_id,
+       option_wordlength,
+       option_xdrop_nw,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_cluster_unoise,
-        option_alnout,
-        option_band,
-        option_biomout,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_centroids,
-        option_clusterout_id,
-        option_clusterout_sort,
-        option_clusters,
-        option_cons_truncate,
-        option_consout,
-        option_fasta_width,
-        option_fastapairs,
-        option_fulldp,
-        option_gapext,
-        option_gapopen,
-        option_gzip_decompress,
-        option_hardmask,
-        option_hspw,
-        option_id,
-        option_iddef,
-        option_idprefix,
-        option_idsuffix,
-        option_leftjust,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxaccepts,
-        option_maxdiffs,
-        option_maxgaps,
-        option_maxhits,
-        option_maxid,
-        option_maxqsize,
-        option_maxqt,
-        option_maxrejects,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_maxsubs,
-        option_mid,
-        option_mincols,
-        option_minhsp,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsize,
-        option_minsl,
-        option_mintsize,
-        option_minwordmatches,
-        option_mismatch,
-        option_mothur_shared_out,
-        option_msaout,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_otutabout,
-        option_output_no_hits,
-        option_pattern,
-        option_profile,
-        option_qmask,
-        option_query_cov,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rightjust,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeorder,
-        option_sizeout,
-        option_slots,
-        option_strand,
-        option_target_cov,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_unoise_alpha,
-        option_userfields,
-        option_userout,
-        option_weak_id,
-        option_wordlength,
-        option_xdrop_nw,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_cluster_unoise,
+       option_alnout,
+       option_band,
+       option_biomout,
+       option_blast6out,
+       option_bzip2_decompress,
+       option_centroids,
+       option_clusterout_id,
+       option_clusterout_sort,
+       option_clusters,
+       option_cons_truncate,
+       option_consout,
+       option_fasta_width,
+       option_fastapairs,
+       option_fulldp,
+       option_gapext,
+       option_gapopen,
+       option_gzip_decompress,
+       option_hardmask,
+       option_hspw,
+       option_id,
+       option_iddef,
+       option_idprefix,
+       option_idsuffix,
+       option_leftjust,
+       option_log,
+       option_match,
+       option_matched,
+       option_maxaccepts,
+       option_maxdiffs,
+       option_maxgaps,
+       option_maxhits,
+       option_maxid,
+       option_maxqsize,
+       option_maxqt,
+       option_maxrejects,
+       option_maxseqlength,
+       option_maxsizeratio,
+       option_maxsl,
+       option_maxsubs,
+       option_mid,
+       option_mincols,
+       option_minhsp,
+       option_minqt,
+       option_minseqlength,
+       option_minsizeratio,
+       option_minsize,
+       option_minsl,
+       option_mintsize,
+       option_minwordmatches,
+       option_mismatch,
+       option_mothur_shared_out,
+       option_msaout,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_otutabout,
+       option_output_no_hits,
+       option_pattern,
+       option_profile,
+       option_qmask,
+       option_query_cov,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_rightjust,
+       option_rowlen,
+       option_samheader,
+       option_samout,
+       option_self,
+       option_selfid,
+       option_sizein,
+       option_sizeorder,
+       option_sizeout,
+       option_slots,
+       option_strand,
+       option_target_cov,
+       option_threads,
+       option_top_hits_only,
+       option_uc,
+       option_unoise_alpha,
+       option_userfields,
+       option_userout,
+       option_weak_id,
+       option_wordlength,
+       option_xdrop_nw,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_cut,
-        option_bzip2_decompress,
-        option_cut_pattern,
-        option_fasta_width,
-        option_fastaout,
-        option_fastaout_discarded,
-        option_fastaout_discarded_rev,
-        option_fastaout_rev,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_notrunclabels,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_cut,
+       option_bzip2_decompress,
+       option_cut_pattern,
+       option_fasta_width,
+       option_fastaout,
+       option_fastaout_discarded,
+       option_fastaout_discarded_rev,
+       option_fastaout_rev,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_notrunclabels,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_derep_fulllength,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_gzip_decompress,
-        option_log,
-        option_maxseqlength,
-        option_maxuniquesize,
-        option_minseqlength,
-        option_minuniquesize,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_strand,
-        option_threads,
-        option_topn,
-        option_uc,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_derep_fulllength,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_gzip_decompress,
+       option_log,
+       option_maxseqlength,
+       option_maxuniquesize,
+       option_minseqlength,
+       option_minuniquesize,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_strand,
+       option_threads,
+       option_topn,
+       option_uc,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_derep_id,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_gzip_decompress,
-        option_log,
-        option_maxseqlength,
-        option_maxuniquesize,
-        option_minseqlength,
-        option_minuniquesize,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_strand,
-        option_threads,
-        option_topn,
-        option_uc,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_derep_id,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_gzip_decompress,
+       option_log,
+       option_maxseqlength,
+       option_maxuniquesize,
+       option_minseqlength,
+       option_minuniquesize,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_strand,
+       option_threads,
+       option_topn,
+       option_uc,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_derep_prefix,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_gzip_decompress,
-        option_log,
-        option_maxseqlength,
-        option_maxuniquesize,
-        option_minseqlength,
-        option_minuniquesize,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_strand,
-        option_threads,
-        option_topn,
-        option_uc,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_derep_prefix,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_gzip_decompress,
+       option_log,
+       option_maxseqlength,
+       option_maxuniquesize,
+       option_minseqlength,
+       option_minuniquesize,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_strand,
+       option_threads,
+       option_topn,
+       option_uc,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastq_chars,
-        option_bzip2_decompress,
-        option_fastq_tail,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_fastq_chars,
+       option_bzip2_decompress,
+       option_fastq_tail,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_fastq_convert,
-        option_bzip2_decompress,
-        option_fastq_ascii,
-        option_fastq_asciiout,
-        option_fastq_qmax,
-        option_fastq_qmaxout,
-        option_fastq_qmin,
-        option_fastq_qminout,
-        option_fastqout,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastq_convert,
+       option_bzip2_decompress,
+       option_fastq_ascii,
+       option_fastq_asciiout,
+       option_fastq_qmax,
+       option_fastq_qmaxout,
+       option_fastq_qmin,
+       option_fastq_qminout,
+       option_fastqout,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastq_eestats,
-        option_bzip2_decompress,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_output,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_fastq_eestats,
+       option_bzip2_decompress,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_output,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_fastq_eestats2,
-        option_bzip2_decompress,
-        option_ee_cutoffs,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_length_cutoffs,
-        option_log,
-        option_no_progress,
-        option_output,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_fastq_eestats2,
+       option_bzip2_decompress,
+       option_ee_cutoffs,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_length_cutoffs,
+       option_log,
+       option_no_progress,
+       option_output,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_fastq_filter,
-        option_bzip2_decompress,
-        option_eeout,
-        option_fasta_width,
-        option_fastaout,
-        option_fastaout_discarded,
-        option_fastaout_discarded_rev,
-        option_fastaout_rev,
-        option_fastq_ascii,
-        option_fastq_eeout,
-        option_fastq_maxee,
-        option_fastq_maxee_rate,
-        option_fastq_maxlen,
-        option_fastq_maxns,
-        option_fastq_minlen,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastq_stripleft,
-        option_fastq_stripright,
-        option_fastq_truncee,
-        option_fastq_trunclen,
-        option_fastq_trunclen_keep,
-        option_fastq_truncqual,
-        option_fastqout,
-        option_fastqout_discarded,
-        option_fastqout_discarded_rev,
-        option_fastqout_rev,
-        option_gzip_decompress,
-        option_log,
-        option_maxsize,
-        option_minsize,
-        option_no_progress,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_reverse,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastq_filter,
+       option_bzip2_decompress,
+       option_eeout,
+       option_fasta_width,
+       option_fastaout,
+       option_fastaout_discarded,
+       option_fastaout_discarded_rev,
+       option_fastaout_rev,
+       option_fastq_ascii,
+       option_fastq_eeout,
+       option_fastq_maxee,
+       option_fastq_maxee_rate,
+       option_fastq_maxlen,
+       option_fastq_maxns,
+       option_fastq_minlen,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastq_stripleft,
+       option_fastq_stripright,
+       option_fastq_truncee,
+       option_fastq_trunclen,
+       option_fastq_trunclen_keep,
+       option_fastq_truncqual,
+       option_fastqout,
+       option_fastqout_discarded,
+       option_fastqout_discarded_rev,
+       option_fastqout_rev,
+       option_gzip_decompress,
+       option_log,
+       option_maxsize,
+       option_minsize,
+       option_no_progress,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_reverse,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastq_join,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_gzip_decompress,
-        option_join_padgap,
-        option_join_padgapq,
-        option_log,
-        option_no_progress,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_reverse,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastq_join,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_gzip_decompress,
+       option_join_padgap,
+       option_join_padgapq,
+       option_log,
+       option_no_progress,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_reverse,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastq_mergepairs,
-        option_bzip2_decompress,
-        option_eeout,
-        option_eetabbedout,
-        option_fasta_width,
-        option_fastaout,
-        option_fastaout_notmerged_fwd,
-        option_fastaout_notmerged_rev,
-        option_fastq_allowmergestagger,
-        option_fastq_ascii,
-        option_fastq_eeout,
-        option_fastq_maxdiffpct,
-        option_fastq_maxdiffs,
-        option_fastq_maxee,
-        option_fastq_maxlen,
-        option_fastq_maxmergelen,
-        option_fastq_maxns,
-        option_fastq_minlen,
-        option_fastq_minmergelen,
-        option_fastq_minovlen,
-        option_fastq_nostagger,
-        option_fastq_qmax,
-        option_fastq_qmaxout,
-        option_fastq_qmin,
-        option_fastq_qminout,
-        option_fastq_truncqual,
-        option_fastqout,
-        option_fastqout_notmerged_fwd,
-        option_fastqout_notmerged_rev,
-        option_gzip_decompress,
-        option_label_suffix,
-        option_log,
-        option_no_progress,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_reverse,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastq_mergepairs,
+       option_bzip2_decompress,
+       option_eeout,
+       option_eetabbedout,
+       option_fasta_width,
+       option_fastaout,
+       option_fastaout_notmerged_fwd,
+       option_fastaout_notmerged_rev,
+       option_fastq_allowmergestagger,
+       option_fastq_ascii,
+       option_fastq_eeout,
+       option_fastq_maxdiffpct,
+       option_fastq_maxdiffs,
+       option_fastq_maxee,
+       option_fastq_maxlen,
+       option_fastq_maxmergelen,
+       option_fastq_maxns,
+       option_fastq_minlen,
+       option_fastq_minmergelen,
+       option_fastq_minovlen,
+       option_fastq_nostagger,
+       option_fastq_qmax,
+       option_fastq_qmaxout,
+       option_fastq_qmin,
+       option_fastq_qminout,
+       option_fastq_truncqual,
+       option_fastqout,
+       option_fastqout_notmerged_fwd,
+       option_fastqout_notmerged_rev,
+       option_gzip_decompress,
+       option_label_suffix,
+       option_log,
+       option_no_progress,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_reverse,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastq_stats,
-        option_bzip2_decompress,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_output,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_fastq_stats,
+       option_bzip2_decompress,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_output,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_fastx_filter,
-        option_bzip2_decompress,
-        option_eeout,
-        option_fasta_width,
-        option_fastaout,
-        option_fastaout_discarded,
-        option_fastaout_discarded_rev,
-        option_fastaout_rev,
-        option_fastq_ascii,
-        option_fastq_eeout,
-        option_fastq_maxee,
-        option_fastq_maxee_rate,
-        option_fastq_maxlen,
-        option_fastq_maxns,
-        option_fastq_minlen,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastq_stripleft,
-        option_fastq_stripright,
-        option_fastq_truncee,
-        option_fastq_trunclen,
-        option_fastq_trunclen_keep,
-        option_fastq_truncqual,
-        option_fastqout,
-        option_fastqout_discarded,
-        option_fastqout_discarded_rev,
-        option_fastqout_rev,
-        option_gzip_decompress,
-        option_log,
-        option_maxsize,
-        option_minsize,
-        option_no_progress,
-        option_notrunclabels,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_reverse,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_filter,
+       option_bzip2_decompress,
+       option_eeout,
+       option_fasta_width,
+       option_fastaout,
+       option_fastaout_discarded,
+       option_fastaout_discarded_rev,
+       option_fastaout_rev,
+       option_fastq_ascii,
+       option_fastq_eeout,
+       option_fastq_maxee,
+       option_fastq_maxee_rate,
+       option_fastq_maxlen,
+       option_fastq_maxns,
+       option_fastq_minlen,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastq_stripleft,
+       option_fastq_stripright,
+       option_fastq_truncee,
+       option_fastq_trunclen,
+       option_fastq_trunclen_keep,
+       option_fastq_truncqual,
+       option_fastqout,
+       option_fastqout_discarded,
+       option_fastqout_discarded_rev,
+       option_fastqout_rev,
+       option_gzip_decompress,
+       option_log,
+       option_maxsize,
+       option_minsize,
+       option_no_progress,
+       option_notrunclabels,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_reverse,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastx_getseq,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_gzip_decompress,
-        option_label,
-        option_label_substr_match,
-        option_log,
-        option_no_progress,
-        option_notmatched,
-        option_notmatchedfq,
-        option_notrunclabels,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_getseq,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_gzip_decompress,
+       option_label,
+       option_label_substr_match,
+       option_log,
+       option_no_progress,
+       option_notmatched,
+       option_notmatchedfq,
+       option_notrunclabels,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastx_getseqs,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_gzip_decompress,
-        option_label,
-        option_label_field,
-        option_label_substr_match,
-        option_label_word,
-        option_label_words,
-        option_labels,
-        option_log,
-        option_no_progress,
-        option_notmatched,
-        option_notmatchedfq,
-        option_notrunclabels,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_getseqs,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_gzip_decompress,
+       option_label,
+       option_label_field,
+       option_label_substr_match,
+       option_label_word,
+       option_label_words,
+       option_labels,
+       option_log,
+       option_no_progress,
+       option_notmatched,
+       option_notmatchedfq,
+       option_notrunclabels,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastx_getsubseq,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_gzip_decompress,
-        option_label,
-        option_label_substr_match,
-        option_log,
-        option_no_progress,
-        option_notmatched,
-        option_notmatchedfq,
-        option_notrunclabels,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_subseq_end,
-        option_subseq_start,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_getsubseq,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_gzip_decompress,
+       option_label,
+       option_label_substr_match,
+       option_log,
+       option_no_progress,
+       option_notmatched,
+       option_notmatchedfq,
+       option_notrunclabels,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_subseq_end,
+       option_subseq_start,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastx_mask,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_gzip_decompress,
-        option_hardmask,
-        option_log,
-        option_max_unmasked_pct,
-        option_min_unmasked_pct,
-        option_no_progress,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_mask,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_gzip_decompress,
+       option_hardmask,
+       option_log,
+       option_max_unmasked_pct,
+       option_min_unmasked_pct,
+       option_no_progress,
+       option_notrunclabels,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastx_revcomp,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_gzip_decompress,
-        option_label_suffix,
-        option_log,
-        option_no_progress,
-        option_notrunclabels,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_revcomp,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_gzip_decompress,
+       option_label_suffix,
+       option_log,
+       option_no_progress,
+       option_notrunclabels,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_fastx_subsample,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastaout,
-        option_fastaout_discarded,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_fastqout,
-        option_fastqout_discarded,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_notrunclabels,
-        option_quiet,
-        option_randseed,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sample_pct,
-        option_sample_size,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_fastx_subsample,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastaout,
+       option_fastaout_discarded,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_fastqout,
+       option_fastqout_discarded,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_notrunclabels,
+       option_quiet,
+       option_randseed,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sample_pct,
+       option_sample_size,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_h,
-        option_log,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_h,
+       option_log,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_help,
-        option_log,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_help,
+       option_log,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_makeudb_usearch,
-        option_bzip2_decompress,
-        option_dbmask,
-        option_gzip_decompress,
-        option_hardmask,
-        option_log,
-        option_minseqlength,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_threads,
-        option_wordlength,
-        -1 },
+     { option_makeudb_usearch,
+       option_bzip2_decompress,
+       option_dbmask,
+       option_gzip_decompress,
+       option_hardmask,
+       option_log,
+       option_minseqlength,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_threads,
+       option_wordlength,
+       -1 },
 
-      { option_maskfasta,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_gzip_decompress,
-        option_hardmask,
-        option_log,
-        option_max_unmasked_pct,
-        option_maxseqlength,
-        option_min_unmasked_pct,
-        option_minseqlength,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_maskfasta,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_gzip_decompress,
+       option_hardmask,
+       option_log,
+       option_max_unmasked_pct,
+       option_maxseqlength,
+       option_min_unmasked_pct,
+       option_minseqlength,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_orient,
-        option_bzip2_decompress,
-        option_db,
-        option_dbmask,
-        option_fasta_width,
-        option_fastaout,
-        option_fastqout,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_tabbedout,
-        option_threads,
-        option_wordlength,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_orient,
+       option_bzip2_decompress,
+       option_db,
+       option_dbmask,
+       option_fasta_width,
+       option_fastaout,
+       option_fastqout,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_tabbedout,
+       option_threads,
+       option_wordlength,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_rereplicate,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_rereplicate,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_search_exact,
-        option_alnout,
-        option_biomout,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_db,
-        option_dbmask,
-        option_dbmatched,
-        option_dbnotmatched,
-        option_fasta_width,
-        option_fastapairs,
-        option_gzip_decompress,
-        option_hardmask,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxhits,
-        option_maxqsize,
-        option_maxqt,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_mincols,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsl,
-        option_mintsize,
-        option_mismatch,
-        option_mothur_shared_out,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_otutabout,
-        option_output_no_hits,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_sizein,
-        option_sizeout,
-        option_strand,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_uc_allhits,
-        option_userfields,
-        option_userout,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_search_exact,
+       option_alnout,
+       option_biomout,
+       option_blast6out,
+       option_bzip2_decompress,
+       option_db,
+       option_dbmask,
+       option_dbmatched,
+       option_dbnotmatched,
+       option_fasta_width,
+       option_fastapairs,
+       option_gzip_decompress,
+       option_hardmask,
+       option_log,
+       option_match,
+       option_matched,
+       option_maxhits,
+       option_maxqsize,
+       option_maxqt,
+       option_maxseqlength,
+       option_maxsizeratio,
+       option_maxsl,
+       option_mincols,
+       option_minqt,
+       option_minseqlength,
+       option_minsizeratio,
+       option_minsl,
+       option_mintsize,
+       option_mismatch,
+       option_mothur_shared_out,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_otutabout,
+       option_output_no_hits,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_rowlen,
+       option_samheader,
+       option_samout,
+       option_self,
+       option_sizein,
+       option_sizeout,
+       option_strand,
+       option_threads,
+       option_top_hits_only,
+       option_uc,
+       option_uc_allhits,
+       option_userfields,
+       option_userout,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_sff_convert,
-        option_fastq_asciiout,
-        option_fastq_qmaxout,
-        option_fastq_qminout,
-        option_fastqout,
-        option_log,
-        option_no_progress,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sff_clip,
-        option_sizeout,
-        option_threads,
-        -1 },
+     { option_sff_convert,
+       option_fastq_asciiout,
+       option_fastq_qmaxout,
+       option_fastq_qminout,
+       option_fastqout,
+       option_log,
+       option_no_progress,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sff_clip,
+       option_sizeout,
+       option_threads,
+       -1 },
 
-      { option_shuffle,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_log,
-        option_maxseqlength,
-        option_minseqlength,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_randseed,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_topn,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_shuffle,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_log,
+       option_maxseqlength,
+       option_minseqlength,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_randseed,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_topn,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_sintax,
-        option_bzip2_decompress,
-        option_db,
-        option_dbmask,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_log,
-        option_no_progress,
-        option_notrunclabels,
-        option_quiet,
-        option_sintax_cutoff,
-        option_strand,
-        option_tabbedout,
-        option_threads,
-        option_wordlength,
-        -1 },
+     { option_sintax,
+       option_bzip2_decompress,
+       option_db,
+       option_dbmask,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_log,
+       option_no_progress,
+       option_notrunclabels,
+       option_quiet,
+       option_sintax_cutoff,
+       option_strand,
+       option_tabbedout,
+       option_threads,
+       option_wordlength,
+       -1 },
 
-      { option_sortbylength,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_log,
-        option_maxseqlength,
-        option_minseqlength,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_topn,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_sortbylength,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_log,
+       option_maxseqlength,
+       option_minseqlength,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_topn,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_sortbysize,
-        option_bzip2_decompress,
-        option_fasta_width,
-        option_fastq_ascii,
-        option_fastq_qmax,
-        option_fastq_qmin,
-        option_gzip_decompress,
-        option_log,
-        option_maxseqlength,
-        option_maxsize,
-        option_minseqlength,
-        option_minsize,
-        option_no_progress,
-        option_notrunclabels,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_topn,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_sortbysize,
+       option_bzip2_decompress,
+       option_fasta_width,
+       option_fastq_ascii,
+       option_fastq_qmax,
+       option_fastq_qmin,
+       option_gzip_decompress,
+       option_log,
+       option_maxseqlength,
+       option_maxsize,
+       option_minseqlength,
+       option_minsize,
+       option_no_progress,
+       option_notrunclabels,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_topn,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_uchime2_denovo,
-        option_abskew,
-        option_alignwidth,
-        option_borderline,
-        option_chimeras,
-        option_dn,
-        option_fasta_score,
-        option_fasta_width,
-        option_gapext,
-        option_gapopen,
-        option_hardmask,
-        option_log,
-        option_match,
-        option_mindiffs,
-        option_mindiv,
-        option_minh,
-        option_mismatch,
-        option_no_progress,
-        option_nonchimeras,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_uchimealns,
-        option_uchimeout,
-        option_uchimeout5,
-        option_xee,
-        option_xn,
-        option_xsize,
-        -1 },
+     { option_uchime2_denovo,
+       option_abskew,
+       option_alignwidth,
+       option_borderline,
+       option_chimeras,
+       option_dn,
+       option_fasta_score,
+       option_fasta_width,
+       option_gapext,
+       option_gapopen,
+       option_hardmask,
+       option_log,
+       option_match,
+       option_mindiffs,
+       option_mindiv,
+       option_minh,
+       option_mismatch,
+       option_no_progress,
+       option_nonchimeras,
+       option_notrunclabels,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_uchimealns,
+       option_uchimeout,
+       option_uchimeout5,
+       option_xee,
+       option_xn,
+       option_xsize,
+       -1 },
 
-      { option_uchime3_denovo,
-        option_abskew,
-        option_alignwidth,
-        option_borderline,
-        option_chimeras,
-        option_dn,
-        option_fasta_score,
-        option_fasta_width,
-        option_gapext,
-        option_gapopen,
-        option_hardmask,
-        option_log,
-        option_match,
-        option_mindiffs,
-        option_mindiv,
-        option_minh,
-        option_mismatch,
-        option_no_progress,
-        option_nonchimeras,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_uchimealns,
-        option_uchimeout,
-        option_uchimeout5,
-        option_xee,
-        option_xn,
-        option_xsize,
-        -1 },
+     { option_uchime3_denovo,
+       option_abskew,
+       option_alignwidth,
+       option_borderline,
+       option_chimeras,
+       option_dn,
+       option_fasta_score,
+       option_fasta_width,
+       option_gapext,
+       option_gapopen,
+       option_hardmask,
+       option_log,
+       option_match,
+       option_mindiffs,
+       option_mindiv,
+       option_minh,
+       option_mismatch,
+       option_no_progress,
+       option_nonchimeras,
+       option_notrunclabels,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_uchimealns,
+       option_uchimeout,
+       option_uchimeout5,
+       option_xee,
+       option_xn,
+       option_xsize,
+       -1 },
 
-      { option_uchime_denovo,
-        option_abskew,
-        option_alignwidth,
-        option_borderline,
-        option_chimeras,
-        option_dn,
-        option_fasta_score,
-        option_fasta_width,
-        option_gapext,
-        option_gapopen,
-        option_hardmask,
-        option_log,
-        option_match,
-        option_mindiffs,
-        option_mindiv,
-        option_minh,
-        option_mismatch,
-        option_no_progress,
-        option_nonchimeras,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_uchimealns,
-        option_uchimeout,
-        option_uchimeout5,
-        option_xee,
-        option_xn,
-        option_xsize,
-        -1 },
+     { option_uchime_denovo,
+       option_abskew,
+       option_alignwidth,
+       option_borderline,
+       option_chimeras,
+       option_dn,
+       option_fasta_score,
+       option_fasta_width,
+       option_gapext,
+       option_gapopen,
+       option_hardmask,
+       option_log,
+       option_match,
+       option_mindiffs,
+       option_mindiv,
+       option_minh,
+       option_mismatch,
+       option_no_progress,
+       option_nonchimeras,
+       option_notrunclabels,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_uchimealns,
+       option_uchimeout,
+       option_uchimeout5,
+       option_xee,
+       option_xn,
+       option_xsize,
+       -1 },
 
-      { option_uchime_ref,
-        option_abskew,
-        option_alignwidth,
-        option_borderline,
-        option_chimeras,
-        option_db,
-        option_dbmask,
-        option_dn,
-        option_fasta_score,
-        option_fasta_width,
-        option_gapext,
-        option_gapopen,
-        option_hardmask,
-        option_log,
-        option_match,
-        option_mindiffs,
-        option_mindiv,
-        option_minh,
-        option_mismatch,
-        option_no_progress,
-        option_nonchimeras,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeout,
-        option_strand,
-        option_threads,
-        option_uchimealns,
-        option_uchimeout,
-        option_uchimeout5,
-        option_xee,
-        option_xn,
-        option_xsize,
-        -1 },
+     { option_uchime_ref,
+       option_abskew,
+       option_alignwidth,
+       option_borderline,
+       option_chimeras,
+       option_db,
+       option_dbmask,
+       option_dn,
+       option_fasta_score,
+       option_fasta_width,
+       option_gapext,
+       option_gapopen,
+       option_hardmask,
+       option_log,
+       option_match,
+       option_mindiffs,
+       option_mindiv,
+       option_minh,
+       option_mismatch,
+       option_no_progress,
+       option_nonchimeras,
+       option_notrunclabels,
+       option_qmask,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_self,
+       option_selfid,
+       option_sizein,
+       option_sizeout,
+       option_strand,
+       option_threads,
+       option_uchimealns,
+       option_uchimeout,
+       option_uchimeout5,
+       option_xee,
+       option_xn,
+       option_xsize,
+       -1 },
 
-      { option_udb2fasta,
-        option_fasta_width,
-        option_log,
-        option_no_progress,
-        option_output,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_udb2fasta,
+       option_fasta_width,
+       option_log,
+       option_no_progress,
+       option_output,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_sizein,
+       option_sizeout,
+       option_threads,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_udbinfo,
-        option_log,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_udbinfo,
+       option_log,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_udbstats,
-        option_log,
-        option_no_progress,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_udbstats,
+       option_log,
+       option_no_progress,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_usearch_global,
-        option_alnout,
-        option_band,
-        option_biomout,
-        option_blast6out,
-        option_bzip2_decompress,
-        option_db,
-        option_dbmask,
-        option_dbmatched,
-        option_dbnotmatched,
-        option_fasta_width,
-        option_fastapairs,
-        option_fulldp,
-        option_gapext,
-        option_gapopen,
-        option_gzip_decompress,
-        option_hardmask,
-        option_hspw,
-        option_id,
-        option_iddef,
-        option_idprefix,
-        option_idsuffix,
-        option_leftjust,
-        option_log,
-        option_match,
-        option_matched,
-        option_maxaccepts,
-        option_maxdiffs,
-        option_maxgaps,
-        option_maxhits,
-        option_maxid,
-        option_maxqsize,
-        option_maxqt,
-        option_maxrejects,
-        option_maxseqlength,
-        option_maxsizeratio,
-        option_maxsl,
-        option_maxsubs,
-        option_mid,
-        option_mincols,
-        option_minhsp,
-        option_minqt,
-        option_minseqlength,
-        option_minsizeratio,
-        option_minsl,
-        option_mintsize,
-        option_minwordmatches,
-        option_mismatch,
-        option_mothur_shared_out,
-        option_no_progress,
-        option_notmatched,
-        option_notrunclabels,
-        option_otutabout,
-        option_output_no_hits,
-        option_pattern,
-        option_qmask,
-        option_query_cov,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_rightjust,
-        option_rowlen,
-        option_samheader,
-        option_samout,
-        option_self,
-        option_selfid,
-        option_sizein,
-        option_sizeout,
-        option_slots,
-        option_strand,
-        option_target_cov,
-        option_threads,
-        option_top_hits_only,
-        option_uc,
-        option_uc_allhits,
-        option_userfields,
-        option_userout,
-        option_weak_id,
-        option_wordlength,
-        option_xdrop_nw,
-        option_xee,
-        option_xsize,
-        -1 },
+     { option_usearch_global,
+       option_alnout,
+       option_band,
+       option_biomout,
+       option_blast6out,
+       option_bzip2_decompress,
+       option_db,
+       option_dbmask,
+       option_dbmatched,
+       option_dbnotmatched,
+       option_fasta_width,
+       option_fastapairs,
+       option_fulldp,
+       option_gapext,
+       option_gapopen,
+       option_gzip_decompress,
+       option_hardmask,
+       option_hspw,
+       option_id,
+       option_iddef,
+       option_idprefix,
+       option_idsuffix,
+       option_leftjust,
+       option_log,
+       option_match,
+       option_matched,
+       option_maxaccepts,
+       option_maxdiffs,
+       option_maxgaps,
+       option_maxhits,
+       option_maxid,
+       option_maxqsize,
+       option_maxqt,
+       option_maxrejects,
+       option_maxseqlength,
+       option_maxsizeratio,
+       option_maxsl,
+       option_maxsubs,
+       option_mid,
+       option_mincols,
+       option_minhsp,
+       option_minqt,
+       option_minseqlength,
+       option_minsizeratio,
+       option_minsl,
+       option_mintsize,
+       option_minwordmatches,
+       option_mismatch,
+       option_mothur_shared_out,
+       option_no_progress,
+       option_notmatched,
+       option_notrunclabels,
+       option_otutabout,
+       option_output_no_hits,
+       option_pattern,
+       option_qmask,
+       option_query_cov,
+       option_quiet,
+       option_relabel,
+       option_relabel_keep,
+       option_relabel_md5,
+       option_relabel_self,
+       option_relabel_sha1,
+       option_rightjust,
+       option_rowlen,
+       option_samheader,
+       option_samout,
+       option_self,
+       option_selfid,
+       option_sizein,
+       option_sizeout,
+       option_slots,
+       option_strand,
+       option_target_cov,
+       option_threads,
+       option_top_hits_only,
+       option_uc,
+       option_uc_allhits,
+       option_userfields,
+       option_userout,
+       option_weak_id,
+       option_wordlength,
+       option_xdrop_nw,
+       option_xee,
+       option_xsize,
+       -1 },
 
-      { option_v,
-        option_log,
-        option_quiet,
-        option_threads,
-        -1 },
+     { option_v,
+       option_log,
+       option_quiet,
+       option_threads,
+       -1 },
 
-      { option_version,
-        option_log,
-        option_quiet,
-        option_threads,
-        -1 }
+     { option_version,
+       option_log,
+       option_quiet,
+       option_threads,
+       -1 }
     };
 
   /* check that only one commmand is specified */
@@ -4028,11 +4028,11 @@ void args_init(int argc, char **argv)
         k = i;
       }
 
-        }
+  }
   if (commands > 1) {
     fatal("More than one command specified");
 
-        }
+  }
 
   /* check that only valid options are specified */
   int invalid_options = 0;
@@ -4042,17 +4042,17 @@ void args_init(int argc, char **argv)
       /* check if any options are specified */
       bool any_options = false;
       for (bool i
-        : options_selected) {
+             : options_selected) {
         if (i) {
           any_options = true;
 
         }
 
-        }
+      }
       if (any_options) {
         fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
 
-        }
+      }
     }
   else
     {
@@ -4102,7 +4102,7 @@ void args_init(int argc, char **argv)
           if (! count) {
             fprintf(stderr, " (none)");
 
-        }
+          }
           fprintf(stderr, "\n");
           exit(EXIT_FAILURE);
         }
@@ -4113,7 +4113,7 @@ void args_init(int argc, char **argv)
   if ((opt_threads < 0) || (opt_threads > 1024)) {
     fatal("The argument to --threads must be in the range 0 (default) to 1024");
 
-        }
+  }
 
   if (opt_allpairs_global || opt_cluster_fast || opt_cluster_size ||
       opt_cluster_smallmem || opt_cluster_unoise || opt_fastq_mergepairs ||
@@ -4123,14 +4123,14 @@ void args_init(int argc, char **argv)
       if (opt_threads == 0) {
         opt_threads = arch_get_cores();
 
-        }
+      }
     }
   else
     {
       if (opt_threads > 1) {
         fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[command_options[k]].name);
 
-        }
+      }
       opt_threads = 1;
     }
 
@@ -4140,7 +4140,7 @@ void args_init(int argc, char **argv)
     if (opt_weak_id > opt_id) {
       opt_weak_id = opt_id;
 
-        }
+    }
 
   if (opt_maxrejects == -1)
     {
@@ -4149,18 +4149,18 @@ void args_init(int argc, char **argv)
       } else {
         opt_maxrejects = 32;
 
-        }
+      }
     }
 
   if (opt_maxaccepts < 0) {
     fatal("The argument to --maxaccepts must not be negative");
 
-        }
+  }
 
   if (opt_maxrejects < 0) {
     fatal("The argument to --maxrejects must not be negative");
 
-        }
+  }
 
   if (opt_wordlength == 0)
     {
@@ -4170,18 +4170,18 @@ void args_init(int argc, char **argv)
       } else {
         opt_wordlength = 8;
 
-        }
+      }
     }
 
   if ((opt_wordlength < 3) || (opt_wordlength > 15)) {
     fatal("The argument to --wordlength must be in the range 3 to 15");
 
-        }
+  }
 
   if ((opt_iddef < 0) || (opt_iddef > 4)) {
     fatal("The argument to --iddef must in the range 0 to 4");
 
-        }
+  }
 
 #if 0
 
@@ -4197,128 +4197,128 @@ void args_init(int argc, char **argv)
   if (opt_alignwidth < 0) {
     fatal("The argument to --alignwidth must not be negative");
 
-        }
+  }
 
   if (opt_rowlen < 0) {
     fatal("The argument to --rowlen must not be negative");
 
-        }
+  }
 
   if (opt_qmask == MASK_ERROR) {
     fatal("The argument to --qmask must be none, dust or soft");
 
-        }
+  }
 
   if (opt_dbmask == MASK_ERROR) {
     fatal("The argument to --dbmask must be none, dust or soft");
 
-        }
+  }
 
   if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0)) {
     fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
 
-        }
+  }
 
   if (opt_sample_size < 0) {
     fatal("The argument to --sample_size must not be negative");
 
-        }
+  }
 
   if (((opt_relabel ? 1 : 0) +
        opt_relabel_md5 + opt_relabel_self + opt_relabel_sha1) > 1) {
     fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
 
-        }
+  }
 
   if (opt_fastq_tail < 1) {
     fatal("The argument to --fastq_tail must be positive");
 
-        }
+  }
 
   if ((opt_min_unmasked_pct < 0.0) && (opt_min_unmasked_pct > 100.0)) {
     fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
 
-        }
+  }
 
   if ((opt_max_unmasked_pct < 0.0) && (opt_max_unmasked_pct > 100.0)) {
     fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
 
-        }
+  }
 
   if (opt_min_unmasked_pct > opt_max_unmasked_pct) {
     fatal("The argument to --min_unmasked_pct cannot be larger than to --max_unmasked_pct");
 
-        }
+  }
 
   if ((opt_fastq_ascii != 33) && (opt_fastq_ascii != 64)) {
     fatal("The argument to --fastq_ascii must be 33 or 64");
 
-        }
+  }
 
   if (opt_fastq_qmin > opt_fastq_qmax) {
     fatal("The argument to --fastq_qmin cannot be larger than to --fastq_qmax");
 
-        }
+  }
 
   if (opt_fastq_ascii + opt_fastq_qmin < 33) {
     fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
 
-        }
+  }
 
   if (opt_fastq_ascii + opt_fastq_qmax > 126) {
     fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
 
-        }
+  }
 
   if (opt_fastq_qminout > opt_fastq_qmaxout) {
     fatal("The argument to --fastq_qminout cannot be larger than to --fastq_qmaxout");
 
-        }
+  }
 
   if ((opt_fastq_asciiout != 33) && (opt_fastq_asciiout != 64)) {
     fatal("The argument to --fastq_asciiout must be 33 or 64");
 
-        }
+  }
 
   if (opt_fastq_asciiout + opt_fastq_qminout < 33) {
     fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
 
-        }
+  }
 
   if (opt_fastq_asciiout + opt_fastq_qmaxout > 126) {
     fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
 
-        }
+  }
 
   if (opt_gzip_decompress && opt_bzip2_decompress) {
     fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
 
-        }
+  }
 
   if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0)) {
     fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
 
-        }
+  }
 
   if (opt_minuniquesize < 1) {
     fatal("The argument to minuniquesize must be at least 1");
 
-        }
+  }
 
   if (opt_maxuniquesize < 1) {
     fatal("The argument to maxuniquesize must be at least 1");
 
-        }
+  }
 
   if (opt_maxsize < 1) {
     fatal("The argument to maxsize must be at least 1");
 
-        }
+  }
 
   if (opt_maxhits < 0) {
     fatal("The argument to maxhits cannot be negative");
 
-        }
+  }
 
 
   /* TODO: check valid range of gap penalties */
@@ -4328,15 +4328,15 @@ void args_init(int argc, char **argv)
 #if 1
 
   /*
-     Adjust gap open penalty according to convention.
+    Adjust gap open penalty according to convention.
 
-     The specified gap open penalties include the penalty for
-     a single nucleotide gap:
+    The specified gap open penalties include the penalty for
+    a single nucleotide gap:
 
-     gap penalty = gap open penalty + (gap length - 1) * gap extension penalty
+    gap penalty = gap open penalty + (gap length - 1) * gap extension penalty
 
-     The rest of the code assumes the first nucleotide gap penalty is not
-     included in the gap opening penalty.
+    The rest of the code assumes the first nucleotide gap penalty is not
+    included in the gap opening penalty.
   */
 
   opt_gap_open_query_left -= opt_gap_extension_query_left;
@@ -4353,12 +4353,12 @@ void args_init(int argc, char **argv)
   if (opt_maxhits == 0) {
     opt_maxhits = LONG_MAX;
 
-        }
+  }
 
   if (opt_minwordmatches < 0) {
     opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
 
-        }
+  }
 
   /* set default opt_minsize depending on command */
   if (opt_minsize == 0)
@@ -4368,7 +4368,7 @@ void args_init(int argc, char **argv)
       } else {
         opt_minsize = 1;
 
-        }
+      }
     }
 
   /* set default opt_abskew depending on command */
@@ -4379,7 +4379,7 @@ void args_init(int argc, char **argv)
       } else {
         opt_abskew = 2.0;
 
-        }
+      }
     }
 
   /* set default opt_minseqlength depending on command */
@@ -4400,13 +4400,13 @@ void args_init(int argc, char **argv)
       } else {
         opt_minseqlength = 1;
 
-        }
+      }
     }
 
   if (opt_sintax) {
     opt_notrunclabels = 1;
 
-        }
+  }
 }
 
 void show_publication()
@@ -4443,13 +4443,13 @@ void cmd_version()
           if (flags & 0x0400) {
             printf(" (ZLIB_WINAPI)");
 
-        }
+          }
           printf("\n");
         }
       else {
         printf(" but the library was not found.\n");
 
-        }
+      }
 #else
       printf("Compiled without support for gzip-compressed files.\n");
 #endif
@@ -4461,7 +4461,7 @@ void cmd_version()
       } else {
         printf(" but the library was not found.\n");
 
-        }
+      }
 #else
       printf("Compiled without support for bzip2-compressed files.\n");
 #endif
@@ -4906,7 +4906,7 @@ void cmd_help()
               "  --wordlength INT            length of words for database index 3-15 (8)\n"
               " Output\n"
               "  --output FILENAME           UDB or FASTA output file\n"
-          );
+              );
     }
 }
 
@@ -4920,12 +4920,12 @@ void cmd_allpairs_global()
       (!opt_samout) && (!opt_fastapairs)) {
     fatal("No output files specified");
 
-        }
+  }
 
   if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0)))) {
     fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
 
-        }
+  }
 
   allpairs_global(cmdline, progheader);
 }
@@ -4943,17 +4943,17 @@ void cmd_usearch_global()
       (!opt_fastapairs)) {
     fatal("No output files specified");
 
-        }
+  }
 
   if (!opt_db) {
     fatal("Database filename not specified with --db");
 
-        }
+  }
 
   if ((opt_id < 0.0) || (opt_id > 1.0)) {
     fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-        }
+  }
 
   usearch_global(cmdline, progheader);
 }
@@ -4971,12 +4971,12 @@ void cmd_search_exact()
       (!opt_fastapairs)) {
     fatal("No output files specified");
 
-        }
+  }
 
   if (!opt_db) {
     fatal("Database filename not specified with --db");
 
-        }
+  }
 
   search_exact(cmdline, progheader);
 }
@@ -4986,7 +4986,7 @@ void cmd_sortbysize()
   if (!opt_output) {
     fatal("FASTA output file for sortbysize must be specified with --output");
 
-        }
+  }
 
   sortbysize();
 }
@@ -4996,7 +4996,7 @@ void cmd_sortbylength()
   if (!opt_output) {
     fatal("FASTA output file for sortbylength must be specified with --output");
 
-        }
+  }
 
   sortbylength();
 }
@@ -5006,7 +5006,7 @@ void cmd_rereplicate()
   if (!opt_output) {
     fatal("FASTA output file for rereplicate must be specified with --output");
 
-        }
+  }
 
   rereplicate();
 }
@@ -5016,7 +5016,7 @@ void cmd_derep()
   if ((!opt_output) && (!opt_uc)) {
     fatal("Output file for dereplication must be specified with --output or --uc");
 
-        }
+  }
 
   if (opt_derep_fulllength) {
     derep_fulllength();
@@ -5029,7 +5029,7 @@ void cmd_derep()
       } else {
         derep_prefix();
 
-        }
+      }
     }
 }
 
@@ -5038,7 +5038,7 @@ void cmd_shuffle()
   if (!opt_output) {
     fatal("Output file for shuffling must be specified with --output");
 
-        }
+  }
 
   shuffle();
 }
@@ -5048,7 +5048,7 @@ void cmd_fastq_eestats()
   if (!opt_output) {
     fatal("Output file for fastq_eestats must be specified with --output");
 
-        }
+  }
 
   fastq_eestats();
 }
@@ -5058,7 +5058,7 @@ void cmd_fastq_eestats2()
   if (!opt_output) {
     fatal("Output file for fastq_eestats2 must be specified with --output");
 
-        }
+  }
 
   fastq_eestats2();
 }
@@ -5068,12 +5068,12 @@ void cmd_subsample()
   if ((!opt_fastaout) && (!opt_fastqout)) {
     fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
 
-        }
+  }
 
   if ((opt_sample_pct > 0) == (opt_sample_size > 0)) {
     fatal("Specify either --sample_pct or --sample_size");
 
-        }
+  }
 
   subsample();
 }
@@ -5083,7 +5083,7 @@ void cmd_maskfasta()
   if (!opt_output) {
     fatal("Output file for masking must be specified with --output");
 
-        }
+  }
 
   maskfasta();
 }
@@ -5093,7 +5093,7 @@ void cmd_makeudb_usearch()
   if (!opt_output) {
     fatal("UDB output file must be specified with --output");
 
-        }
+  }
   udb_make();
 }
 
@@ -5102,7 +5102,7 @@ void cmd_udb2fasta()
   if (!opt_output) {
     fatal("FASTA output file must be specified with --output");
 
-        }
+  }
   udb_fasta();
 }
 
@@ -5111,7 +5111,7 @@ void cmd_fastx_mask()
   if ((!opt_fastaout) && (!opt_fastqout)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
 
-        }
+  }
 
   fastx_mask();
 }
@@ -5158,7 +5158,7 @@ void cmd_none()
             "\n",
             progname);
 
-        }
+  }
 }
 
 void cmd_fastx_revcomp()
@@ -5166,7 +5166,7 @@ void cmd_fastx_revcomp()
   if ((!opt_fastaout) && (!opt_fastqout)) {
     fatal("No output files specified");
 
-        }
+  }
 
   fastx_revcomp();
 }
@@ -5176,7 +5176,7 @@ void cmd_fastq_convert()
   if (! opt_fastqout) {
     fatal("No output file specified with --fastqout");
 
-        }
+  }
 
   fastq_convert();
 }
@@ -5193,15 +5193,15 @@ void cmd_cluster()
       (!opt_mothur_shared_out)) {
     fatal("No output files specified");
 
-        }
+  }
 
   if (!opt_cluster_unoise) {
     if ((opt_id < 0.0) || (opt_id > 1.0)) {
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
 
-        }
+    }
 
-        }
+  }
 
   if (opt_cluster_fast) {
     cluster_fast(cmdline, progheader);
@@ -5212,7 +5212,7 @@ void cmd_cluster()
   } else if (opt_cluster_unoise) {
     cluster_unoise(cmdline, progheader);
 
-        }
+  }
 }
 
 void cmd_uchime()
@@ -5221,40 +5221,40 @@ void cmd_uchime()
       (!opt_uchimeout) && (!opt_uchimealns)) {
     fatal("No output files specified");
 
-        }
+  }
 
   if (opt_uchime_ref && ! opt_db) {
     fatal("Database filename not specified with --db");
 
-        }
+  }
 
   if (opt_xn <= 1.0) {
     fatal("Argument to --xn must be > 1");
 
-        }
+  }
 
   if (opt_dn <= 0.0) {
     fatal("Argument to --dn must be > 0");
 
-        }
+  }
 
   if ((!opt_uchime2_denovo) && (!opt_uchime3_denovo))
-  {
-    if (opt_mindiffs <= 0) {
-      fatal("Argument to --mindiffs must be > 0");
+    {
+      if (opt_mindiffs <= 0) {
+        fatal("Argument to --mindiffs must be > 0");
 
-        }
+      }
 
-    if (opt_mindiv <= 0.0) {
-      fatal("Argument to --mindiv must be > 0");
+      if (opt_mindiv <= 0.0) {
+        fatal("Argument to --mindiv must be > 0");
 
-        }
+      }
 
-    if (opt_minh <= 0.0) {
-      fatal("Argument to --minh must be > 0");
+      if (opt_minh <= 0.0) {
+        fatal("Argument to --minh must be > 0");
 
-        }
-  }
+      }
+    }
 
 #if 0
   if (opt_abskew <= 1.0)
@@ -5269,7 +5269,7 @@ void cmd_fastq_mergepairs()
   if (!opt_reverse) {
     fatal("No reverse reads file specified with --reverse");
 
-        }
+  }
   if ((!opt_fastqout) &&
       (!opt_fastaout) &&
       (!opt_fastqout_notmerged_fwd) &&
@@ -5279,7 +5279,7 @@ void cmd_fastq_mergepairs()
       (!opt_eetabbedout)) {
     fatal("No output files specified");
 
-        }
+  }
   fastq_mergepairs();
 }
 
@@ -5298,7 +5298,7 @@ void getentirecommandline(int argc, char** argv)
   for (int i=0; i<argc; i++) {
     len += strlen(argv[i]);
 
-        }
+  }
 
   cmdline = (char*) xmalloc(len+argc);
   cmdline[0] = 0;
@@ -5308,7 +5308,7 @@ void getentirecommandline(int argc, char** argv)
       if (i>0) {
         strcat(cmdline, " ");
 
-        }
+      }
       strcat(cmdline, argv[i]);
     }
 }
@@ -5339,7 +5339,7 @@ int main(int argc, char** argv)
       if (!fp_log) {
         fatal("Unable to open log file for writing");
 
-        }
+      }
       fprintf(fp_log, "%s\n", progheader);
       fprintf(fp_log, "%s\n", cmdline);
 
@@ -5360,7 +5360,7 @@ int main(int argc, char** argv)
   if (!sse2_present) {
     fatal("Sorry, this program requires a cpu with SSE2.");
 
-        }
+  }
 #endif
 
   if (opt_help) {
@@ -5438,7 +5438,7 @@ int main(int argc, char** argv)
   } else {
     cmd_none();
 
-        }
+  }
 
   if (opt_log)
     {
@@ -5460,14 +5460,14 @@ int main(int argc, char** argv)
       } else {
         fprintf(fp_log, "Max memory %.1lfGB\n", maxmem/1024.0);
 
-        }
+      }
       fclose(fp_log);
     }
 
   if (opt_ee_cutoffs_values) {
     xfree(opt_ee_cutoffs_values);
 
-        }
+  }
   opt_ee_cutoffs_values = nullptr;
 
   xfree(cmdline);

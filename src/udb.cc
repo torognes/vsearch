@@ -154,21 +154,18 @@ bool udb_detect_isudb(const char * filename)
 
   if (xstat(filename, & fs)) {
     fatal("Unable to get status for input file (%s)", filename);
-
-        }
+  }
 
   bool is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe) {
     return false;
-
-        }
+  }
 
   int fd = 0;
   fd = xopen_read(filename);
   if (!fd) {
     fatal("Unable to open input file for reading (%s)", filename);
-
-        }
+  }
 
   unsigned int magic = 0;
   uint64_t bytesread = read(fd, & magic, 4);
@@ -176,8 +173,7 @@ bool udb_detect_isudb(const char * filename)
 
   if ((bytesread == 4) && (magic == 0x55444246)) {
     return true;
-
-        }
+  }
 
   return false;
 }
