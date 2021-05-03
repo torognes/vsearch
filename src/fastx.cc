@@ -443,11 +443,10 @@ fastx_handle fastx_open(const char * filename)
 
   h->stripped_all = 0;
 
-  for(unsigned
-        long & i : h->stripped) {
-    i = 0;
-
-        }
+  for(uint64_t & i : h->stripped)
+    {
+      i = 0;
+    }
 
   h->lineno = 1;
   h->lineno_start = 1;

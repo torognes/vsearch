@@ -388,11 +388,10 @@ void fastq_stats()
   int qmax = -1000;
 
   uint64_t quality_chars[256];
-  for(unsigned
-        long & quality_char : quality_chars) {
-    quality_char = 0;
-
-        }
+  for(uint64_t & quality_char : quality_chars)
+    {
+      quality_char = 0;
+    }
 
   while(fastq_next(h, false, chrmap_upcase))
     {
