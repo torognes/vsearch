@@ -5151,10 +5151,11 @@ void cmd_none()
             "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
             "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
             "\n"
-            "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, derep_prefix,\n"
-            "                fastq_filter, fastq_join, fastx_getseqs, fastx_getsubseqs,\n"
-            "                maskfasta, rereplicate, uchime2_denovo, uchime3_denovo,\n"
-            "                udb2fasta, udbinfo, udbstats, version\n"
+            "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut, derep_id,\n"
+            "                derep_prefix, fastq_filter, fastq_join, fastx_getseqs,\n"
+            "                fastx_getsubseqs, maskfasta, orient, rereplicate,\n"
+            "                uchime2_denovo, uchime3_denovo, udb2fasta, udbinfo, udbstats,\n"
+            "                version\n"
             "\n",
             progname);
 
