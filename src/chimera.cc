@@ -1383,7 +1383,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
         unsigned int target = allhits_list[i].target;
 
         /* skip duplicates */
-        int k;
+        int k {0};
         for(k = 0; k < ci->cand_count; k++) {
           if (ci->cand_list[k] == target) {
             break;
