@@ -5286,7 +5286,7 @@ void cmd_fastq_mergepairs()
 
 
 void fillheader() {
-  constexpr auto one_gigabyte {1024.0 * 1024.0 * 1024.0};
+  constexpr double one_gigabyte {1024.0 * 1024.0 * 1024.0};
   snprintf(progheader, 80,
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
