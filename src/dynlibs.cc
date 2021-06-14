@@ -91,9 +91,11 @@ const char bz2_libname[] = "libbz2.so";
 #  endif
 void * bz2_lib;
 # endif
+
 BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
 void (*BZ2_bzReadClose_p)(int*, BZFILE*);
 int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
+
 #endif
 
 void dynlibs_open()
@@ -106,12 +108,15 @@ void dynlibs_open()
 #endif
   if (gz_lib)
     {
-      gzdopen_p = (gzFile (*)(int, const char*)) arch_dlsym(gz_lib, "gzdopen");
-      gzclose_p = (int (*)(gzFile)) arch_dlsym(gz_lib, "gzclose");
-      gzread_p = (int (*)(gzFile, void*, unsigned)) arch_dlsym(gz_lib, "gzread");
-      if (!(gzdopen_p && gzclose_p && gzread_p)) {
-        fatal("Invalid compression library (zlib)");
-
+      gzdopen_p = (gzFile (*)(int, const char*))
+        arch_dlsym(gz_lib, "gzdopen");
+      gzclose_p = (int (*)(gzFile))
+        arch_dlsym(gz_lib, "gzclose");
+      gzread_p = (int (*)(gzFile, void*, unsigned))
+        arch_dlsym(gz_lib, "gzread");
+      if (!(gzdopen_p && gzclose_p && gzread_p))
+        {
+          fatal("Invalid compression library (zlib)");
         }
     }
 #endif
@@ -130,9 +135,9 @@ void dynlibs_open()
         arch_dlsym(bz2_lib, "BZ2_bzReadClose");
       BZ2_bzRead_p = (int (*)(int*, BZFILE*, void*, int))
         arch_dlsym(bz2_lib, "BZ2_bzRead");
-      if (!(BZ2_bzReadOpen_p && BZ2_bzReadClose_p && BZ2_bzRead_p)) {
-        fatal("Invalid compression library (bz2)");
-
+      if (!(BZ2_bzReadOpen_p && BZ2_bzReadClose_p && BZ2_bzRead_p))
+        {
+          fatal("Invalid compression library (bz2)");
         }
     }
 #endif
@@ -141,25 +146,26 @@ void dynlibs_open()
 void dynlibs_close()
 {
 #ifdef HAVE_ZLIB_H
-  if (gz_lib) {
+  if (gz_lib)
+    {
 #ifdef _WIN32
-    FreeLibrary(gz_lib);
+      FreeLibrary(gz_lib);
 #else
-    dlclose(gz_lib);
-
-        }
+      dlclose(gz_lib);
 #endif
+    }
   gz_lib = nullptr;
 #endif
-#ifdef HAVE_BZLIB_H
-  if (bz2_lib) {
-#ifdef _WIN32
-    FreeLibrary(bz2_lib);
-#else
-    dlclose(bz2_lib);
 
-        }
+#ifdef HAVE_BZLIB_H
+  if (bz2_lib)
+    {
+#ifdef _WIN32
+      FreeLibrary(bz2_lib);
+#else
+      dlclose(bz2_lib);
 #endif
+    }
   bz2_lib = nullptr;
 #endif
 }
