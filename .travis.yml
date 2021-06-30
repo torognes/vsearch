@@ -1,9 +1,13 @@
 language:
 - cpp
 
+dist:
+- xenial
+
 arch:
 - arm64
 - ppc64le
+#- amd64
 
 os:
 - linux
