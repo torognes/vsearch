@@ -80,7 +80,7 @@ void fasta2fastq()
   int count = 0;
   size_t alloc = 0;
   char * quality = nullptr;
-  
+
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
 
   while(fasta_next(h, 0, chrmap_no_change))
@@ -103,17 +103,20 @@ void fasta2fastq()
           alloc = length + 1;
           quality = (char*) xrealloc(quality, alloc);
         }
-      
+
       /* set quality values */
 
       for(uint64_t i=0; i < length; i++)
-        quality[i] = max_ascii_value;
+        {
+          quality[i] = max_ascii_value;
+        }
+
       quality[length] = 0;
 
       count++;
-      
+
       /* write to fasta file */
-      
+
       fastq_print_general(fp_fastqout,
                           sequence,
                           length,
@@ -129,11 +132,13 @@ void fasta2fastq()
 
   progress_done();
 
-  fclose(fp_fastqout);
-  
-  fasta_close(h);
-
   if (quality)
-    xfree(quality);
-  quality = nullptr;
+    {
+      xfree(quality);
+      quality = nullptr;
+    }
+
+  fclose(fp_fastqout);
+
+  fasta_close(h);
 }

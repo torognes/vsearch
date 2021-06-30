@@ -4665,7 +4665,7 @@ void cmd_help()
               "  --fasta2fastq FILENAME      convert from FASTA to FASTQ, fake quality scores\n"
               " Parameters\n"
               "  --fastq_asciiout INT        FASTQ output quality score ASCII base char (33)\n"
-              "  --fastq_qmaxout INT         fake base quality value for FASTQ output (41)\n"
+              "  --fastq_qmaxout INT         fake quality score for FASTQ output (41)\n"
               " Output\n"
               "  --fastqout FILENAME         FASTQ output filename for converted sequences\n"
               "\n"
