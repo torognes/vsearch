@@ -1,22 +1,25 @@
 language:
 - cpp
 
-dist:
-- xenial
-
 arch:
-- amd64
+#- amd64
 - arm64
 - ppc64le
 
 os:
 - linux
 - osx
+- freebsd
+- windows
+
+dist:
+- xenial
 
 osx_image:
 - xcode12.5
 
 addons:
+  pkg: ghostscript valgrind
   apt:
     packages: ghostscript valgrind groff
   homebrew:
