@@ -20,7 +20,7 @@ addons:
   apt:
     packages: ghostscript valgrind groff
   homebrew:
-    packages: ghostscript valgrind
+    packages: ghostscript
 
 compiler:
 - g++
