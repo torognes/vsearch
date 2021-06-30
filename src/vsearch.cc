@@ -105,6 +105,7 @@ char * opt_derep_fulllength;
 char * opt_derep_id;
 char * opt_derep_prefix;
 char * opt_eetabbedout;
+char * opt_fasta2fastq;
 char * opt_fastaout;
 char * opt_fastaout_discarded;
 char * opt_fastaout_discarded_rev;
@@ -764,6 +765,7 @@ void args_init(int argc, char **argv)
   opt_ee_cutoffs_values[2] = 2.0;
   opt_eeout = false;
   opt_eetabbedout = nullptr;
+  opt_fasta2fastq = nullptr;
   opt_fastaout_notmerged_fwd = nullptr;
   opt_fastaout_notmerged_rev = nullptr;
   opt_fasta_score = false;
@@ -1001,6 +1003,7 @@ void args_init(int argc, char **argv)
       option_ee_cutoffs,
       option_eeout,
       option_eetabbedout,
+      option_fasta2fastq,
       option_fasta_score,
       option_fasta_width,
       option_fastaout,
@@ -1231,6 +1234,7 @@ void args_init(int argc, char **argv)
       {"ee_cutoffs",            required_argument, nullptr, 0 },
       {"eeout",                 no_argument,       nullptr, 0 },
       {"eetabbedout",           required_argument, nullptr, 0 },
+      {"fasta2fastq",           required_argument, nullptr, 0 },
       {"fasta_score",           no_argument,       nullptr, 0 },
       {"fasta_width",           required_argument, nullptr, 0 },
       {"fastaout",              required_argument, nullptr, 0 },
@@ -2412,6 +2416,10 @@ void args_init(int argc, char **argv)
           opt_orient = optarg;
           break;
 
+        case option_fasta2fastq:
+          opt_fasta2fastq = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2442,6 +2450,7 @@ void args_init(int argc, char **argv)
       option_derep_fulllength,
       option_derep_id,
       option_derep_prefix,
+      option_fasta2fastq,
       option_fastq_chars,
       option_fastq_convert,
       option_fastq_eestats,
@@ -3041,6 +3050,27 @@ void args_init(int argc, char **argv)
         option_threads,
         option_topn,
         option_uc,
+        option_xee,
+        option_xsize,
+        -1 },
+
+      { option_fasta2fastq,
+        option_bzip2_decompress,
+        option_fastq_asciiout,
+        option_fastq_qmaxout,
+        option_fastqout,
+        option_gzip_decompress,
+        option_log,
+        option_no_progress,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
+        option_threads,
         option_xee,
         option_xsize,
         -1 },
@@ -4631,6 +4661,14 @@ void cmd_help()
               "  --uc FILENAME               filename for UCLUST-like dereplication output\n"
               "  --xsize                     strip abundance information in derep output\n"
               "\n"
+              "FASTA to FASTQ conversion\n"
+              "  --fasta2fastq FILENAME      convert from FASTA to FASTQ, fake quality scores\n"
+              " Parameters\n"
+              "  --fastq_asciiout INT        FASTQ output quality score ASCII base char (33)\n"
+              "  --fastq_qmaxout INT         fake base quality value for FASTQ output (41)\n"
+              " Output\n"
+              "  --fastqout FILENAME         FASTQ output filename for converted sequences\n"
+              "\n"
               "FASTQ format conversion\n"
               "  --fastq_convert FILENAME    convert between FASTQ file formats\n"
               " Parameters\n"
@@ -5555,6 +5593,10 @@ int main(int argc, char** argv)
   else if (opt_orient)
     {
       orient();
+    }
+  else if (opt_fasta2fastq)
+    {
+      fasta2fastq();
     }
   else
     {

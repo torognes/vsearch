@@ -33,6 +33,7 @@ dbindex.h \
 derep.h \
 dynlibs.h \
 eestats.h \
+fa2fq.h \
 fasta.h \
 fastq.h \
 fastqjoin.h \
@@ -126,6 +127,7 @@ dbindex.cc \
 derep.cc \
 dynlibs.cc \
 eestats.cc \
+fa2fq.cc \
 fasta.cc \
 fastq.cc \
 fastqjoin.cc \
