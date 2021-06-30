@@ -72,7 +72,7 @@ void fasta2fastq()
 
   uint64_t filesize = fasta_get_size(h);
 
-  FILE * fp_fastqout = 0;
+  FILE * fp_fastqout = nullptr;
 
   fp_fastqout = fopen_output(opt_fastqout);
   if (!fp_fastqout)
