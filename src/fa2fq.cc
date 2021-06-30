@@ -70,8 +70,6 @@ void fasta2fastq()
   if (!h)
     fatal("Unable to open FASTA file for reading");
 
-  uint64_t filesize = fasta_get_size(h);
-
   FILE * fp_fastqout = nullptr;
 
   fp_fastqout = fopen_output(opt_fastqout);
@@ -82,7 +80,7 @@ void fasta2fastq()
   size_t alloc = 0;
   char * quality = nullptr;
   
-  progress_init("Converting FASTA file to FASTQ", filesize);
+  progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
 
   while(fasta_next(h, 0, chrmap_no_change))
     {
