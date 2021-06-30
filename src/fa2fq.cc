@@ -76,6 +76,7 @@ void fasta2fastq()
   if (!fp_fastqout)
     fatal("Unable to open FASTQ output file for writing");
 
+  const auto max_ascii_value = opt_fastq_asciiout + opt_fastq_qmaxout;
   int count = 0;
   size_t alloc = 0;
   char * quality = nullptr;
@@ -106,7 +107,7 @@ void fasta2fastq()
       /* set quality values */
 
       for(uint64_t i=0; i < length; i++)
-        quality[i] = opt_fastq_asciiout + opt_fastq_qmaxout;
+        quality[i] = max_ascii_value;
       quality[length] = 0;
 
       count++;
