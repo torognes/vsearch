@@ -8,9 +8,7 @@ arch:
 
 os:
 - linux
-- osx
-- freebsd
-- windows
+#- osx
 
 dist:
 - xenial
@@ -19,9 +17,6 @@ osx_image:
 - xcode12.5
 
 addons:
-  pkg:
-  - ghostscript
-  - valgrind
   apt:
     packages:
     - ghostscript
