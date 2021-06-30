@@ -73,25 +73,35 @@ int sortbysize_compare(const void * a, const void * b)
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->size < y->size) {
-    return +1;
-  } else if (x->size > y->size) {
-    return -1;
-  } else
+  if (x->size < y->size)
+    {
+      return +1;
+    }
+  else if (x->size > y->size)
+    {
+      return -1;
+    }
+  else
     {
       int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-      if (r != 0) {
-        return r;
-      } else
+      if (r != 0)
         {
-          if (x->seqno < y->seqno) {
-            return -1;
-          } else if (x->seqno > y->seqno) {
-            return +1;
-          } else {
-            return 0;
-
+          return r;
         }
+      else
+        {
+          if (x->seqno < y->seqno)
+            {
+              return -1;
+            }
+          else if (x->seqno > y->seqno)
+            {
+              return +1;
+            }
+          else
+            {
+              return 0;
+            }
         }
     }
 }
@@ -99,10 +109,10 @@ int sortbysize_compare(const void * a, const void * b)
 void sortbysize()
 {
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output) {
-    fatal("Unable to open sortbysize output file for writing");
-
-        }
+  if (!fp_output)
+    {
+      fatal("Unable to open sortbysize output file for writing");
+    }
 
   db_read(opt_sortbysize, 0);
 
@@ -141,24 +151,26 @@ void sortbysize()
   double median = 0.0;
   if (passed > 0)
     {
-      if (passed % 2) {
-        median = sortinfo[(passed-1)/2].size;
-      } else {
-        median = (sortinfo[(passed/2)-1].size +
-                  sortinfo[passed/2].size) / 2.0;
-
+      if (passed % 2)
+        {
+          median = sortinfo[(passed-1)/2].size;
+        }
+      else
+        {
+          median = (sortinfo[(passed/2)-1].size +
+                    sortinfo[passed/2].size) / 2.0;
         }
     }
 
-  if (! opt_quiet) {
-    fprintf(stderr, "Median abundance: %.0f\n", median);
+  if (! opt_quiet)
+    {
+      fprintf(stderr, "Median abundance: %.0f\n", median);
+    }
 
-        }
-
-  if (opt_log) {
-    fprintf(fp_log, "Median abundance: %.0f\n", median);
-
-        }
+  if (opt_log)
+    {
+      fprintf(fp_log, "Median abundance: %.0f\n", median);
+    }
 
   show_rusage();
 

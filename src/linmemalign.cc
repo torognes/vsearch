@@ -99,48 +99,52 @@ LinearMemoryAligner::LinearMemoryAligner()
 
 LinearMemoryAligner::~LinearMemoryAligner()
 {
-  if (cigar_string) {
-    xfree(cigar_string);
-
-        }
-  if (HH) {
-    xfree(HH);
-
-        }
-  if (EE) {
-    xfree(EE);
-
-        }
-  if (XX) {
-    xfree(XX);
-
-        }
-  if (YY) {
-    xfree(YY);
-
-        }
+  if (cigar_string)
+    {
+      xfree(cigar_string);
+    }
+  if (HH)
+    {
+      xfree(HH);
+    }
+  if (EE)
+    {
+      xfree(EE);
+    }
+  if (XX)
+    {
+      xfree(XX);
+    }
+  if (YY)
+    {
+      xfree(YY);
+    }
 }
 
 int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch)
 {
   auto * newscorematrix = (int64_t*) xmalloc(16*16*sizeof(int64_t));
 
-  for(int i=0; i<16; i++) {
-    for(int j=0; j<16; j++)
-      {
-        int64_t value;
-        if (ambiguous_4bit[i] || ambiguous_4bit[j]) {
-          value = 0;
-        } else if (i == j) {
-          value = match;
-        } else {
-          value = mismatch;
-
+  for(int i=0; i<16; i++)
+    {
+      for(int j=0; j<16; j++)
+        {
+          int64_t value;
+          if (ambiguous_4bit[i] || ambiguous_4bit[j])
+            {
+              value = 0;
+            }
+          else if (i == j)
+            {
+              value = match;
+            }
+          else
+            {
+              value = mismatch;
+            }
+          newscorematrix[16*i+j] = value;
         }
-        newscorematrix[16*i+j] = value;
-      }
-
-        }
+    }
   return newscorematrix;
 }
 
@@ -150,21 +154,21 @@ void LinearMemoryAligner::alloc_vectors(size_t x)
     {
       vector_alloc = x;
 
-      if (HH) {
-        xfree(HH);
-
+      if (HH)
+        {
+          xfree(HH);
         }
-      if (EE) {
-        xfree(EE);
-
+      if (EE)
+        {
+          xfree(EE);
         }
-      if (XX) {
-        xfree(XX);
-
+      if (XX)
+        {
+          xfree(XX);
         }
-      if (YY) {
-        xfree(YY);
-
+      if (YY)
+        {
+          xfree(YY);
         }
 
       HH = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
@@ -190,61 +194,65 @@ void LinearMemoryAligner::cigar_reset()
 void LinearMemoryAligner::cigar_flush()
 {
   if (op_run > 0)
-  {
-    while (true)
     {
-      /* try writing string until enough memory has been allocated */
+      while (true)
+        {
+          /* try writing string until enough memory has been allocated */
 
-      int64_t rest = cigar_alloc - cigar_length;
-      int n;
-      if (op_run > 1) {
-        n = snprintf(cigar_string + cigar_length,
-                     rest,
-                     "%" PRId64 "%c", op_run, op);
-      } else {
-        n = snprintf(cigar_string + cigar_length,
-                     rest,
-                     "%c", op);
-
-        }
-      if (n < 0)
-        {
-          fatal("snprintf returned a negative number.\n");
-        }
-      else if (n >= rest)
-        {
-          cigar_alloc += MAX(n - rest + 1, 64);
-          cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
-        }
-      else
-        {
-          cigar_length += n;
-          break;
+          int64_t rest = cigar_alloc - cigar_length;
+          int n;
+          if (op_run > 1)
+            {
+              n = snprintf(cigar_string + cigar_length,
+                           rest,
+                           "%" PRId64 "%c", op_run, op);
+            }
+          else
+            {
+              n = snprintf(cigar_string + cigar_length,
+                           rest,
+                           "%c", op);
+            }
+          if (n < 0)
+            {
+              fatal("snprintf returned a negative number.\n");
+            }
+          else if (n >= rest)
+            {
+              cigar_alloc += MAX(n - rest + 1, 64);
+              cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
+            }
+          else
+            {
+              cigar_length += n;
+              break;
+            }
         }
     }
-  }
 }
 
 void LinearMemoryAligner::cigar_add(char _op, int64_t run)
-  {
-    if (op == _op) {
+{
+  if (op == _op)
+    {
       op_run += run;
-    } else
-      {
-        cigar_flush();
-        op = _op;
-        op_run = run;
-      }
-  }
+    }
+  else
+    {
+      cigar_flush();
+      op = _op;
+      op_run = run;
+    }
+}
 
 void LinearMemoryAligner::show_matrix()
 {
   for(int i=0; i<16; i++)
     {
       printf("%2d:", i);
-      for(int j=0; j<16; j++) {
-        printf(" %2" PRId64, scorematrix[16*i+j]);
-
+      for(int j=0; j<16; j++)
+        {
+          printf(" %2" PRId64, scorematrix[16*i+j]);
         }
       printf("\n");
     }
@@ -304,9 +312,9 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* gap penalty for gap in B of length 1 */
 
-      if (! gap_b_left) {
-        Score -= b_left ? go_t_l : go_t_i;
-
+      if (! gap_b_left)
+        {
+          Score -= b_left ? go_t_l : go_t_i;
         }
 
       Score -= b_left ? ge_t_l : ge_t_i;
@@ -331,9 +339,9 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* gap penalty for gap in B of length 1 */
 
-      if (! gap_b_right) {
-        Score -= b_right ? go_t_r : go_t_i;
-
+      if (! gap_b_right)
+        {
+          Score -= b_right ? go_t_r : go_t_i;
         }
 
       Score -= b_right ? ge_t_r : ge_t_i;
@@ -355,19 +363,19 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
           Score = 0;
 
-          if (j > 0) {
-            Score -= a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i;
-
-        }
+          if (j > 0)
+            {
+              Score -= a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i;
+            }
 
           Score += subst_score(a_start, b_start + j);
 
-          if (j < b_len - 1) {
-            Score -= a_right ?
-              go_q_r + (b_len-1-j) * ge_q_r :
-              go_q_i + (b_len-1-j) * ge_q_i;
-
-        }
+          if (j < b_len - 1)
+            {
+              Score -= a_right ?
+                go_q_r + (b_len-1-j) * ge_q_r :
+                go_q_i + (b_len-1-j) * ge_q_i;
+            }
 
           if (Score > MaxScore)
             {
@@ -388,15 +396,15 @@ void LinearMemoryAligner::diff(int64_t a_start,
         }
       else
         {
-          if (best > 0) {
-            cigar_add('I', best);
-
-        }
+          if (best > 0)
+            {
+              cigar_add('I', best);
+            }
           cigar_add('M', 1);
-          if (best < b_len - 1) {
-            cigar_add('I', b_len - 1 - best);
-
-        }
+          if (best < b_len - 1)
+            {
+              cigar_add('I', b_len - 1 - best);
+            }
         }
     }
   else
@@ -429,8 +437,8 @@ void LinearMemoryAligner::diff(int64_t a_start,
           int64_t p = HH[0];
 
           int64_t h = - (b_left ?
-                      (gap_b_left ? 0 : go_t_l) + i * ge_t_l :
-                      (gap_b_left ? 0 : go_t_i) + i * ge_t_i);
+                         (gap_b_left ? 0 : go_t_l) + i * ge_t_l :
+                         (gap_b_left ? 0 : go_t_i) + i * ge_t_i);
 
           HH[0] = h;
           int64_t f = LONG_MIN;
@@ -438,23 +446,25 @@ void LinearMemoryAligner::diff(int64_t a_start,
           for (j = 1; j <= b_len; j++)
             {
               f = MAX(f, h - go_q_i) - ge_q_i;
-              if (b_right && (j==b_len)) {
-                EE[j] = MAX(EE[j], HH[j] - go_t_r) - ge_t_r;
-              } else {
-                EE[j] = MAX(EE[j], HH[j] - go_t_i) - ge_t_i;
-
-        }
+              if (b_right && (j==b_len))
+                {
+                  EE[j] = MAX(EE[j], HH[j] - go_t_r) - ge_t_r;
+                }
+              else
+                {
+                  EE[j] = MAX(EE[j], HH[j] - go_t_i) - ge_t_i;
+                }
 
               h = p + subst_score(a_start + i - 1, b_start + j - 1);
 
-              if (f > h) {
-                h = f;
-
-        }
-              if (EE[j] > h) {
-                h = EE[j];
-
-        }
+              if (f > h)
+                {
+                  h = f;
+                }
+              if (EE[j] > h)
+                {
+                  h = EE[j];
+                }
               p = HH[j];
               HH[j] = h;
             }
@@ -483,31 +493,33 @@ void LinearMemoryAligner::diff(int64_t a_start,
           int64_t p = XX[0];
 
           int64_t h = - (b_right ?
-                      (gap_b_right ? 0 : go_t_r) + i * ge_t_r :
-                      (gap_b_right ? 0 : go_t_i) + i * ge_t_i);
+                         (gap_b_right ? 0 : go_t_r) + i * ge_t_r :
+                         (gap_b_right ? 0 : go_t_i) + i * ge_t_i);
           XX[0] = h;
           int64_t f = LONG_MIN;
 
           for (j = 1; j <= b_len; j++)
             {
               f = MAX(f, h - go_q_i) - ge_q_i;
-              if (b_left && (j==b_len)) {
-                YY[j] = MAX(YY[j], XX[j] - go_t_l) - ge_t_l;
-              } else {
-                YY[j] = MAX(YY[j], XX[j] - go_t_i) - ge_t_i;
-
-        }
+              if (b_left && (j==b_len))
+                {
+                  YY[j] = MAX(YY[j], XX[j] - go_t_l) - ge_t_l;
+                }
+              else
+                {
+                  YY[j] = MAX(YY[j], XX[j] - go_t_i) - ge_t_i;
+                }
 
               h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
 
-              if (f > h) {
-                h = f;
-
-        }
-              if (YY[j] > h) {
-                h = YY[j];
-
-        }
+              if (f > h)
+                {
+                  h = f;
+                }
+              if (YY[j] > h)
+                {
+                  h = YY[j];
+                }
               p = XX[j];
               XX[j] = h;
             }
@@ -542,14 +554,18 @@ void LinearMemoryAligner::diff(int64_t a_start,
       for (j=0; j <= b_len; j++)
         {
           int64_t g;
-          if (b_left && (j==0)) {
-            g = go_t_l;
-          } else if (b_right && (j==b_len)) {
-            g = go_t_r;
-          } else {
-            g = go_t_i;
-
-        }
+          if (b_left && (j==0))
+            {
+              g = go_t_l;
+            }
+          else if (b_right && (j==b_len))
+            {
+              g = go_t_r;
+            }
+          else
+            {
+              g = go_t_i;
+            }
 
           int64_t Score = EE[j] + YY[b_len - j] + g;
 
@@ -724,12 +740,14 @@ void LinearMemoryAligner::alignstats(char * cigar,
               nwscore += subst_score(a_pos, b_pos);
 
               if (chrmap_4bit[(int)(a_seq[a_pos])] &
-                  chrmap_4bit[(int)(b_seq[b_pos])]) {
-                nwmatches++;
-              } else {
-                nwmismatches++;
-
-        }
+                  chrmap_4bit[(int)(b_seq[b_pos])])
+                {
+                  nwmatches++;
+                }
+              else
+                {
+                  nwmismatches++;
+                }
 
               a_pos++;
               b_pos++;
@@ -737,14 +755,18 @@ void LinearMemoryAligner::alignstats(char * cigar,
           break;
 
         case 'I':
-          if ((a_pos == 0) && (b_pos == 0)) {
-            g = go_q_l + run * ge_q_l;
-          } else if (*p == 0) {
-            g = go_q_r + run * ge_q_r;
-          } else {
-            g = go_q_i + run * ge_q_i;
-
-        }
+          if ((a_pos == 0) && (b_pos == 0))
+            {
+              g = go_q_l + run * ge_q_l;
+            }
+          else if (*p == 0)
+            {
+              g = go_q_r + run * ge_q_r;
+            }
+          else
+            {
+              g = go_q_i + run * ge_q_i;
+            }
           nwscore -= g;
           nwgaps++;
           nwalignmentlength += run;
@@ -752,14 +774,18 @@ void LinearMemoryAligner::alignstats(char * cigar,
           break;
 
         case 'D':
-          if ((a_pos == 0) && (b_pos == 0)) {
-            g = go_t_l + run * ge_t_l;
-          } else if (*p == 0) {
-            g = go_t_r + run * ge_t_r;
-          } else {
-            g = go_t_i + run * ge_t_i;
-
-        }
+          if ((a_pos == 0) && (b_pos == 0))
+            {
+              g = go_t_l + run * ge_t_l;
+            }
+          else if (*p == 0)
+            {
+              g = go_t_r + run * ge_t_r;
+            }
+          else
+            {
+              g = go_t_i + run * ge_t_i;
+            }
           nwscore -= g;
           nwgaps++;
           nwalignmentlength += run;

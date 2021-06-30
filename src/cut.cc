@@ -113,42 +113,42 @@ int cut_one(fastx_handle h,
 
           if (frag_length > 0)
             {
-              if (opt_fastaout) {
-                fasta_print_general(fp_fastaout,
-                                    nullptr,
-                                    fasta_get_sequence(h) + frag_start,
-                                    frag_length,
-                                    fasta_get_header(h),
-                                    fasta_get_header_length(h),
-                                    fasta_get_abundance(h),
-                                    ++fragment_no,
-                                    -1.0,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0);
-
-        }
+              if (opt_fastaout)
+                {
+                  fasta_print_general(fp_fastaout,
+                                      nullptr,
+                                      fasta_get_sequence(h) + frag_start,
+                                      frag_length,
+                                      fasta_get_header(h),
+                                      fasta_get_header_length(h),
+                                      fasta_get_abundance(h),
+                                      ++fragment_no,
+                                      -1.0,
+                                      -1,
+                                      -1,
+                                      nullptr,
+                                      0.0);
+                }
             }
 
           if (rc_length > 0)
             {
-              if (opt_fastaout_rev) {
-                fasta_print_general(fp_fastaout_rev,
-                                    nullptr,
-                                    rc + rc_start,
-                                    rc_length,
-                                    fasta_get_header(h),
-                                    fasta_get_header_length(h),
-                                    fasta_get_abundance(h),
-                                    ++fragment_rev_no,
-                                    -1.0,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0);
-
-        }
+              if (opt_fastaout_rev)
+                {
+                  fasta_print_general(fp_fastaout_rev,
+                                      nullptr,
+                                      rc + rc_start,
+                                      rc_length,
+                                      fasta_get_header(h),
+                                      fasta_get_header_length(h),
+                                      fasta_get_abundance(h),
+                                      ++fragment_rev_no,
+                                      -1.0,
+                                      -1,
+                                      -1,
+                                      nullptr,
+                                      0.0);
+                }
             }
 
           frag_start += frag_length;
@@ -161,23 +161,22 @@ int cut_one(fastx_handle h,
 
       if (frag_length > 0)
         {
-          if (opt_fastaout) {
-            fasta_print_general(fp_fastaout,
-                                nullptr,
-                                fasta_get_sequence(h) + frag_start,
-                                frag_length,
-                                fasta_get_header(h),
-                                fasta_get_header_length(h),
-                                fasta_get_abundance(h),
-                                ++fragment_no,
-                                -1.0,
-                                -1,
-                                -1,
-                                nullptr,
-                                0.0);
-
-        }
-
+          if (opt_fastaout)
+            {
+              fasta_print_general(fp_fastaout,
+                                  nullptr,
+                                  fasta_get_sequence(h) + frag_start,
+                                  frag_length,
+                                  fasta_get_header(h),
+                                  fasta_get_header_length(h),
+                                  fasta_get_abundance(h),
+                                  ++fragment_no,
+                                  -1.0,
+                                  -1,
+                                  -1,
+                                  nullptr,
+                                  0.0);
+            }
         }
 
       rc_length = rc_start;
@@ -185,58 +184,58 @@ int cut_one(fastx_handle h,
 
       if (rc_length > 0)
         {
-          if (opt_fastaout_rev) {
-            fasta_print_general(fp_fastaout_rev,
-                                nullptr,
-                                rc + rc_start,
-                                rc_length,
-                                fasta_get_header(h),
-                                fasta_get_header_length(h),
-                                fasta_get_abundance(h),
-                                ++fragment_rev_no,
-                                -1.0,
-                                -1,
-                                -1,
-                                nullptr,
-                                0.0);
-
-        }
+          if (opt_fastaout_rev)
+            {
+              fasta_print_general(fp_fastaout_rev,
+                                  nullptr,
+                                  rc + rc_start,
+                                  rc_length,
+                                  fasta_get_header(h),
+                                  fasta_get_header_length(h),
+                                  fasta_get_abundance(h),
+                                  ++fragment_rev_no,
+                                  -1.0,
+                                  -1,
+                                  -1,
+                                  nullptr,
+                                  0.0);
+            }
         }
     }
   else
     {
-      if (opt_fastaout_discarded) {
-        fasta_print_general(fp_fastaout_discarded,
-                            nullptr,
-                            fasta_get_sequence(h),
-                            seq_length,
-                            fasta_get_header(h),
-                            fasta_get_header_length(h),
-                            fasta_get_abundance(h),
-                            ++fragment_discarded_no,
-                            -1.0,
-                            -1,
-                            -1,
-                            nullptr,
-                            0.0);
-
+      if (opt_fastaout_discarded)
+        {
+          fasta_print_general(fp_fastaout_discarded,
+                              nullptr,
+                              fasta_get_sequence(h),
+                              seq_length,
+                              fasta_get_header(h),
+                              fasta_get_header_length(h),
+                              fasta_get_abundance(h),
+                              ++fragment_discarded_no,
+                              -1.0,
+                              -1,
+                              -1,
+                              nullptr,
+                              0.0);
         }
 
-      if (opt_fastaout_discarded_rev) {
-        fasta_print_general(fp_fastaout_discarded_rev,
-                            nullptr,
-                            rc,
-                            seq_length,
-                            fasta_get_header(h),
-                            fasta_get_header_length(h),
-                            fasta_get_abundance(h),
-                            ++fragment_discarded_rev_no,
-                            -1.0,
-                            -1,
-                            -1,
-                            nullptr,
-                            0.0);
-
+      if (opt_fastaout_discarded_rev)
+        {
+          fasta_print_general(fp_fastaout_discarded_rev,
+                              nullptr,
+                              rc,
+                              seq_length,
+                              fasta_get_header(h),
+                              fasta_get_header_length(h),
+                              fasta_get_abundance(h),
+                              ++fragment_discarded_rev_no,
+                              -1.0,
+                              -1,
+                              -1,
+                              nullptr,
+                              0.0);
         }
     }
 
@@ -250,19 +249,19 @@ void cut()
   if ((!opt_fastaout) &&
       (!opt_fastaout_discarded) &&
       (!opt_fastaout_rev) &&
-      (!opt_fastaout_discarded_rev)) {
-    fatal("No output files specified");
-
-        }
+      (!opt_fastaout_discarded_rev))
+    {
+      fatal("No output files specified");
+    }
 
   fastx_handle h = nullptr;
 
   h = fasta_open(opt_cut);
 
-  if (!h) {
-    fatal("Unrecognized file type (not proper FASTA format)");
-
-        }
+  if (!h)
+    {
+      fatal("Unrecognized file type (not proper FASTA format)");
+    }
 
   uint64_t filesize = fasta_get_size(h);
 
@@ -274,52 +273,52 @@ void cut()
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (!fp_fastaout) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_fastaout)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
   if (opt_fastaout_rev)
     {
       fp_fastaout_rev = fopen_output(opt_fastaout_rev);
-      if (!fp_fastaout_rev) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_fastaout_rev)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
   if (opt_fastaout_discarded)
     {
       fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (!fp_fastaout_discarded) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_fastaout_discarded)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
   if (opt_fastaout_discarded_rev)
     {
       fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
-      if (!fp_fastaout_discarded_rev) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_fastaout_discarded_rev)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
   char * pattern = opt_cut_pattern;
 
-  if (pattern == nullptr) {
-    fatal("No cut pattern string specified with --cut_pattern");
-
-        }
+  if (pattern == nullptr)
+    {
+      fatal("No cut pattern string specified with --cut_pattern");
+    }
 
   int n = strlen(pattern);
 
-  if (n == 0) {
-    fatal("Empty cut pattern string");
-
-        }
+  if (n == 0)
+    {
+      fatal("Empty cut pattern string");
+    }
 
   int cut_fwd = -1;
   int cut_rev = -1;
@@ -330,39 +329,41 @@ void cut()
       unsigned char x = pattern[i];
       if (x == '^')
         {
-          if (j < 0) {
-            fatal("Multiple cut sites not supported");
+          if (j < 0)
+            {
+              fatal("Multiple cut sites not supported");
 
-        }
+            }
           cut_fwd = j;
         }
       else if (x == '_')
         {
-          if (j < 0) {
-            fatal("Multiple cut sites not supported");
+          if (j < 0)
+            {
+              fatal("Multiple cut sites not supported");
 
-        }
+            }
           cut_rev = j;
         }
       else if (chrmap_4bit[(unsigned int)x])
         {
           pattern[j++] = x;
         }
-      else {
-        fatal("Illegal character in cut pattern");
-
+      else
+        {
+          fatal("Illegal character in cut pattern");
         }
     }
 
-  if (cut_fwd < 0) {
-    fatal("No forward sequence cut site (^) found in pattern");
+  if (cut_fwd < 0)
+    {
+      fatal("No forward sequence cut site (^) found in pattern");
+    }
 
-        }
-
-  if (cut_rev < 0) {
-    fatal("No reverse sequence cut site (_) found in pattern");
-
-        }
+  if (cut_rev < 0)
+    {
+      fatal("No reverse sequence cut site (_) found in pattern");
+    }
 
   progress_init("Cutting sequences", filesize);
 
@@ -382,11 +383,13 @@ void cut()
                           cut_fwd,
                           cut_rev);
       matches += m;
-      if (m > 0) {
-        cut++;
-      } else {
-        uncut++;
-
+      if (m > 0)
+        {
+          cut++;
+        }
+      else
+        {
+          uncut++;
         }
 
       progress_update(fasta_get_position(h));
@@ -394,39 +397,39 @@ void cut()
 
   progress_done();
 
-  if (! opt_quiet) {
-    fprintf(stderr,
-            "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-            cut, matches, uncut);
+  if (! opt_quiet)
+    {
+      fprintf(stderr,
+              "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
+              cut, matches, uncut);
+    }
 
-        }
+  if (opt_log)
+    {
+      fprintf(fp_log,
+              "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
+              cut, matches, uncut);
+    }
 
-  if (opt_log) {
-    fprintf(fp_log,
-            "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-            cut, matches, uncut);
+  if (opt_fastaout)
+    {
+      fclose(fp_fastaout);
+    }
 
-        }
+  if (opt_fastaout_rev)
+    {
+      fclose(fp_fastaout_rev);
+    }
 
-  if (opt_fastaout) {
-    fclose(fp_fastaout);
+  if (opt_fastaout_discarded)
+    {
+      fclose(fp_fastaout_discarded);
+    }
 
-        }
-
-  if (opt_fastaout_rev) {
-    fclose(fp_fastaout_rev);
-
-        }
-
-  if (opt_fastaout_discarded) {
-    fclose(fp_fastaout_discarded);
-
-        }
-
-  if (opt_fastaout_discarded_rev) {
-    fclose(fp_fastaout_discarded_rev);
-
-        }
+  if (opt_fastaout_discarded_rev)
+    {
+      fclose(fp_fastaout_discarded_rev);
+    }
 
   fasta_close(h);
 }

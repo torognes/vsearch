@@ -70,9 +70,9 @@ void rereplicate()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_output)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
@@ -97,19 +97,19 @@ void rereplicate()
       for(int64_t j=0; j<abundance; j++)
         {
           i++;
-          if (opt_output) {
-            fasta_print_general(fp_output,
-                                nullptr,
-                                fasta_get_sequence(fh),
-                                fasta_get_sequence_length(fh),
-                                fasta_get_header(fh),
-                                fasta_get_header_length(fh),
-                                1,
-                                i,
-                                -1.0,
-                                -1, -1, nullptr, 0.0);
-
-        }
+          if (opt_output)
+            {
+              fasta_print_general(fp_output,
+                                  nullptr,
+                                  fasta_get_sequence(fh),
+                                  fasta_get_sequence_length(fh),
+                                  fasta_get_header(fh),
+                                  fasta_get_header_length(fh),
+                                  1,
+                                  i,
+                                  -1.0,
+                                  -1, -1, nullptr, 0.0);
+            }
         }
 
       progress_update(fasta_get_position(fh));
@@ -118,18 +118,18 @@ void rereplicate()
 
   if (! opt_quiet)
     {
-      if (missing) {
-        fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
-
+      if (missing)
+        {
+          fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
       fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
     }
 
   if (opt_log)
     {
-      if (missing) {
-        fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
-
+      if (missing)
+        {
+          fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
       fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
     }

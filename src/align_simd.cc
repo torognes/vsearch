@@ -73,17 +73,17 @@
 #define CDEPTH 4
 
 /*
-   Due to memory usage, limit the product of the length of the sequences.
-   If the product of the query length and any target sequence length
-   is above the limit, the alignment will not be computed and a score
-   of SHRT_MAX will be returned as the score.
-   If an overflow occurs during alignment computation, a score of
-   SHRT_MAX will also be returned.
+  Due to memory usage, limit the product of the length of the sequences.
+  If the product of the query length and any target sequence length
+  is above the limit, the alignment will not be computed and a score
+  of SHRT_MAX will be returned as the score.
+  If an overflow occurs during alignment computation, a score of
+  SHRT_MAX will also be returned.
 
-   The limit is set to 5 000 * 5 000 = 25 000 000. This will allocate up to
-   200 MB per thread. It will align pairs of sequences less than 5000 nt long
-   using the SIMD implementation, larger alignments will be performed with
-   the linear memory aligner.
+  The limit is set to 5 000 * 5 000 = 25 000 000. This will allocate up to
+  200 MB per thread. It will align pairs of sequences less than 5000 nt long
+  using the SIMD implementation, larger alignments will be performed with
+  the linear memory aligner.
 */
 
 #define MAXSEQLENPRODUCT 25000000
@@ -91,13 +91,13 @@
 static int64_t scorematrix[16][16];
 
 /*
-   The macros below usually operate on 128-bit vectors of 8 signed
-   short 16-bit integers. Additions and subtractions should be
-   saturated.  The shift operation should shift left by 2 bytes (one
-   short int) and shift in zeros. The v_mask_gt operation should
-   compare two vectors of signed shorts and return a 16-bit bitmask
-   with pairs of 2 bits set for each element greater in the first than
-   in the second argument.
+  The macros below usually operate on 128-bit vectors of 8 signed
+  short 16-bit integers. Additions and subtractions should be
+  saturated.  The shift operation should shift left by 2 bytes (one
+  short int) and shift in zeros. The v_mask_gt operation should
+  compare two vectors of signed shorts and return a 16-bit bitmask
+  with pairs of 2 bits set for each element greater in the first than
+  in the second argument.
 */
 
 #ifdef __PPC__
@@ -114,7 +114,7 @@ const vector unsigned char perm_merge_long_high =
 
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
 #define v_load(a) vec_ld(0, (VECTOR_SHORT *)(a))
-#define v_store(a, b) vec_st((vector unsigned char)(b), 0,              \
+#define v_store(a, b) vec_st((vector unsigned char)(b), 0,      \
                              (vector unsigned char *)(a))
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
@@ -223,19 +223,19 @@ struct s16info_s
 void _mm_print(VECTOR_SHORT x)
 {
   auto * y = (unsigned short*)&x;
-  for (int i=0; i<8; i++) {
-    printf("%s%6d", (i>0?" ":""), y[7-i]);
-
-        }
+  for (int i=0; i<8; i++)
+    {
+      printf("%s%6d", (i>0?" ":""), y[7-i]);
+    }
 }
 
 void _mm_print2(VECTOR_SHORT x)
 {
   auto * y = (signed short*)&x;
-  for (int i=0; i<8; i++) {
-    printf("%s%2d", (i>0?" ":""), y[7-i]);
-
-        }
+  for (int i=0; i<8; i++)
+    {
+      printf("%s%2d", (i>0?" ":""), y[7-i]);
+    }
 }
 
 void dprofile_dump16(CELL * dprofile)
@@ -243,19 +243,19 @@ void dprofile_dump16(CELL * dprofile)
   char * s = sym_nt_4bit;
   printf("\ndprofile:\n");
   for(int i=0; i<16; i++)
-  {
-    printf("%c: ",s[i]);
-    for(int k=0; k<CDEPTH; k++)
     {
-      printf("[");
-      for(int j=0; j<CHANNELS; j++) {
-        printf(" %3d", dprofile[CHANNELS*CDEPTH*i + CHANNELS*k + j]);
-
+      printf("%c: ",s[i]);
+      for(int k=0; k<CDEPTH; k++)
+        {
+          printf("[");
+          for(int j=0; j<CHANNELS; j++)
+            {
+              printf(" %3d", dprofile[CHANNELS*CDEPTH*i + CHANNELS*k + j]);
+            }
+          printf("]");
         }
-      printf("]");
+      printf("\n");
     }
-    printf("\n");
-  }
 }
 
 void dumpscorematrix(CELL * m)
@@ -263,9 +263,9 @@ void dumpscorematrix(CELL * m)
   for(int i=0; i<16; i++)
     {
       printf("%2d %c", i, sym_nt_4bit[i]);
-      for(int j=0; j<16; j++) {
-        printf(" %2d", m[16*i+j]);
-
+      for(int j=0; j<16; j++)
+        {
+          printf(" %2d", m[16*i+j]);
         }
       printf("\n");
     }
@@ -287,111 +287,115 @@ void dprofile_fill16(CELL * dprofile_word,
 #endif
 
   for (int j=0; j<CDEPTH; j++)
-  {
-    int d[CHANNELS];
-    for(int z=0; z<CHANNELS; z++) {
-      d[z] = dseq[j*CHANNELS+z] << 4;
-
+    {
+      int d[CHANNELS];
+      for(int z=0; z<CHANNELS; z++)
+        {
+          d[z] = dseq[j*CHANNELS+z] << 4;
         }
 
-    for(int i=0; i<16; i += 8)
-    {
+      for(int i=0; i<16; i += 8)
+        {
 
 #ifdef __PPC__
-      vector signed short     reg0, reg1, reg2, reg3, reg4, reg5, reg6, reg7;
-      vector signed int       reg8, reg9, reg10,reg11,reg12,reg13,reg14,reg15;
-      vector signed long long reg16,reg17,reg18,reg19,reg20,reg21,reg22,reg23;
-      vector signed long long reg24,reg25,reg26,reg27,reg28,reg29,reg30,reg31;
+          vector signed short     reg0, reg1, reg2, reg3,
+            reg4, reg5, reg6, reg7;
+          vector signed int       reg8, reg9, reg10,reg11,
+            reg12,reg13,reg14,reg15;
+          vector signed long long reg16,reg17,reg18,reg19,
+            reg20,reg21,reg22,reg23;
+          vector signed long long reg24,reg25,reg26,reg27,
+            reg28,reg29,reg30,reg31;
 #else
-      VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-      VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
-      VECTOR_SHORT reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
-      VECTOR_SHORT reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
+          VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
+          VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
+          VECTOR_SHORT reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
+          VECTOR_SHORT reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
 #endif
 
-      reg0 = v_load(score_matrix_word + d[0] + i);
-      reg1 = v_load(score_matrix_word + d[1] + i);
-      reg2 = v_load(score_matrix_word + d[2] + i);
-      reg3 = v_load(score_matrix_word + d[3] + i);
-      reg4 = v_load(score_matrix_word + d[4] + i);
-      reg5 = v_load(score_matrix_word + d[5] + i);
-      reg6 = v_load(score_matrix_word + d[6] + i);
-      reg7 = v_load(score_matrix_word + d[7] + i);
+          reg0 = v_load(score_matrix_word + d[0] + i);
+          reg1 = v_load(score_matrix_word + d[1] + i);
+          reg2 = v_load(score_matrix_word + d[2] + i);
+          reg3 = v_load(score_matrix_word + d[3] + i);
+          reg4 = v_load(score_matrix_word + d[4] + i);
+          reg5 = v_load(score_matrix_word + d[5] + i);
+          reg6 = v_load(score_matrix_word + d[6] + i);
+          reg7 = v_load(score_matrix_word + d[7] + i);
 
 #ifdef __PPC__
-      reg8  = (vector signed int) vec_mergeh(reg0, reg1);
-      reg9  = (vector signed int) vec_mergel(reg0, reg1);
-      reg10 = (vector signed int) vec_mergeh(reg2, reg3);
-      reg11 = (vector signed int) vec_mergel(reg2, reg3);
-      reg12 = (vector signed int) vec_mergeh(reg4, reg5);
-      reg13 = (vector signed int) vec_mergel(reg4, reg5);
-      reg14 = (vector signed int) vec_mergeh(reg6, reg7);
-      reg15 = (vector signed int) vec_mergel(reg6, reg7);
+          reg8  = (vector signed int) vec_mergeh(reg0, reg1);
+          reg9  = (vector signed int) vec_mergel(reg0, reg1);
+          reg10 = (vector signed int) vec_mergeh(reg2, reg3);
+          reg11 = (vector signed int) vec_mergel(reg2, reg3);
+          reg12 = (vector signed int) vec_mergeh(reg4, reg5);
+          reg13 = (vector signed int) vec_mergel(reg4, reg5);
+          reg14 = (vector signed int) vec_mergeh(reg6, reg7);
+          reg15 = (vector signed int) vec_mergel(reg6, reg7);
 
-      reg16 = (vector signed long long) vec_mergeh(reg8,  reg10);
-      reg17 = (vector signed long long) vec_mergel(reg8,  reg10);
-      reg18 = (vector signed long long) vec_mergeh(reg12, reg14);
-      reg19 = (vector signed long long) vec_mergel(reg12, reg14);
-      reg20 = (vector signed long long) vec_mergeh(reg9,  reg11);
-      reg21 = (vector signed long long) vec_mergel(reg9,  reg11);
-      reg22 = (vector signed long long) vec_mergeh(reg13, reg15);
-      reg23 = (vector signed long long) vec_mergel(reg13, reg15);
+          reg16 = (vector signed long long) vec_mergeh(reg8,  reg10);
+          reg17 = (vector signed long long) vec_mergel(reg8,  reg10);
+          reg18 = (vector signed long long) vec_mergeh(reg12, reg14);
+          reg19 = (vector signed long long) vec_mergel(reg12, reg14);
+          reg20 = (vector signed long long) vec_mergeh(reg9,  reg11);
+          reg21 = (vector signed long long) vec_mergel(reg9,  reg11);
+          reg22 = (vector signed long long) vec_mergeh(reg13, reg15);
+          reg23 = (vector signed long long) vec_mergel(reg13, reg15);
 
-      reg24 = (vector signed long long) vec_perm
-        (reg16, reg18, perm_merge_long_low);
-      reg25 = (vector signed long long) vec_perm
-        (reg16, reg18, perm_merge_long_high);
-      reg26 = (vector signed long long) vec_perm
-        (reg17, reg19, perm_merge_long_low);
-      reg27 = (vector signed long long) vec_perm
-        (reg17, reg19, perm_merge_long_high);
-      reg28 = (vector signed long long) vec_perm
-        (reg20, reg22, perm_merge_long_low);
-      reg29 = (vector signed long long) vec_perm
-        (reg20, reg22, perm_merge_long_high);
-      reg30 = (vector signed long long) vec_perm
-        (reg21, reg23, perm_merge_long_low);
-      reg31 = (vector signed long long) vec_perm
-        (reg21, reg23, perm_merge_long_high);
+          reg24 = (vector signed long long) vec_perm
+            (reg16, reg18, perm_merge_long_low);
+          reg25 = (vector signed long long) vec_perm
+            (reg16, reg18, perm_merge_long_high);
+          reg26 = (vector signed long long) vec_perm
+            (reg17, reg19, perm_merge_long_low);
+          reg27 = (vector signed long long) vec_perm
+            (reg17, reg19, perm_merge_long_high);
+          reg28 = (vector signed long long) vec_perm
+            (reg20, reg22, perm_merge_long_low);
+          reg29 = (vector signed long long) vec_perm
+            (reg20, reg22, perm_merge_long_high);
+          reg30 = (vector signed long long) vec_perm
+            (reg21, reg23, perm_merge_long_low);
+          reg31 = (vector signed long long) vec_perm
+            (reg21, reg23, perm_merge_long_high);
 #else
-      reg8  = v_merge_lo_16(reg0,  reg1);
-      reg9  = v_merge_hi_16(reg0,  reg1);
-      reg10 = v_merge_lo_16(reg2,  reg3);
-      reg11 = v_merge_hi_16(reg2,  reg3);
-      reg12 = v_merge_lo_16(reg4,  reg5);
-      reg13 = v_merge_hi_16(reg4,  reg5);
-      reg14 = v_merge_lo_16(reg6,  reg7);
-      reg15 = v_merge_hi_16(reg6,  reg7);
+          reg8  = v_merge_lo_16(reg0,  reg1);
+          reg9  = v_merge_hi_16(reg0,  reg1);
+          reg10 = v_merge_lo_16(reg2,  reg3);
+          reg11 = v_merge_hi_16(reg2,  reg3);
+          reg12 = v_merge_lo_16(reg4,  reg5);
+          reg13 = v_merge_hi_16(reg4,  reg5);
+          reg14 = v_merge_lo_16(reg6,  reg7);
+          reg15 = v_merge_hi_16(reg6,  reg7);
 
-      reg16 = v_merge_lo_32(reg8,  reg10);
-      reg17 = v_merge_hi_32(reg8,  reg10);
-      reg18 = v_merge_lo_32(reg12, reg14);
-      reg19 = v_merge_hi_32(reg12, reg14);
-      reg20 = v_merge_lo_32(reg9,  reg11);
-      reg21 = v_merge_hi_32(reg9,  reg11);
-      reg22 = v_merge_lo_32(reg13, reg15);
-      reg23 = v_merge_hi_32(reg13, reg15);
+          reg16 = v_merge_lo_32(reg8,  reg10);
+          reg17 = v_merge_hi_32(reg8,  reg10);
+          reg18 = v_merge_lo_32(reg12, reg14);
+          reg19 = v_merge_hi_32(reg12, reg14);
+          reg20 = v_merge_lo_32(reg9,  reg11);
+          reg21 = v_merge_hi_32(reg9,  reg11);
+          reg22 = v_merge_lo_32(reg13, reg15);
+          reg23 = v_merge_hi_32(reg13, reg15);
 
-      reg24 = v_merge_lo_64(reg16, reg18);
-      reg25 = v_merge_hi_64(reg16, reg18);
-      reg26 = v_merge_lo_64(reg17, reg19);
-      reg27 = v_merge_hi_64(reg17, reg19);
-      reg28 = v_merge_lo_64(reg20, reg22);
-      reg29 = v_merge_hi_64(reg20, reg22);
-      reg30 = v_merge_lo_64(reg21, reg23);
-      reg31 = v_merge_hi_64(reg21, reg23);
+          reg24 = v_merge_lo_64(reg16, reg18);
+          reg25 = v_merge_hi_64(reg16, reg18);
+          reg26 = v_merge_lo_64(reg17, reg19);
+          reg27 = v_merge_hi_64(reg17, reg19);
+          reg28 = v_merge_lo_64(reg20, reg22);
+          reg29 = v_merge_hi_64(reg20, reg22);
+          reg30 = v_merge_lo_64(reg21, reg23);
+          reg31 = v_merge_hi_64(reg21, reg23);
 #endif
 
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j, reg24);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j, reg25);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j, reg26);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j, reg27);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j, reg28);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j, reg29);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j, reg30);
-      v_store(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j, reg31);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j, reg24);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j, reg25);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j, reg26);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j, reg27);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j, reg28);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j, reg29);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j, reg30);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j, reg31);
+        }
     }
-  }
 #if 0
   dprofile_dump16(dprofile_word);
 #endif
@@ -425,7 +429,7 @@ void dprofile_fill16(CELL * dprofile_word,
    source into bits 48-63 of the destination. */
 
 const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
-                                      56,  48,  40,  32,  24,  16,   8,   0 };
+  56,  48,  40,  32,  24,  16,   8,   0 };
 
 #define ALIGNCORE(H, N, F, V, RES, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX)  \
   {                                                                     \
@@ -543,11 +547,11 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
       E  = hep[2*i+1];
 
       /*
-         Initialize selected h and e values for next/this round.
-         First zero those cells where a new sequence starts
-         by using an unsigned saturated subtraction of a huge value to
-         set it to zero.
-         Then use signed subtraction to obtain the correct value.
+        Initialize selected h and e values for next/this round.
+        First zero those cells where a new sequence starts
+        by using an unsigned saturated subtraction of a huge value to
+        set it to zero.
+        Then use signed subtraction to obtain the correct value.
       */
 
       h4 = v_sub_unsigned(h4, Mm);
@@ -770,9 +774,11 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
 
 inline void pushop(s16info_s * s, char newop)
 {
-  if (newop == s->op) {
-    s->opcount++;
-  } else
+  if (newop == s->op)
+    {
+      s->opcount++;
+    }
+  else
     {
       *--s->cigarend = s->op;
       if (s->opcount > 1)
@@ -829,58 +835,58 @@ void backtrack16(s16info_s * s,
   printf("Dumping backtracking array\n");
 
   for(uint64_t i=0; i<qlen; i++)
-  {
-    for(uint64_t j=0; j<dlen; j++)
     {
-      uint64_t d = *((uint64_t *) (dirbuffer +
-                                   (offset + 16*s->qlen*(j/4) +
-                                    16*i + 4*(j&3)) % dirbuffersize));
-      if (d & maskup)
-      {
-        if (d & maskleft)
-          printf("+");
-        else
-          printf("^");
-      }
-      else if (d & maskleft)
-      {
-        printf("<");
-      }
-      else
-      {
-        printf("\\");
-      }
+      for(uint64_t j=0; j<dlen; j++)
+        {
+          uint64_t d = *((uint64_t *) (dirbuffer +
+                                       (offset + 16*s->qlen*(j/4) +
+                                        16*i + 4*(j&3)) % dirbuffersize));
+          if (d & maskup)
+            {
+              if (d & maskleft)
+                printf("+");
+              else
+                printf("^");
+            }
+          else if (d & maskleft)
+            {
+              printf("<");
+            }
+          else
+            {
+              printf("\\");
+            }
+        }
+      printf("\n");
     }
-    printf("\n");
-  }
 
   printf("Dumping gap extension array\n");
 
   for(uint64_t i=0; i<qlen; i++)
-  {
-    for(uint64_t j=0; j<dlen; j++)
     {
-      uint64_t d = *((uint64_t *) (dirbuffer +
-                                   (offset + 16*s->qlen*(j/4) +
-                                    16*i + 4*(j&3)) % dirbuffersize));
-      if (d & maskextup)
-      {
-        if (d & maskextleft)
-          printf("+");
-        else
-          printf("^");
-      }
-      else if (d & maskextleft)
-      {
-        printf("<");
-      }
-      else
-      {
-        printf("\\");
-      }
+      for(uint64_t j=0; j<dlen; j++)
+        {
+          uint64_t d = *((uint64_t *) (dirbuffer +
+                                       (offset + 16*s->qlen*(j/4) +
+                                        16*i + 4*(j&3)) % dirbuffersize));
+          if (d & maskextup)
+            {
+              if (d & maskextleft)
+                printf("+");
+              else
+                printf("^");
+            }
+          else if (d & maskextleft)
+            {
+              printf("<");
+            }
+          else
+            {
+              printf("\\");
+            }
+        }
+      printf("\n");
     }
-    printf("\n");
-  }
 
 #endif
 
@@ -897,61 +903,63 @@ void backtrack16(s16info_s * s,
   s->opcount = 1;
 
   while ((i>=0) && (j>=0))
-  {
-    aligned++;
-
-    uint64_t d = *((uint64_t *) (dirbuffer +
-                                 (offset + 16*s->qlen*(j/4) +
-                                  16*i + 4*(j&3)) % dirbuffersize));
-
-    if ((s->op == 'I') && (d & maskextleft))
     {
-      j--;
-      pushop(s, 'I');
-    }
-    else if ((s->op == 'D') && (d & maskextup))
-    {
-      i--;
-      pushop(s, 'D');
-    }
-    else if (d & maskleft)
-    {
-      if (s->op != 'I') {
-        gaps++;
+      aligned++;
 
+      uint64_t d = *((uint64_t *) (dirbuffer +
+                                   (offset + 16*s->qlen*(j/4) +
+                                    16*i + 4*(j&3)) % dirbuffersize));
+
+      if ((s->op == 'I') && (d & maskextleft))
+        {
+          j--;
+          pushop(s, 'I');
         }
-      j--;
-      pushop(s, 'I');
-    }
-    else if (d & maskup)
-    {
-      if (s->op != 'D') {
-        gaps++;
-
+      else if ((s->op == 'D') && (d & maskextup))
+        {
+          i--;
+          pushop(s, 'D');
         }
-      i--;
-      pushop(s, 'D');
-    }
-    else
-    {
-      if (chrmap_4bit[(int)(qseq[i])] & chrmap_4bit[(int)(dseq[j])]) {
-        matches++;
-      } else {
-        mismatches++;
-
+      else if (d & maskleft)
+        {
+          if (s->op != 'I')
+            {
+              gaps++;
+            }
+          j--;
+          pushop(s, 'I');
         }
-      i--;
-      j--;
-      pushop(s, 'M');
+      else if (d & maskup)
+        {
+          if (s->op != 'D')
+            {
+              gaps++;
+            }
+          i--;
+          pushop(s, 'D');
+        }
+      else
+        {
+          if (chrmap_4bit[(int)(qseq[i])] & chrmap_4bit[(int)(dseq[j])])
+            {
+              matches++;
+            }
+          else
+            {
+              mismatches++;
+            }
+          i--;
+          j--;
+          pushop(s, 'M');
+        }
     }
-  }
 
   while(i>=0)
     {
       aligned++;
-      if (s->op != 'D') {
-        gaps++;
-
+      if (s->op != 'D')
+        {
+          gaps++;
         }
       i--;
       pushop(s, 'D');
@@ -960,9 +968,9 @@ void backtrack16(s16info_s * s,
   while(j>=0)
     {
       aligned++;
-      if (s->op != 'I') {
-        gaps++;
-
+      if (s->op != 'I')
+        {
+          gaps++;
         }
       j--;
       pushop(s, 'I');
@@ -1014,40 +1022,56 @@ struct s16info_s * search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
-  for(int i=0; i<16; i++) {
-    for(int j=0; j<16; j++)
-      {
-        CELL value;
-        if (ambiguous_4bit[i] || ambiguous_4bit[j]) {
-          value = 0;
-        } else if (i == j) {
-          value = opt_match;
-        } else {
-          value = opt_mismatch;
-
+  for(int i=0; i<16; i++)
+    {
+      for(int j=0; j<16; j++)
+        {
+          CELL value;
+          if (ambiguous_4bit[i] || ambiguous_4bit[j])
+            {
+              value = 0;
+            }
+          else if (i == j)
+            {
+              value = opt_match;
+            }
+          else
+            {
+              value = opt_mismatch;
+            }
+          ((CELL*)(&s->matrix))[16*i+j] = value;
+          scorematrix[i][j] = value;
         }
-        ((CELL*)(&s->matrix))[16*i+j] = value;
-        scorematrix[i][j] = value;
-      }
-
-        }
+    }
 
 
-  s->penalty_gap_open_query_left = penalty_gap_open_query_left;
-  s->penalty_gap_open_query_interior = penalty_gap_open_query_interior;
-  s->penalty_gap_open_query_right = penalty_gap_open_query_right;
+  s->penalty_gap_open_query_left =
+    penalty_gap_open_query_left;
+  s->penalty_gap_open_query_interior =
+    penalty_gap_open_query_interior;
+  s->penalty_gap_open_query_right =
+    penalty_gap_open_query_right;
 
-  s->penalty_gap_open_target_left = penalty_gap_open_target_left;
-  s->penalty_gap_open_target_interior = penalty_gap_open_target_interior;
-  s->penalty_gap_open_target_right = penalty_gap_open_target_right;
+  s->penalty_gap_open_target_left =
+    penalty_gap_open_target_left;
+  s->penalty_gap_open_target_interior =
+    penalty_gap_open_target_interior;
+  s->penalty_gap_open_target_right =
+    penalty_gap_open_target_right;
 
-  s->penalty_gap_extension_query_left = penalty_gap_extension_query_left;
-  s->penalty_gap_extension_query_interior = penalty_gap_extension_query_interior;
-  s->penalty_gap_extension_query_right = penalty_gap_extension_query_right;
+  s->penalty_gap_extension_query_left =
+    penalty_gap_extension_query_left;
+  s->penalty_gap_extension_query_interior =
+    penalty_gap_extension_query_interior;
+  s->penalty_gap_extension_query_right =
+    penalty_gap_extension_query_right;
 
-  s->penalty_gap_extension_target_left = penalty_gap_extension_target_left;
-  s->penalty_gap_extension_target_interior = penalty_gap_extension_target_interior;
-  s->penalty_gap_extension_target_right = penalty_gap_extension_target_right;
+  s->penalty_gap_extension_target_left =
+    penalty_gap_extension_target_left;
+  s->penalty_gap_extension_target_interior =
+    penalty_gap_extension_target_interior;
+  s->penalty_gap_extension_target_right =
+    penalty_gap_extension_target_right;
 
   return s;
 }
@@ -1055,26 +1079,26 @@ struct s16info_s * search16_init(CELL score_match,
 void search16_exit(s16info_s * s)
 {
   /* free mem for dprofile, hearray, dir, qtable */
-  if (s->dir) {
-    xfree(s->dir);
-
-        }
-  if (s->hearray) {
-    xfree(s->hearray);
-
-        }
-  if (s->dprofile) {
-    xfree(s->dprofile);
-
-        }
-  if (s->qtable) {
-    xfree(s->qtable);
-
-        }
-  if (s->cigar) {
-    xfree(s->cigar);
-
-        }
+  if (s->dir)
+    {
+      xfree(s->dir);
+    }
+  if (s->hearray)
+    {
+      xfree(s->hearray);
+    }
+  if (s->dprofile)
+    {
+      xfree(s->dprofile);
+    }
+  if (s->qtable)
+    {
+      xfree(s->qtable);
+    }
+  if (s->cigar)
+    {
+      xfree(s->cigar);
+    }
   xfree(s);
 }
 
@@ -1083,23 +1107,23 @@ void search16_qprep(s16info_s * s, char * qseq, int qlen)
   s->qlen = qlen;
   s->qseq = qseq;
 
-  if (s->hearray) {
-    xfree(s->hearray);
-
-        }
+  if (s->hearray)
+    {
+      xfree(s->hearray);
+    }
   s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
   memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
 
-  if (s->qtable) {
-    xfree(s->qtable);
-
-        }
+  if (s->qtable)
+    {
+      xfree(s->qtable);
+    }
   s->qtable = (VECTOR_SHORT **) xmalloc(s->qlen * sizeof(VECTOR_SHORT*));
 
-  for(int i = 0; i < qlen; i++) {
-    s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int)(qseq[i])];
-
-        }
+  for(int i = 0; i < qlen; i++)
+    {
+      s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int)(qseq[i])];
+    }
 }
 
 void search16(s16info_s * s,
@@ -1129,25 +1153,27 @@ void search16(s16info_s * s,
           pmismatches[cand_id] = 0;
           pgaps[cand_id] = length;
 
-          if (length == 0) {
-            pscores[cand_id] = 0;
-          } else {
-            pscores[cand_id] =
-              MAX(- s->penalty_gap_open_target_left -
-                  length * s->penalty_gap_extension_target_left,
-                  - s->penalty_gap_open_target_right -
-                  length * s->penalty_gap_extension_target_right);
-
-        }
+          if (length == 0)
+            {
+              pscores[cand_id] = 0;
+            }
+          else
+            {
+              pscores[cand_id] =
+                MAX(- s->penalty_gap_open_target_left -
+                    length * s->penalty_gap_extension_target_left,
+                    - s->penalty_gap_open_target_right -
+                    length * s->penalty_gap_extension_target_right);
+            }
 
           char * cigar = nullptr;
           if (length > 0)
             {
               int ret = xsprintf(&cigar, "%ldI", length);
-              if ((ret < 2) || !cigar) {
-                fatal("Unable to allocate enough memory.");
-
-        }
+              if ((ret < 2) || !cigar)
+                {
+                  fatal("Unable to allocate enough memory.");
+                }
             }
           else
             {
@@ -1167,10 +1193,10 @@ void search16(s16info_s * s,
       /* skip the very long sequences */
       if ((int64_t)(s->qlen) * dlen <= MAXSEQLENPRODUCT)
         {
-          if (dlen > maxdlen) {
-            maxdlen = dlen;
-
-        }
+          if (dlen > maxdlen)
+            {
+              maxdlen = dlen;
+            }
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
@@ -1180,9 +1206,9 @@ void search16(s16info_s * s,
   if (dirbuffersize > s->diralloc)
     {
       s->diralloc = dirbuffersize;
-      if (s->dir) {
-        xfree(s->dir);
-
+      if (s->dir)
+        {
+          xfree(s->dir);
         }
       s->dir = (unsigned short*) xmalloc(dirbuffersize *
                                          sizeof(unsigned short));
@@ -1193,9 +1219,9 @@ void search16(s16info_s * s,
   if (s->qlen + s->maxdlen + 1 > s->cigaralloc)
     {
       s->cigaralloc = s->qlen + s->maxdlen + 1;
-      if (s->cigar) {
-        xfree(s->cigar);
-
+      if (s->cigar)
+        {
+          xfree(s->cigar);
         }
       s->cigar = (char *) xmalloc(s->cigaralloc);
     }
@@ -1316,364 +1342,372 @@ void search16(s16info_s * s,
   unsigned short * dir = dirbuffer;
 
   while(true)
-  {
-    if (easy)
     {
-      /* fill all channels with symbols from the database sequences */
-
-      for(int c=0; c<CHANNELS; c++)
-      {
-        for(int j=0; j<CDEPTH; j++)
-        {
-          if (d_begin[c] < d_end[c]) {
-            dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
-          } else {
-            dseq[CHANNELS*j+c] = 0;
-
-        }
-        }
-        if (d_begin[c] == d_end[c]) {
-          easy = 0;
-
-        }
-      }
-
-      dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
-
-      /* create vectors of gap penalties for target depending on whether
-         any of the database sequences ended in these four columns */
-
       if (easy)
         {
-          for(unsigned int j=0; j<CDEPTH; j++)
+          /* fill all channels with symbols from the database sequences */
+
+          for(int c=0; c<CHANNELS; c++)
             {
-              QR_target[j] = QR_target_interior;
-              R_target[j]  = R_target_interior;
-            }
-        }
-      else
-        {
-          /* one or more sequences ended */
-
-          VECTOR_SHORT QR_diff = v_sub(QR_target_right,
-                                       QR_target_interior);
-          VECTOR_SHORT R_diff  = v_sub(R_target_right,
-                                       R_target_interior);
-          for(unsigned int j=0; j<CDEPTH; j++)
-            {
-              VECTOR_SHORT MM = v_zero;
-              VECTOR_SHORT TT = T0;
-              for(int c=0; c<CHANNELS; c++)
-                {
-                  if ((d_begin[c] == d_end[c]) &&
-                      (j >= ((d_length[c]+3) % 4)))
-                    {
-                      MM = v_xor(MM, TT);
-                    }
-                  TT = v_shift_left(TT);
-                }
-              QR_target[j] = v_add(QR_target_interior,
-                                   v_and(QR_diff, MM));
-              R_target[j]  = v_add(R_target_interior,
-                                   v_and(R_diff, MM));
-            }
-        }
-
-      VECTOR_SHORT h_min, h_max;
-
-      aligncolumns_rest(S, hep, qp,
-                        QR_query_interior, R_query_interior,
-                        QR_query_right, R_query_right,
-                        QR_target[0], R_target[0],
-                        QR_target[1], R_target[1],
-                        QR_target[2], R_target[2],
-                        QR_target[3], R_target[3],
-                        H0, H1, H2, H3,
-                        F0, F1, F2, F3,
-                        & h_min, & h_max,
-                        qlen, dir);
-
-      VECTOR_SHORT h_min_vector;
-      VECTOR_SHORT h_max_vector;
-      v_store(& h_min_vector, h_min);
-      v_store(& h_max_vector, h_max);
-      for(int c=0; c<CHANNELS; c++)
-        {
-          if (! overflow[c])
-            {
-              signed short h_min_c = ((signed short *)(& h_min_vector))[c];
-              signed short h_max_c = ((signed short *)(& h_max_vector))[c];
-              if ((h_min_c <= score_min) ||
-                  (h_max_c >= score_max)) {
-                overflow[c] = true;
-
-        }
-            }
-        }
-    }
-    else
-    {
-      /* One or more sequences ended in the previous block.
-         We have to switch over to a new sequence           */
-
-      easy = 1;
-
-      M = v_zero;
-
-      VECTOR_SHORT T = T0;
-      for (int c=0; c<CHANNELS; c++)
-      {
-        if (d_begin[c] < d_end[c])
-        {
-          /* this channel has more sequence */
-
-          for(int j=0; j<CDEPTH; j++)
-          {
-            if (d_begin[c] < d_end[c]) {
-              dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
-            } else {
-              dseq[CHANNELS*j+c] = 0;
-
-        }
-          }
-          if (d_begin[c] == d_end[c]) {
-            easy = 0;
-
-        }
-        }
-        else
-        {
-          /* sequence in channel c ended. change of sequence */
-
-          M = v_xor(M, T);
-
-          int64_t cand_id = seq_id[c];
-
-          if (cand_id >= 0)
-          {
-            /* save score */
-
-            char * dbseq = (char*) d_address[c];
-            int64_t dbseqlen = d_length[c];
-            int64_t z = (dbseqlen+3) % 4;
-            int64_t score = ((CELL*)S)[z*CHANNELS+c];
-
-            if (overflow[c])
-              {
-                pscores[cand_id] = SHRT_MAX;
-                paligned[cand_id] = 0;
-                pmatches[cand_id] = 0;
-                pmismatches[cand_id] = 0;
-                pgaps[cand_id] = 0;
-                pcigar[cand_id] = xstrdup("");
-              }
-            else
-              {
-                pscores[cand_id] = score;
-                backtrack16(s, dbseq, dbseqlen, d_offset[c], c,
-                            paligned + cand_id,
-                            pmatches + cand_id,
-                            pmismatches + cand_id,
-                            pgaps + cand_id);
-                pcigar[cand_id] = (char *) xmalloc(strlen(s->cigar)+1);
-                strcpy(pcigar[cand_id], s->cigar);
-              }
-
-            done++;
-          }
-
-          /* get next sequence of reasonable length */
-
-          int64_t length = 0;
-
-          while ((length == 0) && (next_id < sequences))
-          {
-            cand_id = next_id++;
-            length = db_getsequencelen(seqnos[cand_id]);
-            if ((length==0) || (s->qlen * length > MAXSEQLENPRODUCT))
-              {
-                pscores[cand_id] = SHRT_MAX;
-                paligned[cand_id] = 0;
-                pmatches[cand_id] = 0;
-                pmismatches[cand_id] = 0;
-                pgaps[cand_id] = 0;
-                pcigar[cand_id] = xstrdup("");
-                length = 0;
-                done++;
-              }
-          }
-
-          if (length > 0)
-            {
-              seq_id[c] = cand_id;
-              char * address = db_getsequence(seqnos[cand_id]);
-              d_address[c] = (BYTE*) address;
-              d_length[c] = length;
-              d_begin[c] = (unsigned char*) address;
-              d_end[c] = (unsigned char*) address + length;
-              d_offset[c] = dir - dirbuffer;
-              overflow[c] = false;
-
-              ((CELL*)&H0)[c] = 0;
-              ((CELL*)&H1)[c] = - s->penalty_gap_open_query_left
-                - 1*s->penalty_gap_extension_query_left;
-              ((CELL*)&H2)[c] = - s->penalty_gap_open_query_left
-                - 2*s->penalty_gap_extension_query_left;
-              ((CELL*)&H3)[c] = - s->penalty_gap_open_query_left
-                - 3*s->penalty_gap_extension_query_left;
-
-              ((CELL*)&F0)[c] = - s->penalty_gap_open_query_left
-                - 1*s->penalty_gap_extension_query_left;
-              ((CELL*)&F1)[c] = - s->penalty_gap_open_query_left
-                - 2*s->penalty_gap_extension_query_left;
-              ((CELL*)&F2)[c] = - s->penalty_gap_open_query_left
-                - 3*s->penalty_gap_extension_query_left;
-              ((CELL*)&F3)[c] = - s->penalty_gap_open_query_left
-                - 4*s->penalty_gap_extension_query_left;
-
-              /* fill channel */
-
               for(int j=0; j<CDEPTH; j++)
                 {
-                  if (d_begin[c] < d_end[c]) {
-                    dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
-                  } else {
-                    dseq[CHANNELS*j+c] = 0;
-
-        }
+                  if (d_begin[c] < d_end[c])
+                    {
+                      dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+                    }
+                  else
+                    {
+                      dseq[CHANNELS*j+c] = 0;
+                    }
                 }
-              if (d_begin[c] == d_end[c]) {
-                easy = 0;
+              if (d_begin[c] == d_end[c])
+                {
+                  easy = 0;
+                }
+            }
 
-        }
+          dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
+
+          /* create vectors of gap penalties for target depending on whether
+             any of the database sequences ended in these four columns */
+
+          if (easy)
+            {
+              for(unsigned int j=0; j<CDEPTH; j++)
+                {
+                  QR_target[j] = QR_target_interior;
+                  R_target[j]  = R_target_interior;
+                }
             }
           else
             {
-              /* no more sequences, empty channel */
+              /* one or more sequences ended */
 
-              seq_id[c] = -1;
-              d_address[c] = nullptr;
-              d_begin[c] = &zero;
-              d_end[c] = d_begin[c];
-              d_length[c] = 0;
-              d_offset[c] = 0;
-              for (int j=0; j<CDEPTH; j++) {
-                dseq[CHANNELS*j+c] = 0;
-
-        }
+              VECTOR_SHORT QR_diff = v_sub(QR_target_right,
+                                           QR_target_interior);
+              VECTOR_SHORT R_diff  = v_sub(R_target_right,
+                                           R_target_interior);
+              for(unsigned int j=0; j<CDEPTH; j++)
+                {
+                  VECTOR_SHORT MM = v_zero;
+                  VECTOR_SHORT TT = T0;
+                  for(int c=0; c<CHANNELS; c++)
+                    {
+                      if ((d_begin[c] == d_end[c]) &&
+                          (j >= ((d_length[c]+3) % 4)))
+                        {
+                          MM = v_xor(MM, TT);
+                        }
+                      TT = v_shift_left(TT);
+                    }
+                  QR_target[j] = v_add(QR_target_interior,
+                                       v_and(QR_diff, MM));
+                  R_target[j]  = v_add(R_target_interior,
+                                       v_and(R_diff, MM));
+                }
             }
-        }
-        T = v_shift_left(T);
-      }
 
-      if (done == sequences) {
-        break;
+          VECTOR_SHORT h_min, h_max;
 
-        }
+          aligncolumns_rest(S, hep, qp,
+                            QR_query_interior, R_query_interior,
+                            QR_query_right, R_query_right,
+                            QR_target[0], R_target[0],
+                            QR_target[1], R_target[1],
+                            QR_target[2], R_target[2],
+                            QR_target[3], R_target[3],
+                            H0, H1, H2, H3,
+                            F0, F1, F2, F3,
+                            & h_min, & h_max,
+                            qlen, dir);
 
-      /* make masked versions of QR and R for gaps in target */
-
-      M_QR_target_left = v_and(M, QR_target_left);
-      M_R_target_left = v_and(M, R_target_left);
-
-      /* make masked versions of QR for gaps in query at target left end */
-
-      M_QR_query_interior = v_and(M, QR_query_interior);
-      M_QR_query_right = v_and(M, QR_query_right);
-
-      dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
-
-      /* create vectors of gap penalties for target depending on whether
-         any of the database sequences ended in these four columns */
-
-      if (easy)
-        {
-          for(unsigned int j=0; j<CDEPTH; j++)
+          VECTOR_SHORT h_min_vector;
+          VECTOR_SHORT h_max_vector;
+          v_store(& h_min_vector, h_min);
+          v_store(& h_max_vector, h_max);
+          for(int c=0; c<CHANNELS; c++)
             {
-              QR_target[j] = QR_target_interior;
-              R_target[j]  = R_target_interior;
+              if (! overflow[c])
+                {
+                  signed short h_min_c = ((signed short *)(& h_min_vector))[c];
+                  signed short h_max_c = ((signed short *)(& h_max_vector))[c];
+                  if ((h_min_c <= score_min) ||
+                      (h_max_c >= score_max))
+                    {
+                      overflow[c] = true;
+                    }
+                }
             }
         }
       else
         {
-          /* one or more sequences ended */
+          /* One or more sequences ended in the previous block.
+             We have to switch over to a new sequence           */
 
-          VECTOR_SHORT QR_diff = v_sub(QR_target_right,
-                                       QR_target_interior);
-          VECTOR_SHORT R_diff  = v_sub(R_target_right,
-                                       R_target_interior);
-          for(unsigned int j=0; j<CDEPTH; j++)
+          easy = 1;
+
+          M = v_zero;
+
+          VECTOR_SHORT T = T0;
+          for (int c=0; c<CHANNELS; c++)
             {
-              VECTOR_SHORT MM = v_zero;
-              VECTOR_SHORT TT = T0;
-              for(int c=0; c<CHANNELS; c++)
+              if (d_begin[c] < d_end[c])
                 {
-                  if ((d_begin[c] == d_end[c]) &&
-                      (j >= ((d_length[c]+3) % 4)))
+                  /* this channel has more sequence */
+
+                  for(int j=0; j<CDEPTH; j++)
                     {
-                      MM = v_xor(MM, TT);
+                      if (d_begin[c] < d_end[c])
+                        {
+                          dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+                        }
+                      else
+                        {
+                          dseq[CHANNELS*j+c] = 0;
+                        }
                     }
-                  TT = v_shift_left(TT);
+                  if (d_begin[c] == d_end[c])
+                    {
+                      easy = 0;
+                    }
                 }
-              QR_target[j] = v_add(QR_target_interior,
-                                   v_and(QR_diff, MM));
-              R_target[j]  = v_add(R_target_interior,
-                                   v_and(R_diff, MM));
+              else
+                {
+                  /* sequence in channel c ended. change of sequence */
+
+                  M = v_xor(M, T);
+
+                  int64_t cand_id = seq_id[c];
+
+                  if (cand_id >= 0)
+                    {
+                      /* save score */
+
+                      char * dbseq = (char*) d_address[c];
+                      int64_t dbseqlen = d_length[c];
+                      int64_t z = (dbseqlen+3) % 4;
+                      int64_t score = ((CELL*)S)[z*CHANNELS+c];
+
+                      if (overflow[c])
+                        {
+                          pscores[cand_id] = SHRT_MAX;
+                          paligned[cand_id] = 0;
+                          pmatches[cand_id] = 0;
+                          pmismatches[cand_id] = 0;
+                          pgaps[cand_id] = 0;
+                          pcigar[cand_id] = xstrdup("");
+                        }
+                      else
+                        {
+                          pscores[cand_id] = score;
+                          backtrack16(s, dbseq, dbseqlen, d_offset[c], c,
+                                      paligned + cand_id,
+                                      pmatches + cand_id,
+                                      pmismatches + cand_id,
+                                      pgaps + cand_id);
+                          pcigar[cand_id] =
+                            (char *) xmalloc(strlen(s->cigar)+1);
+                          strcpy(pcigar[cand_id], s->cigar);
+                        }
+
+                      done++;
+                    }
+
+                  /* get next sequence of reasonable length */
+
+                  int64_t length = 0;
+
+                  while ((length == 0) && (next_id < sequences))
+                    {
+                      cand_id = next_id++;
+                      length = db_getsequencelen(seqnos[cand_id]);
+                      if ((length==0) || (s->qlen * length > MAXSEQLENPRODUCT))
+                        {
+                          pscores[cand_id] = SHRT_MAX;
+                          paligned[cand_id] = 0;
+                          pmatches[cand_id] = 0;
+                          pmismatches[cand_id] = 0;
+                          pgaps[cand_id] = 0;
+                          pcigar[cand_id] = xstrdup("");
+                          length = 0;
+                          done++;
+                        }
+                    }
+
+                  if (length > 0)
+                    {
+                      seq_id[c] = cand_id;
+                      char * address = db_getsequence(seqnos[cand_id]);
+                      d_address[c] = (BYTE*) address;
+                      d_length[c] = length;
+                      d_begin[c] = (unsigned char*) address;
+                      d_end[c] = (unsigned char*) address + length;
+                      d_offset[c] = dir - dirbuffer;
+                      overflow[c] = false;
+
+                      ((CELL*)&H0)[c] = 0;
+                      ((CELL*)&H1)[c] = - s->penalty_gap_open_query_left
+                        - 1*s->penalty_gap_extension_query_left;
+                      ((CELL*)&H2)[c] = - s->penalty_gap_open_query_left
+                        - 2*s->penalty_gap_extension_query_left;
+                      ((CELL*)&H3)[c] = - s->penalty_gap_open_query_left
+                        - 3*s->penalty_gap_extension_query_left;
+
+                      ((CELL*)&F0)[c] = - s->penalty_gap_open_query_left
+                        - 1*s->penalty_gap_extension_query_left;
+                      ((CELL*)&F1)[c] = - s->penalty_gap_open_query_left
+                        - 2*s->penalty_gap_extension_query_left;
+                      ((CELL*)&F2)[c] = - s->penalty_gap_open_query_left
+                        - 3*s->penalty_gap_extension_query_left;
+                      ((CELL*)&F3)[c] = - s->penalty_gap_open_query_left
+                        - 4*s->penalty_gap_extension_query_left;
+
+                      /* fill channel */
+
+                      for(int j=0; j<CDEPTH; j++)
+                        {
+                          if (d_begin[c] < d_end[c])
+                            {
+                              dseq[CHANNELS*j+c] =
+                                chrmap_4bit[*(d_begin[c]++)];
+                            }
+                          else
+                            {
+                              dseq[CHANNELS*j+c] = 0;
+                            }
+                        }
+                      if (d_begin[c] == d_end[c])
+                        {
+                          easy = 0;
+                        }
+                    }
+                  else
+                    {
+                      /* no more sequences, empty channel */
+
+                      seq_id[c] = -1;
+                      d_address[c] = nullptr;
+                      d_begin[c] = &zero;
+                      d_end[c] = d_begin[c];
+                      d_length[c] = 0;
+                      d_offset[c] = 0;
+                      for (int j=0; j<CDEPTH; j++)
+                        {
+                          dseq[CHANNELS*j+c] = 0;
+                        }
+                    }
+                }
+              T = v_shift_left(T);
             }
-        }
 
-      VECTOR_SHORT h_min, h_max;
-
-      aligncolumns_first(S, hep, qp,
-                         QR_query_interior, R_query_interior,
-                         QR_query_right, R_query_right,
-                         QR_target[0], R_target[0],
-                         QR_target[1], R_target[1],
-                         QR_target[2], R_target[2],
-                         QR_target[3], R_target[3],
-                         H0, H1, H2, H3,
-                         F0, F1, F2, F3,
-                         & h_min, & h_max,
-                         M,
-                         M_QR_target_left, M_R_target_left,
-                         M_QR_query_interior,
-                         M_QR_query_right,
-                         qlen, dir);
-
-      VECTOR_SHORT h_min_vector;
-      VECTOR_SHORT h_max_vector;
-      v_store(& h_min_vector, h_min);
-      v_store(& h_max_vector, h_max);
-      for(int c=0; c<CHANNELS; c++)
-        {
-          if (! overflow[c])
+          if (done == sequences)
             {
-              signed short h_min_c = ((signed short *)(& h_min_vector))[c];
-              signed short h_max_c = ((signed short *)(& h_max_vector))[c];
-              if ((h_min_c <= score_min) ||
-                  (h_max_c >= score_max)) {
-                overflow[c] = true;
-
-        }
+              break;
             }
+
+          /* make masked versions of QR and R for gaps in target */
+
+          M_QR_target_left = v_and(M, QR_target_left);
+          M_R_target_left = v_and(M, R_target_left);
+
+          /* make masked versions of QR for gaps in query at target left end */
+
+          M_QR_query_interior = v_and(M, QR_query_interior);
+          M_QR_query_right = v_and(M, QR_query_right);
+
+          dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
+
+          /* create vectors of gap penalties for target depending on whether
+             any of the database sequences ended in these four columns */
+
+          if (easy)
+            {
+              for(unsigned int j=0; j<CDEPTH; j++)
+                {
+                  QR_target[j] = QR_target_interior;
+                  R_target[j]  = R_target_interior;
+                }
+            }
+          else
+            {
+              /* one or more sequences ended */
+
+              VECTOR_SHORT QR_diff = v_sub(QR_target_right,
+                                           QR_target_interior);
+              VECTOR_SHORT R_diff  = v_sub(R_target_right,
+                                           R_target_interior);
+              for(unsigned int j=0; j<CDEPTH; j++)
+                {
+                  VECTOR_SHORT MM = v_zero;
+                  VECTOR_SHORT TT = T0;
+                  for(int c=0; c<CHANNELS; c++)
+                    {
+                      if ((d_begin[c] == d_end[c]) &&
+                          (j >= ((d_length[c]+3) % 4)))
+                        {
+                          MM = v_xor(MM, TT);
+                        }
+                      TT = v_shift_left(TT);
+                    }
+                  QR_target[j] = v_add(QR_target_interior,
+                                       v_and(QR_diff, MM));
+                  R_target[j]  = v_add(R_target_interior,
+                                       v_and(R_diff, MM));
+                }
+            }
+
+          VECTOR_SHORT h_min, h_max;
+
+          aligncolumns_first(S, hep, qp,
+                             QR_query_interior, R_query_interior,
+                             QR_query_right, R_query_right,
+                             QR_target[0], R_target[0],
+                             QR_target[1], R_target[1],
+                             QR_target[2], R_target[2],
+                             QR_target[3], R_target[3],
+                             H0, H1, H2, H3,
+                             F0, F1, F2, F3,
+                             & h_min, & h_max,
+                             M,
+                             M_QR_target_left, M_R_target_left,
+                             M_QR_query_interior,
+                             M_QR_query_right,
+                             qlen, dir);
+
+          VECTOR_SHORT h_min_vector;
+          VECTOR_SHORT h_max_vector;
+          v_store(& h_min_vector, h_min);
+          v_store(& h_max_vector, h_max);
+          for(int c=0; c<CHANNELS; c++)
+            {
+              if (! overflow[c])
+                {
+                  signed short h_min_c = ((signed short *)(& h_min_vector))[c];
+                  signed short h_max_c = ((signed short *)(& h_max_vector))[c];
+                  if ((h_min_c <= score_min) ||
+                      (h_max_c >= score_max))
+                    {
+                      overflow[c] = true;
+                    }
+                }
+            }
+        }
+
+      H0 = v_sub(H3, R_query_left);
+      H1 = v_sub(H0, R_query_left);
+      H2 = v_sub(H1, R_query_left);
+      H3 = v_sub(H2, R_query_left);
+
+      F0 = v_sub(F3, R_query_left);
+      F1 = v_sub(F0, R_query_left);
+      F2 = v_sub(F1, R_query_left);
+      F3 = v_sub(F2, R_query_left);
+
+      dir += 4 * 4 * s->qlen;
+
+      if (dir >= dirbuffer + dirbuffersize)
+        {
+          dir -= dirbuffersize;
         }
     }
-
-    H0 = v_sub(H3, R_query_left);
-    H1 = v_sub(H0, R_query_left);
-    H2 = v_sub(H1, R_query_left);
-    H3 = v_sub(H2, R_query_left);
-
-    F0 = v_sub(F3, R_query_left);
-    F1 = v_sub(F0, R_query_left);
-    F2 = v_sub(F1, R_query_left);
-    F3 = v_sub(F2, R_query_left);
-
-    dir += 4 * 4 * s->qlen;
-
-    if (dir >= dirbuffer + dirbuffersize) {
-      dir -= dirbuffersize;
-
-        }
-  }
 }

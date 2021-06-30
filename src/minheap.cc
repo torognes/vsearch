@@ -77,24 +77,34 @@ int
 elem_smaller(elem_t * a, elem_t * b)
 {
   /* return 1 if a is smaller than b, 0 if equal or greater */
-  if (a->count < b->count) {
-    return 1;
-  } else
-    if (a->count > b->count) {
-      return 0;
-    } else
-      if (a->length > b->length) {
-        return 1;
-      } else
-        if (a->length < b->length) {
-          return 0;
-        } else
-          if (a->seqno > b->seqno) {
-            return 1;
-          } else {
-            return 0;
-
+  if (a->count < b->count)
+    {
+      return 1;
+    }
+  else
+    if (a->count > b->count)
+      {
+        return 0;
+      }
+    else
+      if (a->length > b->length)
+        {
+          return 1;
         }
+      else
+        if (a->length < b->length)
+          {
+            return 0;
+          }
+        else
+          if (a->seqno > b->seqno)
+            {
+              return 1;
+            }
+          else
+            {
+              return 0;
+            }
 }
 
 int minheap_compare(const void * a, const void * b)
@@ -105,27 +115,39 @@ int minheap_compare(const void * a, const void * b)
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
 
-  if (x->count < y->count) {
-    return -1;
-  } else
-    if (x->count > y->count) {
-      return +1;
-    } else
-      if (x->length > y->length) {
-        return -1;
-      } else
-        if (x->length < y->length) {
-          return +1;
-        } else
-          if (x->seqno > y->seqno) {
-            return -1;
-          } else
-            if (x->seqno < y->seqno) {
-              return +1;
-            } else {
-              return 0;
-
+  if (x->count < y->count)
+    {
+      return -1;
+    }
+  else
+    if (x->count > y->count)
+      {
+        return +1;
+      }
+    else
+      if (x->length > y->length)
+        {
+          return -1;
         }
+      else
+        if (x->length < y->length)
+          {
+            return +1;
+          }
+        else
+          if (x->seqno > y->seqno)
+            {
+              return -1;
+            }
+          else
+            if (x->seqno < y->seqno)
+              {
+                return +1;
+              }
+            else
+              {
+                return 0;
+              }
 }
 
 minheap_t *
@@ -161,9 +183,9 @@ minheap_replaceroot(minheap_t * m, elem_t tmp)
   while (c < m->count)
     {
       /* if two children: swap with the one with smallest value */
-      if ((c + 1 < m->count) && (elem_smaller(m->array + c + 1, m->array + c))) {
-        c++;
-
+      if ((c + 1 < m->count) && (elem_smaller(m->array + c + 1, m->array + c)))
+        {
+          c++;
         }
 
       /* swap parent and child if child has lower value */
@@ -172,9 +194,9 @@ minheap_replaceroot(minheap_t * m, elem_t tmp)
           m->array[p] = m->array[c];
           swaps++;
         }
-      else {
-        break;
-
+      else
+        {
+          break;
         }
 
       /* step down */
@@ -242,10 +264,10 @@ minheap_pop(minheap_t * m)
         }
       return top;
     }
-  else {
-    return zero;
-
-        }
+  else
+    {
+      return zero;
+    }
 }
 
 void
@@ -257,10 +279,10 @@ minheap_sort(minheap_t * m)
 void
 minheap_dump(minheap_t * m)
 {
-  for(int i=0; i < m->count; i++) {
-    printf("%s%u", i>0 ? " " : "", m->array[i].count);
-
-        }
+  for(int i=0; i < m->count; i++)
+    {
+      printf("%s%u", i>0 ? " " : "", m->array[i].count);
+    }
   printf("\n");
 }
 
@@ -270,12 +292,14 @@ minheap_poplast(minheap_t * m)
   /* return top element and restore order */
   static elem_t zero = {0,0,0};
 
-  if (m->count) {
-    return m->array[--m->count];
-  } else {
-    return zero;
-
-        }
+  if (m->count)
+    {
+      return m->array[--m->count];
+    }
+  else
+    {
+      return zero;
+    }
 }
 
 

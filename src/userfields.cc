@@ -120,13 +120,13 @@ int parse_userfields_arg(char * arg)
   char * e = p + strlen(p); // pointer to end of string
 
   userfields_requested_count = 1;
-  while(p<e) {
-    if (*p++ == '+') {
-      userfields_requested_count++;
-
+  while(p<e)
+    {
+      if (*p++ == '+')
+        {
+          userfields_requested_count++;
         }
-
-        }
+    }
 
   userfields_requested = (int*) xmalloc(sizeof(int) * (uint64_t)userfields_requested_count);
 
@@ -139,9 +139,9 @@ int parse_userfields_arg(char * arg)
   while(true)
     {
       q = strchr(p, '+');
-      if (!q) {
-        q = e;
-
+      if (!q)
+        {
+          q = e;
         }
 
       auto n = (uint64_t)(q - p);
@@ -150,16 +150,16 @@ int parse_userfields_arg(char * arg)
 
       while (*u)
         {
-          if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n)) {
-            break;
-
-        }
+          if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
+            {
+              break;
+            }
           u++;
         }
 
-      if (!*u) {    // reached end of list -> unrecognized field
-        return 0; // bad argument
-
+      if (!*u)
+        {    // reached end of list -> unrecognized field
+          return 0; // bad argument
         }
 
       int i = (int)(((const char**)u) - userfields_names);
@@ -167,9 +167,9 @@ int parse_userfields_arg(char * arg)
 
       p = q;
 
-      if (p == e) {  // reached end of argument
-        return 1;
-
+      if (p == e)
+        {  // reached end of argument
+          return 1;
         }
 
       p++;

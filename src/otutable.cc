@@ -114,24 +114,24 @@ void otutable_init()
   /* compile regular expression matchers */
   if (regcomp(&otutable->regex_sample,
               "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
-              REG_EXTENDED)) {
-    fatal("Compilation of regular expression for sample annotation failed");
-
-        }
+              REG_EXTENDED))
+    {
+      fatal("Compilation of regular expression for sample annotation failed");
+    }
 
   if (regcomp(&otutable->regex_otu,
               "(^|;)otu=([^;]*)($|;)",
-              REG_EXTENDED)) {
-    fatal("Compilation of regular expression for otu annotation failed");
-
-        }
+              REG_EXTENDED))
+    {
+      fatal("Compilation of regular expression for otu annotation failed");
+    }
 
   if (regcomp(&otutable->regex_tax,
               "(^|;)tax=([^;]*)($|;)",
-              REG_EXTENDED)) {
-    fatal("Compilation of regular expression for taxonomy annotation failed");
-
-        }
+              REG_EXTENDED))
+    {
+      fatal("Compilation of regular expression for taxonomy annotation failed");
+    }
 #endif
 }
 
@@ -264,14 +264,14 @@ void otutable_print_otutabout(FILE * fp)
 
   fprintf(fp, "#OTU ID");
   for (const
-        auto & it_sample : otutable->sample_set) {
-    fprintf(fp, "\t%s", it_sample.c_str());
-
-        }
-  if (! otutable->otu_tax_map.empty()) {
-    fprintf(fp, "\ttaxonomy");
-
-        }
+         auto & it_sample : otutable->sample_set)
+    {
+      fprintf(fp, "\t%s", it_sample.c_str());
+    }
+  if (! otutable->otu_tax_map.empty())
+    {
+      fprintf(fp, "\ttaxonomy");
+    }
   fprintf(fp, "\n");
 
   auto it_map = otutable->otu_sample_count.begin();
@@ -300,10 +300,10 @@ void otutable_print_otutabout(FILE * fp)
           fprintf(fp, "\t");
           auto it
             = otutable->otu_tax_map.find(*it_otu);
-          if (it != otutable->otu_tax_map.end()) {
-            fprintf(fp, "%s", it->second.c_str());
-
-        }
+          if (it != otutable->otu_tax_map.end())
+            {
+              fprintf(fp, "%s", it->second.c_str());
+            }
         }
       fprintf(fp, "\n");
       progress_update(++progress);
@@ -319,7 +319,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
   fprintf(fp, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
   for (const
-        auto & it_otu : otutable->otu_set)
+         auto & it_otu : otutable->otu_set)
     {
       const char * otu_name = it_otu.c_str();
       fprintf(fp, "\t%s", otu_name);
@@ -394,23 +394,25 @@ void otutable_print_biomout(FILE * fp)
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
-      if (it_otu != otutable->otu_set.begin()) {
-        fprintf(fp, ",");
-
+      if (it_otu != otutable->otu_set.begin())
+        {
+          fprintf(fp, ",");
         }
       const char * otu_name = it_otu->c_str();
       fprintf(fp, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
-      if (otutable->otu_tax_map.empty()) {
-        fprintf(fp, "null");
-      } else
+      if (otutable->otu_tax_map.empty())
+        {
+          fprintf(fp, "null");
+        }
+      else
         {
           fprintf(fp, R"({"taxonomy":")");
           auto it
             = otutable->otu_tax_map.find(otu_name);
-          if (it != otutable->otu_tax_map.end()) {
-            fprintf(fp, "%s", it->second.c_str());
-
-        }
+          if (it != otutable->otu_tax_map.end())
+            {
+              fprintf(fp, "%s", it->second.c_str());
+            }
           fprintf(fp, "\"}");
         }
       fprintf(fp, "}");
@@ -427,9 +429,9 @@ void otutable_print_biomout(FILE * fp)
        it_sample != otutable->sample_set.end();
        ++it_sample)
     {
-      if (it_sample != otutable->sample_set.begin()) {
-        fprintf(fp, ",");
-
+      if (it_sample != otutable->sample_set.begin())
+        {
+          fprintf(fp, ",");
         }
       fprintf(fp, "\n\t\t{\"id\":\"%s\", \"metadata\":null}", it_sample->c_str());
       sample_no_map[*it_sample] = sample_no++;
@@ -440,11 +442,11 @@ void otutable_print_biomout(FILE * fp)
   fprintf(fp, "\t\"data\": [");
 
   for (auto
-        & it_map : otutable->otu_sample_count)
+         & it_map : otutable->otu_sample_count)
     {
-      if (!first) {
-        fprintf(fp, ",");
-
+      if (!first)
+        {
+          fprintf(fp, ",");
         }
 
       otu_no = otu_no_map[it_map.first.first];

@@ -112,102 +112,115 @@ FILE * fopen_output(const char * filename);
 
 void inline xpthread_attr_init(pthread_attr_t *attr)
 {
-  if (pthread_attr_init(attr)) {
-    fatal("Unable to init thread attributes");
-  }
+  if (pthread_attr_init(attr))
+    {
+      fatal("Unable to init thread attributes");
+    }
 }
 
 void inline xpthread_attr_destroy(pthread_attr_t *attr)
 {
-  if (pthread_attr_destroy(attr)) {
-    fatal("Unable to destroy thread attributes");
-
-  }
+  if (pthread_attr_destroy(attr))
+    {
+      fatal("Unable to destroy thread attributes");
+    }
 }
 
 void inline xpthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate)
 {
-  if (pthread_attr_setdetachstate(attr, detachstate)) {
-    fatal("Unable to set thread attributes detach state");
-  }
+  if (pthread_attr_setdetachstate(attr, detachstate))
+    {
+      fatal("Unable to set thread attributes detach state");
+    }
 }
 
 void inline xpthread_create(pthread_t *thread, const pthread_attr_t *attr,
                             void *(*start_routine)(void *), void *arg)
 {
-  if (pthread_create(thread, attr, start_routine, arg)) {
-    fatal("Unable to create thread");
-  }
+  if (pthread_create(thread, attr, start_routine, arg))
+    {
+      fatal("Unable to create thread");
+    }
 }
 
 void inline xpthread_join(pthread_t thread, void **value_ptr)
 {
-  if (pthread_join(thread, value_ptr)) {
-    fatal("Unable to join thread");
-  }
+  if (pthread_join(thread, value_ptr))
+    {
+      fatal("Unable to join thread");
+    }
 }
 
 void inline xpthread_mutex_init(pthread_mutex_t *mutex,
                                 const pthread_mutexattr_t *attr)
 {
-  if (pthread_mutex_init(mutex, attr)) {
-    fatal("Unable to init mutex");
-  }
+  if (pthread_mutex_init(mutex, attr))
+    {
+      fatal("Unable to init mutex");
+    }
 }
 
 void inline xpthread_mutex_destroy(pthread_mutex_t *mutex)
 {
-  if (pthread_mutex_destroy(mutex)) {
-    fatal("Unable to destroy mutex");
-  }
+  if (pthread_mutex_destroy(mutex))
+    {
+      fatal("Unable to destroy mutex");
+    }
 }
 
 void inline xpthread_mutex_lock(pthread_mutex_t *mutex)
 {
-  if (pthread_mutex_lock(mutex)) {
-    fatal("Unable to lock mutex");
-  }
+  if (pthread_mutex_lock(mutex))
+    {
+      fatal("Unable to lock mutex");
+    }
 }
 
 void inline xpthread_mutex_unlock(pthread_mutex_t *mutex)
 {
-  if (pthread_mutex_unlock(mutex)) {
-    fatal("Unable to unlock mutex");
-  }
+  if (pthread_mutex_unlock(mutex))
+    {
+      fatal("Unable to unlock mutex");
+    }
 }
 
 void inline xpthread_cond_init(pthread_cond_t *cond,
                                const pthread_condattr_t *attr)
 {
-  if (pthread_cond_init(cond, attr)) {
-    fatal("Unable to init condition variable");
-  }
+  if (pthread_cond_init(cond, attr))
+    {
+      fatal("Unable to init condition variable");
+    }
 }
 
 void inline xpthread_cond_destroy(pthread_cond_t *cond)
 {
-  if (pthread_cond_destroy(cond)) {
-    fatal("Unable to destroy condition variable");
-  }
+  if (pthread_cond_destroy(cond))
+    {
+      fatal("Unable to destroy condition variable");
+    }
 }
 
 void inline xpthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-  if (pthread_cond_wait(cond, mutex)) {
-    fatal("Unable to wait on condition variable");
-  }
+  if (pthread_cond_wait(cond, mutex))
+    {
+      fatal("Unable to wait on condition variable");
+    }
 }
 
 void inline xpthread_cond_signal(pthread_cond_t *cond)
 {
-  if (pthread_cond_signal(cond)) {
-    fatal("Unable to signal condition variable");
-  }
+  if (pthread_cond_signal(cond))
+    {
+      fatal("Unable to signal condition variable");
+    }
 }
 
 void inline xpthread_cond_broadcast(pthread_cond_t *cond)
 {
-  if (pthread_cond_broadcast(cond)) {
-    fatal("Unable to broadcast condition variable");
-  }
+  if (pthread_cond_broadcast(cond))
+    {
+      fatal("Unable to broadcast condition variable");
+    }
 }

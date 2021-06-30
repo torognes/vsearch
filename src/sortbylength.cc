@@ -74,30 +74,44 @@ int sortbylength_compare(const void * a, const void * b)
 
   /* longest first, then most abundant, then by label, otherwise keep order */
 
-  if (x->length < y->length) {
-    return +1;
-  } else if (x->length > y->length) {
-    return -1;
-  } else
-    if (x->size < y->size) {
+  if (x->length < y->length)
+    {
       return +1;
-    } else if (x->size > y->size) {
+    }
+  else if (x->length > y->length)
+    {
       return -1;
-    } else
+    }
+  else
+    if (x->size < y->size)
+      {
+        return +1;
+      }
+    else if (x->size > y->size)
+      {
+        return -1;
+      }
+    else
       {
         int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-        if (r != 0) {
-          return r;
-        } else
+        if (r != 0)
           {
-            if (x->seqno < y->seqno) {
-              return -1;
-            } else if (x->seqno > y->seqno) {
-              return +1;
-            } else {
-              return 0;
-
-        }
+            return r;
+          }
+        else
+          {
+            if (x->seqno < y->seqno)
+              {
+                return -1;
+              }
+            else if (x->seqno > y->seqno)
+              {
+                return +1;
+              }
+            else
+              {
+                return 0;
+              }
           }
       }
 }
@@ -105,10 +119,10 @@ int sortbylength_compare(const void * a, const void * b)
 void sortbylength()
 {
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output) {
-    fatal("Unable to open sortbylength output file for writing");
-
-        }
+  if (!fp_output)
+    {
+      fatal("Unable to open sortbylength output file for writing");
+    }
 
   db_read(opt_sortbylength, 0);
   show_rusage();
@@ -138,24 +152,26 @@ void sortbylength()
   double median = 0.0;
   if (passed > 0)
     {
-      if (passed % 2) {
-        median = sortinfo[(passed-1)/2].length;
-      } else {
-        median = (sortinfo[(passed/2)-1].length +
-                  sortinfo[passed/2].length) / 2.0;
-
+      if (passed % 2)
+        {
+          median = sortinfo[(passed-1)/2].length;
+        }
+      else
+        {
+          median = (sortinfo[(passed/2)-1].length +
+                    sortinfo[passed/2].length) / 2.0;
         }
     }
 
-  if (!opt_quiet) {
-    fprintf(stderr, "Median length: %.0f\n", median);
+  if (!opt_quiet)
+    {
+      fprintf(stderr, "Median length: %.0f\n", median);
+    }
 
-        }
-
-  if (opt_log) {
-    fprintf(fp_log, "Median length: %.0f\n", median);
-
-        }
+  if (opt_log)
+    {
+      fprintf(fp_log, "Median length: %.0f\n", median);
+    }
 
   show_rusage();
 

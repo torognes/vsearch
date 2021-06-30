@@ -133,30 +133,32 @@ struct analysis_res analyse(fastx_handle h)
     }
 
   /* strip right (3') end */
-  if (opt_fastq_stripright < res.length) {
-    res.length -= opt_fastq_stripright;
-  } else {
-    res.length = 0;
-
-        }
+  if (opt_fastq_stripright < res.length)
+    {
+      res.length -= opt_fastq_stripright;
+    }
+  else
+    {
+      res.length = 0;
+    }
 
   /* truncate trailing (3') part */
-  if (opt_fastq_trunclen >= 0) {
-    if (res.length > opt_fastq_trunclen) {
-      res.length = opt_fastq_trunclen;
-
+  if (opt_fastq_trunclen >= 0)
+    {
+      if (res.length > opt_fastq_trunclen)
+        {
+          res.length = opt_fastq_trunclen;
         }
-
-        }
+    }
 
   /* truncate trailing (3') part, but keep if short */
-  if (opt_fastq_trunclen_keep >= 0) {
-    if (res.length > opt_fastq_trunclen_keep) {
-      res.length = opt_fastq_trunclen_keep;
-
+  if (opt_fastq_trunclen_keep >= 0)
+    {
+      if (res.length > opt_fastq_trunclen_keep)
+        {
+          res.length = opt_fastq_trunclen_keep;
         }
-
-        }
+    }
 
   if (h->is_fastq)
     {
@@ -179,29 +181,29 @@ struct analysis_res analyse(fastx_handle h)
         }
 
       /* filter by expected errors (ee) */
-      if (res.ee > opt_fastq_maxee) {
-        res.discarded = true;
-
+      if (res.ee > opt_fastq_maxee)
+        {
+          res.discarded = true;
         }
-      if ((res.length > 0) && (res.ee / res.length > opt_fastq_maxee_rate)) {
-        res.discarded = true;
-
+      if ((res.length > 0) && (res.ee / res.length > opt_fastq_maxee_rate))
+        {
+          res.discarded = true;
         }
     }
 
   /* filter by length */
-  if ((opt_fastq_trunclen >= 0) && (res.length < opt_fastq_trunclen)) {
-    res.discarded = true;
-
-        }
-  if (res.length < opt_fastq_minlen) {
-    res.discarded = true;
-
-        }
-  if (res.length > opt_fastq_maxlen) {
-    res.discarded = true;
-
-        }
+  if ((opt_fastq_trunclen >= 0) && (res.length < opt_fastq_trunclen))
+    {
+      res.discarded = true;
+    }
+  if (res.length < opt_fastq_minlen)
+    {
+      res.discarded = true;
+    }
+  if (res.length > opt_fastq_maxlen)
+    {
+      res.discarded = true;
+    }
 
   /* filter by n's */
   int64_t ncount = 0;
@@ -209,26 +211,26 @@ struct analysis_res analyse(fastx_handle h)
   for (int64_t i = 0; i < res.length; i++)
     {
       int pc = p[i];
-      if ((pc == 'N') || (pc == 'n')) {
-        ncount++;
-
+      if ((pc == 'N') || (pc == 'n'))
+        {
+          ncount++;
         }
     }
-  if (ncount > opt_fastq_maxns) {
-    res.discarded = true;
-
-        }
+  if (ncount > opt_fastq_maxns)
+    {
+      res.discarded = true;
+    }
 
   /* filter by abundance */
   int64_t abundance = fastx_get_abundance(h);
-  if (abundance < opt_minsize) {
-    res.discarded = true;
-
-        }
-  if (abundance > opt_maxsize) {
-    res.discarded = true;
-
-        }
+  if (abundance < opt_minsize)
+    {
+      res.discarded = true;
+    }
+  if (abundance > opt_maxsize)
+    {
+      res.discarded = true;
+    }
 
   res.truncated = res.length < old_length;
 
@@ -240,20 +242,20 @@ void filter(bool fastq_only, char * filename)
   if ((!opt_fastqout) && (!opt_fastaout) &&
       (!opt_fastqout_discarded) && (!opt_fastaout_discarded) &&
       (!opt_fastqout_rev) && (!opt_fastaout_rev) &&
-      (!opt_fastqout_discarded_rev) && (!opt_fastaout_discarded_rev)) {
-    fatal("No output files specified");
-
-        }
+      (!opt_fastqout_discarded_rev) && (!opt_fastaout_discarded_rev))
+    {
+      fatal("No output files specified");
+    }
 
   fastx_handle h1 = nullptr;
   fastx_handle h2 = nullptr;
 
   h1 = fastx_open(filename);
 
-  if (!h1) {
-    fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
-
-        }
+  if (!h1)
+    {
+      fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
+    }
 
   if (! (h1->is_fastq || h1->is_empty))
     {
@@ -285,14 +287,14 @@ void filter(bool fastq_only, char * filename)
     {
       h2 = fastx_open(opt_reverse);
 
-      if (!h2) {
-        fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
-
+      if (!h2)
+        {
+          fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
         }
 
-      if (h1->is_fastq != h2->is_fastq) {
-        fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
-
+      if (h1->is_fastq != h2->is_fastq)
+        {
+          fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
         }
 
       if (! (h2->is_fastq || h2->is_empty))
@@ -333,36 +335,36 @@ void filter(bool fastq_only, char * filename)
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (!fp_fastaout) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_fastaout)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (!fp_fastqout) {
-        fatal("Unable to open FASTQ output file for writing");
-
+      if (!fp_fastqout)
+        {
+          fatal("Unable to open FASTQ output file for writing");
         }
     }
 
   if (opt_fastaout_discarded)
     {
       fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (!fp_fastaout_discarded) {
-        fatal("Unable to open FASTA output file for writing");
-
+      if (!fp_fastaout_discarded)
+        {
+          fatal("Unable to open FASTA output file for writing");
         }
     }
 
   if (opt_fastqout_discarded)
     {
       fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (!fp_fastqout_discarded) {
-        fatal("Unable to open FASTQ output file for writing");
-
+      if (!fp_fastqout_discarded)
+        {
+          fatal("Unable to open FASTQ output file for writing");
         }
     }
 
@@ -371,37 +373,37 @@ void filter(bool fastq_only, char * filename)
       if (opt_fastaout_rev)
         {
           fp_fastaout_rev = fopen_output(opt_fastaout_rev);
-          if (!fp_fastaout_rev) {
-            fatal("Unable to open FASTA output file for writing");
-
-        }
+          if (!fp_fastaout_rev)
+            {
+              fatal("Unable to open FASTA output file for writing");
+            }
         }
 
       if (opt_fastqout_rev)
         {
           fp_fastqout_rev = fopen_output(opt_fastqout_rev);
-          if (!fp_fastqout_rev) {
-            fatal("Unable to open FASTQ output file for writing");
-
-        }
+          if (!fp_fastqout_rev)
+            {
+              fatal("Unable to open FASTQ output file for writing");
+            }
         }
 
       if (opt_fastaout_discarded_rev)
         {
           fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
-          if (!fp_fastaout_discarded_rev) {
-            fatal("Unable to open FASTA output file for writing");
-
-        }
+          if (!fp_fastaout_discarded_rev)
+            {
+              fatal("Unable to open FASTA output file for writing");
+            }
         }
 
       if (opt_fastqout_discarded_rev)
         {
           fp_fastqout_discarded_rev = fopen_output(opt_fastqout_discarded_rev);
-          if (!fp_fastqout_discarded_rev) {
-            fatal("Unable to open FASTQ output file for writing");
-
-        }
+          if (!fp_fastqout_discarded_rev)
+            {
+              fatal("Unable to open FASTQ output file for writing");
+            }
         }
     }
 
@@ -413,18 +415,18 @@ void filter(bool fastq_only, char * filename)
 
   while(fastx_next(h1, false, chrmap_no_change))
     {
-      if (h2 && ! fastx_next(h2, false, chrmap_no_change)) {
-        fatal("More forward reads than reverse reads");
-
+      if (h2 && ! fastx_next(h2, false, chrmap_no_change))
+        {
+          fatal("More forward reads than reverse reads");
         }
 
       struct analysis_res res1 = { false, false, 0, 0, 0.0 } ;
       struct analysis_res res2 = { false, false, 0, 0, -1.0 } ;
 
       res1 = analyse(h1);
-      if (h2) {
-        res2 = analyse(h2);
-
+      if (h2)
+        {
+          res2 = analyse(h2);
         }
 
       if (res1.discarded || res2.discarded)
@@ -433,67 +435,67 @@ void filter(bool fastq_only, char * filename)
 
           discarded++;
 
-          if (opt_fastaout_discarded) {
-            fasta_print_general(fp_fastaout_discarded,
-                                nullptr,
-                                fastx_get_sequence(h1) + res1.start,
-                                res1.length,
-                                fastx_get_header(h1),
-                                fastx_get_header_length(h1),
-                                fastx_get_abundance(h1),
-                                discarded,
-                                res1.ee,
-                                -1,
-                                -1,
-                                nullptr,
-                                0.0);
+          if (opt_fastaout_discarded)
+            {
+              fasta_print_general(fp_fastaout_discarded,
+                                  nullptr,
+                                  fastx_get_sequence(h1) + res1.start,
+                                  res1.length,
+                                  fastx_get_header(h1),
+                                  fastx_get_header_length(h1),
+                                  fastx_get_abundance(h1),
+                                  discarded,
+                                  res1.ee,
+                                  -1,
+                                  -1,
+                                  nullptr,
+                                  0.0);
+            }
 
-        }
-
-          if (opt_fastqout_discarded) {
-            fastq_print_general(fp_fastqout_discarded,
-                                fastx_get_sequence(h1) + res1.start,
-                                res1.length,
-                                fastx_get_header(h1),
-                                fastx_get_header_length(h1),
-                                fastx_get_quality(h1) + res1.start,
-                                fastx_get_abundance(h1),
-                                discarded,
-                                res1.ee);
-
-        }
+          if (opt_fastqout_discarded)
+            {
+              fastq_print_general(fp_fastqout_discarded,
+                                  fastx_get_sequence(h1) + res1.start,
+                                  res1.length,
+                                  fastx_get_header(h1),
+                                  fastx_get_header_length(h1),
+                                  fastx_get_quality(h1) + res1.start,
+                                  fastx_get_abundance(h1),
+                                  discarded,
+                                  res1.ee);
+            }
 
           if (h2)
             {
-              if (opt_fastaout_discarded_rev) {
-                fasta_print_general(fp_fastaout_discarded_rev,
-                                    nullptr,
-                                    fastx_get_sequence(h2) + res2.start,
-                                    res2.length,
-                                    fastx_get_header(h2),
-                                    fastx_get_header_length(h2),
-                                    fastx_get_abundance(h2),
-                                    discarded,
-                                    res2.ee,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0);
+              if (opt_fastaout_discarded_rev)
+                {
+                  fasta_print_general(fp_fastaout_discarded_rev,
+                                      nullptr,
+                                      fastx_get_sequence(h2) + res2.start,
+                                      res2.length,
+                                      fastx_get_header(h2),
+                                      fastx_get_header_length(h2),
+                                      fastx_get_abundance(h2),
+                                      discarded,
+                                      res2.ee,
+                                      -1,
+                                      -1,
+                                      nullptr,
+                                      0.0);
+                }
 
-        }
-
-              if (opt_fastqout_discarded_rev) {
-                fastq_print_general(fp_fastqout_discarded_rev,
-                                    fastx_get_sequence(h2) + res2.start,
-                                    res2.length,
-                                    fastx_get_header(h2),
-                                    fastx_get_header_length(h2),
-                                    fastx_get_quality(h2) + res2.start,
-                                    fastx_get_abundance(h2),
-                                    discarded,
-                                    res2.ee);
-
-        }
+              if (opt_fastqout_discarded_rev)
+                {
+                  fastq_print_general(fp_fastqout_discarded_rev,
+                                      fastx_get_sequence(h2) + res2.start,
+                                      res2.length,
+                                      fastx_get_header(h2),
+                                      fastx_get_header_length(h2),
+                                      fastx_get_quality(h2) + res2.start,
+                                      fastx_get_abundance(h2),
+                                      discarded,
+                                      res2.ee);
+                }
             }
         }
       else
@@ -502,72 +504,72 @@ void filter(bool fastq_only, char * filename)
 
           kept++;
 
-          if (res1.truncated || res2.truncated) {
-            truncated++;
+          if (res1.truncated || res2.truncated)
+            {
+              truncated++;
+            }
 
-        }
+          if (opt_fastaout)
+            {
+              fasta_print_general(fp_fastaout,
+                                  nullptr,
+                                  fastx_get_sequence(h1) + res1.start,
+                                  res1.length,
+                                  fastx_get_header(h1),
+                                  fastx_get_header_length(h1),
+                                  fastx_get_abundance(h1),
+                                  kept,
+                                  res1.ee,
+                                  -1,
+                                  -1,
+                                  nullptr,
+                                  0.0);
+            }
 
-          if (opt_fastaout) {
-            fasta_print_general(fp_fastaout,
-                                nullptr,
-                                fastx_get_sequence(h1) + res1.start,
-                                res1.length,
-                                fastx_get_header(h1),
-                                fastx_get_header_length(h1),
-                                fastx_get_abundance(h1),
-                                kept,
-                                res1.ee,
-                                -1,
-                                -1,
-                                nullptr,
-                                0.0);
-
-        }
-
-          if (opt_fastqout) {
-            fastq_print_general(fp_fastqout,
-                                fastx_get_sequence(h1) + res1.start,
-                                res1.length,
-                                fastx_get_header(h1),
-                                fastx_get_header_length(h1),
-                                fastx_get_quality(h1) + res1.start,
-                                fastx_get_abundance(h1),
-                                kept,
-                                res1.ee);
-
-        }
+          if (opt_fastqout)
+            {
+              fastq_print_general(fp_fastqout,
+                                  fastx_get_sequence(h1) + res1.start,
+                                  res1.length,
+                                  fastx_get_header(h1),
+                                  fastx_get_header_length(h1),
+                                  fastx_get_quality(h1) + res1.start,
+                                  fastx_get_abundance(h1),
+                                  kept,
+                                  res1.ee);
+            }
 
           if (h2)
             {
-              if (opt_fastaout_rev) {
-                fasta_print_general(fp_fastaout_rev,
-                                    nullptr,
-                                    fastx_get_sequence(h2) + res2.start,
-                                    res2.length,
-                                    fastx_get_header(h2),
-                                    fastx_get_header_length(h2),
-                                    fastx_get_abundance(h2),
-                                    kept,
-                                    res2.ee,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0);
+              if (opt_fastaout_rev)
+                {
+                  fasta_print_general(fp_fastaout_rev,
+                                      nullptr,
+                                      fastx_get_sequence(h2) + res2.start,
+                                      res2.length,
+                                      fastx_get_header(h2),
+                                      fastx_get_header_length(h2),
+                                      fastx_get_abundance(h2),
+                                      kept,
+                                      res2.ee,
+                                      -1,
+                                      -1,
+                                      nullptr,
+                                      0.0);
+                }
 
-        }
-
-              if (opt_fastqout_rev) {
-                fastq_print_general(fp_fastqout_rev,
-                                    fastx_get_sequence(h2) + res2.start,
-                                    res2.length,
-                                    fastx_get_header(h2),
-                                    fastx_get_header_length(h2),
-                                    fastx_get_quality(h2) + res2.start,
-                                    fastx_get_abundance(h2),
-                                    kept,
-                                    res2.ee);
-
-        }
+              if (opt_fastqout_rev)
+                {
+                  fastq_print_general(fp_fastqout_rev,
+                                      fastx_get_sequence(h2) + res2.start,
+                                      res2.length,
+                                      fastx_get_header(h2),
+                                      fastx_get_header_length(h2),
+                                      fastx_get_quality(h2) + res2.start,
+                                      fastx_get_abundance(h2),
+                                      kept,
+                                      res2.ee);
+                }
             }
         }
 
@@ -576,73 +578,73 @@ void filter(bool fastq_only, char * filename)
 
   progress_done();
 
-  if (h2 && fastx_next(h2, false, chrmap_no_change)) {
-    fatal("More reverse reads than forward reads");
+  if (h2 && fastx_next(h2, false, chrmap_no_change))
+    {
+      fatal("More reverse reads than forward reads");
+    }
 
-        }
+  if (! opt_quiet)
+    {
+      fprintf(stderr,
+              "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
+              kept,
+              truncated,
+              discarded);
+    }
 
-  if (! opt_quiet) {
-    fprintf(stderr,
-            "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
-            kept,
-            truncated,
-            discarded);
-
-        }
-
-  if (opt_log) {
-    fprintf(fp_log,
-            "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
-            kept,
-            truncated,
-            discarded);
-
-        }
+  if (opt_log)
+    {
+      fprintf(fp_log,
+              "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
+              kept,
+              truncated,
+              discarded);
+    }
 
   if (h2)
     {
-      if (opt_fastaout_rev) {
-        fclose(fp_fastaout_rev);
-
+      if (opt_fastaout_rev)
+        {
+          fclose(fp_fastaout_rev);
         }
 
-      if (opt_fastqout_rev) {
-        fclose(fp_fastqout_rev);
-
+      if (opt_fastqout_rev)
+        {
+          fclose(fp_fastqout_rev);
         }
 
-      if (opt_fastaout_discarded_rev) {
-        fclose(fp_fastaout_discarded_rev);
-
+      if (opt_fastaout_discarded_rev)
+        {
+          fclose(fp_fastaout_discarded_rev);
         }
 
-      if (opt_fastqout_discarded_rev) {
-        fclose(fp_fastqout_discarded_rev);
-
+      if (opt_fastqout_discarded_rev)
+        {
+          fclose(fp_fastqout_discarded_rev);
         }
 
       fastx_close(h2);
     }
 
-  if (opt_fastaout) {
-    fclose(fp_fastaout);
+  if (opt_fastaout)
+    {
+      fclose(fp_fastaout);
+    }
 
-        }
+  if (opt_fastqout)
+    {
+      fclose(fp_fastqout);
+    }
 
-  if (opt_fastqout) {
-    fclose(fp_fastqout);
+  if (opt_fastaout_discarded)
+    {
+      fclose(fp_fastaout_discarded);
+    }
 
-        }
-
-  if (opt_fastaout_discarded) {
-    fclose(fp_fastaout_discarded);
-
-        }
-
-  if (opt_fastqout_discarded) {
-    fclose(fp_fastqout_discarded);
-
-        }
+  if (opt_fastqout_discarded)
+    {
+      fclose(fp_fastqout_discarded);
+    }
 
   fastx_close(h1);
 }

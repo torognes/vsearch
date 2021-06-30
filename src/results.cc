@@ -123,23 +123,23 @@ void results_show_blast6out_one(FILE * fp,
 {
 
   /*
-     http://www.drive5.com/usearch/manual/blast6out.html
+    http://www.drive5.com/usearch/manual/blast6out.html
 
-     query label
-     target label
-     percent identity
-     alignment length
-     number of mismatches
-     number of gap opens
-     1-based position of start in query
-     1-based position of end in query
-     1-based position of start in target
-     1-based position of end in target
-     E-value
-     bit score
+    query label
+    target label
+    percent identity
+    alignment length
+    number of mismatches
+    number of gap opens
+    1-based position of start in query
+    1-based position of end in query
+    1-based position of start in target
+    1-based position of end in target
+    E-value
+    bit score
 
-     Note that USEARCH shows 13 fields when there is no hit,
-     but only 12 when there is a hit. Fixed in VSEARCH.
+    Note that USEARCH shows 13 fields when there is no hit,
+    but only 12 when there is a hit. Fixed in VSEARCH.
   */
 
   if (hp)
@@ -176,7 +176,7 @@ void results_show_blast6out_one(FILE * fp,
     }
   else
     {
-        fprintf(fp, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
+      fprintf(fp, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
     }
 }
 
@@ -232,10 +232,10 @@ void results_show_uc_one(FILE * fp,
               query_head,
               db_getheader(hp->target));
     }
-  else {
-    fprintf(fp, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
-
-        }
+  else
+    {
+      fprintf(fp, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
+    }
 }
 
 void results_show_userout_one(FILE * fp, struct hit * hp,
@@ -251,9 +251,9 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
 
   for (int c = 0; c < userfields_requested_count; c++)
     {
-      if (c) {
-        fprintf(fp, "\t");
-
+      if (c)
+        {
+          fprintf(fp, "\t");
         }
 
       int field = userfields_requested[c];
@@ -341,28 +341,28 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "%d", 0);
           break;
         case 22: /* aln */
-          if (hp) {
-            align_fprint_uncompressed_alignment(fp, hp->nwalignment);
-
-        }
+          if (hp)
+            {
+              align_fprint_uncompressed_alignment(fp, hp->nwalignment);
+            }
           break;
         case 23: /* caln */
-          if (hp) {
-            fprintf(fp, "%s", hp->nwalignment);
-
-        }
+          if (hp)
+            {
+              fprintf(fp, "%s", hp->nwalignment);
+            }
           break;
         case 24: /* qstrand */
-          if (hp) {
-            fprintf(fp, "%c", hp->strand ? '-' : '+');
-
-        }
+          if (hp)
+            {
+              fprintf(fp, "%c", hp->strand ? '-' : '+');
+            }
           break;
         case 25: /* tstrand */
-          if (hp) {
-            fprintf(fp, "%c", '+');
-
-        }
+          if (hp)
+            {
+              fprintf(fp, "%c", '+');
+            }
           break;
         case 26: /* qrow */
           if (hp)
@@ -468,10 +468,10 @@ void results_show_alnout(FILE * fp,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id)) {
-            break;
-
-        }
+          if (opt_top_hits_only && (hp->id < top_hit_id))
+            {
+              break;
+            }
 
           fprintf(fp,"%3.0f%% %6" PRIu64 "  %s\n",
                   hp->id,
@@ -483,10 +483,10 @@ void results_show_alnout(FILE * fp,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id)) {
-            break;
-
-        }
+          if (opt_top_hits_only && (hp->id < top_hit_id))
+            {
+              break;
+            }
 
           fprintf(fp,"\n");
 
@@ -597,9 +597,11 @@ void build_sam_strings(char * alignment,
 
           for(int i=0; i<run; i++)
             {
-              if (nucleotide_equal(queryseq[qpos], targetseq[tpos])) {
-                matched++;
-              } else
+              if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
+                {
+                  matched++;
+                }
+              else
                 {
                   if (!flag)
                     {
@@ -635,10 +637,10 @@ void build_sam_strings(char * alignment,
             }
 
           md->add_c('^');
-          for(int i=0; i<run; i++) {
-            md->add_c(targetseq[tpos++]);
-
-        }
+          for(int i=0; i<run; i++)
+            {
+              md->add_c(targetseq[tpos++]);
+            }
           flag = false;
           break;
         }
@@ -691,39 +693,39 @@ void results_show_samout(FILE * fp,
                          char * rc)
 {
   /*
-     SAM format output
+    SAM format output
 
-     http://samtools.github.io/hts-specs/SAMv1.pdf
-     http://www.drive5.com/usearch/manual/sam_files.html
-     http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#sam-output
-     http://davetang.org/muse/2011/01/28/perl-and-sam/
+    http://samtools.github.io/hts-specs/SAMv1.pdf
+    http://www.drive5.com/usearch/manual/sam_files.html
+    http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#sam-output
+    http://davetang.org/muse/2011/01/28/perl-and-sam/
 
-      1: qname, query template name
-      2: flag, bitwise flag (12 bits)
-         (0x004=unmapped, 0x010=rev strand, 0x100 sec. alignment)
-      3: rname, reference sequence name
-      4: pos, 1-based leftmost mapping position (1)
-      5: mapq, mapping quality (255)
-      6: cigar, cigar string (MID)
-      7: rnext, ref name of next/paired read (*)
-      8: pnest, position of next/paired read (0)
-      9: tlen, obs template length (target length)
-     10: seq, segment of sequence
-     11: qual, ascii of phred based quality+33 (*)
-     12: optional tags (tag:type:value)
+    1: qname, query template name
+    2: flag, bitwise flag (12 bits)
+    (0x004=unmapped, 0x010=rev strand, 0x100 sec. alignment)
+    3: rname, reference sequence name
+    4: pos, 1-based leftmost mapping position (1)
+    5: mapq, mapping quality (255)
+    6: cigar, cigar string (MID)
+    7: rnext, ref name of next/paired read (*)
+    8: pnest, position of next/paired read (0)
+    9: tlen, obs template length (target length)
+    10: seq, segment of sequence
+    11: qual, ascii of phred based quality+33 (*)
+    12: optional tags (tag:type:value)
 
-     Optional tags AS, XN, XM, XO, XG, NM, MD and YT used in usearch8.
+    Optional tags AS, XN, XM, XO, XG, NM, MD and YT used in usearch8.
 
-     Usearch8:
+    Usearch8:
 
-     AS:i:? alignment score (i.e percent identity)
-     XN:i:? next best alignment score (always 0?)
-     XM:i:? number of mismatches
-     XO:i:? number of gap opens (excluding terminal gaps)
-     XG:i:? number of gap extensions (excluding terminal gaps)
-     NM:i:? edit distance (sum of XM and XG)
-     MD:Z:? variant string
-     YT:Z:UU string representing alignment type
+    AS:i:? alignment score (i.e percent identity)
+    XN:i:? next best alignment score (always 0?)
+    XM:i:? number of mismatches
+    XO:i:? number of gap opens (excluding terminal gaps)
+    XG:i:? number of gap extensions (excluding terminal gaps)
+    NM:i:? edit distance (sum of XM and XG)
+    MD:Z:? variant string
+    YT:Z:UU string representing alignment type
 
   */
 
@@ -735,14 +737,14 @@ void results_show_samout(FILE * fp,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id)) {
-            break;
-
-        }
+          if (opt_top_hits_only && (hp->id < top_hit_id))
+            {
+              break;
+            }
 
           /*
 
-          */
+           */
 
           xstring cigar;
           xstring md;

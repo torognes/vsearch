@@ -106,10 +106,10 @@ bool sintax_parse_tax(const char * header,
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
   */
 
-  if (! header) {
-    return false;
-
-        }
+  if (! header)
+    {
+      return false;
+    }
 
   const char * attribute = "tax=";
 
@@ -123,9 +123,9 @@ bool sintax_parse_tax(const char * header,
       char * r = (char *) strstr(header + i, attribute);
 
       /* no match */
-      if (r == nullptr) {
-        break;
-
+      if (r == nullptr)
+        {
+          break;
         }
 
       i = r - header;
@@ -141,11 +141,13 @@ bool sintax_parse_tax(const char * header,
 
       /* find end (semicolon or end of header) */
       const char * s = strchr(header+i+alen, ';');
-      if (s == nullptr) {
-        * tax_end = hlen;
-      } else {
-        * tax_end = s - header;
-
+      if (s == nullptr)
+        {
+          * tax_end = hlen;
+        }
+      else
+        {
+          * tax_end = s - header;
         }
 
       return true;
@@ -193,23 +195,27 @@ void sintax_split(int seqno, int * level_start, int * level_len)
                   level_start[level] = t + 2;
 
                   char * z = strchr(h + t + 2, ',');
-                  if (z) {
-                    level_len[level] = z - h - t - 2;
-                  } else {
-                    level_len[level] = tax_end - t - 2;
-
-        }
+                  if (z)
+                    {
+                      level_len[level] = z - h - t - 2;
+                    }
+                  else
+                    {
+                      level_len[level] = tax_end - t - 2;
+                    }
                 }
             }
 
           /* skip past next comma */
           char * x = strchr(h + t, ',');
-          if (x) {
-            t = x - h + 1;
-          } else {
-            t = tax_end;
-
-        }
+          if (x)
+            {
+              t = x - h + 1;
+            }
+          else
+            {
+              t = tax_end;
+            }
         }
     }
 }
@@ -233,9 +239,9 @@ void sintax_analyse(char * query_head,
       sintax_split(best_seqno, best_level_start, best_level_len);
 
       for (int & j :
-        level_match) {
-        j = 0;
-
+             level_match)
+        {
+          j = 0;
         }
 
       for (int i = 0; i < count; i++)
@@ -315,11 +321,13 @@ void sintax_analyse(char * query_head,
     }
   else
     {
-      if (opt_sintax_cutoff > 0.0) {
-        fprintf(fp_tabbedout, "\t\t\t");
-      } else {
-        fprintf(fp_tabbedout, "\t\t");
-
+      if (opt_sintax_cutoff > 0.0)
+        {
+          fprintf(fp_tabbedout, "\t\t\t");
+        }
+      else
+        {
+          fprintf(fp_tabbedout, "\t\t");
         }
     }
 
@@ -399,22 +407,30 @@ void sintax_query(int64_t t)
 
   int best_strand;
 
-  if (opt_strand == 1) {
-    best_strand = 0;
-  } else
+  if (opt_strand == 1)
     {
-      if (best_count[0] > best_count[1]) {
-        best_strand = 0;
-      } else if (best_count[1] > best_count[0]) {
-        best_strand = 1;
-      } else
+      best_strand = 0;
+    }
+  else
+    {
+      if (best_count[0] > best_count[1])
         {
-          if (boot_count[0] >= boot_count[1]) {
-            best_strand = 0;
-          } else {
-            best_strand = 1;
-
+          best_strand = 0;
         }
+      else if (best_count[1] > best_count[0])
+        {
+          best_strand = 1;
+        }
+      else
+        {
+          if (boot_count[0] >= boot_count[1])
+            {
+              best_strand = 0;
+            }
+          else
+            {
+              best_strand = 1;
+            }
         }
     }
 
@@ -531,14 +547,14 @@ void sintax_thread_exit(struct searchinfo_s * si)
   unique_exit(si->uh);
   minheap_exit(si->m);
   xfree(si->kmers);
-  if (si->query_head) {
-    xfree(si->query_head);
-
-        }
-  if (si->qsequence) {
-    xfree(si->qsequence);
-
-        }
+  if (si->query_head)
+    {
+      xfree(si->query_head);
+    }
+  if (si->qsequence)
+    {
+      xfree(si->qsequence);
+    }
 }
 
 void * sintax_thread_worker(void * vp)
@@ -559,9 +575,9 @@ void sintax_thread_worker_run()
   for(int t=0; t<opt_threads; t++)
     {
       sintax_thread_init(si_plus+t);
-      if (si_minus) {
-        sintax_thread_init(si_minus+t);
-
+      if (si_minus)
+        {
+          sintax_thread_init(si_minus+t);
         }
       xpthread_create(pthread+t, &attr,
                       sintax_thread_worker, (void*)(int64_t)t);
@@ -572,9 +588,9 @@ void sintax_thread_worker_run()
     {
       xpthread_join(pthread[t], nullptr);
       sintax_thread_exit(si_plus+t);
-      if (si_minus) {
-        sintax_thread_exit(si_minus+t);
-
+      if (si_minus)
+        {
+          sintax_thread_exit(si_minus+t);
         }
     }
 
@@ -589,34 +605,36 @@ void sintax()
 
   /* open output files */
 
-  if (! opt_db) {
-    fatal("No database file specified with --db");
-
-        }
+  if (! opt_db)
+    {
+      fatal("No database file specified with --db");
+    }
 
   if (opt_tabbedout)
     {
       fp_tabbedout = fopen_output(opt_tabbedout);
-      if (! fp_tabbedout) {
-        fatal("Unable to open tabbedout output file for writing");
-
+      if (! fp_tabbedout)
+        {
+          fatal("Unable to open tabbedout output file for writing");
         }
     }
-  else {
-    fatal("No output file specified with --tabbedout");
-
-        }
+  else
+    {
+      fatal("No output file specified with --tabbedout");
+    }
 
   /* check if db may be an UDB file */
 
   bool is_udb = udb_detect_isudb(opt_db);
 
-  if (is_udb) {
-    udb_read(opt_db, true, true);
-  } else {
-    db_read(opt_db, 0);
-
-        }
+  if (is_udb)
+    {
+      udb_read(opt_db, true, true);
+    }
+  else
+    {
+      db_read(opt_db, 0);
+    }
 
   seqcount = db_getsequencecount();
 
@@ -634,13 +652,15 @@ void sintax()
 
   si_plus = (struct searchinfo_s *) xmalloc(opt_threads *
                                             sizeof(struct searchinfo_s));
-  if (opt_strand > 1) {
-    si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
-                                               sizeof(struct searchinfo_s));
-  } else {
-    si_minus = nullptr;
-
-        }
+  if (opt_strand > 1)
+    {
+      si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
+                                                 sizeof(struct searchinfo_s));
+    }
+  else
+    {
+      si_minus = nullptr;
+    }
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
@@ -657,9 +677,9 @@ void sintax()
   if (! opt_quiet)
     {
       fprintf(stderr, "Classified %d of %d sequences", classified, queries);
-      if (queries > 0) {
-        fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
-
+      if (queries > 0)
+        {
+          fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
         }
       fprintf(stderr, "\n");
     }
@@ -667,9 +687,9 @@ void sintax()
   if (opt_log)
     {
       fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
-      if (queries > 0) {
-        fprintf(fp_log, " (%.2f%%)", 100.0 * classified / queries);
-
+      if (queries > 0)
+        {
+          fprintf(fp_log, " (%.2f%%)", 100.0 * classified / queries);
         }
       fprintf(fp_log, "\n");
     }
@@ -681,10 +701,10 @@ void sintax()
 
   xfree(pthread);
   xfree(si_plus);
-  if (si_minus) {
-    xfree(si_minus);
-
-        }
+  if (si_minus)
+    {
+      xfree(si_minus);
+    }
 
   fastx_close(query_fastx_h);
   fclose(fp_tabbedout);

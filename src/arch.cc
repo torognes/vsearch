@@ -110,10 +110,10 @@ uint64_t arch_get_memtotal()
 
   int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
   int64_t pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) || (pagesize == -1)) {
-    fatal("Cannot determine amount of RAM");
-
-        }
+  if ((phys_pages == -1) || (pagesize == -1))
+    {
+      fatal("Cannot determine amount of RAM");
+    }
   return pagesize * phys_pages;
 
 #else
@@ -172,13 +172,13 @@ void arch_srandom()
       srand(GetTickCount());
 #else
       int fd = open("/dev/urandom", O_RDONLY);
-      if (fd < 0) {
-        fatal("Unable to open /dev/urandom");
-
+      if (fd < 0)
+        {
+          fatal("Unable to open /dev/urandom");
         }
-      if (read(fd, & seed, sizeof(seed)) < 0) {
-        fatal("Unable to read from /dev/urandom");
-
+      if (read(fd, & seed, sizeof(seed)) < 0)
+        {
+          fatal("Unable to read from /dev/urandom");
         }
       close(fd);
       srandom(seed);
@@ -205,41 +205,41 @@ uint64_t arch_random()
 
 void * xmalloc(size_t size)
 {
-  if (size == 0) {
-    size = 1;
-
-        }
+  if (size == 0)
+    {
+      size = 1;
+    }
   void * t = nullptr;
 #ifdef _WIN32
   t = _aligned_malloc(size, memalignment);
 #else
-  if (posix_memalign(& t, memalignment, size)) {
-    t = nullptr;
-
-        }
+  if (posix_memalign(& t, memalignment, size))
+    {
+      t = nullptr;
+    }
 #endif
-  if (!t) {
-    fatal("Unable to allocate enough memory.");
-
-        }
+  if (!t)
+    {
+      fatal("Unable to allocate enough memory.");
+    }
   return t;
 }
 
 void * xrealloc(void *ptr, size_t size)
 {
-  if (size == 0) {
-    size = 1;
-
-        }
+  if (size == 0)
+    {
+      size = 1;
+    }
 #ifdef _WIN32
   void * t = _aligned_realloc(ptr, size, memalignment);
 #else
   void * t = realloc(ptr, size);
 #endif
-  if (!t) {
-    fatal("Unable to reallocate enough memory.");
-
-        }
+  if (!t)
+    {
+      fatal("Unable to reallocate enough memory.");
+    }
   return t;
 }
 
@@ -253,10 +253,10 @@ void xfree(void * ptr)
       free(ptr);
 #endif
     }
-  else {
-    fatal("Trying to free a null pointer");
-
-        }
+  else
+    {
+      fatal("Trying to free a null pointer");
+    }
 }
 
 int xfstat(int fd, xstat_t * buf)

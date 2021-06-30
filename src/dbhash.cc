@@ -71,16 +71,16 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
   char * p = a;
   char * q = b;
 
-  if (n <= 0) {
-    return 0;
-
-        }
+  if (n <= 0)
+    {
+      return 0;
+    }
 
   while ((n-- > 0) && (chrmap_4bit[(int)(*p)] == chrmap_4bit[(int)(*q)]))
     {
-      if ((n == 0) || (*p == 0) || (*q == 0)) {
-        break;
-
+      if ((n == 0) || (*p == 0) || (*q == 0))
+        {
+          break;
         }
       p++;
       q++;
@@ -120,8 +120,8 @@ void dbhash_close()
 }
 
 int64_t dbhash_search_first(char * seq,
-                        uint64_t seqlen,
-                        struct dbhash_search_info_s * info)
+                            uint64_t seqlen,
+                            struct dbhash_search_info_s * info)
 {
 
   uint64_t hash = hash_cityhash64(seq, seqlen);
@@ -143,12 +143,14 @@ int64_t dbhash_search_first(char * seq,
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, index)) {
-    return bp->seqno;
-  } else {
-    return -1;
-
-        }
+  if (bitmap_get(dbhash_bitmap, index))
+    {
+      return bp->seqno;
+    }
+  else
+    {
+      return -1;
+    }
 }
 
 int64_t dbhash_search_next(struct dbhash_search_info_s * info)
@@ -171,12 +173,14 @@ int64_t dbhash_search_next(struct dbhash_search_info_s * info)
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, index)) {
-    return bp->seqno;
-  } else {
-    return -1;
-
-        }
+  if (bitmap_get(dbhash_bitmap, index))
+    {
+      return bp->seqno;
+    }
+  else
+    {
+      return -1;
+    }
 }
 
 void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
@@ -184,10 +188,10 @@ void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
   struct dbhash_search_info_s info;
 
   int64_t ret = dbhash_search_first(seq, seqlen, & info);
-  while (ret >= 0) {
-    ret = dbhash_search_next(&info);
-
-        }
+  while (ret >= 0)
+    {
+      ret = dbhash_search_next(&info);
+    }
 
   bitmap_set(dbhash_bitmap, info.index);
   struct dbhash_bucket_s * bp = dbhash_table + info.index;

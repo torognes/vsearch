@@ -94,10 +94,10 @@ void buffer_init(struct fastx_buffer_s * buffer)
 
 void buffer_free(struct fastx_buffer_s * buffer)
 {
-  if (buffer->data) {
-    xfree(buffer->data);
-
-        }
+  if (buffer->data)
+    {
+      xfree(buffer->data);
+    }
   buffer->data = nullptr;
   buffer->alloc = 0;
   buffer->length = 0;
@@ -120,8 +120,8 @@ void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x)
 }
 
 void buffer_extend(struct fastx_buffer_s * dest_buffer,
-                  char * source_buf,
-                  uint64_t len)
+                   char * source_buf,
+                   uint64_t len)
 {
   buffer_makespace(dest_buffer, len+1);
   memcpy(dest_buffer->data + dest_buffer->length,
@@ -160,16 +160,16 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
                   c,
                   h->lineno);
 
-          if (fp_log) {
-            fprintf(fp_log,
-                    "\n\n"
-                    "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
-                    "Unprintable ASCII character no %d on or right before line %"
-                    PRIu64 ".\n",
-                    c,
-                    h->lineno);
-
-        }
+          if (fp_log)
+            {
+              fprintf(fp_log,
+                      "\n\n"
+                      "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
+                      "Unprintable ASCII character no %d on or right before line %"
+                      PRIu64 ".\n",
+                      c,
+                      h->lineno);
+            }
 
           exit(EXIT_FAILURE);
 
@@ -183,16 +183,16 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
                   c, c,
                   h->lineno);
 
-          if (fp_log) {
-            fprintf(fp_log,
-                    "\n"
-                    "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
-                    "Character no %d (0x%2x) on or right before line %"
-                    PRIu64 ".\n",
-                    c, c,
-                    h->lineno);
-
-        }
+          if (fp_log)
+            {
+              fprintf(fp_log,
+                      "\n"
+                      "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
+                      "Character no %d (0x%2x) on or right before line %"
+                      PRIu64 ".\n",
+                      c, c,
+                      h->lineno);
+            }
 
           *q++ = c;
           break;
@@ -201,10 +201,10 @@ void fastx_filter_header(fastx_handle h, bool truncateatspace)
         case 6:
           /* tab or space */
           /* conditional end of line */
-          if (truncateatspace) {
-            goto end_of_line;
-
-        }
+          if (truncateatspace)
+            {
+              goto end_of_line;
+            }
 
           *q++ = c;
           break;
@@ -246,27 +246,29 @@ fastx_handle fastx_open(const char * filename)
 #endif
 
   h->fp = fopen_input(filename);
-  if (!h->fp) {
-    fatal("Unable to open file for reading (%s)", filename);
-
-        }
+  if (!h->fp)
+    {
+      fatal("Unable to open file for reading (%s)", filename);
+    }
 
   /* Get mode and size of original (uncompressed) file */
 
   xstat_t fs;
-  if (xfstat(fileno(h->fp), & fs)) {
-    fatal("Unable to get status for input file (%s)", filename);
-
-        }
+  if (xfstat(fileno(h->fp), & fs))
+    {
+      fatal("Unable to get status for input file (%s)", filename);
+    }
 
   h->is_pipe = S_ISFIFO(fs.st_mode);
 
-  if (h->is_pipe) {
-    h->file_size = 0;
-  } else {
-    h->file_size = fs.st_size;
-
-        }
+  if (h->is_pipe)
+    {
+      h->file_size = 0;
+    }
+  else
+    {
+      h->file_size = fs.st_size;
+    }
 
   if (opt_gzip_decompress)
     {
@@ -294,12 +296,14 @@ fastx_handle fastx_open(const char * filename)
 
       if (bytes_read >= 2)
         {
-          if (memcmp(magic, MAGIC_GZIP, 2) == 0) {
-            h->format = FORMAT_GZIP;
-          } else if (memcmp(magic, MAGIC_BZIP, 2) == 0) {
-            h->format = FORMAT_BZIP;
-
-        }
+          if (memcmp(magic, MAGIC_GZIP, 2) == 0)
+            {
+              h->format = FORMAT_GZIP;
+            }
+          else if (memcmp(magic, MAGIC_BZIP, 2) == 0)
+            {
+              h->format = FORMAT_BZIP;
+            }
         }
       else
         {
@@ -311,9 +315,9 @@ fastx_handle fastx_open(const char * filename)
 
       fclose(h->fp);
       h->fp = fopen_input(filename);
-      if (!h->fp) {
-        fatal("Unable to open file for reading (%s)", filename);
-
+      if (!h->fp)
+        {
+          fatal("Unable to open file for reading (%s)", filename);
         }
     }
 
@@ -321,13 +325,13 @@ fastx_handle fastx_open(const char * filename)
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
-      if (!gz_lib) {
-        fatal("Files compressed with gzip are not supported");
-
+      if (!gz_lib)
+        {
+          fatal("Files compressed with gzip are not supported");
         }
-      if (! (h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb"))) { // dup?
-        fatal("Unable to open gzip compressed file (%s)", filename);
-
+      if (! (h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb")))
+        { // dup?
+          fatal("Unable to open gzip compressed file (%s)", filename);
         }
 #else
       fatal("Files compressed with gzip are not supported");
@@ -338,15 +342,15 @@ fastx_handle fastx_open(const char * filename)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_BZLIB_H
-      if (!bz2_lib) {
-        fatal("Files compressed with bzip2 are not supported");
-
+      if (!bz2_lib)
+        {
+          fatal("Files compressed with bzip2 are not supported");
         }
       if (! (h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
-                                         BZ_VERBOSE_0, BZ_MORE_MEM,
-                                         nullptr, 0))) {
-        fatal("Unable to open bzip2 compressed file (%s)", filename);
-
+                                            BZ_VERBOSE_0, BZ_MORE_MEM,
+                                            nullptr, 0)))
+        {
+          fatal("Unable to open bzip2 compressed file (%s)", filename);
         }
 #else
       fatal("Files compressed with bzip2 are not supported");
@@ -417,15 +421,15 @@ fastx_handle fastx_open(const char * filename)
 
           if (rest >= 2)
             {
-              if (memcmp(first, MAGIC_GZIP, 2) == 0) {
-                fatal("File appears to be gzip compressed. Please use --gzip_decompress");
+              if (memcmp(first, MAGIC_GZIP, 2) == 0)
+                {
+                  fatal("File appears to be gzip compressed. Please use --gzip_decompress");
+                }
 
-        }
-
-              if (memcmp(first, MAGIC_BZIP, 2) == 0) {
-                fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
-
-        }
+              if (memcmp(first, MAGIC_BZIP, 2) == 0)
+                {
+                  fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
+                }
             }
 
           fatal("File type not recognized.");
@@ -467,12 +471,12 @@ void fastx_close(fastx_handle h)
   if (h->stripped_all)
     {
       fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", h->stripped_all, (h->is_fastq ? "FASTQ" : "FASTA"));
-      for (int i=0; i<256;i++) {
-        if (h->stripped[i]) {
-          fprintf(stderr, " %c(%" PRIu64 ")", i, h->stripped[i]);
-
-        }
-
+      for (int i=0; i<256;i++)
+        {
+          if (h->stripped[i])
+            {
+              fprintf(stderr, " %c(%" PRIu64 ")", i, h->stripped[i]);
+            }
         }
       fprintf(stderr, "\n");
       fprintf(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
@@ -480,13 +484,13 @@ void fastx_close(fastx_handle h)
       if (opt_log)
         {
           fprintf(fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", h->stripped_all, (h->is_fastq ? "FASTQ" : "FASTA"));
-          for (int i=0; i<256;i++) {
-            if (h->stripped[i]) {
-              fprintf(fp_log, " %c(%" PRIu64 ")", i, h->stripped[i]);
-
-        }
-
-        }
+          for (int i=0; i<256;i++)
+            {
+              if (h->stripped[i])
+                {
+                  fprintf(fp_log, " %c(%" PRIu64 ")", i, h->stripped[i]);
+                }
+            }
           fprintf(fp_log, "\n");
           fprintf(fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }
@@ -543,9 +547,11 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
   /* read more data if necessary */
   uint64_t rest = h->file_buffer.length - h->file_buffer.position;
 
-  if (rest > 0) {
-    return rest;
-  } else
+  if (rest > 0)
+    {
+      return rest;
+    }
+  else
     {
       uint64_t space = h->file_buffer.alloc - h->file_buffer.length;
 
@@ -579,10 +585,10 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
                                    h->file_buffer.data
                                    + h->file_buffer.position,
                                    space);
-          if (bytes_read < 0) {
-            fatal("Unable to read gzip compressed file");
-
-        }
+          if (bytes_read < 0)
+            {
+              fatal("Unable to read gzip compressed file");
+            }
           break;
 #endif
 
@@ -596,10 +602,10 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
           if ((bytes_read < 0) ||
               ! ((bzError == BZ_OK) ||
                  (bzError == BZ_STREAM_END) ||
-                 (bzError == BZ_SEQUENCE_ERROR))) {
-            fatal("Unable to read from bzip2 compressed file");
-
-        }
+                 (bzError == BZ_SEQUENCE_ERROR)))
+            {
+              fatal("Unable to read from bzip2 compressed file");
+            }
           break;
 #endif
 
@@ -617,11 +623,11 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
               h->file_position = xlseek(fd, 0, SEEK_CUR);
               close(fd);
             }
-          else {
+          else
+            {
 #endif
-            h->file_position = xftello(h->fp);
-
-        }
+              h->file_position = xftello(h->fp);
+            }
         }
 
       h->file_buffer.length += bytes_read;
@@ -633,114 +639,136 @@ bool fastx_next(fastx_handle h,
                 bool truncateatspace,
                 const unsigned char * char_mapping)
 {
-  if (h->is_fastq) {
-    return fastq_next(h, truncateatspace, char_mapping);
-  } else {
-    return fasta_next(h, truncateatspace, char_mapping);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_next(h, truncateatspace, char_mapping);
+    }
+  else
+    {
+      return fasta_next(h, truncateatspace, char_mapping);
+    }
 }
 
 uint64_t fastx_get_position(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_position(h);
-  } else {
-    return fasta_get_position(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_position(h);
+    }
+  else
+    {
+      return fasta_get_position(h);
+    }
 }
 
 
 uint64_t fastx_get_size(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_size(h);
-  } else {
-    return fasta_get_size(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_size(h);
+    }
+  else
+    {
+      return fasta_get_size(h);
+    }
 }
 
 
 uint64_t fastx_get_lineno(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_lineno(h);
-  } else {
-    return fasta_get_lineno(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_lineno(h);
+    }
+  else
+    {
+      return fasta_get_lineno(h);
+    }
 }
 
 
 uint64_t fastx_get_seqno(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_seqno(h);
-  } else {
-    return fasta_get_seqno(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_seqno(h);
+    }
+  else
+    {
+      return fasta_get_seqno(h);
+    }
 }
 
 char * fastx_get_header(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_header(h);
-  } else {
-    return fasta_get_header(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_header(h);
+    }
+  else
+    {
+      return fasta_get_header(h);
+    }
 }
 
 char * fastx_get_sequence(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_sequence(h);
-  } else {
-    return fasta_get_sequence(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_sequence(h);
+    }
+  else
+    {
+      return fasta_get_sequence(h);
+    }
 }
 
 uint64_t fastx_get_header_length(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_header_length(h);
-  } else {
-    return fasta_get_header_length(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_header_length(h);
+    }
+  else
+    {
+      return fasta_get_header_length(h);
+    }
 }
 
 uint64_t fastx_get_sequence_length(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_sequence_length(h);
-  } else {
-    return fasta_get_sequence_length(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_sequence_length(h);
+    }
+  else
+    {
+      return fasta_get_sequence_length(h);
+    }
 }
 
 
 char * fastx_get_quality(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_quality(h);
-  } else {
-    return nullptr;
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_quality(h);
+    }
+  else
+    {
+      return nullptr;
+    }
 }
 
 int64_t fastx_get_abundance(fastx_handle h)
 {
-  if (h->is_fastq) {
-    return fastq_get_abundance(h);
-  } else {
-    return fasta_get_abundance(h);
-
-        }
+  if (h->is_fastq)
+    {
+      return fastq_get_abundance(h);
+    }
+  else
+    {
+      return fasta_get_abundance(h);
+    }
 }

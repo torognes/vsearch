@@ -77,9 +77,10 @@ class xstring
 
   ~xstring()
   {
-    if (alloc > 0) {
-      xfree(string);
-    }
+    if (alloc > 0)
+      {
+        xfree(string);
+      }
     alloc = 0;
     string = nullptr;
     length = 0;
@@ -92,11 +93,14 @@ class xstring
 
   char * get_string()
   {
-    if (length > 0) {
-      return string;
-    } else {
-      return empty_string;
-    }
+    if (length > 0)
+      {
+        return string;
+      }
+    else
+      {
+        return empty_string;
+      }
   }
 
   size_t get_length()
@@ -120,9 +124,10 @@ class xstring
   void add_d(int d)
   {
     int needed = snprintf(nullptr, 0, "%d", d);
-    if (needed < 0) {
-      fatal("snprintf failed");
-    }
+    if (needed < 0)
+      {
+        fatal("snprintf failed");
+      }
 
     if (length + needed + 1 > alloc)
       {

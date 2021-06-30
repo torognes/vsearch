@@ -66,20 +66,20 @@ void fastq_fatal(uint64_t lineno, const char * msg)
   if (xsprintf(& string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
-               msg) == -1) {
-    fatal("Out of memory");
-
-        }
+               msg) == -1)
+    {
+      fatal("Out of memory");
+    }
 
   if (string)
     {
       fatal(string);
       xfree(string);
     }
-  else {
-    fatal("Out of memory");
-
-        }
+  else
+    {
+      fatal("Out of memory");
+    }
 }
 
 void buffer_filter_extend(fastx_handle h,
@@ -121,10 +121,10 @@ void buffer_filter_extend(fastx_handle h,
 
         case 2:
           /* fatal character */
-          if (*ok) {
-            * illegal_char = c;
-
-        }
+          if (*ok)
+            {
+              * illegal_char = c;
+            }
           * ok = false;
           break;
 
@@ -147,10 +147,10 @@ fastx_handle fastq_open(const char * filename)
 {
   fastx_handle h = fastx_open(filename);
 
-  if (!fastx_is_fastq(h)) {
-    fatal("FASTQ file expected, FASTA file found (%s)", filename);
-
-        }
+  if (!fastx_is_fastq(h))
+    {
+      fatal("FASTQ file expected, FASTA file found (%s)", filename);
+    }
 
   return h;
 }
@@ -183,19 +183,19 @@ bool fastq_next(fastx_handle h,
 
   /* check end of file */
 
-  if (rest == 0) {
-    return false;
-
-        }
+  if (rest == 0)
+    {
+      return false;
+    }
 
   /* read header */
 
   /* check initial @ character */
 
-  if (h->file_buffer.data[h->file_buffer.position] != '@') {
-    fastq_fatal(h->lineno, "Header line must start with '@' character");
-
-        }
+  if (h->file_buffer.data[h->file_buffer.position] != '@')
+    {
+      fastq_fatal(h->lineno, "Header line must start with '@' character");
+    }
   h->file_buffer.position++;
   rest--;
 
@@ -204,9 +204,9 @@ bool fastq_next(fastx_handle h,
     {
       /* get more data if buffer empty */
       rest = fastx_file_fill_buffer(h);
-      if (rest == 0) {
-        fastq_fatal(h->lineno, "Unexpected end of file");
-
+      if (rest == 0)
+        {
+          fastq_fatal(h->lineno, "Unexpected end of file");
         }
 
       /* find LF */
@@ -237,15 +237,15 @@ bool fastq_next(fastx_handle h,
       rest = fastx_file_fill_buffer(h);
 
       /* cannot end here */
-      if (rest == 0) {
-        fastq_fatal(h->lineno, "Unexpected end of file");
-
+      if (rest == 0)
+        {
+          fastq_fatal(h->lineno, "Unexpected end of file");
         }
 
       /* end when new line starting with + is seen */
-      if (lf && (h->file_buffer.data[h->file_buffer.position] == '+')) {
-        break;
-
+      if (lf && (h->file_buffer.data[h->file_buffer.position] == '+'))
+        {
+          break;
         }
 
       /* find LF */
@@ -272,18 +272,20 @@ bool fastq_next(fastx_handle h,
 
       if (!ok)
         {
-          if ((illegal_char >= 32) && (illegal_char < 127)) {
-            snprintf(msg,
-                     200,
-                     "Illegal sequence character '%c'",
-                     illegal_char);
-          } else {
-            snprintf(msg,
-                     200,
-                     "Illegal sequence character (unprintable, no %d)",
-                     (unsigned char) illegal_char);
-
-        }
+          if ((illegal_char >= 32) && (illegal_char < 127))
+            {
+              snprintf(msg,
+                       200,
+                       "Illegal sequence character '%c'",
+                       illegal_char);
+            }
+          else
+            {
+              snprintf(msg,
+                       200,
+                       "Illegal sequence character (unprintable, no %d)",
+                       (unsigned char) illegal_char);
+            }
           fastq_fatal(h->lineno - (lf ? 1 : 0), msg);
         }
     }
@@ -301,9 +303,9 @@ bool fastq_next(fastx_handle h,
       rest = fastx_file_fill_buffer(h);
 
       /* cannot end here */
-      if (rest == 0) {
-        fastq_fatal(h->lineno, "Unexpected end of file");
-
+      if (rest == 0)
+        {
+          fastq_fatal(h->lineno, "Unexpected end of file");
         }
 
       /* find LF */
@@ -332,24 +334,24 @@ bool fastq_next(fastx_handle h,
     {
       if (memcmp(h->header_buffer.data,
                  h->plusline_buffer.data,
-                 h->header_buffer.length)) {
-        plusline_invalid = true;
-
+                 h->header_buffer.length))
+        {
+          plusline_invalid = true;
         }
     }
   else
     {
       if ((h->plusline_buffer.length > 2) ||
-          ((h->plusline_buffer.length == 2) && (h->plusline_buffer.data[0] != '\r'))) {
-        plusline_invalid = true;
-
+          ((h->plusline_buffer.length == 2) && (h->plusline_buffer.data[0] != '\r')))
+        {
+          plusline_invalid = true;
         }
     }
-  if (plusline_invalid) {
-    fastq_fatal(h->lineno - (lf ? 1 : 0),
-                "'+' line must be empty or identical to header");
-
-        }
+  if (plusline_invalid)
+    {
+      fastq_fatal(h->lineno - (lf ? 1 : 0),
+                  "'+' line must be empty or identical to header");
+    }
 
   /* read quality line(s) */
 
@@ -360,17 +362,17 @@ bool fastq_next(fastx_handle h,
       rest = fastx_file_fill_buffer(h);
 
       /* end if no more data */
-      if (rest == 0) {
-        break;
-
+      if (rest == 0)
+        {
+          break;
         }
 
       /* end if next entry starts : LF + '@' + correct length */
       if (lf &&
           (h->file_buffer.data[h->file_buffer.position] == '@') &&
-          (h->quality_buffer.length == h->sequence_buffer.length)) {
-        break;
-
+          (h->quality_buffer.length == h->sequence_buffer.length))
+        {
+          break;
         }
 
       /* find LF */
@@ -396,34 +398,36 @@ bool fastq_next(fastx_handle h,
       rest -= len;
 
       /* break if quality line already too long */
-      if (h->quality_buffer.length > h->sequence_buffer.length) {
-        break;
-
+      if (h->quality_buffer.length > h->sequence_buffer.length)
+        {
+          break;
         }
 
       if (!ok)
         {
-          if ((illegal_char >= 32) && (illegal_char < 127)) {
-            snprintf(msg,
-                     200,
-                     "Illegal quality character '%c'",
-                     illegal_char);
-          } else {
-            snprintf(msg,
-                     200,
-                     "Illegal quality character (unprintable, no %d)",
-                     (unsigned char) illegal_char);
-
-        }
+          if ((illegal_char >= 32) && (illegal_char < 127))
+            {
+              snprintf(msg,
+                       200,
+                       "Illegal quality character '%c'",
+                       illegal_char);
+            }
+          else
+            {
+              snprintf(msg,
+                       200,
+                       "Illegal quality character (unprintable, no %d)",
+                       (unsigned char) illegal_char);
+            }
           fastq_fatal(h->lineno - (lf ? 1 : 0), msg);
         }
     }
 
-  if (h->sequence_buffer.length != h->quality_buffer.length) {
-    fastq_fatal(h->lineno - (lf ? 1 : 0),
-                "Sequence and quality lines must be equally long");
-
-        }
+  if (h->sequence_buffer.length != h->quality_buffer.length)
+    {
+      fastq_fatal(h->lineno - (lf ? 1 : 0),
+                  "Sequence and quality lines must be equally long");
+    }
 
   fastx_filter_header(h, truncateatspace);
 
@@ -487,12 +491,14 @@ int64_t fastq_get_abundance(fastx_handle h)
   // return 1 if not present
   int64_t size = header_get_size(h->header_buffer.data,
                                  h->header_buffer.length);
-  if (size > 0) {
-    return size;
-  } else {
-    return 1;
-
-        }
+  if (size > 0)
+    {
+      return size;
+    }
+  else
+    {
+      return 1;
+    }
 }
 
 int64_t fastq_get_abundance_and_presence(fastx_handle h)
@@ -519,15 +525,23 @@ void fastq_print_general(FILE * fp,
 {
   fprintf(fp, "@");
 
-  if (opt_relabel_self) {
-    fprint_seq_label(fp, seq, len);
-  } else if (opt_relabel_sha1) {
-    fprint_seq_digest_sha1(fp, seq, len);
-  } else if (opt_relabel_md5) {
-    fprint_seq_digest_md5(fp, seq, len);
-  } else if (opt_relabel && (ordinal > 0)) {
-    fprintf(fp, "%s%d", opt_relabel, ordinal);
-  } else
+  if (opt_relabel_self)
+    {
+      fprint_seq_label(fp, seq, len);
+    }
+  else if (opt_relabel_sha1)
+    {
+      fprint_seq_digest_sha1(fp, seq, len);
+    }
+  else if (opt_relabel_md5)
+    {
+      fprint_seq_digest_md5(fp, seq, len);
+    }
+  else if (opt_relabel && (ordinal > 0))
+    {
+      fprintf(fp, "%s%d", opt_relabel, ordinal);
+    }
+  else
     {
       bool xsize = opt_xsize || (opt_sizeout && (abundance > 0));
       bool xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
@@ -538,26 +552,26 @@ void fastq_print_general(FILE * fp,
                                   xee);
     }
 
-  if (opt_label_suffix) {
-    fprintf(fp, "%s", opt_label_suffix);
+  if (opt_label_suffix)
+    {
+      fprintf(fp, "%s", opt_label_suffix);
+    }
 
-        }
+  if (opt_sizeout && (abundance > 0))
+    {
+      fprintf(fp, ";size=%u", abundance);
+    }
 
-  if (opt_sizeout && (abundance > 0)) {
-    fprintf(fp, ";size=%u", abundance);
-
-        }
-
-  if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0)) {
-    fprintf(fp, ";ee=%.4lf", ee);
-
-        }
+  if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
+    {
+      fprintf(fp, ";ee=%.4lf", ee);
+    }
 
   if (opt_relabel_keep &&
-      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self)) {
-    fprintf(fp, " %.*s", header_len, header);
-
-        }
+      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
+    {
+      fprintf(fp, " %.*s", header_len, header);
+    }
 
   fprintf(fp, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
 }

@@ -66,10 +66,10 @@ FILE * join_fileopenw(char * filename)
 {
   FILE * fp = nullptr;
   fp = fopen_output(filename);
-  if (!fp) {
-    fatal("Unable to open file for writing (%s)", filename);
-
-        }
+  if (!fp)
+    {
+      fatal("Unable to open file for writing (%s)", filename);
+    }
   return fp;
 }
 
@@ -85,44 +85,48 @@ void fastq_join()
 
   /* check input and options */
 
-  if (!opt_reverse) {
-    fatal("No reverse reads file specified with --reverse");
+  if (!opt_reverse)
+    {
+      fatal("No reverse reads file specified with --reverse");
+    }
 
-        }
-
-  if ((!opt_fastqout) && (!opt_fastaout)) {
-    fatal("No output files specified");
-
-        }
+  if ((!opt_fastqout) && (!opt_fastaout))
+    {
+      fatal("No output files specified");
+    }
 
   char * padgap = nullptr;
   char * padgapq = nullptr;
 
-  if (opt_join_padgap) {
-    padgap = xstrdup(opt_join_padgap);
-  } else {
-    padgap = xstrdup("NNNNNNNN");
-
-        }
+  if (opt_join_padgap)
+    {
+      padgap = xstrdup(opt_join_padgap);
+    }
+  else
+    {
+      padgap = xstrdup("NNNNNNNN");
+    }
 
   uint64_t padlen = strlen(padgap);
 
-  if (opt_join_padgapq) {
-    padgapq = xstrdup(opt_join_padgapq);
-  } else
+  if (opt_join_padgapq)
+    {
+      padgapq = xstrdup(opt_join_padgapq);
+    }
+  else
     {
       padgapq = (char *) xmalloc(padlen + 1);
-      for(uint64_t i = 0; i < padlen; i++) {
-        padgapq[i] = 'I';
-
+      for(uint64_t i = 0; i < padlen; i++)
+        {
+          padgapq[i] = 'I';
         }
       padgapq[padlen] = 0;
     }
 
-  if (padlen != strlen(padgapq)) {
-    fatal("Strings given by --join_padgap and --join_padgapq differ in length");
-
-        }
+  if (padlen != strlen(padgapq))
+    {
+      fatal("Strings given by --join_padgap and --join_padgapq differ in length");
+    }
 
   /* open input files */
 
@@ -131,14 +135,14 @@ void fastq_join()
 
   /* open output files */
 
-  if (opt_fastqout) {
-    fp_fastqout = join_fileopenw(opt_fastqout);
-
-        }
-  if (opt_fastaout) {
-    fp_fastaout = join_fileopenw(opt_fastaout);
-
-        }
+  if (opt_fastqout)
+    {
+      fp_fastqout = join_fileopenw(opt_fastqout);
+    }
+  if (opt_fastaout)
+    {
+      fp_fastaout = join_fileopenw(opt_fastaout);
+    }
 
   /* main */
 
@@ -156,9 +160,9 @@ void fastq_join()
 
   while(fastq_next(fastq_fwd, false, chrmap_no_change))
     {
-      if (! fastq_next(fastq_rev, false, chrmap_no_change)) {
-        fatal("More forward reads than reverse reads");
-
+      if (! fastq_next(fastq_rev, false, chrmap_no_change))
+        {
+          fatal("More forward reads than reverse reads");
         }
 
       uint64_t fwd_seq_length = fastq_get_sequence_length(fastq_fwd);
@@ -237,10 +241,10 @@ void fastq_join()
 
   progress_done();
 
-  if (fastq_next(fastq_rev, false, chrmap_no_change)) {
-    fatal("More reverse reads than forward reads");
-
-        }
+  if (fastq_next(fastq_rev, false, chrmap_no_change))
+    {
+      fatal("More reverse reads than forward reads");
+    }
 
   fprintf(stderr,
           "%" PRIu64 " pairs joined\n",
@@ -248,28 +252,28 @@ void fastq_join()
 
   /* clean up */
 
-  if (opt_fastaout) {
-    fclose(fp_fastaout);
-
-        }
-  if (opt_fastqout) {
-    fclose(fp_fastqout);
-
-        }
+  if (opt_fastaout)
+    {
+      fclose(fp_fastaout);
+    }
+  if (opt_fastqout)
+    {
+      fclose(fp_fastqout);
+    }
 
   fastq_close(fastq_rev);
   fastq_rev = nullptr;
   fastq_close(fastq_fwd);
   fastq_fwd = nullptr;
 
-  if (seq) {
-    xfree(seq);
-
-        }
-  if (qual) {
-    xfree(qual);
-
-        }
+  if (seq)
+    {
+      xfree(seq);
+    }
+  if (qual)
+    {
+      xfree(qual);
+    }
   xfree(padgap);
   xfree(padgapq);
 }

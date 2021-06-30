@@ -105,18 +105,18 @@ struct uhandle_s * unique_init()
 
 void unique_exit(struct uhandle_s * uh)
 {
-  if (uh->bitmap) {
-    xfree(uh->bitmap);
-
-        }
-  if (uh->hash) {
-    xfree(uh->hash);
-
-        }
-  if (uh->list) {
-    xfree(uh->list);
-
-        }
+  if (uh->bitmap)
+    {
+      xfree(uh->bitmap);
+    }
+  if (uh->hash)
+    {
+      xfree(uh->hash);
+    }
+  if (uh->list)
+    {
+      xfree(uh->list);
+    }
   xfree(uh);
 }
 
@@ -125,15 +125,19 @@ int unique_compare(const void * a, const void * b)
   auto * x = (unsigned int*) a;
   auto * y = (unsigned int*) b;
 
-  if (x<y) {
-    return -1;
-  } else
-    if (x>y) {
-      return +1;
-    } else {
-      return 0;
-
-        }
+  if (x<y)
+    {
+      return -1;
+    }
+  else
+    if (x>y)
+      {
+        return +1;
+      }
+    else
+      {
+        return 0;
+      }
 }
 
 
@@ -149,9 +153,9 @@ void unique_count_bitmap(struct uhandle_s * uh,
 
   if (uh->alloc < seqlen)
     {
-      while (uh->alloc < seqlen) {
-        uh->alloc *= 2;
-
+      while (uh->alloc < seqlen)
+        {
+          uh->alloc *= 2;
         }
       uh->list = (unsigned int *)
         xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
@@ -175,10 +179,10 @@ void unique_count_bitmap(struct uhandle_s * uh,
   char * s = seq;
   char * e1 = s + k-1;
   char * e2 = s + seqlen;
-  if (e2 < e1) {
-    e1 = e2;
-
-        }
+  if (e2 < e1)
+    {
+      e1 = e2;
+    }
 
   unsigned int * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
@@ -233,9 +237,9 @@ void unique_count_hash(struct uhandle_s * uh,
 
   if (uh->alloc < 2*seqlen)
     {
-      while (uh->alloc < 2*seqlen) {
-        uh->alloc *= 2;
-
+      while (uh->alloc < 2*seqlen)
+        {
+          uh->alloc *= 2;
         }
       uh->hash = (struct bucket_s *)
         xrealloc(uh->hash, sizeof(struct bucket_s) * uh->alloc);
@@ -246,10 +250,10 @@ void unique_count_hash(struct uhandle_s * uh,
   /* hashtable variant */
 
   uh->size = 1;
-  while (uh->size < 2*seqlen) {
-    uh->size *= 2;
-
-        }
+  while (uh->size < 2*seqlen)
+    {
+      uh->size *= 2;
+    }
   uh->hash_mask = uh->size - 1;
 
   memset(uh->hash, 0, sizeof(struct bucket_s) * uh->size);
@@ -261,10 +265,10 @@ void unique_count_hash(struct uhandle_s * uh,
   char * s = seq;
   char * e1 = s + k-1;
   char * e2 = s + seqlen;
-  if (e2 < e1) {
-    e1 = e2;
-
-        }
+  if (e2 < e1)
+    {
+      e1 = e2;
+    }
 
   unsigned int * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
@@ -294,10 +298,10 @@ void unique_count_hash(struct uhandle_s * uh,
         {
           /* find free appropriate bucket in hash */
           j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
-          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer)) {
-            j = (j + 1) & uh->hash_mask;
-
-        }
+          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+            {
+              j = (j + 1) & uh->hash_mask;
+            }
 
           if (!(uh->hash[j].count))
             {
@@ -321,12 +325,14 @@ void unique_count(struct uhandle_s * uh,
                   unsigned int * * list,
                   int seqmask)
 {
-  if (k<10) {
-    unique_count_bitmap(uh, k, seqlen, seq, listlen, list, seqmask);
-  } else {
-    unique_count_hash(uh, k, seqlen, seq, listlen, list, seqmask);
-
-        }
+  if (k<10)
+    {
+      unique_count_bitmap(uh, k, seqlen, seq, listlen, list, seqmask);
+    }
+  else
+    {
+      unique_count_hash(uh, k, seqlen, seq, listlen, list, seqmask);
+    }
 }
 
 int unique_count_shared(struct uhandle_s * uh,
@@ -345,10 +351,10 @@ int unique_count_shared(struct uhandle_s * uh,
           unsigned int kmer = list[i];
           uint64_t x = kmer >> 6ULL;
           uint64_t y = 1ULL << (kmer & 63ULL);
-          if (uh->bitmap[x] & y) {
-            count++;
-
-        }
+          if (uh->bitmap[x] & y)
+            {
+              count++;
+            }
         }
     }
   else
@@ -357,14 +363,14 @@ int unique_count_shared(struct uhandle_s * uh,
         {
           unsigned int kmer = list[i];
           uint64_t j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
-          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer)) {
-            j = (j + 1) & uh->hash_mask;
-
-        }
-          if (uh->hash[j].count) {
-            count++;
-
-        }
+          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+            {
+              j = (j + 1) & uh->hash_mask;
+            }
+          if (uh->hash[j].count)
+            {
+              count++;
+            }
         }
     }
   return count;

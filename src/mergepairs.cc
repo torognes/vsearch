@@ -229,10 +229,10 @@ FILE * fileopenw(char * filename)
 {
   FILE * fp = nullptr;
   fp = fopen_output(filename);
-  if (!fp) {
-    fatal("Unable to open file for writing (%s)", filename);
-
-        }
+  if (!fp)
+    {
+      fatal("Unable to open file for writing (%s)", filename);
+    }
   return fp;
 }
 
@@ -284,12 +284,14 @@ inline int get_qual(char q)
 inline double q_to_p(int q)
 {
   int x = q - opt_fastq_ascii;
-  if (x < 2) {
-    return 0.75;
-  } else {
-    return exp10(-x/10.0);
-
-        }
+  if (x < 2)
+    {
+      return 0.75;
+    }
+  else
+    {
+      return exp10(-x/10.0);
+    }
 }
 
 void precompute_qual()
@@ -422,11 +424,11 @@ void keep(merge_data_t * ip)
                           0.0);
     }
 
-  if (opt_eetabbedout) {
-    fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
-            ip->ee_fwd, ip->ee_rev, ip->fwd_errors, ip->rev_errors);
-
-        }
+  if (opt_eetabbedout)
+    {
+      fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
+              ip->ee_fwd, ip->ee_rev, ip->fwd_errors, ip->rev_errors);
+    }
 }
 
 void discard(merge_data_t * ip)
@@ -499,61 +501,61 @@ void discard(merge_data_t * ip)
 
   notmerged++;
 
-  if (opt_fastqout_notmerged_fwd) {
-    fastq_print_general(fp_fastqout_notmerged_fwd,
-                        ip->fwd_sequence,
-                        ip->fwd_length,
-                        ip->fwd_header,
-                        strlen(ip->fwd_header),
-                        ip->fwd_quality,
-                        0,
-                        notmerged,
-                        -1.0);
+  if (opt_fastqout_notmerged_fwd)
+    {
+      fastq_print_general(fp_fastqout_notmerged_fwd,
+                          ip->fwd_sequence,
+                          ip->fwd_length,
+                          ip->fwd_header,
+                          strlen(ip->fwd_header),
+                          ip->fwd_quality,
+                          0,
+                          notmerged,
+                          -1.0);
+    }
 
-        }
+  if (opt_fastqout_notmerged_rev)
+    {
+      fastq_print_general(fp_fastqout_notmerged_rev,
+                          ip->rev_sequence,
+                          ip->rev_length,
+                          ip->rev_header,
+                          strlen(ip->rev_header),
+                          ip->rev_quality,
+                          0,
+                          notmerged,
+                          -1.0);
+    }
 
-  if (opt_fastqout_notmerged_rev) {
-    fastq_print_general(fp_fastqout_notmerged_rev,
-                        ip->rev_sequence,
-                        ip->rev_length,
-                        ip->rev_header,
-                        strlen(ip->rev_header),
-                        ip->rev_quality,
-                        0,
-                        notmerged,
-                        -1.0);
+  if (opt_fastaout_notmerged_fwd)
+    {
+      fasta_print_general(fp_fastaout_notmerged_fwd,
+                          nullptr,
+                          ip->fwd_sequence,
+                          ip->fwd_length,
+                          ip->fwd_header,
+                          strlen(ip->fwd_header),
+                          0,
+                          notmerged,
+                          -1.0,
+                          -1, -1,
+                          nullptr, 0.0);
+    }
 
-        }
-
-  if (opt_fastaout_notmerged_fwd) {
-    fasta_print_general(fp_fastaout_notmerged_fwd,
-                        nullptr,
-                        ip->fwd_sequence,
-                        ip->fwd_length,
-                        ip->fwd_header,
-                        strlen(ip->fwd_header),
-                        0,
-                        notmerged,
-                        -1.0,
-                        -1, -1,
-                        nullptr, 0.0);
-
-        }
-
-  if (opt_fastaout_notmerged_rev) {
-    fasta_print_general(fp_fastaout_notmerged_rev,
-                        nullptr,
-                        ip->rev_sequence,
-                        ip->rev_length,
-                        ip->rev_header,
-                        strlen(ip->rev_header),
-                        0,
-                        notmerged,
-                        -1.0,
-                        -1, -1,
-                        nullptr, 0.0);
-
-        }
+  if (opt_fastaout_notmerged_rev)
+    {
+      fasta_print_general(fp_fastaout_notmerged_rev,
+                          nullptr,
+                          ip->rev_sequence,
+                          ip->rev_length,
+                          ip->rev_header,
+                          strlen(ip->rev_header),
+                          0,
+                          notmerged,
+                          -1.0,
+                          -1, -1,
+                          nullptr, 0.0);
+    }
 }
 
 void merge(merge_data_t * ip)
@@ -618,13 +620,13 @@ void merge(merge_data_t * ip)
                 fwd_qual,
                 rev_qual);
 
-      if (sym != fwd_sym) {
-        ip->fwd_errors++;
-
+      if (sym != fwd_sym)
+        {
+          ip->fwd_errors++;
         }
-      if (sym != rev_sym) {
-        ip->rev_errors++;
-
+      if (sym != rev_sym)
+        {
+          ip->rev_errors++;
         }
 
       ip->merged_sequence[merged_pos] = sym;
@@ -742,31 +744,31 @@ int64_t optimize(merge_data_t * ip,
               if (fwd_sym == rev_sym)
                 {
                   score += match_score[fwd_qual][rev_qual];
-                  if (score > score_high) {
-                    score_high = score;
-
-        }
+                  if (score > score_high)
+                    {
+                      score_high = score;
+                    }
                 }
               else
                 {
                   score += mism_score[fwd_qual][rev_qual];
                   diffs++;
-                  if (score < score_high - dropmax) {
-                    dropmax = score_high - score;
-
-        }
+                  if (score < score_high - dropmax)
+                    {
+                      dropmax = score_high - score;
+                    }
                 }
             }
 
-          if (dropmax >= merge_dropmax) {
-            score = 0.0;
+          if (dropmax >= merge_dropmax)
+            {
+              score = 0.0;
+            }
 
-        }
-
-          if (score >= merge_minscore) {
-            hits++;
-
-        }
+          if (score >= merge_minscore)
+            {
+              hits++;
+            }
 
           if (score > best_score)
             {
@@ -775,7 +777,6 @@ int64_t optimize(merge_data_t * ip,
               best_diffs = diffs;
             }
         }
-
     }
 
   if (hits > 1)
@@ -866,13 +867,13 @@ void process(merge_data_t * ip,
 
   if (!skip)
     {
-      for (int64_t i = 0; i < ip->fwd_length; i++) {
-        if (get_qual(ip->fwd_quality[i]) <= opt_fastq_truncqual)
-          {
-            fwd_trunc = i;
-            break;
-          }
-
+      for (int64_t i = 0; i < ip->fwd_length; i++)
+        {
+          if (get_qual(ip->fwd_quality[i]) <= opt_fastq_truncqual)
+            {
+              fwd_trunc = i;
+              break;
+            }
         }
       if (fwd_trunc < opt_fastq_minlen)
         {
@@ -887,13 +888,13 @@ void process(merge_data_t * ip,
 
   if (!skip)
     {
-      for (int64_t i = 0; i < ip->rev_length; i++) {
-        if (get_qual(ip->rev_quality[i]) <= opt_fastq_truncqual)
-          {
-            rev_trunc = i;
-            break;
-          }
-
+      for (int64_t i = 0; i < ip->rev_length; i++)
+        {
+          if (get_qual(ip->rev_quality[i]) <= opt_fastq_truncqual)
+            {
+              rev_trunc = i;
+              break;
+            }
         }
       if (rev_trunc < opt_fastq_minlen)
         {
@@ -911,13 +912,13 @@ void process(merge_data_t * ip,
   if (!skip)
     {
       int64_t fwd_ncount = 0;
-      for (int64_t i = 0; i < fwd_trunc; i++) {
-        if (ip->fwd_sequence[i] == 'N')
-          {
-            ip->fwd_quality[i] = opt_fastq_ascii;
-            fwd_ncount++;
-          }
-
+      for (int64_t i = 0; i < fwd_trunc; i++)
+        {
+          if (ip->fwd_sequence[i] == 'N')
+            {
+              ip->fwd_quality[i] = opt_fastq_ascii;
+              fwd_ncount++;
+            }
         }
       if (fwd_ncount > opt_fastq_maxns)
         {
@@ -929,13 +930,13 @@ void process(merge_data_t * ip,
   if (!skip)
     {
       int64_t rev_ncount = 0;
-      for (int64_t i = 0; i < rev_trunc; i++) {
-        if (ip->rev_sequence[i] == 'N')
-          {
-            ip->rev_quality[i] = opt_fastq_ascii;
-            rev_ncount++;
-          }
-
+      for (int64_t i = 0; i < rev_trunc; i++)
+        {
+          if (ip->rev_sequence[i] == 'N')
+            {
+              ip->rev_quality[i] = opt_fastq_ascii;
+              rev_ncount++;
+            }
         }
       if (rev_ncount > opt_fastq_maxns)
         {
@@ -946,15 +947,15 @@ void process(merge_data_t * ip,
 
   ip->offset = 0;
 
-  if (!skip) {
-    ip->offset = optimize(ip, kmerhash);
+  if (!skip)
+    {
+      ip->offset = optimize(ip, kmerhash);
+    }
 
-        }
-
-  if (ip->offset > 0) {
-    merge(ip);
-
-        }
+  if (ip->offset > 0)
+    {
+      merge(ip);
+    }
 
   ip->state = processed;
 }
@@ -963,9 +964,9 @@ bool read_pair(merge_data_t * ip)
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
-      if (! fastq_next(fastq_rev, false, chrmap_upcase)) {
-        fatal("More forward reads than reverse reads");
-
+      if (! fastq_next(fastq_rev, false, chrmap_upcase))
+        {
+          fatal("More forward reads than reverse reads");
         }
 
       /* allocate more memory if necessary */
@@ -1024,20 +1025,22 @@ bool read_pair(merge_data_t * ip)
 
       return true;
     }
-  else {
-    return false;
-
-        }
+  else
+    {
+      return false;
+    }
 }
 
 void keep_or_discard(merge_data_t * ip)
 {
-  if (ip->merged) {
-    keep(ip);
-  } else {
-    discard(ip);
-
-        }
+  if (ip->merged)
+    {
+      keep(ip);
+    }
+  else
+    {
+      discard(ip);
+    }
 }
 
 void init_merge_data(merge_data_t * ip)
@@ -1064,39 +1067,39 @@ void init_merge_data(merge_data_t * ip)
 
 void free_merge_data(merge_data_t * ip)
 {
-  if (ip->fwd_header) {
-    xfree(ip->fwd_header);
+  if (ip->fwd_header)
+    {
+      xfree(ip->fwd_header);
+    }
+  if (ip->rev_header)
+    {
+      xfree(ip->rev_header);
+    }
+  if (ip->fwd_sequence)
+    {
+      xfree(ip->fwd_sequence);
+    }
+  if (ip->rev_sequence)
+    {
+      xfree(ip->rev_sequence);
+    }
+  if (ip->fwd_quality)
+    {
+      xfree(ip->fwd_quality);
+    }
+  if (ip->rev_quality)
+    {
+      xfree(ip->rev_quality);
+    }
 
-        }
-  if (ip->rev_header) {
-    xfree(ip->rev_header);
-
-        }
-  if (ip->fwd_sequence) {
-    xfree(ip->fwd_sequence);
-
-        }
-  if (ip->rev_sequence) {
-    xfree(ip->rev_sequence);
-
-        }
-  if (ip->fwd_quality) {
-    xfree(ip->fwd_quality);
-
-        }
-  if (ip->rev_quality) {
-    xfree(ip->rev_quality);
-
-        }
-
-  if (ip->merged_sequence) {
-    xfree(ip->merged_sequence);
-
-        }
-  if (ip->merged_quality) {
-    xfree(ip->merged_quality);
-
-        }
+  if (ip->merged_sequence)
+    {
+      xfree(ip->merged_sequence);
+    }
+  if (ip->merged_quality)
+    {
+      xfree(ip->merged_quality);
+    }
 }
 
 inline void chunk_perform_read()
@@ -1107,9 +1110,9 @@ inline void chunk_perform_read()
       progress_update(fastq_get_position(fastq_fwd));
       int r = 0;
       while ((r < chunk_size) &&
-             read_pair(chunks[chunk_read_next].merge_data + r)) {
-        r++;
-
+             read_pair(chunks[chunk_read_next].merge_data + r))
+        {
+          r++;
         }
       chunks[chunk_read_next].size = r;
       xpthread_mutex_lock(&mutex_chunks);
@@ -1119,9 +1122,9 @@ inline void chunk_perform_read()
           chunks[chunk_read_next].state = filled;
           chunk_read_next = (chunk_read_next + 1) % chunk_count;
         }
-      if (r < chunk_size) {
-        finished_reading = true;
-
+      if (r < chunk_size)
+        {
+          finished_reading = true;
         }
       xpthread_cond_broadcast(&cond_chunks);
     }
@@ -1132,16 +1135,16 @@ inline void chunk_perform_write()
   while (chunks[chunk_write_next].state == processed)
     {
       xpthread_mutex_unlock(&mutex_chunks);
-      for(int i = 0; i < chunks[chunk_write_next].size; i++) {
-        keep_or_discard(chunks[chunk_write_next].merge_data + i);
-
+      for(int i = 0; i < chunks[chunk_write_next].size; i++)
+        {
+          keep_or_discard(chunks[chunk_write_next].merge_data + i);
         }
       xpthread_mutex_lock(&mutex_chunks);
       pairs_written += chunks[chunk_write_next].size;
       chunks[chunk_write_next].state = empty;
-      if (finished_reading && (pairs_written >= pairs_read)) {
-        finished_all = true;
-
+      if (finished_reading && (pairs_written >= pairs_read))
+        {
+          finished_all = true;
         }
       chunk_write_next = (chunk_write_next + 1) % chunk_count;
       xpthread_cond_broadcast(&cond_chunks);
@@ -1157,9 +1160,9 @@ inline void chunk_perform_process(struct kh_handle_s * kmerhash)
       chunk_process_next = (chunk_current + 1) % chunk_count;
       xpthread_cond_broadcast(&cond_chunks);
       xpthread_mutex_unlock(&mutex_chunks);
-      for(int i=0; i<chunks[chunk_current].size; i++) {
-        process(chunks[chunk_current].merge_data + i, kmerhash);
-
+      for(int i=0; i<chunks[chunk_current].size; i++)
+        {
+          process(chunks[chunk_current].merge_data + i, kmerhash);
         }
       xpthread_mutex_lock(&mutex_chunks);
       chunks[chunk_current].state = processed;
@@ -1198,10 +1201,10 @@ void * pair_worker(void * vp)
                       (chunks[chunk_process_next].state == filled)
                       ||
                       ((!finished_reading) &&
-                       chunks[chunk_read_next].state == empty))) {
-                xpthread_cond_wait(&cond_chunks, &mutex_chunks);
-
-        }
+                       chunks[chunk_read_next].state == empty)))
+                {
+                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                }
 
               chunk_perform_read();
               chunk_perform_process(kmerhash);
@@ -1217,10 +1220,10 @@ void * pair_worker(void * vp)
                       ||
                       (chunks[chunk_write_next].state == processed)
                       )
-                     ) {
-                xpthread_cond_wait(&cond_chunks, &mutex_chunks);
-
-        }
+                     )
+                {
+                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                }
 
               chunk_perform_write();
               chunk_perform_process(kmerhash);
@@ -1240,10 +1243,10 @@ void * pair_worker(void * vp)
                       ||
                       (chunks[chunk_process_next].state == filled)
                       )
-                     ) {
-                xpthread_cond_wait(&cond_chunks, &mutex_chunks);
-
-        }
+                     )
+                {
+                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                }
 
               chunk_perform_read();
               chunk_perform_process(kmerhash);
@@ -1259,10 +1262,10 @@ void * pair_worker(void * vp)
                       ||
                       (chunks[chunk_process_next].state == filled)
                       )
-                     ) {
-                xpthread_cond_wait(&cond_chunks, &mutex_chunks);
-
-        }
+                     )
+                {
+                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                }
 
               chunk_perform_write();
               chunk_perform_process(kmerhash);
@@ -1276,10 +1279,10 @@ void * pair_worker(void * vp)
                       ||
                       (chunks[chunk_process_next].state == filled)
                       )
-                     ) {
-                xpthread_cond_wait(&cond_chunks, &mutex_chunks);
-
-        }
+                     )
+                {
+                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                }
 
               chunk_perform_process(kmerhash);
             }
@@ -1311,9 +1314,9 @@ void pair_all()
       chunks[i].size = 0;
       chunks[i].merge_data =
         (merge_data_t *) xmalloc(chunk_size * sizeof(merge_data_t));
-      for(int64_t j=0; j<chunk_size; j++) {
-        init_merge_data(chunks[i].merge_data + j);
-
+      for(int64_t j=0; j<chunk_size; j++)
+        {
+          init_merge_data(chunks[i].merge_data + j);
         }
     }
 
@@ -1326,17 +1329,17 @@ void pair_all()
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for(int t=0; t<opt_threads; t++) {
-    xpthread_create(pthread+t, &attr, pair_worker, (void*)(int64_t)t);
-
-        }
+  for(int t=0; t<opt_threads; t++)
+    {
+      xpthread_create(pthread+t, &attr, pair_worker, (void*)(int64_t)t);
+    }
 
   /* wait for threads to terminate */
 
-  for(int t=0; t<opt_threads; t++) {
-    xpthread_join(pthread[t], nullptr);
-
-        }
+  for(int t=0; t<opt_threads; t++)
+    {
+      xpthread_join(pthread[t], nullptr);
+    }
 
   /* free threads */
 
@@ -1350,9 +1353,9 @@ void pair_all()
 
   for (int i = 0; i < chunk_count; i++)
     {
-      for (int j=0; j < chunk_size; j++) {
-        free_merge_data(chunks[i].merge_data + j);
-
+      for (int j=0; j < chunk_size; j++)
+        {
+          free_merge_data(chunks[i].merge_data + j);
         }
       xfree(chunks[i].merge_data);
       chunks[i].merge_data = nullptr;
@@ -1365,10 +1368,10 @@ void fastq_mergepairs()
 {
   /* fatal error if specified overlap is too small */
 
-  if (opt_fastq_minovlen < 5) {
-    fatal("Overlap specified with --fastq_minovlen must be at least 5");
-
-        }
+  if (opt_fastq_minovlen < 5)
+    {
+      fatal("Overlap specified with --fastq_minovlen must be at least 5");
+    }
 
   /* relax default parameters in case of short overlaps */
 
@@ -1385,34 +1388,34 @@ void fastq_mergepairs()
 
   /* open output files */
 
-  if (opt_fastqout) {
-    fp_fastqout = fileopenw(opt_fastqout);
-
-        }
-  if (opt_fastaout) {
-    fp_fastaout = fileopenw(opt_fastaout);
-
-        }
-  if (opt_fastqout_notmerged_fwd) {
-    fp_fastqout_notmerged_fwd = fileopenw(opt_fastqout_notmerged_fwd);
-
-        }
-  if (opt_fastqout_notmerged_rev) {
-    fp_fastqout_notmerged_rev = fileopenw(opt_fastqout_notmerged_rev);
-
-        }
-  if (opt_fastaout_notmerged_fwd) {
-    fp_fastaout_notmerged_fwd = fileopenw(opt_fastaout_notmerged_fwd);
-
-        }
-  if (opt_fastaout_notmerged_rev) {
-    fp_fastaout_notmerged_rev = fileopenw(opt_fastaout_notmerged_rev);
-
-        }
-  if (opt_eetabbedout) {
-    fp_eetabbedout = fileopenw(opt_eetabbedout);
-
-        }
+  if (opt_fastqout)
+    {
+      fp_fastqout = fileopenw(opt_fastqout);
+    }
+  if (opt_fastaout)
+    {
+      fp_fastaout = fileopenw(opt_fastaout);
+    }
+  if (opt_fastqout_notmerged_fwd)
+    {
+      fp_fastqout_notmerged_fwd = fileopenw(opt_fastqout_notmerged_fwd);
+    }
+  if (opt_fastqout_notmerged_rev)
+    {
+      fp_fastqout_notmerged_rev = fileopenw(opt_fastqout_notmerged_rev);
+    }
+  if (opt_fastaout_notmerged_fwd)
+    {
+      fp_fastaout_notmerged_fwd = fileopenw(opt_fastaout_notmerged_fwd);
+    }
+  if (opt_fastaout_notmerged_rev)
+    {
+      fp_fastaout_notmerged_rev = fileopenw(opt_fastaout_notmerged_rev);
+    }
+  if (opt_eetabbedout)
+    {
+      fp_eetabbedout = fileopenw(opt_eetabbedout);
+    }
 
   /* precompute merged quality values */
 
@@ -1423,17 +1426,17 @@ void fastq_mergepairs()
   uint64_t filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
 
-  if (! fastq_fwd->is_empty) {
-    pair_all();
-
-        }
+  if (! fastq_fwd->is_empty)
+    {
+      pair_all();
+    }
 
   progress_done();
 
-  if (fastq_next(fastq_rev, true, chrmap_upcase)) {
-    fatal("More reverse reads than forward reads");
-
-        }
+  if (fastq_next(fastq_rev, true, chrmap_upcase))
+    {
+      fatal("More reverse reads than forward reads");
+    }
 
   fprintf(stderr,
           "%10" PRIu64 "  Pairs\n",
@@ -1442,134 +1445,134 @@ void fastq_mergepairs()
   fprintf(stderr,
           "%10" PRIu64 "  Merged",
           merged);
-  if (total > 0) {
-    fprintf(stderr,
-            " (%.1lf%%)",
-            100.0 * merged / total);
-
-        }
+  if (total > 0)
+    {
+      fprintf(stderr,
+              " (%.1lf%%)",
+              100.0 * merged / total);
+    }
   fprintf(stderr, "\n");
 
   fprintf(stderr,
           "%10" PRIu64 "  Not merged",
           notmerged);
-  if (total > 0) {
-    fprintf(stderr,
-            " (%.1lf%%)",
-            100.0 * notmerged / total);
-
-        }
+  if (total > 0)
+    {
+      fprintf(stderr,
+              " (%.1lf%%)",
+              100.0 * notmerged / total);
+    }
   fprintf(stderr, "\n");
 
-  if (notmerged > 0) {
-    fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
+  if (notmerged > 0)
+    {
+      fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
+    }
 
-        }
+  if (failed_undefined)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  undefined reason\n",
+              failed_undefined);
+    }
 
-  if (failed_undefined) {
-    fprintf(stderr,
-            "%10" PRIu64 "  undefined reason\n",
-            failed_undefined);
+  if (failed_minlen)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  reads too short (after truncation)\n",
+              failed_minlen);
+    }
 
-        }
+  if (failed_maxlen)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  reads too long (after truncation)\n",
+              failed_maxlen);
+    }
 
-  if (failed_minlen) {
-    fprintf(stderr,
-            "%10" PRIu64 "  reads too short (after truncation)\n",
-            failed_minlen);
+  if (failed_maxns)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  too many N's\n",
+              failed_maxns);
+    }
 
-        }
+  if (failed_nokmers)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  too few kmers found on same diagonal\n",
+              failed_nokmers);
+    }
 
-  if (failed_maxlen) {
-    fprintf(stderr,
-            "%10" PRIu64 "  reads too long (after truncation)\n",
-            failed_maxlen);
+  if (failed_repeat)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  multiple potential alignments\n",
+              failed_repeat);
+    }
 
-        }
+  if (failed_maxdiffs)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  too many differences\n",
+              failed_maxdiffs);
+    }
 
-  if (failed_maxns) {
-    fprintf(stderr,
-            "%10" PRIu64 "  too many N's\n",
-            failed_maxns);
+  if (failed_maxdiffpct)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  too high percentage of differences\n",
+              failed_maxdiffpct);
+    }
 
-        }
+  if (failed_minscore)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  alignment score too low, or score drop too high\n",
+              failed_minscore);
+    }
 
-  if (failed_nokmers) {
-    fprintf(stderr,
-            "%10" PRIu64 "  too few kmers found on same diagonal\n",
-            failed_nokmers);
+  if (failed_minovlen)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  overlap too short\n",
+              failed_minovlen);
+    }
 
-        }
+  if (failed_maxee)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  expected error too high\n",
+              failed_maxee);
+    }
 
-  if (failed_repeat) {
-    fprintf(stderr,
-            "%10" PRIu64 "  multiple potential alignments\n",
-            failed_repeat);
+  if (failed_minmergelen)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  merged fragment too short\n",
+              failed_minmergelen);
+    }
 
-        }
+  if (failed_maxmergelen)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  merged fragment too long\n",
+              failed_maxmergelen);
+    }
 
-  if (failed_maxdiffs) {
-    fprintf(stderr,
-            "%10" PRIu64 "  too many differences\n",
-            failed_maxdiffs);
+  if (failed_staggered)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  staggered read pairs\n",
+              failed_staggered);
+    }
 
-        }
-
-  if (failed_maxdiffpct) {
-    fprintf(stderr,
-            "%10" PRIu64 "  too high percentage of differences\n",
-            failed_maxdiffpct);
-
-        }
-
-  if (failed_minscore) {
-    fprintf(stderr,
-            "%10" PRIu64 "  alignment score too low, or score drop too high\n",
-            failed_minscore);
-
-        }
-
-  if (failed_minovlen) {
-    fprintf(stderr,
-            "%10" PRIu64 "  overlap too short\n",
-            failed_minovlen);
-
-        }
-
-  if (failed_maxee) {
-    fprintf(stderr,
-            "%10" PRIu64 "  expected error too high\n",
-            failed_maxee);
-
-        }
-
-  if (failed_minmergelen) {
-    fprintf(stderr,
-            "%10" PRIu64 "  merged fragment too short\n",
-            failed_minmergelen);
-
-        }
-
-  if (failed_maxmergelen) {
-    fprintf(stderr,
-            "%10" PRIu64 "  merged fragment too long\n",
-            failed_maxmergelen);
-
-        }
-
-  if (failed_staggered) {
-    fprintf(stderr,
-            "%10" PRIu64 "  staggered read pairs\n",
-            failed_staggered);
-
-        }
-
-  if (failed_indel) {
-    fprintf(stderr,
-            "%10" PRIu64 "  indel errors\n",
-            failed_indel);
-
-        }
+  if (failed_indel)
+    {
+      fprintf(stderr,
+              "%10" PRIu64 "  indel errors\n",
+              failed_indel);
+    }
 
   fprintf(stderr, "\n");
 
@@ -1632,34 +1635,34 @@ void fastq_mergepairs()
 
   /* clean up */
 
-  if (opt_eetabbedout) {
-    fclose(fp_eetabbedout);
-
-        }
-  if (opt_fastaout_notmerged_rev) {
-    fclose(fp_fastaout_notmerged_rev);
-
-        }
-  if (opt_fastaout_notmerged_fwd) {
-    fclose(fp_fastaout_notmerged_fwd);
-
-        }
-  if (opt_fastqout_notmerged_rev) {
-    fclose(fp_fastqout_notmerged_rev);
-
-        }
-  if (opt_fastqout_notmerged_fwd) {
-    fclose(fp_fastqout_notmerged_fwd);
-
-        }
-  if (opt_fastaout) {
-    fclose(fp_fastaout);
-
-        }
-  if (opt_fastqout) {
-    fclose(fp_fastqout);
-
-        }
+  if (opt_eetabbedout)
+    {
+      fclose(fp_eetabbedout);
+    }
+  if (opt_fastaout_notmerged_rev)
+    {
+      fclose(fp_fastaout_notmerged_rev);
+    }
+  if (opt_fastaout_notmerged_fwd)
+    {
+      fclose(fp_fastaout_notmerged_fwd);
+    }
+  if (opt_fastqout_notmerged_rev)
+    {
+      fclose(fp_fastqout_notmerged_rev);
+    }
+  if (opt_fastqout_notmerged_fwd)
+    {
+      fclose(fp_fastqout_notmerged_fwd);
+    }
+  if (opt_fastaout)
+    {
+      fclose(fp_fastaout);
+    }
+  if (opt_fastqout)
+    {
+      fclose(fp_fastqout);
+    }
 
   fastq_close(fastq_rev);
   fastq_rev = nullptr;
