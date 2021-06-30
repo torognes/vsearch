@@ -5,20 +5,26 @@ dist:
 - xenial
 
 arch:
+- amd64
 - arm64
 - ppc64le
-- amd64
 
 os:
 - linux
 - osx
 
+osx_image:
+- xcode12.5
+
+addons:
+  apt:
+    packages: ghostscript valgrind groff
+  homebrew:
+    packages: ghostscript valgrind
+
 compiler:
 - g++
 - clang
-
-install:
-- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y ghostscript groff valgrind ; else brew install ghostscript valgrind ; fi
 
 script:
 - ./autogen.sh
