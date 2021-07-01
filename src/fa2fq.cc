@@ -60,43 +60,40 @@
 
 #include "vsearch.h"
 
-void fasta2fastq()
-{
-  if (! opt_fastqout)
+
+auto checks(fastx_handle h, std::FILE * fp_fastqout) -> void {
+  if (opt_fastqout == nullptr) {
     fatal("Output FASTQ file not specified with the --fastqout option");
+  }
 
-  fastx_handle h = fasta_open(opt_fasta2fastq);
-
-  if (!h)
+  if (h == nullptr) {
     fatal("Unable to open FASTA file for reading");
+  }
 
-  FILE * fp_fastqout = nullptr;
-
-  fp_fastqout = fopen_output(opt_fastqout);
-  if (!fp_fastqout)
+  if (fp_fastqout == nullptr) {
     fatal("Unable to open FASTQ output file for writing");
+  }
+}
 
-  const auto max_ascii_value = opt_fastq_asciiout + opt_fastq_qmaxout;
-  int count = 0;
-  size_t alloc = 0;
-  char * quality = nullptr;
+
+auto fasta2fastq() -> void
+{
+  const auto max_ascii_value { static_cast<char>(opt_fastq_asciiout + opt_fastq_qmaxout) };
+  fastx_handle h { fasta_open(opt_fasta2fastq) };
+  std::FILE * fp_fastqout { fopen_output(opt_fastqout) };
+  int count {0};
+  size_t alloc {0};
+  char * quality {nullptr};
+
+  checks(h, fp_fastqout);
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
 
-  while(fasta_next(h, 0, chrmap_no_change))
+  while(fasta_next(h, false, chrmap_no_change))
     {
-      /* header */
+      /* get sequence length and allocate more mem if necessary */
 
-      char * header = fasta_get_header(h);
-      int hlen = fasta_get_header_length(h);
-      int64_t abundance = fastq_get_abundance(h);
-
-      /* sequence */
-
-      uint64_t length = fastq_get_sequence_length(h);
-      char * sequence = fastq_get_sequence(h);
-
-      /* allocate more mem if necessary */
+      const uint64_t length { fastq_get_sequence_length(h) };
 
       if (alloc < length + 1)
         {
@@ -106,24 +103,24 @@ void fasta2fastq()
 
       /* set quality values */
 
-      for(uint64_t i=0; i < length; i++)
+      for(uint64_t i = 0; i < length; i++)
         {
           quality[i] = max_ascii_value;
         }
 
       quality[length] = 0;
 
-      count++;
+      ++count;
 
       /* write to fasta file */
 
       fastq_print_general(fp_fastqout,
-                          sequence,
+                          fastq_get_sequence(h),
                           length,
-                          header,
-                          hlen,
+                          fasta_get_header(h),
+                          fasta_get_header_length(h),
                           quality,
-                          abundance,
+                          fastq_get_abundance(h),
                           count,
                           -1.0);
 
@@ -132,13 +129,14 @@ void fasta2fastq()
 
   progress_done();
 
-  if (quality)
-    {
-      xfree(quality);
-      quality = nullptr;
-    }
+  /* clean up */
+
+  if (quality != nullptr) {
+    xfree(quality);
+  }
 
   fclose(fp_fastqout);
 
   fasta_close(h);
+
 }
