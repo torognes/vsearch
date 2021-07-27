@@ -78,7 +78,7 @@ auto checks(fastx_handle h, std::FILE * fp_fastqout) -> void {
 
 auto fasta2fastq() -> void
 {
-  const auto max_ascii_value { static_cast<char>(opt_fastq_asciiout + opt_fastq_qmaxout) };
+  const char max_ascii_value { static_cast<char>(opt_fastq_asciiout + opt_fastq_qmaxout) };
   fastx_handle h { fasta_open(opt_fasta2fastq) };
   std::FILE * fp_fastqout { fopen_output(opt_fastqout) };
   int count {0};
