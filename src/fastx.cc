@@ -624,8 +624,8 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
               close(fd);
             }
           else
-            {
 #endif
+            {
               h->file_position = xftello(h->fp);
             }
         }
