@@ -223,14 +223,24 @@ void results_show_uc_one(FILE * fp,
         }
 
       fprintf(fp,
-              "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t%s\t%s\n",
+              "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
               clusterno,
               qseqlen,
               hp->id,
               hp->strand ? '-' : '+',
-              perfect ? "=" : hp->nwalignment,
-              query_head,
-              db_getheader(hp->target));
+              perfect ? "=" : hp->nwalignment);
+      header_fprint_strip_size_ee(fp,
+                                  query_head,
+                                  strlen(query_head),
+                                  opt_xsize,
+                                  opt_xee);
+      fprintf(fp, "\t");
+      header_fprint_strip_size_ee(fp,
+                                  db_getheader(hp->target),
+                                  db_getheaderlen(hp->target),
+                                  opt_xsize,
+                                  opt_xee);
+      fprintf(fp, "\n");
     }
   else
     {

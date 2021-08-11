@@ -506,8 +506,13 @@ void cluster_core_results_nohit(int clusterno,
 
   if (opt_uc)
     {
-      fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
-              clusters, qseqlen, query_head);
+      fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
+      header_fprint_strip_size_ee(fp_uc,
+                                  query_head,
+                                  strlen(query_head),
+                                  opt_xsize,
+                                  opt_xee);
+      fprintf(fp_uc, "\t*\n");
     }
 
   if (opt_output_no_hits)
@@ -1424,10 +1429,15 @@ void cluster(char * dbname,
 
           if (opt_uc)
             {
-              fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+              fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
-                      cluster_abundance[clusterno],
-                      db_getheader(seqno));
+                      cluster_abundance[clusterno]);
+              header_fprint_strip_size_ee(fp_uc,
+                                          db_getheader(seqno),
+                                          db_getheaderlen(seqno),
+                                          opt_xsize,
+                                          opt_xee);
+              fprintf(fp_uc, "\t*\n");
             }
 
           if (opt_clusters)
