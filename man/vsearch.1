@@ -2184,7 +2184,7 @@ complemented.
 Pairwise alignment options:
 .RS
 .PP
-The results of the n * (n - 1) / 2 pairwise alignments are written to
+The results of the n * (n-1) / 2 pairwise alignments are written to
 the result files specified with \-\-alnout, \-\-blast6out,
 \-\-fastapairs \-\-matched, \-\-notmatched, \-\-samout, \-\-uc or
 \-\-userout (see Searching section below). Specify either the
@@ -2201,8 +2201,11 @@ overrides all other accept/reject options (including \-\-id).
 .TAG allpairs_global
 .TP
 .BI \-\-allpairs_global \0filename
-Perform optimal global pairwise alignments of all vs. all fasta
-sequences contained in \fIfilename\fR. This command is multi-threaded.
+Perform optimal global pairwise alignments of the fasta sequences
+contained in \fIfilename\fR. Each sequence is compared to all sequencs
+that come after it in the file, resulting in a total of n * (n-1) / 2
+pairwise alignments, where n is the total number of sequences. This
+command is multi-threaded.
 .TAG id
 .TP
 .BI \-\-id \0real
