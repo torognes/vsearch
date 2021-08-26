@@ -140,7 +140,7 @@ void increment_counters_from_bitmap(count_t * counters,
       vector __bool char r3;
       vector signed short r4, r5;
 
-      r0 = * (vector unsigned char *) p;
+      memcpy(&r0, p, 2);
       p++;
       r1 = vec_perm(r0, r0, c1);
       r2 = vec_or(r1, c2);
