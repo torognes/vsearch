@@ -350,7 +350,7 @@ command line options, and if need be, informational messages, warnings
 and fatal errors. The start and finish times are also recorded as well
 as the elapsed time and the maximum amount of memory consumed. The
 different \fBvsearch\fR commands can also write additional
-informations to the log file.
+information to the log file.
 .TAG maxseqlength
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
@@ -697,12 +697,12 @@ used. The semicolon is not mandatory at the beginning or end of the
 header. The OTU identifier may contain any printable character except
 semicolons. If no such OTU label is found, the identifier in the
 initial part of the header will be used, and all characters except
-semicolons are allowed. Alternatively, OTU identifers can be generated
-using the relabelling options (\-\-relabel, \-\-relabel_self,
-\-\-relabel_sha1, or \-\-relabel_md5). Taxonomy information, if
-present, will also be extracted from the headers of the centroid
-sequences. If the header contains ';tax=Homo_sapiens;' or a similar
-string somewhere, then the given taxonomy information
+semicolons are allowed. Alternatively, OTU identifiers can be
+generated using the relabelling options (\-\-relabel,
+\-\-relabel_self, \-\-relabel_sha1, or \-\-relabel_md5). Taxonomy
+information, if present, will also be extracted from the headers of
+the centroid sequences. If the header contains ';tax=Homo_sapiens;' or
+a similar string somewhere, then the given taxonomy information
 (here 'Homo_sapiens') will be used. The semicolon is not mandatory at
 the beginning or end of the header. The taxonomy information may
 contain any printable character except semicolons. If an OTU table in
@@ -1184,7 +1184,7 @@ and \-\-notmatchedfq options, respectively.
 .PP
 The \-\-fastx_getsubseq command is similar to the \-\-fastx_getseq
 command, but will extract a subsequence of the matching sequences. The
-start position is specifed with the \-\-subseq_start option and the
+start position is specified with the \-\-subseq_start option and the
 end position is specified with the \-\-subseq_end option. The
 positions are 1-based, meaning that the first symbol of the sequence
 is at position 1. If the start or end position option is not
@@ -1242,7 +1242,7 @@ specified with the \-\-fastaout, \-\-fastqout, \-\-notmatched and
 .TAG label
 .TP
 .BI \-\-label \0string
-Specifiy the label to match in the sequence header. Unless the
+Specify the label to match in the sequence header. Unless the
 \-\-label_substr_match option is given, the label must match the
 entire header. The comparison is not case-sensitive.
 .TAG label_field
@@ -1263,7 +1263,7 @@ label needs to match the entire header.
 .TAG label_word
 .TP
 .BI \-\-label_word \0string
-Specifiy a word to match in the sequence header. Words are defined as
+Specify a word to match in the sequence header. Words are defined as
 strings delimited by either the start or end of the header or by any
 symbol that is not a letter (A-Z, a-z) or digit (0-9). The comparison is
 case-sensitive.
@@ -1296,7 +1296,7 @@ format.
 .TAG subseq_end
 .TP
 .BI \-\-subseq_end\~ "positive integer"
-Specifiy the end position in the sequences when extracting
+Specify the end position in the sequences when extracting
 subsequences using the \-\-fastx_getsubseq command. Positions are
 1-based, so the sequences start at position 1. The default is to end
 at the end of the sequence if this option is not specified.
@@ -1384,7 +1384,7 @@ FASTA-formatted file.
 .TAG fastq_allowmergestagger
 .TP
 .B \-\-fastq_allowmergestagger
-When using \-\-fastq_mergepairs, allow to merge staggered read
+When using \-\-fastq_mergepairs, allow merging of staggered read
 pairs. Staggered pairs are pairs where the 3' end of the reverse read
 has an overhang to the left of the 5' end of the forward read. This
 situation can occur when a very short fragment is sequenced. The 3'
@@ -1575,10 +1575,10 @@ region may not include more mismatches than specified with the
 mismatches than specified with the \-\-fastq_maxdiffpct option (100.0%
 by default), otherwise the read pair is discarded. Additional rules
 will avoid merging of reads that cannot be aligned reliably and
-unambiguously. The mimimum and maximum length of the merged sequence
+unambiguously. The minimum and maximum length of the merged sequence
 may be specified with the \-\-fastq_minmergelen and
 \-\-fastq_maxmergelen options, respectively. The quality value limits
-for output files may be specied with the \-\-fastq_qminout and
+for output files may be specified with the \-\-fastq_qminout and
 \-\-fastq_qmaxout options, but they apply only to the merged region.
 Other relevant options are: \-\-fastq_ascii, \-\-fastq_maxee,
 \-\-fastq_nostagger, \-\-fastq_qmax, \-\-fastq_qmin, and
@@ -4156,7 +4156,7 @@ Fixed bug in output of sequence profiles and updated documentation.
 .BR v2.4.0\~ "released February 8th, 2017"
 Added support for Linux on Power8 systems (ppc64le) and Windows on
 x86_64. Improved detection of pipes when reading FASTA and FASTQ
-files. Corrected option for specifiying output from fastq_eestats
+files. Corrected option for specifying output from fastq_eestats
 command in help text.
 .TP
 .BR v2.4.1\~ "released March 1st, 2017"
@@ -4263,7 +4263,7 @@ more modern variants. Avoid illegal instruction error on some
 architectures. Update documentation of rereplicate command.
 .TP
 .BR v2.10.0\~ "released December 6th, 2018"
-Added the sff_convert commmand to convert SFF files to FASTQ. Added
+Added the sff_convert command to convert SFF files to FASTQ. Added
 some additional option argument checks. Fixed segmentation fault bug
 after some fatal errors when a log file was specified.
 .TP
