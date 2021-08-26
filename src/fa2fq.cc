@@ -61,31 +61,30 @@
 #include "vsearch.h"
 
 
-auto checks(fastx_handle h, std::FILE * fp_fastqout) -> void {
-  if (opt_fastqout == nullptr) {
-    fatal("Output FASTQ file not specified with the --fastqout option");
-  }
-
-  if (h == nullptr) {
-    fatal("Unable to open FASTA file for reading");
-  }
-
-  if (fp_fastqout == nullptr) {
-    fatal("Unable to open FASTQ output file for writing");
-  }
-}
-
-
 auto fasta2fastq() -> void
 {
   const char max_ascii_value { static_cast<char>(opt_fastq_asciiout + opt_fastq_qmaxout) };
+
+  if (opt_fastqout == nullptr)
+    {
+      fatal("Output FASTQ file not specified with the --fastqout option");
+    }
+
   fastx_handle h { fasta_open(opt_fasta2fastq) };
+  if (h == nullptr)
+    {
+      fatal("Unable to open FASTA file for reading");
+    }
+
   std::FILE * fp_fastqout { fopen_output(opt_fastqout) };
+  if (fp_fastqout == nullptr)
+    {
+      fatal("Unable to open FASTQ output file for writing");
+    }
+
   int count {0};
   size_t alloc {0};
   char * quality {nullptr};
-
-  checks(h, fp_fastqout);
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
 
