@@ -2,10 +2,12 @@
 .TH vsearch 1 "June 14, 2021" "version 2.17.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
-vsearch \(em chimera detection, clustering, dereplication and
-rereplication, FASTA/FASTQ file processing, masking, pairwise
-alignment, searching, shuffling, sorting, subsampling, and taxonomic
-classification of amplicons for metagenomics, genomics, and population
+vsearch \(em a versatile open-source tool for microbiome analysis,
+including chimera detection, clustering, dereplication and
+rereplication, extraction, FASTA/FASTQ/SFF file processing, masking,
+orienting, pairwise alignment, restriction site cutting, searching,
+shuffling, sorting, subsampling, and taxonomic classification of
+amplicon sequences for metagenomics, genomics, and population
 genetics.
 .\" ============================================================================
 .SH SYNOPSIS
@@ -330,19 +332,19 @@ General options:
 .TP 9
 .B \-\-bzip2_decompress
 When reading from a pipe streaming bzip2-compressed data, decompress
-the data. That option is not needed when reading from a standard
+the data. This option is not needed when reading from a standard
 bzip2-compressed file.
 .TAG fasta_width
 .TP
 .BI \-\-fasta_width\~ "positive integer"
 Fasta files produced by \fBvsearch\fR are wrapped (sequences are
 written on lines of \fIinteger\fR nucleotides, 80 by default). Set
-that value to zero to eliminate the wrapping.
+the value to zero to eliminate the wrapping.
 .TAG gzip_decompress
 .TP
 .B \-\-gzip_decompress
 When reading from a pipe streaming gzip-compressed data, decompress
-the data. That option is not needed when reading from a standard
+the data. This option is not needed when reading from a standard
 gzip-compressed file.
 .TAG log
 .TP
@@ -357,12 +359,12 @@ information to the log file.
 .TAG maxseqlength
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
-All \fBvsearch\fR operations discard sequences of length equal or
-greater than \fIinteger\fR (50,000 nucleotides by default).
+All \fBvsearch\fR operations discard sequences longer than
+\fIinteger\fR (50,000 nucleotides by default).
 .TAG minseqlength
 .TP
 .BI \-\-minseqlength\~ "positive integer"
-All \fBvsearch\fR operations discard sequences of length smaller than
+All \fBvsearch\fR operations discard sequences shorter than
 \fIinteger\fR: 1 nucleotide by default for sorting or shuffling, 32
 nucleotides for clustering and dereplication as well as the commands
 \-\-makeudb_usearch, \-\-sintax, and \-\-usearch_global.
@@ -373,7 +375,7 @@ Do not show the gradually increasing progress indicator.
 .TAG notrunclabels
 .TP
 .B \-\-notrunclabels
-Do not truncate sequence labels at first space or tab, use the full
+Do not truncate sequence labels at first space or tab, but use the full
 header in output files. Turned off by default for all commands except
 the sintax command.
 .TAG quiet
@@ -385,9 +387,9 @@ fatal error messages.
 .TP
 .BI \-\-threads\~ "positive integer"
 Number of computation threads to use (1 to 1024). The number of threads
-should be lesser or equal to the number of available CPU cores. The
+should be less than or equal to the number of available CPU cores. The
 default is to use all available resources and to launch one thread per
-logical core. The following commands are multi-threaded:
+core. The following commands are multi-threaded:
 allpairs_global, cluster_fast, cluster_size, cluster_smallmem,
 cluster_unoise, fastq_mergepairs, fastx_mask, maskfasta, search_exact,
 sintax, uchime_ref, and usearch_global. Only one thread is used for
