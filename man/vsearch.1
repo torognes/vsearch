@@ -58,8 +58,11 @@ Extraction of sequences:
 [\-\-subseq_end \fIposition\fR] [\fIoptions\fR]
 .PP
 .RE
-FASTA/FASTQ file processing:
+FASTA/FASTQ/SFF file processing:
 .RS
+\fBvsearch\fR \-\-fasta2fastq \fIfastqfile\fR \-\-fastqout
+\fIoutputfile\fR [\fIoptions\fR]
+.PP
 \fBvsearch\fR \-\-fastq_chars \fIfastqfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-fastq_convert \fIfastqfile\fR \-\-fastqout
@@ -1312,22 +1315,24 @@ specified.
 .PP
 .\" ----------------------------------------------------------------------------
 .TAG fasta-fastq-file-processing-options
-FASTA/FASTQ file processing options:
+FASTA/FASTQ/SFF file processing options:
 .RS
 .PP
-Analyse, trim, filter, convert or merge sequences in FASTQ files, or
-reverse complement sequences in FASTA or FASTQ files. The
-\-\-fastq_chars command can be used to analyse FASTQ files to identify
-the quality encoding and the range of quality score values used. To
-convert between different FASTQ file variants, use the
-\-\-fastq_convert command. Statistical analysis of the quality and
-length of the sequences in a FASTQ file may be performed with the
-\-\-fastq_stats, \-\-fastq_eestats, and \-\-fastq_eestats2
-commands. Sequences may be trimmed, filtered and converted by the
-\-\-fastq_filter or \-\-fastx_filter commands. Paired-end reads can be
-merged using the \-\-fastq_mergepairs command. The \-\-fastx_revcomp
-command reverse-complements sequences. Finally, the \-\-sff_convert
-command can be used to convert SFF files to FASTQ.
+Analyse, trim, filter, convert, merge, join or reverse complement
+sequences in FASTA, FASTQ or SFF files. The \-\-fastq_chars command
+can be used to analyse FASTQ files to identify the quality encoding
+and the range of quality score values used. To convert between
+different FASTQ file variants, use the \-\-fastq_convert
+command. Statistical analysis of the quality and length of the
+sequences in a FASTQ file may be performed with the \-\-fastq_stats,
+\-\-fastq_eestats, and \-\-fastq_eestats2 commands.  Sequences may be
+trimmed, filtered and converted by the \-\-fastq_filter or
+\-\-fastx_filter commands.  The \-\-sff_convert command can be used to
+convert SFF files to FASTQ, while the \-\-fasta2fastq command will
+convert a FASTA file to a FASTQ file with fake quality scores.
+Paired-end reads can be merged using the \-\-fastq_mergepairs command
+or joined with the \-\-fastq_join command.  The \-\-fastx_revcomp
+command will reverse-complements sequences.
 .PP
 .TAG eeout
 .TP 9
@@ -1348,6 +1353,15 @@ reverse read, the number of observed errors in the forward read, and
 the number of observed errors in the reverse read. The observed number
 of errors are the number of differences in the overlap region of the
 merged sequence relative to each of the reads in the pair.
+.TAG fasta2fastq
+.TP
+.BI \-\-fasta2fastq \0filename
+Add a fake nucleotide quality score to the sequences in the given
+FASTA file and write them to the FASTQ file specified with the
+\-\-fastqout option. The quality score may be adjusted using the
+\-\-fastq_qmaxout option (default 41). The \-\-fastq_asciiout option
+may be used to adjust the FASTQ output quality ASCII base character
+(default 33).
 .TAG fastaout
 .TP
 .BI \-\-fastaout \0filename
@@ -1402,10 +1416,10 @@ and 64 are valid arguments.
 .TAG fastq_asciiout
 .TP
 .BI \-\-fastq_asciiout\~ "positive integer"
-When using \-\-fastq_convert or \-\-sff_convert, define the ASCII
-character number used as the basis for the FASTQ quality score when
-writing FASTQ output files. The default is 33. Only 33 and 64 are
-valid arguments.
+When using \-\-fastq_convert, \-\-sff_convert or \-\-fasta2fastq,
+define the ASCII character number used as the basis for the FASTQ
+quality score when writing FASTQ output files. The default is 33. Only
+33 and 64 are valid arguments.
 .TAG fastq_chars
 .TP
 .BI \-\-fastq_chars \0filename
@@ -1614,11 +1628,13 @@ files. The default is 41, which is usual for recent Sanger/Illumina
 .TAG fastq_qmaxout
 .TP
 .BI \-\-fastq_qmaxout\~ "positive integer"
-When using \-\-fastq_mergepairs, \-\-fastq_convert or \-\-sff_convert,
-specify the maximum quality score used when writing FASTQ files. The
-default is 41, which is usual for recent Sanger/Illumina 1.8+
-files. Older formats may use a maximum quality score of 40. The limit
-only applies to the merged region when using \-\-fastq_mergepairs.
+When using \-\-fastq_mergepairs, \-\-fastq_convert, \-\-sff_convert or
+\-\-fasta2fastq, specify the maximum quality score used when writing
+FASTQ files. For the \-\-fasta2fastq command, the value specified here
+is the fake quality score used for the FASTQ output file. The default
+is 41, which is usual for recent Sanger/Illumina 1.8+ files. Older
+formats may use a maximum quality score of 40. The limit only applies
+to the merged region when using \-\-fastq_mergepairs.
 .TAG fastq_qmin
 .TP
 .BI \-\-fastq_qmin\~ "positive integer"
@@ -1758,9 +1774,9 @@ value or lower.
 .TAG fastqout
 .TP
 .BI \-\-fastqout \0filename
-When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
-write to the given FASTQ-formatted file the sequences passing the
-filter, or the merged sequences.
+When using \-\-fastq_filter, \-\-fastq_mergepairs, \-\-fastx_filter or
+\-\-fasta2fastq, write to the given FASTQ-formatted file the sequences
+passing the filter, or the merged or converted sequences.
 .TAG fastqout_rev
 .TP
 .BI \-\-fastqout_rev \0filename

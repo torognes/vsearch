@@ -5198,10 +5198,10 @@ void cmd_none()
   if (! opt_quiet)
     {
       fprintf(stderr,
-              "For help, please enter: %s --help | less\n"
+              "For help, please enter: %s --help | more\n"
               "For further details, please consult the manual by entering: man vsearch\n"
               "\n"
-              "Selected commands:\n"
+              "Selected command examples:\n"
               "\n"
               "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
               "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
@@ -5229,11 +5229,11 @@ void cmd_none()
               "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
               "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
               "\n"
-              "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut, derep_id,\n"
-              "                derep_prefix, fastq_filter, fastq_join, fastx_getseqs,\n"
-              "                fastx_getsubseqs, maskfasta, orient, rereplicate,\n"
-              "                uchime2_denovo, uchime3_denovo, udb2fasta, udbinfo, udbstats,\n"
-              "                version\n"
+              "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
+              "                derep_id, derep_prefix, fasta2fastq, fastq_filter,\n"
+              "                fastq_join, fastx_getseqs, fastx_getsubseqs, maskfasta,\n"
+              "                orient, rereplicate, uchime2_denovo, uchime3_denovo,\n"
+              "                udb2fasta, udbinfo, udbstats, version\n"
               "\n",
               progname);
     }
