@@ -1,16 +1,16 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
 if TARGET_PPC
-AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g -mcpu=powerpc64le -maltivec
+AM_CFLAGS=-Wall -Wsign-compare -mcpu=powerpc64le -maltivec
 else
 if TARGET_AARCH64
-AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g -march=armv8-a+simd -mtune=generic
+AM_CFLAGS=-Wall -Wsign-compare -march=armv8-a+simd -mtune=generic
 else
-AM_CXXFLAGS=-Wall -Wsign-compare -O3 -g -march=x86-64 -mtune=generic
+AM_CFLAGS=-Wall -Wsign-compare -march=x86-64 -mtune=generic
 endif
 endif
 
-AM_CFLAGS=$(AM_CXXFLAGS)
+AM_CXXFLAGS=$(AM_CFLAGS) -std=c++11
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
 

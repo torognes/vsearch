@@ -12,11 +12,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_SUBST(MACOSX_DEPLOYMENT_TARGET)
 MACOSX_DEPLOYMENT_TARGET="10.9"
 
-# Set default gcc and g++ options
-
-CFLAGS='-g'
-CXXFLAGS='-g -std=c++11'
-
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_RANLIB
