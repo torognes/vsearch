@@ -66,6 +66,14 @@ void results_show_alnout(FILE * fp,
                          int64_t qseqlen,
                          char * rc);
 
+void results_show_lcaout(FILE * fp,
+                         struct hit * hits,
+                         int hitcount,
+                         char * query_head,
+                         char * qsequence,
+                         int64_t qseqlen,
+                         char * rc);
+
 void results_show_blast6out_one(FILE * fp,
                                 struct hit * hp,
                                 char * query_head,

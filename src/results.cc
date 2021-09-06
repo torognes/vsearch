@@ -455,6 +455,82 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
   fprintf(fp, "\n");
 }
 
+void results_show_lcaout(FILE * fp,
+                         struct hit * hits,
+                         int hitcount,
+                         char * query_head,
+                         char * qsequence,
+                         int64_t qseqlen,
+                         char * rc)
+{
+  /* Output last common ancestor (LCA) of the hits,
+     in a similar way to the Sintax command */
+
+  int first_level_start[tax_levels];
+  int first_level_len[tax_levels];
+  int level_match[tax_levels];
+  char * first_h = nullptr;
+
+  fprintf(fp, "%s\t", query_head);
+
+  if (hitcount > 0)
+    {
+      for (int t = 0; t < hitcount; t++)
+        {
+          int seqno = hits[t].target;
+          if (t == 0)
+            {
+              tax_split(seqno, first_level_start, first_level_len);
+              first_h = db_getheader(seqno);
+              for (int j = 0; j < tax_levels; j++)
+                {
+                  level_match[j] = 1;
+                }
+            }
+          else
+            {
+              int level_start[tax_levels];
+              int level_len[tax_levels];
+              tax_split(seqno, level_start, level_len);
+              char * h = db_getheader(seqno);
+              for (int j = 0; j < tax_levels; j++)
+                {
+                  /* For each taxonomic level */
+                  if ((level_len[j] == first_level_len[j]) &&
+                      (strncmp(first_h + first_level_start[j],
+                               h + level_start[j],
+                               level_len[j]) == 0))
+                    {
+                      level_match[j]++;
+                    }
+                }
+            }
+        }
+
+      bool comma = false;
+      for (int j = 0; j < tax_levels; j++)
+        {
+          if (level_match[j] < hitcount)
+            {
+              break;
+            }
+
+          if (first_level_len[j] > 0)
+            {
+              fprintf(fp,
+                      "%s%c:%.*s",
+                      (comma ? "," : ""),
+                      tax_letters[j],
+                      first_level_len[j],
+                      first_h + first_level_start[j]);
+              comma = true;
+            }
+        }
+    }
+
+  fprintf(fp, "\n");
+}
+
 void results_show_alnout(FILE * fp,
                          struct hit * hits,
                          int hitcount,

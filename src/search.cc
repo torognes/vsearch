@@ -91,6 +91,7 @@ static FILE * fp_dbnotmatched = nullptr;
 static FILE * fp_otutabout = nullptr;
 static FILE * fp_mothur_shared_out = nullptr;
 static FILE * fp_biomout = nullptr;
+static FILE * fp_lcaout = nullptr;
 
 static int count_matched = 0;
 static int count_notmatched = 0;
@@ -111,6 +112,17 @@ void search_output_results(int hit_count,
   if (fp_alnout)
     {
       results_show_alnout(fp_alnout,
+                          hits,
+                          toreport,
+                          query_head,
+                          qsequence,
+                          qseqlen,
+                          qsequence_rc);
+    }
+
+  if (fp_lcaout)
+    {
+      results_show_lcaout(fp_lcaout,
                           hits,
                           toreport,
                           query_head,
@@ -535,6 +547,15 @@ void search_prep(char * cmdline, char * progheader)
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
+  if (opt_lcaout)
+    {
+      fp_lcaout = fopen_output(opt_lcaout);
+      if (! fp_lcaout)
+        {
+          fatal("Unable to open lca output file for writing");
+        }
+    }
+
   if (opt_samout)
     {
       fp_samout = fopen_output(opt_samout);
@@ -689,6 +710,10 @@ void search_done()
   dbindex_free();
   db_free();
 
+  if (opt_lcaout)
+    {
+      fclose(fp_lcaout);
+    }
   if (opt_matched)
     {
       fclose(fp_matched);

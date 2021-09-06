@@ -191,7 +191,7 @@ VSEARCH may include code from the [bzip2](https://www.sourceware.org/bzip2/) lib
 
 ## Code
 
-The code is written in C++ but most of it is actually mostly C with some C++ syntax conventions.
+The code is written mostly in C++.
 
 File | Description
 ---|---
@@ -205,6 +205,7 @@ File | Description
 **city.cc** | CityHash code
 **cluster.cc** | Clustering (cluster\_fast and cluster\_smallmem)
 **cpu.cc** | Code dependent on specific cpu features (e.g. ssse3)
+**cut.cc** | Restriction site cutting
 **db.cc** | Handles the database file read, access etc
 **dbhash.cc** | Database hashing for exact searches
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
@@ -238,9 +239,11 @@ File | Description
 **sha1.c** | SHA1 message digest
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
 **shuffle.cc** | Shuffle sequences
+**sintax.cc** | Taxonomic classification using Sintax method
 **sortbylength.cc** | Code for sorting by length
 **sortbysize.cc** | Code for sorting by size (abundance)
 **subsample.cc** | Subsampling reads from a FASTA file
+**tax.cc** | Taxonomy information parsing
 **udb.cc** | UDB database file handling
 **unique.cc** | Find unique kmers in a sequence
 **userfields.cc** | Code for parsing the userfields option argument

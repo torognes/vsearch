@@ -142,6 +142,7 @@ char * opt_label_suffix;
 char * opt_label_word;
 char * opt_label_words;
 char * opt_label_field;
+char * opt_lcaout;
 char * opt_log;
 char * opt_makeudb_usearch;
 char * opt_maskfasta;
@@ -855,6 +856,7 @@ void args_init(int argc, char **argv)
   opt_length_cutoffs_increment = 50;
   opt_length_cutoffs_longest = INT_MAX;
   opt_length_cutoffs_shortest = 50;
+  opt_lcaout = nullptr;
   opt_log = nullptr;
   opt_makeudb_usearch = nullptr;
   opt_maskfasta = nullptr;
@@ -1081,6 +1083,7 @@ void args_init(int argc, char **argv)
       option_label_word,
       option_label_words,
       option_labels,
+      option_lcaout,
       option_leftjust,
       option_length_cutoffs,
       option_log,
@@ -1312,6 +1315,7 @@ void args_init(int argc, char **argv)
       {"label_word",            required_argument, nullptr, 0 },
       {"label_words",           required_argument, nullptr, 0 },
       {"labels",                required_argument, nullptr, 0 },
+      {"lcaout",                required_argument, nullptr, 0 },
       {"leftjust",              no_argument,       nullptr, 0 },
       {"length_cutoffs",        required_argument, nullptr, 0 },
       {"log",                   required_argument, nullptr, 0 },
@@ -2418,6 +2422,10 @@ void args_init(int argc, char **argv)
 
         case option_fasta2fastq:
           opt_fasta2fastq = optarg;
+          break;
+
+        case option_lcaout:
+          opt_lcaout = optarg;
           break;
 
         default:
@@ -3612,6 +3620,7 @@ void args_init(int argc, char **argv)
         option_fastapairs,
         option_gzip_decompress,
         option_hardmask,
+        option_lcaout,
         option_log,
         option_match,
         option_matched,
@@ -3989,6 +3998,7 @@ void args_init(int argc, char **argv)
         option_iddef,
         option_idprefix,
         option_idsuffix,
+        option_lcaout,
         option_leftjust,
         option_log,
         option_match,
@@ -4820,6 +4830,7 @@ void cmd_help()
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
               "  --idprefix INT              reject if first n nucleotides do not match\n"
               "  --idsuffix INT              reject if last n nucleotides do not match\n"
+              "  --lcaout FILENAME           output LCA of matching sequences to file\n"
               "  --leftjust                  reject if terminal gaps at alignment left end\n"
               "  --match INT                 score for match (2)\n"
               "  --maxaccepts INT            number of hits to accept and show per strand (1)\n"
@@ -5011,7 +5022,7 @@ void cmd_usearch_global()
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
       (!opt_biomout) && (!opt_mothur_shared_out) &&
-      (!opt_fastapairs))
+      (!opt_fastapairs) && (!opt_lcaout))
     {
       fatal("No output files specified");
     }
@@ -5039,7 +5050,7 @@ void cmd_search_exact()
       (!opt_dbmatched) && (!opt_dbnotmatched) &&
       (!opt_samout) && (!opt_otutabout) &&
       (!opt_biomout) && (!opt_mothur_shared_out) &&
-      (!opt_fastapairs))
+      (!opt_fastapairs) && (!opt_lcaout))
     {
       fatal("No output files specified");
     }

@@ -85,8 +85,6 @@ static int seqcount; /* number of database sequences */
 static pthread_attr_t attr;
 static fastx_handle query_fastx_h;
 
-const int tax_levels = 8;
-const char * tax_letters = "dkpcofgs";
 const int subset_size = 32;
 const int bootstrap_count = 100;
 
@@ -97,128 +95,6 @@ static FILE * fp_tabbedout;
 static int queries = 0;
 static int classified = 0;
 
-bool sintax_parse_tax(const char * header,
-                      int header_length,
-                      int * tax_start,
-                      int * tax_end)
-{
-  /*
-    Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
-  */
-
-  if (! header)
-    {
-      return false;
-    }
-
-  const char * attribute = "tax=";
-
-  int hlen = header_length;
-  int alen = strlen(attribute);
-
-  int i = 0;
-
-  while (i < hlen - alen)
-    {
-      char * r = (char *) strstr(header + i, attribute);
-
-      /* no match */
-      if (r == nullptr)
-        {
-          break;
-        }
-
-      i = r - header;
-
-      /* check for ';' in front */
-      if ((i > 0) && (header[i-1] != ';'))
-        {
-          i += alen + 1;
-          continue;
-        }
-
-      * tax_start = i;
-
-      /* find end (semicolon or end of header) */
-      const char * s = strchr(header+i+alen, ';');
-      if (s == nullptr)
-        {
-          * tax_end = hlen;
-        }
-      else
-        {
-          * tax_end = s - header;
-        }
-
-      return true;
-    }
-  return false;
-}
-
-void sintax_split(int seqno, int * level_start, int * level_len)
-{
-  /* Parse taxonomy string into the following parts
-     d domain
-     k kingdom
-     p phylum
-     c class
-     o order
-     f family
-     g genus
-     s species
-  */
-
-  for (int i = 0; i < tax_levels; i++)
-    {
-      level_start[i] = 0;
-      level_len[i] = 0;
-    }
-
-  int tax_start, tax_end;
-  char * h = db_getheader(seqno);
-  int hlen = db_getheaderlen(seqno);
-  if (sintax_parse_tax(h, hlen, & tax_start, & tax_end))
-    {
-      int t = tax_start + 4;
-
-      while (t < tax_end)
-        {
-          /* Is the next char a recogized tax level letter? */
-          const char * r = strchr(tax_letters, tolower(h[t]));
-          if (r)
-            {
-              int level = r - tax_letters;
-
-              /* Is there a colon after it? */
-              if (h[t + 1] == ':')
-                {
-                  level_start[level] = t + 2;
-
-                  char * z = strchr(h + t + 2, ',');
-                  if (z)
-                    {
-                      level_len[level] = z - h - t - 2;
-                    }
-                  else
-                    {
-                      level_len[level] = tax_end - t - 2;
-                    }
-                }
-            }
-
-          /* skip past next comma */
-          char * x = strchr(h + t, ',');
-          if (x)
-            {
-              t = x - h + 1;
-            }
-          else
-            {
-              t = tax_end;
-            }
-        }
-    }
-}
 
 void sintax_analyse(char * query_head,
                     int strand,
@@ -236,7 +112,7 @@ void sintax_analyse(char * query_head,
     {
       char * best_h = db_getheader(best_seqno);
 
-      sintax_split(best_seqno, best_level_start, best_level_len);
+      tax_split(best_seqno, best_level_start, best_level_len);
 
       for (int & j :
              level_match)
@@ -250,7 +126,7 @@ void sintax_analyse(char * query_head,
 
           int level_start[tax_levels];
           int level_len[tax_levels];
-          sintax_split(all_seqno[i], level_start, level_len);
+          tax_split(all_seqno[i], level_start, level_len);
 
           char * h = db_getheader(all_seqno[i]);
 

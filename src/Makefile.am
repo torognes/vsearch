@@ -64,6 +64,7 @@ sintax.h \
 sortbylength.h \
 sortbysize.h \
 subsample.h \
+tax.h \
 udb.h \
 unique.h \
 userfields.h \
@@ -158,6 +159,7 @@ sintax.cc \
 sortbylength.cc \
 sortbysize.cc \
 subsample.cc \
+tax.cc \
 udb.cc \
 unique.cc \
 userfields.cc \

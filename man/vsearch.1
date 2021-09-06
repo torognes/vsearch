@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "August 27, 2021" "version 2.18.0" "USER COMMANDS"
+.TH vsearch 1 "September 6, 2021" "version 2.18.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -2496,6 +2496,19 @@ the target do not match the query.
 .BI \-\-idsuffix\~ "positive integer"
 Reject the sequence match if the last \fIinteger\fR nucleotides of the
 target do not match the query.
+.TAG lcaout
+.TP
+.BI \-\-lcaout \0filename
+Output last common ancestor (LCA) information about the hits of each
+query to a text file in a tab-separated format. The first column
+contains the query id, while the second column contains the taxonomic
+information. The headers of the sequences in the database must contain
+taxonomic information in the same format as used with the \-\-sintax
+command, e.g. "tax=k:Archaea,p:Euryarchaeota,c:Halobacteria". Only the
+initial parts of the taxonomy that are common to all hits of each
+query will be output, it will therefore be necessary to set the
+\-\—maxaccepts option to a value differrent from 1 for this
+information to be useful.
 .TAG leftjust
 .TP
 .B \-\-leftjust

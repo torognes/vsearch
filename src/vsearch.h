@@ -250,6 +250,7 @@
 #include "otutable.h"
 #include "udb.h"
 #include "kmerhash.h"
+#include "tax.h"
 #include "sintax.h"
 #include "fastqjoin.h"
 #include "sffconvert.h"
@@ -340,6 +341,7 @@ extern char * opt_labels;
 extern char * opt_label_word;
 extern char * opt_label_words;
 extern char * opt_label_field;
+extern char * opt_lcaout;
 extern char * opt_log;
 extern char * opt_makeudb_usearch;
 extern char * opt_maskfasta;
