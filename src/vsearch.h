@@ -387,6 +387,7 @@ extern double opt_fastq_maxee;
 extern double opt_fastq_maxee_rate;
 extern double opt_fastq_truncee;
 extern double opt_id;
+extern double opt_lca_cutoff;
 extern double opt_max_unmasked_pct;
 extern double opt_maxid;
 extern double opt_maxqt;

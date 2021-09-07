@@ -188,6 +188,7 @@ double opt_fastq_maxee;
 double opt_fastq_maxee_rate;
 double opt_fastq_truncee;
 double opt_id;
+double opt_lca_cutoff;
 double opt_max_unmasked_pct;
 double opt_maxid;
 double opt_maxqt;
@@ -856,6 +857,7 @@ void args_init(int argc, char **argv)
   opt_length_cutoffs_increment = 50;
   opt_length_cutoffs_longest = INT_MAX;
   opt_length_cutoffs_shortest = 50;
+  opt_lca_cutoff = 1.0;
   opt_lcaout = nullptr;
   opt_log = nullptr;
   opt_makeudb_usearch = nullptr;
@@ -1083,6 +1085,7 @@ void args_init(int argc, char **argv)
       option_label_word,
       option_label_words,
       option_labels,
+      option_lca_cutoff,
       option_lcaout,
       option_leftjust,
       option_length_cutoffs,
@@ -1315,6 +1318,7 @@ void args_init(int argc, char **argv)
       {"label_word",            required_argument, nullptr, 0 },
       {"label_words",           required_argument, nullptr, 0 },
       {"labels",                required_argument, nullptr, 0 },
+      {"lca_cutoff",            required_argument, nullptr, 0 },
       {"lcaout",                required_argument, nullptr, 0 },
       {"leftjust",              no_argument,       nullptr, 0 },
       {"length_cutoffs",        required_argument, nullptr, 0 },
@@ -2426,6 +2430,10 @@ void args_init(int argc, char **argv)
 
         case option_lcaout:
           opt_lcaout = optarg;
+          break;
+
+        case option_lca_cutoff:
+          opt_lca_cutoff = args_getdouble(optarg);
           break;
 
         default:
@@ -3620,6 +3628,7 @@ void args_init(int argc, char **argv)
         option_fastapairs,
         option_gzip_decompress,
         option_hardmask,
+        option_lca_cutoff,
         option_lcaout,
         option_log,
         option_match,
@@ -3998,6 +4007,7 @@ void args_init(int argc, char **argv)
         option_iddef,
         option_idprefix,
         option_idsuffix,
+        option_lca_cutoff,
         option_lcaout,
         option_leftjust,
         option_log,
@@ -4363,6 +4373,11 @@ void args_init(int argc, char **argv)
   if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0))
     {
       fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
+    }
+
+  if ((opt_lca_cutoff <= 0.5) || (opt_lca_cutoff > 1.0))
+    {
+      fatal("The argument to lca_cutoff must be larger than 0.5, but not larger than 1.0");
     }
 
   if (opt_minuniquesize < 1)
@@ -4830,7 +4845,7 @@ void cmd_help()
               "  --iddef INT                 id definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)\n"
               "  --idprefix INT              reject if first n nucleotides do not match\n"
               "  --idsuffix INT              reject if last n nucleotides do not match\n"
-              "  --lcaout FILENAME           output LCA of matching sequences to file\n"
+              "  --lca_cutoff REAL           fraction of matching hits required for LCA (1.0)\n"
               "  --leftjust                  reject if terminal gaps at alignment left end\n"
               "  --match INT                 score for match (2)\n"
               "  --maxaccepts INT            number of hits to accept and show per strand (1)\n"
@@ -4871,6 +4886,7 @@ void cmd_help()
               "  --dbmatched FILENAME        FASTA file for matching database sequences\n"
               "  --dbnotmatched FILENAME     FASTA file for non-matching database sequences\n"
               "  --fastapairs FILENAME       FASTA file with pairs of query and target\n"
+              "  --lcaout FILENAME           output LCA of matching sequences to file\n"
               "  --matched FILENAME          FASTA file for matching query sequences\n"
               "  --mothur_shared_out FN      filename for OTU table output in mothur format\n"
               "  --notmatched FILENAME       FASTA file for non-matching query sequences\n"

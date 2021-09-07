@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 6, 2021" "version 2.18.0" "USER COMMANDS"
+.TH vsearch 1 "September 7, 2021" "version 2.18.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -140,13 +140,14 @@ Searching:
 .RS
 \fBvsearch\fR \-\-search_exact \fIfastafile\fR \-\-db \fIfastafile\fR
 (\-\-alnout | \-\-biomout | \-\-blast6out | \-\-mothur_shared_out |
-\-\-otutabout | \-\-samout | \-\-uc | \-\-userout) \fIoutputfile\fR
-[\fIoptions\fR]
+\-\-otutabout | \-\-samout | \-\-uc | \-\-userout | \-\-lcaout)
+\fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-usearch_global \fIfastafile\fR \-\-db
 \fIfastafile\fR (\-\-alnout | \-\-biomout | \-\-blast6out |
 \-\-mothur_shared_out | \-\-otutabout | \-\-samout | \-\-uc |
-\-\-userout) \fIoutputfile\fR \-\-id \fIreal\fR [\fIoptions\fR]
+\-\-userout | \-\-lcaout) \fIoutputfile\fR \-\-id \fIreal\fR
+[\fIoptions\fR]
 .PP
 .RE
 Shuffling and sorting:
@@ -2496,6 +2497,16 @@ the target do not match the query.
 .BI \-\-idsuffix\~ "positive integer"
 Reject the sequence match if the last \fIinteger\fR nucleotides of the
 target do not match the query.
+.TAG lca_cutoff
+.TP
+.BI \-\-lca_cutoff \0real
+Adjust the fraction of matching hits required for the last common
+ancestor (LCA) output with the \-\-lcaout option during searches. The
+default value is 1.0 which requires all hits to match at each
+taxonomic rank for that rank to be included. If a lower cutoff value
+is used, e.g. 0.95, a small fraction of non-matching hits are allowed
+while that rank will still be reported. The argument to this option
+must be larger than 0.5, but not larger than 1.0.
 .TAG lcaout
 .TP
 .BI \-\-lcaout \0filename
@@ -2505,10 +2516,12 @@ contains the query id, while the second column contains the taxonomic
 information. The headers of the sequences in the database must contain
 taxonomic information in the same format as used with the \-\-sintax
 command, e.g. "tax=k:Archaea,p:Euryarchaeota,c:Halobacteria". Only the
-initial parts of the taxonomy that are common to all hits of each
-query will be output, it will therefore be necessary to set the
-\-\—maxaccepts option to a value differrent from 1 for this
-information to be useful.
+initial parts of the taxonomy that are common to a large fraction of
+the hits of each query will be output. It is necessary to set the
+\-\-maxaccepts option to a value differrent from 1 for this
+information to be useful. The \-\-top_hits_only option may also be
+useful. The fraction of matching hits required may be adjusted by the
+\-\-lca_cutoff option (default 1.0).
 .TAG leftjust
 .TP
 .B \-\-leftjust
@@ -2810,15 +2823,16 @@ length.  Internal or terminal gaps are not taken into account.
 .TAG top_hits_only
 .TP
 .B \-\-top_hits_only
-Only the top hits between the query and database sequence sets are
-written to the output specified with the options \-\-alnout,
-\-\-samout, \-\-userout, \-\-blast6out, \-\-uc, \-\-fastapairs,
-\-\-matched or \-\-notmatched (but not \-\-dbmatched and
-\-\-dbnotmatched). For each query, the top hit is the one presenting
-the highest percentage of identity (see the \-\-iddef option to change
-the way identity is measured). For a given query, if several top hits
-present exactly the same percentage of identity, the number of hits
-reported is controlled by the \-\-maxaccepts value (1 by default).
+Only the top hits with an equally high percentage of identity between
+the query and database sequence sets are written to the output
+specified with the options \-\-lcaout, \-\-alnout, \-\-samout,
+\-\-userout, \-\-blast6out, \-\-uc, \-\-fastapairs, \-\-matched or
+\-\-notmatched (but not \-\-dbmatched and \-\-dbnotmatched). For each
+query, the top hit is the one presenting the highest percentage of
+identity (see the \-\-iddef option to change the way identity is
+measured). For a given query, if several top hits present exactly the
+same percentage of identity, the number of hits reported is controlled
+by the \-\-maxaccepts value (1 by default).
 .TAG uc
 .TP
 .BI \-\-uc \0filename

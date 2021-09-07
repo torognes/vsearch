@@ -510,7 +510,7 @@ void results_show_lcaout(FILE * fp,
       bool comma = false;
       for (int j = 0; j < tax_levels; j++)
         {
-          if (level_match[j] < hitcount)
+          if (1.0 * level_match[j] / hitcount < opt_lca_cutoff)
             {
               break;
             }
