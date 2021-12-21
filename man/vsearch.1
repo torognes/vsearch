@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 7, 2021" "version 2.18.0" "USER COMMANDS"
+.TH vsearch 1 "December 21, 2021" "version 2.18.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -3230,11 +3230,14 @@ sequences, BioRxiv, 074161. Preprint. doi: 10.1101/074161
 .URL https://doi.org/10.1101/074161 (link)
 .PP
 The name of the fasta file containing the input sequences to be
-classified is given as an argument to the \-\-sintax command. The reference
-sequence database is specified with the \-\-db option. The results are
-written in a tab delimited text file whose name is specified with the
-\-\-tabbedout option. The \-\-sintax_cutoff option may be used to set a
-minimum level of bootstrap support for the taxonomic ranks to be reported.
+classified is given as an argument to the \-\-sintax command. The
+reference sequence database is specified with the \-\-db option. The
+results are written in a tab delimited text file whose name is
+specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
+may be used to set a minimum level of bootstrap support for the
+taxonomic ranks to be reported. The `--randseed` option may be
+included to specify a seed for initialisation of the random number
+generator used by the algorithm.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
@@ -3258,6 +3261,13 @@ allowing spaces in the taxonomic identifiers.
 .BI \-\-db \0filename
 Read the reference sequences from \fIfilename\fR, in FASTA, FASTQ or
 UDB format. These sequences needs to be annotated with taxonomy.
+.TAG randseed
+.TP
+.BI \-\-randseed\~ "positive integer"
+Use \fIinteger\fR as seed for the random number generator used in the
+Sintax algorithm. A given seed always produces the same output order
+(useful for replicability). Set to 0 to use a pseudo-random seed
+(default behavior).
 .TAG sintax_cutoff
 .TP
 .BI \-\-sintax_cutoff\~ "real"

@@ -3734,6 +3734,7 @@ void args_init(int argc, char **argv)
         option_no_progress,
         option_notrunclabels,
         option_quiet,
+        option_randseed,
         option_sintax_cutoff,
         option_strand,
         option_tabbedout,
