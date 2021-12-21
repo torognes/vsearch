@@ -37,7 +37,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -50,16 +50,16 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.18.0.tar.gz
-tar xzf v2.18.0.tar.gz
-cd vsearch-2.18.0
+wget https://github.com/torognes/vsearch/archive/v2.19.0.tar.gz
+tar xzf v2.19.0.tar.gz
+cd vsearch-2.19.0
 ./autogen.sh
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make
 make install  # as root or sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch. Version 3.82 or later of Make may be required on Linux, while version 3.81 is sufficient on macOS.
 
 The distributed Linux ppc64le and aarch64 binaries and the Windows binary were compiled using the [Mingw-w64](http://mingw-w64.org/) C++ cross-compiler.
 
@@ -81,43 +81,43 @@ Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (v
 Download the appropriate executable for your system using the following commands if you are using a Linux x86_64 system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch-2.18.0-linux-x86_64.tar.gz
-tar xzf vsearch-2.18.0-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch-2.19.0-linux-x86_64.tar.gz
+tar xzf vsearch-2.19.0-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Linux ppc64le system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch-2.18.0-linux-ppc64le.tar.gz
-tar xzf vsearch-2.18.0-linux-ppc64le.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch-2.19.0-linux-ppc64le.tar.gz
+tar xzf vsearch-2.19.0-linux-ppc64le.tar.gz
 ```
 
 Or these commands if you are using a Linux aarch64 (arm64) system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch-2.18.0-linux-aarch64.tar.gz
-tar xzf vsearch-2.18.0-linux-aarch64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch-2.19.0-linux-aarch64.tar.gz
+tar xzf vsearch-2.19.0-linux-aarch64.tar.gz
 ```
 
 Or these commands if you are using a Mac:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch-2.18.0-macos-x86_64.tar.gz
-tar xzf vsearch-2.18.0-macos-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch-2.19.0-macos-x86_64.tar.gz
+tar xzf vsearch-2.19.0-macos-x86_64.tar.gz
 ```
 
 Or if you are using Windows, download and extract (unzip) the contents of this file:
 
 ```
-https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch-2.18.0-win-x86_64.zip
+https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch-2.19.0-win-x86_64.zip
 ```
 
-Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.18.0-linux-x86_64` or `vsearch-2.18.0-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`. Versions with statically compiled libraries are available for Linux systems. These have "-static" in their name, and could be used on systems that do not have all the necessary libraries installed.
+Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.19.0-linux-x86_64` or `vsearch-2.19.0-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`. Versions with statically compiled libraries are available for Linux systems. These have "-static" in their name, and could be used on systems that do not have all the necessary libraries installed.
 
-Windows: You will now have the binary distribution in a folder called `vsearch-2.18.0-win-x86_64`. The vsearch executable is called `vsearch.exe`. The manual in PDF format is called `vsearch_manual.pdf`.
+Windows: You will now have the binary distribution in a folder called `vsearch-2.19.0-win-x86_64`. The vsearch executable is called `vsearch.exe`. The manual in PDF format is called `vsearch_manual.pdf`.
 
 
-**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.18.0/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
+**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.19.0/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
 
 
 ## Packages, plugins, and wrappers
