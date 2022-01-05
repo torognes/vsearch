@@ -319,6 +319,11 @@ doi:[10.1093/bioinformatics/btq461](https://doi.org/10.1093/bioinformatics/btq46
 *Bioinformatics*, 27 (16): 2194-2200.
 doi:[10.1093/bioinformatics/btr381](https://doi.org/10.1093/bioinformatics/btr381)
 
+* Edgar RC, Flyvbjerg H (2015)
+**Error filtering, pair assembly and error correction for next-generation sequencing reads.**
+*Bioinformatics*, 31 (21): 3476-3482.
+doi:[10.1093/bioinformatics/btv401](https://doi.org/10.1093/bioinformatics/btv401)
+
 * Guillou L, Bachar D, Audic S, Bass D, Berney C, Bittner L, Boutte C, Burgaud G, de Vargas C, Decelle J, del Campo J, Dolan J, Dunthorn M, Edvardsen B, Holzmann M, Kooistra W, Lara E, Lebescot N, Logares R, Mahé F, Massana R, Montresor M, Morard R, Not F, Pawlowski J, Probert I, Sauvadet A-L, Siano R, Stoeck T, Vaulot D, Zimmermann P & Christen R (2013)
 **The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.**
 *Nucleic Acids Research*, 41 (D1), D597-D604.
