@@ -1024,6 +1024,8 @@ void derep(char * input_filename, bool use_header)
         {
           xfree(bp->seq);
           xfree(bp->header);
+          if (bp->qual)
+            xfree(bp->qual);
         }
     }
 
