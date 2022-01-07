@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "December 21, 2021" "version 2.19.0" "USER COMMANDS"
+.TH vsearch 1 "January 7, 2022" "version 2.19.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -36,6 +36,10 @@ Clustering:
 .RE
 Dereplication and rereplication:
 .RS
+\fBvsearch\fR \-\-fastx_uniques (\fIfastafile\fR | \fIfastqfile\fR)
+(\-\-fastaout | \-\-fastqout | \-\-tabbedout | \-\-uc) \fIoutputfile\fR
+[\fIoptions\fR]
+.PP
 \fBvsearch\fR (\-\-derep_fulllength | \-\-derep_id | \-\-derep_prefix)
 \fIfastafile\fR (\-\-output | \-\-uc) \fIoutputfile\fR [\fIoptions\fR]
 .PP
@@ -1014,7 +1018,32 @@ definitions): \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-matched,
 .\" ----------------------------------------------------------------------------
 .TAG dereplication-and-rereplication-options
 Dereplication and rereplication options:
+.PP
 .RS
+VSEARCH can dereplicate sequences with the commands
+\-\-derep_fulllength, \-\-derep_id, \-\-derep_prefix and
+\-\-fastx_uniques. The \-\-derep_fulllength command is depreciated and
+is replaced by the new \-\-fastx_uniques command that can also handle
+FASTQ files in addition to FASTA files. The \-\-derep_fulllength and
+\-\-fastx_uniques commands requires strictly identical sequences of
+the same length, but ignores upper/lower case and treats T and U as
+identical symbols. The \-\-derep_id command requires both identical
+sequences and identical headers/labels. The \-\-derep_prefix command
+will group sequences with a common prefix and does not require them to
+be equally long. The \-\-fastx_uniques command can write FASTQ output
+(specified with \-\-fastqout) or FASTA output (specified with
+\-\-fastaout) as well as a special tab-separated column text format
+(with \-\-tabbedout). The other commands can write FASTA output to the
+file specified with the \-\-output option. All dereplication commands
+can write output to a special UCLUST-like file specified with the
+\-\-uc option. The \-\-rereplicate command can duplicate sequences in
+the input file according to the abundance of each input
+sequence. Other valid options are \-\-fastq_ascii, \-\-fastq_asciiout,
+\-\-fastq_qmax, \-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
+\-\-maxuniquesize, \-\-minuniquesize, \-\-relabel, \-\-relabel_keep,
+\-\-relabel_md5, \-\-relabel_self, \-\-relabel_sha1, \-\-sizein,
+\-\-sizeout, \-\-strand, \-\-topn, and \-\-xsize.
+.PP
 .TAG derep_fulllength
 .TP 9
 .BI \-\-derep_fulllength \0filename
@@ -1025,7 +1054,7 @@ are considered the same). See the options \-\-sizein and \-\-sizeout
 to take into account and compute abundance values. This command does
 not support multithreading.
 .TAG derep_id
-.TP 9
+.TP
 .BI \-\-derep_id \0filename
 Merge strictly identical sequences contained in \fIfilename\fR, as
 with the \-\-derep_fulllength command, but the sequence labels
@@ -1042,6 +1071,85 @@ it is clustered with the most abundant. Remaining ties are solved
 using sequence headers and sequence input order. Sequence comparisons
 are case insensitive, and T and U are considered identical. This
 command does not support multithreading.
+.TAG fastaout
+.TP
+.BI \-\-fastaout \0filename
+Write the dereplicated sequences to \fIfilename\fR, in fasta format
+and sorted by decreasing abundance. Identical sequences receive the
+header of the first sequence of their group. If \-\-sizeout is used,
+the number of occurrences (i.e. abundance) of each sequence is
+indicated at the end of their fasta header using the
+pattern ';size=\fIinteger\fR;'. This option is only valid for
+\-\-fastx_uniques.
+.TP
+.TAG fastqout
+.TP
+.BI \-\-fastqout \0filename
+Write the dereplicated sequences to \fIfilename\fR, in fastq format
+and sorted by decreasing abundance. Identical sequences receive the
+header of the first sequence of their group. If \-\-sizeout is used,
+the number of occurrences (i.e. abundance) of each sequence is
+indicated at the end of their fastq header using the
+pattern ';size=\fIinteger\fR;'. This option is only valid for
+\-\-fastx_uniques.
+.TP
+.TAG fastq_ascii
+.TP
+.BI \-\-fastq_ascii\~ "positive integer"
+Define the ASCII character number used as the basis for the FASTQ
+quality score. The default is 33, which is used by the Sanger /
+Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
+Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64). Only 33
+and 64 are valid arguments.
+.TP
+.TAG fastq_asciiout
+.TP
+.BI \-\-fastq_asciiout\~ "positive integer"
+When using \-\-fastq_convert, \-\-sff_convert or \-\-fasta2fastq,
+define the ASCII character number used as the basis for the FASTQ
+quality score when writing FASTQ output files. The default is 33. Only
+33 and 64 are valid arguments.
+.TP
+.TAG fastq_qmax
+.TP
+.BI \-\-fastq_qmax\~ "positive integer"
+Specify the maximum quality score accepted when reading FASTQ
+files. The default is 41, which is usual for recent Sanger/Illumina
+1.8+ files.
+.TP
+.TAG fastq_qmaxout
+.TP
+.BI \-\-fastq_qmaxout\~ "positive integer"
+Specify the maximum quality score used when writing
+FASTQ files. The default
+is 41, which is usual for recent Sanger/Illumina 1.8+ files. Older
+formats may use a maximum quality score of 40.
+.TP
+.TAG fastq_qmin
+.TP
+.BI \-\-fastq_qmin\~ "positive integer"
+Specify the minimum quality score accepted for FASTQ files. The
+default is 0, which is usual for recent Sanger/Illumina 1.8+
+files. Older formats may use scores between -5 and 2.
+.TP
+.TAG fastq_qminout
+.TP
+.BI \-\-fastq_qminout\~ "positive integer"
+Specify the minimum quality score used when writing FASTQ files. The
+default is 0, which is usual for Sanger/Illumina 1.8+ files. Older
+versions of the format may use scores between -5 and 2.
+.TP
+.TAG fastx_uniques
+.TP
+.BI \-\-fastx_uniques \0filename
+Merge strictly identical sequences contained in FASTA or FASTA file
+\fIfilename\fR. Identical sequences are defined as having the same
+length and the same string of nucleotides (case insensitive, T and U
+are considered the same). See the options \-\-sizein and \-\-sizeout
+to take into account and compute abundance values. This command does
+not support multithreading. The quality scores in FASTQ output files
+will correspond to the average error probability of the nucleotides in
+the each position.
 .TAG maxuniquesize
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
@@ -1060,7 +1168,8 @@ and sorted by decreasing abundance. Identical sequences receive the
 header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the
-pattern ';size=\fIinteger\fR;'.
+pattern ';size=\fIinteger\fR;'. This option is not allowed for
+fastx_uniques.
 .TP
 .TAG relabel
 .BI \-\-relabel \0string
@@ -1117,6 +1226,20 @@ corresponding to its number of occurrences in the input file.
 .BI \-\-strand\~ "plus|both"
 When searching for strictly identical sequences, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
+.TAG tabbedout
+.TP
+.BI \-\-tabbedout \0filename
+Output clustering info to the specified tab-separated text file with 6
+columns and a row for each input sequence. Column 1 contains the
+original label/header of the sequence. Column 2 contains the label of
+the output sequence which is equal to the label/header of the first
+sequence in each cluster, but potentially relabelled. Column 3
+contains the cluster number, starting from 0. Column 4 contains the
+sequence number within each cluster, starting at 0. Column 5 contains
+the number of sequences in the cluster. Column 6 contains the original
+label/header of the first sequence in the cluster before any potential
+relabelling. This option is only valid for the \-\-fastx_uniques
+command.
 .TAG topn
 .TP
 .BI \-\-topn\~ "positive integer"

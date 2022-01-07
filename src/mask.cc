@@ -254,6 +254,9 @@ void hardmask_all()
 
 void maskfasta()
 {
+  if (!opt_output)
+    fatal("Output file for masking must be specified with --output");
+
   FILE * fp_output = fopen_output(opt_output);
   if (!fp_output)
     {
@@ -292,6 +295,9 @@ void fastx_mask()
 {
   FILE * fp_fastaout = nullptr;
   FILE * fp_fastqout = nullptr;
+
+  if ((!opt_fastaout) && (!opt_fastqout))
+    fatal("Specify output files for masking with --fastaout and/or --fastqout");
 
   if (opt_fastaout)
     {

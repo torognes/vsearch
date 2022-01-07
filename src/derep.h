@@ -58,6 +58,5 @@
 
 */
 
-void derep_fulllength();
-void derep_id();
+void derep(char * input_filename, bool use_header);
 void derep_prefix();

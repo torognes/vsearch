@@ -63,6 +63,9 @@
 
 void rereplicate()
 {
+  if (!opt_output)
+    fatal("FASTA output file for rereplicate must be specified with --output");
+
   opt_xsize = true;
 
   FILE * fp_output = nullptr;

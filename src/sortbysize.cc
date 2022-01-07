@@ -108,6 +108,9 @@ int sortbysize_compare(const void * a, const void * b)
 
 void sortbysize()
 {
+  if (!opt_output)
+    fatal("FASTA output file for sortbysize must be specified with --output");
+
   FILE * fp_output = fopen_output(opt_output);
   if (!fp_output)
     {

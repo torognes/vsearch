@@ -68,9 +68,11 @@ struct bucket
   unsigned int seqno_first;
   unsigned int seqno_last;
   unsigned int size;
+  unsigned int count;
   bool deleted;
   char * header;
   char * seq;
+  char * qual;
 };
 
 int derep_compare_prefix(const void * a, const void * b)
@@ -244,21 +246,113 @@ void rehash(struct bucket * * hashtableref, int64_t alloc_clusters)
   * hashtableref = new_hashtable;
 }
 
+inline double convert_q_to_p(int q)
+{
+  int x = q - opt_fastq_ascii;
+  if (x < 2)
+    {
+      return 0.75;
+    }
+  else
+    {
+      return exp10(-x/10.0);
+    }
+}
+
+inline int convert_p_to_q(double p)
+{
+  // int q = round(-10.0 * log10(p));
+  int q = int(-10.0 * log10(p));
+  q = MIN(q, opt_fastq_qmaxout);
+  q = MAX(q, opt_fastq_qminout);
+  return opt_fastq_asciiout + q;
+}
+
 void derep(char * input_filename, bool use_header)
 {
   /* dereplicate full length sequences, optionally require identical headers */
 
+  /*
+    derep_fulllength output options: --output, --uc (only FASTA, depreciated)
+    fastx_uniques output options: --fastaout, --fastqout, --uc, --tabbedout
+  */
+
   show_rusage();
 
-  FILE * fp_output = nullptr;
-  FILE * fp_uc = nullptr;
+  fastx_handle h = fastx_open(input_filename);
 
-  if (opt_output)
+  if (!h)
     {
-      fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
+    }
+
+  if (fastx_is_fastq(h))
+    {
+      if (!opt_fastx_uniques)
+        fatal("FASTQ input is only allowed with the fastx_uniques command");
+    }
+  else
+    {
+      if (opt_fastqout)
+        fatal("Cannot write FASTQ output when input file is not in FASTQ format");
+      if (opt_tabbedout)
+        fatal("Cannot write tab separated output file when input file is not in FASTQ format");
+    }
+
+  FILE * fp_fastaout = nullptr;
+  FILE * fp_fastqout = nullptr;
+  FILE * fp_uc = nullptr;
+  FILE * fp_tabbedout = nullptr;
+
+  if (opt_fastx_uniques)
+    {
+      if ((!opt_uc) && (!opt_fastaout) && (!opt_fastqout) && (!opt_tabbedout))
+        fatal("Output file for dereplication with fastx_uniques must be specified with --fastaout, --fastqout, --tabbedout, or --uc");
+    }
+  else
+    {
+      if ((!opt_output) && (!opt_uc))
+        fatal("Output file for dereplication must be specified with --output or --uc");
+    }
+
+  if (opt_fastx_uniques)
+    {
+      if (opt_fastaout)
         {
-          fatal("Unable to open output file for writing");
+          fp_fastaout = fopen_output(opt_fastaout);
+          if (!fp_fastaout)
+            {
+              fatal("Unable to open FASTA output file for writing");
+            }
+        }
+
+      if (opt_fastqout)
+        {
+          fp_fastqout = fopen_output(opt_fastqout);
+          if (!fp_fastqout)
+            {
+              fatal("Unable to open FASTQ output file for writing");
+            }
+        }
+
+      if (opt_tabbedout)
+        {
+          fp_tabbedout = fopen_output(opt_tabbedout);
+          if (!fp_tabbedout)
+            {
+              fatal("Unable to open tab delimited output file for writing");
+            }
+        }
+    }
+  else
+    {
+      if (opt_output)
+        {
+          fp_fastaout = fopen_output(opt_output);
+          if (!fp_fastaout)
+            {
+              fatal("Unable to open FASTA output file for writing");
+            }
         }
     }
 
@@ -269,15 +363,6 @@ void derep(char * input_filename, bool use_header)
         {
           fatal("Unable to open output (uc) file for writing");
         }
-    }
-
-  fastx_handle h = fastx_open(input_filename);
-
-  show_rusage();
-
-  if (!h)
-    {
-      fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
     }
 
   uint64_t filesize = fastx_get_size(h);
@@ -303,9 +388,12 @@ void derep(char * input_filename, bool use_header)
   char ** headertab = nullptr;
   char * match_strand = nullptr;
 
-  if (opt_uc)
+  bool extra_info = opt_uc || opt_tabbedout;
+
+  if (extra_info)
     {
-      /* If the uc option is in effect we need to keep some extra info.
+      /* If the uc or tabbedout option is in effect,
+         we need to keep some extra info.
          Allocate and init memory for this. */
 
       /* Links to other sequences in cluster */
@@ -384,7 +472,7 @@ void derep(char * input_filename, bool use_header)
           show_rusage();
         }
 
-      if (opt_uc && (sequencecount + 1 > alloc_seqs))
+      if (extra_info && (sequencecount + 1 > alloc_seqs))
         {
           uint64_t new_alloc_seqs = 2 * alloc_seqs;
 
@@ -423,6 +511,7 @@ void derep(char * input_filename, bool use_header)
       char * seq = fastx_get_sequence(h);
       char * header = fastx_get_header(h);
       int64_t headerlen = fastx_get_header_length(h);
+      char * qual = fastx_get_quality(h); // nullptr if FASTA
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up, seq, seqlen);
@@ -488,10 +577,9 @@ void derep(char * input_filename, bool use_header)
             {
               bp = rc_bp;
               j = k;
-              if (opt_uc)
+              if (extra_info)
                 {
                   match_strand[sequencecount] = 1;
-
                 }
             }
         }
@@ -503,15 +591,64 @@ void derep(char * input_filename, bool use_header)
       if (bp->size)
         {
           /* at least one identical sequence already */
-          bp->size += ab;
-
-          if (opt_uc)
+          if (extra_info)
             {
               unsigned int last = bp->seqno_last;
               nextseqtab[last] = sequencecount;
               bp->seqno_last = sequencecount;
               headertab[sequencecount] = xstrdup(header);
             }
+
+          int64_t s1 = bp->size;
+          int64_t s2 = ab;
+          int64_t s3 = s1 + s2;
+
+          if (opt_fastqout)
+            {
+              /* update quality scores */
+              for (int i = 0; i < seqlen; i++)
+                {
+                  int q1 = bp->qual[i];
+                  int q2 = qual[i];
+                  double p1 = convert_q_to_p(q1);
+                  double p2 = convert_q_to_p(q2);
+                  double p3;
+
+                  /* how to compute the new quality score? */
+
+                  /* average, as in USEARCH */
+                  p3 = (p1 * s1 + p2 * s2) / s3;
+
+                  /* min, i.e. best quality */
+                  // p3 = MIN(p1, p2);
+
+                  /* max, i.e. worst quality */
+                  // p3 = MAX(p1, p2);
+
+                  /* always worst possible */
+                  // p3 = 1.0;
+
+                  // always best possible, perfect */
+                  // p3 = 0.0;
+
+                  /* Compute as multiple independent observations
+                     Edgar & Flyvbjerg (2015)
+                     But what about s1 and s2? */
+                  // p3 = p1 * p2 / 3.0 / (1.0 - p1 - p2 + (4.0 * p1 * p2 / 3.0));
+
+                  /* keep first */
+                  // p3 = p1;
+
+                  /* keep last */
+                  // p3 = p2;
+
+                  int q3 = convert_p_to_q(p3);
+                  bp->qual[i] = q3;
+                }
+            }
+
+          bp->size = s3;
+          bp->count++;
         }
       else
         {
@@ -522,6 +659,11 @@ void derep(char * input_filename, bool use_header)
           bp->seqno_last = sequencecount;
           bp->seq = xstrdup(seq);
           bp->header = xstrdup(header);
+          bp->count = 1;
+          if (qual)
+            bp->qual = xstrdup(qual);
+          else
+            bp->qual = nullptr;
           clusters++;
         }
 
@@ -700,9 +842,9 @@ void derep(char * input_filename, bool use_header)
 
   /* write output */
 
-  if (opt_output)
+  if (opt_output || opt_fastaout)
     {
-      progress_init("Writing output file", clusters);
+      progress_init("Writing FASTA output file", clusters);
 
       int64_t relabel_count = 0;
       for (uint64_t i=0; i<clusters; i++)
@@ -712,7 +854,7 @@ void derep(char * input_filename, bool use_header)
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
               relabel_count++;
-              fasta_print_general(fp_output,
+              fasta_print_general(fp_fastaout,
                                   nullptr,
                                   bp->seq,
                                   strlen(bp->seq),
@@ -731,7 +873,40 @@ void derep(char * input_filename, bool use_header)
         }
 
       progress_done();
-      fclose(fp_output);
+      fclose(fp_fastaout);
+    }
+
+  if (opt_fastqout)
+    {
+      progress_init("Writing FASTQ output file", clusters);
+
+      int64_t relabel_count = 0;
+      for (uint64_t i=0; i<clusters; i++)
+        {
+          struct bucket * bp = hashtable + i;
+          int64_t size = bp->size;
+          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+            {
+              relabel_count++;
+              fastq_print_general(fp_fastqout,
+                                  bp->seq,
+                                  strlen(bp->seq),
+                                  bp->header,
+                                  strlen(bp->header),
+                                  bp->qual,
+                                  size,
+                                  relabel_count,
+                                  -1.0);
+              if (relabel_count == opt_topn)
+                {
+                  break;
+                }
+            }
+          progress_update(i);
+        }
+
+      progress_done();
+      fclose(fp_fastqout);
     }
 
   show_rusage();
@@ -774,6 +949,46 @@ void derep(char * input_filename, bool use_header)
       fclose(fp_uc);
       progress_done();
     }
+
+  if (opt_tabbedout)
+    {
+      progress_init("Writing tab separated file", clusters);
+      for (uint64_t i=0; i<clusters; i++)
+        {
+          struct bucket * bp = hashtable + i;
+          char * hh =  bp->header;
+
+          if (opt_relabel)
+            fprintf(fp_tabbedout,
+                    "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                    hh, opt_relabel, i + 1, i, 0ULL, bp->count, hh);
+          else
+            fprintf(fp_tabbedout,
+                    "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                    hh, hh, i, 0ULL, bp->count, hh);
+
+          uint64_t j = 1;
+          for (unsigned int next = nextseqtab[bp->seqno_first];
+               next != terminal;
+               next = nextseqtab[next])
+            {
+              if (opt_relabel)
+                fprintf(fp_tabbedout,
+                        "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                        headertab[next], opt_relabel, i + 1, i, j, bp->count, hh);
+              else
+                fprintf(fp_tabbedout,
+                        "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                        headertab[next], hh, i, j, bp->count, hh);
+              j++;
+            }
+
+          progress_update(i);
+        }
+      fclose(fp_tabbedout);
+      progress_done();
+    }
+
 
   show_rusage();
 
@@ -837,6 +1052,11 @@ void derep_prefix()
 {
   FILE * fp_output = nullptr;
   FILE * fp_uc = nullptr;
+
+  if (opt_strand > 1)
+    {
+      fatal("Option '--strand both' not supported with --derep_prefix");
+    }
 
   if (opt_output)
     {
@@ -1232,14 +1452,4 @@ void derep_prefix()
   xfree(nextseqtab);
   xfree(hashtable);
   db_free();
-}
-
-void derep_fulllength()
-{
-  derep(opt_derep_fulllength, false);
-}
-
-void derep_id()
-{
-  derep(opt_derep_id, true);
 }

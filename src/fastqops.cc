@@ -732,6 +732,9 @@ void fastx_revcomp()
   char * seq_buffer = (char*) xmalloc(buffer_alloc);
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
+  if ((!opt_fastaout) && (!opt_fastqout))
+    fatal("No output files specified");
+
   fastx_handle h = fastx_open(opt_fastx_revcomp);
 
   if (!h)
@@ -867,6 +870,9 @@ void fastx_revcomp()
 
 void fastq_convert()
 {
+  if (! opt_fastqout)
+    fatal("No output file specified with --fastqout");
+
   fastx_handle h = fastq_open(opt_fastq_convert);
 
   if (!h)

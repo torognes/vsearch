@@ -134,6 +134,7 @@ char * opt_fastx_getsubseq;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
 char * opt_fastx_subsample;
+char * opt_fastx_uniques;
 char * opt_join_padgap;
 char * opt_join_padgapq;
 char * opt_label;
@@ -1064,6 +1065,7 @@ void args_init(int argc, char **argv)
       option_fastx_mask,
       option_fastx_revcomp,
       option_fastx_subsample,
+      option_fastx_uniques,
       option_fulldp,
       option_gapext,
       option_gapopen,
@@ -1297,6 +1299,7 @@ void args_init(int argc, char **argv)
       {"fastx_mask",            required_argument, nullptr, 0 },
       {"fastx_revcomp",         required_argument, nullptr, 0 },
       {"fastx_subsample",       required_argument, nullptr, 0 },
+      {"fastx_uniques",         required_argument, nullptr, 0 },
       {"fulldp",                no_argument,       nullptr, 0 },
       {"gapext",                required_argument, nullptr, 0 },
       {"gapopen",               required_argument, nullptr, 0 },
@@ -2436,6 +2439,10 @@ void args_init(int argc, char **argv)
           opt_lca_cutoff = args_getdouble(optarg);
           break;
 
+        case option_fastx_uniques:
+          opt_fastx_uniques = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2482,6 +2489,7 @@ void args_init(int argc, char **argv)
       option_fastx_mask,
       option_fastx_revcomp,
       option_fastx_subsample,
+      option_fastx_uniques,
       option_h,
       option_help,
       option_makeudb_usearch,
@@ -2513,7 +2521,7 @@ void args_init(int argc, char **argv)
     The first line is the command and the lines below are the valid options.
   */
 
-  const int valid_options[][92] =
+  const int valid_options[][93] =
     {
       {
         option_allpairs_global,
@@ -3508,6 +3516,42 @@ void args_init(int argc, char **argv)
         option_sizein,
         option_sizeout,
         option_threads,
+        option_xee,
+        option_xsize,
+        -1 },
+
+      { option_fastx_uniques,
+        option_bzip2_decompress,
+        option_fasta_width,
+        option_fastaout,
+        option_fastq_ascii,
+        option_fastq_asciiout,
+        option_fastq_qmax,
+        option_fastq_qmaxout,
+        option_fastq_qmin,
+        option_fastq_qminout,
+        option_fastqout,
+        option_gzip_decompress,
+        option_log,
+        option_maxseqlength,
+        option_maxuniquesize,
+        option_minseqlength,
+        option_minuniquesize,
+        option_no_progress,
+        option_notrunclabels,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
+        option_strand,
+        option_tabbedout,
+        option_threads,
+        option_topn,
+        option_uc,
         option_xee,
         option_xsize,
         -1 },
@@ -4669,6 +4713,7 @@ void cmd_help()
               "  --derep_fulllength FILENAME dereplicate sequences in the given FASTA file\n"
               "  --derep_id FILENAME         dereplicate using both identifiers and sequences\n"
               "  --derep_prefix FILENAME     dereplicate sequences in file based on prefixes\n"
+              "  --fastx_uniques FILENAME    dereplicate sequences in the FASTA/FASTQ file\n"
               "  --rereplicate FILENAME      rereplicate sequences in the given FASTA file\n"
               " Parameters\n"
               "  --maxuniquesize INT         maximum abundance for output from dereplication\n"
@@ -4676,13 +4721,21 @@ void cmd_help()
               "  --sizein                    propagate abundance annotation from input\n"
               "  --strand plus|both          dereplicate plus or both strands (plus)\n"
               " Output\n"
-              "  --output FILENAME           output FASTA file\n"
+              "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n"
+              "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
+              "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n"
+              "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
+              "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n"
+              "  --fastaout FILENAME         output FASTA file (for fastx_uniques)\n"
+              "  --fastqout FILENAME         output FASTQ file (for fastx_uniques)\n"
+              "  --output FILENAME           output FASTA file (not for fastx_uniques)\n"
               "  --relabel STRING            relabel with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
               "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
               "  --relabel_self              relabel with the sequence itself as label\n"
               "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
               "  --sizeout                   write abundance annotation to output\n"
+              "  --tabbedout FILENAME        write cluster info to tsv file for fastx_uniques\n"
               "  --topn INT                  output only n most abundant sequences after derep\n"
               "  --uc FILENAME               filename for UCLUST-like dereplication output\n"
               "  --xsize                     strip abundance information in derep output\n"
@@ -5080,94 +5133,6 @@ void cmd_search_exact()
   search_exact(cmdline, progheader);
 }
 
-void cmd_sortbysize()
-{
-  if (!opt_output)
-    {
-      fatal("FASTA output file for sortbysize must be specified with --output");
-    }
-
-  sortbysize();
-}
-
-void cmd_sortbylength()
-{
-  if (!opt_output)
-    {
-      fatal("FASTA output file for sortbylength must be specified with --output");
-    }
-
-  sortbylength();
-}
-
-void cmd_rereplicate()
-{
-  if (!opt_output)
-    {
-      fatal("FASTA output file for rereplicate must be specified with --output");
-    }
-
-  rereplicate();
-}
-
-void cmd_derep()
-{
-  if ((!opt_output) && (!opt_uc))
-    {
-      fatal("Output file for dereplication must be specified with --output or --uc");
-    }
-
-  if (opt_derep_fulllength)
-    {
-      derep_fulllength();
-    }
-  else if (opt_derep_id)
-    {
-      derep_id();
-    }
-  else
-    {
-      if (opt_strand > 1)
-        {
-          fatal("Option '--strand both' not supported with --derep_prefix");
-        }
-      else
-        {
-          derep_prefix();
-        }
-    }
-}
-
-void cmd_shuffle()
-{
-  if (!opt_output)
-    {
-      fatal("Output file for shuffling must be specified with --output");
-    }
-
-  shuffle();
-}
-
-void cmd_fastq_eestats()
-{
-  if (!opt_output)
-    {
-      fatal("Output file for fastq_eestats must be specified with --output");
-    }
-
-  fastq_eestats();
-}
-
-void cmd_fastq_eestats2()
-{
-  if (!opt_output)
-    {
-      fatal("Output file for fastq_eestats2 must be specified with --output");
-    }
-
-  fastq_eestats2();
-}
-
 void cmd_subsample()
 {
   if ((!opt_fastaout) && (!opt_fastqout))
@@ -5183,44 +5148,6 @@ void cmd_subsample()
   subsample();
 }
 
-void cmd_maskfasta()
-{
-  if (!opt_output)
-    {
-      fatal("Output file for masking must be specified with --output");
-    }
-
-  maskfasta();
-}
-
-void cmd_makeudb_usearch()
-{
-  if (!opt_output)
-    {
-      fatal("UDB output file must be specified with --output");
-    }
-  udb_make();
-}
-
-void cmd_udb2fasta()
-{
-  if (!opt_output)
-    {
-      fatal("FASTA output file must be specified with --output");
-    }
-  udb_fasta();
-}
-
-void cmd_fastx_mask()
-{
-  if ((!opt_fastaout) && (!opt_fastqout))
-    {
-      fatal("Specify output files for masking with --fastaout and/or --fastqout");
-    }
-
-  fastx_mask();
-}
-
 void cmd_none()
 {
   if (! opt_quiet)
@@ -5234,7 +5161,6 @@ void cmd_none()
               "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
               "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
               "vsearch --cut FILENAME --cut_pattern G^AATT_C --fastaout FILENAME\n"
-              "vsearch --derep_fulllength FILENAME --output FILENAME\n"
               "vsearch --fastq_chars FILENAME\n"
               "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
               "vsearch --fastq_eestats FILENAME --output FILENAME\n"
@@ -5246,6 +5172,7 @@ void cmd_none()
               "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
               "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
               "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
+              "vsearch --fastx_uniques FILENAME --output FILENAME\n"
               "vsearch --makeudb_usearch FILENAME --output FILENAME\n"
               "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
               "vsearch --sff_convert FILENAME --output FILENAME --sff_clip\n"
@@ -5258,33 +5185,13 @@ void cmd_none()
               "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
               "\n"
               "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
-              "                derep_id, derep_prefix, fasta2fastq, fastq_filter,\n"
-              "                fastq_join, fastx_getseqs, fastx_getsubseqs, maskfasta,\n"
-              "                orient, rereplicate, uchime2_denovo, uchime3_denovo,\n"
-              "                udb2fasta, udbinfo, udbstats, version\n"
+              "                derep_id, derep_fulllength, derep_prefix, fasta2fastq,\n"
+              "                fastq_filter, fastq_join, fastx_getseqs, fastx_getsubseqs,\n"
+              "                maskfasta, orient, rereplicate, uchime2_denovo,\n"
+              "                uchime3_denovo, udb2fasta, udbinfo, udbstats, version\n"
               "\n",
               progname);
     }
-}
-
-void cmd_fastx_revcomp()
-{
-  if ((!opt_fastaout) && (!opt_fastqout))
-    {
-      fatal("No output files specified");
-    }
-
-  fastx_revcomp();
-}
-
-void cmd_fastq_convert()
-{
-  if (! opt_fastqout)
-    {
-      fatal("No output file specified with --fastqout");
-    }
-
-  fastq_convert();
 }
 
 void cmd_cluster()
@@ -5492,19 +5399,27 @@ int main(int argc, char** argv)
     }
   else if (opt_sortbysize)
     {
-      cmd_sortbysize();
+      sortbysize();
     }
   else if (opt_sortbylength)
     {
-      cmd_sortbylength();
+      sortbylength();
     }
-  else if (opt_derep_fulllength || opt_derep_id || opt_derep_prefix)
+  else if (opt_derep_fulllength)
     {
-      cmd_derep();
+      derep(opt_derep_fulllength, false);
+    }
+  else if (opt_derep_prefix)
+    {
+      derep_prefix();
+    }
+  else if (opt_derep_id)
+    {
+      derep(opt_derep_id, true);
     }
   else if (opt_shuffle)
     {
-      cmd_shuffle();
+      shuffle();
     }
   else if (opt_fastx_subsample)
     {
@@ -5512,7 +5427,7 @@ int main(int argc, char** argv)
     }
   else if (opt_maskfasta)
     {
-      cmd_maskfasta();
+      maskfasta();
     }
   else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size || opt_cluster_unoise)
     {
@@ -5540,7 +5455,7 @@ int main(int argc, char** argv)
     }
   else if (opt_fastx_revcomp)
     {
-      cmd_fastx_revcomp();
+      fastx_revcomp();
     }
   else if (opt_search_exact)
     {
@@ -5548,11 +5463,11 @@ int main(int argc, char** argv)
     }
   else if (opt_fastx_mask)
     {
-      cmd_fastx_mask();
+      fastx_mask();
     }
   else if (opt_fastq_convert)
     {
-      cmd_fastq_convert();
+      fastq_convert();
     }
   else if (opt_fastq_mergepairs)
     {
@@ -5560,11 +5475,11 @@ int main(int argc, char** argv)
     }
   else if (opt_fastq_eestats)
     {
-      cmd_fastq_eestats();
+      fastq_eestats();
     }
   else if (opt_fastq_eestats2)
     {
-      cmd_fastq_eestats2();
+      fastq_eestats2();
     }
   else if (opt_fastq_join)
     {
@@ -5572,7 +5487,7 @@ int main(int argc, char** argv)
     }
   else if (opt_rereplicate)
     {
-      cmd_rereplicate();
+      rereplicate();
     }
   else if (opt_version)
     {
@@ -5580,11 +5495,11 @@ int main(int argc, char** argv)
     }
   else if (opt_makeudb_usearch)
     {
-      cmd_makeudb_usearch();
+      udb_make();
     }
   else if (opt_udb2fasta)
     {
-      cmd_udb2fasta();
+      udb_fasta();
     }
   else if (opt_udbinfo)
     {
@@ -5625,6 +5540,10 @@ int main(int argc, char** argv)
   else if (opt_fasta2fastq)
     {
       fasta2fastq();
+    }
+  else if (opt_fastx_uniques)
+    {
+      derep(opt_fastx_uniques, false);
     }
   else
     {

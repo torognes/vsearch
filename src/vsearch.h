@@ -333,6 +333,7 @@ extern char * opt_fastx_getsubseq;
 extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
 extern char * opt_fastx_subsample;
+extern char * opt_fastx_uniques;
 extern char * opt_join_padgap;
 extern char * opt_join_padgapq;
 extern char * opt_label;

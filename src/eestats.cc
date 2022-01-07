@@ -117,6 +117,9 @@ int64_t ee_start(int pos, int resolution)
 
 void fastq_eestats()
 {
+  if (!opt_output)
+    fatal("Output file for fastq_eestats must be specified with --output");
+
   fastx_handle h = fastq_open(opt_fastq_eestats);
 
   uint64_t filesize = fastq_get_size(h);
@@ -436,6 +439,9 @@ void fastq_eestats()
 
 void fastq_eestats2()
 {
+  if (!opt_output)
+    fatal("Output file for fastq_eestats2 must be specified with --output");
+
   fastx_handle h = fastq_open(opt_fastq_eestats2);
 
   uint64_t filesize = fastq_get_size(h);

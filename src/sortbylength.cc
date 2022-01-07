@@ -118,6 +118,9 @@ int sortbylength_compare(const void * a, const void * b)
 
 void sortbylength()
 {
+  if (!opt_output)
+    fatal("FASTA output file for sortbylength must be specified with --output");
+
   FILE * fp_output = fopen_output(opt_output);
   if (!fp_output)
     {
