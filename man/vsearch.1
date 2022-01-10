@@ -1143,7 +1143,7 @@ position.
 .TAG fastx_uniques
 .TP
 .BI \-\-fastx_uniques \0filename
-Merge strictly identical sequences contained in FASTA or FASTA file
+Merge strictly identical sequences contained in FASTA or FASTQ file
 \fIfilename\fR. Identical sequences are defined as having the same
 length and the same string of nucleotides (case insensitive, T and U
 are considered the same). See the options \-\-sizein and \-\-sizeout
@@ -1151,7 +1151,7 @@ to take into account and compute abundance values. This command does
 not support multithreading. By default, the quality scores in FASTQ
 output files will correspond to the average error probability of the
 nucleotides in the each position. If the \-\-fastq_qout_max option is
-given, the quality score will be the highest (best) qualtiy score
+given, the quality score will be the highest (best) quality score
 observed in each position.
 .TAG maxuniquesize
 .TP
