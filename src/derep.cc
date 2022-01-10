@@ -972,11 +972,11 @@ void derep(char * input_filename, bool use_header)
           if (opt_relabel)
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    hh, opt_relabel, i + 1, i, 0ULL, bp->count, hh);
+                    hh, opt_relabel, i + 1, i, (uint64_t) 0, bp->count, hh);
           else
             fprintf(fp_tabbedout,
                     "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    hh, hh, i, 0ULL, bp->count, hh);
+                    hh, hh, i, (uint64_t) 0, bp->count, hh);
 
           uint64_t j = 1;
           for (unsigned int next = nextseqtab[bp->seqno_first];
