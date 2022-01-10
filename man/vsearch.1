@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 7, 2022" "version 2.19.0" "USER COMMANDS"
+.TH vsearch 1 "January 10, 2022" "version 2.19.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -1081,7 +1081,6 @@ the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the
 pattern ';size=\fIinteger\fR;'. This option is only valid for
 \-\-fastx_uniques.
-.TP
 .TAG fastqout
 .TP
 .BI \-\-fastqout \0filename
@@ -1092,7 +1091,6 @@ the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fastq header using the
 pattern ';size=\fIinteger\fR;'. This option is only valid for
 \-\-fastx_uniques.
-.TP
 .TAG fastq_ascii
 .TP
 .BI \-\-fastq_ascii\~ "positive integer"
@@ -1101,7 +1099,6 @@ quality score. The default is 33, which is used by the Sanger /
 Illumina 1.8+ FASTQ format (phred+33). The value 64 is used by the
 Solexa, Illumina 1.3+ and Illumina 1.5+ formats (phred+64). Only 33
 and 64 are valid arguments.
-.TP
 .TAG fastq_asciiout
 .TP
 .BI \-\-fastq_asciiout\~ "positive integer"
@@ -1109,14 +1106,12 @@ When using \-\-fastq_convert, \-\-sff_convert or \-\-fasta2fastq,
 define the ASCII character number used as the basis for the FASTQ
 quality score when writing FASTQ output files. The default is 33. Only
 33 and 64 are valid arguments.
-.TP
 .TAG fastq_qmax
 .TP
 .BI \-\-fastq_qmax\~ "positive integer"
 Specify the maximum quality score accepted when reading FASTQ
 files. The default is 41, which is usual for recent Sanger/Illumina
 1.8+ files.
-.TP
 .TAG fastq_qmaxout
 .TP
 .BI \-\-fastq_qmaxout\~ "positive integer"
@@ -1124,21 +1119,18 @@ Specify the maximum quality score used when writing
 FASTQ files. The default
 is 41, which is usual for recent Sanger/Illumina 1.8+ files. Older
 formats may use a maximum quality score of 40.
-.TP
 .TAG fastq_qmin
 .TP
 .BI \-\-fastq_qmin\~ "positive integer"
 Specify the minimum quality score accepted for FASTQ files. The
 default is 0, which is usual for recent Sanger/Illumina 1.8+
 files. Older formats may use scores between -5 and 2.
-.TP
 .TAG fastq_qminout
 .TP
 .BI \-\-fastq_qminout\~ "positive integer"
 Specify the minimum quality score used when writing FASTQ files. The
 default is 0, which is usual for Sanger/Illumina 1.8+ files. Older
 versions of the format may use scores between -5 and 2.
-.TP
 .TAG fastx_uniques
 .TP
 .BI \-\-fastx_uniques \0filename
