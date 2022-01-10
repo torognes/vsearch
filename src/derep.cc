@@ -616,31 +616,42 @@ void derep(char * input_filename, bool use_header)
 
                   /* how to compute the new quality score? */
 
-                  /* average, as in USEARCH */
-                  p3 = (p1 * s1 + p2 * s2) / s3;
+                  if (opt_fastq_qout_max)
+                    {
+                      // fastq_qout_max
+                      /* min error prob, highest quality */
+                      p3 = MIN(p1, p2);
+                    }
+                  else
+                    {
+                      // fastq_qout_avg
+                      /* average, as in USEARCH */
+                      p3 = (p1 * s1 + p2 * s2) / s3;
+                    }
 
-                  /* min, i.e. best quality */
-                  // p3 = MIN(p1, p2);
-
-                  /* max, i.e. worst quality */
+                  // fastq_qout_min
+                  /* max error prob, lowest quality */
                   // p3 = MAX(p1, p2);
 
-                  /* always worst possible */
-                  // p3 = 1.0;
+                  // fastq_qout_first
+                  /* keep first */
+                  // p3 = p1;
 
-                  // always best possible, perfect */
-                  // p3 = 0.0;
+                  // fastq_qout_last
+                  /* keep last */
+                  // p3 = p2;
 
+                  // fastq_qout_ef
                   /* Compute as multiple independent observations
                      Edgar & Flyvbjerg (2015)
                      But what about s1 and s2? */
                   // p3 = p1 * p2 / 3.0 / (1.0 - p1 - p2 + (4.0 * p1 * p2 / 3.0));
 
-                  /* keep first */
-                  // p3 = p1;
+                  /* always worst quality possible, certain error */
+                  // p3 = 1.0;
 
-                  /* keep last */
-                  // p3 = p2;
+                  // always best quality possible, perfect, no errors */
+                  // p3 = 0.0;
 
                   int q3 = convert_p_to_q(p3);
                   bp->qual[i] = q3;

@@ -73,6 +73,7 @@ bool opt_fastq_nostagger;
 bool opt_gzip_decompress;
 bool opt_label_substr_match;
 bool opt_no_progress;
+bool opt_fastq_qout_max;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
@@ -806,6 +807,7 @@ void args_init(int argc, char **argv)
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
   opt_fastq_qminout = 0;
+  opt_fastq_qout_max = false;
   opt_fastq_stats = nullptr;
   opt_fastq_stripleft = 0;
   opt_fastq_stripright = 0;
@@ -1044,6 +1046,7 @@ void args_init(int argc, char **argv)
       option_fastq_qmaxout,
       option_fastq_qmin,
       option_fastq_qminout,
+      option_fastq_qout_max,
       option_fastq_stats,
       option_fastq_stripleft,
       option_fastq_stripright,
@@ -1278,6 +1281,7 @@ void args_init(int argc, char **argv)
       {"fastq_qmaxout",         required_argument, nullptr, 0 },
       {"fastq_qmin",            required_argument, nullptr, 0 },
       {"fastq_qminout",         required_argument, nullptr, 0 },
+      {"fastq_qout_max",        no_argument,       nullptr, 0 },
       {"fastq_stats",           required_argument, nullptr, 0 },
       {"fastq_stripleft",       required_argument, nullptr, 0 },
       {"fastq_stripright",      required_argument, nullptr, 0 },
@@ -2443,6 +2447,10 @@ void args_init(int argc, char **argv)
           opt_fastx_uniques = optarg;
           break;
 
+        case option_fastq_qout_max:
+          opt_fastq_qout_max = true;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2521,7 +2529,7 @@ void args_init(int argc, char **argv)
     The first line is the command and the lines below are the valid options.
   */
 
-  const int valid_options[][93] =
+  const int valid_options[][92] =
     {
       {
         option_allpairs_global,
@@ -3530,6 +3538,7 @@ void args_init(int argc, char **argv)
         option_fastq_qmaxout,
         option_fastq_qmin,
         option_fastq_qminout,
+        option_fastq_qout_max,
         option_fastqout,
         option_gzip_decompress,
         option_log,

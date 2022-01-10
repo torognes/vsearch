@@ -1040,9 +1040,9 @@ can write output to a special UCLUST-like file specified with the
 the input file according to the abundance of each input
 sequence. Other valid options are \-\-fastq_ascii, \-\-fastq_asciiout,
 \-\-fastq_qmax, \-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
-\-\-maxuniquesize, \-\-minuniquesize, \-\-relabel, \-\-relabel_keep,
-\-\-relabel_md5, \-\-relabel_self, \-\-relabel_sha1, \-\-sizein,
-\-\-sizeout, \-\-strand, \-\-topn, and \-\-xsize.
+\-\-fastq_qout_max, \-\-maxuniquesize, \-\-minuniquesize, \-\-relabel,
+\-\-relabel_keep, \-\-relabel_md5, \-\-relabel_self, \-\-relabel_sha1,
+\-\-sizein, \-\-sizeout, \-\-strand, \-\-topn, and \-\-xsize.
 .PP
 .TAG derep_fulllength
 .TP 9
@@ -1131,6 +1131,15 @@ files. Older formats may use scores between -5 and 2.
 Specify the minimum quality score used when writing FASTQ files. The
 default is 0, which is usual for Sanger/Illumina 1.8+ files. Older
 versions of the format may use scores between -5 and 2.
+.TAG fastq_qout_max
+.TP
+.BI \-\-fastq_qout_max
+For \-\-fastx_uniques, indicate that the new quality scores computed
+when dereplicating FASTQ files should be equal to the maximum (best)
+of the input quality scores for each position (corresponding to the
+lowest error probability). The default is to output a quality score
+corresponding to the average of the error probabilities for each
+position.
 .TAG fastx_uniques
 .TP
 .BI \-\-fastx_uniques \0filename
@@ -1139,9 +1148,11 @@ Merge strictly identical sequences contained in FASTA or FASTA file
 length and the same string of nucleotides (case insensitive, T and U
 are considered the same). See the options \-\-sizein and \-\-sizeout
 to take into account and compute abundance values. This command does
-not support multithreading. The quality scores in FASTQ output files
-will correspond to the average error probability of the nucleotides in
-the each position.
+not support multithreading. By default, the quality scores in FASTQ
+output files will correspond to the average error probability of the
+nucleotides in the each position. If the \-\-fastq_qout_max option is
+given, the quality score will be the highest (best) qualtiy score
+observed in each position.
 .TAG maxuniquesize
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
