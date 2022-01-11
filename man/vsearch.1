@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 10, 2022" "version 2.20.0" "USER COMMANDS"
+.TH vsearch 1 "January 11, 2022" "version 2.20.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -4590,6 +4590,10 @@ command. Code improvements.
 .BR v2.20.0\~ "released January 10th, 2022"
 Added the fastx_uniques command and the fastq_qout_max option for
 dereplication of FASTQ files. Some code cleaning.
+.TP
+.BR v2.20.1\~ "released January 11th, 2022"
+Fixes a bug in fastq_mergepair that caused an occational hang at the
+end when using multiple threads.
 .LP
 .\" ============================================================================
 .\" TODO:
