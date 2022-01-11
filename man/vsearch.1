@@ -454,11 +454,13 @@ order may vary when using multiple threads.
 .TAG db
 .TP
 .BI \-\-db \0filename
-When using \-\-uchime_ref, detect chimeras using the fasta-formatted
-reference sequences contained in \fIfilename\fR. Reference sequences
-are assumed to be chimera-free. Chimeras cannot be detected if their
-parents, or sufficiently close relatives, are not present in the
-database.
+When using \-\-uchime_ref, detect chimeras using the reference
+sequences contained in \fIfilename\fR. Reference sequences are assumed
+to be chimera-free. Chimeras cannot be detected if their parents, or
+sufficiently close relatives, are not present in the database. The
+file name must refer to a FASTA file or to a UDB file. If a UDB file
+is used, it should be created using the \-\-makeudb_usearch command
+with the \-\-dbmask dust option.
 .TAG dn
 .TP
 .BI \-\-dn\~ "strictly positive real number"

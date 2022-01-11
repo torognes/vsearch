@@ -1771,19 +1771,29 @@ void chimera()
   /* prepare queries / database */
   if (opt_uchime_ref)
     {
-      db_read(opt_db, 0);
+      /* check if the reference database may be an UDB file */
 
-      if (opt_dbmask == MASK_DUST)
+      bool is_udb = udb_detect_isudb(opt_db);
+
+      if (is_udb)
         {
-          dust_all();
+          udb_read(opt_db, true, true);
         }
-      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+      else
         {
-          hardmask_all();
+          db_read(opt_db, 0);
+          if (opt_dbmask == MASK_DUST)
+            {
+              dust_all();
+            }
+          else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+            {
+              hardmask_all();
+            }
+          dbindex_prepare(1, opt_dbmask);
+          dbindex_addallsequences(opt_dbmask);
         }
 
-      dbindex_prepare(1, opt_dbmask);
-      dbindex_addallsequences(opt_dbmask);
       query_fasta_h = fasta_open(opt_uchime_ref);
       progress_total = fasta_get_size(query_fasta_h);
     }
