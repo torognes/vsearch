@@ -401,6 +401,11 @@ void fasta_print_general(FILE * fp,
       fprintf(fp, "%s", opt_label_suffix);
     }
 
+  if (opt_sample)
+    {
+      fprintf(fp, ";sample=%s", opt_sample);
+    }
+
   if (clustersize > 0)
     {
       fprintf(fp, ";seqs=%d", clustersize);

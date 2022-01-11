@@ -557,6 +557,11 @@ void fastq_print_general(FILE * fp,
       fprintf(fp, "%s", opt_label_suffix);
     }
 
+  if (opt_sample)
+    {
+      fprintf(fp, ";sample=%s", opt_sample);
+    }
+
   if (opt_sizeout && (abundance > 0))
     {
       fprintf(fp, ";size=%u", abundance);
