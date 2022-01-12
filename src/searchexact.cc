@@ -89,6 +89,8 @@ static FILE * fp_dbnotmatched = nullptr;
 static FILE * fp_otutabout = nullptr;
 static FILE * fp_mothur_shared_out = nullptr;
 static FILE * fp_biomout = nullptr;
+static FILE * fp_qsegout = nullptr;
+static FILE * fp_tsegout = nullptr;
 
 static int count_matched = 0;
 static int count_notmatched = 0;
@@ -232,6 +234,26 @@ void search_exact_output_results(int hit_count,
                                           qsequence,
                                           qseqlen,
                                           qsequence_rc);
+            }
+
+          if (fp_qsegout)
+            {
+              results_show_qsegout_one(fp_qsegout,
+                                       hp,
+                                       query_head,
+                                       qsequence,
+                                       qseqlen,
+                                       qsequence_rc);
+            }
+
+          if (fp_tsegout)
+            {
+              results_show_tsegout_one(fp_tsegout,
+                                       hp,
+                                       query_head,
+                                       qsequence,
+                                       qseqlen,
+                                       qsequence_rc);
             }
 
           if (fp_uc)
@@ -622,6 +644,24 @@ void search_exact_prep(char * cmdline, char * progheader)
         }
     }
 
+  if (opt_qsegout)
+    {
+      fp_qsegout = fopen_output(opt_qsegout);
+      if (! fp_qsegout)
+        {
+          fatal("Unable to open qsegout output file for writing");
+        }
+    }
+
+  if (opt_tsegout)
+    {
+      fp_tsegout = fopen_output(opt_tsegout);
+      if (! fp_tsegout)
+        {
+          fatal("Unable to open tsegout output file for writing");
+        }
+    }
+
   if (opt_matched)
     {
       fp_matched = fopen_output(opt_matched);
@@ -739,6 +779,14 @@ void search_exact_done()
   if (opt_fastapairs)
     {
       fclose(fp_fastapairs);
+    }
+  if (opt_qsegout)
+    {
+      fclose(fp_qsegout);
+    }
+  if (opt_tsegout)
+    {
+      fclose(fp_tsegout);
     }
   if (fp_uc)
     {

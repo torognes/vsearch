@@ -159,6 +159,7 @@ char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
 char * opt_profile;
+char * opt_qsegout;
 char * opt_relabel;
 char * opt_rereplicate;
 char * opt_reverse;
@@ -171,6 +172,7 @@ char * opt_sintax;
 char * opt_sortbylength;
 char * opt_sortbysize;
 char * opt_tabbedout;
+char * opt_tsegout;
 char * opt_udb2fasta;
 char * opt_udbinfo;
 char * opt_udbstats;
@@ -912,6 +914,7 @@ void args_init(int argc, char **argv)
   opt_pattern = nullptr;
   opt_profile = nullptr;
   opt_qmask = MASK_DUST;
+  opt_qsegout = nullptr;
   opt_query_cov = 0.0;
   opt_quiet = false;
   opt_randseed = 0;
@@ -951,6 +954,7 @@ void args_init(int argc, char **argv)
   opt_threads = 0;
   opt_top_hits_only = 0;
   opt_topn = LONG_MAX;
+  opt_tsegout = nullptr;
   opt_udb2fasta = nullptr;
   opt_udbinfo = nullptr;
   opt_udbstats = nullptr;
@@ -1146,6 +1150,7 @@ void args_init(int argc, char **argv)
       option_pattern,
       option_profile,
       option_qmask,
+      option_qsegout,
       option_query_cov,
       option_quiet,
       option_randseed,
@@ -1185,6 +1190,7 @@ void args_init(int argc, char **argv)
       option_threads,
       option_top_hits_only,
       option_topn,
+      option_tsegout,
       option_uc,
       option_uc_allhits,
       option_uchime2_denovo,
@@ -1382,6 +1388,7 @@ void args_init(int argc, char **argv)
       {"pattern",               required_argument, nullptr, 0 },
       {"profile",               required_argument, nullptr, 0 },
       {"qmask",                 required_argument, nullptr, 0 },
+      {"qsegout",               required_argument, nullptr, 0 },
       {"query_cov",             required_argument, nullptr, 0 },
       {"quiet",                 no_argument,       nullptr, 0 },
       {"randseed",              required_argument, nullptr, 0 },
@@ -1421,6 +1428,7 @@ void args_init(int argc, char **argv)
       {"threads",               required_argument, nullptr, 0 },
       {"top_hits_only",         no_argument,       nullptr, 0 },
       {"topn",                  required_argument, nullptr, 0 },
+      {"tsegout",               required_argument, nullptr, 0 },
       {"uc",                    required_argument, nullptr, 0 },
       {"uc_allhits",            no_argument,       nullptr, 0 },
       {"uchime2_denovo",        required_argument, nullptr, 0 },
@@ -2457,6 +2465,14 @@ void args_init(int argc, char **argv)
 
         case option_sample:
           opt_sample = optarg;
+          break;
+
+        case option_qsegout:
+          opt_qsegout = optarg;
+          break;
+
+        case option_tsegout:
+          opt_tsegout = optarg;
           break;
 
         default:
@@ -4173,6 +4189,7 @@ void args_init(int argc, char **argv)
         option_output_no_hits,
         option_pattern,
         option_qmask,
+        option_qsegout,
         option_query_cov,
         option_quiet,
         option_relabel,
@@ -4194,6 +4211,7 @@ void args_init(int argc, char **argv)
         option_target_cov,
         option_threads,
         option_top_hits_only,
+        option_tsegout,
         option_uc,
         option_uc_allhits,
         option_userfields,

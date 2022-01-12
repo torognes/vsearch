@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 11, 2022" "version 2.20.1" "USER COMMANDS"
+.TH vsearch 1 "January 12, 2022" "version 2.20.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -902,6 +902,11 @@ Mask regions in sequences using the
 \fIdust\fR or the \fIsoft\fR methods, or do not mask
 (\fInone\fR). Warning, when using \fIsoft\fR masking, clustering
 becomes case sensitive. The default is to mask using \fIdust\fR.
+.TAG qsegout
+.TP
+.BI \-\-qsegout \0filename
+Write the aligned part of each query sequence to \fIfilename\fR in
+FASTA format.
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -963,6 +968,11 @@ per cluster for centroids.
 .BI \-\-strand\~ "plus|both"
 When comparing sequences with the cluster seed, check the \fIplus\fR
 strand only (default) or check \fIboth\fR strands.
+.TAG tsegout
+.TP
+.BI \-\-tsegout \0filename
+Write the aligned part of each target sequence to \fIfilename\fR in
+FASTA format.
 .TAG uc
 .TP
 .BI \-\-uc \0filename
@@ -2284,13 +2294,14 @@ Pairwise alignment options:
 .PP
 The results of the n * (n-1) / 2 pairwise alignments are written to
 the result files specified with \-\-alnout, \-\-blast6out,
-\-\-fastapairs \-\-matched, \-\-notmatched, \-\-samout, \-\-uc or
-\-\-userout (see Searching section below). Specify either the
-\-\-acceptall option to output all pairwise alignments, or specify an
-identity level with \-\-id to discard weak alignments. Most other
-accept/reject options (see Searching options below) may also be
-used. Sequences are aligned on their \fIplus\fR strand only. Masking
-is performed as usual and specified with \-\-qmask and \-\-hardmask.
+\-\-fastapairs \-\-matched, \-\-notmatched, \-\-qsegout, \-\-samout,
+\-\-tsegout, \-\-uc or \-\-userout (see Searching section
+below). Specify either the \-\-acceptall option to output all pairwise
+alignments, or specify an identity level with \-\-id to discard weak
+alignments. Most other accept/reject options (see Searching options
+below) may also be used. Sequences are aligned on their \fIplus\fR
+strand only. Masking is performed as usual and specified with
+\-\-qmask and \-\-hardmask.
 .TAG acceptall
 .TP 9
 .B \-\-acceptall
@@ -2825,6 +2836,11 @@ Mask regions in the query sequences
 using the dust or the soft algorithms, or do not mask
 (none). Warning, when using soft masking search commands
 become case sensitive. The default is to mask using \fIdust\fR.
+.TAG qsegout
+.TP
+.BI \-\-qsegout \0filename
+Write the aligned part of each query sequence to \fIfilename\fR in
+FASTA format.
 .TAG query_cov
 .TP
 .BI \-\-query_cov \0real
@@ -2967,6 +2983,11 @@ identity (see the \-\-iddef option to change the way identity is
 measured). For a given query, if several top hits present exactly the
 same percentage of identity, the number of hits reported is controlled
 by the \-\-maxaccepts value (1 by default).
+.TAG tsegout
+.TP
+.BI \-\-tsegout \0filename
+Write the aligned part of each target sequence to \fIfilename\fR in
+FASTA format.
 .TAG uc
 .TP
 .BI \-\-uc \0filename

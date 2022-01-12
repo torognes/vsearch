@@ -114,6 +114,65 @@ void results_show_fastapairs_one(FILE * fp,
 }
 
 
+void results_show_qsegout_one(FILE * fp,
+                              struct hit * hp,
+                              char * query_head,
+                              char * qsequence,
+                              int64_t qseqlen,
+                              char * rc)
+{
+  if (hp)
+    {
+      char * qseg = (hp->strand ? rc : qsequence) + hp->trim_q_left;
+      int qseglen = qseqlen
+        - hp->trim_q_left - hp->trim_q_right;
+
+      fasta_print_general(fp,
+                          nullptr,
+                          qseg,
+                          qseglen,
+                          query_head,
+                          strlen(query_head),
+                          0,
+                          0,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
+    }
+}
+
+void results_show_tsegout_one(FILE * fp,
+                              struct hit * hp,
+                              char * query_head,
+                              char * qsequence,
+                              int64_t qseqlen,
+                              char * rc)
+{
+  if (hp)
+    {
+      char * tseg = db_getsequence(hp->target) + hp->trim_t_left;
+      int tseglen = db_getsequencelen(hp->target)
+        - hp->trim_t_left - hp->trim_t_right;
+
+      fasta_print_general(fp,
+                          nullptr,
+                          tseg,
+                          tseglen,
+                          db_getheader(hp->target),
+                          db_getheaderlen(hp->target),
+                          0,
+                          0,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
+    }
+}
+
+
 void results_show_blast6out_one(FILE * fp,
                                 struct hit * hp,
                                 char * query_head,
