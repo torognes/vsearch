@@ -159,7 +159,7 @@ void sortbysize()
 
       if (passed % 2)  // is odd
         {
-          median = sortinfo[midarray.quot].size;
+          median = sortinfo[midarray.quot].size * 1.0;
         }
       else  // is even
         {
