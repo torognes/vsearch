@@ -119,7 +119,7 @@ auto find_median_abundance(const int valid_amplicons, const sortinfo_size_s * so
   const auto midarray = std::div(valid_amplicons, 2);
 
   // odd number of valid amplicons
-  if (valid_amplicons % 2)  {
+  if (valid_amplicons % 2 != 0)  {
     return sortinfo[midarray.quot].size * 1.0;
   }
 
