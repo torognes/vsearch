@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cstdlib>
 
 static struct sortinfo_size_s
 {
@@ -154,14 +155,16 @@ void sortbysize()
   double median = 0.0;
   if (passed > 0)
     {
-      if (passed % 2)
+      const auto midarray = std::div(passed, 2);
+
+      if (passed % 2)  // is odd
         {
-          median = sortinfo[(passed-1)/2].size;
+          median = sortinfo[midarray.quot].size;
         }
-      else
+      else  // is even
         {
-          median = (sortinfo[(passed/2)-1].size +
-                    sortinfo[passed/2].size) / 2.0;
+          median = (sortinfo[midarray.quot - 1].size +
+                    sortinfo[midarray.quot].size) / 2.0;
         }
     }
 
