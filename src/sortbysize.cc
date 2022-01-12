@@ -107,6 +107,28 @@ int sortbysize_compare(const void * a, const void * b)
     }
 }
 
+
+[[nodiscard]]
+auto find_median_abundance(const int valid_amplicons, const sortinfo_size_s * sortinfo) -> double
+{
+  // C++17: refactor with std::array and use array.size()
+  if (valid_amplicons == 0) {
+    return 0.0;
+  }
+
+  const auto midarray = std::div(valid_amplicons, 2);
+
+  // odd number of valid amplicons
+  if (valid_amplicons % 2)  {
+    return sortinfo[midarray.quot].size * 1.0;
+  }
+
+  // even number of valid amplicons
+  return (sortinfo[midarray.quot - 1].size +
+          sortinfo[midarray.quot].size) / 2.0;
+}
+
+
 void sortbysize()
 {
   if (!opt_output)
@@ -152,21 +174,7 @@ void sortbysize()
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
-  double median = 0.0;
-  if (passed > 0)
-    {
-      const auto midarray = std::div(passed, 2);
-
-      if (passed % 2)  // is odd
-        {
-          median = sortinfo[midarray.quot].size * 1.0;
-        }
-      else  // is even
-        {
-          median = (sortinfo[midarray.quot - 1].size +
-                    sortinfo[midarray.quot].size) / 2.0;
-        }
-    }
+  const double median {find_median_abundance(passed, sortinfo)};
 
   if (! opt_quiet)
     {
