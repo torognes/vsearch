@@ -286,17 +286,20 @@ void derep(char * input_filename, bool use_header)
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
     }
 
-  if (fastx_is_fastq(h))
+  if (! fastx_is_empty(h))
     {
-      if (!opt_fastx_uniques)
-        fatal("FASTQ input is only allowed with the fastx_uniques command");
-    }
-  else
-    {
-      if (opt_fastqout)
-        fatal("Cannot write FASTQ output when input file is not in FASTQ format");
-      if (opt_tabbedout)
-        fatal("Cannot write tab separated output file when input file is not in FASTQ format");
+      if (fastx_is_fastq(h))
+        {
+          if (!opt_fastx_uniques)
+            fatal("FASTQ input is only allowed with the fastx_uniques command");
+        }
+      else
+        {
+          if (opt_fastqout)
+            fatal("Cannot write FASTQ output when input file is not in FASTQ format");
+          if (opt_tabbedout)
+            fatal("Cannot write tab separated output file when input file is not in FASTQ format");
+        }
     }
 
   FILE * fp_fastaout = nullptr;
