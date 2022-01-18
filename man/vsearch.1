@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 12, 2022" "version 2.21.0" "USER COMMANDS"
+.TH vsearch 1 "January 18, 2022" "version 2.21.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -4627,6 +4627,10 @@ end when using multiple threads.
 .BR v2.21.0\~ "released January 12th, 2022"
 This version adds the sample, qsegout and tsegout options. It enables
 the use of UDB databases with uchime_ref.
+.TP
+.BR v2.21.1\~ "released January 18th, 2022"
+Fix a problem with dereplication of empty input files. Update Altivec
+code on ppc64le for improved compiler compatibility (vector->__vector).
 .LP
 .\" ============================================================================
 .\" TODO:
