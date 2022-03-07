@@ -5269,7 +5269,7 @@ void cmd_none()
   if (! opt_quiet)
     {
       fprintf(stderr,
-              "For help, please enter: %s --help | more\n"
+              "For more help, please enter: %s --help\n"
               "For further details, please consult the manual by entering: man vsearch\n"
               "\n"
               "Selected command examples:\n"
