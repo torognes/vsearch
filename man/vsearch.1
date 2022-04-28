@@ -1721,10 +1721,15 @@ discard sequences with more than the specified number of N's.
 .BI \-\-fastq_mergepairs\0 filename
 Merge paired-end sequence reads into one sequence. The forward reads
 are specified as the argument to this option and the reverse reads are
-specified with the \-\-reverse option. The merged sequences are output
-to the file(s) specified with the \-\-fastaout or \-\-fastqout
-options. The non-merged reads can be output to the files specified
-with the \-\-fastaout_notmerged_fwd, \-\-fastaout_notmerged_rev,
+specified with the \-\-reverse option. Reads with the same
+index/position in the forward and reverse files are considered to form
+a pair, even if their labels are different. Thus, forward and reverse
+reads \fBmust\fR appear in the same order and total number in both
+files. A warning is emitted if the forward and reverse files contain
+different numbers of reads. The merged sequences are written to the
+file(s) specified with the \-\-fastaout or \-\-fastqout options. The
+non-merged reads can be output to the files specified with the
+\-\-fastaout_notmerged_fwd, \-\-fastaout_notmerged_rev,
 \-\-fastqout_notmerged_fwd and \-\-fastqout_notmerged_rev
 options. Statistics may be output to the file specified with the
 \-\-eetabbedout option. Sequences are truncated as specified with the
