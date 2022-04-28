@@ -2845,9 +2845,9 @@ FASTA format.
 .TP
 .BI \-\-query_cov \0real
 Reject if the fraction of the query aligned to the target sequence is
-lower than \fIreal\fR. The query coverage is computed as
-(matches + mismatches) / query sequence length. Internal or terminal
-gaps are not taken into account.
+lower than \fIreal\fR (value ranging from 0.0 to 1.0 included). The
+query coverage is computed as (matches + mismatches) / query sequence
+length. Internal or terminal gaps are not taken into account.
 .TAG rightjust
 .TP
 .B \-\-rightjust
