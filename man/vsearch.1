@@ -1694,13 +1694,21 @@ mismatches.
 .TP
 .BI \-\-fastq_maxee\~ real
 When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
-discard sequences with more than the specified number of expected
-errors.
+discard sequences with an expected error greater than the specified
+number (value ranging from 0.0 to infinity). For a given sequence, the
+expected error is the sum of error probabilities for all the positions
+in the sequence. In practice, the expected error is greater than zero
+(error probabilities can be small but not null), and at most equal to
+the length of the sequence (when all positions have an error
+probability of 1.0).
 .TAG fastq_maxee_rate
 .TP
 .BI \-\-fastq_maxee_rate\~ real
 When using \-\-fastq_filter or \-\-fastx_filter, discard sequences
-with more than the specified number of expected errors per base.
+with an average expected error greater than the specified number
+(value ranging from 0.0 to 1.0 included). For a given sequence, the
+average expected error is the sum of error probabilities for all the
+positions in the sequence, divided by the length of the sequence.
 .TAG fastq_maxlen
 .TP
 .BI \-\-fastq_maxlen\~ "positive integer"
