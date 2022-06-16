@@ -1103,11 +1103,9 @@ void derep_prefix()
   /* adjust size of hash table for 2/3 fill rate */
 
   int64_t hashtablesize = 1;
-  int hash_shift = 0;
   while (3 * dbsequencecount > 2 * hashtablesize)
     {
       hashtablesize <<= 1;
-      hash_shift++;
     }
   int hash_mask = hashtablesize - 1;
 
