@@ -632,8 +632,6 @@ void cluster_core_parallel()
                      opt_gap_extension_query_right,
                      opt_gap_extension_target_right);
 
-  int aligncount = 0;
-
   int lastlength = INT_MAX;
 
   int seqno = 0;
@@ -799,8 +797,6 @@ void cluster_core_parallel()
                           unsigned int target = hit->target;
                           if (search_acceptable_unaligned(si, target))
                             {
-                              aligncount++;
-
                               /* perform vectorized alignment */
                               /* but only using 1 sequence ! */
 
@@ -1016,11 +1012,6 @@ void cluster_core_parallel()
       progress_update(sum_nucleotides);
     }
   progress_done();
-
-#if 0
-  if (!opt_quiet)
-    fprintf(stderr, "Extra alignments computed: %d\n", aligncount);
-#endif
 
   /* clean up search info */
   for(int i = 0; i < max_queries; i++)
