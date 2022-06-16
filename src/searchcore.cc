@@ -749,7 +749,6 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
 
   int delayed = 0;
 
-  int t = 0;
   while ((si->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
          (si->rejects < opt_maxrejects) &&
          (si->accepts < opt_maxaccepts) &&
@@ -785,7 +784,6 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
           align_delayed(si);
           delayed = 0;
         }
-      t++;
     }
   if (delayed > 0)
     {
