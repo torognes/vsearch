@@ -138,7 +138,6 @@ void fastq_eestats()
   progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
-  uint64_t symbols = 0;
 
   int64_t len_alloc = 10;
 
@@ -220,8 +219,6 @@ void fastq_eestats()
         }
 
       /* update quality statistics */
-
-      symbols += len;
 
       double ee = 0.0;
 
