@@ -69,7 +69,7 @@ The distributed Linux ppc64le and aarch64 binaries and the Windows binary were c
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
 ./autogen.sh
-./configure
+./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make
 make install  # as root or sudo make install
 ```
