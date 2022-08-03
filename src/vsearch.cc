@@ -5302,7 +5302,7 @@ void cmd_none()
               "\n"
               "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
               "                derep_id, derep_fulllength, derep_prefix, fasta2fastq,\n"
-              "                fastq_filter, fastq_join, fastx_getseqs, fastx_getsubseqs,\n"
+              "                fastq_filter, fastq_join, fastx_getseqs, fastx_getsubseq,\n"
               "                maskfasta, orient, rereplicate, uchime2_denovo,\n"
               "                uchime3_denovo, udb2fasta, udbinfo, udbstats, version\n"
               "\n",
