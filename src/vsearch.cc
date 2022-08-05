@@ -3873,6 +3873,8 @@ void args_init(int argc, char **argv)
         option_gzip_decompress,
         option_label_suffix,
         option_log,
+        option_maxseqlength,
+        option_minseqlength,
         option_no_progress,
         option_notrunclabels,
         option_quiet,
