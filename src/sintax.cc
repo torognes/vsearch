@@ -199,11 +199,11 @@ void sintax_analyse(char * query_head,
     {
       if (opt_sintax_cutoff > 0.0)
         {
-          fprintf(fp_tabbedout, "\t\t\t");
+          fprintf(fp_tabbedout, "\t\t");
         }
       else
         {
-          fprintf(fp_tabbedout, "\t\t");
+          fprintf(fp_tabbedout, "\t");
         }
     }
 
