@@ -532,11 +532,25 @@ void results_show_lcaout(FILE * fp,
 
   fprintf(fp, "%s\t", query_head);
 
+  int tophitcount = 0;
+
   if (hitcount > 0)
     {
+      double top_hit_id = hits[0].id;
+
       for (int t = 0; t < hitcount; t++)
         {
-          int seqno = hits[t].target;
+          struct hit * hp = hits + t;
+
+          if (opt_top_hits_only && (hp->id < top_hit_id))
+            {
+              break;
+            }
+
+          tophitcount++;
+
+          int seqno = hp->target;
+
           if (t == 0)
             {
               tax_split(seqno, first_level_start, first_level_len);
@@ -569,7 +583,7 @@ void results_show_lcaout(FILE * fp,
       bool comma = false;
       for (int j = 0; j < tax_levels; j++)
         {
-          if (1.0 * level_match[j] / hitcount < opt_lca_cutoff)
+          if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
             {
               break;
             }
