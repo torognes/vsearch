@@ -469,6 +469,11 @@ bool fastx_is_empty(fastx_handle h)
   return h->is_empty;
 }
 
+bool fastx_is_pipe(fastx_handle h)
+{
+  return h->is_pipe;
+}
+
 void fastx_close(fastx_handle h)
 {
   /* Warn about stripped chars */

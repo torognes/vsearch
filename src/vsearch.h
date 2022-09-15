@@ -258,6 +258,7 @@
 #include "cut.h"
 #include "orient.h"
 #include "fa2fq.h"
+#include "derepsmallmem.h"
 
 /* options */
 

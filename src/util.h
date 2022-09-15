@@ -84,6 +84,7 @@ char * xstrdup(const char *s);
 char * xstrchrnul(char *s, int c);
 int xsprintf(char * * ret, const char * format, ...);
 uint64_t hash_cityhash64(char * s, uint64_t n);
+uint128 hash_cityhash128(char * s, uint64_t n);
 int64_t getusec();
 void show_rusage();
 

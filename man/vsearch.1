@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "September 12, 2022" "version 2.21.2" "USER COMMANDS"
+.TH vsearch 1 "September 15, 2022" "version 2.21.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -42,6 +42,9 @@ Dereplication and rereplication:
 .PP
 \fBvsearch\fR (\-\-derep_fulllength | \-\-derep_id | \-\-derep_prefix)
 \fIfastafile\fR (\-\-output | \-\-uc) \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-derep_smallmem (\fIfastafile\fR | \fIfastqfile\fR)
+\-\-fastaout \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-rereplicate \fIfastafile\fR \-\-output
 \fIoutputfile\fR [\fIoptions\fR]
@@ -1044,25 +1047,31 @@ Dereplication and rereplication options:
 .PP
 .RS
 VSEARCH can dereplicate sequences with the commands
-\-\-derep_fulllength, \-\-derep_id, \-\-derep_prefix and
-\-\-fastx_uniques. The \-\-derep_fulllength command is depreciated and
-is replaced by the new \-\-fastx_uniques command that can also handle
-FASTQ files in addition to FASTA files. The \-\-derep_fulllength and
+\-\-derep_fulllength, \-\-derep_id, \-\-derep_smallmem,
+\-\-derep_prefix and \-\-fastx_uniques. The \-\-derep_fulllength
+command is depreciated and is replaced by the new \-\-fastx_uniques
+command that can also handle FASTQ files in addition to FASTA
+files. The \-\-derep_fulllength, \-\-derep_smallmem, and
 \-\-fastx_uniques commands requires strictly identical sequences of
 the same length, but ignores upper/lower case and treats T and U as
 identical symbols. The \-\-derep_id command requires both identical
 sequences and identical headers/labels. The \-\-derep_prefix command
 will group sequences with a common prefix and does not require them to
-be equally long. The \-\-fastx_uniques command can write FASTQ output
-(specified with \-\-fastqout) or FASTA output (specified with
-\-\-fastaout) as well as a special tab-separated column text format
-(with \-\-tabbedout). The other commands can write FASTA output to the
-file specified with the \-\-output option. All dereplication commands
-can write output to a special UCLUST-like file specified with the
-\-\-uc option. The \-\-rereplicate command can duplicate sequences in
-the input file according to the abundance of each input
-sequence. Other valid options are \-\-fastq_ascii, \-\-fastq_asciiout,
-\-\-fastq_qmax, \-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
+be equally long. The \-\-derep_smallmem uses a much smaller amount of
+memory when dereplicating than the other files, and may be a bit
+slower and cannot read the input from a pipe. It takes both FASTA and
+FASTQ files as input but only writes FASTA output to the file
+specified with the \-\-fastaout option. The \-\-fastx_uniques command
+can write FASTQ output (specified with \-\-fastqout) or FASTA output
+(specified with \-\-fastaout) as well as a special tab-separated
+column text format (with \-\-tabbedout). The other commands can write
+FASTA output to the file specified with the \-\-output option. All
+dereplication commands, except \-\-derep_smallmem, can write output to
+a special UCLUST-like file specified with the \-\-uc option. The
+\-\-rereplicate command can duplicate sequences in the input file
+according to the abundance of each input sequence. Other valid options
+are \-\-fastq_ascii, \-\-fastq_asciiout, \-\-fastq_qmax,
+\-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
 \-\-fastq_qout_max, \-\-maxuniquesize, \-\-minuniquesize, \-\-relabel,
 \-\-relabel_keep, \-\-relabel_md5, \-\-relabel_self, \-\-relabel_sha1,
 \-\-sizein, \-\-sizeout, \-\-strand, \-\-topn, and \-\-xsize.
@@ -1082,6 +1091,22 @@ not support multithreading.
 Merge strictly identical sequences contained in \fIfilename\fR, as
 with the \-\-derep_fulllength command, but the sequence labels
 (identifiers) on the header line need to be identical too.
+.TAG derep_smallmem
+.TP
+.BI \-\-derep_smallmem \0filename
+Merge strictly identical sequences contained in \fIfilename\fR, as
+with the \-\-derep_fulllength command, but using much less memory. The
+output is written to a FASTA file specified with the \-\-fastaout
+option. The output is written in the order that the sequences first
+appear in the input, and not in decending abundance order as with the
+other dereplication commands. It can read, but not write FASTQ
+files. This command cannot read from a pipe, it must be a proper file,
+as it is read twice. Dereplication is performed with a 128 bit hash
+function and it is not verified that grouped sequences are identical,
+however the probability that two different sequences are grouped in a
+dataset of 1 000 000 000 unique sequences is approximately 1e-21.
+Multithreading and the options \-\-topn, \-\-uc, or \-\-tabbedout are
+not supported.
 .TAG derep_prefix
 .TP
 .BI \-\-derep_prefix \0filename
@@ -1103,7 +1128,7 @@ header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the
 pattern ';size=\fIinteger\fR;'. This option is only valid for
-\-\-fastx_uniques.
+\-\-fastx_uniques and \-\-derep_smallmem.
 .TAG fastqout
 .TP
 .BI \-\-fastqout \0filename
@@ -1195,7 +1220,7 @@ header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the
 pattern ';size=\fIinteger\fR;'. This option is not allowed for
-fastx_uniques.
+\-\-fastx_uniques or \-\-derep_smallmem.
 .TP
 .TAG relabel
 .BI \-\-relabel \0string

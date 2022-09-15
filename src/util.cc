@@ -194,6 +194,11 @@ uint64_t hash_cityhash64(char * s, uint64_t n)
   return CityHash64((const char*)s, n);
 }
 
+uint128 hash_cityhash128(char * s, uint64_t n)
+{
+  return CityHash128((const char*)s, n);
+}
+
 int64_t getusec()
 {
   struct timeval tv;

@@ -31,6 +31,7 @@ db.h \
 dbhash.h \
 dbindex.h \
 derep.h \
+derepsmallmem.h \
 dynlibs.h \
 eestats.h \
 fa2fq.h \
@@ -126,6 +127,7 @@ db.cc \
 dbhash.cc \
 dbindex.cc \
 derep.cc \
+derepsmallmem.cc \
 dynlibs.cc \
 eestats.cc \
 fa2fq.cc \
