@@ -167,7 +167,14 @@ void rehash_smallmem()
   uint64_t new_hashtablesize = 3 * hashtablesize / 2;
   auto * new_hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * new_hashtablesize);
-  memset(new_hashtable, 0, sizeof(bucket) * new_hashtablesize);
+
+  /* zero new hash table */
+  for(uint64_t j = 0; j < new_hashtablesize; j++)
+    {
+      new_hashtable[j].hash.first = 0;
+      new_hashtable[j].hash.second = 0;
+      new_hashtable[j].size = 0;
+    }
 
   /* rehash all from old to new */
   for(uint64_t i = 0; i < hashtablesize; i++)
@@ -238,7 +245,14 @@ void derep_smallmem(char * input_filename)
 
   hashtablesize = 1024;
   hashtable = (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
-  memset(hashtable, 0, sizeof(bucket) * hashtablesize);
+
+  /* zero hash table */
+  for(uint64_t j = 0; j < hashtablesize; j++)
+    {
+      hashtable[j].hash.first = 0;
+      hashtable[j].hash.second = 0;
+      hashtable[j].size = 0;
+    }
 
   show_rusage();
 
