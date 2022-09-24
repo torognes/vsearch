@@ -4897,6 +4897,7 @@ void cmd_help()
               "  --tabbedout FILENAME        write cluster info to tsv file for fastx_uniques\n"
               "  --topn INT                  output only n most abundant sequences after derep\n"
               "  --uc FILENAME               filename for UCLUST-like dereplication output\n"
+              "  --xee                       remove expected errors (ee) info from output\n"
               "  --xsize                     strip abundance information in derep output\n"
               "\n"
               "FASTA to FASTQ conversion\n"
