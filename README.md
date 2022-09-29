@@ -61,7 +61,7 @@ make install  # as root or sudo make install
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch. Version 3.82 or later of Make may be required on Linux, while version 3.81 is sufficient on macOS.
 
-The distributed Linux ppc64le and aarch64 binaries and the Windows binary were compiled using the [Mingw-w64](http://mingw-w64.org/) C++ cross-compiler.
+The distributed Linux ppc64le and aarch64 binaries were compiled using the C++ cross-compiler. The Windows binary was built using [Mingw-w64](http://mingw-w64.org/).
 
 **Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
@@ -99,7 +99,14 @@ wget https://github.com/torognes/vsearch/releases/download/v2.22.1/vsearch-2.22.
 tar xzf vsearch-2.22.1-linux-aarch64.tar.gz
 ```
 
-Or these commands if you are using a Mac:
+Or these commands if you are using a Mac with an Apple Silicon CPU:
+
+```sh
+wget https://github.com/torognes/vsearch/releases/download/v2.22.1/vsearch-2.22.1-macos-aarch64.tar.gz
+tar xzf vsearch-2.22.1-macos-x86_64.tar.gz
+```
+
+Or these commands if you are using a Mac with an Intel CPU:
 
 ```sh
 wget https://github.com/torognes/vsearch/releases/download/v2.22.1/vsearch-2.22.1-macos-x86_64.tar.gz
