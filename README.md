@@ -103,7 +103,7 @@ Or these commands if you are using a Mac with an Apple Silicon CPU:
 
 ```sh
 wget https://github.com/torognes/vsearch/releases/download/v2.22.1/vsearch-2.22.1-macos-aarch64.tar.gz
-tar xzf vsearch-2.22.1-macos-x86_64.tar.gz
+tar xzf vsearch-2.22.1-macos-aarch64.tar.gz
 ```
 
 Or these commands if you are using a Mac with an Intel CPU:
