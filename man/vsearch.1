@@ -1098,15 +1098,16 @@ Merge strictly identical sequences contained in \fIfilename\fR, as
 with the \-\-derep_fulllength command, but using much less memory. The
 output is written to a FASTA file specified with the \-\-fastaout
 option. The output is written in the order that the sequences first
-appear in the input, and not in decending abundance order as with the
+appear in the input, and not in descending abundance order as with the
 other dereplication commands. It can read, but not write FASTQ
 files. This command cannot read from a pipe, it must be a proper file,
 as it is read twice. Dereplication is performed with a 128 bit hash
 function and it is not verified that grouped sequences are identical,
 however the probability that two different sequences are grouped in a
-dataset of 1 000 000 000 unique sequences is approximately 1e-21.
-Multithreading and the options \-\-topn, \-\-uc, or \-\-tabbedout are
-not supported.
+dataset of 1 000 000 000 unique sequences is approximately
+1e-21. Memory footprint is appr. 24 bytes times the number of unique
+sequence. Multithreading and the options \-\-topn, \-\-uc, or
+\-\-tabbedout are not supported.
 .TAG derep_prefix
 .TP
 .BI \-\-derep_prefix \0filename
