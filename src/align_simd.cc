@@ -783,8 +783,9 @@ inline void pushop(s16info_s * s, char newop)
       *--s->cigarend = s->op;
       if (s->opcount > 1)
         {
-          char buf[11];
-          int len = sprintf(buf, "%d", s->opcount);
+          const int size = 11;
+          char buf[size];
+          int len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
@@ -800,8 +801,9 @@ inline void finishop(s16info_s * s)
       *--s->cigarend = s->op;
       if (s->opcount > 1)
         {
-          char buf[11];
-          int len = sprintf(buf, "%d", s->opcount);
+          const int size = 11;
+          char buf[size];
+          int len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }

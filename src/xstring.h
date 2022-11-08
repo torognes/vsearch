@@ -134,7 +134,7 @@ class xstring
         alloc = length + needed + 1;
         string = (char*) xrealloc(string, alloc);
       }
-    sprintf(string + length, "%d", d);
+    snprintf(string + length, needed + 1, "%d", d);
     length += needed;
   }
 

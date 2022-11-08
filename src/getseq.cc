@@ -174,7 +174,7 @@ bool test_label_match(fastx_handle h)
           field_buffer_size += labels_longest;
         }
       field_buffer = (char *) xmalloc(field_buffer_size);
-      sprintf(field_buffer, "%s=", opt_label_field);
+      snprintf(field_buffer, field_buffer_size, "%s=", opt_label_field);
     }
 
   if (opt_label)
