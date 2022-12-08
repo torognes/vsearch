@@ -789,13 +789,13 @@ filenames.
 .TP
 .BI \-\-consout \0filename
 Output cluster consensus sequences to \fIfilename\fR. For each
-cluster, a center-star multiple sequence alignment is computed (fast
-algorithm with reasonable accuracy), with the centroid as the center,
-and a consensus sequence is constructed by taking the majority symbol
-(nucleotide or gap) from each column of the alignment. Columns
-containing a majority of gaps are skipped, except for terminal
-gaps. If the \-\-sizein option is specified, sequence abundances will
-be taken into account.
+cluster, a center-star multiple sequence alignment is computed with
+the centroid as the center, using a fast algorithm (not accurate when
+using low pairwise identity thresholds). A consensus sequence is
+constructed by taking the majority symbol (nucleotide or gap) from
+each column of the alignment. Columns containing a majority of gaps
+are skipped, except for terminal gaps. If the \-\-sizein option is
+specified, sequence abundances will be taken into account.
 .TAG cons_truncate
 .TP
 .B \-\-cons_truncate
