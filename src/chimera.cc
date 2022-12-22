@@ -67,11 +67,14 @@
   and Rob Knight (2011)
   UCHIME improves sensitivity and speed of chimera detection
   Bioinformatics, 27, 16, 2194-2200
-  http://dx.doi.org/10.1093/bioinformatics/btr381
+  https://doi.org/10.1093/bioinformatics/btr381
 */
 
 /* global constants/data, no need for synchronization */
-const int parts = 4;
+const int parents = 3;
+const int parts = 20; /* approx one part per 135bp, minimum 4 */
+const int parent_len_min = 10;
+const int window = 64;
 const int few = 4;
 const int maxcandidates = few * parts;
 const int rejects = 16;
@@ -133,16 +136,20 @@ struct chimera_info_s
 
   int match_size;
   int * match;
+  int * insert;
   int * smooth;
   int * maxsmooth;
 
-  int best_parents[2];
+  int parents_found;
+  int best_parents[parents];
+  int best_start[parents];
+  int best_len[parents];
 
   int best_target;
   char * best_cigar;
 
   int * maxi;
-  char * paln[2];
+  char * paln[parents];
   char * qaln;
   char * diffs;
   char * votes;
@@ -177,20 +184,23 @@ void realloc_arrays(struct chimera_info_s * ci)
             : ci->si)
         {
           int maxpartlen = (maxqlen + parts - 1) / parts;
-          i.qsequence = (char*) xrealloc(i.qsequence,
-                                         maxpartlen + 1);
+          i.qsequence = (char*) xrealloc(i.qsequence, maxpartlen + 1);
         }
 
       ci->maxi = (int *) xrealloc(ci->maxi, (maxqlen + 1) * sizeof(int));
       ci->maxsmooth = (int*) xrealloc(ci->maxsmooth, maxqlen * sizeof(int));
       ci->match = (int*) xrealloc(ci->match,
                                   maxcandidates * maxqlen * sizeof(int));
+      ci->insert = (int*) xrealloc(ci->insert,
+                                   maxcandidates * maxqlen * sizeof(int));
       ci->smooth = (int*) xrealloc(ci->smooth,
                                    maxcandidates * maxqlen * sizeof(int));
 
       int maxalnlen = maxqlen + 2 * db_getlongestsequence();
-      ci->paln[0] = (char*) xrealloc(ci->paln[0], maxalnlen+1);
-      ci->paln[1] = (char*) xrealloc(ci->paln[1], maxalnlen+1);
+      for (int f = 0; f < parents ; f++)
+        {
+          ci->paln[f] = (char*) xrealloc(ci->paln[f], maxalnlen+1);
+        }
       ci->qaln = (char*) xrealloc(ci->qaln, maxalnlen+1);
       ci->diffs = (char*) xrealloc(ci->diffs, maxalnlen+1);
       ci->votes = (char*) xrealloc(ci->votes, maxalnlen+1);
@@ -199,19 +209,22 @@ void realloc_arrays(struct chimera_info_s * ci)
     }
 }
 
-
-int find_best_parents(struct chimera_info_s * ci)
+void find_matches(struct chimera_info_s * ci)
 {
-  ci->best_parents[0] = -1;
-  ci->best_parents[1] = -1;
-
   /* find the positions with matches for each potential parent */
+  /* also note the positions with inserts in front */
 
   char * qseq = ci->query_seq;
 
-  memset(ci->match, 0, ci->cand_count * ci->query_len * sizeof(int));
+  for (int i = 0; i < ci->cand_count; i++)
+    for (int j = 0; j < ci->query_len; j++)
+      {
+        int x = i * ci->query_len + j;
+        ci->match[x] = 0;
+        ci->insert[x] = 0;
+      }
 
-  for(int i=0; i < ci->cand_count; i++)
+  for(int i = 0; i < ci->cand_count; i++)
     {
       char * tseq = db_getsequence(ci->cand_list[i]);
 
@@ -244,6 +257,7 @@ int find_best_parents(struct chimera_info_s * ci)
               break;
 
             case 'I':
+              ci->insert[i * ci->query_len + qpos] = run;
               tpos += run;
               break;
 
@@ -253,103 +267,197 @@ int find_best_parents(struct chimera_info_s * ci)
             }
         }
     }
+}
 
-  /* Compute smoothed identity score in a window for each candidate,   */
-  /* and record max smoothed score for each position among candidates. */
+struct parents_info_s
+{
+  int cand;
+  int start;
+  int len;
+};
 
-  memset(ci->maxsmooth, 0, ci->query_len * sizeof(int));
+int compare_positions(const void * a, const void * b)
+{
+  const int x = ((const parents_info_s *) a)->start;
+  const int y = ((const parents_info_s *) b)->start;
 
-  const int window = 32;
+  if (x < y)
+    return -1;
+  else if (x > y)
+    return +1;
+  else
+    return 0;
+}
 
-  for(int i = 0; i < ci->cand_count; i++)
+int find_best_parents_long(struct chimera_info_s * ci)
+{
+  /* find parents with longest perfect match regions,
+     excluding regions matched by previously identified parents */
+
+  find_matches(ci);
+
+  struct parents_info_s best_parents[parents];
+
+  for (int f = 0; f < parents; f++)
     {
-      int sum = 0;
-      for(int qpos = 0; qpos < ci->query_len; qpos++)
+      best_parents[f].cand = -1;
+      best_parents[f].start = -1;
+    }
+
+  bool position_used[ci->query_len];
+  for (int i = 0; i < ci->query_len; i++)
+    {
+      position_used[i] = false;
+    }
+
+  int pos_remaining = ci->query_len;
+  int parents_found = 0;
+
+  for (int f = 0; f < parents; f++)
+    {
+      /* scan each candidate and find longest matching region */
+
+      int best_start = 0;
+      int best_len = 0;
+      int best_cand = -1;
+
+      for (int i = 0; i < ci->cand_count; i++)
         {
-          int z = i * ci->query_len + qpos;
-          sum += ci->match[z];
-          if (qpos >= window)
+          int start = 0;
+          int len = 0;
+
+          for (int j = 0; j < ci->query_len; j++)
             {
-              sum -= ci->match[z-window];
-            }
-          if (qpos >= window-1)
-            {
-              ci->smooth[z] = sum;
-              if (ci->smooth[z] > ci->maxsmooth[qpos])
+              if ((position_used[j] == false) &&
+                  (ci->match[i * ci->query_len + j] == 1) &&
+                  ((len == 0) || (ci->insert[i * ci->query_len + j] == 0)))
                 {
-                  ci->maxsmooth[qpos] = ci->smooth[z];
+                  if (len == 0)
+                    {
+                      start = j;
+                    }
+                  len++;
+                  if (len > best_len)
+                    {
+                      best_cand = i;
+                      best_start = start;
+                      best_len = len;
+                    }
+                }
+              else
+                {
+                  len = 0;
                 }
             }
         }
+
+      if (best_len >= parent_len_min)
+        {
+          best_parents[f].cand = best_cand;
+          best_parents[f].start = best_start;
+          best_parents[f].len = best_len;
+          parents_found++;
+
+#if 0
+          if (f == 0)
+            printf("\n");
+          printf("Best parents long: %d %d %d %d %s %s\n",
+                 f,
+                 best_cand,
+                 best_start,
+                 best_len,
+                 ci->query_head,
+                 db_getheader(ci->cand_list[best_cand]));
+#endif
+
+          /* mark positions used */
+          for (int j = best_start; j < best_start + best_len; j++)
+            {
+              position_used[j] = true;
+            }
+          pos_remaining -= best_len;
+        }
+      else
+        break;
     }
 
-  /* find first parent */
+  /* sort parents by position */
+  qsort(best_parents,
+        parents_found,
+        sizeof(struct parents_info_s),
+        compare_positions);
 
-  int wins[ci->cand_count];
+  ci->parents_found = parents_found;
 
-  memset(wins, 0, ci->cand_count * sizeof(int));
-
-  for(int qpos = window-1; qpos < ci->query_len; qpos++)
+  for (int f = 0; f < parents_found; f++)
     {
-      if (ci->maxsmooth[qpos] != 0)
+      ci->best_parents[f] = best_parents[f].cand;
+      ci->best_start[f] = best_parents[f].start;
+      ci->best_len[f] = best_parents[f].len;
+    }
+
+#if 0
+  if (pos_remaining == 0)
+    printf("Fully covered!\n");
+  else
+    printf("Not covered completely (%d).\n", pos_remaining);
+#endif
+
+  return (parents_found > 1) && (pos_remaining == 0);
+}
+
+int find_best_parents(struct chimera_info_s * ci)
+{
+  find_matches(ci);
+
+  int best_parent_cand[parents];
+
+  for (int f = 0; f < parents; f++)
+    {
+      best_parent_cand[f] = -1;
+      ci->best_parents[f] = -1;
+    }
+
+  bool cand_selected[ci->cand_count];
+
+  for (int i = 0; i < ci->cand_count; i++)
+    cand_selected[i] = false;
+
+  for (int f = 0; f < parents; f++)
+    {
+      if (f > 0)
         {
-          for(int i=0; i < ci->cand_count; i++)
+          /* for all parents except the first */
+
+          /* wipe out matches for all candidates in positions
+             covered by the previous parent */
+
+          for(int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
-              int z = i * ci->query_len + qpos;
+              int z = best_parent_cand[f-1] * ci->query_len + qpos;
               if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
-                  wins[i]++;
-                }
-            }
-        }
-    }
-
-  int best1_w = -1;
-  int best1_i = -1;
-  int best2_w = -1;
-  int best2_i = -1;
-
-  for(int i=0; i < ci->cand_count; i++)
-    {
-      int w = wins[i];
-      if (w > best1_w)
-        {
-          best1_w = w;
-          best1_i = i;
-        }
-    }
-
-  if (best1_w >= 0)
-    {
-      /* find second parent */
-
-      /* wipe out matches in positions covered by first parent */
-
-      for(int qpos = window - 1; qpos < ci->query_len; qpos++)
-        {
-          int z = best1_i * ci->query_len + qpos;
-          if (ci->smooth[z] == ci->maxsmooth[qpos])
-            {
-              for(int i = qpos + 1 - window; i <= qpos; i++)
-                {
-                  for(int j = 0; j < ci->cand_count; j++)
+                  for(int i = qpos + 1 - window; i <= qpos; i++)
                     {
-                      ci->match[j * ci->query_len + i] = 0;
+                      for(int j = 0; j < ci->cand_count; j++)
+                        {
+                          ci->match[j * ci->query_len + i] = 0;
+                        }
                     }
                 }
             }
         }
 
-      /*
-        recompute smoothed identity over window, and record max smoothed
-        score for each position among remaining candidates
-      */
 
-      memset(ci->maxsmooth, 0, ci->query_len * sizeof(int));
+      /* Compute smoothed score in a 32bp window for each candidate. */
+      /* Record max smoothed score for each position among candidates left. */
+
+      for (int j = 0; j < ci->query_len; j++)
+        ci->maxsmooth[j] = 0;
 
       for(int i = 0; i < ci->cand_count; i++)
         {
-          if (i != best1_i)
+          if (! cand_selected[i])
             {
               int sum = 0;
               for(int qpos = 0; qpos < ci->query_len; qpos++)
@@ -372,9 +480,12 @@ int find_best_parents(struct chimera_info_s * ci)
             }
         }
 
-      /* find second parent */
 
-      memset(wins, 0, ci->cand_count * sizeof(int));
+      /* find parent with the most wins */
+
+      int wins[ci->cand_count];
+      for (int i = 0; i < ci->cand_count; i++)
+        wins[i] = 0;
 
       for(int qpos = window-1; qpos < ci->query_len; qpos++)
         {
@@ -382,7 +493,7 @@ int find_best_parents(struct chimera_info_s * ci)
             {
               for(int i=0; i < ci->cand_count; i++)
                 {
-                  if (i != best1_i)
+                  if (! cand_selected[i])
                     {
                       int z = i * ci->query_len + qpos;
                       if (ci->smooth[z] == ci->maxsmooth[qpos])
@@ -394,35 +505,50 @@ int find_best_parents(struct chimera_info_s * ci)
             }
         }
 
-      for(int i=0; i < ci->cand_count; i++)
+      /* select best parent based on most wins */
+
+      int maxwins = 0;
+      for(int i = 0; i < ci->cand_count; i++)
         {
           int w = wins[i];
-          if (w > best2_w)
+          if (w > maxwins)
             {
-              best2_w = w;
-              best2_i = i;
+              maxwins = w;
+              best_parent_cand[f] = i;
             }
         }
+
+      /* terminate loop if no parent found */
+
+      if (best_parent_cand[f] < 0)
+        break;
+
+#if 0
+      printf("Query %d: Best parent (%d) candidate: %d. Wins: %d\n",
+             ci->query_no, f, best_parent_cand[f], maxwins);
+#endif
+
+      ci->best_parents[f] = best_parent_cand[f];
+      cand_selected[best_parent_cand[f]] = true;
     }
 
-  ci->best_parents[0] = best1_i;
-  ci->best_parents[1] = best2_i;
+  /* Check if at least 2 candidates selected */
 
-  return (best1_w >= 0) && (best2_w >= 0);
+  return (best_parent_cand[0] >= 0) && (best_parent_cand[1] >= 0);
 }
 
-int eval_parents(struct chimera_info_s * ci)
+int eval_parents_long(struct chimera_info_s * ci)
 {
-  int status = 1;
-
-  /* create msa */
+  /* always chimeric if called */
+  int status = 4;
 
   /* find max insertions in front of each position in the query sequence */
-  memset(ci->maxi, 0, (ci->query_len + 1) * sizeof(int));
+  for (int i = 0; i <= ci->query_len; i++)
+    ci->maxi[i] = 0;
 
-  for(int best_parent
-        : ci->best_parents)
+  for (int f = 0; f < ci->parents_found; f++)
     {
+      int best_parent = ci->best_parents[f];
       char * p = ci->nwcigar[best_parent];
       char * e = p + strlen(p);
       int pos = 0;
@@ -460,25 +586,33 @@ int eval_parents(struct chimera_info_s * ci)
 
   /* fill in alignment string for query */
 
+  char * pm = ci->model;
+  int m = 0;
   char * q = ci->qaln;
   int qpos = 0;
   for (int i=0; i < ci->query_len; i++)
     {
+      if (qpos >= (ci->best_start[m] + ci->best_len[m]))
+        m++;
       for (int j=0; j < ci->maxi[i]; j++)
         {
           *q++ = '-';
+          *pm++ = 'A' + m;
         }
       *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
+      *pm++ = 'A' + m;
     }
   for (int j=0; j < ci->maxi[ci->query_len]; j++)
     {
       *q++ = '-';
+      *pm++ = 'A' + m;
     }
   *q = 0;
+  *pm = 0;
 
-  /* fill in alignment strings for the 2 parents */
+  /* fill in alignment strings for the parents */
 
-  for(int j=0; j<2; j++)
+  for(int j = 0; j < ci->parents_found; j++)
     {
       int cand = ci->best_parents[j];
       int target_seqno = ci->cand_list[cand];
@@ -556,7 +690,461 @@ int eval_parents(struct chimera_info_s * ci)
       *t = 0;
     }
 
-  memset(ci->ignore, 0, alnlen);
+  for (int i = 0; i < alnlen; i++)
+    ci->ignore[i] = 0;
+
+
+  for(int i = 0; i < alnlen; i++)
+    {
+      unsigned int qsym = chrmap_4bit[(int)(ci->qaln[i])];
+      unsigned int psym[ci->parents_found];
+      for (int f = 0; f < ci->parents_found; f++)
+        psym[f] = chrmap_4bit[(int)(ci->paln[f][i])];
+
+#if 0
+      /* mark positions to ignore in voting */
+
+      bool ign = ! qsym;
+      for (int f = 0; f < ci->parents_found; f++)
+        ign = ign || ! psym[f];
+
+      /* ignore gap positions and those next to the gap */
+      if (ign)
+        {
+          ci->ignore[i] = 1;
+          if (i > 0)
+            {
+              ci->ignore[i-1] = 1;
+            }
+          if (i < alnlen - 1)
+            {
+              ci->ignore[i+1] = 1;
+            }
+        }
+
+      /* ignore ambiguous symbols */
+      bool amb = ambiguous_4bit[qsym];
+      for (int f = 0; f < ci->parents_found; f++)
+        amb = amb || ambiguous_4bit[psym[f]];
+
+      if (amb)
+        {
+          ci->ignore[i] = 1;
+        }
+#endif
+
+      /* lower case parent symbols that differ from query */
+
+      for (int f = 0; f < ci->parents_found; f++)
+        if (psym[f] && (psym[f] != qsym))
+          ci->paln[f][i] = tolower(ci->paln[f][i]);
+
+      /* compute diffs */
+
+      char diff;
+
+      bool all_defined = qsym;
+      for (int f = 0; f < ci->parents_found; f++)
+        if (!psym[f])
+          all_defined = false;
+
+      if (all_defined)
+        {
+          bool parents_equal = true;
+          for (int f = 1; f < ci->parents_found; f++)
+            if (psym[f] != psym[f-1])
+              parents_equal = false;
+
+          diff = ' ';
+          if (! parents_equal)
+            {
+              char m = ci->model[i];
+              int f = m - 'A';
+              if (qsym == psym[f])
+                diff = m;
+              else
+                diff = '?'; /* never happens */
+            }
+        }
+      else
+        {
+          diff = ' ';
+        }
+
+      ci->diffs[i] = diff;
+    }
+
+  ci->diffs[alnlen] = 0;
+
+
+  /* count matches */
+
+  int match_QP[parents];
+  int cols = 0;
+
+  for(int f = 0; f < ci->parents_found; f++)
+    match_QP[f] = 0;
+
+  for(int i = 0; i < alnlen; i++)
+    {
+      if (! ci->ignore[i])
+        {
+          cols++;
+
+          char qsym = chrmap_4bit[(int)(ci->qaln[i])];
+
+          for(int f = 0; f < ci->parents_found; f++)
+            {
+              char psym = chrmap_4bit[(int)(ci->paln[f][i])];
+              if (qsym == psym)
+                match_QP[f]++;
+            }
+        }
+    }
+
+
+  int seqno_a = ci->cand_list[ci->best_parents[0]];
+  int seqno_b = ci->cand_list[ci->best_parents[1]];
+  int seqno_c = -1;
+  if (ci->parents_found > 2)
+    seqno_c = ci->cand_list[ci->best_parents[2]];
+
+  double QP[parents];
+  double QT = 0.0;
+
+  for (int f = 0; f < parents; f++)
+    {
+      if (f < ci->parents_found)
+        QP[f] = 100.0 * match_QP[f] / cols;
+      else
+        QP[f] = 0.0;
+      if (QP[f] > QT)
+        QT = QP[f];
+    }
+
+  double QA = QP[0];
+  double QB = QP[1];
+  double QC = ci->parents_found > 2 ? QP[2] : 0.00;
+  double QM = 100.00;
+  double divfrac = 100.00 * (QM - QT) / QT;
+
+  xpthread_mutex_lock(&mutex_output);
+
+  if (opt_uchimealns && (status == 4))
+    {
+      fprintf(fp_uchimealns, "\n");
+      fprintf(fp_uchimealns, "----------------------------------------"
+              "--------------------------------\n");
+      fprintf(fp_uchimealns, "Query   (%5d nt) ",
+              ci->query_len);
+      if (opt_xsize)
+        {
+          header_fprint_strip_size(fp_uchimealns,
+                                   ci->query_head,
+                                   ci->query_head_len);
+        }
+      else
+        {
+          fprintf(fp_uchimealns, "%s", ci->query_head);
+        }
+
+      for (int f = 0; f < ci->parents_found; f++)
+        {
+          int seqno = ci->cand_list[ci->best_parents[f]];
+          fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
+                  'A' + f,
+                  db_getsequencelen(seqno));
+          if (opt_xsize)
+            {
+              header_fprint_strip_size(fp_uchimealns,
+                                       db_getheader(seqno),
+                                       db_getheaderlen(seqno));
+            }
+          else
+            {
+              fprintf(fp_uchimealns, "%s", db_getheader(seqno));
+            }
+        }
+
+      fprintf(fp_uchimealns, "\n\n");
+
+
+      int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
+      qpos = 0;
+      int ppos[parents];
+      for (int f = 0; f < ci->parents_found; f++)
+        ppos[f] = 0;
+      int rest = alnlen;
+
+      for(int i = 0; i < alnlen; i += width)
+        {
+          /* count non-gap symbols on current line */
+
+          int qnt = 0;
+          int pnt[parents];
+          for (int f = 0; f < ci->parents_found; f++)
+            pnt[f] = 0;
+
+          int w = MIN(rest, width);
+
+          for(int j=0; j<w; j++)
+            {
+              if (ci->qaln[i+j] != '-')
+                {
+                  qnt++;
+                }
+
+              for (int f = 0; f < ci->parents_found; f++)
+                if (ci->paln[f][i+j] != '-')
+                  {
+                    pnt[f]++;
+                  }
+            }
+
+          fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                  qpos+1,  w, ci->qaln+i,    qpos+qnt);
+
+          for (int f = 0; f < ci->parents_found; f++)
+            {
+              fprintf(fp_uchimealns, "%c %5d %.*s %d\n",
+                      'A' + f,
+                      ppos[f] + 1, w, ci->paln[f] + i, ppos[f] + pnt[f]);
+            }
+
+          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs+i);
+          fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model+i);
+          fprintf(fp_uchimealns, "\n");
+
+          rest -= width;
+          qpos += qnt;
+          for (int f = 0; f < ci->parents_found; f++)
+            ppos[f] += pnt[f];
+        }
+
+      fprintf(fp_uchimealns, "Ids.  QA %.2f%%, QB %.2f%%, QC %.2f%%, "
+              "QT %.2f%%, QModel %.2f%%, Div. %+.2f%%\n",
+              QA, QB, QC, QT, QM, divfrac);
+    }
+
+  if (opt_uchimeout)
+    {
+      fprintf(fp_uchimeout, "%.4f\t", 99.9999);
+
+      if (opt_xsize)
+        {
+          header_fprint_strip_size(fp_uchimeout,
+                                   ci->query_head,
+                                   ci->query_head_len);
+          fprintf(fp_uchimeout, "\t");
+          header_fprint_strip_size(fp_uchimeout,
+                                   db_getheader(seqno_a),
+                                   db_getheaderlen(seqno_a));
+          fprintf(fp_uchimeout, "\t");
+          header_fprint_strip_size(fp_uchimeout,
+                                   db_getheader(seqno_b),
+                                   db_getheaderlen(seqno_b));
+          fprintf(fp_uchimeout, "\t");
+          if (seqno_c >= 0)
+            {
+              header_fprint_strip_size(fp_uchimeout,
+                                       db_getheader(seqno_c),
+                                       db_getheaderlen(seqno_c));
+            }
+          else
+            {
+              fprintf(fp_uchimeout, "*");
+            }
+          fprintf(fp_uchimeout, "\t");
+        }
+      else
+        {
+          fprintf(fp_uchimeout,
+                  "%s\t%s\t%s\t",
+                  ci->query_head,
+                  db_getheader(seqno_a),
+                  db_getheader(seqno_b));
+          if (seqno_c >= 0)
+            {
+              fprintf(fp_uchimeout, "%s\t", db_getheader(seqno_c));
+            }
+          else
+            {
+              fprintf(fp_uchimeout, "*");
+            }
+          fprintf(fp_uchimeout, "\t");
+        }
+
+      fprintf(fp_uchimeout,
+              "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
+              "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
+              QM,
+              QA,
+              QB,
+              QC,
+              QT,
+              0, /* ignore, left yes */
+              0, /* ignore, left no */
+              0, /* ignore, left abstain */
+              0, /* ignore, right yes */
+              0, /* ignore, right no */
+              0, /* ignore, right abstain */
+              0.00,
+              status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
+    }
+
+  xpthread_mutex_unlock(&mutex_output);
+
+  return status;
+}
+
+int eval_parents(struct chimera_info_s * ci)
+{
+  int status = 1;
+
+  /* create msa */
+
+  /* find max insertions in front of each position in the query sequence */
+  for (int i = 0; i <= ci->query_len; i++)
+    ci->maxi[i] = 0;
+
+  for (int f = 0; f < 2; f++)
+    {
+      int best_parent = ci->best_parents[f];
+      char * p = ci->nwcigar[best_parent];
+      char * e = p + strlen(p);
+      int pos = 0;
+      while (p < e)
+        {
+          int run = 1;
+          int scanlength = 0;
+          sscanf(p, "%d%n", &run, &scanlength);
+          p += scanlength;
+          char op = *p++;
+          switch (op)
+            {
+            case 'M':
+            case 'D':
+              pos += run;
+              break;
+
+            case 'I':
+              if (run > ci->maxi[pos])
+                {
+                  ci->maxi[pos] = run;
+                }
+              break;
+            }
+        }
+    }
+
+  /* find total alignment length */
+  int alnlen = 0;
+  for(int i=0; i < ci->query_len+1; i++)
+    {
+      alnlen += ci->maxi[i];
+    }
+  alnlen += ci->query_len;
+
+  /* fill in alignment string for query */
+
+  char * q = ci->qaln;
+  int qpos = 0;
+  for (int i=0; i < ci->query_len; i++)
+    {
+      for (int j=0; j < ci->maxi[i]; j++)
+        {
+          *q++ = '-';
+        }
+      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
+    }
+  for (int j=0; j < ci->maxi[ci->query_len]; j++)
+    {
+      *q++ = '-';
+    }
+  *q = 0;
+
+  /* fill in alignment strings for the (2) parents */
+
+  for(int j = 0; j < 2; j++)
+    {
+      int cand = ci->best_parents[j];
+      int target_seqno = ci->cand_list[cand];
+      char * target_seq = db_getsequence(target_seqno);
+
+      int inserted = 0;
+      qpos = 0;
+      int tpos = 0;
+
+      char * t = ci->paln[j];
+
+      char * p = ci->nwcigar[cand];
+      char * e = p + strlen(p);
+      while (p < e)
+        {
+          int run = 1;
+          int scanlength = 0;
+          sscanf(p, "%d%n", &run, &scanlength);
+          p += scanlength;
+          char op = *p++;
+
+          if (op == 'I')
+            {
+              for(int x=0; x < ci->maxi[qpos]; x++)
+                {
+                  if (x < run)
+                    {
+                      *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
+                    }
+                  else
+                    {
+                      *t++ = '-';
+                    }
+                }
+              inserted = 1;
+            }
+          else
+            {
+              for(int x=0; x < run; x++)
+                {
+                  if (!inserted)
+                    {
+                      for(int y=0; y < ci->maxi[qpos]; y++)
+                        {
+                          *t++ = '-';
+                        }
+                    }
+
+                  if (op == 'M')
+                    {
+                      *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
+                    }
+                  else
+                    {
+                      *t++ = '-';
+                    }
+
+                  qpos++;
+                  inserted = 0;
+                }
+            }
+        }
+
+      /* add any gaps at the end */
+
+      if (!inserted)
+        {
+          for(int x=0; x < ci->maxi[qpos]; x++)
+            {
+              *t++ = '-';
+            }
+        }
+
+      /* end of sequence string */
+      *t = 0;
+    }
+
+  for (int i = 0; i < alnlen; i++)
+    ci->ignore[i] = 0;
 
   for(int i = 0; i < alnlen; i++)
     {
@@ -570,11 +1158,11 @@ int eval_parents(struct chimera_info_s * ci)
       if ((!qsym) || (!p1sym) || (!p2sym))
         {
           ci->ignore[i] = 1;
-          if (i>0)
+          if (i > 0)
             {
               ci->ignore[i-1] = 1;
             }
-          if (i<alnlen-1)
+          if (i < alnlen - 1)
             {
               ci->ignore[i+1] = 1;
             }
@@ -659,13 +1247,11 @@ int eval_parents(struct chimera_info_s * ci)
             {
               sumA++;
             }
-          else if
-            (diff == 'B')
+          else if (diff == 'B')
             {
               sumB++;
             }
-          else if
-            (diff != ' ')
+          else if (diff != ' ')
             {
               sumN++;
             }
@@ -1134,8 +1720,7 @@ void query_init(struct searchinfo_s * si)
   si->qsequence = nullptr;
   si->kmers = nullptr;
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
-  si->kmers = (count_t *) xmalloc(db_getsequencecount() *
-                                  sizeof(count_t) + 32);
+  si->kmers = (count_t *) xmalloc(db_getsequencecount()*sizeof(count_t) + 32);
   si->hit_count = 0;
   si->uh = unique_init();
   si->s = search16_init(opt_match,
@@ -1181,7 +1766,7 @@ void partition_query(struct chimera_info_s * ci)
 {
   int rest = ci->query_len;
   char * p = ci->query_seq;
-  for (int i=0; i<parts; i++)
+  for (int i = 0; i < parts; i++)
     {
       int len = (rest+(parts-1-i))/(parts-i);
 
@@ -1210,14 +1795,18 @@ void chimera_thread_init(struct chimera_info_s * ci)
   ci->maxi = nullptr;
   ci->maxsmooth = nullptr;
   ci->match = nullptr;
+  ci->insert = nullptr;
   ci->smooth = nullptr;
-  ci->paln[0] = nullptr;
-  ci->paln[1] = nullptr;
   ci->qaln = nullptr;
   ci->diffs = nullptr;
   ci->votes = nullptr;
   ci->model = nullptr;
   ci->ignore = nullptr;
+
+  for (int f = 0; f < parents; f++)
+    {
+      ci->paln[f] = nullptr;
+    }
 
   for(int i = 0; i < parts; i++)
     {
@@ -1257,6 +1846,10 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     {
       xfree(ci->match);
     }
+  if (ci->insert)
+    {
+      xfree(ci->insert);
+    }
   if (ci->smooth)
     {
       xfree(ci->smooth);
@@ -1285,14 +1878,6 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     {
       xfree(ci->qaln);
     }
-  if (ci->paln[0])
-    {
-      xfree(ci->paln[0]);
-    }
-  if (ci->paln[1])
-    {
-      xfree(ci->paln[1]);
-    }
   if (ci->query_seq)
     {
       xfree(ci->query_seq);
@@ -1301,6 +1886,12 @@ void chimera_thread_exit(struct chimera_info_s * ci)
     {
       xfree(ci->query_head);
     }
+
+  for (int f = 0; f < parents; f++)
+    if (ci->paln[f])
+      {
+        xfree(ci->paln[f]);
+      }
 }
 
 uint64_t chimera_thread_core(struct chimera_info_s * ci)
@@ -1434,6 +2025,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           if (allhits_list[i].nwalignment)
             {
               xfree(allhits_list[i].nwalignment);
+              allhits_list[i].nwalignment = nullptr;
             }
         }
 
@@ -1509,13 +2101,28 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       /* find the best pair of parents, then compute score for them */
 
-      if (find_best_parents(ci))
+      if (1)
         {
-          status = eval_parents(ci);
+          /* long high-quality reads */
+          if (find_best_parents_long(ci))
+            {
+              status = eval_parents_long(ci);
+            }
+          else
+            {
+              status = 0;
+            }
         }
       else
         {
-          status = 0;
+          if (find_best_parents(ci))
+            {
+              status = eval_parents(ci);
+            }
+          else
+            {
+              status = 0;
+            }
         }
 
       /* output results */
@@ -1610,12 +2217,6 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                 }
             }
 
-          /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
-            {
-              dbindex_addsequence(seqno, opt_qmask);
-            }
-
           if (opt_nonchimeras)
             {
               fasta_print_general(fp_nonchimeras,
@@ -1636,13 +2237,21 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             }
         }
 
+      if (status < 3)
+        {
+          /* uchime_denovo: add non-chimeras to db */
+          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
+            {
+              dbindex_addsequence(seqno, opt_qmask);
+            }
+        }
+
       for (int i=0; i < ci->cand_count; i++)
         {
           if (ci->nwcigar[i])
             {
               xfree(ci->nwcigar[i]);
             }
-
         }
 
       if (opt_uchime_ref)
