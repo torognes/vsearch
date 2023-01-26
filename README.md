@@ -333,8 +333,8 @@ doi:[10.1093/bioinformatics/btv401](https://doi.org/10.1093/bioinformatics/btv40
 
 * Edgar RC (2016)
 **UNOISE2: improved error-correction for Illumina 16S and ITS amplicon sequencing.**
-*biorxiv*.
-doi:[10.1101/081257]([https://doi.org/10.1093/bioinformatics/btv401](https://doi.org/10.1101/081257))
+*bioRxiv*.
+doi:[10.1101/081257](https://doi.org/10.1101/081257)
 
 * Guillou L, Bachar D, Audic S, Bass D, Berney C, Bittner L, Boutte C, Burgaud G, de Vargas C, Decelle J, del Campo J, Dolan J, Dunthorn M, Edvardsen B, Holzmann M, Kooistra W, Lara E, Lebescot N, Logares R, Mahé F, Massana R, Montresor M, Morard R, Not F, Pawlowski J, Probert I, Sauvadet A-L, Siano R, Stoeck T, Vaulot D, Zimmermann P & Christen R (2013)
 **The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.**
