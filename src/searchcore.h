@@ -153,7 +153,7 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
                                      struct searchinfo_s * si_m);
 
 auto search_acceptable_unaligned(struct searchinfo_s * si,
-                                 int target) -> int;
+                                 int target) -> bool;
 
 auto search_acceptable_aligned(struct searchinfo_s * si,
                                struct hit * hit) -> bool;

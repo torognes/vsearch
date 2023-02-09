@@ -424,7 +424,7 @@ void align_trim(struct hit * hit)
 }
 
 auto search_acceptable_unaligned(struct searchinfo_s * si,
-                                 int target) -> int
+                                 int target) -> bool
 {
   /* consider whether a hit satisfies accept criteria before alignment */
 
@@ -485,12 +485,12 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
       )
     {
       /* needs further consideration */
-      return 1;
+      return true;
     }
   else
     {
       /* reject */
-      return 0;
+      return false;
     }
 }
 
