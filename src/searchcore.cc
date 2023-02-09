@@ -426,7 +426,7 @@ void align_trim(struct hit * hit)
 int search_acceptable_unaligned(struct searchinfo_s * si,
                                 int target)
 {
-  /* consider whether a hit satisfy accept criteria before alignment */
+  /* consider whether a hit satisfies accept criteria before alignment */
 
   char * qseq = si->qsequence;
   char * dlabel = db_getheader(target);
