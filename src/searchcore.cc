@@ -423,8 +423,8 @@ void align_trim(struct hit * hit)
     }
 }
 
-int search_acceptable_unaligned(struct searchinfo_s * si,
-                                int target)
+auto search_acceptable_unaligned(struct searchinfo_s * si,
+                                 int target) -> int
 {
   /* consider whether a hit satisfies accept criteria before alignment */
 
