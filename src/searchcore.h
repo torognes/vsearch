@@ -58,7 +58,6 @@
 
 */
 
-//#define COMPARENONVECTORIZED
 
 /* the number of alignments that can be delayed */
 constexpr auto MAXDELAYED {8U};
