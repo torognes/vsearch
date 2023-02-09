@@ -259,7 +259,7 @@ void search_topscores(struct searchinfo_s * si)
         }
     }
 
-  int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
+  const int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
 
   for(int i=0; i < indexed_count; i++)
     {
@@ -285,8 +285,8 @@ int seqncmp(char * a, char * b, uint64_t n)
 {
   for(unsigned int i = 0; i<n; i++)
     {
-      int x = chrmap_4bit[(int)(a[i])];
-      int y = chrmap_4bit[(int)(b[i])];
+      const int x = chrmap_4bit[(int)(a[i])];
+      const int y = chrmap_4bit[(int)(b[i])];
       if (x < y)
         {
           return -1;
