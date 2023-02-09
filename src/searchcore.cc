@@ -494,8 +494,8 @@ int search_acceptable_unaligned(struct searchinfo_s * si,
     }
 }
 
-int search_acceptable_aligned(struct searchinfo_s * si,
-                              struct hit * hit)
+auto search_acceptable_aligned(struct searchinfo_s * si,
+                               struct hit * hit) -> int
 {
   if (/* weak_id */
       (hit->id >= 100.0 * opt_weak_id) &&
