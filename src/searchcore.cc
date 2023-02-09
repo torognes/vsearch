@@ -525,11 +525,11 @@ int search_acceptable_aligned(struct searchinfo_s * si,
     {
       if (opt_cluster_unoise)
         {
-          const int d = hit->mismatches;
+          const int mismatches = hit->mismatches;
           const double skew = 1.0 * si->qsize / db_getabundance(hit->target);
-          const double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * d + 1);
+          const double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * mismatches + 1);
 
-          if (skew <= beta || d == 0)
+          if (skew <= beta || mismatches == 0)
             {
               /* accepted */
               hit->accepted = true;
