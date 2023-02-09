@@ -431,8 +431,8 @@ int search_acceptable_unaligned(struct searchinfo_s * si,
   char * qseq = si->qsequence;
   char * dlabel = db_getheader(target);
   char * dseq = db_getsequence(target);
-  int64_t dseqlen = db_getsequencelen(target);
-  int64_t tsize = db_getabundance(target);
+  const int64_t dseqlen = db_getsequencelen(target);
+  const int64_t tsize = db_getabundance(target);
 
   if (
       /* maxqsize */
