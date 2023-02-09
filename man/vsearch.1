@@ -775,10 +775,9 @@ by decreasing sequence length, unless \-\-usersort is used.
 .BI \-\-cluster_unoise \0filename
 Perform denoising of the fasta sequences in \fIfilename\fR according
 to the UNOISE version 3 algorithm by Robert Edgar, but without the
-chimera removal step. The options \-\-minsize (default 8) and
-\-\-unoise_alpha (default 2.0) may be specified. Chimera removal
-(\fIde novo\fR) should be performed afterwards with
-\-\-uchime3_denovo.
+\fIde novo\fR chimera removal step, which can be performed afterwards
+with \-\-uchime3_denovo. The options \-\-minsize (default 8) and
+\-\-unoise_alpha (default 2.0) may be specified.
 .TAG clusters
 .TP
 .BI \-\-clusters \0string
