@@ -1425,9 +1425,10 @@ void cluster(char * dbname,
   /* allocate memory for full file name of the clusters files */
   FILE * fp_clusters = nullptr;
   char * fn_clusters = nullptr;
-  int fn_clusters_size = strlen(opt_clusters) + 25;
+  int fn_clusters_size = 0;
   if (opt_clusters)
     {
+      fn_clusters_size += strlen(opt_clusters) + 25;
       fn_clusters = (char *) xmalloc(fn_clusters_size);
     }
 
