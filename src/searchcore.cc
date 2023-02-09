@@ -219,7 +219,7 @@ void search_topscores(struct searchinfo_s * si)
   */
 
   /* count kmer hits in the database sequences */
-  int indexed_count = dbindex_getcount();
+  const int indexed_count = dbindex_getcount();
 
   /* zero counts */
   memset(si->kmers, 0, indexed_count * sizeof(count_t));
