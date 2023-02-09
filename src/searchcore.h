@@ -58,12 +58,13 @@
 
 */
 
+#include <array>
 
 /* the number of alignments that can be delayed */
 constexpr auto MAXDELAYED {8U};
 
 /* Default minimum number of word matches for word lengths 3-15 */
-const int minwordmatches_defaults[] =
+constexpr std::array<int, 16> minwordmatches_defaults =
   { -1, -1, -1, 18, 17, 16, 15, 14, 12, 11, 10,  9,  8,  7,  5,  3 };
 
 struct hit
