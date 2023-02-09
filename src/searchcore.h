@@ -61,7 +61,7 @@
 //#define COMPARENONVECTORIZED
 
 /* the number of alignments that can be delayed */
-#define MAXDELAYED 8
+constexpr auto MAXDELAYED {8U};
 
 /* Default minimum number of word matches for word lengths 3-15 */
 const int minwordmatches_defaults[] =
