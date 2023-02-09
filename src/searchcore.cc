@@ -525,7 +525,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
     {
       if (opt_cluster_unoise)
         {
-          const int mismatches = hit->mismatches;
+          const auto mismatches = hit->mismatches;
           const double skew = 1.0 * si->qsize / db_getabundance(hit->target);
           const double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * mismatches + 1);
 
