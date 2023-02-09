@@ -495,7 +495,7 @@ int search_acceptable_unaligned(struct searchinfo_s * si,
 }
 
 auto search_acceptable_aligned(struct searchinfo_s * si,
-                               struct hit * hit) -> int
+                               struct hit * hit) -> bool
 {
   if (/* weak_id */
       (hit->id >= 100.0 * opt_weak_id) &&
@@ -534,14 +534,14 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
               /* accepted */
               hit->accepted = true;
               hit->weak = false;
-              return 1;
+              return true;
             }
           else
             {
               /* rejected, but weak hit */
               hit->rejected = true;
               hit->weak = true;
-              return 0;
+              return false;
             }
         }
       else
@@ -551,14 +551,14 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
               /* accepted */
               hit->accepted = true;
               hit->weak = false;
-              return 1;
+              return true;
             }
           else
             {
               /* rejected, but weak hit */
               hit->rejected = true;
               hit->weak = true;
-              return 0;
+              return false;
             }
         }
     }
@@ -567,7 +567,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       /* rejected */
       hit->rejected = true;
       hit->weak = false;
-      return 0;
+      return false;
     }
 }
 
