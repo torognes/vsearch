@@ -147,6 +147,7 @@ char * opt_label_words;
 char * opt_label_field;
 char * opt_lcaout;
 char * opt_log;
+char * opt_long_chimeras_denovo;
 char * opt_makeudb_usearch;
 char * opt_maskfasta;
 char * opt_matched;
@@ -868,6 +869,7 @@ void args_init(int argc, char **argv)
   opt_lca_cutoff = 1.0;
   opt_lcaout = nullptr;
   opt_log = nullptr;
+  opt_long_chimeras_denovo = nullptr;
   opt_makeudb_usearch = nullptr;
   opt_maskfasta = nullptr;
   opt_match = 2;
@@ -1104,6 +1106,7 @@ void args_init(int argc, char **argv)
       option_leftjust,
       option_length_cutoffs,
       option_log,
+      option_long_chimeras_denovo,
       option_makeudb_usearch,
       option_maskfasta,
       option_match,
@@ -1343,6 +1346,7 @@ void args_init(int argc, char **argv)
       {"leftjust",              no_argument,       nullptr, 0 },
       {"length_cutoffs",        required_argument, nullptr, 0 },
       {"log",                   required_argument, nullptr, 0 },
+      {"long_chimeras_denovo",  required_argument, nullptr, 0 },
       {"makeudb_usearch",       required_argument, nullptr, 0 },
       {"maskfasta",             required_argument, nullptr, 0 },
       {"match",                 required_argument, nullptr, 0 },
@@ -2483,6 +2487,10 @@ void args_init(int argc, char **argv)
           opt_derep_smallmem = optarg;
           break;
 
+        case option_long_chimeras_denovo:
+          opt_long_chimeras_denovo = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2533,6 +2541,7 @@ void args_init(int argc, char **argv)
       option_fastx_uniques,
       option_h,
       option_help,
+      option_long_chimeras_denovo,
       option_makeudb_usearch,
       option_maskfasta,
       option_orient,
@@ -3691,6 +3700,46 @@ void args_init(int argc, char **argv)
         option_threads,
         -1 },
 
+      { option_long_chimeras_denovo,
+        option_abskew,
+        option_alignwidth,
+        option_borderline,
+        option_chimeras,
+        option_dn,
+        option_fasta_score,
+        option_fasta_width,
+        option_gapext,
+        option_gapopen,
+        option_hardmask,
+        option_label_suffix,
+        option_log,
+        option_match,
+        option_mindiffs,
+        option_mindiv,
+        option_minh,
+        option_mismatch,
+        option_no_progress,
+        option_nonchimeras,
+        option_notrunclabels,
+        option_qmask,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sample,
+        option_sizein,
+        option_sizeout,
+        option_threads,
+        option_uchimealns,
+        option_uchimeout,
+        option_uchimeout5,
+        option_xee,
+        option_xn,
+        option_xsize,
+        -1 },
+
       { option_makeudb_usearch,
         option_bzip2_decompress,
         option_dbmask,
@@ -4659,7 +4708,11 @@ void args_init(int argc, char **argv)
   /* set default opt_abskew depending on command */
   if (opt_abskew < 0.0)
     {
-      if (opt_uchime3_denovo)
+      if (opt_long_chimeras_denovo)
+        {
+          opt_abskew = 1.0;
+        }
+      else if (opt_uchime3_denovo)
         {
           opt_abskew = 16.0;
         }
@@ -4788,6 +4841,7 @@ void cmd_help()
               "  --version | -v              display version information\n"
               "\n"
               "Chimera detection\n"
+              "  --long_chimeras_denovo FN   detect chimeras de novo in long exact sequences\n"
               "  --uchime_denovo FILENAME    detect chimeras de novo\n"
               "  --uchime2_denovo FILENAME   detect chimeras de novo in denoised amplicons\n"
               "  --uchime3_denovo FILENAME   detect chimeras de novo in denoised amplicons\n"
@@ -5393,7 +5447,7 @@ void cmd_cluster()
     }
 }
 
-void cmd_uchime()
+void cmd_chimera()
 {
   if ((!opt_chimeras)  && (!opt_nonchimeras) &&
       (!opt_uchimeout) && (!opt_uchimealns))
@@ -5596,9 +5650,9 @@ int main(int argc, char** argv)
     {
       cmd_cluster();
     }
-  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo)
+  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo || opt_long_chimeras_denovo)
     {
-      cmd_uchime();
+      cmd_chimera();
     }
   else if (opt_fastq_chars)
     {

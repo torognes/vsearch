@@ -346,6 +346,7 @@ extern char * opt_label_words;
 extern char * opt_label_field;
 extern char * opt_lcaout;
 extern char * opt_log;
+extern char * opt_long_chimeras_denovo;
 extern char * opt_makeudb_usearch;
 extern char * opt_maskfasta;
 extern char * opt_matched;

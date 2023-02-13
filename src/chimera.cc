@@ -71,12 +71,13 @@
 */
 
 /* global constants/data, no need for synchronization */
-const int parents = 3;
-const int parts = 20; /* approx one part per 135bp, minimum 4 */
+static int parts = 0;
+const int maxparts = 100;
+const int maxparents = 4; /* max, could be fewer */
 const int parent_len_min = 10;
 const int window = 64;
 const int few = 4;
-const int maxcandidates = few * parts;
+const int maxcandidates = few * maxparts;
 const int rejects = 16;
 const double chimera_id = 0.55;
 static int tophits;
@@ -116,7 +117,7 @@ struct chimera_info_s
   char * query_seq;
   int query_len;
 
-  struct searchinfo_s si[parts];
+  struct searchinfo_s si[maxparts];
 
   unsigned int cand_list[maxcandidates];
   int cand_count;
@@ -141,15 +142,15 @@ struct chimera_info_s
   int * maxsmooth;
 
   int parents_found;
-  int best_parents[parents];
-  int best_start[parents];
-  int best_len[parents];
+  int best_parents[maxparents];
+  int best_start[maxparents];
+  int best_len[maxparents];
 
   int best_target;
   char * best_cigar;
 
   int * maxi;
-  char * paln[parents];
+  char * paln[maxparents];
   char * qaln;
   char * diffs;
   char * votes;
@@ -164,6 +165,15 @@ static struct chimera_info_s * cia;
 
 void realloc_arrays(struct chimera_info_s * ci)
 {
+  if (opt_long_chimeras_denovo)
+    {
+      parts = ci->query_len / 100;
+      if (parts < 4)
+        parts = 4;
+      else if (parts > 100)
+        parts = 100;
+    }
+
   int maxhlen = MAX(ci->query_head_len,1);
   if (maxhlen > ci->head_alloc)
     {
@@ -174,6 +184,7 @@ void realloc_arrays(struct chimera_info_s * ci)
   /* realloc arrays based on query length */
 
   int maxqlen = MAX(ci->query_len,1);
+
   if (maxqlen > ci->query_alloc)
     {
       ci->query_alloc = maxqlen;
@@ -197,7 +208,7 @@ void realloc_arrays(struct chimera_info_s * ci)
                                    maxcandidates * maxqlen * sizeof(int));
 
       int maxalnlen = maxqlen + 2 * db_getlongestsequence();
-      for (int f = 0; f < parents ; f++)
+      for (int f = 0; f < maxparents ; f++)
         {
           ci->paln[f] = (char*) xrealloc(ci->paln[f], maxalnlen+1);
         }
@@ -296,9 +307,9 @@ int find_best_parents_long(struct chimera_info_s * ci)
 
   find_matches(ci);
 
-  struct parents_info_s best_parents[parents];
+  struct parents_info_s best_parents[maxparents];
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < maxparents; f++)
     {
       best_parents[f].cand = -1;
       best_parents[f].start = -1;
@@ -313,7 +324,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
   int pos_remaining = ci->query_len;
   int parents_found = 0;
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < maxparents; f++)
     {
       /* scan each candidate and find longest matching region */
 
@@ -410,9 +421,9 @@ int find_best_parents(struct chimera_info_s * ci)
 {
   find_matches(ci);
 
-  int best_parent_cand[parents];
+  int best_parent_cand[maxparents];
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < 2; f++)
     {
       best_parent_cand[f] = -1;
       ci->best_parents[f] = -1;
@@ -423,7 +434,7 @@ int find_best_parents(struct chimera_info_s * ci)
   for (int i = 0; i < ci->cand_count; i++)
     cand_selected[i] = false;
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < 2; f++)
     {
       if (f > 0)
         {
@@ -779,7 +790,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
   /* count matches */
 
-  int match_QP[parents];
+  int match_QP[maxparents];
   int cols = 0;
 
   for(int f = 0; f < ci->parents_found; f++)
@@ -809,10 +820,10 @@ int eval_parents_long(struct chimera_info_s * ci)
   if (ci->parents_found > 2)
     seqno_c = ci->cand_list[ci->best_parents[2]];
 
-  double QP[parents];
+  double QP[maxparents];
   double QT = 0.0;
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < maxparents; f++)
     {
       if (f < ci->parents_found)
         QP[f] = 100.0 * match_QP[f] / cols;
@@ -871,7 +882,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
       int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
       qpos = 0;
-      int ppos[parents];
+      int ppos[maxparents];
       for (int f = 0; f < ci->parents_found; f++)
         ppos[f] = 0;
       int rest = alnlen;
@@ -881,7 +892,7 @@ int eval_parents_long(struct chimera_info_s * ci)
           /* count non-gap symbols on current line */
 
           int qnt = 0;
-          int pnt[parents];
+          int pnt[maxparents];
           for (int f = 0; f < ci->parents_found; f++)
             pnt[f] = 0;
 
@@ -1803,12 +1814,12 @@ void chimera_thread_init(struct chimera_info_s * ci)
   ci->model = nullptr;
   ci->ignore = nullptr;
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < maxparents; f++)
     {
       ci->paln[f] = nullptr;
     }
 
-  for(int i = 0; i < parts; i++)
+  for(int i = 0; i < maxparts; i++)
     {
       query_init(ci->si + i);
     }
@@ -1833,7 +1844,7 @@ void chimera_thread_exit(struct chimera_info_s * ci)
 {
   search16_exit(ci->s);
 
-  for(int i = 0; i < parts; i++)
+  for(int i = 0; i < maxparts; i++)
     {
       query_exit(ci->si + i);
     }
@@ -1887,7 +1898,7 @@ void chimera_thread_exit(struct chimera_info_s * ci)
       xfree(ci->query_head);
     }
 
-  for (int f = 0; f < parents; f++)
+  for (int f = 0; f < maxparents; f++)
     if (ci->paln[f])
       {
         xfree(ci->paln[f]);
@@ -2101,7 +2112,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       /* find the best pair of parents, then compute score for them */
 
-      if (1)
+      if (opt_long_chimeras_denovo)
         {
           /* long high-quality reads */
           if (find_best_parents_long(ci))
@@ -2240,7 +2251,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
       if (status < 3)
         {
           /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
+          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo || opt_long_chimeras_denovo)
             {
               dbindex_addsequence(seqno, opt_qmask);
             }
@@ -2417,10 +2428,16 @@ void chimera()
         {
           denovo_dbname = opt_uchime2_denovo;
         }
-      else
-        { // opt_uchime3_denovo
+      else if (opt_uchime3_denovo)
+        {
           denovo_dbname = opt_uchime3_denovo;
         }
+      else if (opt_long_chimeras_denovo)
+        {
+          denovo_dbname = opt_long_chimeras_denovo;
+        }
+      else
+        fatal("Internal error");
 
       db_read(denovo_dbname, 0);
 
