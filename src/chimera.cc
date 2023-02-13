@@ -173,6 +173,11 @@ void realloc_arrays(struct chimera_info_s * ci)
       else if (parts > 100)
         parts = 100;
     }
+  else
+    {
+      /* default for uchime, uchime2, and uchime3 */
+      parts = 4;
+    }
 
   int maxhlen = MAX(ci->query_head_len,1);
   if (maxhlen > ci->head_alloc)
@@ -548,12 +553,11 @@ int find_best_parents(struct chimera_info_s * ci)
   return (best_parent_cand[0] >= 0) && (best_parent_cand[1] >= 0);
 }
 
-int eval_parents_long(struct chimera_info_s * ci)
-{
-  /* always chimeric if called */
-  int status = 4;
 
+int find_max_alignment_length(struct chimera_info_s * ci)
+{
   /* find max insertions in front of each position in the query sequence */
+
   for (int i = 0; i <= ci->query_len; i++)
     ci->maxi[i] = 0;
 
@@ -595,32 +599,11 @@ int eval_parents_long(struct chimera_info_s * ci)
     }
   alnlen += ci->query_len;
 
-  /* fill in alignment string for query */
+  return alnlen;
+}
 
-  char * pm = ci->model;
-  int m = 0;
-  char * q = ci->qaln;
-  int qpos = 0;
-  for (int i=0; i < ci->query_len; i++)
-    {
-      if (qpos >= (ci->best_start[m] + ci->best_len[m]))
-        m++;
-      for (int j=0; j < ci->maxi[i]; j++)
-        {
-          *q++ = '-';
-          *pm++ = 'A' + m;
-        }
-      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
-      *pm++ = 'A' + m;
-    }
-  for (int j=0; j < ci->maxi[ci->query_len]; j++)
-    {
-      *q++ = '-';
-      *pm++ = 'A' + m;
-    }
-  *q = 0;
-  *pm = 0;
-
+void fill_alignment_parents(struct chimera_info_s * ci)
+{
   /* fill in alignment strings for the parents */
 
   for(int j = 0; j < ci->parents_found; j++)
@@ -630,13 +613,13 @@ int eval_parents_long(struct chimera_info_s * ci)
       char * target_seq = db_getsequence(target_seqno);
 
       int inserted = 0;
-      qpos = 0;
+      int qpos = 0;
       int tpos = 0;
 
       char * t = ci->paln[j];
-
       char * p = ci->nwcigar[cand];
       char * e = p + strlen(p);
+
       while (p < e)
         {
           int run = 1;
@@ -689,7 +672,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
       /* add any gaps at the end */
 
-      if (!inserted)
+      if (! inserted)
         {
           for(int x=0; x < ci->maxi[qpos]; x++)
             {
@@ -700,10 +683,43 @@ int eval_parents_long(struct chimera_info_s * ci)
       /* end of sequence string */
       *t = 0;
     }
+}
 
-  for (int i = 0; i < alnlen; i++)
-    ci->ignore[i] = 0;
 
+int eval_parents_long(struct chimera_info_s * ci)
+{
+  /* always chimeric if called */
+  int status = 4;
+
+  int alnlen = find_max_alignment_length(ci);
+
+  fill_alignment_parents(ci);
+
+  /* fill in alignment string for query */
+
+  char * pm = ci->model;
+  int m = 0;
+  char * q = ci->qaln;
+  int qpos = 0;
+  for (int i=0; i < ci->query_len; i++)
+    {
+      if (qpos >= (ci->best_start[m] + ci->best_len[m]))
+        m++;
+      for (int j=0; j < ci->maxi[i]; j++)
+        {
+          *q++ = '-';
+          *pm++ = 'A' + m;
+        }
+      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
+      *pm++ = 'A' + m;
+    }
+  for (int j=0; j < ci->maxi[ci->query_len]; j++)
+    {
+      *q++ = '-';
+      *pm++ = 'A' + m;
+    }
+  *q = 0;
+  *pm = 0;
 
   for(int i = 0; i < alnlen; i++)
     {
@@ -711,38 +727,6 @@ int eval_parents_long(struct chimera_info_s * ci)
       unsigned int psym[ci->parents_found];
       for (int f = 0; f < ci->parents_found; f++)
         psym[f] = chrmap_4bit[(int)(ci->paln[f][i])];
-
-#if 0
-      /* mark positions to ignore in voting */
-
-      bool ign = ! qsym;
-      for (int f = 0; f < ci->parents_found; f++)
-        ign = ign || ! psym[f];
-
-      /* ignore gap positions and those next to the gap */
-      if (ign)
-        {
-          ci->ignore[i] = 1;
-          if (i > 0)
-            {
-              ci->ignore[i-1] = 1;
-            }
-          if (i < alnlen - 1)
-            {
-              ci->ignore[i+1] = 1;
-            }
-        }
-
-      /* ignore ambiguous symbols */
-      bool amb = ambiguous_4bit[qsym];
-      for (int f = 0; f < ci->parents_found; f++)
-        amb = amb || ambiguous_4bit[psym[f]];
-
-      if (amb)
-        {
-          ci->ignore[i] = 1;
-        }
-#endif
 
       /* lower case parent symbols that differ from query */
 
@@ -752,7 +736,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
       /* compute diffs */
 
-      char diff;
+      char diff = ' ';
 
       bool all_defined = qsym;
       for (int f = 0; f < ci->parents_found; f++)
@@ -763,23 +747,11 @@ int eval_parents_long(struct chimera_info_s * ci)
         {
           bool parents_equal = true;
           for (int f = 1; f < ci->parents_found; f++)
-            if (psym[f] != psym[f-1])
+            if (psym[f] != psym[0])
               parents_equal = false;
 
-          diff = ' ';
           if (! parents_equal)
-            {
-              char m = ci->model[i];
-              int f = m - 'A';
-              if (qsym == psym[f])
-                diff = m;
-              else
-                diff = '?'; /* never happens */
-            }
-        }
-      else
-        {
-          diff = ' ';
+            diff = ci->model[i];
         }
 
       ci->diffs[i] = diff;
@@ -1011,50 +983,11 @@ int eval_parents_long(struct chimera_info_s * ci)
 int eval_parents(struct chimera_info_s * ci)
 {
   int status = 1;
+  ci->parents_found = 2;
 
-  /* create msa */
+  int alnlen = find_max_alignment_length(ci);
 
-  /* find max insertions in front of each position in the query sequence */
-  for (int i = 0; i <= ci->query_len; i++)
-    ci->maxi[i] = 0;
-
-  for (int f = 0; f < 2; f++)
-    {
-      int best_parent = ci->best_parents[f];
-      char * p = ci->nwcigar[best_parent];
-      char * e = p + strlen(p);
-      int pos = 0;
-      while (p < e)
-        {
-          int run = 1;
-          int scanlength = 0;
-          sscanf(p, "%d%n", &run, &scanlength);
-          p += scanlength;
-          char op = *p++;
-          switch (op)
-            {
-            case 'M':
-            case 'D':
-              pos += run;
-              break;
-
-            case 'I':
-              if (run > ci->maxi[pos])
-                {
-                  ci->maxi[pos] = run;
-                }
-              break;
-            }
-        }
-    }
-
-  /* find total alignment length */
-  int alnlen = 0;
-  for(int i=0; i < ci->query_len+1; i++)
-    {
-      alnlen += ci->maxi[i];
-    }
-  alnlen += ci->query_len;
+  fill_alignment_parents(ci);
 
   /* fill in alignment string for query */
 
@@ -1074,85 +1007,7 @@ int eval_parents(struct chimera_info_s * ci)
     }
   *q = 0;
 
-  /* fill in alignment strings for the (2) parents */
-
-  for(int j = 0; j < 2; j++)
-    {
-      int cand = ci->best_parents[j];
-      int target_seqno = ci->cand_list[cand];
-      char * target_seq = db_getsequence(target_seqno);
-
-      int inserted = 0;
-      qpos = 0;
-      int tpos = 0;
-
-      char * t = ci->paln[j];
-
-      char * p = ci->nwcigar[cand];
-      char * e = p + strlen(p);
-      while (p < e)
-        {
-          int run = 1;
-          int scanlength = 0;
-          sscanf(p, "%d%n", &run, &scanlength);
-          p += scanlength;
-          char op = *p++;
-
-          if (op == 'I')
-            {
-              for(int x=0; x < ci->maxi[qpos]; x++)
-                {
-                  if (x < run)
-                    {
-                      *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
-                    }
-                  else
-                    {
-                      *t++ = '-';
-                    }
-                }
-              inserted = 1;
-            }
-          else
-            {
-              for(int x=0; x < run; x++)
-                {
-                  if (!inserted)
-                    {
-                      for(int y=0; y < ci->maxi[qpos]; y++)
-                        {
-                          *t++ = '-';
-                        }
-                    }
-
-                  if (op == 'M')
-                    {
-                      *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
-                    }
-                  else
-                    {
-                      *t++ = '-';
-                    }
-
-                  qpos++;
-                  inserted = 0;
-                }
-            }
-        }
-
-      /* add any gaps at the end */
-
-      if (!inserted)
-        {
-          for(int x=0; x < ci->maxi[qpos]; x++)
-            {
-              *t++ = '-';
-            }
-        }
-
-      /* end of sequence string */
-      *t = 0;
-    }
+  /* mark positions to ignore in voting */
 
   for (int i = 0; i < alnlen; i++)
     ci->ignore[i] = 0;
@@ -1162,8 +1017,6 @@ int eval_parents(struct chimera_info_s * ci)
       unsigned int qsym  = chrmap_4bit[(int)(ci->qaln   [i])];
       unsigned int p1sym = chrmap_4bit[(int)(ci->paln[0][i])];
       unsigned int p2sym = chrmap_4bit[(int)(ci->paln[1][i])];
-
-      /* mark positions to ignore in voting */
 
       /* ignore gap positions and those next to the gap */
       if ((!qsym) || (!p1sym) || (!p2sym))
