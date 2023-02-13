@@ -61,7 +61,7 @@
 #include <array>
 
 /* the number of alignments that can be delayed */
-constexpr auto MAXDELAYED {8U};
+constexpr auto MAXDELAYED = 8U;
 
 /* Default minimum number of word matches for word lengths 3-15 */
 constexpr std::array<int, 16> minwordmatches_defaults =
