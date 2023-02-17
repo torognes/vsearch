@@ -285,12 +285,17 @@ dereplication. To do so, file names can be replaced with:
 .RS
 .IP - 2
 the symbol '-', representing '/dev/stdin' for input files
-or '/dev/stdout' for output files,
+or '/dev/stdout' for output files (with an exception for '\-\-db \-',
+see * below),
 .IP -
 a named pipe created with the command mkfifo,
 .IP -
 a process substitution '<(command)' as input or '>(command)' as
 output.
+.IP *
+\-\-db \- is not accepted, to prevent potential concurrent reads from
+stdin. A workaround for advanced users is to call '\-\-db /dev/stdin'
+directly.
 .RE
 .PP
 \fBvsearch\fR can automatically read compressed gzip or bzip2 files if
