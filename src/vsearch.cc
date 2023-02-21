@@ -4405,6 +4405,10 @@ void args_init(int argc, char **argv)
         }
       opt_threads = 1;
     }
+  if (opt_sintax && opt_randseed && (opt_threads > 1))
+    {
+      fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
+    }
 
   if (opt_cluster_unoise)
     {

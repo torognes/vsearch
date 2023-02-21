@@ -2239,7 +2239,7 @@ only to the \-\-fastx_mask command.
 .BI \-\-fastx_mask \0filename
 Mask regions in sequences contained
 in the specified fasta or fastq file. The default is to mask using
-DUST (use \-\-qmask to modify that behavior). The output files
+DUST (use \-\-qmask to modify that behaviour). The output files
 are specified with the \-\-fastaout and \-\-fastqout options. The
 minimum and maximum percentage of unmasked residues may be specified
 with the \-\-min_unmasked_pct and \-\-max_unmasked_pct options,
@@ -2252,11 +2252,11 @@ replace the masked regions by lower case letters.
 .TAG maskfasta
 .TP
 .BI \-\-maskfasta \0filename
-Mask regions in sequences contained
-in the fasta file \fIfilename\fR. The default is to mask using
-\fIdust\fR (use \-\-qmask to modify that behavior). The output file is
-specified with the \-\-output option. This command is depreciated,
-please use \-\-fastx_mask instead.
+Mask regions in sequences contained in the fasta file
+\fIfilename\fR. The default is to mask using \fIdust\fR (use \-\-qmask
+to modify that behaviour). The output file is specified with the
+\-\-output option. This command is depreciated, please use
+\-\-fastx_mask instead.
 .TAG max_unmasked_pct
 .TP
 .BI \-\-max_unmasked_pct \0real
@@ -3152,7 +3152,7 @@ Write the shuffled sequences to \fIfilename\fR, in fasta format.
 .BI \-\-randseed\~ "positive integer"
 When shuffling sequence order, use \fIinteger\fR as seed. A given seed
 always produces the same output order (useful for replicability). Set
-to 0 to use a pseudo-random seed (default behavior).
+to 0 to use a pseudo-random seed (default behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -3366,7 +3366,7 @@ that is in FASTA or FASTQ format.
 Use \fIinteger\fR as a seed for the pseudo-random generator. A given
 seed always produces the same output, which is useful for
 replicability. Set to 0 to use a pseudo-random seed (default
-behavior).
+behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -3449,7 +3449,11 @@ specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
 may be used to set a minimum level of bootstrap support for the
 taxonomic ranks to be reported. The `--randseed` option may be
 included to specify a seed for initialisation of the random number
-generator used by the algorithm.
+generator used by the algorithm. Please note that when using multiple
+threads, the `--randseed` option may not work as intended, because
+sequences may be processed in a random order by different threads. To
+ensure the same results each time, use a single thread (`--threads 1`)
+in combination with a fixed random seed specified with `--randseed`.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
@@ -3479,7 +3483,8 @@ UDB format. These sequences need to be annotated with taxonomy.
 Use \fIinteger\fR as seed for the random number generator used in the
 Sintax algorithm. A given seed always produces the same output order
 (useful for replicability). Set to 0 to use a pseudo-random seed
-(default behavior).
+(default behaviour). Does not work correctly with multiple threads;
+please use `--threads 1` to ensure correct behaviour.
 .TAG sintax_cutoff
 .TP
 .BI \-\-sintax_cutoff\~ "real"
@@ -3814,7 +3819,7 @@ dereplication.
 sequences labels as secondary or tertiary keys.
 .PP
 \fBvsearch\fR by default uses the DUST algorithm for masking
-low-complexity regions. Masking behavior is also slightly changed to
+low-complexity regions. Masking behaviour is also slightly changed to
 be more consistent.
 .PP
 .\" ============================================================================
@@ -4299,7 +4304,7 @@ Fixed bug in aligned sequences produced with \-\-fastapairs and
 \-\-userout (qrow, trow) options.
 .TP
 .BR v1.9.7\~ "released January 12th, 2016"
-Masking behavior is changed somewhat to keep the letter case of the
+Masking behaviour is changed somewhat to keep the letter case of the
 input sequences unchanged when no masking is performed. Masking is now
 performed also during chimera detection. Documentation updated.
 .TP
