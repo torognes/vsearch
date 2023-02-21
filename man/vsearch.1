@@ -780,9 +780,20 @@ by decreasing sequence length, unless \-\-usersort is used.
 .BI \-\-cluster_unoise \0filename
 Perform denoising of the fasta sequences in \fIfilename\fR according
 to the UNOISE version 3 algorithm by Robert Edgar, but without the
-\fIde novo\fR chimera removal step, which can be performed afterwards
+\fIde novo\fR chimera removal step, which may be performed afterwards
 with \-\-uchime3_denovo. The options \-\-minsize (default 8) and
-\-\-unoise_alpha (default 2.0) may be specified.
+\-\-unoise_alpha (default 2.0) may be specified. In the this
+algorithm, clustering of sequences depend on both the sequence
+distance and the abundance ratio. The abundance ratio (skew) is the
+abundance of a new sequence divided by the abundance of the centroid
+sequence. This skew must not be larger than beta if the sequences
+should be clustered together. Beta is calculated as 2 raised to the
+power of minus 1 minus alpha times the sequence distance. The sequence
+distance used is the number of mismatches in the alignment, ignoring
+gaps. This means that the abundance must be exponentially lower as the
+distance increases from the centroid for a new sequence to be included
+in the cluster. Nearer sequences with higher abundances will form
+their own new clusters.
 .TAG clusters
 .TP
 .BI \-\-clusters \0string
