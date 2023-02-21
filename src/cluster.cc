@@ -177,7 +177,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
   /* the main core function for clustering */
 
   /* get sequence etc */
-  int seqno = si->query_no;
+  const int seqno = si->query_no;
   si->query_head_len = db_getheaderlen(seqno);
   si->query_head = db_getheader(seqno);
   si->qsize = db_getabundance(seqno);
