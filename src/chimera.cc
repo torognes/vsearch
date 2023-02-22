@@ -926,42 +926,31 @@ int eval_parents(struct chimera_info_s * ci)
                   "--------------------------------\n");
           fprintf(fp_uchimealns, "Query   (%5d nt) ",
                   ci->query_len);
-          if (opt_xsize)
-            {
-              header_fprint_strip_size(fp_uchimealns,
-                                       ci->query_head,
-                                       ci->query_head_len);
-            }
-          else
-            {
-              fprintf(fp_uchimealns, "%s", ci->query_head);
-            }
+
+          header_fprint_strip(fp_uchimealns,
+                              ci->query_head,
+                              ci->query_head_len,
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
 
           fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
                   db_getsequencelen(seqno_a));
-          if (opt_xsize)
-            {
-              header_fprint_strip_size(fp_uchimealns,
-                                       db_getheader(seqno_a),
-                                       db_getheaderlen(seqno_a));
-            }
-          else
-            {
-              fprintf(fp_uchimealns, "%s", db_getheader(seqno_a));
-            }
+          header_fprint_strip(fp_uchimealns,
+                              db_getheader(seqno_a),
+                              db_getheaderlen(seqno_a),
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
 
           fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
                   db_getsequencelen(seqno_b));
-          if (opt_xsize)
-            {
-              header_fprint_strip_size(fp_uchimealns,
-                                       db_getheader(seqno_b),
-                                       db_getheaderlen(seqno_b));
-            }
-          else
-            {
-              fprintf(fp_uchimealns, "%s", db_getheader(seqno_b));
-            }
+          header_fprint_strip(fp_uchimealns,
+                              db_getheader(seqno_b),
+                              db_getheaderlen(seqno_b),
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
           fprintf(fp_uchimealns, "\n\n");
 
           int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
@@ -1042,59 +1031,49 @@ int eval_parents(struct chimera_info_s * ci)
         {
           fprintf(fp_uchimeout, "%.4f\t", best_h);
 
-          if (opt_xsize)
-            {
-              header_fprint_strip_size(fp_uchimeout,
-                                       ci->query_head,
-                                       ci->query_head_len);
-              fprintf(fp_uchimeout, "\t");
-              header_fprint_strip_size(fp_uchimeout,
-                                       db_getheader(seqno_a),
-                                       db_getheaderlen(seqno_a));
-              fprintf(fp_uchimeout, "\t");
-              header_fprint_strip_size(fp_uchimeout,
-                                       db_getheader(seqno_b),
-                                       db_getheaderlen(seqno_b));
-              fprintf(fp_uchimeout, "\t");
-            }
-          else
-            {
-              fprintf(fp_uchimeout,
-                      "%s\t%s\t%s\t",
-                      ci->query_head,
-                      db_getheader(seqno_a),
-                      db_getheader(seqno_b));
-            }
+          header_fprint_strip(fp_uchimeout,
+                              ci->query_head,
+                              ci->query_head_len,
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
+          fprintf(fp_uchimeout, "\t");
+          header_fprint_strip(fp_uchimeout,
+                              db_getheader(seqno_a),
+                              db_getheaderlen(seqno_a),
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
+          fprintf(fp_uchimeout, "\t");
+          header_fprint_strip(fp_uchimeout,
+                              db_getheader(seqno_b),
+                              db_getheaderlen(seqno_b),
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
+          fprintf(fp_uchimeout, "\t");
 
           if(! opt_uchimeout5)
             {
-              if (opt_xsize)
+              if (QA >= QB)
                 {
-                  if (QA >= QB)
-                    {
-                      header_fprint_strip_size(fp_uchimeout,
-                                               db_getheader(seqno_a),
-                                               db_getheaderlen(seqno_a));
-                    }
-                  else
-                    {
-                      header_fprint_strip_size(fp_uchimeout,
-                                               db_getheader(seqno_b),
-                                               db_getheaderlen(seqno_b));
-                    }
-                  fprintf(fp_uchimeout, "\t");
+                  header_fprint_strip(fp_uchimeout,
+                                      db_getheader(seqno_a),
+                                      db_getheaderlen(seqno_a),
+                                      opt_xsize,
+                                      opt_xee,
+                                      opt_xlength);
                 }
               else
                 {
-                  if (QA >= QB)
-                    {
-                      fprintf(fp_uchimeout, "%s\t", db_getheader(seqno_a));
-                    }
-                  else
-                    {
-                      fprintf(fp_uchimeout, "%s\t", db_getheader(seqno_b));
-                    }
+                  header_fprint_strip(fp_uchimeout,
+                                      db_getheader(seqno_b),
+                                      db_getheaderlen(seqno_b),
+                                      opt_xsize,
+                                      opt_xee,
+                                      opt_xlength);
                 }
+              fprintf(fp_uchimeout, "\t");
             }
 
           fprintf(fp_uchimeout,
@@ -1587,16 +1566,12 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             {
               fprintf(fp_uchimeout, "0.0000\t");
 
-              if (opt_xsize)
-                {
-                  header_fprint_strip_size(fp_uchimeout,
-                                           ci->query_head,
-                                           ci->query_head_len);
-                }
-              else
-                {
-                  fprintf(fp_uchimeout, "%s", ci->query_head);
-                }
+              header_fprint_strip(fp_uchimeout,
+                                  ci->query_head,
+                                  ci->query_head_len,
+                                  opt_xsize,
+                                  opt_xee,
+                                  opt_xlength);
 
               if (opt_uchimeout5)
                 {

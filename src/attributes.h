@@ -60,12 +60,9 @@
 
 int64_t header_get_size(char * header, int header_length);
 
-void header_fprint_strip_size(FILE * fp,
-                              char * header,
-                              int header_length);
-
-void header_fprint_strip_size_ee(FILE * fp,
-                                 char * header,
-                                 int header_length,
-                                 bool strip_size,
-                                 bool strip_ee);
+void header_fprint_strip(FILE * fp,
+                         char * header,
+                         int header_length,
+                         bool strip_size,
+                         bool strip_ee,
+                         bool strip_length);
