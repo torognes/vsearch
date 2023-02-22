@@ -81,6 +81,7 @@ bool opt_relabel_self;
 bool opt_relabel_sha1;
 bool opt_samheader;
 bool opt_sff_clip;
+bool opt_sizein;
 bool opt_sizeorder;
 bool opt_xee;
 bool opt_xsize;
@@ -293,7 +294,6 @@ int64_t opt_rowlen;
 int64_t opt_sample_size;
 int64_t opt_self;
 int64_t opt_selfid;
-int64_t opt_sizein;
 int64_t opt_sizeout;
 int64_t opt_strand;
 int64_t opt_subseq_start;
@@ -942,7 +942,7 @@ void args_init(int argc, char **argv)
   opt_shuffle = nullptr;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
-  opt_sizein = 0;
+  opt_sizein = false;
   opt_sizeorder = false;
   opt_sizeout = 0;
   opt_slots = 0;
@@ -1651,7 +1651,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_sizein:
-          opt_sizein = 1;
+          opt_sizein = true;
           break;
 
         case option_sortbylength:
