@@ -1640,6 +1640,10 @@ void args_init(int argc, char **argv)
 
         case option_topn:
           opt_topn = args_getlong(optarg);
+          if (opt_topn == 0)
+            {
+              fatal("The argument to --topn must be greater than zero");
+            }
           break;
 
         case option_maxseqlength:
