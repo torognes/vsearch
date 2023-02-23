@@ -4,7 +4,7 @@ language:
 arch:
 #- amd64
 - arm64
-#- ppc64le
+- ppc64le
 
 os:
 - linux
