@@ -822,16 +822,12 @@ int eval_parents_long(struct chimera_info_s * ci)
               "--------------------------------\n");
       fprintf(fp_uchimealns, "Query   (%5d nt) ",
               ci->query_len);
-      if (opt_xsize)
-        {
-          header_fprint_strip_size(fp_uchimealns,
-                                   ci->query_head,
-                                   ci->query_head_len);
-        }
-      else
-        {
-          fprintf(fp_uchimealns, "%s", ci->query_head);
-        }
+      header_fprint_strip(fp_uchimealns,
+                          ci->query_head,
+                          ci->query_head_len,
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
 
       for (int f = 0; f < ci->parents_found; f++)
         {
@@ -839,16 +835,12 @@ int eval_parents_long(struct chimera_info_s * ci)
           fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                   'A' + f,
                   db_getsequencelen(seqno));
-          if (opt_xsize)
-            {
-              header_fprint_strip_size(fp_uchimealns,
-                                       db_getheader(seqno),
-                                       db_getheaderlen(seqno));
-            }
-          else
-            {
-              fprintf(fp_uchimealns, "%s", db_getheader(seqno));
-            }
+          header_fprint_strip(fp_uchimealns,
+                              db_getheader(seqno),
+                              db_getheaderlen(seqno),
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
         }
 
       fprintf(fp_uchimealns, "\n\n");
@@ -915,49 +907,41 @@ int eval_parents_long(struct chimera_info_s * ci)
     {
       fprintf(fp_uchimeout, "%.4f\t", 99.9999);
 
-      if (opt_xsize)
+      header_fprint_strip(fp_uchimeout,
+                          ci->query_head,
+                          ci->query_head_len,
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
+      fprintf(fp_uchimeout, "\t");
+      header_fprint_strip(fp_uchimeout,
+                          db_getheader(seqno_a),
+                          db_getheaderlen(seqno_a),
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
+      fprintf(fp_uchimeout, "\t");
+      header_fprint_strip(fp_uchimeout,
+                          db_getheader(seqno_b),
+                          db_getheaderlen(seqno_b),
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
+      fprintf(fp_uchimeout, "\t");
+      if (seqno_c >= 0)
         {
-          header_fprint_strip_size(fp_uchimeout,
-                                   ci->query_head,
-                                   ci->query_head_len);
-          fprintf(fp_uchimeout, "\t");
-          header_fprint_strip_size(fp_uchimeout,
-                                   db_getheader(seqno_a),
-                                   db_getheaderlen(seqno_a));
-          fprintf(fp_uchimeout, "\t");
-          header_fprint_strip_size(fp_uchimeout,
-                                   db_getheader(seqno_b),
-                                   db_getheaderlen(seqno_b));
-          fprintf(fp_uchimeout, "\t");
-          if (seqno_c >= 0)
-            {
-              header_fprint_strip_size(fp_uchimeout,
-                                       db_getheader(seqno_c),
-                                       db_getheaderlen(seqno_c));
-            }
-          else
-            {
-              fprintf(fp_uchimeout, "*");
-            }
-          fprintf(fp_uchimeout, "\t");
+          header_fprint_strip(fp_uchimeout,
+                              db_getheader(seqno_c),
+                              db_getheaderlen(seqno_c),
+                              opt_xsize,
+                              opt_xee,
+                              opt_xlength);
         }
       else
         {
-          fprintf(fp_uchimeout,
-                  "%s\t%s\t%s\t",
-                  ci->query_head,
-                  db_getheader(seqno_a),
-                  db_getheader(seqno_b));
-          if (seqno_c >= 0)
-            {
-              fprintf(fp_uchimeout, "%s\t", db_getheader(seqno_c));
-            }
-          else
-            {
-              fprintf(fp_uchimeout, "*");
-            }
-          fprintf(fp_uchimeout, "\t");
+          fprintf(fp_uchimeout, "*");
         }
+      fprintf(fp_uchimeout, "\t");
 
       fprintf(fp_uchimeout,
               "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
