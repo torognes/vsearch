@@ -73,8 +73,7 @@
 /* global constants/data, no need for synchronization */
 static int parts = 0;
 const int maxparts = 100;
-const int maxparents = 4; /* max, could be fewer */
-const int parent_len_min = 10;
+const int maxparents = 3; /* max, could be fewer */
 const int window = 64;
 const int few = 4;
 const int maxcandidates = few * maxparts;
@@ -165,11 +164,14 @@ static struct chimera_info_s * cia;
 
 void realloc_arrays(struct chimera_info_s * ci)
 {
-  if (opt_long_chimeras_denovo)
+  if (opt_chimeras_denovo)
     {
-      parts = ci->query_len / 100;
-      if (parts < 4)
-        parts = 4;
+      if (opt_chimeras_parts == 0)
+        parts = ci->query_len / 100;
+      else
+        parts = opt_chimeras_parts;
+      if (parts < 2)
+        parts = 2;
       else if (parts > 100)
         parts = 100;
     }
@@ -329,7 +331,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
   int pos_remaining = ci->query_len;
   int parents_found = 0;
 
-  for (int f = 0; f < maxparents; f++)
+  for (int f = 0; f < opt_chimeras_parents_max; f++)
     {
       /* scan each candidate and find longest matching region */
 
@@ -367,7 +369,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
             }
         }
 
-      if (best_len >= parent_len_min)
+      if (best_len >= opt_chimeras_length_min)
         {
           best_parents[f].cand = best_cand;
           best_parents[f].start = best_start;
@@ -813,7 +815,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
   xpthread_mutex_lock(&mutex_output);
 
-  if (opt_uchimealns && (status == 4))
+  if (opt_alnout && (status == 4))
     {
       fprintf(fp_uchimealns, "\n");
       fprintf(fp_uchimealns, "----------------------------------------"
@@ -909,7 +911,7 @@ int eval_parents_long(struct chimera_info_s * ci)
               QA, QB, QC, QT, QM, divfrac);
     }
 
-  if (opt_uchimeout)
+  if (opt_tabbedout)
     {
       fprintf(fp_uchimeout, "%.4f\t", 99.9999);
 
@@ -1965,7 +1967,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       /* find the best pair of parents, then compute score for them */
 
-      if (opt_long_chimeras_denovo)
+      if (opt_chimeras_denovo)
         {
           /* long high-quality reads */
           if (find_best_parents_long(ci))
@@ -2104,7 +2106,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
       if (status < 3)
         {
           /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo || opt_long_chimeras_denovo)
+          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo || opt_chimeras_denovo)
             {
               dbindex_addsequence(seqno, opt_qmask);
             }
@@ -2200,9 +2202,19 @@ void chimera()
 {
   open_chimera_file(&fp_chimeras, opt_chimeras);
   open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
-  open_chimera_file(&fp_uchimealns, opt_uchimealns);
-  open_chimera_file(&fp_uchimeout, opt_uchimeout);
   open_chimera_file(&fp_borderline, opt_borderline);
+
+  if (opt_chimeras_denovo)
+    {
+      open_chimera_file(&fp_uchimealns, opt_alnout);
+      open_chimera_file(&fp_uchimeout, opt_tabbedout);
+    }
+  else
+    {
+      open_chimera_file(&fp_uchimealns, opt_uchimealns);
+      open_chimera_file(&fp_uchimeout, opt_uchimeout);
+    }
+
 
   /* override any options the user might have set */
   opt_maxaccepts = few;
@@ -2214,7 +2226,7 @@ void chimera()
       fatal("Only --strand plus is allowed with uchime_ref.");
     }
 
-  if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo)
+  if (! opt_uchime_ref)
     {
       opt_self = 1;
       opt_selfid = 1;
@@ -2285,9 +2297,9 @@ void chimera()
         {
           denovo_dbname = opt_uchime3_denovo;
         }
-      else if (opt_long_chimeras_denovo)
+      else if (opt_chimeras_denovo)
         {
-          denovo_dbname = opt_long_chimeras_denovo;
+          denovo_dbname = opt_chimeras_denovo;
         }
       else
         fatal("Internal error");
@@ -2331,62 +2343,122 @@ void chimera()
     {
       if (total_count > 0)
         {
-          fprintf(stderr,
-                  "Found %d (%.1f%%) chimeras, "
-                  "%d (%.1f%%) non-chimeras,\n"
-                  "and %d (%.1f%%) borderline sequences "
-                  "in %u unique sequences.\n",
-                  chimera_count,
-                  100.0 * chimera_count / total_count,
-                  nonchimera_count,
-                  100.0 * nonchimera_count / total_count,
-                  borderline_count,
-                  100.0 * borderline_count / total_count,
-                  total_count);
+          if (opt_chimeras_denovo)
+            {
+              fprintf(stderr,
+                      "Found %d (%.1f%%) chimeras and "
+                      "%d (%.1f%%) non-chimeras "
+                      "in %u unique sequences.\n",
+                      chimera_count,
+                      100.0 * chimera_count / total_count,
+                      nonchimera_count,
+                      100.0 * nonchimera_count / total_count,
+                      total_count);
+            }
+          else
+            {
+              fprintf(stderr,
+                      "Found %d (%.1f%%) chimeras, "
+                      "%d (%.1f%%) non-chimeras,\n"
+                      "and %d (%.1f%%) borderline sequences "
+                      "in %u unique sequences.\n",
+                      chimera_count,
+                      100.0 * chimera_count / total_count,
+                      nonchimera_count,
+                      100.0 * nonchimera_count / total_count,
+                      borderline_count,
+                      100.0 * borderline_count / total_count,
+                      total_count);
+            }
         }
       else
         {
-          fprintf(stderr,
-                  "Found %d chimeras, "
-                  "%d non-chimeras,\n"
-                  "and %d borderline sequences "
-                  "in %u unique sequences.\n",
-                  chimera_count,
-                  nonchimera_count,
-                  borderline_count,
-                  total_count);
+          if (opt_chimeras_denovo)
+            {
+              fprintf(stderr,
+                      "Found %d chimeras and "
+                      "%d non-chimeras "
+                      "in %u unique sequences.\n",
+                      chimera_count,
+                      nonchimera_count,
+                      total_count);
+            }
+          else
+            {
+              fprintf(stderr,
+                      "Found %d chimeras, "
+                      "%d non-chimeras,\n"
+                      "and %d borderline sequences "
+                      "in %u unique sequences.\n",
+                      chimera_count,
+                      nonchimera_count,
+                      borderline_count,
+                      total_count);
+            }
         }
 
       if (total_abundance > 0)
         {
-          fprintf(stderr,
-                  "Taking abundance information into account, "
-                  "this corresponds to\n"
-                  "%" PRId64 " (%.1f%%) chimeras, "
-                  "%" PRId64 " (%.1f%%) non-chimeras,\n"
-                  "and %" PRId64 " (%.1f%%) borderline sequences "
-                  "in %" PRId64 " total sequences.\n",
-                  chimera_abundance,
-                  100.0 * chimera_abundance / total_abundance,
-                  nonchimera_abundance,
-                  100.0 * nonchimera_abundance / total_abundance,
-                  borderline_abundance,
-                  100.0 * borderline_abundance / total_abundance,
-                  total_abundance);
+          if (opt_chimeras_denovo)
+            {
+              fprintf(stderr,
+                      "Taking abundance information into account, "
+                      "this corresponds to\n"
+                      "%" PRId64 " (%.1f%%) chimeras and "
+                      "%" PRId64 " (%.1f%%) non-chimeras "
+                      "in %" PRId64 " total sequences.\n",
+                      chimera_abundance,
+                      100.0 * chimera_abundance / total_abundance,
+                      nonchimera_abundance,
+                      100.0 * nonchimera_abundance / total_abundance,
+                      total_abundance);
+            }
+          else
+            {
+              fprintf(stderr,
+                      "Taking abundance information into account, "
+                      "this corresponds to\n"
+                      "%" PRId64 " (%.1f%%) chimeras, "
+                      "%" PRId64 " (%.1f%%) non-chimeras,\n"
+                      "and %" PRId64 " (%.1f%%) borderline sequences "
+                      "in %" PRId64 " total sequences.\n",
+                      chimera_abundance,
+                      100.0 * chimera_abundance / total_abundance,
+                      nonchimera_abundance,
+                      100.0 * nonchimera_abundance / total_abundance,
+                      borderline_abundance,
+                      100.0 * borderline_abundance / total_abundance,
+                      total_abundance);
+            }
         }
       else
         {
-          fprintf(stderr,
-                  "Taking abundance information into account, "
-                  "this corresponds to\n"
-                  "%" PRId64 " chimeras, "
-                  "%" PRId64 " non-chimeras,\n"
-                  "and %" PRId64 " borderline sequences "
-                  "in %" PRId64 " total sequences.\n",
-                  chimera_abundance,
-                  nonchimera_abundance,
-                  borderline_abundance,
-                  total_abundance);
+          if (opt_chimeras_denovo)
+            {
+              fprintf(stderr,
+                      "Taking abundance information into account, "
+                      "this corresponds to\n"
+                      "%" PRId64 " chimeras, "
+                      "%" PRId64 " non-chimeras "
+                      "in %" PRId64 " total sequences.\n",
+                      chimera_abundance,
+                      nonchimera_abundance,
+                      total_abundance);
+            }
+          else
+            {
+              fprintf(stderr,
+                      "Taking abundance information into account, "
+                      "this corresponds to\n"
+                      "%" PRId64 " chimeras, "
+                      "%" PRId64 " non-chimeras,\n"
+                      "and %" PRId64 " borderline sequences "
+                      "in %" PRId64 " total sequences.\n",
+                      chimera_abundance,
+                      nonchimera_abundance,
+                      borderline_abundance,
+                      total_abundance);
+            }
         }
     }
 

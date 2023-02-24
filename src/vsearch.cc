@@ -70,10 +70,10 @@ bool opt_fasta_score;
 bool opt_fastq_allowmergestagger;
 bool opt_fastq_eeout;
 bool opt_fastq_nostagger;
+bool opt_fastq_qout_max;
 bool opt_gzip_decompress;
 bool opt_label_substr_match;
 bool opt_no_progress;
-bool opt_fastq_qout_max;
 bool opt_quiet;
 bool opt_relabel_keep;
 bool opt_relabel_md5;
@@ -91,6 +91,8 @@ char * opt_blast6out;
 char * opt_borderline;
 char * opt_centroids;
 char * opt_chimeras;
+char * opt_chimeras_alnout;
+char * opt_chimeras_denovo;
 char * opt_cluster_fast;
 char * opt_cluster_size;
 char * opt_cluster_smallmem;
@@ -117,8 +119,8 @@ char * opt_fastaout_rev;
 char * opt_fastapairs;
 char * opt_fastq_chars;
 char * opt_fastq_convert;
-char * opt_fastq_eestats;
 char * opt_fastq_eestats2;
+char * opt_fastq_eestats;
 char * opt_fastq_filter;
 char * opt_fastq_join;
 char * opt_fastq_mergepairs;
@@ -140,14 +142,13 @@ char * opt_fastx_uniques;
 char * opt_join_padgap;
 char * opt_join_padgapq;
 char * opt_label;
-char * opt_labels;
+char * opt_label_field;
 char * opt_label_suffix;
 char * opt_label_word;
 char * opt_label_words;
-char * opt_label_field;
+char * opt_labels;
 char * opt_lcaout;
 char * opt_log;
-char * opt_long_chimeras_denovo;
 char * opt_makeudb_usearch;
 char * opt_maskfasta;
 char * opt_matched;
@@ -175,16 +176,16 @@ char * opt_sortbylength;
 char * opt_sortbysize;
 char * opt_tabbedout;
 char * opt_tsegout;
-char * opt_udb2fasta;
-char * opt_udbinfo;
-char * opt_udbstats;
 char * opt_uc;
-char * opt_uchime_denovo;
 char * opt_uchime2_denovo;
 char * opt_uchime3_denovo;
+char * opt_uchime_denovo;
 char * opt_uchime_ref;
 char * opt_uchimealns;
 char * opt_uchimeout;
+char * opt_udb2fasta;
+char * opt_udbinfo;
+char * opt_udbstats;
 char * opt_usearch_global;
 char * opt_userout;
 double * opt_ee_cutoffs_values;
@@ -217,6 +218,9 @@ double opt_weak_id;
 double opt_xn;
 int opt_acceptall;
 int opt_alignwidth;
+int opt_chimeras_length_min;
+int opt_chimeras_parents_max;
+int opt_chimeras_parts;
 int opt_cons_truncate;
 int opt_ee_cutoffs_count;
 int opt_gap_extension_query_interior;
@@ -232,9 +236,9 @@ int opt_gap_open_target_interior;
 int opt_gap_open_target_left;
 int opt_gap_open_target_right;
 int opt_help;
-int opt_length_cutoffs_shortest;
-int opt_length_cutoffs_longest;
 int opt_length_cutoffs_increment;
+int opt_length_cutoffs_longest;
+int opt_length_cutoffs_shortest;
 int opt_mindiffs;
 int opt_slots;
 int opt_uchimeout5;
@@ -297,8 +301,8 @@ int64_t opt_selfid;
 int64_t opt_sizein;
 int64_t opt_sizeout;
 int64_t opt_strand;
-int64_t opt_subseq_start;
 int64_t opt_subseq_end;
+int64_t opt_subseq_start;
 int64_t opt_threads;
 int64_t opt_top_hits_only;
 int64_t opt_topn;
@@ -737,17 +741,21 @@ void args_init(int argc, char **argv)
 
   progname = argv[0];
 
-  opt_abskew = -1.0;
+  opt_abskew = 0.0;
   opt_acceptall = 0;
   opt_alignwidth = 80;
   opt_allpairs_global = nullptr;
   opt_alnout = nullptr;
-  opt_blast6out = nullptr;
   opt_biomout = nullptr;
+  opt_blast6out = nullptr;
   opt_borderline = nullptr;
   opt_bzip2_decompress = false;
   opt_centroids = nullptr;
   opt_chimeras = nullptr;
+  opt_chimeras_denovo = nullptr;
+  opt_chimeras_length_min = 10;
+  opt_chimeras_parents_max = 3;
+  opt_chimeras_parts = 0;
   opt_cluster_fast = nullptr;
   opt_cluster_size = nullptr;
   opt_cluster_smallmem = nullptr;
@@ -776,13 +784,13 @@ void args_init(int argc, char **argv)
   opt_eeout = false;
   opt_eetabbedout = nullptr;
   opt_fasta2fastq = nullptr;
-  opt_fastaout_notmerged_fwd = nullptr;
-  opt_fastaout_notmerged_rev = nullptr;
   opt_fasta_score = false;
   opt_fasta_width = 80;
   opt_fastaout = nullptr;
   opt_fastaout_discarded = nullptr;
   opt_fastaout_discarded_rev = nullptr;
+  opt_fastaout_notmerged_fwd = nullptr;
+  opt_fastaout_notmerged_rev = nullptr;
   opt_fastaout_rev = nullptr;
   opt_fastapairs = nullptr;
   opt_fastq_allowmergestagger = false;
@@ -807,8 +815,6 @@ void args_init(int argc, char **argv)
   opt_fastq_minmergelen = 0;
   opt_fastq_minovlen = 10;
   opt_fastq_nostagger = true;
-  opt_fastqout_notmerged_fwd = nullptr;
-  opt_fastqout_notmerged_rev = nullptr;
   opt_fastq_qmax = 41;
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
@@ -825,8 +831,13 @@ void args_init(int argc, char **argv)
   opt_fastqout = nullptr;
   opt_fastqout_discarded = nullptr;
   opt_fastqout_discarded_rev = nullptr;
+  opt_fastqout_notmerged_fwd = nullptr;
+  opt_fastqout_notmerged_rev = nullptr;
   opt_fastqout_rev = nullptr;
   opt_fastx_filter = nullptr;
+  opt_fastx_getseq = nullptr;
+  opt_fastx_getseqs = nullptr;
+  opt_fastx_getsubseq = nullptr;
   opt_fastx_mask = nullptr;
   opt_fastx_revcomp = nullptr;
   opt_fastx_subsample = nullptr;
@@ -843,9 +854,6 @@ void args_init(int argc, char **argv)
   opt_gap_open_target_interior=20;
   opt_gap_open_target_left=2;
   opt_gap_open_target_right=2;
-  opt_fastx_getseq = nullptr;
-  opt_fastx_getseqs = nullptr;
-  opt_fastx_getsubseq = nullptr;
   opt_gzip_decompress = false;
   opt_hardmask = 0;
   opt_help = 0;
@@ -856,20 +864,19 @@ void args_init(int argc, char **argv)
   opt_join_padgap = nullptr;
   opt_join_padgapq = nullptr;
   opt_label = nullptr;
+  opt_label_field = nullptr;
   opt_label_substr_match = false;
   opt_label_suffix = nullptr;
-  opt_labels = nullptr;
-  opt_label_field = nullptr;
   opt_label_word = nullptr;
   opt_label_words = nullptr;
+  opt_labels = nullptr;
+  opt_lca_cutoff = 1.0;
+  opt_lcaout = nullptr;
   opt_leftjust = 0;
   opt_length_cutoffs_increment = 50;
   opt_length_cutoffs_longest = INT_MAX;
   opt_length_cutoffs_shortest = 50;
-  opt_lca_cutoff = 1.0;
-  opt_lcaout = nullptr;
   opt_log = nullptr;
-  opt_long_chimeras_denovo = nullptr;
   opt_makeudb_usearch = nullptr;
   opt_maskfasta = nullptr;
   opt_match = 2;
@@ -939,8 +946,8 @@ void args_init(int argc, char **argv)
   opt_search_exact = nullptr;
   opt_self = 0;
   opt_selfid = 0;
-  opt_sff_convert = nullptr;
   opt_sff_clip = false;
+  opt_sff_convert = nullptr;
   opt_shuffle = nullptr;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
@@ -951,26 +958,26 @@ void args_init(int argc, char **argv)
   opt_sortbylength = nullptr;
   opt_sortbysize = nullptr;
   opt_strand = 1;
-  opt_subseq_start = 1;
   opt_subseq_end = LONG_MAX;
+  opt_subseq_start = 1;
   opt_tabbedout = nullptr;
   opt_target_cov = 0.0;
   opt_threads = 0;
   opt_top_hits_only = 0;
   opt_topn = LONG_MAX;
   opt_tsegout = nullptr;
-  opt_udb2fasta = nullptr;
-  opt_udbinfo = nullptr;
-  opt_udbstats = nullptr;
   opt_uc = nullptr;
   opt_uc_allhits = 0;
-  opt_uchime_denovo = nullptr;
   opt_uchime2_denovo = nullptr;
   opt_uchime3_denovo = nullptr;
+  opt_uchime_denovo = nullptr;
   opt_uchime_ref = nullptr;
   opt_uchimealns = nullptr;
   opt_uchimeout = nullptr;
   opt_uchimeout5 = 0;
+  opt_udb2fasta = nullptr;
+  opt_udbinfo = nullptr;
+  opt_udbstats = nullptr;
   opt_unoise_alpha = 2.0;
   opt_usearch_global = nullptr;
   opt_userout = nullptr;
@@ -978,9 +985,9 @@ void args_init(int argc, char **argv)
   opt_version = 0;
   opt_weak_id = 10.0;
   opt_wordlength = 0;
+  opt_xee = false;
   opt_xn = 8.0;
   opt_xsize = false;
-  opt_xee = false;
 
   opterr = 1;
 
@@ -998,6 +1005,10 @@ void args_init(int argc, char **argv)
       option_bzip2_decompress,
       option_centroids,
       option_chimeras,
+      option_chimeras_denovo,
+      option_chimeras_length_min,
+      option_chimeras_parents_max,
+      option_chimeras_parts,
       option_cluster_fast,
       option_cluster_size,
       option_cluster_smallmem,
@@ -1106,7 +1117,6 @@ void args_init(int argc, char **argv)
       option_leftjust,
       option_length_cutoffs,
       option_log,
-      option_long_chimeras_denovo,
       option_makeudb_usearch,
       option_maskfasta,
       option_match,
@@ -1238,6 +1248,10 @@ void args_init(int argc, char **argv)
       {"bzip2_decompress",      no_argument,       nullptr, 0 },
       {"centroids",             required_argument, nullptr, 0 },
       {"chimeras",              required_argument, nullptr, 0 },
+      {"chimeras_denovo",       required_argument, nullptr, 0 },
+      {"chimeras_length_min",   required_argument, nullptr, 0 },
+      {"chimeras_parents_max",  required_argument, nullptr, 0 },
+      {"chimeras_parts",        required_argument, nullptr, 0 },
       {"cluster_fast",          required_argument, nullptr, 0 },
       {"cluster_size",          required_argument, nullptr, 0 },
       {"cluster_smallmem",      required_argument, nullptr, 0 },
@@ -1346,7 +1360,6 @@ void args_init(int argc, char **argv)
       {"leftjust",              no_argument,       nullptr, 0 },
       {"length_cutoffs",        required_argument, nullptr, 0 },
       {"log",                   required_argument, nullptr, 0 },
-      {"long_chimeras_denovo",  required_argument, nullptr, 0 },
       {"makeudb_usearch",       required_argument, nullptr, 0 },
       {"maskfasta",             required_argument, nullptr, 0 },
       {"match",                 required_argument, nullptr, 0 },
@@ -2487,8 +2500,20 @@ void args_init(int argc, char **argv)
           opt_derep_smallmem = optarg;
           break;
 
-        case option_long_chimeras_denovo:
-          opt_long_chimeras_denovo = optarg;
+        case option_chimeras_denovo:
+          opt_chimeras_denovo = optarg;
+          break;
+
+        case option_chimeras_length_min:
+          opt_chimeras_length_min = args_getlong(optarg);
+          break;
+
+        case option_chimeras_parts:
+          opt_chimeras_parts = args_getlong(optarg);
+          break;
+
+        case option_chimeras_parents_max:
+          opt_chimeras_parents_max = args_getlong(optarg);
           break;
 
         default:
@@ -2513,6 +2538,7 @@ void args_init(int argc, char **argv)
   int command_options[] =
     {
       option_allpairs_global,
+      option_chimeras_denovo,
       option_cluster_fast,
       option_cluster_size,
       option_cluster_smallmem,
@@ -2541,7 +2567,6 @@ void args_init(int argc, char **argv)
       option_fastx_uniques,
       option_h,
       option_help,
-      option_long_chimeras_denovo,
       option_makeudb_usearch,
       option_maskfasta,
       option_orient,
@@ -2654,6 +2679,42 @@ void args_init(int argc, char **argv)
         option_wordlength,
         option_xdrop_nw,
         option_xee,
+        option_xsize,
+        -1 },
+
+      { option_chimeras_denovo,
+        option_abskew,
+        option_alignwidth,
+        option_alnout,
+        option_chimeras,
+        option_chimeras_length_min,
+        option_chimeras_parents_max,
+        option_chimeras_parts,
+        option_fasta_width,
+        option_gapext,
+        option_gapopen,
+        option_hardmask,
+        option_label_suffix,
+        option_log,
+        option_match,
+        option_mismatch,
+        option_no_progress,
+        option_nonchimeras,
+        option_notrunclabels,
+        option_qmask,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sample,
+        option_sizein,
+        option_sizeout,
+        option_tabbedout,
+        option_threads,
+        option_xee,
+        option_xn,
         option_xsize,
         -1 },
 
@@ -3700,46 +3761,6 @@ void args_init(int argc, char **argv)
         option_threads,
         -1 },
 
-      { option_long_chimeras_denovo,
-        option_abskew,
-        option_alignwidth,
-        option_borderline,
-        option_chimeras,
-        option_dn,
-        option_fasta_score,
-        option_fasta_width,
-        option_gapext,
-        option_gapopen,
-        option_hardmask,
-        option_label_suffix,
-        option_log,
-        option_match,
-        option_mindiffs,
-        option_mindiv,
-        option_minh,
-        option_mismatch,
-        option_no_progress,
-        option_nonchimeras,
-        option_notrunclabels,
-        option_qmask,
-        option_quiet,
-        option_relabel,
-        option_relabel_keep,
-        option_relabel_md5,
-        option_relabel_self,
-        option_relabel_sha1,
-        option_sample,
-        option_sizein,
-        option_sizeout,
-        option_threads,
-        option_uchimealns,
-        option_uchimeout,
-        option_uchimeout5,
-        option_xee,
-        option_xn,
-        option_xsize,
-        -1 },
-
       { option_makeudb_usearch,
         option_bzip2_decompress,
         option_dbmask,
@@ -4652,6 +4673,28 @@ void args_init(int argc, char **argv)
       fatal("The argument to maxhits cannot be negative");
     }
 
+  if (opt_chimeras_length_min < 1)
+    {
+      fatal("The argument to chimeras_length_min must be at least 1");
+    }
+
+  if ((opt_chimeras_parents_max < 2) || (opt_chimeras_parents_max > 3))
+    {
+      fatal("The argument to chimeras_parents_max must be in the range 2 to 3");
+    }
+
+  if (options_selected[option_chimeras_parts] &&
+      ((opt_chimeras_parts < 2) || (opt_chimeras_parts > 100)))
+    {
+      fatal("The argument to chimeras_parts must be in the range 2 to 100");
+    }
+
+  if (opt_chimeras_denovo)
+    {
+      if (! options_selected[option_alignwidth])
+        opt_alignwidth = 60;
+    }
+
 
   /* TODO: check valid range of gap penalties */
 
@@ -4706,9 +4749,9 @@ void args_init(int argc, char **argv)
     }
 
   /* set default opt_abskew depending on command */
-  if (opt_abskew < 0.0)
+  if (! options_selected[option_abskew])
     {
-      if (opt_long_chimeras_denovo)
+      if (opt_chimeras_denovo)
         {
           opt_abskew = 1.0;
         }
@@ -4840,8 +4883,29 @@ void cmd_help()
               "  --threads INT               number of threads to use, zero for all cores (0)\n"
               "  --version | -v              display version information\n"
               "\n"
-              "Chimera detection\n"
-              "  --long_chimeras_denovo FN   detect chimeras de novo in long exact sequences\n"
+              "Chimera detection with new algorithm\n"
+              "  --chimeras_denovo FILENAME  detect chimeras de novo in long exact sequences\n"
+              " Parameters\n"
+              "  --abskew REAL               minimum abundance ratio (1.0)\n"
+              "  --chimeras_length_min       minimum length of each chimeric region (10)\n"
+              "  --chimeras_parents_max      maximum number of parent sequences (3)\n"
+              "  --chimeras_parts            number of parts to divide sequences (length/100)\n"
+              "  --sizein                    propagate abundance annotation from input\n"
+              " Output\n"
+              "  --alignwidth INT            width of alignments in alignment output file (60)\n"
+              "  --alnout FILENAME           output chimera alignments to file\n"
+              "  --chimeras FILENAME         output chimeric sequences to file\n"
+              "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
+              "  --relabel STRING            relabel nonchimeras with this prefix string\n"
+              "  --relabel_keep              keep the old label after the new when relabelling\n"
+              "  --relabel_md5               relabel with md5 digest of normalized sequence\n"
+              "  --relabel_self              relabel with the sequence itself as label\n"
+              "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
+              "  --sizeout                   include abundance information when relabelling\n"
+              "  --tabbedout FILENAME        output chimera info to tab-separated file\n"
+              "  --xsize                     strip abundance information in output\n"
+              "\n"
+              "Chimera detection with UCHIME algorithms\n"
               "  --uchime_denovo FILENAME    detect chimeras de novo\n"
               "  --uchime2_denovo FILENAME   detect chimeras de novo in denoised amplicons\n"
               "  --uchime3_denovo FILENAME   detect chimeras de novo in denoised amplicons\n"
@@ -4862,7 +4926,7 @@ void cmd_help()
               "  --alignwidth INT            width of alignment in uchimealn output (80)\n"
               "  --borderline FILENAME       output borderline chimeric sequences to file\n"
               "  --chimeras FILENAME         output chimeric sequences to file\n"
-              "  --fasta_score               include chimera score in fasta output\n"
+              "  --fasta_score               include chimera score in FASTA output\n"
               "  --nonchimeras FILENAME      output non-chimeric sequences to file\n"
               "  --relabel STRING            relabel nonchimeras with this prefix string\n"
               "  --relabel_keep              keep the old label after the new when relabelling\n"
@@ -5488,11 +5552,6 @@ void cmd_chimera()
         }
     }
 
-#if 0
-  if (opt_abskew <= 1.0)
-    fatal("Argument to --abskew must be > 1");
-#endif
-
   chimera();
 }
 
@@ -5650,7 +5709,7 @@ int main(int argc, char** argv)
     {
       cmd_cluster();
     }
-  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo || opt_long_chimeras_denovo)
+  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo || opt_chimeras_denovo)
     {
       cmd_chimera();
     }
