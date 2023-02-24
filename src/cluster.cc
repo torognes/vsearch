@@ -177,7 +177,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
   /* the main core function for clustering */
 
   /* get sequence etc */
-  int seqno = si->query_no;
+  const int seqno = si->query_no;
   si->query_head_len = db_getheaderlen(seqno);
   si->query_head = db_getheader(seqno);
   si->qsize = db_getabundance(seqno);
@@ -531,11 +531,12 @@ void cluster_core_results_nohit(int clusterno,
   if (opt_uc)
     {
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
-      header_fprint_strip_size_ee(fp_uc,
-                                  query_head,
-                                  strlen(query_head),
-                                  opt_xsize,
-                                  opt_xee);
+      header_fprint_strip(fp_uc,
+                          query_head,
+                          strlen(query_head),
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
       fprintf(fp_uc, "\t*\n");
     }
 
@@ -593,8 +594,8 @@ void cluster_core_parallel()
   /* create threads and set them in stand-by mode */
   threads_init();
 
-  const int queries_per_thread = 1;
-  int max_queries = queries_per_thread * opt_threads;
+  constexpr int queries_per_thread = 1;
+  const int max_queries = queries_per_thread * opt_threads;
 
   /* allocate memory for the search information for each query;
      and initialize it */
@@ -1467,11 +1468,12 @@ void cluster(char * dbname,
               fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
                       cluster_abundance[clusterno]);
-              header_fprint_strip_size_ee(fp_uc,
-                                          db_getheader(seqno),
-                                          db_getheaderlen(seqno),
-                                          opt_xsize,
-                                          opt_xee);
+              header_fprint_strip(fp_uc,
+                                  db_getheader(seqno),
+                                  db_getheaderlen(seqno),
+                                  opt_xsize,
+                                  opt_xee,
+                                  opt_xlength);
               fprintf(fp_uc, "\t*\n");
             }
 

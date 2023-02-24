@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/torognes/vsearch.svg?branch=master)](https://travis-ci.com/torognes/vsearch)
+[![Build Status](https://app.travis-ci.com/torognes/vsearch.svg?branch=master)](https://app.travis-ci.com/torognes/vsearch)
 
 # VSEARCH
 

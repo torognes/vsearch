@@ -285,12 +285,17 @@ dereplication. To do so, file names can be replaced with:
 .RS
 .IP - 2
 the symbol '-', representing '/dev/stdin' for input files
-or '/dev/stdout' for output files,
+or '/dev/stdout' for output files (with an exception for '\-\-db \-',
+see * below),
 .IP -
 a named pipe created with the command mkfifo,
 .IP -
 a process substitution '<(command)' as input or '>(command)' as
 output.
+.IP *
+\-\-db \- is not accepted, to prevent potential concurrent reads from
+stdin. A workaround for advanced users is to call '\-\-db /dev/stdin'
+directly.
 .RE
 .PP
 \fBvsearch\fR can automatically read compressed gzip or bzip2 files if
@@ -381,6 +386,7 @@ All \fBvsearch\fR operations discard sequences shorter than
 \fIinteger\fR: 1 nucleotide by default for sorting or shuffling, 32
 nucleotides for clustering and dereplication as well as the commands
 \-\-makeudb_usearch, \-\-sintax, and \-\-usearch_global.
+.\" note: minseqlength can be set to zero (keep empty entries)
 .TAG no_progress
 .TP
 .B \-\-no_progress
@@ -488,6 +494,11 @@ as a chimera (less false positives, but also more false negatives).
 Add the chimera score to the headers in the fasta output files for
 chimeras, non-chimeras and borderline sequences, using the
 format ';uchime_denovo=\fIfloat\fR;'.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG mindiffs
 .TP
 .BI \-\-mindiffs\~ "positive integer"
@@ -667,15 +678,20 @@ When using \-\-uchimeout, write chimera detection results using a
 17\-field, tab\-separated uchime\-like format (drop the 5th field of
 \-\-uchimeout), compatible with usearch version 5 and earlier
 versions.
+.TAG xlength
 .TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xn
+.TP
 .BI \-\-xn\~ "strictly positive real number"
 weight of no votes, corresponding to the parameter \fIbeta\fR in the
 scoring function (default value is 8.0). Increasing \-\-xn reduces the
 likelihood of tagging a sequence as a chimera (less false positives,
 but also more false negatives).
-.TP
 .TAG xsize
+.TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
 file.
@@ -775,9 +791,20 @@ by decreasing sequence length, unless \-\-usersort is used.
 .BI \-\-cluster_unoise \0filename
 Perform denoising of the fasta sequences in \fIfilename\fR according
 to the UNOISE version 3 algorithm by Robert Edgar, but without the
-\fIde novo\fR chimera removal step, which can be performed afterwards
+\fIde novo\fR chimera removal step, which may be performed afterwards
 with \-\-uchime3_denovo. The options \-\-minsize (default 8) and
-\-\-unoise_alpha (default 2.0) may be specified.
+\-\-unoise_alpha (default 2.0) may be specified. In the this
+algorithm, clustering of sequences depend on both the sequence
+distance and the abundance ratio. The abundance ratio (skew) is the
+abundance of a new sequence divided by the abundance of the centroid
+sequence. This skew must not be larger than beta if the sequences
+should be clustered together. Beta is calculated as 2 raised to the
+power of minus 1 minus alpha times the sequence distance. The sequence
+distance used is the number of mismatches in the alignment, ignoring
+gaps. This means that the abundance must be exponentially lower as the
+distance increases from the centroid for a new sequence to be included
+in the cluster. Nearer sequences with higher abundances will form
+their own new clusters.
 .TAG clusters
 .TP
 .BI \-\-clusters \0string
@@ -837,6 +864,11 @@ BLAST definition, equivalent to \-\-iddef 1 in a context of global
 pairwise alignment.
 .RE
 .RE
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG minsize
 .TP
 .BI \-\-minsize\~ "positive integer"
@@ -1028,6 +1060,11 @@ default is 2.0.
 .B \-\-usersort
 When using \-\-cluster_smallmem, allow any sequence input order, not
 just a decreasing length ordering.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -1073,9 +1110,10 @@ a special UCLUST-like file specified with the \-\-uc option. The
 according to the abundance of each input sequence. Other valid options
 are \-\-fastq_ascii, \-\-fastq_asciiout, \-\-fastq_qmax,
 \-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
-\-\-fastq_qout_max, \-\-maxuniquesize, \-\-minuniquesize, \-\-relabel,
-\-\-relabel_keep, \-\-relabel_md5, \-\-relabel_self, \-\-relabel_sha1,
-\-\-sizein, \-\-sizeout, \-\-strand, \-\-topn, and \-\-xsize.
+\-\-fastq_qout_max, \-\-lengthout, \-\-maxuniquesize,
+\-\-minuniquesize, \-\-relabel, \-\-relabel_keep, \-\-relabel_md5,
+\-\-relabel_self, \-\-relabel_sha1, \-\-sizein, \-\-sizeout,
+\-\-strand, \-\-topn, \-\-xlength, and \-\-xsize.
 .PP
 .TAG derep_fulllength
 .TP 9
@@ -1203,6 +1241,12 @@ output files will correspond to the average error probability of the
 nucleotides in the each position. If the \-\-fastq_qout_max option is
 given, the quality score will be the highest (best) quality score
 observed in each position.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA and
+FASTQ format by adding a ";length=\fIinteger\fR" attribute in the
+header.
 .TAG maxuniquesize
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
@@ -1337,6 +1381,11 @@ Label of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .PP
 .RS
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -2051,6 +2100,12 @@ When running \-\-fastq_join, use the \fIstring\fR as a quality padding
 string. The default is a string of I's equal in length to the sequence
 padding string. The letter I corresponds to a base quality score of 40
 indicating a very high quality base with error probability of 0.0001.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA or
+FASTQ format by adding a ";length=\fIinteger\fR" attribute in the
+header.
 .TAG maxsize
 .TP
 .BI \-\-maxsize\~ "positive integer"
@@ -2116,6 +2171,11 @@ limited using the \-\-fastq_qminout and \-\-fastq_qmaxout options.
 Specifies that the sequences converted by the \-\-sff_convert command
 should be clipped in both ends as indicated in the SFF file. By
 default no clipping is performed.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -2223,7 +2283,7 @@ only to the \-\-fastx_mask command.
 .BI \-\-fastx_mask \0filename
 Mask regions in sequences contained
 in the specified fasta or fastq file. The default is to mask using
-DUST (use \-\-qmask to modify that behavior). The output files
+DUST (use \-\-qmask to modify that behaviour). The output files
 are specified with the \-\-fastaout and \-\-fastqout options. The
 minimum and maximum percentage of unmasked residues may be specified
 with the \-\-min_unmasked_pct and \-\-max_unmasked_pct options,
@@ -2236,11 +2296,11 @@ replace the masked regions by lower case letters.
 .TAG maskfasta
 .TP
 .BI \-\-maskfasta \0filename
-Mask regions in sequences contained
-in the fasta file \fIfilename\fR. The default is to mask using
-\fIdust\fR (use \-\-qmask to modify that behavior). The output file is
-specified with the \-\-output option. This command is depreciated,
-please use \-\-fastx_mask instead.
+Mask regions in sequences contained in the fasta file
+\fIfilename\fR. The default is to mask using \fIdust\fR (use \-\-qmask
+to modify that behaviour). The output file is specified with the
+\-\-output option. This command is depreciated, please use
+\-\-fastx_mask instead.
 .TAG max_unmasked_pct
 .TP
 .BI \-\-max_unmasked_pct \0real
@@ -2711,6 +2771,11 @@ useful. The fraction of matching hits required may be adjusted by the
 .TP
 .B \-\-leftjust
 Reject the sequence match if the pairwise alignment begins with gaps.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG match
 .TP
 .BI \-\-match\~ "integer"
@@ -3119,6 +3184,11 @@ words. Memory requirements for a part of the index increase with a
 factor of 4 each time word length increases by one nucleotide, and
 this generally becomes significant for long words (12 or more). The
 default value is 8.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -3127,6 +3197,11 @@ Shuffling options:
 .RS
 Fasta entries in the input file are outputted in a pseudo-random
 order.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG output
 .TP 9
 .BI \-\-output \0filename
@@ -3136,7 +3211,7 @@ Write the shuffled sequences to \fIfilename\fR, in fasta format.
 .BI \-\-randseed\~ "positive integer"
 When shuffling sequence order, use \fIinteger\fR as seed. A given seed
 always produces the same output order (useful for replicability). Set
-to 0 to use a pseudo-random seed (default behavior).
+to 0 to use a pseudo-random seed (default behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -3192,6 +3267,11 @@ Pseudo-randomly shuffle the order of sequences contained in
 .BI \-\-topn\~ "positive integer"
 Output only the first \fIinteger\fR sequences after pseudo-random
 reordering.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -3213,6 +3293,11 @@ sorting performed during chimera checking (\-\-uchime_denovo),
 dereplication (\-\-derep_fulllength), and clustering (\-\-cluster_fast
 and \-\-cluster_size).
 .PP
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG maxsize
 .TP 9
 .BI \-\-maxsize\~ "positive integer"
@@ -3274,6 +3359,11 @@ sequences.
 .BI \-\-topn\~ "positive integer"
 Output only the top \fIinteger\fR sequences (i.e. the longest or the
 most abundant).
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -3344,13 +3434,18 @@ format. Requires input in fastq format.
 .BI \-\-fastx_subsample \0filename
 Perform subsampling from the sequences in the specified input file
 that is in FASTA or FASTQ format.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG randseed
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as a seed for the pseudo-random generator. A given
 seed always produces the same output, which is useful for
 replicability. Set to 0 to use a pseudo-random seed (default
-behavior).
+behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -3408,6 +3503,11 @@ otherwise the abundance of each sequence is considered to be 1.
 .TP
 .B \-\-sizeout
 Write abundance information to the output file.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -3433,7 +3533,11 @@ specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
 may be used to set a minimum level of bootstrap support for the
 taxonomic ranks to be reported. The `--randseed` option may be
 included to specify a seed for initialisation of the random number
-generator used by the algorithm.
+generator used by the algorithm. Please note that when using multiple
+threads, the `--randseed` option may not work as intended, because
+sequences may be processed in a random order by different threads. To
+ensure the same results each time, use a single thread (`--threads 1`)
+in combination with a fixed random seed specified with `--randseed`.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
@@ -3463,7 +3567,8 @@ UDB format. These sequences need to be annotated with taxonomy.
 Use \fIinteger\fR as seed for the random number generator used in the
 Sintax algorithm. A given seed always produces the same output order
 (useful for replicability). Set to 0 to use a pseudo-random seed
-(default behavior).
+(default behaviour). Does not work correctly with multiple threads;
+please use `--threads 1` to ensure correct behaviour.
 .TAG sintax_cutoff
 .TP
 .BI \-\-sintax_cutoff\~ "real"
@@ -3798,7 +3903,7 @@ dereplication.
 sequences labels as secondary or tertiary keys.
 .PP
 \fBvsearch\fR by default uses the DUST algorithm for masking
-low-complexity regions. Masking behavior is also slightly changed to
+low-complexity regions. Masking behaviour is also slightly changed to
 be more consistent.
 .PP
 .\" ============================================================================
@@ -4283,7 +4388,7 @@ Fixed bug in aligned sequences produced with \-\-fastapairs and
 \-\-userout (qrow, trow) options.
 .TP
 .BR v1.9.7\~ "released January 12th, 2016"
-Masking behavior is changed somewhat to keep the letter case of the
+Masking behaviour is changed somewhat to keep the letter case of the
 input sequences unchanged when no masking is performed. Masking is now
 performed also during chimera detection. Documentation updated.
 .TP

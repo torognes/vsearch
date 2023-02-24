@@ -288,17 +288,19 @@ void results_show_uc_one(FILE * fp,
               hp->id,
               hp->strand ? '-' : '+',
               perfect ? "=" : hp->nwalignment);
-      header_fprint_strip_size_ee(fp,
-                                  query_head,
-                                  strlen(query_head),
-                                  opt_xsize,
-                                  opt_xee);
+      header_fprint_strip(fp,
+                          query_head,
+                          strlen(query_head),
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
       fprintf(fp, "\t");
-      header_fprint_strip_size_ee(fp,
-                                  db_getheader(hp->target),
-                                  db_getheaderlen(hp->target),
-                                  opt_xsize,
-                                  opt_xee);
+      header_fprint_strip(fp,
+                          db_getheader(hp->target),
+                          db_getheaderlen(hp->target),
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
       fprintf(fp, "\n");
     }
   else

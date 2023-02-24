@@ -157,15 +157,23 @@ int64_t header_get_size(char * header, int header_length)
   return abundance;
 }
 
-void header_fprint_strip_size_ee(FILE * fp,
-                                 char * header,
-                                 int header_length,
-                                 bool strip_size,
-                                 bool strip_ee)
+void swap(int * a, int * b)
+{
+  int temp = *a;
+  *a = *b;
+  *b = temp;
+}
+
+void header_fprint_strip(FILE * fp,
+                         char * header,
+                         int header_length,
+                         bool strip_size,
+                         bool strip_ee,
+                         bool strip_length)
 {
   int attributes = 0;
-  int attribute_start[2];
-  int attribute_end[2];
+  int attribute_start[3];
+  int attribute_end[3];
 
   /* look for size attribute */
 
@@ -209,21 +217,43 @@ void header_fprint_strip_size_ee(FILE * fp,
       attributes++;
     }
 
+  /* look for length attribute */
+
+  int length_start = 0;
+  int length_end = 0;
+  bool length_found = false;
+  if (strip_length)
+    {
+      length_found = header_find_attribute(header,
+                                           header_length,
+                                           "length=",
+                                           & length_start,
+                                           & length_end,
+                                           true);
+    }
+  if (length_found)
+    {
+      attribute_start[attributes] = length_start;
+      attribute_end[attributes] = length_end;
+      attributes++;
+    }
+
   /* sort */
 
-  if (attributes > 1)
+  int last_swap = 0;
+  int limit = attributes - 1;
+  while (limit > 0)
     {
-      if (attribute_start[0] > attribute_start[1])
+      for(int i = 0; i < limit; i++)
         {
-          /* swap */
-
-          int s = attribute_start[0];
-          int e = attribute_end[0];
-          attribute_start[0] = attribute_start[1];
-          attribute_end[0] = attribute_end[1];
-          attribute_start[1] = s;
-          attribute_end[1] = e;
+          if (attribute_start[i] > attribute_start[i+1])
+            {
+              swap(attribute_start + i, attribute_start + i + 1);
+              swap(attribute_end   + i, attribute_end   + i + 1);
+              last_swap = i;
+            }
         }
+      limit = last_swap;
     }
 
   /* print */
@@ -255,15 +285,4 @@ void header_fprint_strip_size_ee(FILE * fp,
                   header + prev_end);
         }
     }
-}
-
-void header_fprint_strip_size(FILE * fp,
-                              char * header,
-                              int header_length)
-{
-  header_fprint_strip_size_ee(fp,
-                              header,
-                              header_length,
-                              true,
-                              false);
 }
