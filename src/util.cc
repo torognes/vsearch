@@ -393,6 +393,24 @@ void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen)
   fprintf(fp, "%s", digest);
 }
 
+char * seq_digest_md5(char * seq, int seqlen)
+{
+  char digest[LEN_HEX_DIG_MD5];
+  get_hex_seq_digest_md5(digest, seq, seqlen);
+  char * digest_str = (char *) xmalloc(33);
+  sprintf(digest_str, "%s", digest);
+  return digest_str;
+}
+
+char * seq_digest_sha1(char * seq, int seqlen)
+{
+  char digest[LEN_HEX_DIG_SHA1];
+  get_hex_seq_digest_sha1(digest, seq, seqlen);
+  char * digest_str = (char *) xmalloc(41);
+  sprintf(digest_str, "%s", digest);
+  return digest_str;
+}
+
 FILE * fopen_input(const char * filename)
 {
   /* open the input stream given by filename, but use stdin if name is - */

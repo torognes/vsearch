@@ -107,6 +107,9 @@ void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen);
 
 void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen);
 void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen);
+char * seq_digest_sha1(char * seq, int seqlen);
+char * seq_digest_md5(char * seq, int seqlen);
+
 
 FILE * fopen_input(const char * filename);
 FILE * fopen_output(const char * filename);

@@ -71,6 +71,7 @@ struct bucket
   unsigned int count;
   bool deleted;
   char * header;
+  char * seqlabel;
   char * seq;
   char * qual;
 };
@@ -673,6 +674,7 @@ void derep(char * input_filename, bool use_header)
           bp->seqno_last = sequencecount;
           bp->seq = xstrdup(seq);
           bp->header = xstrdup(header);
+          bp->seqlabel = xstrdup(header);
           bp->count = 1;
           if (qual)
             bp->qual = xstrdup(qual);
@@ -878,6 +880,18 @@ void derep(char * input_filename, bool use_header)
                                   relabel_count,
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
+              if ( opt_relabel ) 
+                {
+                  sprintf(bp->seqlabel, "%s%ld", opt_relabel, relabel_count);
+                }
+              else if ( opt_relabel_sha1 ) 
+                {
+                  bp->seqlabel = seq_digest_sha1(bp->seq, strlen(bp->seq));
+                }
+              else if ( opt_relabel_md5 ) 
+                {
+                  bp->seqlabel = seq_digest_md5(bp->seq, strlen(bp->seq));
+                }
               if (relabel_count == opt_topn)
                 {
                   break;
@@ -911,6 +925,18 @@ void derep(char * input_filename, bool use_header)
                                   size,
                                   relabel_count,
                                   -1.0);
+              if ( opt_relabel ) 
+                {
+                  sprintf(bp->seqlabel, "%s%ld", opt_relabel, relabel_count);
+                }
+              else if ( opt_relabel_sha1 ) 
+                {
+                  bp->seqlabel = seq_digest_sha1(bp->seq, strlen(bp->seq));
+                }
+              else if ( opt_relabel_md5 ) 
+                {
+                  bp->seqlabel = seq_digest_md5(bp->seq, strlen(bp->seq));
+                }
               if (relabel_count == opt_topn)
                 {
                   break;
@@ -931,11 +957,21 @@ void derep(char * input_filename, bool use_header)
       for (uint64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          char * hh =  bp->header;
           int64_t len = strlen(bp->seq);
+          char * orig_hh = bp->header;
+          char * hh =  bp->header;
 
-          fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, hh);
+          if ( opt_relabel || opt_relabel_sha1 || opt_relabel_md5 )
+            {
+               hh = bp->seqlabel;
+               fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t%s\n",
+                       i, len, orig_hh, hh);
+            }
+          else
+            {
+               fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+                       i, len, hh);
+            }
 
           for (unsigned int next = nextseqtab[bp->seqno_first];
                next != terminal;
@@ -956,8 +992,17 @@ void derep(char * input_filename, bool use_header)
       for (uint64_t i=0; i<clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, bp->size, bp->header);
+          if ( opt_relabel || opt_relabel_sha1 || opt_relabel_md5 )
+            {
+              fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t%s\n",
+                      i, bp->size, bp->header, bp->seqlabel);
+            }
+          else
+            {
+              fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+                      i, bp->size, bp->header);
+            }
+            
           progress_update(i);
         }
       fclose(fp_uc);
