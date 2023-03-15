@@ -73,7 +73,7 @@
 /* global constants/data, no need for synchronization */
 static int parts = 0;
 const int maxparts = 100;
-const int maxparents = 3; /* max, could be fewer */
+const int maxparents = 4; /* max, could be fewer */
 const int window = 64;
 const int few = 4;
 const int maxcandidates = few * maxparts;
@@ -167,13 +167,13 @@ void realloc_arrays(struct chimera_info_s * ci)
   if (opt_chimeras_denovo)
     {
       if (opt_chimeras_parts == 0)
-        parts = ci->query_len / 100;
+        parts = (ci->query_len + maxparts - 1) / maxparts;
       else
         parts = opt_chimeras_parts;
       if (parts < 2)
         parts = 2;
-      else if (parts > 100)
-        parts = 100;
+      else if (parts > maxparts)
+        parts = maxparts;
     }
   else
     {
@@ -190,7 +190,8 @@ void realloc_arrays(struct chimera_info_s * ci)
 
   /* realloc arrays based on query length */
 
-  int maxqlen = MAX(ci->query_len,1);
+  int maxqlen = MAX(ci->query_len, 1);
+  int maxpartlen = (maxqlen + parts - 1) / parts;
 
   if (maxqlen > ci->query_alloc)
     {
@@ -201,7 +202,6 @@ void realloc_arrays(struct chimera_info_s * ci)
       for(auto & i
             : ci->si)
         {
-          int maxpartlen = (maxqlen + parts - 1) / parts;
           i.qsequence = (char*) xrealloc(i.qsequence, maxpartlen + 1);
         }
 
@@ -772,19 +772,16 @@ int eval_parents_long(struct chimera_info_s * ci)
 
   for(int i = 0; i < alnlen; i++)
     {
-      if (! ci->ignore[i])
-        {
-          cols++;
+      cols++;
 
-          char qsym = chrmap_4bit[(int)(ci->qaln[i])];
+      char qsym = chrmap_4bit[(int)(ci->qaln[i])];
 
-          for(int f = 0; f < ci->parents_found; f++)
-            {
-              char psym = chrmap_4bit[(int)(ci->paln[f][i])];
-              if (qsym == psym)
-                match_QP[f]++;
-            }
-        }
+      for(int f = 0; f < ci->parents_found; f++)
+	{
+	  char psym = chrmap_4bit[(int)(ci->paln[f][i])];
+	  if (qsym == psym)
+	    match_QP[f]++;
+	}
     }
 
 
@@ -1580,14 +1577,17 @@ void query_exit(struct searchinfo_s * si)
   if (si->qsequence)
     {
       xfree(si->qsequence);
+      si->qsequence = nullptr;
     }
   if (si->hits)
     {
       xfree(si->hits);
+      si->hits = nullptr;
     }
   if (si->kmers)
     {
       xfree(si->kmers);
+      si->kmers = nullptr;
     }
 }
 
@@ -1597,7 +1597,7 @@ void partition_query(struct chimera_info_s * ci)
   char * p = ci->query_seq;
   for (int i = 0; i < parts; i++)
     {
-      int len = (rest+(parts-1-i))/(parts-i);
+      int len = (rest + (parts - i - 1)) / (parts - i);
 
       struct searchinfo_s * si = ci->si + i;
 

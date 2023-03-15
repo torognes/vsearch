@@ -4775,9 +4775,9 @@ void args_init(int argc, char **argv)
       fatal("The argument to chimeras_length_min must be at least 1");
     }
 
-  if ((opt_chimeras_parents_max < 2) || (opt_chimeras_parents_max > 3))
+  if ((opt_chimeras_parents_max < 2) || (opt_chimeras_parents_max > 4))
     {
-      fatal("The argument to chimeras_parents_max must be in the range 2 to 3");
+      fatal("The argument to chimeras_parents_max must be in the range 2 to 4");
     }
 
   if (options_selected[option_chimeras_parts] &&
