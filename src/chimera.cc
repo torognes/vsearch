@@ -726,7 +726,9 @@ int eval_parents_long(struct chimera_info_s * ci)
   for(int i = 0; i < alnlen; i++)
     {
       unsigned int qsym = chrmap_4bit[(int)(ci->qaln[i])];
-      unsigned int psym[ci->parents_found];
+      unsigned int psym[maxparents];
+      for (int f = 0; f < maxparents; f++)
+	psym[f] = 0;
       for (int f = 0; f < ci->parents_found; f++)
         psym[f] = chrmap_4bit[(int)(ci->paln[f][i])];
 
