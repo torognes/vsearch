@@ -594,7 +594,7 @@ void cluster_core_parallel()
   /* create threads and set them in stand-by mode */
   threads_init();
 
-  constexpr int queries_per_thread = 1;
+  constexpr static int queries_per_thread = 1;
   const int max_queries = queries_per_thread * opt_threads;
 
   /* allocate memory for the search information for each query;

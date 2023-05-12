@@ -158,8 +158,8 @@ auto udb_detect_isudb(const char * filename) -> bool
     It must be an uncompressed regular file, not a pipe.
   */
 
-  constexpr uint32_t udb_file_signature {0x55444246};
-  constexpr uint64_t expected_n_bytes {sizeof(uint32_t)};
+  constexpr static uint32_t udb_file_signature {0x55444246};
+  constexpr static uint64_t expected_n_bytes {sizeof(uint32_t)};
 
   xstat_t fs;
 
