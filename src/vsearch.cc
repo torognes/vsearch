@@ -717,7 +717,7 @@ int64_t args_getlong(char * arg)
 {
   int len = 0;
   int64_t temp = 0;
-  int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
+  const int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
   if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
     {
       fatal("Illegal option argument");
@@ -729,7 +729,7 @@ double args_getdouble(char * arg)
 {
   int len = 0;
   double temp = 0;
-  int ret = sscanf(arg, "%lf%n", &temp, &len);
+  const int ret = sscanf(arg, "%lf%n", &temp, &len);
   if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
     {
       fatal("Illegal option argument");
