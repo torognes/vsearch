@@ -1483,7 +1483,7 @@ void args_init(int argc, char **argv)
       {"xlength",               no_argument,       nullptr, 0 },
       {"xn",                    required_argument, nullptr, 0 },
       {"xsize",                 no_argument,       nullptr, 0 },
-      { nullptr,                      0,                 nullptr, 0 }
+      { nullptr,                0,                 nullptr, 0 }
     };
 
   const int options_count = (sizeof(long_options) / sizeof(struct option)) - 1;
@@ -4476,8 +4476,7 @@ void args_init(int argc, char **argv)
     {
       /* check if any options are specified */
       bool any_options = false;
-      for (bool i
-             : options_selected)
+      for (bool i: options_selected)
         {
           if (i)
             {
@@ -5440,10 +5439,10 @@ void cmd_allpairs_global()
 {
   /* check options */
 
-  if ((!opt_alnout) && (!opt_userout) &&
-      (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_samout) && (!opt_fastapairs))
+  if ((! opt_alnout) && (! opt_userout) &&
+      (! opt_uc) && (! opt_blast6out) &&
+      (! opt_matched) && (! opt_notmatched) &&
+      (! opt_samout) && (! opt_fastapairs))
     {
       fatal("No output files specified");
     }
@@ -5460,18 +5459,18 @@ void cmd_usearch_global()
 {
   /* check options */
 
-  if ((!opt_alnout) && (!opt_userout) &&
-      (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_dbmatched) && (!opt_dbnotmatched) &&
-      (!opt_samout) && (!opt_otutabout) &&
-      (!opt_biomout) && (!opt_mothur_shared_out) &&
-      (!opt_fastapairs) && (!opt_lcaout))
+  if ((! opt_alnout) && (! opt_userout) &&
+      (! opt_uc) && (! opt_blast6out) &&
+      (! opt_matched) && (! opt_notmatched) &&
+      (! opt_dbmatched) && (! opt_dbnotmatched) &&
+      (! opt_samout) && (! opt_otutabout) &&
+      (! opt_biomout) && (! opt_mothur_shared_out) &&
+      (! opt_fastapairs) && (! opt_lcaout))
     {
       fatal("No output files specified");
     }
 
-  if (!opt_db)
+  if (! opt_db)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5488,18 +5487,18 @@ void cmd_search_exact()
 {
   /* check options */
 
-  if ((!opt_alnout) && (!opt_userout) &&
-      (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_dbmatched) && (!opt_dbnotmatched) &&
-      (!opt_samout) && (!opt_otutabout) &&
-      (!opt_biomout) && (!opt_mothur_shared_out) &&
-      (!opt_fastapairs) && (!opt_lcaout))
+  if ((! opt_alnout) && (! opt_userout) &&
+      (! opt_uc) && (! opt_blast6out) &&
+      (! opt_matched) && (! opt_notmatched) &&
+      (! opt_dbmatched) && (! opt_dbnotmatched) &&
+      (! opt_samout) && (! opt_otutabout) &&
+      (! opt_biomout) && (! opt_mothur_shared_out) &&
+      (! opt_fastapairs) && (! opt_lcaout))
     {
       fatal("No output files specified");
     }
 
-  if (!opt_db)
+  if (! opt_db)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5509,7 +5508,7 @@ void cmd_search_exact()
 
 void cmd_subsample()
 {
-  if ((!opt_fastaout) && (!opt_fastqout))
+  if ((! opt_fastaout) && (! opt_fastqout))
     {
       fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
     }
@@ -5570,19 +5569,19 @@ void cmd_none()
 
 void cmd_cluster()
 {
-  if ((!opt_alnout) && (!opt_userout) &&
-      (!opt_uc) && (!opt_blast6out) &&
-      (!opt_matched) && (!opt_notmatched) &&
-      (!opt_centroids) && (!opt_clusters) &&
-      (!opt_consout) && (!opt_msaout) &&
-      (!opt_samout) && (!opt_profile) &&
-      (!opt_otutabout) && (!opt_biomout) &&
-      (!opt_mothur_shared_out))
+  if ((! opt_alnout) && (! opt_userout) &&
+      (! opt_uc) && (! opt_blast6out) &&
+      (! opt_matched) && (! opt_notmatched) &&
+      (! opt_centroids) && (! opt_clusters) &&
+      (! opt_consout) && (! opt_msaout) &&
+      (! opt_samout) && (! opt_profile) &&
+      (! opt_otutabout) && (! opt_biomout) &&
+      (! opt_mothur_shared_out))
     {
       fatal("No output files specified");
     }
 
-  if (!opt_cluster_unoise)
+  if (! opt_cluster_unoise)
     {
       if ((opt_id < 0.0) || (opt_id > 1.0))
         {
@@ -5610,8 +5609,8 @@ void cmd_cluster()
 
 void cmd_chimera()
 {
-  if ((!opt_chimeras)  && (!opt_nonchimeras) &&
-      (!opt_uchimeout) && (!opt_uchimealns))
+  if ((! opt_chimeras)  && (! opt_nonchimeras) &&
+      (! opt_uchimeout) && (! opt_uchimealns))
     {
       fatal("No output files specified");
     }
@@ -5631,7 +5630,7 @@ void cmd_chimera()
       fatal("Argument to --dn must be > 0");
     }
 
-  if ((!opt_uchime2_denovo) && (!opt_uchime3_denovo))
+  if ((! opt_uchime2_denovo) && (! opt_uchime3_denovo))
     {
       if (opt_mindiffs <= 0)
         {
@@ -5654,17 +5653,17 @@ void cmd_chimera()
 
 void cmd_fastq_mergepairs()
 {
-  if (!opt_reverse)
+  if (! opt_reverse)
     {
       fatal("No reverse reads file specified with --reverse");
     }
-  if ((!opt_fastqout) &&
-      (!opt_fastaout) &&
-      (!opt_fastqout_notmerged_fwd) &&
-      (!opt_fastqout_notmerged_rev) &&
-      (!opt_fastaout_notmerged_fwd) &&
-      (!opt_fastaout_notmerged_rev) &&
-      (!opt_eetabbedout))
+  if ((! opt_fastqout) &&
+      (! opt_fastaout) &&
+      (! opt_fastqout_notmerged_fwd) &&
+      (! opt_fastqout_notmerged_rev) &&
+      (! opt_fastaout_notmerged_fwd) &&
+      (! opt_fastaout_notmerged_rev) &&
+      (! opt_eetabbedout))
     {
       fatal("No output files specified");
     }
@@ -5674,7 +5673,7 @@ void cmd_fastq_mergepairs()
 
 void fillheader()
 {
-  constexpr static double one_gigabyte {1024.0 * 1024.0 * 1024.0};
+  constexpr static double one_gigabyte {1024 * 1024 * 1024};
   snprintf(progheader, 80,
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
@@ -5686,7 +5685,7 @@ void fillheader()
 void getentirecommandline(int argc, char** argv)
 {
   int len = 0;
-  for (int i=0; i<argc; i++)
+  for (int i = 0; i < argc; i++)
     {
       len += strlen(argv[i]);
     }
@@ -5694,9 +5693,9 @@ void getentirecommandline(int argc, char** argv)
   cmdline = (char*) xmalloc(len+argc);
   cmdline[0] = 0;
 
-  for (int i=0; i<argc; i++)
+  for (int i = 0; i < argc; i++)
     {
-      if (i>0)
+      if (i > 0)
         {
           strcat(cmdline, " ");
         }
@@ -5727,7 +5726,7 @@ int main(int argc, char** argv)
   if (opt_log)
     {
       fp_log = fopen_output(opt_log);
-      if (!fp_log)
+      if (! fp_log)
         {
           fatal("Unable to open log file for writing");
         }
@@ -5944,7 +5943,7 @@ int main(int argc, char** argv)
         }
       else
         {
-          fprintf(fp_log, "Max memory %.1lfGB\n", maxmem/1024.0);
+          fprintf(fp_log, "Max memory %.1lfGB\n", maxmem / 1024.0);
         }
       fclose(fp_log);
     }
