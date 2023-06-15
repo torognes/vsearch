@@ -62,13 +62,13 @@
 
 #define HASH hash_cityhash128
 
-struct bucket
+struct sm_bucket
 {
   uint128 hash;
   uint64_t size;
 };
 
-static struct bucket * hashtable = nullptr;
+static struct sm_bucket * hashtable = nullptr;
 static uint64_t hashtablesize = 0;
 
 double find_median()
@@ -166,7 +166,7 @@ void rehash_smallmem()
   /* allocate new hash table, 50% larger */
   uint64_t new_hashtablesize = 3 * hashtablesize / 2;
   auto * new_hashtable =
-    (struct bucket *) xmalloc(sizeof(bucket) * new_hashtablesize);
+    (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * new_hashtablesize);
 
   /* zero new hash table */
   for(uint64_t j = 0; j < new_hashtablesize; j++)
@@ -179,7 +179,7 @@ void rehash_smallmem()
   /* rehash all from old to new */
   for(uint64_t i = 0; i < hashtablesize; i++)
     {
-      struct bucket * old_bp = hashtable + i;
+      struct sm_bucket * old_bp = hashtable + i;
       if (old_bp->size)
         {
           uint64_t k = hash2bucket(old_bp->hash, new_hashtablesize);
@@ -187,7 +187,7 @@ void rehash_smallmem()
             {
               k = next_bucket(k, new_hashtablesize);
             }
-          struct bucket * new_bp = new_hashtable + k;
+          struct sm_bucket * new_bp = new_hashtable + k;
           * new_bp = * old_bp;
         }
     }
@@ -244,7 +244,7 @@ void derep_smallmem(char * input_filename)
   /* allocate initial hashtable with 1024 buckets */
 
   hashtablesize = 1024;
-  hashtable = (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
+  hashtable = (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * hashtablesize);
 
   /* zero hash table */
   for(uint64_t j = 0; j < hashtablesize; j++)
@@ -346,7 +346,7 @@ void derep_smallmem(char * input_filename)
 
       uint128 hash = HASH(seq_up, seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
-      struct bucket * bp = hashtable + j;
+      struct sm_bucket * bp = hashtable + j;
 
       while ((bp->size) && (hash != bp->hash))
         {
@@ -361,7 +361,7 @@ void derep_smallmem(char * input_filename)
 
           uint128 rc_hash = HASH(rc_seq_up, seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
-          struct bucket * rc_bp = hashtable + k;
+          struct sm_bucket * rc_bp = hashtable + k;
 
           while ((rc_bp->size) && (rc_hash != rc_bp->hash))
             {
@@ -562,7 +562,7 @@ void derep_smallmem(char * input_filename)
 
       uint128 hash = HASH(seq_up, seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
-      struct bucket * bp = hashtable + j;
+      struct sm_bucket * bp = hashtable + j;
 
       while ((bp->size) && (hash != bp->hash))
         {
@@ -577,7 +577,7 @@ void derep_smallmem(char * input_filename)
 
           uint128 rc_hash = HASH(rc_seq_up, seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
-          struct bucket * rc_bp = hashtable + k;
+          struct sm_bucket * rc_bp = hashtable + k;
 
           while ((rc_bp->size) && (rc_hash != rc_bp->hash))
             {

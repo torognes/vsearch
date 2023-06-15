@@ -222,8 +222,8 @@ void rehash(struct bucket * * hashtableref, int64_t alloc_clusters)
   uint64_t new_hash_mask = new_hashtablesize - 1;
 
   auto * new_hashtable =
-    (struct bucket *) xmalloc(sizeof(bucket) * new_hashtablesize);
-  memset(new_hashtable, 0, sizeof(bucket) * new_hashtablesize);
+    (struct bucket *) xmalloc(sizeof(struct bucket) * new_hashtablesize);
+  memset(new_hashtable, 0, sizeof(struct bucket) * new_hashtablesize);
 
   /* rehash all */
   for(uint64_t i = 0; i < old_hashtablesize; i++)
@@ -381,8 +381,8 @@ void derep(char * input_filename, bool use_header)
   uint64_t hashtablesize = 2 * alloc_clusters;
   uint64_t hash_mask = hashtablesize - 1;
   auto * hashtable =
-    (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
-  memset(hashtable, 0, sizeof(bucket) * hashtablesize);
+    (struct bucket *) xmalloc(sizeof(struct bucket) * hashtablesize);
+  memset(hashtable, 0, sizeof(struct bucket) * hashtablesize);
 
   show_rusage();
 
@@ -1110,9 +1110,9 @@ void derep_prefix()
   int hash_mask = hashtablesize - 1;
 
   auto * hashtable =
-    (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
+    (struct bucket *) xmalloc(sizeof(struct bucket) * hashtablesize);
 
-  memset(hashtable, 0, sizeof(bucket) * hashtablesize);
+  memset(hashtable, 0, sizeof(struct bucket) * hashtablesize);
 
   int64_t clusters = 0;
   int64_t sumsize = 0;
@@ -1294,7 +1294,7 @@ void derep_prefix()
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare_prefix);
+  qsort(hashtable, hashtablesize, sizeof(struct bucket), derep_compare_prefix);
   progress_done();
 
   if (clusters > 0)
