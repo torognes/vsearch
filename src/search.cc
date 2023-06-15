@@ -77,7 +77,7 @@ static int qmatches;
 static uint64 qmatches_abundance;
 static int queries;
 static uint64 queries_abundance;
-static int * dbmatched;
+static uint64 * dbmatched;
 static FILE * fp_samout = nullptr;
 static FILE * fp_alnout = nullptr;
 static FILE * fp_userout = nullptr;
@@ -306,7 +306,7 @@ void search_output_results(int hit_count,
     {
       if (hits[i].accepted)
         {
-          dbmatched[hits[i].target]++;
+          dbmatched[hits[i].target] += qsize;
         }
     }
 
@@ -693,16 +693,14 @@ void search_prep(char * cmdline, char * progheader)
   if (is_udb)
     {
       udb_read(opt_db, true, true);
+      results_show_samheader(fp_samout, cmdline, opt_db);
+      show_rusage();
+      seqcount = db_getsequencecount();
     }
   else
     {
       db_read(opt_db, 0);
-    }
-
-  results_show_samheader(fp_samout, cmdline, opt_db);
-
-  if (!is_udb)
-    {
+      results_show_samheader(fp_samout, cmdline, opt_db);
       if (opt_dbmask == MASK_DUST)
         {
           dust_all();
@@ -711,14 +709,8 @@ void search_prep(char * cmdline, char * progheader)
         {
           hardmask_all();
         }
-    }
-
-  show_rusage();
-
-  seqcount = db_getsequencecount();
-
-  if (!is_udb)
-    {
+      show_rusage();
+      seqcount = db_getsequencecount();
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
     }
@@ -819,8 +811,8 @@ void usearch_global(char * cmdline, char * progheader)
         }
     }
 
-  dbmatched = (int*) xmalloc(seqcount * sizeof(int*));
-  memset(dbmatched, 0, seqcount * sizeof(int*));
+  dbmatched = (uint64*) xmalloc(seqcount * sizeof(uint64*));
+  memset(dbmatched, 0, seqcount * sizeof(uint64*));
 
   otutable_init();
 

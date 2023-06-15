@@ -74,8 +74,10 @@ static fastx_handle query_fasta_h;
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
 static int qmatches;
+static uint64 qmatches_abundance;
 static int queries;
-static int * dbmatched;
+static uint64 queries_abundance;
+static uint64 * dbmatched;
 static FILE * fp_samout = nullptr;
 static FILE * fp_alnout = nullptr;
 static FILE * fp_userout = nullptr;
@@ -368,7 +370,7 @@ void search_exact_output_results(int hit_count,
     {
       if (hits[i].accepted)
         {
-          dbmatched[hits[i].target]++;
+          dbmatched[hits[i].target] += qsize;
         }
     }
 
@@ -493,11 +495,13 @@ void search_exact_thread_run(int64_t t)
 
           /* update stats */
           queries++;
+	  queries_abundance += qsize;
 
           if (match)
             {
               qmatches++;
-            }
+	      qmatches_abundance += qsize;
+	    }
 
           /* show progress */
           progress_update(progress);
@@ -745,8 +749,8 @@ void search_exact_prep(char * cmdline, char * progheader)
   /* tophits = the maximum number of hits we need to store */
   tophits = seqcount;
 
-  dbmatched = (int*) xmalloc(seqcount * sizeof(int*));
-  memset(dbmatched, 0, seqcount * sizeof(int*));
+  dbmatched = (uint64*) xmalloc(seqcount * sizeof(uint64*));
+  memset(dbmatched, 0, seqcount * sizeof(uint64*));
 
   dbhash_open(seqcount);
   dbhash_add_all();
@@ -822,7 +826,9 @@ void search_exact(char * cmdline, char * progheader)
 
   /* prepare reading of queries */
   qmatches = 0;
+  qmatches_abundance = 0;
   queries = 0;
+  queries_abundance = 0;
   query_fasta_h = fasta_open(opt_search_exact);
 
   /* allocate memory for thread info */
@@ -862,22 +868,48 @@ void search_exact(char * cmdline, char * progheader)
 
   if (!opt_quiet)
     {
-      fprintf(stderr, "Matching query sequences: %d of %d", qmatches, queries);
+      fprintf(stderr, "Matching unique query sequences: %d of %d",
+              qmatches, queries);
       if (queries > 0)
         {
           fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
       fprintf(stderr, "\n");
+      if (opt_sizein)
+	{
+          fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
+	          PRIu64,
+                  qmatches_abundance, queries_abundance);
+          if (queries_abundance > 0)
+            {
+              fprintf(stderr, " (%.2f%%)",
+                      100.0 * qmatches_abundance / queries_abundance);
+            }
+          fprintf(stderr, "\n");
+        }
     }
 
   if (opt_log)
     {
-      fprintf(fp_log, "Matching query sequences: %d of %d", qmatches, queries);
+      fprintf(fp_log, "Matching unique query sequences: %d of %d",
+              qmatches, queries);
       if (queries > 0)
         {
           fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
       fprintf(fp_log, "\n");
+      if (opt_sizein)
+        {
+          fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
+                  PRIu64,
+                  qmatches_abundance, queries_abundance);
+          if (queries_abundance > 0)
+            {
+              fprintf(fp_log, " (%.2f%%)",
+                      100.0 * qmatches_abundance / queries_abundance);
+            }
+          fprintf(fp_log, "\n");
+        }
     }
 
   if (fp_biomout)
