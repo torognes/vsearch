@@ -370,7 +370,7 @@ void search_exact_output_results(int hit_count,
     {
       if (hits[i].accepted)
         {
-          dbmatched[hits[i].target] += qsize;
+          dbmatched[hits[i].target] += opt_sizein ? qsize : 1;
         }
     }
 
