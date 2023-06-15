@@ -2535,7 +2535,7 @@ void args_init(int argc, char **argv)
         case option_chimeras_parents_max:
           opt_chimeras_parents_max = args_getlong(optarg);
           break;
-          
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -3833,6 +3833,7 @@ void args_init(int argc, char **argv)
         option_gzip_decompress,
         option_hardmask,
         option_log,
+        option_maxseqlength,
         option_minseqlength,
         option_no_progress,
         option_notrunclabels,
