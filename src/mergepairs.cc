@@ -284,6 +284,7 @@ inline int get_qual(char q)
 
 inline auto q_to_p(int quality_symbol) -> double
 {
+  static constexpr double quality_divider = 10.0;
   const int quality_value = quality_symbol - opt_fastq_ascii;
   if (quality_value < 2)
     {
@@ -291,7 +292,7 @@ inline auto q_to_p(int quality_symbol) -> double
     }
   else
     {
-      return exp10(-quality_value / 10.0);
+      return exp10(-quality_value / quality_divider);
     }
 }
 
