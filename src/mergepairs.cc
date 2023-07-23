@@ -291,7 +291,7 @@ inline auto q_to_p(int quality_symbol) -> double
     }
   else
     {
-      return exp10(-quality_value/10.0);
+      return exp10(-quality_value / 10.0);
     }
 }
 
