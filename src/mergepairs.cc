@@ -284,14 +284,14 @@ inline int get_qual(char q)
 
 inline auto q_to_p(int quality_symbol) -> double
 {
-  const int x = quality_symbol - opt_fastq_ascii;
-  if (x < 2)
+  const int quality_value = quality_symbol - opt_fastq_ascii;
+  if (quality_value < 2)
     {
       return 0.75;
     }
   else
     {
-      return exp10(-x/10.0);
+      return exp10(-quality_value/10.0);
     }
 }
 
