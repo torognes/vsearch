@@ -286,15 +286,12 @@ inline auto q_to_p(int quality_symbol) -> double
 {
   static constexpr double max_probability = 0.75;
   static constexpr double quality_divider = 10.0;
-  const int quality_value = quality_symbol - opt_fastq_ascii;
+  const auto quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
   if (quality_value < 2)
     {
       return max_probability;
     }
-  else
-    {
-      return exp10(-quality_value / quality_divider);
-    }
+  return exp10(-quality_value / quality_divider);
 }
 
 
