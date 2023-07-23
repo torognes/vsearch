@@ -282,9 +282,9 @@ inline int get_qual(char q)
 }
 
 
-inline auto q_to_p(int q) -> double
+inline auto q_to_p(int quality_symbol) -> double
 {
-  int x = q - opt_fastq_ascii;
+  int x = quality_symbol - opt_fastq_ascii;
   if (x < 2)
     {
       return 0.75;
