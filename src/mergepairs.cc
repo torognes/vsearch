@@ -282,7 +282,7 @@ inline int get_qual(char q)
 }
 
 
-inline double q_to_p(int q)
+inline auto q_to_p(int q) -> double
 {
   int x = q - opt_fastq_ascii;
   if (x < 2)
