@@ -281,6 +281,7 @@ inline int get_qual(char q)
   return qual;
 }
 
+
 inline double q_to_p(int q)
 {
   int x = q - opt_fastq_ascii;
@@ -293,6 +294,7 @@ inline double q_to_p(int q)
       return exp10(-x/10.0);
     }
 }
+
 
 void precompute_qual()
 {
