@@ -284,11 +284,12 @@ inline int get_qual(char q)
 
 inline auto q_to_p(int quality_symbol) -> double
 {
+  static constexpr double max_probability = 0.75;
   static constexpr double quality_divider = 10.0;
   const int quality_value = quality_symbol - opt_fastq_ascii;
   if (quality_value < 2)
     {
-      return 0.75;
+      return max_probability;
     }
   else
     {
