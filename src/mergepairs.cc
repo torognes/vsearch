@@ -289,6 +289,8 @@ inline auto q_to_p(int quality_symbol) -> double
   static constexpr double quality_divider = 10.0;
   static constexpr double power_base = 10.0;
   const auto quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
+
+  // refactor: extract branch to a separate operation
   if (quality_value < low_quality_threshold) {
     return max_probability;
   }
