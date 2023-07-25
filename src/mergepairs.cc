@@ -58,6 +58,7 @@
 
 */
 
+#include <cassert>
 #include "vsearch.h"
 
 /* chunk constants */
@@ -288,6 +289,10 @@ inline auto q_to_p(int quality_symbol) -> double
   static constexpr double max_probability = 0.75;
   static constexpr double quality_divider = 10.0;
   static constexpr double power_base = 10.0;
+
+  assert(quality_symbol >= 33);
+  assert(quality_symbol <= 126);
+
   const auto quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
 
   // refactor: extract branch to a separate operation
