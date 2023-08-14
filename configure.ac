@@ -69,6 +69,16 @@ AS_IF([test "x$enable_pdfman" != "xno"], [
   fi
 ])
 
+
+# Check for --enable-debug option
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug], [Enable debug build])],
+  [enable_debug=$enableval],
+  [enable_debug=no])
+
+# Define AM_CONDITIONAL for debug
+AM_CONDITIONAL([ENABLE_DEBUG], [test "x$enable_debug" = "xyes"])
+
 have_man_html=no
 
 case $target in
