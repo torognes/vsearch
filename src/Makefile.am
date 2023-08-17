@@ -10,6 +10,13 @@ AM_CFLAGS=-Wall -Wsign-compare -march=x86-64 -mtune=generic
 endif
 endif
 
+# Conditionally set NDEBUG based on ENABLE_DEBUG
+if ENABLE_DEBUG
+#AM_CFLAGS += -UNDEBUG
+else
+#AM_CFLAGS += -DNDEBUG
+endif
+
 AM_CXXFLAGS=$(AM_CFLAGS) -std=c++11
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
