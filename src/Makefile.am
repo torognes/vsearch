@@ -12,9 +12,9 @@ endif
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 if ENABLE_DEBUG
-#AM_CFLAGS += -UNDEBUG
+AM_CFLAGS += -UNDEBUG
 else
-#AM_CFLAGS += -DNDEBUG
+AM_CFLAGS += -DNDEBUG
 endif
 
 AM_CXXFLAGS=$(AM_CFLAGS) -std=c++11

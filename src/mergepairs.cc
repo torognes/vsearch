@@ -58,7 +58,6 @@
 
 */
 
-#include <cassert>
 #include "vsearch.h"
 
 /* chunk constants */

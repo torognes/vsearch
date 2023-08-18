@@ -83,6 +83,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <cassert>
 
 /* include appropriate regex library */
 
