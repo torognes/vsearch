@@ -2597,7 +2597,7 @@ columns). The field is set to 0 if there is no alignment.
 integer value).
 .IP \n+[step].
 \fIopens\fR: number of columns containing a gap opening (zero or
-positive integer value).
+positive integer value, excluding terminal gaps).
 .IP \n+[step].
 \fIqlo\fR: first nucleotide of the query aligned with the
 target. Always equal to 1 if there is an alignment, 0 otherwise (see
@@ -3708,7 +3708,8 @@ Number of columns containing a gap extension (zero or positive integer
 value).
 .TP
 .B gaps
-Number of columns containing a gap (zero or positive integer value).
+Number of columns containing a gap (zero or positive integer value,
+excluding terminal gaps).
 .TP
 .B id
 The percentage of identity, according to the identity definition
@@ -3752,7 +3753,7 @@ value).
 .TP
 .B opens
 Number of columns containing a gap opening (zero or positive integer
-value).
+value, excluding terminal gaps).
 .TP
 .B pairs
 Number of columns containing only nucleotides. That value corresponds
