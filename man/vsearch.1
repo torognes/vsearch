@@ -2000,12 +2000,14 @@ position with a quality \fIQ\fR below 5, 10, 15 or 20 (option
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
-number of bases from the left end of the reads.
+number of bases from the left end of the reads. If the length of the
+resulting read is null, then the read is discarded.
 .TAG fastq_stripright
 .TP
 .BI \-\-fastq_stripright\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
-number of bases from the right end of the reads.
+number of bases from the right end of the reads. If the length of the
+resulting read is null, then the read is discarded.
 .TAG fastq_tail
 .TP
 .BI \-\-fastq_tail\~ "positive integer"
