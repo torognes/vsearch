@@ -26,8 +26,8 @@ VSEARCH stands for vectorized search, as the tool takes advantage of parallelism
 
 Various packages, plugins and wrappers are also available from other sources - see [below](https://github.com/torognes/vsearch#packages-plugins-and-wrappers).
 
-The source code compiles correctly with `gcc` (versions 4.8.5 to 12.0)
-and `llvm-clang` (3.8 to 15.0). The source code should also compile on
+The source code compiles correctly with `gcc` (versions 4.8.5 to 13.0)
+and `llvm-clang` (3.8 to 17.0). The source code should also compile on
 [FreeBSD](https://www.freebsd.org/) and
 [NetBSD](https://www.netbsd.org/) systems.
 
