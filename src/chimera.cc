@@ -666,7 +666,7 @@ void fill_alignment_parents(struct chimera_info_s * ci)
                       *t++ = '-';
                     }
 
-                  qpos++;
+                  ++qpos;
                   inserted = 0;
                 }
             }
