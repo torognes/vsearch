@@ -978,7 +978,7 @@ int eval_parents(struct chimera_info_s * ci)
 
   char * q = ci->qaln;
   int qpos = 0;
-  for (int i=0; i < ci->query_len; i++)
+  for (int i = 0; i < ci->query_len; i++)
     {
       for (int j=0; j < ci->maxi[i]; j++)
         {
@@ -986,7 +986,7 @@ int eval_parents(struct chimera_info_s * ci)
         }
       *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
     }
-  for (int j=0; j < ci->maxi[ci->query_len]; j++)
+  for (int j = 0; j < ci->maxi[ci->query_len]; j++)
     {
       *q++ = '-';
     }
