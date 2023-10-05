@@ -1149,7 +1149,9 @@ int eval_parents(struct chimera_info_s * ci)
                   --right_a;
                 }
 
-              double left_h, right_h, h;
+              double left_h = 0;
+              double right_h = 0;
+              double h = 0;
 
               if ((left_y > left_n) && (right_y > right_n))
                 {
