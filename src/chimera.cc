@@ -1094,15 +1094,15 @@ int eval_parents(struct chimera_info_s * ci)
 
           if (diff == 'A')
             {
-              sumA++;
+              ++sumA;
             }
           else if (diff == 'B')
             {
-              sumB++;
+              ++sumB;
             }
           else if (diff != ' ')
             {
-              sumN++;
+              ++sumN;
             }
         }
 
