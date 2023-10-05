@@ -1536,6 +1536,7 @@ int eval_parents(struct chimera_info_s * ci)
   return status;
 }
 
+// refactoring: enum struct status {};
 /*
   new chimeric status:
   0: no parents, non-chimeric
