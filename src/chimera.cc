@@ -2076,7 +2076,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             }
         }
 
-      for (int i=0; i < ci->cand_count; i++)
+      for (int i = 0; i < ci->cand_count; i++)
         {
           if (ci->nwcigar[i])
             {
