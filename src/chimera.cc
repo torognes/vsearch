@@ -703,11 +703,11 @@ int eval_parents_long(struct chimera_info_s * ci)
   int m = 0;
   char * q = ci->qaln;
   int qpos = 0;
-  for (int i=0; i < ci->query_len; i++)
+  for (int i = 0; i < ci->query_len; i++)
     {
       if (qpos >= (ci->best_start[m] + ci->best_len[m]))
         m++;
-      for (int j=0; j < ci->maxi[i]; j++)
+      for (int j = 0; j < ci->maxi[i]; j++)
         {
           *q++ = '-';
           *pm++ = 'A' + m;
@@ -715,7 +715,7 @@ int eval_parents_long(struct chimera_info_s * ci)
       *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
       *pm++ = 'A' + m;
     }
-  for (int j=0; j < ci->maxi[ci->query_len]; j++)
+  for (int j = 0; j < ci->maxi[ci->query_len]; j++)
     {
       *q++ = '-';
       *pm++ = 'A' + m;
@@ -744,7 +744,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
       bool all_defined = qsym;
       for (int f = 0; f < ci->parents_found; f++)
-        if (!psym[f])
+        if (! psym[f])
           all_defined = false;
 
       if (all_defined)
