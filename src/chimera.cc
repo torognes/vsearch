@@ -353,7 +353,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
                     {
                       start = j;
                     }
-                  len++;
+                  ++len;
                   if (len > best_len)
                     {
                       best_cand = i;
