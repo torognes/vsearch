@@ -552,7 +552,7 @@ int find_best_parents(struct chimera_info_s * ci)
 
   /* Check if at least 2 candidates selected */
 
-  return (best_parent_cand[0] >= 0) && (best_parent_cand[1] >= 0);
+  return (best_parent_cand[0] >= 0) and (best_parent_cand[1] >= 0);
 }
 
 
