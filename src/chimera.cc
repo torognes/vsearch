@@ -735,7 +735,7 @@ int eval_parents_long(struct chimera_info_s * ci)
       /* lower case parent symbols that differ from query */
 
       for (int f = 0; f < ci->parents_found; f++)
-        if (psym[f] && (psym[f] != qsym))
+        if (psym[f] and (psym[f] != qsym))
           ci->paln[f][i] = tolower(ci->paln[f][i]);
 
       /* compute diffs */
@@ -1027,12 +1027,12 @@ int eval_parents(struct chimera_info_s * ci)
 
       /* lower case parent symbols that differ from query */
 
-      if (p1sym && (p1sym != qsym))
+      if (p1sym and (p1sym != qsym))
         {
           ci->paln[0][i] = tolower(ci->paln[0][i]);
         }
 
-      if (p2sym && (p2sym != qsym))
+      if (p2sym and (p2sym != qsym))
         {
           ci->paln[1][i] = tolower(ci->paln[1][i]);
         }
@@ -1288,7 +1288,7 @@ int eval_parents(struct chimera_info_s * ci)
 
       for(int i = 0; i < alnlen; i++)
         {
-          if (! ci->ignore[i])
+          if (not ci->ignore[i])
             {
               cols++;
 
@@ -1333,9 +1333,9 @@ int eval_parents(struct chimera_info_s * ci)
       int sumL = best_left_n + best_left_a + best_left_y;
       int sumR = best_right_n + best_right_a + best_right_y;
 
-      if (opt_uchime2_denovo || opt_uchime3_denovo)
+      if (opt_uchime2_denovo or opt_uchime3_denovo)
         {
-          if ((QM == 100.0) && (QT < 100.0))
+          if ((QM == 100.0) and (QT < 100.0))
             {
               status = 4;
             }
@@ -1356,7 +1356,7 @@ int eval_parents(struct chimera_info_s * ci)
 
       xpthread_mutex_lock(&mutex_output);
 
-      if (opt_uchimealns && (status == 4))
+      if (opt_uchimealns and (status == 4))
         {
           fprintf(fp_uchimealns, "\n");
           fprintf(fp_uchimealns, "----------------------------------------"
