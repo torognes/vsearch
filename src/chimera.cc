@@ -1041,7 +1041,7 @@ int eval_parents(struct chimera_info_s * ci)
 
       char diff;
 
-      if (qsym && p1sym && p2sym)
+      if (qsym and p1sym and p2sym)
         {
           if (p1sym == p2sym)
             {
@@ -1153,7 +1153,7 @@ int eval_parents(struct chimera_info_s * ci)
               double right_h = 0;
               double h = 0;
 
-              if ((left_y > left_n) && (right_y > right_n))
+              if ((left_y > left_n) and (right_y > right_n))
                 {
                   left_h = left_y / (opt_xn * (left_n + opt_dn) + left_a);
                   right_h = right_y / (opt_xn * (right_n + opt_dn) + right_a);
@@ -1172,7 +1172,7 @@ int eval_parents(struct chimera_info_s * ci)
                       best_right_a = right_a;
                     }
                 }
-              else if ((left_n > left_y) && (right_n > right_y))
+              else if ((left_n > left_y) and (right_n > right_y))
                 {
                   /* swap left/right and yes/no */
 
@@ -1344,8 +1344,8 @@ int eval_parents(struct chimera_info_s * ci)
         if (best_h >= opt_minh)
           {
             status = 3;
-            if ((divdiff >= opt_mindiv) &&
-                (sumL >= opt_mindiffs) &&
+            if ((divdiff >= opt_mindiv) and
+                (sumL >= opt_mindiffs) and
                 (sumR >= opt_mindiffs))
               {
                 status = 4;
@@ -2024,7 +2024,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
-          if ((status < 2) && opt_uchimeout)
+          if ((status < 2) and opt_uchimeout)
             {
               fprintf(fp_uchimeout, "0.0000\t");
 
@@ -2235,7 +2235,7 @@ void chimera()
             {
               dust_all();
             }
-          else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+          else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
             {
               hardmask_all();
             }
@@ -2274,7 +2274,7 @@ void chimera()
         {
           dust_all();
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+      else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
         {
           hardmask_all();
         }
