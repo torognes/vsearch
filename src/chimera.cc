@@ -595,7 +595,7 @@ int find_max_alignment_length(struct chimera_info_s * ci)
 
   /* find total alignment length */
   int alnlen = 0;
-  for(int i=0; i < ci->query_len+1; i++)
+  for(int i = 0; i < ci->query_len + 1; i++)
     {
       alnlen += ci->maxi[i];
     }
