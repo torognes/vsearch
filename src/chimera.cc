@@ -504,11 +504,11 @@ int find_best_parents(struct chimera_info_s * ci)
       for (int i = 0; i < ci->cand_count; i++)
         wins[i] = 0;
 
-      for(int qpos = window-1; qpos < ci->query_len; qpos++)
+      for(int qpos = window - 1; qpos < ci->query_len; qpos++)
         {
           if (ci->maxsmooth[qpos] != 0)
             {
-              for(int i=0; i < ci->cand_count; i++)
+              for(int i = 0; i < ci->cand_count; i++)
                 {
                   if (! cand_selected[i])
                     {
