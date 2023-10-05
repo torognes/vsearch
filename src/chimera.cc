@@ -674,7 +674,7 @@ void fill_alignment_parents(struct chimera_info_s * ci)
 
       /* add any gaps at the end */
 
-      if (! inserted)
+      if (not inserted)
         {
           for(int x=0; x < ci->maxi[qpos]; x++)
             {
