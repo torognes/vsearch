@@ -1878,7 +1878,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
                ci->snwgaps,
                ci->nwcigar);
 
-      for(int i=0; i < ci->cand_count; i++)
+      for(int i = 0; i < ci->cand_count; i++)
         {
           int64_t target = ci->cand_list[i];
           int64_t nwscore = ci->snwscore[i];
