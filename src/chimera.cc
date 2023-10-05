@@ -1761,7 +1761,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       if (opt_uchime_ref)
         {
-          if (fasta_next(query_fasta_h, ! opt_notrunclabels,
+          if (fasta_next(query_fasta_h, not opt_notrunclabels,
                          chrmap_no_change))
             {
               ci->query_head_len = fasta_get_header_length(query_fasta_h);
