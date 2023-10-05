@@ -268,8 +268,8 @@ void find_matches(struct chimera_info_s * ci)
                     {
                       ci->match[i * ci->query_len + qpos] = 1;
                     }
-                  qpos++;
-                  tpos++;
+                  ++qpos;
+                  ++tpos;
                 }
               break;
 
