@@ -1135,17 +1135,17 @@ int eval_parents(struct chimera_info_s * ci)
             {
               if (diff == 'A')
                 {
-                  left_y++;
+                  ++left_y;
                   right_n--;
                 }
               else if (diff == 'B')
                 {
-                  left_n++;
+                  ++left_n;
                   right_y--;
                 }
               else
                 {
-                  left_a++;
+                  ++left_a;
                   right_a--;
                 }
 
