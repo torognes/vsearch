@@ -537,8 +537,9 @@ int find_best_parents(struct chimera_info_s * ci)
 
       /* terminate loop if no parent found */
 
-      if (best_parent_cand[f] < 0)
+      if (best_parent_cand[f] < 0) {
         break;
+      }
 
 #if 0
       printf("Query %d: Best parent (%d) candidate: %d. Wins: %d\n",
