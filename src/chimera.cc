@@ -1819,13 +1819,13 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       if (ci->query_len >= parts)
         {
-          for (int i=0; i<parts; i++)
+          for (int i = 0; i < parts; i++)
             {
               struct hit * hits;
               int hit_count;
-              search_onequery(ci->si+i, opt_qmask);
-              search_joinhits(ci->si+i, nullptr, & hits, & hit_count);
-              for(int j=0; j<hit_count; j++)
+              search_onequery(ci->si + i, opt_qmask);
+              search_joinhits(ci->si + i, nullptr, & hits, & hit_count);
+              for(int j = 0; j < hit_count; j++)
                 {
                   if (hits[j].accepted)
                     {
@@ -1836,7 +1836,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
             }
         }
 
-      for(int i=0; i < allhits_count; i++)
+      for(int i = 0; i < allhits_count; i++)
         {
           unsigned int target = allhits_list[i].target;
 
