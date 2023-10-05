@@ -1126,9 +1126,9 @@ int eval_parents(struct chimera_info_s * ci)
   int best_left_a = 0;
   int best_right_a = 0;
 
-  for (int i=0; i<alnlen; i++)
+  for (int i = 0; i < alnlen; i++)
     {
-      if(!ci->ignore[i])
+      if(! ci->ignore[i])
         {
           char diff = ci->diffs[i];
           if (diff != ' ')
