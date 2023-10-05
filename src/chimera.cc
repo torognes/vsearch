@@ -166,14 +166,18 @@ void realloc_arrays(struct chimera_info_s * ci)
 {
   if (opt_chimeras_denovo)
     {
-      if (opt_chimeras_parts == 0)
+      if (opt_chimeras_parts == 0) {
         parts = (ci->query_len + maxparts - 1) / maxparts;
-      else
+      }
+      else {
         parts = opt_chimeras_parts;
-      if (parts < 2)
+      }
+      if (parts < 2) {
         parts = 2;
-      else if (parts > maxparts)
+      }
+      else if (parts > maxparts) {
         parts = maxparts;
+      }
     }
   else
     {
