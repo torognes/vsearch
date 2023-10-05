@@ -261,7 +261,7 @@ void find_matches(struct chimera_info_s * ci)
           switch (op)
             {
             case 'M':
-              for(int k=0; k<run; k++)
+              for(int k = 0; k < run; k++)
                 {
                   if (chrmap_4bit[(int)(qseq[qpos])] &
                       chrmap_4bit[(int)(tseq[tpos])])
