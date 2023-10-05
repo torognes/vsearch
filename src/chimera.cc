@@ -647,11 +647,11 @@ void fill_alignment_parents(struct chimera_info_s * ci)
             }
           else
             {
-              for(int x=0; x < run; x++)
+              for(int x = 0; x < run; x++)
                 {
-                  if (!inserted)
+                  if (! inserted)
                     {
-                      for(int y=0; y < ci->maxi[qpos]; y++)
+                      for(int y = 0; y < ci->maxi[qpos]; y++)
                         {
                           *t++ = '-';
                         }
