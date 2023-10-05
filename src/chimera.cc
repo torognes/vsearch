@@ -2070,7 +2070,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
       if (status < 3)
         {
           /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo || opt_uchime2_denovo || opt_uchime3_denovo || opt_chimeras_denovo)
+          if (opt_uchime_denovo or opt_uchime2_denovo or opt_uchime3_denovo or opt_chimeras_denovo)
             {
               dbindex_addsequence(seqno, opt_qmask);
             }
