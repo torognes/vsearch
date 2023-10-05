@@ -345,9 +345,9 @@ int find_best_parents_long(struct chimera_info_s * ci)
 
           for (int j = 0; j < ci->query_len; j++)
             {
-              if ((position_used[j] == false) &&
-                  (ci->match[i * ci->query_len + j] == 1) &&
-                  ((len == 0) || (ci->insert[i * ci->query_len + j] == 0)))
+              if ((position_used[j] == false) and
+                  (ci->match[i * ci->query_len + j] == 1) and
+                  ((len == 0) or (ci->insert[i * ci->query_len + j] == 0)))
                 {
                   if (len == 0)
                     {
