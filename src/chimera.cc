@@ -2123,14 +2123,14 @@ void chimera_threads_run()
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* create worker threads */
-  for(int64_t t=0; t<opt_threads; t++)
+  for(int64_t t = 0; t < opt_threads; t++)
     {
-      xpthread_create(pthread+t, & attr,
+      xpthread_create(pthread + t, & attr,
                       chimera_thread_worker, (void*)t);
     }
 
   /* finish worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -2143,7 +2143,7 @@ void open_chimera_file(FILE * * f, char * name)
   if (name)
     {
       *f = fopen_output(name);
-      if (!*f)
+      if (! *f)
         {
           fatal("Unable to open file %s for writing", name);
         }
@@ -2303,7 +2303,7 @@ void chimera()
 
   progress_done();
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       if (total_count > 0)
         {
