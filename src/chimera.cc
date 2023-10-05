@@ -814,7 +814,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
   xpthread_mutex_lock(&mutex_output);
 
-  if (opt_alnout && (status == 4))
+  if (opt_alnout and (status == 4))
     {
       fprintf(fp_uchimealns, "\n");
       fprintf(fp_uchimealns, "----------------------------------------"
