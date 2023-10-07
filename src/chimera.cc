@@ -220,13 +220,13 @@ void realloc_arrays(struct chimera_info_s * ci)
       const int maxalnlen = maxqlen + 2 * db_getlongestsequence();
       for (int f = 0; f < maxparents ; f++)
         {
-          ci->paln[f] = (char*) xrealloc(ci->paln[f], maxalnlen+1);
+          ci->paln[f] = (char*) xrealloc(ci->paln[f], maxalnlen + 1);
         }
-      ci->qaln = (char*) xrealloc(ci->qaln, maxalnlen+1);
-      ci->diffs = (char*) xrealloc(ci->diffs, maxalnlen+1);
-      ci->votes = (char*) xrealloc(ci->votes, maxalnlen+1);
-      ci->model = (char*) xrealloc(ci->model, maxalnlen+1);
-      ci->ignore = (char*) xrealloc(ci->ignore, maxalnlen+1);
+      ci->qaln = (char*) xrealloc(ci->qaln, maxalnlen + 1);
+      ci->diffs = (char*) xrealloc(ci->diffs, maxalnlen + 1);
+      ci->votes = (char*) xrealloc(ci->votes, maxalnlen + 1);
+      ci->model = (char*) xrealloc(ci->model, maxalnlen + 1);
+      ci->ignore = (char*) xrealloc(ci->ignore, maxalnlen + 1);
     }
 }
 
