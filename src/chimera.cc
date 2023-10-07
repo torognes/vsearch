@@ -185,7 +185,7 @@ void realloc_arrays(struct chimera_info_s * ci)
       parts = 4;
     }
 
-  const int maxhlen = MAX(ci->query_head_len,1);
+  const int maxhlen = MAX(ci->query_head_len, 1);
   if (maxhlen > ci->head_alloc)
     {
       ci->head_alloc = maxhlen;
