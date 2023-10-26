@@ -73,7 +73,6 @@
 /* global constants/data, no need for synchronization */
 static int parts = 0;
 const int maxparts = 100;
-const int maxparents = 4; /* max, could be fewer */
 const int window = 64;
 const int few = 4;
 const int maxcandidates = few * maxparts;
