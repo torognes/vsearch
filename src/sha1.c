@@ -237,14 +237,21 @@ void SHA1_Final(SHA1_CTX* context, uint8_t digest[SHA1_DIGEST_SIZE])
 {
     uint32_t i;
     uint8_t  finalcount[8];
+    uint8_t padding_buffer[64];
+
+    for (i = 0; i < 64; i++) {
+      padding_buffer[i] = 0;
+    }
 
     for (i = 0; i < 8; i++) {
         finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)]
          >> ((3-(i & 3)) * 8) ) & 255);  /* Endian independent */
     }
-    SHA1_Update(context, (uint8_t *)"\200", 1);
+    padding_buffer[0] = 0x80;
+    SHA1_Update(context, padding_buffer, 1);
+    padding_buffer[0] = 0x00;
     while ((context->count[0] & 504) != 448) {
-        SHA1_Update(context, (uint8_t *)"\0", 1);
+        SHA1_Update(context, padding_buffer, 1);
     }
     SHA1_Update(context, finalcount, 8);  /* Should cause a SHA1_Transform() */
     for (i = 0; i < SHA1_DIGEST_SIZE; i++) {
