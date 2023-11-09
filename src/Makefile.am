@@ -1,12 +1,14 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
+AM_CFLAGS = -Wall -Wsign-compare
+
 if TARGET_PPC
-AM_CFLAGS=-Wall -Wsign-compare -mcpu=powerpc64le -maltivec
+AM_CFLAGS += -mcpu=powerpc64le -maltivec
 else
 if TARGET_AARCH64
-AM_CFLAGS=-Wall -Wsign-compare -march=armv8-a+simd -mtune=generic
+AM_CFLAGS += -march=armv8-a+simd -mtune=generic
 else
-AM_CFLAGS=-Wall -Wsign-compare -march=x86-64 -mtune=generic
+AM_CFLAGS += -march=x86-64 -mtune=generic
 endif
 endif
 
