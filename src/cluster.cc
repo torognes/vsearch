@@ -482,7 +482,7 @@ void cluster_core_results_hit(struct hit * best,
   if (fp_blast6out)
     {
       results_show_blast6out_one(fp_blast6out, best, query_head,
-                                 qsequence, qseqlen, qsequence_rc);
+                                 qseqlen);
     }
 
   if (opt_matched)
@@ -546,7 +546,7 @@ void cluster_core_results_nohit(int clusterno,
       if (fp_blast6out)
         {
           results_show_blast6out_one(fp_blast6out, nullptr, query_head,
-                                     qsequence, qseqlen, qsequence_rc);
+                                     qseqlen);
         }
     }
 

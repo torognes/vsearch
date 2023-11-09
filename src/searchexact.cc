@@ -282,9 +282,7 @@ void search_exact_output_results(int hit_count,
               results_show_blast6out_one(fp_blast6out,
                                          hp,
                                          query_head,
-                                         qsequence,
-                                         qseqlen,
-                                         qsequence_rc);
+                                         qseqlen);
             }
         }
     }
@@ -318,9 +316,7 @@ void search_exact_output_results(int hit_count,
               results_show_blast6out_one(fp_blast6out,
                                          nullptr,
                                          query_head,
-                                         qsequence,
-                                         qseqlen,
-                                         qsequence_rc);
+                                         qseqlen);
             }
         }
     }
