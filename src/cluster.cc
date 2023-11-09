@@ -438,7 +438,7 @@ void cluster_core_results_hit(struct hit * best,
     {
       results_show_alnout(fp_alnout,
                           best, 1, query_head,
-                          qsequence, qseqlen, qsequence_rc);
+                          qsequence, qseqlen);
     }
 
   if (fp_samout)

@@ -653,8 +653,7 @@ void results_show_alnout(FILE * fp,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         int64_t qseqlen,
-                         char * rc)
+                         int64_t qseqlen)
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
