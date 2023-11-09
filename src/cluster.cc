@@ -454,7 +454,6 @@ void cluster_core_results_hit(struct hit * best,
                                   best,
                                   query_head,
                                   qsequence,
-                                  qseqlen,
                                   qsequence_rc);
     }
 

@@ -234,7 +234,6 @@ void search_exact_output_results(int hit_count,
                                           hp,
                                           query_head,
                                           qsequence,
-                                          qseqlen,
                                           qsequence_rc);
             }
 

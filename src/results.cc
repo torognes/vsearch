@@ -64,7 +64,6 @@ void results_show_fastapairs_one(FILE * fp,
                                  struct hit * hp,
                                  char * query_head,
                                  char * qsequence,
-                                 int64_t qseqlen,
                                  char * rc)
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
