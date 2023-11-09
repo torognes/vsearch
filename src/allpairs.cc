@@ -185,11 +185,7 @@ void allpairs_output_results(int hit_count,
           if (fp_tsegout)
             {
               results_show_tsegout_one(fp_tsegout,
-                                       hp,
-                                       query_head,
-                                       qsequence,
-                                       qseqlen,
-                                       qsequence_rc);
+                                       hp);
             }
 
           if (fp_uc)

@@ -470,11 +470,7 @@ void cluster_core_results_hit(struct hit * best,
   if (fp_tsegout)
     {
       results_show_tsegout_one(fp_tsegout,
-                               best,
-                               query_head,
-                               qsequence,
-                               qseqlen,
-                               qsequence_rc);
+                               best);
     }
 
   if (fp_userout)

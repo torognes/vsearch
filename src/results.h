@@ -110,11 +110,7 @@ void results_show_qsegout_one(FILE * fp,
                               char * rc);
 
 void results_show_tsegout_one(FILE * fp,
-                              struct hit * hp,
-                              char * query_head,
-                              char * qsequence,
-                              int64_t qseqlen,
-                              char * rc);
+                              struct hit * hp);
 
 void results_show_samheader(FILE * fp,
                             char * cmdline,
