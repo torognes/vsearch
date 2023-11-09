@@ -19,7 +19,7 @@ else
 AM_CFLAGS += -DNDEBUG
 endif
 
-AM_CXXFLAGS=$(AM_CFLAGS) -std=c++11
+AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
 
