@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <vector>
 
 /* chunk constants */
 
@@ -700,10 +701,10 @@ int64_t optimize(merge_data_t * ip,
 
   int kmers = 0;
 
-  int diags[ip->fwd_trunc + ip->rev_trunc];
+  std::vector<int> diags(ip->fwd_trunc + ip->rev_trunc, 0);
 
   kh_insert_kmers(kmerhash, k, ip->fwd_sequence, ip->fwd_trunc);
-  kh_find_diagonals(kmerhash, k, ip->rev_sequence, ip->rev_trunc, diags);
+  kh_find_diagonals(kmerhash, k, ip->rev_sequence, ip->rev_trunc, diags.data());
 
   for(int64_t i = i1; i <= i2; i++)
     {

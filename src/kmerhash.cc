@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <vector>
+
 
 #define HASH CityHash64
 
@@ -173,9 +175,7 @@ void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
 
 int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
 {
-  int diag_counts[kh->maxpos];
-
-  memset(diag_counts, 0, kh->maxpos * sizeof(int));
+  std::vector<int> diag_counts(kh->maxpos, 0);
 
   int kmers = 1 << (2 * k);
   unsigned int kmer_mask = kmers - 1;

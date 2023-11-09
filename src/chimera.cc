@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <vector>
 
 /*
   This code implements the method described in this paper:
@@ -324,11 +325,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
       best_parents[f].start = -1;
     }
 
-  bool position_used[ci->query_len];
-  for (int i = 0; i < ci->query_len; i++)
-    {
-      position_used[i] = false;
-    }
+  std::vector<bool> position_used(ci->query_len, false);
 
   int pos_remaining = ci->query_len;
   int parents_found = 0;
@@ -438,10 +435,7 @@ int find_best_parents(struct chimera_info_s * ci)
       ci->best_parents[f] = -1;
     }
 
-  bool cand_selected[ci->cand_count];
-
-  for (int i = 0; i < ci->cand_count; i++)
-    cand_selected[i] = false;
+  std::vector<bool> cand_selected(ci->cand_count, false);
 
   for (int f = 0; f < 2; f++)
     {
@@ -503,9 +497,7 @@ int find_best_parents(struct chimera_info_s * ci)
 
       /* find parent with the most wins */
 
-      int wins[ci->cand_count];
-      for (int i = 0; i < ci->cand_count; i++)
-        wins[i] = 0;
+      std::vector<int> wins(ci->cand_count, 0);
 
       for(int qpos = window - 1; qpos < ci->query_len; qpos++)
         {
