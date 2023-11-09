@@ -510,10 +510,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
 void results_show_lcaout(FILE * fp,
                          struct hit * hits,
                          int hitcount,
-                         char * query_head,
-                         char * qsequence,
-                         int64_t qseqlen,
-                         char * rc)
+                         char * query_head)
 {
   /* Output last common ancestor (LCA) of the hits,
      in a similar way to the Sintax command */

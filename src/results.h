@@ -69,10 +69,7 @@ void results_show_alnout(FILE * fp,
 void results_show_lcaout(FILE * fp,
                          struct hit * hits,
                          int hitcount,
-                         char * query_head,
-                         char * qsequence,
-                         int64_t qseqlen,
-                         char * rc);
+                         char * query_head);
 
 void results_show_blast6out_one(FILE * fp,
                                 struct hit * hp,

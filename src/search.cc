@@ -127,10 +127,7 @@ void search_output_results(int hit_count,
       results_show_lcaout(fp_lcaout,
                           hits,
                           toreport,
-                          query_head,
-                          qsequence,
-                          qseqlen,
-                          qsequence_rc);
+                          query_head);
     }
 
   if (fp_samout)
