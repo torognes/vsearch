@@ -478,6 +478,7 @@ void fastq_eestats2()
       if (len > longest)
         {
           longest = len;
+          // refactoring: std::max(0UL, uint64_t) always returns uint64_t
           int new_len_steps = 1 + std::max(0UL, (MIN(longest, (uint64_t)opt_length_cutoffs_longest) - opt_length_cutoffs_shortest) / opt_length_cutoffs_increment);
 
           if (new_len_steps > len_steps)
