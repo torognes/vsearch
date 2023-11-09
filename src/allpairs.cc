@@ -145,7 +145,6 @@ void allpairs_output_results(int hit_count,
                           toreport,
                           query_head,
                           qsequence,
-                          qseqlen,
                           qsequence_rc);
     }
 

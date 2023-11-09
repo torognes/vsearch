@@ -445,7 +445,7 @@ void cluster_core_results_hit(struct hit * best,
     {
       results_show_samout(fp_samout,
                           best, 1, query_head,
-                          qsequence, qseqlen, qsequence_rc);
+                          qsequence, qsequence_rc);
     }
 
   if (fp_fastapairs)

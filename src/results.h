@@ -113,5 +113,4 @@ void results_show_samout(FILE * fp,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         int64_t qseqlen,
                          char * rc);
