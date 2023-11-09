@@ -82,9 +82,7 @@ void results_show_blast6out_one(FILE * fp,
 void results_show_uc_one(FILE * fp,
                          struct hit * hp,
                          char * query_head,
-                         char * qsequence,
                          int64_t qseqlen,
-                         char * rc,
                          int clusterno);
 
 void results_show_userout_one(FILE * fp,

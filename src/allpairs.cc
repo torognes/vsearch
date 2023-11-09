@@ -195,9 +195,7 @@ void allpairs_output_results(int hit_count,
                   results_show_uc_one(fp_uc,
                                       hp,
                                       query_head,
-                                      qsequence,
                                       qseqlen,
-                                      qsequence_rc,
                                       hp->target);
                 }
             }
@@ -228,9 +226,7 @@ void allpairs_output_results(int hit_count,
           results_show_uc_one(fp_uc,
                               nullptr,
                               query_head,
-                              qsequence,
                               qseqlen,
-                              qsequence_rc,
                               0);
         }
 

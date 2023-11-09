@@ -430,7 +430,7 @@ void cluster_core_results_hit(struct hit * best,
     {
       results_show_uc_one(fp_uc,
                           best, query_head,
-                          qsequence, qseqlen, qsequence_rc,
+                          qseqlen,
                           clusterno);
     }
 
