@@ -119,11 +119,12 @@ double find_median()
 
       if (below_count + cand_count + above_count == 0U) // fix -Wfloat-equal
         return 0;
-      double mid = (below_count + cand_count + above_count) / 2.0;
 
-      if (mid >= below_count)
+      if (above_count + cand_count >= below_count)
+        // mid >= below_count
         {
-          if (mid <= below_count + cand_count)
+          if (above_count <= below_count + cand_count)
+            // mid <= below_count + cand_count
             {
               if (above_count == below_count + cand_count)
                 // mid == below_count + cand_count
