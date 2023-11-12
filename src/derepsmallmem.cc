@@ -117,8 +117,9 @@ double find_median()
             }
         }
 
+      auto all_counts = below_count + cand_count + above_count;
       double mid = below_count + cand_count + above_count;
-      if (mid == 0)
+      if (all_counts == 0U) // fix -Wfloat-equal
         return 0;
       mid = mid / 2.0;
 
