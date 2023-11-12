@@ -14,7 +14,7 @@ endif
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 if ENABLE_DEBUG
-AM_CFLAGS += -UNDEBUG
+AM_CFLAGS += -UNDEBUG -Wcast-align -Wextra -Wfloat-equal
 else
 AM_CFLAGS += -DNDEBUG
 endif
