@@ -1414,7 +1414,8 @@ int eval_parents(struct chimera_info_s * ci)
 
       if (opt_uchime2_denovo or opt_uchime3_denovo)
         {
-          if ((QM == 100.0) and (QT < 100.0))
+          // fix -Wfloat-equal: if match_QM == cols, then QM == 100.0
+          if ((match_QM == cols) and (QT < 100.0))
             {
               status = 4;
             }
