@@ -500,7 +500,7 @@ void derep_smallmem(char * input_filename)
 
   if (clusters < 1)
     {
-      if (!opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
@@ -515,7 +515,7 @@ void derep_smallmem(char * input_filename)
     {
       const double average = 1.0 * sumsize / clusters;
       const auto median = find_median();
-      if (!opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
