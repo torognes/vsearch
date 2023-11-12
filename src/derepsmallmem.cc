@@ -127,11 +127,21 @@ double find_median()
         {
           if (mid <= below_count + cand_count)
             {
-              if (mid == below_count + cand_count)
+              if (above_count == below_count + cand_count)
+                // mid == below_count + cand_count
+                // same as:
+                // (below_count + cand_count + above_count) / 2 == below_count + cand_count
+                // which simplifies into:
+                // above_count == below_count + cand_count
                 {
                   return (cand + above) / 2.0;
                 }
-              else if (mid == below_count)
+              else if (above_count + cand_count == below_count)
+                // mid == below_count
+                // same as:
+                // (below_count + cand_count + above_count) / 2 == below_count
+                // which simplifies into:
+                // above_count + cand_count == below_count
                 {
                   return (below + cand) / 2.0;
                 }
