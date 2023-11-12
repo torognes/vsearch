@@ -286,7 +286,6 @@ void derep_smallmem(char * input_filename)
   uint64_t clusters = 0;
   int64_t sumsize = 0;
   uint64_t maxsize = 0;
-  double median = 0.0;
   double average = 0.0;
 
   /* first pass */
@@ -501,7 +500,7 @@ void derep_smallmem(char * input_filename)
   show_rusage();
 
   average = 1.0 * sumsize / clusters;
-  median = find_median();
+  const auto median = find_median();
 
   if (clusters < 1)
     {
