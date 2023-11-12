@@ -140,6 +140,9 @@ struct chimera_info_s
   int * smooth;
   int * maxsmooth;
 
+  double * scan_p;
+  double * scan_q;
+
   int parents_found;
   int best_parents[maxparents];
   int best_start[maxparents];
@@ -216,6 +219,11 @@ void realloc_arrays(struct chimera_info_s * ci)
                                    maxcandidates * maxqlen * sizeof(int));
       ci->smooth = (int*) xrealloc(ci->smooth,
                                    maxcandidates * maxqlen * sizeof(int));
+
+      ci->scan_p = (double *) xrealloc(ci->scan_p,
+                                       (maxqlen + 1) * sizeof(double));
+      ci->scan_q = (double *) xrealloc(ci->scan_q,
+                                       (maxqlen + 1) * sizeof(double));
 
       const int maxalnlen = maxqlen + 2 * db_getlongestsequence();
       for (int f = 0; f < maxparents ; f++)
@@ -310,10 +318,75 @@ int compare_positions(const void * a, const void * b)
     return 0;
 }
 
+bool scan_matches(struct chimera_info_s * ci,
+                  int * matches,
+                  int len,
+                  double percentage,
+                  int * best_start,
+                  int * best_len)
+{
+  /*
+    Scan matches array of zeros and ones, and find the longest subsequence
+    having a match fraction above or equal to the given percentage (e.g. 2%).
+    Based on an idea of finding the longest positive sum substring:
+    https://stackoverflow.com/questions/28356453/longest-positive-sum-substring
+    If the percentage is 2%, matches are given a score of 2 and mismatches -98.
+  */
+
+  double score_match = percentage;
+  double score_mismatch = percentage - 100.0;
+
+  double * p = ci->scan_p;
+  double * q = ci->scan_q;
+
+  p[0] = 0.0;
+  for (int i = 0; i < len; i++)
+    p[i + 1] = p[i] + (matches[i] ? score_match : score_mismatch);
+
+  q[len] = p[len];
+  for (int i = len - 1; i >= 0; i--)
+    q[i] = MAX(q[i + 1], p[i]);
+
+  int best_i = 0;
+  int best_d = -1;
+  double best_c = -1.0;
+  int i = 1;
+  int j = 1;
+  while (j <= len)
+    {
+      double c = q[j] - p[i - 1];
+      if (c >= 0.0)
+        {
+          int d = j - i + 1;
+          if (d > best_d)
+            {
+              best_i = i;
+              best_d = d;
+              best_c = c;
+            }
+          j += 1;
+        }
+      else
+        {
+          i += 1;
+        }
+    }
+
+  if (best_c >= 0.0)
+    {
+      * best_start = best_i - 1;
+      * best_len = best_d;
+      return true;
+    }
+  else
+    return false;
+}
+
 int find_best_parents_long(struct chimera_info_s * ci)
 {
-  /* find parents with longest perfect match regions,
-     excluding regions matched by previously identified parents */
+  /* Find parents with longest matching regions, without indels, allowing
+     a given percentage of mismatches (specified with --chimeras_diff_pct),
+     and excluding regions matched by previously identified parents. */
 
   find_matches(ci);
 
@@ -342,29 +415,38 @@ int find_best_parents_long(struct chimera_info_s * ci)
         {
           int start = 0;
           int len = 0;
-
-          for (int j = 0; j < ci->query_len; j++)
+          int j = 0;
+          while (j < ci->query_len)
             {
-              if ((position_used[j] == false) and
-                  (ci->match[i * ci->query_len + j] == 1) and
-                  ((len == 0) or (ci->insert[i * ci->query_len + j] == 0)))
+              start = j;
+              len = 0;
+              while ((j < ci->query_len) &&
+                     (! position_used[j]) &&
+                     ((len == 0) || (ci->insert[i * ci->query_len + j] == 0)))
                 {
-                  if (len == 0)
+                  len++;
+                  j++;
+                }
+              if (len > best_len)
+                {
+                  int scan_best_start = 0;
+                  int scan_best_len = 0;
+                  if (scan_matches(ci,
+                                   ci->match + i*ci->query_len + start,
+                                   len,
+                                   opt_chimeras_diff_pct,
+                                   & scan_best_start,
+                                   & scan_best_len))
                     {
-                      start = j;
-                    }
-                  ++len;
-                  if (len > best_len)
-                    {
-                      best_cand = i;
-                      best_start = start;
-                      best_len = len;
+                      if (scan_best_len > best_len)
+                        {
+                          best_cand = i;
+                          best_start = start + scan_best_start;
+                          best_len = scan_best_len;
+                        }
                     }
                 }
-              else
-                {
-                  len = 0;
-                }
+              j++;
             }
         }
 
@@ -723,7 +805,7 @@ int eval_parents_long(struct chimera_info_s * ci)
       unsigned int qsym = chrmap_4bit[(int)(ci->qaln[i])];
       unsigned int psym[maxparents];
       for (int f = 0; f < maxparents; f++)
-	psym[f] = 0;
+        psym[f] = 0;
       for (int f = 0; f < ci->parents_found; f++)
         psym[f] = chrmap_4bit[(int)(ci->paln[f][i])];
 
@@ -744,13 +826,15 @@ int eval_parents_long(struct chimera_info_s * ci)
 
       if (all_defined)
         {
-          bool parents_equal = true;
-          for (int f = 1; f < ci->parents_found; f++)
-            if (psym[f] != psym[0])
-              parents_equal = false;
-
-          if (! parents_equal)
-            diff = ci->model[i];
+          int z = 0;
+          for (int f = 0; f < ci->parents_found; f++)
+            if (psym[f] == qsym)
+              {
+                diff = 'A' + f;
+                z++;
+              }
+          if (z > 1)
+            diff = ' ';
         }
 
       ci->diffs[i] = diff;
@@ -774,11 +858,11 @@ int eval_parents_long(struct chimera_info_s * ci)
       char qsym = chrmap_4bit[(int)(ci->qaln[i])];
 
       for(int f = 0; f < ci->parents_found; f++)
-	{
-	  char psym = chrmap_4bit[(int)(ci->paln[f][i])];
-	  if (qsym == psym)
-	    match_QP[f]++;
-	}
+        {
+          char psym = chrmap_4bit[(int)(ci->paln[f][i])];
+          if (qsym == psym)
+            match_QP[f]++;
+        }
     }
 
 
@@ -1631,6 +1715,8 @@ void chimera_thread_init(struct chimera_info_s * ci)
   ci->votes = nullptr;
   ci->model = nullptr;
   ci->ignore = nullptr;
+  ci->scan_p = nullptr;
+  ci->scan_q = nullptr;
 
   for (int f = 0; f < maxparents; f++)
     {
@@ -1714,6 +1800,14 @@ void chimera_thread_exit(struct chimera_info_s * ci)
   if (ci->query_head)
     {
       xfree(ci->query_head);
+    }
+  if (ci->scan_p)
+    {
+      xfree(ci->scan_p);
+    }
+  if (ci->scan_q)
+    {
+      xfree(ci->scan_q);
     }
 
   for (int f = 0; f < maxparents; f++)

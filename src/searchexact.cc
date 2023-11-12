@@ -480,13 +480,13 @@ void search_exact_thread_run(int64_t t)
 
           /* update stats */
           queries++;
-	  queries_abundance += qsize;
+          queries_abundance += qsize;
 
           if (match)
             {
               qmatches++;
-	      qmatches_abundance += qsize;
-	    }
+              qmatches_abundance += qsize;
+            }
 
           /* show progress */
           progress_update(progress);
@@ -861,9 +861,9 @@ void search_exact(char * cmdline, char * progheader)
         }
       fprintf(stderr, "\n");
       if (opt_sizein)
-	{
+        {
           fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
-	          PRIu64,
+                  PRIu64,
                   qmatches_abundance, queries_abundance);
           if (queries_abundance > 0)
             {

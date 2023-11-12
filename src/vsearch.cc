@@ -194,6 +194,7 @@ char * opt_usearch_global;
 char * opt_userout;
 double * opt_ee_cutoffs_values;
 double opt_abskew;
+double opt_chimeras_diff_pct;
 double opt_dn;
 double opt_fastq_maxdiffpct;
 double opt_fastq_maxee;
@@ -755,6 +756,7 @@ void args_init(int argc, char **argv)
   opt_centroids = nullptr;
   opt_chimeras = nullptr;
   opt_chimeras_denovo = nullptr;
+  opt_chimeras_diff_pct = 0.0;
   opt_chimeras_length_min = 10;
   opt_chimeras_parents_max = 3;
   opt_chimeras_parts = 0;
@@ -1010,6 +1012,7 @@ void args_init(int argc, char **argv)
       option_centroids,
       option_chimeras,
       option_chimeras_denovo,
+      option_chimeras_diff_pct,
       option_chimeras_length_min,
       option_chimeras_parents_max,
       option_chimeras_parts,
@@ -1255,6 +1258,7 @@ void args_init(int argc, char **argv)
       {"centroids",             required_argument, nullptr, 0 },
       {"chimeras",              required_argument, nullptr, 0 },
       {"chimeras_denovo",       required_argument, nullptr, 0 },
+      {"chimeras_diff_pct",     required_argument, nullptr, 0 },
       {"chimeras_length_min",   required_argument, nullptr, 0 },
       {"chimeras_parents_max",  required_argument, nullptr, 0 },
       {"chimeras_parts",        required_argument, nullptr, 0 },
@@ -2536,6 +2540,10 @@ void args_init(int argc, char **argv)
           opt_chimeras_parents_max = args_getlong(optarg);
           break;
 
+        case option_chimeras_diff_pct:
+          opt_chimeras_diff_pct = args_getdouble(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2709,6 +2717,7 @@ void args_init(int argc, char **argv)
         option_alignwidth,
         option_alnout,
         option_chimeras,
+        option_chimeras_diff_pct,
         option_chimeras_length_min,
         option_chimeras_parents_max,
         option_chimeras_parts,
@@ -4782,6 +4791,11 @@ void args_init(int argc, char **argv)
       fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string);
     }
 
+  if ((opt_chimeras_diff_pct < 0.0) || (opt_chimeras_diff_pct > 50.0))
+    {
+      fatal("The argument to chimeras_diff_pct must be in the range 0.0 to 50.0");
+    }
+
   if (options_selected[option_chimeras_parts] &&
       ((opt_chimeras_parts < 2) || (opt_chimeras_parts > 100)))
     {
@@ -4986,6 +5000,7 @@ void cmd_help()
               "  --chimeras_denovo FILENAME  detect chimeras de novo in long exact sequences\n"
               " Parameters\n"
               "  --abskew REAL               minimum abundance ratio (1.0)\n"
+              "  --chimeras_diff_pct         mismatch %% allowed in each chimeric region (0.0)\n"
               "  --chimeras_length_min       minimum length of each chimeric region (10)\n"
               "  --chimeras_parents_max      maximum number of parent sequences (3)\n"
               "  --chimeras_parts            number of parts to divide sequences (length/100)\n"
