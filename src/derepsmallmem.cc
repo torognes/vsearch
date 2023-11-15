@@ -243,7 +243,7 @@ void derep_smallmem(char * input_filename)
     }
   else
     {
-      fatal("Ouput file for dereplication must be specified with --fastaout");
+      fatal("Output file for dereplication must be specified with --fastaout");
     }
 
   uint64_t filesize = fastx_get_size(h);
