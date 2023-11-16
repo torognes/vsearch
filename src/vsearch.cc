@@ -5754,7 +5754,7 @@ int main(int argc, char** argv)
       char time_string[26];
       time_start = time(nullptr);
       struct tm * tm_start = localtime(& time_start);
-      strftime(time_string, 26, "%c", tm_start);
+      strftime(time_string, 26, "%FT%T", tm_start);
       fprintf(fp_log, "Started  %s\n", time_string);
     }
 
@@ -5945,7 +5945,7 @@ int main(int argc, char** argv)
       time_finish = time(nullptr);
       struct tm * tm_finish = localtime(& time_finish);
       char time_string[26];
-      strftime(time_string, 26, "%c", tm_finish);
+      strftime(time_string, 26, "%FT%T", tm_finish);
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Finished %s", time_string);
 
