@@ -243,7 +243,7 @@ void derep_smallmem(char * input_filename)
     }
   else
     {
-      fatal("Ouput file for dereplication must be specified with --fastaout");
+      fatal("Output file for dereplication must be specified with --fastaout");
     }
 
   uint64_t filesize = fastx_get_size(h);
@@ -420,8 +420,8 @@ void derep_smallmem(char * input_filename)
       if (sequencecount > 0)
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
-                  ", max %'" PRIu64 ", avg %'.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
+                  ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
                   sequencecount,
                   shortest,
@@ -431,7 +431,7 @@ void derep_smallmem(char * input_filename)
       else
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
         }
@@ -442,8 +442,8 @@ void derep_smallmem(char * input_filename)
       if (sequencecount > 0)
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
-                  ", max %'" PRIu64 ", avg %'.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
+                  ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
                   sequencecount,
                   shortest,
@@ -453,7 +453,7 @@ void derep_smallmem(char * input_filename)
       else
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
         }
