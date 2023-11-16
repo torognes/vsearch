@@ -701,8 +701,8 @@ void derep(char * input_filename, bool use_header)
       if (sequencecount > 0)
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
-                  ", max %'" PRIu64 ", avg %'.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
+                  ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
                   sequencecount,
                   shortest,
@@ -712,7 +712,7 @@ void derep(char * input_filename, bool use_header)
       else
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
         }
@@ -723,8 +723,8 @@ void derep(char * input_filename, bool use_header)
       if (sequencecount > 0)
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64
-                  ", max %'" PRIu64 ", avg %'.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
+                  ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
                   sequencecount,
                   shortest,
@@ -734,7 +734,7 @@ void derep(char * input_filename, bool use_header)
       else
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
         }
