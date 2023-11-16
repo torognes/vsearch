@@ -167,7 +167,7 @@ char * xstrchrnul(char *s, int c)
     }
   else
     {
-      return (char *)s + strlen(s);
+      return s + strlen(s);
     }
 }
 
