@@ -161,7 +161,7 @@ void db_read(const char * filename, int upcase)
         {
           discarded_long++;
         }
-      else if (opt_cluster_unoise && (abundance < (int64_t)opt_minsize))
+      else if (opt_cluster_unoise && (abundance < opt_minsize))
         {
           discarded_unoise++;
         }
