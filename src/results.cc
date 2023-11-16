@@ -434,7 +434,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
                                   hp->nwalignmentlength,
                                   0);
               fprintf(fp, "%.*s",
-                      (int)(hp->internal_alignmentlength),
+                      hp->internal_alignmentlength,
                       qrow + hp->trim_q_left + hp->trim_t_left);
               xfree(qrow);
             }
@@ -447,7 +447,7 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
                                   hp->nwalignmentlength,
                                   1);
               fprintf(fp, "%.*s",
-                      (int)(hp->internal_alignmentlength),
+                      hp->internal_alignmentlength,
                       trow + hp->trim_q_left + hp->trim_t_left);
               xfree(trow);
             }
