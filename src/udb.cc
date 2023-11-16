@@ -938,7 +938,7 @@ void udb_make()
   buffer[5]  = 1; /* dbstep */
   buffer[6]  = 100; /* dbaccelpct % */
   buffer[11] = 0; /* slots */
-  buffer[13] = (unsigned int) seqcount; /* number of sequences */
+  buffer[13] = seqcount; /* number of sequences */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
   pos += largewrite(fd_output, buffer, 50 * 4, 0);
@@ -983,7 +983,7 @@ void udb_make()
   /* 0x005e0db3 */
   buffer[1] = 0x005e0db3;
   /* number of sequences, uint32 */
-  buffer[2] = (unsigned int) seqcount;
+  buffer[2] = seqcount;
   /* total number of nucleotides, uint64 */
   buffer[3] = (unsigned int)(ntcount & 0xffffffff);
   buffer[4] = (unsigned int)(ntcount >> 32);
