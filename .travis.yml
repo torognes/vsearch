@@ -2,19 +2,14 @@ language:
 - cpp
 
 arch:
-#- amd64
 - arm64
 #- ppc64le
 
 os:
 - linux
-#- osx
 
 dist:
 - xenial
-
-osx_image:
-- xcode12.5
 
 addons:
   apt:
