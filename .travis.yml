@@ -13,9 +13,6 @@ addons:
     packages:
     - ghostscript
     - groff
-  homebrew:
-    packages:
-    - ghostscript
 
 compiler:
 - g++
