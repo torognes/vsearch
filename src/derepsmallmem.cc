@@ -538,7 +538,7 @@ void derep_smallmem(char * input_filename)
   /* second pass with output */
 
   fastx_handle h2 = fastx_open(input_filename);
-  if (!h2)
+  if (not h2)
     {
       fatal("Cannot open and read from the input file.");
     }
@@ -547,7 +547,7 @@ void derep_smallmem(char * input_filename)
 
   uint64_t selected = 0;
 
-  while(fastx_next(h2, ! opt_notrunclabels, chrmap_no_change))
+  while(fastx_next(h2, not opt_notrunclabels, chrmap_no_change))
     {
       int64_t seqlen = fastx_get_sequence_length(h2);
 
@@ -577,7 +577,7 @@ void derep_smallmem(char * input_filename)
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) && ! bp->size)
+      if ((opt_strand > 1) && not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
