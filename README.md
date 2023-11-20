@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/torognes/vsearch.svg?branch=master)](https://travis-ci.com/torognes/vsearch)
+[![Build Status](https://app.travis-ci.com/torognes/vsearch.svg?branch=master)](https://app.travis-ci.com/torognes/vsearch)
 
 # VSEARCH
 
@@ -26,8 +26,8 @@ VSEARCH stands for vectorized search, as the tool takes advantage of parallelism
 
 Various packages, plugins and wrappers are also available from other sources - see [below](https://github.com/torognes/vsearch#packages-plugins-and-wrappers).
 
-The source code compiles correctly with `gcc` (versions 4.8.5 to 10.2)
-and `llvm-clang` (3.8 to 13.0). The source code should also compile on
+The source code compiles correctly with `gcc` (versions 4.8.5 to 13.0)
+and `llvm-clang` (3.8 to 17.0). The source code should also compile on
 [FreeBSD](https://www.freebsd.org/) and
 [NetBSD](https://www.netbsd.org/) systems.
 
@@ -37,7 +37,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -50,9 +50,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.20.1.tar.gz
-tar xzf v2.20.1.tar.gz
-cd vsearch-2.20.1
+wget https://github.com/torognes/vsearch/archive/v2.25.0.tar.gz
+tar xzf v2.25.0.tar.gz
+cd vsearch-2.25.0
 ./autogen.sh
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make
@@ -61,7 +61,7 @@ make install  # as root or sudo make install
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch. Version 3.82 or later of Make may be required on Linux, while version 3.81 is sufficient on macOS.
 
-The distributed Linux ppc64le and aarch64 binaries and the Windows binary were compiled using the [Mingw-w64](http://mingw-w64.org/) C++ cross-compiler.
+The distributed Linux ppc64le and aarch64 binaries were compiled using the C++ cross-compiler. The Windows binary was built using [Mingw-w64](http://mingw-w64.org/).
 
 **Cloning the repo** Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
@@ -69,7 +69,7 @@ The distributed Linux ppc64le and aarch64 binaries and the Windows binary were c
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
 ./autogen.sh
-./configure
+./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make
 make install  # as root or sudo make install
 ```
@@ -81,43 +81,59 @@ Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (v
 Download the appropriate executable for your system using the following commands if you are using a Linux x86_64 system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch-2.20.1-linux-x86_64.tar.gz
-tar xzf vsearch-2.20.1-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch-2.25.0-linux-x86_64.tar.gz
+tar xzf vsearch-2.25.0-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Linux ppc64le system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch-2.20.1-linux-ppc64le.tar.gz
-tar xzf vsearch-2.20.1-linux-ppc64le.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch-2.25.0-linux-ppc64le.tar.gz
+tar xzf vsearch-2.25.0-linux-ppc64le.tar.gz
 ```
 
 Or these commands if you are using a Linux aarch64 (arm64) system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch-2.20.1-linux-aarch64.tar.gz
-tar xzf vsearch-2.20.1-linux-aarch64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch-2.25.0-linux-aarch64.tar.gz
+tar xzf vsearch-2.25.0-linux-aarch64.tar.gz
 ```
 
-Or these commands if you are using a Mac:
+Or these commands if you are using a Mac with an Apple Silicon CPU:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch-2.20.1-macos-x86_64.tar.gz
-tar xzf vsearch-2.20.1-macos-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch-2.25.0-macos-aarch64.tar.gz
+tar xzf vsearch-2.25.0-macos-aarch64.tar.gz
+```
+
+Or these commands if you are using a Mac with an Intel CPU:
+
+```sh
+wget https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch-2.25.0-macos-x86_64.tar.gz
+tar xzf vsearch-2.25.0-macos-x86_64.tar.gz
 ```
 
 Or if you are using Windows, download and extract (unzip) the contents of this file:
 
 ```
-https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch-2.20.1-win-x86_64.zip
+https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch-2.25.0-win-x86_64.zip
 ```
 
-Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.20.1-linux-x86_64` or `vsearch-2.20.1-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`. Versions with statically compiled libraries are available for Linux systems. These have "-static" in their name, and could be used on systems that do not have all the necessary libraries installed.
+Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.25.0-linux-x86_64` or `vsearch-2.25.0-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`. Versions with statically compiled libraries are available for Linux systems. These have "-static" in their name, and could be used on systems that do not have all the necessary libraries installed.
 
-Windows: You will now have the binary distribution in a folder called `vsearch-2.20.1-win-x86_64`. The vsearch executable is called `vsearch.exe`. The manual in PDF format is called `vsearch_manual.pdf`.
+**Windows**: You will now have the binary distribution in a folder
+called `vsearch-2.25.0-win-x86_64`. The vsearch executable is called
+`vsearch.exe`. The manual in PDF format is called
+`vsearch_manual.pdf`. If you want to be able to call `vsearch.exe`
+from any command prompt window, you can put the vsearch executable in
+a folder (for instance `C:\Users\<yourname>\bin`), and add the new
+folder to the user `Path`: open the `Environment Variables` window by
+searching for it in the Start menu, `Edit` user variables, add
+`;C:\Users\<yourname>\bin` to the end of the `Path` variable, and save
+your changes.
 
 
-**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.20.1/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
+**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.25.0/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
 
 
 ## Packages, plugins, and wrappers
@@ -314,15 +330,25 @@ and the [Protist Ribosomal Reference Database (PR<sup>2</sup>)](https://github.c
 *Bioinformatics*, 26 (19): 2460-2461.
 doi:[10.1093/bioinformatics/btq461](https://doi.org/10.1093/bioinformatics/btq461)
 
-* Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011)
-**UCHIME improves sensitivity and speed of chimera detection.**
-*Bioinformatics*, 27 (16): 2194-2200.
-doi:[10.1093/bioinformatics/btr381](https://doi.org/10.1093/bioinformatics/btr381)
+* Edgar RC (2016)
+**SINTAX: a simple non-Bayesian taxonomy classifier for 16S and ITS sequences.**
+*bioRxiv*.
+doi:[10.1101/074161](https://doi.org/10.1101/074161)
+
+* Edgar RC (2016)
+**UNOISE2: improved error-correction for Illumina 16S and ITS amplicon sequencing.**
+*bioRxiv*.
+doi:[10.1101/081257](https://doi.org/10.1101/081257)
 
 * Edgar RC, Flyvbjerg H (2015)
 **Error filtering, pair assembly and error correction for next-generation sequencing reads.**
 *Bioinformatics*, 31 (21): 3476-3482.
 doi:[10.1093/bioinformatics/btv401](https://doi.org/10.1093/bioinformatics/btv401)
+
+* Edgar RC, Haas BJ, Clemente JC, Quince C, Knight R (2011)
+**UCHIME improves sensitivity and speed of chimera detection.**
+*Bioinformatics*, 27 (16): 2194-2200.
+doi:[10.1093/bioinformatics/btr381](https://doi.org/10.1093/bioinformatics/btr381)
 
 * Guillou L, Bachar D, Audic S, Bass D, Berney C, Bittner L, Boutte C, Burgaud G, de Vargas C, Decelle J, del Campo J, Dolan J, Dunthorn M, Edvardsen B, Holzmann M, Kooistra W, Lara E, Lebescot N, Logares R, Mahé F, Massana R, Montresor M, Morard R, Not F, Pawlowski J, Probert I, Sauvadet A-L, Siano R, Stoeck T, Vaulot D, Zimmermann P & Christen R (2013)
 **The Protist Ribosomal Reference database (PR2): a catalog of unicellular eukaryote Small Sub-Unit rRNA sequences with curated taxonomy.**

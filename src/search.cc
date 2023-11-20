@@ -77,7 +77,7 @@ static int qmatches;
 static uint64 qmatches_abundance;
 static int queries;
 static uint64 queries_abundance;
-static int * dbmatched;
+static uint64 * dbmatched;
 static FILE * fp_samout = nullptr;
 static FILE * fp_alnout = nullptr;
 static FILE * fp_userout = nullptr;
@@ -118,8 +118,7 @@ void search_output_results(int hit_count,
                           toreport,
                           query_head,
                           qsequence,
-                          qseqlen,
-                          qsequence_rc);
+                          qseqlen);
     }
 
   if (fp_lcaout)
@@ -127,10 +126,7 @@ void search_output_results(int hit_count,
       results_show_lcaout(fp_lcaout,
                           hits,
                           toreport,
-                          query_head,
-                          qsequence,
-                          qseqlen,
-                          qsequence_rc);
+                          query_head);
     }
 
   if (fp_samout)
@@ -140,7 +136,6 @@ void search_output_results(int hit_count,
                           toreport,
                           query_head,
                           qsequence,
-                          qseqlen,
                           qsequence_rc);
     }
 
@@ -170,7 +165,6 @@ void search_output_results(int hit_count,
                                           hp,
                                           query_head,
                                           qsequence,
-                                          qseqlen,
                                           qsequence_rc);
             }
 
@@ -187,11 +181,7 @@ void search_output_results(int hit_count,
           if (fp_tsegout)
             {
               results_show_tsegout_one(fp_tsegout,
-                                       hp,
-                                       query_head,
-                                       qsequence,
-                                       qseqlen,
-                                       qsequence_rc);
+                                       hp);
             }
 
           if (fp_uc)
@@ -201,9 +191,7 @@ void search_output_results(int hit_count,
                   results_show_uc_one(fp_uc,
                                       hp,
                                       query_head,
-                                      qsequence,
                                       qseqlen,
-                                      qsequence_rc,
                                       hp->target);
                 }
             }
@@ -223,9 +211,7 @@ void search_output_results(int hit_count,
               results_show_blast6out_one(fp_blast6out,
                                          hp,
                                          query_head,
-                                         qsequence,
-                                         qseqlen,
-                                         qsequence_rc);
+                                         qseqlen);
             }
         }
     }
@@ -236,9 +222,7 @@ void search_output_results(int hit_count,
           results_show_uc_one(fp_uc,
                               nullptr,
                               query_head,
-                              qsequence,
                               qseqlen,
-                              qsequence_rc,
                               0);
         }
 
@@ -259,9 +243,7 @@ void search_output_results(int hit_count,
               results_show_blast6out_one(fp_blast6out,
                                          nullptr,
                                          query_head,
-                                         qsequence,
-                                         qseqlen,
-                                         qsequence_rc);
+                                         qseqlen);
             }
         }
     }
@@ -306,7 +288,7 @@ void search_output_results(int hit_count,
     {
       if (hits[i].accepted)
         {
-          dbmatched[hits[i].target]++;
+          dbmatched[hits[i].target] += opt_sizein ? qsize : 1;
         }
     }
 
@@ -693,16 +675,14 @@ void search_prep(char * cmdline, char * progheader)
   if (is_udb)
     {
       udb_read(opt_db, true, true);
+      results_show_samheader(fp_samout, cmdline, opt_db);
+      show_rusage();
+      seqcount = db_getsequencecount();
     }
   else
     {
       db_read(opt_db, 0);
-    }
-
-  results_show_samheader(fp_samout, cmdline, opt_db);
-
-  if (!is_udb)
-    {
+      results_show_samheader(fp_samout, cmdline, opt_db);
       if (opt_dbmask == MASK_DUST)
         {
           dust_all();
@@ -711,14 +691,8 @@ void search_prep(char * cmdline, char * progheader)
         {
           hardmask_all();
         }
-    }
-
-  show_rusage();
-
-  seqcount = db_getsequencecount();
-
-  if (!is_udb)
-    {
+      show_rusage();
+      seqcount = db_getsequencecount();
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
     }
@@ -819,8 +793,8 @@ void usearch_global(char * cmdline, char * progheader)
         }
     }
 
-  dbmatched = (int*) xmalloc(seqcount * sizeof(int*));
-  memset(dbmatched, 0, seqcount * sizeof(int*));
+  dbmatched = (uint64*) xmalloc(seqcount * sizeof(uint64*));
+  memset(dbmatched, 0, seqcount * sizeof(uint64*));
 
   otutable_init();
 

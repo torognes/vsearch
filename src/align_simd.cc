@@ -102,25 +102,25 @@ static int64_t scorematrix[16][16];
 
 #ifdef __PPC__
 
-typedef vector signed short VECTOR_SHORT;
+typedef __vector signed short VECTOR_SHORT;
 
-const vector unsigned char perm_merge_long_low =
+const __vector unsigned char perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
 
-const vector unsigned char perm_merge_long_high =
+const __vector unsigned char perm_merge_long_high =
   {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
 
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
 #define v_load(a) vec_ld(0, (VECTOR_SHORT *)(a))
-#define v_store(a, b) vec_st((vector unsigned char)(b), 0,      \
-                             (vector unsigned char *)(a))
+#define v_store(a, b) vec_st((__vector unsigned char)(b), 0,    \
+                             (__vector unsigned char *)(a))
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_sub_unsigned(a, b) ((VECTOR_SHORT)                            \
-                              vec_subs((vector unsigned short) (a),     \
-                                       (vector unsigned short) (b)))
+                              vec_subs((__vector unsigned short) (a),   \
+                                       (__vector unsigned short) (b)))
 #define v_max(a, b) vec_max((a), (b))
 #define v_min(a, b) vec_min((a), (b))
 #define v_dup(a) vec_splat((VECTOR_SHORT){(short)(a), 0, 0, 0, 0, 0, 0, 0}, 0);
@@ -298,13 +298,13 @@ void dprofile_fill16(CELL * dprofile_word,
         {
 
 #ifdef __PPC__
-          vector signed short     reg0, reg1, reg2, reg3,
+          __vector signed short     reg0, reg1, reg2, reg3,
             reg4, reg5, reg6, reg7;
-          vector signed int       reg8, reg9, reg10,reg11,
+          __vector signed int       reg8, reg9, reg10,reg11,
             reg12,reg13,reg14,reg15;
-          vector signed long long reg16,reg17,reg18,reg19,
+          __vector signed long long reg16,reg17,reg18,reg19,
             reg20,reg21,reg22,reg23;
-          vector signed long long reg24,reg25,reg26,reg27,
+          __vector signed long long reg24,reg25,reg26,reg27,
             reg28,reg29,reg30,reg31;
 #else
           VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
@@ -323,39 +323,39 @@ void dprofile_fill16(CELL * dprofile_word,
           reg7 = v_load(score_matrix_word + d[7] + i);
 
 #ifdef __PPC__
-          reg8  = (vector signed int) vec_mergeh(reg0, reg1);
-          reg9  = (vector signed int) vec_mergel(reg0, reg1);
-          reg10 = (vector signed int) vec_mergeh(reg2, reg3);
-          reg11 = (vector signed int) vec_mergel(reg2, reg3);
-          reg12 = (vector signed int) vec_mergeh(reg4, reg5);
-          reg13 = (vector signed int) vec_mergel(reg4, reg5);
-          reg14 = (vector signed int) vec_mergeh(reg6, reg7);
-          reg15 = (vector signed int) vec_mergel(reg6, reg7);
+          reg8  = (__vector signed int) vec_mergeh(reg0, reg1);
+          reg9  = (__vector signed int) vec_mergel(reg0, reg1);
+          reg10 = (__vector signed int) vec_mergeh(reg2, reg3);
+          reg11 = (__vector signed int) vec_mergel(reg2, reg3);
+          reg12 = (__vector signed int) vec_mergeh(reg4, reg5);
+          reg13 = (__vector signed int) vec_mergel(reg4, reg5);
+          reg14 = (__vector signed int) vec_mergeh(reg6, reg7);
+          reg15 = (__vector signed int) vec_mergel(reg6, reg7);
 
-          reg16 = (vector signed long long) vec_mergeh(reg8,  reg10);
-          reg17 = (vector signed long long) vec_mergel(reg8,  reg10);
-          reg18 = (vector signed long long) vec_mergeh(reg12, reg14);
-          reg19 = (vector signed long long) vec_mergel(reg12, reg14);
-          reg20 = (vector signed long long) vec_mergeh(reg9,  reg11);
-          reg21 = (vector signed long long) vec_mergel(reg9,  reg11);
-          reg22 = (vector signed long long) vec_mergeh(reg13, reg15);
-          reg23 = (vector signed long long) vec_mergel(reg13, reg15);
+          reg16 = (__vector signed long long) vec_mergeh(reg8,  reg10);
+          reg17 = (__vector signed long long) vec_mergel(reg8,  reg10);
+          reg18 = (__vector signed long long) vec_mergeh(reg12, reg14);
+          reg19 = (__vector signed long long) vec_mergel(reg12, reg14);
+          reg20 = (__vector signed long long) vec_mergeh(reg9,  reg11);
+          reg21 = (__vector signed long long) vec_mergel(reg9,  reg11);
+          reg22 = (__vector signed long long) vec_mergeh(reg13, reg15);
+          reg23 = (__vector signed long long) vec_mergel(reg13, reg15);
 
-          reg24 = (vector signed long long) vec_perm
+          reg24 = (__vector signed long long) vec_perm
             (reg16, reg18, perm_merge_long_low);
-          reg25 = (vector signed long long) vec_perm
+          reg25 = (__vector signed long long) vec_perm
             (reg16, reg18, perm_merge_long_high);
-          reg26 = (vector signed long long) vec_perm
+          reg26 = (__vector signed long long) vec_perm
             (reg17, reg19, perm_merge_long_low);
-          reg27 = (vector signed long long) vec_perm
+          reg27 = (__vector signed long long) vec_perm
             (reg17, reg19, perm_merge_long_high);
-          reg28 = (vector signed long long) vec_perm
+          reg28 = (__vector signed long long) vec_perm
             (reg20, reg22, perm_merge_long_low);
-          reg29 = (vector signed long long) vec_perm
+          reg29 = (__vector signed long long) vec_perm
             (reg20, reg22, perm_merge_long_high);
-          reg30 = (vector signed long long) vec_perm
+          reg30 = (__vector signed long long) vec_perm
             (reg21, reg23, perm_merge_long_low);
-          reg31 = (vector signed long long) vec_perm
+          reg31 = (__vector signed long long) vec_perm
             (reg21, reg23, perm_merge_long_high);
 #else
           reg8  = v_merge_lo_16(reg0,  reg1);
@@ -428,38 +428,38 @@ void dprofile_fill16(CELL * dprofile_word,
 /* The VSX vec_bperm instruction puts the 16 selected bits of the first
    source into bits 48-63 of the destination. */
 
-const vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
+const __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
   56,  48,  40,  32,  24,  16,   8,   0 };
 
 #define ALIGNCORE(H, N, F, V, RES, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX)  \
   {                                                                     \
-    vector unsigned short W, X, Y, Z;                                   \
-    vector unsigned int WX, YZ;                                         \
-    vector short VV;                                                    \
+    __vector unsigned short W, X, Y, Z;                                 \
+    __vector unsigned int WX, YZ;                                       \
+    __vector short VV;                                                  \
     VV = v_load(&V);                                                    \
     H = v_add(H, VV);                                                   \
-    W = (vector unsigned short) VECTORBYTEPERMUTE                       \
-      ((vector unsigned char) vec_cmpgt(F, H), perm);                   \
+    W = (__vector unsigned short) VECTORBYTEPERMUTE                     \
+      ((__vector unsigned char) vec_cmpgt(F, H), perm);                 \
     H = v_max(H, F);                                                    \
-    X = (vector unsigned short) VECTORBYTEPERMUTE                       \
-      ((vector unsigned char) vec_cmpgt(E, H), perm);                   \
+    X = (__vector unsigned short) VECTORBYTEPERMUTE                     \
+      ((__vector unsigned char) vec_cmpgt(E, H), perm);                 \
     H = v_max(H, E);                                                    \
     H_MIN = v_min(H_MIN, H);                                            \
     H_MAX = v_max(H_MAX, H);                                            \
     N = H;                                                              \
     HF = v_sub(H, QR_t);                                                \
     F = v_sub(F, R_t);                                                  \
-    Y = (vector unsigned short) VECTORBYTEPERMUTE                       \
-      ((vector unsigned char) vec_cmpgt(F, HF), perm);                  \
+    Y = (__vector unsigned short) VECTORBYTEPERMUTE                     \
+      ((__vector unsigned char) vec_cmpgt(F, HF), perm);                \
     F = v_max(F, HF);                                                   \
     HE = v_sub(H, QR_q);                                                \
     E = v_sub(E, R_q);                                                  \
-    Z = (vector unsigned short) VECTORBYTEPERMUTE                       \
-      ((vector unsigned char) vec_cmpgt(E, HE), perm);                  \
+    Z = (__vector unsigned short) VECTORBYTEPERMUTE                     \
+      ((__vector unsigned char) vec_cmpgt(E, HE), perm);                \
     E = v_max(E, HE);                                                   \
-    WX = (vector unsigned int) vec_mergel(W, X);                        \
-    YZ = (vector unsigned int) vec_mergel(Y, Z);                        \
-    RES = (vector unsigned long long) vec_mergeh(WX, YZ);               \
+    WX = (__vector unsigned int) vec_mergel(W, X);                      \
+    YZ = (__vector unsigned int) vec_mergel(Y, Z);                      \
+    RES = (__vector unsigned long long) vec_mergeh(WX, YZ);             \
   }
 
 #else
@@ -527,7 +527,7 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT h_max = v_zero;
 
 #ifdef __PPC__
-  vector unsigned long long RES1, RES2, RES;
+  __vector unsigned long long RES1, RES2, RES;
 #endif
 
   int64_t i;
@@ -679,7 +679,7 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT h_max = v_zero;
 
 #ifdef __PPC__
-  vector unsigned long long RES1, RES2, RES;
+  __vector unsigned long long RES1, RES2, RES;
 #endif
 
   int64_t i;
@@ -783,8 +783,9 @@ inline void pushop(s16info_s * s, char newop)
       *--s->cigarend = s->op;
       if (s->opcount > 1)
         {
-          char buf[11];
-          int len = sprintf(buf, "%d", s->opcount);
+          const int size = 11;
+          char buf[size];
+          int len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
@@ -800,8 +801,9 @@ inline void finishop(s16info_s * s)
       *--s->cigarend = s->op;
       if (s->opcount > 1)
         {
-          char buf[11];
-          int len = sprintf(buf, "%d", s->opcount);
+          const int size = 11;
+          char buf[size];
+          int len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }

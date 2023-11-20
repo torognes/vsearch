@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <vector>
 
 /* chunk constants */
 
@@ -281,18 +282,27 @@ inline int get_qual(char q)
   return qual;
 }
 
-inline double q_to_p(int q)
+
+inline auto q_to_p(int quality_symbol) -> double
 {
-  int x = q - opt_fastq_ascii;
-  if (x < 2)
-    {
-      return 0.75;
-    }
-  else
-    {
-      return exp10(-x/10.0);
-    }
+  static constexpr int low_quality_threshold = 2;
+  static constexpr double max_probability = 0.75;
+  static constexpr double quality_divider = 10.0;
+  static constexpr double power_base = 10.0;
+
+  assert(quality_symbol >= 33);
+  assert(quality_symbol <= 126);
+
+  const auto quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
+
+  // refactor: extract branch to a separate operation
+  if (quality_value < low_quality_threshold) {
+    return max_probability;
+  }
+  // probability = 10^-(quality / 10)
+  return std::pow(power_base, -quality_value / quality_divider);
 }
+
 
 void precompute_qual()
 {
@@ -691,10 +701,10 @@ int64_t optimize(merge_data_t * ip,
 
   int kmers = 0;
 
-  int diags[ip->fwd_trunc + ip->rev_trunc];
+  std::vector<int> diags(ip->fwd_trunc + ip->rev_trunc, 0);
 
   kh_insert_kmers(kmerhash, k, ip->fwd_sequence, ip->fwd_trunc);
-  kh_find_diagonals(kmerhash, k, ip->rev_sequence, ip->rev_trunc, diags);
+  kh_find_diagonals(kmerhash, k, ip->rev_sequence, ip->rev_trunc, diags.data());
 
   for(int64_t i = i1; i <= i2; i++)
     {
@@ -1368,6 +1378,204 @@ void pair_all()
   chunks = nullptr;
 }
 
+void print_stats(FILE * fp)
+{
+  fprintf(fp,
+          "%10" PRIu64 "  Pairs\n",
+          total);
+
+  fprintf(fp,
+          "%10" PRIu64 "  Merged",
+          merged);
+  if (total > 0)
+    {
+      fprintf(fp,
+              " (%.1lf%%)",
+              100.0 * merged / total);
+    }
+  fprintf(fp, "\n");
+
+  fprintf(fp,
+          "%10" PRIu64 "  Not merged",
+          notmerged);
+  if (total > 0)
+    {
+      fprintf(fp,
+              " (%.1lf%%)",
+              100.0 * notmerged / total);
+    }
+  fprintf(fp, "\n");
+
+  if (notmerged > 0)
+    {
+      fprintf(fp, "\nPairs that failed merging due to various reasons:\n");
+    }
+
+  if (failed_undefined)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  undefined reason\n",
+              failed_undefined);
+    }
+
+  if (failed_minlen)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  reads too short (after truncation)\n",
+              failed_minlen);
+    }
+
+  if (failed_maxlen)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  reads too long (after truncation)\n",
+              failed_maxlen);
+    }
+
+  if (failed_maxns)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  too many N's\n",
+              failed_maxns);
+    }
+
+  if (failed_nokmers)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  too few kmers found on same diagonal\n",
+              failed_nokmers);
+    }
+
+  if (failed_repeat)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  multiple potential alignments\n",
+              failed_repeat);
+    }
+
+  if (failed_maxdiffs)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  too many differences\n",
+              failed_maxdiffs);
+    }
+
+  if (failed_maxdiffpct)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  too high percentage of differences\n",
+              failed_maxdiffpct);
+    }
+
+  if (failed_minscore)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  alignment score too low, or score drop too high\n",
+              failed_minscore);
+    }
+
+  if (failed_minovlen)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  overlap too short\n",
+              failed_minovlen);
+    }
+
+  if (failed_maxee)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  expected error too high\n",
+              failed_maxee);
+    }
+
+  if (failed_minmergelen)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  merged fragment too short\n",
+              failed_minmergelen);
+    }
+
+  if (failed_maxmergelen)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  merged fragment too long\n",
+              failed_maxmergelen);
+    }
+
+  if (failed_staggered)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  staggered read pairs\n",
+              failed_staggered);
+    }
+
+  if (failed_indel)
+    {
+      fprintf(fp,
+              "%10" PRIu64 "  indel errors\n",
+              failed_indel);
+    }
+
+  fprintf(fp, "\n");
+
+  if (total > 0)
+    {
+      fprintf(fp, "Statistics of all reads:\n");
+
+      double mean_read_length = sum_read_length / (2.0 * pairs_read);
+
+      fprintf(fp,
+              "%10.2f  Mean read length\n",
+              mean_read_length);
+    }
+
+  if (merged > 0)
+    {
+      fprintf(fp, "\n");
+
+      fprintf(fp, "Statistics of merged reads:\n");
+
+      double mean = sum_fragment_length / merged;
+
+      fprintf(fp,
+              "%10.2f  Mean fragment length\n",
+              mean);
+
+      double stdev = sqrt((sum_squared_fragment_length
+                           - 2.0 * mean * sum_fragment_length
+                           + mean * mean * merged)
+                          / (merged + 0.0));
+
+      fprintf(fp,
+              "%10.2f  Standard deviation of fragment length\n",
+              stdev);
+
+      fprintf(fp,
+              "%10.2f  Mean expected error in forward sequences\n",
+              sum_ee_fwd / merged);
+
+      fprintf(fp,
+              "%10.2f  Mean expected error in reverse sequences\n",
+              sum_ee_rev / merged);
+
+      fprintf(fp,
+              "%10.2f  Mean expected error in merged sequences\n",
+              sum_ee_merged / merged);
+
+      fprintf(fp,
+              "%10.2f  Mean observed errors in merged region of forward sequences\n",
+              1.0 * sum_errors_fwd / merged);
+
+      fprintf(fp,
+              "%10.2f  Mean observed errors in merged region of reverse sequences\n",
+              1.0 * sum_errors_rev / merged);
+
+      fprintf(fp,
+              "%10.2f  Mean observed errors in merged region\n",
+              1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
+    }
+}
+
 void fastq_mergepairs()
 {
   /* fatal error if specified overlap is too small */
@@ -1442,200 +1650,10 @@ void fastq_mergepairs()
       fatal("More reverse reads than forward reads");
     }
 
-  fprintf(stderr,
-          "%10" PRIu64 "  Pairs\n",
-          total);
-
-  fprintf(stderr,
-          "%10" PRIu64 "  Merged",
-          merged);
-  if (total > 0)
-    {
-      fprintf(stderr,
-              " (%.1lf%%)",
-              100.0 * merged / total);
-    }
-  fprintf(stderr, "\n");
-
-  fprintf(stderr,
-          "%10" PRIu64 "  Not merged",
-          notmerged);
-  if (total > 0)
-    {
-      fprintf(stderr,
-              " (%.1lf%%)",
-              100.0 * notmerged / total);
-    }
-  fprintf(stderr, "\n");
-
-  if (notmerged > 0)
-    {
-      fprintf(stderr, "\nPairs that failed merging due to various reasons:\n");
-    }
-
-  if (failed_undefined)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  undefined reason\n",
-              failed_undefined);
-    }
-
-  if (failed_minlen)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  reads too short (after truncation)\n",
-              failed_minlen);
-    }
-
-  if (failed_maxlen)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  reads too long (after truncation)\n",
-              failed_maxlen);
-    }
-
-  if (failed_maxns)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  too many N's\n",
-              failed_maxns);
-    }
-
-  if (failed_nokmers)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  too few kmers found on same diagonal\n",
-              failed_nokmers);
-    }
-
-  if (failed_repeat)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  multiple potential alignments\n",
-              failed_repeat);
-    }
-
-  if (failed_maxdiffs)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  too many differences\n",
-              failed_maxdiffs);
-    }
-
-  if (failed_maxdiffpct)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  too high percentage of differences\n",
-              failed_maxdiffpct);
-    }
-
-  if (failed_minscore)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  alignment score too low, or score drop too high\n",
-              failed_minscore);
-    }
-
-  if (failed_minovlen)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  overlap too short\n",
-              failed_minovlen);
-    }
-
-  if (failed_maxee)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  expected error too high\n",
-              failed_maxee);
-    }
-
-  if (failed_minmergelen)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  merged fragment too short\n",
-              failed_minmergelen);
-    }
-
-  if (failed_maxmergelen)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  merged fragment too long\n",
-              failed_maxmergelen);
-    }
-
-  if (failed_staggered)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  staggered read pairs\n",
-              failed_staggered);
-    }
-
-  if (failed_indel)
-    {
-      fprintf(stderr,
-              "%10" PRIu64 "  indel errors\n",
-              failed_indel);
-    }
-
-  fprintf(stderr, "\n");
-
-  if (total > 0)
-    {
-      fprintf(stderr, "Statistics of all reads:\n");
-
-      double mean_read_length = sum_read_length / (2.0 * pairs_read);
-
-      fprintf(stderr,
-              "%10.2f  Mean read length\n",
-              mean_read_length);
-    }
-
-  if (merged > 0)
-    {
-      fprintf(stderr, "\n");
-
-      fprintf(stderr, "Statistics of merged reads:\n");
-
-      double mean = sum_fragment_length / merged;
-
-      fprintf(stderr,
-              "%10.2f  Mean fragment length\n",
-              mean);
-
-      double stdev = sqrt((sum_squared_fragment_length
-                           - 2.0 * mean * sum_fragment_length
-                           + mean * mean * merged)
-                          / (merged + 0.0));
-
-      fprintf(stderr,
-              "%10.2f  Standard deviation of fragment length\n",
-              stdev);
-
-      fprintf(stderr,
-              "%10.2f  Mean expected error in forward sequences\n",
-              sum_ee_fwd / merged);
-
-      fprintf(stderr,
-              "%10.2f  Mean expected error in reverse sequences\n",
-              sum_ee_rev / merged);
-
-      fprintf(stderr,
-              "%10.2f  Mean expected error in merged sequences\n",
-              sum_ee_merged / merged);
-
-      fprintf(stderr,
-              "%10.2f  Mean observed errors in merged region of forward sequences\n",
-              1.0 * sum_errors_fwd / merged);
-
-      fprintf(stderr,
-              "%10.2f  Mean observed errors in merged region of reverse sequences\n",
-              1.0 * sum_errors_rev / merged);
-
-      fprintf(stderr,
-              "%10.2f  Mean observed errors in merged region\n",
-              1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
-    }
+  if (fp_log)
+    print_stats(fp_log);
+  else
+    print_stats(stderr);
 
   /* clean up */
 

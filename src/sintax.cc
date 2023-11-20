@@ -99,7 +99,6 @@ static int classified = 0;
 void sintax_analyse(char * query_head,
                     int strand,
                     int best_seqno,
-                    int best_count,
                     int * all_seqno,
                     int count)
 {
@@ -199,17 +198,13 @@ void sintax_analyse(char * query_head,
     {
       if (opt_sintax_cutoff > 0.0)
         {
-          fprintf(fp_tabbedout, "\t\t\t");
+          fprintf(fp_tabbedout, "\t\t");
         }
       else
         {
-          fprintf(fp_tabbedout, "\t\t");
+          fprintf(fp_tabbedout, "\t");
         }
     }
-
-#if 0
-  fprintf(fp_tabbedout, "\t%d\t%d", best_count, count);
-#endif
 
   fprintf(fp_tabbedout, "\n");
   xpthread_mutex_unlock(&mutex_output);
@@ -313,7 +308,6 @@ void sintax_query(int64_t t)
   sintax_analyse(query_head,
                  best_strand,
                  best_seqno[best_strand],
-                 best_count[best_strand],
                  all_seqno[best_strand],
                  boot_count[best_strand]);
 

@@ -389,11 +389,13 @@ void fasta_print_general(FILE * fp,
     {
       bool xsize = opt_xsize || (opt_sizeout && (abundance > 0));
       bool xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      header_fprint_strip_size_ee(fp,
-                                  header,
-                                  header_len,
-                                  xsize,
-                                  xee);
+      bool xlength = opt_xlength || opt_lengthout;
+      header_fprint_strip(fp,
+                          header,
+                          header_len,
+                          xsize,
+                          xee,
+                          xlength);
     }
 
   if (opt_label_suffix)
@@ -423,7 +425,31 @@ void fasta_print_general(FILE * fp,
 
   if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
     {
-      fprintf(fp, ";ee=%.4lf", ee);
+      if (ee < 0.000000001)
+        fprintf(fp, ";ee=%.13lf", ee);
+      else if (ee < 0.00000001)
+        fprintf(fp, ";ee=%.12lf", ee);
+      else if (ee < 0.0000001)
+        fprintf(fp, ";ee=%.11lf", ee);
+      else if (ee < 0.000001)
+        fprintf(fp, ";ee=%.10lf", ee);
+      else if (ee < 0.00001)
+        fprintf(fp, ";ee=%.9lf", ee);
+      else if (ee < 0.0001)
+        fprintf(fp, ";ee=%.8lf", ee);
+      else if (ee < 0.001)
+        fprintf(fp, ";ee=%.7lf", ee);
+      else if (ee < 0.01)
+        fprintf(fp, ";ee=%.6lf", ee);
+      else if (ee < 0.1)
+        fprintf(fp, ";ee=%.5lf", ee);
+      else
+        fprintf(fp, ";ee=%.4lf", ee);
+    }
+
+  if (opt_lengthout)
+    {
+      fprintf(fp, ";length=%d", len);
     }
 
   if (score_name)

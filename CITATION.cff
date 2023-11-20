@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Rognes"
+  given-names: "Torbjørn"
+  orcid: "https://orcid.org/0000-0002-9329-9974"
+- family-names: "Flouri"
+  given-names: "Tomas"
+  orcid: "https://orcid.org/0000-0002-8474-9507"
+- family-names: "Nichols"
+  given-names: "Benjamin"
+- family-names: "Quince"
+  given-names: "Christopher"
+  orcid: "https://orcid.org/0000-0003-1884-8440"
+- family-names: "Mahé"
+  given-names: "Frédéric"
+  orcid: "https://orcid.org/0000-0002-2808-0984"
+title: "VSEARCH: versatile open-source tool for microbiome analysis"
+version: 2.22.1
+date-released: 2022-09-19
+url: "https://github.com/torognes/vsearch"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Rognes"
+    given-names: "Torbjørn"
+    orcid: "https://orcid.org/0000-0002-9329-9974"
+  - family-names: "Flouri"
+    given-names: "Tomas"
+    orcid: "https://orcid.org/0000-0002-8474-9507"
+  - family-names: "Nichols"
+    given-names: "Ben"
+  - family-names: "Quince"
+    given-names: "Christopher"
+    orcid: "https://orcid.org/0000-0003-1884-8440"
+  - family-names: "Mahé"
+    given-names: "Frédéric"
+    orcid: "https://orcid.org/0000-0002-2808-0984"
+  doi: "10.7717/peerj.2584"
+  journal: "Peer Journal"
+  day: 18
+  month: 10
+  start: e2584 # First page number
+  title: "VSEARCH: a versatile open source tool for metagenomic"
+  volume: 4
+  year: 2016

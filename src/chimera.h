@@ -58,4 +58,6 @@
 
 */
 
+const int maxparents = 20; /* max, could be fewer */
+
 void chimera();

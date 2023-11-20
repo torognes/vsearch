@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [2.20.1], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
+AC_INIT([vsearch], [2.25.0], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
@@ -68,6 +68,16 @@ AS_IF([test "x$enable_pdfman" != "xno"], [
     have_ps2pdf=no
   fi
 ])
+
+
+# Check for --enable-debug option
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug], [Enable debug build])],
+  [enable_debug=$enableval],
+  [enable_debug=no])
+
+# Define AM_CONDITIONAL for debug
+AM_CONDITIONAL([ENABLE_DEBUG], [test "x$enable_debug" = "xyes"])
 
 have_man_html=no
 

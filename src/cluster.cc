@@ -177,7 +177,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
   /* the main core function for clustering */
 
   /* get sequence etc */
-  int seqno = si->query_no;
+  const int seqno = si->query_no;
   si->query_head_len = db_getheaderlen(seqno);
   si->query_head = db_getheader(seqno);
   si->qsize = db_getabundance(seqno);
@@ -375,13 +375,15 @@ char * relabel_otu(int clusterno, char * sequence, int seqlen)
   char * label = nullptr;
   if (opt_relabel)
     {
-      label = (char*) xmalloc(strlen(opt_relabel) + 21);
-      sprintf(label, "%s%d", opt_relabel, clusterno+1);
+      int size = strlen(opt_relabel) + 21;
+      label = (char*) xmalloc(size);
+      snprintf(label, size, "%s%d", opt_relabel, clusterno + 1);
     }
   else if (opt_relabel_self)
     {
-      label = (char*) xmalloc(seqlen + 1);
-      sprintf(label, "%.*s", seqlen, sequence);
+      int size = seqlen + 1;
+      label = (char*) xmalloc(size);
+      snprintf(label, size, "%.*s", seqlen, sequence);
     }
   else if (opt_relabel_sha1)
     {
@@ -428,7 +430,7 @@ void cluster_core_results_hit(struct hit * best,
     {
       results_show_uc_one(fp_uc,
                           best, query_head,
-                          qsequence, qseqlen, qsequence_rc,
+                          qseqlen,
                           clusterno);
     }
 
@@ -436,14 +438,14 @@ void cluster_core_results_hit(struct hit * best,
     {
       results_show_alnout(fp_alnout,
                           best, 1, query_head,
-                          qsequence, qseqlen, qsequence_rc);
+                          qsequence, qseqlen);
     }
 
   if (fp_samout)
     {
       results_show_samout(fp_samout,
                           best, 1, query_head,
-                          qsequence, qseqlen, qsequence_rc);
+                          qsequence, qsequence_rc);
     }
 
   if (fp_fastapairs)
@@ -452,7 +454,6 @@ void cluster_core_results_hit(struct hit * best,
                                   best,
                                   query_head,
                                   qsequence,
-                                  qseqlen,
                                   qsequence_rc);
     }
 
@@ -469,11 +470,7 @@ void cluster_core_results_hit(struct hit * best,
   if (fp_tsegout)
     {
       results_show_tsegout_one(fp_tsegout,
-                               best,
-                               query_head,
-                               qsequence,
-                               qseqlen,
-                               qsequence_rc);
+                               best);
     }
 
   if (fp_userout)
@@ -485,7 +482,7 @@ void cluster_core_results_hit(struct hit * best,
   if (fp_blast6out)
     {
       results_show_blast6out_one(fp_blast6out, best, query_head,
-                                 qsequence, qseqlen, qsequence_rc);
+                                 qseqlen);
     }
 
   if (opt_matched)
@@ -529,11 +526,12 @@ void cluster_core_results_nohit(int clusterno,
   if (opt_uc)
     {
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
-      header_fprint_strip_size_ee(fp_uc,
-                                  query_head,
-                                  strlen(query_head),
-                                  opt_xsize,
-                                  opt_xee);
+      header_fprint_strip(fp_uc,
+                          query_head,
+                          strlen(query_head),
+                          opt_xsize,
+                          opt_xee,
+                          opt_xlength);
       fprintf(fp_uc, "\t*\n");
     }
 
@@ -548,7 +546,7 @@ void cluster_core_results_nohit(int clusterno,
       if (fp_blast6out)
         {
           results_show_blast6out_one(fp_blast6out, nullptr, query_head,
-                                     qsequence, qseqlen, qsequence_rc);
+                                     qseqlen);
         }
     }
 
@@ -591,8 +589,8 @@ void cluster_core_parallel()
   /* create threads and set them in stand-by mode */
   threads_init();
 
-  const int queries_per_thread = 1;
-  int max_queries = queries_per_thread * opt_threads;
+  constexpr static int queries_per_thread = 1;
+  const int max_queries = queries_per_thread * opt_threads;
 
   /* allocate memory for the search information for each query;
      and initialize it */
@@ -631,8 +629,6 @@ void cluster_core_parallel()
                      opt_gap_extension_target_interior,
                      opt_gap_extension_query_right,
                      opt_gap_extension_target_right);
-
-  int aligncount = 0;
 
   int lastlength = INT_MAX;
 
@@ -799,8 +795,6 @@ void cluster_core_parallel()
                           unsigned int target = hit->target;
                           if (search_acceptable_unaligned(si, target))
                             {
-                              aligncount++;
-
                               /* perform vectorized alignment */
                               /* but only using 1 sequence ! */
 
@@ -1016,11 +1010,6 @@ void cluster_core_parallel()
       progress_update(sum_nucleotides);
     }
   progress_done();
-
-#if 0
-  if (!opt_quiet)
-    fprintf(stderr, "Extra alignments computed: %d\n", aligncount);
-#endif
 
   /* clean up search info */
   for(int i = 0; i < max_queries; i++)
@@ -1432,9 +1421,11 @@ void cluster(char * dbname,
   /* allocate memory for full file name of the clusters files */
   FILE * fp_clusters = nullptr;
   char * fn_clusters = nullptr;
+  int fn_clusters_size = 0;
   if (opt_clusters)
     {
-      fn_clusters = (char *) xmalloc(strlen(opt_clusters) + 25);
+      fn_clusters_size += strlen(opt_clusters) + 25;
+      fn_clusters = (char *) xmalloc(fn_clusters_size);
     }
 
   int lastcluster = -1;
@@ -1472,11 +1463,12 @@ void cluster(char * dbname,
               fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
                       cluster_abundance[clusterno]);
-              header_fprint_strip_size_ee(fp_uc,
-                                          db_getheader(seqno),
-                                          db_getheaderlen(seqno),
-                                          opt_xsize,
-                                          opt_xee);
+              header_fprint_strip(fp_uc,
+                                  db_getheader(seqno),
+                                  db_getheaderlen(seqno),
+                                  opt_xsize,
+                                  opt_xee,
+                                  opt_xlength);
               fprintf(fp_uc, "\t*\n");
             }
 
@@ -1489,7 +1481,11 @@ void cluster(char * dbname,
                 }
 
               ordinal = 0;
-              sprintf(fn_clusters, "%s%d", opt_clusters, clusterno);
+              snprintf(fn_clusters,
+                       fn_clusters_size,
+                       "%s%d",
+                       opt_clusters,
+                       clusterno);
               fp_clusters = fopen_output(fn_clusters);
               if (!fp_clusters)
                 {

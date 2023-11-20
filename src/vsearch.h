@@ -83,6 +83,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <cassert>
 
 /* include appropriate regex library */
 
@@ -258,6 +259,7 @@
 #include "cut.h"
 #include "orient.h"
 #include "fa2fq.h"
+#include "derepsmallmem.h"
 
 /* options */
 
@@ -269,10 +271,11 @@ extern bool opt_fasta_score;
 extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
+extern bool opt_fastq_qout_max;
 extern bool opt_gzip_decompress;
 extern bool opt_label_substr_match;
+extern bool opt_lengthout;
 extern bool opt_no_progress;
-extern bool opt_fastq_qout_max;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;
 extern bool opt_relabel_md5;
@@ -280,8 +283,11 @@ extern bool opt_relabel_self;
 extern bool opt_relabel_sha1;
 extern bool opt_samheader;
 extern bool opt_sff_clip;
+extern bool opt_sizein;
 extern bool opt_sizeorder;
+extern bool opt_sizeout;
 extern bool opt_xee;
+extern bool opt_xlength;
 extern bool opt_xsize;
 extern char * opt_allpairs_global;
 extern char * opt_alnout;
@@ -290,6 +296,7 @@ extern char * opt_blast6out;
 extern char * opt_borderline;
 extern char * opt_centroids;
 extern char * opt_chimeras;
+extern char * opt_chimeras_denovo;
 extern char * opt_cluster_fast;
 extern char * opt_cluster_size;
 extern char * opt_cluster_smallmem;
@@ -386,6 +393,7 @@ extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double * opt_ee_cutoffs_values;
 extern double opt_abskew;
+extern double opt_chimeras_diff_pct;
 extern double opt_dn;
 extern double opt_fastq_maxdiffpct;
 extern double opt_fastq_maxee;
@@ -414,6 +422,9 @@ extern double opt_weak_id;
 extern double opt_xn;
 extern int opt_acceptall;
 extern int opt_alignwidth;
+extern int opt_chimeras_length_min;
+extern int opt_chimeras_parents_max;
+extern int opt_chimeras_parts;
 extern int opt_cons_truncate;
 extern int opt_ee_cutoffs_count;
 extern int opt_gap_extension_query_interior;
@@ -491,8 +502,6 @@ extern int64_t opt_rowlen;
 extern int64_t opt_sample_size;
 extern int64_t opt_self;
 extern int64_t opt_selfid;
-extern int64_t opt_sizein;
-extern int64_t opt_sizeout;
 extern int64_t opt_strand;
 extern int64_t opt_subseq_start;
 extern int64_t opt_subseq_end;

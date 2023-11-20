@@ -161,7 +161,7 @@ void db_read(const char * filename, int upcase)
         {
           discarded_long++;
         }
-      else if (opt_cluster_unoise && (abundance < (int64_t)opt_minsize))
+      else if (opt_cluster_unoise && (abundance < opt_minsize))
         {
           discarded_unoise++;
         }
@@ -255,8 +255,8 @@ void db_read(const char * filename, int upcase)
       if (sequences > 0)
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, "
-                  "min %'" PRIu64 ", max %'" PRIu64 ", avg %'.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, "
+                  "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
                   db_getnucleotidecount(),
                   db_getsequencecount(),
                   db_getshortestsequence(),
@@ -266,7 +266,7 @@ void db_read(const char * filename, int upcase)
       else
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
         }
@@ -277,8 +277,8 @@ void db_read(const char * filename, int upcase)
       if (sequences > 0)
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, "
-                  "min %'" PRIu64 ", max %'" PRIu64 ", avg %'.0f\n\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, "
+                  "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
                   db_getnucleotidecount(),
                   db_getsequencecount(),
                   db_getshortestsequence(),
@@ -288,7 +288,7 @@ void db_read(const char * filename, int upcase)
       else
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
         }

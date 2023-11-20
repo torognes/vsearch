@@ -158,8 +158,8 @@ auto udb_detect_isudb(const char * filename) -> bool
     It must be an uncompressed regular file, not a pipe.
   */
 
-  constexpr uint32_t udb_file_signature {0x55444246};
-  constexpr uint64_t expected_n_bytes {sizeof(uint32_t)};
+  constexpr static uint32_t udb_file_signature {0x55444246};
+  constexpr static uint64_t expected_n_bytes {sizeof(uint32_t)};
 
   xstat_t fs;
 
@@ -565,7 +565,7 @@ void udb_read(const char * filename,
       if (seqcount > 0)
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64 ", max %'" PRIu64 ", avg %'.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
                   db_getnucleotidecount(),
                   db_getsequencecount(),
                   db_getshortestsequence(),
@@ -575,7 +575,7 @@ void udb_read(const char * filename,
       else
         {
           fprintf(stderr,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
         }
@@ -586,7 +586,7 @@ void udb_read(const char * filename,
       if (seqcount > 0)
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs, min %'" PRIu64 ", max %'" PRIu64 ", avg %'.0f\n\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
                   db_getnucleotidecount(),
                   db_getsequencecount(),
                   db_getshortestsequence(),
@@ -596,7 +596,7 @@ void udb_read(const char * filename,
       else
         {
           fprintf(fp_log,
-                  "%'" PRIu64 " nt in %'" PRIu64 " seqs\n\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
         }
@@ -938,7 +938,7 @@ void udb_make()
   buffer[5]  = 1; /* dbstep */
   buffer[6]  = 100; /* dbaccelpct % */
   buffer[11] = 0; /* slots */
-  buffer[13] = (unsigned int) seqcount; /* number of sequences */
+  buffer[13] = seqcount; /* number of sequences */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
   pos += largewrite(fd_output, buffer, 50 * 4, 0);
@@ -983,7 +983,7 @@ void udb_make()
   /* 0x005e0db3 */
   buffer[1] = 0x005e0db3;
   /* number of sequences, uint32 */
-  buffer[2] = (unsigned int) seqcount;
+  buffer[2] = seqcount;
   /* total number of nucleotides, uint64 */
   buffer[3] = (unsigned int)(ntcount & 0xffffffff);
   buffer[4] = (unsigned int)(ntcount >> 32);

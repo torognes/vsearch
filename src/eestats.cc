@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::max
+
 
 inline int fastq_get_qual_eestats(char q)
 {
@@ -138,7 +140,6 @@ void fastq_eestats()
   progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
-  uint64_t symbols = 0;
 
   int64_t len_alloc = 10;
 
@@ -220,8 +221,6 @@ void fastq_eestats()
         }
 
       /* update quality statistics */
-
-      symbols += len;
 
       double ee = 0.0;
 
@@ -479,7 +478,10 @@ void fastq_eestats2()
       if (len > longest)
         {
           longest = len;
-          int new_len_steps = 1 + MAX(0, (MIN(longest, (uint64_t)opt_length_cutoffs_longest) - opt_length_cutoffs_shortest) / opt_length_cutoffs_increment);
+          // opt_length_cutoffs_longest is an int between 1 and INT_MAX
+          int high = MIN(longest, (uint64_t)(opt_length_cutoffs_longest));
+          int new_len_steps = 1 + MAX(0, ((high - opt_length_cutoffs_shortest)
+                                          / opt_length_cutoffs_increment));
 
           if (new_len_steps > len_steps)
             {

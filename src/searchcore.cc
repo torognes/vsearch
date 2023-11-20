@@ -219,7 +219,7 @@ void search_topscores(struct searchinfo_s * si)
   */
 
   /* count kmer hits in the database sequences */
-  int indexed_count = dbindex_getcount();
+  const int indexed_count = dbindex_getcount();
 
   /* zero counts */
   memset(si->kmers, 0, indexed_count * sizeof(count_t));
@@ -259,7 +259,7 @@ void search_topscores(struct searchinfo_s * si)
         }
     }
 
-  int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
+  const int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
 
   for(int i=0; i < indexed_count; i++)
     {
@@ -285,8 +285,8 @@ int seqncmp(char * a, char * b, uint64_t n)
 {
   for(unsigned int i = 0; i<n; i++)
     {
-      int x = chrmap_4bit[(int)(a[i])];
-      int y = chrmap_4bit[(int)(b[i])];
+      const int x = chrmap_4bit[(int)(a[i])];
+      const int y = chrmap_4bit[(int)(b[i])];
       if (x < y)
         {
           return -1;
@@ -423,16 +423,16 @@ void align_trim(struct hit * hit)
     }
 }
 
-int search_acceptable_unaligned(struct searchinfo_s * si,
-                                int target)
+auto search_acceptable_unaligned(struct searchinfo_s * si,
+                                 int target) -> bool
 {
-  /* consider whether a hit satisfy accept criteria before alignment */
+  /* consider whether a hit satisfies accept criteria before alignment */
 
   char * qseq = si->qsequence;
   char * dlabel = db_getheader(target);
   char * dseq = db_getsequence(target);
-  int64_t dseqlen = db_getsequencelen(target);
-  int64_t tsize = db_getabundance(target);
+  const int64_t dseqlen = db_getsequencelen(target);
+  const int64_t tsize = db_getabundance(target);
 
   if (
       /* maxqsize */
@@ -485,17 +485,17 @@ int search_acceptable_unaligned(struct searchinfo_s * si,
       )
     {
       /* needs further consideration */
-      return 1;
+      return true;
     }
   else
     {
       /* reject */
-      return 0;
+      return false;
     }
 }
 
-int search_acceptable_aligned(struct searchinfo_s * si,
-                              struct hit * hit)
+auto search_acceptable_aligned(struct searchinfo_s * si,
+                               struct hit * hit) -> bool
 {
   if (/* weak_id */
       (hit->id >= 100.0 * opt_weak_id) &&
@@ -525,23 +525,23 @@ int search_acceptable_aligned(struct searchinfo_s * si,
     {
       if (opt_cluster_unoise)
         {
-          int d = hit->mismatches;
-          double skew = 1.0 * si->qsize / db_getabundance(hit->target);
-          double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * d + 1);
+          const auto mismatches = hit->mismatches;
+          const double skew = 1.0 * si->qsize / db_getabundance(hit->target);
+          const double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * mismatches + 1);
 
-          if (skew <= beta || d == 0)
+          if (skew <= beta || mismatches == 0)
             {
               /* accepted */
               hit->accepted = true;
               hit->weak = false;
-              return 1;
+              return true;
             }
           else
             {
               /* rejected, but weak hit */
               hit->rejected = true;
               hit->weak = true;
-              return 0;
+              return false;
             }
         }
       else
@@ -551,14 +551,14 @@ int search_acceptable_aligned(struct searchinfo_s * si,
               /* accepted */
               hit->accepted = true;
               hit->weak = false;
-              return 1;
+              return true;
             }
           else
             {
               /* rejected, but weak hit */
               hit->rejected = true;
               hit->weak = true;
-              return 0;
+              return false;
             }
         }
     }
@@ -567,7 +567,7 @@ int search_acceptable_aligned(struct searchinfo_s * si,
       /* rejected */
       hit->rejected = true;
       hit->weak = false;
-      return 0;
+      return false;
     }
 }
 
@@ -749,7 +749,6 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
 
   int delayed = 0;
 
-  int t = 0;
   while ((si->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
          (si->rejects < opt_maxrejects) &&
          (si->accepts < opt_maxaccepts) &&
@@ -785,7 +784,6 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
           align_delayed(si);
           delayed = 0;
         }
-      t++;
     }
   if (delayed > 0)
     {

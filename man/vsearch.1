@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "January 12, 2022" "version 2.20.1" "USER COMMANDS"
+.TH vsearch 1 "November 10, 2023" "version 2.25.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -42,6 +42,9 @@ Dereplication and rereplication:
 .PP
 \fBvsearch\fR (\-\-derep_fulllength | \-\-derep_id | \-\-derep_prefix)
 \fIfastafile\fR (\-\-output | \-\-uc) \fIoutputfile\fR [\fIoptions\fR]
+.PP
+\fBvsearch\fR \-\-derep_smallmem (\fIfastafile\fR | \fIfastqfile\fR)
+\-\-fastaout \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-rereplicate \fIfastafile\fR \-\-output
 \fIoutputfile\fR [\fIoptions\fR]
@@ -120,7 +123,7 @@ Masking:
 .RE
 Orienting:
 .RS
-\fBvsearch\fR \-\-orient \fIfastxfile\fR \-\-db \fIfastafile\fR
+\fBvsearch\fR \-\-orient \fIfastxfile\fR \-\-db \fIfastxfile\fR
 (\-\-fastaout | \-\-fastqout | \-\-notmatched | \-\-tabbedout)
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
@@ -282,12 +285,17 @@ dereplication. To do so, file names can be replaced with:
 .RS
 .IP - 2
 the symbol '-', representing '/dev/stdin' for input files
-or '/dev/stdout' for output files,
+or '/dev/stdout' for output files (with an exception for '\-\-db \-',
+see * below),
 .IP -
 a named pipe created with the command mkfifo,
 .IP -
 a process substitution '<(command)' as input or '>(command)' as
 output.
+.IP *
+\-\-db \- is not accepted, to prevent potential concurrent reads from
+stdin. A workaround for advanced users is to call '\-\-db /dev/stdin'
+directly.
 .RE
 .PP
 \fBvsearch\fR can automatically read compressed gzip or bzip2 files if
@@ -378,6 +386,7 @@ All \fBvsearch\fR operations discard sequences shorter than
 \fIinteger\fR: 1 nucleotide by default for sorting or shuffling, 32
 nucleotides for clustering and dereplication as well as the commands
 \-\-makeudb_usearch, \-\-sintax, and \-\-usearch_global.
+.\" note: minseqlength can be set to zero (keep empty entries)
 .TAG no_progress
 .TP
 .B \-\-no_progress
@@ -485,6 +494,11 @@ as a chimera (less false positives, but also more false negatives).
 Add the chimera score to the headers in the fasta output files for
 chimeras, non-chimeras and borderline sequences, using the
 format ';uchime_denovo=\fIfloat\fR;'.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG mindiffs
 .TP
 .BI \-\-mindiffs\~ "positive integer"
@@ -664,15 +678,20 @@ When using \-\-uchimeout, write chimera detection results using a
 17\-field, tab\-separated uchime\-like format (drop the 5th field of
 \-\-uchimeout), compatible with usearch version 5 and earlier
 versions.
+.TAG xlength
 .TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xn
+.TP
 .BI \-\-xn\~ "strictly positive real number"
 weight of no votes, corresponding to the parameter \fIbeta\fR in the
 scoring function (default value is 8.0). Increasing \-\-xn reduces the
 likelihood of tagging a sequence as a chimera (less false positives,
 but also more false negatives).
-.TP
 .TAG xsize
+.TP
 .B \-\-xsize
 Strip abundance information from the headers when writing the output
 file.
@@ -772,10 +791,20 @@ by decreasing sequence length, unless \-\-usersort is used.
 .BI \-\-cluster_unoise \0filename
 Perform denoising of the fasta sequences in \fIfilename\fR according
 to the UNOISE version 3 algorithm by Robert Edgar, but without the
-chimera removal step. The options \-\-minsize (default 8) and
-\-\-unoise_alpha (default 2.0) may be specified. Chimera removal
-(\fIde novo\fR) should be performed afterwards with
-\-\-uchime3_denovo.
+\fIde novo\fR chimera removal step, which may be performed afterwards
+with \-\-uchime3_denovo. The options \-\-minsize (default 8) and
+\-\-unoise_alpha (default 2.0) may be specified. In the this
+algorithm, clustering of sequences depend on both the sequence
+distance and the abundance ratio. The abundance ratio (skew) is the
+abundance of a new sequence divided by the abundance of the centroid
+sequence. This skew must not be larger than beta if the sequences
+should be clustered together. Beta is calculated as 2 raised to the
+power of minus 1 minus alpha times the sequence distance. The sequence
+distance used is the number of mismatches in the alignment, ignoring
+gaps. This means that the abundance must be exponentially lower as the
+distance increases from the centroid for a new sequence to be included
+in the cluster. Nearer sequences with higher abundances will form
+their own new clusters.
 .TAG clusters
 .TP
 .BI \-\-clusters \0string
@@ -786,11 +815,13 @@ filenames.
 .TP
 .BI \-\-consout \0filename
 Output cluster consensus sequences to \fIfilename\fR. For each
-cluster, a multiple alignment is computed, and a consensus sequence is
+cluster, a center-star multiple sequence alignment is computed with
+the centroid as the center, using a fast algorithm (not accurate when
+using low pairwise identity thresholds). A consensus sequence is
 constructed by taking the majority symbol (nucleotide or gap) from
 each column of the alignment. Columns containing a majority of gaps
-are skipped, except for terminal gaps. If the \-\-sizein
-option is specified, sequence abundances will be taken into account.
+are skipped, except for terminal gaps. If the \-\-sizein option is
+specified, sequence abundances will be taken into account.
 .TAG cons_truncate
 .TP
 .B \-\-cons_truncate
@@ -833,6 +864,11 @@ BLAST definition, equivalent to \-\-iddef 1 in a context of global
 pairwise alignment.
 .RE
 .RE
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG minsize
 .TP
 .BI \-\-minsize\~ "positive integer"
@@ -1024,6 +1060,11 @@ default is 2.0.
 .B \-\-usersort
 When using \-\-cluster_smallmem, allow any sequence input order, not
 just a decreasing length ordering.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -1044,28 +1085,35 @@ Dereplication and rereplication options:
 .PP
 .RS
 VSEARCH can dereplicate sequences with the commands
-\-\-derep_fulllength, \-\-derep_id, \-\-derep_prefix and
-\-\-fastx_uniques. The \-\-derep_fulllength command is depreciated and
-is replaced by the new \-\-fastx_uniques command that can also handle
-FASTQ files in addition to FASTA files. The \-\-derep_fulllength and
+\-\-derep_fulllength, \-\-derep_id, \-\-derep_smallmem,
+\-\-derep_prefix and \-\-fastx_uniques. The \-\-derep_fulllength
+command is depreciated and is replaced by the new \-\-fastx_uniques
+command that can also handle FASTQ files in addition to FASTA
+files. The \-\-derep_fulllength, \-\-derep_smallmem, and
 \-\-fastx_uniques commands requires strictly identical sequences of
 the same length, but ignores upper/lower case and treats T and U as
 identical symbols. The \-\-derep_id command requires both identical
 sequences and identical headers/labels. The \-\-derep_prefix command
 will group sequences with a common prefix and does not require them to
-be equally long. The \-\-fastx_uniques command can write FASTQ output
-(specified with \-\-fastqout) or FASTA output (specified with
-\-\-fastaout) as well as a special tab-separated column text format
-(with \-\-tabbedout). The other commands can write FASTA output to the
-file specified with the \-\-output option. All dereplication commands
-can write output to a special UCLUST-like file specified with the
-\-\-uc option. The \-\-rereplicate command can duplicate sequences in
-the input file according to the abundance of each input
-sequence. Other valid options are \-\-fastq_ascii, \-\-fastq_asciiout,
-\-\-fastq_qmax, \-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
-\-\-fastq_qout_max, \-\-maxuniquesize, \-\-minuniquesize, \-\-relabel,
-\-\-relabel_keep, \-\-relabel_md5, \-\-relabel_self, \-\-relabel_sha1,
-\-\-sizein, \-\-sizeout, \-\-strand, \-\-topn, and \-\-xsize.
+be equally long. The \-\-derep_smallmem uses a much smaller amount of
+memory when dereplicating than the other files, and may be a bit
+slower and cannot read the input from a pipe. It takes both FASTA and
+FASTQ files as input but only writes FASTA output to the file
+specified with the \-\-fastaout option. The \-\-fastx_uniques command
+can write FASTQ output (specified with \-\-fastqout) or FASTA output
+(specified with \-\-fastaout) as well as a special tab-separated
+column text format (with \-\-tabbedout). The other commands can write
+FASTA output to the file specified with the \-\-output option. All
+dereplication commands, except \-\-derep_smallmem, can write output to
+a special UCLUST-like file specified with the \-\-uc option. The
+\-\-rereplicate command can duplicate sequences in the input file
+according to the abundance of each input sequence. Other valid options
+are \-\-fastq_ascii, \-\-fastq_asciiout, \-\-fastq_qmax,
+\-\-fastq_qmaxout, \-\-fastq_qmin, \-\-fastq_qminout,
+\-\-fastq_qout_max, \-\-lengthout, \-\-maxuniquesize,
+\-\-minuniquesize, \-\-relabel, \-\-relabel_keep, \-\-relabel_md5,
+\-\-relabel_self, \-\-relabel_sha1, \-\-sizein, \-\-sizeout,
+\-\-strand, \-\-topn, \-\-xlength, and \-\-xsize.
 .PP
 .TAG derep_fulllength
 .TP 9
@@ -1082,6 +1130,23 @@ not support multithreading.
 Merge strictly identical sequences contained in \fIfilename\fR, as
 with the \-\-derep_fulllength command, but the sequence labels
 (identifiers) on the header line need to be identical too.
+.TAG derep_smallmem
+.TP
+.BI \-\-derep_smallmem \0filename
+Merge strictly identical sequences contained in \fIfilename\fR, as
+with the \-\-derep_fulllength command, but using much less memory. The
+output is written to a FASTA file specified with the \-\-fastaout
+option. The output is written in the order that the sequences first
+appear in the input, and not in descending abundance order as with the
+other dereplication commands. It can read, but not write FASTQ
+files. This command cannot read from a pipe, it must be a proper file,
+as it is read twice. Dereplication is performed with a 128 bit hash
+function and it is not verified that grouped sequences are identical,
+however the probability that two different sequences are grouped in a
+dataset of 1 000 000 000 unique sequences is approximately
+1e-21. Memory footprint is appr. 24 bytes times the number of unique
+sequence. Multithreading and the options \-\-topn, \-\-uc, or
+\-\-tabbedout are not supported.
 .TAG derep_prefix
 .TP
 .BI \-\-derep_prefix \0filename
@@ -1103,7 +1168,7 @@ header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the
 pattern ';size=\fIinteger\fR;'. This option is only valid for
-\-\-fastx_uniques.
+\-\-fastx_uniques and \-\-derep_smallmem.
 .TAG fastqout
 .TP
 .BI \-\-fastqout \0filename
@@ -1176,6 +1241,12 @@ output files will correspond to the average error probability of the
 nucleotides in the each position. If the \-\-fastq_qout_max option is
 given, the quality score will be the highest (best) quality score
 observed in each position.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA and
+FASTQ format by adding a ";length=\fIinteger\fR" attribute in the
+header.
 .TAG maxuniquesize
 .TP
 .BI \-\-maxuniquesize\~ "positive integer"
@@ -1195,7 +1266,7 @@ header of the first sequence of their group. If \-\-sizeout is used,
 the number of occurrences (i.e. abundance) of each sequence is
 indicated at the end of their fasta header using the
 pattern ';size=\fIinteger\fR;'. This option is not allowed for
-fastx_uniques.
+\-\-fastx_uniques or \-\-derep_smallmem.
 .TP
 .TAG relabel
 .BI \-\-relabel \0string
@@ -1310,6 +1381,11 @@ Label of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .PP
 .RS
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -1458,7 +1534,7 @@ at the end of the sequence if this option is not specified.
 .TAG subseq_start
 .TP
 .BI \-\-subseq_start\~ "positive integer"
-Specifiy the starting position in the sequences when extracting
+Specify the starting position in the sequences when extracting
 subsequences using the \-\-fastx_getsubseq command. Positions are
 1-based, so the sequences start at position 1. The default is to start
 at the beginning of the sequence (position 1), if this option is not
@@ -1499,8 +1575,8 @@ information from headers.
 .BI \-\-eetabbedout \0filename
 When specified with the \-\-fastq_mergepairs command, write statistics
 with expected errors of each merged read to the given file. The file
-is a tab separated file with four columns: The number of errors
-expected in the forward read, the number of expected errors in the
+is a tab separated file with four columns: The number of expected
+errors in the forward read, the number of expected errors in the
 reverse read, the number of observed errors in the forward read, and
 the number of observed errors in the reverse read. The observed number
 of errors are the number of differences in the overlap region of the
@@ -1694,13 +1770,43 @@ mismatches.
 .TP
 .BI \-\-fastq_maxee\~ real
 When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
-discard sequences with more than the specified number of expected
-errors.
+discard sequences with an expected error greater than the specified
+number (value ranging from 0.0 to infinity). For a given sequence, the
+expected error is the sum of error probabilities for all the positions
+in the sequence. Since error probabilities can be small but not null,
+the expected error is always greater than zero, and at most equal to
+the length of the sequence when all positions in the sequence have an
+error probability of 1.0.
+
+Using the expected error as the \fIlambda\fR parameter in the Poisson
+distribution, it is possible to compute the probability of observing
+\fIk\fR errors. For instance, a read with an expected error of 1.0
+has:
+.RS
+.IP - 2
+36.8% chance of having zero error,
+.IP -
+36.8% chance of having one error,
+.IP -
+18.4% chance of having two errors,
+.IP -
+6.1% chance of having three errors,
+.IP -
+1.5% chance of having four errors,
+.IP -
+0.3% chance of having five errors,
+.IP -
+etc.
+.RE
+.PP
 .TAG fastq_maxee_rate
 .TP
 .BI \-\-fastq_maxee_rate\~ real
 When using \-\-fastq_filter or \-\-fastx_filter, discard sequences
-with more than the specified number of expected errors per base.
+with an average expected error greater than the specified number
+(value ranging from 0.0 to 1.0 included). For a given sequence, the
+average expected error is the sum of error probabilities for all the
+positions in the sequence, divided by the length of the sequence.
 .TAG fastq_maxlen
 .TP
 .BI \-\-fastq_maxlen\~ "positive integer"
@@ -1710,7 +1816,7 @@ discard sequences with more than the specified number of bases.
 .TP
 .BI \-\-fastq_maxmergelen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the maximum length of the
-merged sequence. By default there is no limit.
+merged sequence (default is 1,000,000).
 .TAG fastq_maxns
 .TP
 .BI \-\-fastq_maxns\~ "positive integer"
@@ -1721,10 +1827,15 @@ discard sequences with more than the specified number of N's.
 .BI \-\-fastq_mergepairs\0 filename
 Merge paired-end sequence reads into one sequence. The forward reads
 are specified as the argument to this option and the reverse reads are
-specified with the \-\-reverse option. The merged sequences are output
-to the file(s) specified with the \-\-fastaout or \-\-fastqout
-options. The non-merged reads can be output to the files specified
-with the \-\-fastaout_notmerged_fwd, \-\-fastaout_notmerged_rev,
+specified with the \-\-reverse option. Reads with the same
+index/position in the forward and reverse files are considered to form
+a pair, even if their labels are different. Thus, forward and reverse
+reads \fBmust\fR appear in the same order and total number in both
+files. A warning is emitted if the forward and reverse files contain
+different numbers of reads. The merged sequences are written to the
+file(s) specified with the \-\-fastaout or \-\-fastqout options. The
+non-merged reads can be output to the files specified with the
+\-\-fastaout_notmerged_fwd, \-\-fastaout_notmerged_rev,
 \-\-fastqout_notmerged_fwd and \-\-fastqout_notmerged_rev
 options. Statistics may be output to the file specified with the
 \-\-eetabbedout option. Sequences are truncated as specified with the
@@ -1753,7 +1864,7 @@ Other relevant options are: \-\-fastq_ascii, \-\-fastq_maxee,
 .TP
 .BI \-\-fastq_minlen\~ "positive integer"
 When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
-discard sequences with less than the specified number of bases
+discard input sequences with less than the specified number of bases
 (default 1).
 .TAG fastq_minmergelen
 .TP
@@ -1889,12 +2000,14 @@ position with a quality \fIQ\fR below 5, 10, 15 or 20 (option
 .TP
 .BI \-\-fastq_stripleft\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
-number of bases from the left end of the reads.
+number of bases from the left end of the reads. If the length of the
+resulting read is null, then the read is discarded.
 .TAG fastq_stripright
 .TP
 .BI \-\-fastq_stripright\~ "positive integer"
 When using \-\-fastq_filter or \-\-fastx_filter, strip the specified
-number of bases from the right end of the reads.
+number of bases from the right end of the reads. If the length of the
+resulting read is null, then the read is discarded.
 .TAG fastq_tail
 .TP
 .BI \-\-fastq_tail\~ "positive integer"
@@ -1920,9 +2033,9 @@ the specified length. Shorter sequences are not discarded.
 .TAG fastq_truncqual
 .TP
 .BI \-\-fastq_truncqual\~ "positive integer"
-When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences
-starting from the first base with the specified base quality score
-value or lower.
+When using \-\-fastq_filter, \-\-fastq_mergepairs or \-\-fastx_filter,
+truncate sequences starting from the first base with the specified
+base quality score value or lower.
 .TAG fastqout
 .TP
 .BI \-\-fastqout \0filename
@@ -2011,6 +2124,12 @@ When running \-\-fastq_join, use the \fIstring\fR as a quality padding
 string. The default is a string of I's equal in length to the sequence
 padding string. The letter I corresponds to a base quality score of 40
 indicating a very high quality base with error probability of 0.0001.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA or
+FASTQ format by adding a ";length=\fIinteger\fR" attribute in the
+header.
 .TAG maxsize
 .TP
 .BI \-\-maxsize\~ "positive integer"
@@ -2076,6 +2195,11 @@ limited using the \-\-fastq_qminout and \-\-fastq_qmaxout options.
 Specifies that the sequences converted by the \-\-sff_convert command
 should be clipped in both ends as indicated in the SFF file. By
 default no clipping is performed.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -2183,7 +2307,7 @@ only to the \-\-fastx_mask command.
 .BI \-\-fastx_mask \0filename
 Mask regions in sequences contained
 in the specified fasta or fastq file. The default is to mask using
-DUST (use \-\-qmask to modify that behavior). The output files
+DUST (use \-\-qmask to modify that behaviour). The output files
 are specified with the \-\-fastaout and \-\-fastqout options. The
 minimum and maximum percentage of unmasked residues may be specified
 with the \-\-min_unmasked_pct and \-\-max_unmasked_pct options,
@@ -2196,11 +2320,11 @@ replace the masked regions by lower case letters.
 .TAG maskfasta
 .TP
 .BI \-\-maskfasta \0filename
-Mask regions in sequences contained
-in the fasta file \fIfilename\fR. The default is to mask using
-\fIdust\fR (use \-\-qmask to modify that behavior). The output file is
-specified with the \-\-output option. This command is depreciated,
-please use \-\-fastx_mask instead.
+Mask regions in sequences contained in the fasta file
+\fIfilename\fR. The default is to mask using \fIdust\fR (use \-\-qmask
+to modify that behaviour). The output file is specified with the
+\-\-output option. This command is depreciated, please use
+\-\-fastx_mask instead.
 .TAG max_unmasked_pct
 .TP
 .BI \-\-max_unmasked_pct \0real
@@ -2235,12 +2359,12 @@ The \-\-orient command can be used to orient the sequences in a given
 file in either the forward or the reverse complementary direction
 based on a reference database specified with the \-\-db option. The
 two strands of each input sequence are compared to the reference
-database using nucleotide words. If one of the strands share many more
-words with at least one sequence in the database than the other, that
-strand is chosen. The correctly oriented sequences may be written to a
-FASTA file specified with the \-\-fastaout, and to a FASTQ file
+database using nucleotide words. If one of the strands shares many
+more words with at least one sequence in the database than the other,
+that strand is chosen. The correctly oriented sequences may be written
+to a FASTA file specified with the \-\-fastaout, and to a FASTQ file
 specified with the \-\-fastqout option (as long as the input was also
-in FASTA format). If the result is uncertain, because the number of
+in FASTQ format). If the result is uncertain, because the number of
 matching words is too similar, the original sequence is written to the
 file specified with the \-\-notmatched option. The results may also be
 written to a tab-delimited text file specified with the \-\-tabbedout
@@ -2273,18 +2397,18 @@ Write the correctly oriented sequences to \fIfilename\fR, in fastq format.
 .TP
 .BI \-\-notmatched \0filename
 Write the sequences with undetermined direction to \fIfilename\fR, in
-the orginal format.
+the original format.
 .TAG orient
 .TP
 .BI \-\-orient \0filename
 Orient the sequences in the given file.
 .TAG tabbedout
 .TP
-.BI \-\-tabbedout \0 filename
+.BI \-\-tabbedout \0filename
 Write the resuls to a tab-delimited text file with the specified
-filename. This file will contain the query label, the direction (+, -
-or ?), the number of matching words on the forward strand, and the
-number of matching words on the reverse complementary strand.
+\fIfilename\fR. This file will contain the query label, the direction
+(+, - or ?), the number of matching words on the forward strand, and
+the number of matching words on the reverse complementary strand.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -2378,7 +2502,7 @@ are written to the file specified with the \-\-fastaout file and the
 fragments on the reverse strand are written to the file specified with
 the \-\-fastaout_rev option. Input sequences that do not match are
 written to the file specified with the option \-\-fastaout_discarded,
-and their reverse complement are also written to the file specfied
+and their reverse complement are also written to the file specified
 with the \-\-fastaout_discarded_rev option. The relabel options
 (\-\-relabel, \-\-relabel_self, \-\-relabel_keep, \-\-relabel_md5, and
 \-\-relabel_sha1) may be used to relabel the output sequences).
@@ -2475,7 +2599,7 @@ columns). The field is set to 0 if there is no alignment.
 integer value).
 .IP \n+[step].
 \fIopens\fR: number of columns containing a gap opening (zero or
-positive integer value).
+positive integer value, excluding terminal gaps).
 .IP \n+[step].
 \fIqlo\fR: first nucleotide of the query aligned with the
 target. Always equal to 1 if there is an alignment, 0 otherwise (see
@@ -2663,7 +2787,7 @@ taxonomic information in the same format as used with the \-\-sintax
 command, e.g. "tax=k:Archaea,p:Euryarchaeota,c:Halobacteria". Only the
 initial parts of the taxonomy that are common to a large fraction of
 the hits of each query will be output. It is necessary to set the
-\-\-maxaccepts option to a value differrent from 1 for this
+\-\-maxaccepts option to a value different from 1 for this
 information to be useful. The \-\-top_hits_only option may also be
 useful. The fraction of matching hits required may be adjusted by the
 \-\-lca_cutoff option (default 1.0).
@@ -2671,6 +2795,11 @@ useful. The fraction of matching hits required may be adjusted by the
 .TP
 .B \-\-leftjust
 Reject the sequence match if the pairwise alignment begins with gaps.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG match
 .TP
 .BI \-\-match\~ "integer"
@@ -2845,9 +2974,9 @@ FASTA format.
 .TP
 .BI \-\-query_cov \0real
 Reject if the fraction of the query aligned to the target sequence is
-lower than \fIreal\fR. The query coverage is computed as
-(matches + mismatches) / query sequence length. Internal or terminal
-gaps are not taken into account.
+lower than \fIreal\fR (value ranging from 0.0 to 1.0 included). The
+query coverage is computed as (matches + mismatches) / query sequence
+length. Internal or terminal gaps are not taken into account.
 .TAG rightjust
 .TP
 .B \-\-rightjust
@@ -2912,6 +3041,7 @@ as usearch does).
 .IP \n+[step].
 quality string (ignored, always set to '*').
 .RE
+.TP
 Optional fields for query-target matches (number and order of fields may vary):
 .RS
 .nr step 12 1
@@ -3078,6 +3208,11 @@ words. Memory requirements for a part of the index increase with a
 factor of 4 each time word length increases by one nucleotide, and
 this generally becomes significant for long words (12 or more). The
 default value is 8.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
@@ -3086,6 +3221,11 @@ Shuffling options:
 .RS
 Fasta entries in the input file are outputted in a pseudo-random
 order.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG output
 .TP 9
 .BI \-\-output \0filename
@@ -3095,7 +3235,7 @@ Write the shuffled sequences to \fIfilename\fR, in fasta format.
 .BI \-\-randseed\~ "positive integer"
 When shuffling sequence order, use \fIinteger\fR as seed. A given seed
 always produces the same output order (useful for replicability). Set
-to 0 to use a pseudo-random seed (default behavior).
+to 0 to use a pseudo-random seed (default behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -3151,6 +3291,11 @@ Pseudo-randomly shuffle the order of sequences contained in
 .BI \-\-topn\~ "positive integer"
 Output only the first \fIinteger\fR sequences after pseudo-random
 reordering.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -3172,6 +3317,11 @@ sorting performed during chimera checking (\-\-uchime_denovo),
 dereplication (\-\-derep_fulllength), and clustering (\-\-cluster_fast
 and \-\-cluster_size).
 .PP
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG maxsize
 .TP 9
 .BI \-\-maxsize\~ "positive integer"
@@ -3233,6 +3383,11 @@ sequences.
 .BI \-\-topn\~ "positive integer"
 Output only the top \fIinteger\fR sequences (i.e. the longest or the
 most abundant).
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -3303,13 +3458,18 @@ format. Requires input in fastq format.
 .BI \-\-fastx_subsample \0filename
 Perform subsampling from the sequences in the specified input file
 that is in FASTA or FASTQ format.
+.TAG lengthout
+.TP
+.B \-\-lengthout
+Write sequence length information to the output files in FASTA format
+by adding a ";length=\fIinteger\fR" attribute in the header.
 .TAG randseed
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as a seed for the pseudo-random generator. A given
 seed always produces the same output, which is useful for
 replicability. Set to 0 to use a pseudo-random seed (default
-behavior).
+behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
@@ -3367,6 +3527,11 @@ otherwise the abundance of each sequence is considered to be 1.
 .TP
 .B \-\-sizeout
 Write abundance information to the output file.
+.TAG xlength
+.TP
+.B \-\-xlength
+Strip sequence length information from the headers when writing the
+output file. This information is added by the \-\-lengthout option.
 .TAG xsize
 .TP
 .B \-\-xsize
@@ -3392,7 +3557,11 @@ specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
 may be used to set a minimum level of bootstrap support for the
 taxonomic ranks to be reported. The `--randseed` option may be
 included to specify a seed for initialisation of the random number
-generator used by the algorithm.
+generator used by the algorithm. Please note that when using multiple
+threads, the `--randseed` option may not work as intended, because
+sequences may be processed in a random order by different threads. To
+ensure the same results each time, use a single thread (`--threads 1`)
+in combination with a fixed random seed specified with `--randseed`.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
@@ -3415,14 +3584,15 @@ allowing spaces in the taxonomic identifiers.
 .TP 9
 .BI \-\-db \0filename
 Read the reference sequences from \fIfilename\fR, in FASTA, FASTQ or
-UDB format. These sequences needs to be annotated with taxonomy.
+UDB format. These sequences need to be annotated with taxonomy.
 .TAG randseed
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as seed for the random number generator used in the
 Sintax algorithm. A given seed always produces the same output order
 (useful for replicability). Set to 0 to use a pseudo-random seed
-(default behavior).
+(default behaviour). Does not work correctly with multiple threads;
+please use `--threads 1` to ensure correct behaviour.
 .TAG sintax_cutoff
 .TP
 .BI \-\-sintax_cutoff\~ "real"
@@ -3540,7 +3710,8 @@ Number of columns containing a gap extension (zero or positive integer
 value).
 .TP
 .B gaps
-Number of columns containing a gap (zero or positive integer value).
+Number of columns containing a gap (zero or positive integer value,
+excluding terminal gaps).
 .TP
 .B id
 The percentage of identity, according to the identity definition
@@ -3584,7 +3755,7 @@ value).
 .TP
 .B opens
 Number of columns containing a gap opening (zero or positive integer
-value).
+value, excluding terminal gaps).
 .TP
 .B pairs
 Number of columns containing only nucleotides. That value corresponds
@@ -3757,7 +3928,7 @@ dereplication.
 sequences labels as secondary or tertiary keys.
 .PP
 \fBvsearch\fR by default uses the DUST algorithm for masking
-low-complexity regions. Masking behavior is also slightly changed to
+low-complexity regions. Masking behaviour is also slightly changed to
 be more consistent.
 .PP
 .\" ============================================================================
@@ -3915,7 +4086,7 @@ Source code and binaries are available at
 .PP
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014-2021, Torbjørn Rognes, Frédéric Mahé and Tomás
+Copyright (C) 2014-2023, Torbjørn Rognes, Frédéric Mahé and Tomás
 Flouri
 .PP
 All rights reserved.
@@ -4242,7 +4413,7 @@ Fixed bug in aligned sequences produced with \-\-fastapairs and
 \-\-userout (qrow, trow) options.
 .TP
 .BR v1.9.7\~ "released January 12th, 2016"
-Masking behavior is changed somewhat to keep the letter case of the
+Masking behaviour is changed somewhat to keep the letter case of the
 input sequences unchanged when no masking is performed. Masking is now
 performed also during chimera detection. Documentation updated.
 .TP
@@ -4623,6 +4794,46 @@ dereplication of FASTQ files. Some code cleaning.
 .BR v2.20.1\~ "released January 11th, 2022"
 Fixes a bug in fastq_mergepair that caused an occational hang at the
 end when using multiple threads.
+.TP
+.BR v2.21.0\~ "released January 12th, 2022"
+This version adds the sample, qsegout and tsegout options. It enables
+the use of UDB databases with uchime_ref.
+.TP
+.BR v2.21.1\~ "released January 18th, 2022"
+Fix a problem with dereplication of empty input files. Update Altivec
+code on ppc64le for improved compiler compatibility (vector->__vector).
+.TP
+.BR v2.21.2\~ "released September 12th, 2022"
+Fix problems with the lcaout option when using maxaccepts above 1 and
+either lca_cutoff below 1 or with top_hits_only enabled. Update
+documentation. Update code to avoid compiler warnings.
+.TP
+.BR v2.22.0\~ "released September 19th, 2022"
+Add the derep_smallmem command for dereplication using little memory.
+.TP
+.BR v2.22.1\~ "released September 19th, 2022"
+Fix compiler warning.
+.TP
+.BR v2.23.0\~ "released July 7th, 2023"
+Update documentation. Add citation file. Modernize and improve
+code. Fix several minor bugs. Fix compilation with GCC 13. Print stats
+after fastq_mergepairs to log file instead of stderr. Handle sizein
+option correctly with dbmatched option for usearch_global. Allow
+maxseqlength option for makeudb_usearch. Fix memory allocation problem
+with chimera detection. Add lengthout and xlength options. Increase
+precision for eeout option. Add warning about sintax algorithm, random
+seed and multiple threads. Refactor chimera detection code. Add
+undocumented experimental long_chimeras_denovo command. Fix segfault
+with clustering. Add more references.
+.TP
+.BR v2.24.0\~ "released October 26th, 2023"
+Update documentation. Improve code. Allow up to 20 parents for the
+undocumented and experimental chimeras_denovo command. Fix compilation
+warnings for sha1.c. Compile for release (not debug) by default.
+.TP
+.BR v2.25.0\~ "released November 10th, 2023"
+Allow a given percentage of mismatches between chimeras and parents
+for the experimental chimeras_denovo command.
 .LP
 .\" ============================================================================
 .\" TODO:

@@ -58,13 +58,13 @@
 
 */
 
-//#define COMPARENONVECTORIZED
+#include <array>
 
 /* the number of alignments that can be delayed */
-#define MAXDELAYED 8
+constexpr auto MAXDELAYED = 8U;
 
 /* Default minimum number of word matches for word lengths 3-15 */
-const int minwordmatches_defaults[] =
+constexpr std::array<int, 16> minwordmatches_defaults =
   { -1, -1, -1, 18, 17, 16, 15, 14, 12, 11, 10,  9,  8,  7,  5,  3 };
 
 struct hit
@@ -152,10 +152,11 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
                                      struct searchinfo_s * si_m);
 
-int search_acceptable_unaligned(struct searchinfo_s * si, int target);
+auto search_acceptable_unaligned(struct searchinfo_s * si,
+                                 int target) -> bool;
 
-int search_acceptable_aligned(struct searchinfo_s * si,
-                              struct hit * hit);
+auto search_acceptable_aligned(struct searchinfo_s * si,
+                               struct hit * hit) -> bool;
 
 void align_trim(struct hit * hit);
 

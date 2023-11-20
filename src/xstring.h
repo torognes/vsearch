@@ -110,7 +110,7 @@ class xstring
 
   void add_c(char c)
   {
-    size_t needed = 1;
+    const size_t needed = 1;
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
@@ -123,7 +123,7 @@ class xstring
 
   void add_d(int d)
   {
-    int needed = snprintf(nullptr, 0, "%d", d);
+    const int needed = snprintf(nullptr, 0, "%d", d);
     if (needed < 0)
       {
         fatal("snprintf failed");
@@ -134,13 +134,13 @@ class xstring
         alloc = length + needed + 1;
         string = (char*) xrealloc(string, alloc);
       }
-    sprintf(string + length, "%d", d);
+    snprintf(string + length, needed + 1, "%d", d);
     length += needed;
   }
 
   void add_s(char * s)
   {
-    size_t needed = strlen(s);
+    const size_t needed = strlen(s);
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
