@@ -132,7 +132,7 @@ void sortbysize()
 
   for(int i=0; i<dbsequencecount; i++)
     {
-      int64_t size = db_getabundance(i);
+      const int64_t size = db_getabundance(i);
 
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
