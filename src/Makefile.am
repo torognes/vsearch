@@ -14,7 +14,11 @@ endif
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 if ENABLE_DEBUG
-AM_CFLAGS += -UNDEBUG -Wcast-align -Wfloat-equal
+AM_CFLAGS += -UNDEBUG -Wcast-align -Wdate-time \
+             -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
+             -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
+             -Woverloaded-virtual -Wuninitialized \
+             -Wunsafe-loop-optimizations -Wunused -Wvla
 else
 AM_CFLAGS += -DNDEBUG
 endif
