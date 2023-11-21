@@ -174,7 +174,7 @@ void sortbysize()
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
-  const double median {find_median_abundance(passed, sortinfo)};
+  const double median = find_median_abundance(passed, sortinfo);
 
   if (! opt_quiet)
     {
