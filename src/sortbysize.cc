@@ -138,7 +138,7 @@ void sortbysize()
   if (not opt_output)
     fatal("FASTA output file for sortbysize must be specified with --output");
 
-  FILE * fp_output = fopen_output(opt_output);
+  std::FILE * fp_output = fopen_output(opt_output);
   if (not fp_output)
     {
       fatal("Unable to open sortbysize output file for writing");
