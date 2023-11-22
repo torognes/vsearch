@@ -134,11 +134,11 @@ auto find_median_abundance(const int valid_amplicons, const sortinfo_size_s * so
 
 void sortbysize()
 {
-  if (!opt_output)
+  if (not opt_output)
     fatal("FASTA output file for sortbysize must be specified with --output");
 
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (not fp_output)
     {
       fatal("Unable to open sortbysize output file for writing");
     }
@@ -180,7 +180,7 @@ void sortbysize()
 
   const double median = find_median_abundance(passed, sortinfo);
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Median abundance: %.0f\n", median);  // drop remainder
     }
