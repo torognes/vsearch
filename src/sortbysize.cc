@@ -111,19 +111,22 @@ int sortbysize_compare(const void * a, const void * b)
 [[nodiscard]]
 auto find_median_abundance(const int valid_amplicons, const sortinfo_size_s * sortinfo) -> double
 {
-  // C++17: refactor with std::array and use array.size()
+  // function returns a round value or a value with a remainder of 0.5
+
   if (valid_amplicons == 0) {
     return 0.0;
   }
 
+  // refactoring C++11: use const& std::vector.size()
   const auto midarray = std::div(valid_amplicons, 2);
 
   // odd number of valid amplicons
   if (valid_amplicons % 2 != 0)  {
-    return sortinfo[midarray.quot].size * 1.0;
+    return sortinfo[midarray.quot].size * 1.0;  // a round value
   }
 
   // even number of valid amplicons
+  // (average of two ints is either round or has a remainder of .5)
   return (sortinfo[midarray.quot - 1].size +
           sortinfo[midarray.quot].size) / 2.0;
 }
@@ -148,6 +151,7 @@ void sortbysize()
 
   progress_init("Getting sizes", dbsequencecount);
 
+  // refactoring C++11: use std::vector
   sortinfo = (struct sortinfo_size_s*)
     xmalloc(dbsequencecount * sizeof(sortinfo_size_s));
 
@@ -178,12 +182,12 @@ void sortbysize()
 
   if (! opt_quiet)
     {
-      fprintf(stderr, "Median abundance: %.0f\n", median);
+      fprintf(stderr, "Median abundance: %.0f\n", median);  // drop remainder
     }
 
   if (opt_log)
     {
-      fprintf(fp_log, "Median abundance: %.0f\n", median);
+      fprintf(fp_log, "Median abundance: %.0f\n", median);  // drop remainder
     }
 
   show_rusage();
