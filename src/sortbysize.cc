@@ -109,7 +109,8 @@ int sortbysize_compare(const void * a, const void * b)
 
 
 [[nodiscard]]
-auto find_median_abundance(const int valid_amplicons, const sortinfo_size_s * sortinfo) -> double
+auto find_median_abundance(const int valid_amplicons,
+                           const sortinfo_size_s * sortinfo) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
 
@@ -157,7 +158,7 @@ void sortbysize()
 
   int passed = 0;
 
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i = 0; i < dbsequencecount; i++)
     {
       const int64_t size = db_getabundance(i);
 
@@ -195,9 +196,9 @@ void sortbysize()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
+  for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
+      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
       progress_update(i);
     }
   progress_done();
