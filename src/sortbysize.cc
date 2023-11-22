@@ -166,7 +166,7 @@ void sortbysize()
         {
           sortinfo[passed].seqno = i;
           sortinfo[passed].size = (unsigned int) size;
-          passed++;
+          ++passed;
         }
       progress_update(i);
     }
