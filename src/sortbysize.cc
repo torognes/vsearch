@@ -128,8 +128,10 @@ auto find_median_abundance(const int valid_amplicons,
 
   // even number of valid amplicons
   // (average of two ints is either round or has a remainder of .5)
-  return (sortinfo[midarray.quot - 1].size +
-          sortinfo[midarray.quot].size) / 2.0;
+  // risk of silent overflow for large abundance values:
+  // a >= b ; (a + b) / 2 == b + (a - b) / 2
+  return sortinfo[midarray.quot].size +
+    ((sortinfo[midarray.quot - 1].size - sortinfo[midarray.quot].size) / 2.0);
 }
 
 
