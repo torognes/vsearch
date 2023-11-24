@@ -2377,34 +2377,34 @@ void chimera()
   if (opt_log)
     {
       if (opt_uchime_ref || opt_uchime_denovo)
-	{
-	  fprintf(fp_log, "%8.2f  minh\n", opt_minh);
-	}
+        {
+          fprintf(fp_log, "%8.2f  minh\n", opt_minh);
+        }
 
       if (opt_uchime_ref ||
-	  opt_uchime_denovo ||
-	  opt_uchime2_denovo ||
-	  opt_uchime3_denovo)
-	{
-	  fprintf(fp_log, "%8.2f  xn\n", opt_xn);
-	  fprintf(fp_log, "%8.2f  dn\n", opt_dn);
-	  fprintf(fp_log, "%8.2f  xa\n", 1.0);
-	}
+          opt_uchime_denovo ||
+          opt_uchime2_denovo ||
+          opt_uchime3_denovo)
+        {
+          fprintf(fp_log, "%8.2f  xn\n", opt_xn);
+          fprintf(fp_log, "%8.2f  dn\n", opt_dn);
+          fprintf(fp_log, "%8.2f  xa\n", 1.0);
+        }
 
       if (opt_uchime_ref || opt_uchime_denovo)
-	{
-	  fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
-	}
+        {
+          fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
+        }
 
       fprintf(fp_log, "%8.2f  id\n", opt_id);
 
       if (opt_uchime_ref ||
-	  opt_uchime_denovo ||
-	  opt_uchime2_denovo ||
-	  opt_uchime3_denovo)
-	{
-	  fprintf(fp_log, "%8d  maxp\n", 2);
-	}
+          opt_uchime_denovo ||
+          opt_uchime2_denovo ||
+          opt_uchime3_denovo)
+        {
+          fprintf(fp_log, "%8d  maxp\n", 2);
+        }
 
       fprintf(fp_log, "\n");
     }

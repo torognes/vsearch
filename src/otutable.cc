@@ -163,28 +163,28 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_sample[5];
       if (!regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0))
-	{
-	  /* match: use the matching sample name */
-	  len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
-	  start_sample += pmatch_sample[3].rm_so;
-	}
+        {
+          /* match: use the matching sample name */
+          len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
+          start_sample += pmatch_sample[3].rm_so;
+        }
 #else
       std::cmatch cmatch_sample;
       if (regex_search(query_header, cmatch_sample, regex_sample))
-	{
-	  len_sample = cmatch_sample.length(3);
-	  start_sample += cmatch_sample.position(3);
-	}
+        {
+          len_sample = cmatch_sample.length(3);
+          start_sample += cmatch_sample.position(3);
+        }
 #endif
       else
-	{
-	  /* no match: use first name in header with A-Za-z0-9_ */
-	  len_sample = strspn(query_header,
-			      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-			      "abcdefghijklmnopqrstuvwxyz"
-			      "_"
-			      "0123456789");
-	}
+        {
+          /* no match: use first name in header with A-Za-z0-9_ */
+          len_sample = strspn(query_header,
+                              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                              "abcdefghijklmnopqrstuvwxyz"
+                              "_"
+                              "0123456789");
+        }
 
       sample_name = (char *) xmalloc(len_sample+1);
       strncpy(sample_name, start_sample, len_sample);
@@ -203,24 +203,24 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_otu[4];
       if (!regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0))
-	{
-	  /* match: use the matching otu name */
-	  len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
-	  start_otu += pmatch_otu[2].rm_so;
-	}
+        {
+          /* match: use the matching otu name */
+          len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
+          start_otu += pmatch_otu[2].rm_so;
+        }
 #else
       std::cmatch cmatch_otu;
       if (regex_search(target_header, cmatch_otu, regex_otu))
-	{
-	  len_otu = cmatch_otu.length(2);
-	  start_otu += cmatch_otu.position(2);
-	}
+        {
+          len_otu = cmatch_otu.length(2);
+          start_otu += cmatch_otu.position(2);
+        }
 #endif
       else
-	{
-	  /* no match: use first name in header up to ; */
-	  len_otu = strcspn(target_header, ";");
-	}
+        {
+          /* no match: use first name in header up to ; */
+          len_otu = strcspn(target_header, ";");
+        }
 
       otu_name = (char *) xmalloc(len_otu+1);
       strncpy(otu_name, start_otu, len_otu);
@@ -233,23 +233,23 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
 
       regmatch_t pmatch_tax[4];
       if (!regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
-	{
-	  /* match: use the matching tax name */
-	  int len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
-	  start_tax += pmatch_tax[2].rm_so;
+        {
+          /* match: use the matching tax name */
+          int len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
+          start_tax += pmatch_tax[2].rm_so;
 
-	  char * tax_name = (char *) xmalloc(len_tax+1);
-	  strncpy(tax_name, start_tax, len_tax);
-	  tax_name[len_tax] = 0;
-	  otutable->otu_tax_map[otu_name] = tax_name;
-	  xfree(tax_name);
-	}
+          char * tax_name = (char *) xmalloc(len_tax+1);
+          strncpy(tax_name, start_tax, len_tax);
+          tax_name[len_tax] = 0;
+          otutable->otu_tax_map[otu_name] = tax_name;
+          xfree(tax_name);
+        }
 #else
       std::cmatch cmatch_tax;
       if (regex_search(target_header, cmatch_tax, regex_tax))
-	{
-	  otutable->otu_tax_map[otu_name] = cmatch_tax.str(2);
-	}
+        {
+          otutable->otu_tax_map[otu_name] = cmatch_tax.str(2);
+        }
 #endif
     }
 
@@ -264,9 +264,9 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
   if (sample_name && otu_name && abundance)
     {
       otutable->sample_otu_count[string_pair_t(sample_name,otu_name)]
-	+= abundance;
+        += abundance;
       otutable->otu_sample_count[string_pair_t(otu_name,sample_name)]
-	+= abundance;
+        += abundance;
     }
 
   if (otu_name)

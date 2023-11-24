@@ -898,7 +898,7 @@ void usearch_global(char * cmdline, char * progheader)
   if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
     for(int64_t i=0; i<seqcount; i++)
       if (! dbmatched[i])
-	otutable_add(nullptr, db_getheader(i), 0);
+        otutable_add(nullptr, db_getheader(i), 0);
 
   if (opt_biomout)
     {

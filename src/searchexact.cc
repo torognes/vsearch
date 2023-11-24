@@ -285,7 +285,7 @@ void search_exact_output_results(int hit_count,
   else
     {
       if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
-	{
+        {
           otutable_add(query_head,
                        nullptr,
                        qsize);
