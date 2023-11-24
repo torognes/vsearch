@@ -284,6 +284,13 @@ void search_exact_output_results(int hit_count,
     }
   else
     {
+      if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+	{
+          otutable_add(query_head,
+                       nullptr,
+                       qsize);
+        }
+
       if (fp_uc)
         {
           results_show_uc_one(fp_uc,
@@ -896,6 +903,12 @@ void search_exact(char * cmdline, char * progheader)
           fprintf(fp_log, "\n");
         }
     }
+
+  // Add OTUs with no matches to OTU table
+  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+    for(int64_t i=0; i<seqcount; i++)
+      if (! dbmatched[i])
+        otutable_add(nullptr, db_getheader(i), 0);
 
   if (fp_biomout)
     {
