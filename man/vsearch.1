@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH vsearch 1 "November 10, 2023" "version 2.25.0" "USER COMMANDS"
+.TH vsearch 1 "November 25, 2023" "version 2.26.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -4834,6 +4834,15 @@ warnings for sha1.c. Compile for release (not debug) by default.
 .BR v2.25.0\~ "released November 10th, 2023"
 Allow a given percentage of mismatches between chimeras and parents
 for the experimental chimeras_denovo command.
+.TP
+.BR v2.26.0\~ "released November 24th, 2023"
+Enable the maxseqlength and minseqlength options for the chimera
+detection commands. When the usearch_global or search_exact commands
+are used, OTU tables will include samples and OTUs with no matches.
+.TP
+.BR v2.26.1\~ "released November 25th, 2023"
+No real changes, but the previous version was released without proper
+updates to the source code.
 .LP
 .\" ============================================================================
 .\" TODO:
