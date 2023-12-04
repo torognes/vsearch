@@ -2813,16 +2813,18 @@ Write query sequences matching database target sequences to
 .TAG maxaccepts
 .TP
 .BI \-\-maxaccepts\~ "positive integer"
-Maximum number of hits to accept before stopping the search. The
-default value is 1. This option works in pair with \-\-maxrejects. The
-search process sorts target sequences by decreasing number of
-\fIk\fR-mers they have in common with the query sequence, using that
-information as a proxy for sequence similarity. After pairwise
-alignments, if the first target sequence passes the acceptation
-criteria, it is accepted as best hit and the search process stops for
-that query. If \-\-maxaccepts is set to a higher value, more hits are
-accepted. If \-\-maxaccepts and \-\-maxrejects are both set to 0, the
-complete database is searched.
+Maximum number of matching target sequences to accept before stopping
+the search for a given query. The default value is 1. This option
+works in pair with \-\-maxrejects. The search process sorts target
+sequences by decreasing number of \fIk\fR-mers they have in common
+with the query sequence, using that information as a proxy for
+sequence similarity. After pairwise alignments, if the first target
+sequence passes the acceptation criteria, it is accepted as best hit
+and the search process stops for that query. If \-\-maxaccepts is set
+to a higher value, more matching targets are accepted. If
+\-\-maxaccepts and \-\-maxrejects are both set to 0, the complete
+database is searched. See \-\-maxhits option for a control on the
+number of hits reported per query when search is done on both strands.
 .TAG maxdiffs
 .TP
 .BI \-\-maxdiffs\~ "positive integer"
@@ -2836,10 +2838,16 @@ Reject the sequence match if the alignment contains at least
 .TAG maxhits
 .TP
 .BI \-\-maxhits\~ "non-negative integer"
-Maximum number of hits to show once the search is terminated (hits are
-sorted by decreasing identity). Unlimited by default or if the
-argument it zero. This option applies to \-\-alnout, \-\-blast6out,
-\-\-fastapairs, \-\-samout, \-\-uc, or \-\-userout output files.
+Maximum number of hits to show once the search is terminated for a
+given query (hits are sorted by decreasing identity). When searching
+only on the plus strand (default situation, see \-\-strand), the
+number of matching targets (\-\-maxaccepts) and the number of hits
+(\-\-maxhits) are the same. However, when searching on both strands,
+there could be two hits per target (one per strand): \-\-maxhits then
+controls the overall number of reported hits per query. Unlimited by
+default or if the argument it zero. This option applies to \-\-alnout,
+\-\-blast6out, \-\-fastapairs, \-\-samout, \-\-uc, or \-\-userout
+output files.
 .TAG maxid
 .TP
 .BI \-\-maxid \0real
@@ -2858,12 +2866,12 @@ Reject if the query/target sequence length ratio is greater than
 .TP
 .BI \-\-maxrejects\~ "positive integer"
 Maximum number of non-matching target sequences to consider before
-stopping the search. The default value is 32. This option works in
-pair with \-\-maxaccepts. The search process sorts target sequences by
-decreasing number of \fIk\fR-mers they have in common with the query
-sequence, using that information as a proxy for sequence
-similarity. After pairwise alignments, if none of the first 32
-examined target sequences pass the acceptation criteria, the search
+stopping the search for a given query. The default value is 32. This
+option works in pair with \-\-maxaccepts. The search process sorts
+target sequences by decreasing number of \fIk\fR-mers they have in
+common with the query sequence, using that information as a proxy for
+sequence similarity. After pairwise alignments, if none of the first
+32 examined target sequences pass the acceptation criteria, the search
 process stops for that query (no hit). If \-\-maxrejects is set to a
 higher value, more target sequences are considered. If \-\-maxaccepts
 and \-\-maxrejects are both set to 0, the complete database is
@@ -3111,8 +3119,9 @@ specified with the options \-\-lcaout, \-\-alnout, \-\-samout,
 query, the top hit is the one presenting the highest percentage of
 identity (see the \-\-iddef option to change the way identity is
 measured). For a given query, if several top hits present exactly the
-same percentage of identity, the number of hits reported is controlled
-by the \-\-maxaccepts value (1 by default).
+same percentage of identity, the number of matching targets reported
+is controlled by the \-\-maxaccepts value (1 by default), and the
+number of hits is controlled by the \-\-maxhits option.
 .TAG tsegout
 .TP
 .BI \-\-tsegout \0filename
