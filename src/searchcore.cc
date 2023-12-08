@@ -752,7 +752,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
   while ((si->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
          (si->rejects < opt_maxrejects) &&
          (si->accepts < opt_maxaccepts) &&
-         (!minheap_isempty(si->m)))
+         (not minheap_isempty(si->m)))
     {
       elem_t e = minheap_poplast(si->m);
 
@@ -801,7 +801,7 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 
   for(int i=0; i < si_p->hit_count; i++)
     {
-      if ((!best) || (hit_compare_byid_typed(si_p->hits + i, best) < 0))
+      if ((not best) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
         {
           best = si_p->hits + i;
         }
@@ -811,14 +811,14 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
     {
       for(int i=0; i < si_m->hit_count; i++)
         {
-          if ((!best) || (hit_compare_byid_typed(si_m->hits + i, best) < 0))
+          if ((not best) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
             {
               best = si_m->hits + i;
             }
         }
     }
 
-  if (best && ! best->accepted)
+  if (best and not best->accepted)
     {
       best = nullptr;
     }
