@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <limits>
+
 
 static pthread_t * pthread;
 
@@ -424,7 +426,7 @@ void allpairs_thread_run(int64_t t)
                   int64_t nwmismatches {0};
                   int64_t nwgaps {0};
 
-                  if (nwscore == SHRT_MAX)
+                  if (nwscore == std::numeric_limits<short>::max())
                     {
                       /* In case the SIMD aligner cannot align,
                          perform a new alignment with the
