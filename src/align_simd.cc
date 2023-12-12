@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <limits>
+
 
 /*
   Using 16-bit signed values, from -32768 to +32767.
@@ -1320,8 +1322,8 @@ void search16(s16info_s * s,
                         s->penalty_gap_open_target_right +
                         s->penalty_gap_extension_target_right);
 
-  short score_min = SHRT_MIN + gap_penalty_max;
-  short score_max = SHRT_MAX;
+  short score_min = std::numeric_limits<short>::min() + gap_penalty_max;
+  short score_max = std::numeric_limits<short>::max();
 
   for(int i=0; i<4; i++)
     {
@@ -1492,7 +1494,7 @@ void search16(s16info_s * s,
 
                       if (overflow[c])
                         {
-                          pscores[cand_id] = SHRT_MAX;
+                          pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
                           pmatches[cand_id] = 0;
                           pmismatches[cand_id] = 0;
@@ -1525,7 +1527,7 @@ void search16(s16info_s * s,
                       length = db_getsequencelen(seqnos[cand_id]);
                       if ((length==0) || (s->qlen * length > MAXSEQLENPRODUCT))
                         {
-                          pscores[cand_id] = SHRT_MAX;
+                          pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
                           pmatches[cand_id] = 0;
                           pmismatches[cand_id] = 0;
