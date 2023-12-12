@@ -190,7 +190,7 @@ void allpairs_output_results(int hit_count,
 
           if (fp_uc)
             {
-              if ((t==0) || opt_uc_allhits)
+              if ((t == 0) || opt_uc_allhits)
                 {
                   results_show_uc_one(fp_uc,
                                       hp,
