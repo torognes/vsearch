@@ -1031,7 +1031,7 @@ struct s16info_s * search16_init(CELL score_match,
       for(int j=0; j<16; j++)
         {
           CELL value;
-          if (ambiguous_4bit[i] || ambiguous_4bit[j])
+          if (ambiguous_4bit[i] or ambiguous_4bit[j])
             {
               value = 0;
             }
@@ -1174,7 +1174,7 @@ void search16(s16info_s * s,
           if (length > 0)
             {
               int ret = xsprintf(&cigar, "%ldI", length);
-              if ((ret < 2) || !cigar)
+              if ((ret < 2) or !cigar)
                 {
                   fatal("Unable to allocate enough memory.");
                 }
@@ -1435,7 +1435,7 @@ void search16(s16info_s * s,
                 {
                   signed short h_min_c = ((signed short *)(& h_min_vector))[c];
                   signed short h_max_c = ((signed short *)(& h_max_vector))[c];
-                  if ((h_min_c <= score_min) ||
+                  if ((h_min_c <= score_min) or
                       (h_max_c >= score_max))
                     {
                       overflow[c] = true;
@@ -1525,7 +1525,7 @@ void search16(s16info_s * s,
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
-                      if ((length == 0) || (s->qlen * length > MAXSEQLENPRODUCT))
+                      if ((length == 0) or (s->qlen * length > MAXSEQLENPRODUCT))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
@@ -1688,7 +1688,7 @@ void search16(s16info_s * s,
                 {
                   signed short h_min_c = ((signed short *)(& h_min_vector))[c];
                   signed short h_max_c = ((signed short *)(& h_max_vector))[c];
-                  if ((h_min_c <= score_min) ||
+                  if ((h_min_c <= score_min) or
                       (h_max_c >= score_max))
                     {
                       overflow[c] = true;
