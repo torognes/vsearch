@@ -1351,17 +1351,17 @@ void search16(s16info_s * s,
         {
           /* fill all channels with symbols from the database sequences */
 
-          for(int c=0; c<CHANNELS; c++)
+          for(int c = 0; c < CHANNELS; c++)
             {
-              for(int j=0; j<CDEPTH; j++)
+              for(int j = 0; j < CDEPTH; j++)
                 {
                   if (d_begin[c] < d_end[c])
                     {
-                      dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+                      dseq[CHANNELS * j + c] = chrmap_4bit[*(d_begin[c]++)];
                     }
                   else
                     {
-                      dseq[CHANNELS*j+c] = 0;
+                      dseq[CHANNELS * j + c] = 0;
                     }
                 }
               if (d_begin[c] == d_end[c])
@@ -1377,7 +1377,7 @@ void search16(s16info_s * s,
 
           if (easy)
             {
-              for(unsigned int j=0; j<CDEPTH; j++)
+              for(unsigned int j = 0; j < CDEPTH; j++)
                 {
                   QR_target[j] = QR_target_interior;
                   R_target[j]  = R_target_interior;
@@ -1391,11 +1391,11 @@ void search16(s16info_s * s,
                                            QR_target_interior);
               VECTOR_SHORT R_diff  = v_sub(R_target_right,
                                            R_target_interior);
-              for(unsigned int j=0; j<CDEPTH; j++)
+              for(unsigned int j = 0; j < CDEPTH; j++)
                 {
                   VECTOR_SHORT MM = v_zero;
                   VECTOR_SHORT TT = T0;
-                  for(int c=0; c<CHANNELS; c++)
+                  for(int c = 0; c < CHANNELS; c++)
                     {
                       if ((d_begin[c] == d_end[c]) &&
                           (j >= ((d_length[c]+3) % 4)))
@@ -1429,7 +1429,7 @@ void search16(s16info_s * s,
           VECTOR_SHORT h_max_vector;
           v_store(& h_min_vector, h_min);
           v_store(& h_max_vector, h_max);
-          for(int c=0; c<CHANNELS; c++)
+          for(int c = 0; c < CHANNELS; c++)
             {
               if (! overflow[c])
                 {
@@ -1453,21 +1453,21 @@ void search16(s16info_s * s,
           M = v_zero;
 
           VECTOR_SHORT T = T0;
-          for (int c=0; c<CHANNELS; c++)
+          for (int c = 0; c < CHANNELS; c++)
             {
               if (d_begin[c] < d_end[c])
                 {
                   /* this channel has more sequence */
 
-                  for(int j=0; j<CDEPTH; j++)
+                  for(int j = 0; j < CDEPTH; j++)
                     {
                       if (d_begin[c] < d_end[c])
                         {
-                          dseq[CHANNELS*j+c] = chrmap_4bit[*(d_begin[c]++)];
+                          dseq[CHANNELS * j + c] = chrmap_4bit[*(d_begin[c]++)];
                         }
                       else
                         {
-                          dseq[CHANNELS*j+c] = 0;
+                          dseq[CHANNELS * j + c] = 0;
                         }
                     }
                   if (d_begin[c] == d_end[c])
@@ -1626,7 +1626,7 @@ void search16(s16info_s * s,
 
           if (easy)
             {
-              for(unsigned int j=0; j<CDEPTH; j++)
+              for(unsigned int j = 0; j < CDEPTH; j++)
                 {
                   QR_target[j] = QR_target_interior;
                   R_target[j]  = R_target_interior;
@@ -1682,7 +1682,7 @@ void search16(s16info_s * s,
           VECTOR_SHORT h_max_vector;
           v_store(& h_min_vector, h_min);
           v_store(& h_max_vector, h_max);
-          for(int c=0; c<CHANNELS; c++)
+          for(int c = 0; c < CHANNELS; c++)
             {
               if (! overflow[c])
                 {
