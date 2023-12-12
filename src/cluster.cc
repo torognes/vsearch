@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <limits>
+
 
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
@@ -826,7 +828,7 @@ void cluster_core_parallel()
 
                               int64_t tseqlen = db_getsequencelen(target);
 
-                              if (snwscore == SHRT_MAX)
+                              if (snwscore == std::numeric_limits<short>::max())
                                 {
                                   /* In case the SIMD aligner cannot align,
                                      perform a new alignment with the
