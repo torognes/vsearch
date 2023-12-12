@@ -226,7 +226,7 @@ void search_topscores(struct searchinfo_s * si)
 
   minheap_empty(si->m);
 
-  for(unsigned int i=0; i < si->kmersamplecount; i++)
+  for(unsigned int i = 0; i < si->kmersamplecount; i++)
     {
       unsigned int kmer = si->kmersample[i];
       unsigned char * bitmap = dbindex_getbitmap(kmer);
@@ -252,7 +252,7 @@ void search_topscores(struct searchinfo_s * si)
         {
           unsigned int * list = dbindex_getmatchlist(kmer);
           unsigned int count = dbindex_getmatchcount(kmer);
-          for(unsigned int j=0; j < count; j++)
+          for(unsigned int j = 0; j < count; j++)
             {
               si->kmers[list[j]]++;
             }
@@ -261,7 +261,7 @@ void search_topscores(struct searchinfo_s * si)
 
   const int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
 
-  for(int i=0; i < indexed_count; i++)
+  for(int i = 0; i < indexed_count; i++)
     {
       count_t count = si->kmers[i];
       if (count >= minmatches)
@@ -283,7 +283,7 @@ void search_topscores(struct searchinfo_s * si)
 
 int seqncmp(char * a, char * b, uint64_t n)
 {
-  for(unsigned int i = 0; i<n; i++)
+  for(unsigned int i = 0; i < n; i++)
     {
       const int x = chrmap_4bit[(int)(a[i])];
       const int y = chrmap_4bit[(int)(b[i])];
