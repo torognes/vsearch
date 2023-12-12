@@ -226,7 +226,7 @@ void search_topscores(struct searchinfo_s * si)
 
   minheap_empty(si->m);
 
-  for(unsigned int i=0; i<si->kmersamplecount; i++)
+  for(unsigned int i=0; i < si->kmersamplecount; i++)
     {
       unsigned int kmer = si->kmersample[i];
       unsigned char * bitmap = dbindex_getbitmap(kmer);
