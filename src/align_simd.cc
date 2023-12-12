@@ -1341,7 +1341,7 @@ void search16(s16info_s * s,
   VECTOR_SHORT F2 = v_zero;
   VECTOR_SHORT F3 = v_zero;
 
-  int easy = 0;
+  bool easy = false;
 
   unsigned short * dir = dirbuffer;
 
@@ -1366,7 +1366,7 @@ void search16(s16info_s * s,
                 }
               if (d_begin[c] == d_end[c])
                 {
-                  easy = 0;
+                  easy = false;
                 }
             }
 
@@ -1448,7 +1448,7 @@ void search16(s16info_s * s,
           /* One or more sequences ended in the previous block.
              We have to switch over to a new sequence           */
 
-          easy = 1;
+          easy = true;
 
           M = v_zero;
 
@@ -1472,7 +1472,7 @@ void search16(s16info_s * s,
                     }
                   if (d_begin[c] == d_end[c])
                     {
-                      easy = 0;
+                      easy = false;
                     }
                 }
               else
@@ -1582,7 +1582,7 @@ void search16(s16info_s * s,
                         }
                       if (d_begin[c] == d_end[c])
                         {
-                          easy = 0;
+                          easy = false;
                         }
                     }
                   else
