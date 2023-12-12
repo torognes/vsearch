@@ -696,7 +696,7 @@ void align_delayed(struct searchinfo_s * si)
                   si->rejects++;
                 }
 
-              i++;
+              ++i;
             }
         }
     }
@@ -770,7 +770,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
       /* Test some accept/reject criteria before alignment */
       if (search_acceptable_unaligned(si, e.seqno))
         {
-          delayed++;
+          ++delayed;
         }
       else
         {
@@ -874,7 +874,7 @@ void search_joinhits(struct searchinfo_s * si_p,
         {
           if (si->hits[i].accepted)
             {
-              a++;
+              ++a;
             }
         }
     }
