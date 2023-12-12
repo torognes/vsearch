@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <limits>
+
 
 /* per thread data */
 
@@ -633,7 +635,7 @@ void align_delayed(struct searchinfo_s * si)
 
               int64_t dseqlen = db_getsequencelen(target);
 
-              if (nwscore == SHRT_MAX)
+              if (nwscore == std::numeric_limits<short>::max())
                 {
                   /* In case the SIMD aligner cannot align,
                      perform a new alignment with the
