@@ -1568,16 +1568,16 @@ void search16(s16info_s * s,
 
                       /* fill channel */
 
-                      for(int j=0; j<CDEPTH; j++)
+                      for(int j = 0; j < CDEPTH; j++)
                         {
                           if (d_begin[c] < d_end[c])
                             {
-                              dseq[CHANNELS*j+c] =
+                              dseq[CHANNELS * j + c] =
                                 chrmap_4bit[*(d_begin[c]++)];
                             }
                           else
                             {
-                              dseq[CHANNELS*j+c] = 0;
+                              dseq[CHANNELS * j + c] = 0;
                             }
                         }
                       if (d_begin[c] == d_end[c])
@@ -1595,9 +1595,9 @@ void search16(s16info_s * s,
                       d_end[c] = d_begin[c];
                       d_length[c] = 0;
                       d_offset[c] = 0;
-                      for (int j=0; j<CDEPTH; j++)
+                      for (int j = 0; j < CDEPTH; j++)
                         {
-                          dseq[CHANNELS*j+c] = 0;
+                          dseq[CHANNELS * j + c] = 0;
                         }
                     }
                 }
@@ -1640,14 +1640,14 @@ void search16(s16info_s * s,
                                            QR_target_interior);
               VECTOR_SHORT R_diff  = v_sub(R_target_right,
                                            R_target_interior);
-              for(unsigned int j=0; j<CDEPTH; j++)
+              for(unsigned int j = 0; j < CDEPTH; j++)
                 {
                   VECTOR_SHORT MM = v_zero;
                   VECTOR_SHORT TT = T0;
-                  for(int c=0; c<CHANNELS; c++)
+                  for(int c = 0; c < CHANNELS; c++)
                     {
                       if ((d_begin[c] == d_end[c]) &&
-                          (j >= ((d_length[c]+3) % 4)))
+                          (j >= ((d_length[c] + 3) % 4)))
                         {
                           MM = v_xor(MM, TT);
                         }
