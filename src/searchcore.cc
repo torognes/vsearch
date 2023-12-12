@@ -206,7 +206,7 @@ int hit_compare_bysize(const void * a, const void * b)
 bool search_enough_kmers(struct searchinfo_s * si,
                          unsigned int count)
 {
-  return (count >= opt_minwordmatches) || (count >= si->kmersamplecount);
+  return (count >= opt_minwordmatches) or (count >= si->kmersamplecount);
 }
 
 void search_topscores(struct searchinfo_s * si)
@@ -833,7 +833,7 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
 
   for(int i=0; i < si_p->hit_count; i++)
     {
-      if ((!best) || (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
+      if ((not best) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
         {
           best = si_p->hits + i;
         }
@@ -843,14 +843,14 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
     {
       for(int i=0; i < si_m->hit_count; i++)
         {
-          if ((!best) || (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
+          if ((not best) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
             {
               best = si_m->hits + i;
             }
         }
     }
 
-  if (best && ! best->accepted)
+  if (best and not best->accepted)
     {
       best = nullptr;
     }
