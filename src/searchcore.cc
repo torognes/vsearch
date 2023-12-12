@@ -466,21 +466,21 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
       /* idprefix */
       ((si->qseqlen >= opt_idprefix) &&
        (dseqlen >= opt_idprefix) &&
-       (!seqncmp(qseq, dseq, opt_idprefix)))
+       (not seqncmp(qseq, dseq, opt_idprefix)))
       &&
       /* idsuffix */
       ((si->qseqlen >= opt_idsuffix) &&
        (dseqlen >= opt_idsuffix) &&
-       (!seqncmp(qseq+si->qseqlen-opt_idsuffix,
+       (not seqncmp(qseq+si->qseqlen-opt_idsuffix,
                  dseq+dseqlen-opt_idsuffix,
                  opt_idsuffix)))
       &&
       /* self */
-      ((!opt_self) || (strcmp(si->query_head, dlabel)))
+      ((not opt_self) or (strcmp(si->query_head, dlabel)))
       &&
       /* selfid */
-      ((!opt_selfid) ||
-       (si->qseqlen != dseqlen) ||
+      ((not opt_selfid) or
+       (si->qseqlen != dseqlen) or
        (seqncmp(qseq, dseq, si->qseqlen)))
       )
     {
@@ -506,10 +506,10 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       /* mincols */
       (hit->internal_alignmentlength >= opt_mincols) &&
       /* leftjust */
-      ((!opt_leftjust) || (hit->trim_q_left +
+      ((not opt_leftjust) or (hit->trim_q_left +
                            hit->trim_t_left == 0)) &&
       /* rightjust */
-      ((!opt_rightjust) || (hit->trim_q_right +
+      ((not opt_rightjust) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) &&
       /* query_cov */
       (hit->matches + hit->mismatches >= opt_query_cov * si->qseqlen) &&
@@ -529,7 +529,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
           const double skew = 1.0 * si->qsize / db_getabundance(hit->target);
           const double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * mismatches + 1);
 
-          if (skew <= beta || mismatches == 0)
+          if (skew <= beta or mismatches == 0)
             {
               /* accepted */
               hit->accepted = true;
@@ -588,7 +588,7 @@ void align_delayed(struct searchinfo_s * si)
   for(int x = si->finalized; x < si->hit_count; x++)
     {
       struct hit * hit = si->hits + x;
-      if (! hit->rejected)
+      if (not hit->rejected)
         {
           target_list[target_count++] = hit->target;
         }
