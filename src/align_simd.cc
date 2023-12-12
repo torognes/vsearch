@@ -1525,7 +1525,7 @@ void search16(s16info_s * s,
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
-                      if ((length==0) || (s->qlen * length > MAXSEQLENPRODUCT))
+                      if ((length == 0) || (s->qlen * length > MAXSEQLENPRODUCT))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
