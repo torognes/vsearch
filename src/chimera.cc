@@ -59,7 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <limits>
 #include <vector>
+
 
 /*
   This code implements the method described in this paper:
@@ -1978,7 +1980,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           int64_t nwmismatches;
           int64_t nwgaps;
 
-          if (nwscore == SHRT_MAX)
+          if (nwscore == std::numeric_limits<short>::max())
             {
               /* In case the SIMD aligner cannot align,
                  perform a new alignment with the
