@@ -799,7 +799,7 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 {
   struct hit * best = nullptr;
 
-  for(int i=0; i < si_p->hit_count; i++)
+  for(int i = 0; i < si_p->hit_count; i++)
     {
       if ((not best) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
         {
@@ -809,7 +809,7 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 
   if (opt_strand>1)
     {
-      for(int i=0; i < si_m->hit_count; i++)
+      for(int i = 0; i < si_m->hit_count; i++)
         {
           if ((not best) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
             {
@@ -831,7 +831,7 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
 {
   struct hit * best = nullptr;
 
-  for(int i=0; i < si_p->hit_count; i++)
+  for(int i = 0; i < si_p->hit_count; i++)
     {
       if ((not best) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
         {
@@ -841,7 +841,7 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
 
   if (opt_strand>1)
     {
-      for(int i=0; i < si_m->hit_count; i++)
+      for(int i = 0; i < si_m->hit_count; i++)
         {
           if ((not best) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
             {
@@ -886,7 +886,7 @@ void search_joinhits(struct searchinfo_s * si_p,
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = s ? si_m : si_p;
-      for(int i=0; i<si->hit_count; i++)
+      for(int i = 0; i<si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
           if (h->accepted)
