@@ -350,7 +350,7 @@ void align_trim(struct hit * hit)
         {
           while ((p > hit->nwalignment) && (*(p-1) <= '9'))
             {
-              p--;
+              --p;
             }
           run = 1;
           sscanf(p, "%" PRId64, &run);
