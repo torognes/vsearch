@@ -71,8 +71,8 @@
   maximize score
 */
 
-#define CHANNELS 8
-#define CDEPTH 4
+constexpr auto CHANNELS = 8;
+constexpr auto CDEPTH = 4;
 
 /*
   Due to memory usage, limit the product of the length of the sequences.
@@ -88,7 +88,7 @@
   the linear memory aligner.
 */
 
-#define MAXSEQLENPRODUCT 25000000
+constexpr auto MAXSEQLENPRODUCT = 25000000LL;
 
 static int64_t scorematrix[16][16];
 
