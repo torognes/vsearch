@@ -1,0 +1,19 @@
+FROM fedora:latest
+WORKDIR /opt/vsearch
+COPY . .
+RUN yum update -y
+RUN yum -y install \
+    	autoconf \
+	automake \
+	bzip2-devel \
+	gcc-c++ \
+	ghostscript \
+	groff-base \
+	make \
+	zlib-devel
+RUN ./autogen.sh
+RUN ./configure CFLAGS="-O3" CXXFLAGS="-O3"
+RUN make clean
+RUN make ARFLAGS="cr"
+RUN make install
+ENTRYPOINT ["/usr/local/bin/vsearch"]
