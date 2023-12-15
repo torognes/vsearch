@@ -73,30 +73,30 @@
   element and then the second best and so on.
 */
 
-int elem_smaller(elem_t * a, elem_t * b)
+int elem_smaller(elem_t * lhs, elem_t * rhs)
 {
-  /* return 1 if a is smaller than b, 0 if equal or greater */
-  if (a->count < b->count)
+  /* return 1 if lhs is smaller than rhs, 0 if equal or greater */
+  if (lhs->count < rhs->count)
     {
       return 1;
     }
   else
-    if (a->count > b->count)
+    if (lhs->count > rhs->count)
       {
         return 0;
       }
     else
-      if (a->length > b->length)
+      if (lhs->length > rhs->length)
         {
           return 1;
         }
       else
-        if (a->length < b->length)
+        if (lhs->length < rhs->length)
           {
             return 0;
           }
         else
-          if (a->seqno > b->seqno)
+          if (lhs->seqno > rhs->seqno)
             {
               return 1;
             }
