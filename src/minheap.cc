@@ -171,9 +171,6 @@ auto minheap_exit(minheap_t * a_minheap) -> void
 }
 
 
-static int swaps = 0;
-
-
 auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
 {
   /* remove the element at the root, then swap children up
@@ -197,7 +194,6 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
       if (elem_smaller(m->array + nth_child, &tmp) != 0)
         {
           m->array[parent] = m->array[nth_child];
-          ++swaps;
         }
       else
         {
@@ -226,7 +222,6 @@ auto minheap_add(minheap_t * m, elem_t * n) -> void
           m->array[i] = m->array[p];
           i = p;
           p = (i - 1) / 2;
-          ++swaps;
         }
       m->array[i] = *n;
     }
