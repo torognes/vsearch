@@ -73,8 +73,7 @@
   element and then the second best and so on.
 */
 
-int
-elem_smaller(elem_t * a, elem_t * b)
+int elem_smaller(elem_t * a, elem_t * b)
 {
   /* return 1 if a is smaller than b, 0 if equal or greater */
   if (a->count < b->count)
