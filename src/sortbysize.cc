@@ -67,35 +67,35 @@ static struct sortinfo_size_s
   unsigned int seqno;
 } * sortinfo;
 
-int sortbysize_compare(const void * a, const void * b)
+int sortbysize_compare(const void * lhs_a, const void * rhs_b)
 {
-  auto * x = (struct sortinfo_size_s *) a;
-  auto * y = (struct sortinfo_size_s *) b;
+  auto * lhs = (struct sortinfo_size_s *) lhs_a;
+  auto * rhs = (struct sortinfo_size_s *) rhs_b;
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->size < y->size)
+  if (lhs->size < rhs->size)
     {
       return +1;
     }
-  else if (x->size > y->size)
+  else if (lhs->size > rhs->size)
     {
       return -1;
     }
   else
     {
-      const int result = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+      const int result = strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
       if (result != 0)
         {
           return result;
         }
       else
         {
-          if (x->seqno < y->seqno)
+          if (lhs->seqno < rhs->seqno)
             {
               return -1;
             }
-          else if (x->seqno > y->seqno)
+          else if (lhs->seqno > rhs->seqno)
             {
               return +1;
             }
