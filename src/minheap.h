@@ -83,7 +83,7 @@ inline void minheap_empty(minheap_t * m)
   m->count = 0;
 }
 
-elem_t minheap_poplast(minheap_t * m);
+elem_t minheap_poplast(minheap_t * a_minheap);
 void minheap_sort(minheap_t * m);
 minheap_t * minheap_init(int size);
 void minheap_exit(minheap_t * a_minheap);
