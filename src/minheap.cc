@@ -185,7 +185,7 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
         }
 
       /* swap parent and child if child has lower value */
-      if (elem_smaller(m->array + nth_child, &tmp))
+      if (elem_smaller(m->array + nth_child, &tmp) != 0)
         {
           m->array[parent] = m->array[nth_child];
           ++swaps;
