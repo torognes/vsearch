@@ -84,10 +84,10 @@ int sortbysize_compare(const void * a, const void * b)
     }
   else
     {
-      const int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-      if (r != 0)
+      const int result = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+      if (result != 0)
         {
-          return r;
+          return result;
         }
       else
         {
