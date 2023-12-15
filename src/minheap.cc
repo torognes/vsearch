@@ -283,9 +283,9 @@ auto minheap_poplast(minheap_t * m) -> elem_t
 
 auto minheap_test() -> void
 {
-  minheap_t * m = minheap_init(10000000);
+  static constexpr int samples = 10000000;
+  minheap_t * m = minheap_init(samples);
 
-  int samples = 10000000;
   swaps = 0;
 
   for(int i = samples; i >= 0; i--)
