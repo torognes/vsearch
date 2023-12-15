@@ -149,7 +149,7 @@ auto minheap_compare(const void * a, const void * b) -> int
               }
 }
 
-minheap_t * minheap_init(int size)
+auto minheap_init(int size) -> minheap_t *
 {
   auto * m = (minheap_t *) xmalloc(sizeof(minheap_t));
   m->alloc = size;
