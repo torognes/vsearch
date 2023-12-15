@@ -179,7 +179,8 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
   while (nth_child < m->count)
     {
       /* if two children: swap with the one with smallest value */
-      if ((nth_child + 1 < m->count) && (elem_smaller(m->array + nth_child + 1, m->array + nth_child) != 0))
+      if ((nth_child + 1 < m->count) &&
+          (elem_smaller(m->array + nth_child + 1, m->array + nth_child) != 0))
         {
           ++nth_child;
         }
