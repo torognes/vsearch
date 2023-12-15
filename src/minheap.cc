@@ -166,7 +166,7 @@ auto minheap_exit(minheap_t * m) -> void
 
 static int swaps = 0;
 
-void minheap_replaceroot(minheap_t * m, elem_t tmp)
+auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
 {
   /* remove the element at the root, then swap children up
      to the root and insert tmp at suitable place */
