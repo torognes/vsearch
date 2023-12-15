@@ -84,7 +84,7 @@ int sortbysize_compare(const void * a, const void * b)
     }
   else
     {
-      int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
+      const int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
       if (r != 0)
         {
           return r;
@@ -150,7 +150,7 @@ void sortbysize()
 
   show_rusage();
 
-  int dbsequencecount = db_getsequencecount();
+  const int dbsequencecount = db_getsequencecount();
 
   progress_init("Getting sizes", dbsequencecount);
 
