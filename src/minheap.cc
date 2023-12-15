@@ -173,7 +173,7 @@ void minheap_replaceroot(minheap_t * m, elem_t tmp)
 
   /* start with root */
   int p = 0;
-  int c = 2*p+1;
+  int c = 2 * p + 1;
 
   /* while at least one child */
   while (c < m->count)
@@ -197,7 +197,7 @@ void minheap_replaceroot(minheap_t * m, elem_t tmp)
 
       /* step down */
       p = c;
-      c = 2*p+1;
+      c = 2 * p + 1;
     }
 
   m->array[p] = tmp;
@@ -211,12 +211,12 @@ void minheap_add(minheap_t * m, elem_t * n)
       /* space for another item at end; swap upwards */
 
       int i = m->count++;
-      int p = (i-1)/2;
-      while ((i>0) && elem_smaller(n, m->array+p))
+      int p = (i - 1) / 2;
+      while ((i > 0) && elem_smaller(n, m->array+p))
         {
           m->array[i] = m->array[p];
           i = p;
-          p = (i-1)/2;
+          p = (i - 1) / 2;
           swaps++;
         }
       m->array[i] = *n;
@@ -231,7 +231,7 @@ void minheap_add(minheap_t * m, elem_t * n)
 #if 0
 inline int minheap_isempty(minheap_t * m)
 {
-  return !m->count;
+  return ! m->count;
 }
 
 inline void minheap_empty(minheap_t * m)
@@ -243,7 +243,7 @@ inline void minheap_empty(minheap_t * m)
 elem_t minheap_pop(minheap_t * m)
 {
   /* return top element and restore order */
-  static elem_t zero = {0,0,0};
+  static elem_t zero = {0, 0, 0};
 
   if (m->count)
     {
@@ -269,9 +269,9 @@ void minheap_sort(minheap_t * m)
 
 void minheap_dump(minheap_t * m)
 {
-  for(int i=0; i < m->count; i++)
+  for(int i = 0; i < m->count; i++)
     {
-      printf("%s%u", i>0 ? " " : "", m->array[i].count);
+      printf("%s%u", i > 0 ? " " : "", m->array[i].count);
     }
   printf("\n");
 }
@@ -279,7 +279,7 @@ void minheap_dump(minheap_t * m)
 elem_t minheap_poplast(minheap_t * m)
 {
   /* return top element and restore order */
-  static elem_t zero = {0,0,0};
+  static elem_t zero = {0, 0, 0};
 
   if (m->count)
     {
@@ -299,7 +299,7 @@ void minheap_test()
   int samples = 10000000;
   swaps = 0;
 
-  for(int i=samples; i>=0; i--)
+  for(int i = samples; i >= 0; i--)
     {
       elem_t x = {(unsigned int)(rand()),0,1};
       minheap_add(m, & x);
