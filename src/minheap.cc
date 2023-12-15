@@ -163,10 +163,10 @@ auto minheap_init(int size) -> minheap_t *
 }
 
 
-auto minheap_exit(minheap_t * m) -> void
+auto minheap_exit(minheap_t * a_minheap) -> void
 {
-  xfree(m->array);
-  xfree(m);
+  xfree(a_minheap->array);
+  xfree(a_minheap);
 }
 
 
