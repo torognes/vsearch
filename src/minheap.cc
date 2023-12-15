@@ -287,30 +287,3 @@ auto minheap_poplast(minheap_t * m) -> elem_t
 
   return zero;
 }
-
-
-auto minheap_test() -> void
-{
-  static constexpr int samples = 10000000;
-  minheap_t * m = minheap_init(samples);
-
-  swaps = 0;
-
-  for(int i = samples; i >= 0; i--)
-    {
-      elem_t x = {(unsigned int)(rand()), 0 ,1};
-      minheap_add(m, & x);
-    }
-
-  minheap_sort(m);
-
-  while(not minheap_isempty(m))
-    {
-      elem_t x = minheap_poplast(m);
-      printf("%u\n", x.count);
-    }
-
-  printf("Swaps: %d\n\n", swaps);
-
-  minheap_exit(m);
-}
