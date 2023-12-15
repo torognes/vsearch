@@ -235,11 +235,11 @@ auto minheap_pop(minheap_t * m) -> elem_t
   /* return top element and restore order */
   static const elem_t zero = {0, 0, 0};
 
-  if (m->count)
+  if (m->count != 0)
     {
       elem_t top = m->array[0];
       m->count--;
-      if (m->count)
+      if (m->count != 0)
         {
           elem_t tmp = m->array[m->count];
           minheap_replaceroot(m, tmp);
