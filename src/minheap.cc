@@ -231,7 +231,7 @@ void minheap_add(minheap_t * m, elem_t * n)
 #if 0
 inline int minheap_isempty(minheap_t * m)
 {
-  return ! m->count;
+  return not m->count;
 }
 
 inline void minheap_empty(minheap_t * m)
