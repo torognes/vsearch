@@ -108,6 +108,7 @@ auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
             }
 }
 
+
 auto minheap_compare(const void * a, const void * b) -> int
 {
   auto * lhs = (elem_t*) a;
@@ -151,6 +152,7 @@ auto minheap_compare(const void * a, const void * b) -> int
               }
 }
 
+
 auto minheap_init(int size) -> minheap_t *
 {
   auto * a_minheap = (minheap_t *) xmalloc(sizeof(minheap_t));
@@ -160,13 +162,16 @@ auto minheap_init(int size) -> minheap_t *
   return a_minheap;
 }
 
+
 auto minheap_exit(minheap_t * m) -> void
 {
   xfree(m->array);
   xfree(m);
 }
 
+
 static int swaps = 0;
+
 
 auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
 {
@@ -254,10 +259,12 @@ auto minheap_pop(minheap_t * m) -> elem_t
     }
 }
 
+
 auto minheap_sort(minheap_t * m) -> void
 {
   std::qsort(m->array, m->count, sizeof(elem_t), minheap_compare);
 }
+
 
 auto minheap_dump(minheap_t * m) -> void
 {
@@ -267,6 +274,7 @@ auto minheap_dump(minheap_t * m) -> void
     }
   printf("\n");
 }
+
 
 auto minheap_poplast(minheap_t * m) -> elem_t
 {
