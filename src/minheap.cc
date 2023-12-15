@@ -230,10 +230,10 @@ auto minheap_add(minheap_t * m, elem_t * n) -> void
 }
 
 
-elem_t minheap_pop(minheap_t * m)
+auto minheap_pop(minheap_t * m) -> elem_t
 {
   /* return top element and restore order */
-  static elem_t zero = {0, 0, 0};
+  static const elem_t zero = {0, 0, 0};
 
   if (m->count)
     {
@@ -269,7 +269,7 @@ void minheap_dump(minheap_t * m)
 elem_t minheap_poplast(minheap_t * m)
 {
   /* return top element and restore order */
-  static elem_t zero = {0, 0, 0};
+  static const elem_t zero = {0, 0, 0};
 
   if (m->count)
     {
