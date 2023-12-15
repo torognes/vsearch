@@ -213,7 +213,7 @@ auto minheap_add(minheap_t * m, elem_t * n) -> void
 
       int i = m->count++;
       int p = (i - 1) / 2;
-      while ((i > 0) && elem_smaller(n, m->array + p))
+      while ((i > 0) && (elem_smaller(n, m->array + p) != 0))
         {
           m->array[i] = m->array[p];
           i = p;
