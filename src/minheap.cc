@@ -149,8 +149,7 @@ int minheap_compare(const void * a, const void * b)
               }
 }
 
-minheap_t *
-minheap_init(int size)
+minheap_t * minheap_init(int size)
 {
   auto * m = (minheap_t *) xmalloc(sizeof(minheap_t));
   m->alloc = size;
@@ -159,8 +158,7 @@ minheap_init(int size)
   return m;
 }
 
-void
-minheap_exit(minheap_t * m)
+void minheap_exit(minheap_t * m)
 {
   xfree(m->array);
   xfree(m);
@@ -168,8 +166,7 @@ minheap_exit(minheap_t * m)
 
 static int swaps = 0;
 
-void
-minheap_replaceroot(minheap_t * m, elem_t tmp)
+void minheap_replaceroot(minheap_t * m, elem_t tmp)
 {
   /* remove the element at the root, then swap children up
      to the root and insert tmp at suitable place */
@@ -207,8 +204,7 @@ minheap_replaceroot(minheap_t * m, elem_t tmp)
 }
 
 
-void
-minheap_add(minheap_t * m, elem_t * n)
+void minheap_add(minheap_t * m, elem_t * n)
 {
   if (m->count < m->alloc)
     {
@@ -233,21 +229,18 @@ minheap_add(minheap_t * m, elem_t * n)
 }
 
 #if 0
-inline int
-minheap_isempty(minheap_t * m)
+inline int minheap_isempty(minheap_t * m)
 {
   return !m->count;
 }
 
-inline void
-minheap_empty(minheap_t * m)
+inline void minheap_empty(minheap_t * m)
 {
   m->count = 0;
 }
 #endif
 
-elem_t
-minheap_pop(minheap_t * m)
+elem_t minheap_pop(minheap_t * m)
 {
   /* return top element and restore order */
   static elem_t zero = {0,0,0};
@@ -269,14 +262,12 @@ minheap_pop(minheap_t * m)
     }
 }
 
-void
-minheap_sort(minheap_t * m)
+void minheap_sort(minheap_t * m)
 {
   qsort(m->array, m->count, sizeof(elem_t), minheap_compare);
 }
 
-void
-minheap_dump(minheap_t * m)
+void minheap_dump(minheap_t * m)
 {
   for(int i=0; i < m->count; i++)
     {
@@ -285,8 +276,7 @@ minheap_dump(minheap_t * m)
   printf("\n");
 }
 
-elem_t
-minheap_poplast(minheap_t * m)
+elem_t minheap_poplast(minheap_t * m)
 {
   /* return top element and restore order */
   static elem_t zero = {0,0,0};
@@ -302,8 +292,7 @@ minheap_poplast(minheap_t * m)
 }
 
 
-void
-minheap_test()
+void minheap_test()
 {
   minheap_t * m = minheap_init(10000000);
 
