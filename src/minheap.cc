@@ -171,7 +171,7 @@ auto minheap_exit(minheap_t * a_minheap) -> void
 }
 
 
-auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
+auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
 {
   /* remove the element at the root, then swap children up
      to the root and insert tmp at suitable place */
@@ -181,19 +181,19 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
   int nth_child = 2 * parent + 1;
 
   /* while at least one child */
-  while (nth_child < m->count)
+  while (nth_child < a_minheap->count)
     {
       /* if two children: swap with the one with smallest value */
-      if ((nth_child + 1 < m->count) &&
-          (elem_smaller(m->array + nth_child + 1, m->array + nth_child) != 0))
+      if ((nth_child + 1 < a_minheap->count) &&
+          (elem_smaller(a_minheap->array + nth_child + 1, a_minheap->array + nth_child) != 0))
         {
           ++nth_child;
         }
 
       /* swap parent and child if child has lower value */
-      if (elem_smaller(m->array + nth_child, &tmp) != 0)
+      if (elem_smaller(a_minheap->array + nth_child, &tmp) != 0)
         {
-          m->array[parent] = m->array[nth_child];
+          a_minheap->array[parent] = a_minheap->array[nth_child];
         }
       else
         {
@@ -205,7 +205,7 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
       nth_child = 2 * parent + 1;
     }
 
-  m->array[parent] = tmp;
+  a_minheap->array[parent] = tmp;
 }
 
 
