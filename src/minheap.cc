@@ -181,14 +181,14 @@ void minheap_replaceroot(minheap_t * m, elem_t tmp)
       /* if two children: swap with the one with smallest value */
       if ((c + 1 < m->count) && (elem_smaller(m->array + c + 1, m->array + c)))
         {
-          c++;
+          ++c;
         }
 
       /* swap parent and child if child has lower value */
       if (elem_smaller(m->array + c, &tmp))
         {
           m->array[p] = m->array[c];
-          swaps++;
+          ++swaps;
         }
       else
         {
@@ -217,7 +217,7 @@ void minheap_add(minheap_t * m, elem_t * n)
           m->array[i] = m->array[p];
           i = p;
           p = (i - 1) / 2;
-          swaps++;
+          ++swaps;
         }
       m->array[i] = *n;
     }
