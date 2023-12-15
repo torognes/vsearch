@@ -209,26 +209,26 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
 }
 
 
-auto minheap_add(minheap_t * m, elem_t * n) -> void
+auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void
 {
-  if (m->count < m->alloc)
+  if (a_minheap->count < a_minheap->alloc)
     {
       /* space for another item at end; swap upwards */
 
-      int i = m->count++;
+      int i = a_minheap->count++;
       int p = (i - 1) / 2;
-      while ((i > 0) && (elem_smaller(n, m->array + p) != 0))
+      while ((i > 0) && (elem_smaller(n, a_minheap->array + p) != 0))
         {
-          m->array[i] = m->array[p];
+          a_minheap->array[i] = a_minheap->array[p];
           i = p;
           p = (i - 1) / 2;
         }
-      m->array[i] = *n;
+      a_minheap->array[i] = *n;
     }
-  else if (elem_smaller(m->array, n) != 0)
+  else if (elem_smaller(a_minheap->array, n) != 0)
     {
       /* replace the root if new element is larger than root */
-      minheap_replaceroot(m, *n);
+      minheap_replaceroot(a_minheap, *n);
     }
 }
 
