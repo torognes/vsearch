@@ -112,8 +112,8 @@ auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
 
 auto minheap_compare(const void * a, const void * b) -> int
 {
-  auto * lhs = (elem_t*) a;
-  auto * rhs = (elem_t*) b;
+  auto * lhs = static_cast<elem_t*>(a);
+  auto * rhs = static_cast<elem_t*>(b);
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
@@ -156,9 +156,9 @@ auto minheap_compare(const void * a, const void * b) -> int
 
 auto minheap_init(int size) -> minheap_t *
 {
-  auto * a_minheap = (minheap_t *) xmalloc(sizeof(minheap_t));
+  auto * a_minheap = static_cast<minheap_t *>(xmalloc(sizeof(minheap_t)));
   a_minheap->alloc = size;
-  a_minheap->array = (elem_t *) xmalloc(size * sizeof(elem_t));
+  a_minheap->array = static_cast<elem_t *>(xmalloc(size * sizeof(elem_t)));
   a_minheap->count = 0;
   return a_minheap;
 }
