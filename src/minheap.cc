@@ -73,7 +73,7 @@
   element and then the second best and so on.
 */
 
-int elem_smaller(elem_t * lhs, elem_t * rhs)
+auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
 {
   /* return 1 if lhs is smaller than rhs, 0 if equal or greater */
   if (lhs->count < rhs->count)
@@ -106,7 +106,7 @@ int elem_smaller(elem_t * lhs, elem_t * rhs)
             }
 }
 
-int minheap_compare(const void * a, const void * b)
+auto minheap_compare(const void * a, const void * b) -> int
 {
   auto * lhs = (elem_t*) a;
   auto * rhs = (elem_t*) b;
@@ -158,7 +158,7 @@ minheap_t * minheap_init(int size)
   return m;
 }
 
-void minheap_exit(minheap_t * m)
+auto minheap_exit(minheap_t * m) -> void
 {
   xfree(m->array);
   xfree(m);
