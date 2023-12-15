@@ -264,7 +264,7 @@ elem_t minheap_pop(minheap_t * m)
 
 void minheap_sort(minheap_t * m)
 {
-  qsort(m->array, m->count, sizeof(elem_t), minheap_compare);
+  std::qsort(m->array, m->count, sizeof(elem_t), minheap_compare);
 }
 
 void minheap_dump(minheap_t * m)
