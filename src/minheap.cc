@@ -151,11 +151,11 @@ auto minheap_compare(const void * a, const void * b) -> int
 
 auto minheap_init(int size) -> minheap_t *
 {
-  auto * m = (minheap_t *) xmalloc(sizeof(minheap_t));
-  m->alloc = size;
-  m->array = (elem_t *) xmalloc(size * sizeof(elem_t));
-  m->count = 0;
-  return m;
+  auto * a_minheap = (minheap_t *) xmalloc(sizeof(minheap_t));
+  a_minheap->alloc = size;
+  a_minheap->array = (elem_t *) xmalloc(size * sizeof(elem_t));
+  a_minheap->count = 0;
+  return a_minheap;
 }
 
 auto minheap_exit(minheap_t * m) -> void
