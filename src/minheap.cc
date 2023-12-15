@@ -233,19 +233,19 @@ auto minheap_add(minheap_t * m, elem_t * n) -> void
 }
 
 
-auto minheap_pop(minheap_t * m) -> elem_t
+auto minheap_pop(minheap_t * a_minheap) -> elem_t
 {
   /* return top element and restore order */
   static const elem_t zero = {0, 0, 0};
 
-  if (m->count != 0)
+  if (a_minheap->count != 0)
     {
-      elem_t top = m->array[0];
-      --m->count;
-      if (m->count != 0)
+      elem_t top = a_minheap->array[0];
+      --a_minheap->count;
+      if (a_minheap->count != 0)
         {
-          const elem_t tmp = m->array[m->count];
-          minheap_replaceroot(m, tmp);
+          const elem_t tmp = a_minheap->array[a_minheap->count];
+          minheap_replaceroot(a_minheap, tmp);
         }
       return top;
     }

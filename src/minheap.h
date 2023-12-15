@@ -88,4 +88,4 @@ void minheap_sort(minheap_t * a_minheap);
 minheap_t * minheap_init(int size);
 void minheap_exit(minheap_t * a_minheap);
 void minheap_add(minheap_t * m, elem_t * n);
-elem_t minheap_pop(minheap_t * m);
+elem_t minheap_pop(minheap_t * a_minheap);
