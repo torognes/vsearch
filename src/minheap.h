@@ -73,14 +73,14 @@ typedef struct minheap_s
   elem_t * array;
 } minheap_t;
 
-inline int minheap_isempty(minheap_t * m)
+inline int minheap_isempty(minheap_t * a_minheap)
 {
-  return (m->count == 0);
+  return (a_minheap->count == 0);
 }
 
-inline void minheap_empty(minheap_t * m)
+inline void minheap_empty(minheap_t * a_minheap)
 {
-  m->count = 0;
+  a_minheap->count = 0;
 }
 
 elem_t minheap_poplast(minheap_t * a_minheap);
