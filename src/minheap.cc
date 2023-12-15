@@ -273,14 +273,11 @@ auto minheap_poplast(minheap_t * m) -> elem_t
   /* return top element and restore order */
   static const elem_t zero = {0, 0, 0};
 
-  if (m->count != 0)
-    {
-      return m->array[--m->count];
-    }
-  else
-    {
-      return zero;
-    }
+  if (m->count != 0) {
+    return m->array[--m->count];
+  }
+
+  return zero;
 }
 
 
