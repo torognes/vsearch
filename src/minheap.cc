@@ -172,22 +172,22 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
      to the root and insert tmp at suitable place */
 
   /* start with root */
-  int p = 0;
-  int c = 2 * p + 1;
+  int parent = 0;
+  int nth_child = 2 * parent + 1;
 
   /* while at least one child */
-  while (c < m->count)
+  while (nth_child < m->count)
     {
       /* if two children: swap with the one with smallest value */
-      if ((c + 1 < m->count) && (elem_smaller(m->array + c + 1, m->array + c)))
+      if ((nth_child + 1 < m->count) && (elem_smaller(m->array + nth_child + 1, m->array + nth_child)))
         {
-          ++c;
+          ++nth_child;
         }
 
       /* swap parent and child if child has lower value */
-      if (elem_smaller(m->array + c, &tmp))
+      if (elem_smaller(m->array + nth_child, &tmp))
         {
-          m->array[p] = m->array[c];
+          m->array[parent] = m->array[nth_child];
           ++swaps;
         }
       else
@@ -196,11 +196,11 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
         }
 
       /* step down */
-      p = c;
-      c = 2 * p + 1;
+      parent = nth_child;
+      nth_child = 2 * parent + 1;
     }
 
-  m->array[p] = tmp;
+  m->array[parent] = tmp;
 }
 
 
