@@ -229,17 +229,6 @@ auto minheap_add(minheap_t * m, elem_t * n) -> void
     }
 }
 
-#if 0
-inline int minheap_isempty(minheap_t * m)
-{
-  return not m->count;
-}
-
-inline void minheap_empty(minheap_t * m)
-{
-  m->count = 0;
-}
-#endif
 
 elem_t minheap_pop(minheap_t * m)
 {
