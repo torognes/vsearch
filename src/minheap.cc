@@ -222,7 +222,7 @@ auto minheap_add(minheap_t * m, elem_t * n) -> void
         }
       m->array[i] = *n;
     }
-  else if (elem_smaller(m->array, n))
+  else if (elem_smaller(m->array, n) != 0)
     {
       /* replace the root if new element is larger than root */
       minheap_replaceroot(m, *n);
