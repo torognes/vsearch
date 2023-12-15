@@ -238,7 +238,7 @@ auto minheap_pop(minheap_t * m) -> elem_t
   if (m->count != 0)
     {
       elem_t top = m->array[0];
-      m->count--;
+      --m->count;
       if (m->count != 0)
         {
           elem_t tmp = m->array[m->count];
