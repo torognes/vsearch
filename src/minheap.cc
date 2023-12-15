@@ -108,38 +108,38 @@ int elem_smaller(elem_t * lhs, elem_t * rhs)
 
 int minheap_compare(const void * a, const void * b)
 {
-  auto * x = (elem_t*) a;
-  auto * y = (elem_t*) b;
+  auto * lhs = (elem_t*) a;
+  auto * rhs = (elem_t*) b;
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
 
-  if (x->count < y->count)
+  if (lhs->count < rhs->count)
     {
       return -1;
     }
   else
-    if (x->count > y->count)
+    if (lhs->count > rhs->count)
       {
         return +1;
       }
     else
-      if (x->length > y->length)
+      if (lhs->length > rhs->length)
         {
           return -1;
         }
       else
-        if (x->length < y->length)
+        if (lhs->length < rhs->length)
           {
             return +1;
           }
         else
-          if (x->seqno > y->seqno)
+          if (lhs->seqno > rhs->seqno)
             {
               return -1;
             }
           else
-            if (x->seqno < y->seqno)
+            if (lhs->seqno < rhs->seqno)
               {
                 return +1;
               }
