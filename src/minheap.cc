@@ -254,12 +254,12 @@ auto minheap_pop(minheap_t * m) -> elem_t
     }
 }
 
-void minheap_sort(minheap_t * m)
+auto minheap_sort(minheap_t * m) -> void
 {
   std::qsort(m->array, m->count, sizeof(elem_t), minheap_compare);
 }
 
-void minheap_dump(minheap_t * m)
+auto minheap_dump(minheap_t * m) -> void
 {
   for(int i = 0; i < m->count; i++)
     {
@@ -268,7 +268,7 @@ void minheap_dump(minheap_t * m)
   printf("\n");
 }
 
-elem_t minheap_poplast(minheap_t * m)
+auto minheap_poplast(minheap_t * m) -> elem_t
 {
   /* return top element and restore order */
   static const elem_t zero = {0, 0, 0};
@@ -284,7 +284,7 @@ elem_t minheap_poplast(minheap_t * m)
 }
 
 
-void minheap_test()
+auto minheap_test() -> void
 {
   minheap_t * m = minheap_init(10000000);
 
