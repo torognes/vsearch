@@ -249,10 +249,8 @@ auto minheap_pop(minheap_t * m) -> elem_t
         }
       return top;
     }
-  else
-    {
-      return zero;
-    }
+
+  return zero;
 }
 
 
