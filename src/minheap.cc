@@ -307,7 +307,7 @@ void minheap_test()
 
   minheap_sort(m);
 
-  while(! minheap_isempty(m))
+  while(not minheap_isempty(m))
     {
       elem_t x = minheap_poplast(m);
       printf("%u\n", x.count);
