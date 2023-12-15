@@ -262,16 +262,6 @@ auto minheap_sort(minheap_t * m) -> void
 }
 
 
-auto minheap_dump(minheap_t * m) -> void
-{
-  for(int i = 0; i < m->count; i++)
-    {
-      printf("%s%u", i > 0 ? " " : "", m->array[i].count);
-    }
-  printf("\n");
-}
-
-
 auto minheap_poplast(minheap_t * m) -> elem_t
 {
   /* return top element and restore order */
