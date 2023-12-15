@@ -32,6 +32,8 @@
 
 #include <algorithm>
 #include <cstring>  // for memcpy and memset
+#include <utility> // make_pair
+
 
 using namespace std;
 
@@ -315,7 +317,7 @@ static pair<uint64, uint64> WeakHashLen32WithSeeds(
   a += x;
   a += y;
   b += Rotate(a, 44);
-  return make_pair(a + z, b + c);
+  return std::make_pair(a + z, b + c);
 }
 
 // Return a 16-byte hash for s[0] ... s[31], a, and b.  Quick and dirty.
