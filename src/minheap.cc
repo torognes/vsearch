@@ -66,6 +66,8 @@
 /* implement a priority queue with a min heap binary array structure */
 /* elements with the lowest count should be at the top (root) */
 
+// refactoring: std::priority_queue (#include <queue>)
+
 /*
   To keep track of the n best potential target sequences, we store
   them in a min heap. The root element corresponds to the least good
@@ -112,8 +114,8 @@ auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
 
 auto minheap_compare(const void * lhs_a, const void * rhs_b) -> int
 {
-  auto * lhs = static_cast<elem_t *>(lhs_a);
-  auto * rhs = static_cast<elem_t *>(rhs_b);
+  auto * lhs = (elem_t *) lhs_a;
+  auto * rhs = (elem_t *) rhs_b;
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
