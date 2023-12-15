@@ -205,7 +205,7 @@ auto minheap_replaceroot(minheap_t * m, elem_t tmp) -> void
 }
 
 
-void minheap_add(minheap_t * m, elem_t * n)
+auto minheap_add(minheap_t * m, elem_t * n) -> void
 {
   if (m->count < m->alloc)
     {
