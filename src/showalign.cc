@@ -118,7 +118,7 @@ inline void putop(char c, int64_t len)
 
           qs4 = chrmap_4bit[(int)qs];
           ds4 = chrmap_4bit[(int)ds];
-          if ((qs4 == ds4) && (not ambiguous_4bit[qs4]))
+          if ((qs4 == ds4) and (not ambiguous_4bit[qs4]))
             {
               a_line[line_pos] = '|';
             }
@@ -154,7 +154,7 @@ inline void putop(char c, int64_t len)
           break;
         }
 
-      if ((line_pos == alignlen) || ((c == 0) && (line_pos > 0)))
+      if ((line_pos == alignlen) or ((c == 0) and (line_pos > 0)))
         {
           q_line[line_pos] = 0;
           a_line[line_pos] = 0;
@@ -273,9 +273,9 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
       p += n;
       char op = *p++;
 
-      if ((op == 'M') ||
-          ((op == 'D') && (origin == 0)) ||
-          ((op == 'I') && (origin == 1)))
+      if ((op == 'M') or
+          ((op == 'D') and (origin == 0)) or
+          ((op == 'I') and (origin == 1)))
         {
           strncpy(r, s, len);
           r += len;
