@@ -166,7 +166,7 @@ inline void putop(char c, int64_t len)
               q1 = q_len;
             }
 
-          int64_t q2 = q_strand ? q_pos +2 : q_pos;
+          int64_t q2 = q_strand ? q_pos + 2 : q_pos;
 
           int64_t d1 = d_start + 1;
           if (d1 > d_len)
