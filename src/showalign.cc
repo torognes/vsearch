@@ -118,7 +118,7 @@ inline void putop(char c, int64_t len)
 
           qs4 = chrmap_4bit[(int)qs];
           ds4 = chrmap_4bit[(int)ds];
-          if ((qs4 == ds4) && (! ambiguous_4bit[qs4]))
+          if ((qs4 == ds4) && (not ambiguous_4bit[qs4]))
             {
               a_line[line_pos] = '|';
             }
@@ -237,7 +237,7 @@ void align_show(FILE * f,
     {
       int64_t len;
       int n;
-      if (!sscanf(p, "%" PRId64 "%n", & len, & n))
+      if (not sscanf(p, "%" PRId64 "%n", & len, & n))
         {
           n = 0;
           len = 1;
@@ -265,7 +265,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
     {
       int64_t len;
       int n;
-      if (!sscanf(p, "%" PRId64 "%n", & len, & n))
+      if (not sscanf(p, "%" PRId64 "%n", & len, & n))
         {
           n = 0;
           len = 1;
