@@ -132,7 +132,7 @@ inline void putop(char c, int64_t len)
             }
 
           d_line[line_pos] = ds;
-          line_pos++;
+          ++line_pos;
           break;
 
         case 'D':
@@ -141,7 +141,7 @@ inline void putop(char c, int64_t len)
           q_line[line_pos] = qs;
           a_line[line_pos] = ' ';
           d_line[line_pos] = '-';
-          line_pos++;
+          ++line_pos;
           break;
 
         case 'I':
@@ -150,7 +150,7 @@ inline void putop(char c, int64_t len)
           q_line[line_pos] = '-';
           a_line[line_pos] = ' ';
           d_line[line_pos] = ds;
-          line_pos++;
+          ++line_pos;
           break;
         }
 
