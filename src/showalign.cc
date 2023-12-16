@@ -186,7 +186,7 @@ inline void putop(char c, int64_t len)
 
           line_pos = 0;
         }
-      count--;
+      --count;
     }
 }
 
