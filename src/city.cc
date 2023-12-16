@@ -35,7 +35,7 @@
 #include <utility> // make_pair
 
 
-using namespace std;
+using namespace std;  // refactoring: bad practice
 
 static uint64 UNALIGNED_LOAD64(const char *p) {
   uint64 result;
