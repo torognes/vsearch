@@ -224,9 +224,9 @@ void align_show(FILE * f,
   headwidth = namewidth;
   alignlen = alignwidth;
 
-  q_line = (char*) xmalloc(alignwidth+1);
-  a_line = (char*) xmalloc(alignwidth+1);
-  d_line = (char*) xmalloc(alignwidth+1);
+  q_line = (char*) xmalloc(alignwidth + 1);
+  a_line = (char*) xmalloc(alignwidth + 1);
+  d_line = (char*) xmalloc(alignwidth + 1);
 
   q_pos = strand ? seq1len - 1 - seq1off : seq1off;
   d_pos = seq2off;
@@ -256,7 +256,7 @@ void align_show(FILE * f,
 
 char * align_getrow(char * seq, char * cigar, int alen, int origin)
 {
-  char * row = (char*) xmalloc(alen+1);
+  char * row = (char*) xmalloc(alen + 1);
   char * r = row;
   char * p = cigar;
   char * s = seq;
