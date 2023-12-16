@@ -160,6 +160,7 @@ inline void putop(char c, int64_t len)
           a_line[line_pos] = 0;
           d_line[line_pos] = 0;
 
+          // refactoring: int64_t q1 = q_start + 1 > qlen ? q_len : q_start + 1;
           int64_t q1 = q_start + 1;
           if (q1 > q_len)
             {
