@@ -190,15 +190,10 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfe);
 
 #ifdef SSSE3
-  const auto c1 =
-    _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
+  const auto c1 = _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
 #endif
-
-  const auto c2 =
-    _mm_set_epi32(mask1, mask2, mask1, mask2);
-
-  const auto c3 =
-    _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
+  const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
+  const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
   auto * p = (unsigned short *)(bitmap);
   auto * q = (__m128i *)(counters);
