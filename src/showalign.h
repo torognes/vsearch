@@ -58,6 +58,10 @@
 
 */
 
+#include <cstdint>  // int64_t
+#include <cstdio>  // FILE
+
+
 char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
 
 void align_fprint_uncompressed_alignment(FILE * f, char * cigar);
