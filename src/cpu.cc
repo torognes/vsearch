@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // int32_t
+
 
 /* This file contains code dependent on special cpu features. */
 /* The file may be compiled several times with different cpu options. */
@@ -178,6 +180,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
     SSE2 code.
   */
 
+  static constexpr auto all_ones = static_cast<int32_t>(0xFFFFFFFF);
 #ifdef SSSE3
   const __m128i c1 =
     _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
@@ -187,7 +190,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
     _mm_set_epi32(0x7fbfdfef, 0xf7fbfdfe, 0x7fbfdfef, 0xf7fbfdfe);
 
   const __m128i c3 =
-    _mm_set_epi32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
+    _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
   auto * p = (unsigned short *)(bitmap);
   auto * q = (__m128i *)(counters);
