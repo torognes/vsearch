@@ -168,11 +168,8 @@ inline void putop(char c, int64_t len)
           d_line[line_pos] = 0;
 
           const int64_t q1 = q_start + 1 > q_len ? q_len : q_start + 1;
-
           const int64_t q2 = q_strand ? q_pos + 2 : q_pos;
-
           const int64_t d1 = d_start + 1 > d_len ? d_len : d_start + 1;
-
           const int64_t d2 = d_pos;
 
           fprintf(out, "\n");
