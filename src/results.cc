@@ -196,7 +196,8 @@ void results_show_blast6out_one(FILE * fp,
 
   if (hp)
     {
-      int qstart, qend;
+      int qstart;
+      int qend;
 
       if (hp->strand)
         {
