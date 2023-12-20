@@ -80,8 +80,12 @@ void increment_counters_from_bitmap(count_t * counters,
   for(int j = 0; j < r; j++)
     {
       uint16x8_t r0;
-      uint8x16_t r1, r2, r3, r4;
-      int16x8_t r5, r6;
+      uint8x16_t r1;
+      uint8x16_t r2;
+      uint8x16_t r3;
+      uint8x16_t r4;
+      int16x8_t r5;
+      int16x8_t r6;
 
       // load and duplicate short
       r0 = vdupq_n_u16(*p);
@@ -136,9 +140,12 @@ void increment_counters_from_bitmap(count_t * counters,
 
   for(int j=0; j<r; j++)
     {
-      __vector unsigned char r0, r1, r2;
+      __vector unsigned char r0;
+      __vector unsigned char r1;
+      __vector unsigned char r2;
       __vector __bool char r3;
-      __vector signed short r4, r5;
+      __vector signed short r4;
+      __vector signed short r5;
 
       memcpy(&r0, p, 2);
       p++;
@@ -201,12 +208,18 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
 
   for(int j=0; j<r; j++)
     {
-      __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
+      __m128i xmm0;
+      __m128i xmm1;
+      __m128i xmm2;
+      __m128i xmm3;
+      __m128i xmm4;
+      __m128i xmm5;
       xmm0 = _mm_loadu_si128((__m128i*)p++);
 #ifdef SSSE3
       xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
-      __m128i xmm6, xmm7;
+      __m128i xmm6;
+      __m128i xmm7;
       xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
       xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
       xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
