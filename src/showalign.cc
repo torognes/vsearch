@@ -81,8 +81,10 @@ static char * d_line;
 
 static FILE * out;
 
-static int poswidth = 3;
-static int headwidth = 5;
+constexpr int poswidth_default {3};
+static int poswidth = poswidth_default;
+constexpr int headwidth_default {5};
+static int headwidth = headwidth_default;
 
 static const char * q_name;
 static const char * d_name;
