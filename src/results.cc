@@ -194,43 +194,29 @@ void results_show_blast6out_one(FILE * fp,
     but only 12 when there is a hit. Fixed in VSEARCH.
   */
 
-  if (hp)
-    {
-      int qstart;
-      int qend;
-
-      if (hp->strand)
-        {
-          /* minus strand */
-          qstart = qseqlen;
-          qend = 1;
-        }
-      else
-        {
-          /* plus strand */
-          qstart = 1;
-          qend = qseqlen;
-        }
-
-      fprintf(fp,
-              "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
-              query_head,
-              db_getheader(hp->target),
-              hp->id,
-              hp->internal_alignmentlength,
-              hp->mismatches,
-              hp->internal_gaps,
-              qstart,
-              qend,
-              1,
-              db_getsequencelen(hp->target),
-              -1,
-              0);
-    }
-  else
+  if (not hp)
     {
       fprintf(fp, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
     }
+
+  // if 'hp->strand' then 'minus strand' else 'plus strand'
+  const int qstart = hp->strand ? qseqlen : 1;
+  const int qend = hp->strand ? 1 : qseqlen;
+
+  fprintf(fp,
+          "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
+          query_head,
+          db_getheader(hp->target),
+          hp->id,
+          hp->internal_alignmentlength,
+          hp->mismatches,
+          hp->internal_gaps,
+          qstart,
+          qend,
+          1,
+          db_getsequencelen(hp->target),
+          -1,
+          0);
 }
 
 void results_show_uc_one(FILE * fp,
