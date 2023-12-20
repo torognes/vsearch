@@ -83,7 +83,7 @@ static char * q_line;
 static char * a_line;
 static char * d_line;
 
-static FILE * out;
+static std::FILE * out;
 
 constexpr int poswidth_default {3};
 static int poswidth = poswidth_default;
@@ -188,7 +188,7 @@ inline void putop(char c, int64_t len)
     }
 }
 
-void align_show(FILE * f,
+void align_show(std::FILE * f,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
@@ -293,7 +293,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
   return row;
 }
 
-void align_fprint_uncompressed_alignment(FILE * f, char * cigar)
+void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar)
 {
   char * p = cigar;
   while(*p)
