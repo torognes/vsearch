@@ -123,7 +123,8 @@ int wo(int len, const char *s, int *beg, int *end)
 
 void dust(char * m, int len)
 {
-  int a, b;
+  int a;
+  int b;
 
   /* make a local copy of the original sequence */
   char * s = (char*) xmalloc(len+1);
