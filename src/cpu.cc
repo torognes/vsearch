@@ -77,7 +77,7 @@ void increment_counters_from_bitmap(count_t * counters,
   int16x8_t * q = (int16x8_t *)(counters);
   int r = (totalbits + 15) / 16;
 
-  for(int j=0; j<r; j++)
+  for(int j = 0; j < r; j++)
     {
       uint16x8_t r0;
       uint8x16_t r1, r2, r3, r4;
