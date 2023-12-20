@@ -117,14 +117,14 @@ inline void putop(char c, int64_t len)
       switch(c)
         {
         case 'M':
-          qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
+          qs = q_strand ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
           ds = d_seq[d_pos];
           q_pos += delta;
           d_pos += 1;
           q_line[line_pos] = qs;
 
-          qs4 = chrmap_4bit[(int)qs];
-          ds4 = chrmap_4bit[(int)ds];
+          qs4 = chrmap_4bit[static_cast<int>(qs)];
+          ds4 = chrmap_4bit[static_cast<int>(ds)];
           if ((qs4 == ds4) and (not ambiguous_4bit[qs4]))
             {
               a_line[line_pos] = '|';
@@ -143,7 +143,7 @@ inline void putop(char c, int64_t len)
           break;
 
         case 'D':
-          qs = q_strand ? chrmap_complement[(int)(q_seq[q_pos])] : q_seq[q_pos];
+          qs = q_strand ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
           q_pos += delta;
           q_line[line_pos] = qs;
           a_line[line_pos] = ' ';
