@@ -201,7 +201,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
 
   for(auto j = 0U; j < r; j++)
     {
-      const auto xmm0 = _mm_loadu_si128((__m128i*)p++);
+      const auto xmm0 = _mm_loadu_si128((__m128i *)p++);
 #ifdef SSSE3
       const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
