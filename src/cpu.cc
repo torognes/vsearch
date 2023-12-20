@@ -138,7 +138,7 @@ void increment_counters_from_bitmap(count_t * counters,
   __vector signed short * q = (__vector signed short *) (counters);
   int r = (totalbits + 15) / 16;
 
-  for(int j=0; j<r; j++)
+  for(int j = 0; j < r; j++)
     {
       __vector unsigned char r0;
       __vector unsigned char r1;
@@ -206,7 +206,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   auto * q = (__m128i *)(counters);
   int r = (totalbits + 15) / 16;
 
-  for(int j=0; j<r; j++)
+  for(int j = 0; j < r; j++)
     {
       __m128i xmm0;
       __m128i xmm1;
