@@ -180,14 +180,20 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
     SSE2 code.
   */
 
-  static constexpr auto all_ones = static_cast<int32_t>(0xFFFFFFFF);
+  // 0xffffffff -> 1111'1111'1111'1111'1111'1111'1111'1111 (32 bits)
+  static constexpr auto all_ones = static_cast<int32_t>(0xffffffff);
+  // 0x7fbfdfef -> 0111'1111'1011'1111'1101'1111'1110'1111 (32 bits)
+  static constexpr auto mask1 = static_cast<int32_t>(0x7fbfdfef);
+  // 0xf7fbfdfe -> 1111'0111'1111'1011'1111'1101'1111'1110 (32 bits)
+  static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfe);
+
 #ifdef SSSE3
   const __m128i c1 =
     _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
 #endif
 
   const __m128i c2 =
-    _mm_set_epi32(0x7fbfdfef, 0xf7fbfdfe, 0x7fbfdfef, 0xf7fbfdfe);
+    _mm_set_epi32(mask1, mask2, mask1, mask2);
 
   const __m128i c3 =
     _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
