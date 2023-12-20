@@ -60,6 +60,10 @@
 
 #include "vsearch.h"
 
+#include <cstdint>  // int64_t
+#include <cstdio>  // FILE
+
+
 static int64_t line_pos;
 
 static char * q_seq;
