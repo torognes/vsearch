@@ -294,7 +294,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
 void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar)
 {
   char * p = cigar;
-  while(*p != 0)
+  while (*p != 0)
     {
       if (*p > '9')
         {
