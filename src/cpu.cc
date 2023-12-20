@@ -79,35 +79,27 @@ void increment_counters_from_bitmap(count_t * counters,
 
   for(int j = 0; j < r; j++)
     {
-      uint16x8_t r0;
-      uint8x16_t r1;
-      uint8x16_t r2;
-      uint8x16_t r3;
-      uint8x16_t r4;
-      int16x8_t r5;
-      int16x8_t r6;
-
       // load and duplicate short
-      r0 = vdupq_n_u16(*p);
+      uint16x8_t r0 = vdupq_n_u16(*p);
       ++p;
 
       // cast to bytes
-      r1 = vreinterpretq_u8_u16(r0);
+      uint8x16_t r1 = vreinterpretq_u8_u16(r0);
 
       // bit test with mask giving 0x00 or 0xff
-      r2 = vtstq_u8(r1, c1);
+      uint8x16_t r2 = vtstq_u8(r1, c1);
 
       // transpose to duplicate even bytes
-      r3 = vtrn1q_u8(r2, r2);
+      uint8x16_t r3 = vtrn1q_u8(r2, r2);
 
       // transpose to duplicate odd bytes
-      r4 = vtrn2q_u8(r2, r2);
+      uint8x16_t r4 = vtrn2q_u8(r2, r2);
 
       // cast to signed 0x0000 or 0xffff
-      r5 = vreinterpretq_s16_u8(r3);
+      int16x8_t r5 = vreinterpretq_s16_u8(r3);
 
       // cast to signed 0x0000 or 0xffff
-      r6 = vreinterpretq_s16_u8(r4);
+      int16x8_t r6 = vreinterpretq_s16_u8(r4);
 
       // subtract signed 0 or -1 (i.e add 0 or 1) with saturation to counter
       *q = vqsubq_s16(*q, r5);
@@ -141,19 +133,14 @@ void increment_counters_from_bitmap(count_t * counters,
   for(int j = 0; j < r; j++)
     {
       __vector unsigned char r0;
-      __vector unsigned char r1;
-      __vector unsigned char r2;
-      __vector __bool char r3;
-      __vector signed short r4;
-      __vector signed short r5;
 
       memcpy(&r0, p, 2);
       p++;
-      r1 = vec_perm(r0, r0, c1);
-      r2 = vec_or(r1, c2);
-      r3 = vec_cmpeq(r2, c3);
-      r4 = (__vector signed short) vec_unpackl(r3);
-      r5 = (__vector signed short) vec_unpackh(r3);
+      __vector unsigned char r1 = vec_perm(r0, r0, c1);
+      __vector unsigned char r2 = vec_or(r1, c2);
+      __vector __bool char r3 = vec_cmpeq(r2, c3);
+      __vector signed short r4 = (__vector signed short) vec_unpackl(r3);
+      __vector signed short r5 = (__vector signed short) vec_unpackh(r3);
       *q = vec_subs(*q, r4);
       ++q;
       *q = vec_subs(*q, r5);
