@@ -98,10 +98,10 @@ static int64_t d_len;
 
 inline void putop(char c, int64_t len)
 {
-  const int64_t delta = q_strand ? -1 : +1;
+  const int64_t delta = q_strand != 0 ? -1 : +1;
 
   int64_t count = len;
-  while(count)
+  while(count != 0)
     {
       if (line_pos == 0)
         {
@@ -117,7 +117,7 @@ inline void putop(char c, int64_t len)
       switch(c)
         {
         case 'M':
-          qs = q_strand ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
+          qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
           ds = d_seq[d_pos];
           q_pos += delta;
           d_pos += 1;
@@ -125,11 +125,11 @@ inline void putop(char c, int64_t len)
 
           qs4 = chrmap_4bit[static_cast<int>(qs)];
           ds4 = chrmap_4bit[static_cast<int>(ds)];
-          if ((qs4 == ds4) and (not ambiguous_4bit[qs4]))
+          if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
             {
               a_line[line_pos] = '|';
             }
-          else if (qs4 & ds4)
+          else if ((qs4 & ds4) != 0U)
             {
               a_line[line_pos] = '+';
             }
@@ -143,7 +143,7 @@ inline void putop(char c, int64_t len)
           break;
 
         case 'D':
-          qs = q_strand ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
+          qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
           q_pos += delta;
           q_line[line_pos] = qs;
           a_line[line_pos] = ' ';
@@ -168,13 +168,13 @@ inline void putop(char c, int64_t len)
           d_line[line_pos] = 0;
 
           const int64_t q1 = q_start + 1 > q_len ? q_len : q_start + 1;
-          const int64_t q2 = q_strand ? q_pos + 2 : q_pos;
+          const int64_t q2 = q_strand != 0 ? q_pos + 2 : q_pos;
           const int64_t d1 = d_start + 1 > d_len ? d_len : d_start + 1;
           const int64_t d2 = d_pos;
 
           fprintf(out, "\n");
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
-                  q1, q_strand ? '-' : '+', q_line, q2);
+                  q1, q_strand != 0 ? '-' : '+', q_line, q2);
           fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                   "", a_line);
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
@@ -224,7 +224,7 @@ void align_show(std::FILE * f,
   a_line = (char*) xmalloc(alignwidth + 1);
   d_line = (char*) xmalloc(alignwidth + 1);
 
-  q_pos = strand ? seq1len - 1 - seq1off : seq1off;
+  q_pos = strand != 0 ? seq1len - 1 - seq1off : seq1off;
   d_pos = seq2off;
 
   line_pos = 0;
