@@ -1,3 +1,5 @@
+.\" import www macros (URL, TAG, MTO)
+.mso www.tmac
 .\" ============================================================================
 .TH vsearch 1 "November 25, 2023" "version 2.26.1" "USER COMMANDS"
 .\" ============================================================================
@@ -228,12 +230,13 @@ ascii characters (33-126). The program will terminate with a fatal
 error if there are unprintable ascii characters. A warning will be
 issued if non-ascii characters (128-255) are encountered.
 .PP
-If the header matches '>[;]size=\fIinteger\fR;label',
-'>label;size=\fIinteger\fR;label' or '>label;size=\fIinteger\fR[;]',
-\fBvsearch\fR interpret \fIinteger\fR as the number of occurrences (or
-abundance) of the sequence in the study. That abundance information is
-used or created during chimera detection, clustering, dereplication,
-sorting and searching.
+If the header matches the pattern '>[;]size=\fIinteger\fR;label', the
+pattern '>label;size=\fIinteger\fR;label', or the
+pattern '>label;size=\fIinteger\fR[;]', \fBvsearch\fR will interpret
+\fIinteger\fR as the number of occurrences (or abundance) of the
+sequence in the study. That abundance information is used or created
+during chimera detection, clustering, dereplication, sorting and
+searching.
 .PP
 The sequence is defined as a string of IUPAC symbols
 (ACGTURYSWKMDBHVN), starting after the end of the identifier line and
@@ -716,8 +719,8 @@ Input sequences are masked as specified with the \-\-qmask and
 .BI \-\-biomout \0filename
 Generate an OTU table in the biom version 1.0 JSON file format as
 specified at
-.URL http://biom-format.org/documentation/format_versions/biom-1.0.html "(link)"
-<http://biom-format.org/documentation/format_versions/biom-1.0.html>.
+.URL https://biom-format.org/documentation/format_versions/biom-1.0.html "(link)"
+<https://biom-format.org/documentation/format_versions/biom-1.0.html>.
 The format describes how to store a sparse matrix containing the
 abundances of the OTUs in the different samples. This format is much
 more efficient than the classic and mothur OTU table formats available
@@ -751,8 +754,8 @@ the beginning or end of the header. The taxonomy information may
 contain any printable character except semicolons. If an OTU table in
 the biom version 2.1 HDF5 file format is required, the biom utility
 may be used as described at
-.URL http://biom-format.org/documentation/biom_conversion.html "(link)"
-<http://biom-format.org/documentation/biom_conversion.html>.
+.URL https://biom-format.org/documentation/biom_conversion.html "(link)"
+<https://biom-format.org/documentation/biom_conversion.html>.
 .TAG centroids
 .TP
 .BI \-\-centroids \0filename
@@ -4130,8 +4133,8 @@ GNU General Public License for more details.
 .PP
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see
-.URL http://www.gnu.org/licenses/ (link)
-<http://www.gnu.org/licenses/>.
+.URL https://www.gnu.org/licenses/ (link)
+<https://www.gnu.org/licenses/>.
 .PP
 .PP
 \fBThe BSD 2-Clause License\fR
