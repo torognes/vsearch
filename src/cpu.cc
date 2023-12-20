@@ -209,13 +209,12 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   for(int j = 0; j < r; j++)
     {
       __m128i xmm0 = _mm_loadu_si128((__m128i*)p++);
-      __m128i xmm1;
 #ifdef SSSE3
-      xmm1 = _mm_shuffle_epi8(xmm0, c1);
+      __m128i xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
       __m128i xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
       __m128i xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
-      xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
+      __m128i xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
 #endif
       __m128i xmm2 = _mm_or_si128(xmm1, c2);
       __m128i xmm3 = _mm_cmpeq_epi8(xmm2, c3);
