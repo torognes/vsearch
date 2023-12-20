@@ -92,7 +92,7 @@ static int64_t d_len;
 
 inline void putop(char c, int64_t len)
 {
-  int64_t delta = q_strand ? -1 : +1;
+  const int64_t delta = q_strand ? -1 : +1;
 
   int64_t count = len;
   while(count)
@@ -167,7 +167,7 @@ inline void putop(char c, int64_t len)
               q1 = q_len;
             }
 
-          int64_t q2 = q_strand ? q_pos + 2 : q_pos;
+          const int64_t q2 = q_strand ? q_pos + 2 : q_pos;
 
           int64_t d1 = d_start + 1;
           if (d1 > d_len)
@@ -175,7 +175,7 @@ inline void putop(char c, int64_t len)
               d1 = d_len;
             }
 
-          int64_t d2 = d_pos;
+          const int64_t d2 = d_pos;
 
           fprintf(out, "\n");
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
@@ -244,7 +244,7 @@ void align_show(FILE * f,
           len = 1;
         }
       p += n;
-      char op = *p++;
+      const char op = *p++;
       putop(op, len);
     }
 
@@ -272,7 +272,7 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
           len = 1;
         }
       p += n;
-      char op = *p++;
+      const char op = *p++;
 
       if ((op == 'M') or
           ((op == 'D') and (origin == 0)) or
