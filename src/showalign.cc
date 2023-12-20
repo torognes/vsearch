@@ -233,7 +233,7 @@ void align_show(std::FILE * f,
     {
       int64_t len;
       int n;
-      if (not sscanf(p, "%" PRId64 "%n", & len, & n))
+      if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
           len = 1;
@@ -257,11 +257,11 @@ char * align_getrow(char * seq, char * cigar, int alen, int origin)
   char * p = cigar;
   char * s = seq;
 
-  while(*p)
+  while(*p != 0)
     {
       int64_t len;
       int n;
-      if (not sscanf(p, "%" PRId64 "%n", & len, & n))
+      if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
           len = 1;
