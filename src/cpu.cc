@@ -135,7 +135,7 @@ void increment_counters_from_bitmap(count_t * counters,
       __vector unsigned char r0;
 
       memcpy(&r0, p, 2);
-      p++;
+      ++p;
       __vector unsigned char r1 = vec_perm(r0, r0, c1);
       __vector unsigned char r2 = vec_or(r1, c2);
       __vector __bool char r3 = vec_cmpeq(r2, c3);
