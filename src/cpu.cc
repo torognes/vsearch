@@ -77,9 +77,9 @@ void increment_counters_from_bitmap(count_t * counters,
 
   unsigned short * p = (unsigned short *)(bitmap);
   int16x8_t * q = (int16x8_t *)(counters);
-  const int r = (totalbits + 15) / 16;
+  const auto r = (totalbits + 15) / 16;
 
-  for(int j = 0; j < r; j++)
+  for(auto j = 0U; j < r; j++)
     {
       // load and duplicate short
       uint16x8_t r0 = vdupq_n_u16(*p);
@@ -130,9 +130,9 @@ void increment_counters_from_bitmap(count_t * counters,
 
   unsigned short * p = (unsigned short *)(bitmap);
   __vector signed short * q = (__vector signed short *) (counters);
-  const int r = (totalbits + 15) / 16;
+  const auto r = (totalbits + 15) / 16;
 
-  for(int j = 0; j < r; j++)
+  for(auto j = 0U; j < r; j++)
     {
       __vector unsigned char r0;
 
@@ -197,22 +197,22 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
 
   auto * p = (unsigned short *)(bitmap);
   auto * q = (__m128i *)(counters);
-  const int r = (totalbits + 15) / 16;
+  const auto r = (totalbits + 15) / 16;
 
-  for(int j = 0; j < r; j++)
+  for(auto j = 0U; j < r; j++)
     {
-      const __m128i xmm0 = _mm_loadu_si128((__m128i*)p++);
+      const auto xmm0 = _mm_loadu_si128((__m128i*)p++);
 #ifdef SSSE3
-      const __m128i xmm1 = _mm_shuffle_epi8(xmm0, c1);
+      const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
-      const __m128i xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
-      const __m128i xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
-      const __m128i xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
+      const auto xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
+      const auto xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
+      const auto xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
 #endif
-      const __m128i xmm2 = _mm_or_si128(xmm1, c2);
-      const __m128i xmm3 = _mm_cmpeq_epi8(xmm2, c3);
-      const __m128i xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
-      const __m128i xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
+      const auto xmm2 = _mm_or_si128(xmm1, c2);
+      const auto xmm3 = _mm_cmpeq_epi8(xmm2, c3);
+      const auto xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
+      const auto xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
       *q = _mm_subs_epi16(*q, xmm4);
       ++q;
       *q = _mm_subs_epi16(*q, xmm5);
