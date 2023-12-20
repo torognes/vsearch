@@ -127,20 +127,20 @@ void dust(char * m, int len)
   int b;
 
   /* make a local copy of the original sequence */
-  char * s = (char*) xmalloc(len+1);
+  char * s = (char*) xmalloc(len + 1);
   strcpy(s, m);
 
   if (! opt_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
-      for(int i=0; i < len; i++)
+      for(int i = 0; i < len; i++)
         {
           m[i] = toupper(m[i]);
         }
       m[len] = 0;
     }
 
-  for (int i=0; i < len; i += dust_window2)
+  for (int i = 0; i < len; i += dust_window2)
     {
       int l = (len > i + dust_window) ? dust_window : len-i;
       int v = wo(l, s+i, &a, &b);
@@ -149,14 +149,14 @@ void dust(char * m, int len)
         {
           if (opt_hardmask)
             {
-              for(int j=a+i; j<=b+i; j++)
+              for(int j = a + i; j <= b + i; j++)
                 {
                   m[j] = 'N';
                 }
             }
           else
             {
-              for(int j=a+i; j<=b+i; j++)
+              for(int j = a + i; j <= b + i; j++)
                 {
                   m[j] = s[j] | 0x20;
                 }
