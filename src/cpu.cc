@@ -89,7 +89,7 @@ void increment_counters_from_bitmap(count_t * counters,
 
       // load and duplicate short
       r0 = vdupq_n_u16(*p);
-      p++;
+      ++p;
 
       // cast to bytes
       r1 = vreinterpretq_u8_u16(r0);
@@ -111,11 +111,11 @@ void increment_counters_from_bitmap(count_t * counters,
 
       // subtract signed 0 or -1 (i.e add 0 or 1) with saturation to counter
       *q = vqsubq_s16(*q, r5);
-      q++;
+      ++q;
 
       // subtract signed 0 or 1 (i.e. add 0 or 1) with saturation to counter
       *q = vqsubq_s16(*q, r6);
-      q++;
+      ++q;
     }
 }
 
@@ -155,9 +155,9 @@ void increment_counters_from_bitmap(count_t * counters,
       r4 = (__vector signed short) vec_unpackl(r3);
       r5 = (__vector signed short) vec_unpackh(r3);
       *q = vec_subs(*q, r4);
-      q++;
+      ++q;
       *q = vec_subs(*q, r5);
-      q++;
+      ++q;
     }
 }
 
@@ -221,9 +221,9 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
       const __m128i xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
       const __m128i xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
       *q = _mm_subs_epi16(*q, xmm4);
-      q++;
+      ++q;
       *q = _mm_subs_epi16(*q, xmm5);
-      q++;
+      ++q;
     }
 }
 
