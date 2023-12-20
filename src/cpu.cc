@@ -208,26 +208,19 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
 
   for(int j = 0; j < r; j++)
     {
-      __m128i xmm0;
+      __m128i xmm0 = _mm_loadu_si128((__m128i*)p++);
       __m128i xmm1;
-      __m128i xmm2;
-      __m128i xmm3;
-      __m128i xmm4;
-      __m128i xmm5;
-      xmm0 = _mm_loadu_si128((__m128i*)p++);
 #ifdef SSSE3
       xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
-      __m128i xmm6;
-      __m128i xmm7;
-      xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
-      xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
+      __m128i xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
+      __m128i xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
       xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
 #endif
-      xmm2 = _mm_or_si128(xmm1, c2);
-      xmm3 = _mm_cmpeq_epi8(xmm2, c3);
-      xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
-      xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
+      __m128i xmm2 = _mm_or_si128(xmm1, c2);
+      __m128i xmm3 = _mm_cmpeq_epi8(xmm2, c3);
+      __m128i xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
+      __m128i xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
       *q = _mm_subs_epi16(*q, xmm4);
       q++;
       *q = _mm_subs_epi16(*q, xmm5);
