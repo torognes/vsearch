@@ -64,9 +64,9 @@
 
 char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
 
-void align_fprint_uncompressed_alignment(FILE * f, char * cigar);
+void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar);
 
-void align_show(FILE * f,
+void align_show(std::FILE * f,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
