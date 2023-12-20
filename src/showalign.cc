@@ -111,7 +111,8 @@ inline void putop(char c, int64_t len)
 
       char qs;
       char ds;
-      unsigned int qs4, ds4;
+      unsigned int qs4;
+      unsigned int ds4;
 
       switch(c)
         {
