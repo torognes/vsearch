@@ -412,7 +412,8 @@ void LinearMemoryAligner::diff(int64_t a_start,
       /* a_len >= 2, b_len >= 1 */
 
       int64_t I = a_len / 2;
-      int64_t i, j;
+      int64_t i;
+      int64_t j;
 
       // Compute HH & EE in forward phase
       // Upper part
