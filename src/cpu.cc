@@ -75,7 +75,7 @@ void increment_counters_from_bitmap(count_t * counters,
 
   unsigned short * p = (unsigned short *)(bitmap);
   int16x8_t * q = (int16x8_t *)(counters);
-  int r = (totalbits + 15) / 16;
+  const int r = (totalbits + 15) / 16;
 
   for(int j = 0; j < r; j++)
     {
@@ -136,7 +136,7 @@ void increment_counters_from_bitmap(count_t * counters,
 
   unsigned short * p = (unsigned short *)(bitmap);
   __vector signed short * q = (__vector signed short *) (counters);
-  int r = (totalbits + 15) / 16;
+  const int r = (totalbits + 15) / 16;
 
   for(int j = 0; j < r; j++)
     {
