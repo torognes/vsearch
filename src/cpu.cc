@@ -152,6 +152,8 @@ void increment_counters_from_bitmap(count_t * counters,
 
 #elif __x86_64__
 
+#include <emmintrin.h>
+
 #ifdef SSSE3
 void increment_counters_from_bitmap_ssse3(count_t * counters,
                                           unsigned char * bitmap,
