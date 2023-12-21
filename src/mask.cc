@@ -89,15 +89,15 @@ int wo(int len, const char *s, int *beg, int *end)
       words[j] = word & bitmask;
     }
 
-  for (int i=0; i < l1; i++)
+  for (int i = 0; i < l1; i++)
     {
       memset(counts, 0, sizeof(counts));
 
       int sum = 0;
 
-      for (int j = dust_word-1; j<len-i; j++)
+      for (int j = dust_word - 1; j < len - i; j++)
         {
-          word = words[i+j];
+          word = words[i + j];
           int c = counts[word];
           if (c)
             {
@@ -214,7 +214,7 @@ void dust_all()
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
     }
@@ -281,9 +281,9 @@ void maskfasta()
   show_rusage();
 
   progress_init("Writing output", seqcount);
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
-      fasta_print_db_relabel(fp_output, i, i+1);
+      fasta_print_db_relabel(fp_output, i, i + 1);
       progress_update(i);
     }
   progress_done();
@@ -298,13 +298,13 @@ void fastx_mask()
   FILE * fp_fastaout = nullptr;
   FILE * fp_fastqout = nullptr;
 
-  if ((!opt_fastaout) && (!opt_fastqout))
+  if ((! opt_fastaout) && (! opt_fastqout))
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
 
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (!fp_fastaout)
+      if (! fp_fastaout)
         {
           fatal("Unable to open mask output FASTA file for writing");
         }
@@ -313,7 +313,7 @@ void fastx_mask()
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (!fp_fastqout)
+      if (! fp_fastqout)
         {
           fatal("Unable to open mask output FASTQ file for writing");
         }
@@ -343,7 +343,7 @@ void fastx_mask()
   int discarded_less = 0;
   int discarded_more = 0;
   progress_init("Writing output", seqcount);
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       int unmasked = 0;
       char * seq = db_getsequence(i);
@@ -354,7 +354,7 @@ void fastx_mask()
         }
       else if (opt_hardmask)
         {
-          for(int j=0; j<len; j++)
+          for(int j = 0; j < len; j++)
             {
               if (seq[j] != 'N')
                 {
@@ -364,7 +364,7 @@ void fastx_mask()
         }
       else
         {
-          for(int j=0; j<len; j++)
+          for(int j = 0; j < len; j++)
             {
               if (isupper(seq[j]))
                 {
@@ -418,7 +418,7 @@ void fastx_mask()
     }
   progress_done();
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       if (opt_min_unmasked_pct > 0.0)
         {
