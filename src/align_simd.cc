@@ -262,12 +262,12 @@ void dprofile_dump16(CELL * dprofile)
 
 void dumpscorematrix(CELL * m)
 {
-  for(int i=0; i<16; i++)
+  for(int i = 0; i < 16; i++)
     {
       printf("%2d %c", i, sym_nt_4bit[i]);
-      for(int j=0; j<16; j++)
+      for(int j = 0; j < 16; j++)
         {
-          printf(" %2d", m[16*i+j]);
+          printf(" %2d", m[16 * i + j]);
         }
       printf("\n");
     }
@@ -280,23 +280,23 @@ void dprofile_fill16(CELL * dprofile_word,
 #if 0
   dumpscorematrix(score_matrix_word);
 
-  for (int j=0; j<CDEPTH; j++)
+  for (int j = 0; j < CDEPTH; j++)
     {
-      for(int z=0; z<CHANNELS; z++)
-        fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j*CHANNELS+z]]);
+      for(int z = 0; z < CHANNELS; z++)
+        fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j * CHANNELS + z]]);
       fprintf(stderr, "\n");
     }
 #endif
 
-  for (int j=0; j<CDEPTH; j++)
+  for (int j = 0; j < CDEPTH; j++)
     {
       int d[CHANNELS];
-      for(int z=0; z<CHANNELS; z++)
+      for(int z = 0; z < CHANNELS; z++)
         {
-          d[z] = dseq[j*CHANNELS+z] << 4;
+          d[z] = dseq[j * CHANNELS + z] << 4;
         }
 
-      for(int i=0; i<16; i += 8)
+      for(int i = 0; i < 16; i += 8)
         {
 
 #ifdef __PPC__
