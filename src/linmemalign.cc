@@ -123,11 +123,11 @@ LinearMemoryAligner::~LinearMemoryAligner()
 
 int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch)
 {
-  auto * newscorematrix = (int64_t*) xmalloc(16*16*sizeof(int64_t));
+  auto * newscorematrix = (int64_t*) xmalloc(16 * 16 * sizeof(int64_t));
 
-  for(int i=0; i<16; i++)
+  for(int i = 0; i < 16; i++)
     {
-      for(int j=0; j<16; j++)
+      for(int j = 0; j < 16; j++)
         {
           int64_t value;
           if (ambiguous_4bit[i] || ambiguous_4bit[j])
@@ -142,7 +142,7 @@ int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatc
             {
               value = mismatch;
             }
-          newscorematrix[16*i+j] = value;
+          newscorematrix[16 * i + j] = value;
         }
     }
   return newscorematrix;
@@ -247,10 +247,10 @@ void LinearMemoryAligner::cigar_add(char _op, int64_t run)
 
 void LinearMemoryAligner::show_matrix()
 {
-  for(int i=0; i<16; i++)
+  for(int i = 0; i < 16; i++)
     {
       printf("%2d:", i);
-      for(int j=0; j<16; j++)
+      for(int j = 0; j < 16; j++)
         {
           printf(" %2" PRId64, scorematrix[16*i+j]);
         }
@@ -373,8 +373,8 @@ void LinearMemoryAligner::diff(int64_t a_start,
           if (j < b_len - 1)
             {
               Score -= a_right ?
-                go_q_r + (b_len-1-j) * ge_q_r :
-                go_q_i + (b_len-1-j) * ge_q_i;
+                go_q_r + (b_len - 1 - j) * ge_q_r :
+                go_q_i + (b_len - 1 - j) * ge_q_i;
             }
 
           if (Score > MaxScore)
@@ -445,7 +445,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
           for (int64_t j = 1; j <= b_len; j++)
             {
               f = MAX(f, h - go_q_i) - ge_q_i;
-              if (b_right && (j==b_len))
+              if (b_right && (j == b_len))
                 {
                   EE[j] = MAX(EE[j], HH[j] - go_t_r) - ge_t_r;
                 }
