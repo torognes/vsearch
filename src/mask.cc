@@ -94,7 +94,7 @@ int wo(int len, const char *s, int *beg, int *end)
 
   for (int i = 0; i < l1; i++)
     {
-      memset(counts, 0, sizeof(counts));
+      std::memset(counts, 0, sizeof(counts));
 
       int sum = 0;
 
@@ -262,7 +262,7 @@ void maskfasta()
   if (! opt_output)
     fatal("Output file for masking must be specified with --output");
 
-  FILE * fp_output = fopen_output(opt_output);
+  std::FILE * fp_output = fopen_output(opt_output);
   if (! fp_output)
     {
       fatal("Unable to open mask output file for writing");
@@ -298,8 +298,8 @@ void maskfasta()
 
 void fastx_mask()
 {
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
 
   if ((! opt_fastaout) && (! opt_fastqout))
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
