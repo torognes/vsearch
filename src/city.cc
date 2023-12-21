@@ -444,7 +444,8 @@ uint128 CityHash128WithSeed(const char *s, size_t len, uint128 seed) {
 
   // We expect len >= 128 to be the common case.  Keep 56 bytes of state:
   // v, w, x, y, and z.
-  pair<uint64, uint64> v, w;
+  pair<uint64, uint64> v;
+  pair<uint64, uint64> w;
   uint64 x = Uint128Low64(seed);
   uint64 y = Uint128High64(seed);
   uint64 z = len * k1;
