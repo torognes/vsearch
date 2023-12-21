@@ -1482,7 +1482,9 @@ int eval_parents(struct chimera_info_s * ci)
             {
               /* count non-gap symbols on current line */
 
-              int qnt, p1nt, p2nt;
+              int qnt;
+              int p1nt;
+              int p2nt;
               qnt = p1nt = p2nt = 0;
 
               int w = MIN(rest,width);
