@@ -412,8 +412,6 @@ void LinearMemoryAligner::diff(int64_t a_start,
       /* a_len >= 2, b_len >= 1 */
 
       int64_t I = a_len / 2;
-      int64_t i;
-      int64_t j;
 
       // Compute HH & EE in forward phase
       // Upper part
@@ -425,7 +423,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
       HH[0] = 0;
       EE[0] = 0;
 
-      for (j = 1; j <= b_len; j++)
+      for (int64_t j = 1; j <= b_len; j++)
         {
           HH[j] = - (a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i);
           EE[j] = LONG_MIN;
@@ -433,7 +431,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* compute matrix */
 
-      for (i = 1; i <= I; i++)
+      for (int64_t i = 1; i <= I; i++)
         {
           int64_t p = HH[0];
 
@@ -444,7 +442,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
           HH[0] = h;
           int64_t f = LONG_MIN;
 
-          for (j = 1; j <= b_len; j++)
+          for (int64_t j = 1; j <= b_len; j++)
             {
               f = MAX(f, h - go_q_i) - ge_q_i;
               if (b_right && (j==b_len))
@@ -481,7 +479,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
       XX[0] = 0;
       YY[0] = 0;
 
-      for (j = 1; j <= b_len; j++)
+      for (int64_t j = 1; j <= b_len; j++)
         {
           XX[j] = - (a_right ? go_q_r + j * ge_q_r : go_q_i + j * ge_q_i);
           YY[j] = LONG_MIN;
@@ -489,7 +487,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* compute matrix */
 
-      for (i = 1; i <= a_len - I; i++)
+      for (int64_t i = 1; i <= a_len - I; i++)
         {
           int64_t p = XX[0];
 
@@ -499,7 +497,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
           XX[0] = h;
           int64_t f = LONG_MIN;
 
-          for (j = 1; j <= b_len; j++)
+          for (int64_t j = 1; j <= b_len; j++)
             {
               f = MAX(f, h - go_q_i) - ge_q_i;
               if (b_left && (j==b_len))
@@ -536,7 +534,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* solutions with diagonal at break */
 
-      for (j=0; j <= b_len; j++)
+      for (int64_t j = 0; j <= b_len; j++)
         {
           int64_t Score = HH[j] + XX[b_len - j];
 
@@ -552,7 +550,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* solutions that end with a gap in b from both ends at break */
 
-      for (j = 0; j <= b_len; j++)
+      for (int64_t j = 0; j <= b_len; j++)
         {
           int64_t g;
           if (b_left && (j == 0))
