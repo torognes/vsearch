@@ -300,19 +300,74 @@ void dprofile_fill16(CELL * dprofile_word,
         {
 
 #ifdef __PPC__
-          __vector signed short     reg0, reg1, reg2, reg3,
-            reg4, reg5, reg6, reg7;
-          __vector signed int       reg8, reg9, reg10,reg11,
-            reg12,reg13,reg14,reg15;
-          __vector signed long long reg16,reg17,reg18,reg19,
-            reg20,reg21,reg22,reg23;
-          __vector signed long long reg24,reg25,reg26,reg27,
-            reg28,reg29,reg30,reg31;
+          __vector signed short reg0;
+          __vector signed short reg1;
+          __vector signed short reg2;
+          __vector signed short reg3;
+          __vector signed short reg4;
+          __vector signed short reg5;
+          __vector signed short reg6;
+          __vector signed short reg7;
+
+          __vector signed int reg8;
+          __vector signed int reg9;
+          __vector signed int reg10;
+          __vector signed int reg11;
+          __vector signed int reg12;
+          __vector signed int reg13;
+          __vector signed int reg14;
+          __vector signed int reg15;
+
+          __vector signed long long reg16;
+          __vector signed long long reg17;
+          __vector signed long long reg18;
+          __vector signed long long reg19;
+          __vector signed long long reg20;
+          __vector signed long long reg21;
+          __vector signed long long reg22;
+          __vector signed long long reg23;
+
+          __vector signed long long reg24;
+          __vector signed long long reg25;
+          __vector signed long long reg26;
+          __vector signed long long reg27;
+          __vector signed long long reg28;
+          __vector signed long long reg29;
+          __vector signed long long reg30;
+          __vector signed long long reg31;
 #else
-          VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-          VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
-          VECTOR_SHORT reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
-          VECTOR_SHORT reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
+          VECTOR_SHORT reg0;
+          VECTOR_SHORT reg1;
+          VECTOR_SHORT reg2;
+          VECTOR_SHORT reg3;
+          VECTOR_SHORT reg4;
+          VECTOR_SHORT reg5;
+          VECTOR_SHORT reg6;
+          VECTOR_SHORT reg7;
+          VECTOR_SHORT reg8;
+          VECTOR_SHORT reg9;
+          VECTOR_SHORT reg10;
+          VECTOR_SHORT reg11;
+          VECTOR_SHORT reg12;
+          VECTOR_SHORT reg13;
+          VECTOR_SHORT reg14;
+          VECTOR_SHORT reg15;
+          VECTOR_SHORT reg16;
+          VECTOR_SHORT reg17;
+          VECTOR_SHORT reg18;
+          VECTOR_SHORT reg19;
+          VECTOR_SHORT reg20;
+          VECTOR_SHORT reg21;
+          VECTOR_SHORT reg22;
+          VECTOR_SHORT reg23;
+          VECTOR_SHORT reg24;
+          VECTOR_SHORT reg25;
+          VECTOR_SHORT reg26;
+          VECTOR_SHORT reg27;
+          VECTOR_SHORT reg28;
+          VECTOR_SHORT reg29;
+          VECTOR_SHORT reg30;
+          VECTOR_SHORT reg31;
 #endif
 
           reg0 = v_load(score_matrix_word + d[0] + i);
