@@ -210,7 +210,8 @@ void MD5_Init(MD5_CTX *ctx)
 void MD5_Update(MD5_CTX *ctx, void *data, unsigned long size)
 {
         MD5_u32plus saved_lo;
-        unsigned long used, free;
+        unsigned long used;
+        unsigned long free;
 
         saved_lo = ctx->lo;
         ctx->lo = (saved_lo + size) & 0x1fffffff;
