@@ -69,6 +69,6 @@ void maskfasta();
 void fastx_mask();
 
 void dust(char * m, int len);
-void hardmask(char * m, int len);
+void hardmask(char * seq, int len);
 void dust_all();
 void hardmask_all();
