@@ -92,8 +92,14 @@
 static void *body(MD5_CTX *ctx, void *data, unsigned long size)
 {
         unsigned char *ptr;
-        MD5_u32plus a, b, c, d;
-        MD5_u32plus saved_a, saved_b, saved_c, saved_d;
+        MD5_u32plus a;
+        MD5_u32plus b;
+        MD5_u32plus c;
+        MD5_u32plus d;
+        MD5_u32plus saved_a;
+        MD5_u32plus saved_b;
+        MD5_u32plus saved_c;
+        MD5_u32plus saved_d;
 
         ptr = data;
 
