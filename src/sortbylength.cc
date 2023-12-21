@@ -152,6 +152,7 @@ void sortbylength()
   qsort(sortinfo, passed, sizeof(sortinfo_length_s), sortbylength_compare);
   progress_done();
 
+  // refactoring: make function (see sortbysize.cc)
   double median = 0.0;
   if (passed > 0)
     {
