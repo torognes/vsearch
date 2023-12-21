@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <array>
 #include <cstdio>  // FILE
 #include <cstring>  // memset
 
@@ -79,7 +80,7 @@ int wo(int len, const char *s, int *beg, int *end)
   int bestv = 0;
   int besti = 0;
   int bestj = 0;
-  int counts[word_count];
+  std::array<int, word_count> counts;
   int words[dust_window];
   int word = 0;
 
@@ -92,7 +93,7 @@ int wo(int len, const char *s, int *beg, int *end)
 
   for (int i = 0; i < l1; i++)
     {
-      std::memset(counts, 0, sizeof(counts));
+      counts.fill(0);  // reset counts to zero
 
       int sum = 0;
 
