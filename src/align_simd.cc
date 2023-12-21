@@ -522,14 +522,23 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
                         unsigned short * dir)
 {
 
-  VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
+  VECTOR_SHORT h4;
+  VECTOR_SHORT h5;
+  VECTOR_SHORT h6;
+  VECTOR_SHORT h7;
+  VECTOR_SHORT h8;
+  VECTOR_SHORT E;
+  VECTOR_SHORT HE;
+  VECTOR_SHORT HF;
   VECTOR_SHORT * vp;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
 
 #ifdef __PPC__
-  __vector unsigned long long RES1, RES2, RES;
+  __vector unsigned long long RES1;
+  __vector unsigned long long RES2;
+  __vector unsigned long long RES;
 #endif
 
   int64_t i;
@@ -674,14 +683,23 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
                        int64_t ql,
                        unsigned short * dir)
 {
-  VECTOR_SHORT h4, h5, h6, h7, h8, E, HE, HF;
+  VECTOR_SHORT h4;
+  VECTOR_SHORT h5;
+  VECTOR_SHORT h6;
+  VECTOR_SHORT h7;
+  VECTOR_SHORT h8;
+  VECTOR_SHORT E;
+  VECTOR_SHORT HE;
+  VECTOR_SHORT HF;
   VECTOR_SHORT * vp;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
 
 #ifdef __PPC__
-  __vector unsigned long long RES1, RES2, RES;
+  __vector unsigned long long RES1;
+  __vector unsigned long long RES2;
+  __vector unsigned long long RES;
 #endif
 
   int64_t i;
@@ -1230,19 +1248,27 @@ void search16(s16info_s * s,
       s->cigar = (char *) xmalloc(s->cigaralloc);
     }
 
-  VECTOR_SHORT M, T0;
+  VECTOR_SHORT M;
+  VECTOR_SHORT T0;
 
-  VECTOR_SHORT M_QR_target_left, M_R_target_left;
+  VECTOR_SHORT M_QR_target_left;
+  VECTOR_SHORT M_R_target_left;
   VECTOR_SHORT M_QR_query_interior;
   VECTOR_SHORT M_QR_query_right;
 
   VECTOR_SHORT R_query_left;
-  VECTOR_SHORT QR_query_interior, R_query_interior;
-  VECTOR_SHORT QR_query_right, R_query_right;
-  VECTOR_SHORT QR_target_left, R_target_left;
-  VECTOR_SHORT QR_target_interior, R_target_interior;
-  VECTOR_SHORT QR_target_right, R_target_right;
-  VECTOR_SHORT QR_target[4], R_target[4];
+  VECTOR_SHORT QR_query_interior;
+  VECTOR_SHORT R_query_interior;
+  VECTOR_SHORT QR_query_right;
+  VECTOR_SHORT R_query_right;
+  VECTOR_SHORT QR_target_left;
+  VECTOR_SHORT R_target_left;
+  VECTOR_SHORT QR_target_interior;
+  VECTOR_SHORT R_target_interior;
+  VECTOR_SHORT QR_target_right;
+  VECTOR_SHORT R_target_right;
+  VECTOR_SHORT QR_target[4];
+  VECTOR_SHORT R_target[4];
 
   VECTOR_SHORT *hep, **qp;
 
@@ -1411,7 +1437,8 @@ void search16(s16info_s * s,
                 }
             }
 
-          VECTOR_SHORT h_min, h_max;
+          VECTOR_SHORT h_min;
+          VECTOR_SHORT h_max;
 
           aligncolumns_rest(S, hep, qp,
                             QR_query_interior, R_query_interior,
@@ -1660,7 +1687,8 @@ void search16(s16info_s * s,
                 }
             }
 
-          VECTOR_SHORT h_min, h_max;
+          VECTOR_SHORT h_min;
+          VECTOR_SHORT h_max;
 
           aligncolumns_first(S, hep, qp,
                              QR_query_interior, R_query_interior,
