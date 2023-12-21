@@ -66,12 +66,12 @@
 constexpr int dust_word = 3;
 constexpr int dust_level = 20;
 constexpr int dust_window = 64;
-constexpr int dust_window2 = dust_window / 2;
-constexpr int word_count = 1 << (2 * dust_word);  // 64
-constexpr int bitmask = word_count - 1;
+
 
 int wo(int len, const char *s, int *beg, int *end)
 {
+  static constexpr int word_count = 1 << (2 * dust_word);  // 64
+  static constexpr int bitmask = word_count - 1;
   const int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
     {
@@ -126,6 +126,7 @@ int wo(int len, const char *s, int *beg, int *end)
 
 void dust(char * m, int len)
 {
+  static constexpr int dust_window2 = dust_window / 2;
   int a = 0;
   int b = 0;
 
