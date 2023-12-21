@@ -121,11 +121,11 @@ int sortbylength_compare(const void * a, const void * b)
 
 void sortbylength()
 {
-  if (! opt_output)
+  if (not opt_output)
     fatal("FASTA output file for sortbylength must be specified with --output");
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (! fp_output)
+  if (not fp_output)
     {
       fatal("Unable to open sortbylength output file for writing");
     }
@@ -170,7 +170,7 @@ void sortbylength()
         }
     }
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Median length: %.0f\n", median);
     }
