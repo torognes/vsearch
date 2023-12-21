@@ -69,7 +69,7 @@ constexpr int bitmask = word_count - 1;
 
 int wo(int len, const char *s, int *beg, int *end)
 {
-  int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
+  const int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
     {
       return 0;
@@ -98,11 +98,11 @@ int wo(int len, const char *s, int *beg, int *end)
       for (int j = dust_word - 1; j < len - i; j++)
         {
           word = words[i + j];
-          int c = counts[word];
+          const int c = counts[word];
           if (c)
             {
               sum += c;
-              int v = 10 * sum / j;
+              const int v = 10 * sum / j;
 
               if (v > bestv)
                 {
@@ -142,8 +142,8 @@ void dust(char * m, int len)
 
   for (int i = 0; i < len; i += dust_window2)
     {
-      int l = (len > i + dust_window) ? dust_window : len - i;
-      int v = wo(l, s + i, &a, &b);
+      const int l = (len > i + dust_window) ? dust_window : len - i;
+      const int v = wo(l, s + i, &a, &b);
 
       if (v > dust_level)
         {
@@ -184,7 +184,7 @@ void * dust_all_worker(void * vp)
   while(true)
     {
       xpthread_mutex_lock(&mutex);
-      int seqno = nextseq;
+      const int seqno = nextseq;
       if (seqno < seqcount)
         {
           nextseq++;
@@ -347,7 +347,7 @@ void fastx_mask()
     {
       int unmasked = 0;
       char * seq = db_getsequence(i);
-      int len = db_getsequencelen(i);
+      const int len = db_getsequencelen(i);
       if (opt_qmask == MASK_NONE)
         {
           unmasked = len;
@@ -372,7 +372,7 @@ void fastx_mask()
                 }
             }
         }
-      double unmasked_pct = 100.0 * unmasked / len;
+      const double unmasked_pct = 100.0 * unmasked / len;
 
       if (unmasked_pct < opt_min_unmasked_pct)
         {
