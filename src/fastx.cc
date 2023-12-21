@@ -329,7 +329,8 @@ fastx_handle fastx_open(const char * filename)
         {
           fatal("Files compressed with gzip are not supported");
         }
-      if (! (h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb")))
+      h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb");
+      if (! h->fp_gz)
         { // dup?
           fatal("Unable to open gzip compressed file (%s)", filename);
         }
@@ -346,9 +347,10 @@ fastx_handle fastx_open(const char * filename)
         {
           fatal("Files compressed with bzip2 are not supported");
         }
-      if (! (h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
-                                            BZ_VERBOSE_0, BZ_MORE_MEM,
-                                            nullptr, 0)))
+      h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
+                                     BZ_VERBOSE_0, BZ_MORE_MEM,
+                                     nullptr, 0);
+      if (! h->fp_bz)
         {
           fatal("Unable to open bzip2 compressed file (%s)", filename);
         }
