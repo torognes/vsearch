@@ -552,14 +552,14 @@ void LinearMemoryAligner::diff(int64_t a_start,
 
       /* solutions that end with a gap in b from both ends at break */
 
-      for (j=0; j <= b_len; j++)
+      for (j = 0; j <= b_len; j++)
         {
           int64_t g;
-          if (b_left && (j==0))
+          if (b_left && (j == 0))
             {
               g = go_t_l;
             }
-          else if (b_right && (j==b_len))
+          else if (b_right && (j == b_len))
             {
               g = go_t_r;
             }
@@ -689,7 +689,7 @@ char * LinearMemoryAligner::align(char * _a_seq,
   cigar_reset();
 
   /* allocate enough memory for vectors */
-  alloc_vectors(b_len+1);
+  alloc_vectors(b_len + 1);
 
   /* perform alignment */
   diff(0, 0, a_len, b_len, false, false, true, true, true, true);
@@ -736,7 +736,7 @@ void LinearMemoryAligner::alignstats(char * cigar,
         {
         case 'M':
           nwalignmentlength += run;
-          for(int64_t k=0; k<run; k++)
+          for(int64_t k = 0; k < run; k++)
             {
               nwscore += subst_score(a_pos, b_pos);
 
