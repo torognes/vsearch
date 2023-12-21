@@ -118,11 +118,11 @@ int sortbylength_compare(const void * a, const void * b)
 
 void sortbylength()
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("FASTA output file for sortbylength must be specified with --output");
 
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (! fp_output)
     {
       fatal("Unable to open sortbylength output file for writing");
     }
@@ -137,7 +137,7 @@ void sortbylength()
   int passed = 0;
 
   progress_init("Getting lengths", dbsequencecount);
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i = 0; i < dbsequencecount; i++)
     {
       sortinfo[passed].seqno = i;
       sortinfo[passed].length = db_getsequencelen(i);
@@ -166,7 +166,7 @@ void sortbylength()
         }
     }
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "Median length: %.0f\n", median);
     }
@@ -181,9 +181,9 @@ void sortbylength()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
+  for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
+      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
       progress_update(i);
     }
   progress_done();
