@@ -204,7 +204,7 @@ inline void cluster_worker(int64_t t)
   for (int q = 0; q < ti[t].query_count; q++)
     {
       cluster_query_core(si_plus + ti[t].query_first + q);
-      if (opt_strand>1)
+      if (opt_strand > 1)
         {
           cluster_query_core(si_minus + ti[t].query_first + q);
         }
@@ -243,7 +243,7 @@ void threads_wakeup(int queries)
   int query_next = 0;
 
   /* tell the threads that there is work to do */
-  for(int t=0; t < threads; t++)
+  for(int t = 0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
 
@@ -260,7 +260,7 @@ void threads_wakeup(int queries)
     }
 
   /* wait for theads to finish their work */
-  for(int t=0; t < threads; t++)
+  for(int t = 0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
       xpthread_mutex_lock(&tip->mutex);
@@ -281,7 +281,7 @@ void threads_init()
   ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
 
   /* init and create worker threads */
-  for(int t=0; t < opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       thread_info_t * tip = ti + t;
       tip->work = 0;
@@ -294,7 +294,7 @@ void threads_init()
 void threads_exit()
 {
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
 
@@ -599,7 +599,7 @@ void cluster_core_parallel()
      and initialize it */
   si_plus  = (struct searchinfo_s *) xmalloc(max_queries *
                                              sizeof(struct searchinfo_s));
-  if (opt_strand>1)
+  if (opt_strand > 1)
     {
       si_minus = (struct searchinfo_s *) xmalloc(max_queries *
                                                  sizeof(struct searchinfo_s));
@@ -655,7 +655,7 @@ void cluster_core_parallel()
               int length = db_getsequencelen(seqno);
 
 #if 1
-              if (opt_cluster_smallmem && (!opt_usersort) && (length > lastlength))
+              if (opt_cluster_smallmem && (! opt_usersort) && (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -683,7 +683,7 @@ void cluster_core_parallel()
       /* analyse results */
       int extra_count = 0;
 
-      for(int i=0; i < queries; i++)
+      for(int i = 0; i < queries; i++)
         {
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m = opt_strand > 1 ? si_minus + i : nullptr;
@@ -699,7 +699,7 @@ void cluster_core_parallel()
                   /* Check if there is a hit with one of the non-matching
                      extra sequences just analysed in this round */
 
-                  for (int j=0; j<extra_count; j++)
+                  for (int j = 0; j < extra_count; j++)
                     {
                       struct searchinfo_s * sic = si_plus + extra_list[j];
 
@@ -722,9 +722,9 @@ void cluster_core_parallel()
 
                           int x = si->hit_count;
                           while ((x > 0) &&
-                                 ((si->hits[x-1].count < shared) ||
-                                  ((si->hits[x-1].count == shared) &&
-                                   (db_getsequencelen(si->hits[x-1].target)
+                                 ((si->hits[x - 1].count < shared) ||
+                                  ((si->hits[x - 1].count == shared) &&
+                                   (db_getsequencelen(si->hits[x - 1].target)
                                     > length))))
                             {
                               x--;
@@ -739,7 +739,7 @@ void cluster_core_parallel()
                                 {
                                   if (si->hits[si->hit_count-1].aligned)
                                     {
-                                      xfree(si->hits[si->hit_count-1].nwalignment);
+                                      xfree(si->hits[si->hit_count - 1].nwalignment);
                                     }
                                   si->hit_count--;
                                 }
@@ -747,7 +747,7 @@ void cluster_core_parallel()
                               /* move the rest down */
                               for(int z = si->hit_count; z > x; z--)
                                 {
-                                  si->hits[z] = si->hits[z-1];
+                                  si->hits[z] = si->hits[z - 1];
                                 }
 
                               /* init new hit */
@@ -778,7 +778,7 @@ void cluster_core_parallel()
 
                   /* set all statuses to undetermined */
 
-                  for(int t=0; t< si->hit_count; t++)
+                  for(int t = 0; t < si->hit_count; t++)
                     {
                       si->hits[t].accepted = false;
                       si->hits[t].rejected = false;
@@ -915,10 +915,10 @@ void cluster_core_parallel()
                   /* delete all undetermined hits */
 
                   int new_hit_count = si->hit_count;
-                  for(int t=si->hit_count-1; t>=0; t--)
+                  for(int t = si->hit_count - 1; t >= 0; t--)
                     {
                       struct hit * hit = si->hits + t;
-                      if (!hit->accepted && !hit->rejected)
+                      if (! hit->accepted && ! hit->rejected)
                         {
                           new_hit_count = t;
                           if (hit->aligned)
@@ -995,7 +995,7 @@ void cluster_core_parallel()
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
-              for(int j=0; j<si->hit_count; j++)
+              for(int j = 0; j < si->hit_count; j++)
                 {
                   if (si->hits[j].aligned)
                     {
@@ -1057,7 +1057,7 @@ void cluster_core_serial()
       int length = db_getsequencelen(seqno);
 
 #if 1
-      if (opt_cluster_smallmem && (!opt_usersort) && (length > lastlength))
+      if (opt_cluster_smallmem && (! opt_usersort) && (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -1122,7 +1122,7 @@ void cluster_core_serial()
       for (int s = 0; s < opt_strand; s++)
         {
           struct searchinfo_s * si = s ? si_m : si_p;
-          for(int i=0; i<si->hit_count; i++)
+          for(int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
                 {
@@ -1153,7 +1153,7 @@ void cluster(char * dbname,
   if (opt_centroids)
     {
       fp_centroids = fopen_output(opt_centroids);
-      if (!fp_centroids)
+      if (! fp_centroids)
         {
           fatal("Unable to open centroids file for writing");
         }
@@ -1162,7 +1162,7 @@ void cluster(char * dbname,
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (!fp_uc)
+      if (! fp_uc)
         {
           fatal("Unable to open uc file for writing");
         }
@@ -1364,7 +1364,7 @@ void cluster(char * dbname,
   memset(cluster_abundance, 0, clusters * sizeof(int64_t));
   memset(cluster_size, 0, clusters * sizeof(int));
 
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       int seqno = clusterinfo[i].seqno;
       int clusterno = clusterinfo[i].clusterno;
@@ -1377,7 +1377,7 @@ void cluster(char * dbname,
   int size_max = 0;
   int singletons = 0;
 
-  for(int z=0; z<clusters; z++)
+  for(int z = 0; z < clusters; z++)
     {
       int64_t abundance = cluster_abundance[z];
       if (abundance < abundance_min)
@@ -1434,7 +1434,7 @@ void cluster(char * dbname,
   int lastcluster = -1;
   int ordinal = 0;
 
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       int seqno = clusterinfo[i].seqno;
       int clusterno = clusterinfo[i].clusterno;
@@ -1490,7 +1490,7 @@ void cluster(char * dbname,
                        opt_clusters,
                        clusterno);
               fp_clusters = fopen_output(fn_clusters);
-              if (!fp_clusters)
+              if (! fp_clusters)
                 {
                   fatal("Unable to open clusters file for writing");
                 }
@@ -1527,7 +1527,7 @@ void cluster(char * dbname,
 
   if (clusters < 1)
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr, "Clusters: 0\n");
           fprintf(stderr, "Singletons: 0\n");
@@ -1540,7 +1540,7 @@ void cluster(char * dbname,
     }
   else
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
@@ -1612,7 +1612,7 @@ void cluster(char * dbname,
 
       lastcluster = -1;
 
-      for(int i=0; i<seqcount; i++)
+      for(int i = 0; i < seqcount; i++)
         {
           int clusterno = clusterinfo[i].clusterno;
           int seqno = clusterinfo[i].seqno;
@@ -1678,7 +1678,7 @@ void cluster(char * dbname,
 
   /* free cigar strings for all aligned sequences */
 
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       if (clusterinfo[i].cigar)
         {
