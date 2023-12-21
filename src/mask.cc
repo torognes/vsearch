@@ -132,8 +132,8 @@ void dust(char * m, int len)
   int b = 0;
 
   /* make a local copy of the original sequence */
-  char * s = (char*) xmalloc(len + 1);
-  strcpy(s, m);
+  char * local_seq = (char*) xmalloc(len + 1);
+  strcpy(local_seq, m);
 
   if (not opt_hardmask)
     {
@@ -148,7 +148,7 @@ void dust(char * m, int len)
   for (int i = 0; i < len; i += half_dust_window)
     {
       const int l = (len > i + dust_window) ? dust_window : len - i;
-      const int v = wo(l, s + i, &a, &b);
+      const int v = wo(l, local_seq + i, &a, &b);
 
       if (v > dust_level)
         {
@@ -163,7 +163,7 @@ void dust(char * m, int len)
             {
               for(int j = a + i; j <= b + i; j++)
                 {
-                  m[j] = s[j] | 0x20;
+                  m[j] = local_seq[j] | 0x20;
                 }
             }
 
@@ -174,7 +174,7 @@ void dust(char * m, int len)
         }
     }
 
-  xfree(s);
+  xfree(local_seq);
 }
 
 static pthread_t * pthread;
