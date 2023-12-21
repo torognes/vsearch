@@ -525,20 +525,20 @@ const __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
 
 #define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
   H = v_add(H, V);                                                      \
-  *(PATH+0) = v_mask_gt(F, H);                                          \
-  H = v_max(H, F);                                                      \
-  *(PATH+1) = v_mask_gt(E, H);                                          \
-  H = v_max(H, E);                                                      \
-  H_MIN = v_min(H_MIN, H);                                              \
-  H_MAX = v_max(H_MAX, H);                                              \
-  N = H;                                                                \
+  *((PATH)+0) = v_mask_gt(F, H);                                        \
+  (H) = v_max(H, F);                                                    \
+  *((PATH)+1) = v_mask_gt(E, H);                                        \
+  (H) = v_max(H, E);                                                    \
+  (H_MIN) = v_min(H_MIN, H);                                            \
+  (H_MAX) = v_max(H_MAX, H);                                            \
+  (N) = H;                                                              \
   HF = v_sub(H, QR_t);                                                  \
-  F = v_sub(F, R_t);                                                    \
-  *(PATH+2) = v_mask_gt(F, HF);                                         \
-  F = v_max(F, HF);                                                     \
+  (F) = v_sub(F, R_t);                                                  \
+  *((PATH)+2) = v_mask_gt(F, HF);                                       \
+  (F) = v_max(F, HF);                                                   \
   HE = v_sub(H, QR_q);                                                  \
   E = v_sub(E, R_q);                                                    \
-  *(PATH+3) = v_mask_gt(E, HE);                                         \
+  *((PATH)+3) = v_mask_gt(E, HE);                                       \
   E = v_max(E, HE);
 
 #endif
