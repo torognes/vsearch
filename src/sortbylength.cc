@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // FILE
+
 
 static struct sortinfo_length_s
 {
@@ -121,7 +123,7 @@ void sortbylength()
   if (! opt_output)
     fatal("FASTA output file for sortbylength must be specified with --output");
 
-  FILE * fp_output = fopen_output(opt_output);
+  std::FILE * fp_output = fopen_output(opt_output);
   if (! fp_output)
     {
       fatal("Unable to open sortbylength output file for writing");
