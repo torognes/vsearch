@@ -1586,7 +1586,7 @@ void cluster(char * dbname,
       if (opt_msaout)
         {
           fp_msaout = fopen_output(opt_msaout);
-          if (!(fp_msaout))
+          if (not (fp_msaout))
             {
               fatal("Unable to open msaout file");
             }
@@ -1595,7 +1595,7 @@ void cluster(char * dbname,
       if (opt_consout)
         {
           fp_consout = fopen_output(opt_consout);
-          if (!(fp_consout))
+          if (not (fp_consout))
             {
               fatal("Unable to open consout file");
             }
@@ -1604,7 +1604,7 @@ void cluster(char * dbname,
       if (opt_profile)
         {
           fp_profile = fopen_output(opt_profile);
-          if (!(fp_profile))
+          if (not (fp_profile))
             {
               fatal("Unable to open profile file");
             }
