@@ -219,7 +219,7 @@ void dust_all()
       xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
     }
 
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -237,7 +237,7 @@ void hardmask(char * seq, int len)
 {
   /* convert all lower case letters in seq to N */
 
-  for(int j=0; j<len; j++)
+  for(int j = 0; j < len; j++)
     {
       if (seq[j] & 0x20)
         {
@@ -248,7 +248,7 @@ void hardmask(char * seq, int len)
 
 void hardmask_all()
 {
-  for(uint64_t i=0; i<db_getsequencecount(); i++)
+  for(uint64_t i = 0; i < db_getsequencecount(); i++)
     {
       hardmask(db_getsequence(i), db_getsequencelen(i));
     }
