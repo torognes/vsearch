@@ -122,6 +122,7 @@ int wo(int len, const char *s, int *beg, int *end)
   return bestv;
 }
 
+
 void dust(char * m, int len)
 {
   static constexpr int dust_level = 20;
@@ -204,6 +205,7 @@ void * dust_all_worker(void * vp)
   return nullptr;
 }
 
+
 void dust_all()
 {
   nextseq = 0;
@@ -236,6 +238,7 @@ void dust_all()
   progress_done();
 }
 
+
 void hardmask(char * seq, int len)
 {
   /* convert all lower case letters in seq to N */
@@ -249,6 +252,7 @@ void hardmask(char * seq, int len)
     }
 }
 
+
 void hardmask_all()
 {
   for(uint64_t i = 0; i < db_getsequencecount(); i++)
@@ -256,6 +260,7 @@ void hardmask_all()
       hardmask(db_getsequence(i), db_getsequencelen(i));
     }
 }
+
 
 void maskfasta()
 {
@@ -295,6 +300,7 @@ void maskfasta()
   db_free();
   fclose(fp_output);
 }
+
 
 void fastx_mask()
 {
