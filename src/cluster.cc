@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // FILE
 #include <limits>
 
 
@@ -81,20 +82,20 @@ static int count_notmatched = 0;
 
 static int64_t * cluster_abundance;
 
-static FILE * fp_centroids = nullptr;
-static FILE * fp_uc = nullptr;
-static FILE * fp_alnout = nullptr;
-static FILE * fp_samout = nullptr;
-static FILE * fp_userout = nullptr;
-static FILE * fp_blast6out = nullptr;
-static FILE * fp_fastapairs = nullptr;
-static FILE * fp_matched = nullptr;
-static FILE * fp_notmatched = nullptr;
-static FILE * fp_otutabout = nullptr;
-static FILE * fp_mothur_shared_out = nullptr;
-static FILE * fp_biomout = nullptr;
-static FILE * fp_qsegout = nullptr;
-static FILE * fp_tsegout = nullptr;
+static std::FILE * fp_centroids = nullptr;
+static std::FILE * fp_uc = nullptr;
+static std::FILE * fp_alnout = nullptr;
+static std::FILE * fp_samout = nullptr;
+static std::FILE * fp_userout = nullptr;
+static std::FILE * fp_blast6out = nullptr;
+static std::FILE * fp_fastapairs = nullptr;
+static std::FILE * fp_matched = nullptr;
+static std::FILE * fp_notmatched = nullptr;
+static std::FILE * fp_otutabout = nullptr;
+static std::FILE * fp_mothur_shared_out = nullptr;
+static std::FILE * fp_biomout = nullptr;
+static std::FILE * fp_qsegout = nullptr;
+static std::FILE * fp_tsegout = nullptr;
 
 static pthread_attr_t attr;
 
@@ -1421,7 +1422,7 @@ void cluster(char * dbname,
   progress_init("Writing clusters", seqcount);
 
   /* allocate memory for full file name of the clusters files */
-  FILE * fp_clusters = nullptr;
+  std::FILE * fp_clusters = nullptr;
   char * fn_clusters = nullptr;
   int fn_clusters_size = 0;
   if (opt_clusters)
@@ -1578,9 +1579,9 @@ void cluster(char * dbname,
         (struct msa_target_s *) xmalloc(sizeof(struct msa_target_s) * size_max);
       progress_init("Multiple alignments", seqcount);
 
-      FILE * fp_msaout = nullptr;
-      FILE * fp_consout = nullptr;
-      FILE * fp_profile = nullptr;
+      std::FILE * fp_msaout = nullptr;
+      std::FILE * fp_consout = nullptr;
+      std::FILE * fp_profile = nullptr;
 
       if (opt_msaout)
         {
