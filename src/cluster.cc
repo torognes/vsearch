@@ -655,7 +655,7 @@ void cluster_core_parallel()
               int length = db_getsequencelen(seqno);
 
 #if 1
-              if (opt_cluster_smallmem && (! opt_usersort) && (length > lastlength))
+              if (opt_cluster_smallmem && (not opt_usersort) && (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -792,7 +792,7 @@ void cluster_core_parallel()
                     {
                       struct hit * hit = si->hits + t;
 
-                      if (! hit->aligned)
+                      if (not hit->aligned)
                         {
                           /* Test accept/reject criteria before alignment */
                           unsigned int target = hit->target;
@@ -898,7 +898,7 @@ void cluster_core_parallel()
                             }
                         }
 
-                      if (! hit->rejected)
+                      if (not hit->rejected)
                         {
                           /* test accept/reject criteria after alignment */
                           if (search_acceptable_aligned(si, hit))
@@ -918,7 +918,7 @@ void cluster_core_parallel()
                   for(int t = si->hit_count - 1; t >= 0; t--)
                     {
                       struct hit * hit = si->hits + t;
-                      if (! hit->accepted && ! hit->rejected)
+                      if (not hit->accepted && not hit->rejected)
                         {
                           new_hit_count = t;
                           if (hit->aligned)
@@ -1057,7 +1057,7 @@ void cluster_core_serial()
       int length = db_getsequencelen(seqno);
 
 #if 1
-      if (opt_cluster_smallmem && (! opt_usersort) && (length > lastlength))
+      if (opt_cluster_smallmem && (not opt_usersort) && (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -1153,7 +1153,7 @@ void cluster(char * dbname,
   if (opt_centroids)
     {
       fp_centroids = fopen_output(opt_centroids);
-      if (! fp_centroids)
+      if (not fp_centroids)
         {
           fatal("Unable to open centroids file for writing");
         }
@@ -1162,7 +1162,7 @@ void cluster(char * dbname,
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (! fp_uc)
+      if (not fp_uc)
         {
           fatal("Unable to open uc file for writing");
         }
@@ -1171,7 +1171,7 @@ void cluster(char * dbname,
   if (opt_alnout)
     {
       fp_alnout = fopen_output(opt_alnout);
-      if (! fp_alnout)
+      if (not fp_alnout)
         {
           fatal("Unable to open alignment output file for writing");
         }
@@ -1183,7 +1183,7 @@ void cluster(char * dbname,
   if (opt_samout)
     {
       fp_samout = fopen_output(opt_samout);
-      if (! fp_samout)
+      if (not fp_samout)
         {
           fatal("Unable to open SAM output file for writing");
         }
@@ -1192,7 +1192,7 @@ void cluster(char * dbname,
   if (opt_userout)
     {
       fp_userout = fopen_output(opt_userout);
-      if (! fp_userout)
+      if (not fp_userout)
         {
           fatal("Unable to open user-defined output file for writing");
         }
@@ -1201,7 +1201,7 @@ void cluster(char * dbname,
   if (opt_blast6out)
     {
       fp_blast6out = fopen_output(opt_blast6out);
-      if (! fp_blast6out)
+      if (not fp_blast6out)
         {
           fatal("Unable to open blast6-like output file for writing");
         }
@@ -1210,7 +1210,7 @@ void cluster(char * dbname,
   if (opt_fastapairs)
     {
       fp_fastapairs = fopen_output(opt_fastapairs);
-      if (! fp_fastapairs)
+      if (not fp_fastapairs)
         {
           fatal("Unable to open fastapairs output file for writing");
         }
@@ -1219,7 +1219,7 @@ void cluster(char * dbname,
   if (opt_qsegout)
     {
       fp_qsegout = fopen_output(opt_qsegout);
-      if (! fp_qsegout)
+      if (not fp_qsegout)
         {
           fatal("Unable to open qsegout output file for writing");
         }
@@ -1228,7 +1228,7 @@ void cluster(char * dbname,
   if (opt_tsegout)
     {
       fp_tsegout = fopen_output(opt_tsegout);
-      if (! fp_tsegout)
+      if (not fp_tsegout)
         {
           fatal("Unable to open tsegout output file for writing");
         }
@@ -1237,7 +1237,7 @@ void cluster(char * dbname,
   if (opt_matched)
     {
       fp_matched = fopen_output(opt_matched);
-      if (! fp_matched)
+      if (not fp_matched)
         {
           fatal("Unable to open matched output file for writing");
         }
@@ -1246,7 +1246,7 @@ void cluster(char * dbname,
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (not fp_notmatched)
         {
           fatal("Unable to open notmatched output file for writing");
         }
@@ -1255,7 +1255,7 @@ void cluster(char * dbname,
   if (opt_otutabout)
     {
       fp_otutabout = fopen_output(opt_otutabout);
-      if (! fp_otutabout)
+      if (not fp_otutabout)
         {
           fatal("Unable to open OTU table (text format) output file for writing");
         }
@@ -1264,7 +1264,7 @@ void cluster(char * dbname,
   if (opt_mothur_shared_out)
     {
       fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
-      if (! fp_mothur_shared_out)
+      if (not fp_mothur_shared_out)
         {
           fatal("Unable to open OTU table (mothur format) output file for writing");
         }
@@ -1273,7 +1273,7 @@ void cluster(char * dbname,
   if (opt_biomout)
     {
       fp_biomout = fopen_output(opt_biomout);
-      if (! fp_biomout)
+      if (not fp_biomout)
         {
           fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
         }
@@ -1490,7 +1490,7 @@ void cluster(char * dbname,
                        opt_clusters,
                        clusterno);
               fp_clusters = fopen_output(fn_clusters);
-              if (! fp_clusters)
+              if (not fp_clusters)
                 {
                   fatal("Unable to open clusters file for writing");
                 }
@@ -1527,7 +1527,7 @@ void cluster(char * dbname,
 
   if (clusters < 1)
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr, "Clusters: 0\n");
           fprintf(stderr, "Singletons: 0\n");
@@ -1540,7 +1540,7 @@ void cluster(char * dbname,
     }
   else
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
