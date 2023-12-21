@@ -411,9 +411,9 @@ void cluster_core_results_hit(struct hit * best,
 {
   count_matched++;
 
-  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+  if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
     {
-      if (opt_relabel || opt_relabel_self || opt_relabel_sha1 || opt_relabel_md5)
+      if (opt_relabel or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno,
                                      db_getsequence(best->target),
@@ -512,9 +512,9 @@ void cluster_core_results_nohit(int clusterno,
 {
   count_notmatched++;
 
-  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+  if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
     {
-      if (opt_relabel || opt_relabel_self || opt_relabel_sha1 || opt_relabel_md5)
+      if (opt_relabel or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno, qsequence, qseqlen);
           otutable_add(query_head, label, qsize);
@@ -655,7 +655,7 @@ void cluster_core_parallel()
               int length = db_getsequencelen(seqno);
 
 #if 1
-              if (opt_cluster_smallmem && (not opt_usersort) && (length > lastlength))
+              if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -721,9 +721,9 @@ void cluster_core_parallel()
                              no of kmers). Determine insertion point (x). */
 
                           int x = si->hit_count;
-                          while ((x > 0) &&
-                                 ((si->hits[x - 1].count < shared) ||
-                                  ((si->hits[x - 1].count == shared) &&
+                          while ((x > 0) and
+                                 ((si->hits[x - 1].count < shared) or
+                                  ((si->hits[x - 1].count == shared) and
                                    (db_getsequencelen(si->hits[x - 1].target)
                                     > length))))
                             {
@@ -785,8 +785,8 @@ void cluster_core_parallel()
                     }
 
                   for(int t = 0;
-                      (si->accepts < opt_maxaccepts) &&
-                        (si->rejects < opt_maxrejects) &&
+                      (si->accepts < opt_maxaccepts) and
+                        (si->rejects < opt_maxrejects) and
                         (t < si->hit_count);
                       t++)
                     {
@@ -918,7 +918,7 @@ void cluster_core_parallel()
                   for(int t = si->hit_count - 1; t >= 0; t--)
                     {
                       struct hit * hit = si->hits + t;
-                      if (not hit->accepted && not hit->rejected)
+                      if (not hit->accepted and not hit->rejected)
                         {
                           new_hit_count = t;
                           if (hit->aligned)
@@ -1057,7 +1057,7 @@ void cluster_core_serial()
       int length = db_getsequencelen(seqno);
 
 #if 1
-      if (opt_cluster_smallmem && (not opt_usersort) && (length > lastlength))
+      if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -1289,7 +1289,7 @@ void cluster(char * dbname,
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
     {
       hardmask_all();
     }
@@ -1302,7 +1302,7 @@ void cluster(char * dbname,
     {
       db_sortbylength();
     }
-  else if (opt_cluster_size || opt_cluster_unoise)
+  else if (opt_cluster_size or opt_cluster_unoise)
     {
       db_sortbyabundance();
     }
@@ -1311,12 +1311,12 @@ void cluster(char * dbname,
 
   /* tophits = the maximum number of hits we need to store */
 
-  if ((opt_maxrejects == 0) || (opt_maxrejects > seqcount))
+  if ((opt_maxrejects == 0) or (opt_maxrejects > seqcount))
     {
       opt_maxrejects = seqcount;
     }
 
-  if ((opt_maxaccepts == 0) || (opt_maxaccepts > seqcount))
+  if ((opt_maxaccepts == 0) or (opt_maxaccepts > seqcount))
     {
       opt_maxaccepts = seqcount;
     }
