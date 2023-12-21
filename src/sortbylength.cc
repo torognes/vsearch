@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+// #include <algorithm>  // std::min
 #include <cstdio>  // FILE
 
 
@@ -181,6 +182,7 @@ void sortbylength()
 
   show_rusage();
 
+  // refactoring: std::min()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
