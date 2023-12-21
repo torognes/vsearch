@@ -142,8 +142,8 @@ void dust(char * m, int len)
 
   for (int i = 0; i < len; i += dust_window2)
     {
-      int l = (len > i + dust_window) ? dust_window : len-i;
-      int v = wo(l, s+i, &a, &b);
+      int l = (len > i + dust_window) ? dust_window : len - i;
+      int v = wo(l, s + i, &a, &b);
 
       if (v > dust_level)
         {
