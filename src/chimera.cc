@@ -1489,17 +1489,17 @@ int eval_parents(struct chimera_info_s * ci)
 
               int w = MIN(rest,width);
 
-              for(int j=0; j<w; j++)
+              for(int j = 0; j < w; j++)
                 {
-                  if (ci->qaln[i+j] != '-')
+                  if (ci->qaln[i + j] != '-')
                     {
                       qnt++;
                     }
-                  if (ci->paln[0][i+j] != '-')
+                  if (ci->paln[0][i + j] != '-')
                     {
                       p1nt++;
                     }
-                  if (ci->paln[1][i+j] != '-')
+                  if (ci->paln[1][i + j] != '-')
                     {
                       p2nt++;
                     }
