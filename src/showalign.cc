@@ -250,9 +250,9 @@ void align_show(std::FILE * f,
   xfree(d_line);
 }
 
-char * align_getrow(char * seq, char * cigar, int alen, int origin)
+char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
 {
-  char * row = (char*) xmalloc(alen + 1);
+  char * row = (char*) xmalloc(alignlen + 1);
   char * r = row;
   char * p = cigar;
   char * s = seq;
