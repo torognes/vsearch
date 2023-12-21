@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cmath>
+
 
 #define BLOCKSIZE (4096 * 4096)
 
@@ -805,14 +807,15 @@ void udb_stats()
 
           fprintf(fp_log, "  %5.1f%%  %5.1f%%", pct, totpct);
 
-          int dots = int (pct / 3.0 + 0.5);
+          static constexpr double divider = 3.0;
+          auto dots = std::lround(pct / divider);
 
           if (dots > 0)
             {
               fprintf(fp_log, "  ");
             }
 
-          for (int i = 0; i < dots ; i++)
+          for (auto i = 0L; i < dots ; i++)
             {
               fprintf(fp_log, "*");
             }
