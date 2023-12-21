@@ -157,12 +157,12 @@ void sortbylength()
     {
       if (passed % 2)
         {
-          median = sortinfo[(passed-1)/2].length;
+          median = sortinfo[(passed - 1) / 2].length;
         }
       else
         {
-          median = (sortinfo[(passed/2)-1].length +
-                    sortinfo[passed/2].length) / 2.0;
+          median = (sortinfo[(passed / 2) - 1].length +
+                    sortinfo[passed / 2].length) / 2.0;
         }
     }
 
