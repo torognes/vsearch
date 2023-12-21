@@ -169,7 +169,10 @@ static uint32 Hash32Len0to4(const char *s, size_t len) {
 }
 
 static uint32 Hash32Len5to12(const char *s, size_t len) {
-  uint32 a = len, b = len * 5, c = 9, d = b;
+  uint32 a = len;
+  uint32 b = len * 5;
+  uint32 c = 9;
+  uint32 d = b;
   a += Fetch32(s);
   b += Fetch32(s + len - 4);
   c += Fetch32(s + ((len >> 1) & 4));
