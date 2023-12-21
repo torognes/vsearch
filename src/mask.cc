@@ -81,7 +81,7 @@ int wo(int len, const char *s, int *beg, int *end)
   int besti = 0;
   int bestj = 0;
   std::array<int, word_count> counts;
-  int words[dust_window];
+  std::array<int, dust_window> words;
   int word = 0;
 
   for (int j = 0; j < len; j++)
