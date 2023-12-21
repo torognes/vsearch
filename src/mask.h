@@ -58,10 +58,12 @@
 
 */
 
-#define MASK_ERROR -1
-#define MASK_NONE 0
-#define MASK_DUST 1
-#define MASK_SOFT 2
+// refactoring: enum struct Masking: int { error, none, dust, soft };
+constexpr auto MASK_ERROR = -1;
+constexpr auto MASK_NONE = 0;
+constexpr auto MASK_DUST = 1;
+constexpr auto MASK_SOFT = 2;
+
 
 void maskfasta();
 void fastx_mask();
