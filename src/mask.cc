@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // FILE
+#include <cstring>  // memset
+
 
 constexpr int dust_word = 3;
 constexpr int dust_level = 20;
