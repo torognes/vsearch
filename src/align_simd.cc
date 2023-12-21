@@ -1325,7 +1325,8 @@ void search16(s16info_s * s,
   VECTOR_SHORT QR_target[4];
   VECTOR_SHORT R_target[4];
 
-  VECTOR_SHORT *hep, **qp;
+  VECTOR_SHORT *hep;
+  VECTOR_SHORT **qp;
 
   BYTE * d_begin[CHANNELS];
   BYTE * d_end[CHANNELS];
