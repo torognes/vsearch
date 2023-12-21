@@ -84,7 +84,8 @@ void fastq_chars()
 
   uint64_t seq_count = 0;
 
-  int qmin_n = 255, qmax_n = 0;
+  int qmin_n = 255;
+  int qmax_n = 0;
 
   while(fastq_next(h, false, chrmap_upcase))
     {
@@ -181,7 +182,9 @@ void fastq_chars()
         }
     }
 
-  char fastq_ascii, fastq_qmin, fastq_qmax;
+  char fastq_ascii;
+  char fastq_qmin;
+  char fastq_qmax;
 
   if ((qmin < 59) || (qmax < 75))
     {
