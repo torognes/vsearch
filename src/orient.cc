@@ -292,8 +292,8 @@ void orient()
           /* rev */
 
           strand = 1;
-          matches_rev++;
-          qmatches++;
+          ++matches_rev;
+          ++qmatches;
 
           /* alloc more mem if necessary to keep reverse sequence and qual */
 
