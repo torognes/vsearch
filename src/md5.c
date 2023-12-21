@@ -246,7 +246,8 @@ void MD5_Update(MD5_CTX *ctx, void *data, unsigned long size)
 
 void MD5_Final(unsigned char *result, MD5_CTX *ctx)
 {
-        unsigned long used, free;
+        unsigned long used;
+        unsigned long free;
 
         used = ctx->lo & 0x3f;
 
