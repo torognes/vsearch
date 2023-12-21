@@ -808,7 +808,7 @@ void udb_stats()
           fprintf(fp_log, "  %5.1f%%  %5.1f%%", pct, totpct);
 
           static constexpr double divider = 3.0;
-          auto dots = std::lround(pct / divider);
+          const auto dots = std::lround(pct / divider);
 
           if (dots > 0)
             {
