@@ -64,7 +64,7 @@ constexpr int dust_word = 3;
 constexpr int dust_level = 20;
 constexpr int dust_window = 64;
 constexpr int dust_window2 = dust_window / 2;
-constexpr int word_count = 1 << (2 * dust_word);
+constexpr int word_count = 1 << (2 * dust_word);  // 64
 constexpr int bitmask = word_count - 1;
 
 int wo(int len, const char *s, int *beg, int *end)
