@@ -209,7 +209,8 @@ void SHA1_Update(SHA1_CTX* context, const uint8_t* data, const size_t len)
 #endif
 
     j = (context->count[0] >> 3) & 63;
-    if ((context->count[0] += len << 3) < (len << 3)) { context->count[1]++;
+    context->count[0] += len << 3;
+    if (context->count[0] < (len << 3)) { context->count[1]++;
 
         }
     context->count[1] += (len >> 29);
