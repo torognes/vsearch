@@ -80,8 +80,8 @@ int wo(int len, const char *s, int *beg, int *end)
   int bestv = 0;
   int besti = 0;
   int bestj = 0;
-  std::array<int, word_count> counts;
-  std::array<int, dust_window> words;
+  std::array<int, word_count> counts {{}};
+  std::array<int, dust_window> words {{}};
   int word = 0;
 
   for (int j = 0; j < len; j++)
