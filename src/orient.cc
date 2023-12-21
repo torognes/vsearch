@@ -300,7 +300,7 @@ void orient()
 
           /* alloc more mem if necessary to keep reverse sequence and qual */
           assert(qseqlen > 0);
-          assert(sizeof(std::size_t) >= sizeof(int));
+          static_assert(sizeof(std::size_t) >= sizeof(int), "size_t is too small");
           const std::size_t requirements = qseqlen + 1;
           // refactoring: unsigned int qseqlen
           if (requirements > alloc)
