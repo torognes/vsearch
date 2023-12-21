@@ -256,11 +256,11 @@ void hardmask_all()
 
 void maskfasta()
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("Output file for masking must be specified with --output");
 
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (! fp_output)
     {
       fatal("Unable to open mask output file for writing");
     }
