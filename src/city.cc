@@ -187,7 +187,9 @@ uint32 CityHash32(const char *s, size_t len) {
   }
 
   // len > 24
-  uint32 h = len, g = c1 * len, f = g;
+  uint32 h = len;
+  uint32 g = c1 * len;
+  uint32 f = g;
   const uint32 a0 = Rotate32(Fetch32(s + len - 4) * c1, 17) * c2;
   const uint32 a1 = Rotate32(Fetch32(s + len - 8) * c1, 17) * c2;
   const uint32 a2 = Rotate32(Fetch32(s + len - 16) * c1, 17) * c2;
