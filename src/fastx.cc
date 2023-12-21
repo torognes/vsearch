@@ -246,7 +246,7 @@ fastx_handle fastx_open(const char * filename)
 #endif
 
   h->fp = fopen_input(filename);
-  if (!h->fp)
+  if (! h->fp)
     {
       fatal("Unable to open file for reading (%s)", filename);
     }
@@ -315,7 +315,7 @@ fastx_handle fastx_open(const char * filename)
 
       fclose(h->fp);
       h->fp = fopen_input(filename);
-      if (!h->fp)
+      if (! h->fp)
         {
           fatal("Unable to open file for reading (%s)", filename);
         }
@@ -325,7 +325,7 @@ fastx_handle fastx_open(const char * filename)
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
-      if (!gz_lib)
+      if (! gz_lib)
         {
           fatal("Files compressed with gzip are not supported");
         }
@@ -342,7 +342,7 @@ fastx_handle fastx_open(const char * filename)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_BZLIB_H
-      if (!bz2_lib)
+      if (! bz2_lib)
         {
           fatal("Files compressed with bzip2 are not supported");
         }
@@ -494,7 +494,7 @@ void fastx_close(fastx_handle h)
       if (opt_log)
         {
           fprintf(fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", h->stripped_all, (h->is_fastq ? "FASTQ" : "FASTA"));
-          for (int i=0; i<256;i++)
+          for (int i = 0; i < 256; i++)
             {
               if (h->stripped[i])
                 {
@@ -623,7 +623,7 @@ uint64_t fastx_file_fill_buffer(fastx_handle h)
           fatal("Internal error");
         }
 
-      if (!h->is_pipe)
+      if (! h->is_pipe)
         {
 #ifdef HAVE_ZLIB_H
           if (h->format == FORMAT_GZIP)
