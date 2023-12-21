@@ -359,7 +359,10 @@ void cpu_features_detect()
 #elif __PPC__
   altivec_present = 1;
 #elif __x86_64__
-  unsigned int a, b, c, d;
+  unsigned int a;
+  unsigned int b;
+  unsigned int c;
+  unsigned int d;
 
   cpuid(0, 0, a, b, c, d);
   unsigned int maxlevel = a & 0xff;
