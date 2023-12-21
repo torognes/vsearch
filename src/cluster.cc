@@ -1572,7 +1572,7 @@ void cluster(char * dbname,
         }
     }
 
-  if (opt_msaout || opt_consout || opt_profile)
+  if (opt_msaout or opt_consout or opt_profile)
     {
       int msa_target_count = 0;
       auto * msa_target_list =
