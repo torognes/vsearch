@@ -126,7 +126,7 @@ int wo(int len, const char *s, int *beg, int *end)
 
 void dust(char * m, int len)
 {
-  static constexpr int dust_window2 = dust_window / 2;
+  static constexpr int half_dust_window = dust_window / 2;
   int a = 0;
   int b = 0;
 
@@ -144,7 +144,7 @@ void dust(char * m, int len)
       m[len] = 0;
     }
 
-  for (int i = 0; i < len; i += dust_window2)
+  for (int i = 0; i < len; i += half_dust_window)
     {
       const int l = (len > i + dust_window) ? dust_window : len - i;
       const int v = wo(l, s + i, &a, &b);
@@ -166,9 +166,9 @@ void dust(char * m, int len)
                 }
             }
 
-          if (b < dust_window2)
+          if (b < half_dust_window)
             {
-              i += dust_window2 - b;
+              i += half_dust_window - b;
             }
         }
     }
