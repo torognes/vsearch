@@ -60,12 +60,12 @@
 
 #include "vsearch.h"
 
-static const int dust_word = 3;
-static const int dust_level = 20;
-static const int dust_window = 64;
-static const int dust_window2 = dust_window / 2;
-static const int word_count = 1 << (2 * dust_word);
-static const int bitmask = word_count - 1;
+constexpr int dust_word = 3;
+constexpr int dust_level = 20;
+constexpr int dust_window = 64;
+constexpr int dust_window2 = dust_window / 2;
+constexpr int word_count = 1 << (2 * dust_word);
+constexpr int bitmask = word_count - 1;
 
 int wo(int len, const char *s, int *beg, int *end)
 {
