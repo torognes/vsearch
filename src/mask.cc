@@ -62,6 +62,8 @@
 #include <array>
 #include <cstdio>  // FILE
 #include <cstring>  // memset
+// #include <string>
+
 
 constexpr int dust_window = 64;
 
@@ -134,6 +136,11 @@ void dust(char * m, int len)
   /* make a local copy of the original sequence */
   char * local_seq = (char*) xmalloc(len + 1);
   strcpy(local_seq, m);
+  // refactoring: <string>
+  // std::string local_seq2;
+  // local_seq2.reserve(len + 1);
+  // local_seq2.insert(0, m);
+  // local_seq2.insert(len, 1, '\0');
 
   if (not opt_hardmask)
     {
