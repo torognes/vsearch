@@ -1,0 +1,19 @@
+FROM debian:latest
+WORKDIR /opt/vsearch
+COPY . .
+RUN apt-get update
+RUN apt-get -y install \
+	autoconf \
+	automake \
+	g++ \
+	ghostscript \
+	groff \
+	libbz2-dev \
+	make \
+	zlib1g-dev
+RUN ./autogen.sh
+RUN ./configure CFLAGS="-O3" CXXFLAGS="-O3"
+RUN make clean
+RUN make ARFLAGS="cr"
+RUN make install
+ENTRYPOINT ["/usr/local/bin/vsearch"]
