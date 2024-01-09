@@ -1,3 +1,7 @@
+// refactoring: sha1.h headers are available in gcc and clang
+// alternatively, there are C++ implementations available. OpenSSH's
+// version is the fastest
+
 /* Slightly modified for vsearch by Torbjorn Rognes */
 
 /*
