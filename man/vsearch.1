@@ -2635,10 +2635,10 @@ alignments). Always set to 0.
 .TP
 .BI \-\-db \0filename
 Compare query sequences (specified with \-\-usearch_global) to the
-fasta-formatted target sequences contained in \fIfilename\fR, using
-global pairwise alignment. Alternatively, the name of a preformatted
-UDB database created using the makeudb_usearch command (see below) may
-be specified.
+target sequences contained in \fIfilename\fR in FASTA or FASTQ format,
+using global pairwise alignment. Alternatively, the name of a
+preformatted UDB database created using the makeudb_usearch command
+(see below) may be specified.
 .TAG dbmask
 .TP
 .BI \-\-dbmask\~ "none|dust|soft"
@@ -3184,8 +3184,8 @@ each query.
 .TAG usearch_global
 .TP
 .BI \-\-usearch_global \0filename
-Compare target sequences (\-\-db) to the fasta-formatted query
-sequences contained in \fIfilename\fR, using global pairwise
+Compare target sequences (\-\-db) to the query sequences contained in
+\fIfilename\fR in FASTA or FASTQ format, using global pairwise
 alignment.
 .TAG userfields
 .TP

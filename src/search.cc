@@ -68,7 +68,7 @@ static pthread_t * pthread;
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
 static pthread_attr_t attr;
-static fastx_handle query_fasta_h;
+static fastx_handle query_fastx_h;
 
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;
@@ -358,16 +358,16 @@ void search_thread_run(int64_t t)
     {
       xpthread_mutex_lock(&mutex_input);
 
-      if (fasta_next(query_fasta_h,
+      if (fastx_next(query_fastx_h,
                      ! opt_notrunclabels,
                      chrmap_no_change))
         {
-          char * qhead = fasta_get_header(query_fasta_h);
-          int query_head_len = fasta_get_header_length(query_fasta_h);
-          char * qseq = fasta_get_sequence(query_fasta_h);
-          int qseqlen = fasta_get_sequence_length(query_fasta_h);
-          int query_no = fasta_get_seqno(query_fasta_h);
-          int qsize = fasta_get_abundance(query_fasta_h);
+          char * qhead = fastx_get_header(query_fastx_h);
+          int query_head_len = fastx_get_header_length(query_fastx_h);
+          char * qseq = fastx_get_sequence(query_fastx_h);
+          int qseqlen = fastx_get_sequence_length(query_fastx_h);
+          int query_no = fastx_get_seqno(query_fastx_h);
+          int qsize = fastx_get_abundance(query_fastx_h);
 
           for (int s = 0; s < opt_strand; s++)
             {
@@ -401,7 +401,7 @@ void search_thread_run(int64_t t)
           strcpy(si_plus[t].qsequence, qseq);
 
           /* get progress as amount of input file read */
-          uint64_t progress = fasta_get_position(query_fasta_h);
+          uint64_t progress = fastx_get_position(query_fastx_h);
 
           /* let other threads read input */
           xpthread_mutex_unlock(&mutex_input);
@@ -810,7 +810,7 @@ void usearch_global(char * cmdline, char * progheader)
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  query_fasta_h = fasta_open(opt_usearch_global);
+  query_fastx_h = fastx_open(opt_usearch_global);
 
   /* allocate memory for thread info */
   si_plus = (struct searchinfo_s *) xmalloc(opt_threads *
@@ -831,7 +831,7 @@ void usearch_global(char * cmdline, char * progheader)
   xpthread_mutex_init(&mutex_input, nullptr);
   xpthread_mutex_init(&mutex_output, nullptr);
 
-  progress_init("Searching", fasta_get_size(query_fasta_h));
+  progress_init("Searching", fastx_get_size(query_fastx_h));
   search_thread_worker_run();
   progress_done();
 
@@ -845,7 +845,7 @@ void usearch_global(char * cmdline, char * progheader)
       xfree(si_minus);
     }
 
-  fasta_close(query_fasta_h);
+  fastx_close(query_fastx_h);
 
   if (!opt_quiet)
     {
