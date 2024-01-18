@@ -70,6 +70,10 @@ static uint64_t longest = 0;
 static uint64_t shortest = 0;
 static uint64_t longestheader = 0;
 
+static uint64_t dataalloc = 0;
+static uint64_t datalen = 0;
+static size_t seqindex_alloc = 0;
+
 seqinfo_t * seqindex = nullptr;
 char * datap = nullptr;
 
@@ -105,6 +109,96 @@ char * db_getquality(uint64_t seqno)
     }
 }
 
+void db_add(bool is_fastq,
+	    char * header,
+	    char * sequence,
+	    char * quality,
+	    size_t headerlength,
+	    size_t sequencelength,
+	    int64_t abundance)
+{
+  /* Add a sequence to the database. Assumes that the database has been initialized. */
+
+  /* grow space for data, if necessary */
+
+  size_t dataalloc_old = dataalloc;
+
+  size_t needed = datalen + headerlength + 1 + sequencelength + 1;
+  if (is_fastq)
+    {
+      needed += sequencelength + 1;
+    }
+  while (dataalloc < needed)
+    {
+      dataalloc += MEMCHUNK;
+    }
+  if (dataalloc > dataalloc_old)
+    {
+      datap = (char *) xrealloc(datap, dataalloc);
+    }
+
+  /* store the header */
+  size_t header_p = datalen;
+  memcpy(datap + header_p,
+	 header,
+	 headerlength + 1);
+  datalen += headerlength + 1;
+
+  /* store sequence */
+  size_t sequence_p = datalen;
+  memcpy(datap + sequence_p,
+	 sequence,
+	 sequencelength + 1);
+  datalen += sequencelength + 1;
+
+  size_t quality_p = datalen;
+  if (is_fastq)
+    {
+      /* store quality */
+      memcpy(datap + quality_p,
+	     quality,
+	     sequencelength + 1);
+      datalen += sequencelength + 1;
+    }
+
+  /* grow space for index, if necessary */
+  size_t seqindex_alloc_old = seqindex_alloc;
+  while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
+    {
+      seqindex_alloc += MEMCHUNK;
+    }
+  if (seqindex_alloc > seqindex_alloc_old)
+    {
+      seqindex = (seqinfo_t *) xrealloc(seqindex, seqindex_alloc);
+    }
+
+  /* update index */
+  seqinfo_t * seqindex_p = seqindex + sequences;
+  seqindex_p->headerlen = headerlength;
+  seqindex_p->seqlen = sequencelength;
+  seqindex_p->header_p = header_p;
+  seqindex_p->seq_p = sequence_p;
+  seqindex_p->qual_p = quality_p;
+  seqindex_p->size = abundance;
+
+  /* update statistics */
+  sequences++;
+  nucleotides += sequencelength;
+  if (sequencelength > longest)
+    {
+      longest = sequencelength;
+    }
+  if (sequencelength < shortest)
+    {
+      shortest = sequencelength;
+    }
+  if (headerlength > longestheader)
+    {
+      longestheader = headerlength;
+    }
+}
+
+
 void db_read(const char * filename, int upcase)
 {
   h = fastx_open(filename);
@@ -137,112 +231,43 @@ void db_read(const char * filename, int upcase)
   int64_t discarded_unoise = 0;
 
   /* allocate space for data */
-  uint64_t dataalloc = 0;
+  dataalloc = 0;
   datap = nullptr;
-  uint64_t datalen = 0;
+  datalen = 0;
 
   /* allocate space for index */
-  size_t seqindex_alloc = 0;
+  seqindex_alloc = 0;
   seqindex = nullptr;
 
   while(fastx_next(h,
                    ! opt_notrunclabels,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {
-      size_t headerlength = fastx_get_header_length(h);
       size_t sequencelength = fastx_get_sequence_length(h);
       int64_t abundance = fastx_get_abundance(h);
 
-      if (sequencelength < (size_t)opt_minseqlength)
+      if (sequencelength < (size_t) opt_minseqlength)
         {
           discarded_short++;
         }
-      else if (sequencelength > (size_t)opt_maxseqlength)
+      else if (sequencelength > (size_t) opt_maxseqlength)
         {
           discarded_long++;
         }
-      else if (opt_cluster_unoise && (abundance < (int64_t)opt_minsize))
+      else if (opt_cluster_unoise && (abundance < (int64_t) opt_minsize))
         {
           discarded_unoise++;
         }
       else
         {
-          /* grow space for data, if necessary */
-          size_t dataalloc_old = dataalloc;
-          size_t needed = datalen + headerlength + 1 + sequencelength + 1;
-          if (is_fastq)
-            {
-              needed += sequencelength + 1;
-            }
-          while (dataalloc < needed)
-            {
-              dataalloc += MEMCHUNK;
-            }
-          if (dataalloc > dataalloc_old)
-            {
-              datap = (char *) xrealloc(datap, dataalloc);
-            }
-
-          /* store the header */
-          size_t header_p = datalen;
-          memcpy(datap + header_p,
-                 fastx_get_header(h),
-                 headerlength + 1);
-          datalen += headerlength + 1;
-
-          /* store sequence */
-          size_t sequence_p = datalen;
-          memcpy(datap + sequence_p,
-                 fastx_get_sequence(h),
-                 sequencelength + 1);
-          datalen += sequencelength + 1;
-
-          size_t quality_p = datalen;
-          if (is_fastq)
-            {
-              /* store quality */
-              memcpy(datap+quality_p,
-                     fastx_get_quality(h),
-                     sequencelength + 1);
-              datalen += sequencelength + 1;
-            }
-
-          /* grow space for index, if necessary */
-          size_t seqindex_alloc_old = seqindex_alloc;
-          while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
-            {
-              seqindex_alloc += MEMCHUNK;
-            }
-          if (seqindex_alloc > seqindex_alloc_old)
-            {
-              seqindex = (seqinfo_t *) xrealloc(seqindex, seqindex_alloc);
-            }
-
-          /* update index */
-          seqinfo_t * seqindex_p = seqindex + sequences;
-          seqindex_p->headerlen = headerlength;
-          seqindex_p->seqlen = sequencelength;
-          seqindex_p->header_p = header_p;
-          seqindex_p->seq_p = sequence_p;
-          seqindex_p->qual_p = quality_p;
-          seqindex_p->size = abundance;
-
-          /* update statistics */
-          sequences++;
-          nucleotides += sequencelength;
-          if (sequencelength > longest)
-            {
-              longest = sequencelength;
-            }
-          if (sequencelength < shortest)
-            {
-              shortest = sequencelength;
-            }
-          if (headerlength > longestheader)
-            {
-              longestheader = headerlength;
-            }
-        }
+	  db_add(is_fastq,
+		 fastx_get_header(h),
+		 fastx_get_sequence(h),
+		 is_fastq ? fastx_get_quality(h) : nullptr,
+		 fastx_get_header_length(h),
+		 sequencelength,
+		 abundance);
+	}
       progress_update(fastx_get_position(h));
     }
 
