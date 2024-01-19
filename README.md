@@ -179,9 +179,7 @@ When compiling VSEARCH the header files for the following two optional libraries
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
-On Windows these libraries are called zlib1.dll and bz2.dll.
-
-Unfortunately, VSEARCH will not work properly with all the different variants of the `zlib1.dll` file on Windows. One that works well is provided by the MinGW-w64 project and is found in the `bin` folder within the [zlib-1.2.5-bin-x64.zip](https://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/Binaries%20%2864-bit%29/zlib-1.2.5-bin-x64.zip) archive available on SourceForge. The MD5 of the `zlib1.dll` file should be `0f67ee0b965d3d29388c238aebcf60bc`.
+On Windows these libraries are called zlib1.dll and libbz2.dll. These DLL's are included with the released distribution of vsearch 2.27.0 and later.
 
 To create the PDF file with the manual the ps2pdf tool is required. It is part of the ghostscript package.
 
