@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "November 25, 2023" "version 2.26.1" "USER COMMANDS"
+.TH vsearch 1 "January 19, 2024" "version 2.27.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -2635,10 +2635,10 @@ alignments). Always set to 0.
 .TP
 .BI \-\-db \0filename
 Compare query sequences (specified with \-\-usearch_global) to the
-fasta-formatted target sequences contained in \fIfilename\fR, using
-global pairwise alignment. Alternatively, the name of a preformatted
-UDB database created using the makeudb_usearch command (see below) may
-be specified.
+target sequences contained in \fIfilename\fR in FASTA or FASTQ format,
+using global pairwise alignment. Alternatively, the name of a
+preformatted UDB database created using the makeudb_usearch command
+(see below) may be specified.
 .TAG dbmask
 .TP
 .BI \-\-dbmask\~ "none|dust|soft"
@@ -3184,8 +3184,8 @@ each query.
 .TAG usearch_global
 .TP
 .BI \-\-usearch_global \0filename
-Compare target sequences (\-\-db) to the fasta-formatted query
-sequences contained in \fIfilename\fR, using global pairwise
+Compare target sequences (\-\-db) to the query sequences contained in
+\fIfilename\fR in FASTA or FASTQ format, using global pairwise
 alignment.
 .TAG userfields
 .TP
@@ -4106,7 +4106,7 @@ Source code and binaries are available at
 .PP
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2014-2023, Torbjørn Rognes, Frédéric Mahé and Tomás
+Copyright (C) 2014-2024, Torbjørn Rognes, Frédéric Mahé and Tomás
 Flouri
 .PP
 All rights reserved.
@@ -4864,8 +4864,14 @@ are used, OTU tables will include samples and OTUs with no matches.
 No real changes, but the previous version was released without proper
 updates to the source code.
 .TP
-.BR v2.27.0\~ "released Month nth, ????"
-Activate more compile-time checks, fix compiler warnings, code modernization.
+.BR v2.27.0\~ "released January 19th, 2024"
+The usearch_global and search_exact commands now support FASTQ files
+as well as FASTA files as input. This version of vsearch includes
+clarifications and updates to the manual. Some code has been
+refactored. Generic Dockerfiles for major Linux distributions have
+been included. Some warnings from compilers and other tools have been
+eliminated. The release for Windows will also include DLL's for the
+two compression libraries.
 .LP
 .\" ============================================================================
 .\" TODO:

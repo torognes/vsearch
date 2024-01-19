@@ -37,7 +37,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in the [VSEARCH documentation](https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -50,9 +50,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.26.1.tar.gz
-tar xzf v2.26.1.tar.gz
-cd vsearch-2.26.1
+wget https://github.com/torognes/vsearch/archive/v2.27.0.tar.gz
+tar xzf v2.27.0.tar.gz
+cd vsearch-2.27.0
 ./autogen.sh
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make
@@ -81,48 +81,48 @@ Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (v
 Download the appropriate executable for your system using the following commands if you are using a Linux x86_64 system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch-2.26.1-linux-x86_64.tar.gz
-tar xzf vsearch-2.26.1-linux-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch-2.27.0-linux-x86_64.tar.gz
+tar xzf vsearch-2.27.0-linux-x86_64.tar.gz
 ```
 
 Or these commands if you are using a Linux ppc64le system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch-2.26.1-linux-ppc64le.tar.gz
-tar xzf vsearch-2.26.1-linux-ppc64le.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch-2.27.0-linux-ppc64le.tar.gz
+tar xzf vsearch-2.27.0-linux-ppc64le.tar.gz
 ```
 
 Or these commands if you are using a Linux aarch64 (arm64) system:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch-2.26.1-linux-aarch64.tar.gz
-tar xzf vsearch-2.26.1-linux-aarch64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch-2.27.0-linux-aarch64.tar.gz
+tar xzf vsearch-2.27.0-linux-aarch64.tar.gz
 ```
 
 Or these commands if you are using a Mac with an Apple Silicon CPU:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch-2.26.1-macos-aarch64.tar.gz
-tar xzf vsearch-2.26.1-macos-aarch64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch-2.27.0-macos-aarch64.tar.gz
+tar xzf vsearch-2.27.0-macos-aarch64.tar.gz
 ```
 
 Or these commands if you are using a Mac with an Intel CPU:
 
 ```sh
-wget https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch-2.26.1-macos-x86_64.tar.gz
-tar xzf vsearch-2.26.1-macos-x86_64.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch-2.27.0-macos-x86_64.tar.gz
+tar xzf vsearch-2.27.0-macos-x86_64.tar.gz
 ```
 
 Or if you are using Windows, download and extract (unzip) the contents of this file:
 
 ```
-https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch-2.26.1-win-x86_64.zip
+https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch-2.27.0-win-x86_64.zip
 ```
 
-Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.26.1-linux-x86_64` or `vsearch-2.26.1-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`. Versions with statically compiled libraries are available for Linux systems. These have "-static" in their name, and could be used on systems that do not have all the necessary libraries installed.
+Linux and Mac: You will now have the binary distribution in a folder called `vsearch-2.27.0-linux-x86_64` or `vsearch-2.27.0-macos-x86_64` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`. Versions with statically compiled libraries are available for Linux systems. These have "-static" in their name, and could be used on systems that do not have all the necessary libraries installed.
 
 **Windows**: You will now have the binary distribution in a folder
-called `vsearch-2.26.1-win-x86_64`. The vsearch executable is called
+called `vsearch-2.27.0-win-x86_64`. The vsearch executable is called
 `vsearch.exe`. The manual in PDF format is called
 `vsearch_manual.pdf`. If you want to be able to call `vsearch.exe`
 from any command prompt window, you can put the vsearch executable in
@@ -130,10 +130,12 @@ a folder (for instance `C:\Users\<yourname>\bin`), and add the new
 folder to the user `Path`: open the `Environment Variables` window by
 searching for it in the Start menu, `Edit` user variables, add
 `;C:\Users\<yourname>\bin` to the end of the `Path` variable, and save
-your changes.
+your changes. The windows distribution also includes the `libbz2.dll`
+and `zlib1.dll` files required for reading compressed input
+files. These DLL's have been obtained for mingw-w64 from the MSYS2
+platform.
 
-
-**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.26.1/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
+**Documentation** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.27.0/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
 
 
 ## Packages, plugins, and wrappers
@@ -177,9 +179,7 @@ When compiling VSEARCH the header files for the following two optional libraries
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
-On Windows these libraries are called zlib1.dll and bz2.dll.
-
-Unfortunately, VSEARCH will not work properly with all the different variants of the `zlib1.dll` file on Windows. One that works well is provided by the MinGW-w64 project and is found in the `bin` folder within the [zlib-1.2.5-bin-x64.zip](https://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/Binaries%20%2864-bit%29/zlib-1.2.5-bin-x64.zip) archive available on SourceForge. The MD5 of the `zlib1.dll` file should be `0f67ee0b965d3d29388c238aebcf60bc`.
+On Windows these libraries are called zlib1.dll and libbz2.dll. These DLL's are included with the released distribution of vsearch 2.27.0 and later.
 
 To create the PDF file with the manual the ps2pdf tool is required. It is part of the ghostscript package.
 
