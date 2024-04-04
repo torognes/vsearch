@@ -64,62 +64,53 @@
 
 inline int hit_compare_byid_typed(struct hit * x, struct hit * y)
 {
-  // high id, then low id
-  // early target, then late target
+  /*
+    Order:
+    accepted, then rejected (weak)
+    high id, then low id
+    early target, then late target
+  */
 
   if (x->rejected < y->rejected)
     {
       return -1;
     }
+  else if (x->rejected > y->rejected)
+    {
+      return +1;
+    }
+  else if (x->aligned > y->aligned)
+    {
+      return -1;
+    }
+  else if (x->aligned < y->aligned)
+    {
+      return +1;
+    }
+  else if (x->aligned == 0)
+    {
+      return 0;
+    }
+  else if (x->id > y->id)
+    {
+      return -1;
+    }
+  else if (x->id < y->id)
+    {
+      return +1;
+    }
+  else if (x->target < y->target)
+    {
+      return -1;
+    }
+  else if (x->target > y->target)
+    {
+      return +1;
+    }
   else
-    if (x->rejected > y->rejected)
-      {
-        return +1;
-      }
-    else
-      if (x->rejected == 1)
-        {
-          return 0;
-        }
-      else
-        if (x->aligned > y->aligned)
-          {
-            return -1;
-          }
-        else
-          if (x->aligned < y->aligned)
-            {
-              return +1;
-            }
-          else
-            if (x->aligned == 0)
-              {
-                return 0;
-              }
-            else
-              if (x->id > y->id)
-                {
-                  return -1;
-                }
-              else
-                if (x->id < y->id)
-                  {
-                    return +1;
-                  }
-                else
-                  if (x->target < y->target)
-                    {
-                      return -1;
-                    }
-                  else
-                    if (x->target > y->target)
-                      {
-                        return +1;
-                      }
-                    else
-                      {
-                        return 0;
-                      }
+    {
+      return 0;
+    }
 }
 
 inline int hit_compare_bysize_typed(struct hit * x, struct hit * y)
@@ -863,33 +854,36 @@ void search_joinhits(struct searchinfo_s * si_p,
                      struct hit * * hitsp,
                      int * hit_count)
 {
-  /* join and sort accepted hits from both strands */
-  /* remove and unallocate unaccepted hits */
+  /* join and sort accepted and weak hits from both strands */
+  /* free the remaining alignments */
 
+  /* first, just count the number of hits to keep */
   int a = 0;
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = s ? si_m : si_p;
       for(int i=0; i<si->hit_count; i++)
         {
-          if (si->hits[i].accepted)
+          struct hit * h = si->hits + i;
+          if (h->accepted || h->weak)
             {
               a++;
             }
         }
     }
 
+  /* allocate new array of hits */
   auto * hits = (struct hit *) xmalloc(a * sizeof(struct hit));
 
+  /* copy over the hits to be kept */
   a = 0;
-
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = s ? si_m : si_p;
       for(int i=0; i<si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
-          if (h->accepted)
+          if (h->accepted || h->weak)
             {
               hits[a++] = *h;
             }
@@ -900,6 +894,7 @@ void search_joinhits(struct searchinfo_s * si_p,
         }
     }
 
+  /* last, sort the hits */
   qsort(hits, a, sizeof(struct hit), hit_compare_byid);
 
   *hitsp = hits;
