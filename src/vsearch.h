@@ -260,6 +260,7 @@
 #include "orient.h"
 #include "fa2fq.h"
 #include "derepsmallmem.h"
+#include "pcr.h"
 
 /* options */
 
@@ -364,6 +365,7 @@ extern char * opt_orient;
 extern char * opt_otutabout;
 extern char * opt_output;
 extern char * opt_pattern;
+extern char * opt_pcr;
 extern char * opt_profile;
 extern char * opt_qsegout;
 extern char * opt_relabel;

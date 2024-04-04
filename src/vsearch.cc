@@ -165,6 +165,7 @@ char * opt_orient;
 char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
+char * opt_pcr;
 char * opt_profile;
 char * opt_qsegout;
 char * opt_relabel;
@@ -928,6 +929,7 @@ void args_init(int argc, char **argv)
   opt_output = nullptr;
   opt_output_no_hits = 0;
   opt_pattern = nullptr;
+  opt_pcr = nullptr;
   opt_profile = nullptr;
   opt_qmask = MASK_DUST;
   opt_qsegout = nullptr;
@@ -1172,6 +1174,7 @@ void args_init(int argc, char **argv)
       option_output,
       option_output_no_hits,
       option_pattern,
+      option_pcr,
       option_profile,
       option_qmask,
       option_qsegout,
@@ -1418,6 +1421,7 @@ void args_init(int argc, char **argv)
       {"output",                required_argument, nullptr, 0 },
       {"output_no_hits",        no_argument,       nullptr, 0 },
       {"pattern",               required_argument, nullptr, 0 },
+      {"pcr",                   required_argument, nullptr, 0 },
       {"profile",               required_argument, nullptr, 0 },
       {"qmask",                 required_argument, nullptr, 0 },
       {"qsegout",               required_argument, nullptr, 0 },
@@ -2544,6 +2548,10 @@ void args_init(int argc, char **argv)
           opt_chimeras_diff_pct = args_getdouble(optarg);
           break;
 
+        case option_pcr:
+          opt_pcr = optarg;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2598,6 +2606,7 @@ void args_init(int argc, char **argv)
       option_makeudb_usearch,
       option_maskfasta,
       option_orient,
+      option_pcr,
       option_rereplicate,
       option_search_exact,
       option_sff_convert,
@@ -3912,6 +3921,35 @@ void args_init(int argc, char **argv)
         option_tabbedout,
         option_threads,
         option_wordlength,
+        option_xee,
+        option_xlength,
+        option_xsize,
+        -1 },
+
+      { option_pcr,
+        option_bzip2_decompress,
+        option_fasta_width,
+        option_fastq_ascii,
+        option_fastq_qmax,
+        option_fastq_qmin,
+        option_gzip_decompress,
+        option_label_suffix,
+        option_lengthout,
+        option_log,
+        option_maxseqlength,
+        option_minseqlength,
+        option_no_progress,
+        option_notrunclabels,
+        option_output,
+        option_quiet,
+        option_randseed,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sizein,
+        option_sizeout,
         option_xee,
         option_xlength,
         option_xsize,
@@ -5944,6 +5982,10 @@ int main(int argc, char** argv)
   else if (opt_fastx_uniques)
     {
       derep(opt_fastx_uniques, false);
+    }
+  else if (opt_pcr)
+    {
+      pcr();
     }
   else
     {

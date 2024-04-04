@@ -61,6 +61,7 @@ minheap.h \
 msa.h \
 orient.h \
 otutable.h \
+pcr.h \
 rerep.h \
 results.h \
 search.h \
@@ -157,6 +158,7 @@ minheap.cc \
 msa.cc \
 orient.cc \
 otutable.cc \
+pcr.cc \
 rerep.cc \
 results.cc \
 search.cc \
