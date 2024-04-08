@@ -293,7 +293,7 @@ void search_output_results(int hit_count,
   /* update matching db sequences */
   for (int i=0; i < hit_count; i++)
     {
-      if (hits[i].accepted)
+      if (hits[i].accepted || hits[i].weak)
         {
           dbmatched[hits[i].target] += opt_sizein ? qsize : 1;
         }

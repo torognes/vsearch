@@ -68,7 +68,7 @@ HMODULE gz_lib;
 #  ifdef __APPLE__
 const char gz_libname[] = "libz.dylib";
 #  else
-const char gz_libname[] = "libz.so";
+const char gz_libname[] = "libz.so.1";
 #  endif
 void * gz_lib;
 # endif
@@ -87,7 +87,7 @@ HMODULE bz2_lib;
 #  ifdef __APPLE__
 const char bz2_libname[] = "libbz2.dylib";
 #  else
-const char bz2_libname[] = "libbz2.so";
+const char bz2_libname[] = "libbz2.so.1";
 #  endif
 void * bz2_lib;
 # endif
