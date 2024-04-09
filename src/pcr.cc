@@ -60,13 +60,81 @@
 
 #include "vsearch.h"
 
-const double prob_duplication = 0.95;
-const double prob_chimera = 0.05;
-const double prob_base_subst = 0.0004;
-const int min_nwscore = 50;
-const long cycles = 25;
+/*
+  Simulate PCR with chimera formation and single nucleotide
+  substitutions.
+
+  Relevant paper:
+  Potapov V, Ong JL (2017)
+  Examining Sources of Error in PCR by Single-Molecule Sequencing
+  PLOS ONE 12(1): e0169774.
+  https://doi.org/10.1371/journal.pone.0169774
+
+  Options:
+  --pcr_sim input.fasta
+  --pcr_cycles 20
+  --pcr_chimera_p 0.01
+  --pcr_subst_p 0.00015
+
+  Input:
+  - File with input sequences, FASTA. Header with sequence identifiers
+    and abundance.
+  - Cycles, e.g. 25
+  - Chimera formation prob, e.g. 0.05
+  - Base error frequency, e.g. 0.00004
+
+  Output:
+  - File with output sequences, FASTA. Header with sequence/chimera
+
+  Pseudocode:
+
+  read database from given input file
+  for each cycle (1..25):
+    for each sequence A in the database:
+      if random < chimera_formation_prob:
+        pick another random sequence B from the database
+        align A and B
+	if A and B are sufficiently similar:
+          choose breakpoint at a random position within aligned region
+	  create chimeric sequence C from A and B at breakpoint
+      else:
+        make a duplicate sequence C
+      for each base C:
+        if random < base_error_freq:
+	  substitute base randomly in C
+      add C to database
+
+
+  Usage:
+    vsearch --pcr_sim start.fasta --output mix.fasta
+    vsearch --derep_id mix.fasta --output mix.derep.fasta --sizeout
+    vsearch --derep_f mix.fasta --output all.derep.fasta --sizeout
+*/
+
+const int big_int = 1000000000;
+const int min_nwscore = 1;
 const int border_left = 10;
 const int border_right = 10;
+const char * header_normal  = "normal";
+const char * header_chimera = "chimera";
+
+void mutate_sequence(char * seq,
+		     int64_t len)
+{
+  /* apply random substitutions at random positions within sequence */
+  /* use a uniform distribution of alternative bases (not correct) */
+  for (int i = 0; i < len; i++)
+    {
+      if (random_int(big_int) < big_int * opt_pcr_subst_p)
+	{
+	  int64_t x = seq[i];
+	  int64_t b = random_int(4);
+	  while (b == x)
+	    b = random_int(4);
+	  seq[i] = sym_nt_2bit[b];
+	}
+    }
+}
 
 void create_chimera(char * seq1,
 		    char * seq2,
@@ -76,24 +144,16 @@ void create_chimera(char * seq1,
 		    char ** chimera,
 		    int64_t * chimera_length)
 {
-  printf("Cigar: %s\n", nwalignment);
-  
-  int breakpos1 = 0;
-  int breakpos2 = 0;
-  
   if (nwmatches + nwmismatches >= border_left + border_right)
     {
-      int64_t breakpoint = border_left +
-	random_int(nwmatches + nwmismatches + 1 - border_left - border_right);
-      printf("Breakpoint: %lld\n", breakpoint);
-
       char * p = nwalignment;
       char op;
       int64_t run;
       int pos1 = 0;
       int pos2 = 0;
       int m = 0;
-
+      int64_t breakpoint = border_left +
+	random_int(nwmatches + nwmismatches + 1 - border_left - border_right);
       while (*p)
 	{
 	  run = 1;
@@ -110,16 +170,13 @@ void create_chimera(char * seq1,
 		  m++;
 		  if (m >= breakpoint)
 		    {
-		      breakpos1 = pos1;
-		      breakpos2 = pos2;
 		      uint64_t chim_len = pos1 + strlen(seq2) - pos2;
 		      char * chim = (char*) xmalloc(chim_len + 1);
 		      strncpy(chim, seq1, pos1);
-		      strcpy(chim + pos1, seq2 + pos2);
-		      printf("Breakpoint: %d %d\n", breakpos1, breakpos2);
-		      printf("Seq1: %s\n", seq1);
-		      printf("Seq2: %s\n", seq2);
-		      printf("SeqC: %s\n", chim);
+		      strncpy(chim + pos1, seq2 + pos2, chim_len - pos1);
+		      chim[chim_len] = 0;
+		      * chimera_length = chim_len;
+		      * chimera = chim;
 		      return;
 		    }
 		}
@@ -134,93 +191,38 @@ void create_chimera(char * seq1,
 	  p += scanlength + 1;
 	}
     }
-  else
-    {
-      // too short
-    }
+  * chimera_length = 0;
+  * chimera = nullptr;
 }
-
 
 
 void pcr()
 {
-  (void) prob_duplication;
-  (void) prob_chimera;
-  (void) prob_base_subst;
+  /* ignore abundance */
+  opt_sizein = false;
 
-/*
-    Simulate PCR with chimera formation and single nucleotide
-    substitutions.
-  */
+  if ((opt_pcr_cycles < 0) || (opt_pcr_cycles > 100))
+    fatal("The PCR cycles option argument must be between 0 and 100\n");
 
-  /* Input:
-     - File with input sequences, FASTA. Header with sequence identifiers.
-     - Abundance distribution type (log)
-     - Duplication prob, e.g. 0.95
-     - chimera formation prob, e.g. 0.05 ???
-     - Base error frequency, e.g. 0.00004
-     - Cycles, e.g. 25
+  if ((opt_pcr_chimera_p < 0.0) || (opt_pcr_chimera_p > 1.0))
+    fatal("The PCR chimera formation probability must be between 0.0 and 1.0\n");
 
-     Output:
-     - File with output sequences, FASTA. Header with sequence identifiers, history (parents, breakpoints), abundance.
-  */
-
-  /* pseudocode:
-
-     read database from given input file
-     apply abundance distribution, e.g. log, with abundance 10+
-     keep track of total abundance
-     for each cycle (1..25):
-     for each sequence A in the database:
-     for each copy (abundance) of the sequence:
-     if random < chimera_formation_prob:
-     pick a random other sequence B from database, scaled by abundance
-     align A and B
-     if A and B are sufficiently similar:
-     choose breakpoint at a random position within aligned region
-     create chimeric sequence from A and B at breakpoint
-
-     if random < duplication_prob:
-     make a duplicate sequence C
-     for each base:
-     if random < base_error_freq:
-     substitute base randomly in C
-     flag mutation
-     add C to database (increase abundance if identical)
-  */
+  if ((opt_pcr_subst_p < 0.0) || (opt_pcr_subst_p > 1.0))
+    fatal("The PCR base substitution probability must be between 0.0 and 1.0\n");
 
   if (!opt_output)
     fatal("Output file for PCR simulation must be specified with --output");
 
   FILE * fp_output = fopen_output(opt_output);
   if (!fp_output)
-    {
-      fatal("Unable to open PCR simulation output file for writing");
-    }
+    fatal("Unable to open PCR simulation output file for writing");
 
-  db_read(opt_pcr, 0);
+  db_read(opt_pcr_sim, 0);
 
   long dbsequencecount = db_getsequencecount();
 
-  /* apply abundance profile */
-  
-  uint64_t * abundance = (uint64_t *) xmalloc(dbsequencecount * sizeof(uint64_t));
-  uint64_t total_abundance = 0;
-  (void) total_abundance;
-  for(long i = 0; i < dbsequencecount; i++)
-    {
-      /* Should be log normal distributed */
-      abundance[i] = 10;
-      total_abundance += abundance[i];
-    }
-
-  struct nwinfo_s * nwi = nw_init();
-
-
   LinearMemoryAligner * lma = new LinearMemoryAligner;
-
   int64_t * scorematrix = lma->scorematrix_create(opt_match, opt_mismatch);
-
   lma->set_parameters(scorematrix,
 		      opt_gap_open_query_left,
 		      opt_gap_open_target_left,
@@ -234,90 +236,161 @@ void pcr()
 		      opt_gap_extension_target_interior,
 		      opt_gap_extension_query_right,
 		      opt_gap_extension_target_right);
-  
-  
-  progress_init("Simulating PCR", cycles);
-  for (long cycle = 1; cycle <= cycles; cycle++)
+
+  if (opt_log)
+    fprintf(fp_log,
+	    "PCR with %" PRId64 " cycles, chimera prob. %3.10lg, substitution prob. %3.10lg\n",
+	    opt_pcr_cycles,
+	    opt_pcr_chimera_p,
+	    opt_pcr_subst_p);
+  if (! opt_quiet)
+    fprintf(stderr,
+	    "PCR with %" PRId64 " cycles, chimera prob. %3.10lg, substitution prob. %3.10lg\n",
+	    opt_pcr_cycles,
+	    opt_pcr_chimera_p,
+	    opt_pcr_subst_p);
+
+  progress_init("Simulating PCR", opt_pcr_cycles);
+  for (long cycle = 1; cycle <= opt_pcr_cycles; cycle++)
     {
-      for(long i = 0; i < dbsequencecount; i++)
+      long count = dbsequencecount; /* ignore new sequences this cycle */
+
+      for(long i = 0; i < count; i++)
 	{
-	  uint64_t a = abundance[i];
-	  for(uint64_t x = 0; x < a ; x++)
+	  if (random_int(big_int) < int(big_int * opt_pcr_chimera_p))
 	    {
-	      long r = random_int(1000);
-	      if (r < int(1000 * prob_chimera))
+	      long j = random_int(count);
+	      if (i != j)
 		{
-		  // prob should be scaled by abundance
-		  long j = random_int(dbsequencecount);
-		  if (i != j)
+		  char * seq1 = db_getsequence(i);
+		  long seq1len = db_getsequencelen(i);
+		  char * seq2 = db_getsequence(j);
+		  long seq2len = db_getsequencelen(j);
+
+		  char * nwcigar = lma->align(seq1,
+					      seq2,
+					      seq1len,
+					      seq2len);
+
+		  int64_t nwscore;
+		  int64_t nwalignmentlength;
+		  int64_t nwmatches, nwmismatches;
+		  int64_t nwgaps;
+
+		  lma->alignstats(nwcigar,
+				  seq1,
+				  seq2,
+				  & nwscore,
+				  & nwalignmentlength,
+				  & nwmatches,
+				  & nwmismatches,
+				  & nwgaps);
+
+		  if (nwscore > min_nwscore)
 		    {
-		      printf("Aligning %ld and %ld!\n", i, j);
-		      
-		      char * seq1 = db_getsequence(i);
-		      long seq1len = db_getsequencelen(i);
-		      char * seq2 = db_getsequence(j);
-		      long seq2len = db_getsequencelen(j);
-		      
-		      char * nwcigar = lma->align(seq1,
-						  seq2,
-						  seq1len,
-						  seq2len);
-		      
-		      int64_t nwscore;
-		      int64_t nwalignmentlength;
-		      int64_t nwmatches, nwmismatches;
-		      int64_t nwgaps;
-		      
-		      lma->alignstats(nwcigar,
-                                      seq1,
-                                      seq2,
-                                      & nwscore,
-                                      & nwalignmentlength,
-                                      & nwmatches,
-                                      & nwmismatches,
-                                      & nwgaps);
+		      char * chimera;
+		      int64_t chimera_length;
+		      create_chimera(seq1,
+				     seq2,
+				     nwcigar,
+				     nwmatches,
+				     nwmismatches,
+				     & chimera,
+				     & chimera_length);
 
-		      printf("Score: %lld Matches: %lld Mismatches: %lld Length: %lld gaps: %lld\n", nwscore, nwmatches, nwmismatches, nwalignmentlength, nwgaps);
-
-		      if (nwscore > min_nwscore)
+		      if (chimera_length > 0)
 			{
-			  char * chimera;
-			  int64_t chimera_length;
-			  create_chimera(seq1,
-					 seq2,
-					 nwcigar,
-					 nwmatches,
-					 nwmismatches,
-					 & chimera,
-					 & chimera_length);
-			  // xfree(chimera);
+			  mutate_sequence(chimera, chimera_length);
+			  db_add(false,
+				 (char*) header_chimera,
+				 chimera,
+				 nullptr,
+				 strlen(header_chimera),
+				 chimera_length,
+				 1);
+			  dbsequencecount++;
+			  xfree(chimera);
 			}
 		    }
 		}
+	    }
+	  else /* duplication */
+	    {
+	      char * seq1 = db_getsequence(i);
+	      long seq1len = db_getsequencelen(i);
+	      char * dup = strdup(seq1);
+	      long dup_length = seq1len;
+	      const char * header;
+
+	      if (strcmp(db_getheader(i), header_chimera) == 0)
+		{
+		  header = header_chimera;
+		}
+	      else
+		{
+		  header = header_normal;
+		}
+	      mutate_sequence(dup, dup_length);
+	      db_add(false,
+		     (char*) header,
+		     dup,
+		     nullptr,
+		     strlen(header),
+		     dup_length,
+		     1);
+	      dbsequencecount++;
+	      xfree(dup);
 	    }
 	}
       progress_update(cycle);
     }
   progress_done();
 
-  nw_exit(nwi);
+  uint64_t chimeric = 0;
+  uint64_t non_chimeric = 0;
 
   progress_init("Writing output", dbsequencecount);
   for(long i = 0; i < dbsequencecount; i++)
     {
-      fasta_print_db_relabel(fp_output, i, i+1);
+      char * header = (char*) header_normal;
+      if (strcmp(db_getheader(i), header_chimera) == 0)
+	{
+	  header = (char*) header_chimera;
+	  chimeric++;
+	}
+      else
+	{
+	  non_chimeric++;
+	}
+      int headerlen = strlen(header);
+      fasta_print_general(fp_output,
+			  nullptr,
+			  db_getsequence(i),
+			  db_getsequencelen(i),
+			  header,
+			  headerlen,
+			  0,
+			  -1,
+			  -1.0,
+			  -1,
+			  -1,
+			  nullptr,
+			  0.0);
       progress_update(i);
     }
   progress_done();
 
-  xfree(abundance);
+  if (opt_log)
+    fprintf(fp_log,
+	    "Written %" PRIu64 " chimeric and %" PRIu64 " non-chimeric sequences\n",
+	    chimeric,
+	    non_chimeric);
+  if (! opt_quiet)
+    fprintf(stderr,
+	    "Written %" PRIu64 " chimeric and %" PRIu64 " non-chimeric sequences\n",
+	    chimeric,
+	    non_chimeric);
+
   db_free();
   fclose(fp_output);
 }
-
-
-/*
-
-  make ; ../bin/vsearch --pcr pcr/pcr.fasta --output x.fasta --sizeout --fasta_width 0 --relabel seq ; cat x.fasta | cut -c1-79
-
-*/

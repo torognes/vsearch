@@ -165,7 +165,7 @@ char * opt_orient;
 char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
-char * opt_pcr;
+char * opt_pcr_sim;
 char * opt_profile;
 char * opt_qsegout;
 char * opt_relabel;
@@ -215,6 +215,8 @@ double opt_minh;
 double opt_minqt;
 double opt_minsizeratio;
 double opt_minsl;
+double opt_pcr_chimera_p;
+double opt_pcr_subst_p;
 double opt_query_cov;
 double opt_sample_pct;
 double opt_sintax_cutoff;
@@ -297,6 +299,7 @@ int64_t opt_minwordmatches;
 int64_t opt_mismatch;
 int64_t opt_notrunclabels;
 int64_t opt_output_no_hits;
+int64_t opt_pcr_cycles;
 int64_t opt_qmask;
 int64_t opt_randseed;
 int64_t opt_rightjust;
@@ -929,7 +932,10 @@ void args_init(int argc, char **argv)
   opt_output = nullptr;
   opt_output_no_hits = 0;
   opt_pattern = nullptr;
-  opt_pcr = nullptr;
+  opt_pcr_sim = nullptr;
+  opt_pcr_chimera_p = 0.01;
+  opt_pcr_subst_p = 0.00015;
+  opt_pcr_cycles = 20;
   opt_profile = nullptr;
   opt_qmask = MASK_DUST;
   opt_qsegout = nullptr;
@@ -1174,7 +1180,10 @@ void args_init(int argc, char **argv)
       option_output,
       option_output_no_hits,
       option_pattern,
-      option_pcr,
+      option_pcr_chimera_p,
+      option_pcr_cycles,
+      option_pcr_sim,
+      option_pcr_subst_p,
       option_profile,
       option_qmask,
       option_qsegout,
@@ -1421,7 +1430,10 @@ void args_init(int argc, char **argv)
       {"output",                required_argument, nullptr, 0 },
       {"output_no_hits",        no_argument,       nullptr, 0 },
       {"pattern",               required_argument, nullptr, 0 },
-      {"pcr",                   required_argument, nullptr, 0 },
+      {"pcr_chimera_p",         required_argument, nullptr, 0 },
+      {"pcr_cycles",            required_argument, nullptr, 0 },
+      {"pcr_sim",               required_argument, nullptr, 0 },
+      {"pcr_subst_p",           required_argument, nullptr, 0 },
       {"profile",               required_argument, nullptr, 0 },
       {"qmask",                 required_argument, nullptr, 0 },
       {"qsegout",               required_argument, nullptr, 0 },
@@ -2548,8 +2560,20 @@ void args_init(int argc, char **argv)
           opt_chimeras_diff_pct = args_getdouble(optarg);
           break;
 
-        case option_pcr:
-          opt_pcr = optarg;
+        case option_pcr_sim:
+          opt_pcr_sim = optarg;
+          break;
+
+        case option_pcr_cycles:
+          opt_pcr_cycles = args_getlong(optarg);
+          break;
+
+        case option_pcr_chimera_p:
+	  opt_pcr_chimera_p = args_getdouble(optarg);
+          break;
+
+        case option_pcr_subst_p:
+          opt_pcr_subst_p = args_getdouble(optarg);
           break;
 
         default:
@@ -2606,7 +2630,7 @@ void args_init(int argc, char **argv)
       option_makeudb_usearch,
       option_maskfasta,
       option_orient,
-      option_pcr,
+      option_pcr_sim,
       option_rereplicate,
       option_search_exact,
       option_sff_convert,
@@ -3926,7 +3950,7 @@ void args_init(int argc, char **argv)
         option_xsize,
         -1 },
 
-      { option_pcr,
+      { option_pcr_sim,
         option_bzip2_decompress,
         option_fasta_width,
         option_fastq_ascii,
@@ -3941,6 +3965,9 @@ void args_init(int argc, char **argv)
         option_no_progress,
         option_notrunclabels,
         option_output,
+	option_pcr_chimera_p,
+	option_pcr_cycles,
+	option_pcr_subst_p,
         option_quiet,
         option_randseed,
         option_relabel,
@@ -5983,7 +6010,7 @@ int main(int argc, char** argv)
     {
       derep(opt_fastx_uniques, false);
     }
-  else if (opt_pcr)
+  else if (opt_pcr_sim)
     {
       pcr();
     }
