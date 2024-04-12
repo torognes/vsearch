@@ -126,9 +126,9 @@ void db_setinfo(bool new_is_fastq,
                 uint64_t new_longestheader);
 
 void db_add(bool is_fastq,
-	    char * header,
-	    char * sequence,
-	    char * quality,
-	    size_t headerlength,
-	    size_t sequencelength,
-	    int64_t abundance);
+            char * header,
+            char * sequence,
+            char * quality,
+            size_t headerlength,
+            size_t sequencelength,
+            int64_t abundance);

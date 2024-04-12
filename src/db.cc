@@ -110,12 +110,12 @@ char * db_getquality(uint64_t seqno)
 }
 
 void db_add(bool is_fastq,
-	    char * header,
-	    char * sequence,
-	    char * quality,
-	    size_t headerlength,
-	    size_t sequencelength,
-	    int64_t abundance)
+            char * header,
+            char * sequence,
+            char * quality,
+            size_t headerlength,
+            size_t sequencelength,
+            int64_t abundance)
 {
   /* Add a sequence to the database. Assumes that the database has been initialized. */
 
@@ -140,15 +140,15 @@ void db_add(bool is_fastq,
   /* store the header */
   size_t header_p = datalen;
   memcpy(datap + header_p,
-	 header,
-	 headerlength + 1);
+         header,
+         headerlength + 1);
   datalen += headerlength + 1;
 
   /* store sequence */
   size_t sequence_p = datalen;
   memcpy(datap + sequence_p,
-	 sequence,
-	 sequencelength + 1);
+         sequence,
+         sequencelength + 1);
   datalen += sequencelength + 1;
 
   size_t quality_p = datalen;
@@ -156,8 +156,8 @@ void db_add(bool is_fastq,
     {
       /* store quality */
       memcpy(datap + quality_p,
-	     quality,
-	     sequencelength + 1);
+             quality,
+             sequencelength + 1);
       datalen += sequencelength + 1;
     }
 
@@ -260,14 +260,14 @@ void db_read(const char * filename, int upcase)
         }
       else
         {
-	  db_add(is_fastq,
-		 fastx_get_header(h),
-		 fastx_get_sequence(h),
-		 is_fastq ? fastx_get_quality(h) : nullptr,
-		 fastx_get_header_length(h),
-		 sequencelength,
-		 abundance);
-	}
+          db_add(is_fastq,
+                 fastx_get_header(h),
+                 fastx_get_sequence(h),
+                 is_fastq ? fastx_get_quality(h) : nullptr,
+                 fastx_get_header_length(h),
+                 sequencelength,
+                 abundance);
+        }
       progress_update(fastx_get_position(h));
     }
 

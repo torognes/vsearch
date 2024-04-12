@@ -94,14 +94,14 @@
       if random < chimera_formation_prob:
         pick another random sequence B from the database
         align A and B
-	if A and B are sufficiently similar:
+        if A and B are sufficiently similar:
           choose breakpoint at a random position within aligned region
-	  create chimeric sequence C from A and B at breakpoint
+          create chimeric sequence C from A and B at breakpoint
       else:
         make a duplicate sequence C
       for each base C:
         if random < base_error_freq:
-	  substitute base randomly in C
+          substitute base randomly in C
       add C to database
 
 
@@ -119,30 +119,30 @@ const char * header_normal  = "normal";
 const char * header_chimera = "chimera";
 
 void mutate_sequence(char * seq,
-		     int64_t len)
+                     int64_t len)
 {
   /* apply random substitutions at random positions within sequence */
   /* use a uniform distribution of alternative bases (not correct) */
   for (int i = 0; i < len; i++)
     {
       if (random_int(big_int) < big_int * opt_pcr_subst_p)
-	{
-	  int64_t x = seq[i];
-	  int64_t b = random_int(4);
-	  while (b == x)
-	    b = random_int(4);
-	  seq[i] = sym_nt_2bit[b];
-	}
+        {
+          int64_t x = seq[i];
+          int64_t b = random_int(4);
+          while (b == x)
+            b = random_int(4);
+          seq[i] = sym_nt_2bit[b];
+        }
     }
 }
 
 void create_chimera(char * seq1,
-		    char * seq2,
-		    char * nwalignment,
-		    int64_t nwmatches,
-		    int64_t nwmismatches,
-		    char ** chimera,
-		    int64_t * chimera_length)
+                    char * seq2,
+                    char * nwalignment,
+                    int64_t nwmatches,
+                    int64_t nwmismatches,
+                    char ** chimera,
+                    int64_t * chimera_length)
 {
   if (nwmatches + nwmismatches >= border_left + border_right)
     {
@@ -153,43 +153,43 @@ void create_chimera(char * seq1,
       int pos2 = 0;
       int m = 0;
       int64_t breakpoint = border_left +
-	random_int(nwmatches + nwmismatches + 1 - border_left - border_right);
+        random_int(nwmatches + nwmismatches + 1 - border_left - border_right);
       while (*p)
-	{
-	  run = 1;
-	  int scanlength = 0;
-	  sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-	  op = *(p+scanlength);
-	  switch(op)
-	    {
-	    case 'M':
-	      for (int z = 0; z < run; z++)
-		{
-		  pos1++;
-		  pos2++;
-		  m++;
-		  if (m >= breakpoint)
-		    {
-		      uint64_t chim_len = pos1 + strlen(seq2) - pos2;
-		      char * chim = (char*) xmalloc(chim_len + 1);
-		      strncpy(chim, seq1, pos1);
-		      strncpy(chim + pos1, seq2 + pos2, chim_len - pos1);
-		      chim[chim_len] = 0;
-		      * chimera_length = chim_len;
-		      * chimera = chim;
-		      return;
-		    }
-		}
-	      break;
-	    case 'D':
-	      pos1 += run;
-	      break;
-	    case 'I':
-	      pos2 += run;
-	      break;
-	    }
-	  p += scanlength + 1;
-	}
+        {
+          run = 1;
+          int scanlength = 0;
+          sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+          op = *(p+scanlength);
+          switch(op)
+            {
+            case 'M':
+              for (int z = 0; z < run; z++)
+                {
+                  pos1++;
+                  pos2++;
+                  m++;
+                  if (m >= breakpoint)
+                    {
+                      uint64_t chim_len = pos1 + strlen(seq2) - pos2;
+                      char * chim = (char*) xmalloc(chim_len + 1);
+                      strncpy(chim, seq1, pos1);
+                      strncpy(chim + pos1, seq2 + pos2, chim_len - pos1);
+                      chim[chim_len] = 0;
+                      * chimera_length = chim_len;
+                      * chimera = chim;
+                      return;
+                    }
+                }
+              break;
+            case 'D':
+              pos1 += run;
+              break;
+            case 'I':
+              pos2 += run;
+              break;
+            }
+          p += scanlength + 1;
+        }
     }
   * chimera_length = 0;
   * chimera = nullptr;
@@ -224,31 +224,31 @@ void pcr()
   LinearMemoryAligner * lma = new LinearMemoryAligner;
   int64_t * scorematrix = lma->scorematrix_create(opt_match, opt_mismatch);
   lma->set_parameters(scorematrix,
-		      opt_gap_open_query_left,
-		      opt_gap_open_target_left,
-		      opt_gap_open_query_interior,
-		      opt_gap_open_target_interior,
-		      opt_gap_open_query_right,
-		      opt_gap_open_target_right,
-		      opt_gap_extension_query_left,
-		      opt_gap_extension_target_left,
-		      opt_gap_extension_query_interior,
-		      opt_gap_extension_target_interior,
-		      opt_gap_extension_query_right,
-		      opt_gap_extension_target_right);
+                      opt_gap_open_query_left,
+                      opt_gap_open_target_left,
+                      opt_gap_open_query_interior,
+                      opt_gap_open_target_interior,
+                      opt_gap_open_query_right,
+                      opt_gap_open_target_right,
+                      opt_gap_extension_query_left,
+                      opt_gap_extension_target_left,
+                      opt_gap_extension_query_interior,
+                      opt_gap_extension_target_interior,
+                      opt_gap_extension_query_right,
+                      opt_gap_extension_target_right);
 
   if (opt_log)
     fprintf(fp_log,
-	    "PCR with %" PRId64 " cycles, chimera prob. %3.10lg, substitution prob. %3.10lg\n",
-	    opt_pcr_cycles,
-	    opt_pcr_chimera_p,
-	    opt_pcr_subst_p);
+            "PCR with %" PRId64 " cycles, chimera prob. %3.10lg, substitution prob. %3.10lg\n",
+            opt_pcr_cycles,
+            opt_pcr_chimera_p,
+            opt_pcr_subst_p);
   if (! opt_quiet)
     fprintf(stderr,
-	    "PCR with %" PRId64 " cycles, chimera prob. %3.10lg, substitution prob. %3.10lg\n",
-	    opt_pcr_cycles,
-	    opt_pcr_chimera_p,
-	    opt_pcr_subst_p);
+            "PCR with %" PRId64 " cycles, chimera prob. %3.10lg, substitution prob. %3.10lg\n",
+            opt_pcr_cycles,
+            opt_pcr_chimera_p,
+            opt_pcr_subst_p);
 
   progress_init("Simulating PCR", opt_pcr_cycles);
   for (long cycle = 1; cycle <= opt_pcr_cycles; cycle++)
@@ -256,92 +256,92 @@ void pcr()
       long count = dbsequencecount; /* ignore new sequences this cycle */
 
       for(long i = 0; i < count; i++)
-	{
-	  if (random_int(big_int) < int(big_int * opt_pcr_chimera_p))
-	    {
-	      long j = random_int(count);
-	      if (i != j)
-		{
-		  char * seq1 = db_getsequence(i);
-		  long seq1len = db_getsequencelen(i);
-		  char * seq2 = db_getsequence(j);
-		  long seq2len = db_getsequencelen(j);
+        {
+          if (random_int(big_int) < int(big_int * opt_pcr_chimera_p))
+            {
+              long j = random_int(count);
+              if (i != j)
+                {
+                  char * seq1 = db_getsequence(i);
+                  long seq1len = db_getsequencelen(i);
+                  char * seq2 = db_getsequence(j);
+                  long seq2len = db_getsequencelen(j);
 
-		  char * nwcigar = lma->align(seq1,
-					      seq2,
-					      seq1len,
-					      seq2len);
+                  char * nwcigar = lma->align(seq1,
+                                              seq2,
+                                              seq1len,
+                                              seq2len);
 
-		  int64_t nwscore;
-		  int64_t nwalignmentlength;
-		  int64_t nwmatches, nwmismatches;
-		  int64_t nwgaps;
+                  int64_t nwscore;
+                  int64_t nwalignmentlength;
+                  int64_t nwmatches, nwmismatches;
+                  int64_t nwgaps;
 
-		  lma->alignstats(nwcigar,
-				  seq1,
-				  seq2,
-				  & nwscore,
-				  & nwalignmentlength,
-				  & nwmatches,
-				  & nwmismatches,
-				  & nwgaps);
+                  lma->alignstats(nwcigar,
+                                  seq1,
+                                  seq2,
+                                  & nwscore,
+                                  & nwalignmentlength,
+                                  & nwmatches,
+                                  & nwmismatches,
+                                  & nwgaps);
 
-		  if (nwscore > min_nwscore)
-		    {
-		      char * chimera;
-		      int64_t chimera_length;
-		      create_chimera(seq1,
-				     seq2,
-				     nwcigar,
-				     nwmatches,
-				     nwmismatches,
-				     & chimera,
-				     & chimera_length);
+                  if (nwscore > min_nwscore)
+                    {
+                      char * chimera;
+                      int64_t chimera_length;
+                      create_chimera(seq1,
+                                     seq2,
+                                     nwcigar,
+                                     nwmatches,
+                                     nwmismatches,
+                                     & chimera,
+                                     & chimera_length);
 
-		      if (chimera_length > 0)
-			{
-			  mutate_sequence(chimera, chimera_length);
-			  db_add(false,
-				 (char*) header_chimera,
-				 chimera,
-				 nullptr,
-				 strlen(header_chimera),
-				 chimera_length,
-				 1);
-			  dbsequencecount++;
-			  xfree(chimera);
-			}
-		    }
-		}
-	    }
-	  else /* duplication */
-	    {
-	      char * seq1 = db_getsequence(i);
-	      long seq1len = db_getsequencelen(i);
-	      char * dup = strdup(seq1);
-	      long dup_length = seq1len;
-	      const char * header;
+                      if (chimera_length > 0)
+                        {
+                          mutate_sequence(chimera, chimera_length);
+                          db_add(false,
+                                 (char*) header_chimera,
+                                 chimera,
+                                 nullptr,
+                                 strlen(header_chimera),
+                                 chimera_length,
+                                 1);
+                          dbsequencecount++;
+                          xfree(chimera);
+                        }
+                    }
+                }
+            }
+          else /* duplication */
+            {
+              char * seq1 = db_getsequence(i);
+              long seq1len = db_getsequencelen(i);
+              char * dup = strdup(seq1);
+              long dup_length = seq1len;
+              const char * header;
 
-	      if (strcmp(db_getheader(i), header_chimera) == 0)
-		{
-		  header = header_chimera;
-		}
-	      else
-		{
-		  header = header_normal;
-		}
-	      mutate_sequence(dup, dup_length);
-	      db_add(false,
-		     (char*) header,
-		     dup,
-		     nullptr,
-		     strlen(header),
-		     dup_length,
-		     1);
-	      dbsequencecount++;
-	      xfree(dup);
-	    }
-	}
+              if (strcmp(db_getheader(i), header_chimera) == 0)
+                {
+                  header = header_chimera;
+                }
+              else
+                {
+                  header = header_normal;
+                }
+              mutate_sequence(dup, dup_length);
+              db_add(false,
+                     (char*) header,
+                     dup,
+                     nullptr,
+                     strlen(header),
+                     dup_length,
+                     1);
+              dbsequencecount++;
+              xfree(dup);
+            }
+        }
       progress_update(cycle);
     }
   progress_done();
@@ -354,42 +354,42 @@ void pcr()
     {
       char * header = (char*) header_normal;
       if (strcmp(db_getheader(i), header_chimera) == 0)
-	{
-	  header = (char*) header_chimera;
-	  chimeric++;
-	}
+        {
+          header = (char*) header_chimera;
+          chimeric++;
+        }
       else
-	{
-	  non_chimeric++;
-	}
+        {
+          non_chimeric++;
+        }
       int headerlen = strlen(header);
       fasta_print_general(fp_output,
-			  nullptr,
-			  db_getsequence(i),
-			  db_getsequencelen(i),
-			  header,
-			  headerlen,
-			  0,
-			  -1,
-			  -1.0,
-			  -1,
-			  -1,
-			  nullptr,
-			  0.0);
+                          nullptr,
+                          db_getsequence(i),
+                          db_getsequencelen(i),
+                          header,
+                          headerlen,
+                          0,
+                          -1,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
       progress_update(i);
     }
   progress_done();
 
   if (opt_log)
     fprintf(fp_log,
-	    "Written %" PRIu64 " chimeric and %" PRIu64 " non-chimeric sequences\n",
-	    chimeric,
-	    non_chimeric);
+            "Written %" PRIu64 " chimeric and %" PRIu64 " non-chimeric sequences\n",
+            chimeric,
+            non_chimeric);
   if (! opt_quiet)
     fprintf(stderr,
-	    "Written %" PRIu64 " chimeric and %" PRIu64 " non-chimeric sequences\n",
-	    chimeric,
-	    non_chimeric);
+            "Written %" PRIu64 " chimeric and %" PRIu64 " non-chimeric sequences\n",
+            chimeric,
+            non_chimeric);
 
   db_free();
   fclose(fp_output);
