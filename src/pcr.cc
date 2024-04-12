@@ -70,24 +70,36 @@
   PLOS ONE 12(1): e0169774.
   https://doi.org/10.1371/journal.pone.0169774
 
-  Options:
+  Command:
   --pcr_sim input.fasta
+
+  Required option:
+  --output output.fasta
+
+  Options:
   --pcr_cycles 20
   --pcr_chimera_p 0.01
   --pcr_subst_p 0.00015
 
+  Instructions:
+  First create the start.fasta file with the intital sequences, one
+  for each copy. The "--rereplicate" command may be used to create
+  multiple copies to obtain a skewed distribution. Then run "pcr_sim"
+  as above. After the simulation, run "derep_id" to dereplicate normal
+  and chimera sequences separately. Run "derep_full" to dereplicate all.
+
+  Usage:
+    vsearch --pcr_sim start.fasta --output mix.fasta
+    vsearch --derep_id mix.fasta --output mix.derep.fasta --sizeout
+    vsearch --derep_full mix.fasta --output all.derep.fasta --sizeout
+
   Input:
-  - File with input sequences, FASTA. Header with sequence identifiers
-    and abundance.
-  - Cycles, e.g. 25
-  - Chimera formation prob, e.g. 0.05
-  - Base error frequency, e.g. 0.00004
+  - File with input sequences, FASTA. Headers are ignored, also abundances.
 
   Output:
-  - File with output sequences, FASTA. Header with sequence/chimera
+  - File with output sequences, FASTA. Header with name normal or chimera.
 
   Pseudocode:
-
   read database from given input file
   for each cycle (1..25):
     for each sequence A in the database:
@@ -95,20 +107,15 @@
         pick another random sequence B from the database
         align A and B
         if A and B are sufficiently similar:
-          choose breakpoint at a random position within aligned region
+          choose random breakpoint within aligned region with 10 bp border
           create chimeric sequence C from A and B at breakpoint
       else:
-        make a duplicate sequence C
-      for each base C:
+        make a duplicate sequence C from A
+      for each base in C:
         if random < base_error_freq:
-          substitute base randomly in C
+          substitute base randomly in C with another base
       add C to database
 
-
-  Usage:
-    vsearch --pcr_sim start.fasta --output mix.fasta
-    vsearch --derep_id mix.fasta --output mix.derep.fasta --sizeout
-    vsearch --derep_f mix.fasta --output all.derep.fasta --sizeout
 */
 
 const int big_int = 1000000000;
@@ -257,13 +264,13 @@ void pcr()
 
       for(long i = 0; i < count; i++)
         {
+	  char * seq1 = db_getsequence(i);
+	  long seq1len = db_getsequencelen(i);
           if (random_int(big_int) < int(big_int * opt_pcr_chimera_p))
             {
               long j = random_int(count);
               if (i != j)
                 {
-                  char * seq1 = db_getsequence(i);
-                  long seq1len = db_getsequencelen(i);
                   char * seq2 = db_getsequence(j);
                   long seq2len = db_getsequencelen(j);
 
@@ -298,7 +305,7 @@ void pcr()
                                      & chimera,
                                      & chimera_length);
 
-                      if (chimera_length > 0)
+                      if (chimera_length)
                         {
                           mutate_sequence(chimera, chimera_length);
                           db_add(false,
@@ -316,26 +323,15 @@ void pcr()
             }
           else /* duplication */
             {
-              char * seq1 = db_getsequence(i);
-              long seq1len = db_getsequencelen(i);
               char * dup = strdup(seq1);
               long dup_length = seq1len;
-              const char * header;
-
-              if (strcmp(db_getheader(i), header_chimera) == 0)
-                {
-                  header = header_chimera;
-                }
-              else
-                {
-                  header = header_normal;
-                }
+	      bool is_chim = strcmp(db_getheader(i), header_chimera) == 0;
               mutate_sequence(dup, dup_length);
               db_add(false,
-                     (char*) header,
+                     (char*)(is_chim ? header_chimera : header_normal),
                      dup,
                      nullptr,
-                     strlen(header),
+                     strlen(is_chim ? header_chimera : header_normal),
                      dup_length,
                      1);
               dbsequencecount++;
