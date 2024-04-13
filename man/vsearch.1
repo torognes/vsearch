@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "January 19, 2024" "version 2.27.0" "USER COMMANDS"
+.TH vsearch 1 "April 6, 2024" "version 2.27.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -4872,6 +4872,14 @@ refactored. Generic Dockerfiles for major Linux distributions have
 been included. Some warnings from compilers and other tools have been
 eliminated. The release for Windows will also include DLL's for the
 two compression libraries.
+.TP
+.BR v2.27.1\~ "released April 6th, 2024"
+This version fixes the weak_id option and makes searches report weak
+hits in some cases. It also updates the names of the compression
+libraries to libz.so.1 and libbz2.so.1 on Linux to make them work on
+common Linux distributions without installing additional packages.
+README.md has been updated with information about compression
+libraries on Windows.
 .LP
 .\" ============================================================================
 .\" TODO:
