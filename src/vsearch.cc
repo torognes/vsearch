@@ -4995,6 +4995,8 @@ void cmd_help()
 
       fprintf(stdout,
               "\n"
+              "For further details, please consult the manual by entering: man vsearch\n"
+              "\n"
               "General options\n"
               "  --bzip2_decompress          decompress input with bzip2 (required if pipe)\n"
               "  --fasta_width INT           width of FASTA seq lines, 0 for no wrap (80)\n"
