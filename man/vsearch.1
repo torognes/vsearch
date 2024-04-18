@@ -917,12 +917,13 @@ followed by a tab-separated list of all sample identifiers. The
 following lines, one for each OTU, starts with the OTU identifier and
 is followed by a tab-separated list of abundances for that OTU in each
 sample, in the order given on the first line. The OTU and sample
-identifiers are extracted from the FASTA headers of the sequences. The
-OTUs are represented by the cluster centroids. An extra column is
-added to the right of the table if taxonomy information is available
-for at least one of the OTUs. This column will be labelled 'taxonomy'
-and each row will then contain the taxonomy information extracted for
-that OTU. See the \-\-biomout option for further details.
+identifiers are extracted from the FASTA headers of the sequences (see
+the \-\-sample option). The OTUs are represented by the cluster
+centroids. An extra column is added to the right of the table if
+taxonomy information is available for at least one of the OTUs. This
+column will be labelled 'taxonomy' and each row will then contain the
+taxonomy information extracted for that OTU. See the \-\-biomout
+option for further details.
 .TAG profile
 .TP
 .BI \-\-profile \0filename
@@ -2960,8 +2961,8 @@ Write query sequences not matching database target sequences to
 Write search results to an OTU table in the classic tab-separated
 plain text format. The query file contains the samples, while the
 database file contains the OTUs. Sample and OTU identifiers are
-extracted from the header of these sequences. See the
-\-\-mothur_shared_out option in the Clustering section for further
+extracted from the header of these sequences (\-\-sample option). See
+the \-\-mothur_shared_out option in the Clustering section for further
 details.
 .TAG output_no_hits
 .TP
