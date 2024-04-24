@@ -77,7 +77,7 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
 {
   prof_type * position_profile = profile + PROFSIZE * alnpos;
 
-  switch(toupper(nucleotide))
+  switch(std::toupper(nucleotide))
     {
     case 'A':
       position_profile[0] += abundance;
