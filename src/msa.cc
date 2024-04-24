@@ -249,7 +249,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
               int scanlength = 0;
               std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
               p += scanlength;
-              char op = *p++;
+              char const op = *p++;
 
               if (op == 'D')
                 {
