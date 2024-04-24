@@ -137,7 +137,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   int const centroid_len = db_getsequencelen(centroid_seqno);
 
   /* find max insertions in front of each position in the centroid sequence */
-  int * maxi = static_cast<int *>(xmalloc((centroid_len + 1) * sizeof(int)));
+  auto * maxi = static_cast<int *>(xmalloc((centroid_len + 1) * sizeof(int)));
   std::memset(maxi, 0, (centroid_len + 1) * sizeof(int));
 
   for(auto j = 1; j < target_count; ++j)
