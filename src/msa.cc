@@ -183,7 +183,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* allocate memory for profile (for consensus) and aligned seq */
   std::vector<prof_type> profile(PROFSIZE * alnlen);
-  aln = static_cast<char *>(xmalloc(alnlen + 1));
+  std::vector<char> aln_v(alnlen + 1);
+  aln = aln_v.data();
   char * cons = static_cast<char *>(xmalloc(alnlen + 1));
 
   /* Find longest target sequence on reverse strand and allocate buffer */
