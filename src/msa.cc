@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cctype>  // std::toupper
+#include <cinttypes>  // macro PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf
