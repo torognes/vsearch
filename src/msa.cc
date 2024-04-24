@@ -234,9 +234,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
       if (not j)
         {
-          for(int x = 0; x < centroid_len; ++x)
+          for(auto x = 0; x < centroid_len; ++x)
             {
-              for(int y = 0; y < max_insertions[qpos]; ++y)
+              for(auto y = 0; y < max_insertions[qpos]; ++y)
                 {
                   msa_add('-', target_abundance);
                 }
