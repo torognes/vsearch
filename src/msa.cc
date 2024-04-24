@@ -82,7 +82,7 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
   static constexpr auto U_counter = 3;
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  auto const position_profile = std::next(profile, PROFSIZE * alnpos);
+  auto * const position_profile = std::next(profile, PROFSIZE * alnpos);
 
   switch(std::toupper(nucleotide))
     {
