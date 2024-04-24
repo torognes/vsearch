@@ -185,7 +185,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* allocate memory for profile (for consensus) and aligned seq */
   profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
-  for (int i = 0; i < PROFSIZE * alnlen; i++)
+  for (auto i = 0; i < PROFSIZE * alnlen; i++)
     {
       profile[i] = 0;
     }
@@ -214,7 +214,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_msaout, "\n");
     }
 
-  for(int j = 0; j<target_count; j++)
+  for(auto j = 0; j<target_count; j++)
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
