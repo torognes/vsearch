@@ -195,7 +195,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   int64_t longest_reversed = 0;
   for(int i = 0; i < target_count; i++)
     {
-      if (target_list[i].strand)
+      if (target_list[i].strand != 0)
         {
           int64_t len = db_getsequencelen(target_list[i].seqno);
           if (len > longest_reversed)
