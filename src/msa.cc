@@ -339,7 +339,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
 
-  for(int i = 0; i < alnlen; i++)
+  for(int i = 0; i < alnlen; ++i)
     {
       if ((i < left_censored) or (i >= alnlen - right_censored))
         {
@@ -350,7 +350,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           /* find most common symbol of A, C, G and T */
           char best_sym = 0;
           prof_type best_count = 0;
-          for(int c = 0; c < 4; c++)
+          for(int c = 0; c < 4; ++c)
             {
               prof_type count = profile[PROFSIZE * i + c];
               if (count > best_count)
