@@ -339,8 +339,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* Censor part of the consensus sequence outside the centroid sequence */
 
-  auto left_censored = max_insertions.front();
-  auto right_censored = max_insertions.back();
+  auto const left_censored = max_insertions.front();
+  auto const right_censored = max_insertions.back();
 
   for(int i = 0; i < alnlen; i++)
     {
