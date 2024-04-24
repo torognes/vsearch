@@ -254,7 +254,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
               if (operation == 'D')
                 {
-                  for(int x = 0; x < max_insertions[qpos]; ++x)
+                  for(auto x = 0; x < max_insertions[qpos]; ++x)
                     {
                       if (x < run)
                         {
@@ -269,11 +269,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                 }
               else
                 {
-                  for(int x = 0; x < run; ++x)
+                  for(auto x = 0; x < run; ++x)
                     {
                       if (not inserted)
                         {
-                          for(int y = 0; y < max_insertions[qpos]; ++y)
+                          for(auto y = 0; y < max_insertions[qpos]; ++y)
                             {
                               msa_add('-', target_abundance, profile);
                             }
