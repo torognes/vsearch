@@ -183,10 +183,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alnlen = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE * alnlen));
+  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);
   std::vector<char> aln_v(alnlen + 1);
   aln = aln_v.data();
-  char * cons = static_cast<char *>(xmalloc(alnlen + 1));
+  std::vector<char> cons_v(alnlen + 1);
+  auto * cons = cons_v.data();
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
@@ -439,6 +440,4 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         }
       fprintf(fp_profile, "\n");
     }
-
-  xfree(cons);
 }
