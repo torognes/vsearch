@@ -125,8 +125,8 @@ auto msa_add(char const nucleotide, prof_type const abundance,
       break;
     }
 
-  *std::next(aln, alnpos) = nucleotide;
-  ++alnpos;
+  *std::next(aln, alnpos) = nucleotide;  // refactoring: extract from function
+  ++alnpos;  // refactoring: pass as copy
 }
 
 
