@@ -129,11 +129,11 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 }
 
 
-auto find_total_alignment_length(int const centroid_len, int * maxi) -> int {
+auto find_total_alignment_length(int const centroid_len, int * max_insertions) -> int {
   // assert(centroid_len < int_max);
   int alnlen = 0;
   for(auto i = 0; i < centroid_len + 1; ++i) {
-    alnlen += maxi[i];
+    alnlen += max_insertions[i];
   }
   alnlen += centroid_len;
   return alnlen;
