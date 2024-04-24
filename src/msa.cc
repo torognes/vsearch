@@ -171,7 +171,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* find total alignment length */
   int alnlen = 0;
-  for(int i = 0; i < centroid_len + 1; i++)
+  for(int i = 0; i < centroid_len + 1; ++i)
     {
       alnlen += maxi[i];
     }
