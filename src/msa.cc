@@ -249,10 +249,10 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
               int scanlength = 0;
               std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
               p += scanlength;
-              char const op = *p;
+              char const operation = *p;
               ++p;
 
-              if (op == 'D')
+              if (operation == 'D')
                 {
                   for(int x = 0; x < max_insertions[qpos]; ++x)
                     {
@@ -279,7 +279,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                             }
                         }
 
-                      if (op == 'M')
+                      if (operation == 'M')
                         {
                           msa_add(target_seq[tpos++], target_abundance, profile);
                         }
