@@ -226,7 +226,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       int tpos = 0;
       alnpos = 0;
 
-      if (! j)
+      if (not j)
         {
           for(int x = 0; x < centroid_len; x++)
             {
@@ -269,7 +269,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                 {
                   for(int x = 0; x < run; x++)
                     {
-                      if (! inserted)
+                      if (not inserted)
                         {
                           for(int y = 0; y < maxi[qpos]; y++)
                             {
@@ -293,7 +293,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
         }
 
-      if (! inserted)
+      if (not inserted)
         {
           for(int x = 0; x < maxi[qpos]; x++)
             {
