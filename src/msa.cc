@@ -222,7 +222,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           target_seq = rc_buffer;
         }
 
-      int inserted = 0;
+      auto inserted = false;
       int qpos = 0;
       int tpos = 0;
       alnpos = 0;
@@ -265,7 +265,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                           msa_add('-', target_abundance, profile);
                         }
                     }
-                  inserted = 1;
+                  inserted = true;
                 }
               else
                 {
@@ -289,7 +289,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                         }
 
                       ++qpos;
-                      inserted = 0;
+                      inserted = false;
                     }
                 }
             }
