@@ -407,7 +407,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                           nullptr, 0.0);
     }
 
-  if (fp_profile)
+  if (fp_profile != nullptr)
     {
       fasta_print_general(fp_profile,
                           "centroid=",
