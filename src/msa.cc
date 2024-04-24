@@ -80,7 +80,7 @@ static int alnpos;
 
 
 auto msa_add(char const nucleotide, prof_type const abundance,
-             std::vector<prof_type>& profile_v) -> void
+             std::vector<prof_type>& profile) -> void
 {
   static constexpr auto A_counter = 0;
   static constexpr auto C_counter = 1;
@@ -93,17 +93,17 @@ auto msa_add(char const nucleotide, prof_type const abundance,
   switch(std::toupper(nucleotide))
     {
     case 'A':
-      profile_v[offset + A_counter] += abundance;
+      profile[offset + A_counter] += abundance;
       break;
     case 'C':
-      profile_v[offset + C_counter] += abundance;
+      profile[offset + C_counter] += abundance;
       break;
     case 'G':
-      profile_v[offset + G_counter] += abundance;
+      profile[offset + G_counter] += abundance;
       break;
     case 'T':
     case 'U':
-      profile_v[offset + U_counter] += abundance;
+      profile[offset + U_counter] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -116,10 +116,10 @@ auto msa_add(char const nucleotide, prof_type const abundance,
     case 'H':
     case 'V':
     case 'N':
-      profile_v[offset + N_counter] += abundance;
+      profile[offset + N_counter] += abundance;
       break;
     case '-':
-      profile_v[offset + gap_counter] += abundance;
+      profile[offset + gap_counter] += abundance;
       break;
     default:
       break;
@@ -182,7 +182,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alnlen = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile_v(PROFSIZE * alnlen);
+  std::vector<prof_type> profile(PROFSIZE * alnlen);
   aln = static_cast<char *>(xmalloc(alnlen + 1));
   char * cons = static_cast<char *>(xmalloc(alnlen + 1));
 
@@ -233,9 +233,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             {
               for(auto y = 0; y < max_insertions[qpos]; ++y)
                 {
-                  msa_add('-', target_abundance, profile_v);
+                  msa_add('-', target_abundance, profile);
                 }
-              msa_add(target_seq[tpos++], target_abundance, profile_v);
+              msa_add(target_seq[tpos++], target_abundance, profile);
               ++qpos;
             }
         }
@@ -258,11 +258,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                     {
                       if (x < run)
                         {
-                          msa_add(target_seq[tpos++], target_abundance, profile_v);
+                          msa_add(target_seq[tpos++], target_abundance, profile);
                         }
                       else
                         {
-                          msa_add('-', target_abundance, profile_v);
+                          msa_add('-', target_abundance, profile);
                         }
                     }
                   inserted = 1;
@@ -275,17 +275,17 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                         {
                           for(int y = 0; y < max_insertions[qpos]; ++y)
                             {
-                              msa_add('-', target_abundance, profile_v);
+                              msa_add('-', target_abundance, profile);
                             }
                         }
 
                       if (op == 'M')
                         {
-                          msa_add(target_seq[tpos++], target_abundance, profile_v);
+                          msa_add(target_seq[tpos++], target_abundance, profile);
                         }
                       else
                         {
-                          msa_add('-', target_abundance, profile_v);
+                          msa_add('-', target_abundance, profile);
                         }
 
                       ++qpos;
@@ -299,7 +299,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         {
           for(auto x = 0; x < max_insertions[qpos]; ++x)
             {
-              msa_add('-', target_abundance, profile_v);
+              msa_add('-', target_abundance, profile);
             }
         }
 
@@ -347,7 +347,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           prof_type best_count = 0;
           for(auto c = 0; c < 4; ++c)
             {
-              auto const count = profile_v[PROFSIZE * i + c];
+              auto const count = profile[PROFSIZE * i + c];
               if (count > best_count)
                 {
                   best_count = count;
@@ -356,7 +356,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          auto const n_count = profile_v[PROFSIZE * i + 4];
+          auto const n_count = profile[PROFSIZE * i + 4];
           if ((best_count == 0) and (n_count > 0))
             {
               best_count = n_count;
@@ -364,7 +364,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* compare to the number of gap symbols */
-          auto const gap_count = profile_v[PROFSIZE * i + 5];
+          auto const gap_count = profile[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
               auto const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
@@ -424,12 +424,12 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           // A, C, G and T
           for (auto c = 0; c < 4; ++c)
             {
-              fprintf(fp_profile, "\t%" PRId64, profile_v[PROFSIZE * i + c]);
+              fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + c]);
             }
           // Gap symbol
-          fprintf(fp_profile, "\t%" PRId64, profile_v[PROFSIZE * i + 5]);
+          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 5]);
           // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%" PRId64, profile_v[PROFSIZE * i + 4]);
+          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 4]);
           fprintf(fp_profile, "\n");
         }
       fprintf(fp_profile, "\n");
