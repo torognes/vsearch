@@ -67,6 +67,7 @@
 #include <cstdio>  // std::FILE, std::sscanf
 #include <cstring>  // std::memset, std::strlen
 #include <iterator> // std::next
+#include <vector>
 
 
 /* Compute consensus sequence and msa of clustered sequences */
@@ -183,8 +184,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   int const centroid_len = db_getsequencelen(centroid_seqno);
 
   /* find max insertions in front of each position in the centroid sequence */
-  auto * maxi = static_cast<int *>(xmalloc((centroid_len + 1) * sizeof(int)));
-  std::memset(maxi, 0, (centroid_len + 1) * sizeof(int));
+  std::vector<int> max_insertions(centroid_len + 1);
+  auto * maxi = max_insertions.data();
 
   find_max_insertions_per_position(target_count, target_list, maxi);
 
@@ -447,7 +448,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_profile, "\n");
     }
 
-  xfree(maxi);
   xfree(aln);
   xfree(cons);
   xfree(profile);
