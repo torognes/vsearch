@@ -62,6 +62,7 @@
 #include <cctype>  // std::toupper
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
+#include <iterator> // std::next
 
 
 /* Compute consensus sequence and msa of clustered sequences */
@@ -117,7 +118,7 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
       break;
     }
 
-  aln[alnpos] = nucleotide;
+  *std::next(aln, alnpos) = nucleotide;
   ++alnpos;
 }
 
