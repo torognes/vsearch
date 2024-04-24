@@ -317,7 +317,8 @@ void precompute_qual()
         {
           double py = q_to_p(y);
 
-          double p, q;
+          double p;
+          double q;
 
           /* Quality score equations from Edgar & Flyvbjerg (2015) */
 
@@ -582,9 +583,15 @@ void merge(merge_data_t * ip)
   ip->fwd_errors = 0;
   ip->rev_errors = 0;
 
-  char sym, qual;
-  char fwd_sym, fwd_qual, rev_sym, rev_qual;
-  int64_t fwd_pos, rev_pos, merged_pos;
+  char sym;
+  char qual;
+  char fwd_sym;
+  char fwd_qual;
+  char rev_sym;
+  char rev_qual;
+  int64_t fwd_pos;
+  int64_t rev_pos;
+  int64_t merged_pos;
   double ee;
 
   merged_pos = 0;

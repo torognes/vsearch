@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cstdlib>
 
 static struct sortinfo_size_s
 {
@@ -66,35 +67,35 @@ static struct sortinfo_size_s
   unsigned int seqno;
 } * sortinfo;
 
-int sortbysize_compare(const void * a, const void * b)
+int sortbysize_compare(const void * lhs_a, const void * rhs_b)
 {
-  auto * x = (struct sortinfo_size_s *) a;
-  auto * y = (struct sortinfo_size_s *) b;
+  auto * lhs = (struct sortinfo_size_s *) lhs_a;
+  auto * rhs = (struct sortinfo_size_s *) rhs_b;
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->size < y->size)
+  if (lhs->size < rhs->size)
     {
       return +1;
     }
-  else if (x->size > y->size)
+  else if (lhs->size > rhs->size)
     {
       return -1;
     }
   else
     {
-      int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-      if (r != 0)
+      const int result = strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
+      if (result != 0)
         {
-          return r;
+          return result;
         }
       else
         {
-          if (x->seqno < y->seqno)
+          if (lhs->seqno < rhs->seqno)
             {
               return -1;
             }
-          else if (x->seqno > y->seqno)
+          else if (lhs->seqno > rhs->seqno)
             {
               return +1;
             }
@@ -106,13 +107,41 @@ int sortbysize_compare(const void * a, const void * b)
     }
 }
 
+
+[[nodiscard]]
+auto find_median_abundance(const int valid_amplicons,
+                           const sortinfo_size_s * sortinfo) -> double
+{
+  // function returns a round value or a value with a remainder of 0.5
+
+  if (valid_amplicons == 0) {
+    return 0.0;
+  }
+
+  // refactoring C++11: use const& std::vector.size()
+  const auto midarray = std::div(valid_amplicons, 2);
+
+  // odd number of valid amplicons
+  if (valid_amplicons % 2 != 0)  {
+    return sortinfo[midarray.quot].size * 1.0;  // a round value
+  }
+
+  // even number of valid amplicons
+  // (average of two ints is either round or has a remainder of .5)
+  // risk of silent overflow for large abundance values:
+  // a >= b ; (a + b) / 2 == b + (a - b) / 2
+  return sortinfo[midarray.quot].size +
+    ((sortinfo[midarray.quot - 1].size - sortinfo[midarray.quot].size) / 2.0);
+}
+
+
 void sortbysize()
 {
-  if (!opt_output)
+  if (not opt_output)
     fatal("FASTA output file for sortbysize must be specified with --output");
 
-  FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  std::FILE * fp_output = fopen_output(opt_output);
+  if (not fp_output)
     {
       fatal("Unable to open sortbysize output file for writing");
     }
@@ -121,24 +150,25 @@ void sortbysize()
 
   show_rusage();
 
-  int dbsequencecount = db_getsequencecount();
+  const int dbsequencecount = db_getsequencecount();
 
   progress_init("Getting sizes", dbsequencecount);
 
+  // refactoring C++11: use std::vector
   sortinfo = (struct sortinfo_size_s*)
     xmalloc(dbsequencecount * sizeof(sortinfo_size_s));
 
   int passed = 0;
 
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i = 0; i < dbsequencecount; i++)
     {
-      int64_t size = db_getabundance(i);
+      const int64_t size = db_getabundance(i);
 
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
           sortinfo[passed].seqno = i;
           sortinfo[passed].size = (unsigned int) size;
-          passed++;
+          ++passed;
         }
       progress_update(i);
     }
@@ -151,28 +181,16 @@ void sortbysize()
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
-  double median = 0.0;
-  if (passed > 0)
-    {
-      if (passed % 2)
-        {
-          median = sortinfo[(passed-1)/2].size;
-        }
-      else
-        {
-          median = (sortinfo[(passed/2)-1].size +
-                    sortinfo[passed/2].size) / 2.0;
-        }
-    }
+  const double median = find_median_abundance(passed, sortinfo);
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
-      fprintf(stderr, "Median abundance: %.0f\n", median);
+      fprintf(stderr, "Median abundance: %.0f\n", median);  // Banker's rounding (round half to even)
     }
 
   if (opt_log)
     {
-      fprintf(fp_log, "Median abundance: %.0f\n", median);
+      fprintf(fp_log, "Median abundance: %.0f\n", median);  // Banker's rounding (round half to even)
     }
 
   show_rusage();
@@ -180,9 +198,9 @@ void sortbysize()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
+  for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
+      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
       progress_update(i);
     }
   progress_done();

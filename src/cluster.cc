@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // FILE
+#include <limits>
+
 
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
@@ -79,20 +82,20 @@ static int count_notmatched = 0;
 
 static int64_t * cluster_abundance;
 
-static FILE * fp_centroids = nullptr;
-static FILE * fp_uc = nullptr;
-static FILE * fp_alnout = nullptr;
-static FILE * fp_samout = nullptr;
-static FILE * fp_userout = nullptr;
-static FILE * fp_blast6out = nullptr;
-static FILE * fp_fastapairs = nullptr;
-static FILE * fp_matched = nullptr;
-static FILE * fp_notmatched = nullptr;
-static FILE * fp_otutabout = nullptr;
-static FILE * fp_mothur_shared_out = nullptr;
-static FILE * fp_biomout = nullptr;
-static FILE * fp_qsegout = nullptr;
-static FILE * fp_tsegout = nullptr;
+static std::FILE * fp_centroids = nullptr;
+static std::FILE * fp_uc = nullptr;
+static std::FILE * fp_alnout = nullptr;
+static std::FILE * fp_samout = nullptr;
+static std::FILE * fp_userout = nullptr;
+static std::FILE * fp_blast6out = nullptr;
+static std::FILE * fp_fastapairs = nullptr;
+static std::FILE * fp_matched = nullptr;
+static std::FILE * fp_notmatched = nullptr;
+static std::FILE * fp_otutabout = nullptr;
+static std::FILE * fp_mothur_shared_out = nullptr;
+static std::FILE * fp_biomout = nullptr;
+static std::FILE * fp_qsegout = nullptr;
+static std::FILE * fp_tsegout = nullptr;
 
 static pthread_attr_t attr;
 
@@ -201,7 +204,7 @@ inline void cluster_worker(int64_t t)
   for (int q = 0; q < ti[t].query_count; q++)
     {
       cluster_query_core(si_plus + ti[t].query_first + q);
-      if (opt_strand>1)
+      if (opt_strand > 1)
         {
           cluster_query_core(si_minus + ti[t].query_first + q);
         }
@@ -240,7 +243,7 @@ void threads_wakeup(int queries)
   int query_next = 0;
 
   /* tell the threads that there is work to do */
-  for(int t=0; t < threads; t++)
+  for(int t = 0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
 
@@ -257,7 +260,7 @@ void threads_wakeup(int queries)
     }
 
   /* wait for theads to finish their work */
-  for(int t=0; t < threads; t++)
+  for(int t = 0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
       xpthread_mutex_lock(&tip->mutex);
@@ -278,7 +281,7 @@ void threads_init()
   ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
 
   /* init and create worker threads */
-  for(int t=0; t < opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       thread_info_t * tip = ti + t;
       tip->work = 0;
@@ -291,7 +294,7 @@ void threads_init()
 void threads_exit()
 {
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
 
@@ -408,9 +411,9 @@ void cluster_core_results_hit(struct hit * best,
 {
   count_matched++;
 
-  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+  if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
     {
-      if (opt_relabel || opt_relabel_self || opt_relabel_sha1 || opt_relabel_md5)
+      if (opt_relabel or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno,
                                      db_getsequence(best->target),
@@ -509,9 +512,9 @@ void cluster_core_results_nohit(int clusterno,
 {
   count_notmatched++;
 
-  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+  if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
     {
-      if (opt_relabel || opt_relabel_self || opt_relabel_sha1 || opt_relabel_md5)
+      if (opt_relabel or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno, qsequence, qseqlen);
           otutable_add(query_head, label, qsize);
@@ -596,7 +599,7 @@ void cluster_core_parallel()
      and initialize it */
   si_plus  = (struct searchinfo_s *) xmalloc(max_queries *
                                              sizeof(struct searchinfo_s));
-  if (opt_strand>1)
+  if (opt_strand > 1)
     {
       si_minus = (struct searchinfo_s *) xmalloc(max_queries *
                                                  sizeof(struct searchinfo_s));
@@ -652,7 +655,7 @@ void cluster_core_parallel()
               int length = db_getsequencelen(seqno);
 
 #if 1
-              if (opt_cluster_smallmem && (!opt_usersort) && (length > lastlength))
+              if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -680,7 +683,7 @@ void cluster_core_parallel()
       /* analyse results */
       int extra_count = 0;
 
-      for(int i=0; i < queries; i++)
+      for(int i = 0; i < queries; i++)
         {
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m = opt_strand > 1 ? si_minus + i : nullptr;
@@ -696,7 +699,7 @@ void cluster_core_parallel()
                   /* Check if there is a hit with one of the non-matching
                      extra sequences just analysed in this round */
 
-                  for (int j=0; j<extra_count; j++)
+                  for (int j = 0; j < extra_count; j++)
                     {
                       struct searchinfo_s * sic = si_plus + extra_list[j];
 
@@ -718,10 +721,10 @@ void cluster_core_parallel()
                              no of kmers). Determine insertion point (x). */
 
                           int x = si->hit_count;
-                          while ((x > 0) &&
-                                 ((si->hits[x-1].count < shared) ||
-                                  ((si->hits[x-1].count == shared) &&
-                                   (db_getsequencelen(si->hits[x-1].target)
+                          while ((x > 0) and
+                                 ((si->hits[x - 1].count < shared) or
+                                  ((si->hits[x - 1].count == shared) and
+                                   (db_getsequencelen(si->hits[x - 1].target)
                                     > length))))
                             {
                               x--;
@@ -736,7 +739,7 @@ void cluster_core_parallel()
                                 {
                                   if (si->hits[si->hit_count-1].aligned)
                                     {
-                                      xfree(si->hits[si->hit_count-1].nwalignment);
+                                      xfree(si->hits[si->hit_count - 1].nwalignment);
                                     }
                                   si->hit_count--;
                                 }
@@ -744,7 +747,7 @@ void cluster_core_parallel()
                               /* move the rest down */
                               for(int z = si->hit_count; z > x; z--)
                                 {
-                                  si->hits[z] = si->hits[z-1];
+                                  si->hits[z] = si->hits[z - 1];
                                 }
 
                               /* init new hit */
@@ -775,21 +778,21 @@ void cluster_core_parallel()
 
                   /* set all statuses to undetermined */
 
-                  for(int t=0; t< si->hit_count; t++)
+                  for(int t = 0; t < si->hit_count; t++)
                     {
                       si->hits[t].accepted = false;
                       si->hits[t].rejected = false;
                     }
 
                   for(int t = 0;
-                      (si->accepts < opt_maxaccepts) &&
-                        (si->rejects < opt_maxrejects) &&
+                      (si->accepts < opt_maxaccepts) and
+                        (si->rejects < opt_maxrejects) and
                         (t < si->hit_count);
                       t++)
                     {
                       struct hit * hit = si->hits + t;
 
-                      if (! hit->aligned)
+                      if (not hit->aligned)
                         {
                           /* Test accept/reject criteria before alignment */
                           unsigned int target = hit->target;
@@ -826,7 +829,7 @@ void cluster_core_parallel()
 
                               int64_t tseqlen = db_getsequencelen(target);
 
-                              if (snwscore == SHRT_MAX)
+                              if (snwscore == std::numeric_limits<short>::max())
                                 {
                                   /* In case the SIMD aligner cannot align,
                                      perform a new alignment with the
@@ -895,7 +898,7 @@ void cluster_core_parallel()
                             }
                         }
 
-                      if (! hit->rejected)
+                      if (not hit->rejected)
                         {
                           /* test accept/reject criteria after alignment */
                           if (search_acceptable_aligned(si, hit))
@@ -912,10 +915,10 @@ void cluster_core_parallel()
                   /* delete all undetermined hits */
 
                   int new_hit_count = si->hit_count;
-                  for(int t=si->hit_count-1; t>=0; t--)
+                  for(int t = si->hit_count - 1; t >= 0; t--)
                     {
                       struct hit * hit = si->hits + t;
-                      if (!hit->accepted && !hit->rejected)
+                      if (not hit->accepted and not hit->rejected)
                         {
                           new_hit_count = t;
                           if (hit->aligned)
@@ -992,7 +995,7 @@ void cluster_core_parallel()
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
-              for(int j=0; j<si->hit_count; j++)
+              for(int j = 0; j < si->hit_count; j++)
                 {
                   if (si->hits[j].aligned)
                     {
@@ -1054,7 +1057,7 @@ void cluster_core_serial()
       int length = db_getsequencelen(seqno);
 
 #if 1
-      if (opt_cluster_smallmem && (!opt_usersort) && (length > lastlength))
+      if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -1119,7 +1122,7 @@ void cluster_core_serial()
       for (int s = 0; s < opt_strand; s++)
         {
           struct searchinfo_s * si = s ? si_m : si_p;
-          for(int i=0; i<si->hit_count; i++)
+          for(int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
                 {
@@ -1150,7 +1153,7 @@ void cluster(char * dbname,
   if (opt_centroids)
     {
       fp_centroids = fopen_output(opt_centroids);
-      if (!fp_centroids)
+      if (not fp_centroids)
         {
           fatal("Unable to open centroids file for writing");
         }
@@ -1159,7 +1162,7 @@ void cluster(char * dbname,
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (!fp_uc)
+      if (not fp_uc)
         {
           fatal("Unable to open uc file for writing");
         }
@@ -1168,7 +1171,7 @@ void cluster(char * dbname,
   if (opt_alnout)
     {
       fp_alnout = fopen_output(opt_alnout);
-      if (! fp_alnout)
+      if (not fp_alnout)
         {
           fatal("Unable to open alignment output file for writing");
         }
@@ -1180,7 +1183,7 @@ void cluster(char * dbname,
   if (opt_samout)
     {
       fp_samout = fopen_output(opt_samout);
-      if (! fp_samout)
+      if (not fp_samout)
         {
           fatal("Unable to open SAM output file for writing");
         }
@@ -1189,7 +1192,7 @@ void cluster(char * dbname,
   if (opt_userout)
     {
       fp_userout = fopen_output(opt_userout);
-      if (! fp_userout)
+      if (not fp_userout)
         {
           fatal("Unable to open user-defined output file for writing");
         }
@@ -1198,7 +1201,7 @@ void cluster(char * dbname,
   if (opt_blast6out)
     {
       fp_blast6out = fopen_output(opt_blast6out);
-      if (! fp_blast6out)
+      if (not fp_blast6out)
         {
           fatal("Unable to open blast6-like output file for writing");
         }
@@ -1207,7 +1210,7 @@ void cluster(char * dbname,
   if (opt_fastapairs)
     {
       fp_fastapairs = fopen_output(opt_fastapairs);
-      if (! fp_fastapairs)
+      if (not fp_fastapairs)
         {
           fatal("Unable to open fastapairs output file for writing");
         }
@@ -1216,7 +1219,7 @@ void cluster(char * dbname,
   if (opt_qsegout)
     {
       fp_qsegout = fopen_output(opt_qsegout);
-      if (! fp_qsegout)
+      if (not fp_qsegout)
         {
           fatal("Unable to open qsegout output file for writing");
         }
@@ -1225,7 +1228,7 @@ void cluster(char * dbname,
   if (opt_tsegout)
     {
       fp_tsegout = fopen_output(opt_tsegout);
-      if (! fp_tsegout)
+      if (not fp_tsegout)
         {
           fatal("Unable to open tsegout output file for writing");
         }
@@ -1234,7 +1237,7 @@ void cluster(char * dbname,
   if (opt_matched)
     {
       fp_matched = fopen_output(opt_matched);
-      if (! fp_matched)
+      if (not fp_matched)
         {
           fatal("Unable to open matched output file for writing");
         }
@@ -1243,7 +1246,7 @@ void cluster(char * dbname,
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (not fp_notmatched)
         {
           fatal("Unable to open notmatched output file for writing");
         }
@@ -1252,7 +1255,7 @@ void cluster(char * dbname,
   if (opt_otutabout)
     {
       fp_otutabout = fopen_output(opt_otutabout);
-      if (! fp_otutabout)
+      if (not fp_otutabout)
         {
           fatal("Unable to open OTU table (text format) output file for writing");
         }
@@ -1261,7 +1264,7 @@ void cluster(char * dbname,
   if (opt_mothur_shared_out)
     {
       fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
-      if (! fp_mothur_shared_out)
+      if (not fp_mothur_shared_out)
         {
           fatal("Unable to open OTU table (mothur format) output file for writing");
         }
@@ -1270,7 +1273,7 @@ void cluster(char * dbname,
   if (opt_biomout)
     {
       fp_biomout = fopen_output(opt_biomout);
-      if (! fp_biomout)
+      if (not fp_biomout)
         {
           fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
         }
@@ -1286,7 +1289,7 @@ void cluster(char * dbname,
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
     {
       hardmask_all();
     }
@@ -1299,7 +1302,7 @@ void cluster(char * dbname,
     {
       db_sortbylength();
     }
-  else if (opt_cluster_size || opt_cluster_unoise)
+  else if (opt_cluster_size or opt_cluster_unoise)
     {
       db_sortbyabundance();
     }
@@ -1308,12 +1311,12 @@ void cluster(char * dbname,
 
   /* tophits = the maximum number of hits we need to store */
 
-  if ((opt_maxrejects == 0) || (opt_maxrejects > seqcount))
+  if ((opt_maxrejects == 0) or (opt_maxrejects > seqcount))
     {
       opt_maxrejects = seqcount;
     }
 
-  if ((opt_maxaccepts == 0) || (opt_maxaccepts > seqcount))
+  if ((opt_maxaccepts == 0) or (opt_maxaccepts > seqcount))
     {
       opt_maxaccepts = seqcount;
     }
@@ -1361,7 +1364,7 @@ void cluster(char * dbname,
   memset(cluster_abundance, 0, clusters * sizeof(int64_t));
   memset(cluster_size, 0, clusters * sizeof(int));
 
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       int seqno = clusterinfo[i].seqno;
       int clusterno = clusterinfo[i].clusterno;
@@ -1374,7 +1377,7 @@ void cluster(char * dbname,
   int size_max = 0;
   int singletons = 0;
 
-  for(int z=0; z<clusters; z++)
+  for(int z = 0; z < clusters; z++)
     {
       int64_t abundance = cluster_abundance[z];
       if (abundance < abundance_min)
@@ -1419,7 +1422,7 @@ void cluster(char * dbname,
   progress_init("Writing clusters", seqcount);
 
   /* allocate memory for full file name of the clusters files */
-  FILE * fp_clusters = nullptr;
+  std::FILE * fp_clusters = nullptr;
   char * fn_clusters = nullptr;
   int fn_clusters_size = 0;
   if (opt_clusters)
@@ -1431,7 +1434,7 @@ void cluster(char * dbname,
   int lastcluster = -1;
   int ordinal = 0;
 
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       int seqno = clusterinfo[i].seqno;
       int clusterno = clusterinfo[i].clusterno;
@@ -1487,7 +1490,7 @@ void cluster(char * dbname,
                        opt_clusters,
                        clusterno);
               fp_clusters = fopen_output(fn_clusters);
-              if (!fp_clusters)
+              if (not fp_clusters)
                 {
                   fatal("Unable to open clusters file for writing");
                 }
@@ -1524,7 +1527,7 @@ void cluster(char * dbname,
 
   if (clusters < 1)
     {
-      if (!opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr, "Clusters: 0\n");
           fprintf(stderr, "Singletons: 0\n");
@@ -1537,7 +1540,7 @@ void cluster(char * dbname,
     }
   else
     {
-      if (!opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
@@ -1569,20 +1572,21 @@ void cluster(char * dbname,
         }
     }
 
-  if (opt_msaout || opt_consout || opt_profile)
+  if (opt_msaout or opt_consout or opt_profile)
     {
       int msa_target_count = 0;
       auto * msa_target_list =
         (struct msa_target_s *) xmalloc(sizeof(struct msa_target_s) * size_max);
       progress_init("Multiple alignments", seqcount);
 
-      FILE * fp_msaout = nullptr;
-      FILE * fp_consout = nullptr;
-      FILE * fp_profile = nullptr;
+      std::FILE * fp_msaout = nullptr;
+      std::FILE * fp_consout = nullptr;
+      std::FILE * fp_profile = nullptr;
 
       if (opt_msaout)
         {
-          if (!(fp_msaout = fopen_output(opt_msaout)))
+          fp_msaout = fopen_output(opt_msaout);
+          if (not (fp_msaout))
             {
               fatal("Unable to open msaout file");
             }
@@ -1590,7 +1594,8 @@ void cluster(char * dbname,
 
       if (opt_consout)
         {
-          if (!(fp_consout = fopen_output(opt_consout)))
+          fp_consout = fopen_output(opt_consout);
+          if (not (fp_consout))
             {
               fatal("Unable to open consout file");
             }
@@ -1598,7 +1603,8 @@ void cluster(char * dbname,
 
       if (opt_profile)
         {
-          if (!(fp_profile = fopen_output(opt_profile)))
+          fp_profile = fopen_output(opt_profile);
+          if (not (fp_profile))
             {
               fatal("Unable to open profile file");
             }
@@ -1606,7 +1612,7 @@ void cluster(char * dbname,
 
       lastcluster = -1;
 
-      for(int i=0; i<seqcount; i++)
+      for(int i = 0; i < seqcount; i++)
         {
           int clusterno = clusterinfo[i].clusterno;
           int seqno = clusterinfo[i].seqno;
@@ -1672,7 +1678,7 @@ void cluster(char * dbname,
 
   /* free cigar strings for all aligned sequences */
 
-  for(int i=0; i<seqcount; i++)
+  for(int i = 0; i < seqcount; i++)
     {
       if (clusterinfo[i].cigar)
         {

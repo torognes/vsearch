@@ -1,3 +1,7 @@
+// refactoring: sha1.h headers are available in gcc and clang
+// alternatively, there are C++ implementations available. OpenSSH's
+// version is the fastest
+
 /* Slightly modified for vsearch by Torbjorn Rognes */
 
 /*
@@ -103,15 +107,15 @@ void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64]);
 #define blk0(i) (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
     |(rol(block->l[i],8)&0x00FF00FF))
 #endif
-#define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15]^block->l[(i+8)&15] \
-    ^block->l[(i+2)&15]^block->l[i&15],1))
+#define blk(i) (block->l[(i)&15] = rol(block->l[((i)+13)&15]^block->l[((i)+8)&15] \
+                                       ^block->l[((i)+2)&15]^block->l[(i)&15],1))
 
 /* (R0+R1), R2, R3, R4 are the different operations used in SHA1 */
-#define R0(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk0(i)+0x5A827999+rol(v,5);w=rol(w,30);
-#define R1(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk(i)+0x5A827999+rol(v,5);w=rol(w,30);
-#define R2(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);
-#define R3(v,w,x,y,z,i) z+=(((w|x)&y)|(w&x))+blk(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);
-#define R4(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);
+#define R0(v,w,x,y,z,i) z+=(((w)&((x)^(y)))^(y))+blk0(i)+0x5A827999+rol(v,5);(w)=rol(w,30);
+#define R1(v,w,x,y,z,i) z+=(((w)&((x)^(y)))^(y))+blk(i)+0x5A827999+rol(v,5);(w)=rol(w,30);
+#define R2(v,w,x,y,z,i) z+=((w)^(x)^(y))+blk(i)+0x6ED9EBA1+rol(v,5);(w)=rol(w,30);
+#define R3(v,w,x,y,z,i) z+=((((w)|(x))&(y))|((w)&(x)))+blk(i)+0x8F1BBCDC+rol(v,5);(w)=rol(w,30);
+#define R4(v,w,x,y,z,i) z+=((w)^(x)^(y))+blk(i)+0xCA62C1D6+rol(v,5);(w)=rol(w,30);
 
 
 #ifdef VERBOSE  /* SAK */
@@ -130,7 +134,11 @@ void SHAPrintContext(SHA1_CTX *context, char *msg){
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
 {
-    uint32_t a, b, c, d, e;
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+    uint32_t e;
     typedef union {
         uint8_t c[64];
         uint32_t l[16];
@@ -202,16 +210,18 @@ void SHA1_Init(SHA1_CTX* context)
 /* Run your data through this. */
 void SHA1_Update(SHA1_CTX* context, const uint8_t* data, const size_t len)
 {
-    size_t i, j;
+    size_t i;
+    size_t j;
 
 #ifdef VERBOSE
     SHAPrintContext(context, "before");
 #endif
 
     j = (context->count[0] >> 3) & 63;
-    if ((context->count[0] += len << 3) < (len << 3)) { context->count[1]++;
-
-        }
+    context->count[0] += len << 3;
+    if (context->count[0] < (len << 3)) {
+      context->count[1]++;
+    }
     context->count[1] += (len >> 29);
     if ((j + len) > 63) {
         memcpy(&context->buffer[j], data, (i = 64-j));

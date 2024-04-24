@@ -120,7 +120,7 @@ class LinearMemoryAligner
             bool b_left,      /* includes left end of b  */
             bool b_right);    /* includes right end of b */
 
-  void alloc_vectors(size_t N);
+  void alloc_vectors(size_t x);
 
   void show_matrix();
 
@@ -148,8 +148,8 @@ public:
 
   char * align(char * _a_seq,
                char * _b_seq,
-               int64_t M,
-               int64_t N);
+               int64_t a_len,
+               int64_t b_len);
 
   void alignstats(char * cigar,
                   char * a_seq,

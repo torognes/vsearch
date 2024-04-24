@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <limits>
+
 
 static pthread_t * pthread;
 
@@ -188,7 +190,7 @@ void allpairs_output_results(int hit_count,
 
           if (fp_uc)
             {
-              if ((t==0) || opt_uc_allhits)
+              if ((t == 0) or opt_uc_allhits)
                 {
                   results_show_uc_one(fp_uc,
                                       hp,
@@ -388,7 +390,7 @@ void allpairs_thread_run(int64_t t)
           for(int target = si->query_no + 1;
               target < seqcount; target++)
             {
-              if (opt_acceptall || search_acceptable_unaligned(si, target))
+              if (opt_acceptall or search_acceptable_unaligned(si, target))
                 {
                   pseqnos[si->hit_count++] = target;
                 }
@@ -424,7 +426,7 @@ void allpairs_thread_run(int64_t t)
                   int64_t nwmismatches {0};
                   int64_t nwgaps {0};
 
-                  if (nwscore == SHRT_MAX)
+                  if (nwscore == std::numeric_limits<short>::max())
                     {
                       /* In case the SIMD aligner cannot align,
                          perform a new alignment with the
@@ -488,7 +490,7 @@ void allpairs_thread_run(int64_t t)
                   align_trim(hit);
 
                   /* test accept/reject criteria after alignment */
-                  if (opt_acceptall || search_acceptable_aligned(si, hit))
+                  if (opt_acceptall or search_acceptable_aligned(si, hit))
                     {
                       finalhits[si->accepts++] = *hit;
                     }

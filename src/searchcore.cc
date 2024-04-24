@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <limits>
+
 
 /* per thread data */
 
@@ -197,7 +199,7 @@ int hit_compare_bysize(const void * a, const void * b)
 bool search_enough_kmers(struct searchinfo_s * si,
                          unsigned int count)
 {
-  return (count >= opt_minwordmatches) || (count >= si->kmersamplecount);
+  return (count >= opt_minwordmatches) or (count >= si->kmersamplecount);
 }
 
 void search_topscores(struct searchinfo_s * si)
@@ -217,7 +219,7 @@ void search_topscores(struct searchinfo_s * si)
 
   minheap_empty(si->m);
 
-  for(unsigned int i=0; i<si->kmersamplecount; i++)
+  for(unsigned int i = 0; i < si->kmersamplecount; i++)
     {
       unsigned int kmer = si->kmersample[i];
       unsigned char * bitmap = dbindex_getbitmap(kmer);
@@ -243,7 +245,7 @@ void search_topscores(struct searchinfo_s * si)
         {
           unsigned int * list = dbindex_getmatchlist(kmer);
           unsigned int count = dbindex_getmatchcount(kmer);
-          for(unsigned int j=0; j < count; j++)
+          for(unsigned int j = 0; j < count; j++)
             {
               si->kmers[list[j]]++;
             }
@@ -252,7 +254,7 @@ void search_topscores(struct searchinfo_s * si)
 
   const int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
 
-  for(int i=0; i < indexed_count; i++)
+  for(int i = 0; i < indexed_count; i++)
     {
       count_t count = si->kmers[i];
       if (count >= minmatches)
@@ -274,7 +276,7 @@ void search_topscores(struct searchinfo_s * si)
 
 int seqncmp(char * a, char * b, uint64_t n)
 {
-  for(unsigned int i = 0; i<n; i++)
+  for(unsigned int i = 0; i < n; i++)
     {
       const int x = chrmap_4bit[(int)(a[i])];
       const int y = chrmap_4bit[(int)(b[i])];
@@ -341,7 +343,7 @@ void align_trim(struct hit * hit)
         {
           while ((p > hit->nwalignment) && (*(p-1) <= '9'))
             {
-              p--;
+              --p;
             }
           run = 1;
           sscanf(p, "%" PRId64, &run);
@@ -457,21 +459,21 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
       /* idprefix */
       ((si->qseqlen >= opt_idprefix) &&
        (dseqlen >= opt_idprefix) &&
-       (!seqncmp(qseq, dseq, opt_idprefix)))
+       (not seqncmp(qseq, dseq, opt_idprefix)))
       &&
       /* idsuffix */
       ((si->qseqlen >= opt_idsuffix) &&
        (dseqlen >= opt_idsuffix) &&
-       (!seqncmp(qseq+si->qseqlen-opt_idsuffix,
+       (not seqncmp(qseq+si->qseqlen-opt_idsuffix,
                  dseq+dseqlen-opt_idsuffix,
                  opt_idsuffix)))
       &&
       /* self */
-      ((!opt_self) || (strcmp(si->query_head, dlabel)))
+      ((not opt_self) or (strcmp(si->query_head, dlabel)))
       &&
       /* selfid */
-      ((!opt_selfid) ||
-       (si->qseqlen != dseqlen) ||
+      ((not opt_selfid) or
+       (si->qseqlen != dseqlen) or
        (seqncmp(qseq, dseq, si->qseqlen)))
       )
     {
@@ -497,10 +499,10 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       /* mincols */
       (hit->internal_alignmentlength >= opt_mincols) &&
       /* leftjust */
-      ((!opt_leftjust) || (hit->trim_q_left +
+      ((not opt_leftjust) or (hit->trim_q_left +
                            hit->trim_t_left == 0)) &&
       /* rightjust */
-      ((!opt_rightjust) || (hit->trim_q_right +
+      ((not opt_rightjust) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) &&
       /* query_cov */
       (hit->matches + hit->mismatches >= opt_query_cov * si->qseqlen) &&
@@ -520,7 +522,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
           const double skew = 1.0 * si->qsize / db_getabundance(hit->target);
           const double beta = 1.0 / pow(2, 1.0 * opt_unoise_alpha * mismatches + 1);
 
-          if (skew <= beta || mismatches == 0)
+          if (skew <= beta or mismatches == 0)
             {
               /* accepted */
               hit->accepted = true;
@@ -579,7 +581,7 @@ void align_delayed(struct searchinfo_s * si)
   for(int x = si->finalized; x < si->hit_count; x++)
     {
       struct hit * hit = si->hits + x;
-      if (! hit->rejected)
+      if (not hit->rejected)
         {
           target_list[target_count++] = hit->target;
         }
@@ -624,7 +626,7 @@ void align_delayed(struct searchinfo_s * si)
 
               int64_t dseqlen = db_getsequencelen(target);
 
-              if (nwscore == SHRT_MAX)
+              if (nwscore == std::numeric_limits<short>::max())
                 {
                   /* In case the SIMD aligner cannot align,
                      perform a new alignment with the
@@ -687,7 +689,7 @@ void align_delayed(struct searchinfo_s * si)
                   si->rejects++;
                 }
 
-              i++;
+              ++i;
             }
         }
     }
@@ -743,7 +745,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
   while ((si->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
          (si->rejects < opt_maxrejects) &&
          (si->accepts < opt_maxaccepts) &&
-         (!minheap_isempty(si->m)))
+         (not minheap_isempty(si->m)))
     {
       elem_t e = minheap_poplast(si->m);
 
@@ -761,7 +763,7 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
       /* Test some accept/reject criteria before alignment */
       if (search_acceptable_unaligned(si, e.seqno))
         {
-          delayed++;
+          ++delayed;
         }
       else
         {
@@ -790,9 +792,9 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 {
   struct hit * best = nullptr;
 
-  for(int i=0; i < si_p->hit_count; i++)
+  for(int i = 0; i < si_p->hit_count; i++)
     {
-      if ((!best) || (hit_compare_byid_typed(si_p->hits + i, best) < 0))
+      if ((not best) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
         {
           best = si_p->hits + i;
         }
@@ -800,16 +802,16 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
 
   if (opt_strand>1)
     {
-      for(int i=0; i < si_m->hit_count; i++)
+      for(int i = 0; i < si_m->hit_count; i++)
         {
-          if ((!best) || (hit_compare_byid_typed(si_m->hits + i, best) < 0))
+          if ((not best) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
             {
               best = si_m->hits + i;
             }
         }
     }
 
-  if (best && ! best->accepted)
+  if (best and not best->accepted)
     {
       best = nullptr;
     }
@@ -822,9 +824,9 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
 {
   struct hit * best = nullptr;
 
-  for(int i=0; i < si_p->hit_count; i++)
+  for(int i = 0; i < si_p->hit_count; i++)
     {
-      if ((!best) || (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
+      if ((not best) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
         {
           best = si_p->hits + i;
         }
@@ -832,16 +834,16 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
 
   if (opt_strand>1)
     {
-      for(int i=0; i < si_m->hit_count; i++)
+      for(int i = 0; i < si_m->hit_count; i++)
         {
-          if ((!best) || (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
+          if ((not best) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
             {
               best = si_m->hits + i;
             }
         }
     }
 
-  if (best && ! best->accepted)
+  if (best and not best->accepted)
     {
       best = nullptr;
     }
@@ -867,7 +869,7 @@ void search_joinhits(struct searchinfo_s * si_p,
           struct hit * h = si->hits + i;
           if (h->accepted || h->weak)
             {
-              a++;
+              ++a;
             }
         }
     }
@@ -880,7 +882,7 @@ void search_joinhits(struct searchinfo_s * si_p,
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = s ? si_m : si_p;
-      for(int i=0; i<si->hit_count; i++)
+      for(int i = 0; i<si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
           if (h->accepted || h->weak)

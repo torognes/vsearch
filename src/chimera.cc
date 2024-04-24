@@ -59,7 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <limits>
 #include <vector>
+
 
 /*
   This code implements the method described in this paper:
@@ -1480,22 +1482,24 @@ int eval_parents(struct chimera_info_s * ci)
             {
               /* count non-gap symbols on current line */
 
-              int qnt, p1nt, p2nt;
+              int qnt;
+              int p1nt;
+              int p2nt;
               qnt = p1nt = p2nt = 0;
 
               int w = MIN(rest,width);
 
-              for(int j=0; j<w; j++)
+              for(int j = 0; j < w; j++)
                 {
-                  if (ci->qaln[i+j] != '-')
+                  if (ci->qaln[i + j] != '-')
                     {
                       qnt++;
                     }
-                  if (ci->paln[0][i+j] != '-')
+                  if (ci->paln[0][i + j] != '-')
                     {
                       p1nt++;
                     }
-                  if (ci->paln[1][i+j] != '-')
+                  if (ci->paln[1][i + j] != '-')
                     {
                       p2nt++;
                     }
@@ -1978,7 +1982,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
           int64_t nwmismatches;
           int64_t nwgaps;
 
-          if (nwscore == SHRT_MAX)
+          if (nwscore == std::numeric_limits<short>::max())
             {
               /* In case the SIMD aligner cannot align,
                  perform a new alignment with the

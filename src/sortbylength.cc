@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+// #include <algorithm>  // std::min
+#include <cstdio>  // FILE
+
 
 static struct sortinfo_length_s
 {
@@ -118,11 +121,11 @@ int sortbylength_compare(const void * a, const void * b)
 
 void sortbylength()
 {
-  if (!opt_output)
+  if (not opt_output)
     fatal("FASTA output file for sortbylength must be specified with --output");
 
-  FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  std::FILE * fp_output = fopen_output(opt_output);
+  if (not fp_output)
     {
       fatal("Unable to open sortbylength output file for writing");
     }
@@ -130,14 +133,14 @@ void sortbylength()
   db_read(opt_sortbylength, 0);
   show_rusage();
 
-  int dbsequencecount = db_getsequencecount();
+  const int dbsequencecount = db_getsequencecount();
   sortinfo = (struct sortinfo_length_s *)
     xmalloc(dbsequencecount * sizeof(sortinfo_length_s));
 
   int passed = 0;
 
   progress_init("Getting lengths", dbsequencecount);
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i = 0; i < dbsequencecount; i++)
     {
       sortinfo[passed].seqno = i;
       sortinfo[passed].length = db_getsequencelen(i);
@@ -152,21 +155,22 @@ void sortbylength()
   qsort(sortinfo, passed, sizeof(sortinfo_length_s), sortbylength_compare);
   progress_done();
 
+  // refactoring: make function (see sortbysize.cc)
   double median = 0.0;
   if (passed > 0)
     {
       if (passed % 2)
         {
-          median = sortinfo[(passed-1)/2].length;
+          median = sortinfo[(passed - 1) / 2].length;
         }
       else
         {
-          median = (sortinfo[(passed/2)-1].length +
-                    sortinfo[passed/2].length) / 2.0;
+          median = (sortinfo[(passed / 2) - 1].length +
+                    sortinfo[passed / 2].length) / 2.0;
         }
     }
 
-  if (!opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Median length: %.0f\n", median);
     }
@@ -178,12 +182,13 @@ void sortbylength()
 
   show_rusage();
 
+  // refactoring: std::min()
   passed = MIN(passed, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
+  for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i+1);
+      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
       progress_update(i);
     }
   progress_done();

@@ -92,8 +92,14 @@
 static void *body(MD5_CTX *ctx, void *data, unsigned long size)
 {
         unsigned char *ptr;
-        MD5_u32plus a, b, c, d;
-        MD5_u32plus saved_a, saved_b, saved_c, saved_d;
+        MD5_u32plus a;
+        MD5_u32plus b;
+        MD5_u32plus c;
+        MD5_u32plus d;
+        MD5_u32plus saved_a;
+        MD5_u32plus saved_b;
+        MD5_u32plus saved_c;
+        MD5_u32plus saved_d;
 
         ptr = data;
 
@@ -210,10 +216,12 @@ void MD5_Init(MD5_CTX *ctx)
 void MD5_Update(MD5_CTX *ctx, void *data, unsigned long size)
 {
         MD5_u32plus saved_lo;
-        unsigned long used, free;
+        unsigned long used;
+        unsigned long free;
 
         saved_lo = ctx->lo;
-        if ((ctx->lo = (saved_lo + size) & 0x1fffffff) < saved_lo) {
+        ctx->lo = (saved_lo + size) & 0x1fffffff;
+        if (ctx->lo < saved_lo) {
                 ctx->hi++;
 
         }
@@ -245,7 +253,8 @@ void MD5_Update(MD5_CTX *ctx, void *data, unsigned long size)
 
 void MD5_Final(unsigned char *result, MD5_CTX *ctx)
 {
-        unsigned long used, free;
+        unsigned long used;
+        unsigned long free;
 
         used = ctx->lo & 0x3f;
 
