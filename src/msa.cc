@@ -306,7 +306,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         }
 
       /* end of sequence string */
-      aln[alnpos] = 0;
+      aln_v[alnpos] = 0;
 
       /* print header & sequence */
       if (fp_msaout != nullptr)
@@ -340,7 +340,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     {
       if ((i < left_censored) or (i >= alnlen - right_censored))
         {
-          aln[i] = '+';
+          aln_v[i] = '+';
         }
       else
         {
@@ -370,18 +370,18 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           if (best_count >= gap_count)
             {
               auto const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
-              aln[i] = sym;
+              aln_v[i] = sym;
               cons[conslen] = sym;
               ++conslen;
             }
           else
             {
-              aln[i] = '-';
+              aln_v[i] = '-';
             }
         }
     }
 
-  aln[alnlen] = 0;
+  aln_v[alnlen] = 0;
   cons[conslen] = 0;
 
   if (fp_msaout != nullptr)
@@ -422,7 +422,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
       for (auto i = 0; i < alnlen; ++i)
         {
-          fprintf(fp_profile, "%d\t%c", i, aln[i]);
+          fprintf(fp_profile, "%d\t%c", i, aln_v[i]);
           // A, C, G and T
           for (auto c = 0; c < 4; ++c)
             {
@@ -437,6 +437,5 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_profile, "\n");
     }
 
-  xfree(aln);
   xfree(cons);
 }
