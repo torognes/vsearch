@@ -81,7 +81,8 @@ static int alnpos;
 static prof_type * profile;
 
 
-auto msa_add(char const nucleotide, prof_type const abundance) -> void
+auto msa_add(char const nucleotide, prof_type const abundance,
+             std::vector<prof_type>& profile_v) -> void
 {
   static constexpr auto A_counter = 0;
   static constexpr auto C_counter = 1;
@@ -89,22 +90,22 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
   static constexpr auto U_counter = 3;  // note: T converted to U?
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  auto * const position_profile = std::next(profile, static_cast<std::ptrdiff_t>(PROFSIZE) * alnpos);
+  auto const offset = PROFSIZE * alnpos;
 
   switch(std::toupper(nucleotide))
     {
     case 'A':
-      *std::next(position_profile, A_counter) += abundance;
+      profile_v[offset + A_counter] += abundance;
       break;
     case 'C':
-      *std::next(position_profile, C_counter) += abundance;
+      profile_v[offset + C_counter] += abundance;
       break;
     case 'G':
-      *std::next(position_profile, G_counter) += abundance;
+      profile_v[offset + G_counter] += abundance;
       break;
     case 'T':
     case 'U':
-      *std::next(position_profile, U_counter) += abundance;
+      profile_v[offset + U_counter] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -117,10 +118,10 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
     case 'H':
     case 'V':
     case 'N':
-      *std::next(position_profile, N_counter) += abundance;
+      profile_v[offset + N_counter] += abundance;
       break;
     case '-':
-      *std::next(position_profile, gap_counter) += abundance;
+      profile_v[offset + gap_counter] += abundance;
       break;
     default:
       break;
@@ -235,9 +236,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             {
               for(auto y = 0; y < max_insertions[qpos]; ++y)
                 {
-                  msa_add('-', target_abundance);
+                  msa_add('-', target_abundance, profile_v);
                 }
-              msa_add(target_seq[tpos++], target_abundance);
+              msa_add(target_seq[tpos++], target_abundance, profile_v);
               ++qpos;
             }
         }
@@ -260,11 +261,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                     {
                       if (x < run)
                         {
-                          msa_add(target_seq[tpos++], target_abundance);
+                          msa_add(target_seq[tpos++], target_abundance, profile_v);
                         }
                       else
                         {
-                          msa_add('-', target_abundance);
+                          msa_add('-', target_abundance, profile_v);
                         }
                     }
                   inserted = 1;
@@ -277,17 +278,17 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                         {
                           for(int y = 0; y < max_insertions[qpos]; ++y)
                             {
-                              msa_add('-', target_abundance);
+                              msa_add('-', target_abundance, profile_v);
                             }
                         }
 
                       if (op == 'M')
                         {
-                          msa_add(target_seq[tpos++], target_abundance);
+                          msa_add(target_seq[tpos++], target_abundance, profile_v);
                         }
                       else
                         {
-                          msa_add('-', target_abundance);
+                          msa_add('-', target_abundance, profile_v);
                         }
 
                       ++qpos;
@@ -301,7 +302,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         {
           for(auto x = 0; x < max_insertions[qpos]; ++x)
             {
-              msa_add('-', target_abundance);
+              msa_add('-', target_abundance, profile_v);
             }
         }
 
