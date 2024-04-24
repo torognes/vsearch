@@ -181,8 +181,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
   for (int i = 0; i < PROFSIZE * alnlen; i++)
     profile[i] = 0;
-  aln = (char *) xmalloc(alnlen+1);
-  char * cons = (char *) xmalloc(alnlen+1);
+  aln = (char *) xmalloc(alnlen + 1);
+  char * cons = (char *) xmalloc(alnlen + 1);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
