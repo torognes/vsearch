@@ -185,7 +185,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* allocate memory for profile (for consensus) and aligned seq */
   profile = static_cast<prof_type *>(xmalloc(PROFSIZE * sizeof(prof_type) * alnlen));
-  for (auto i = 0; i < PROFSIZE * alnlen; i++)
+  for (auto i = 0; i < PROFSIZE * alnlen; ++i)
     {
       profile[i] = 0;
     }
@@ -214,7 +214,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_msaout, "\n");
     }
 
-  for(auto j = 0; j < target_count; j++)
+  for(auto j = 0; j < target_count; ++j)
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
@@ -235,14 +235,14 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
       if (not j)
         {
-          for(int x = 0; x < centroid_len; x++)
+          for(int x = 0; x < centroid_len; ++x)
             {
-              for(int y = 0; y < maxi[qpos]; y++)
+              for(int y = 0; y < maxi[qpos]; ++y)
                 {
                   msa_add('-', target_abundance);
                 }
               msa_add(target_seq[tpos++], target_abundance);
-              qpos++;
+              ++qpos;
             }
         }
       else
@@ -260,7 +260,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
               if (op == 'D')
                 {
-                  for(int x = 0; x < maxi[qpos]; x++)
+                  for(int x = 0; x < maxi[qpos]; ++x)
                     {
                       if (x < run)
                         {
@@ -275,11 +275,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                 }
               else
                 {
-                  for(int x = 0; x < run; x++)
+                  for(int x = 0; x < run; ++x)
                     {
                       if (not inserted)
                         {
-                          for(int y = 0; y < maxi[qpos]; y++)
+                          for(int y = 0; y < maxi[qpos]; ++y)
                             {
                               msa_add('-', target_abundance);
                             }
@@ -294,7 +294,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                           msa_add('-', target_abundance);
                         }
 
-                      qpos++;
+                      ++qpos;
                       inserted = 0;
                     }
                 }
@@ -303,7 +303,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
       if (not inserted)
         {
-          for(int x = 0; x < maxi[qpos]; x++)
+          for(int x = 0; x < maxi[qpos]; ++x)
             {
               msa_add('-', target_abundance);
             }
