@@ -212,9 +212,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   for(auto j = 0; j < target_count; ++j)
     {
-      int target_seqno = target_list[j].seqno;
+      int const target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
-      prof_type target_abundance = opt_sizein ?
+      prof_type const target_abundance = opt_sizein ?
         db_getabundance(target_seqno) : 1;
 
       if (target_list[j].strand)
@@ -349,7 +349,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           prof_type best_count = 0;
           for(auto c = 0; c < 4; ++c)
             {
-              auto count = profile[PROFSIZE * i + c];
+              auto const count = profile[PROFSIZE * i + c];
               if (count > best_count)
                 {
                   best_count = count;
