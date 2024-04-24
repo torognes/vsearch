@@ -372,7 +372,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           prof_type const gap_count = profile[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
-              char const sym = sym_nt_4bit[(int)best_sym];
+              char const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
               aln[i] = sym;
               cons[conslen] = sym;
               ++conslen;
