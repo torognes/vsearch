@@ -246,7 +246,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         {
           for(int x = 0; x < centroid_len; ++x)
             {
-              for(int y = 0; y < maxi[qpos]; ++y)
+              for(int y = 0; y < max_insertions[qpos]; ++y)
                 {
                   msa_add('-', target_abundance);
                 }
@@ -269,7 +269,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
               if (op == 'D')
                 {
-                  for(int x = 0; x < maxi[qpos]; ++x)
+                  for(int x = 0; x < max_insertions[qpos]; ++x)
                     {
                       if (x < run)
                         {
@@ -288,7 +288,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                     {
                       if (not inserted)
                         {
-                          for(int y = 0; y < maxi[qpos]; ++y)
+                          for(int y = 0; y < max_insertions[qpos]; ++y)
                             {
                               msa_add('-', target_abundance);
                             }
@@ -312,7 +312,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
       if (not inserted)
         {
-          for(int x = 0; x < maxi[qpos]; ++x)
+          for(int x = 0; x < max_insertions[qpos]; ++x)
             {
               msa_add('-', target_abundance);
             }
@@ -346,8 +346,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* Censor part of the consensus sequence outside the centroid sequence */
 
-  int left_censored = maxi[0];
-  int right_censored = maxi[centroid_len];
+  int left_censored = max_insertions[0];
+  int right_censored = max_insertions[centroid_len];
 
   for(int i = 0; i < alnlen; i++)
     {
