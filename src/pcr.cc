@@ -264,8 +264,8 @@ void pcr()
 
       for(long i = 0; i < count; i++)
         {
-	  char * seq1 = db_getsequence(i);
-	  long seq1len = db_getsequencelen(i);
+          char * seq1 = db_getsequence(i);
+          long seq1len = db_getsequencelen(i);
           if (random_int(big_int) < int(big_int * opt_pcr_chimera_p))
             {
               long j = random_int(count);
@@ -325,7 +325,7 @@ void pcr()
             {
               char * dup = strdup(seq1);
               long dup_length = seq1len;
-	      bool is_chim = strcmp(db_getheader(i), header_chimera) == 0;
+              bool is_chim = strcmp(db_getheader(i), header_chimera) == 0;
               mutate_sequence(dup, dup_length);
               db_add(false,
                      (char*)(is_chim ? header_chimera : header_normal),
