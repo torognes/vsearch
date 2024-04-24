@@ -312,7 +312,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       aln[alnpos] = 0;
 
       /* print header & sequence */
-      if (fp_msaout)
+      if (fp_msaout != nullptr)
         {
           fasta_print_general(fp_msaout,
                               j ? "" : "*",
