@@ -77,7 +77,6 @@ constexpr auto PROFSIZE = 6;
 
 static char * aln;
 static int alnpos;
-static prof_type * profile;
 
 
 auto msa_add(char const nucleotide, prof_type const abundance,
@@ -184,7 +183,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* allocate memory for profile (for consensus) and aligned seq */
   std::vector<prof_type> profile_v(PROFSIZE * alnlen);
-  profile = profile_v.data();
   aln = static_cast<char *>(xmalloc(alnlen + 1));
   char * cons = static_cast<char *>(xmalloc(alnlen + 1));
 
