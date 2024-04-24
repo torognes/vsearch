@@ -422,11 +422,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                           opt_clusterout_id ? cluster : -1,
                           nullptr, 0.0);
 
-      for (auto i = 0; i < alnlen; i++)
+      for (auto i = 0; i < alnlen; ++i)
         {
           fprintf(fp_profile, "%d\t%c", i, aln[i]);
           // A, C, G and T
-          for (auto c = 0; c < 4; c++)
+          for (auto c = 0; c < 4; ++c)
             {
               fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + c]);
             }
