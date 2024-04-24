@@ -185,7 +185,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   /* allocate memory for profile (for consensus) and aligned seq */
   profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
   for (int i = 0; i < PROFSIZE * alnlen; i++)
-    profile[i] = 0;
+    {
+      profile[i] = 0;
+    }
   aln = (char *) xmalloc(alnlen + 1);
   char * cons = (char *) xmalloc(alnlen + 1);
 
