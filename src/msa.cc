@@ -59,9 +59,9 @@
 */
 
 #include "vsearch.h"
-#include <cctype>
+#include <cctype>  // std::toupper
 #include <cstddef>  // std::ptrdiff_t
-#include <cstdint>
+#include <cstdint>  // uint64_t
 
 
 /* Compute consensus sequence and msa of clustered sequences */
