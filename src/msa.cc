@@ -142,17 +142,17 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   for(auto j = 1; j < target_count; ++j)
     {
-      char * p = target_list[j].cigar;
-      char * e = p + std::strlen(p);
+      char * position = target_list[j].cigar;
+      char * e = position + std::strlen(position);
       int pos = 0;
-      while (p < e)
+      while (position < e)
         {
           int64_t run = 1;
           int scanlength = 0;
-          std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-          p += scanlength;
-          char const op = *p;
-          ++p;
+          std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
+          position += scanlength;
+          char const op = *position;
+          ++position;
           switch (op)
             {
             case 'M':
