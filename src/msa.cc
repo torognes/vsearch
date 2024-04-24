@@ -132,7 +132,8 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 
 auto find_max_insertions_per_position(int const target_count,
                                       struct msa_target_s * target_list,
-                                      int * max_insertions) -> void {
+                                      int const centroid_len) -> std::vector<int> {
+  std::vector<int> max_insertions(centroid_len + 1);
   for(auto i = 1; i < target_count; ++i)
     {
       char * position = target_list[i].cigar;
@@ -160,12 +161,13 @@ auto find_max_insertions_per_position(int const target_count,
               break;
             }
         }
-    }
+  }
+  return max_insertions;
 }
 
 
 auto find_total_alignment_length(int const centroid_len,
-                                 std::vector<int>& max_insertions) -> int {
+                                 std::vector<int> const & max_insertions) -> int {
   // assert(std::vector length == centroid_len + 1);
   int alnlen = 0;
   for(auto i = 0; i < centroid_len + 1; ++i) {
@@ -185,11 +187,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   int const centroid_len = db_getsequencelen(centroid_seqno);
 
   /* find max insertions in front of each position in the centroid sequence */
-  std::vector<int> max_insertions(centroid_len + 1);
-  auto * maxi = max_insertions.data();
-
-  find_max_insertions_per_position(target_count, target_list, maxi);
-
+  auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_len);
   auto const alnlen = find_total_alignment_length(centroid_len, max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
