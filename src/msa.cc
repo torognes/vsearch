@@ -187,7 +187,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<char> aln_v(alnlen + 1);
   aln = aln_v.data();
   std::vector<char> cons_v(alnlen + 1);
-  auto * cons = cons_v.data();
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
@@ -375,7 +374,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             {
               auto const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
               aln_v[i] = sym;
-              cons[conslen] = sym;
+              cons_v[conslen] = sym;
               ++conslen;
             }
           else
@@ -386,7 +385,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     }
 
   aln_v[alnlen] = 0;
-  cons[conslen] = 0;
+  cons_v[conslen] = 0;
 
   if (fp_msaout != nullptr)
     {
@@ -397,7 +396,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     {
       fasta_print_general(fp_consout,
                           "centroid=",
-                          cons,
+                          cons_v.data(),
                           conslen,
                           db_getheader(centroid_seqno),
                           db_getheaderlen(centroid_seqno),
