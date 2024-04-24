@@ -67,6 +67,7 @@
 #include <cstdio>  // std::FILE, std::sscanf
 #include <cstring>  // std::memset, std::strlen
 #include <iterator> // std::next
+#include <numeric> // std::accumulate
 #include <vector>
 
 
@@ -169,12 +170,7 @@ auto find_max_insertions_per_position(int const target_count,
 auto find_total_alignment_length(int const centroid_len,
                                  std::vector<int> const & max_insertions) -> int {
   // assert(std::vector length == centroid_len + 1);
-  int alnlen = 0;
-  for(auto i = 0; i < centroid_len + 1; ++i) {
-    alnlen += max_insertions[i];
-  }
-  alnlen += centroid_len;
-  return alnlen;
+  return std::accumulate(max_insertions.begin(), max_insertions.end(), centroid_len);
 }
 
 
