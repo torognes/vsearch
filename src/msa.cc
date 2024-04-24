@@ -337,7 +337,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
 
-  for(int i = 0; i < alnlen; ++i)
+  for(auto i = 0; i < alnlen; ++i)
     {
       if ((i < left_censored) or (i >= alnlen - right_censored))
         {
@@ -348,9 +348,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           /* find most common symbol of A, C, G and T */
           char best_sym = 0;
           prof_type best_count = 0;
-          for(int c = 0; c < 4; ++c)
+          for(auto c = 0; c < 4; ++c)
             {
-              prof_type count = profile[PROFSIZE * i + c];
+              auto count = profile[PROFSIZE * i + c];
               if (count > best_count)
                 {
                   best_count = count;
@@ -359,7 +359,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          prof_type const n_count = profile[PROFSIZE * i + 4];
+          auto const n_count = profile[PROFSIZE * i + 4];
           if ((best_count == 0) and (n_count > 0))
             {
               best_count = n_count;
@@ -367,10 +367,10 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* compare to the number of gap symbols */
-          prof_type const gap_count = profile[PROFSIZE * i + 5];
+          auto const gap_count = profile[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
-              char const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
+              auto const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
               aln[i] = sym;
               cons[conslen] = sym;
               ++conslen;
