@@ -125,10 +125,10 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 }
 
 
-void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
+auto msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list,
-         int64_t totalabundance)
+         int64_t totalabundance) -> void
 {
   int centroid_seqno = target_list[0].seqno;
   int centroid_len = db_getsequencelen(centroid_seqno);
