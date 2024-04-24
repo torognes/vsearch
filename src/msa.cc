@@ -374,7 +374,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             {
               char sym = sym_nt_4bit[(int)best_sym];
               aln[i] = sym;
-              cons[conslen++] = sym;
+              cons[conslen] = sym;
+              ++conslen;
             }
           else
             {
