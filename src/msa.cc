@@ -183,11 +183,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alnlen = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  profile = static_cast<prof_type *>(xmalloc(PROFSIZE * sizeof(prof_type) * alnlen));
-  for (auto i = 0; i < PROFSIZE * alnlen; ++i)
-    {
-      profile[i] = 0;
-    }
+  std::vector<prof_type> profile_v(PROFSIZE * alnlen);
+  profile = profile_v.data();
   aln = static_cast<char *>(xmalloc(alnlen + 1));
   char * cons = static_cast<char *>(xmalloc(alnlen + 1));
 
@@ -442,5 +439,4 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   xfree(aln);
   xfree(cons);
-  xfree(profile);
 }
