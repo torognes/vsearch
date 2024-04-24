@@ -421,12 +421,12 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           // A, C, G and T
           for (int c = 0; c < 4; c++)
             {
-              fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+c]);
+              fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + c]);
             }
           // Gap symbol
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+5]);
+          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 5]);
           // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+4]);
+          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 4]);
           fprintf(fp_profile, "\n");
         }
       fprintf(fp_profile, "\n");
