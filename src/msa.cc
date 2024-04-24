@@ -302,7 +302,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
       if (not inserted)
         {
-          for(int x = 0; x < max_insertions[qpos]; ++x)
+          for(auto x = 0; x < max_insertions[qpos]; ++x)
             {
               msa_add('-', target_abundance);
             }
