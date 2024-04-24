@@ -74,7 +74,7 @@ static int alnpos;
 static prof_type * profile;
 
 
-auto msa_add(char nucleotide, prof_type abundance) -> void
+auto msa_add(char const nucleotide, prof_type const abundance) -> void
 {
   static constexpr auto A_counter = 0;
   static constexpr auto C_counter = 1;
