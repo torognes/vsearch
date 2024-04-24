@@ -129,6 +129,40 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 }
 
 
+auto find_max_insertions_per_position(int const target_count,
+                                      struct msa_target_s * target_list,
+                                      int * max_insertions) -> void {
+  for(auto i = 1; i < target_count; ++i)
+    {
+      char * position = target_list[i].cigar;
+      char * end = position + std::strlen(position);
+      int pos = 0;  // refactoring: rename?
+      while (position < end)
+        {
+          int64_t run = 1;
+          int scanlength = 0;
+          std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
+          position += scanlength;
+          char const op = *position;
+          ++position;
+          switch (op)
+            {
+            case 'M':
+            case 'I':
+              pos += run;
+              break;
+            case 'D':
+              if (run > max_insertions[pos])
+                {
+                  max_insertions[pos] = run;
+                }
+              break;
+            }
+        }
+    }
+}
+
+
 auto find_total_alignment_length(int const centroid_len, int * max_insertions) -> int {
   // assert(centroid_len < int_max);
   int alnlen = 0;
@@ -152,34 +186,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto * maxi = static_cast<int *>(xmalloc((centroid_len + 1) * sizeof(int)));
   std::memset(maxi, 0, (centroid_len + 1) * sizeof(int));
 
-  for(auto i = 1; i < target_count; ++i)
-    {
-      char * position = target_list[i].cigar;
-      char * end = position + std::strlen(position);
-      int pos = 0;
-      while (position < end)
-        {
-          int64_t run = 1;
-          int scanlength = 0;
-          std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
-          position += scanlength;
-          char const op = *position;
-          ++position;
-          switch (op)
-            {
-            case 'M':
-            case 'I':
-              pos += run;
-              break;
-            case 'D':
-              if (run > maxi[pos])
-                {
-                  maxi[pos] = run;
-                }
-              break;
-            }
-        }
-    }
+  find_max_insertions_per_position(target_count, target_list, maxi);
 
   auto const alnlen = find_total_alignment_length(centroid_len, maxi);
 
