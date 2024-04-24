@@ -194,7 +194,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
-  for(int i = 0; i < target_count; i++)
+  for(int i = 0; i < target_count; ++i)
     {
       if (target_list[i].strand != 0)
         {
