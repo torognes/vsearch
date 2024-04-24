@@ -116,6 +116,8 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
     case '-':
       position_profile[gap_counter] += abundance;
       break;
+    default:
+      break;
     }
 
   *std::next(aln, alnpos) = nucleotide;
