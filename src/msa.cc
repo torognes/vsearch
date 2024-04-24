@@ -75,22 +75,28 @@ static prof_type * profile;
 
 auto msa_add(char nucleotide, prof_type abundance) -> void
 {
+  static constexpr auto A_counter = 0;
+  static constexpr auto C_counter = 1;
+  static constexpr auto G_counter = 2;
+  static constexpr auto U_counter = 3;
+  static constexpr auto N_counter = 4;
+  static constexpr auto gap_counter = 5;
   prof_type * position_profile = profile + PROFSIZE * alnpos;
 
   switch(std::toupper(nucleotide))
     {
     case 'A':
-      position_profile[0] += abundance;
+      position_profile[A_counter] += abundance;
       break;
     case 'C':
-      position_profile[1] += abundance;
+      position_profile[C_counter] += abundance;
       break;
     case 'G':
-      position_profile[2] += abundance;
+      position_profile[G_counter] += abundance;
       break;
     case 'T':
     case 'U':
-      position_profile[3] += abundance;
+      position_profile[U_counter] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -103,10 +109,10 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
     case 'H':
     case 'V':
     case 'N':
-      position_profile[4] += abundance;
+      position_profile[N_counter] += abundance;
       break;
     case '-':
-      position_profile[5] += abundance;
+      position_profile[gap_counter] += abundance;
       break;
     }
 
