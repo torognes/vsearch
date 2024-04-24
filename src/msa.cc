@@ -65,7 +65,7 @@
 /* Compute consensus sequence and msa of clustered sequences */
 
 using prof_type = uint64_t;
-#define PROFSIZE 6
+constexpr auto PROFSIZE = 6;
 
 static char * aln;
 static int alnpos;
