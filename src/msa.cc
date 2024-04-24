@@ -80,8 +80,7 @@ static int alnpos;
 
 
 auto msa_add(char const nucleotide, prof_type const abundance,
-             std::vector<prof_type>& profile) -> void
-{
+             std::vector<prof_type>& profile) -> void {
   static constexpr auto A_counter = 0;
   static constexpr auto C_counter = 1;
   static constexpr auto G_counter = 2;
