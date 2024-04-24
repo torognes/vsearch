@@ -361,7 +361,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          prof_type n_count = profile[PROFSIZE * i + 4];
+          prof_type const n_count = profile[PROFSIZE * i + 4];
           if ((best_count == 0) && (n_count > 0))
             {
               best_count = n_count;
@@ -369,10 +369,10 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* compare to the number of gap symbols */
-          prof_type gap_count = profile[PROFSIZE * i + 5];
+          prof_type const gap_count = profile[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
-              char sym = sym_nt_4bit[(int)best_sym];
+              char const sym = sym_nt_4bit[(int)best_sym];
               aln[i] = sym;
               cons[conslen] = sym;
               ++conslen;
