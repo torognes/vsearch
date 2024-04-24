@@ -391,7 +391,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fasta_print(fp_msaout, "consensus", aln, alnlen);
     }
 
-  if (fp_consout)
+  if (fp_consout != nullptr)
     {
       fasta_print_general(fp_consout,
                           "centroid=",
