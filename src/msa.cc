@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cctype>
 #include <cstdint>
 
 
