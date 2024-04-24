@@ -136,7 +136,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   int * maxi = (int *) xmalloc((centroid_len + 1) * sizeof(int));
   memset(maxi, 0, (centroid_len + 1) * sizeof(int));
 
-  for(int j=1; j<target_count; j++)
+  for(int j = 1; j < target_count; j++)
     {
       char * p = target_list[j].cigar;
       char * e = p + strlen(p);
@@ -166,7 +166,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   /* find total alignment length */
   int alnlen = 0;
-  for(int i=0; i < centroid_len+1; i++)
+  for(int i = 0; i < centroid_len + 1; i++)
     {
       alnlen += maxi[i];
     }
@@ -174,14 +174,14 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
   /* allocate memory for profile (for consensus) and aligned seq */
   profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
-  for (int i=0; i < PROFSIZE * alnlen; i++)
+  for (int i = 0; i < PROFSIZE * alnlen; i++)
     profile[i] = 0;
   aln = (char *) xmalloc(alnlen+1);
   char * cons = (char *) xmalloc(alnlen+1);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
-  for(int i=0; i < target_count; i++)
+  for(int i = 0; i < target_count; i++)
     {
       if (target_list[i].strand)
         {
@@ -204,7 +204,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       fprintf(fp_msaout, "\n");
     }
 
-  for(int j=0; j<target_count; j++)
+  for(int j = 0; j<target_count; j++)
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
@@ -223,11 +223,11 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
       int tpos = 0;
       alnpos = 0;
 
-      if (!j)
+      if (! j)
         {
-          for(int x=0; x < centroid_len; x++)
+          for(int x = 0; x < centroid_len; x++)
             {
-              for(int y=0; y < maxi[qpos]; y++)
+              for(int y = 0; y < maxi[qpos]; y++)
                 {
                   msa_add('-', target_abundance);
                 }
@@ -249,7 +249,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
 
               if (op == 'D')
                 {
-                  for(int x=0; x < maxi[qpos]; x++)
+                  for(int x = 0; x < maxi[qpos]; x++)
                     {
                       if (x < run)
                         {
@@ -264,11 +264,11 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                 }
               else
                 {
-                  for(int x=0; x < run; x++)
+                  for(int x = 0; x < run; x++)
                     {
-                      if (!inserted)
+                      if (! inserted)
                         {
-                          for(int y=0; y < maxi[qpos]; y++)
+                          for(int y = 0; y < maxi[qpos]; y++)
                             {
                               msa_add('-', target_abundance);
                             }
@@ -290,9 +290,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
             }
         }
 
-      if (!inserted)
+      if (! inserted)
         {
-          for(int x=0; x < maxi[qpos]; x++)
+          for(int x = 0; x < maxi[qpos]; x++)
             {
               msa_add('-', target_abundance);
             }
@@ -329,7 +329,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
   int left_censored = maxi[0];
   int right_censored = maxi[centroid_len];
 
-  for(int i=0; i<alnlen; i++)
+  for(int i = 0; i < alnlen; i++)
     {
       if ((i < left_censored) || (i >= alnlen - right_censored))
         {
@@ -340,9 +340,9 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
           /* find most common symbol of A, C, G and T */
           char best_sym = 0;
           prof_type best_count = 0;
-          for(int c=0; c<4; c++)
+          for(int c = 0; c < 4; c++)
             {
-              prof_type count = profile[PROFSIZE*i+c];
+              prof_type count = profile[PROFSIZE * i + c];
               if (count > best_count)
                 {
                   best_count = count;
@@ -351,7 +351,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          prof_type n_count = profile[PROFSIZE*i+4];
+          prof_type n_count = profile[PROFSIZE * i + 4];
           if ((best_count == 0) && (n_count > 0))
             {
               best_count = n_count;
@@ -359,7 +359,7 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
             }
 
           /* compare to the number of gap symbols */
-          prof_type gap_count = profile[PROFSIZE*i+5];
+          prof_type gap_count = profile[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
               char sym = sym_nt_4bit[(int)best_sym];
@@ -412,11 +412,11 @@ void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
                           opt_clusterout_id ? cluster : -1,
                           nullptr, 0.0);
 
-      for (int i=0; i<alnlen; i++)
+      for (int i = 0; i < alnlen; i++)
         {
           fprintf(fp_profile, "%d\t%c", i, aln[i]);
           // A, C, G and T
-          for (int c=0; c<4; c++)
+          for (int c = 0; c < 4; c++)
             {
               fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+c]);
             }
