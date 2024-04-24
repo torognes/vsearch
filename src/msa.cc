@@ -128,6 +128,17 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 }
 
 
+auto find_total_alignment_length(int const centroid_len, int * maxi) -> int {
+  // assert(centroid_len < int_max);
+  int alnlen = 0;
+  for(auto i = 0; i < centroid_len + 1; ++i) {
+    alnlen += maxi[i];
+  }
+  alnlen += centroid_len;
+  return alnlen;
+}
+
+
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int const target_count, struct msa_target_s * target_list,
@@ -169,13 +180,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         }
     }
 
-  /* find total alignment length */
-  int alnlen = 0;
-  for(int i = 0; i < centroid_len + 1; ++i)
-    {
-      alnlen += maxi[i];
-    }
-  alnlen += centroid_len;
+  auto const alnlen = find_total_alignment_length(centroid_len, maxi);
 
   /* allocate memory for profile (for consensus) and aligned seq */
   profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
