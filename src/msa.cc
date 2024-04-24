@@ -344,7 +344,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   for(int i = 0; i < alnlen; i++)
     {
-      if ((i < left_censored) || (i >= alnlen - right_censored))
+      if ((i < left_censored) or (i >= alnlen - right_censored))
         {
           aln[i] = '+';
         }
