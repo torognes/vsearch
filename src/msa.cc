@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cctype>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>
 
 
@@ -81,7 +82,7 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
   static constexpr auto U_counter = 3;
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  prof_type * position_profile = profile + PROFSIZE * alnpos;
+  prof_type * position_profile = profile + static_cast<ptrdiff_t>(PROFSIZE) * alnpos;
 
   switch(std::toupper(nucleotide))
     {
