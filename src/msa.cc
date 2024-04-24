@@ -285,7 +285,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
                       if (operation == 'M')
                         {
-                          msa_add(target_seq[tpos++], target_abundance, profile);
+                          msa_add(target_seq[tpos], target_abundance, profile);
+                          ++tpos;
                         }
                       else
                         {
