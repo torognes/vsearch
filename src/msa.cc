@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::max()
 #include <cctype>  // std::toupper
 #include <cinttypes>  // macro PRId64
 #include <cstddef>  // std::ptrdiff_t
@@ -198,10 +199,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       if (target_list[i].strand != 0)
         {
           int64_t const len = db_getsequencelen(target_list[i].seqno);
-          if (len > longest_reversed)
-            {
-              longest_reversed = len;
-            }
+          longest_reversed = std::max(len, longest_reversed);
         }
     }
   char * rc_buffer = nullptr;
