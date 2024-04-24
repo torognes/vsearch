@@ -384,8 +384,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         }
     }
 
-  aln_v[alnlen] = 0;
-  cons_v[conslen] = 0;
+  aln_v.back() = '\0';
+  cons_v[conslen] = '\0';
 
   if (fp_msaout != nullptr)
     {
