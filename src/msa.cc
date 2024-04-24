@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include <cctype>  // std::toupper
-#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <iterator> // std::next
 
