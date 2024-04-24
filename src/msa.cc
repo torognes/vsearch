@@ -214,7 +214,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_msaout, "\n");
     }
 
-  for(auto j = 0; j<target_count; j++)
+  for(auto j = 0; j < target_count; j++)
     {
       int target_seqno = target_list[j].seqno;
       char * target_seq = db_getsequence(target_seqno);
