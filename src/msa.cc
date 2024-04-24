@@ -349,7 +349,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           prof_type best_count = 0;
           for(auto c = 0; c < 4; ++c)
             {
-              auto const count = profile[PROFSIZE * i + c];
+              auto const count = profile_v[PROFSIZE * i + c];
               if (count > best_count)
                 {
                   best_count = count;
@@ -358,7 +358,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          auto const n_count = profile[PROFSIZE * i + 4];
+          auto const n_count = profile_v[PROFSIZE * i + 4];
           if ((best_count == 0) and (n_count > 0))
             {
               best_count = n_count;
@@ -366,7 +366,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             }
 
           /* compare to the number of gap symbols */
-          auto const gap_count = profile[PROFSIZE * i + 5];
+          auto const gap_count = profile_v[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
               auto const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
@@ -426,12 +426,12 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           // A, C, G and T
           for (auto c = 0; c < 4; ++c)
             {
-              fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + c]);
+              fprintf(fp_profile, "\t%" PRId64, profile_v[PROFSIZE * i + c]);
             }
           // Gap symbol
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 5]);
+          fprintf(fp_profile, "\t%" PRId64, profile_v[PROFSIZE * i + 5]);
           // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 4]);
+          fprintf(fp_profile, "\t%" PRId64, profile_v[PROFSIZE * i + 4]);
           fprintf(fp_profile, "\n");
         }
       fprintf(fp_profile, "\n");
