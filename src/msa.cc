@@ -209,7 +209,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     }
 
   /* blank line before each msa */
-  if (fp_msaout)
+  if (fp_msaout != nullptr)
     {
       fprintf(fp_msaout, "\n");
     }
