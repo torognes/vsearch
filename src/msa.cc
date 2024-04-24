@@ -110,7 +110,8 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
       break;
     }
 
-  aln[alnpos++] = nucleotide;
+  aln[alnpos] = nucleotide;
+  ++alnpos;
 }
 
 
