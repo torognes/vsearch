@@ -140,9 +140,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto * maxi = static_cast<int *>(xmalloc((centroid_len + 1) * sizeof(int)));
   std::memset(maxi, 0, (centroid_len + 1) * sizeof(int));
 
-  for(auto j = 1; j < target_count; ++j)
+  for(auto i = 1; i < target_count; ++i)
     {
-      char * position = target_list[j].cigar;
+      char * position = target_list[i].cigar;
       char * end = position + std::strlen(position);
       int pos = 0;
       while (position < end)
