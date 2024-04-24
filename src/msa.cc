@@ -71,11 +71,11 @@ static char * aln;
 static int alnpos;
 static prof_type * profile;
 
-void msa_add(char c, prof_type abundance)
+void msa_add(char nucleotide, prof_type abundance)
 {
   prof_type * p = profile + PROFSIZE * alnpos;
 
-  switch(toupper(c))
+  switch(toupper(nucleotide))
     {
     case 'A':
       p[0] += abundance;
@@ -108,7 +108,7 @@ void msa_add(char c, prof_type abundance)
       break;
     }
 
-  aln[alnpos++] = c;
+  aln[alnpos++] = nucleotide;
 }
 
 void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
