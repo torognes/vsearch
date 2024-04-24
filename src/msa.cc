@@ -167,9 +167,8 @@ auto find_max_insertions_per_position(int const target_count,
 }
 
 
-auto find_total_alignment_length(int const centroid_len,
-                                 std::vector<int> const & max_insertions) -> int {
-  // assert(std::vector length == centroid_len + 1);
+auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int {
+  int const centroid_len = max_insertions.size() - 1;
   return std::accumulate(max_insertions.begin(), max_insertions.end(), centroid_len);
 }
 
@@ -184,7 +183,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* find max insertions in front of each position in the centroid sequence */
   auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_len);
-  auto const alnlen = find_total_alignment_length(centroid_len, max_insertions);
+  auto const alnlen = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
   profile = static_cast<prof_type *>(xmalloc(PROFSIZE * sizeof(prof_type) * alnlen));
