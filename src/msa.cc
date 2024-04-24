@@ -184,13 +184,13 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alnlen = find_total_alignment_length(centroid_len, maxi);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
+  profile = static_cast<prof_type *>(xmalloc(PROFSIZE * sizeof(prof_type) * alnlen));
   for (auto i = 0; i < PROFSIZE * alnlen; i++)
     {
       profile[i] = 0;
     }
-  aln = (char *) xmalloc(alnlen + 1);
-  char * cons = (char *) xmalloc(alnlen + 1);
+  aln = static_cast<char *>(xmalloc(alnlen + 1));
+  char * cons = static_cast<char *>(xmalloc(alnlen + 1));
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   int64_t longest_reversed = 0;
@@ -205,7 +205,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   char * rc_buffer = nullptr;
   if (longest_reversed > 0)
     {
-      rc_buffer = (char*) xmalloc(longest_reversed + 1);
+      rc_buffer = static_cast<char *>(xmalloc(longest_reversed + 1));
     }
 
   /* blank line before each msa */
