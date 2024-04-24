@@ -215,7 +215,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       prof_type const target_abundance = opt_sizein ?
         db_getabundance(target_seqno) : 1;
 
-      if (target_list[j].strand)
+      if (target_list[j].strand != 0)
         {
           reverse_complement(rc_buffer, target_seq,
                              db_getsequencelen(target_seqno));
