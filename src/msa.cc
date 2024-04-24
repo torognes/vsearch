@@ -144,9 +144,9 @@ auto find_max_insertions_per_position(int const target_count,
           int scanlength = 0;
           std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
           position += scanlength;
-          char const op = *position;
+          char const operation = *position;
           ++position;
-          switch (op)
+          switch (operation)
             {
             case 'M':
             case 'I':
