@@ -62,6 +62,7 @@
 #include <cctype>  // std::toupper
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE
 #include <iterator> // std::next
 
 
@@ -125,7 +126,7 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 }
 
 
-auto msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
+auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int target_count, struct msa_target_s * target_list,
          int64_t totalabundance) -> void
