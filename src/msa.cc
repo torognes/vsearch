@@ -192,7 +192,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     {
       if (target_list[i].strand != 0)
         {
-          int64_t const len = db_getsequencelen(target_list[i].seqno);
+          auto const len = static_cast<int64_t>(db_getsequencelen(target_list[i].seqno));
           longest_reversed = std::max(len, longest_reversed);
         }
     }
