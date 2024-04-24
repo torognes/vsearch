@@ -74,22 +74,22 @@ static prof_type * profile;
 
 auto msa_add(char nucleotide, prof_type abundance) -> void
 {
-  prof_type * p = profile + PROFSIZE * alnpos;
+  prof_type * position_profile = profile + PROFSIZE * alnpos;
 
   switch(toupper(nucleotide))
     {
     case 'A':
-      p[0] += abundance;
+      position_profile[0] += abundance;
       break;
     case 'C':
-      p[1] += abundance;
+      position_profile[1] += abundance;
       break;
     case 'G':
-      p[2] += abundance;
+      position_profile[2] += abundance;
       break;
     case 'T':
     case 'U':
-      p[3] += abundance;
+      position_profile[3] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -102,10 +102,10 @@ auto msa_add(char nucleotide, prof_type abundance) -> void
     case 'H':
     case 'V':
     case 'N':
-      p[4] += abundance;
+      position_profile[4] += abundance;
       break;
     case '-':
-      p[5] += abundance;
+      position_profile[5] += abundance;
       break;
     }
 
