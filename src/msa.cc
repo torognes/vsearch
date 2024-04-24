@@ -155,10 +155,7 @@ auto find_max_insertions_per_position(int const target_count,
               pos += run;
               break;
             case 'D':
-              if (run > max_insertions[pos])
-                {
-                  max_insertions[pos] = run;
-                }
+              max_insertions[pos] = std::max(static_cast<int>(run), max_insertions[pos]);
               break;
             }
         }
