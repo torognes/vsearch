@@ -130,7 +130,7 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
 
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
-         int target_count, struct msa_target_s * target_list,
+         int const target_count, struct msa_target_s * target_list,
          int64_t totalabundance) -> void
 {
   int const centroid_seqno = target_list[0].seqno;
