@@ -80,7 +80,7 @@ auto msa_add(char const nucleotide, prof_type const abundance) -> void
   static constexpr auto A_counter = 0;
   static constexpr auto C_counter = 1;
   static constexpr auto G_counter = 2;
-  static constexpr auto U_counter = 3;
+  static constexpr auto U_counter = 3;  // note: T converted to U?
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
   auto * const position_profile = std::next(profile, static_cast<std::ptrdiff_t>(PROFSIZE) * alnpos);
