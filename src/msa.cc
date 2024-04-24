@@ -63,6 +63,7 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE
+#include <cstring>  // std::memset
 #include <iterator> // std::next
 
 
@@ -136,7 +137,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* find max insertions in front of each position in the centroid sequence */
   int * maxi = (int *) xmalloc((centroid_len + 1) * sizeof(int));
-  memset(maxi, 0, (centroid_len + 1) * sizeof(int));
+  std::memset(maxi, 0, (centroid_len + 1) * sizeof(int));
 
   for(int j = 1; j < target_count; j++)
     {
