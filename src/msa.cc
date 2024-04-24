@@ -64,7 +64,7 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf
-#include <cstring>  // std::memset
+#include <cstring>  // std::memset, std::strlen
 #include <iterator> // std::next
 
 
@@ -143,7 +143,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   for(int j = 1; j < target_count; j++)
     {
       char * p = target_list[j].cigar;
-      char * e = p + strlen(p);
+      char * e = p + std::strlen(p);
       int pos = 0;
       while (p < e)
         {
@@ -242,7 +242,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       else
         {
           char * p = target_list[j].cigar;
-          char * e = p + strlen(p);
+          char * e = p + std::strlen(p);
           while (p < e)
             {
               int64_t run = 1;
