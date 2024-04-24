@@ -62,7 +62,7 @@
 #include <cctype>  // std::toupper
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::FILE
+#include <cstdio>  // std::FILE, std::sscanf
 #include <cstring>  // std::memset
 #include <iterator> // std::next
 
@@ -148,7 +148,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         {
           int64_t run = 1;
           int scanlength = 0;
-          sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+          std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
           p += scanlength;
           char op = *p++;
           switch (op)
@@ -246,7 +246,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
             {
               int64_t run = 1;
               int scanlength = 0;
-              sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+              std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
               p += scanlength;
               char op = *p++;
 
