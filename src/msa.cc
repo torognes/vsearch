@@ -242,8 +242,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       else
         {
           char * p = target_list[j].cigar;
-          char * e = p + std::strlen(p);
-          while (p < e)
+          char * end = p + std::strlen(p);
+          while (p < end)
             {
               int64_t run = 1;
               int scanlength = 0;
