@@ -362,7 +362,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
           /* if no A, C, G, or T, check if there are any N's */
           prof_type const n_count = profile[PROFSIZE * i + 4];
-          if ((best_count == 0) && (n_count > 0))
+          if ((best_count == 0) and (n_count > 0))
             {
               best_count = n_count;
               best_sym = 15; // N
