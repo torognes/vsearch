@@ -71,7 +71,7 @@ static char * aln;
 static int alnpos;
 static prof_type * profile;
 
-void msa_add(char nucleotide, prof_type abundance)
+auto msa_add(char nucleotide, prof_type abundance) -> void
 {
   prof_type * p = profile + PROFSIZE * alnpos;
 
