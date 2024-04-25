@@ -130,6 +130,13 @@ auto update_msa(char const nucleotide, std::vector<char>& alignment) -> void {
   ++alnpos;  // refactoring: pass as copy
 }
 
+auto update_msa(char const nucleotide, int &position_in_alignment,
+                std::vector<char>& alignment) -> void {
+  alignment[position_in_alignment] = nucleotide;
+  ++position_in_alignment;
+  ++alnpos;
+}
+
 
 auto find_max_insertions_per_position(int const target_count,
                                       struct msa_target_s * target_list,
@@ -205,6 +212,7 @@ auto compute_and_print_msa(int const target_count,
   int const centroid_len = max_insertions.size() - 1;
   for(auto i = 0; i < target_count; ++i)
     {
+      int position_in_alignment = 0;
       int const target_seqno = target_list[i].seqno;
       char * target_seq = db_getsequence(target_seqno);
       prof_type const target_abundance = opt_sizein ?
@@ -229,10 +237,10 @@ auto compute_and_print_msa(int const target_count,
               for(auto k = 0; k < max_insertions[qpos]; ++k)
                 {
                   update_profile('-', target_abundance, profile);
-                  update_msa('-', aln_v);
+                  update_msa('-', position_in_alignment, aln_v);
                 }
               update_profile(target_seq[tpos], target_abundance, profile);
-              update_msa(target_seq[tpos], aln_v);
+              update_msa(target_seq[tpos], position_in_alignment, aln_v);
               ++tpos;
               ++qpos;
             }
@@ -257,13 +265,13 @@ auto compute_and_print_msa(int const target_count,
                       if (j < run)
                         {
                           update_profile(target_seq[tpos], target_abundance, profile);
-                          update_msa(target_seq[tpos], aln_v);
+                          update_msa(target_seq[tpos], position_in_alignment, aln_v);
                           ++tpos;
                         }
                       else
                         {
                           update_profile('-', target_abundance, profile);
-                          update_msa('-', aln_v);
+                          update_msa('-', position_in_alignment, aln_v);
                         }
                     }
                   inserted = true;
@@ -277,20 +285,20 @@ auto compute_and_print_msa(int const target_count,
                           for(auto k = 0; k < max_insertions[qpos]; ++k)
                             {
                               update_profile('-', target_abundance, profile);
-                              update_msa('-', aln_v);
+                              update_msa('-', position_in_alignment, aln_v);
                             }
                         }
 
                       if (operation == 'M')
                         {
                           update_profile(target_seq[tpos], target_abundance, profile);
-                          update_msa(target_seq[tpos], aln_v);
+                          update_msa(target_seq[tpos], position_in_alignment, aln_v);
                           ++tpos;
                         }
                       else
                         {
                           update_profile('-', target_abundance, profile);
-                          update_msa('-', aln_v);
+                          update_msa('-', position_in_alignment, aln_v);
                         }
 
                       ++qpos;
@@ -305,7 +313,7 @@ auto compute_and_print_msa(int const target_count,
           for(auto j = 0; j < max_insertions[qpos]; ++j)
             {
               update_profile('-', target_abundance, profile);
-              update_msa('-', aln_v);
+              update_msa('-', position_in_alignment, aln_v);
             }
         }
 
