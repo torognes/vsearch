@@ -405,21 +405,19 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
                               int64_t const totalabundance, int const target_count,
                               int const cluster,
                               int const centroid_seqno) -> void {
-  if (fp_consout != nullptr)
-    {
-      fasta_print_general(fp_consout,
-                          "centroid=",
-                          cons_v.data(),
-                          cons_v.size(),
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster + 1,
-                          -1.0,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          nullptr, 0.0);
-    }
+  if (fp_consout == nullptr) { return ; }
+  fasta_print_general(fp_consout,
+                      "centroid=",
+                      cons_v.data(),
+                      cons_v.size(),
+                      db_getheader(centroid_seqno),
+                      db_getheaderlen(centroid_seqno),
+                      totalabundance,
+                      cluster + 1,
+                      -1.0,
+                      target_count,
+                      opt_clusterout_id ? cluster : -1,
+                      nullptr, 0.0);
 }
 
 
