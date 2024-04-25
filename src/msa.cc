@@ -443,6 +443,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   /* profile (dedicated input) */
   if (fp_profile != nullptr)
     {
+      // Note: gaps before Ns in profile output
+      // 0 = A, 1 = C, 2 = G, 3 = T, 4 = N, 5 = '-' (gap)
+      static const std::array<int, 6> symbol_indexes = {0, 1, 2, 3, 5, 4};
       fasta_print_general(fp_profile,
                           "centroid=",
                           nullptr,
@@ -459,15 +462,10 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       for (auto i = 0; i < alnlen; ++i)
         {
           fprintf(fp_profile, "%d\t%c", i, aln_v[i]);
-          // A, C, G and T
-          for (auto c = 0; c < 4; ++c)
-            {
-              fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + c]);
-            }
-          // Gap symbol
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 5]);
-          // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + 4]);
+          // A, C, G and T, then gap '-', then N
+          for (auto const symbol_index : symbol_indexes) {
+            fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + symbol_index]);
+          }
           fprintf(fp_profile, "\n");
         }
       fprintf(fp_profile, "\n");
