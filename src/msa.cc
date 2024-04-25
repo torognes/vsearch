@@ -310,46 +310,12 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
 }
 
 
-auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
-         int cluster,
-         int const target_count, struct msa_target_s * target_list,
-         int64_t totalabundance) -> void
-{
-  int const centroid_seqno = target_list[0].seqno;
-  auto const centroid_len = static_cast<int>(db_getsequencelen(centroid_seqno));
-
-  /* find max insertions in front of each position in the centroid sequence */
-  auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_len);
-  auto const alnlen = find_total_alignment_length(max_insertions);
-
-  /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
-  std::vector<char> aln_v(alnlen + 1);
-  aln = aln_v.data();
-  std::vector<char> cons_v(alnlen + 1);
-
-  /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
-  char * rc_buffer = nullptr;
-  if (longest_reversed > 0)
-    {
-      std::vector<char> rc_buffer_v(longest_reversed + 1);
-      rc_buffer = rc_buffer_v.data();
-    }
-
-  /* blank line before each msa */
-  if (fp_msaout != nullptr)
-    {
-      fprintf(fp_msaout, "\n");
-    }
-
-  /* multiple sequence alignment */
-  compute_and_print_msa(target_count, alnlen, target_list, max_insertions,
-                        profile, aln_v,
-                        rc_buffer, fp_msaout);
-
-  /* consensus */
-
+auto compute_and_print_consensus(int const alnlen,
+                                 std::vector<int> const &max_insertions,
+                                 std::vector<char> &aln_v,
+                                 std::vector<char> &cons_v,
+                                 std::vector<prof_type> &profile,
+                                 std::FILE * fp_msaout) -> int {
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
@@ -409,6 +375,55 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     {
       fasta_print(fp_msaout, "consensus", aln_v.data(), alnlen);
     }
+  return conslen;
+}
+
+
+auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
+         int cluster,
+         int const target_count, struct msa_target_s * target_list,
+         int64_t totalabundance) -> void
+{
+  int const centroid_seqno = target_list[0].seqno;
+  auto const centroid_len = static_cast<int>(db_getsequencelen(centroid_seqno));
+
+  /* find max insertions in front of each position in the centroid sequence */
+  auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_len);
+  auto const alnlen = find_total_alignment_length(max_insertions);
+
+  /* allocate memory for profile (for consensus) and aligned seq */
+  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
+  std::vector<char> aln_v(alnlen + 1);
+  aln = aln_v.data();
+  std::vector<char> cons_v(alnlen + 1);
+
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
+  char * rc_buffer = nullptr;
+  if (longest_reversed > 0)
+    {
+      std::vector<char> rc_buffer_v(longest_reversed + 1);
+      rc_buffer = rc_buffer_v.data();
+    }
+
+  /* blank line before each msa */
+  if (fp_msaout != nullptr)
+    {
+      fprintf(fp_msaout, "\n");
+    }
+
+  /* multiple sequence alignment */
+  compute_and_print_msa(target_count, alnlen, target_list, max_insertions,
+                        profile, aln_v,
+                        rc_buffer, fp_msaout);
+
+  /* consensus */
+  auto const conslen = compute_and_print_consensus(alnlen,
+                                                   max_insertions,
+                                                   aln_v,
+                                                   cons_v,
+                                                   profile,
+                                                   fp_msaout);
 
   if (fp_consout != nullptr)
     {
