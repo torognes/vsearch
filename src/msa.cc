@@ -123,8 +123,11 @@ auto update_profile(char const nucleotide, prof_type const abundance,
     default:
       break;
     }
+}
 
-  *std::next(aln, alnpos) = nucleotide;  // refactoring: extract from function
+
+auto update_msa(char const nucleotide, std::vector<char>& alignment) -> void {
+  alignment[alnpos] = nucleotide;
   ++alnpos;  // refactoring: pass as copy
 }
 
@@ -227,8 +230,10 @@ auto compute_and_print_msa(int const target_count,
               for(auto k = 0; k < max_insertions[qpos]; ++k)
                 {
                   update_profile('-', target_abundance, profile);
+                  update_msa('-', aln_v);
                 }
               update_profile(target_seq[tpos], target_abundance, profile);
+              update_msa(target_seq[tpos], aln_v);
               ++tpos;
               ++qpos;
             }
@@ -253,11 +258,13 @@ auto compute_and_print_msa(int const target_count,
                       if (j < run)
                         {
                           update_profile(target_seq[tpos], target_abundance, profile);
+                          update_msa(target_seq[tpos], aln_v);
                           ++tpos;
                         }
                       else
                         {
                           update_profile('-', target_abundance, profile);
+                          update_msa('-', aln_v);
                         }
                     }
                   inserted = true;
@@ -271,17 +278,20 @@ auto compute_and_print_msa(int const target_count,
                           for(auto k = 0; k < max_insertions[qpos]; ++k)
                             {
                               update_profile('-', target_abundance, profile);
+                              update_msa('-', aln_v);
                             }
                         }
 
                       if (operation == 'M')
                         {
                           update_profile(target_seq[tpos], target_abundance, profile);
+                          update_msa(target_seq[tpos], aln_v);
                           ++tpos;
                         }
                       else
                         {
                           update_profile('-', target_abundance, profile);
+                          update_msa('-', aln_v);
                         }
 
                       ++qpos;
@@ -296,6 +306,7 @@ auto compute_and_print_msa(int const target_count,
           for(auto j = 0; j < max_insertions[qpos]; ++j)
             {
               update_profile('-', target_abundance, profile);
+              update_msa('-', aln_v);
             }
         }
 
