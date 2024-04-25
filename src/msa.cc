@@ -176,7 +176,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int64_t totalabundance) -> void
 {
   int const centroid_seqno = target_list[0].seqno;
-  int const centroid_len = db_getsequencelen(centroid_seqno);
+  auto const centroid_len = static_cast<int>(db_getsequencelen(centroid_seqno));
 
   /* find max insertions in front of each position in the centroid sequence */
   auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_len);
