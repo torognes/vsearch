@@ -366,7 +366,7 @@ auto compute_and_print_msa(int const target_count,
         }
 
       /* end of sequence string */
-      aln_v[alnpos] = 0;
+      aln_v[position_in_alignment] = 0;
 
       /* print header & sequence */
       if (fp_msaout != nullptr)
