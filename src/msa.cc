@@ -347,13 +347,13 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
           /* find most common symbol of A, C, G and T */
           char best_sym = 0;
           prof_type best_count = 0;
-          for(auto c = 0; c < 4; ++c)
+          for(auto nucleotide = 0; nucleotide < 4; ++nucleotide)
             {
-              auto const count = profile[PROFSIZE * i + c];
+              auto const count = profile[PROFSIZE * i + nucleotide];
               if (count > best_count)
                 {
                   best_count = count;
-                  best_sym = 1 << c;
+                  best_sym = 1 << nucleotide;
                 }
             }
 
