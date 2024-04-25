@@ -189,10 +189,17 @@ auto compute_and_print_msa(int const target_count,
                            struct msa_target_s *target_list,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
-                           std::vector<char> &aln_v, char *rc_buffer,
+                           std::vector<char> &aln_v,
                            std::FILE * fp_msaout) -> void {
-  // refactoring: rc_buffer is used only in that function. It should be created
-  // here to reduce its scope.
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
+  char * rc_buffer = nullptr;
+  if (longest_reversed > 0)
+    {
+      std::vector<char> rc_buffer_v(longest_reversed + 1);
+      rc_buffer = rc_buffer_v.data();
+    }
+
   int const centroid_len = max_insertions.size() - 1;
   for(auto i = 0; i < target_count; ++i)
     {
@@ -398,15 +405,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   aln = aln_v.data();
   std::vector<char> cons_v(alnlen + 1);
 
-  /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
-  char * rc_buffer = nullptr;
-  if (longest_reversed > 0)
-    {
-      std::vector<char> rc_buffer_v(longest_reversed + 1);
-      rc_buffer = rc_buffer_v.data();
-    }
-
   /* blank line before each msa */
   if (fp_msaout != nullptr)
     {
@@ -416,7 +414,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   /* multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list, max_insertions,
                         profile, aln_v,
-                        rc_buffer, fp_msaout);
+                        fp_msaout);
 
   /* ... and consensus at the end */
   compute_and_print_consensus(max_insertions,
