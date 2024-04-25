@@ -315,7 +315,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> &profile,
                                  std::FILE * fp_msaout) -> void {
-  int const alnlen = aln_v.size() - 1;
+  int const alignment_length = aln_v.size() - 1;
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
@@ -323,9 +323,9 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
 
-  for(auto i = 0; i < alnlen; ++i)
+  for(auto i = 0; i < alignment_length; ++i)
     {
-      if ((i < left_censored) or (i >= alnlen - right_censored))
+      if ((i < left_censored) or (i >= alignment_length - right_censored))
         {
           aln_v[i] = '+';
         }
@@ -374,7 +374,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
 
   if (fp_msaout != nullptr)
     {
-      fasta_print(fp_msaout, "consensus", aln_v.data(), alnlen);
+      fasta_print(fp_msaout, "consensus", aln_v.data(), alignment_length);
     }
 }
 
