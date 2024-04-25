@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <array>
 #include <algorithm>  // std::max()
 #include <cctype>  // std::toupper
 #include <cinttypes>  // macro PRId64
