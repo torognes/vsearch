@@ -315,7 +315,7 @@ auto compute_and_print_consensus(int const alnlen,
                                  std::vector<char> &aln_v,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> &profile,
-                                 std::FILE * fp_msaout) -> int {
+                                 std::FILE * fp_msaout) -> void {
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
@@ -370,12 +370,12 @@ auto compute_and_print_consensus(int const alnlen,
 
   aln_v.back() = '\0';
   cons_v[conslen] = '\0';
+  cons_v.resize(conslen + 1);
 
   if (fp_msaout != nullptr)
     {
       fasta_print(fp_msaout, "consensus", aln_v.data(), alnlen);
     }
-  return conslen;
 }
 
 
@@ -412,25 +412,26 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_msaout, "\n");
     }
 
-  /* multiple sequence alignment */
+  /* multiple sequence alignment ... */
   compute_and_print_msa(target_count, alnlen, target_list, max_insertions,
                         profile, aln_v,
                         rc_buffer, fp_msaout);
 
-  /* consensus */
-  auto const conslen = compute_and_print_consensus(alnlen,
-                                                   max_insertions,
-                                                   aln_v,
-                                                   cons_v,
-                                                   profile,
-                                                   fp_msaout);
+  /* ... and consensus at the end */
+  compute_and_print_consensus(alnlen,
+                              max_insertions,
+                              aln_v,
+                              cons_v,
+                              profile,
+                              fp_msaout);
 
+  /* consensus (dedicated input) */
   if (fp_consout != nullptr)
     {
       fasta_print_general(fp_consout,
                           "centroid=",
                           cons_v.data(),
-                          conslen,
+                          cons_v.size(),
                           db_getheader(centroid_seqno),
                           db_getheaderlen(centroid_seqno),
                           totalabundance,
