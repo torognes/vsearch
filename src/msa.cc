@@ -191,7 +191,8 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v, char *rc_buffer,
                            std::FILE * fp_msaout) -> void {
-  // refactoring: rc_buffer is used only in that function. It should be created here to reduce its scope.
+  // refactoring: rc_buffer is used only in that function. It should be created
+  // here to reduce its scope.
   int const centroid_len = max_insertions.size() - 1;
   for(auto i = 0; i < target_count; ++i)
     {
