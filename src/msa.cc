@@ -256,7 +256,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
                 }
               else
                 {
-                  for(auto x = 0; x < run; ++x)
+                  for(auto j = 0; j < run; ++j)
                     {
                       if (not inserted)
                         {
