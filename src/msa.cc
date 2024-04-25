@@ -320,7 +320,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                               aln_v.data(),
                               alnlen,
                               db_getheader(target_seqno),
-                              db_getheaderlen(target_seqno),
+                              static_cast<int>(db_getheaderlen(target_seqno)),
                               db_getabundance(target_seqno),
                               0, -1.0, -1, -1, nullptr, 0.0);
         }
