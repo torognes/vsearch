@@ -230,7 +230,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       int tpos = 0;
       alnpos = 0;
 
-      if (not j)
+      if (j == 0)
         {
           for(auto x = 0; x < centroid_len; ++x)
             {
