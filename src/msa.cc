@@ -131,7 +131,6 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
                 std::vector<char>& alignment) -> void {
   alignment[position_in_alignment] = nucleotide;
   ++position_in_alignment;
-  ++alnpos;
 }
 
 
