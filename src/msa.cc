@@ -401,6 +401,28 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
 }
 
 
+auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
+                              int64_t const totalabundance, int const target_count,
+                              int const cluster,
+                              int const centroid_seqno) -> void {
+  if (fp_consout != nullptr)
+    {
+      fasta_print_general(fp_consout,
+                          "centroid=",
+                          cons_v.data(),
+                          cons_v.size(),
+                          db_getheader(centroid_seqno),
+                          db_getheaderlen(centroid_seqno),
+                          totalabundance,
+                          cluster + 1,
+                          -1.0,
+                          target_count,
+                          opt_clusterout_id ? cluster : -1,
+                          nullptr, 0.0);
+    }
+}
+
+
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int const target_count, struct msa_target_s * target_list,
@@ -437,21 +459,10 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                               fp_msaout);
 
   /* consout: consensus sequence (dedicated input) */
-  if (fp_consout != nullptr)
-    {
-      fasta_print_general(fp_consout,
-                          "centroid=",
-                          cons_v.data(),
-                          cons_v.size(),
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster + 1,
-                          -1.0,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          nullptr, 0.0);
-    }
+  print_consensus_sequence(fp_consout, cons_v,
+                           totalabundance, target_count,
+                           cluster,
+                           centroid_seqno);
 
   /* profile: multiple sequence alignment profile (dedicated input) */
   if (fp_profile != nullptr)
