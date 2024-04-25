@@ -78,52 +78,6 @@ constexpr auto PROFSIZE = 6;
 static int alnpos;
 
 
-auto update_profile(char const nucleotide, prof_type const abundance,
-             std::vector<prof_type>& profile) -> void {
-  static constexpr auto A_counter = 0;
-  static constexpr auto C_counter = 1;
-  static constexpr auto G_counter = 2;
-  static constexpr auto U_counter = 3;  // note: T converted to U?
-  static constexpr auto N_counter = 4;
-  static constexpr auto gap_counter = 5;
-  auto const offset = PROFSIZE * alnpos;
-
-  switch(std::toupper(nucleotide))
-    {
-    case 'A':
-      profile[offset + A_counter] += abundance;
-      break;
-    case 'C':
-      profile[offset + C_counter] += abundance;
-      break;
-    case 'G':
-      profile[offset + G_counter] += abundance;
-      break;
-    case 'T':
-    case 'U':
-      profile[offset + U_counter] += abundance;
-      break;
-    case 'R':
-    case 'Y':
-    case 'S':
-    case 'W':
-    case 'K':
-    case 'M':
-    case 'B':
-    case 'D':
-    case 'H':
-    case 'V':
-    case 'N':
-      profile[offset + N_counter] += abundance;
-      break;
-    case '-':
-      profile[offset + gap_counter] += abundance;
-      break;
-    default:
-      break;
-    }
-}
-
 auto update_profile(char const nucleotide,
                     int const position_in_alignment,
                     prof_type const abundance,
@@ -172,11 +126,6 @@ auto update_profile(char const nucleotide,
     }
 }
 
-
-auto update_msa(char const nucleotide, std::vector<char>& alignment) -> void {
-  alignment[alnpos] = nucleotide;
-  ++alnpos;  // refactoring: pass as copy
-}
 
 auto update_msa(char const nucleotide, int &position_in_alignment,
                 std::vector<char>& alignment) -> void {
