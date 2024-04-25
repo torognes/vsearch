@@ -421,6 +421,42 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
 }
 
 
+auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
+                             std::vector<prof_type> const &profile, int const alnlen,
+                             int64_t const totalabundance, int const target_count,
+                             int const cluster,
+                             int const centroid_seqno) -> void {
+  if (fp_profile == nullptr) { return ; }
+
+  // Note: gaps before Ns in profile output
+  // 0 = A, 1 = C, 2 = G, 3 = T, 4 = N, 5 = '-' (gap)
+  static const std::array<int, 6> symbol_indexes = {0, 1, 2, 3, 5, 4};
+  fasta_print_general(fp_profile,
+                      "centroid=",
+                      nullptr,
+                      0,
+                      db_getheader(centroid_seqno),
+                      db_getheaderlen(centroid_seqno),
+                      totalabundance,
+                      cluster + 1,
+                      -1.0,
+                      target_count,
+                      opt_clusterout_id ? cluster : -1,
+                      nullptr, 0.0);
+
+  for (auto i = 0; i < alnlen; ++i)
+    {
+      fprintf(fp_profile, "%d\t%c", i, aln_v[i]);
+      // A, C, G and T, then gap '-', then N
+      for (auto const symbol_index : symbol_indexes) {
+        fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + symbol_index]);
+      }
+      fprintf(fp_profile, "\n");
+    }
+  fprintf(fp_profile, "\n");
+}
+
+
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int const target_count, struct msa_target_s * target_list,
@@ -463,33 +499,9 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                            centroid_seqno);
 
   /* profile: multiple sequence alignment profile (dedicated input) */
-  if (fp_profile != nullptr)
-    {
-      // Note: gaps before Ns in profile output
-      // 0 = A, 1 = C, 2 = G, 3 = T, 4 = N, 5 = '-' (gap)
-      static const std::array<int, 6> symbol_indexes = {0, 1, 2, 3, 5, 4};
-      fasta_print_general(fp_profile,
-                          "centroid=",
-                          nullptr,
-                          0,
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster + 1,
-                          -1.0,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          nullptr, 0.0);
-
-      for (auto i = 0; i < alnlen; ++i)
-        {
-          fprintf(fp_profile, "%d\t%c", i, aln_v[i]);
-          // A, C, G and T, then gap '-', then N
-          for (auto const symbol_index : symbol_indexes) {
-            fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + symbol_index]);
-          }
-          fprintf(fp_profile, "\n");
-        }
-      fprintf(fp_profile, "\n");
-    }
+  print_alignment_profile(fp_profile, aln_v,
+                          profile, alnlen,
+                          totalabundance, target_count,
+                          cluster,
+                          centroid_seqno);
 }
