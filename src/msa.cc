@@ -70,7 +70,8 @@
 #include <vector>
 
 
-/* Compute consensus sequence and msa of clustered sequences */
+/* Compute multiple sequence alignment (msa), profile, and consensus
+   sequence of clustered sequences */
 
 using prof_type = uint64_t;
 constexpr auto PROFSIZE = 6;
