@@ -283,6 +283,7 @@ extern bool opt_relabel_self;
 extern bool opt_relabel_sha1;
 extern bool opt_samheader;
 extern bool opt_sff_clip;
+extern bool opt_sintax_random;
 extern bool opt_sizein;
 extern bool opt_sizeorder;
 extern bool opt_sizeout;

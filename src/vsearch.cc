@@ -82,6 +82,7 @@ bool opt_relabel_self;
 bool opt_relabel_sha1;
 bool opt_samheader;
 bool opt_sff_clip;
+bool opt_sintax_random;
 bool opt_sizein;
 bool opt_sizeorder;
 bool opt_sizeout;
@@ -959,6 +960,7 @@ void args_init(int argc, char **argv)
   opt_shuffle = nullptr;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
+  opt_sintax_random = false;
   opt_sizein = false;
   opt_sizeorder = false;
   opt_sizeout = false;
@@ -1203,6 +1205,7 @@ void args_init(int argc, char **argv)
       option_shuffle,
       option_sintax,
       option_sintax_cutoff,
+      option_sintax_random,
       option_sizein,
       option_sizeorder,
       option_sizeout,
@@ -1449,6 +1452,7 @@ void args_init(int argc, char **argv)
       {"shuffle",               required_argument, nullptr, 0 },
       {"sintax",                required_argument, nullptr, 0 },
       {"sintax_cutoff",         required_argument, nullptr, 0 },
+      {"sintax_random",         no_argument,       nullptr, 0 },
       {"sizein",                no_argument,       nullptr, 0 },
       {"sizeorder",             no_argument,       nullptr, 0 },
       {"sizeout",               no_argument,       nullptr, 0 },
@@ -2545,6 +2549,10 @@ void args_init(int argc, char **argv)
 
         case option_chimeras_diff_pct:
           opt_chimeras_diff_pct = args_getdouble(optarg);
+          break;
+
+        case option_sintax_random:
+          opt_sintax_random = true;
           break;
 
         default:
@@ -4082,6 +4090,7 @@ void args_init(int argc, char **argv)
         option_quiet,
         option_randseed,
         option_sintax_cutoff,
+        option_sintax_random,
         option_strand,
         option_tabbedout,
         option_threads,
