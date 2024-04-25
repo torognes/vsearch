@@ -183,7 +183,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alnlen = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);
+  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
   std::vector<char> aln_v(alnlen + 1);
   aln = aln_v.data();
   std::vector<char> cons_v(alnlen + 1);
