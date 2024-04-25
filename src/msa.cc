@@ -316,7 +316,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       if (fp_msaout != nullptr)
         {
           fasta_print_general(fp_msaout,
-                              j ? "" : "*",
+                              j != 0 ? "" : "*",
                               aln_v.data(),
                               alnlen,
                               db_getheader(target_seqno),
