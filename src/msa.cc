@@ -310,12 +310,12 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
 }
 
 
-auto compute_and_print_consensus(int const alnlen,
-                                 std::vector<int> const &max_insertions,
+auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &aln_v,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> &profile,
                                  std::FILE * fp_msaout) -> void {
+  int const alnlen = aln_v.size() - 1;
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
@@ -418,8 +418,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                         rc_buffer, fp_msaout);
 
   /* ... and consensus at the end */
-  compute_and_print_consensus(alnlen,
-                              max_insertions,
+  compute_and_print_consensus(max_insertions,
                               aln_v,
                               cons_v,
                               profile,
