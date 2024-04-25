@@ -185,7 +185,7 @@ auto find_longest_target_on_reverse_strand(int const target_count,
 }
 
 
-auto compute_and_print_msa(int const target_count, int const alnlen,
+auto compute_and_print_msa(int const target_count,
                            struct msa_target_s *target_list,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
@@ -301,7 +301,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
           fasta_print_general(fp_msaout,
                               i != 0 ? "" : "*",
                               aln_v.data(),
-                              alnlen,
+                              aln_v.size() - 1,
                               db_getheader(target_seqno),
                               static_cast<int>(db_getheaderlen(target_seqno)),
                               db_getabundance(target_seqno),
@@ -414,7 +414,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
     }
 
   /* multiple sequence alignment ... */
-  compute_and_print_msa(target_count, alnlen, target_list, max_insertions,
+  compute_and_print_msa(target_count, target_list, max_insertions,
                         profile, aln_v,
                         rc_buffer, fp_msaout);
 
