@@ -197,6 +197,12 @@ auto compute_and_print_msa(int const target_count,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
                            std::FILE * fp_msaout) -> void {
+  /* blank line before each msa */
+  if (fp_msaout != nullptr)
+    {
+      fprintf(fp_msaout, "\n");
+    }
+
   /* Find longest target sequence on reverse strand and allocate buffer */
   auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
   char * rc_buffer = nullptr;
@@ -473,12 +479,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
   std::vector<char> aln_v(alnlen + 1);
   std::vector<char> cons_v(alnlen + 1);
-
-  /* blank line before each msa */
-  if (fp_msaout != nullptr)
-    {
-      fprintf(fp_msaout, "\n");
-    }
 
   /* msaout: multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list, max_insertions,
