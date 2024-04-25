@@ -89,6 +89,7 @@ auto update_profile(char const nucleotide,
   static constexpr auto gap_counter = 5;
   auto const offset = PROFSIZE * position_in_alignment;
 
+  // refactoring: eliminate unused cases
   switch(std::toupper(nucleotide))
     {
     case 'A':
