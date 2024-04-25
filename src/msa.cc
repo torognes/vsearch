@@ -75,8 +75,6 @@
 using prof_type = uint64_t;
 constexpr auto PROFSIZE = 6;
 
-static int alnpos;
-
 
 auto update_profile(char const nucleotide,
                     int const position_in_alignment,
@@ -224,7 +222,6 @@ auto compute_and_print_msa(int const target_count,
       auto inserted = false;
       int qpos = 0;
       int tpos = 0;
-      alnpos = 0;
 
       if (i == 0)
         {
