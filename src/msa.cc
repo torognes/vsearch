@@ -411,19 +411,19 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
       fprintf(fp_msaout, "\n");
     }
 
-  /* multiple sequence alignment ... */
+  /* msaout: multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list, max_insertions,
                         profile, aln_v,
                         fp_msaout);
 
-  /* ... and consensus at the end */
+  /* msaout: ... and consensus sequence at the end */
   compute_and_print_consensus(max_insertions,
                               aln_v,
                               cons_v,
                               profile,
                               fp_msaout);
 
-  /* consensus (dedicated input) */
+  /* consout: consensus sequence (dedicated input) */
   if (fp_consout != nullptr)
     {
       fasta_print_general(fp_consout,
@@ -440,7 +440,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                           nullptr, 0.0);
     }
 
-  /* profile (dedicated input) */
+  /* profile: multiple sequence alignment profile (dedicated input) */
   if (fp_profile != nullptr)
     {
       // Note: gaps before Ns in profile output
