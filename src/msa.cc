@@ -201,7 +201,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   char * rc_buffer = nullptr;
   if (longest_reversed > 0)
     {
-      rc_buffer = static_cast<char *>(xmalloc(longest_reversed + 1));
+      std::vector<char> rc_buffer_v(longest_reversed + 1);
+      rc_buffer = rc_buffer_v.data();
     }
 
   /* blank line before each msa */
@@ -325,10 +326,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
         }
     }
 
-  if (rc_buffer)
-    {
-      xfree(rc_buffer);
-    }
 
   /* consensus */
 
