@@ -79,7 +79,7 @@ static char * aln;
 static int alnpos;
 
 
-auto msa_add(char const nucleotide, prof_type const abundance,
+auto update_profile(char const nucleotide, prof_type const abundance,
              std::vector<prof_type>& profile) -> void {
   static constexpr auto A_counter = 0;
   static constexpr auto C_counter = 1;
@@ -226,9 +226,9 @@ auto compute_and_print_msa(int const target_count,
             {
               for(auto k = 0; k < max_insertions[qpos]; ++k)
                 {
-                  msa_add('-', target_abundance, profile);
+                  update_profile('-', target_abundance, profile);
                 }
-              msa_add(target_seq[tpos], target_abundance, profile);
+              update_profile(target_seq[tpos], target_abundance, profile);
               ++tpos;
               ++qpos;
             }
@@ -252,12 +252,12 @@ auto compute_and_print_msa(int const target_count,
                     {
                       if (j < run)
                         {
-                          msa_add(target_seq[tpos], target_abundance, profile);
+                          update_profile(target_seq[tpos], target_abundance, profile);
                           ++tpos;
                         }
                       else
                         {
-                          msa_add('-', target_abundance, profile);
+                          update_profile('-', target_abundance, profile);
                         }
                     }
                   inserted = true;
@@ -270,18 +270,18 @@ auto compute_and_print_msa(int const target_count,
                         {
                           for(auto k = 0; k < max_insertions[qpos]; ++k)
                             {
-                              msa_add('-', target_abundance, profile);
+                              update_profile('-', target_abundance, profile);
                             }
                         }
 
                       if (operation == 'M')
                         {
-                          msa_add(target_seq[tpos], target_abundance, profile);
+                          update_profile(target_seq[tpos], target_abundance, profile);
                           ++tpos;
                         }
                       else
                         {
-                          msa_add('-', target_abundance, profile);
+                          update_profile('-', target_abundance, profile);
                         }
 
                       ++qpos;
@@ -295,7 +295,7 @@ auto compute_and_print_msa(int const target_count,
         {
           for(auto j = 0; j < max_insertions[qpos]; ++j)
             {
-              msa_add('-', target_abundance, profile);
+              update_profile('-', target_abundance, profile);
             }
         }
 
