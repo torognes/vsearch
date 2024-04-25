@@ -240,9 +240,9 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
 
               if (operation == 'D')
                 {
-                  for(auto x = 0; x < max_insertions[qpos]; ++x)
+                  for(auto j = 0; j < max_insertions[qpos]; ++j)
                     {
-                      if (x < run)
+                      if (j < run)
                         {
                           msa_add(target_seq[tpos], target_abundance, profile);
                           ++tpos;
