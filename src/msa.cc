@@ -124,6 +124,54 @@ auto update_profile(char const nucleotide, prof_type const abundance,
     }
 }
 
+auto update_profile(char const nucleotide,
+                    int const position_in_alignment,
+                    prof_type const abundance,
+                    std::vector<prof_type>& profile) -> void {
+  static constexpr auto A_counter = 0;
+  static constexpr auto C_counter = 1;
+  static constexpr auto G_counter = 2;
+  static constexpr auto U_counter = 3;  // note: T converted to U?
+  static constexpr auto N_counter = 4;
+  static constexpr auto gap_counter = 5;
+  auto const offset = PROFSIZE * position_in_alignment;
+
+  switch(std::toupper(nucleotide))
+    {
+    case 'A':
+      profile[offset + A_counter] += abundance;
+      break;
+    case 'C':
+      profile[offset + C_counter] += abundance;
+      break;
+    case 'G':
+      profile[offset + G_counter] += abundance;
+      break;
+    case 'T':
+    case 'U':
+      profile[offset + U_counter] += abundance;
+      break;
+    case 'R':
+    case 'Y':
+    case 'S':
+    case 'W':
+    case 'K':
+    case 'M':
+    case 'B':
+    case 'D':
+    case 'H':
+    case 'V':
+    case 'N':
+      profile[offset + N_counter] += abundance;
+      break;
+    case '-':
+      profile[offset + gap_counter] += abundance;
+      break;
+    default:
+      break;
+    }
+}
+
 
 auto update_msa(char const nucleotide, std::vector<char>& alignment) -> void {
   alignment[alnpos] = nucleotide;
@@ -236,10 +284,10 @@ auto compute_and_print_msa(int const target_count,
             {
               for(auto k = 0; k < max_insertions[qpos]; ++k)
                 {
-                  update_profile('-', target_abundance, profile);
+                  update_profile('-', position_in_alignment, target_abundance, profile);
                   update_msa('-', position_in_alignment, aln_v);
                 }
-              update_profile(target_seq[tpos], target_abundance, profile);
+              update_profile(target_seq[tpos], position_in_alignment, target_abundance, profile);
               update_msa(target_seq[tpos], position_in_alignment, aln_v);
               ++tpos;
               ++qpos;
@@ -264,13 +312,13 @@ auto compute_and_print_msa(int const target_count,
                     {
                       if (j < run)
                         {
-                          update_profile(target_seq[tpos], target_abundance, profile);
+                          update_profile(target_seq[tpos], position_in_alignment, target_abundance, profile);
                           update_msa(target_seq[tpos], position_in_alignment, aln_v);
                           ++tpos;
                         }
                       else
                         {
-                          update_profile('-', target_abundance, profile);
+                          update_profile('-', position_in_alignment, target_abundance, profile);
                           update_msa('-', position_in_alignment, aln_v);
                         }
                     }
@@ -284,20 +332,20 @@ auto compute_and_print_msa(int const target_count,
                         {
                           for(auto k = 0; k < max_insertions[qpos]; ++k)
                             {
-                              update_profile('-', target_abundance, profile);
+                              update_profile('-', position_in_alignment, target_abundance, profile);
                               update_msa('-', position_in_alignment, aln_v);
                             }
                         }
 
                       if (operation == 'M')
                         {
-                          update_profile(target_seq[tpos], target_abundance, profile);
+                          update_profile(target_seq[tpos], position_in_alignment, target_abundance, profile);
                           update_msa(target_seq[tpos], position_in_alignment, aln_v);
                           ++tpos;
                         }
                       else
                         {
-                          update_profile('-', target_abundance, profile);
+                          update_profile('-', position_in_alignment, target_abundance, profile);
                           update_msa('-', position_in_alignment, aln_v);
                         }
 
@@ -312,7 +360,7 @@ auto compute_and_print_msa(int const target_count,
         {
           for(auto j = 0; j < max_insertions[qpos]; ++j)
             {
-              update_profile('-', target_abundance, profile);
+              update_profile('-', position_in_alignment, target_abundance, profile);
               update_msa('-', position_in_alignment, aln_v);
             }
         }
