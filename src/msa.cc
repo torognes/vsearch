@@ -214,7 +214,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
 
       if (i == 0)
         {
-          for(auto x = 0; x < centroid_len; ++x)
+          for(auto j = 0; j < centroid_len; ++j)
             {
               for(auto y = 0; y < max_insertions[qpos]; ++y)
                 {
