@@ -227,16 +227,16 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
         }
       else
         {
-          char * p = target_list[i].cigar;
-          char * end = p + std::strlen(p);
-          while (p < end)
+          char * position = target_list[i].cigar;
+          char * end = position + std::strlen(position);
+          while (position < end)
             {
               int64_t run = 1;
               int scanlength = 0;
-              std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-              p += scanlength;
-              char const operation = *p;
-              ++p;
+              std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
+              position += scanlength;
+              char const operation = *position;
+              ++position;
 
               if (operation == 'D')
                 {
