@@ -170,6 +170,21 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 }
 
 
+auto find_longest_target_on_reverse_strand(int const target_count,
+                                           struct msa_target_s * target_list) -> int64_t {
+  int64_t longest_reversed = 0;
+  for(auto i = 0; i < target_count; ++i)
+    {
+      if (target_list[i].strand != 0)
+        {
+          auto const len = static_cast<int64_t>(db_getsequencelen(target_list[i].seqno));
+          longest_reversed = std::max(len, longest_reversed);
+        }
+    }
+  return longest_reversed;
+}
+
+
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int const target_count, struct msa_target_s * target_list,
@@ -189,15 +204,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<char> cons_v(alnlen + 1);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
-  int64_t longest_reversed = 0;
-  for(auto i = 0; i < target_count; ++i)
-    {
-      if (target_list[i].strand != 0)
-        {
-          auto const len = static_cast<int64_t>(db_getsequencelen(target_list[i].seqno));
-          longest_reversed = std::max(len, longest_reversed);
-        }
-    }
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
   char * rc_buffer = nullptr;
   if (longest_reversed > 0)
     {
