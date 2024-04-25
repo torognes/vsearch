@@ -75,7 +75,6 @@
 using prof_type = uint64_t;
 constexpr auto PROFSIZE = 6;
 
-static char * aln;
 static int alnpos;
 
 
@@ -413,7 +412,6 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   /* allocate memory for profile (for consensus) and aligned seq */
   std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
   std::vector<char> aln_v(alnlen + 1);
-  aln = aln_v.data();
   std::vector<char> cons_v(alnlen + 1);
 
   /* blank line before each msa */
