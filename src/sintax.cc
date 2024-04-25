@@ -60,7 +60,7 @@
 
 /*
 
-  Implements the Sintax algorithm as desribed in Robert Edgar's preprint:
+  Implements the Sintax algorithm as described in Robert Edgar's preprint:
 
   Robert Edgar (2016)
   SINTAX: a simple non-Bayesian taxonomy classifier for 16S and ITS sequences
@@ -70,6 +70,10 @@
   Further details:
 
   https://www.drive5.com/usearch/manual/cmd_sintax.html
+
+
+  Note that due to the lack of details in the description, this implementation
+  in vsearch is surely somewhat different from the one in usearch.
 
 */
 
@@ -98,48 +102,87 @@ static int classified = 0;
 
 void sintax_analyse(char * query_head,
                     int strand,
-                    int best_seqno,
                     int * all_seqno,
                     int count)
 {
-  int best_level_start[tax_levels];
-  int best_level_len[tax_levels];
   int level_match[tax_levels];
+  int level_best[tax_levels];
 
-  /* check number of successful bootstraps */
-  if (count >= (bootstrap_count+1) / 2)
+  char * cand_level_start[bootstrap_count][tax_levels];
+  int cand_level_len[bootstrap_count][tax_levels];
+  int cand_level_matches[bootstrap_count][tax_levels];
+
+  /* Check number of successful bootstraps, must be at least half */
+
+  bool enough = count >= (bootstrap_count + 1) / 2;
+
+  if (enough)
     {
-      char * best_h = db_getheader(best_seqno);
+      /* Find the most common name at each taxonomic rank,
+         but with the same names at higher ranks. */
 
-      tax_split(best_seqno, best_level_start, best_level_len);
-
-      for (int & j :
-             level_match)
+      for (int i = 0; i < count ; i++)
         {
-          j = 0;
+          /* Split headers of all candidates by taxonomy ranks */
+
+          int seqno = all_seqno[i];
+          int new_level_start[tax_levels];
+          int new_level_len[tax_levels];
+          tax_split(seqno, new_level_start, new_level_len);
+          for (int k = 0; k < tax_levels; k++)
+            {
+              cand_level_start[i][k] = db_getheader(seqno)+new_level_start[k];
+              cand_level_len[i][k] = new_level_len[k];
+            }
         }
 
-      for (int i = 0; i < count; i++)
-        {
-          /* For each bootstrap experiment */
+      /* Count matching names among candidates */
 
-          int level_start[tax_levels];
-          int level_len[tax_levels];
-          tax_split(all_seqno[i], level_start, level_len);
+      for (int i = 0; i < count ; i++)
+        for (int k = 0; k < tax_levels; k++)
+          cand_level_matches[i][k] = 0;
 
-          char * h = db_getheader(all_seqno[i]);
-
-          for (int j = 0; j < tax_levels; j++)
+      for (int k = 0; k < tax_levels; k++)
+        for (int i = 0; i < count ; i++)
+          for (int c = 0; c <= i ; c++)
             {
-              /* For each taxonomic level */
-
-              if ((level_len[j] == best_level_len[j]) &&
-                  (strncmp(best_h + best_level_start[j],
-                           h + level_start[j],
-                           level_len[j]) == 0))
+              /* check match at current and all higher levels */
+              bool match = true;
+              for (int j = 0; j <= k; j++)
                 {
-                  level_match[j]++;
+                  if ((cand_level_len[i][j] != cand_level_len[c][j]) ||
+                      (strncmp(cand_level_start[i][j],
+                               cand_level_start[c][j],
+                               cand_level_len[i][j]) != 0))
+                    {
+                      match = false;
+                      break;
+                    }
                 }
+              if (match)
+                {
+                  cand_level_matches[c][k]++;
+                  break; /* stop at first match */
+                }
+            }
+
+      /* Find most common name at each taxonomic level */
+
+      for (int k = 0; k < tax_levels; k++)
+        {
+          level_best[k] = -1;
+          level_match[k] = 0;
+          int m = 0;
+          for (int i = 0; i < count ; i++)
+            {
+              m += cand_level_matches[i][k];
+              if (cand_level_matches[i][k] > level_match[k])
+                {
+                  level_best[k] = i;
+                  level_match[k] = cand_level_matches[i][k];
+                }
+              if (m >= count)
+                break;
             }
         }
     }
@@ -150,23 +193,22 @@ void sintax_analyse(char * query_head,
 
   queries++;
 
-  if (count >= bootstrap_count / 2)
+  if (enough)
     {
-      char * best_h = db_getheader(best_seqno);
-
       classified++;
 
       bool comma = false;
       for (int j = 0; j < tax_levels; j++)
         {
-          if (best_level_len[j] > 0)
+          int best = level_best[j];
+          if (cand_level_len[best][j] > 0)
             {
               fprintf(fp_tabbedout,
                       "%s%c:%.*s(%.2f)",
                       (comma ? "," : ""),
                       tax_letters[j],
-                      best_level_len[j],
-                      best_h + best_level_start[j],
+                      cand_level_len[best][j],
+                      cand_level_start[best][j],
                       1.0 * level_match[j] / count);
               comma = true;
             }
@@ -180,15 +222,16 @@ void sintax_analyse(char * query_head,
           bool comma = false;
           for (int j = 0; j < tax_levels; j++)
             {
-              if ((best_level_len[j] > 0) &&
+              int best = level_best[j];
+              if ((cand_level_len[best][j] > 0) &&
                   (1.0 * level_match[j] / count >= opt_sintax_cutoff))
                 {
                   fprintf(fp_tabbedout,
                           "%s%c:%.*s",
                           (comma ? "," : ""),
                           tax_letters[j],
-                          best_level_len[j],
-                          best_h + best_level_start[j]);
+                          cand_level_len[best][j],
+                          cand_level_start[best][j]);
                   comma = true;
                 }
             }
@@ -210,10 +253,111 @@ void sintax_analyse(char * query_head,
   xpthread_mutex_unlock(&mutex_output);
 }
 
+void sintax_search_topscores(struct searchinfo_s * si)
+{
+  /*
+    Count the kmer hits in each database sequence and
+    make a sorted list of a given number (th)
+    of the database sequences with the highest number of matching kmers.
+    These are stored in the min heap array.
+  */
+
+  /* count kmer hits in the database sequences */
+  const int indexed_count = dbindex_getcount();
+
+  /* zero counts */
+  memset(si->kmers, 0, indexed_count * sizeof(count_t));
+
+  for(unsigned int i = 0; i < si->kmersamplecount; i++)
+    {
+      unsigned int kmer = si->kmersample[i];
+      unsigned char * bitmap = dbindex_getbitmap(kmer);
+
+      if (bitmap)
+        {
+#ifdef __x86_64__
+          if (ssse3_present)
+            {
+              increment_counters_from_bitmap_ssse3(si->kmers,
+                                                   bitmap, indexed_count);
+            }
+          else
+            {
+              increment_counters_from_bitmap_sse2(si->kmers,
+                                                  bitmap, indexed_count);
+            }
+#else
+          increment_counters_from_bitmap(si->kmers, bitmap, indexed_count);
+#endif
+        }
+      else
+        {
+          unsigned int * list = dbindex_getmatchlist(kmer);
+          unsigned int count = dbindex_getmatchcount(kmer);
+          for(unsigned int j = 0; j < count; j++)
+            {
+              si->kmers[list[j]]++;
+            }
+        }
+    }
+
+  unsigned int tophits = 0;
+
+  elem_t best;
+  best.count = 0;
+  best.seqno = 0;
+  best.length = 0;
+
+  for(int i = 0; i < indexed_count; i++)
+    {
+      count_t count = si->kmers[i];
+      unsigned int seqno = dbindex_getmapping(i);
+      unsigned int length = db_getsequencelen(best.seqno);
+
+      if (count > best.count)
+        {
+          best.count = count;
+          best.seqno = seqno;
+          best.length = length;
+          tophits = 1;
+        }
+      else if (count == best.count)
+        {
+          if (opt_sintax_random)
+            {
+              tophits++;
+              if (random_int(tophits) == 0)
+                {
+                  best.seqno = seqno;
+                  best.length = length;
+                }
+            }
+          else
+            {
+              if (length < best.length)
+                {
+                  best.seqno = seqno;
+                  best.length = length;
+                }
+              else if (length == best.length)
+                {
+                  if (seqno < best.seqno)
+                    {
+                      best.seqno = seqno;
+                    }
+                }
+            }
+        }
+    }
+
+  minheap_empty(si->m);
+  if (best.count > 1)
+    minheap_add(si->m, & best);
+}
+
 void sintax_query(int64_t t)
 {
   int all_seqno[2][bootstrap_count];
-  int best_seqno[2] = {0, 0};
   int boot_count[2] = {0, 0};
   unsigned int best_count[2] = {0, 0};
   int qseqlen = si_plus[t].qseqlen;
@@ -258,9 +402,9 @@ void sintax_query(int64_t t)
               si->kmersamplecount = subsamples;
               si->kmersample = kmersample_subset;
 
-              search_topscores(si);
+              sintax_search_topscores(si);
 
-              while(!minheap_isempty(si->m))
+              if (! minheap_isempty(si->m))
                 {
                   elem_t e = minheap_poplast(si->m);
 
@@ -269,7 +413,6 @@ void sintax_query(int64_t t)
                   if (e.count > best_count[s])
                     {
                       best_count[s] = e.count;
-                      best_seqno[s] = e.seqno;
                     }
                 }
             }
@@ -307,7 +450,6 @@ void sintax_query(int64_t t)
 
   sintax_analyse(query_head,
                  best_strand,
-                 best_seqno[best_strand],
                  all_seqno[best_strand],
                  boot_count[best_strand]);
 

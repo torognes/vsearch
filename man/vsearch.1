@@ -3575,13 +3575,13 @@ reference sequence database is specified with the \-\-db option. The
 results are written in a tab delimited text file whose name is
 specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
 may be used to set a minimum level of bootstrap support for the
-taxonomic ranks to be reported. The `--randseed` option may be
+taxonomic ranks to be reported. The \-\-randseed option may be
 included to specify a seed for initialisation of the random number
 generator used by the algorithm. Please note that when using multiple
-threads, the `--randseed` option may not work as intended, because
+threads, the \-\-randseed option may not work as intended, because
 sequences may be processed in a random order by different threads. To
-ensure the same results each time, use a single thread (`--threads 1`)
-in combination with a fixed random seed specified with `--randseed`.
+ensure the same results each time, use a single thread \-\-threads 1)
+in combination with a fixed random seed specified with \-\-randseed.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
@@ -3600,6 +3600,13 @@ Example: ">X80725_S000004313;\:tax=d:Bacteria,\:p:Proteobacteria,\:c:Gammaproteo
 The option \-\-notrunclabels is turned on by default for this command,
 allowing spaces in the taxonomic identifiers.
 .PP
+If two sequences in the reference database has equally many kmer
+matches with the query, the shortest sequence will be chosen by
+default. If they are equally long, the sequence appearing first in the
+database will be chosen. If the recommended option \-\-sintax_random
+is specified, sequences with an equal number of kmer matches will be
+choosen by a random draw.
+.PP
 .TAG db
 .TP 9
 .BI \-\-db \0filename
@@ -3612,17 +3619,23 @@ Use \fIinteger\fR as seed for the random number generator used in the
 Sintax algorithm. A given seed always produces the same output order
 (useful for replicability). Set to 0 to use a pseudo-random seed
 (default behaviour). Does not work correctly with multiple threads;
-please use `--threads 1` to ensure correct behaviour.
+please use \-\-threads 1 to ensure correct behaviour.
+.TAG sintax
+.TP
+.BI \-\-sintax \0filename
+Read the input sequences from \fIfilename\fR, in FASTA or FASTQ format.
 .TAG sintax_cutoff
 .TP
 .BI \-\-sintax_cutoff\~ "real"
 Specify a minimum level of bootstrap support for the taxonomic ranks
 that will be included in column 4 of the output file. For instance
 0.9, corresponding to 90%.
-.TAG sintax
+.TAG sintax_random
 .TP
-.BI \-\-sintax \0filename
-Read the input sequences from \fIfilename\fR, in FASTA or FASTQ format.
+.B \-\-sintax_random
+Break ties between sequences with equally many kmer matches by a
+random draw. This option is recommended and may be made the default in
+the future.
 .TAG tabbedout
 .TP
 .BI \-\-tabbedout \0filename
