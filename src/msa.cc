@@ -193,14 +193,14 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
                            std::FILE * fp_msaout) -> void {
   // refactoring: rc_buffer is used only in that function. It should be created here to reduce its scope.
   int const centroid_len = max_insertions.size() - 1;
-  for(auto j = 0; j < target_count; ++j)
+  for(auto i = 0; i < target_count; ++i)
     {
-      int const target_seqno = target_list[j].seqno;
+      int const target_seqno = target_list[i].seqno;
       char * target_seq = db_getsequence(target_seqno);
       prof_type const target_abundance = opt_sizein ?
         db_getabundance(target_seqno) : 1;
 
-      if (target_list[j].strand != 0)
+      if (target_list[i].strand != 0)
         {
           reverse_complement(rc_buffer, target_seq,
                              db_getsequencelen(target_seqno));
@@ -212,7 +212,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
       int tpos = 0;
       alnpos = 0;
 
-      if (j == 0)
+      if (i == 0)
         {
           for(auto x = 0; x < centroid_len; ++x)
             {
@@ -227,7 +227,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
         }
       else
         {
-          char * p = target_list[j].cigar;
+          char * p = target_list[i].cigar;
           char * end = p + std::strlen(p);
           while (p < end)
             {
@@ -298,7 +298,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
       if (fp_msaout != nullptr)
         {
           fasta_print_general(fp_msaout,
-                              j != 0 ? "" : "*",
+                              i != 0 ? "" : "*",
                               aln_v.data(),
                               alnlen,
                               db_getheader(target_seqno),
