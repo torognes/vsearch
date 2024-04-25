@@ -260,7 +260,7 @@ auto compute_and_print_msa(int const target_count, int const alnlen,
                     {
                       if (not inserted)
                         {
-                          for(auto y = 0; y < max_insertions[qpos]; ++y)
+                          for(auto k = 0; k < max_insertions[qpos]; ++k)
                             {
                               msa_add('-', target_abundance, profile);
                             }
