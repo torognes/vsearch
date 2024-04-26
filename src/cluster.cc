@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include <cstdio>  // FILE
 #include <limits>
+#include <vector>
 
 
 static int tophits; /* the maximum number of hits to keep */
@@ -1575,8 +1576,8 @@ void cluster(char * dbname,
   if (opt_msaout or opt_consout or opt_profile)
     {
       int msa_target_count = 0;
-      auto * msa_target_list =
-        (struct msa_target_s *) xmalloc(sizeof(struct msa_target_s) * size_max);
+      std::vector<struct msa_target_s> msa_target_list_v(size_max);
+      auto * msa_target_list = msa_target_list_v.data();
       progress_init("Multiple alignments", seqcount);
 
       std::FILE * fp_msaout = nullptr;
@@ -1669,8 +1670,6 @@ void cluster(char * dbname,
         {
           fclose(fp_consout);
         }
-
-      xfree(msa_target_list);
     }
 
   xfree(cluster_abundance);
