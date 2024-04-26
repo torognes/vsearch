@@ -205,7 +205,6 @@ auto compute_and_print_msa(int const target_count,
                            std::vector<char> &aln_v,
                            std::FILE * fp_msaout) -> void {
 
-  auto * target_list = target_list_v.data();
   blank_line_before_each_msa(fp_msaout);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
@@ -221,12 +220,12 @@ auto compute_and_print_msa(int const target_count,
   for(auto i = 0; i < target_count; ++i)
     {
       int position_in_alignment = 0;
-      int const target_seqno = target_list[i].seqno;
+      int const target_seqno = target_list_v[i].seqno;
       char * target_seq = db_getsequence(target_seqno);
       prof_type const target_abundance = opt_sizein ?
         db_getabundance(target_seqno) : 1;
 
-      if (target_list[i].strand != 0)
+      if (target_list_v[i].strand != 0)
         {
           reverse_complement(rc_buffer, target_seq,
                              db_getsequencelen(target_seqno));
@@ -254,7 +253,7 @@ auto compute_and_print_msa(int const target_count,
         }
       else
         {
-          char * position = target_list[i].cigar;
+          char * position = target_list_v[i].cigar;
           char * end = position + std::strlen(position);
           while (position < end)
             {
