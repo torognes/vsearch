@@ -183,8 +183,9 @@ auto find_longest_target_on_reverse_strand(int const target_count,
   int64_t longest_reversed = 0;
   for(auto i = 0; i < target_count; ++i)
     {
-      if (target_list_v[i].strand == 0) { continue; }
-      auto const len = static_cast<int64_t>(db_getsequencelen(target_list_v[i].seqno));
+      auto const & target = target_list_v[i];
+      if (target.strand == 0) { continue; }
+      auto const len = static_cast<int64_t>(db_getsequencelen(target.seqno));
       longest_reversed = std::max(len, longest_reversed);
     }
   return longest_reversed;
