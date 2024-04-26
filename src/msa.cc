@@ -151,7 +151,7 @@ auto find_max_insertions_per_position(int const target_count,
           auto** next_operation = &position;  // operations: match (M), insertion (I), or deletion (D)
           auto const run = std::strtoll(position, next_operation, 10);
           auto const operation = **next_operation;
-          ++position;
+          position = std::next(position);
           switch (operation)
             {
             case 'M':
