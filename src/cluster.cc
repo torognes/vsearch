@@ -1627,7 +1627,7 @@ void cluster(char * dbname,
                   /* compute msa & consensus */
                   msa(fp_msaout, fp_consout, fp_profile,
                       lastcluster,
-                      msa_target_count, msa_target_list,
+                      msa_target_count, msa_target_list_v.data(),
                       cluster_abundance[lastcluster]);
                 }
 
@@ -1650,7 +1650,7 @@ void cluster(char * dbname,
           /* compute msa & consensus */
           msa(fp_msaout, fp_consout, fp_profile,
               lastcluster,
-              msa_target_count, msa_target_list,
+              msa_target_count, msa_target_list_v.data(),
               cluster_abundance[lastcluster]);
         }
 
