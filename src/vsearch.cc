@@ -5419,6 +5419,7 @@ void cmd_help()
               " Parameters\n"
               "  --db FILENAME               taxonomic reference db in given FASTA or UDB file\n"
               "  --sintax_cutoff REAL        confidence value cutoff level (0.0)\n"
+              "  --sintax_random             use random sequence, not shortest, if equal match\n"
               " Output\n"
               "  --tabbedout FILENAME        write results to given tab-delimited file\n"
               "\n"
