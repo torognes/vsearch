@@ -171,7 +171,7 @@ auto find_max_insertions_per_position(int const target_count,
 
 
 auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int {
-  int const centroid_len = max_insertions.size() - 1;
+  auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   return std::accumulate(max_insertions.begin(), max_insertions.end(), centroid_len);
 }
 
