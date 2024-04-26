@@ -137,7 +137,7 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
 
 
 auto find_max_insertions_per_position(int const target_count,
-                                      std::vector<struct msa_target_s>& target_list_v,
+                                      std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
   std::vector<int> max_insertions(centroid_len + 1);
   for(auto i = 1; i < target_count; ++i)
@@ -179,7 +179,7 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 
 
 auto find_longest_target_on_reverse_strand(int const target_count,
-                                           std::vector<struct msa_target_s>& target_list_v) -> int64_t {
+                                           std::vector<struct msa_target_s> const & target_list_v) -> int64_t {
   auto * target_list = target_list_v.data();
   int64_t longest_reversed = 0;
   for(auto i = 0; i < target_count; ++i)
@@ -200,7 +200,7 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 
 
 auto compute_and_print_msa(int const target_count,
-                           std::vector<struct msa_target_s>& target_list_v,
+                           std::vector<struct msa_target_s> const & target_list_v,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
@@ -473,7 +473,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
 
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
-         int const target_count, std::vector<struct msa_target_s>& target_list_v,
+         int const target_count, std::vector<struct msa_target_s> const & target_list_v,
          int64_t totalabundance) -> void
 {
   int const centroid_seqno = target_list_v[0].seqno;
