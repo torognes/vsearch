@@ -141,8 +141,8 @@ auto find_max_insertions_per_position(int const target_count,
   std::vector<int> max_insertions(centroid_len + 1);
   for(auto i = 1; i < target_count; ++i)
     {
-      char * position = target_list[i].cigar;
-      char * end = position + std::strlen(position);
+      char * position = std::next(target_list, i)->cigar;
+      char * end = std::next(position, std::strlen(position));
       int pos = 0;  // refactoring: rename?
       while (position < end)
         {
