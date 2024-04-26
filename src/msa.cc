@@ -179,7 +179,8 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 
 
 auto find_longest_target_on_reverse_strand(int const target_count,
-                                           struct msa_target_s * target_list) -> int64_t {
+                                           std::vector<struct msa_target_s>& target_list_v) -> int64_t {
+  auto * target_list = target_list_v.data();
   int64_t longest_reversed = 0;
   for(auto i = 0; i < target_count; ++i)
     {
@@ -209,7 +210,7 @@ auto compute_and_print_msa(int const target_count,
   blank_line_before_each_msa(fp_msaout);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
   char * rc_buffer = nullptr;
   if (longest_reversed > 0)
     {
