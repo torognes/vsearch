@@ -65,6 +65,7 @@
 #include <cinttypes>  // macro PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf
+#include <cstdlib>  // str::strtoll
 #include <cstring>  // std::memset, std::strlen
 #include <iterator> // std::next
 #include <numeric> // std::accumulate
@@ -146,16 +147,15 @@ auto find_max_insertions_per_position(int const target_count,
       int pos = 0;  // refactoring: rename?
       while (position < end)
         {
-          int64_t run = 1;
-          int scanlength = 0;
-          std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
-          position += scanlength;
-          char const operation = *position;
+          char** next_operation = &position;
+          auto const run = std::strtoll(position, next_operation, 10);
+          char const operation = **next_operation;
           ++position;
           switch (operation)
             {
             case 'M':
             case 'I':
+              if (run == 0) { ++pos; }
               pos += run;
               break;
             case 'D':
