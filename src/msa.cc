@@ -145,7 +145,7 @@ auto find_max_insertions_per_position(int const target_count,
       char * position = std::next(target_list, i)->cigar;
       auto const string_length = static_cast<long>(std::strlen(position));
       char * end = std::next(position, string_length);
-      auto position_in_centroid = 0;
+      auto position_in_centroid = 0LL;
       while (position < end)
         {
           auto** next_operation = &position;  // operations: match (M), insertion (I), or deletion (D)
