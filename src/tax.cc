@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-const char * tax_letters = "dkpcofgs";
+const char * tax_letters = "dkpcofgst";
 
 bool tax_parse(const char * header,
                int header_length,
@@ -122,7 +122,7 @@ bool tax_parse(const char * header,
 
 void tax_split(int seqno, int * level_start, int * level_len)
 {
-  /* Parse taxonomy string into the following parts
+  /* Parse taxonomy string into the following 9 parts
      d domain
      k kingdom
      p phylum
@@ -131,6 +131,7 @@ void tax_split(int seqno, int * level_start, int * level_len)
      f family
      g genus
      s species
+     t strain
   */
 
   for (int i = 0; i < tax_levels; i++)

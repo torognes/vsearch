@@ -58,7 +58,7 @@
 
 */
 
-const int tax_levels = 8;
+const int tax_levels = 9;
 extern const char * tax_letters;
 
 bool tax_parse(const char * header,
