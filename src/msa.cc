@@ -149,7 +149,7 @@ auto find_max_insertions_per_position(int const target_count,
         {
           char** next_operation = &position;  // operations: match (M), insertion (I), or deletion (D)
           auto const run = std::strtoll(position, next_operation, 10);
-          char const operation = **next_operation;
+          auto const operation = **next_operation;
           ++position;
           switch (operation)
             {
