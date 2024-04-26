@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "April 26, 2024" "version 2.28.0" "USER COMMANDS"
+.TH vsearch 1 "April 26, 2024" "version 2.28.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -4929,7 +4929,11 @@ recommended and will probably soon be the default. Furthermore, a
 ninth taxonomic rank, strain (letter t), is now recognized. The speed
 of the sintax command has also been significantly improved at least in
 some cases. Run vsearch with the randseed option and 1 thread to
-ensure reproducibility of the random choices in the algorith.
+ensure reproducibility of the random choices in the algorithm.
+.TP
+.BR v2.28.1\~ "released April 26th, 2024"
+Fix a segmentation fault that could occur with the blast6out and
+output_no_hits options.
 .LP
 .\" ============================================================================
 .\" TODO:
