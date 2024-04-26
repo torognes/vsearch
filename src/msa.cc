@@ -202,7 +202,7 @@ auto compute_and_print_msa(int const target_count,
   /* blank line before each msa */
   if (fp_msaout != nullptr)
     {
-      fprintf(fp_msaout, "\n");
+      static_cast<void>(std::fprintf(fp_msaout, "\n"));
     }
 
   /* Find longest target sequence on reverse strand and allocate buffer */
