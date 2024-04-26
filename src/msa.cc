@@ -450,14 +450,16 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                       opt_clusterout_id ? cluster : -1,
                       nullptr, 0.0);
 
-  for (auto i = 0; i < alnlen; ++i)
-    {
-      fprintf(fp_profile, "%d\t%c", i, aln_v[i]);
+  aln_v.pop_back(); // remove last element ('\0')
+  auto counter = 0;
+  for (auto const nucleotide: aln_v) {
+      fprintf(fp_profile, "%d\t%c", counter, nucleotide);
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * i + symbol_index]);
+        fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * counter + symbol_index]);
       }
       fprintf(fp_profile, "\n");
+      ++counter;
     }
   fprintf(fp_profile, "\n");
 }
