@@ -428,7 +428,7 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
 
 
 auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
-                             std::vector<prof_type> const &profile, int const alnlen,
+                             std::vector<prof_type> const &profile,
                              int64_t const totalabundance, int const target_count,
                              int const cluster,
                              int const centroid_seqno) -> void {
@@ -502,7 +502,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* profile: multiple sequence alignment profile (dedicated input) */
   print_alignment_profile(fp_profile, aln_v,
-                          profile, alnlen,
+                          profile,
                           totalabundance, target_count,
                           cluster,
                           centroid_seqno);
