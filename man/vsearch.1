@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "April 6, 2024" "version 2.27.1" "USER COMMANDS"
+.TH vsearch 1 "April 26, 2024" "version 2.28.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -4901,6 +4901,35 @@ libraries to libz.so.1 and libbz2.so.1 on Linux to make them work on
 common Linux distributions without installing additional packages.
 README.md has been updated with information about compression
 libraries on Windows.
+.TP
+.BR v2.28.0\~ "released April 26th, 2024"
+The sintax command has been improved in several ways in this version
+of vsearch. Please note that several details of this algorithm is not
+clearly described in the preprint, and the implementation in vsearch
+differs from that in usearch. The former vsearch version did not
+always choose the most common taxonomic entity over the 100 bootstraps
+among the database sequences with the highest amount of word
+similarity to the query. Instead, if several sequences had an equal
+similarity with the query, the sequence encountered in the earliest
+bootstrap was chosen. The confidence level was calculated based on
+this sequence compared to the selected sequences from the other 99
+bootstraps. This could lead to a suboptimal choice with a low
+confidence. In the new version, the most common of the sequences with
+the highest amount of word similarity across the 100 bootstraps will
+be selected, and ties will be broken randomly. Another problem with
+the old implementation was that if several sequences had the same
+amount of word similarity, the shortest one in the reference database
+would be chosen, and if they were equally long, the earliest in the
+database file would be chosen. A new option called sintax_random has
+now been introduced. This option will randomly select one of the
+sequences with the highest number of shared words with the query,
+without considering their length or position. This avoids a bias
+towards shorter reference sequences. This option is strongly
+recommended and will probably soon be the default. Furthermore, a
+ninth taxonomic rank, strain (letter t), is now recognized. The speed
+of the sintax command has also been significantly improved at least in
+some cases. Run vsearch with the randseed option and 1 thread to
+ensure reproducibility of the random choices in the algorith.
 .LP
 .\" ============================================================================
 .\" TODO:
