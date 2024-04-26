@@ -192,17 +192,20 @@ auto find_longest_target_on_reverse_strand(int const target_count,
 }
 
 
+auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
+  if (fp_msaout == nullptr) { return ; }
+  static_cast<void>(std::fprintf(fp_msaout, "\n"));
+}
+
+
 auto compute_and_print_msa(int const target_count,
                            struct msa_target_s *target_list,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
                            std::FILE * fp_msaout) -> void {
-  /* blank line before each msa */
-  if (fp_msaout != nullptr)
-    {
-      static_cast<void>(std::fprintf(fp_msaout, "\n"));
-    }
+
+  blank_line_before_each_msa(fp_msaout);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list);
