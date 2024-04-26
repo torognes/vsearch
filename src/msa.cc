@@ -139,11 +139,10 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
 auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s>& target_list_v,
                                       int const centroid_len) -> std::vector<int> {
-  auto * target_list = target_list_v.data();
   std::vector<int> max_insertions(centroid_len + 1);
   for(auto i = 1; i < target_count; ++i)
     {
-      char * cigar_start = std::next(target_list, i)->cigar;
+      char * cigar_start = target_list_v[i].cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
       char * cigar_end = std::next(cigar_start, cigar_length);
       auto * position_in_cigar = cigar_start;
