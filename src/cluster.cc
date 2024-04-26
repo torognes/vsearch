@@ -1640,7 +1640,7 @@ void cluster(char * dbname,
           msa_target_list_v[msa_target_count].seqno = seqno;
           msa_target_list_v[msa_target_count].cigar = cigar;
           msa_target_list_v[msa_target_count].strand = strand;
-          msa_target_count++;
+          ++msa_target_count;
 
           progress_update(i);
         }
