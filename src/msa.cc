@@ -137,8 +137,9 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
 
 
 auto find_max_insertions_per_position(int const target_count,
-                                      struct msa_target_s * target_list,
+                                      std::vector<struct msa_target_s>& target_list_v,
                                       int const centroid_len) -> std::vector<int> {
+  auto * target_list = target_list_v.data();
   std::vector<int> max_insertions(centroid_len + 1);
   for(auto i = 1; i < target_count; ++i)
     {
@@ -199,12 +200,13 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 
 
 auto compute_and_print_msa(int const target_count,
-                           struct msa_target_s *target_list,
+                           std::vector<struct msa_target_s>& target_list_v,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
                            std::FILE * fp_msaout) -> void {
 
+  auto * target_list = target_list_v.data();
   blank_line_before_each_msa(fp_msaout);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
@@ -478,7 +480,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const centroid_length = static_cast<int>(db_getsequencelen(centroid_seqno));
 
   /* find max insertions in front of each position in the centroid sequence */
-  auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v.data(), centroid_length);
+  auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v, centroid_length);
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
@@ -487,7 +489,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<char> cons_v(alignment_length + 1);
 
   /* msaout: multiple sequence alignment ... */
-  compute_and_print_msa(target_count, target_list_v.data(), max_insertions,
+  compute_and_print_msa(target_count, target_list_v, max_insertions,
                         profile, aln_v,
                         fp_msaout);
 
