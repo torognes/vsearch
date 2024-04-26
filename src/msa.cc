@@ -142,16 +142,16 @@ auto find_max_insertions_per_position(int const target_count,
   std::vector<int> max_insertions(centroid_len + 1);
   for(auto i = 1; i < target_count; ++i)
     {
-      char * position = std::next(target_list, i)->cigar;
-      auto const string_length = static_cast<long>(std::strlen(position));
-      char * end = std::next(position, string_length);
+      char * position_in_cigar = std::next(target_list, i)->cigar;
+      auto const string_length = static_cast<long>(std::strlen(position_in_cigar));
+      char * end = std::next(position_in_cigar, string_length);
       auto position_in_centroid = 0LL;
-      while (position < end)
+      while (position_in_cigar < end)
         {
-          auto** next_operation = &position;  // operations: match (M), insertion (I), or deletion (D)
-          auto const run = std::strtoll(position, next_operation, 10);
+          auto** next_operation = &position_in_cigar;  // operations: match (M), insertion (I), or deletion (D)
+          auto const run = std::strtoll(position_in_cigar, next_operation, 10);
           auto const operation = **next_operation;
-          position = std::next(position);
+          position_in_cigar = std::next(position_in_cigar);
           switch (operation)
             {
             case 'M':
