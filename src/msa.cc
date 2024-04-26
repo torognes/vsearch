@@ -144,7 +144,7 @@ auto find_max_insertions_per_position(int const target_count,
     {
       char * position = std::next(target_list, i)->cigar;
       char * end = std::next(position, std::strlen(position));
-      int pos = 0;  // refactoring: rename?
+      int position_in_centroid = 0;
       while (position < end)
         {
           auto** next_operation = &position;  // operations: match (M), insertion (I), or deletion (D)
@@ -155,11 +155,11 @@ auto find_max_insertions_per_position(int const target_count,
             {
             case 'M':
             case 'I':
-              if (run == 0) { ++pos; }
-              pos += run;
+              if (run == 0) { ++position_in_centroid; }
+              position_in_centroid += run;
               break;
             case 'D':
-              max_insertions[pos] = std::max(static_cast<int>(run), max_insertions[pos]);
+              max_insertions[position_in_centroid] = std::max(static_cast<int>(run), max_insertions[position_in_centroid]);
               break;
             default:
               break;
