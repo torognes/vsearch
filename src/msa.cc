@@ -343,7 +343,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> &profile,
                                  std::FILE * fp_msaout) -> void {
-  int const alignment_length = aln_v.size() - 1;
+  auto const alignment_length = static_cast<int>(aln_v.size() - 1);
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
