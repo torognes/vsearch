@@ -1577,7 +1577,6 @@ void cluster(char * dbname,
     {
       int msa_target_count = 0;
       std::vector<struct msa_target_s> msa_target_list_v(size_max);
-      auto * msa_target_list = msa_target_list_v.data();
       progress_init("Multiple alignments", seqcount);
 
       std::FILE * fp_msaout = nullptr;
