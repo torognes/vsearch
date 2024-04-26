@@ -474,12 +474,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int const target_count, std::vector<struct msa_target_s>& target_list_v,
          int64_t totalabundance) -> void
 {
-  auto* target_list = target_list_v.data();
-  int const centroid_seqno = target_list[0].seqno;
+  int const centroid_seqno = target_list_v[0].seqno;
   auto const centroid_length = static_cast<int>(db_getsequencelen(centroid_seqno));
 
   /* find max insertions in front of each position in the centroid sequence */
-  auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_length);
+  auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v.data(), centroid_length);
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
@@ -488,7 +487,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<char> cons_v(alignment_length + 1);
 
   /* msaout: multiple sequence alignment ... */
-  compute_and_print_msa(target_count, target_list, max_insertions,
+  compute_and_print_msa(target_count, target_list_v.data(), max_insertions,
                         profile, aln_v,
                         fp_msaout);
 
