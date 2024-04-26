@@ -3592,14 +3592,15 @@ The strand option may be specified.
 .PP
 The reference database must contain taxonomic information in the
 header of each sequence in the form of a string starting with ";tax="
-and followed by a comma-separated list of up to eight taxonomic
+and followed by a comma-separated list of up to nine taxonomic
 identifiers. Each taxonomic identifier must start with an indication
 of the rank by one of the letters d (for domain) k (kingdom), p
-(phylum), c (class), o (order), f (family), g (genus), or s
-(species). The letter is followed by a colon (:) and the name of that
+(phylum), c (class), o (order), f (family), g (genus), s (species), or
+t (strain). The letter is followed by a colon (:) and the name of that
 rank. Commas and semicolons are not allowed in the name of the rank.
+Non-ascii characters should be avoided in the names.
 .PP
-Example: ">X80725_S000004313;\:tax=d:Bacteria,\:p:Proteobacteria,\:c:Gammaproteobacteria,\:o:Enterobacteriales,\:f:Enterobacteriaceae,\:g:Escherichia/Shigella,\:s:Escherichia_coli".
+Example: ">X80725_S000004313;\:tax=d:Bacteria,\:p:Proteobacteria,\:c:Gammaproteobacteria,\:o:Enterobacteriales,\:f:Enterobacteriaceae,\:g:Escherichia/Shigella,\:s:Escherichia_coli,\:t:str._K-12_substr._MG1655".
 .PP
 The option \-\-notrunclabels is turned on by default for this command,
 allowing spaces in the taxonomic identifiers.
@@ -3608,8 +3609,8 @@ If two sequences in the reference database has equally many kmer
 matches with the query, the shortest sequence will be chosen by
 default. If they are equally long, the sequence appearing first in the
 database will be chosen. If the recommended option \-\-sintax_random
-is specified, sequences with an equal number of kmer matches will be
-choosen by a random draw.
+is specified, sequences with an equal number of kmer matches will
+instead be choosen by a random draw.
 .PP
 .TAG db
 .TP 9

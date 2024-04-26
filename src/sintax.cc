@@ -256,10 +256,13 @@ void sintax_analyse(char * query_head,
 void sintax_search_topscores(struct searchinfo_s * si)
 {
   /*
-    Count the kmer hits in each database sequence and
-    make a sorted list of a given number (th)
-    of the database sequences with the highest number of matching kmers.
-    These are stored in the min heap array.
+    Count the number of kmer hits in each database sequence and select
+    the database sequence with the highest number of matching kmers.
+    If several sequences have equally many kmer matches, choose one of
+    them according to the following rules: By default, choose the
+    shortest. If two are equally short, choose the one that comes
+    first in the database.  If the sintax_random option is in effect,
+    ties will instead be chosen randomly.
   */
 
   /* count kmer hits in the database sequences */
