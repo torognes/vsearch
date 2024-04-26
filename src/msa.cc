@@ -180,13 +180,11 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 
 auto find_longest_target_on_reverse_strand(int const target_count,
                                            std::vector<struct msa_target_s> const & target_list_v) -> int64_t {
-  auto * target_list = target_list_v.data();
   int64_t longest_reversed = 0;
   for(auto i = 0; i < target_count; ++i)
     {
-      auto const & target = *std::next(target_list, i);
-      if (target.strand == 0) { continue; }
-      auto const len = static_cast<int64_t>(db_getsequencelen(target.seqno));
+      if (target_list_v[i].strand == 0) { continue; }
+      auto const len = static_cast<int64_t>(db_getsequencelen(target_list_v[i].seqno));
       longest_reversed = std::max(len, longest_reversed);
     }
   return longest_reversed;
