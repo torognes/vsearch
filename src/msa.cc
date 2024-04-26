@@ -475,12 +475,12 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
 
   /* find max insertions in front of each position in the centroid sequence */
   auto const max_insertions = find_max_insertions_per_position(target_count, target_list, centroid_len);
-  auto const alnlen = find_total_alignment_length(max_insertions);
+  auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alnlen);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
-  std::vector<char> aln_v(alnlen + 1);
-  std::vector<char> cons_v(alnlen + 1);
+  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alignment_length);  // refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);??
+  std::vector<char> aln_v(alignment_length + 1);
+  std::vector<char> cons_v(alignment_length + 1);
 
   /* msaout: multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list, max_insertions,
