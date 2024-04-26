@@ -1637,9 +1637,9 @@ void cluster(char * dbname,
             }
 
           /* add current sequence to the cluster */
-          msa_target_list[msa_target_count].seqno = seqno;
-          msa_target_list[msa_target_count].cigar = cigar;
-          msa_target_list[msa_target_count].strand = strand;
+          msa_target_list_v[msa_target_count].seqno = seqno;
+          msa_target_list_v[msa_target_count].cigar = cigar;
+          msa_target_list_v[msa_target_count].strand = strand;
           msa_target_count++;
 
           progress_update(i);
