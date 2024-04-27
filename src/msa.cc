@@ -254,19 +254,21 @@ auto compute_and_print_msa(int const target_count,
         }
       else
         {
-          char * position = target_list_v[i].cigar;
-          char * end = position + std::strlen(position);
-          while (position < end)
+          char * cigar_start = target_list_v[i].cigar;
+          auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
+          char * cigar_end = std::next(cigar_start, cigar_length);
+          auto * position_in_cigar = cigar_start;
+          while (position_in_cigar < cigar_end)
             {
               // consume digits (if any), return the position of the
               // first char (MDI), store it, move cursor to the next
               // byte
               // operations: match (M), insertion (I), or deletion (D)
-              auto** next_operation = &position;
-              auto run = std::strtoll(position, next_operation, 10);
+              auto** next_operation = &position_in_cigar;
+              auto run = std::strtoll(position_in_cigar, next_operation, 10);
               if (run == 0) { ++run; }  // run must be at least 1
               auto const operation = **next_operation;
-              position = std::next(position);
+              position_in_cigar = std::next(position_in_cigar);
 
               if (operation == 'D')
                 {
