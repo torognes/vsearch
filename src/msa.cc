@@ -249,7 +249,6 @@ auto compute_and_print_msa(int const target_count,
                              static_cast<int64_t>(db_getsequencelen(target_seqno)));
           target_seq = rc_buffer;
         }
-      auto * position_in_target = target_seq;
 
       auto inserted = false;
       int qpos = 0;
@@ -264,9 +263,8 @@ auto compute_and_print_msa(int const target_count,
                   update_profile('-', position_in_alignment, target_abundance, profile);
                   update_msa('-', position_in_alignment, aln_v);
                 }
-              position_in_target = std::next(target_seq, tpos);
-              update_profile(*position_in_target, position_in_alignment, target_abundance, profile);
-              update_msa(*position_in_target, position_in_alignment, aln_v);
+              update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+              update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
               ++tpos;
               ++qpos;
             }
@@ -294,9 +292,8 @@ auto compute_and_print_msa(int const target_count,
                     {
                       if (j < run)
                         {
-                          position_in_target = std::next(target_seq, tpos);
-                          update_profile(*position_in_target, position_in_alignment, target_abundance, profile);
-                          update_msa(*position_in_target, position_in_alignment, aln_v);
+                          update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                          update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                           ++tpos;
                         }
                       else
@@ -322,9 +319,8 @@ auto compute_and_print_msa(int const target_count,
 
                       if (operation == 'M')
                         {
-                          position_in_target = std::next(target_seq, tpos);
-                          update_profile(*position_in_target, position_in_alignment, target_abundance, profile);
-                          update_msa(*position_in_target, position_in_alignment, aln_v);
+                          update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                          update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                           ++tpos;
                         }
                       else
