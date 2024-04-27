@@ -254,7 +254,7 @@ auto compute_and_print_msa(int const target_count,
       int qpos = 0;
       int tpos = 0;
 
-      if (i == 0)
+      if (i == 0)  // centroid
         {
           for(auto j = 0; j < centroid_len; ++j)
             {
