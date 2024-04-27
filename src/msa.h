@@ -58,6 +58,7 @@
 
 */
 
+#include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 #include <vector>
 
