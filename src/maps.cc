@@ -71,6 +71,8 @@
 
 char sym_nt_2bit[] = "ACGT";
 char sym_nt_4bit[] = "-ACMGRSVTWYHKDBN";
+//                    |    |    |    |
+//                    0....5...10...15
 
 unsigned int char_header_action[256] =
   {
