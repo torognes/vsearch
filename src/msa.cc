@@ -396,7 +396,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
               if (count > best_count)
                 {
                   best_count = count;
-                  best_sym = static_cast<char>(1 << nucleotide);
+                  best_sym = static_cast<char>(1U << nucleotide);  // 1, 2, 4, or 8
                 }
             }
 
@@ -413,7 +413,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
           if (best_count >= gap_count)
             {
               auto const index = static_cast<unsigned char>(best_sym);
-              auto const sym = sym_nt_4bit[index];
+              auto const sym = sym_nt_4bit[index];  // A, C, G, T, or N
               aln_v[i] = sym;
               cons_v[conslen] = sym;
               ++conslen;
