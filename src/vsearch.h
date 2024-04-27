@@ -233,7 +233,6 @@
 #include "shuffle.h"
 #include "mask.h"
 #include "cluster.h"
-#include "msa.h"
 #include "chimera.h"
 #include "cpu.h"
 #include "allpairs.h"

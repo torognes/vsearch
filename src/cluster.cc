@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "msa.h"
 #include <cstdio>  // std::FILE
 #include <limits>
 #include <vector>
