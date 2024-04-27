@@ -401,10 +401,10 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
             }
 
           /* if no A, C, G, or T, check if there are any N's */
-          auto const n_count = profile[PROFSIZE * i + 4];
-          if ((best_count == 0) and (n_count > 0))
+          auto const N_count = profile[PROFSIZE * i + 4];
+          if ((best_count == 0) and (N_count > 0))
             {
-              best_count = n_count;
+              best_count = N_count;
               best_sym = index_of_N; // N
             }
 
