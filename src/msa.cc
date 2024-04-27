@@ -258,12 +258,15 @@ auto compute_and_print_msa(int const target_count,
           char * end = position + std::strlen(position);
           while (position < end)
             {
-              int64_t run = 1;
-              int scanlength = 0;
-              std::sscanf(position, "%" PRId64 "%n", &run, &scanlength);
-              position += scanlength;
-              char const operation = *position;
-              ++position;
+              // consume digits (if any), return the position of the
+              // first char (MDI), store it, move cursor to the next
+              // byte
+              // operations: match (M), insertion (I), or deletion (D)
+              auto** next_operation = &position;
+              auto run = std::strtoll(position, next_operation, 10);
+              if (run == 0) { ++run; }  // run must be at least 1
+              auto const operation = **next_operation;
+              position = std::next(position);
 
               if (operation == 'D')
                 {
