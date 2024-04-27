@@ -369,6 +369,8 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> &profile,
                                  std::FILE * fp_msaout) -> void {
+  static constexpr char index_of_N = 15;  // 15th char in sym_nt_4bit[] (=> 'N')
+
   auto const alignment_length = static_cast<int>(aln_v.size() - 1);
   int conslen = 0;
 
@@ -403,14 +405,15 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
           if ((best_count == 0) and (n_count > 0))
             {
               best_count = n_count;
-              best_sym = 15; // N
+              best_sym = index_of_N; // N
             }
 
           /* compare to the number of gap symbols */
           auto const gap_count = profile[PROFSIZE * i + 5];
           if (best_count >= gap_count)
             {
-              auto const sym = sym_nt_4bit[static_cast<unsigned char>(best_sym)];
+              auto const index = static_cast<unsigned char>(best_sym);
+              auto const sym = sym_nt_4bit[index];
               aln_v[i] = sym;
               cons_v[conslen] = sym;
               ++conslen;
