@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include <cstdio>  // FILE
+#include <cstdio>  // std::FILE
 #include <limits>
 #include <vector>
 
