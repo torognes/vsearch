@@ -390,13 +390,13 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
           /* find most common symbol of A, C, G and T */
           char best_sym = 0;
           prof_type best_count = 0;
-          for(auto nucleotide = 0; nucleotide < 4; ++nucleotide)
+          for(auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
             {
               auto const count = profile[PROFSIZE * i + nucleotide];
               if (count > best_count)
                 {
                   best_count = count;
-                  best_sym = 1 << nucleotide;
+                  best_sym = static_cast<char>(1 << nucleotide);
                 }
             }
 
