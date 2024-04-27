@@ -62,6 +62,7 @@
 #include <cstdio>  // std::FILE
 #include <vector>
 
+
 struct msa_target_s
 {
   int seqno;
