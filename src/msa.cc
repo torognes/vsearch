@@ -479,15 +479,15 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
   aln_v.pop_back(); // remove last element ('\0')
   auto counter = 0;
   for (auto const nucleotide: aln_v) {
-    std::fprintf(fp_profile, "%d\t%c", counter, nucleotide);
+    static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        std::fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * counter + symbol_index]);
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * counter + symbol_index]));
       }
-      std::fprintf(fp_profile, "\n");
+      static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;
     }
-  std::fprintf(fp_profile, "\n");
+  static_cast<void>(std::fprintf(fp_profile, "\n"));
 }
 
 
