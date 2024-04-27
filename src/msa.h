@@ -70,7 +70,7 @@ struct msa_target_s
   int strand;
 };
 
-void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
+auto msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
          int cluster,
          int target_count, std::vector<struct msa_target_s> const & target_list_v,
-         int64_t totalabundance);
+         int64_t totalabundance) -> void;
