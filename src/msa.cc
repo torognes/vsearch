@@ -137,6 +137,24 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
 }
 
 
+auto find_runlength_of_leftmost_operation(char * first_character, char ** first_non_digit) -> long long {
+  // std::strtoll:
+  // - start from the 'first_character' pointed to,
+  // - consume as many characters as possible to form a valid integer,
+  // - advance pointer to the first non-digit character,
+  // - return the valid integer
+  // - if there is no valid integer: pointer is not advanced and function returns zero,
+  static constexpr auto decimal_base = 10;
+  auto runlength = std::strtoll(first_character, first_non_digit, decimal_base);
+
+  // in the context of cigar strings, runlength is at least 1
+  if (runlength == 0) {
+    runlength = 1;
+  }
+  return runlength;  // is in [1, LLONG_MAX]
+}
+
+
 auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
@@ -151,14 +169,13 @@ auto find_max_insertions_per_position(int const target_count,
       while (position_in_cigar < cigar_end)
         {
           auto** next_operation = &position_in_cigar;  // operations: match (M), insertion (I), or deletion (D)
-          auto const run = std::strtoll(position_in_cigar, next_operation, 10);
+          auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
           position_in_cigar = std::next(position_in_cigar);
           switch (operation)
             {
             case 'M':
             case 'I':
-              if (run == 0) { ++position_in_centroid; }
               position_in_centroid += run;
               break;
             case 'D':
@@ -265,8 +282,7 @@ auto compute_and_print_msa(int const target_count,
               // byte
               // operations: match (M), insertion (I), or deletion (D)
               auto** next_operation = &position_in_cigar;
-              auto run = std::strtoll(position_in_cigar, next_operation, 10);
-              if (run == 0) { ++run; }  // run must be at least 1
+              auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
               auto const operation = **next_operation;
               position_in_cigar = std::next(position_in_cigar);
 
