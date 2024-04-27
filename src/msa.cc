@@ -234,7 +234,7 @@ auto compute_and_print_msa(int const target_count,
       rc_buffer = rc_buffer_v.data();
     }
 
-  int const centroid_len = max_insertions.size() - 1;
+  auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   for(auto i = 0; i < target_count; ++i)
     {
       int position_in_alignment = 0;
@@ -246,7 +246,7 @@ auto compute_and_print_msa(int const target_count,
       if (target_list_v[i].strand != 0)
         {
           reverse_complement(rc_buffer, target_seq,
-                             db_getsequencelen(target_seqno));
+                             static_cast<int64_t>(db_getsequencelen(target_seqno)));
           target_seq = rc_buffer;
         }
 
