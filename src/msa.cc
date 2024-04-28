@@ -216,13 +216,14 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 }
 
 
-auto print_header_and_sequence(std::FILE * fp_msaout, int const index,
+auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix,
                                int const target_seqno,
                                std::vector<char> & aln_v) -> void {
+  // assert((header_prefix == "") or (header_prefix == "*"));  // ">*header" or ">header"
   if (fp_msaout == nullptr) { return ; }
 
   fasta_print_general(fp_msaout,
-                      index != 0 ? "" : "*",
+                      header_prefix,
                       aln_v.data(),
                       static_cast<int>(aln_v.size() - 1),
                       db_getheader(target_seqno),
@@ -294,7 +295,7 @@ auto compute_and_print_msa(int const target_count,
   aln_v[position_in_alignment] = '\0';
 
   /* print header & sequence */
-  print_header_and_sequence(fp_msaout, 0, target_seqno, aln_v);
+  print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v);
 
 
   // --------------------------------- deal with other sequences in the cluster
@@ -393,7 +394,7 @@ auto compute_and_print_msa(int const target_count,
       aln_v[position_in_alignment] = '\0';
 
       /* print header & sequence */
-      print_header_and_sequence(fp_msaout, i, target_seqno, aln_v);
+      print_header_and_sequence(fp_msaout, "", target_seqno, aln_v);
     }
 }
 
