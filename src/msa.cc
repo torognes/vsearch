@@ -216,6 +216,22 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 }
 
 
+auto print_header_and_sequence(std::FILE * fp_msaout, int const index,
+                               int const target_seqno,
+                               std::vector<char> & aln_v) -> void {
+  if (fp_msaout == nullptr) { return ; }
+
+  fasta_print_general(fp_msaout,
+                      index != 0 ? "" : "*",
+                      aln_v.data(),
+                      static_cast<int>(aln_v.size() - 1),
+                      db_getheader(target_seqno),
+                      static_cast<int>(db_getheaderlen(target_seqno)),
+                      db_getabundance(target_seqno),
+                      0, -1.0, -1, -1, nullptr, 0.0);
+}
+
+
 auto compute_and_print_msa(int const target_count,
                            std::vector<struct msa_target_s> const & target_list_v,
                            std::vector<int> const &max_insertions,
@@ -349,17 +365,7 @@ auto compute_and_print_msa(int const target_count,
       aln_v[position_in_alignment] = '\0';
 
       /* print header & sequence */
-      if (fp_msaout != nullptr)
-        {
-          fasta_print_general(fp_msaout,
-                              i != 0 ? "" : "*",
-                              aln_v.data(),
-                              static_cast<int>(aln_v.size() - 1),
-                              db_getheader(target_seqno),
-                              static_cast<int>(db_getheaderlen(target_seqno)),
-                              db_getabundance(target_seqno),
-                              0, -1.0, -1, -1, nullptr, 0.0);
-        }
+      print_header_and_sequence(fp_msaout, i, target_seqno, aln_v);
     }
 }
 
