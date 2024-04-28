@@ -285,6 +285,7 @@ auto compute_and_print_msa(int const target_count,
       ++qpos;
     }
 
+  // insert
   for(auto j = 0; j < max_insertions[qpos]; ++j)  // refactoring: qpos == centroid_len?
     {
       update_profile('-', position_in_alignment, target_abundance, profile);
