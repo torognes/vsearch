@@ -251,13 +251,59 @@ auto compute_and_print_msa(int const target_count,
     }
 
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
-  for(auto i = 0; i < target_count; ++i)
+
+
+  // ------------------------------------------------------- deal with centroid
+  int position_in_alignment = 0;
+  int target_seqno = target_list_v[0].seqno;
+  char * target_seq = db_getsequence(target_seqno);
+  prof_type target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+
+  if (target_list_v[0].strand != 0)
     {
-      int position_in_alignment = 0;
-      int const target_seqno = target_list_v[i].seqno;
-      char * target_seq = db_getsequence(target_seqno);
-      prof_type const target_abundance = opt_sizein ?
-        db_getabundance(target_seqno) : 1;
+      reverse_complement(rc_buffer, target_seq,
+                         static_cast<int64_t>(db_getsequencelen(target_seqno)));
+      target_seq = rc_buffer;
+    }
+
+  auto inserted = false;
+  int qpos = 0;
+  int tpos = 0;
+
+  for(auto j = 0; j < centroid_len; ++j)
+    {
+      // refactoring: qpos and tpos always equal to j? could be eliminated?
+      for(auto k = 0; k < max_insertions[qpos]; ++k)
+        {
+          update_profile('-', position_in_alignment, target_abundance, profile);
+          update_msa('-', position_in_alignment, aln_v);
+        }
+      update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+      update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+      ++tpos;
+      ++qpos;
+    }
+
+  for(auto j = 0; j < max_insertions[qpos]; ++j)  // refactoring: qpos == centroid_len?
+    {
+      update_profile('-', position_in_alignment, target_abundance, profile);
+      update_msa('-', position_in_alignment, aln_v);
+    }
+
+  /* end of sequence string */
+  aln_v[position_in_alignment] = '\0';
+
+  /* print header & sequence */
+  print_header_and_sequence(fp_msaout, 0, target_seqno, aln_v);
+
+
+  // --------------------------------- deal with other sequences in the cluster
+  for(auto i = 1; i < target_count; ++i)
+    {
+      position_in_alignment = 0;
+      target_seqno = target_list_v[i].seqno;
+      target_seq = db_getsequence(target_seqno);
+      target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
       if (target_list_v[i].strand != 0)
         {
@@ -266,88 +312,70 @@ auto compute_and_print_msa(int const target_count,
           target_seq = rc_buffer;
         }
 
-      auto inserted = false;
-      int qpos = 0;
-      int tpos = 0;
+      inserted = false;
+      qpos = 0;
+      tpos = 0;
 
-      if (i == 0)  // centroid
+      char * cigar_start = target_list_v[i].cigar;
+      auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
+      char * cigar_end = std::next(cigar_start, cigar_length);
+      auto * position_in_cigar = cigar_start;
+      while (position_in_cigar < cigar_end)
         {
-          for(auto j = 0; j < centroid_len; ++j)
+          // consume digits (if any), return the position of the
+          // first char (MDI), store it, move cursor to the next
+          // byte
+          // operations: match (M), insertion (I), or deletion (D)
+          auto** next_operation = &position_in_cigar;
+          auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
+          auto const operation = **next_operation;
+          position_in_cigar = std::next(position_in_cigar);
+
+          if (operation == 'D')
             {
-              for(auto k = 0; k < max_insertions[qpos]; ++k)
+              for(auto j = 0; j < max_insertions[qpos]; ++j)
                 {
-                  update_profile('-', position_in_alignment, target_abundance, profile);
-                  update_msa('-', position_in_alignment, aln_v);
+                  if (j < run)
+                    {
+                      update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                      update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                      ++tpos;
+                    }
+                  else
+                    {
+                      update_profile('-', position_in_alignment, target_abundance, profile);
+                      update_msa('-', position_in_alignment, aln_v);
+                    }
                 }
-              update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-              update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
-              ++tpos;
-              ++qpos;
+              inserted = true;
             }
-        }
-      else  // hits
-        {
-          char * cigar_start = target_list_v[i].cigar;
-          auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
-          char * cigar_end = std::next(cigar_start, cigar_length);
-          auto * position_in_cigar = cigar_start;
-          while (position_in_cigar < cigar_end)
+          else
             {
-              // consume digits (if any), return the position of the
-              // first char (MDI), store it, move cursor to the next
-              // byte
-              // operations: match (M), insertion (I), or deletion (D)
-              auto** next_operation = &position_in_cigar;
-              auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
-              auto const operation = **next_operation;
-              position_in_cigar = std::next(position_in_cigar);
-
-              if (operation == 'D')
+              for(auto j = 0; j < run; ++j)
                 {
-                  for(auto j = 0; j < max_insertions[qpos]; ++j)
+                  if (not inserted)
                     {
-                      if (j < run)
-                        {
-                          update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                          update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
-                          ++tpos;
-                        }
-                      else
+                      for(auto k = 0; k < max_insertions[qpos]; ++k)
                         {
                           update_profile('-', position_in_alignment, target_abundance, profile);
                           update_msa('-', position_in_alignment, aln_v);
                         }
                     }
-                  inserted = true;
-                }
-              else
-                {
-                  for(auto j = 0; j < run; ++j)
+
+                  if (operation == 'M')
                     {
-                      if (not inserted)
-                        {
-                          for(auto k = 0; k < max_insertions[qpos]; ++k)
-                            {
-                              update_profile('-', position_in_alignment, target_abundance, profile);
-                              update_msa('-', position_in_alignment, aln_v);
-                            }
-                        }
-
-                      if (operation == 'M')
-                        {
-                          update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                          update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
-                          ++tpos;
-                        }
-                      else
-                        {
-                          update_profile('-', position_in_alignment, target_abundance, profile);
-                          update_msa('-', position_in_alignment, aln_v);
-                        }
-
-                      ++qpos;
-                      inserted = false;
+                      update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                      update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                      ++tpos;
                     }
+                  else
+                    {
+                      update_profile('-', position_in_alignment, target_abundance, profile);
+                      update_msa('-', position_in_alignment, aln_v);
+                    }
+
+                  ++qpos;
+                  inserted = false;
                 }
             }
         }
