@@ -269,7 +269,7 @@ auto compute_and_print_msa(int const target_count,
               ++qpos;
             }
         }
-      else
+      else  // hits
         {
           char * cigar_start = target_list_v[i].cigar;
           auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
