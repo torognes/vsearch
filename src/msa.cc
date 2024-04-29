@@ -261,7 +261,7 @@ auto process_and_print_centroid(char *rc_buffer,
     {
       // refactoring: qpos and tpos always equal to i? could be eliminated?
       assert((tpos == i) or (qpos == i));
-      for(auto k = 0; k < max_insertions[qpos]; ++k)
+      for(auto j = 0; j < max_insertions[qpos]; ++j)
         {
           update_profile('-', position_in_alignment, target_abundance, profile);
           update_msa('-', position_in_alignment, aln_v);
