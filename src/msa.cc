@@ -338,50 +338,59 @@ auto compute_and_print_msa(int const target_count,
           position_in_cigar = std::next(position_in_cigar);
           assert(runlength <= INT_MAX);
 
-          if (operation == 'D')
-            {
-              for(auto j = 0; j < runlength; ++j)
-                {
-                  update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                  update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
-                  ++tpos;
-                }
-              for(auto j = runlength; j < max_insertions[qpos]; ++j)
-                {
-                  update_profile('-', position_in_alignment, target_abundance, profile);
-                  update_msa('-', position_in_alignment, aln_v);
-                }
-              inserted = true;
-            }
-          else  // M or I
-            {
-              for(auto j = 0; j < runlength; ++j)
-                {
-                  if (not inserted)
-                    {
-                      for(auto k = 0; k < max_insertions[qpos]; ++k)
-                        {
-                          update_profile('-', position_in_alignment, target_abundance, profile);
-                          update_msa('-', position_in_alignment, aln_v);
-                        }
-                    }
+          switch (operation) {
+          case 'D':
+            for(auto j = 0; j < runlength; ++j)
+              {
+                update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                ++tpos;
+              }
+            for(auto j = runlength; j < max_insertions[qpos]; ++j)
+              {
+                update_profile('-', position_in_alignment, target_abundance, profile);
+                update_msa('-', position_in_alignment, aln_v);
+              }
+            inserted = true;
+            break;
+          case 'M':
+            for(auto j = 0; j < runlength; ++j)
+              {
+                if (not inserted)
+                  {
+                    for(auto k = 0; k < max_insertions[qpos]; ++k)
+                      {
+                        update_profile('-', position_in_alignment, target_abundance, profile);
+                        update_msa('-', position_in_alignment, aln_v);
+                      }
+                  }
 
-                  if (operation == 'M')
-                    {
-                      update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                      update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
-                      ++tpos;
-                    }
-                  else
-                    {
-                      update_profile('-', position_in_alignment, target_abundance, profile);
-                      update_msa('-', position_in_alignment, aln_v);
-                    }
+                update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                ++tpos;
+                ++qpos;
+                inserted = false;
+              }
+            break;
+          case 'I':
+            for(auto j = 0; j < runlength; ++j)
+              {
+                if (not inserted)
+                  {
+                    for(auto k = 0; k < max_insertions[qpos]; ++k)
+                      {
+                        update_profile('-', position_in_alignment, target_abundance, profile);
+                        update_msa('-', position_in_alignment, aln_v);
+                      }
+                  }
 
-                  ++qpos;
-                  inserted = false;
-                }
-            }
+                update_profile('-', position_in_alignment, target_abundance, profile);
+                update_msa('-', position_in_alignment, aln_v);
+                ++qpos;
+                inserted = false;
+              }
+            break;
+          }
         }
 
       if (not inserted)
