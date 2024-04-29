@@ -62,8 +62,10 @@
 #include "msa.h"
 #include <array>
 #include <algorithm>  // std::max()
+#include <cassert>
 #include <cctype>  // std::toupper
 #include <cinttypes>  // macro PRId64
+#include <climits>  // INT_MAX
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf
 #include <cstdlib>  // str::strtoll
@@ -338,6 +340,7 @@ auto compute_and_print_msa(int const target_count,
           auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
           position_in_cigar = std::next(position_in_cigar);
+          assert(run <= INT_MAX);
 
           if (operation == 'D')
             {
