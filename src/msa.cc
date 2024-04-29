@@ -341,8 +341,8 @@ auto compute_and_print_msa(int const target_count,
       int position_in_alignment = 0;
 
       auto inserted = false;
-      int qpos = 0;
-      int tpos = 0;
+      auto qpos = 0;
+      auto tpos = 0;
 
       char * cigar_start = target.cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
