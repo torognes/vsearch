@@ -331,10 +331,9 @@ auto compute_and_print_msa(int const target_count,
       auto * position_in_cigar = cigar_start;
       while (position_in_cigar < cigar_end)
         {
-          // consume digits (if any), return the position of the
-          // first char (MDI), store it, move cursor to the next
-          // byte
-          // operations: match (M), insertion (I), or deletion (D)
+          // Consume digits (if any), return the position of the
+          // first char (M, D, or I), store it, move cursor to the next byte.
+          // Operations: match (M), insertion (I), or deletion (D)
           auto** next_operation = &position_in_cigar;
           auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
