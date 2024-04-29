@@ -250,6 +250,15 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
 }
 
 
+auto reverse_complement_target_if_need_be(int const strand, int const target_seqno,
+                                          char * rc_buffer, char * target_seq) -> char * {
+  if (strand == 0) { return target_seq; }
+  reverse_complement(rc_buffer, target_seq,
+                     static_cast<int64_t>(db_getsequencelen(target_seqno)));
+  return rc_buffer;
+}
+
+
 auto process_and_print_centroid(char *rc_buffer,
                                 std::vector<struct msa_target_s> const &target_list_v,
                                 std::vector<int> const &max_insertions,
@@ -263,12 +272,7 @@ auto process_and_print_centroid(char *rc_buffer,
   char * target_seq = db_getsequence(target_seqno);
   prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
-  if (target.strand != 0)
-    {
-      reverse_complement(rc_buffer, target_seq,
-                         static_cast<int64_t>(db_getsequencelen(target_seqno)));
-      target_seq = rc_buffer;
-    }
+  target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer, target_seq);
 
   for(auto i = 0; i < centroid_len; ++i)
     {
@@ -336,12 +340,7 @@ auto compute_and_print_msa(int const target_count,
       char * target_seq = db_getsequence(target_seqno);
       prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
-      if (target.strand != 0)
-        {
-          reverse_complement(rc_buffer, target_seq,
-                             static_cast<int64_t>(db_getsequencelen(target_seqno)));
-          target_seq = rc_buffer;
-        }
+      target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer, target_seq);
 
       auto inserted = false;
       int qpos = 0;
