@@ -299,13 +299,13 @@ auto process_and_print_centroid(char *rc_buffer,
 }
 
 
-auto insert_gaps_in_alignment_and_profile(bool const inserted,
+auto insert_gaps_in_alignment_and_profile(bool const is_inserted,
                                           int const max_insertions_at_position,
                                           int & position_in_alignment,
                                           prof_type const target_abundance,
                                           std::vector<prof_type> & profile,
                                           std::vector<char> & aln_v) -> void {
-  if (inserted) { return ; }
+  if (is_inserted) { return ; }
   for (auto i = 0; i < max_insertions_at_position; ++i) {
     update_profile('-', position_in_alignment, target_abundance, profile);
     update_msa('-', position_in_alignment, aln_v);
