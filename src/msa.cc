@@ -221,7 +221,7 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix,
                                int const target_seqno,
                                std::vector<char> & aln_v) -> void {
-  // assert((header_prefix == "") or (header_prefix == "*"));  // ">*header" or ">header"
+  // header_prefix == "*" or "", resulting in ">*header" or ">header"
   if (fp_msaout == nullptr) { return ; }
 
   fasta_print_general(fp_msaout,
