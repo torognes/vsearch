@@ -241,9 +241,9 @@ auto process_and_print_centroid(char *rc_buffer,
                                 std::FILE * fp_msaout) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   int position_in_alignment = 0;
-  int target_seqno = target_list_v[0].seqno;
+  int const target_seqno = target_list_v[0].seqno;
   char * target_seq = db_getsequence(target_seqno);
-  prof_type target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+  prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
   if (target_list_v[0].strand != 0)
     {
@@ -310,9 +310,9 @@ auto compute_and_print_msa(int const target_count,
   for(auto i = 1; i < target_count; ++i)
     {
       int position_in_alignment = 0;
-      int target_seqno = target_list_v[i].seqno;
+      int const target_seqno = target_list_v[i].seqno;
       char * target_seq = db_getsequence(target_seqno);
-      prof_type target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+      prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
       if (target_list_v[i].strand != 0)
         {
