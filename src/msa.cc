@@ -427,53 +427,53 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
-
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
-
-  for(auto i = 0; i < alignment_length; ++i)
+  for(auto i = 0; i < left_censored; ++i)
     {
-      if ((i < left_censored) or (i >= alignment_length - right_censored))
+      aln_v[i] = '+';
+    }
+  for(auto i = alignment_length - right_censored; i < alignment_length; ++i)
+    {
+      aln_v[i] = '+';
+    }
+
+  for(auto i = left_censored; i < alignment_length - right_censored; ++i)
+    {
+      /* find most common symbol of A, C, G and T */
+      char best_sym = 0;
+      prof_type best_count = 0;
+      for(auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          aln_v[i] = '+';
+          auto const count = profile[PROFSIZE * i + nucleotide];
+          if (count > best_count)
+            {
+              best_count = count;
+              best_sym = static_cast<char>(1U << nucleotide);  // 1, 2, 4, or 8
+            }
+        }
+
+      /* if no A, C, G, or T, check if there are any N's */
+      auto const N_count = profile[PROFSIZE * i + 4];
+      if ((best_count == 0) and (N_count > 0))
+        {
+          best_count = N_count;
+          best_sym = index_of_N; // N
+        }
+
+      /* compare to the number of gap symbols */
+      auto const gap_count = profile[PROFSIZE * i + 5];
+      if (best_count >= gap_count)
+        {
+          auto const index = static_cast<unsigned char>(best_sym);
+          auto const sym = sym_nt_4bit[index];  // A, C, G, T, or N
+          aln_v[i] = sym;
+          cons_v[conslen] = sym;
+          ++conslen;
         }
       else
         {
-          /* find most common symbol of A, C, G and T */
-          char best_sym = 0;
-          prof_type best_count = 0;
-          for(auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
-            {
-              auto const count = profile[PROFSIZE * i + nucleotide];
-              if (count > best_count)
-                {
-                  best_count = count;
-                  best_sym = static_cast<char>(1U << nucleotide);  // 1, 2, 4, or 8
-                }
-            }
-
-          /* if no A, C, G, or T, check if there are any N's */
-          auto const N_count = profile[PROFSIZE * i + 4];
-          if ((best_count == 0) and (N_count > 0))
-            {
-              best_count = N_count;
-              best_sym = index_of_N; // N
-            }
-
-          /* compare to the number of gap symbols */
-          auto const gap_count = profile[PROFSIZE * i + 5];
-          if (best_count >= gap_count)
-            {
-              auto const index = static_cast<unsigned char>(best_sym);
-              auto const sym = sym_nt_4bit[index];  // A, C, G, T, or N
-              aln_v[i] = sym;
-              cons_v[conslen] = sym;
-              ++conslen;
-            }
-          else
-            {
-              aln_v[i] = '-';
-            }
+          aln_v[i] = '-';
         }
     }
 
