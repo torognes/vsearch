@@ -340,7 +340,7 @@ auto compute_and_print_msa(int const target_count,
       prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
       int position_in_alignment = 0;
 
-      auto inserted = false;
+      auto is_inserted = false;
       auto qpos = 0;
       auto tpos = 0;
 
@@ -371,31 +371,31 @@ auto compute_and_print_msa(int const target_count,
                 update_profile('-', position_in_alignment, target_abundance, profile);
                 update_msa('-', position_in_alignment, aln_v);
               }
-            inserted = true;
+            is_inserted = true;
             break;
           case 'M':
             for(auto j = 0; j < runlength; ++j)
               {
-                insert_gaps_in_alignment_and_profile(inserted, max_insertions[qpos],
+                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                                      position_in_alignment, target_abundance,
                                                      profile, aln_v);
                 update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
                 update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                 ++tpos;
                 ++qpos;
-                inserted = false;
+                is_inserted = false;
               }
             break;
           case 'I':
             for(auto j = 0; j < runlength; ++j)
               {
-                insert_gaps_in_alignment_and_profile(inserted, max_insertions[qpos],
+                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                                      position_in_alignment, target_abundance,
                                                      profile, aln_v);
                 update_profile('-', position_in_alignment, target_abundance, profile);
                 update_msa('-', position_in_alignment, aln_v);
                 ++qpos;
-                inserted = false;
+                is_inserted = false;
               }
               break;
           default:
@@ -403,7 +403,7 @@ auto compute_and_print_msa(int const target_count,
           }
         }
 
-      insert_gaps_in_alignment_and_profile(inserted, max_insertions[qpos],
+      insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                            position_in_alignment, target_abundance,
                                            profile, aln_v);
 
