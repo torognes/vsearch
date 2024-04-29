@@ -267,11 +267,11 @@ auto process_and_print_centroid(char *rc_buffer,
                                 std::FILE * fp_msaout) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   auto const & target = target_list_v.front();
-  int const target_seqno = target.seqno;
-  char * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
+  auto const target_seqno = target.seqno;
+  auto * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
                                                                  db_getsequence(target_seqno));
   prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
-  int position_in_alignment = 0;
+  auto position_in_alignment = 0;
 
   for(auto i = 0; i < centroid_len; ++i)
     {
