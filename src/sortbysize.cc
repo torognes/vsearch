@@ -206,7 +206,7 @@ void sortbysize()
       progress_update(i);
     }
   progress_done();
-  show_rusage();
+  show_rusage();  // refactoring: why three calls to show_rusage()?
 
   xfree(sortinfo);
   db_free();
