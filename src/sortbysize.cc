@@ -61,11 +61,13 @@
 #include "vsearch.h"
 #include <cstdlib>
 
+
 static struct sortinfo_size_s
 {
   unsigned int size;
   unsigned int seqno;
 } * sortinfo;
+
 
 int sortbysize_compare(const void * lhs_a, const void * rhs_b)
 {
