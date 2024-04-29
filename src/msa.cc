@@ -243,7 +243,7 @@ auto process_and_print_centroid(char *rc_buffer,
                                 std::FILE * fp_msaout) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   int position_in_alignment = 0;
-  auto & target = target_list_v.front();
+  auto const & target = target_list_v.front();
   int const target_seqno = target.seqno;
   char * target_seq = db_getsequence(target_seqno);
   prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
@@ -307,7 +307,7 @@ auto compute_and_print_msa(int const target_count,
   for(auto i = 1; i < target_count; ++i)
     {
       int position_in_alignment = 0;
-      auto & target = target_list_v[i];
+      auto const & target = target_list_v[i];
       int const target_seqno = target.seqno;
       char * target_seq = db_getsequence(target_seqno);
       prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
