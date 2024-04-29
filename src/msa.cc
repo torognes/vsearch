@@ -341,19 +341,16 @@ auto compute_and_print_msa(int const target_count,
 
           if (operation == 'D')
             {
-              for(auto j = 0; j < max_insertions[qpos]; ++j)
+              for(auto j = 0; j < run; ++j)
                 {
-                  if (j < run)
-                    {
-                      update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                      update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
-                      ++tpos;
-                    }
-                  else
-                    {
-                      update_profile('-', position_in_alignment, target_abundance, profile);
-                      update_msa('-', position_in_alignment, aln_v);
-                    }
+                  update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                  update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                  ++tpos;
+                }
+              for(auto j = run; j < max_insertions[qpos]; ++j)
+                {
+                  update_profile('-', position_in_alignment, target_abundance, profile);
+                  update_msa('-', position_in_alignment, aln_v);
                 }
               inserted = true;
             }
