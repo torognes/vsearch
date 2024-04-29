@@ -340,7 +340,7 @@ auto compute_and_print_msa(int const target_count,
           auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
           position_in_cigar = std::next(position_in_cigar);
-          assert(run <= INT_MAX);
+          assert(runlength <= INT_MAX);
 
           if (operation == 'D')
             {
