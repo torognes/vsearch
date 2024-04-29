@@ -233,28 +233,13 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
 }
 
 
-auto compute_and_print_msa(int const target_count,
-                           std::vector<struct msa_target_s> const & target_list_v,
-                           std::vector<int> const &max_insertions,
-                           std::vector<prof_type> &profile,
-                           std::vector<char> &aln_v,
-                           std::FILE * fp_msaout) -> void {
-
-  blank_line_before_each_msa(fp_msaout);
-
-  /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
-  char * rc_buffer = nullptr;
-  if (longest_reversed > 0)
-    {
-      std::vector<char> rc_buffer_v(longest_reversed + 1);
-      rc_buffer = rc_buffer_v.data();
-    }
-
+auto process_and_print_centroid(char *rc_buffer,
+                                std::vector<struct msa_target_s> const &target_list_v,
+                                std::vector<int> const &max_insertions,
+                                std::vector<prof_type> &profile,
+                                std::vector<char> &aln_v,
+                                std::FILE * fp_msaout) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
-
-
-  // ------------------------------------------------------- deal with centroid
   int position_in_alignment = 0;
   int target_seqno = target_list_v[0].seqno;
   char * target_seq = db_getsequence(target_seqno);
@@ -267,7 +252,6 @@ auto compute_and_print_msa(int const target_count,
       target_seq = rc_buffer;
     }
 
-  auto inserted = false;
   int qpos = 0;
   int tpos = 0;
 
@@ -297,15 +281,38 @@ auto compute_and_print_msa(int const target_count,
 
   /* print header & sequence */
   print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v);
+}
 
+
+auto compute_and_print_msa(int const target_count,
+                           std::vector<struct msa_target_s> const & target_list_v,
+                           std::vector<int> const &max_insertions,
+                           std::vector<prof_type> &profile,
+                           std::vector<char> &aln_v,
+                           std::FILE * fp_msaout) -> void {
+
+  blank_line_before_each_msa(fp_msaout);
+
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
+  char * rc_buffer = nullptr;
+  if (longest_reversed > 0)
+    {
+      std::vector<char> rc_buffer_v(longest_reversed + 1);
+      rc_buffer = rc_buffer_v.data();
+    }
+
+  // ------------------------------------------------------- deal with centroid
+  process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
+                             profile, aln_v, fp_msaout);
 
   // --------------------------------- deal with other sequences in the cluster
   for(auto i = 1; i < target_count; ++i)
     {
-      position_in_alignment = 0;
-      target_seqno = target_list_v[i].seqno;
-      target_seq = db_getsequence(target_seqno);
-      target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+      int position_in_alignment = 0;
+      int target_seqno = target_list_v[i].seqno;
+      char * target_seq = db_getsequence(target_seqno);
+      prof_type target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
       if (target_list_v[i].strand != 0)
         {
@@ -314,9 +321,9 @@ auto compute_and_print_msa(int const target_count,
           target_seq = rc_buffer;
         }
 
-      inserted = false;
-      qpos = 0;
-      tpos = 0;
+      auto inserted = false;
+      int qpos = 0;
+      int tpos = 0;
 
       char * cigar_start = target_list_v[i].cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
