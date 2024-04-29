@@ -148,6 +148,7 @@ auto find_runlength_of_leftmost_operation(char * first_character, char ** first_
   // - if there is no valid integer: pointer is not advanced and function returns zero,
   static constexpr auto decimal_base = 10;
   auto runlength = std::strtoll(first_character, first_non_digit, decimal_base);
+  assert(runlength <= INT_MAX);
 
   // in the context of cigar strings, runlength is at least 1
   if (runlength == 0) {
@@ -350,7 +351,6 @@ auto compute_and_print_msa(int const target_count,
           auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
           position_in_cigar = std::next(position_in_cigar);
-          assert(runlength <= INT_MAX);
 
           switch (operation) {
           case 'D':
