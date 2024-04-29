@@ -255,12 +255,8 @@ auto process_and_print_centroid(char *rc_buffer,
       target_seq = rc_buffer;
     }
 
-  int qpos = 0;
-
   for(auto i = 0; i < centroid_len; ++i)
     {
-      // refactoring: qpos and tpos always equal to i? could be eliminated?
-      assert(qpos == i);
       for(auto j = 0; j < max_insertions[i]; ++j)
         {
           update_profile('-', position_in_alignment, target_abundance, profile);
@@ -268,12 +264,10 @@ auto process_and_print_centroid(char *rc_buffer,
         }
       update_profile(*std::next(target_seq, i), position_in_alignment, target_abundance, profile);
       update_msa(*std::next(target_seq, i), position_in_alignment, aln_v);
-      ++qpos;
     }
 
   // insert
-  assert(qpos == centroid_len);
-  for(auto j = 0; j < max_insertions[qpos]; ++j)  // refactoring: qpos == centroid_len?
+  for(auto j = 0; j < max_insertions[centroid_len]; ++j)
     {
       update_profile('-', position_in_alignment, target_abundance, profile);
       update_msa('-', position_in_alignment, aln_v);
