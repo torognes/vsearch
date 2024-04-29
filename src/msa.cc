@@ -336,10 +336,9 @@ auto compute_and_print_msa(int const target_count,
       int position_in_alignment = 0;
       auto const & target = target_list_v[i];
       int const target_seqno = target.seqno;
-      char * target_seq = db_getsequence(target_seqno);
+      char * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
+                                                                     rc_buffer, db_getsequence(target_seqno));
       prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
-
-      target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer, target_seq);
 
       auto inserted = false;
       int qpos = 0;
