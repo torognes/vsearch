@@ -307,11 +307,12 @@ auto compute_and_print_msa(int const target_count,
   for(auto i = 1; i < target_count; ++i)
     {
       int position_in_alignment = 0;
-      int const target_seqno = target_list_v[i].seqno;
+      auto & target = target_list_v[i];
+      int const target_seqno = target.seqno;
       char * target_seq = db_getsequence(target_seqno);
       prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
 
-      if (target_list_v[i].strand != 0)
+      if (target.strand != 0)
         {
           reverse_complement(rc_buffer, target_seq,
                              static_cast<int64_t>(db_getsequencelen(target_seqno)));
@@ -322,7 +323,7 @@ auto compute_and_print_msa(int const target_count,
       int qpos = 0;
       int tpos = 0;
 
-      char * cigar_start = target_list_v[i].cigar;
+      char * cigar_start = target.cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
       char * cigar_end = std::next(cigar_start, cigar_length);
       auto * position_in_cigar = cigar_start;
