@@ -354,7 +354,7 @@ auto compute_and_print_msa(int const target_count,
                 }
               inserted = true;
             }
-          else
+          else  // M or I
             {
               for(auto j = 0; j < run; ++j)
                 {
