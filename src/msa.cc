@@ -171,17 +171,17 @@ auto find_max_insertions_per_position(int const target_count,
       while (position_in_cigar < cigar_end)
         {
           auto** next_operation = &position_in_cigar;  // operations: match (M), insertion (I), or deletion (D)
-          auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
+          auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
           position_in_cigar = std::next(position_in_cigar);
           switch (operation)
             {
             case 'M':
             case 'I':
-              position_in_centroid += run;
+              position_in_centroid += runlength;
               break;
             case 'D':
-              max_insertions[position_in_centroid] = std::max(static_cast<int>(run), max_insertions[position_in_centroid]);
+              max_insertions[position_in_centroid] = std::max(static_cast<int>(runlength), max_insertions[position_in_centroid]);
               break;
             default:
               break;
@@ -260,6 +260,7 @@ auto process_and_print_centroid(char *rc_buffer,
   for(auto j = 0; j < centroid_len; ++j)
     {
       // refactoring: qpos and tpos always equal to j? could be eliminated?
+      assert((tpos == j) or (qpos == j));
       for(auto k = 0; k < max_insertions[qpos]; ++k)
         {
           update_profile('-', position_in_alignment, target_abundance, profile);
@@ -272,6 +273,7 @@ auto process_and_print_centroid(char *rc_buffer,
     }
 
   // insert
+  assert(qpos == centroid_len);
   for(auto j = 0; j < max_insertions[qpos]; ++j)  // refactoring: qpos == centroid_len?
     {
       update_profile('-', position_in_alignment, target_abundance, profile);
