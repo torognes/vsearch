@@ -257,7 +257,7 @@ auto process_and_print_centroid(char *rc_buffer,
   int qpos = 0;
   int tpos = 0;
 
-  for(auto j = 0; j < centroid_len; ++j)
+  for(auto i = 0; i < centroid_len; ++i)
     {
       // refactoring: qpos and tpos always equal to j? could be eliminated?
       assert((tpos == j) or (qpos == j));
