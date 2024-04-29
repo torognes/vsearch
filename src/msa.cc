@@ -213,6 +213,20 @@ auto find_longest_target_on_reverse_strand(int const target_count,
 }
 
 
+auto allocate_buffer_for_reverse_strand_target(int const target_count,
+                                               std::vector<struct msa_target_s> const & target_list_v,
+                                               std::vector<char> & rc_buffer_v) -> char * {
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
+  if (longest_reversed > 0)
+    {
+      rc_buffer_v.resize(longest_reversed + 1);
+      return rc_buffer_v.data();
+    }
+  return nullptr;
+}
+
+
 auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
   if (fp_msaout == nullptr) { return ; }
   static_cast<void>(std::fprintf(fp_msaout, "\n"));
@@ -306,13 +320,8 @@ auto compute_and_print_msa(int const target_count,
   blank_line_before_each_msa(fp_msaout);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
-  char * rc_buffer = nullptr;
-  if (longest_reversed > 0)
-    {
-      std::vector<char> rc_buffer_v(longest_reversed + 1);
-      rc_buffer = rc_buffer_v.data();
-    }
+  std::vector<char> rc_buffer_v;
+  char * rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v);
 
   // ------------------------------------------------------- deal with centroid
   process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
