@@ -281,6 +281,20 @@ auto process_and_print_centroid(char *rc_buffer,
 }
 
 
+auto insert_gaps_in_alignment_and_profile(bool const inserted,
+                                          int const max_insertions_at_position,
+                                          int & position_in_alignment,
+                                          prof_type const target_abundance,
+                                          std::vector<prof_type> & profile,
+                                          std::vector<char> & aln_v) -> void {
+  if (inserted) { return ; }
+  for (auto i = 0; i < max_insertions_at_position; ++i) {
+    update_profile('-', position_in_alignment, target_abundance, profile);
+    update_msa('-', position_in_alignment, aln_v);
+  }
+}
+
+
 auto compute_and_print_msa(int const target_count,
                            std::vector<struct msa_target_s> const & target_list_v,
                            std::vector<int> const &max_insertions,
@@ -356,15 +370,9 @@ auto compute_and_print_msa(int const target_count,
           case 'M':
             for(auto j = 0; j < runlength; ++j)
               {
-                if (not inserted)
-                  {
-                    for(auto k = 0; k < max_insertions[qpos]; ++k)
-                      {
-                        update_profile('-', position_in_alignment, target_abundance, profile);
-                        update_msa('-', position_in_alignment, aln_v);
-                      }
-                  }
-
+                insert_gaps_in_alignment_and_profile(inserted, max_insertions[qpos],
+                                                     position_in_alignment, target_abundance,
+                                                     profile, aln_v);
                 update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
                 update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                 ++tpos;
@@ -375,32 +383,23 @@ auto compute_and_print_msa(int const target_count,
           case 'I':
             for(auto j = 0; j < runlength; ++j)
               {
-                if (not inserted)
-                  {
-                    for(auto k = 0; k < max_insertions[qpos]; ++k)
-                      {
-                        update_profile('-', position_in_alignment, target_abundance, profile);
-                        update_msa('-', position_in_alignment, aln_v);
-                      }
-                  }
-
+                insert_gaps_in_alignment_and_profile(inserted, max_insertions[qpos],
+                                                     position_in_alignment, target_abundance,
+                                                     profile, aln_v);
                 update_profile('-', position_in_alignment, target_abundance, profile);
                 update_msa('-', position_in_alignment, aln_v);
                 ++qpos;
                 inserted = false;
               }
+              break;
+          default:
             break;
           }
         }
 
-      if (not inserted)
-        {
-          for(auto j = 0; j < max_insertions[qpos]; ++j)
-            {
-              update_profile('-', position_in_alignment, target_abundance, profile);
-              update_msa('-', position_in_alignment, aln_v);
-            }
-        }
+      insert_gaps_in_alignment_and_profile(inserted, max_insertions[qpos],
+                                           position_in_alignment, target_abundance,
+                                           profile, aln_v);
 
       /* end of sequence string */
       aln_v[position_in_alignment] = '\0';
