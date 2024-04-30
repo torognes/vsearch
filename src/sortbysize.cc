@@ -107,7 +107,7 @@ auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
 
 [[nodiscard]]
 auto find_median_abundance(const int valid_amplicons,
-                           const sortinfo_size_s * sortinfo) -> double
+                           std::vector<sortinfo_size_s> const & sortinfo_v) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
 
@@ -120,15 +120,15 @@ auto find_median_abundance(const int valid_amplicons,
 
   // odd number of valid amplicons
   if (valid_amplicons % 2 != 0)  {
-    return sortinfo[midarray.quot].size * 1.0;  // a round value
+    return sortinfo_v[midarray.quot].size * 1.0;  // a round value
   }
 
   // even number of valid amplicons
   // (average of two ints is either round or has a remainder of .5)
   // risk of silent overflow for large abundance values:
   // a >= b ; (a + b) / 2 == b + (a - b) / 2
-  return sortinfo[midarray.quot].size +
-    ((sortinfo[midarray.quot - 1].size - sortinfo[midarray.quot].size) / 2.0);
+  return sortinfo_v[midarray.quot].size +
+    ((sortinfo_v[midarray.quot - 1].size - sortinfo_v[midarray.quot].size) / 2.0);
 }
 
 
@@ -180,7 +180,7 @@ auto sortbysize() -> void
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
-  const double median = find_median_abundance(passed, sortinfo);
+  const double median = find_median_abundance(passed, sortinfo_v);
 
   if (not opt_quiet)
     {
