@@ -154,7 +154,6 @@ auto sortbysize() -> void
 
   progress_init("Getting sizes", dbsequencecount);
 
-  // refactoring C++11: use std::vector
   std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
   auto * sortinfo = sortinfo_v.data();
 
