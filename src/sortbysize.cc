@@ -66,11 +66,11 @@
 #include <vector>
 
 
-static struct sortinfo_size_s
+struct sortinfo_size_s
 {
   unsigned int size;
   unsigned int seqno;
-} * sortinfo;
+};
 
 
 auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
@@ -155,7 +155,7 @@ auto sortbysize() -> void
 
   // refactoring C++11: use std::vector
   std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
-  sortinfo = sortinfo_v.data();
+  auto * sortinfo = sortinfo_v.data();
 
   int passed = 0;
 
