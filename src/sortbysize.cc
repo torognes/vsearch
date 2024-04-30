@@ -202,10 +202,11 @@ auto sortbysize() -> void
   sortinfo_v.shrink_to_fit();
 
   progress_init("Writing output", passed);
-  for(int i = 0; i < passed; i++)
+  auto counter = 1;
+  for(auto const & sequence: sortinfo_v)
     {
-      fasta_print_db_relabel(fp_output, sortinfo_v[i].seqno, i + 1);
-      progress_update(i);
+      fasta_print_db_relabel(fp_output, sequence.seqno, counter);
+      progress_update(counter);
     }
   progress_done();
   show_rusage();  // refactoring: why three calls to show_rusage()?
