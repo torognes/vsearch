@@ -80,33 +80,24 @@ auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
     {
       return +1;
     }
-  else if (lhs->size > rhs->size)
+  if (lhs->size > rhs->size)
     {
       return -1;
     }
-  else
+  const int result = strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
+  if (result != 0)
     {
-      const int result = strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
-      if (result != 0)
-        {
-          return result;
-        }
-      else
-        {
-          if (lhs->seqno < rhs->seqno)
-            {
-              return -1;
-            }
-          else if (lhs->seqno > rhs->seqno)
-            {
-              return +1;
-            }
-          else
-            {
-              return 0;
-            }
-        }
+      return result;
     }
+  if (lhs->seqno < rhs->seqno)
+    {
+      return -1;
+    }
+  if (lhs->seqno > rhs->seqno)
+    {
+      return +1;
+    }
+  return 0;
 }
 
 
