@@ -161,7 +161,7 @@ auto sortbysize() -> void
 
   for(int i = 0; i < dbsequencecount; i++)
     {
-      const int64_t size = static_cast<int64_t>(db_getabundance(i));
+      auto const size = static_cast<int64_t>(db_getabundance(i));
 
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
