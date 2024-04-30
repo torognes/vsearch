@@ -198,6 +198,8 @@ auto sortbysize() -> void
   show_rusage();
 
   passed = MIN(passed, opt_topn);
+  sortinfo_v.resize(passed);
+  sortinfo_v.shrink_to_fit();
 
   progress_init("Writing output", passed);
   for(int i = 0; i < passed; i++)
