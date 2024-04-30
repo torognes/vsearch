@@ -133,6 +133,18 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
 }
 
 
+// refactoring: trim misize and maxsize with a free function
+// https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
+// auto erase_v2(std::vector<int> &vec, int value) -> void
+// {
+//     auto lb = std::lower_bound(std::begin(vec), std::end(vec), value);
+//     if (lb != std::end(vec) && *lb == value) {
+//         auto ub = std::upper_bound(lb, std::end(vec), value);
+//         vec.erase(lb, ub);
+//     }
+// }
+
+
 auto sortbysize() -> void
 {
   static constexpr auto one_hundred_percent = 100ULL;
