@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdlib>
+#include <cstdint>  // int64_t
 #include <cstring>  // std::strcmp
 
 
