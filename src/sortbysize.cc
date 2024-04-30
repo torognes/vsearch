@@ -63,6 +63,7 @@
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strcmp
+#include <vector>
 
 
 static struct sortinfo_size_s
@@ -152,8 +153,8 @@ auto sortbysize() -> void
   progress_init("Getting sizes", dbsequencecount);
 
   // refactoring C++11: use std::vector
-  sortinfo = (struct sortinfo_size_s*)
-    xmalloc(dbsequencecount * sizeof(sortinfo_size_s));
+  std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
+  sortinfo = sortinfo_v.data();
 
   int passed = 0;
 
