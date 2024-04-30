@@ -170,7 +170,7 @@ auto sortbysize() -> void
 
   auto passed = 0L;
 
-  for(auto seqno = 0U; seqno < dbsequencecount; seqno++)
+  for(auto seqno = 0U; seqno < dbsequencecount; ++seqno)
     {
       auto const size = static_cast<int64_t>(db_getabundance(seqno));
 
