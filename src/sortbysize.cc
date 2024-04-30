@@ -150,7 +150,7 @@ auto sortbysize() -> void
 
   show_rusage();
 
-  const int dbsequencecount = static_cast<int>(db_getsequencecount());
+  const auto dbsequencecount = db_getsequencecount();
 
   progress_init("Getting sizes", dbsequencecount);
 
@@ -158,7 +158,7 @@ auto sortbysize() -> void
 
   int passed = 0;
 
-  for(int i = 0; i < dbsequencecount; i++)
+  for(auto i = 0U; i < dbsequencecount; i++)
     {
       auto const size = static_cast<int64_t>(db_getabundance(i));
 
