@@ -134,7 +134,7 @@ auto find_median_abundance(const int valid_amplicons,
 auto sortbysize() -> void
 {
   static constexpr auto one_hundred_percent = 100ULL;
-  if (not opt_output)
+  if (opt_output == nullptr)
     fatal("FASTA output file for sortbysize must be specified with --output");
 
   std::FILE * fp_output = fopen_output(opt_output);
