@@ -132,6 +132,7 @@ auto find_median_abundance(const int valid_amplicons,
 
 auto sortbysize() -> void
 {
+  static constexpr auto one_hundred_percent = 100ULL;
   if (not opt_output)
     fatal("FASTA output file for sortbysize must be specified with --output");
 
@@ -172,7 +173,7 @@ auto sortbysize() -> void
 
   show_rusage();
 
-  progress_init("Sorting", 100);
+  progress_init("Sorting", one_hundred_percent);
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
