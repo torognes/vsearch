@@ -69,7 +69,7 @@ static struct sortinfo_size_s
 } * sortinfo;
 
 
-int sortbysize_compare(const void * lhs_a, const void * rhs_b)
+auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
 {
   auto * lhs = (struct sortinfo_size_s *) lhs_a;
   auto * rhs = (struct sortinfo_size_s *) rhs_b;
@@ -137,7 +137,7 @@ auto find_median_abundance(const int valid_amplicons,
 }
 
 
-void sortbysize()
+auto sortbysize() -> void
 {
   if (not opt_output)
     fatal("FASTA output file for sortbysize must be specified with --output");
