@@ -117,7 +117,7 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
   }
 
   // refactoring C++11: use const& std::vector.size()
-  auto const midarray = std::div(sortinfo_v.size(), 2);
+  auto const midarray = std::ldiv(static_cast<long>(sortinfo_v.size()), 2L);
 
   // odd number of valid amplicons
   if (sortinfo_v.size() % 2 != 0)  {
