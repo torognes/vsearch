@@ -110,6 +110,7 @@ auto find_median_abundance(const int valid_amplicons,
                            std::vector<sortinfo_size_s> const & sortinfo_v) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
+  static constexpr double half = 0.5;
 
   if (valid_amplicons == 0) {
     return 0.0;
@@ -128,7 +129,7 @@ auto find_median_abundance(const int valid_amplicons,
   // risk of silent overflow for large abundance values:
   // a >= b ; (a + b) / 2 == b + (a - b) / 2
   return sortinfo_v[midarray.quot].size +
-    ((sortinfo_v[midarray.quot - 1].size - sortinfo_v[midarray.quot].size) / 2.0);
+    ((sortinfo_v[midarray.quot - 1].size - sortinfo_v[midarray.quot].size) * half);
 }
 
 
