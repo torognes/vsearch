@@ -165,8 +165,8 @@ auto sortbysize() -> void
 
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
-          sortinfo[passed].seqno = i;
-          sortinfo[passed].size = (unsigned int) size;
+          sortinfo_v[passed].seqno = i;
+          sortinfo_v[passed].size = (unsigned int) size;
           ++passed;
         }
       progress_update(i);
@@ -199,13 +199,12 @@ auto sortbysize() -> void
   progress_init("Writing output", passed);
   for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
+      fasta_print_db_relabel(fp_output, sortinfo_v[i].seqno, i + 1);
       progress_update(i);
     }
   progress_done();
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
-  xfree(sortinfo);
   db_free();
   if (fp_output != nullptr)
     {
