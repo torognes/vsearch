@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdlib>
+#include <cstring>  // std::strcmp
 
 
 static struct sortinfo_size_s
@@ -84,7 +85,7 @@ auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
     {
       return -1;
     }
-  const int result = strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
+  const int result = std::strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
   if (result != 0)
     {
       return result;
