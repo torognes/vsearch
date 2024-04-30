@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::min
 #include <cstdlib>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -155,7 +156,7 @@ auto sortbysize() -> void
 
   std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
 
-  int passed = 0;
+  auto passed = 0L;
 
   for(auto seqno = 0U; seqno < dbsequencecount; seqno++)
     {
@@ -197,7 +198,7 @@ auto sortbysize() -> void
 
   show_rusage();
 
-  passed = MIN(passed, opt_topn);
+  passed = std::min(passed, opt_topn);
   sortinfo_v.resize(passed);
   sortinfo_v.shrink_to_fit();
 
