@@ -166,7 +166,7 @@ auto sortbysize() -> void
       if((size >= opt_minsize) && (size <= opt_maxsize))
         {
           sortinfo_v[passed].seqno = i;
-          sortinfo_v[passed].size = (unsigned int) size;
+          sortinfo_v[passed].size = static_cast<unsigned int>(size);
           ++passed;
         }
       progress_update(i);
