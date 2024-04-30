@@ -155,7 +155,6 @@ auto sortbysize() -> void
   progress_init("Getting sizes", dbsequencecount);
 
   std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
-  auto * sortinfo = sortinfo_v.data();
 
   int passed = 0;
 
@@ -178,6 +177,7 @@ auto sortbysize() -> void
 
   show_rusage();
 
+  auto * sortinfo = sortinfo_v.data();
   progress_init("Sorting", one_hundred_percent);
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
