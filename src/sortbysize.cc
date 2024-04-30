@@ -177,6 +177,8 @@ auto sortbysize() -> void
 
   show_rusage();
 
+  sortinfo_v.resize(passed);
+  sortinfo_v.shrink_to_fit();
   auto * sortinfo = sortinfo_v.data();
   progress_init("Sorting", one_hundred_percent);
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
