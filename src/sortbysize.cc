@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include <cstdlib>
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strcmp
 
 
