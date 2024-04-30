@@ -205,5 +205,8 @@ auto sortbysize() -> void
 
   xfree(sortinfo);
   db_free();
-  fclose(fp_output);
+  if (fp_output != nullptr)
+    {
+      fclose(fp_output);
+    }
 }
