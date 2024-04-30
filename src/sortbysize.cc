@@ -184,7 +184,7 @@ auto sortbysize() -> void
       fprintf(stderr, "Median abundance: %.0f\n", median);  // Banker's rounding (round half to even)
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Median abundance: %.0f\n", median);  // Banker's rounding (round half to even)
     }
