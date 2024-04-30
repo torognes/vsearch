@@ -157,19 +157,19 @@ auto sortbysize() -> void
 
   int passed = 0;
 
-  for(auto i = 0U; i < dbsequencecount; i++)
+  for(auto seqno = 0U; seqno < dbsequencecount; seqno++)
     {
-      auto const size = static_cast<int64_t>(db_getabundance(i));
+      auto const size = static_cast<int64_t>(db_getabundance(seqno));
 
       if ((size < opt_minsize) or (size > opt_maxsize)) {
         continue;
       }
 
-      sortinfo_v[passed].seqno = i;
+      sortinfo_v[passed].seqno = seqno;
       sortinfo_v[passed].size = static_cast<unsigned int>(size);
       ++passed;
 
-      progress_update(i);
+      progress_update(seqno);
     }
 
   progress_done();
