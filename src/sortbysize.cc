@@ -106,21 +106,20 @@ auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
 
 
 [[nodiscard]]
-auto find_median_abundance(const int valid_amplicons,
-                           std::vector<sortinfo_size_s> const & sortinfo_v) -> double
+auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
   static constexpr double half = 0.5;
 
-  if (valid_amplicons == 0) {
+  if (sortinfo_v.empty()) {
     return 0.0;
   }
 
   // refactoring C++11: use const& std::vector.size()
-  const auto midarray = std::div(valid_amplicons, 2);
+  const auto midarray = std::div(sortinfo_v.size(), 2);
 
   // odd number of valid amplicons
-  if (valid_amplicons % 2 != 0)  {
+  if (sortinfo_v.size() % 2 != 0)  {
     return sortinfo_v[midarray.quot].size * 1.0;  // a round value
   }
 
@@ -184,7 +183,7 @@ auto sortbysize() -> void
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
-  const double median = find_median_abundance(passed, sortinfo_v);
+  const double median = find_median_abundance(sortinfo_v);
 
   if (not opt_quiet)
     {
