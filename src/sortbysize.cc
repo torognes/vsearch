@@ -145,6 +145,15 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
 // }
 
 
+// refactoring:
+// - create vector (no branch)
+// - sort vector (by increasing size)
+// - find first size > opt_maxsize, erase to the end()
+// - reverse vector
+// - find first size < opt_minsize, erase to the end()
+// - mediane, etc...
+
+
 auto sortbysize() -> void
 {
   static constexpr auto one_hundred_percent = 100ULL;
