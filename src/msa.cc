@@ -67,7 +67,7 @@
 #include <cinttypes>  // macro PRId64
 #include <climits>  // INT_MAX
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::FILE, std::sscanf
+#include <cstdio>  // std::FILE, std::sscanf, std::fprintf
 #include <cstdlib>  // str::strtoll
 #include <cstring>  // std::memset, std::strlen
 #include <iterator> // std::next

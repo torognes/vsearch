@@ -59,17 +59,22 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::min
 #include <cstdlib>
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::strcmp
+#include <vector>
 
 
-static struct sortinfo_size_s
+struct sortinfo_size_s
 {
   unsigned int size;
   unsigned int seqno;
-} * sortinfo;
+};
 
 
-int sortbysize_compare(const void * lhs_a, const void * rhs_b)
+auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
 {
   auto * lhs = (struct sortinfo_size_s *) lhs_a;
   auto * rhs = (struct sortinfo_size_s *) rhs_b;
@@ -80,70 +85,84 @@ int sortbysize_compare(const void * lhs_a, const void * rhs_b)
     {
       return +1;
     }
-  else if (lhs->size > rhs->size)
+  if (lhs->size > rhs->size)
     {
       return -1;
     }
-  else
+  const int result = std::strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
+  if (result != 0)
     {
-      const int result = strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
-      if (result != 0)
-        {
-          return result;
-        }
-      else
-        {
-          if (lhs->seqno < rhs->seqno)
-            {
-              return -1;
-            }
-          else if (lhs->seqno > rhs->seqno)
-            {
-              return +1;
-            }
-          else
-            {
-              return 0;
-            }
-        }
+      return result;
     }
+  if (lhs->seqno < rhs->seqno)
+    {
+      return -1;
+    }
+  if (lhs->seqno > rhs->seqno)
+    {
+      return +1;
+    }
+  return 0;
 }
 
 
 [[nodiscard]]
-auto find_median_abundance(const int valid_amplicons,
-                           const sortinfo_size_s * sortinfo) -> double
+auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
+  static constexpr double half = 0.5;
 
-  if (valid_amplicons == 0) {
+  if (sortinfo_v.empty()) {
     return 0.0;
   }
 
   // refactoring C++11: use const& std::vector.size()
-  const auto midarray = std::div(valid_amplicons, 2);
+  auto const midarray = std::ldiv(static_cast<long>(sortinfo_v.size()), 2L);
 
   // odd number of valid amplicons
-  if (valid_amplicons % 2 != 0)  {
-    return sortinfo[midarray.quot].size * 1.0;  // a round value
+  if (sortinfo_v.size() % 2 != 0)  {
+    return sortinfo_v[midarray.quot].size * 1.0;  // a round value
   }
 
   // even number of valid amplicons
   // (average of two ints is either round or has a remainder of .5)
   // risk of silent overflow for large abundance values:
   // a >= b ; (a + b) / 2 == b + (a - b) / 2
-  return sortinfo[midarray.quot].size +
-    ((sortinfo[midarray.quot - 1].size - sortinfo[midarray.quot].size) / 2.0);
+  return sortinfo_v[midarray.quot].size +
+    ((sortinfo_v[midarray.quot - 1].size - sortinfo_v[midarray.quot].size) * half);
 }
 
 
-void sortbysize()
+// refactoring: trim misize and maxsize with a free function
+// https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
+// auto erase_v2(std::vector<int> &vec, int value) -> void
+// {
+//     auto lb = std::lower_bound(std::begin(vec), std::end(vec), value);
+//     if (lb != std::end(vec) && *lb == value) {
+//         auto ub = std::upper_bound(lb, std::end(vec), value);
+//         vec.erase(lb, ub);
+//     }
+// }
+
+
+// refactoring:
+// - create vector (no branch)
+// - sort vector (by increasing size)
+// - find first size > opt_maxsize, erase to the end()
+// - reverse vector
+// - find first size < opt_minsize, erase to the end()
+// - mediane, etc...
+
+
+auto sortbysize() -> void
 {
-  if (not opt_output)
+  static constexpr auto one_hundred_percent = 100ULL;
+  if (opt_output == nullptr) {
     fatal("FASTA output file for sortbysize must be specified with --output");
+  }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (not fp_output)
+  if (fp_output == nullptr)
     {
       fatal("Unable to open sortbysize output file for writing");
     }
@@ -152,63 +171,72 @@ void sortbysize()
 
   show_rusage();
 
-  const int dbsequencecount = db_getsequencecount();
+  const auto dbsequencecount = db_getsequencecount();
 
   progress_init("Getting sizes", dbsequencecount);
 
-  // refactoring C++11: use std::vector
-  sortinfo = (struct sortinfo_size_s*)
-    xmalloc(dbsequencecount * sizeof(sortinfo_size_s));
+  std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
 
-  int passed = 0;
+  auto passed = 0L;
 
-  for(int i = 0; i < dbsequencecount; i++)
+  for(auto seqno = 0U; seqno < dbsequencecount; ++seqno)
     {
-      const int64_t size = db_getabundance(i);
+      auto const size = static_cast<int64_t>(db_getabundance(seqno));
 
-      if((size >= opt_minsize) && (size <= opt_maxsize))
-        {
-          sortinfo[passed].seqno = i;
-          sortinfo[passed].size = (unsigned int) size;
-          ++passed;
-        }
-      progress_update(i);
+      if ((size < opt_minsize) or (size > opt_maxsize)) {
+        continue;
+      }
+
+      sortinfo_v[passed].seqno = seqno;
+      sortinfo_v[passed].size = static_cast<unsigned int>(size);
+      ++passed;
+
+      progress_update(seqno);
     }
 
   progress_done();
 
   show_rusage();
 
-  progress_init("Sorting", 100);
+  sortinfo_v.resize(passed);
+  sortinfo_v.shrink_to_fit();
+  auto * sortinfo = sortinfo_v.data();
+  progress_init("Sorting", one_hundred_percent);
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
 
-  const double median = find_median_abundance(passed, sortinfo);
+  const double median = find_median_abundance(sortinfo_v);
 
   if (not opt_quiet)
     {
-      fprintf(stderr, "Median abundance: %.0f\n", median);  // Banker's rounding (round half to even)
+      static_cast<void>(fprintf(stderr, "Median abundance: %.0f\n", median));  // Banker's rounding (round half to even)
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
-      fprintf(fp_log, "Median abundance: %.0f\n", median);  // Banker's rounding (round half to even)
+      static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));  // Banker's rounding (round half to even)
     }
 
   show_rusage();
 
-  passed = MIN(passed, opt_topn);
+  passed = std::min(passed, opt_topn);
+  sortinfo_v.resize(passed);
+  sortinfo_v.shrink_to_fit();
 
   progress_init("Writing output", passed);
-  for(int i = 0; i < passed; i++)
+  auto counter = 0;
+  for(auto const & sequence: sortinfo_v)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
-      progress_update(i);
+      fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
-  xfree(sortinfo);
   db_free();
-  fclose(fp_output);
+  if (fp_output != nullptr)
+    {
+      static_cast<void>(fclose(fp_output));
+    }
 }
