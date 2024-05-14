@@ -148,9 +148,9 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
 // refactoring:
 // - create vector (no branch)
 // - stable_sort vector (by increasing size, then label)
-// - find first size > opt_maxsize, erase to the end()
+// - find lower_bound(comp(opt_maxsize)), erase to the end()
 // - reverse vector
-// - find first size < opt_minsize, erase to the end()
+// - find lower_bound(comp(opt_minsize)), erase to the end()
 // - mediane, etc...
 
 
