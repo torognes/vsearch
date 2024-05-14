@@ -102,7 +102,7 @@ auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
     {
       return +1;
     }
-  return 0;
+  return 0;  // unreachable? two entries cannot have the same ordinal
 }
 
 
