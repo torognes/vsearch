@@ -62,11 +62,11 @@
 
 void shuffle()
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("Output file for shuffling must be specified with --output");
 
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (! fp_output)
     {
       fatal("Unable to open shuffle output file for writing");
     }
@@ -77,17 +77,17 @@ void shuffle()
   int dbsequencecount = db_getsequencecount();
   int * deck = (int*) xmalloc(dbsequencecount * sizeof(int));
 
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i = 0; i < dbsequencecount; i++)
     {
       deck[i] = i;
     }
 
   int passed = 0;
   progress_init("Shuffling", dbsequencecount-1);
-  for(int i=dbsequencecount-1; i>0; i--)
+  for(int i = dbsequencecount - 1; i > 0; i--)
     {
       /* generate a random number j in the range 0 to i, inclusive */
-      int j = random_int(i+1);
+      int j = random_int(i + 1);
 
       /* exchange elements i and j */
       int t = deck[i];
@@ -103,9 +103,9 @@ void shuffle()
   passed = MIN(dbsequencecount, opt_topn);
 
   progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
+  for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, deck[i], i+1);
+      fasta_print_db_relabel(fp_output, deck[i], i + 1);
       progress_update(i);
     }
   progress_done();
