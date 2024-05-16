@@ -63,7 +63,7 @@
 
 void rereplicate()
 {
-  if (! opt_output)
+  if (not opt_output)
     fatal("FASTA output file for rereplicate must be specified with --output");
 
   opt_xsize = true;
@@ -73,7 +73,7 @@ void rereplicate()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (! fp_output)
+      if (not fp_output)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -87,7 +87,7 @@ void rereplicate()
   int64_t missing = 0;
   int64_t i = 0;
   int64_t n = 0;
-  while (fasta_next(fh, ! opt_notrunclabels, chrmap_no_change))
+  while (fasta_next(fh, not opt_notrunclabels, chrmap_no_change))
     {
       ++n;
       int64_t abundance = fasta_get_abundance_and_presence(fh);
@@ -119,7 +119,7 @@ void rereplicate()
     }
   progress_done();
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (missing)
         {
