@@ -150,6 +150,9 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
 // - stable_sort vector (by increasing size, then label)
 // - find lower_bound(comp(opt_maxsize)), erase to the end()
 // - reverse vector
+// - opt_minsize = 0 by default
+// - opt_maxsize = LONG_MAX by default
+// - top_n = LONG_MAX by default
 // - find lower_bound(comp(opt_minsize)), erase to the end()
 // - mediane, etc...
 
