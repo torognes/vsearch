@@ -63,7 +63,7 @@
 
 void rereplicate()
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("FASTA output file for rereplicate must be specified with --output");
 
   opt_xsize = true;
@@ -73,7 +73,7 @@ void rereplicate()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      if (! fp_output)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -97,7 +97,7 @@ void rereplicate()
           abundance = 1;
         }
 
-      for(int64_t j=0; j<abundance; j++)
+      for(int64_t j = 0; j < abundance; j++)
         {
           i++;
           if (opt_output)
