@@ -62,11 +62,11 @@
 
 void shuffle()
 {
-  if (! opt_output)
+  if (not opt_output)
     fatal("Output file for shuffling must be specified with --output");
 
   FILE * fp_output = fopen_output(opt_output);
-  if (! fp_output)
+  if (not fp_output)
     {
       fatal("Unable to open shuffle output file for writing");
     }
