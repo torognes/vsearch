@@ -94,7 +94,7 @@ void shuffle()
       deck[i] = deck[j];
       deck[j] = t;
 
-      passed++;
+      ++passed;
       progress_update(passed);
     }
   progress_done();
