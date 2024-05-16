@@ -83,7 +83,7 @@ void shuffle()
     }
 
   int passed = 0;
-  progress_init("Shuffling", dbsequencecount-1);
+  progress_init("Shuffling", dbsequencecount - 1);
   for(int i = dbsequencecount - 1; i > 0; i--)
     {
       /* generate a random number j in the range 0 to i, inclusive */
