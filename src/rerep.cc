@@ -89,17 +89,17 @@ void rereplicate()
   int64_t n = 0;
   while (fasta_next(fh, ! opt_notrunclabels, chrmap_no_change))
     {
-      n++;
+      ++n;
       int64_t abundance = fasta_get_abundance_and_presence(fh);
       if (abundance == 0)
         {
-          missing++;
+          ++missing;
           abundance = 1;
         }
 
       for(int64_t j = 0; j < abundance; j++)
         {
-          i++;
+          ++i;
           if (opt_output)
             {
               fasta_print_general(fp_output,
