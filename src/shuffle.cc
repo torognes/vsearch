@@ -60,6 +60,15 @@
 
 #include "vsearch.h"
 
+
+// refactoring:
+// - std::vector<int> deck(dbsequencecount);
+// - std::iota(deck.begin(), deck.end(), 0);
+// - std::random_shuffle(deck.begin(), deck.end());  // uniform by default
+// - auto const new_size = std::min(deck.size(), top_n);
+// - deck.resize(new_size)
+// - range for-loop
+
 void shuffle()
 {
   if (not opt_output)
