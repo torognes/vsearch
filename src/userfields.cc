@@ -140,7 +140,7 @@ int parse_userfields_arg(char * arg)
   while(true)
     {
       q = strchr(p, '+');
-      if (! q)
+      if (not q)
         {
           q = e;
         }
@@ -151,14 +151,14 @@ int parse_userfields_arg(char * arg)
 
       while (*u)
         {
-          if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
+          if ((strncmp(p, *u, n) == 0) and (strlen(*u) == n))
             {
               break;
             }
           u++;
         }
 
-      if (! *u)
+      if (not *u)
         {    // reached end of list -> unrecognized field
           return 0; // bad argument
         }
