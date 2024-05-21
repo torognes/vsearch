@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 bool header_find_attribute(const char * header,
                            int header_length,
                            const char * attribute,
