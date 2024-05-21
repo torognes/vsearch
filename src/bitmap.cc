@@ -68,7 +68,7 @@ bitmap_t * bitmap_init(unsigned int size)
   return b;
 }
 
-void bitmap_free(bitmap_t * b)
+auto bitmap_free(bitmap_t * b) -> void
 {
   if (b->bitmap)
     {
