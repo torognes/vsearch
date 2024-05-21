@@ -193,7 +193,7 @@ int seqcmp(char * a, char * b, int n)
       return 0;
     }
 
-  while ((n-- > 0) && (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
+  while ((n-- > 0) and (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
     {
       if ((n == 0) || (*p == 0) || (*q == 0))
         {
@@ -310,12 +310,12 @@ void derep(char * input_filename, bool use_header)
 
   if (opt_fastx_uniques)
     {
-      if ((! opt_uc) && (! opt_fastaout) && (! opt_fastqout) && (! opt_tabbedout))
+      if ((! opt_uc) and (! opt_fastaout) and (! opt_fastqout) and (! opt_tabbedout))
         fatal("Output file for dereplication with fastx_uniques must be specified with --fastaout, --fastqout, --tabbedout, or --uc");
     }
   else
     {
-      if ((! opt_output) && (! opt_uc))
+      if ((! opt_output) and (! opt_uc))
         fatal("Output file for dereplication must be specified with --output or --uc");
     }
 
@@ -476,7 +476,7 @@ void derep(char * input_filename, bool use_header)
           show_rusage();
         }
 
-      if (extra_info && (sequencecount + 1 > alloc_seqs))
+      if (extra_info and (sequencecount + 1 > alloc_seqs))
         {
           uint64_t new_alloc_seqs = 2 * alloc_seqs;
 
@@ -549,16 +549,16 @@ void derep(char * input_filename, bool use_header)
       struct bucket * bp = hashtable + j;
 
       while ((bp->size)
-             &&
+             and
              ((hash != bp->hash) ||
               (seqcmp(seq_up, bp->seq, seqlen)) ||
-              (use_header && strcmp(header, bp->header))))
+              (use_header and strcmp(header, bp->header))))
         {
           j = (j + 1) & hash_mask;
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) && ! bp->size)
+      if ((opt_strand > 1) and ! bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -568,10 +568,10 @@ void derep(char * input_filename, bool use_header)
           struct bucket * rc_bp = hashtable + k;
 
           while ((rc_bp->size)
-                 &&
+                 and
                  ((rc_hash != rc_bp->hash) ||
                   (seqcmp(rc_seq_up, rc_bp->seq, seqlen)) ||
-                  (use_header && strcmp(header, bp->header))))
+                  (use_header and strcmp(header, bp->header))))
             {
               k = (k + 1) & hash_mask;
               rc_bp = hashtable + k;
@@ -843,7 +843,7 @@ void derep(char * input_filename, bool use_header)
     {
       struct bucket * bp = hashtable + i;
       int64_t size = bp->size;
-      if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+      if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
         {
           ++selected;
           if (selected == (uint64_t) opt_topn)
@@ -866,7 +866,7 @@ void derep(char * input_filename, bool use_header)
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
-          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
@@ -900,7 +900,7 @@ void derep(char * input_filename, bool use_header)
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
-          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
               relabel_count++;
               fastq_print_general(fp_fastqout,
@@ -1187,7 +1187,7 @@ void derep_prefix()
       uint64_t hash = prefix_hashes[prefix_len];
       struct bucket * bp = hashtable + (hash & hash_mask);
 
-      while ((bp->size) &&
+      while ((bp->size) and
              ((bp->deleted) ||
               (bp->hash != hash) ||
               (prefix_len != db_getsequencelen(bp->seqno_first)) ||
@@ -1223,13 +1223,13 @@ void derep_prefix()
         {
           /* look for prefix match */
 
-          while((! bp->size) && (prefix_len > len_shortest))
+          while((! bp->size) and (prefix_len > len_shortest))
             {
               prefix_len--;
               hash = prefix_hashes[prefix_len];
               bp = hashtable + (hash & hash_mask);
 
-              while ((bp->size) &&
+              while ((bp->size) and
                      ((bp->deleted) ||
                       (bp->hash != hash) ||
                       (prefix_len != db_getsequencelen(bp->seqno_first)) ||
@@ -1355,7 +1355,7 @@ void derep_prefix()
     {
       struct bucket * bp = hashtable + i;
       int64_t size = bp->size;
-      if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+      if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
         {
           ++selected;
           if (selected == opt_topn)
@@ -1377,7 +1377,7 @@ void derep_prefix()
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
-          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_output,
