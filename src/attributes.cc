@@ -99,7 +99,7 @@ bool header_find_attribute(const char * header,
       i = r - header;
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i-1] != ';'))
+      if ((i > 0) && (header[i - 1] != ';'))
         {
           i += alen + 1;
           continue;
@@ -140,8 +140,8 @@ int64_t header_get_size(char * header, int header_length)
   if (header_find_attribute(header,
                             header_length,
                             "size=",
-                            & start,
-                            & end,
+                            &start,
+                            &end,
                             false))
     {
       int64_t number = atol(header + start + 5);
@@ -227,8 +227,8 @@ void header_fprint_strip(FILE * fp,
       length_found = header_find_attribute(header,
                                            header_length,
                                            "length=",
-                                           & length_start,
-                                           & length_end,
+                                           &length_start,
+                                           &length_end,
                                            true);
     }
   if (length_found)
@@ -246,7 +246,7 @@ void header_fprint_strip(FILE * fp,
     {
       for(int i = 0; i < limit; i++)
         {
-          if (attribute_start[i] > attribute_start[i+1])
+          if (attribute_start[i] > attribute_start[i + 1])
             {
               swap(attribute_start + i, attribute_start + i + 1);
               swap(attribute_end   + i, attribute_end   + i + 1);
