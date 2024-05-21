@@ -195,7 +195,7 @@ int seqcmp(char * a, char * b, int n)
 
   while ((n-- > 0) and (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
     {
-      if ((n == 0) || (*p == 0) || (*q == 0))
+      if ((n == 0) or (*p == 0) or (*q == 0))
         {
           break;
         }
@@ -282,16 +282,16 @@ void derep(char * input_filename, bool use_header)
 
   fastx_handle h = fastx_open(input_filename);
 
-  if (! h)
+  if (not h)
     {
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
     }
 
-  if (! fastx_is_empty(h))
+  if (not fastx_is_empty(h))
     {
       if (fastx_is_fastq(h))
         {
-          if (! opt_fastx_uniques)
+          if (not opt_fastx_uniques)
             fatal("FASTQ input is only allowed with the fastx_uniques command");
         }
       else
@@ -310,12 +310,12 @@ void derep(char * input_filename, bool use_header)
 
   if (opt_fastx_uniques)
     {
-      if ((! opt_uc) and (! opt_fastaout) and (! opt_fastqout) and (! opt_tabbedout))
+      if ((not opt_uc) and (not opt_fastaout) and (not opt_fastqout) and (not opt_tabbedout))
         fatal("Output file for dereplication with fastx_uniques must be specified with --fastaout, --fastqout, --tabbedout, or --uc");
     }
   else
     {
-      if ((! opt_output) and (! opt_uc))
+      if ((not opt_output) and (not opt_uc))
         fatal("Output file for dereplication must be specified with --output or --uc");
     }
 
@@ -324,7 +324,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_fastaout)
         {
           fp_fastaout = fopen_output(opt_fastaout);
-          if (! fp_fastaout)
+          if (not fp_fastaout)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -333,7 +333,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_fastqout)
         {
           fp_fastqout = fopen_output(opt_fastqout);
-          if (! fp_fastqout)
+          if (not fp_fastqout)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
@@ -342,7 +342,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_tabbedout)
         {
           fp_tabbedout = fopen_output(opt_tabbedout);
-          if (! fp_tabbedout)
+          if (not fp_tabbedout)
             {
               fatal("Unable to open tab delimited output file for writing");
             }
@@ -353,7 +353,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_output)
         {
           fp_fastaout = fopen_output(opt_output);
-          if (! fp_fastaout)
+          if (not fp_fastaout)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -363,7 +363,7 @@ void derep(char * input_filename, bool use_header)
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (! fp_uc)
+      if (not fp_uc)
         {
           fatal("Unable to open output (uc) file for writing");
         }
@@ -392,7 +392,7 @@ void derep(char * input_filename, bool use_header)
   char ** headertab = nullptr;
   char * match_strand = nullptr;
 
-  bool extra_info = opt_uc || opt_tabbedout;
+  bool extra_info = opt_uc or opt_tabbedout;
 
   if (extra_info)
     {
@@ -439,7 +439,7 @@ void derep(char * input_filename, bool use_header)
   double median = 0.0;
   double average = 0.0;
 
-  while(fastx_next(h, ! opt_notrunclabels, chrmap_no_change))
+  while(fastx_next(h, not opt_notrunclabels, chrmap_no_change))
     {
       int64_t seqlen = fastx_get_sequence_length(h);
 
@@ -550,15 +550,15 @@ void derep(char * input_filename, bool use_header)
 
       while ((bp->size)
              and
-             ((hash != bp->hash) ||
-              (seqcmp(seq_up, bp->seq, seqlen)) ||
+             ((hash != bp->hash) or
+              (seqcmp(seq_up, bp->seq, seqlen)) or
               (use_header and strcmp(header, bp->header))))
         {
           j = (j + 1) & hash_mask;
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) and ! bp->size)
+      if ((opt_strand > 1) and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -569,8 +569,8 @@ void derep(char * input_filename, bool use_header)
 
           while ((rc_bp->size)
                  and
-                 ((rc_hash != rc_bp->hash) ||
-                  (seqcmp(rc_seq_up, rc_bp->seq, seqlen)) ||
+                 ((rc_hash != rc_bp->hash) or
+                  (seqcmp(rc_seq_up, rc_bp->seq, seqlen)) or
                   (use_header and strcmp(header, bp->header))))
             {
               k = (k + 1) & hash_mask;
@@ -697,7 +697,7 @@ void derep(char * input_filename, bool use_header)
 
   show_rusage();
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (sequencecount > 0)
         {
@@ -805,7 +805,7 @@ void derep(char * input_filename, bool use_header)
 
   if (clusters < 1)
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
@@ -818,7 +818,7 @@ void derep(char * input_filename, bool use_header)
     }
   else
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -857,7 +857,7 @@ void derep(char * input_filename, bool use_header)
 
   /* write output */
 
-  if (opt_output || opt_fastaout)
+  if (opt_output or opt_fastaout)
     {
       progress_init("Writing FASTA output file", clusters);
 
@@ -1009,7 +1009,7 @@ void derep(char * input_filename, bool use_header)
 
   if (selected < clusters)
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %"
@@ -1078,7 +1078,7 @@ void derep_prefix()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (! fp_output)
+      if (not fp_output)
         {
           fatal("Unable to open output file for writing");
         }
@@ -1087,7 +1087,7 @@ void derep_prefix()
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (! fp_uc)
+      if (not fp_uc)
         {
           fatal("Unable to open output (uc) file for writing");
         }
@@ -1188,9 +1188,9 @@ void derep_prefix()
       struct bucket * bp = hashtable + (hash & hash_mask);
 
       while ((bp->size) and
-             ((bp->deleted) ||
-              (bp->hash != hash) ||
-              (prefix_len != db_getsequencelen(bp->seqno_first)) ||
+             ((bp->deleted) or
+              (bp->hash != hash) or
+              (prefix_len != db_getsequencelen(bp->seqno_first)) or
               (seqcmp(seq_up, db_getsequence(bp->seqno_first), prefix_len))))
         {
           ++bp;
@@ -1223,16 +1223,16 @@ void derep_prefix()
         {
           /* look for prefix match */
 
-          while((! bp->size) and (prefix_len > len_shortest))
+          while((not bp->size) and (prefix_len > len_shortest))
             {
               prefix_len--;
               hash = prefix_hashes[prefix_len];
               bp = hashtable + (hash & hash_mask);
 
               while ((bp->size) and
-                     ((bp->deleted) ||
-                      (bp->hash != hash) ||
-                      (prefix_len != db_getsequencelen(bp->seqno_first)) ||
+                     ((bp->deleted) or
+                      (bp->hash != hash) or
+                      (prefix_len != db_getsequencelen(bp->seqno_first)) or
                       (seqcmp(seq_up,
                               db_getsequence(bp->seqno_first),
                               prefix_len))))
@@ -1315,7 +1315,7 @@ void derep_prefix()
 
   if (clusters < 1)
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
@@ -1328,7 +1328,7 @@ void derep_prefix()
     }
   else
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -1445,7 +1445,7 @@ void derep_prefix()
 
   if (selected < clusters)
     {
-      if (! opt_quiet)
+      if (not opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %" PRId64
