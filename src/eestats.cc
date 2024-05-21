@@ -148,20 +148,20 @@ void fastq_eestats()
 
   int64_t ee_size = ee_start(len_alloc, resolution);
 
-  auto * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * len_alloc);
+  auto * read_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * len_alloc);
   memset(read_length_table, 0, sizeof(uint64_t) * len_alloc);
 
-  auto * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * len_alloc *
+  auto * qual_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * len_alloc *
                                                  (max_quality+1));
   memset(qual_length_table, 0, sizeof(uint64_t) * len_alloc * (max_quality+1));
 
-  auto * ee_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * ee_size);
+  auto * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * ee_size);
   memset(ee_length_table, 0, sizeof(uint64_t) * ee_size);
 
-  auto * sum_ee_length_table = (double*) xmalloc(sizeof(double) * len_alloc);
+  auto * sum_ee_length_table = (double *) xmalloc(sizeof(double) * len_alloc);
   memset(sum_ee_length_table, 0, sizeof(double) * len_alloc);
 
-  auto * sum_pe_length_table = (double*) xmalloc(sizeof(double) * len_alloc);
+  auto * sum_pe_length_table = (double *) xmalloc(sizeof(double) * len_alloc);
   memset(sum_pe_length_table, 0, sizeof(double) * len_alloc);
 
   int64_t len_min = LONG_MAX;
@@ -182,28 +182,28 @@ void fastq_eestats()
         {
           int64_t new_ee_size = ee_start(new_alloc, resolution);
 
-          read_length_table = (uint64_t*) xrealloc(read_length_table,
-                                                   sizeof(uint64_t) * new_alloc);
+          read_length_table = (uint64_t *) xrealloc(read_length_table,
+                                                    sizeof(uint64_t) * new_alloc);
           memset(read_length_table + len_alloc, 0,
                  sizeof(uint64_t) * (new_alloc - len_alloc));
 
-          qual_length_table = (uint64_t*) xrealloc(qual_length_table, sizeof(uint64_t) *
-                                                   new_alloc * (max_quality+1));
-          memset(qual_length_table + (max_quality+1) * len_alloc, 0,
+          qual_length_table = (uint64_t *) xrealloc(qual_length_table, sizeof(uint64_t) *
+                                                    new_alloc * (max_quality+1));
+          memset(qual_length_table + (max_quality + 1) * len_alloc, 0,
                  sizeof(uint64_t) * (new_alloc - len_alloc) * (max_quality+1));
 
-          ee_length_table = (uint64_t*) xrealloc(ee_length_table, sizeof(uint64_t) *
-                                                 new_ee_size);
+          ee_length_table = (uint64_t *) xrealloc(ee_length_table, sizeof(uint64_t) *
+                                                  new_ee_size);
           memset(ee_length_table + ee_size, 0,
                  sizeof(uint64_t) * (new_ee_size - ee_size));
 
-          sum_ee_length_table = (double*) xrealloc(sum_ee_length_table,
-                                                   sizeof(double) * new_alloc);
+          sum_ee_length_table = (double *) xrealloc(sum_ee_length_table,
+                                                    sizeof(double) * new_alloc);
           memset(sum_ee_length_table + len_alloc, 0,
                  sizeof(double) * (new_alloc - len_alloc));
 
-          sum_pe_length_table = (double*) xrealloc(sum_pe_length_table,
-                                                   sizeof(double) * new_alloc);
+          sum_pe_length_table = (double *) xrealloc(sum_pe_length_table,
+                                                    sizeof(double) * new_alloc);
           memset(sum_pe_length_table + len_alloc, 0,
                  sizeof(double) * (new_alloc - len_alloc));
 
@@ -224,7 +224,7 @@ void fastq_eestats()
 
       double ee = 0.0;
 
-      for(int64_t i=0; i < len; i++)
+      for(int64_t i = 0; i < len; i++)
         {
           read_length_table[i]++;
 
@@ -235,7 +235,7 @@ void fastq_eestats()
             {
               qual = 0;
             }
-          qual_length_table[(max_quality+1)*i + qual]++;
+          qual_length_table[(max_quality + 1) * i + qual]++;
 
 
           /* Pe */
@@ -248,7 +248,7 @@ void fastq_eestats()
 
           ee += pe;
 
-          int64_t e_int = MIN(resolution*(i+1), (int)(resolution * ee));
+          int64_t e_int = MIN(resolution * (i + 1), (int) (resolution * ee));
           ee_length_table[ee_start(i, resolution) + e_int]++;
 
           sum_ee_length_table[i] += ee;
@@ -263,7 +263,7 @@ void fastq_eestats()
           "Min_Pe\tLow_Pe\tMed_Pe\tMean_Pe\tHi_Pe\tMax_Pe\t"
           "Min_EE\tLow_EE\tMed_EE\tMean_EE\tHi_EE\tMax_EE\n");
 
-  for(int64_t i=0; i<len_max; i++)
+  for(int64_t i = 0; i < len_max; i++)
     {
       int64_t reads = read_length_table[i];
       double pctrecs = 100.0 * reads / seq_count;
@@ -279,31 +279,31 @@ void fastq_eestats()
 
       double qsum = 0;
       double n = 0;
-      for(int q=0; q<=max_quality; q++)
+      for(int q = 0; q <= max_quality; q++)
         {
-          double x = qual_length_table[(max_quality+1)*i+q];
+          double x = qual_length_table[(max_quality + 1) * i + q];
 
           if (x > 0)
             {
               qsum += q * x;
               n += x;
 
-              if (min_q<0)
+              if (min_q < 0)
                 {
                   min_q = q;
                 }
 
-              if ((low_q<0) && (n >= 0.25 * reads))
+              if ((low_q < 0) && (n >= 0.25 * reads))
                 {
                   low_q = q;
                 }
 
-              if ((med_q<0) && (n >= 0.50 * reads))
+              if ((med_q < 0) && (n >= 0.50 * reads))
                 {
                   med_q = q;
                 }
 
-              if ((hi_q<0)  && (n >= 0.75 * reads))
+              if ((hi_q < 0)  && (n >= 0.75 * reads))
                 {
                   hi_q = q;
                 }
@@ -325,9 +325,9 @@ void fastq_eestats()
 
       double pesum = 0;
       n = 0;
-      for(int q=max_quality; q>=0; q--)
+      for(int q = max_quality; q >= 0; q--)
         {
-          double x = qual_length_table[(max_quality+1)*i+q];
+          double x = qual_length_table[(max_quality + 1) * i + q];
 
           if (x > 0)
             {
@@ -335,22 +335,22 @@ void fastq_eestats()
               pesum += pe * x;
               n += x;
 
-              if (min_pe<0)
+              if (min_pe < 0)
                 {
                   min_pe = pe;
                 }
 
-              if ((low_pe<0) && (n >= 0.25 * reads))
+              if ((low_pe < 0) && (n >= 0.25 * reads))
                 {
                   low_pe = pe;
                 }
 
-              if ((med_pe<0) && (n >= 0.50 * reads))
+              if ((med_pe < 0) && (n >= 0.50 * reads))
                 {
                   med_pe = pe;
                 }
 
-              if ((hi_pe<0)  && (n >= 0.75 * reads))
+              if ((hi_pe < 0) && (n >= 0.75 * reads))
                 {
                   hi_pe = pe;
                 }
@@ -371,10 +371,10 @@ void fastq_eestats()
       double max_ee = -1.0;
 
       int64_t ee_offset = ee_start(i, resolution);
-      int64_t max_errors = resolution * (i+1);
+      int64_t max_errors = resolution * (i + 1);
 
       n = 0;
-      for(int64_t e=0; e<=max_errors; e++)
+      for(int64_t e = 0; e <= max_errors; e++)
         {
           int64_t x = ee_length_table[ee_offset + e];
 
@@ -382,22 +382,22 @@ void fastq_eestats()
             {
               n += x;
 
-              if (min_ee<0)
+              if (min_ee < 0)
                 {
                   min_ee = e;
                 }
 
-              if ((low_ee<0) && (n >= 0.25 * reads))
+              if ((low_ee < 0) && (n >= 0.25 * reads))
                 {
                   low_ee = e;
                 }
 
-              if ((med_ee<0) && (n >= 0.50 * reads))
+              if ((med_ee < 0) && (n >= 0.50 * reads))
                 {
                   med_ee = e;
                 }
 
-              if ((hi_ee<0)  && (n >= 0.75 * reads))
+              if ((hi_ee < 0)  && (n >= 0.75 * reads))
                 {
                   hi_ee = e;
                 }
@@ -419,7 +419,7 @@ void fastq_eestats()
               "\t%.1lf\t%.1lf\t%.1lf\t%.1lf\t%.1lf\t%.1lf"
               "\t%.2lg\t%.2lg\t%.2lg\t%.2lg\t%.2lg\t%.2lg"
               "\t%.2lf\t%.2lf\t%.2lf\t%.2lf\t%.2lf\t%.2lf\n",
-              i+1, reads, pctrecs,
+              i + 1, reads, pctrecs,
               min_q,  low_q,  med_q,  mean_q,  hi_q,  max_q,
               min_pe, low_pe, med_pe, mean_pe, hi_pe, max_pe,
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
@@ -438,7 +438,7 @@ void fastq_eestats()
 
 void fastq_eestats2()
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("Output file for fastq_eestats2 must be specified with --output");
 
   fastx_handle h = fastq_open(opt_fastq_eestats2);
@@ -450,7 +450,7 @@ void fastq_eestats2()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      if (! fp_output)
         {
           fatal("Unable to open output file for writing");
         }
@@ -479,7 +479,7 @@ void fastq_eestats2()
         {
           longest = len;
           // opt_length_cutoffs_longest is an int between 1 and INT_MAX
-          int high = MIN(longest, (uint64_t)(opt_length_cutoffs_longest));
+          int high = MIN(longest, (uint64_t) (opt_length_cutoffs_longest));
           int new_len_steps = 1 + MAX(0, ((high - opt_length_cutoffs_shortest)
                                           / opt_length_cutoffs_increment));
 
@@ -497,7 +497,7 @@ void fastq_eestats2()
 
       double ee = 0.0;
 
-      for(uint64_t i=0; i < len; i++)
+      for(uint64_t i = 0; i < len; i++)
         {
           /* quality score */
 
@@ -514,7 +514,7 @@ void fastq_eestats2()
           for (int x = 0; x < len_steps; x++)
             {
               uint64_t len_cutoff = opt_length_cutoffs_shortest + x * opt_length_cutoffs_increment;
-              if (i+1 == len_cutoff)
+              if (i + 1 == len_cutoff)
                 {
                   for (int y = 0; y < opt_ee_cutoffs_count; y++)
                     {
