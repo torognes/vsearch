@@ -83,8 +83,8 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
         {
           break;
         }
-      p++;
-      q++;
+      ++p;
+      ++q;
     }
 
   return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
@@ -100,7 +100,7 @@ void dbhash_open(uint64_t maxelements)
   while (3 * maxelements > 2 * dbhash_size)
     {
       dbhash_size <<= 1;
-      dbhash_shift++;
+      ++dbhash_shift;
     }
   dbhash_mask = dbhash_size - 1;
 
