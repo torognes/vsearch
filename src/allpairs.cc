@@ -254,7 +254,7 @@ void allpairs_output_results(int hit_count,
 
   if (hit_count)
     {
-      count_matched++;
+      ++count_matched;
       if (opt_matched)
         {
           fasta_print_general(fp_matched,
@@ -271,7 +271,7 @@ void allpairs_output_results(int hit_count,
     }
   else
     {
-      count_notmatched++;
+      ++count_notmatched;
       if (opt_notmatched)
         {
           fasta_print_general(fp_notmatched,
@@ -371,7 +371,7 @@ void allpairs_thread_run(int64_t t)
 
       if (query_no < seqcount)
         {
-          queries++;
+          ++queries;
 
           /* let other threads read input */
           xpthread_mutex_unlock(&mutex_input);
@@ -515,7 +515,7 @@ void allpairs_thread_run(int64_t t)
           /* update stats */
           if (si->accepts)
             {
-              qmatches++;
+              ++qmatches;
             }
 
           /* show progress */
