@@ -77,9 +77,9 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
       return 0;
     }
 
-  while ((n-- > 0) && (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
+  while ((n-- > 0) and (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
     {
-      if ((n == 0) || (*p == 0) || (*q == 0))
+      if ((n == 0) or (*p == 0) or (*q == 0))
         {
           break;
         }
@@ -133,9 +133,9 @@ int64_t dbhash_search_first(char * seq,
   struct dbhash_bucket_s * bp = dbhash_table + index;
 
   while (bitmap_get(dbhash_bitmap, index)
-         &&
-         ((bp->hash != hash) ||
-          (seqlen != db_getsequencelen(bp->seqno)) ||
+         and
+         ((bp->hash != hash) or
+          (seqlen != db_getsequencelen(bp->seqno)) or
           (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen))))
     {
       index = (index + 1) & dbhash_mask;
@@ -163,9 +163,9 @@ int64_t dbhash_search_next(struct dbhash_search_info_s * info)
   struct dbhash_bucket_s * bp = dbhash_table + index;
 
   while (bitmap_get(dbhash_bitmap, index)
-         &&
-         ((bp->hash != hash) ||
-          (seqlen != db_getsequencelen(bp->seqno)) ||
+         and
+         ((bp->hash != hash) or
+          (seqlen != db_getsequencelen(bp->seqno)) or
           (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen))))
     {
       index = (index + 1) & dbhash_mask;
