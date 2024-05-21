@@ -194,7 +194,7 @@ void header_fprint_strip(FILE * fp,
     {
       attribute_start[attributes] = size_start;
       attribute_end[attributes] = size_end;
-      attributes++;
+      ++attributes;
     }
 
   /* look for ee attribute */
@@ -215,7 +215,7 @@ void header_fprint_strip(FILE * fp,
     {
       attribute_start[attributes] = ee_start;
       attribute_end[attributes] = ee_end;
-      attributes++;
+      ++attributes;
     }
 
   /* look for length attribute */
@@ -236,7 +236,7 @@ void header_fprint_strip(FILE * fp,
     {
       attribute_start[attributes] = length_start;
       attribute_end[attributes] = length_end;
-      attributes++;
+      ++attributes;
     }
 
   /* sort */
