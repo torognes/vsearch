@@ -80,7 +80,7 @@ void dbhash_add_one(uint64_t seqno);
 void dbhash_add_all();
 
 int64_t dbhash_search_first(char * seq,
-                         uint64_t seqlen,
-                         struct dbhash_search_info_s * info);
+                            uint64_t seqlen,
+                            struct dbhash_search_info_s * info);
 int64_t dbhash_search_next(struct dbhash_search_info_s * info);
 void dbhash_search_finish(struct dbhash_search_info_s * info);
