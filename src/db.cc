@@ -203,7 +203,7 @@ void db_read(const char * filename, int upcase)
 {
   h = fastx_open(filename);
 
-  if (!h)
+  if (! h)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
@@ -275,7 +275,7 @@ void db_read(const char * filename, int upcase)
   xfree(prompt);
   fastx_close(h);
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       if (sequences > 0)
         {
