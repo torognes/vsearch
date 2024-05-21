@@ -62,13 +62,13 @@
 
 bitmap_t * bitmap_init(unsigned int size)
 {
-  auto * b = (bitmap_t*) xmalloc(sizeof(bitmap_t));
+  auto * b = (bitmap_t *) xmalloc(sizeof(bitmap_t));
   b->size = size;
-  b->bitmap = (unsigned char *) xmalloc((size+7)/8);
+  b->bitmap = (unsigned char *) xmalloc((size + 7) / 8);
   return b;
 }
 
-void bitmap_free(bitmap_t* b)
+void bitmap_free(bitmap_t * b)
 {
   if (b->bitmap)
     {
