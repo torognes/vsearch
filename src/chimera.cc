@@ -426,8 +426,8 @@ int find_best_parents_long(struct chimera_info_s * ci)
                      (not position_used[j]) &&
                      ((len == 0) or (ci->insert[i * ci->query_len + j] == 0)))
                 {
-                  len++;
-                  j++;
+                  ++len;
+                  ++j;
                 }
               if (len > best_len)
                 {
@@ -448,7 +448,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
                         }
                     }
                 }
-              j++;
+              ++j;
             }
         }
 
@@ -785,7 +785,7 @@ int eval_parents_long(struct chimera_info_s * ci)
   for (int i = 0; i < ci->query_len; i++)
     {
       if (qpos >= (ci->best_start[m] + ci->best_len[m]))
-        m++;
+        ++m;
       for (int j = 0; j < ci->maxi[i]; j++)
         {
           *q++ = '-';
@@ -833,7 +833,7 @@ int eval_parents_long(struct chimera_info_s * ci)
             if (psym[f] == qsym)
               {
                 diff = 'A' + f;
-                z++;
+                ++z;
               }
           if (z > 1)
             diff = ' ';
@@ -855,7 +855,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
   for(int i = 0; i < alnlen; i++)
     {
-      cols++;
+      ++cols;
 
       char qsym = chrmap_4bit[(int) (ci->qaln[i])];
 
@@ -948,7 +948,7 @@ int eval_parents_long(struct chimera_info_s * ci)
             {
               if (ci->qaln[i + j] != '-')
                 {
-                  qnt++;
+                  ++qnt;
                 }
 
               for (int f = 0; f < ci->parents_found; f++)
@@ -1371,7 +1371,7 @@ int eval_parents(struct chimera_info_s * ci)
         {
           if (not ci->ignore[i])
             {
-              cols++;
+              ++cols;
 
               char qsym = chrmap_4bit[(int) (ci->qaln[i])];
               char asym = chrmap_4bit[(int) (ci->paln[index_a][i])];
@@ -1380,22 +1380,22 @@ int eval_parents(struct chimera_info_s * ci)
 
               if (qsym == asym)
                 {
-                  match_QA++;
+                  ++match_QA;
                 }
 
               if (qsym == bsym)
                 {
-                  match_QB++;
+                  ++match_QB;
                 }
 
               if (asym == bsym)
                 {
-                  match_AB++;
+                  ++match_AB;
                 }
 
               if (qsym == msym)
                 {
-                  match_QM++;
+                  ++match_QM;
                 }
             }
         }
@@ -1492,15 +1492,15 @@ int eval_parents(struct chimera_info_s * ci)
                 {
                   if (ci->qaln[i + j] != '-')
                     {
-                      qnt++;
+                      ++qnt;
                     }
                   if (ci->paln[0][i + j] != '-')
                     {
-                      p1nt++;
+                      ++p1nt;
                     }
                   if (ci->paln[1][i + j] != '-')
                     {
-                      p2nt++;
+                      ++p2nt;
                     }
                 }
 
@@ -2056,12 +2056,12 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       xpthread_mutex_lock(&mutex_output);
 
-      total_count++;
+      ++total_count;
       total_abundance += ci->query_size;
 
       if (status == 4)
         {
-          chimera_count++;
+          ++chimera_count;
           chimera_abundance += ci->query_size;
 
           if (opt_chimeras)
@@ -2087,7 +2087,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       if (status == 3)
         {
-          borderline_count++;
+          ++borderline_count;
           borderline_abundance += ci->query_size;
 
           if (opt_borderline)
@@ -2113,7 +2113,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       if (status < 3)
         {
-          nonchimera_count++;
+          ++nonchimera_count;
           nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
@@ -2188,7 +2188,7 @@ uint64_t chimera_thread_core(struct chimera_info_s * ci)
 
       progress_update(progress);
 
-      seqno++;
+      ++seqno;
 
       xpthread_mutex_unlock(&mutex_output);
     }
