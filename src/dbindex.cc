@@ -95,7 +95,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
                db_getsequencelen(seqno), db_getsequence(seqno),
                & uniquecount, & uniquelist, seqmask);
   dbindex_map[dbindex_count] = seqno;
-  for(unsigned int i=0; i<uniquecount; i++)
+  for(unsigned int i = 0; i < uniquecount; i++)
     {
       unsigned int kmer = uniquelist[i];
       if (kmerbitmap[kmer])
@@ -105,7 +105,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
         }
       else
         {
-          kmerindex[kmerhash[kmer]+(kmercount[kmer]++)] = dbindex_count;
+          kmerindex[kmerhash[kmer] + (kmercount[kmer]++)] = dbindex_count;
         }
     }
   dbindex_count++;
@@ -143,7 +143,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
       unique_count(dbindex_uh, opt_wordlength,
                    db_getsequencelen(seqno), db_getsequence(seqno),
                    & uniquecount, & uniquelist, seqmask);
-      for(unsigned int i=0; i<uniquecount; i++)
+      for(unsigned int i = 0; i < uniquecount; i++)
         {
           kmercount[uniquelist[i]]++;
         }
@@ -178,14 +178,14 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
-  kmerhash = (uint64_t *) xmalloc((kmerhashsize+1) * sizeof(uint64_t));
+  kmerhash = (uint64_t *) xmalloc((kmerhashsize + 1) * sizeof(uint64_t));
   uint64_t sum = 0;
   for(unsigned int i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = sum;
       if (kmercount[i] >= bitmap_mincount)
         {
-          kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
+          kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
           bitmap_reset_all(kmerbitmap[i]);
         }
       else
@@ -197,7 +197,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   kmerhash[kmerhashsize] = sum;
 
 #if 0
-  if (!opt_quiet)
+  if (! opt_quiet)
     fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
 
@@ -222,7 +222,7 @@ void dbindex_free()
   xfree(kmercount);
   xfree(dbindex_map);
 
-  for(unsigned int kmer=0; kmer<kmerhashsize; kmer++)
+  for(unsigned int kmer = 0; kmer < kmerhashsize; kmer++)
     {
       if (kmerbitmap[kmer])
         {
