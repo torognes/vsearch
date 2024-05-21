@@ -77,7 +77,7 @@ bool header_find_attribute(const char * header,
   const char * digit_chars = "0123456789";
   const char * digit_chars_decimal = "0123456789.";
 
-  if ((! header) || (! attribute))
+  if ((not header) or (not attribute))
     {
       return false;
     }
@@ -100,7 +100,7 @@ bool header_find_attribute(const char * header,
       i = r - header;
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i - 1] != ';'))
+      if ((i > 0) and (header[i - 1] != ';'))
         {
           i += alen + 1;
           continue;
@@ -118,7 +118,7 @@ bool header_find_attribute(const char * header,
         }
 
       /* check for ';' after */
-      if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
+      if ((i + alen + digits < hlen) and (header[i + alen + digits] != ';'))
         {
           i += alen + digits + 2;
           continue;
