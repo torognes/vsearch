@@ -1507,25 +1507,25 @@ int eval_parents(struct chimera_info_s * ci)
               if (! best_reverse)
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
-                          p1pos+1, w, ci->paln[0]+i, p1pos+p1nt);
+                          p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos+1,  w, ci->qaln+i,    qpos+qnt);
+                          qpos + 1, w, ci->qaln + i, qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
-                          p2pos+1, w, ci->paln[1]+i, p2pos+p2nt);
+                          p2pos + 1, w, ci->paln[1] + i, p2pos + p2nt);
                 }
               else
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
-                          p2pos+1, w, ci->paln[1]+i, p2pos+p2nt);
+                          p2pos + 1, w, ci->paln[1] + i, p2pos + p2nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos+1,  w, ci->qaln+i,    qpos+qnt);
+                          qpos + 1, w, ci->qaln + i, qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
-                          p1pos+1, w, ci->paln[0]+i, p1pos+p1nt);
+                          p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
                 }
 
-              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs+i);
-              fprintf(fp_uchimealns, "Votes   %.*s\n", w, ci->votes+i);
-              fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model+i);
+              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
+              fprintf(fp_uchimealns, "Votes   %.*s\n", w, ci->votes + i);
+              fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model + i);
               fprintf(fp_uchimealns, "\n");
 
               qpos += qnt;
@@ -1634,7 +1634,7 @@ void query_init(struct searchinfo_s * si)
   si->qsequence = nullptr;
   si->kmers = nullptr;
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
-  si->kmers = (count_t *) xmalloc(db_getsequencecount()*sizeof(count_t) + 32);
+  si->kmers = (count_t *) xmalloc(db_getsequencecount() * sizeof(count_t) + 32);
   si->hit_count = 0;
   si->uh = unique_init();
   si->s = search16_init(opt_match,
@@ -2231,7 +2231,7 @@ void chimera_threads_run()
   xpthread_attr_destroy(&attr);
 }
 
-void open_chimera_file(FILE * * f, char * name)
+void open_chimera_file(FILE ** f, char * name)
 {
   if (name)
     {
