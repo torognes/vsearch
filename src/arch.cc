@@ -269,7 +269,7 @@ int xfstat(int fd, xstat_t * buf)
 #endif
 }
 
-int xstat(const char * path, xstat_t  * buf)
+int xstat(const char * path, xstat_t * buf)
 {
 #ifdef _WIN32
   return _stat64(path, buf);
