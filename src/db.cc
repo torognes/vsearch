@@ -182,7 +182,7 @@ void db_add(bool is_fastq,
   seqindex_p->size = abundance;
 
   /* update statistics */
-  sequences++;
+  ++sequences;
   nucleotides += sequencelength;
   if (sequencelength > longest)
     {
@@ -248,15 +248,15 @@ void db_read(const char * filename, int upcase)
 
       if (sequencelength < (size_t) opt_minseqlength)
         {
-          discarded_short++;
+          ++discarded_short;
         }
       else if (sequencelength > (size_t) opt_maxseqlength)
         {
-          discarded_long++;
+          ++discarded_long;
         }
       else if (opt_cluster_unoise && (abundance < (int64_t) opt_minsize))
         {
-          discarded_unoise++;
+          ++discarded_unoise;
         }
       else
         {
