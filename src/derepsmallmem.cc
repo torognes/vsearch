@@ -100,7 +100,7 @@ double find_median()
                     {
                       above = v;
                     }
-                  above_count++;
+                  ++above_count;
                 }
               else if (v < cand)
                 {
@@ -108,11 +108,11 @@ double find_median()
                     {
                       below = v;
                     }
-                  below_count++;
+                  ++below_count;
                 }
               else
                 {
-                  cand_count++;
+                  ++cand_count;
                 }
             }
         }
@@ -295,13 +295,13 @@ void derep_smallmem(char * input_filename)
 
       if (seqlen < opt_minseqlength)
         {
-          discarded_short++;
+          ++discarded_short;
           continue;
         }
 
       if (seqlen > opt_maxseqlength)
         {
-          discarded_long++;
+          ++discarded_long;
           continue;
         }
 
@@ -398,7 +398,7 @@ void derep_smallmem(char * input_filename)
           /* no identical sequences yet */
           bp->size = ab;
           bp->hash = hash;
-          clusters++;
+          ++clusters;
         }
 
       if (bp->size > maxsize)
@@ -406,7 +406,7 @@ void derep_smallmem(char * input_filename)
           maxsize = bp->size;
         }
 
-      sequencecount++;
+      ++sequencecount;
       progress_update(fastx_get_position(h));
     }
   progress_done();
@@ -610,7 +610,7 @@ void derep_smallmem(char * input_filename)
 
           if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
-              selected++;
+              ++selected;
               fasta_print_general(fp_fastaout,
                                   nullptr,
                                   seq,
