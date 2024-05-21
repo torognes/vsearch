@@ -88,7 +88,7 @@ inline void pushop(char newop, char ** cigarendp, char * op, int * count)
           char buf[size];
           int len = snprintf(buf, size, "%d", *count);
           *cigarendp -= len;
-          memcpy(*cigarendp, buf, (size_t)len);
+          memcpy(*cigarendp, buf, (size_t) len);
         }
       *op = newop;
       *count = 1;
@@ -106,7 +106,7 @@ inline void finishop(char ** cigarendp, char * op, int * count)
       char buf[size];
       int len = snprintf(buf, size, "%d", *count);
       *cigarendp -= len;
-      memcpy(*cigarendp, buf, (size_t)len);
+      memcpy(*cigarendp, buf, (size_t) len);
     }
     *op = 0;
     *count = 0;
