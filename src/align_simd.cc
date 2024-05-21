@@ -981,7 +981,7 @@ void backtrack16(s16info_s * s,
 
   while ((i >= 0) && (j >= 0))
     {
-      aligned++;
+      ++aligned;
 
       uint64_t d = *((uint64_t *) (dirbuffer +
                                    (offset + 16 * s->qlen * (j / 4) +
@@ -989,67 +989,67 @@ void backtrack16(s16info_s * s,
 
       if ((s->op == 'I') && (d & maskextleft))
         {
-          j--;
+          --j;
           pushop(s, 'I');
         }
       else if ((s->op == 'D') && (d & maskextup))
         {
-          i--;
+          --i;
           pushop(s, 'D');
         }
       else if (d & maskleft)
         {
           if (s->op != 'I')
             {
-              gaps++;
+              ++gaps;
             }
-          j--;
+          --j;
           pushop(s, 'I');
         }
       else if (d & maskup)
         {
           if (s->op != 'D')
             {
-              gaps++;
+              ++gaps;
             }
-          i--;
+          --i;
           pushop(s, 'D');
         }
       else
         {
           if (chrmap_4bit[(int) (qseq[i])] & chrmap_4bit[(int) (dseq[j])])
             {
-              matches++;
+              ++matches;
             }
           else
             {
-              mismatches++;
+              ++mismatches;
             }
-          i--;
-          j--;
+          --i;
+          --j;
           pushop(s, 'M');
         }
     }
 
   while(i >= 0)
     {
-      aligned++;
+      ++aligned;
       if (s->op != 'D')
         {
-          gaps++;
+          ++gaps;
         }
-      i--;
+      --i;
       pushop(s, 'D');
     }
 
   while(j >= 0)
     {
-      aligned++;
+      ++aligned;
       if (s->op != 'I')
         {
-          gaps++;
+          ++gaps;
         }
-      j--;
+      --j;
       pushop(s, 'I');
     }
 
