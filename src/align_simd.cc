@@ -1772,8 +1772,7 @@ void search16(s16info_s * s,
                 {
                   signed short h_min_c = ((signed short *) (& h_min_vector))[c];
                   signed short h_max_c = ((signed short *) (& h_max_vector))[c];
-                  if ((h_min_c <= score_min) or
-                      (h_max_c >= score_max))
+                  if ((h_min_c <= score_min) or (h_max_c >= score_max))
                     {
                       overflow[c] = true;
                     }
