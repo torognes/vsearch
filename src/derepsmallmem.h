@@ -58,4 +58,4 @@
 
 */
 
-void derep_smallmem(char * input_filename);
+auto derep_smallmem(char * input_filename) -> void;
