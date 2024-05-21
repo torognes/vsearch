@@ -97,7 +97,7 @@ inline void pushop(char newop, char ** cigarendp, char * op, int * count)
 
 inline void finishop(char ** cigarendp, char * op, int * count)
 {
-  if ((op) && (count))
+  if ((op) and (count))
   {
     *--*cigarendp = *op;
     if (*count > 1)
@@ -368,7 +368,7 @@ void nw_align(char * dseq,
   i = qlen;
   j = dlen;
 
-  while ((i > 0) && (j > 0))
+  while ((i > 0) and (j > 0))
   {
     int64_t gapopen_q   = (i < qlen) ? gapopen_q_interior   : gapopen_q_right;
     int64_t gapextend_q = (i < qlen) ? gapextend_q_interior : gapextend_q_right;
@@ -379,14 +379,14 @@ void nw_align(char * dseq,
 
     alength++;
 
-    if ((op == 'I') && (d & maskextleft))
+    if ((op == 'I') and (d & maskextleft))
     {
       score -= gapextend_q;
       indels++;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
-    else if ((op == 'D') && (d & maskextup))
+    else if ((op == 'D') and (d & maskextup))
     {
       score -= gapextend_t;
       indels++;
