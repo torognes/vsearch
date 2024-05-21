@@ -194,7 +194,7 @@ void realloc_arrays(struct chimera_info_s * ci)
   if (maxhlen > ci->head_alloc)
     {
       ci->head_alloc = maxhlen;
-      ci->query_head = (char*) xrealloc(ci->query_head, maxhlen + 1);
+      ci->query_head = (char *) xrealloc(ci->query_head, maxhlen + 1);
     }
 
   /* realloc arrays based on query length */
@@ -206,20 +206,20 @@ void realloc_arrays(struct chimera_info_s * ci)
     {
       ci->query_alloc = maxqlen;
 
-      ci->query_seq = (char*) xrealloc(ci->query_seq, maxqlen + 1);
+      ci->query_seq = (char *) xrealloc(ci->query_seq, maxqlen + 1);
 
       for(auto & i: ci->si)
         {
-          i.qsequence = (char*) xrealloc(i.qsequence, maxpartlen + 1);
+          i.qsequence = (char *) xrealloc(i.qsequence, maxpartlen + 1);
         }
 
       ci->maxi = (int *) xrealloc(ci->maxi, (maxqlen + 1) * sizeof(int));
-      ci->maxsmooth = (int*) xrealloc(ci->maxsmooth, maxqlen * sizeof(int));
-      ci->match = (int*) xrealloc(ci->match,
+      ci->maxsmooth = (int *) xrealloc(ci->maxsmooth, maxqlen * sizeof(int));
+      ci->match = (int *) xrealloc(ci->match,
                                   maxcandidates * maxqlen * sizeof(int));
-      ci->insert = (int*) xrealloc(ci->insert,
+      ci->insert = (int *) xrealloc(ci->insert,
                                    maxcandidates * maxqlen * sizeof(int));
-      ci->smooth = (int*) xrealloc(ci->smooth,
+      ci->smooth = (int *) xrealloc(ci->smooth,
                                    maxcandidates * maxqlen * sizeof(int));
 
       ci->scan_p = (double *) xrealloc(ci->scan_p,
@@ -230,13 +230,13 @@ void realloc_arrays(struct chimera_info_s * ci)
       const int maxalnlen = maxqlen + 2 * db_getlongestsequence();
       for (int f = 0; f < maxparents ; f++)
         {
-          ci->paln[f] = (char*) xrealloc(ci->paln[f], maxalnlen + 1);
+          ci->paln[f] = (char *) xrealloc(ci->paln[f], maxalnlen + 1);
         }
-      ci->qaln = (char*) xrealloc(ci->qaln, maxalnlen + 1);
-      ci->diffs = (char*) xrealloc(ci->diffs, maxalnlen + 1);
-      ci->votes = (char*) xrealloc(ci->votes, maxalnlen + 1);
-      ci->model = (char*) xrealloc(ci->model, maxalnlen + 1);
-      ci->ignore = (char*) xrealloc(ci->ignore, maxalnlen + 1);
+      ci->qaln = (char *) xrealloc(ci->qaln, maxalnlen + 1);
+      ci->diffs = (char *) xrealloc(ci->diffs, maxalnlen + 1);
+      ci->votes = (char *) xrealloc(ci->votes, maxalnlen + 1);
+      ci->model = (char *) xrealloc(ci->model, maxalnlen + 1);
+      ci->ignore = (char *) xrealloc(ci->ignore, maxalnlen + 1);
     }
 }
 
@@ -277,8 +277,8 @@ void find_matches(struct chimera_info_s * ci)
             case 'M':
               for(int k = 0; k < run; k++)
                 {
-                  if (chrmap_4bit[(int)(qseq[qpos])] &
-                      chrmap_4bit[(int)(tseq[tpos])])
+                  if (chrmap_4bit[(int) (qseq[qpos])] &
+                      chrmap_4bit[(int) (tseq[tpos])])
                     {
                       ci->match[i * ci->query_len + qpos] = 1;
                     }
@@ -434,7 +434,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
                   int scan_best_start = 0;
                   int scan_best_len = 0;
                   if (scan_matches(ci,
-                                   ci->match + i*ci->query_len + start,
+                                   ci->match + i * ci->query_len + start,
                                    len,
                                    opt_chimeras_diff_pct,
                                    & scan_best_start,
@@ -532,7 +532,7 @@ int find_best_parents(struct chimera_info_s * ci)
 
           for(int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
-              int z = best_parent_cand[f-1] * ci->query_len + qpos;
+              int z = best_parent_cand[f - 1] * ci->query_len + qpos;
               if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
                   for(int i = qpos + 1 - window; i <= qpos; i++)
@@ -564,9 +564,9 @@ int find_best_parents(struct chimera_info_s * ci)
                   sum += ci->match[z];
                   if (qpos >= window)
                     {
-                      sum -= ci->match[z-window];
+                      sum -= ci->match[z - window];
                     }
-                  if (qpos >= window-1)
+                  if (qpos >= window - 1)
                     {
                       ci->smooth[z] = sum;
                       if (ci->smooth[z] > ci->maxsmooth[qpos])
@@ -715,7 +715,7 @@ void fill_alignment_parents(struct chimera_info_s * ci)
                 {
                   if (x < run)
                     {
-                      *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
+                      *t++ = chrmap_upcase[(int) (target_seq[tpos++])];
                     }
                   else
                     {
@@ -738,7 +738,7 @@ void fill_alignment_parents(struct chimera_info_s * ci)
 
                   if (op == 'M')
                     {
-                      *t++ = chrmap_upcase[(int)(target_seq[tpos++])];
+                      *t++ = chrmap_upcase[(int) (target_seq[tpos++])];
                     }
                   else
                     {
@@ -804,12 +804,12 @@ int eval_parents_long(struct chimera_info_s * ci)
 
   for(int i = 0; i < alnlen; i++)
     {
-      unsigned int qsym = chrmap_4bit[(int)(ci->qaln[i])];
+      unsigned int qsym = chrmap_4bit[(int) (ci->qaln[i])];
       unsigned int psym[maxparents];
       for (int f = 0; f < maxparents; f++)
         psym[f] = 0;
       for (int f = 0; f < ci->parents_found; f++)
-        psym[f] = chrmap_4bit[(int)(ci->paln[f][i])];
+        psym[f] = chrmap_4bit[(int) (ci->paln[f][i])];
 
       /* lower case parent symbols that differ from query */
 
@@ -857,11 +857,11 @@ int eval_parents_long(struct chimera_info_s * ci)
     {
       cols++;
 
-      char qsym = chrmap_4bit[(int)(ci->qaln[i])];
+      char qsym = chrmap_4bit[(int) (ci->qaln[i])];
 
       for(int f = 0; f < ci->parents_found; f++)
         {
-          char psym = chrmap_4bit[(int)(ci->paln[f][i])];
+          char psym = chrmap_4bit[(int) (ci->paln[f][i])];
           if (qsym == psym)
             match_QP[f]++;
         }
@@ -944,22 +944,22 @@ int eval_parents_long(struct chimera_info_s * ci)
 
           int w = MIN(rest, width);
 
-          for(int j=0; j<w; j++)
+          for(int j = 0; j < w; j++)
             {
-              if (ci->qaln[i+j] != '-')
+              if (ci->qaln[i + j] != '-')
                 {
                   qnt++;
                 }
 
               for (int f = 0; f < ci->parents_found; f++)
-                if (ci->paln[f][i+j] != '-')
+                if (ci->paln[f][i + j] != '-')
                   {
                     pnt[f]++;
                   }
             }
 
           fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                  qpos+1,  w, ci->qaln+i,    qpos+qnt);
+                  qpos + 1, w, ci->qaln + i, qpos + qnt);
 
           for (int f = 0; f < ci->parents_found; f++)
             {
@@ -1065,7 +1065,7 @@ int eval_parents(struct chimera_info_s * ci)
         {
           *q++ = '-';
         }
-      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
+      *q++ = chrmap_upcase[(int) (ci->query_seq[qpos++])];
     }
   for (int j = 0; j < ci->maxi[ci->query_len]; j++)
     {
@@ -1080,21 +1080,21 @@ int eval_parents(struct chimera_info_s * ci)
 
   for(int i = 0; i < alnlen; i++)
     {
-      unsigned int qsym  = chrmap_4bit[(int)(ci->qaln   [i])];
-      unsigned int p1sym = chrmap_4bit[(int)(ci->paln[0][i])];
-      unsigned int p2sym = chrmap_4bit[(int)(ci->paln[1][i])];
+      unsigned int qsym  = chrmap_4bit[(int) (ci->qaln   [i])];
+      unsigned int p1sym = chrmap_4bit[(int) (ci->paln[0][i])];
+      unsigned int p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
 
       /* ignore gap positions and those next to the gap */
-      if ((!qsym) || (!p1sym) || (!p2sym))
+      if ((! qsym) || (! p1sym) || (! p2sym))
         {
           ci->ignore[i] = 1;
           if (i > 0)
             {
-              ci->ignore[i-1] = 1;
+              ci->ignore[i - 1] = 1;
             }
           if (i < alnlen - 1)
             {
-              ci->ignore[i+1] = 1;
+              ci->ignore[i + 1] = 1;
             }
         }
 
@@ -1310,7 +1310,7 @@ int eval_parents(struct chimera_info_s * ci)
           ci->model[i] = m;
 
           char v = ' ';
-          if (!ci->ignore[i])
+          if (! ci->ignore[i])
             {
               char d = ci->diffs[i];
 
@@ -1373,9 +1373,9 @@ int eval_parents(struct chimera_info_s * ci)
             {
               cols++;
 
-              char qsym = chrmap_4bit[(int)(ci->qaln[i])];
-              char asym = chrmap_4bit[(int)(ci->paln[index_a][i])];
-              char bsym = chrmap_4bit[(int)(ci->paln[index_b][i])];
+              char qsym = chrmap_4bit[(int) (ci->qaln[i])];
+              char asym = chrmap_4bit[(int) (ci->paln[index_a][i])];
+              char bsym = chrmap_4bit[(int) (ci->paln[index_b][i])];
               char msym = (i <= best_i) ? asym : bsym;
 
               if (qsym == asym)
