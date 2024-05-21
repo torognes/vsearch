@@ -199,8 +199,8 @@ int seqcmp(char * a, char * b, int n)
         {
           break;
         }
-      p++;
-      q++;
+      ++p;
+      ++q;
     }
 
   return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
@@ -445,13 +445,13 @@ void derep(char * input_filename, bool use_header)
 
       if (seqlen < opt_minseqlength)
         {
-          discarded_short++;
+          ++discarded_short;
           continue;
         }
 
       if (seqlen > opt_maxseqlength)
         {
-          discarded_long++;
+          ++discarded_long;
           continue;
         }
 
@@ -679,7 +679,7 @@ void derep(char * input_filename, bool use_header)
             bp->qual = xstrdup(qual);
           else
             bp->qual = nullptr;
-          clusters++;
+          ++clusters;
         }
 
       if (bp->size > maxsize)
@@ -687,7 +687,7 @@ void derep(char * input_filename, bool use_header)
           maxsize = bp->size;
         }
 
-      sequencecount++;
+      ++sequencecount;
 
       progress_update(fastx_get_position(h));
     }
@@ -845,7 +845,7 @@ void derep(char * input_filename, bool use_header)
       int64_t size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
-          selected++;
+          ++selected;
           if (selected == (uint64_t) opt_topn)
             {
               break;
@@ -868,7 +868,7 @@ void derep(char * input_filename, bool use_header)
           int64_t size = bp->size;
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
-              relabel_count++;
+              ++relabel_count;
               fasta_print_general(fp_fastaout,
                                   nullptr,
                                   bp->seq,
@@ -995,7 +995,7 @@ void derep(char * input_filename, bool use_header)
                 fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                         headertab[next], hh, i, j, bp->count, hh);
-              j++;
+              ++j;
             }
 
           progress_update(i);
@@ -1193,7 +1193,7 @@ void derep_prefix()
               (prefix_len != db_getsequencelen(bp->seqno_first)) ||
               (seqcmp(seq_up, db_getsequence(bp->seqno_first), prefix_len))))
         {
-          bp++;
+          ++bp;
           if (bp >= hashtable + hashtablesize)
             {
               bp = hashtable;
@@ -1237,7 +1237,7 @@ void derep_prefix()
                               db_getsequence(bp->seqno_first),
                               prefix_len))))
                 {
-                  bp++;
+                  ++bp;
                   if (bp >= hashtable + hashtablesize)
                     {
                       bp = hashtable;
@@ -1280,7 +1280,7 @@ void derep_prefix()
                 {
                   maxsize = ab;
                 }
-              clusters++;
+              ++clusters;
             }
         }
 
@@ -1357,7 +1357,7 @@ void derep_prefix()
       int64_t size = bp->size;
       if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
         {
-          selected++;
+          ++selected;
           if (selected == opt_topn)
             {
               break;
@@ -1379,7 +1379,7 @@ void derep_prefix()
           int64_t size = bp->size;
           if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
             {
-              relabel_count++;
+              ++relabel_count;
               fasta_print_general(fp_output,
                                   nullptr,
                                   db_getsequence(bp->seqno_first),
