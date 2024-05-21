@@ -968,8 +968,8 @@ int eval_parents_long(struct chimera_info_s * ci)
                       ppos[f] + 1, w, ci->paln[f] + i, ppos[f] + pnt[f]);
             }
 
-          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs+i);
-          fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model+i);
+          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
+          fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model + i);
           fprintf(fp_uchimealns, "\n");
 
           rest -= width;
