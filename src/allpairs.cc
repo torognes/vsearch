@@ -602,7 +602,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_alnout)
     {
       fp_alnout = fopen_output(opt_alnout);
-      if (! fp_alnout)
+      if (not fp_alnout)
         {
           fatal("Unable to open alignment output file for writing");
         }
@@ -614,7 +614,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_samout)
     {
       fp_samout = fopen_output(opt_samout);
-      if (! fp_samout)
+      if (not fp_samout)
         {
           fatal("Unable to open SAM output file for writing");
         }
@@ -623,7 +623,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_userout)
     {
       fp_userout = fopen_output(opt_userout);
-      if (! fp_userout)
+      if (not fp_userout)
         {
           fatal("Unable to open user-defined output file for writing");
         }
@@ -632,7 +632,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_blast6out)
     {
       fp_blast6out = fopen_output(opt_blast6out);
-      if (! fp_blast6out)
+      if (not fp_blast6out)
         {
           fatal("Unable to open blast6-like output file for writing");
         }
@@ -641,7 +641,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (! fp_uc)
+      if (not fp_uc)
         {
           fatal("Unable to open uc output file for writing");
         }
@@ -650,7 +650,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_fastapairs)
     {
       fp_fastapairs = fopen_output(opt_fastapairs);
-      if (! fp_fastapairs)
+      if (not fp_fastapairs)
         {
           fatal("Unable to open fastapairs output file for writing");
         }
@@ -659,7 +659,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_qsegout)
     {
       fp_qsegout = fopen_output(opt_qsegout);
-      if (! fp_qsegout)
+      if (not fp_qsegout)
         {
           fatal("Unable to open qsegout output file for writing");
         }
@@ -668,7 +668,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_tsegout)
     {
       fp_tsegout = fopen_output(opt_tsegout);
-      if (! fp_tsegout)
+      if (not fp_tsegout)
         {
           fatal("Unable to open tsegout output file for writing");
         }
@@ -677,7 +677,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_matched)
     {
       fp_matched = fopen_output(opt_matched);
-      if (! fp_matched)
+      if (not fp_matched)
         {
           fatal("Unable to open matched output file for writing");
         }
@@ -686,7 +686,7 @@ void allpairs_global(char * cmdline, char * progheader)
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (not fp_notmatched)
         {
           fatal("Unable to open notmatched output file for writing");
         }
@@ -724,7 +724,7 @@ void allpairs_global(char * cmdline, char * progheader)
   allpairs_thread_worker_run();
   progress_done();
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Matching query sequences: %d of %d",
               qmatches, queries);
