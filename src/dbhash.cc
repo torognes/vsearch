@@ -219,7 +219,7 @@ void dbhash_add_all()
       uint64_t seqlen = db_getsequencelen(seqno);
       string_normalize(normalized, seq, seqlen);
       dbhash_add(normalized, seqlen, seqno);
-      progress_update(seqno+1);
+      progress_update(seqno + 1);
     }
   xfree(normalized);
   progress_done();
