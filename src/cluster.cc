@@ -381,23 +381,23 @@ char * relabel_otu(int clusterno, char * sequence, int seqlen)
   if (opt_relabel)
     {
       int size = strlen(opt_relabel) + 21;
-      label = (char*) xmalloc(size);
+      label = (char *) xmalloc(size);
       snprintf(label, size, "%s%d", opt_relabel, clusterno + 1);
     }
   else if (opt_relabel_self)
     {
       int size = seqlen + 1;
-      label = (char*) xmalloc(size);
+      label = (char *) xmalloc(size);
       snprintf(label, size, "%.*s", seqlen, sequence);
     }
   else if (opt_relabel_sha1)
     {
-      label = (char*) xmalloc(LEN_HEX_DIG_SHA1);
+      label = (char *) xmalloc(LEN_HEX_DIG_SHA1);
       get_hex_seq_digest_sha1(label, sequence, seqlen);
     }
   else if (opt_relabel_md5)
     {
-      label = (char*) xmalloc(LEN_HEX_DIG_MD5);
+      label = (char *) xmalloc(LEN_HEX_DIG_MD5);
       get_hex_seq_digest_md5(label, sequence, seqlen);
     }
   return label;
@@ -612,12 +612,12 @@ void cluster_core_parallel()
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
-          cluster_query_init(si_minus+i);
+          cluster_query_init(si_minus + i);
           si_minus[i].strand = 1;
         }
     }
 
-  int * extra_list = (int*) xmalloc(max_queries*sizeof(int));
+  int * extra_list = (int *) xmalloc(max_queries * sizeof(int));
 
   LinearMemoryAligner lma;
   int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
@@ -1141,7 +1141,7 @@ void cluster_core_serial()
   progress_done();
 
   cluster_query_exit(si_p);
-  if (opt_strand>1)
+  if (opt_strand > 1)
     {
       cluster_query_exit(si_m);
     }
@@ -1456,7 +1456,7 @@ void cluster(char * dbname,
                                   db_getheader(seqno),
                                   db_getheaderlen(seqno),
                                   cluster_abundance[clusterno],
-                                  clusterno+1,
+                                  clusterno + 1,
                                   -1.0,
                                   -1,
                                   opt_clusterout_id ? clusterno : -1,
