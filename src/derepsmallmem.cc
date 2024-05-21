@@ -89,7 +89,7 @@ double find_median()
       below_count = 0;
       above_count = 0;
 
-      for(uint64_t i = 0; i < hashtablesize; i++)
+      for (uint64_t i = 0; i < hashtablesize; i++)
         {
           uint64_t v = hashtable[i].size;
           if (v > 0)
