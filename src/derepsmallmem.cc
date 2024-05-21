@@ -356,7 +356,7 @@ void derep_smallmem(char * input_filename)
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
-      while ((bp->size) && (hash != bp->hash))
+      while ((bp->size) and (hash != bp->hash))
         {
           j = next_bucket(j, hashtablesize);
           bp = hashtable + j;
