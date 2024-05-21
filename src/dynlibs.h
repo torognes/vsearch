@@ -84,5 +84,5 @@ extern void (*BZ2_bzReadClose_p)(int*, BZFILE*);
 extern int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 #endif
 
-void dynlibs_open();
-void dynlibs_close();
+auto dynlibs_open() -> void;
+auto dynlibs_close() -> void;
