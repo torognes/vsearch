@@ -377,44 +377,44 @@ void nw_align(char * dseq,
 
     int d = nw->dir[qlen * (j - 1) + (i - 1)];
 
-    alength++;
+    ++alength;
 
     if ((op == 'I') and (d & maskextleft))
     {
       score -= gapextend_q;
-      indels++;
-      j--;
+      ++indels;
+      --j;
       pushop('I', &cigarend, &op, &count);
     }
     else if ((op == 'D') and (d & maskextup))
     {
       score -= gapextend_t;
-      indels++;
-      i--;
+      ++indels;
+      --i;
       pushop('D', &cigarend, &op, &count);
     }
     else if (d & maskleft)
     {
       score -= gapextend_q;
-      indels++;
+      ++indels;
       if (op != 'I')
         {
           score -= gapopen_q;
-          gaps++;
+          ++gaps;
         }
-      j--;
+      --j;
       pushop('I', &cigarend, &op, &count);
     }
     else if (d & maskup)
     {
       score -= gapextend_t;
-      indels++;
+      ++indels;
       if (op != 'D')
         {
           score -= gapopen_t;
-          gaps++;
+          ++gaps;
         }
-      i--;
+      --i;
       pushop('D', &cigarend, &op, &count);
     }
     else
@@ -424,37 +424,37 @@ void nw_align(char * dseq,
         {
           matches++;
         }
-      i--;
-      j--;
+      --i;
+      --j;
       pushop('M', &cigarend, &op, &count);
     }
   }
 
   while(i > 0)
   {
-    alength++;
+    ++alength;
     score -= gapextend_t_left;
-    indels++;
+    ++indels;
     if (op != 'D')
       {
         score -= gapopen_t_left;
-        gaps++;
+        ++gaps;
       }
-    i--;
+    --i;
     pushop('D', &cigarend, &op, &count);
   }
 
   while(j > 0)
   {
-    alength++;
+    ++alength;
     score -= gapextend_q_left;
-    indels++;
+    ++indels;
     if (op != 'I')
       {
         score -= gapopen_q_left;
-        gaps++;
+        ++gaps;
       }
-    j--;
+    --j;
     pushop('I', &cigarend, &op, &count);
   }
 
