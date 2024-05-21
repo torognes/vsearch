@@ -105,7 +105,7 @@ int cut_one(fastx_handle h,
 
       if (match)
         {
-          matches++;
+          ++matches;
 
           frag_length = i + cut_fwd - frag_start;
 
@@ -386,11 +386,11 @@ void cut()
       matches += m;
       if (m > 0)
         {
-          cut++;
+          ++cut;
         }
       else
         {
-          uncut++;
+          ++uncut;
         }
 
       progress_update(fasta_get_position(h));
