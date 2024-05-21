@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 const int memalignment = 16;
 
 uint64_t arch_get_memused()
@@ -236,7 +237,7 @@ void * xrealloc(void *ptr, size_t size)
 #else
   void * t = realloc(ptr, size);
 #endif
-  if (!t)
+  if (! t)
     {
       fatal("Unable to reallocate enough memory.");
     }
