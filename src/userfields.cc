@@ -127,7 +127,7 @@ int parse_userfields_arg(char * arg)
     {
       if (*p++ == '+')
         {
-          userfields_requested_count++;
+          ++userfields_requested_count;
         }
     }
 
@@ -157,7 +157,7 @@ int parse_userfields_arg(char * arg)
             {
               break;
             }
-          u++;
+          ++u;
         }
 
       if (not *u)
@@ -175,6 +175,6 @@ int parse_userfields_arg(char * arg)
           return 1;
         }
 
-      p++;
+      ++p;
     }
 }
