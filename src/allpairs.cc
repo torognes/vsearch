@@ -347,16 +347,16 @@ void allpairs_thread_run(int64_t t)
   auto * pseqnos =
     (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
   CELL * pscores =
-    (CELL*) xmalloc(sizeof(CELL) * maxhits);
+    (CELL *) xmalloc(sizeof(CELL) * maxhits);
   auto * paligned =
-    (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
+    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   auto * pmatches =
-    (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
+    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   auto * pmismatches =
-    (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
+    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   auto * pgaps =
-    (unsigned short*) xmalloc(sizeof(unsigned short) * maxhits);
-  char** pcigar = (char**) xmalloc(sizeof(char*) * maxhits);
+    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
+  char** pcigar = (char **) xmalloc(sizeof(char *) * maxhits);
 
   auto * finalhits
     = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
@@ -525,7 +525,7 @@ void allpairs_thread_run(int64_t t)
           xpthread_mutex_unlock(&mutex_output);
 
           /* free memory for alignment strings */
-          for(int i=0; i < si->hit_count; i++)
+          for(int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
                 {
@@ -576,14 +576,14 @@ void allpairs_thread_worker_run()
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
-      xpthread_create(pthread+t, &attr,
-                      allpairs_thread_worker, (void*)(int64_t)t);
+      xpthread_create(pthread + t, &attr,
+                      allpairs_thread_worker, (void *) (int64_t) t);
     }
 
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for(int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -724,7 +724,7 @@ void allpairs_global(char * cmdline, char * progheader)
   allpairs_thread_worker_run();
   progress_done();
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "Matching query sequences: %d of %d",
               qmatches, queries);
