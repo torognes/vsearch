@@ -77,9 +77,9 @@ static unsigned int bitmap_mincount;
 void fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer)
 {
   uint64_t x = kmer;
-  for(unsigned int i=0; i<kk; i++)
+  for(unsigned int i = 0; i < kk; i++)
     {
-      fprintf(f, "%c", sym_nt_2bit[(x >> (2*(kk-i-1))) & 3]);
+      fprintf(f, "%c", sym_nt_2bit[(x >> (2 * (kk - i - 1))) & 3]);
     }
 }
 
