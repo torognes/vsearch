@@ -158,7 +158,7 @@ void allpairs_output_results(int hit_count,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only and (hp->id < top_hit_id))
             {
               break;
             }
@@ -700,7 +700,7 @@ void allpairs_global(char * cmdline, char * progheader)
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
     {
       hardmask_all();
     }
