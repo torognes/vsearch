@@ -75,8 +75,8 @@ void increment_counters_from_bitmap(count_t * counters,
     { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
       0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
 
-  unsigned short * p = (unsigned short *)(bitmap);
-  int16x8_t * q = (int16x8_t *)(counters);
+  unsigned short * p = (unsigned short *) (bitmap);
+  int16x8_t * q = (int16x8_t *) (counters);
   const auto r = (totalbits + 15) / 16;
 
   for(auto j = 0U; j < r; j++)
@@ -128,7 +128,7 @@ void increment_counters_from_bitmap(count_t * counters,
     { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-  unsigned short * p = (unsigned short *)(bitmap);
+  unsigned short * p = (unsigned short *) (bitmap);
   __vector signed short * q = (__vector signed short *) (counters);
   const auto r = (totalbits + 15) / 16;
 
@@ -195,13 +195,13 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
   const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto * p = (unsigned short *)(bitmap);
-  auto * q = (__m128i *)(counters);
+  auto * p = (unsigned short *) (bitmap);
+  auto * q = (__m128i *) (counters);
   const auto r = (totalbits + 15) / 16;
 
   for(auto j = 0U; j < r; j++)
     {
-      const auto xmm0 = _mm_loadu_si128((__m128i *)p++);
+      const auto xmm0 = _mm_loadu_si128((__m128i *) p++);
 #ifdef SSSE3
       const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
