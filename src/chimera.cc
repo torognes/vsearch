@@ -423,7 +423,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
               start = j;
               len = 0;
               while ((j < ci->query_len) &&
-                     (! position_used[j]) &&
+                     (not position_used[j]) &&
                      ((len == 0) || (ci->insert[i * ci->query_len + j] == 0)))
                 {
                   len++;
@@ -823,7 +823,7 @@ int eval_parents_long(struct chimera_info_s * ci)
 
       bool all_defined = qsym;
       for (int f = 0; f < ci->parents_found; f++)
-        if (! psym[f])
+        if (not psym[f])
           all_defined = false;
 
       if (all_defined)
@@ -1085,7 +1085,7 @@ int eval_parents(struct chimera_info_s * ci)
       unsigned int p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
 
       /* ignore gap positions and those next to the gap */
-      if ((! qsym) || (! p1sym) || (! p2sym))
+      if ((not qsym) || (not p1sym) || (not p2sym))
         {
           ci->ignore[i] = 1;
           if (i > 0)
@@ -1310,7 +1310,7 @@ int eval_parents(struct chimera_info_s * ci)
           ci->model[i] = m;
 
           char v = ' ';
-          if (! ci->ignore[i])
+          if (not ci->ignore[i])
             {
               char d = ci->diffs[i];
 
@@ -1504,7 +1504,7 @@ int eval_parents(struct chimera_info_s * ci)
                     }
                 }
 
-              if (! best_reverse)
+              if (not best_reverse)
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
@@ -1573,7 +1573,7 @@ int eval_parents(struct chimera_info_s * ci)
                               opt_xlength);
           fprintf(fp_uchimeout, "\t");
 
-          if(! opt_uchimeout5)
+          if(not opt_uchimeout5)
             {
               if (QA >= QB)
                 {
@@ -2236,7 +2236,7 @@ void open_chimera_file(FILE ** f, char * name)
   if (name)
     {
       *f = fopen_output(name);
-      if (! *f)
+      if (not *f)
         {
           fatal("Unable to open file %s for writing", name);
         }
@@ -2283,7 +2283,7 @@ void chimera()
       fatal("Only --strand plus is allowed with uchime_ref.");
     }
 
-  if (! opt_uchime_ref)
+  if (not opt_uchime_ref)
     {
       opt_self = 1;
       opt_selfid = 1;
@@ -2419,7 +2419,7 @@ void chimera()
 
   progress_done();
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (total_count > 0)
         {
