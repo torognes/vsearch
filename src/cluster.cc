@@ -253,7 +253,7 @@ void threads_wakeup(int queries)
       tip->query_count = (queries_rest + threads_rest - 1) / threads_rest;
       queries_rest -= tip->query_count;
       query_next += tip->query_count;
-      threads_rest--;
+      --threads_rest;
 
       xpthread_mutex_lock(&tip->mutex);
       tip->work = 1;
@@ -411,7 +411,7 @@ void cluster_core_results_hit(struct hit * best,
                               char * qsequence_rc,
                               int qsize)
 {
-  count_matched++;
+  ++count_matched;
 
   if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
     {
@@ -512,7 +512,7 @@ void cluster_core_results_nohit(int clusterno,
                                 char * qsequence_rc,
                                 int qsize)
 {
-  count_notmatched++;
+  ++count_notmatched;
 
   if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
     {
@@ -674,8 +674,8 @@ void cluster_core_parallel()
                   si_minus[i].strand = 1;
                 }
 
-              queries++;
-              seqno++;
+              ++queries;
+              ++seqno;
             }
         }
 
@@ -729,7 +729,7 @@ void cluster_core_parallel()
                                    (db_getsequencelen(si->hits[x - 1].target)
                                     > length))))
                             {
-                              x--;
+                              --x;
                             }
 
                           if (x < opt_maxaccepts + opt_maxrejects - 1)
@@ -765,7 +765,7 @@ void cluster_core_parallel()
                               hit->weak = false;
                               hit->nwalignment = nullptr;
 
-                              added++;
+                              ++added;
                             }
                         }
                     }
@@ -790,7 +790,7 @@ void cluster_core_parallel()
                       (si->accepts < opt_maxaccepts) and
                         (si->rejects < opt_maxrejects) and
                         (t < si->hit_count);
-                      t++)
+                      ++t)
                     {
                       struct hit * hit = si->hits + t;
 
@@ -990,7 +990,7 @@ void cluster_core_parallel()
                                          si_p->qsequence,
                                          nullptr,
                                          si_p->qsize);
-              clusters++;
+              ++clusters;
             }
 
           /* free alignments */
@@ -1117,7 +1117,7 @@ void cluster_core_serial()
                                      si_p->qsequence,
                                      nullptr,
                                      si_p->qsize);
-          clusters++;
+          ++clusters;
         }
 
       /* free alignments */
@@ -1393,7 +1393,7 @@ void cluster(char * dbname,
 
       if (abundance == 1)
         {
-          singletons++;
+          ++singletons;
         }
 
       int size = cluster_size[z];
@@ -1505,7 +1505,7 @@ void cluster(char * dbname,
 
       if (opt_clusters)
         {
-          ordinal++;
+          ++ordinal;
           fasta_print_db_relabel(fp_clusters, seqno, ordinal);
         }
 
