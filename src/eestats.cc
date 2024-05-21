@@ -119,7 +119,7 @@ int64_t ee_start(int pos, int resolution)
 
 void fastq_eestats()
 {
-  if (!opt_output)
+  if (not opt_output)
     fatal("Output file for fastq_eestats must be specified with --output");
 
   fastx_handle h = fastq_open(opt_fastq_eestats);
@@ -131,7 +131,7 @@ void fastq_eestats()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      if (not fp_output)
         {
           fatal("Unable to open output file for writing");
         }
