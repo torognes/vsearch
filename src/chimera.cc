@@ -2315,7 +2315,7 @@ void chimera()
     {
       /* check if the reference database may be an UDB file */
 
-      bool is_udb = udb_detect_isudb(opt_db);
+      auto const is_udb = udb_detect_isudb(opt_db);
 
       if (is_udb)
         {
