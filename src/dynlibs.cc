@@ -114,7 +114,7 @@ void dynlibs_open()
         arch_dlsym(gz_lib, "gzclose");
       gzread_p = (int (*)(gzFile, void*, unsigned))
         arch_dlsym(gz_lib, "gzread");
-      if (!(gzdopen_p && gzclose_p && gzread_p))
+      if (not (gzdopen_p && gzclose_p && gzread_p))
         {
           fatal("Invalid compression library (zlib)");
         }
@@ -135,7 +135,7 @@ void dynlibs_open()
         arch_dlsym(bz2_lib, "BZ2_bzReadClose");
       BZ2_bzRead_p = (int (*)(int*, BZFILE*, void*, int))
         arch_dlsym(bz2_lib, "BZ2_bzRead");
-      if (!(BZ2_bzReadOpen_p && BZ2_bzReadClose_p && BZ2_bzRead_p))
+      if (not (BZ2_bzReadOpen_p && BZ2_bzReadClose_p && BZ2_bzRead_p))
         {
           fatal("Invalid compression library (bz2)");
         }
