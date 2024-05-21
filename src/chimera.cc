@@ -424,7 +424,7 @@ int find_best_parents_long(struct chimera_info_s * ci)
               len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[j]) &&
-                     ((len == 0) || (ci->insert[i * ci->query_len + j] == 0)))
+                     ((len == 0) or (ci->insert[i * ci->query_len + j] == 0)))
                 {
                   len++;
                   j++;
@@ -1085,7 +1085,7 @@ int eval_parents(struct chimera_info_s * ci)
       unsigned int p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
 
       /* ignore gap positions and those next to the gap */
-      if ((not qsym) || (not p1sym) || (not p2sym))
+      if ((not qsym) or (not p1sym) or (not p2sym))
         {
           ci->ignore[i] = 1;
           if (i > 0)
@@ -1099,8 +1099,8 @@ int eval_parents(struct chimera_info_s * ci)
         }
 
       /* ignore ambiguous symbols */
-      if ((ambiguous_4bit[qsym]) ||
-          (ambiguous_4bit[p1sym]) ||
+      if ((ambiguous_4bit[qsym]) or
+          (ambiguous_4bit[p1sym]) or
           (ambiguous_4bit[p2sym]))
         {
           ci->ignore[i] = 1;
@@ -1314,7 +1314,7 @@ int eval_parents(struct chimera_info_s * ci)
             {
               char d = ci->diffs[i];
 
-              if ((d == 'A') || (d == 'B'))
+              if ((d == 'A') or (d == 'B'))
                 {
                   if (d == m)
                     {
@@ -1325,7 +1325,7 @@ int eval_parents(struct chimera_info_s * ci)
                       v = '!';
                     }
                 }
-              else if ((d == 'N') || (d == '?'))
+              else if ((d == 'N') or (d == '?'))
                 {
                   v = '0';
                 }
@@ -1343,7 +1343,7 @@ int eval_parents(struct chimera_info_s * ci)
 
       for(int i = best_i + 1; i < alnlen; i++)
         {
-          if ((ci->diffs[i] == ' ') || (ci->diffs[i] == 'A'))
+          if ((ci->diffs[i] == ' ') or (ci->diffs[i] == 'A'))
             {
               ci->model[i] = 'x';
             }
@@ -2379,14 +2379,14 @@ void chimera()
 
   if (opt_log)
     {
-      if (opt_uchime_ref || opt_uchime_denovo)
+      if (opt_uchime_ref or opt_uchime_denovo)
         {
           fprintf(fp_log, "%8.2f  minh\n", opt_minh);
         }
 
-      if (opt_uchime_ref ||
-          opt_uchime_denovo ||
-          opt_uchime2_denovo ||
+      if (opt_uchime_ref or
+          opt_uchime_denovo or
+          opt_uchime2_denovo or
           opt_uchime3_denovo)
         {
           fprintf(fp_log, "%8.2f  xn\n", opt_xn);
@@ -2394,16 +2394,16 @@ void chimera()
           fprintf(fp_log, "%8.2f  xa\n", 1.0);
         }
 
-      if (opt_uchime_ref || opt_uchime_denovo)
+      if (opt_uchime_ref or opt_uchime_denovo)
         {
           fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
         }
 
       fprintf(fp_log, "%8.2f  id\n", opt_id);
 
-      if (opt_uchime_ref ||
-          opt_uchime_denovo ||
-          opt_uchime2_denovo ||
+      if (opt_uchime_ref or
+          opt_uchime_denovo or
+          opt_uchime2_denovo or
           opt_uchime3_denovo)
         {
           fprintf(fp_log, "%8d  maxp\n", 2);
