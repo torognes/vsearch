@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 static bitmap_t * dbhash_bitmap;
 static uint64_t dbhash_size;
 static unsigned int dbhash_shift;
@@ -76,7 +77,7 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
       return 0;
     }
 
-  while ((n-- > 0) && (chrmap_4bit[(int)(*p)] == chrmap_4bit[(int)(*q)]))
+  while ((n-- > 0) && (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
     {
       if ((n == 0) || (*p == 0) || (*q == 0))
         {
@@ -86,7 +87,7 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
       q++;
     }
 
-  return chrmap_4bit[(int)(*p)] - chrmap_4bit[(int)(*q)];
+  return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
 }
 
 void dbhash_open(uint64_t maxelements)
@@ -203,7 +204,7 @@ void dbhash_add_one(uint64_t seqno)
 {
   char * seq = db_getsequence(seqno);
   uint64_t seqlen = db_getsequencelen(seqno);
-  char * normalized = (char*) xmalloc(seqlen+1);
+  char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
   dbhash_add(normalized, seqlen, seqno);
 }
@@ -211,7 +212,7 @@ void dbhash_add_one(uint64_t seqno)
 void dbhash_add_all()
 {
   progress_init("Hashing database sequences", db_getsequencecount());
-  char * normalized = (char*) xmalloc(db_getlongestsequence()+1);
+  char * normalized = (char *) xmalloc(db_getlongestsequence() + 1);
   for(uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
     {
       char * seq = db_getsequence(seqno);
