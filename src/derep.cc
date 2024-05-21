@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 #define HASH hash_cityhash64
 
 struct bucket
@@ -192,7 +193,7 @@ int seqcmp(char * a, char * b, int n)
       return 0;
     }
 
-  while ((n-- > 0) && (chrmap_4bit[(int)(*p)] == chrmap_4bit[(int)(*q)]))
+  while ((n-- > 0) && (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
     {
       if ((n == 0) || (*p == 0) || (*q == 0))
         {
@@ -202,10 +203,10 @@ int seqcmp(char * a, char * b, int n)
       q++;
     }
 
-  return chrmap_4bit[(int)(*p)] - chrmap_4bit[(int)(*q)];
+  return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
 }
 
-void rehash(struct bucket * * hashtableref, int64_t alloc_clusters)
+void rehash(struct bucket ** hashtableref, int64_t alloc_clusters)
 {
   /*
     double the size of the hash table:
@@ -255,7 +256,7 @@ inline double convert_q_to_p(int q)
     }
   else
     {
-      return exp10(-x/10.0);
+      return exp10(-x / 10.0);
     }
 }
 
@@ -281,7 +282,7 @@ void derep(char * input_filename, bool use_header)
 
   fastx_handle h = fastx_open(input_filename);
 
-  if (!h)
+  if (! h)
     {
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
     }
@@ -290,7 +291,7 @@ void derep(char * input_filename, bool use_header)
     {
       if (fastx_is_fastq(h))
         {
-          if (!opt_fastx_uniques)
+          if (! opt_fastx_uniques)
             fatal("FASTQ input is only allowed with the fastx_uniques command");
         }
       else
@@ -309,12 +310,12 @@ void derep(char * input_filename, bool use_header)
 
   if (opt_fastx_uniques)
     {
-      if ((!opt_uc) && (!opt_fastaout) && (!opt_fastqout) && (!opt_tabbedout))
+      if ((! opt_uc) && (! opt_fastaout) && (! opt_fastqout) && (! opt_tabbedout))
         fatal("Output file for dereplication with fastx_uniques must be specified with --fastaout, --fastqout, --tabbedout, or --uc");
     }
   else
     {
-      if ((!opt_output) && (!opt_uc))
+      if ((! opt_output) && (! opt_uc))
         fatal("Output file for dereplication must be specified with --output or --uc");
     }
 
@@ -323,7 +324,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_fastaout)
         {
           fp_fastaout = fopen_output(opt_fastaout);
-          if (!fp_fastaout)
+          if (! fp_fastaout)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -332,7 +333,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_fastqout)
         {
           fp_fastqout = fopen_output(opt_fastqout);
-          if (!fp_fastqout)
+          if (! fp_fastqout)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
@@ -341,7 +342,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_tabbedout)
         {
           fp_tabbedout = fopen_output(opt_tabbedout);
-          if (!fp_tabbedout)
+          if (! fp_tabbedout)
             {
               fatal("Unable to open tab delimited output file for writing");
             }
@@ -352,7 +353,7 @@ void derep(char * input_filename, bool use_header)
       if (opt_output)
         {
           fp_fastaout = fopen_output(opt_output);
-          if (!fp_fastaout)
+          if (! fp_fastaout)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -362,7 +363,7 @@ void derep(char * input_filename, bool use_header)
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (!fp_uc)
+      if (! fp_uc)
         {
           fatal("Unable to open output (uc) file for writing");
         }
@@ -387,7 +388,7 @@ void derep(char * input_filename, bool use_header)
   show_rusage();
 
   unsigned int * nextseqtab = nullptr;
-  const auto terminal = (unsigned int)(-1);
+  const auto terminal = (unsigned int) (-1);
   char ** headertab = nullptr;
   char * match_strand = nullptr;
 
@@ -469,8 +470,8 @@ void derep(char * input_filename, bool use_header)
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up = (char*) xrealloc(seq_up, alloc_seqlen + 1);
-          rc_seq_up = (char*) xrealloc(rc_seq_up, alloc_seqlen + 1);
+          seq_up = (char *) xrealloc(seq_up, alloc_seqlen + 1);
+          rc_seq_up = (char *) xrealloc(rc_seq_up, alloc_seqlen + 1);
 
           show_rusage();
         }
@@ -480,15 +481,15 @@ void derep(char * input_filename, bool use_header)
           uint64_t new_alloc_seqs = 2 * alloc_seqs;
 
           nextseqtab =
-            (unsigned int*) xrealloc(nextseqtab,
-                                     sizeof(unsigned int) * new_alloc_seqs);
+            (unsigned int *) xrealloc(nextseqtab,
+                                      sizeof(unsigned int) * new_alloc_seqs);
           memset(nextseqtab + alloc_seqs,
                  terminal,
                  sizeof(unsigned int) * alloc_seqs);
 
-          headertab = (char**) xrealloc(headertab,
-                                        sizeof(char*) * new_alloc_seqs);
-          memset(headertab + alloc_seqs, 0, sizeof(char*) * alloc_seqs);
+          headertab = (char **) xrealloc(headertab,
+                                         sizeof(char*) * new_alloc_seqs);
+          memset(headertab + alloc_seqs, 0, sizeof(char *) * alloc_seqs);
 
           match_strand = (char *) xrealloc(match_strand, new_alloc_seqs);
           memset(match_strand + alloc_seqs, 0, alloc_seqs);
@@ -553,11 +554,11 @@ void derep(char * input_filename, bool use_header)
               (seqcmp(seq_up, bp->seq, seqlen)) ||
               (use_header && strcmp(header, bp->header))))
         {
-          j = (j+1) & hash_mask;
+          j = (j + 1) & hash_mask;
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) && !bp->size)
+      if ((opt_strand > 1) && ! bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -572,7 +573,7 @@ void derep(char * input_filename, bool use_header)
                   (seqcmp(rc_seq_up, rc_bp->seq, seqlen)) ||
                   (use_header && strcmp(header, bp->header))))
             {
-              k = (k+1) & hash_mask;
+              k = (k + 1) & hash_mask;
               rc_bp = hashtable + k;
             }
 
@@ -696,7 +697,7 @@ void derep(char * input_filename, bool use_header)
 
   show_rusage();
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       if (sequencecount > 0)
         {
@@ -791,12 +792,12 @@ void derep(char * input_filename, bool use_header)
     {
       if (clusters % 2)
         {
-          median = hashtable[(clusters-1)/2].size;
+          median = hashtable[(clusters - 1) / 2].size;
         }
       else
         {
-          median = (hashtable[(clusters/2)-1].size +
-                    hashtable[clusters/2].size) / 2.0;
+          median = (hashtable[(clusters / 2) - 1].size +
+                    hashtable[clusters / 2].size) / 2.0;
         }
     }
 
@@ -804,7 +805,7 @@ void derep(char * input_filename, bool use_header)
 
   if (clusters < 1)
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
@@ -817,7 +818,7 @@ void derep(char * input_filename, bool use_header)
     }
   else
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -838,7 +839,7 @@ void derep(char * input_filename, bool use_header)
   /* count selected */
 
   uint64_t selected = 0;
-  for (uint64_t i=0; i<clusters; i++)
+  for (uint64_t i = 0; i < clusters; i++)
     {
       struct bucket * bp = hashtable + i;
       int64_t size = bp->size;
@@ -861,7 +862,7 @@ void derep(char * input_filename, bool use_header)
       progress_init("Writing FASTA output file", clusters);
 
       int64_t relabel_count = 0;
-      for (uint64_t i=0; i<clusters; i++)
+      for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
@@ -895,7 +896,7 @@ void derep(char * input_filename, bool use_header)
       progress_init("Writing FASTQ output file", clusters);
 
       int64_t relabel_count = 0;
-      for (uint64_t i=0; i<clusters; i++)
+      for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
@@ -928,7 +929,7 @@ void derep(char * input_filename, bool use_header)
   if (opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
-      for (uint64_t i=0; i<clusters; i++)
+      for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
@@ -953,7 +954,7 @@ void derep(char * input_filename, bool use_header)
       progress_done();
 
       progress_init("Writing uc file, second part", clusters);
-      for (uint64_t i=0; i<clusters; i++)
+      for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
@@ -967,7 +968,7 @@ void derep(char * input_filename, bool use_header)
   if (opt_tabbedout)
     {
       progress_init("Writing tab separated file", clusters);
-      for (uint64_t i=0; i<clusters; i++)
+      for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
@@ -1008,7 +1009,7 @@ void derep(char * input_filename, bool use_header)
 
   if (selected < clusters)
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %"
@@ -1031,7 +1032,7 @@ void derep(char * input_filename, bool use_header)
 
   /* Free all seqs and headers */
 
-  for (uint64_t i=0; i<clusters; i++)
+  for (uint64_t i = 0; i < clusters; i++)
     {
       struct bucket * bp = hashtable + i;
       if (bp->size)
@@ -1045,7 +1046,7 @@ void derep(char * input_filename, bool use_header)
 
   if (opt_uc)
     {
-      for (uint64_t i=0; i<alloc_seqs; i++)
+      for (uint64_t i = 0; i < alloc_seqs; i++)
         {
           if (headertab[i])
             {
@@ -1077,7 +1078,7 @@ void derep_prefix()
   if (opt_output)
     {
       fp_output = fopen_output(opt_output);
-      if (!fp_output)
+      if (! fp_output)
         {
           fatal("Unable to open output file for writing");
         }
@@ -1086,7 +1087,7 @@ void derep_prefix()
   if (opt_uc)
     {
       fp_uc = fopen_output(opt_uc);
-      if (!fp_uc)
+      if (! fp_uc)
         {
           fatal("Unable to open output (uc) file for writing");
         }
@@ -1123,11 +1124,11 @@ void derep_prefix()
   /* alloc and init table of links to other sequences in cluster */
 
   auto * nextseqtab
-    = (unsigned int*) xmalloc(sizeof(unsigned int) * dbsequencecount);
-  const auto terminal = (unsigned int)(-1);
+    = (unsigned int *) xmalloc(sizeof(unsigned int) * dbsequencecount);
+  const auto terminal = (unsigned int) (-1);
   memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
 
-  char * seq_up = (char*) xmalloc(db_getlongestsequence() + 1);
+  char * seq_up = (char *) xmalloc(db_getlongestsequence() + 1);
 
   /* make table of hash values of prefixes */
 
@@ -1137,7 +1138,7 @@ void derep_prefix()
     xmalloc(sizeof(uint64_t) * (len_longest+1));
 
   progress_init("Dereplicating", dbsequencecount);
-  for(int64_t i=0; i<dbsequencecount; i++)
+  for(int64_t i = 0; i < dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -1301,12 +1302,12 @@ void derep_prefix()
     {
       if (clusters % 2)
         {
-          median = hashtable[(clusters-1)/2].size;
+          median = hashtable[(clusters - 1) / 2].size;
         }
       else
         {
-          median = (hashtable[(clusters/2)-1].size +
-                    hashtable[clusters/2].size) / 2.0;
+          median = (hashtable[(clusters / 2) - 1].size +
+                    hashtable[clusters / 2].size) / 2.0;
         }
     }
 
@@ -1314,7 +1315,7 @@ void derep_prefix()
 
   if (clusters < 1)
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
@@ -1327,7 +1328,7 @@ void derep_prefix()
     }
   else
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -1350,7 +1351,7 @@ void derep_prefix()
   /* count selected */
 
   int64_t selected = 0;
-  for (int64_t i=0; i<clusters; i++)
+  for (int64_t i = 0; i < clusters; i++)
     {
       struct bucket * bp = hashtable + i;
       int64_t size = bp->size;
@@ -1372,7 +1373,7 @@ void derep_prefix()
       progress_init("Writing output file", clusters);
 
       int64_t relabel_count = 0;
-      for (int64_t i=0; i<clusters; i++)
+      for (int64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           int64_t size = bp->size;
@@ -1406,7 +1407,7 @@ void derep_prefix()
   if (opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
-      for (int64_t i=0; i<clusters; i++)
+      for (int64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           char * h =  db_getheader(bp->seqno_first);
@@ -1430,7 +1431,7 @@ void derep_prefix()
       show_rusage();
 
       progress_init("Writing uc file, second part", clusters);
-      for (int64_t i=0; i<clusters; i++)
+      for (int64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
@@ -1444,7 +1445,7 @@ void derep_prefix()
 
   if (selected < clusters)
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %" PRId64
