@@ -203,7 +203,7 @@ void db_read(const char * filename, int upcase)
 {
   h = fastx_open(filename);
 
-  if (! h)
+  if (not h)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
@@ -240,7 +240,7 @@ void db_read(const char * filename, int upcase)
   seqindex = nullptr;
 
   while(fastx_next(h,
-                   ! opt_notrunclabels,
+                   not opt_notrunclabels,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {
       size_t sequencelength = fastx_get_sequence_length(h);
@@ -275,7 +275,7 @@ void db_read(const char * filename, int upcase)
   xfree(prompt);
   fastx_close(h);
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (sequences > 0)
         {
