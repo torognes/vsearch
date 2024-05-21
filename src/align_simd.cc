@@ -1247,7 +1247,7 @@ void search16(s16info_s * s,
           if (length > 0)
             {
               int ret = xsprintf(&cigar, "%ldI", length);
-              if ((ret < 2) or ! cigar)
+              if ((ret < 2) or not cigar)
                 {
                   fatal("Unable to allocate enough memory.");
                 }
@@ -1514,7 +1514,7 @@ void search16(s16info_s * s,
           v_store(& h_max_vector, h_max);
           for(int c = 0; c < CHANNELS; c++)
             {
-              if (! overflow[c])
+              if (not overflow[c])
                 {
                   signed short h_min_c = ((signed short *) (& h_min_vector))[c];
                   signed short h_max_c = ((signed short *) (& h_max_vector))[c];
@@ -1768,7 +1768,7 @@ void search16(s16info_s * s,
           v_store(& h_max_vector, h_max);
           for(int c = 0; c < CHANNELS; c++)
             {
-              if (! overflow[c])
+              if (not overflow[c])
                 {
                   signed short h_min_c = ((signed short *) (& h_min_vector))[c];
                   signed short h_max_c = ((signed short *) (& h_max_vector))[c];
