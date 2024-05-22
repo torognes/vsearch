@@ -84,7 +84,7 @@ auto rereplicate() -> void
     }
 
   fastx_handle file_handle = fasta_open(opt_rereplicate);
-  int64_t const filesize = fasta_get_size(file_handle);
+  auto const filesize = static_cast<int64_t>(fasta_get_size(file_handle));
 
   progress_init("Rereplicating", filesize);
 
