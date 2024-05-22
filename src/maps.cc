@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 /*
   legal symbols: *abcdefghiklmnpqrstuvxyz (all except j and o), also upper case
   fatal symbols: .-
