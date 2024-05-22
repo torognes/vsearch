@@ -60,6 +60,7 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // std::FILE, std::fprintf
 
 
 auto rereplicate() -> void
@@ -69,7 +70,7 @@ auto rereplicate() -> void
 
   opt_xsize = true;
 
-  FILE * fp_output = nullptr;
+  std::FILE * fp_output = nullptr;
 
   if (opt_output)
     {
