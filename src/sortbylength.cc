@@ -127,7 +127,7 @@ auto sortbylength() -> void
   }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (not fp_output)
+  if (fp_output == nullptr)
     {
       fatal("Unable to open sortbylength output file for writing");
     }
