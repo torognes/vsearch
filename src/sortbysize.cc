@@ -69,8 +69,8 @@
 
 struct sortinfo_size_s
 {
-  unsigned int size;
-  unsigned int seqno;
+  unsigned int size = 0;
+  unsigned int seqno = 0;
 };
 
 
