@@ -106,7 +106,7 @@ auto rereplicate() -> void
       for(int64_t j = 0; j < abundance; j++)
         {
           ++n_output;
-          if (opt_output)
+          if (opt_output != nullptr)
             {
               fasta_print_general(fp_output,
                                   nullptr,
