@@ -70,7 +70,7 @@
 // - deck.resize(new_size)
 // - range for-loop
 
-void shuffle()
+auto shuffle() -> void
 {
   if (not opt_output)
     fatal("Output file for shuffling must be specified with --output");
