@@ -178,7 +178,7 @@ auto sortbylength() -> void
       fprintf(stderr, "Median length: %.0f\n", median);
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Median length: %.0f\n", median);
     }
