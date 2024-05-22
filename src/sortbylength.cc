@@ -122,8 +122,9 @@ int sortbylength_compare(const void * a, const void * b)
 
 auto sortbylength() -> void
 {
-  if (not opt_output)
+  if (not opt_output) {
     fatal("FASTA output file for sortbylength must be specified with --output");
+  }
 
   std::FILE * fp_output = fopen_output(opt_output);
   if (not fp_output)
