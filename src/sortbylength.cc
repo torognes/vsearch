@@ -203,5 +203,5 @@ auto sortbylength() -> void
   show_rusage();
 
   db_free();
-  fclose(fp_output);
+  static_cast<void>(fclose(fp_output));
 }
