@@ -196,7 +196,6 @@ auto sortbysize() -> void
     return false;
   };
 
-
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Sorting", one_hundred_percent);
   std::sort(sortinfo_v.begin(), sortinfo_v.end(), compare_sequences);
