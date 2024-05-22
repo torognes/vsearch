@@ -90,11 +90,10 @@ auto shuffle() -> void
 
   int dbsequencecount = db_getsequencecount();
   std::vector<int> deck_v(dbsequencecount);
-  auto * deck = deck_v.data();
 
   for(int i = 0; i < dbsequencecount; i++)
     {
-      deck[i] = i;
+      deck_v[i] = i;
     }
 
   int passed = 0;
@@ -105,9 +104,9 @@ auto shuffle() -> void
       int j = random_int(i + 1);
 
       /* exchange elements i and j */
-      int t = deck[i];
-      deck[i] = deck[j];
-      deck[j] = t;
+      int t = deck_v[i];
+      deck_v[i] = deck_v[j];
+      deck_v[j] = t;
 
       ++passed;
       progress_update(passed);
@@ -120,7 +119,7 @@ auto shuffle() -> void
   progress_init("Writing output", passed);
   for(int i = 0; i < passed; i++)
     {
-      fasta_print_db_relabel(fp_output, deck[i], i + 1);
+      fasta_print_db_relabel(fp_output, deck_v[i], i + 1);
       progress_update(i);
     }
   progress_done();
