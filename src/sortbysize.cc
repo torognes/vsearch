@@ -159,7 +159,6 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
 
 auto sortbysize() -> void
 {
-  static constexpr auto one_hundred_percent = 100ULL;
   if (opt_output == nullptr) {
     fatal("FASTA output file for sortbysize must be specified with --output");
   }
@@ -204,6 +203,7 @@ auto sortbysize() -> void
   sortinfo_v.resize(passed);
   sortinfo_v.shrink_to_fit();
   auto * sortinfo = sortinfo_v.data();
+  static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Sorting", one_hundred_percent);
   qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
   progress_done();
