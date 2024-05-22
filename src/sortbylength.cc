@@ -119,6 +119,7 @@ int sortbylength_compare(const void * a, const void * b)
       }
 }
 
+
 auto sortbylength() -> void
 {
   if (not opt_output)
