@@ -139,16 +139,15 @@ auto sortbylength() -> void
 
   const int dbsequencecount = db_getsequencecount();
   std::vector<struct sortinfo_length_s> sortinfo_v(dbsequencecount);
-  auto * sortinfo = sortinfo_v.data();
 
   int passed = 0;
 
   progress_init("Getting lengths", dbsequencecount);
   for(int i = 0; i < dbsequencecount; i++)
     {
-      sortinfo[passed].seqno = i;
-      sortinfo[passed].length = db_getsequencelen(i);
-      sortinfo[passed].size = db_getabundance(i);
+      sortinfo_v[passed].seqno = i;
+      sortinfo_v[passed].length = db_getsequencelen(i);
+      sortinfo_v[passed].size = db_getabundance(i);
       passed++;
       progress_update(i);
     }
@@ -156,7 +155,7 @@ auto sortbylength() -> void
   show_rusage();
 
   progress_init("Sorting", 100);
-  qsort(sortinfo, passed, sizeof(sortinfo_length_s), sortbylength_compare);
+  qsort(sortinfo_v.data(), passed, sizeof(sortinfo_length_s), sortbylength_compare);
   progress_done();
 
   // refactoring: make function (see sortbysize.cc)
@@ -165,12 +164,12 @@ auto sortbylength() -> void
     {
       if (passed % 2)
         {
-          median = sortinfo[(passed - 1) / 2].length;
+          median = sortinfo_v[(passed - 1) / 2].length;
         }
       else
         {
-          median = (sortinfo[(passed / 2) - 1].length +
-                    sortinfo[passed / 2].length) / 2.0;
+          median = (sortinfo_v[(passed / 2) - 1].length +
+                    sortinfo_v[passed / 2].length) / 2.0;
         }
     }
 
