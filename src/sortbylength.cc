@@ -61,14 +61,15 @@
 #include "vsearch.h"
 // #include <algorithm>  // std::min
 #include <cstdio>  // FILE
+#include <vector>
 
 
-static struct sortinfo_length_s
+struct sortinfo_length_s
 {
   unsigned int length;
   unsigned int size;
   unsigned int seqno;
-} * sortinfo;
+};
 
 int sortbylength_compare(const void * a, const void * b)
 {
@@ -137,8 +138,8 @@ auto sortbylength() -> void
   show_rusage();
 
   const int dbsequencecount = db_getsequencecount();
-  sortinfo = (struct sortinfo_length_s *)
-    xmalloc(dbsequencecount * sizeof(sortinfo_length_s));
+  std::vector<struct sortinfo_length_s> sortinfo_v(dbsequencecount);
+  auto * sortinfo = sortinfo_v.data();
 
   int passed = 0;
 
@@ -197,7 +198,6 @@ auto sortbylength() -> void
   progress_done();
   show_rusage();
 
-  xfree(sortinfo);
   db_free();
   fclose(fp_output);
 }
