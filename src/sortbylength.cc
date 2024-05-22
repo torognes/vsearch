@@ -121,6 +121,33 @@ int sortbylength_compare(const void * a, const void * b)
 }
 
 
+[[nodiscard]]
+auto find_median_length(std::vector<sortinfo_length_s> const & sortinfo_v) -> double
+{
+  // function returns a round value or a value with a remainder of 0.5
+  static constexpr double half = 0.5;
+
+  if (sortinfo_v.empty()) {
+    return 0.0;
+  }
+
+  // refactoring C++11: use const& std::vector.size()
+  auto const midarray = std::ldiv(static_cast<long>(sortinfo_v.size()), 2L);
+
+  // odd number of valid amplicons
+  if (sortinfo_v.size() % 2 != 0)  {
+    return sortinfo_v[midarray.quot].length * 1.0;  // a round value
+  }
+
+  // even number of valid amplicons
+  // (average of two ints is either round or has a remainder of .5)
+  // avoid risk of silent overflow for large abundance values:
+  // a >= b ; (a + b) / 2 == b + (a - b) / 2
+  return sortinfo_v[midarray.quot].length +
+    ((sortinfo_v[midarray.quot - 1].length - sortinfo_v[midarray.quot].length) * half);
+}
+
+
 auto sortbylength() -> void
 {
   if (opt_output == nullptr) {
@@ -158,20 +185,7 @@ auto sortbylength() -> void
   qsort(sortinfo_v.data(), passed, sizeof(sortinfo_length_s), sortbylength_compare);
   progress_done();
 
-  // refactoring: make function (see sortbysize.cc)
-  double median = 0.0;
-  if (passed > 0)
-    {
-      if (passed % 2)
-        {
-          median = sortinfo_v[(passed - 1) / 2].length;
-        }
-      else
-        {
-          median = (sortinfo_v[(passed / 2) - 1].length +
-                    sortinfo_v[passed / 2].length) / 2.0;
-        }
-    }
+  const double median = find_median_length(sortinfo_v);
 
   if (not opt_quiet)
     {
