@@ -73,6 +73,11 @@
 // - deck.resize(new_size)
 // - range for-loop
 
+// std::random_device r;
+// std::seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
+// std::mt19937 eng(seed);
+// std::shuffle(std::begin(answerPositionArray), std::end(answerPositionArray), eng);
+
 auto shuffle() -> void
 {
   if (opt_output == nullptr) {
