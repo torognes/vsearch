@@ -92,7 +92,7 @@ auto rereplicate() -> void
   int64_t n_entries = 0;
   int64_t missing = 0;
   int64_t n_output = 0;
-  auto const truncateatspace = opt_notrunclabels == 0 ? true : false;
+  auto const truncateatspace = (opt_notrunclabels == 0);
   while (fasta_next(file_handle, truncateatspace, chrmap_no_change_array.data()))
     {
       ++n_entries;
