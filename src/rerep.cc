@@ -86,13 +86,13 @@ auto rereplicate() -> void
 
   progress_init("Rereplicating", filesize);
 
-  int64_t n_entries = 0;
+  int64_t n_amplicons = 0;
   int64_t missing = 0;
-  int64_t n_output = 0;
+  int64_t n_reads = 0;
   auto const truncateatspace = (opt_notrunclabels == 0);
   while (fasta_next(file_handle, truncateatspace, chrmap_no_change_array.data()))
     {
-      ++n_entries;
+      ++n_amplicons;
       int64_t abundance = fasta_get_abundance_and_presence(file_handle);
       if (abundance == 0)
         {
@@ -102,7 +102,7 @@ auto rereplicate() -> void
 
       for(int64_t i = 0; i < abundance; i++)
         {
-          ++n_output;
+          ++n_reads;
           if (opt_output != nullptr)
             {
               fasta_print_general(fp_output,
@@ -112,7 +112,7 @@ auto rereplicate() -> void
                                   fasta_get_header(file_handle),
                                   static_cast<int>(fasta_get_header_length(file_handle)),
                                   1,
-                                  static_cast<int>(n_output),
+                                  static_cast<int>(n_reads),
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
             }
@@ -128,7 +128,7 @@ auto rereplicate() -> void
         {
           fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_output, n_entries);
+      fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
   if (opt_log != nullptr)
@@ -137,7 +137,7 @@ auto rereplicate() -> void
         {
           fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_output, n_entries);
+      fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
   fasta_close(file_handle);
