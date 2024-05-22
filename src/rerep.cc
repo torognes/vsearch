@@ -61,6 +61,7 @@
 
 #include "vsearch.h"
 
+
 auto rereplicate() -> void
 {
   if (not opt_output)
