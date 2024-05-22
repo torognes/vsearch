@@ -113,7 +113,7 @@ auto rereplicate() -> void
                                   fasta_get_sequence(file_handle),
                                   static_cast<int>(fasta_get_sequence_length(file_handle)),
                                   fasta_get_header(file_handle),
-                                  fasta_get_header_length(file_handle),
+                                  static_cast<int>(fasta_get_header_length(file_handle)),
                                   1,
                                   n_output,
                                   -1.0,
