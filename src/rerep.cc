@@ -75,16 +75,11 @@ auto rereplicate() -> void
 
   opt_xsize = true;
 
-  std::FILE * fp_output = nullptr;
-
-  if (opt_output != nullptr)
-    {
-      fp_output = fopen_output(opt_output);
-      if (fp_output == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
+  auto * fp_output = fopen_output(opt_output);
+  if (fp_output == nullptr) {
+    fatal("Unable to open FASTA output file for writing");
+    return;
+  }
 
   fastx_handle file_handle = fasta_open(opt_rereplicate);
   auto const filesize = static_cast<int64_t>(fasta_get_size(file_handle));
