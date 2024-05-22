@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-// #include <algorithm>  // std::min
+#include <algorithm>  // std::sort, std::min
 // #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib> // std::ldiv
@@ -72,56 +72,6 @@ struct sortinfo_length_s
   unsigned int size;
   unsigned int seqno;
 };
-
-
-int sortbylength_compare(const void * a, const void * b)
-{
-  auto * x = (struct sortinfo_length_s *) a;
-  auto * y = (struct sortinfo_length_s *) b;
-
-  /* longest first, then most abundant, then by label, otherwise keep order */
-
-  if (x->length < y->length)
-    {
-      return +1;
-    }
-  else if (x->length > y->length)
-    {
-      return -1;
-    }
-  else
-    if (x->size < y->size)
-      {
-        return +1;
-      }
-    else if (x->size > y->size)
-      {
-        return -1;
-      }
-    else
-      {
-        int r = strcmp(db_getheader(x->seqno), db_getheader(y->seqno));
-        if (r != 0)
-          {
-            return r;
-          }
-        else
-          {
-            if (x->seqno < y->seqno)
-              {
-                return -1;
-              }
-            else if (x->seqno > y->seqno)
-              {
-                return +1;
-              }
-            else
-              {
-                return 0;
-              }
-          }
-      }
-}
 
 
 [[nodiscard]]
@@ -184,9 +134,41 @@ auto sortbylength() -> void
   progress_done();
   show_rusage();
 
+  /* sort */
+  auto compare_sequences = [](struct sortinfo_length_s const &lhs,
+                              struct sortinfo_length_s const &rhs) -> bool {
+    // longest first...
+    if (lhs.length < rhs.length) {
+      return false;
+    }
+    if (lhs.length > rhs.length) {
+      return true;
+    }
+    // ... then ties are sorted by decreasing abundance values...
+    if (lhs.size < rhs.size) {
+      return false;
+    }
+    if (lhs.size > rhs.size) {
+      return true;
+    }
+    // ...then ties are sorted by sequence labels (alpha-numerical ordering)...
+    auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
+    if (result > 0) {
+      return false;
+    }
+    if (result < 0) {
+      return true;
+    }
+    // ... then ties are sorted by input order (seqno)
+    if (lhs.seqno < rhs.seqno) {
+      return true;
+    }
+    return false;
+  };
+
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Sorting", one_hundred_percent);
-  qsort(sortinfo_v.data(), passed, sizeof(sortinfo_length_s), sortbylength_compare);
+  std::sort(sortinfo_v.begin(), sortinfo_v.end(), compare_sequences);
   progress_done();
 
   const double median = find_median_length(sortinfo_v);
