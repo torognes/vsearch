@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include <algorithm>  // std::min
+#include <algorithm>  // std::min, std::sort
 #include <cstdlib>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -72,38 +72,6 @@ struct sortinfo_size_s
   unsigned int size;
   unsigned int seqno;
 };
-
-
-auto sortbysize_compare(const void * lhs_a, const void * rhs_b) -> int
-{
-  auto * lhs = (struct sortinfo_size_s *) lhs_a;
-  auto * rhs = (struct sortinfo_size_s *) rhs_b;
-
-  /* highest abundance first, then by label, otherwise keep order */
-
-  if (lhs->size < rhs->size)
-    {
-      return +1;
-    }
-  if (lhs->size > rhs->size)
-    {
-      return -1;
-    }
-  const int result = std::strcmp(db_getheader(lhs->seqno), db_getheader(rhs->seqno));
-  if (result != 0)
-    {
-      return result;
-    }
-  if (lhs->seqno < rhs->seqno)
-    {
-      return -1;
-    }
-  if (lhs->seqno > rhs->seqno)
-    {
-      return +1;
-    }
-  return 0;  // unreachable? two entries cannot have the same ordinal
-}
 
 
 [[nodiscard]]
@@ -202,10 +170,36 @@ auto sortbysize() -> void
 
   sortinfo_v.resize(passed);
   sortinfo_v.shrink_to_fit();
-  auto * sortinfo = sortinfo_v.data();
+
+  /* sort */
+  auto compare_sequences = [](struct sortinfo_size_s const& lhs,
+                              struct sortinfo_size_s const& rhs) -> bool {
+    // highest abundance first...
+    if (lhs.size < rhs.size) {
+      return false;
+    }
+    if (lhs.size > rhs.size) {
+      return true;
+    }
+    // ...then ties are sorted by sequence labels (alpha-numerical ordering)...
+    auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
+    if (result > 0) {
+      return false;
+    }
+    if (result < 0) {
+      return true;
+    }
+    // ... then ties are sorted by input order (seqno)
+    if (lhs.seqno < rhs.seqno) {
+      return true;
+    }
+    return false;
+  };
+
+
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Sorting", one_hundred_percent);
-  qsort(sortinfo, passed, sizeof(sortinfo_size_s), sortbysize_compare);
+  std::sort(sortinfo_v.begin(), sortinfo_v.end(), compare_sequences);
   progress_done();
 
   const double median = find_median_abundance(sortinfo_v);
