@@ -61,6 +61,7 @@
 #include "vsearch.h"
 // #include <algorithm>  // std::min
 #include <cstdio>  // FILE
+#include <cstdlib> // std::ldiv
 #include <vector>
 
 
