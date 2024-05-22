@@ -88,12 +88,12 @@ auto rereplicate() -> void
 
   progress_init("Rereplicating", filesize);
 
+  int64_t n_entries = 0;
   int64_t missing = 0;
-  int64_t i = 0;
-  int64_t n = 0;
+  int64_t n_output = 0;
   while (fasta_next(file_handle, not opt_notrunclabels, chrmap_no_change))
     {
-      ++n;
+      ++n_entries;
       int64_t abundance = fasta_get_abundance_and_presence(file_handle);
       if (abundance == 0)
         {
@@ -103,7 +103,7 @@ auto rereplicate() -> void
 
       for(int64_t j = 0; j < abundance; j++)
         {
-          ++i;
+          ++n_output;
           if (opt_output)
             {
               fasta_print_general(fp_output,
@@ -113,7 +113,7 @@ auto rereplicate() -> void
                                   fasta_get_header(file_handle),
                                   fasta_get_header_length(file_handle),
                                   1,
-                                  i,
+                                  n_output,
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
             }
@@ -129,7 +129,7 @@ auto rereplicate() -> void
         {
           fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
+      fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_output, n_entries);
     }
 
   if (opt_log)
@@ -138,7 +138,7 @@ auto rereplicate() -> void
         {
           fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
+      fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_output, n_entries);
     }
 
   fasta_close(file_handle);
