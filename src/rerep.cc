@@ -82,18 +82,18 @@ auto rereplicate() -> void
         }
     }
 
-  fastx_handle fh = fasta_open(opt_rereplicate);
-  int64_t filesize = fasta_get_size(fh);
+  fastx_handle file_handle = fasta_open(opt_rereplicate);
+  int64_t filesize = fasta_get_size(file_handle);
 
   progress_init("Rereplicating", filesize);
 
   int64_t missing = 0;
   int64_t i = 0;
   int64_t n = 0;
-  while (fasta_next(fh, not opt_notrunclabels, chrmap_no_change))
+  while (fasta_next(file_handle, not opt_notrunclabels, chrmap_no_change))
     {
       ++n;
-      int64_t abundance = fasta_get_abundance_and_presence(fh);
+      int64_t abundance = fasta_get_abundance_and_presence(file_handle);
       if (abundance == 0)
         {
           ++missing;
@@ -107,10 +107,10 @@ auto rereplicate() -> void
             {
               fasta_print_general(fp_output,
                                   nullptr,
-                                  fasta_get_sequence(fh),
-                                  fasta_get_sequence_length(fh),
-                                  fasta_get_header(fh),
-                                  fasta_get_header_length(fh),
+                                  fasta_get_sequence(file_handle),
+                                  fasta_get_sequence_length(file_handle),
+                                  fasta_get_header(file_handle),
+                                  fasta_get_header_length(file_handle),
                                   1,
                                   i,
                                   -1.0,
@@ -118,7 +118,7 @@ auto rereplicate() -> void
             }
         }
 
-      progress_update(fasta_get_position(fh));
+      progress_update(fasta_get_position(file_handle));
     }
   progress_done();
 
@@ -140,7 +140,7 @@ auto rereplicate() -> void
       fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", i, n);
     }
 
-  fasta_close(fh);
+  fasta_close(file_handle);
 
   fclose(fp_output);
 }
