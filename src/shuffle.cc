@@ -89,7 +89,7 @@ auto shuffle() -> void
   db_read(opt_shuffle, 0);
   show_rusage();
 
-  int dbsequencecount = db_getsequencecount();
+  int const dbsequencecount = db_getsequencecount();
   std::vector<int> deck_v(dbsequencecount);
   std::iota(deck_v.begin(), deck_v.end(), 0);
 
