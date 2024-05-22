@@ -73,10 +73,10 @@ auto rereplicate() -> void
 
   std::FILE * fp_output = nullptr;
 
-  if (opt_output)
+  if (opt_output != nullptr)
     {
       fp_output = fopen_output(opt_output);
-      if (not fp_output)
+      if (fp_output == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
