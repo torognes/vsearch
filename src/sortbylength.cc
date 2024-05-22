@@ -120,7 +120,7 @@ auto sortbylength() -> void
   const int dbsequencecount = db_getsequencecount();
   std::vector<struct sortinfo_length_s> sortinfo_v(dbsequencecount);
 
-  int passed = 0;
+  auto passed = 0L;
 
   progress_init("Getting lengths", dbsequencecount);
   for(int i = 0; i < dbsequencecount; i++)
@@ -186,7 +186,7 @@ auto sortbylength() -> void
   show_rusage();
 
   // refactoring: std::min()
-  passed = MIN(passed, opt_topn);
+  passed = std::min(passed, opt_topn);
   sortinfo_v.resize(passed);
   sortinfo_v.shrink_to_fit();
 
