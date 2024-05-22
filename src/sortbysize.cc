@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::min, std::sort
-#include <cstdlib>
+#include <cstdlib>   // std::ldiv
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strcmp
