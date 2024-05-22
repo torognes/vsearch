@@ -73,12 +73,12 @@
 
 auto shuffle() -> void
 {
-  if (not opt_output) {
+  if (opt_output == nullptr) {
     fatal("Output file for shuffling must be specified with --output");
   }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (not fp_output)
+  if (fp_output == nullptr)
     {
       fatal("Unable to open shuffle output file for writing");
     }
