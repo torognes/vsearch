@@ -60,6 +60,7 @@
 */
 
 #include "vsearch.h"
+#include "maps2.h"
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdint>  // int64_t
 
@@ -92,7 +93,7 @@ auto rereplicate() -> void
   int64_t missing = 0;
   int64_t n_output = 0;
   auto const truncateatspace = opt_notrunclabels == 0 ? true : false;
-  while (fasta_next(file_handle, truncateatspace, chrmap_no_change))
+  while (fasta_next(file_handle, truncateatspace, chrmap_no_change_array.data()))
     {
       ++n_entries;
       int64_t abundance = fasta_get_abundance_and_presence(file_handle);
