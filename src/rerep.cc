@@ -91,7 +91,8 @@ auto rereplicate() -> void
   int64_t n_entries = 0;
   int64_t missing = 0;
   int64_t n_output = 0;
-  while (fasta_next(file_handle, not opt_notrunclabels, chrmap_no_change))
+  auto const truncateatspace = opt_notrunclabels == 0 ? true : false;
+  while (fasta_next(file_handle, truncateatspace, chrmap_no_change))
     {
       ++n_entries;
       int64_t abundance = fasta_get_abundance_and_presence(file_handle);
