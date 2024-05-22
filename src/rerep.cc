@@ -70,6 +70,7 @@ auto rereplicate() -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file for rereplicate must be specified with --output");
+    return;
   }
 
   opt_xsize = true;
