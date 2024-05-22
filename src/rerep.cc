@@ -134,7 +134,7 @@ auto rereplicate() -> void
       fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_output, n_entries);
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       if (missing != 0)
         {
