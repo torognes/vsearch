@@ -129,13 +129,14 @@ auto sortbysize() -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file for sortbysize must be specified with --output");
+    return;
   }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (fp_output == nullptr)
-    {
-      fatal("Unable to open sortbysize output file for writing");
-    }
+  if (fp_output == nullptr) {
+    fatal("Unable to open sortbysize output file for writing");
+    return;
+  }
 
   db_read(opt_sortbysize, 0);
 
