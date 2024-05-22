@@ -61,7 +61,7 @@
 
 #include "vsearch.h"
 
-void rereplicate()
+auto rereplicate() -> void
 {
   if (not opt_output)
     fatal("FASTA output file for rereplicate must be specified with --output");
