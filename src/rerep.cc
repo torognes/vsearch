@@ -127,7 +127,7 @@ auto rereplicate() -> void
 
   if (not opt_quiet)
     {
-      if (missing)
+      if (missing != 0)
         {
           fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
@@ -136,7 +136,7 @@ auto rereplicate() -> void
 
   if (opt_log)
     {
-      if (missing)
+      if (missing != 0)
         {
           fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
