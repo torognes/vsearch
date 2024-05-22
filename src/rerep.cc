@@ -103,7 +103,7 @@ auto rereplicate() -> void
           abundance = 1;
         }
 
-      for(int64_t j = 0; j < abundance; j++)
+      for(int64_t i = 0; i < abundance; i++)
         {
           ++n_output;
           if (opt_output != nullptr)
