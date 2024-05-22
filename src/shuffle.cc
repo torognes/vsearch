@@ -78,7 +78,7 @@ auto shuffle() -> void
     return;
   }
 
-  std::FILE * fp_output = fopen_output(opt_output);
+  auto * fp_output = fopen_output(opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open shuffle output file for writing");
     return;
