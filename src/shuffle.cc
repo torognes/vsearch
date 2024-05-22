@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdio>  // std::FILE
+#include <vector>
 
 
 // refactoring:
@@ -88,7 +89,8 @@ auto shuffle() -> void
   show_rusage();
 
   int dbsequencecount = db_getsequencecount();
-  int * deck = (int*) xmalloc(dbsequencecount * sizeof(int));
+  std::vector<int> deck_v(dbsequencecount);
+  auto * deck = deck_v.data();
 
   for(int i = 0; i < dbsequencecount; i++)
     {
@@ -125,7 +127,6 @@ auto shuffle() -> void
 
   show_rusage();
 
-  xfree(deck);
   db_free();
   fclose(fp_output);
 }
