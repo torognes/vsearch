@@ -184,7 +184,8 @@ auto sortbylength() -> void
   progress_done();
   show_rusage();
 
-  progress_init("Sorting", 100);
+  static constexpr auto one_hundred_percent = 100ULL;
+  progress_init("Sorting", one_hundred_percent);
   qsort(sortinfo_v.data(), passed, sizeof(sortinfo_length_s), sortbylength_compare);
   progress_done();
 
