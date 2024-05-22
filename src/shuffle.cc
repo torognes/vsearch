@@ -75,13 +75,14 @@ auto shuffle() -> void
 {
   if (opt_output == nullptr) {
     fatal("Output file for shuffling must be specified with --output");
+    return;
   }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (fp_output == nullptr)
-    {
-      fatal("Unable to open shuffle output file for writing");
-    }
+  if (fp_output == nullptr) {
+    fatal("Unable to open shuffle output file for writing");
+    return;
+  }
 
   db_read(opt_shuffle, 0);
   show_rusage();
