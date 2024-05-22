@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdio>  // std::FILE
+#include <numeric>  // std::iota
 #include <vector>
 
 
@@ -90,11 +91,7 @@ auto shuffle() -> void
 
   int dbsequencecount = db_getsequencecount();
   std::vector<int> deck_v(dbsequencecount);
-
-  for(int i = 0; i < dbsequencecount; i++)
-    {
-      deck_v[i] = i;
-    }
+  std::iota(deck_v.begin(), deck_v.end(), 0);
 
   int passed = 0;
   progress_init("Shuffling", dbsequencecount - 1);
