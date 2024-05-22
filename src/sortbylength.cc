@@ -73,6 +73,7 @@ struct sortinfo_length_s
   unsigned int seqno;
 };
 
+
 int sortbylength_compare(const void * a, const void * b)
 {
   auto * x = (struct sortinfo_length_s *) a;
