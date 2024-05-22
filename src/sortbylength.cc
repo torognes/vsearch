@@ -188,12 +188,16 @@ auto sortbylength() -> void
 
   // refactoring: std::min()
   passed = MIN(passed, opt_topn);
+  sortinfo_v.resize(passed);
+  sortinfo_v.shrink_to_fit();
 
   progress_init("Writing output", passed);
-  for(int i = 0; i < passed; i++)
+  auto counter = 0;
+  for(auto const & sequence: sortinfo_v)
     {
-      fasta_print_db_relabel(fp_output, sortinfo[i].seqno, i + 1);
-      progress_update(i);
+      fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
   show_rusage();
