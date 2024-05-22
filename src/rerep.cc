@@ -61,6 +61,7 @@
 
 #include "vsearch.h"
 #include <cstdio>  // std::FILE, std::fprintf
+#include <cstdint>  // int64_t
 
 
 auto rereplicate() -> void
