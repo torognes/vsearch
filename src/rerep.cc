@@ -115,7 +115,7 @@ auto rereplicate() -> void
                                   fasta_get_header(file_handle),
                                   static_cast<int>(fasta_get_header_length(file_handle)),
                                   1,
-                                  n_output,
+                                  static_cast<int>(n_output),
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
             }
