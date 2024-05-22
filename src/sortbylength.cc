@@ -124,13 +124,14 @@ auto sortbylength() -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file for sortbylength must be specified with --output");
+    return;
   }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (fp_output == nullptr)
-    {
-      fatal("Unable to open sortbylength output file for writing");
-    }
+  if (fp_output == nullptr) {
+    fatal("Unable to open sortbylength output file for writing");
+    return;
+  }
 
   db_read(opt_sortbylength, 0);
   show_rusage();
