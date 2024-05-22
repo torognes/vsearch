@@ -117,13 +117,13 @@ auto sortbylength() -> void
   db_read(opt_sortbylength, 0);
   show_rusage();
 
-  const int dbsequencecount = db_getsequencecount();
+  const auto dbsequencecount = db_getsequencecount();
   std::vector<struct sortinfo_length_s> sortinfo_v(dbsequencecount);
 
   auto passed = 0L;
 
   progress_init("Getting lengths", dbsequencecount);
-  for(int i = 0; i < dbsequencecount; i++)
+  for(auto i = 0U; i < dbsequencecount; i++)
     {
       sortinfo_v[passed].seqno = i;
       sortinfo_v[passed].length = db_getsequencelen(i);
