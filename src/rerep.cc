@@ -60,7 +60,7 @@
 */
 
 #include "vsearch.h"
-#include "maps2.h"
+#include "utils/maps2.h"
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdint>  // int64_t
 
