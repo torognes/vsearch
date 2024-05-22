@@ -1,7 +1,12 @@
 *.a
+*.clang
+*.json
 *.o
 *.pdf
+*.sh
+*.texinfo
 *~
+.cache/
 .deps
 .dirstamp
 /autom4te.cache
