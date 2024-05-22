@@ -111,7 +111,7 @@ auto rereplicate() -> void
               fasta_print_general(fp_output,
                                   nullptr,
                                   fasta_get_sequence(file_handle),
-                                  fasta_get_sequence_length(file_handle),
+                                  static_cast<int>(fasta_get_sequence_length(file_handle)),
                                   fasta_get_header(file_handle),
                                   fasta_get_header_length(file_handle),
                                   1,
