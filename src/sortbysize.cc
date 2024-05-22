@@ -232,8 +232,6 @@ auto sortbysize() -> void
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();
-  if (fp_output != nullptr)
-    {
-      static_cast<void>(fclose(fp_output));
-    }
+
+  static_cast<void>(fclose(fp_output));
 }
