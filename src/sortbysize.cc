@@ -94,7 +94,7 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> d
 
   // even number of valid amplicons
   // (average of two ints is either round or has a remainder of .5)
-  // risk of silent overflow for large abundance values:
+  // avoid risk of silent overflow for large abundance values:
   // a >= b ; (a + b) / 2 == b + (a - b) / 2
   return sortinfo_v[midarray.quot].size +
     ((sortinfo_v[midarray.quot - 1].size - sortinfo_v[midarray.quot].size) * half);
