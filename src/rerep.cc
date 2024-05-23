@@ -70,13 +70,11 @@ auto rereplicate() -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file for rereplicate must be specified with --output");
-    return;
   }
 
   auto * fp_output = fopen_output(opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open FASTA output file for writing");
-    return;
   }
 
   opt_xsize = true;
@@ -140,5 +138,7 @@ auto rereplicate() -> void
     }
 
   fasta_close(file_handle);
-  fclose(fp_output);
+  if (fp_output != nullptr) {
+    fclose(fp_output);
+  }
 }
