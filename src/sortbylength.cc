@@ -105,13 +105,11 @@ auto sortbylength() -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file for sortbylength must be specified with --output");
-    return;
   }
 
   auto * fp_output = fopen_output(opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open sortbylength output file for writing");
-    return;
   }
 
   db_read(opt_sortbylength, 0);
@@ -202,5 +200,7 @@ auto sortbylength() -> void
   show_rusage();
 
   db_free();
-  static_cast<void>(fclose(fp_output));
+  if (fp_output != nullptr) {
+    static_cast<void>(fclose(fp_output));
+  }
 }
