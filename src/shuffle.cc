@@ -66,14 +66,12 @@
 #include <vector>
 
 
-// refactoring:
-// - std::vector<int> deck(dbsequencecount);
-// - std::iota(deck.begin(), deck.end(), 0);
-// - std::random_shuffle(deck.begin(), deck.end());  // uniform by default
-// STOP: how to produce predictable results? (--randseed: seed fixing?)
-// - auto const new_size = std::min(deck.size(), top_n);
-// - deck.resize(new_size)
-// - range for-loop
+auto create_deck() -> std::vector<int> {
+  auto const dbsequencecount = db_getsequencecount();
+  std::vector<int> deck_v(dbsequencecount);
+  std::iota(deck_v.begin(), deck_v.end(), 0);
+  return deck_v;
+}
 
 auto generate_seed(long int const user_seed) -> unsigned int {
   if (user_seed != 0) {
@@ -100,10 +98,7 @@ auto shuffle() -> void
   db_read(opt_shuffle, 0);
   show_rusage();
 
-  // create_deck
-  int const dbsequencecount = db_getsequencecount();
-  std::vector<int> deck_v(dbsequencecount);
-  std::iota(deck_v.begin(), deck_v.end(), 0);
+  auto deck_v = create_deck();
 
   // shuffle_deck
   static constexpr auto one_hundred_percent = 100ULL;
