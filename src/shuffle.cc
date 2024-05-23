@@ -59,8 +59,10 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::shuffle
 #include <cstdio>  // std::FILE
 #include <numeric>  // std::iota
+#include <random>
 #include <vector>
 
 
@@ -73,10 +75,14 @@
 // - deck.resize(new_size)
 // - range for-loop
 
-// std::random_device r;
-// std::seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
-// std::mt19937 eng(seed);
-// std::shuffle(std::begin(answerPositionArray), std::end(answerPositionArray), eng);
+auto generate_seed(long int const user_seed) -> unsigned int {
+  if (user_seed != 0) {
+    return static_cast<unsigned int>(user_seed);
+  }
+  std::random_device number_generator;
+  return number_generator();
+}
+
 
 auto shuffle() -> void
 {
@@ -98,25 +104,15 @@ auto shuffle() -> void
   std::vector<int> deck_v(dbsequencecount);
   std::iota(deck_v.begin(), deck_v.end(), 0);
 
-  int passed = 0;
-  progress_init("Shuffling", dbsequencecount - 1);
-  for(int i = dbsequencecount - 1; i > 0; i--)
-    {
-      /* generate a random number j in the range 0 to i, inclusive */
-      int j = random_int(i + 1);
-
-      /* exchange elements i and j */
-      int t = deck_v[i];
-      deck_v[i] = deck_v[j];
-      deck_v[j] = t;
-
-      ++passed;
-      progress_update(passed);
-    }
+  static constexpr auto one_hundred_percent = 100ULL;
+  progress_init("Shuffling", one_hundred_percent);
+  auto const seed = generate_seed(opt_randseed);
+  std::mt19937_64 uniform_generator(seed);
+  std::shuffle(deck_v.begin(), deck_v.end(), uniform_generator);
   progress_done();
   show_rusage();
 
-  passed = MIN(dbsequencecount, opt_topn);
+  int passed = MIN(dbsequencecount, opt_topn);
 
   progress_init("Writing output", passed);
   for(int i = 0; i < passed; i++)
