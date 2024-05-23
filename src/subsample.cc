@@ -59,14 +59,15 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // std::FILE
 
 
 auto subsample() -> void
 {
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastaout_discarded = nullptr;
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_fastqout_discarded = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastaout_discarded = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastqout_discarded = nullptr;
 
   if (opt_fastaout)
     {
