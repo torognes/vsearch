@@ -71,7 +71,7 @@ void subsample()
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (not fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -80,7 +80,7 @@ void subsample()
   if (opt_fastaout_discarded)
     {
       fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (! fp_fastaout_discarded)
+      if (not fp_fastaout_discarded)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -89,7 +89,7 @@ void subsample()
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (not fp_fastqout)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -98,7 +98,7 @@ void subsample()
   if (opt_fastqout_discarded)
     {
       fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (! fp_fastqout_discarded)
+      if (not fp_fastqout_discarded)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -107,7 +107,7 @@ void subsample()
   db_read(opt_fastx_subsample, 0);
   show_rusage();
 
-  if ((fp_fastqout || fp_fastqout_discarded) && ! db_is_fastq())
+  if ((fp_fastqout || fp_fastqout_discarded) && not db_is_fastq())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -116,7 +116,7 @@ void subsample()
 
   uint64_t mass_total = 0;
 
-  if (! opt_sizein)
+  if (not opt_sizein)
     {
       mass_total = dbsequencecount;
     }
@@ -128,7 +128,7 @@ void subsample()
         }
     }
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
               mass_total, dbsequencecount);
@@ -273,7 +273,7 @@ void subsample()
 
   xfree(abundance);
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
     }
