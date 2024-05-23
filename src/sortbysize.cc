@@ -129,13 +129,11 @@ auto sortbysize() -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file for sortbysize must be specified with --output");
-    return;
   }
 
   auto * fp_output = fopen_output(opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open sortbysize output file for writing");
-    return;
   }
 
   db_read(opt_sortbysize, 0);
@@ -233,5 +231,7 @@ auto sortbysize() -> void
 
   db_free();
 
-  static_cast<void>(fclose(fp_output));
+  if (fp_output != nullptr) {
+    static_cast<void>(fclose(fp_output));
+  }
 }
