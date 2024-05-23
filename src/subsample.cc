@@ -117,7 +117,7 @@ auto subsample() -> void
   db_read(opt_fastx_subsample, 0);
   show_rusage();
 
-  if ((fp_fastqout or fp_fastqout_discarded) and not db_is_fastq())
+  if ((fp_fastqout != nullptr or fp_fastqout_discarded != nullptr) and not db_is_fastq())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -144,7 +144,7 @@ auto subsample() -> void
               mass_total, dbsequencecount);
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
               mass_total, dbsequencecount);
