@@ -208,8 +208,8 @@ auto subsample() -> void
   progress_init("Writing output", dbsequencecount);
   for(int i = 0; i < dbsequencecount; i++)
     {
-      int64_t ab_sub = abundance[i];
-      int64_t ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
+      int64_t const ab_sub = abundance[i];
+      int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
 
       if (ab_sub > 0)
         {
