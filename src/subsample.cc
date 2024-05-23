@@ -122,7 +122,7 @@ auto subsample() -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  int dbsequencecount = db_getsequencecount();
+  int const dbsequencecount = db_getsequencecount();
 
   uint64_t mass_total = 0;
 
