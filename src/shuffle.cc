@@ -73,12 +73,23 @@ auto create_deck() -> std::vector<int> {
   return deck;
 }
 
+
 auto generate_seed(long int const user_seed) -> unsigned int {
   if (user_seed != 0) {
     return static_cast<unsigned int>(user_seed);
   }
   std::random_device number_generator;
   return number_generator();
+}
+
+
+auto shuffle_deck(std::vector<int> & deck) -> void {
+  static constexpr auto one_hundred_percent = 100ULL;
+  progress_init("Shuffling", one_hundred_percent);
+  auto const seed = generate_seed(opt_randseed);
+  std::mt19937_64 uniform_generator(seed);
+  std::shuffle(deck.begin(), deck.end(), uniform_generator);
+  progress_done();
 }
 
 
@@ -99,14 +110,7 @@ auto shuffle() -> void
   show_rusage();
 
   auto deck = create_deck();
-
-  // shuffle_deck
-  static constexpr auto one_hundred_percent = 100ULL;
-  progress_init("Shuffling", one_hundred_percent);
-  auto const seed = generate_seed(opt_randseed);
-  std::mt19937_64 uniform_generator(seed);
-  std::shuffle(deck.begin(), deck.end(), uniform_generator);
-  progress_done();
+  shuffle_deck(deck);
   show_rusage();
 
   // output_shuffled_fasta
