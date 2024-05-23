@@ -68,9 +68,9 @@
 
 auto create_deck() -> std::vector<int> {
   auto const dbsequencecount = db_getsequencecount();
-  std::vector<int> deck_v(dbsequencecount);
-  std::iota(deck_v.begin(), deck_v.end(), 0);
-  return deck_v;
+  std::vector<int> deck(dbsequencecount);
+  std::iota(deck.begin(), deck.end(), 0);
+  return deck;
 }
 
 auto generate_seed(long int const user_seed) -> unsigned int {
