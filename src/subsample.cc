@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdio>  // std::FILE
+#include <vector>
 
 
 auto subsample() -> void
@@ -142,7 +143,8 @@ auto subsample() -> void
     }
 
 
-  int * abundance = (int *) xmalloc(dbsequencecount * sizeof(int));
+  std::vector<int> abundance_v(dbsequencecount);
+  auto * abundance = abundance_v.data();
 
   for(int i = 0; i < dbsequencecount; i++)
     {
@@ -272,7 +274,6 @@ auto subsample() -> void
     }
   progress_done();
 
-  xfree(abundance);
 
   if (not opt_quiet)
     {
