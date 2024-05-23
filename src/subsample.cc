@@ -215,7 +215,7 @@ auto subsample() -> void
         {
           ++samples;
 
-          if (opt_fastaout)
+          if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -229,7 +229,7 @@ auto subsample() -> void
                                   -1, -1, nullptr, 0.0);
             }
 
-          if (opt_fastqout)
+          if (opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   db_getsequence(i),
@@ -247,7 +247,7 @@ auto subsample() -> void
         {
           ++discarded;
 
-          if (opt_fastaout_discarded)
+          if (opt_fastaout_discarded != nullptr)
             {
               fasta_print_general(fp_fastaout_discarded,
                                   nullptr,
@@ -261,7 +261,7 @@ auto subsample() -> void
                                   -1, -1, nullptr, 0.0);
             }
 
-          if (opt_fastqout_discarded)
+          if (opt_fastqout_discarded != nullptr)
             {
               fastq_print_general(fp_fastqout_discarded,
                                   db_getsequence(i),
@@ -283,29 +283,29 @@ auto subsample() -> void
     {
       fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
     }
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
     }
 
   db_free();
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
 
-  if (opt_fastaout_discarded)
+  if (opt_fastaout_discarded != nullptr)
     {
       fclose(fp_fastaout_discarded);
     }
 
-  if (opt_fastqout_discarded)
+  if (opt_fastqout_discarded != nullptr)
     {
       fclose(fp_fastqout_discarded);
     }
