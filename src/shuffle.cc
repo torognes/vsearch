@@ -126,7 +126,6 @@ auto shuffle() -> void
       ++counter;
     }
   progress_done();
-
   show_rusage();
 
   db_free();
