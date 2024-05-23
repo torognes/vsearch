@@ -110,8 +110,8 @@ auto output_shuffled_fasta(std::vector<int> &deck,
 }
 
 
-auto shuffle() -> void
-{
+auto shuffle() -> void {
+  // pre-conditions
   if (opt_output == nullptr) {
     fatal("Output file for shuffling must be specified with --output");
   }
