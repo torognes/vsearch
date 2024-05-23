@@ -115,9 +115,9 @@ auto shuffle() -> void
   show_rusage();
 
   // output_shuffled_fasta
-  auto const passed = std::min(deck_v.size(), static_cast<unsigned long>(opt_topn));
-  deck_v.resize(passed);
-  progress_init("Writing output", passed);
+  auto const final_size = std::min(deck_v.size(), static_cast<unsigned long>(opt_topn));
+  deck_v.resize(final_size);
+  progress_init("Writing output", final_size);
   auto counter = 0;
   for(auto const sequence_id: deck_v)
     {
