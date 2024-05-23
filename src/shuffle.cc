@@ -117,7 +117,7 @@ auto shuffle() -> void
   // output_shuffled_fasta
   auto const final_size = std::min(deck_v.size(), static_cast<unsigned long>(opt_topn));
   deck_v.resize(final_size);
-  progress_init("Writing output", final_size);
+  progress_init("Writing output", deck_v.size());
   auto counter = 0;
   for(auto const sequence_id: deck_v)
     {
