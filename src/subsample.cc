@@ -141,9 +141,9 @@ void subsample()
     }
 
 
-  int * abundance = (int*) xmalloc(dbsequencecount * sizeof(int));
+  int * abundance = (int *) xmalloc(dbsequencecount * sizeof(int));
 
-  for(int i=0; i<dbsequencecount; i++)
+  for(int i = 0; i < dbsequencecount; i++)
     {
       abundance[i] = 0;
     }
