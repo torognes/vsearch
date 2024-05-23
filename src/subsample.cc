@@ -63,6 +63,14 @@
 #include <vector>
 
 
+// subsampling refactoring:
+//  - split with and without sizein,
+//  - without sizein:
+//    - equivalent to a shuffle + resize() + sort()
+//  - with sizein:
+//    - std::discrete_distribution()
+
+
 auto subsample() -> void
 {
   std::FILE * fp_fastaout = nullptr;
@@ -169,6 +177,7 @@ auto subsample() -> void
   uint64_t mass =                          /* mass of current amplicon */
     opt_sizein ? db_getabundance(0) : 1;
 
+  // refactoring C++17: std::sample()
   progress_init("Subsampling", mass_total);
   while (x > 0)
     {
