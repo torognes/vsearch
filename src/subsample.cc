@@ -143,11 +143,11 @@ auto subsample() -> void
     }
 
 
-  std::vector<int> abundance_v(dbsequencecount);
+  std::vector<int> abundance(dbsequencecount);
 
   for(int i = 0; i < dbsequencecount; i++)
     {
-      abundance_v[i] = 0;
+      abundance[i] = 0;
     }
 
   uint64_t n;                              /* number of reads to sample */
@@ -181,7 +181,7 @@ auto subsample() -> void
       if (random < x)
         {
           /* selected read r from amplicon a */
-          abundance_v[a]++;
+          abundance[a]++;
           --x;
         }
 
@@ -203,7 +203,7 @@ auto subsample() -> void
   progress_init("Writing output", dbsequencecount);
   for(int i = 0; i < dbsequencecount; i++)
     {
-      int64_t ab_sub = abundance_v[i];
+      int64_t ab_sub = abundance[i];
       int64_t ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
 
       if (ab_sub > 0)
