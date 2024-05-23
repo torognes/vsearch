@@ -145,11 +145,6 @@ auto subsample() -> void
 
   std::vector<int> abundance(dbsequencecount);
 
-  for(int i = 0; i < dbsequencecount; i++)
-    {
-      abundance[i] = 0;
-    }
-
   uint64_t n;                              /* number of reads to sample */
   if (opt_sample_size)
     {
