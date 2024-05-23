@@ -180,15 +180,15 @@ void subsample()
         {
           /* selected read r from amplicon a */
           abundance[a]++;
-          x--;
+          --x;
         }
 
-      r++;
-      m++;
+      ++r;
+      ++m;
       if (m >= mass)
         {
           /* next amplicon */
-          a++;
+          ++a;
           mass = opt_sizein ? db_getabundance(a) : 1;
           m = 0;
         }
@@ -206,7 +206,7 @@ void subsample()
 
       if (ab_sub > 0)
         {
-          samples++;
+          ++samples;
 
           if (opt_fastaout)
             {
@@ -238,7 +238,7 @@ void subsample()
 
       if (ab_discarded > 0)
         {
-          discarded++;
+          ++discarded;
 
           if (opt_fastaout_discarded)
             {
