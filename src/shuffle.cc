@@ -114,8 +114,8 @@ auto shuffle() -> void
   progress_done();
   show_rusage();
 
+  // output_shuffled_fasta
   auto const passed = std::min(deck_v.size(), static_cast<unsigned long>(opt_topn));
-
   deck_v.resize(passed);
   progress_init("Writing output", passed);
   auto counter = 0;
