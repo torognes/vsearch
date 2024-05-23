@@ -100,10 +100,12 @@ auto shuffle() -> void
   db_read(opt_shuffle, 0);
   show_rusage();
 
+  // create_deck
   int const dbsequencecount = db_getsequencecount();
   std::vector<int> deck_v(dbsequencecount);
   std::iota(deck_v.begin(), deck_v.end(), 0);
 
+  // shuffle_deck
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Shuffling", one_hundred_percent);
   auto const seed = generate_seed(opt_randseed);
