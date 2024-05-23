@@ -61,7 +61,7 @@
 #include "vsearch.h"
 
 
-void subsample()
+auto subsample() -> void
 {
   FILE * fp_fastaout = nullptr;
   FILE * fp_fastaout_discarded = nullptr;
