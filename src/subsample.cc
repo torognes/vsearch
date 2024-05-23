@@ -78,37 +78,37 @@ auto subsample() -> void
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_fastqout_discarded = nullptr;
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (not fp_fastaout)
+      if (fp_fastaout == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastaout_discarded)
+  if (opt_fastaout_discarded != nullptr)
     {
       fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (not fp_fastaout_discarded)
+      if (fp_fastaout_discarded == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (not fp_fastqout)
+      if (fp_fastqout == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
     }
 
-  if (opt_fastqout_discarded)
+  if (opt_fastqout_discarded != nullptr)
     {
       fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (not fp_fastqout_discarded)
+      if (fp_fastqout_discarded == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
