@@ -181,7 +181,7 @@ auto subsample() -> void
   progress_init("Subsampling", mass_total);
   while (x > 0)
     {
-      uint64_t random = random_ulong(mass_total - r);
+      uint64_t const random = random_ulong(mass_total - r);
 
       if (random < x)
         {
