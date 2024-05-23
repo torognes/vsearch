@@ -133,6 +133,6 @@ auto shuffle() -> void
 
   db_free();
   if (fp_output != nullptr) {
-    fclose(fp_output);
+    static_cast<void>(fclose(fp_output));
   }
 }
