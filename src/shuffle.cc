@@ -98,23 +98,23 @@ auto shuffle() -> void
   db_read(opt_shuffle, 0);
   show_rusage();
 
-  auto deck_v = create_deck();
+  auto deck = create_deck();
 
   // shuffle_deck
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Shuffling", one_hundred_percent);
   auto const seed = generate_seed(opt_randseed);
   std::mt19937_64 uniform_generator(seed);
-  std::shuffle(deck_v.begin(), deck_v.end(), uniform_generator);
+  std::shuffle(deck.begin(), deck.end(), uniform_generator);
   progress_done();
   show_rusage();
 
   // output_shuffled_fasta
-  auto const final_size = std::min(deck_v.size(), static_cast<unsigned long>(opt_topn));
-  deck_v.resize(final_size);
-  progress_init("Writing output", deck_v.size());
+  auto const final_size = std::min(deck.size(), static_cast<unsigned long>(opt_topn));
+  deck.resize(final_size);
+  progress_init("Writing output", deck.size());
   auto counter = 0;
-  for(auto const sequence_id: deck_v)
+  for(auto const sequence_id: deck)
     {
       fasta_print_db_relabel(fp_output, sequence_id, counter + 1);
       progress_update(counter);
