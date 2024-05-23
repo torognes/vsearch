@@ -139,6 +139,6 @@ auto rereplicate() -> void
 
   fasta_close(file_handle);
   if (fp_output != nullptr) {
-    fclose(fp_output);
+    static_cast<void>(fclose(fp_output));
   }
 }
