@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include <algorithm>  // std::shuffle
+#include <algorithm>  // std::min, std::shuffle
 #include <cstdio>  // std::FILE
 #include <numeric>  // std::iota
 #include <random>
@@ -114,13 +114,16 @@ auto shuffle() -> void
   progress_done();
   show_rusage();
 
-  int passed = MIN(dbsequencecount, opt_topn);
+  auto const passed = std::min(deck_v.size(), static_cast<unsigned long>(opt_topn));
 
+  deck_v.resize(passed);
   progress_init("Writing output", passed);
-  for(int i = 0; i < passed; i++)
+  auto counter = 0;
+  for(auto const sequence_id: deck_v)
     {
-      fasta_print_db_relabel(fp_output, deck_v[i], i + 1);
-      progress_update(i);
+      fasta_print_db_relabel(fp_output, sequence_id, counter + 1);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
 
