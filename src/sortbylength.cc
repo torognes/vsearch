@@ -80,19 +80,20 @@ namespace {
   auto create_deck() -> std::vector<struct sortinfo_length_s> {
     auto const dbsequencecount = db_getsequencecount();
     std::vector<struct sortinfo_length_s> deck(dbsequencecount);
-
     progress_init("Getting lengths", deck.size());
-    for(auto i = 0U; i < dbsequencecount; ++i)
-      {
-        deck[i].seqno = i;
-        deck[i].length = db_getsequencelen(i);
-        deck[i].size = db_getabundance(i);
-        progress_update(i);
-      }
+    auto counter = 0ULL;
+    for(auto & sequence: deck) {
+      sequence.seqno = counter;
+      sequence.length = db_getsequencelen(counter);
+      sequence.size = db_getabundance(counter);
+      progress_update(counter);
+      ++counter;
+    }
     progress_done();
     return deck;
   }
 }
+
 
 auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
   auto compare_sequences = [](struct sortinfo_length_s const & lhs,
