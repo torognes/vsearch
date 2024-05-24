@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::sort, std::min
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>  // std::ldiv
 #include <cstring>  // std::strcmp
 #include <vector>
@@ -81,7 +81,7 @@ namespace {
     auto const dbsequencecount = db_getsequencecount();
     std::vector<struct sortinfo_length_s> deck(dbsequencecount);
     progress_init("Getting lengths", deck.size());
-    auto counter = 0ULL;
+    auto counter = std::size_t{0};
     for(auto & sequence: deck) {
       sequence.seqno = counter;
       sequence.length = db_getsequencelen(counter);
@@ -168,7 +168,7 @@ auto output_sorted_fasta(std::vector<struct sortinfo_length_s> & deck,
                                    static_cast<unsigned long>(n_first_sequences));
   deck.resize(final_size);
   progress_init("Writing output", deck.size());
-  auto counter = 0;
+  auto counter = std::size_t{0};
   for(auto const & sequence: deck) {
     fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
     progress_update(counter);
