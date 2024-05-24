@@ -191,17 +191,14 @@ auto sortbylength() -> void
   sort_deck(deck);
 
   const double median = find_median_length(deck);
-
   if (not opt_quiet)
     {
       fprintf(stderr, "Median length: %.0f\n", median);
     }
-
   if (opt_log != nullptr)
     {
       fprintf(fp_log, "Median length: %.0f\n", median);
     }
-
   show_rusage();
 
   output_sorted_fasta(deck, opt_topn, fp_output);
