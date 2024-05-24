@@ -145,6 +145,23 @@ auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void 
 }
 
 
+auto output_sorted_fasta(std::vector<struct sortinfo_size_s> & deck,
+                           long int const n_first_sequences,
+                           std::FILE * output_file) -> void {
+  auto const final_size = std::min(deck.size(),
+                                   static_cast<unsigned long>(n_first_sequences));
+  deck.resize(final_size);
+  progress_init("Writing output", deck.size());
+  auto counter = std::size_t{0};
+  for(auto const & sequence: deck) {
+    fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
+    progress_update(counter);
+    ++counter;
+  }
+  progress_done();
+}
+
+
 // refactoring: trim misize and maxsize with a free function
 // https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
 // auto erase_v2(std::vector<int> &vec, int value) -> void
@@ -216,19 +233,7 @@ auto sortbysize() -> void
   output_median_abundance(deck);
   show_rusage();
 
-  passed = std::min(passed, opt_topn);
-  deck.resize(passed);
-  deck.shrink_to_fit();
-
-  progress_init("Writing output", passed);
-  auto counter = std::size_t{0};
-  for(auto const & sequence: deck)
-    {
-      fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
-      progress_update(counter);
-      ++counter;
-    }
-  progress_done();
+  output_sorted_fasta(deck, opt_topn, fp_output);
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();
