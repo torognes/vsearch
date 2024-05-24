@@ -74,6 +74,26 @@ struct sortinfo_length_s
 };
 
 
+namespace {
+  // anonymous namespace to avoid linker error (multiple definitions
+  // of function with identical names and parameters)
+  auto create_deck() -> std::vector<struct sortinfo_length_s> {
+    auto const dbsequencecount = db_getsequencecount();
+    std::vector<struct sortinfo_length_s> deck(dbsequencecount);
+
+    progress_init("Getting lengths", dbsequencecount);
+    for(auto i = 0U; i < dbsequencecount; ++i)
+      {
+        deck[i].seqno = i;
+        deck[i].length = db_getsequencelen(i);
+        deck[i].size = db_getabundance(i);
+        progress_update(i);
+      }
+    progress_done();
+    return deck;
+  }
+}
+
 auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
   auto compare_sequences = [](struct sortinfo_length_s const & lhs,
                               struct sortinfo_length_s const & rhs) -> bool {
@@ -171,18 +191,7 @@ auto sortbylength() -> void
   db_read(opt_sortbylength, 0);
   show_rusage();
 
-  auto const dbsequencecount = db_getsequencecount();
-  std::vector<struct sortinfo_length_s> deck(dbsequencecount);
-
-  progress_init("Getting lengths", dbsequencecount);
-  for(auto i = 0U; i < dbsequencecount; i++)
-    {
-      deck[i].seqno = i;
-      deck[i].length = db_getsequencelen(i);
-      deck[i].size = db_getabundance(i);
-      progress_update(i);
-    }
-  progress_done();
+  auto deck = create_deck();
   show_rusage();
 
   sort_deck(deck);
