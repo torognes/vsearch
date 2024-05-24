@@ -176,6 +176,7 @@ auto output_median_length(std::vector<struct sortinfo_length_s> const & deck) ->
 }
 
 
+// refactoring: extract as a template
 auto output_sorted_fasta(std::vector<struct sortinfo_length_s> & deck,
                            long int const n_first_sequences,
                            std::FILE * output_file) -> void {

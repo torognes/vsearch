@@ -172,6 +172,7 @@ auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void 
 }
 
 
+// refactoring: extract as a template
 auto output_sorted_fasta(std::vector<struct sortinfo_size_s> & deck,
                            long int const n_first_sequences,
                            std::FILE * output_file) -> void {
