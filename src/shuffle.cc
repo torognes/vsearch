@@ -66,11 +66,15 @@
 #include <vector>
 
 
-auto create_deck() -> std::vector<int> {
-  auto const dbsequencecount = db_getsequencecount();
-  std::vector<int> deck(dbsequencecount);
-  std::iota(deck.begin(), deck.end(), 0);
-  return deck;
+namespace {
+  // anonymous namespace to avoid linker error (multiple definitions
+  // of function with identical names and parameters)
+  auto create_deck() -> std::vector<int> {
+    auto const dbsequencecount = db_getsequencecount();
+    std::vector<int> deck(dbsequencecount);
+    std::iota(deck.begin(), deck.end(), 0);
+    return deck;
+  }
 }
 
 
