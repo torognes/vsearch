@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::sort, std::min
+#include <cassert>
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>  // std::ldiv
 #include <cstring>  // std::strcmp
@@ -79,6 +80,7 @@ namespace {
   // of function with identical names and parameters)
   auto create_deck() -> std::vector<struct sortinfo_length_s> {
     auto const dbsequencecount = db_getsequencecount();
+    assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
     std::vector<struct sortinfo_length_s> deck(dbsequencecount);
     progress_init("Getting lengths", deck.size());
     auto counter = std::size_t{0};
