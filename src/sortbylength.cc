@@ -155,25 +155,25 @@ auto sortbylength() -> void
   show_rusage();
 
   const auto dbsequencecount = db_getsequencecount();
-  std::vector<struct sortinfo_length_s> sortinfo_v(dbsequencecount);
+  std::vector<struct sortinfo_length_s> deck(dbsequencecount);
 
   auto passed = 0L;
 
   progress_init("Getting lengths", dbsequencecount);
   for(auto i = 0U; i < dbsequencecount; i++)
     {
-      sortinfo_v[passed].seqno = i;
-      sortinfo_v[passed].length = db_getsequencelen(i);
-      sortinfo_v[passed].size = db_getabundance(i);
+      deck[passed].seqno = i;
+      deck[passed].length = db_getsequencelen(i);
+      deck[passed].size = db_getabundance(i);
       passed++;
       progress_update(i);
     }
   progress_done();
   show_rusage();
 
-  sort_deck(sortinfo_v);
+  sort_deck(deck);
 
-  const double median = find_median_length(sortinfo_v);
+  const double median = find_median_length(deck);
 
   if (not opt_quiet)
     {
@@ -188,12 +188,12 @@ auto sortbylength() -> void
   show_rusage();
 
   passed = std::min(passed, opt_topn);
-  sortinfo_v.resize(passed);
-  sortinfo_v.shrink_to_fit();
+  deck.resize(passed);
+  deck.shrink_to_fit();
 
   progress_init("Writing output", passed);
   auto counter = 0;
-  for(auto const & sequence: sortinfo_v)
+  for(auto const & sequence: deck)
     {
       fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
       progress_update(counter);
