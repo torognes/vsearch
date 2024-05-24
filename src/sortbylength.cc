@@ -74,7 +74,7 @@ struct sortinfo_length_s
 };
 
 
-[[nodiscard]]
+// refactoring C++17 [[nodiscard]]
 auto find_median_length(std::vector<sortinfo_length_s> const & sortinfo_v) -> double
 {
   // function returns a round value or a value with a remainder of 0.5

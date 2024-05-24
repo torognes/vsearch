@@ -74,7 +74,7 @@ struct sortinfo_size_s
 };
 
 
-[[nodiscard]]
+// refactoring C++17 [[nodiscard]]
 auto find_median_abundance(std::vector<sortinfo_size_s> const & sortinfo_v) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
