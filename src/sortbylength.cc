@@ -172,7 +172,7 @@ auto output_sorted_fasta(std::vector<struct sortinfo_length_s> & deck,
   progress_init("Writing output", deck.size());
   auto counter = std::size_t{0};
   for(auto const & sequence: deck) {
-    fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
+    fasta_print_db_relabel(output_file, sequence.seqno, static_cast<int>(counter + 1));
     progress_update(counter);
     ++counter;
   }
