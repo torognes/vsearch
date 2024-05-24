@@ -126,6 +126,12 @@ auto subsample() -> void
 
   int const dbsequencecount = db_getsequencecount();
 
+  // create deck:
+  // - if not sizein, then { fill(1) ; return deck }
+  // - if sizein, then { counter ; range-for loop get_abundance ; return deck }
+
+  // compute mass_total = std::accumulate(begin, end, 0ULL);
+
   uint64_t mass_total = 0;
 
   if (not opt_sizein)
