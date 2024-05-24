@@ -181,7 +181,6 @@ auto sortbysize() -> void
   }
 
   db_read(opt_sortbysize, 0);
-
   show_rusage();
 
   const auto dbsequencecount = db_getsequencecount();
@@ -208,11 +207,9 @@ auto sortbysize() -> void
     }
 
   progress_done();
-
-  show_rusage();
-
   deck.resize(passed);
   deck.shrink_to_fit();
+  show_rusage();
 
   sort_deck(deck);
 
