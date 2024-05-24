@@ -191,10 +191,10 @@ auto output_sorted_fasta(std::vector<struct sortinfo_size_s> & deck,
 
 // refactoring: trim misize and maxsize with a free function
 // https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
-// auto erase_v2(std::vector<int> &vec, int value) -> void
+// auto erase_high_abundances(std::vector<int> & vec, int value) -> void
 // {
 //     auto lb = std::lower_bound(std::begin(vec), std::end(vec), value);
-//     if (lb != std::end(vec) && *lb == value) {
+//     if (lb != std::end(vec) and *lb == value) {
 //         auto ub = std::upper_bound(lb, std::end(vec), value);
 //         vec.erase(lb, ub);
 //     }
