@@ -162,7 +162,7 @@ auto find_median_length(std::vector<sortinfo_length_s> const &deck) -> double {
 }
 
 
-auto output_median_length(std::vector<struct sortinfo_length_s> & deck) -> void {
+auto output_median_length(std::vector<struct sortinfo_length_s> const & deck) -> void {
     // Banker's rounding (round half to even)
   auto const median = find_median_length(deck);
   if (not opt_quiet)
