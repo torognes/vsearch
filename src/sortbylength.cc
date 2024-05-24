@@ -81,7 +81,7 @@ namespace {
     auto const dbsequencecount = db_getsequencecount();
     std::vector<struct sortinfo_length_s> deck(dbsequencecount);
 
-    progress_init("Getting lengths", dbsequencecount);
+    progress_init("Getting lengths", deck.size());
     for(auto i = 0U; i < dbsequencecount; ++i)
       {
         deck[i].seqno = i;
