@@ -204,12 +204,12 @@ auto output_sorted_fasta(std::vector<struct sortinfo_size_s> & deck,
 // refactoring:
 // - create vector (no branch)
 // - stable_sort vector (by increasing size, then label)
-// - find lower_bound(comp(opt_maxsize)), erase to the end()
+// - find lower_bound(comp(opt_maxsize)), erase to the end
 // - reverse vector
+// - find upper_bound(comp(opt_maxsize)), erase to the end
 // - opt_minsize = 0 by default
 // - opt_maxsize = LONG_MAX by default
 // - top_n = LONG_MAX by default
-// - find lower_bound(comp(opt_minsize)), erase to the end()
 // - mediane, etc...
 
 
