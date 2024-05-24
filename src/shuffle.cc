@@ -105,7 +105,7 @@ auto output_shuffled_fasta(std::vector<int> & deck,
   deck.resize(final_size);
   progress_init("Writing output", deck.size());
   auto counter = std::size_t{0};
-  for(auto const sequence_id: deck) {
+  for (auto const sequence_id: deck) {
     fasta_print_db_relabel(output_file, sequence_id, counter + 1);
     progress_update(counter);
     ++counter;
