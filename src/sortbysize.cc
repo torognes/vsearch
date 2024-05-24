@@ -219,7 +219,7 @@ auto sortbysize() -> void
   sortinfo_v.shrink_to_fit();
 
   progress_init("Writing output", passed);
-  auto counter = 0;
+  auto counter = std::size_t{0};
   for(auto const & sequence: sortinfo_v)
     {
       fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
