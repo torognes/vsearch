@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::min, std::sort
+#include <cassert>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>   // std::ldiv
@@ -72,6 +73,32 @@ struct sortinfo_size_s
   unsigned int size = 0;
   unsigned int seqno = 0;
 };
+
+
+namespace {
+  // anonymous namespace to avoid linker error (multiple definitions
+  // of function with identical names and parameters)
+  auto create_deck() -> std::vector<struct sortinfo_size_s> {
+    auto const dbsequencecount = db_getsequencecount();
+    assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
+    std::vector<struct sortinfo_size_s> deck(dbsequencecount);
+    progress_init("Getting sizes", deck.size());
+    auto counter = std::size_t{0};
+    for (auto seqno = 0U; seqno < dbsequencecount; ++seqno) {
+      auto const size = static_cast<int64_t>(db_getabundance(seqno));
+      if ((size < opt_minsize) or (size > opt_maxsize)) {
+        continue;
+      }
+      deck[counter].seqno = seqno;
+      deck[counter].size = static_cast<unsigned int>(size);
+      progress_update(seqno);
+      ++counter;
+    }
+    progress_done();
+    deck.resize(counter);
+    return deck;
+  }
+}
 
 
 auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
@@ -200,31 +227,7 @@ auto sortbysize() -> void
   db_read(opt_sortbysize, 0);
   show_rusage();
 
-  const auto dbsequencecount = db_getsequencecount();
-
-  progress_init("Getting sizes", dbsequencecount);
-
-  std::vector<struct sortinfo_size_s> deck(dbsequencecount);
-
-  auto passed = 0L;
-
-  for(auto seqno = 0U; seqno < dbsequencecount; ++seqno)
-    {
-      auto const size = static_cast<int64_t>(db_getabundance(seqno));
-
-      if ((size < opt_minsize) or (size > opt_maxsize)) {
-        continue;
-      }
-
-      deck[passed].seqno = seqno;
-      deck[passed].size = static_cast<unsigned int>(size);
-      ++passed;
-
-      progress_update(seqno);
-    }
-
-  progress_done();
-  deck.resize(passed);
+  auto deck = create_deck();
   show_rusage();
 
   sort_deck(deck);
