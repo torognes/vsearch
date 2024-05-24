@@ -114,29 +114,29 @@ auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
 
 
 // refactoring C++17 [[nodiscard]]
-auto find_median_length(std::vector<sortinfo_length_s> const & sortinfo_v) -> double
+auto find_median_length(std::vector<sortinfo_length_s> const & deck) -> double
 {
   // function returns a round value or a value with a remainder of 0.5
   static constexpr double half = 0.5;
 
-  if (sortinfo_v.empty()) {
+  if (deck.empty()) {
     return 0.0;
   }
 
   // refactoring C++11: use const& std::vector.size()
-  auto const midarray = std::ldiv(static_cast<long>(sortinfo_v.size()), 2L);
+  auto const midarray = std::ldiv(static_cast<long>(deck.size()), 2L);
 
   // odd number of valid amplicons
-  if (sortinfo_v.size() % 2 != 0)  {
-    return sortinfo_v[midarray.quot].length * 1.0;  // a round value
+  if (deck.size() % 2 != 0)  {
+    return deck[midarray.quot].length * 1.0;  // a round value
   }
 
   // even number of valid amplicons
   // (average of two ints is either round or has a remainder of .5)
   // avoid risk of silent overflow for large abundance values:
   // a >= b ; (a + b) / 2 == b + (a - b) / 2
-  return sortinfo_v[midarray.quot].length +
-    ((sortinfo_v[midarray.quot - 1].length - sortinfo_v[midarray.quot].length) * half);
+  return deck[midarray.quot].length +
+    ((deck[midarray.quot - 1].length - deck[midarray.quot].length) * half);
 }
 
 
