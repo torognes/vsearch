@@ -60,7 +60,7 @@
 */
 
 #include "vsearch.h"
-#include "utils/maps2.h"
+#include "utils/maps.hpp"
 #include <cinttypes> // macros PRIu64 and PRId64
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdint>  // int64_t
