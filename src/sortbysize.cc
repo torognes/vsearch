@@ -225,7 +225,6 @@ auto sortbysize() -> void
 
   progress_done();
   deck.resize(passed);
-  deck.shrink_to_fit();
   show_rusage();
 
   sort_deck(deck);
