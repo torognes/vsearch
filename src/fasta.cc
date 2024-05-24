@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdio> // std::FILE, std::fprintf, std::size_t
+
 
 fastx_handle fasta_open(const char * filename)
 {

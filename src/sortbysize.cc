@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include <algorithm>  // std::min, std::sort
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>   // std::ldiv
 #include <cstring>  // std::strcmp
 #include <vector>

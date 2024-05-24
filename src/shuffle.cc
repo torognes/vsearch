@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::min, std::shuffle
-#include <cstdio>  // std::FILE
+#include <cstdio>  // std::FILE, std::size_t
 #include <numeric>  // std::iota
 #include <random>
 #include <vector>

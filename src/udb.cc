@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cmath>
+#include <cstdio> // std::FILE, std::fprintf, std::size_t
 
 
 #define BLOCKSIZE (4096 * 4096)
