@@ -140,6 +140,23 @@ auto find_median_length(std::vector<sortinfo_length_s> const & deck) -> double
 }
 
 
+auto output_sorted_fasta(std::vector<struct sortinfo_length_s> & deck,
+                           long int const n_first_sequences,
+                           std::FILE * output_file) -> void {
+  auto const final_size = std::min(deck.size(),
+                                   static_cast<unsigned long>(n_first_sequences));
+  deck.resize(final_size);
+  progress_init("Writing output", deck.size());
+  auto counter = 0;
+  for(auto const & sequence: deck) {
+    fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
+    progress_update(counter);
+    ++counter;
+  }
+  progress_done();
+}
+
+
 auto sortbylength() -> void
 {
   if (opt_output == nullptr) {
@@ -187,19 +204,7 @@ auto sortbylength() -> void
 
   show_rusage();
 
-  passed = std::min(passed, opt_topn);
-  deck.resize(passed);
-  deck.shrink_to_fit();
-
-  progress_init("Writing output", passed);
-  auto counter = 0;
-  for(auto const & sequence: deck)
-    {
-      fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
-      progress_update(counter);
-      ++counter;
-    }
-  progress_done();
+  output_sorted_fasta(deck, opt_topn, fp_output);
   show_rusage();
 
   db_free();
