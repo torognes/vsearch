@@ -183,7 +183,6 @@ auto sortbylength() -> void
 
   show_rusage();
 
-  // refactoring: std::min()
   passed = std::min(passed, opt_topn);
   sortinfo_v.resize(passed);
   sortinfo_v.shrink_to_fit();
