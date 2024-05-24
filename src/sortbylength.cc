@@ -163,6 +163,19 @@ auto find_median_length(std::vector<sortinfo_length_s> const & deck) -> double
 }
 
 
+auto output_median_length(std::vector<struct sortinfo_length_s> & deck) -> void {
+  auto const median = find_median_length(deck);
+  if (not opt_quiet)
+    {
+      fprintf(stderr, "Median length: %.0f\n", median);
+    }
+  if (opt_log != nullptr)
+    {
+      fprintf(fp_log, "Median length: %.0f\n", median);
+    }
+}
+
+
 auto output_sorted_fasta(std::vector<struct sortinfo_length_s> & deck,
                            long int const n_first_sequences,
                            std::FILE * output_file) -> void {
@@ -199,15 +212,7 @@ auto sortbylength() -> void
 
   sort_deck(deck);
 
-  auto const median = find_median_length(deck);
-  if (not opt_quiet)
-    {
-      fprintf(stderr, "Median length: %.0f\n", median);
-    }
-  if (opt_log != nullptr)
-    {
-      fprintf(fp_log, "Median length: %.0f\n", median);
-    }
+  output_median_length(deck);
   show_rusage();
 
   output_sorted_fasta(deck, opt_topn, fp_output);
