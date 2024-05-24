@@ -74,6 +74,38 @@ struct sortinfo_size_s
 };
 
 
+auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
+  auto compare_sequences = [](struct sortinfo_size_s const & lhs,
+                              struct sortinfo_size_s const & rhs) -> bool {
+    // highest abundance first...
+    if (lhs.size < rhs.size) {
+      return false;
+    }
+    if (lhs.size > rhs.size) {
+      return true;
+    }
+    // ...then ties are sorted by sequence labels (alpha-numerical ordering)...
+    auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
+    if (result > 0) {
+      return false;
+    }
+    if (result < 0) {
+      return true;
+    }
+    // ... then ties are sorted by input order (seqno)
+    if (lhs.seqno < rhs.seqno) {
+      return true;
+    }
+    return false;
+  };
+
+  static constexpr auto one_hundred_percent = 100ULL;
+  progress_init("Sorting", one_hundred_percent);
+  std::sort(deck.begin(), deck.end(), compare_sequences);
+  progress_done();
+}
+
+
 // refactoring C++17 [[nodiscard]]
 auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) -> double
 {
@@ -98,6 +130,18 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) -> double
   // a >= b ; (a + b) / 2 == b + (a - b) / 2
   return deck[midarray.quot].size +
     ((deck[midarray.quot - 1].size - deck[midarray.quot].size) * half);
+}
+
+
+auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void {
+  // Banker's rounding (round half to even)
+  auto const median = find_median_abundance(deck);
+  if (not opt_quiet) {
+      static_cast<void>(fprintf(stderr, "Median abundance: %.0f\n", median));
+  }
+  if (opt_log != nullptr) {
+    static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));
+  }
 }
 
 
@@ -170,48 +214,9 @@ auto sortbysize() -> void
   deck.resize(passed);
   deck.shrink_to_fit();
 
-  /* sort */
-  auto compare_sequences = [](struct sortinfo_size_s const& lhs,
-                              struct sortinfo_size_s const& rhs) -> bool {
-    // highest abundance first...
-    if (lhs.size < rhs.size) {
-      return false;
-    }
-    if (lhs.size > rhs.size) {
-      return true;
-    }
-    // ...then ties are sorted by sequence labels (alpha-numerical ordering)...
-    auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
-    if (result > 0) {
-      return false;
-    }
-    if (result < 0) {
-      return true;
-    }
-    // ... then ties are sorted by input order (seqno)
-    if (lhs.seqno < rhs.seqno) {
-      return true;
-    }
-    return false;
-  };
+  sort_deck(deck);
 
-  static constexpr auto one_hundred_percent = 100ULL;
-  progress_init("Sorting", one_hundred_percent);
-  std::sort(deck.begin(), deck.end(), compare_sequences);
-  progress_done();
-
-  auto const median = find_median_abundance(deck);
-
-  if (not opt_quiet)
-    {
-      static_cast<void>(fprintf(stderr, "Median abundance: %.0f\n", median));  // Banker's rounding (round half to even)
-    }
-
-  if (opt_log != nullptr)
-    {
-      static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));  // Banker's rounding (round half to even)
-    }
-
+  output_median_abundance(deck);
   show_rusage();
 
   passed = std::min(passed, opt_topn);
