@@ -137,8 +137,7 @@ auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
 
 
 // refactoring C++17 [[nodiscard]]
-auto find_median_length(std::vector<sortinfo_length_s> const & deck) -> double
-{
+auto find_median_length(std::vector<sortinfo_length_s> const &deck) -> double {
   // function returns a round value or a value with a remainder of 0.5
   static constexpr double half = 0.5;
 
