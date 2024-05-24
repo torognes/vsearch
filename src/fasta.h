@@ -105,3 +105,7 @@ void fasta_print_db(FILE * fp,
 void fasta_print_db_relabel(FILE * fp,
                             uint64_t seqno,
                             int ordinal);
+
+auto fasta_print_db_relabel(std::FILE * fp,
+                            uint64_t seqno,
+                            std::size_t ordinal) -> void;

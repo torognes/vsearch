@@ -490,6 +490,25 @@ void fasta_print_db_relabel(FILE * fp,
                       nullptr, 0.0);
 }
 
+
+auto fasta_print_db_relabel(std::FILE * fp,
+                            uint64_t seqno,
+                            std::size_t ordinal) -> void
+{
+  fasta_print_general(fp,
+                      nullptr,
+                      db_getsequence(seqno),
+                      db_getsequencelen(seqno),
+                      db_getheader(seqno),
+                      db_getheaderlen(seqno),
+                      db_getabundance(seqno),
+                      static_cast<int>(ordinal),
+                      -1.0,
+                      -1, -1,
+                      nullptr, 0.0);
+}
+
+
 void fasta_print_db(FILE * fp, uint64_t seqno)
 {
   fasta_print_general(fp,

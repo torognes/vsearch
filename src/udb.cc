@@ -627,7 +627,7 @@ void udb_fasta()
 
   unsigned int seqcount = db_getsequencecount();
   progress_init("Writing FASTA file", seqcount);
-  for(unsigned int i = 0; i < seqcount; i++)
+  for(std::size_t i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(fp_output, i, i+1);
       progress_update(i+1);
