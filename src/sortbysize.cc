@@ -200,7 +200,7 @@ auto sortbysize() -> void
   std::sort(sortinfo_v.begin(), sortinfo_v.end(), compare_sequences);
   progress_done();
 
-  const double median = find_median_abundance(sortinfo_v);
+  auto const median = find_median_abundance(sortinfo_v);
 
   if (not opt_quiet)
     {

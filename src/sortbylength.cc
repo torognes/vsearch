@@ -199,7 +199,7 @@ auto sortbylength() -> void
 
   sort_deck(deck);
 
-  const double median = find_median_length(deck);
+  auto const median = find_median_length(deck);
   if (not opt_quiet)
     {
       fprintf(stderr, "Median length: %.0f\n", median);
