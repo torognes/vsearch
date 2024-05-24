@@ -174,15 +174,12 @@ auto sortbylength() -> void
   const auto dbsequencecount = db_getsequencecount();
   std::vector<struct sortinfo_length_s> deck(dbsequencecount);
 
-  auto passed = 0L;
-
   progress_init("Getting lengths", dbsequencecount);
   for(auto i = 0U; i < dbsequencecount; i++)
     {
-      deck[passed].seqno = i;
-      deck[passed].length = db_getsequencelen(i);
-      deck[passed].size = db_getabundance(i);
-      passed++;
+      deck[i].seqno = i;
+      deck[i].length = db_getsequencelen(i);
+      deck[i].size = db_getabundance(i);
       progress_update(i);
     }
   progress_done();
