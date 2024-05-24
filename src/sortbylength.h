@@ -58,4 +58,4 @@
 
 */
 
-void sortbylength();
+auto sortbylength() -> void;
