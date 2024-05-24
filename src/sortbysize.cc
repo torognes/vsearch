@@ -144,7 +144,7 @@ auto sortbysize() -> void
 
   progress_init("Getting sizes", dbsequencecount);
 
-  std::vector<struct sortinfo_size_s> sortinfo_v(dbsequencecount);
+  std::vector<struct sortinfo_size_s> deck(dbsequencecount);
 
   auto passed = 0L;
 
@@ -156,8 +156,8 @@ auto sortbysize() -> void
         continue;
       }
 
-      sortinfo_v[passed].seqno = seqno;
-      sortinfo_v[passed].size = static_cast<unsigned int>(size);
+      deck[passed].seqno = seqno;
+      deck[passed].size = static_cast<unsigned int>(size);
       ++passed;
 
       progress_update(seqno);
@@ -167,8 +167,8 @@ auto sortbysize() -> void
 
   show_rusage();
 
-  sortinfo_v.resize(passed);
-  sortinfo_v.shrink_to_fit();
+  deck.resize(passed);
+  deck.shrink_to_fit();
 
   /* sort */
   auto compare_sequences = [](struct sortinfo_size_s const& lhs,
@@ -197,10 +197,10 @@ auto sortbysize() -> void
 
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Sorting", one_hundred_percent);
-  std::sort(sortinfo_v.begin(), sortinfo_v.end(), compare_sequences);
+  std::sort(deck.begin(), deck.end(), compare_sequences);
   progress_done();
 
-  auto const median = find_median_abundance(sortinfo_v);
+  auto const median = find_median_abundance(deck);
 
   if (not opt_quiet)
     {
@@ -215,12 +215,12 @@ auto sortbysize() -> void
   show_rusage();
 
   passed = std::min(passed, opt_topn);
-  sortinfo_v.resize(passed);
-  sortinfo_v.shrink_to_fit();
+  deck.resize(passed);
+  deck.shrink_to_fit();
 
   progress_init("Writing output", passed);
   auto counter = std::size_t{0};
-  for(auto const & sequence: sortinfo_v)
+  for(auto const & sequence: deck)
     {
       fasta_print_db_relabel(fp_output, sequence.seqno, counter + 1);
       progress_update(counter);
