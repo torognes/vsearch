@@ -171,7 +171,7 @@ auto sortbylength() -> void
   db_read(opt_sortbylength, 0);
   show_rusage();
 
-  const auto dbsequencecount = db_getsequencecount();
+  auto const dbsequencecount = db_getsequencecount();
   std::vector<struct sortinfo_length_s> deck(dbsequencecount);
 
   progress_init("Getting lengths", dbsequencecount);
