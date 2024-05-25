@@ -105,7 +105,7 @@ auto truncate_deck(std::vector<int> & deck,
 }
 
 
-auto output_shuffled_fasta(std::vector<int> & deck,
+auto output_shuffled_fasta(std::vector<int> const & deck,
                            std::FILE * output_file) -> void {
   progress_init("Writing output", deck.size());
   auto counter = std::size_t{0};

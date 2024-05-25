@@ -185,7 +185,7 @@ auto truncate_deck(std::vector<struct sortinfo_length_s> &deck,
 
 
 // refactoring: extract as a template
-auto output_sorted_fasta(std::vector<struct sortinfo_length_s> & deck,
+auto output_sorted_fasta(std::vector<struct sortinfo_length_s> const & deck,
                            std::FILE * output_file) -> void {
   progress_init("Writing output", deck.size());
   auto counter = std::size_t{0};
