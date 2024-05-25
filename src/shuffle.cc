@@ -97,12 +97,16 @@ auto shuffle_deck(std::vector<int> & deck) -> void {
 }
 
 
-auto output_shuffled_fasta(std::vector<int> & deck,
-                           long int const n_first_sequences,
-                           std::FILE * output_file) -> void {
+auto truncate_deck(std::vector<int> & deck,
+                   long int const n_first_sequences) -> void {
   auto const final_size = std::min(deck.size(),
                                    static_cast<unsigned long>(n_first_sequences));
   deck.resize(final_size);
+}
+
+
+auto output_shuffled_fasta(std::vector<int> & deck,
+                           std::FILE * output_file) -> void {
   progress_init("Writing output", deck.size());
   auto counter = std::size_t{0};
   for (auto const sequence_id: deck) {
@@ -132,7 +136,8 @@ auto shuffle() -> void {
   shuffle_deck(deck);
   show_rusage();
 
-  output_shuffled_fasta(deck, opt_topn, fp_output);
+  truncate_deck(deck, opt_topn);
+  output_shuffled_fasta(deck, fp_output);
   show_rusage();
 
   db_free();
