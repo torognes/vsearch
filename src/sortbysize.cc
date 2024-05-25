@@ -172,13 +172,17 @@ auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void 
 }
 
 
-// refactoring: extract as a template
-auto output_sorted_fasta(std::vector<struct sortinfo_size_s> & deck,
-                           long int const n_first_sequences,
-                           std::FILE * output_file) -> void {
+auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
+                   long int const n_first_sequences) -> void {
   auto const final_size = std::min(deck.size(),
                                    static_cast<unsigned long>(n_first_sequences));
   deck.resize(final_size);
+}
+
+
+// refactoring: extract as a template
+auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
+                           std::FILE * output_file) -> void {
   progress_init("Writing output", deck.size());
   auto counter = std::size_t{0};
   for (auto const & sequence: deck) {
@@ -238,7 +242,8 @@ auto sortbysize() -> void
   output_median_abundance(deck);
   show_rusage();
 
-  output_sorted_fasta(deck, opt_topn, fp_output);
+  truncate_deck(deck, opt_topn);
+  output_sorted_fasta(deck, fp_output);
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();
