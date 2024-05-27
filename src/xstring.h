@@ -58,13 +58,17 @@
 
 */
 
+#include <cstdio>  // std::size_t, std::snprintf
+#include <cstring>  // std::strlen, std::strcpy
+
+
 static char empty_string[1] = "";
 
 class xstring
 {
   char * string;
-  size_t length;
-  size_t alloc;
+  std::size_t length;
+  std::size_t alloc;
 
  public:
 
@@ -103,14 +107,14 @@ class xstring
       }
   }
 
-  size_t get_length() const
+  std::size_t get_length() const
   {
     return length;
   }
 
   auto add_c(char c) -> void
   {
-    const size_t needed = 1;
+    const std::size_t needed = 1;
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
@@ -134,19 +138,19 @@ class xstring
         alloc = length + needed + 1;
         string = (char*) xrealloc(string, alloc);
       }
-    snprintf(string + length, needed + 1, "%d", d);
+    std::snprintf(string + length, needed + 1, "%d", d);
     length += needed;
   }
 
   auto add_s(char * s) -> void
   {
-    const size_t needed = strlen(s);
+    const std::size_t needed = std::strlen(s);
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
         string = (char*) xrealloc(string, alloc);
       }
-    strcpy(string + length, s);
+    std::strcpy(string + length, s);
     length += needed;
   }
 };
