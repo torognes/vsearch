@@ -58,9 +58,13 @@
 
 */
 
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::FILE
+
+
 auto header_get_size(char * header, int header_length) -> int64_t;
 
-auto header_fprint_strip(FILE * fp,
+auto header_fprint_strip(std::FILE * fp,
                          char * header,
                          int header_length,
                          bool strip_size,
