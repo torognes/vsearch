@@ -127,7 +127,7 @@ class xstring
 
   auto add_d(int d) -> void
   {
-    const int needed = snprintf(nullptr, 0, "%d", d);
+    auto const needed = snprintf(nullptr, 0, "%d", d);
     if (needed < 0)
       {
         fatal("snprintf failed");
@@ -144,7 +144,7 @@ class xstring
 
   auto add_s(char * s) -> void
   {
-    const std::size_t needed = std::strlen(s);
+    auto const needed = std::strlen(s);
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
