@@ -70,12 +70,12 @@ struct fastx_buffer_s
   uint64_t position;
 };
 
-void buffer_init(struct fastx_buffer_s * buffer);
-void buffer_free(struct fastx_buffer_s * buffer);
-void buffer_extend(struct fastx_buffer_s * dest_buffer,
+auto buffer_init(struct fastx_buffer_s * buffer) -> void;
+auto buffer_free(struct fastx_buffer_s * buffer) -> void;
+auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char * source_buf,
-                   uint64_t len);
-void buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x);
+                   uint64_t len) -> void;
+auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void;
 
 struct fastx_s
 {
@@ -118,25 +118,25 @@ typedef struct fastx_s * fastx_handle;
 
 /* fastx input */
 
-bool fastx_is_fastq(fastx_handle h);
-bool fastx_is_empty(fastx_handle h);
-bool fastx_is_pipe(fastx_handle h);
-void fastx_filter_header(fastx_handle h, bool truncateatspace);
-fastx_handle fastx_open(const char * filename);
-void fastx_close(fastx_handle h);
-bool fastx_next(fastx_handle h,
+auto fastx_is_fastq(fastx_handle h) -> bool;
+auto fastx_is_empty(fastx_handle h) -> bool;
+auto fastx_is_pipe(fastx_handle h) -> bool;
+auto fastx_filter_header(fastx_handle h, bool truncateatspace) -> void;
+auto fastx_open(const char * filename) -> fastx_handle;
+auto fastx_close(fastx_handle h) -> void;
+auto fastx_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping);
-uint64_t fastx_get_position(fastx_handle h);
-uint64_t fastx_get_size(fastx_handle h);
-uint64_t fastx_get_lineno(fastx_handle h);
-uint64_t fastx_get_seqno(fastx_handle h);
-char * fastx_get_header(fastx_handle h);
-char * fastx_get_sequence(fastx_handle h);
-uint64_t fastx_get_header_length(fastx_handle h);
-uint64_t fastx_get_sequence_length(fastx_handle h);
+                const unsigned char * char_mapping) -> bool;
+auto fastx_get_position(fastx_handle h) -> uint64_t;
+auto fastx_get_size(fastx_handle h) -> uint64_t;
+auto fastx_get_lineno(fastx_handle h) -> uint64_t;
+auto fastx_get_seqno(fastx_handle h) -> uint64_t;
+auto fastx_get_header(fastx_handle h) -> char *;
+auto fastx_get_sequence(fastx_handle h) -> char *;
+auto fastx_get_header_length(fastx_handle h) -> uint64_t;
+auto fastx_get_sequence_length(fastx_handle h) -> uint64_t;
 
-char * fastx_get_quality(fastx_handle h);
-int64_t fastx_get_abundance(fastx_handle h);
+auto fastx_get_quality(fastx_handle h) -> char *;
+auto fastx_get_abundance(fastx_handle h) -> int64_t;
 
-uint64_t fastx_file_fill_buffer(fastx_handle h);
+auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t;
