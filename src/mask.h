@@ -65,10 +65,10 @@ constexpr auto MASK_DUST = 1;
 constexpr auto MASK_SOFT = 2;
 
 
-void maskfasta();
-void fastx_mask();
+auto maskfasta() -> void;
+auto fastx_mask() -> void;
 
-void dust(char * m, int len);
-void hardmask(char * seq, int len);
-void dust_all();
-void hardmask_all();
+auto dust(char * m, int len) -> void;
+auto hardmask(char * seq, int len) -> void;
+auto dust_all() -> void;
+auto hardmask_all() -> void;
