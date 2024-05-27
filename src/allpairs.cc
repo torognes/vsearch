@@ -88,7 +88,7 @@ static FILE * fp_tsegout = nullptr;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
-inline int allpairs_hit_compare_typed(struct hit * x, struct hit * y)
+inline auto allpairs_hit_compare_typed(struct hit * x, struct hit * y) -> int
 {
   // high id, then low id
   // early target, then late target
@@ -115,17 +115,17 @@ inline int allpairs_hit_compare_typed(struct hit * x, struct hit * y)
     }
 }
 
-int allpairs_hit_compare(const void * a, const void * b)
+auto allpairs_hit_compare(const void * a, const void * b) -> int
 {
   return allpairs_hit_compare_typed((struct hit *) a, (struct hit *) b);
 }
 
-void allpairs_output_results(int hit_count,
+auto allpairs_output_results(int hit_count,
                              struct hit * hits,
                              char * query_head,
                              int qseqlen,
                              char * qsequence,
-                             char * qsequence_rc)
+                             char * qsequence_rc) -> void
 {
   /* show results */
   int64_t toreport = MIN(opt_maxhits, hit_count);
@@ -288,7 +288,7 @@ void allpairs_output_results(int hit_count,
     }
 }
 
-void allpairs_thread_run(int64_t t)
+auto allpairs_thread_run(int64_t t) -> void
 {
   (void) t;
 
@@ -561,14 +561,14 @@ void allpairs_thread_run(int64_t t)
   xfree(si->hits);
 }
 
-void * allpairs_thread_worker(void * vp)
+auto allpairs_thread_worker(void * vp) -> void *
 {
   auto t = (int64_t) vp;
   allpairs_thread_run(t);
   return nullptr;
 }
 
-void allpairs_thread_worker_run()
+auto allpairs_thread_worker_run() -> void
 {
   /* initialize threads, start them, join them and return */
 
@@ -592,7 +592,7 @@ void allpairs_thread_worker_run()
 }
 
 
-void allpairs_global(char * cmdline, char * progheader)
+auto allpairs_global(char * cmdline, char * progheader) -> void
 {
   opt_strand = 1;
   opt_uc_allhits = 1;
