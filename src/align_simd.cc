@@ -1065,20 +1065,20 @@ void backtrack16(s16info_s * s,
   * pgaps = gaps;
 }
 
-struct s16info_s * search16_init(CELL score_match,
-                                 CELL score_mismatch,
-                                 CELL penalty_gap_open_query_left,
-                                 CELL penalty_gap_open_target_left,
-                                 CELL penalty_gap_open_query_interior,
-                                 CELL penalty_gap_open_target_interior,
-                                 CELL penalty_gap_open_query_right,
-                                 CELL penalty_gap_open_target_right,
-                                 CELL penalty_gap_extension_query_left,
-                                 CELL penalty_gap_extension_target_left,
-                                 CELL penalty_gap_extension_query_interior,
-                                 CELL penalty_gap_extension_target_interior,
-                                 CELL penalty_gap_extension_query_right,
-                                 CELL penalty_gap_extension_target_right)
+auto search16_init(CELL score_match,
+                   CELL score_mismatch,
+                   CELL penalty_gap_open_query_left,
+                   CELL penalty_gap_open_target_left,
+                   CELL penalty_gap_open_query_interior,
+                   CELL penalty_gap_open_target_interior,
+                   CELL penalty_gap_open_query_right,
+                   CELL penalty_gap_open_target_right,
+                   CELL penalty_gap_extension_query_left,
+                   CELL penalty_gap_extension_target_left,
+                   CELL penalty_gap_extension_query_interior,
+                   CELL penalty_gap_extension_target_interior,
+                   CELL penalty_gap_extension_query_right,
+                   CELL penalty_gap_extension_target_right) -> struct s16info_s *
 {
   (void) score_match;
   (void) score_mismatch;
