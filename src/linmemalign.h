@@ -58,6 +58,10 @@
 
 */
 
+#include <cstdio>  // std::FILE, std::size_t
+#include <cstdint>  // int64_t
+
+
 class LinearMemoryAligner
 {
   char op;
@@ -88,7 +92,7 @@ class LinearMemoryAligner
   int64_t ge_q_r;
   int64_t ge_t_r;
 
-  size_t vector_alloc;
+  std::size_t vector_alloc;
 
   int64_t * HH;
   int64_t * EE;
@@ -120,7 +124,7 @@ class LinearMemoryAligner
             bool b_left,      /* includes left end of b  */
             bool b_right);    /* includes right end of b */
 
-  void alloc_vectors(size_t x);
+  void alloc_vectors(std::size_t x);
 
   void show_matrix();
 
