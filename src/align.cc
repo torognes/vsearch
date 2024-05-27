@@ -164,7 +164,7 @@ struct nwinfo_s * nw_init()
   return nw;
 }
 
-void nw_exit(struct nwinfo_s * nw)
+auto nw_exit(struct nwinfo_s * nw) -> void
 {
   if (nw->dir)
     {
@@ -177,12 +177,12 @@ void nw_exit(struct nwinfo_s * nw)
   xfree(nw);
 }
 
-inline int64_t getscore(int64_t * score_matrix, char a, char b)
+inline auto getscore(int64_t * score_matrix, char a, char b) -> int64_t
 {
   return score_matrix[(chrmap_4bit[(int) a] << 4) + chrmap_4bit[(int) b]];
 }
 
-void nw_align(char * dseq,
+auto nw_align(char * dseq,
               char * dend,
               char * qseq,
               char * qend,
@@ -207,7 +207,7 @@ void nw_align(char * dseq,
               char ** nwalignment,
               int64_t queryno,
               int64_t dbseqno,
-              struct nwinfo_s * nw)
+              struct nwinfo_s * nw) -> void
 {
 
   int64_t h;
