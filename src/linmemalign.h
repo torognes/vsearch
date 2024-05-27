@@ -101,7 +101,7 @@ class LinearMemoryAligner
 
   void cigar_add(char _op, int64_t run);
 
-  inline int64_t subst_score(int64_t x, int64_t y)
+  int64_t subst_score(int64_t x, int64_t y)
   {
     /* return substitution score for replacing symbol at position x in a
        with symbol at position y in b */
