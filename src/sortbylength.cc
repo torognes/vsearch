@@ -66,6 +66,10 @@
 #include <cstring>  // std::strcmp
 #include <vector>
 
+#ifndef NDEBUG
+#include <limits>
+#endif
+
 
 struct sortinfo_length_s
 {
