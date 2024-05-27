@@ -118,7 +118,7 @@ class xstring
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
-        string = (char*) xrealloc(string, alloc);
+        string = (char *) xrealloc(string, alloc);
       }
     string[length] = c;
     length += 1;
@@ -136,7 +136,7 @@ class xstring
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
-        string = (char*) xrealloc(string, alloc);
+        string = (char *) xrealloc(string, alloc);
       }
     std::snprintf(string + length, needed + 1, "%d", d);
     length += needed;
@@ -148,7 +148,7 @@ class xstring
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
-        string = (char*) xrealloc(string, alloc);
+        string = (char *) xrealloc(string, alloc);
       }
     std::strcpy(string + length, s);
     length += needed;
