@@ -58,6 +58,10 @@
 
 */
 
+#include <cstdio>  // std::FILE
+#include <cstdint>  // uint64_t
+
+
 struct fastx_buffer_s
 {
   char * data;
@@ -79,7 +83,7 @@ struct fastx_s
   bool is_fastq;
   bool is_empty;
 
-  FILE * fp;
+  std::FILE * fp;
 
 #ifdef HAVE_ZLIB_H
   gzFile fp_gz;
