@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // std::FILE
+#include <cstdint>  // uint64_t
 
 
 const int memalignment = 16;
@@ -287,7 +289,7 @@ auto xlseek(int fd, uint64_t offset, int whence) -> uint64_t
 #endif
 }
 
-auto xftello(FILE * stream) -> uint64_t
+auto xftello(std::FILE * stream) -> uint64_t
 {
 #ifdef _WIN32
   return _ftelli64(stream);
