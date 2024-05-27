@@ -79,7 +79,7 @@
 constexpr int MD5_DIGEST_LENGTH {16};
 #define LEN_DIG_SHA1 SHA_DIGEST_LENGTH
 
-constexpr int LEN_HEX_DIG_MD5 {2 * MD5_DIGEST_LENGTH + 1};
+constexpr int LEN_HEX_DIG_MD5 {(2 * MD5_DIGEST_LENGTH) + 1};
 #define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
 
 auto fatal(const char * msg) -> void;
