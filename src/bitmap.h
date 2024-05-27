@@ -58,6 +58,9 @@
 
 */
 
+#include <cstring> // std::memset
+
+
 typedef struct bitmap_s
 {
   unsigned char * bitmap; /* the actual bitmap */
@@ -75,12 +78,12 @@ inline unsigned char bitmap_get(bitmap_t * b, unsigned int x)
 
 inline void bitmap_reset_all(bitmap_t * b)
 {
-  memset(b->bitmap, 0, (b->size + 7) / 8);
+  std::memset(b->bitmap, 0, (b->size + 7) / 8);
 }
 
 inline void bitmap_set_all(bitmap_t * b)
 {
-  memset(b->bitmap, 255, (b->size + 7) / 8);
+  std::memset(b->bitmap, 255, (b->size + 7) / 8);
 }
 
 inline void bitmap_reset(bitmap_t * b, unsigned int x)
