@@ -222,7 +222,7 @@ struct s16info_s
   CELL penalty_gap_extension_target_right;
 };
 
-void _mm_print(VECTOR_SHORT x)
+auto _mm_print(VECTOR_SHORT x) -> void
 {
   auto * y = (unsigned short *) &x;
   for (int i = 0; i < 8; i++)
@@ -231,7 +231,7 @@ void _mm_print(VECTOR_SHORT x)
     }
 }
 
-void _mm_print2(VECTOR_SHORT x)
+auto _mm_print2(VECTOR_SHORT x) -> void
 {
   auto * y = (signed short *) &x;
   for (int i = 0; i < 8; i++)
@@ -240,7 +240,7 @@ void _mm_print2(VECTOR_SHORT x)
     }
 }
 
-void dprofile_dump16(CELL * dprofile)
+auto dprofile_dump16(CELL * dprofile) -> void
 {
   char * s = sym_nt_4bit;
   printf("\ndprofile:\n");
@@ -260,7 +260,7 @@ void dprofile_dump16(CELL * dprofile)
     }
 }
 
-void dumpscorematrix(CELL * m)
+auto dumpscorematrix(CELL * m) -> void
 {
   for(int i = 0; i < 16; i++)
     {
@@ -273,9 +273,9 @@ void dumpscorematrix(CELL * m)
     }
 }
 
-void dprofile_fill16(CELL * dprofile_word,
+auto dprofile_fill16(CELL * dprofile_word,
                      CELL * score_matrix_word,
-                     BYTE * dseq)
+                     BYTE * dseq) -> void
 {
 #if 0
   dumpscorematrix(score_matrix_word);
@@ -543,7 +543,7 @@ const __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
 
 #endif
 
-void aligncolumns_first(VECTOR_SHORT * Sm,
+auto aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT * hep,
                         VECTOR_SHORT ** qp,
                         VECTOR_SHORT QR_q_i,
@@ -574,7 +574,7 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT M_QR_q_interior,
                         VECTOR_SHORT M_QR_q_right,
                         int64_t ql,
-                        unsigned short * dir)
+                        unsigned short * dir) -> void
 {
 
   VECTOR_SHORT h4;
@@ -710,7 +710,7 @@ void aligncolumns_first(VECTOR_SHORT * Sm,
   *_h_max = h_max;
 }
 
-void aligncolumns_rest(VECTOR_SHORT * Sm,
+auto aligncolumns_rest(VECTOR_SHORT * Sm,
                        VECTOR_SHORT * hep,
                        VECTOR_SHORT ** qp,
                        VECTOR_SHORT QR_q_i,
@@ -736,7 +736,7 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
                        VECTOR_SHORT * _h_min,
                        VECTOR_SHORT * _h_max,
                        int64_t ql,
-                       unsigned short * dir)
+                       unsigned short * dir) -> void
 {
   VECTOR_SHORT h4;
   VECTOR_SHORT h5;
@@ -847,7 +847,7 @@ void aligncolumns_rest(VECTOR_SHORT * Sm,
   *_h_max = h_max;
 }
 
-inline void pushop(s16info_s * s, char newop)
+inline auto pushop(s16info_s * s, char newop) -> void
 {
   if (newop == s->op)
     {
@@ -869,7 +869,7 @@ inline void pushop(s16info_s * s, char newop)
     }
 }
 
-inline void finishop(s16info_s * s)
+inline auto finishop(s16info_s * s) -> void
 {
   if (s->op && s->opcount)
     {
@@ -887,7 +887,7 @@ inline void finishop(s16info_s * s)
     }
 }
 
-void backtrack16(s16info_s * s,
+auto backtrack16(s16info_s * s,
                  char * dseq,
                  uint64_t dlen,
                  uint64_t offset,
@@ -895,7 +895,7 @@ void backtrack16(s16info_s * s,
                  unsigned short * paligned,
                  unsigned short * pmatches,
                  unsigned short * pmismatches,
-                 unsigned short * pgaps)
+                 unsigned short * pgaps) -> void
 {
   unsigned short * dirbuffer = s->dir;
   uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
@@ -1153,7 +1153,7 @@ auto search16_init(CELL score_match,
   return s;
 }
 
-void search16_exit(s16info_s * s)
+auto search16_exit(s16info_s * s) -> void
 {
   /* free mem for dprofile, hearray, dir, qtable */
   if (s->dir)
@@ -1179,7 +1179,7 @@ void search16_exit(s16info_s * s)
   xfree(s);
 }
 
-void search16_qprep(s16info_s * s, char * qseq, int qlen)
+auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
 {
   s->qlen = qlen;
   s->qseq = qseq;
@@ -1203,7 +1203,7 @@ void search16_qprep(s16info_s * s, char * qseq, int qlen)
     }
 }
 
-void search16(s16info_s * s,
+auto search16(s16info_s * s,
               unsigned int sequences,
               unsigned int * seqnos,
               CELL * pscores,
@@ -1211,7 +1211,7 @@ void search16(s16info_s * s,
               unsigned short * pmatches,
               unsigned short * pmismatches,
               unsigned short * pgaps,
-              char ** pcigar)
+              char ** pcigar) -> void
 {
   CELL ** q_start = (CELL**) s->qtable;
   CELL * dprofile = (CELL*) s->dprofile;
