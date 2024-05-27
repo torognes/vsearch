@@ -62,11 +62,11 @@
 #include <cstdio>  // FILE
 
 
-char * align_getrow(char * seq, char * cigar, int alignlen, int origin);
+auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *;
 
-void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar);
+auto align_fprint_uncompressed_alignment(std::FILE * f, char * cigar) -> void;
 
-void align_show(std::FILE * f,
+auto align_show(std::FILE * f,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
@@ -80,4 +80,4 @@ void align_show(std::FILE * f,
                 int numwidth,
                 int namewidth,
                 int alignwidth,
-                int strand);
+                int strand) -> void;

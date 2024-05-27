@@ -58,5 +58,4 @@
 
 */
 
-void sintax();
-
+auto sintax() -> void;

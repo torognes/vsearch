@@ -58,4 +58,4 @@
 
 */
 
-void sff_convert();
+auto sff_convert() -> void;
