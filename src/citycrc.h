@@ -33,13 +33,13 @@
 
 
 // Hash function for a byte array.
-uint128 CityHashCrc128(const char *s, std::size_t len);
+auto CityHashCrc128(const char *s, std::size_t len) -> uint128;
 
 // Hash function for a byte array.  For convenience, a 128-bit seed is also
 // hashed into the result.
-uint128 CityHashCrc128WithSeed(const char *s, std::size_t len, uint128 seed);
+auto CityHashCrc128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128;
 
 // Hash function for a byte array.  Sets result[0] ... result[3].
-void CityHashCrc256(const char *s, std::size_t len, uint64 *result);
+auto CityHashCrc256(const char *s, std::size_t len, uint64 *result) -> void;
 
 #endif  // CITY_HASH_CRC_H_
