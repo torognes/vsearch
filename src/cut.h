@@ -58,4 +58,4 @@
 
 */
 
-void cut();
+auto cut() -> void;
