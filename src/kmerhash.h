@@ -60,15 +60,15 @@
 
 struct kh_handle_s;
 
-struct kh_handle_s * kh_init();
-void kh_exit(struct kh_handle_s * kh);
+auto kh_init() -> struct kh_handle_s *;
+auto kh_exit(struct kh_handle_s * kh) -> void;
 
-void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len);
+auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> void;
 
-int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len);
+auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) -> int;
 
-void kh_find_diagonals(struct kh_handle_s * kh,
+auto kh_find_diagonals(struct kh_handle_s * kh,
                        int k,
                        char * seq,
                        int len,
-                       int * diags);
+                       int * diags) -> void;
