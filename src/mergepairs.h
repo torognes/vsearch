@@ -58,4 +58,4 @@
 
 */
 
-void fastq_mergepairs();
+auto fastq_mergepairs() -> void;
