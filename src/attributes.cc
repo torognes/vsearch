@@ -61,12 +61,12 @@
 #include "vsearch.h"
 
 
-bool header_find_attribute(const char * header,
+auto header_find_attribute(const char * header,
                            int header_length,
                            const char * attribute,
                            int * start,
                            int * end,
-                           bool allow_decimal)
+                           bool allow_decimal) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -132,7 +132,7 @@ bool header_find_attribute(const char * header,
   return false;
 }
 
-int64_t header_get_size(char * header, int header_length)
+auto header_get_size(char * header, int header_length) -> int64_t
 {
   /* read size/abundance annotation */
   int64_t abundance = 0;
@@ -158,19 +158,19 @@ int64_t header_get_size(char * header, int header_length)
   return abundance;
 }
 
-void swap(int * a, int * b)
+auto swap(int * a, int * b) -> void
 {
   int temp = *a;
   *a = *b;
   *b = temp;
 }
 
-void header_fprint_strip(FILE * fp,
+auto header_fprint_strip(FILE * fp,
                          char * header,
                          int header_length,
                          bool strip_size,
                          bool strip_ee,
-                         bool strip_length)
+                         bool strip_length) -> void
 {
   int attributes = 0;
   int attribute_start[3];
