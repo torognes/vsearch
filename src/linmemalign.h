@@ -109,7 +109,7 @@ class LinearMemoryAligner
   {
     /* return substitution score for replacing symbol at position x in a
        with symbol at position y in b */
-    return scorematrix[chrmap_4bit[(int)(b_seq[y])] * 16 +
+    return scorematrix[(chrmap_4bit[(int)(b_seq[y])] * 16) +
                        chrmap_4bit[(int)(a_seq[x])]];
   }
 
