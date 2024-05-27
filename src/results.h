@@ -58,57 +58,61 @@
 
 */
 
-void results_show_alnout(FILE * fp,
+#include <cstdio>  // std::FILE
+#include <cstdint>  // int64_t
+
+
+void results_show_alnout(std::FILE * fp,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
                          int64_t qseqlen);
 
-void results_show_lcaout(FILE * fp,
+void results_show_lcaout(std::FILE * fp,
                          struct hit * hits,
                          int hitcount,
                          char * query_head);
 
-void results_show_blast6out_one(FILE * fp,
+void results_show_blast6out_one(std::FILE * fp,
                                 struct hit * hp,
                                 char * query_head,
                                 int64_t qseqlen);
 
-void results_show_uc_one(FILE * fp,
+void results_show_uc_one(std::FILE * fp,
                          struct hit * hp,
                          char * query_head,
                          int64_t qseqlen,
                          int clusterno);
 
-void results_show_userout_one(FILE * fp,
+void results_show_userout_one(std::FILE * fp,
                               struct hit * hp,
                               char * query_head,
                               char * qsequence,
                               int64_t qseqlen,
                               char * rc);
 
-void results_show_fastapairs_one(FILE * fp,
+void results_show_fastapairs_one(std::FILE * fp,
                                  struct hit * hp,
                                  char * query_head,
                                  char * qsequence,
                                  char * rc);
 
-void results_show_qsegout_one(FILE * fp,
+void results_show_qsegout_one(std::FILE * fp,
                               struct hit * hp,
                               char * query_head,
                               char * qsequence,
                               int64_t qseqlen,
                               char * rc);
 
-void results_show_tsegout_one(FILE * fp,
+void results_show_tsegout_one(std::FILE * fp,
                               struct hit * hp);
 
-void results_show_samheader(FILE * fp,
+void results_show_samheader(std::FILE * fp,
                             char * cmdline,
                             char * dbname);
 
-void results_show_samout(FILE * fp,
+void results_show_samout(std::FILE * fp,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
