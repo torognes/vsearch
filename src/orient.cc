@@ -84,7 +84,7 @@ unsigned int rc_kmer(unsigned int kmer)
 
 void orient()
 {
-  fastx_handle query_h;
+  fastx_handle query_h = nullptr;
 
   FILE * fp_fastaout = nullptr;
   FILE * fp_fastqout = nullptr;
@@ -208,8 +208,8 @@ void orient()
 
       /* find kmers in query sequence */
 
-      unsigned int kmer_count_fwd;
-      unsigned int * kmer_list_fwd;
+      unsigned int kmer_count_fwd = 0;
+      unsigned int * kmer_list_fwd = 0;
 
       unique_count(uh_fwd, opt_wordlength, qseqlen, qseq_fwd,
                    & kmer_count_fwd, & kmer_list_fwd, opt_qmask);
