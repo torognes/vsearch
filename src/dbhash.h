@@ -58,6 +58,9 @@
 
 */
 
+#include <cstdint>  // uint64_t
+
+
 struct dbhash_bucket_s
 {
   uint64_t hash;
