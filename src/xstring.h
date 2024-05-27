@@ -103,7 +103,7 @@ class xstring
       }
   }
 
-  size_t get_length()
+  size_t get_length() const
   {
     return length;
   }
