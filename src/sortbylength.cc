@@ -118,24 +118,15 @@ auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
     if (lhs.size > rhs.size) {
       return true;
     }
-    // ...then ties are sorted by sequence labels (alpha-numerical ordering)...
+    // ...then ties are sorted by sequence labels (alpha-numerical ordering),
+    // preserve input order
     auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
-    if (result > 0) {
-      return false;
-    }
-    if (result < 0) {
-      return true;
-    }
-    // ... then ties are sorted by input order (seqno)
-    if (lhs.seqno < rhs.seqno) {
-      return true;
-    }
-    return false;
+    return result < 0;
   };
 
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Sorting", one_hundred_percent);
-  std::sort(deck.begin(), deck.end(), compare_sequences);
+  std::stable_sort(deck.begin(), deck.end(), compare_sequences);
   progress_done();
 }
 
