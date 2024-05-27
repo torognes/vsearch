@@ -63,7 +63,7 @@
 
 struct nwinfo_s;
 
-struct nwinfo_s * nw_init();
+auto nw_init() -> struct nwinfo_s *;
 
 auto nw_exit(struct nwinfo_s * nw) -> void;
 
