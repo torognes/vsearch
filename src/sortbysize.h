@@ -58,4 +58,4 @@
 
 */
 
-void sortbysize();
+auto sortbysize() -> void;
