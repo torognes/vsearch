@@ -58,34 +58,37 @@
 
 */
 
+#include <cstdio>  // std::FILE
+#include <cstdint>  // uint64_t
+
 
 /* fasta input */
 
-void fasta_open_rest(fastx_handle h);
-fastx_handle fasta_open(const char * filename);
-void fasta_close(fastx_handle h);
-bool fasta_next(fastx_handle h,
+auto fasta_open_rest(fastx_handle h) -> void;
+auto fasta_open(const char * filename) -> fastx_handle;
+auto fasta_close(fastx_handle h) -> void;
+auto fasta_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping);
-uint64_t fasta_get_position(fastx_handle h);
-uint64_t fasta_get_size(fastx_handle h);
-uint64_t fasta_get_lineno(fastx_handle h);
-uint64_t fasta_get_seqno(fastx_handle h);
-char * fasta_get_header(fastx_handle h);
-char * fasta_get_sequence(fastx_handle h);
-uint64_t fasta_get_header_length(fastx_handle h);
-uint64_t fasta_get_sequence_length(fastx_handle h);
-int64_t fasta_get_abundance(fastx_handle h);
-int64_t fasta_get_abundance_and_presence(fastx_handle h);
+                const unsigned char * char_mapping) -> bool;
+auto fasta_get_position(fastx_handle h) -> uint64_t;
+auto fasta_get_size(fastx_handle h) -> uint64_t;
+auto fasta_get_lineno(fastx_handle h) -> uint64_t;
+auto fasta_get_seqno(fastx_handle h) -> uint64_t;
+auto fasta_get_header(fastx_handle h) -> char *;
+auto fasta_get_sequence(fastx_handle h) -> char *;
+auto fasta_get_header_length(fastx_handle h) -> uint64_t;
+auto fasta_get_sequence_length(fastx_handle h) -> uint64_t;
+auto fasta_get_abundance(fastx_handle h) -> int64_t;
+auto fasta_get_abundance_and_presence(fastx_handle h) -> int64_t;
 
 /* fasta output */
 
-void fasta_print(FILE * fp,
+auto fasta_print(std::FILE * fp,
                  const char * hdr,
                  char * seq,
-                 uint64_t len);
+                 uint64_t len) -> void;
 
-void fasta_print_general(FILE * fp,
+auto fasta_print_general(std::FILE * fp,
                          const char * prefix,
                          char * seq,
                          int len,
@@ -97,14 +100,14 @@ void fasta_print_general(FILE * fp,
                          int clustersize,
                          int clusterid,
                          const char * score_name,
-                         double score);
+                         double score) -> void;
 
-void fasta_print_db(FILE * fp,
-                    uint64_t seqno);
+auto fasta_print_db(std::FILE * fp,
+                    uint64_t seqno) -> void;
 
-void fasta_print_db_relabel(FILE * fp,
+auto fasta_print_db_relabel(std::FILE * fp,
                             uint64_t seqno,
-                            int ordinal);
+                            int ordinal) -> void;
 
 auto fasta_print_db_relabel(std::FILE * fp,
                             uint64_t seqno,
