@@ -58,11 +58,11 @@
 
 */
 
-int64_t header_get_size(char * header, int header_length);
+auto header_get_size(char * header, int header_length) -> int64_t;
 
-void header_fprint_strip(FILE * fp,
+auto header_fprint_strip(FILE * fp,
                          char * header,
                          int header_length,
                          bool strip_size,
                          bool strip_ee,
-                         bool strip_length);
+                         bool strip_length) -> void;
