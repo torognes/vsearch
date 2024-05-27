@@ -72,34 +72,34 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 typedef std::pair<uint64, uint64> uint128;
 
-inline uint64 Uint128Low64(const uint128& x) { return x.first; }
-inline uint64 Uint128High64(const uint128& x) { return x.second; }
+inline auto Uint128Low64(const uint128& x) -> uint64 { return x.first; }
+inline auto Uint128High64(const uint128& x) -> uint64 { return x.second; }
 
 // Hash function for a byte array.
-uint64 CityHash64(const char *s, std::size_t len);
+auto CityHash64(const char *s, std::size_t len) -> uint64;
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also
 // hashed into the result.
-uint64 CityHash64WithSeed(const char *s, std::size_t len, uint64 seed);
+auto CityHash64WithSeed(const char *s, std::size_t len, uint64 seed) -> uint64;
 
 // Hash function for a byte array.  For convenience, two seeds are also
 // hashed into the result.
-uint64 CityHash64WithSeeds(const char *s, std::size_t len,
-                           uint64 seed0, uint64 seed1);
+auto CityHash64WithSeeds(const char *s, std::size_t len,
+                         uint64 seed0, uint64 seed1) -> uint64;
 
 // Hash function for a byte array.
-uint128 CityHash128(const char *s, std::size_t len);
+auto CityHash128(const char *s, std::size_t len) -> uint128;
 
 // Hash function for a byte array.  For convenience, a 128-bit seed is also
 // hashed into the result.
-uint128 CityHash128WithSeed(const char *s, std::size_t len, uint128 seed);
+auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128;
 
 // Hash function for a byte array.  Most useful in 32-bit binaries.
-uint32 CityHash32(const char *s, std::size_t len);
+auto CityHash32(const char *s, std::size_t len) -> uint32;
 
 // Hash 128 input bits down to 64 bits of output.
 // This is intended to be a reasonably good hash function.
-inline uint64 Hash128to64(const uint128& x) {
+inline auto Hash128to64(const uint128& x) -> uint64 {
   // Murmur-inspired hashing.
   const uint64 kMul = 0x9ddfea08eb382d69ULL;
   uint64 a = (Uint128Low64(x) ^ Uint128High64(x)) * kMul;
