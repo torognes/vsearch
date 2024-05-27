@@ -63,35 +63,35 @@ typedef unsigned short WORD;
 typedef unsigned char BYTE;
 struct s16info_s;
 
-struct s16info_s *
-search16_init(CELL score_match,
-              CELL score_mismatch,
-              CELL penalty_gap_open_query_left,
-              CELL penalty_gap_open_target_left,
-              CELL penalty_gap_open_query_interior,
-              CELL penalty_gap_open_target_interior,
-              CELL penalty_gap_open_query_right,
-              CELL penalty_gap_open_target_right,
-              CELL penalty_gap_extension_query_left,
-              CELL penalty_gap_extension_target_left,
-              CELL penalty_gap_extension_query_interior,
-              CELL penalty_gap_extension_target_interior,
-              CELL penalty_gap_extension_query_right,
-              CELL penalty_gap_extension_target_right);
 
-void
-search16_exit(s16info_s * s);
+auto search16_init(CELL score_match,
+                   CELL score_mismatch,
+                   CELL penalty_gap_open_query_left,
+                   CELL penalty_gap_open_target_left,
+                   CELL penalty_gap_open_query_interior,
+                   CELL penalty_gap_open_target_interior,
+                   CELL penalty_gap_open_query_right,
+                   CELL penalty_gap_open_target_right,
+                   CELL penalty_gap_extension_query_left,
+                   CELL penalty_gap_extension_target_left,
+                   CELL penalty_gap_extension_query_interior,
+                   CELL penalty_gap_extension_target_interior,
+                   CELL penalty_gap_extension_query_right,
+                   CELL penalty_gap_extension_target_right) -> struct s16info_s *;
 
-void
-search16_qprep(s16info_s * s, char * qseq, int qlen);
 
-void
-search16(s16info_s * s,
-         unsigned int sequences,
-         unsigned int * seqnos,
-         CELL * pscores,
-         unsigned short * paligned,
-         unsigned short * pmatches,
-         unsigned short * pmismatches,
-         unsigned short * pgaps,
-         char * * pcigar);
+auto search16_exit(s16info_s * s) -> void;
+
+
+auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void;
+
+
+auto search16(s16info_s * s,
+              unsigned int sequences,
+              unsigned int * seqnos,
+              CELL * pscores,
+              unsigned short * paligned,
+              unsigned short * pmatches,
+              unsigned short * pmismatches,
+              unsigned short * pgaps,
+              char * * pcigar) -> void;
