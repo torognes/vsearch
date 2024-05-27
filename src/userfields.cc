@@ -135,7 +135,7 @@ int parse_userfields_arg(char * arg)
 
   p = arg;
 
-  char * q;
+  char * q = nullptr;
 
   int fields = 0;
 
