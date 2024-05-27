@@ -58,4 +58,4 @@
 
 */
 
-void fastq_join();
+auto fastq_join() -> void;
