@@ -58,5 +58,5 @@
 
 */
 
-void derep(char * input_filename, bool use_header);
-void derep_prefix();
+auto derep(char * input_filename, bool use_header) -> void;
+auto derep_prefix() -> void;
