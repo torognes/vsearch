@@ -58,5 +58,5 @@
 
 */
 
-void fastq_eestats();
-void fastq_eestats2();
+auto fastq_eestats() -> void;
+auto fastq_eestats2() -> void;
