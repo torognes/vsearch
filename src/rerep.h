@@ -58,4 +58,4 @@
 
 */
 
-void rereplicate();
+auto rereplicate() -> void;
