@@ -58,11 +58,15 @@
 
 */
 
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::size_t
+
+
 struct seqinfo_s
 {
-  size_t header_p;
-  size_t seq_p;
-  size_t qual_p;
+  std::size_t header_p;
+  std::size_t seq_p;
+  std::size_t qual_p;
   unsigned int headerlen;
   unsigned int seqlen;
   unsigned int size;
