@@ -58,4 +58,4 @@
 
 */
 
-void shuffle();
+auto shuffle() -> void;
