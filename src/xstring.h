@@ -86,12 +86,12 @@ class xstring
     length = 0;
   }
 
-  void empty()
+  auto empty() -> void
   {
     length = 0;
   }
 
-  char * get_string()
+  auto get_string() -> char *
   {
     if (length > 0)
       {
@@ -108,7 +108,7 @@ class xstring
     return length;
   }
 
-  void add_c(char c)
+  auto add_c(char c) -> void
   {
     const size_t needed = 1;
     if (length + needed + 1 > alloc)
@@ -121,7 +121,7 @@ class xstring
     string[length] = 0;
   }
 
-  void add_d(int d)
+  auto add_d(int d) -> void
   {
     const int needed = snprintf(nullptr, 0, "%d", d);
     if (needed < 0)
@@ -138,7 +138,7 @@ class xstring
     length += needed;
   }
 
-  void add_s(char * s)
+  auto add_s(char * s) -> void
   {
     const size_t needed = strlen(s);
     if (length + needed + 1 > alloc)
