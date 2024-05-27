@@ -58,4 +58,4 @@
 
 */
 
-void fasta2fastq();
+auto fasta2fastq() -> void;
