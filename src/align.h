@@ -58,6 +58,9 @@
 
 */
 
+#include <cstdint> // int64_t
+
+
 struct nwinfo_s;
 
 struct nwinfo_s * nw_init();
