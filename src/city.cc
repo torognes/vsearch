@@ -375,8 +375,8 @@ auto CityHash64(const char *s, size_t len) -> uint64 {
   uint64 x = Fetch64(s + len - 40);
   uint64 y = Fetch64(s + len - 16) + Fetch64(s + len - 56);
   uint64 z = HashLen16(Fetch64(s + len - 48) + len, Fetch64(s + len - 24));
-  pair<uint64, uint64> v = WeakHashLen32WithSeeds(s + len - 64, len, z);
-  pair<uint64, uint64> w = WeakHashLen32WithSeeds(s + len - 32, y + k1, x);
+  auto v = WeakHashLen32WithSeeds(s + len - 64, len, z);
+  auto w = WeakHashLen32WithSeeds(s + len - 32, y + k1, x);
   x = x * k1 + Fetch64(s);
 
   // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
