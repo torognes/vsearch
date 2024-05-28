@@ -78,7 +78,7 @@ static const char maskleft    =  2;
 static const char maskextup   =  4;
 static const char maskextleft =  8;
 
-inline void pushop(char newop, char ** cigarendp, char * op, int * count)
+inline auto pushop(char newop, char ** cigarendp, char * op, int * count) -> void
 {
   if (newop == *op)
     {
@@ -100,7 +100,7 @@ inline void pushop(char newop, char ** cigarendp, char * op, int * count)
     }
 }
 
-inline void finishop(char ** cigarendp, char * op, int * count)
+inline auto finishop(char ** cigarendp, char * op, int * count) -> void
 {
   if ((op) and (count))
   {
@@ -159,7 +159,7 @@ inline void finishop(char ** cigarendp, char * op, int * count)
 
 */
 
-struct nwinfo_s * nw_init()
+auto nw_init() -> struct nwinfo_s *
 {
   auto * nw = (struct nwinfo_s *) xmalloc(sizeof(struct nwinfo_s));
   nw->dir = nullptr;
