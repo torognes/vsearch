@@ -314,8 +314,9 @@ static auto HashLen17to32(const char *s, size_t len) -> uint64 {
 
 // Return a 16-byte hash for 48 bytes.  Quick and dirty.
 // Callers do best to use "random-looking" values for a and b.
-static auto WeakHashLen32WithSeeds(
-    uint64 w, uint64 x, uint64 y, uint64 z, uint64 a, uint64 b) -> pair<uint64, uint64> {
+static auto WeakHashLen32WithSeeds(uint64 w, uint64 x, uint64 y, uint64 z,
+                                   uint64 a, uint64 b)
+  -> std::pair<uint64, uint64> {
   a += w;
   b = Rotate(b + a + z, 21);
   const uint64 c = a;
@@ -326,8 +327,8 @@ static auto WeakHashLen32WithSeeds(
 }
 
 // Return a 16-byte hash for s[0] ... s[31], a, and b.  Quick and dirty.
-static auto WeakHashLen32WithSeeds(
-    const char* s, uint64 a, uint64 b) -> pair<uint64, uint64> {
+static auto WeakHashLen32WithSeeds(const char *s, uint64 a, uint64 b)
+  -> std::pair<uint64, uint64> {
   return WeakHashLen32WithSeeds(Fetch64(s),
                                 Fetch64(s + 8),
                                 Fetch64(s + 16),
