@@ -92,7 +92,7 @@ auto fasta2fastq() -> void
     {
       /* get sequence length and allocate more mem if necessary */
 
-      const uint64_t length { fastq_get_sequence_length(h) };
+      auto const length = fastq_get_sequence_length(h);
 
       if (alloc < length + 1)
         {
