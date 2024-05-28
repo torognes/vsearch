@@ -117,11 +117,11 @@ auto fasta2fastq() -> void
 
       fastq_print_general(fp_fastqout,
                           fastq_get_sequence(fp_input),
-                          length,
+                          static_cast<int>(length),
                           fasta_get_header(fp_input),
-                          fasta_get_header_length(fp_input),
+                          static_cast<int>(fasta_get_header_length(fp_input)),
                           quality,
-                          fastq_get_abundance(fp_input),
+                          static_cast<int>(fastq_get_abundance(fp_input)),
                           count,
                           -1.0);
 
