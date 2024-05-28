@@ -109,7 +109,7 @@ auto fasta2fastq() -> void
           quality[i] = max_ascii_value;
         }
 
-      quality[length] = 0;
+      quality[length] = '\0';
 
       ++count;
 
