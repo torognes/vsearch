@@ -71,7 +71,7 @@ auto fasta2fastq() -> void
       fatal("Output FASTQ file not specified with the --fastqout option");
     }
 
-  fastx_handle h { fasta_open(opt_fasta2fastq) };
+  auto * h = fasta_open(opt_fasta2fastq);
   if (h == nullptr)
     {
       fatal("Unable to open FASTA file for reading");
