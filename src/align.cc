@@ -215,13 +215,13 @@ auto nw_align(char * dseq,
               struct nwinfo_s * nw) -> void
 {
 
-  int64_t h;
-  int64_t n;
-  int64_t e;
-  int64_t f;
-  int64_t h_e;
-  int64_t h_f;
-  int64_t * hep;
+  int64_t h = 0;
+  int64_t n = 0;
+  int64_t e = 0;
+  int64_t f = 0;
+  int64_t h_e = 0;
+  int64_t h_f = 0;
+  int64_t * hep = nullptr;
 
   int64_t qlen = qend - qseq;
   int64_t dlen = dend - dseq;
@@ -241,8 +241,8 @@ auto nw_align(char * dseq,
 
   memset(nw->dir, 0, (size_t) (qlen * dlen));
 
-  int64_t i;
-  int64_t j;
+  int64_t i = 0;
+  int64_t j = 0;
 
   for (i = 0; i < qlen; i++)
   {
