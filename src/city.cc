@@ -31,13 +31,14 @@
 #include <city.h>
 
 #include <algorithm>
-#include <cstring>  // for memcpy and memset
-#include <utility> // make_pair
+#include <cstdint>  // int32_t
+#include <cstring>  // std::memcpy, std::memset
+#include <utility> // std::pair, std::make_pair
 
 
 using namespace std;  // refactoring: bad practice
 
-static uint64 UNALIGNED_LOAD64(const char *p) {
+static auto UNALIGNED_LOAD64(const char *p) -> uint64 {
   uint64 result = 0;
   std::memcpy(&result, p, sizeof(result));
   return result;
