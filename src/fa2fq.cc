@@ -71,8 +71,8 @@ auto fasta2fastq() -> void
       fatal("Output FASTQ file not specified with the --fastqout option");
     }
 
-  auto * h = fasta_open(opt_fasta2fastq);
-  if (h == nullptr)
+  auto * fp_input = fasta_open(opt_fasta2fastq);
+  if (fp_input == nullptr)
     {
       fatal("Unable to open FASTA file for reading");
     }
@@ -87,13 +87,13 @@ auto fasta2fastq() -> void
   std::size_t alloc {0};
   char * quality {nullptr};
 
-  progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
+  progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
 
-  while (fasta_next(h, false, chrmap_no_change))
+  while (fasta_next(fp_input, false, chrmap_no_change))
     {
       /* get sequence length and allocate more mem if necessary */
 
-      auto const length = fastq_get_sequence_length(h);
+      auto const length = fastq_get_sequence_length(fp_input);
 
       if (alloc < length + 1)
         {
@@ -115,16 +115,16 @@ auto fasta2fastq() -> void
       /* write to fasta file */
 
       fastq_print_general(fp_fastqout,
-                          fastq_get_sequence(h),
+                          fastq_get_sequence(fp_input),
                           length,
-                          fasta_get_header(h),
-                          fasta_get_header_length(h),
+                          fasta_get_header(fp_input),
+                          fasta_get_header_length(fp_input),
                           quality,
-                          fastq_get_abundance(h),
+                          fastq_get_abundance(fp_input),
                           count,
                           -1.0);
 
-      progress_update(fasta_get_position(h));
+      progress_update(fasta_get_position(fp_input));
     }
 
   progress_done();
@@ -137,6 +137,6 @@ auto fasta2fastq() -> void
 
   fclose(fp_fastqout);
 
-  fasta_close(h);
+  fasta_close(fp_input);
 
 }
