@@ -99,7 +99,7 @@ auto fasta2fastq() -> void
       if (alloc < length + 1)
         {
           alloc = length + 1;
-          quality = (char *) xrealloc(quality, alloc);
+          quality = static_cast<char *>(xrealloc(quality, alloc));
         }
 
       /* set quality values */
