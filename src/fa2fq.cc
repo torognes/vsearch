@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // std::size_t
 
 
 auto fasta2fastq() -> void
@@ -83,7 +84,7 @@ auto fasta2fastq() -> void
     }
 
   int count {0};
-  size_t alloc {0};
+  std::size_t alloc {0};
   char * quality {nullptr};
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
