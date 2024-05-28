@@ -136,7 +136,7 @@ auto fasta2fastq() -> void
     xfree(quality);
   }
 
-  fclose(fp_fastqout);
+  static_cast<void>(std::fclose(fp_fastqout));
 
   fasta_close(fp_input);
 
