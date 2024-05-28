@@ -88,7 +88,7 @@ auto fasta2fastq() -> void
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(h));
 
-  while(fasta_next(h, false, chrmap_no_change))
+  while (fasta_next(h, false, chrmap_no_change))
     {
       /* get sequence length and allocate more mem if necessary */
 
@@ -102,7 +102,7 @@ auto fasta2fastq() -> void
 
       /* set quality values */
 
-      for(uint64_t i = 0; i < length; i++)
+      for (uint64_t i = 0; i < length; i++)
         {
           quality[i] = max_ascii_value;
         }
