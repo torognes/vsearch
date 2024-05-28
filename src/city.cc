@@ -38,13 +38,13 @@
 using namespace std;  // refactoring: bad practice
 
 static uint64 UNALIGNED_LOAD64(const char *p) {
-  uint64 result;
+  uint64 result = 0;
   std::memcpy(&result, p, sizeof(result));
   return result;
 }
 
 static auto UNALIGNED_LOAD32(const char *p) -> uint32 {
-  uint32 result;
+  uint32 result = 0;
   std::memcpy(&result, p, sizeof(result));
   return result;
 }
