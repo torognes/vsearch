@@ -93,7 +93,7 @@ inline auto pushop(char newop, char ** cigarendp, char * op, int * count) -> voi
           char buf[size];
           int len = snprintf(buf, size, "%d", *count);
           *cigarendp -= len;
-          memcpy(*cigarendp, buf, (size_t) len);
+          std::memcpy(*cigarendp, buf, (size_t) len);
         }
       *op = newop;
       *count = 1;
@@ -111,7 +111,7 @@ inline auto finishop(char ** cigarendp, char * op, int * count) -> void
       char buf[size];
       int len = snprintf(buf, size, "%d", *count);
       *cigarendp -= len;
-      memcpy(*cigarendp, buf, (size_t) len);
+      std::memcpy(*cigarendp, buf, (size_t) len);
     }
     *op = 0;
     *count = 0;
@@ -239,7 +239,7 @@ auto nw_align(char * dseq,
       nw->hearray = (int64_t *) xrealloc(nw->hearray, (size_t) nw->hearray_alloc);
     }
 
-  memset(nw->dir, 0, (size_t) (qlen * dlen));
+  std::memset(nw->dir, 0, (size_t) (qlen * dlen));
 
   int64_t i = 0;
   int64_t j = 0;
@@ -468,7 +468,7 @@ auto nw_align(char * dseq,
   /* move and reallocate cigar */
 
   int64_t cigarlength = cigar + qlen + dlen - cigarend;
-  memmove(cigar, cigarend, (size_t) (cigarlength + 1));
+  std::memmove(cigar, cigarend, (size_t) (cigarlength + 1));
   cigar = (char *) xrealloc(cigar, (size_t) (cigarlength + 1));
 
   * nwscore = dist;
