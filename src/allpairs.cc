@@ -59,7 +59,12 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::strlen
 #include <limits>
+#include <pthread.h>
 
 
 static pthread_t * pthread;
