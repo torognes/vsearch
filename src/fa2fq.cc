@@ -64,7 +64,7 @@
 
 auto fasta2fastq() -> void
 {
-  const char max_ascii_value { static_cast<char>(opt_fastq_asciiout + opt_fastq_qmaxout) };
+  auto const max_ascii_value = static_cast<char>(opt_fastq_asciiout + opt_fastq_qmaxout);
 
   if (opt_fastqout == nullptr)
     {
