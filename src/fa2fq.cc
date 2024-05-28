@@ -59,7 +59,8 @@
 */
 
 #include "vsearch.h"
-#include <cstdio>  // std::size_t
+#include <cstdio>  // std::FILE, std::size_t, std::fclose
+#include <cstdint>  // uint64_t
 
 
 auto fasta2fastq() -> void
