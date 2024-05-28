@@ -77,7 +77,7 @@ auto fasta2fastq() -> void
       fatal("Unable to open FASTA file for reading");
     }
 
-  std::FILE * fp_fastqout { fopen_output(opt_fastqout) };
+  auto * fp_fastqout = fopen_output(opt_fastqout);
   if (fp_fastqout == nullptr)
     {
       fatal("Unable to open FASTQ output file for writing");
