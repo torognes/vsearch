@@ -5556,7 +5556,7 @@ void cmd_subsample()
       fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
     }
 
-  if ((opt_sample_pct > 0) and (opt_sample_size > 0))
+  if ((opt_sample_pct > 0) == (opt_sample_size > 0))
     {
       fatal("Specify either --sample_pct or --sample_size");
     }
