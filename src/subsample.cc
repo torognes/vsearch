@@ -72,6 +72,10 @@
 //  - with sizein:
 //    - std::discrete_distribution()
 
+// refactoring:
+// - accept sample_size = 0 and sample_pct = 0.0
+// - --fastaout should be empty, all reads should be in --fastaout_discarded
+
 
 auto subsample() -> void
 {
