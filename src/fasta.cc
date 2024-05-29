@@ -173,7 +173,7 @@ auto fasta_next(fastx_handle h,
       fatal("Invalid FASTA - header must start with > character");
     }
   h->file_buffer.position++;
-  rest--;
+  --rest;
 
   char * lf = nullptr;
   while (lf == nullptr)
