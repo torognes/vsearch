@@ -313,7 +313,7 @@ auto fasta_get_sequence(fastx_handle h) -> char *
 
 /* fasta output */
 
-auto fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width) -> void
+auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -> void
 {
   /*
     The actual length of the sequence may be longer than "len", but only
@@ -337,20 +337,20 @@ auto fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width) -> voi
     }
 }
 
-auto fasta_print(FILE * fp, const char * hdr,
+auto fasta_print(std::FILE * fp, const char * hdr,
                  char * seq, uint64_t len) -> void
 {
   fprintf(fp, ">%s\n", hdr);
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
-inline auto fprint_seq_label(FILE * fp, char * seq, int len) -> void
+inline auto fprint_seq_label(std::FILE * fp, char * seq, int len) -> void
 {
   /* normalize first? */
   fprintf(fp, "%.*s", len, seq);
 }
 
-auto fasta_print_general(FILE * fp,
+auto fasta_print_general(std::FILE * fp,
                          const char * prefix,
                          char * seq,
                          int len,
