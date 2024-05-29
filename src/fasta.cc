@@ -241,7 +241,7 @@ auto fasta_next(fastx_handle h,
       rest -= len;
     }
 
-  h->seqno++;
+  ++h->seqno;
 
   fastx_filter_header(h, truncateatspace);
   fasta_filter_sequence(h, char_fasta_action, char_mapping);
