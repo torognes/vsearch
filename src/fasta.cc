@@ -110,7 +110,7 @@ auto fasta_filter_sequence(fastx_handle h,
 
         case 2:
           /* fatal character */
-          if ((c>=32) && (c<127))
+          if ((c >= 32) && (c < 127))
             {
               snprintf(msg,
                        200,
