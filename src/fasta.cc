@@ -62,7 +62,7 @@
 #include <cstdio> // std::FILE, std::fprintf, std::size_t
 
 
-fastx_handle fasta_open(const char * filename)
+auto fasta_open(const char * filename) -> fastx_handle
 {
   fastx_handle h = fastx_open(filename);
 
@@ -74,14 +74,14 @@ fastx_handle fasta_open(const char * filename)
   return h;
 }
 
-void fasta_close(fastx_handle h)
+auto fasta_close(fastx_handle h) -> void
 {
   fastx_close(h);
 }
 
-void fasta_filter_sequence(fastx_handle h,
+auto fasta_filter_sequence(fastx_handle h,
                            unsigned int * char_action,
-                           const unsigned char * char_mapping)
+                           const unsigned char * char_mapping) -> void
 {
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
@@ -145,9 +145,9 @@ void fasta_filter_sequence(fastx_handle h,
   h->sequence_buffer.length = q - h->sequence_buffer.data;
 }
 
-bool fasta_next(fastx_handle h,
+auto fasta_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping)
+                const unsigned char * char_mapping) -> bool
 {
   h->lineno_start = h->lineno;
 
@@ -249,7 +249,7 @@ bool fasta_next(fastx_handle h,
   return true;
 }
 
-int64_t fasta_get_abundance(fastx_handle h)
+auto fasta_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
   int64_t size = header_get_size(h->header_buffer.data,
@@ -264,48 +264,48 @@ int64_t fasta_get_abundance(fastx_handle h)
     }
 }
 
-int64_t fasta_get_abundance_and_presence(fastx_handle h)
+auto fasta_get_abundance_and_presence(fastx_handle h) -> int64_t
 {
   // return 0 if not present
   return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 
-uint64_t fasta_get_position(fastx_handle h)
+auto fasta_get_position(fastx_handle h) -> uint64_t
 {
   return h->file_position;
 }
 
-uint64_t fasta_get_size(fastx_handle h)
+auto fasta_get_size(fastx_handle h) -> uint64_t
 {
   return h->file_size;
 }
 
-uint64_t fasta_get_lineno(fastx_handle h)
+auto fasta_get_lineno(fastx_handle h) -> uint64_t
 {
   return h->lineno_start;
 }
 
-uint64_t fasta_get_seqno(fastx_handle h)
+auto fasta_get_seqno(fastx_handle h) -> uint64_t
 {
   return h->seqno;
 }
 
-uint64_t fasta_get_header_length(fastx_handle h)
+auto fasta_get_header_length(fastx_handle h) -> uint64_t
 {
   return h->header_buffer.length;
 }
 
-uint64_t fasta_get_sequence_length(fastx_handle h)
+auto fasta_get_sequence_length(fastx_handle h) -> uint64_t
 {
   return h->sequence_buffer.length;
 }
 
-char * fasta_get_header(fastx_handle h)
+auto fasta_get_header(fastx_handle h) -> char *
 {
   return h->header_buffer.data;
 }
 
-char * fasta_get_sequence(fastx_handle h)
+auto fasta_get_sequence(fastx_handle h) -> char *
 {
   return h->sequence_buffer.data;
 }
@@ -313,7 +313,7 @@ char * fasta_get_sequence(fastx_handle h)
 
 /* fasta output */
 
-void fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width)
+auto fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width) -> void
 {
   /*
     The actual length of the sequence may be longer than "len", but only
@@ -337,20 +337,20 @@ void fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width)
     }
 }
 
-void fasta_print(FILE * fp, const char * hdr,
-                 char * seq, uint64_t len)
+auto fasta_print(FILE * fp, const char * hdr,
+                 char * seq, uint64_t len) -> void
 {
   fprintf(fp, ">%s\n", hdr);
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
-inline void fprint_seq_label(FILE * fp, char * seq, int len)
+inline auto fprint_seq_label(FILE * fp, char * seq, int len) -> void
 {
   /* normalize first? */
   fprintf(fp, "%.*s", len, seq);
 }
 
-void fasta_print_general(FILE * fp,
+auto fasta_print_general(FILE * fp,
                          const char * prefix,
                          char * seq,
                          int len,
@@ -362,7 +362,7 @@ void fasta_print_general(FILE * fp,
                          int clustersize,
                          int clusterid,
                          const char * score_name,
-                         double score)
+                         double score) -> void
 {
   fprintf(fp, ">");
 
@@ -473,9 +473,9 @@ void fasta_print_general(FILE * fp,
     }
 }
 
-void fasta_print_db_relabel(FILE * fp,
+auto fasta_print_db_relabel(std::FILE * fp,
                             uint64_t seqno,
-                            int ordinal)
+                            int ordinal) -> void
 {
   fasta_print_general(fp,
                       nullptr,
@@ -509,7 +509,7 @@ auto fasta_print_db_relabel(std::FILE * fp,
 }
 
 
-void fasta_print_db(FILE * fp, uint64_t seqno)
+auto fasta_print_db(std::FILE * fp, uint64_t seqno) -> void
 {
   fasta_print_general(fp,
                       nullptr,
