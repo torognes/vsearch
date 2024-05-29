@@ -5551,12 +5551,12 @@ void cmd_search_exact()
 
 void cmd_subsample()
 {
-  if ((! opt_fastaout) && (! opt_fastqout))
+  if ((not opt_fastaout) and (not opt_fastqout))
     {
       fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
     }
 
-  if ((opt_sample_pct > 0) == (opt_sample_size > 0))
+  if ((opt_sample_pct > 0) and (opt_sample_size > 0))
     {
       fatal("Specify either --sample_pct or --sample_size");
     }
