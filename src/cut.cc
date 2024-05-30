@@ -93,7 +93,7 @@ auto cut_one(fastx_handle h,
 
   for (int i = 0; i < seq_length - pattern_length + 1; i++)
     {
-      bool match = true;
+      auto match = true;
       for (int j = 0; j < pattern_length; j++)
         {
           if ((chrmap_4bit[(unsigned char) (pattern[j])] &
