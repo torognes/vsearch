@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // std::FILE, std::fprintf
 
 
 static uint64_t fragment_no = 0;
