@@ -287,6 +287,7 @@ auto subsample() -> void
                  opt_fastqout,
                  fp_fastqout);
 
+  // refactoring: extract to a function, make discarded_abundances const
   std::vector<int> discarded_abundances(original_abundances.size());
   std::transform(original_abundances.cbegin(), original_abundances.cend(),
                  subsampled_abundances.cbegin(), discarded_abundances.begin(),
