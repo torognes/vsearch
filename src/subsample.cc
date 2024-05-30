@@ -88,6 +88,7 @@ namespace {
       auto counter = std::size_t{0};
       for (auto & abundance : deck) {
         abundance = db_getabundance(counter);
+        ++counter;
       }
     }
     return deck;
