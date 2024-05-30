@@ -196,7 +196,7 @@ auto subsample() -> void
   progress_init("Subsampling", mass_total);
   while (n_reads_left > 0)
     {
-      uint64_t const random = random_ulong(mass_total - n_read_being_checked);
+      auto const random = random_ulong(mass_total - n_read_being_checked);
 
       if (random < n_reads_left)
         {
