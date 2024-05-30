@@ -144,6 +144,89 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
+auto writing_output(std::vector<int> & deck,
+                    std::FILE * fp_fastaout,
+                    std::FILE * fp_fastaout_discarded,
+                    std::FILE * fp_fastqout,
+                    std::FILE * fp_fastqout_discarded) -> int {
+  int samples = 0;
+  int discarded = 0;
+  progress_init("Writing output", deck.size());
+  for (auto i = 0U; i < deck.size(); i++)
+    {
+      int64_t const ab_sub = deck[i];
+      int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
+
+      if (ab_sub > 0)
+        {
+          ++samples;
+
+          if (opt_fastaout != nullptr)
+            {
+              fasta_print_general(fp_fastaout,
+                                  nullptr,
+                                  db_getsequence(i),
+                                  db_getsequencelen(i),
+                                  db_getheader(i),
+                                  db_getheaderlen(i),
+                                  ab_sub,
+                                  samples,
+                                  -1.0,
+                                  -1, -1, nullptr, 0.0);
+            }
+
+          if (opt_fastqout != nullptr)
+            {
+              fastq_print_general(fp_fastqout,
+                                  db_getsequence(i),
+                                  db_getsequencelen(i),
+                                  db_getheader(i),
+                                  db_getheaderlen(i),
+                                  db_getquality(i),
+                                  ab_sub,
+                                  samples,
+                                  -1.0);
+            }
+        }
+
+      if (ab_discarded > 0)
+        {
+          ++discarded;
+
+          if (opt_fastaout_discarded != nullptr)
+            {
+              fasta_print_general(fp_fastaout_discarded,
+                                  nullptr,
+                                  db_getsequence(i),
+                                  db_getsequencelen(i),
+                                  db_getheader(i),
+                                  db_getheaderlen(i),
+                                  ab_discarded,
+                                  discarded,
+                                  -1.0,
+                                  -1, -1, nullptr, 0.0);
+            }
+
+          if (opt_fastqout_discarded != nullptr)
+            {
+              fastq_print_general(fp_fastqout_discarded,
+                                  db_getsequence(i),
+                                  db_getsequencelen(i),
+                                  db_getheader(i),
+                                  db_getheaderlen(i),
+                                  db_getquality(i),
+                                  ab_discarded,
+                                  discarded,
+                                  -1.0);
+            }
+        }
+      progress_update(i);
+    }
+  progress_done();
+  return samples;
+}
+
+
 auto subsample() -> void
 {
   std::FILE * fp_fastaout = nullptr;
@@ -222,81 +305,11 @@ auto subsample() -> void
 
   random_subsampling(abundance, mass_total, n_reads);
 
-  int samples = 0;
-  int discarded = 0;
-  progress_init("Writing output", abundance.size());
-  for (auto i = 0U; i < abundance.size(); i++)
-    {
-      int64_t const ab_sub = abundance[i];
-      int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
-
-      if (ab_sub > 0)
-        {
-          ++samples;
-
-          if (opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  ab_sub,
-                                  samples,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0);
-            }
-
-          if (opt_fastqout != nullptr)
-            {
-              fastq_print_general(fp_fastqout,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  db_getquality(i),
-                                  ab_sub,
-                                  samples,
-                                  -1.0);
-            }
-        }
-
-      if (ab_discarded > 0)
-        {
-          ++discarded;
-
-          if (opt_fastaout_discarded != nullptr)
-            {
-              fasta_print_general(fp_fastaout_discarded,
-                                  nullptr,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  ab_discarded,
-                                  discarded,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0);
-            }
-
-          if (opt_fastqout_discarded != nullptr)
-            {
-              fastq_print_general(fp_fastqout_discarded,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  db_getquality(i),
-                                  ab_discarded,
-                                  discarded,
-                                  -1.0);
-            }
-        }
-      progress_update(i);
-    }
-  progress_done();
-
+  auto const samples = writing_output(abundance,
+                                      fp_fastaout,
+                                      fp_fastaout_discarded,
+                                      fp_fastqout,
+                                      fp_fastqout_discarded);
 
   if (not opt_quiet)
     {
