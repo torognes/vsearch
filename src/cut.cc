@@ -75,7 +75,7 @@ auto cut_one(fastx_handle h,
             char * pattern,
             int pattern_length,
             int cut_fwd,
-            int cut_rev) -> int
+            int cut_rev) -> int64_t
 {
   char * seq  = fasta_get_sequence(h);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(h));
@@ -86,7 +86,7 @@ auto cut_one(fastx_handle h,
 
   int frag_start = 0;
   int frag_length = seq_length;
-  int matches = 0;
+  int64_t matches = 0;
 
   int rc_start = seq_length;
   int rc_length = 0;
