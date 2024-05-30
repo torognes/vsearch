@@ -62,6 +62,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <numeric>
 #include <vector>
 
 
@@ -75,6 +76,34 @@
 // refactoring:
 // - accept sample_size = 0 and sample_pct = 0.0?
 // - fastaout should be empty, all reads should be in fastaout_discarded
+
+
+namespace {
+  // anonymous namespace to avoid linker error (multiple definitions
+  // of function with identical names and parameters)
+  auto create_deck(bool const opt_sizein) -> std::vector<int> {
+    auto const dbsequencecount = db_getsequencecount();
+    std::vector<int> deck(dbsequencecount, 1);
+    if (opt_sizein) {
+      auto counter = std::size_t{0};
+      for (auto & abundance : deck) {
+        abundance = db_getabundance(counter);
+      }
+    }
+    return deck;
+  }
+}
+
+
+auto number_of_reads_to_sample(bool const opt_sample_size,
+                               bool const opt_sample_pct,
+                               uint64_t const mass_total) -> uint64_t {
+  // assert(mass_total < max_uint64 / opt_sample_pct)
+  if (opt_sample_size) {
+    return opt_sample_size;
+  }
+  return mass_total * opt_sample_pct / 100.0;
+}
 
 
 auto subsample() -> void
@@ -128,27 +157,10 @@ auto subsample() -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
+  auto abundance = create_deck(opt_sizein);
   int const dbsequencecount = db_getsequencecount();
+  auto const mass_total = std::accumulate(abundance.cbegin(), abundance.cend(), uint64_t{0});
 
-  // create deck:
-  // - if not sizein, then { fill(1) ; return deck }
-  // - if sizein, then { counter ; range-for loop get_abundance ; return deck }
-
-  // compute mass_total = std::accumulate(begin, end, 0ULL);
-
-  uint64_t mass_total = 0;
-
-  if (not opt_sizein)
-    {
-      mass_total = dbsequencecount;
-    }
-  else
-    {
-      for (int i = 0; i < dbsequencecount; i++)
-        {
-          mass_total += db_getabundance(i);
-        }
-    }
 
   if (not opt_quiet)
     {
@@ -162,19 +174,9 @@ auto subsample() -> void
               mass_total, dbsequencecount);
     }
 
-
-  std::vector<int> abundance(dbsequencecount);
-  // refactoring: default abundance values should be 1?
-
-  uint64_t n = 0;                              /* number of reads to sample */
-  if (opt_sample_size)
-    {
-      n = opt_sample_size;
-    }
-  else
-    {
-      n = mass_total * opt_sample_pct / 100.0;
-    }
+  auto const n = number_of_reads_to_sample(opt_sample_size,
+                                           opt_sample_pct,
+                                           mass_total);
 
   if (n > mass_total)
     {
