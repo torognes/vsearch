@@ -108,6 +108,42 @@ auto number_of_reads_to_sample(int64_t const opt_sample_size,
 }
 
 
+auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
+                        uint64_t const n_reads) -> void {
+  uint64_t n_reads_left = n_reads;
+  int amplicon_number = 0;
+  uint64_t n_read_being_checked = 0;
+  uint64_t accumulated_mass = 0;
+  uint64_t amplicon_mass = opt_sizein ? db_getabundance(0) : 1;
+
+  // refactoring C++17: std::sample()
+  progress_init("Subsampling", mass_total);
+  while (n_reads_left > 0)
+    {
+      auto const random = random_ulong(mass_total - n_read_being_checked);
+
+      if (random < n_reads_left)
+        {
+          /* selected read r from amplicon a */
+          ++deck[amplicon_number];
+          --n_reads_left;
+        }
+
+      ++n_read_being_checked;
+      ++accumulated_mass;
+      if (accumulated_mass >= amplicon_mass)
+        {
+          /* next amplicon */
+          ++amplicon_number;
+          amplicon_mass = opt_sizein ? db_getabundance(amplicon_number) : 1;
+          accumulated_mass = 0;
+        }
+      progress_update(n_read_being_checked);
+    }
+  progress_done();
+}
+
+
 auto subsample() -> void
 {
   std::FILE * fp_fastaout = nullptr;
@@ -184,37 +220,7 @@ auto subsample() -> void
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  uint64_t n_reads_left = n_reads;
-  int amplicon_number = 0;
-  uint64_t n_read_being_checked = 0;
-  uint64_t accumulated_mass = 0;
-  uint64_t amplicon_mass = opt_sizein ? db_getabundance(0) : 1;
-
-  // refactoring C++17: std::sample()
-  progress_init("Subsampling", mass_total);
-  while (n_reads_left > 0)
-    {
-      auto const random = random_ulong(mass_total - n_read_being_checked);
-
-      if (random < n_reads_left)
-        {
-          /* selected read r from amplicon a */
-          abundance[amplicon_number]++;
-          --n_reads_left;
-        }
-
-      ++n_read_being_checked;
-      ++accumulated_mass;
-      if (accumulated_mass >= amplicon_mass)
-        {
-          /* next amplicon */
-          ++amplicon_number;
-          amplicon_mass = opt_sizein ? db_getabundance(amplicon_number) : 1;
-          accumulated_mass = 0;
-        }
-      progress_update(n_read_being_checked);
-    }
-  progress_done();
+  random_subsampling(abundance, mass_total, n_reads);
 
   int samples = 0;
   int discarded = 0;
