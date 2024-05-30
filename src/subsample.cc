@@ -160,7 +160,6 @@ auto subsample() -> void
     }
 
   auto abundance = create_deck(opt_sizein);
-  int const dbsequencecount = db_getsequencecount();
   auto const mass_total = std::accumulate(abundance.cbegin(), abundance.cend(), uint64_t{0});
 
   // temporary fix: reset vector to zero
@@ -171,13 +170,13 @@ auto subsample() -> void
   if (not opt_quiet)
     {
       fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
-              mass_total, dbsequencecount);
+              mass_total, static_cast<int>(abundance.size()));
     }
 
   if (opt_log != nullptr)
     {
       fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
-              mass_total, dbsequencecount);
+              mass_total, static_cast<int>(abundance.size()));
     }
 
   auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
