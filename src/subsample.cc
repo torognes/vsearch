@@ -154,7 +154,7 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 
 auto writing_subsampled_output(std::vector<int> const & deck,
                                std::FILE * fp_fastaout,
-                               std::FILE * fp_fastqout) -> int {
+                               std::FILE * fp_fastqout) -> void {
   int amplicons_outputted = 0;
   progress_init("Writing output", deck.size());
   auto counter = 0U;
@@ -199,7 +199,6 @@ auto writing_subsampled_output(std::vector<int> const & deck,
       ++counter;
     }
   progress_done();
-  return amplicons_outputted;
 }
 
 
@@ -329,10 +328,9 @@ auto subsample() -> void
 
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
-  // refactoring: samples = count_if(abundance != 0);
-  auto const samples = writing_subsampled_output(subsampled_abundances,
-                                                 fp_fastaout,
-                                                 fp_fastqout);
+  writing_subsampled_output(subsampled_abundances,
+                            fp_fastaout,
+                            fp_fastqout);
 
   std::vector<int> discarded_abundances(original_abundances.size());
   std::transform(original_abundances.cbegin(), original_abundances.cend(),
@@ -342,7 +340,8 @@ auto subsample() -> void
                            fp_fastaout_discarded,
                            fp_fastqout_discarded);
 
-
+  int const samples = std::count_if(subsampled_abundances.begin(),
+                                    subsampled_abundances.end(), [](int i) { return i != 0; });
   if (not opt_quiet)
     {
       fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
