@@ -320,23 +320,23 @@ auto subsample() -> void
 
   db_free();
 
-  if (opt_fastaout != nullptr)
+  if ((opt_fastaout != nullptr) and (fp_fastaout != nullptr))
     {
-      std::fclose(fp_fastaout);
+      static_cast<void>(std::fclose(fp_fastaout));
     }
 
-  if (opt_fastqout != nullptr)
+  if ((opt_fastqout != nullptr) and (fp_fastqout != nullptr))
     {
-      std::fclose(fp_fastqout);
+      static_cast<void>(std::fclose(fp_fastqout));
     }
 
-  if (opt_fastaout_discarded != nullptr)
+  if ((opt_fastaout_discarded != nullptr) and (fp_fastaout_discarded != nullptr))
     {
-      std::fclose(fp_fastaout_discarded);
+      static_cast<void>(std::fclose(fp_fastaout_discarded));
     }
 
-  if (opt_fastqout_discarded != nullptr)
+  if ((opt_fastqout_discarded != nullptr) and (fp_fastqout_discarded != nullptr))
     {
-      std::fclose(fp_fastqout_discarded);
+      static_cast<void>(std::fclose(fp_fastqout_discarded));
     }
 }
