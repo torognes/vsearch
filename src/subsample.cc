@@ -152,14 +152,16 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
-auto writing_subsampled_output(std::vector<int> const & deck,
-                               std::FILE * fp_fastaout,
-                               std::FILE * fp_fastqout) -> void {
+auto writing_output(std::vector<int> const & deck,
+                    char * ptr_fasta_file_name,
+                    std::FILE * ptr_fasta_file,
+                    char * ptr_fastq_file_name,
+                    std::FILE * ptr_fastq_file) -> void {
   int amplicons_printed = 0;
   progress_init("Writing output", deck.size());
   auto counter = 0U;
   for (auto abundance_value : deck) {
-      int64_t const new_abundance = abundance_value;
+    int64_t const new_abundance = abundance_value;
 
       if (new_abundance == 0) {
         ++counter;
@@ -168,9 +170,9 @@ auto writing_subsampled_output(std::vector<int> const & deck,
 
       ++amplicons_printed;
 
-      if (opt_fastaout != nullptr)
+      if (ptr_fasta_file_name != nullptr)
         {
-          fasta_print_general(fp_fastaout,
+          fasta_print_general(ptr_fasta_file,
                               nullptr,
                               db_getsequence(counter),
                               db_getsequencelen(counter),
@@ -182,9 +184,9 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                               -1, -1, nullptr, 0.0);
         }
 
-      if (opt_fastqout != nullptr)
+      if (ptr_fastq_file_name != nullptr)
         {
-          fastq_print_general(fp_fastqout,
+          fastq_print_general(ptr_fastq_file,
                               db_getsequence(counter),
                               db_getsequencelen(counter),
                               db_getheader(counter),
@@ -195,55 +197,6 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                               -1.0);
         }
 
-      progress_update(counter);
-      ++counter;
-    }
-  progress_done();
-}
-
-
-auto writing_discarded_output(std::vector<int> const & deck,
-                              std::FILE * fp_fastaout_discarded,
-                              std::FILE * fp_fastqout_discarded) -> void {
-  int amplicons_printed = 0;
-  progress_init("Writing output", deck.size());
-  auto counter = 0U;
-  for (auto abundance_value : deck) {
-      int64_t const new_abundance = abundance_value;
-
-      if (new_abundance == 0) {
-        ++counter;
-        continue;
-      }
-
-      ++amplicons_printed;
-
-      if (opt_fastaout_discarded != nullptr)
-        {
-          fasta_print_general(fp_fastaout_discarded,
-                              nullptr,
-                              db_getsequence(counter),
-                              db_getsequencelen(counter),
-                              db_getheader(counter),
-                              db_getheaderlen(counter),
-                              new_abundance,
-                              amplicons_printed,
-                              -1.0,
-                              -1, -1, nullptr, 0.0);
-        }
-
-      if (opt_fastqout_discarded != nullptr)
-        {
-          fastq_print_general(fp_fastqout_discarded,
-                              db_getsequence(counter),
-                              db_getsequencelen(counter),
-                              db_getheader(counter),
-                              db_getheaderlen(counter),
-                              db_getquality(counter),
-                              new_abundance,
-                              amplicons_printed,
-                              -1.0);
-        }
       progress_update(counter);
       ++counter;
     }
@@ -328,17 +281,21 @@ auto subsample() -> void
 
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
-  writing_subsampled_output(subsampled_abundances,
-                            fp_fastaout,
-                            fp_fastqout);
+  writing_output(subsampled_abundances,
+                 opt_fastaout,
+                 fp_fastaout,
+                 opt_fastqout,
+                 fp_fastqout);
 
   std::vector<int> discarded_abundances(original_abundances.size());
   std::transform(original_abundances.cbegin(), original_abundances.cend(),
                  subsampled_abundances.cbegin(), discarded_abundances.begin(),
                  std::minus<int>());
-  writing_discarded_output(discarded_abundances,
-                           fp_fastaout_discarded,
-                           fp_fastqout_discarded);
+  writing_output(discarded_abundances,
+                 opt_fastaout_discarded,
+                 fp_fastaout_discarded,
+                 opt_fastqout_discarded,
+                 fp_fastqout_discarded);
 
   int const samples = std::count_if(subsampled_abundances.cbegin(),
                                     subsampled_abundances.cend(), [](int i) { return i != 0; });
