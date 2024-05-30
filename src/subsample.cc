@@ -207,13 +207,13 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               std::FILE * fp_fastqout_discarded) -> void {
   int discarded = 0;
   progress_init("Writing output", deck.size());
-  for (auto counter = 0U; counter < deck.size(); counter++)
-    {
-      int64_t const ab_sub = deck[counter];
+  auto counter = 0U;
+  for (auto abundance_value : deck) {
+      int64_t const ab_sub = abundance_value;
       int64_t const ab_discarded = (opt_sizein ? db_getabundance(counter) : 1) - ab_sub;
 
       if (ab_discarded == 0) {
-        // ++counter;
+        ++counter;
         continue;
       }
 
@@ -245,8 +245,8 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               discarded,
                               -1.0);
         }
-
       progress_update(counter);
+      ++counter;
     }
   progress_done();
 }
