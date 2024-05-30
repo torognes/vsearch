@@ -144,7 +144,7 @@ auto subsample() -> void
     }
   else
     {
-      for(int i = 0; i < dbsequencecount; i++)
+      for (int i = 0; i < dbsequencecount; i++)
         {
           mass_total += db_getabundance(i);
         }
@@ -218,7 +218,7 @@ auto subsample() -> void
   int samples = 0;
   int discarded = 0;
   progress_init("Writing output", dbsequencecount);
-  for(int i = 0; i < dbsequencecount; i++)
+  for (int i = 0; i < dbsequencecount; i++)
     {
       int64_t const ab_sub = abundance[i];
       int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
