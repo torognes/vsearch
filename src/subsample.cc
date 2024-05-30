@@ -245,7 +245,7 @@ auto writing_fastq_output(std::vector<int> const & deck,
     return;
   }
   int amplicons_printed = 0;
-  progress_init("Writing output", deck.size());
+  progress_init("Writing fastq output", deck.size());
   auto counter = 0U;
   for (auto const abundance_value : deck) {
     int64_t const new_abundance = abundance_value;
