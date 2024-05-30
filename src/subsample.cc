@@ -186,37 +186,35 @@ auto subsample() -> void
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  uint64_t x = n_reads;                          /* number of reads left */
-  int a = 0;                                    /* amplicon number */
-  uint64_t r = 0;                          /* read being checked */
-  uint64_t m = 0;                          /* accumulated mass */
-
-  uint64_t mass =                          /* mass of current amplicon */
-    opt_sizein ? db_getabundance(0) : 1;
+  uint64_t n_reads_left = n_reads;
+  int amplicon_number = 0;
+  uint64_t n_read_being_checked = 0;
+  uint64_t accumulated_mass = 0;
+  uint64_t amplicon_mass = opt_sizein ? db_getabundance(0) : 1;
 
   // refactoring C++17: std::sample()
   progress_init("Subsampling", mass_total);
-  while (x > 0)
+  while (n_reads_left > 0)
     {
-      uint64_t const random = random_ulong(mass_total - r);
+      uint64_t const random = random_ulong(mass_total - n_read_being_checked);
 
-      if (random < x)
+      if (random < n_reads_left)
         {
           /* selected read r from amplicon a */
-          abundance[a]++;
-          --x;
+          abundance[amplicon_number]++;
+          --n_reads_left;
         }
 
-      ++r;
-      ++m;
-      if (m >= mass)
+      ++n_read_being_checked;
+      ++accumulated_mass;
+      if (accumulated_mass >= amplicon_mass)
         {
           /* next amplicon */
-          ++a;
-          mass = opt_sizein ? db_getabundance(a) : 1;
-          m = 0;
+          ++amplicon_number;
+          amplicon_mass = opt_sizein ? db_getabundance(amplicon_number) : 1;
+          accumulated_mass = 0;
         }
-      progress_update(r);
+      progress_update(n_read_being_checked);
     }
   progress_done();
 
