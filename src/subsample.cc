@@ -276,14 +276,14 @@ auto subsample() -> void
 
   if (not opt_quiet)
     {
-      fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
-              mass_total, static_cast<int>(original_abundances.size()));
+      std::fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
+                   mass_total, static_cast<int>(original_abundances.size()));
     }
 
   if (opt_log != nullptr)
     {
-      fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
-              mass_total, static_cast<int>(original_abundances.size()));
+      std::fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
+                   mass_total, static_cast<int>(original_abundances.size()));
     }
 
   auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
@@ -311,11 +311,11 @@ auto subsample() -> void
                                     subsampled_abundances.cend(), [](int abundance) { return abundance != 0; });
   if (not opt_quiet)
     {
-      fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+      std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
     }
   if (opt_log != nullptr)
     {
-      fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+      std::fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
     }
 
   db_free();
