@@ -212,37 +212,40 @@ auto writing_discarded_output(std::vector<int> const & deck,
       int64_t const ab_sub = deck[counter];
       int64_t const ab_discarded = (opt_sizein ? db_getabundance(counter) : 1) - ab_sub;
 
-      if (ab_discarded > 0)
+      if (ab_discarded == 0) {
+        // ++counter;
+        continue;
+      }
+
+      ++discarded;
+
+      if (opt_fastaout_discarded != nullptr)
         {
-          ++discarded;
-
-          if (opt_fastaout_discarded != nullptr)
-            {
-              fasta_print_general(fp_fastaout_discarded,
-                                  nullptr,
-                                  db_getsequence(counter),
-                                  db_getsequencelen(counter),
-                                  db_getheader(counter),
-                                  db_getheaderlen(counter),
-                                  ab_discarded,
-                                  discarded,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0);
-            }
-
-          if (opt_fastqout_discarded != nullptr)
-            {
-              fastq_print_general(fp_fastqout_discarded,
-                                  db_getsequence(counter),
-                                  db_getsequencelen(counter),
-                                  db_getheader(counter),
-                                  db_getheaderlen(counter),
-                                  db_getquality(counter),
-                                  ab_discarded,
-                                  discarded,
-                                  -1.0);
-            }
+          fasta_print_general(fp_fastaout_discarded,
+                              nullptr,
+                              db_getsequence(counter),
+                              db_getsequencelen(counter),
+                              db_getheader(counter),
+                              db_getheaderlen(counter),
+                              ab_discarded,
+                              discarded,
+                              -1.0,
+                              -1, -1, nullptr, 0.0);
         }
+
+      if (opt_fastqout_discarded != nullptr)
+        {
+          fastq_print_general(fp_fastqout_discarded,
+                              db_getsequence(counter),
+                              db_getsequencelen(counter),
+                              db_getheader(counter),
+                              db_getheaderlen(counter),
+                              db_getquality(counter),
+                              ab_discarded,
+                              discarded,
+                              -1.0);
+        }
+
       progress_update(counter);
     }
   progress_done();
