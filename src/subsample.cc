@@ -325,6 +325,7 @@ auto subsample() -> void
 
   random_subsampling(abundance, mass_total, n_reads);
 
+  // refactoring: samples = count_if(abundance != 0);
   auto const samples = writing_subsampled_output(abundance,
                                                  fp_fastaout,
                                                  fp_fastqout);
