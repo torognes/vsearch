@@ -376,14 +376,14 @@ auto cut() -> void
   while (fasta_next(h, false, chrmap_no_change))
     {
       int64_t const a_match = cut_one(h,
-                                fp_fastaout,
-                                fp_fastaout_discarded,
-                                fp_fastaout_rev,
-                                fp_fastaout_discarded_rev,
-                                pattern,
-                                n - 2,
-                                cut_fwd,
-                                cut_rev);
+                                      fp_fastaout,
+                                      fp_fastaout_discarded,
+                                      fp_fastaout_rev,
+                                      fp_fastaout_discarded_rev,
+                                      pattern,
+                                      n - 2,
+                                      cut_fwd,
+                                      cut_rev);
       matches += a_match;
       if (a_match > 0)
         {
