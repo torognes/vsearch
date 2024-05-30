@@ -66,7 +66,7 @@ static uint64_t fragment_rev_no = 0;
 static uint64_t fragment_discarded_no = 0;
 static uint64_t fragment_discarded_rev_no = 0;
 
-int cut_one(fastx_handle h,
+auto cut_one(fastx_handle h,
             FILE * fp_fastaout,
             FILE * fp_fastaout_discarded,
             FILE * fp_fastaout_rev,
@@ -74,7 +74,7 @@ int cut_one(fastx_handle h,
             char * pattern,
             int pattern_length,
             int cut_fwd,
-            int cut_rev)
+            int cut_rev) -> int
 {
   char * seq  = fasta_get_sequence(h);
   int seq_length = fasta_get_sequence_length(h);
@@ -245,7 +245,7 @@ int cut_one(fastx_handle h,
   return matches;
 }
 
-void cut()
+auto cut() -> void
 {
   if ((not opt_fastaout) and
       (not opt_fastaout_discarded) and
