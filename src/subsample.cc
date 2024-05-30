@@ -63,7 +63,7 @@
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <numeric>
+#include <numeric>  // std::fill
 #include <vector>
 
 
@@ -163,9 +163,7 @@ auto subsample() -> void
   auto const mass_total = std::accumulate(abundance.cbegin(), abundance.cend(), uint64_t{0});
 
   // temporary fix: reset vector to zero
-  for (auto & abund : abundance) {
-    abund = 0;
-  }
+  std::fill(abundance.begin(), abundance.end(), 0);
 
   if (not opt_quiet)
     {
