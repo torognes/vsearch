@@ -265,7 +265,7 @@ auto cut() -> void
       fatal("Unrecognized file type (not proper FASTA format)");
     }
 
-  uint64_t filesize = fasta_get_size(h);
+  auto const filesize = fasta_get_size(h);
 
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastaout_discarded = nullptr;
