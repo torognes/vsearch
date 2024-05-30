@@ -78,7 +78,7 @@ auto cut_one(fastx_handle h,
             int cut_rev) -> int
 {
   char * seq  = fasta_get_sequence(h);
-  auto seq_length = static_cast<int>(fasta_get_sequence_length(h));
+  auto const seq_length = static_cast<int>(fasta_get_sequence_length(h));
 
   /* get reverse complement */
   char * rc = (char *) xmalloc(seq_length + 1);
