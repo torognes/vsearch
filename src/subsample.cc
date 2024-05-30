@@ -162,6 +162,10 @@ auto subsample() -> void
   int const dbsequencecount = db_getsequencecount();
   auto const mass_total = std::accumulate(abundance.cbegin(), abundance.cend(), uint64_t{0});
 
+  // temporary fix: reset vector to zero
+  for (auto & abund : abundance) {
+    abund = 0;
+  }
 
   if (not opt_quiet)
     {
