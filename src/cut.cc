@@ -68,10 +68,10 @@ static uint64_t fragment_discarded_no = 0;
 static uint64_t fragment_discarded_rev_no = 0;
 
 auto cut_one(fastx_handle h,
-            FILE * fp_fastaout,
-            FILE * fp_fastaout_discarded,
-            FILE * fp_fastaout_rev,
-            FILE * fp_fastaout_discarded_rev,
+            std::FILE * fp_fastaout,
+            std::FILE * fp_fastaout_discarded,
+            std::FILE * fp_fastaout_rev,
+            std::FILE * fp_fastaout_discarded_rev,
             char * pattern,
             int pattern_length,
             int cut_fwd,
@@ -267,10 +267,10 @@ auto cut() -> void
 
   uint64_t filesize = fasta_get_size(h);
 
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastaout_discarded = nullptr;
-  FILE * fp_fastaout_rev = nullptr;
-  FILE * fp_fastaout_discarded_rev = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastaout_discarded = nullptr;
+  std::FILE * fp_fastaout_rev = nullptr;
+  std::FILE * fp_fastaout_discarded_rev = nullptr;
 
   if (opt_fastaout)
     {
@@ -401,14 +401,14 @@ auto cut() -> void
 
   if (not opt_quiet)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
               cut, matches, uncut);
     }
 
   if (opt_log)
     {
-      fprintf(fp_log,
+      std::fprintf(fp_log,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
               cut, matches, uncut);
     }
