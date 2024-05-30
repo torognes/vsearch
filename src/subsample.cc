@@ -110,11 +110,11 @@ auto number_of_reads_to_sample(int64_t const opt_sample_size,
 
 auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
                         uint64_t const n_reads) -> void {
-  uint64_t n_reads_left = n_reads;
-  int amplicon_number = 0;
+  auto n_reads_left = n_reads;
+  auto amplicon_number = 0;
   uint64_t n_read_being_checked = 0;
   uint64_t accumulated_mass = 0;
-  uint64_t amplicon_mass = opt_sizein ? db_getabundance(0) : 1;
+  auto amplicon_mass = opt_sizein ? db_getabundance(0) : 1;
 
   // refactoring C++17: std::sample()
   progress_init("Subsampling", mass_total);
