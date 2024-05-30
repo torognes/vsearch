@@ -151,18 +151,14 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
-auto writing_output(std::vector<int> & deck,
-                    std::FILE * fp_fastaout,
-                    std::FILE * fp_fastaout_discarded,
-                    std::FILE * fp_fastqout,
-                    std::FILE * fp_fastqout_discarded) -> int {
+auto writing_subsampled_output(std::vector<int> & deck,
+                               std::FILE * fp_fastaout,
+                               std::FILE * fp_fastqout) -> int {
   int samples = 0;
-  int discarded = 0;
   progress_init("Writing output", deck.size());
   for (auto i = 0U; i < deck.size(); i++)
     {
       int64_t const ab_sub = deck[i];
-      int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
 
       if (ab_sub > 0)
         {
@@ -195,6 +191,22 @@ auto writing_output(std::vector<int> & deck,
                                   -1.0);
             }
         }
+      progress_update(i);
+    }
+  progress_done();
+  return samples;
+}
+
+
+auto writing_discarded_output(std::vector<int> & deck,
+                              std::FILE * fp_fastaout_discarded,
+                              std::FILE * fp_fastqout_discarded) -> void {
+  int discarded = 0;
+  progress_init("Writing output", deck.size());
+  for (auto i = 0U; i < deck.size(); i++)
+    {
+      int64_t const ab_sub = deck[i];
+      int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
 
       if (ab_discarded > 0)
         {
@@ -230,7 +242,6 @@ auto writing_output(std::vector<int> & deck,
       progress_update(i);
     }
   progress_done();
-  return samples;
 }
 
 
@@ -310,11 +321,13 @@ auto subsample() -> void
 
   random_subsampling(abundance, mass_total, n_reads);
 
-  auto const samples = writing_output(abundance,
-                                      fp_fastaout,
-                                      fp_fastaout_discarded,
-                                      fp_fastqout,
-                                      fp_fastqout_discarded);
+  auto const samples = writing_subsampled_output(abundance,
+                                                 fp_fastaout,
+                                                 fp_fastqout);
+  writing_discarded_output(abundance,
+                           fp_fastaout_discarded,
+                           fp_fastqout_discarded);
+
 
   if (not opt_quiet)
     {
