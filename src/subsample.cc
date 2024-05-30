@@ -154,7 +154,7 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 auto writing_subsampled_output(std::vector<int> const & deck,
                                std::FILE * fp_fastaout,
                                std::FILE * fp_fastqout) -> int {
-  int samples = 0;
+  int amplicons_outputted = 0;
   progress_init("Writing output", deck.size());
   auto counter = 0U;
   for (auto abundance_value : deck) {
@@ -165,7 +165,7 @@ auto writing_subsampled_output(std::vector<int> const & deck,
         continue;
       }
 
-      ++samples;
+      ++amplicons_outputted;
 
       if (opt_fastaout != nullptr)
         {
@@ -176,7 +176,7 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                               db_getheader(counter),
                               db_getheaderlen(counter),
                               ab_sub,
-                              samples,
+                              amplicons_outputted,
                               -1.0,
                               -1, -1, nullptr, 0.0);
         }
@@ -190,7 +190,7 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                               db_getheaderlen(counter),
                               db_getquality(counter),
                               ab_sub,
-                              samples,
+                              amplicons_outputted,
                               -1.0);
         }
 
@@ -198,14 +198,14 @@ auto writing_subsampled_output(std::vector<int> const & deck,
       ++counter;
     }
   progress_done();
-  return samples;
+  return amplicons_outputted;
 }
 
 
 auto writing_discarded_output(std::vector<int> const & deck,
                               std::FILE * fp_fastaout_discarded,
                               std::FILE * fp_fastqout_discarded) -> void {
-  int discarded = 0;
+  int amplicons_outputted = 0;
   progress_init("Writing output", deck.size());
   auto counter = 0U;
   for (auto abundance_value : deck) {
@@ -217,7 +217,7 @@ auto writing_discarded_output(std::vector<int> const & deck,
         continue;
       }
 
-      ++discarded;
+      ++amplicons_outputted;
 
       if (opt_fastaout_discarded != nullptr)
         {
@@ -228,7 +228,7 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               db_getheader(counter),
                               db_getheaderlen(counter),
                               ab_discarded,
-                              discarded,
+                              amplicons_outputted,
                               -1.0,
                               -1, -1, nullptr, 0.0);
         }
@@ -242,7 +242,7 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               db_getheaderlen(counter),
                               db_getquality(counter),
                               ab_discarded,
-                              discarded,
+                              amplicons_outputted,
                               -1.0);
         }
       progress_update(counter);
