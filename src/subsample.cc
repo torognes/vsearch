@@ -110,7 +110,7 @@ auto number_of_reads_to_sample(int64_t const opt_sample_size,
                                double const opt_sample_pct,
                                uint64_t const mass_total) -> uint64_t {
   // assert(mass_total < max_uint64 / opt_sample_pct)
-  if (opt_sample_size) {
+  if (opt_sample_size != 0) {
     return static_cast<uint64_t>(opt_sample_size);
   }
   return static_cast<uint64_t>(std::floor(mass_total * opt_sample_pct / 100.0));
