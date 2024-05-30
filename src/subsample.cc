@@ -280,9 +280,7 @@ auto subsample() -> void
 
   auto abundance = create_deck(opt_sizein);
   auto const mass_total = std::accumulate(abundance.cbegin(), abundance.cend(), uint64_t{0});
-
-  // temporary fix: reset vector to zero
-  std::fill(abundance.begin(), abundance.end(), 0);
+  std::fill(abundance.begin(), abundance.end(), 0);  // temporary fix: reset vector to zero
 
   if (not opt_quiet)
     {
