@@ -160,37 +160,40 @@ auto writing_subsampled_output(std::vector<int> & deck,
     {
       int64_t const ab_sub = deck[i];
 
-      if (ab_sub > 0)
+      if (ab_sub == 0) {
+        // ++counter;
+        continue;
+      }
+
+      ++samples;
+
+      if (opt_fastaout != nullptr)
         {
-          ++samples;
-
-          if (opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  ab_sub,
-                                  samples,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0);
-            }
-
-          if (opt_fastqout != nullptr)
-            {
-              fastq_print_general(fp_fastqout,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  db_getquality(i),
-                                  ab_sub,
-                                  samples,
-                                  -1.0);
-            }
+          fasta_print_general(fp_fastaout,
+                              nullptr,
+                              db_getsequence(i),
+                              db_getsequencelen(i),
+                              db_getheader(i),
+                              db_getheaderlen(i),
+                              ab_sub,
+                              samples,
+                              -1.0,
+                              -1, -1, nullptr, 0.0);
         }
+
+      if (opt_fastqout != nullptr)
+        {
+          fastq_print_general(fp_fastqout,
+                              db_getsequence(i),
+                              db_getsequencelen(i),
+                              db_getheader(i),
+                              db_getheaderlen(i),
+                              db_getquality(i),
+                              ab_sub,
+                              samples,
+                              -1.0);
+        }
+
       progress_update(i);
     }
   progress_done();
