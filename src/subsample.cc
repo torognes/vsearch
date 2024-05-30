@@ -340,8 +340,8 @@ auto subsample() -> void
                            fp_fastaout_discarded,
                            fp_fastqout_discarded);
 
-  int const samples = std::count_if(subsampled_abundances.begin(),
-                                    subsampled_abundances.end(), [](int i) { return i != 0; });
+  int const samples = std::count_if(subsampled_abundances.cbegin(),
+                                    subsampled_abundances.cend(), [](int i) { return i != 0; });
   if (not opt_quiet)
     {
       fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
