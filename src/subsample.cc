@@ -155,11 +155,10 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                                std::FILE * fp_fastaout,
                                std::FILE * fp_fastqout) -> int {
   int samples = 0;
-  auto counter = std::size_t{0};
   progress_init("Writing output", deck.size());
-  for (auto i = 0U; i < deck.size(); i++)
-    {
-      int64_t const ab_sub = deck[i];
+  auto counter = 0U;
+  for (auto abundance_value : deck) {
+      int64_t const ab_sub = abundance_value;
 
       if (ab_sub == 0) {
         ++counter;
@@ -172,10 +171,10 @@ auto writing_subsampled_output(std::vector<int> const & deck,
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
-                              db_getsequence(i),
-                              db_getsequencelen(i),
-                              db_getheader(i),
-                              db_getheaderlen(i),
+                              db_getsequence(counter),
+                              db_getsequencelen(counter),
+                              db_getheader(counter),
+                              db_getheaderlen(counter),
                               ab_sub,
                               samples,
                               -1.0,
@@ -185,20 +184,20 @@ auto writing_subsampled_output(std::vector<int> const & deck,
       if (opt_fastqout != nullptr)
         {
           fastq_print_general(fp_fastqout,
-                              db_getsequence(i),
-                              db_getsequencelen(i),
-                              db_getheader(i),
-                              db_getheaderlen(i),
-                              db_getquality(i),
+                              db_getsequence(counter),
+                              db_getsequencelen(counter),
+                              db_getheader(counter),
+                              db_getheaderlen(counter),
+                              db_getquality(counter),
                               ab_sub,
                               samples,
                               -1.0);
         }
 
-      progress_update(i);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
-  ++counter;
   return samples;
 }
 
