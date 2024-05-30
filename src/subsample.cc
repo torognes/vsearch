@@ -207,10 +207,10 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               std::FILE * fp_fastqout_discarded) -> void {
   int discarded = 0;
   progress_init("Writing output", deck.size());
-  for (auto i = 0U; i < deck.size(); i++)
+  for (auto counter = 0U; counter < deck.size(); counter++)
     {
-      int64_t const ab_sub = deck[i];
-      int64_t const ab_discarded = (opt_sizein ? db_getabundance(i) : 1) - ab_sub;
+      int64_t const ab_sub = deck[counter];
+      int64_t const ab_discarded = (opt_sizein ? db_getabundance(counter) : 1) - ab_sub;
 
       if (ab_discarded > 0)
         {
@@ -220,10 +220,10 @@ auto writing_discarded_output(std::vector<int> const & deck,
             {
               fasta_print_general(fp_fastaout_discarded,
                                   nullptr,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
+                                  db_getsequence(counter),
+                                  db_getsequencelen(counter),
+                                  db_getheader(counter),
+                                  db_getheaderlen(counter),
                                   ab_discarded,
                                   discarded,
                                   -1.0,
@@ -233,17 +233,17 @@ auto writing_discarded_output(std::vector<int> const & deck,
           if (opt_fastqout_discarded != nullptr)
             {
               fastq_print_general(fp_fastqout_discarded,
-                                  db_getsequence(i),
-                                  db_getsequencelen(i),
-                                  db_getheader(i),
-                                  db_getheaderlen(i),
-                                  db_getquality(i),
+                                  db_getsequence(counter),
+                                  db_getsequencelen(counter),
+                                  db_getheader(counter),
+                                  db_getheaderlen(counter),
+                                  db_getquality(counter),
                                   ab_discarded,
                                   discarded,
                                   -1.0);
             }
         }
-      progress_update(i);
+      progress_update(counter);
     }
   progress_done();
 }
