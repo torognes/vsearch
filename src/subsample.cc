@@ -303,20 +303,20 @@ auto subsample() -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  auto abundance = create_deck(opt_sizein);
-  auto const mass_total = std::accumulate(abundance.cbegin(), abundance.cend(), uint64_t{0});
-  std::fill(abundance.begin(), abundance.end(), 0);  // temporary fix: reset vector to zero
+  auto original_abundances = create_deck(opt_sizein);
+  auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
+  std::fill(original_abundances.begin(), original_abundances.end(), 0);  // temporary fix: reset vector to zero
 
   if (not opt_quiet)
     {
       fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
-              mass_total, static_cast<int>(abundance.size()));
+              mass_total, static_cast<int>(original_abundances.size()));
     }
 
   if (opt_log != nullptr)
     {
       fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
-              mass_total, static_cast<int>(abundance.size()));
+              mass_total, static_cast<int>(original_abundances.size()));
     }
 
   auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
@@ -326,13 +326,13 @@ auto subsample() -> void
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  random_subsampling(abundance, mass_total, n_reads);
+  random_subsampling(original_abundances, mass_total, n_reads);
 
   // refactoring: samples = count_if(abundance != 0);
-  auto const samples = writing_subsampled_output(abundance,
+  auto const samples = writing_subsampled_output(original_abundances,
                                                  fp_fastaout,
                                                  fp_fastqout);
-  writing_discarded_output(abundance,
+  writing_discarded_output(original_abundances,
                            fp_fastaout_discarded,
                            fp_fastqout_discarded);
 
