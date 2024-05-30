@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <vector>
 
 
@@ -304,21 +304,21 @@ auto subsample() -> void
 
   if (opt_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
 
   if (opt_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   if (opt_fastaout_discarded != nullptr)
     {
-      fclose(fp_fastaout_discarded);
+      std::fclose(fp_fastaout_discarded);
     }
 
   if (opt_fastqout_discarded != nullptr)
     {
-      fclose(fp_fastqout_discarded);
+      std::fclose(fp_fastqout_discarded);
     }
 }
