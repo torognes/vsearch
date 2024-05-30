@@ -153,58 +153,6 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
-auto writing_output(std::vector<int> const & deck,
-                    char * ptr_fasta_file_name,
-                    std::FILE * ptr_fasta_file,
-                    char * ptr_fastq_file_name,
-                    std::FILE * ptr_fastq_file) -> void {
-  int amplicons_printed = 0;
-  progress_init("Writing output", deck.size());
-  auto counter = 0U;
-  for (auto const abundance_value : deck) {
-    int64_t const new_abundance = abundance_value;
-
-      if (new_abundance == 0) {
-        ++counter;
-        continue;
-      }
-
-      ++amplicons_printed;
-
-      if (ptr_fasta_file_name != nullptr)
-        {
-          fasta_print_general(ptr_fasta_file,
-                              nullptr,
-                              db_getsequence(counter),
-                              db_getsequencelen(counter),
-                              db_getheader(counter),
-                              db_getheaderlen(counter),
-                              new_abundance,
-                              amplicons_printed,
-                              -1.0,
-                              -1, -1, nullptr, 0.0);
-        }
-
-      if (ptr_fastq_file_name != nullptr)
-        {
-          fastq_print_general(ptr_fastq_file,
-                              db_getsequence(counter),
-                              db_getsequencelen(counter),
-                              db_getheader(counter),
-                              db_getheaderlen(counter),
-                              db_getquality(counter),
-                              new_abundance,
-                              amplicons_printed,
-                              -1.0);
-        }
-
-      progress_update(counter);
-      ++counter;
-    }
-  progress_done();
-}
-
-
 auto writing_fasta_output(std::vector<int> const & deck,
                           char * ptr_fasta_file_name,
                           std::FILE * ptr_fasta_file) -> void {
