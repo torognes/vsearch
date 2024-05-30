@@ -204,6 +204,71 @@ auto writing_output(std::vector<int> const & deck,
 }
 
 
+auto writing_fasta_output(std::vector<int> const & deck,
+                          char * ptr_fasta_file_name,
+                          std::FILE * ptr_fasta_file) -> void {
+  if (ptr_fasta_file_name == nullptr) {
+    return;
+  }
+  int amplicons_printed = 0;
+  progress_init("Writing fasta output", deck.size());
+  auto counter = 0U;
+  for (auto const abundance_value : deck) {
+    int64_t const new_abundance = abundance_value;
+      if (new_abundance == 0) {
+        ++counter;
+        continue;
+      }
+      ++amplicons_printed;
+      fasta_print_general(ptr_fasta_file,
+                          nullptr,
+                          db_getsequence(counter),
+                          db_getsequencelen(counter),
+                          db_getheader(counter),
+                          db_getheaderlen(counter),
+                          new_abundance,
+                          amplicons_printed,
+                          -1.0,
+                          -1, -1, nullptr, 0.0);
+      progress_update(counter);
+      ++counter;
+    }
+  progress_done();
+}
+
+
+auto writing_fastq_output(std::vector<int> const & deck,
+                          char * ptr_fastq_file_name,
+                          std::FILE * ptr_fastq_file) -> void {
+  if (ptr_fastq_file_name == nullptr) {
+    return;
+  }
+  int amplicons_printed = 0;
+  progress_init("Writing output", deck.size());
+  auto counter = 0U;
+  for (auto const abundance_value : deck) {
+    int64_t const new_abundance = abundance_value;
+      if (new_abundance == 0) {
+        ++counter;
+        continue;
+      }
+      ++amplicons_printed;
+      fastq_print_general(ptr_fastq_file,
+                          db_getsequence(counter),
+                          db_getsequencelen(counter),
+                          db_getheader(counter),
+                          db_getheaderlen(counter),
+                          db_getquality(counter),
+                          new_abundance,
+                          amplicons_printed,
+                          -1.0);
+      progress_update(counter);
+      ++counter;
+  }
+  progress_done();
+}
+
+
 auto subsample() -> void
 {
   std::FILE * fp_fastaout = nullptr;
@@ -281,22 +346,17 @@ auto subsample() -> void
 
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
-  writing_output(subsampled_abundances,
-                 opt_fastaout,
-                 fp_fastaout,
-                 opt_fastqout,
-                 fp_fastqout);
+  writing_fasta_output(subsampled_abundances, opt_fastaout, fp_fastaout);
+  writing_fastq_output(subsampled_abundances, opt_fastqout, fp_fastqout);
 
   // refactoring: extract to a function, make discarded_abundances const
   std::vector<int> discarded_abundances(original_abundances.size());
   std::transform(original_abundances.cbegin(), original_abundances.cend(),
                  subsampled_abundances.cbegin(), discarded_abundances.begin(),
                  std::minus<int>());
-  writing_output(discarded_abundances,
-                 opt_fastaout_discarded,
-                 fp_fastaout_discarded,
-                 opt_fastqout_discarded,
-                 fp_fastqout_discarded);
+
+  writing_fasta_output(discarded_abundances, opt_fastaout_discarded, fp_fastaout_discarded);
+  writing_fastq_output(discarded_abundances, opt_fastqout_discarded, fp_fastqout_discarded);
 
   int const samples = std::count_if(subsampled_abundances.cbegin(),
                                     subsampled_abundances.cend(), [](int i) { return i != 0; });
