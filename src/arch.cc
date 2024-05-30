@@ -330,9 +330,9 @@ auto xstrcasestr(const char * haystack, const char * needle) -> const char *
 }
 
 #ifdef _WIN32
-FARPROC arch_dlsym(HMODULE handle, const char * symbol)
+auto arch_dlsym(HMODULE handle, const char * symbol) -> FARPROC
 #else
-void * arch_dlsym(void * handle, const char * symbol)
+auto arch_dlsym(void * handle, const char * symbol) -> void *
 #endif
 {
 #ifdef _WIN32
