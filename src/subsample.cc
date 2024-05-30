@@ -68,24 +68,14 @@
 #include <numeric>  // std::fill
 #include <vector>
 
-
-// subsampling refactoring:
-//  - split with and without sizein,
-//  - without sizein:
-//    - equivalent to a shuffle + resize() + sort()
-//  - with sizein:
-//    - std::discrete_distribution()
-
-// refactoring C++11:
-// - original vector,
-// - subsampled vector
-// - discarded vector = std::transform(vector1.begin(), vector1.end(), vector2.begin(), vector1.begin(), std::minus<int>())
-
-// - split writing into two functions, one for accepted and one for discarded
-
 // refactoring:
 // - accept sample_size = 0 and sample_pct = 0.0?
 // - fastaout should be empty, all reads should be in fastaout_discarded
+
+// refactoring:
+// - store parameters in a struct, pass struct to reduce list of arguments
+// - use uint64_t for abundance values?
+// - create discarded vector only if needed
 
 
 namespace {
