@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
+#include <cmath>  // std::floor
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <numeric>
@@ -96,14 +97,14 @@ namespace {
 }
 
 
-auto number_of_reads_to_sample(bool const opt_sample_size,
-                               bool const opt_sample_pct,
+auto number_of_reads_to_sample(int64_t const opt_sample_size,
+                               double const opt_sample_pct,
                                uint64_t const mass_total) -> uint64_t {
   // assert(mass_total < max_uint64 / opt_sample_pct)
   if (opt_sample_size) {
-    return opt_sample_size;
+    return static_cast<uint64_t>(opt_sample_size);
   }
-  return mass_total * opt_sample_pct / 100.0;
+  return static_cast<uint64_t>(std::floor(mass_total * opt_sample_pct / 100.0));
 }
 
 
@@ -179,9 +180,7 @@ auto subsample() -> void
               mass_total, dbsequencecount);
     }
 
-  auto const n_reads = number_of_reads_to_sample(opt_sample_size,
-                                           opt_sample_pct,
-                                           mass_total);
+  auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
 
   if (n_reads > mass_total)
     {
