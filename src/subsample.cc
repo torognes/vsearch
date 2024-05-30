@@ -155,13 +155,14 @@ auto writing_subsampled_output(std::vector<int> & deck,
                                std::FILE * fp_fastaout,
                                std::FILE * fp_fastqout) -> int {
   int samples = 0;
+  auto counter = std::size_t{0};
   progress_init("Writing output", deck.size());
   for (auto i = 0U; i < deck.size(); i++)
     {
       int64_t const ab_sub = deck[i];
 
       if (ab_sub == 0) {
-        // ++counter;
+        ++counter;
         continue;
       }
 
@@ -197,6 +198,7 @@ auto writing_subsampled_output(std::vector<int> & deck,
       progress_update(i);
     }
   progress_done();
+  ++counter;
   return samples;
 }
 
