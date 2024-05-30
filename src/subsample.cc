@@ -64,6 +64,7 @@
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <functional>  // std::minus
 #include <numeric>  // std::fill
 #include <vector>
 
