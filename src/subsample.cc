@@ -174,16 +174,16 @@ auto subsample() -> void
               mass_total, dbsequencecount);
     }
 
-  auto const n = number_of_reads_to_sample(opt_sample_size,
+  auto const n_reads = number_of_reads_to_sample(opt_sample_size,
                                            opt_sample_pct,
                                            mass_total);
 
-  if (n > mass_total)
+  if (n_reads > mass_total)
     {
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  uint64_t x = n;                          /* number of reads left */
+  uint64_t x = n_reads;                          /* number of reads left */
   int a = 0;                                    /* amplicon number */
   uint64_t r = 0;                          /* read being checked */
   uint64_t m = 0;                          /* accumulated mass */
@@ -295,11 +295,11 @@ auto subsample() -> void
 
   if (not opt_quiet)
     {
-      fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
+      fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
     }
   if (opt_log != nullptr)
     {
-      fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n, samples);
+      fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
     }
 
   db_free();
