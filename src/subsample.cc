@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
@@ -209,8 +210,7 @@ auto writing_discarded_output(std::vector<int> const & deck,
   progress_init("Writing output", deck.size());
   auto counter = 0U;
   for (auto abundance_value : deck) {
-      int64_t const ab_sub = abundance_value;
-      int64_t const ab_discarded = (opt_sizein ? db_getabundance(counter) : 1) - ab_sub;
+      int64_t const ab_discarded = abundance_value;
 
       if (ab_discarded == 0) {
         ++counter;
@@ -305,7 +305,8 @@ auto subsample() -> void
 
   auto original_abundances = create_deck(opt_sizein);
   auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
-  std::fill(original_abundances.begin(), original_abundances.end(), 0);  // temporary fix: reset vector to zero
+  auto subsampled_abundances = original_abundances;
+  std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
 
   if (not opt_quiet)
     {
@@ -326,13 +327,18 @@ auto subsample() -> void
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  random_subsampling(original_abundances, mass_total, n_reads);
+  random_subsampling(subsampled_abundances, mass_total, n_reads);
 
   // refactoring: samples = count_if(abundance != 0);
-  auto const samples = writing_subsampled_output(original_abundances,
+  auto const samples = writing_subsampled_output(subsampled_abundances,
                                                  fp_fastaout,
                                                  fp_fastqout);
-  writing_discarded_output(original_abundances,
+
+  std::vector<int> discarded_abundances(original_abundances.size());
+  std::transform(original_abundances.cbegin(), original_abundances.cend(),
+                 subsampled_abundances.cbegin(), discarded_abundances.begin(),
+                 std::minus<int>());
+  writing_discarded_output(discarded_abundances,
                            fp_fastaout_discarded,
                            fp_fastqout_discarded);
 
