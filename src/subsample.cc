@@ -151,7 +151,7 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
-auto writing_subsampled_output(std::vector<int> & deck,
+auto writing_subsampled_output(std::vector<int> const & deck,
                                std::FILE * fp_fastaout,
                                std::FILE * fp_fastqout) -> int {
   int samples = 0;
@@ -203,7 +203,7 @@ auto writing_subsampled_output(std::vector<int> & deck,
 }
 
 
-auto writing_discarded_output(std::vector<int> & deck,
+auto writing_discarded_output(std::vector<int> const & deck,
                               std::FILE * fp_fastaout_discarded,
                               std::FILE * fp_fastqout_discarded) -> void {
   int discarded = 0;
