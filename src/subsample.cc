@@ -159,9 +159,9 @@ auto writing_subsampled_output(std::vector<int> const & deck,
   progress_init("Writing output", deck.size());
   auto counter = 0U;
   for (auto abundance_value : deck) {
-      int64_t const ab_sub = abundance_value;
+      int64_t const new_abundance = abundance_value;
 
-      if (ab_sub == 0) {
+      if (new_abundance == 0) {
         ++counter;
         continue;
       }
@@ -176,7 +176,7 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                               db_getsequencelen(counter),
                               db_getheader(counter),
                               db_getheaderlen(counter),
-                              ab_sub,
+                              new_abundance,
                               amplicons_outputted,
                               -1.0,
                               -1, -1, nullptr, 0.0);
@@ -190,7 +190,7 @@ auto writing_subsampled_output(std::vector<int> const & deck,
                               db_getheader(counter),
                               db_getheaderlen(counter),
                               db_getquality(counter),
-                              ab_sub,
+                              new_abundance,
                               amplicons_outputted,
                               -1.0);
         }
@@ -209,9 +209,9 @@ auto writing_discarded_output(std::vector<int> const & deck,
   progress_init("Writing output", deck.size());
   auto counter = 0U;
   for (auto abundance_value : deck) {
-      int64_t const ab_discarded = abundance_value;
+      int64_t const new_abundance = abundance_value;
 
-      if (ab_discarded == 0) {
+      if (new_abundance == 0) {
         ++counter;
         continue;
       }
@@ -226,7 +226,7 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               db_getsequencelen(counter),
                               db_getheader(counter),
                               db_getheaderlen(counter),
-                              ab_discarded,
+                              new_abundance,
                               amplicons_outputted,
                               -1.0,
                               -1, -1, nullptr, 0.0);
@@ -240,7 +240,7 @@ auto writing_discarded_output(std::vector<int> const & deck,
                               db_getheader(counter),
                               db_getheaderlen(counter),
                               db_getquality(counter),
-                              ab_discarded,
+                              new_abundance,
                               amplicons_outputted,
                               -1.0);
         }
