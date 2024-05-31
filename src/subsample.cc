@@ -341,6 +341,17 @@ auto writing_fastq_output(std::vector<int> const & deck,
 }
 
 
+auto close_output_files(struct file_types const & ouput_files) -> void {
+  for (auto * fp_outputfile : {
+           ouput_files.fasta.kept.handle, ouput_files.fastq.kept.handle,
+           ouput_files.fasta.lost.handle, ouput_files.fastq.lost.handle}) {
+    if (fp_outputfile != nullptr) {
+      static_cast<void>(std::fclose(fp_outputfile));
+    }
+  }
+}
+
+
 auto subsample() -> void
 {
   struct file_types ouput_files = {};
@@ -390,10 +401,5 @@ auto subsample() -> void
 
   db_free();
 
-  // close output files
-  for (auto * fp_outputfile : {ouput_files.fasta.kept.handle, ouput_files.fastq.kept.handle, ouput_files.fasta.lost.handle, ouput_files.fastq.lost.handle}) {
-    if (fp_outputfile != nullptr) {
-      static_cast<void>(std::fclose(fp_outputfile));
-    }
-  }
+  close_output_files(ouput_files);
 }
