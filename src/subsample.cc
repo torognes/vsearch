@@ -171,6 +171,16 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
+auto substract_two_decks(std::vector<int> const & original_deck,
+                         std::vector<int> const & subsampled_deck) -> std::vector<int> {
+  std::vector<int> difference_deck(original_deck.size());
+  std::transform(original_deck.cbegin(), original_deck.cend(),
+                 subsampled_deck.cbegin(), difference_deck.begin(),
+                 std::minus<int>());
+  return difference_deck;
+}
+
+
 auto writing_fasta_output(std::vector<int> const & deck,
                           char * ptr_fasta_file_name,
                           std::FILE * ptr_fasta_file) -> void {
@@ -316,15 +326,14 @@ auto subsample() -> void
   writing_fasta_output(subsampled_abundances, opt_fastaout, fp_fastaout);
   writing_fastq_output(subsampled_abundances, opt_fastqout, fp_fastqout);
 
-  // refactoring: extract to a function, make discarded_abundances const
-  std::vector<int> discarded_abundances(original_abundances.size());
-  std::transform(original_abundances.cbegin(), original_abundances.cend(),
-                 subsampled_abundances.cbegin(), discarded_abundances.begin(),
-                 std::minus<int>());
+  // if ((fp_fastaout_discarded != nullptr) or (fp_fastqout_discarded != nullptr)) {...}
+  auto const discarded_abundances = substract_two_decks(original_abundances,
+                                                        subsampled_abundances);
 
   writing_fasta_output(discarded_abundances, opt_fastaout_discarded, fp_fastaout_discarded);
   writing_fastq_output(discarded_abundances, opt_fastqout_discarded, fp_fastqout_discarded);
 
+  // refactoring: extract to a function, move after writing_fastx_output?
   int const samples = std::count_if(subsampled_abundances.cbegin(),
                                     subsampled_abundances.cend(), [](int abundance) { return abundance != 0; });
   if (not opt_quiet)
