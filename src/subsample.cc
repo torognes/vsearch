@@ -124,6 +124,46 @@ struct file_types {
 // }
 
 
+auto open_output_files(struct file_types & ouput_files) -> void {
+  if (ouput_files.fasta.kept.name != nullptr) {
+    ouput_files.fasta.kept.handle = fopen_output(ouput_files.fasta.kept.name);
+  }
+  if (ouput_files.fasta.lost.name != nullptr) {
+    ouput_files.fasta.lost.handle = fopen_output(ouput_files.fasta.lost.name);
+  }
+  if (ouput_files.fastq.kept.name != nullptr) {
+    ouput_files.fastq.kept.handle = fopen_output(ouput_files.fastq.kept.name);
+  }
+  if (ouput_files.fastq.lost.name != nullptr) {
+    ouput_files.fastq.lost.handle = fopen_output(ouput_files.fastq.lost.name);
+  }
+}
+
+
+auto check_output_files(struct file_types const & ouput_files) -> void {
+  if (ouput_files.fasta.kept.name != nullptr) {
+    if (ouput_files.fasta.kept.handle == nullptr) {
+      fatal("Unable to open FASTA output file for writing");
+    }
+  }
+  if (ouput_files.fasta.lost.name != nullptr) {
+    if (ouput_files.fasta.lost.handle == nullptr) {
+      fatal("Unable to open FASTA output file for writing");
+    }
+  }
+  if (ouput_files.fastq.kept.name != nullptr) {
+    if (ouput_files.fastq.kept.handle == nullptr) {
+      fatal("Unable to open FASTQ output file for writing");
+    }
+  }
+  if (ouput_files.fastq.lost.name != nullptr) {
+    if (ouput_files.fastq.lost.handle == nullptr) {
+      fatal("Unable to open FASTQ output file for writing");
+    }
+  }
+}
+
+
 namespace {
   // anonymous namespace to avoid linker error (multiple definitions
   // of function with identical names and parameters)
@@ -309,41 +349,8 @@ auto subsample() -> void
   ouput_files.fastq.kept.name = opt_fastqout;
   ouput_files.fastq.lost.name = opt_fastqout_discarded;
 
-  if (ouput_files.fasta.kept.name != nullptr)
-    {
-      ouput_files.fasta.kept.handle = fopen_output(ouput_files.fasta.kept.name);
-      if (ouput_files.fasta.kept.handle == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
-
-  if (ouput_files.fasta.lost.name != nullptr)
-    {
-      ouput_files.fasta.lost.handle = fopen_output(ouput_files.fasta.lost.name);
-      if (ouput_files.fasta.lost.handle == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
-
-  if (ouput_files.fastq.kept.name != nullptr)
-    {
-      ouput_files.fastq.kept.handle = fopen_output(ouput_files.fastq.kept.name);
-      if (ouput_files.fastq.kept.handle == nullptr)
-        {
-          fatal("Unable to open FASTQ output file for writing");
-        }
-    }
-
-  if (ouput_files.fastq.lost.name != nullptr)
-    {
-      ouput_files.fastq.lost.handle = fopen_output(ouput_files.fastq.lost.name);
-      if (ouput_files.fastq.lost.handle == nullptr)
-        {
-          fatal("Unable to open FASTQ output file for writing");
-        }
-    }
+  open_output_files(ouput_files);
+  check_output_files(ouput_files);
 
   db_read(opt_fastx_subsample, 0);
   show_rusage();
