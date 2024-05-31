@@ -68,6 +68,24 @@
 #include <numeric>  // std::fill
 #include <vector>
 
+
+struct a_file {
+  char * name = nullptr;
+  std::FILE * handle = nullptr;
+};
+
+
+struct file_purposes {
+  a_file kept;
+  a_file lost;
+};
+
+
+struct file_types {
+  file_purposes fasta;
+  file_purposes fastq;
+};
+
 // refactoring:
 // - accept sample_size = 0 and sample_pct = 0.0?
 // - fastaout should be empty, all reads should be in fastaout_discarded
@@ -285,42 +303,43 @@ auto writing_fastq_output(std::vector<int> const & deck,
 
 auto subsample() -> void
 {
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastaout_discarded = nullptr;
-  std::FILE * fp_fastqout = nullptr;
-  std::FILE * fp_fastqout_discarded = nullptr;
+  struct file_types ouput_files = {};
+  ouput_files.fasta.kept.name = opt_fastaout;
+  ouput_files.fasta.lost.name = opt_fastaout_discarded;
+  ouput_files.fastq.kept.name = opt_fastqout;
+  ouput_files.fastq.lost.name = opt_fastqout_discarded;
 
-  if (opt_fastaout != nullptr)
+  if (ouput_files.fasta.kept.name != nullptr)
     {
-      fp_fastaout = fopen_output(opt_fastaout);
-      if (fp_fastaout == nullptr)
+      ouput_files.fasta.kept.handle = fopen_output(ouput_files.fasta.kept.name);
+      if (ouput_files.fasta.kept.handle == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastaout_discarded != nullptr)
+  if (ouput_files.fasta.lost.name != nullptr)
     {
-      fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (fp_fastaout_discarded == nullptr)
+      ouput_files.fasta.lost.handle = fopen_output(ouput_files.fasta.lost.name);
+      if (ouput_files.fasta.lost.handle == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastqout != nullptr)
+  if (ouput_files.fastq.kept.name != nullptr)
     {
-      fp_fastqout = fopen_output(opt_fastqout);
-      if (fp_fastqout == nullptr)
+      ouput_files.fastq.kept.handle = fopen_output(ouput_files.fastq.kept.name);
+      if (ouput_files.fastq.kept.handle == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
     }
 
-  if (opt_fastqout_discarded != nullptr)
+  if (ouput_files.fastq.lost.name != nullptr)
     {
-      fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (fp_fastqout_discarded == nullptr)
+      ouput_files.fastq.lost.handle = fopen_output(ouput_files.fastq.lost.name);
+      if (ouput_files.fastq.lost.handle == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -329,7 +348,7 @@ auto subsample() -> void
   db_read(opt_fastx_subsample, 0);
   show_rusage();
 
-  if ((fp_fastqout != nullptr or fp_fastqout_discarded != nullptr) and not db_is_fastq())
+  if ((ouput_files.fastq.kept.handle != nullptr or ouput_files.fastq.lost.handle != nullptr) and not db_is_fastq())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -351,13 +370,13 @@ auto subsample() -> void
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
   // writing to output files
-  writing_fasta_output(subsampled_abundances, opt_fastaout, fp_fastaout);
-  writing_fastq_output(subsampled_abundances, opt_fastqout, fp_fastqout);
-  if ((fp_fastaout_discarded != nullptr) or (fp_fastqout_discarded != nullptr)) {
+  writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept.name, ouput_files.fasta.kept.handle);
+  writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept.name, ouput_files.fastq.kept.handle);
+  if ((ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr)) {
     auto const discarded_abundances = substract_two_decks(original_abundances,
                                                           subsampled_abundances);
-    writing_fasta_output(discarded_abundances, opt_fastaout_discarded, fp_fastaout_discarded);
-    writing_fastq_output(discarded_abundances, opt_fastqout_discarded, fp_fastqout_discarded);
+    writing_fasta_output(discarded_abundances, ouput_files.fasta.lost.name, ouput_files.fasta.lost.handle);
+    writing_fastq_output(discarded_abundances, ouput_files.fastq.lost.name, ouput_files.fastq.lost.handle);
   }
 
   write_subsampling_stats(subsampled_abundances, n_reads, opt_quiet, opt_log, fp_log);
@@ -365,7 +384,7 @@ auto subsample() -> void
   db_free();
 
   // close output files
-  for (auto * fp_outputfile : {fp_fastaout, fp_fastqout, fp_fastaout_discarded, fp_fastqout_discarded}) {
+  for (auto * fp_outputfile : {ouput_files.fasta.kept.handle, ouput_files.fastq.kept.handle, ouput_files.fasta.lost.handle, ouput_files.fastq.lost.handle}) {
     if (fp_outputfile != nullptr) {
       static_cast<void>(std::fclose(fp_outputfile));
     }
