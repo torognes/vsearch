@@ -277,9 +277,8 @@ auto substract_two_decks(std::vector<int> const & original_deck,
 
 
 auto writing_fasta_output(std::vector<int> const & deck,
-                          char * ptr_fasta_file_name,
-                          std::FILE * ptr_fasta_file) -> void {
-  if (ptr_fasta_file_name == nullptr) {
+                          struct a_file const & fasta_file) -> void {
+  if (fasta_file.name == nullptr) {
     return;
   }
   int amplicons_printed = 0;
@@ -292,7 +291,7 @@ auto writing_fasta_output(std::vector<int> const & deck,
         continue;
       }
       ++amplicons_printed;
-      fasta_print_general(ptr_fasta_file,
+      fasta_print_general(fasta_file.handle,
                           nullptr,
                           db_getsequence(counter),
                           static_cast<int>(db_getsequencelen(counter)),
@@ -310,9 +309,8 @@ auto writing_fasta_output(std::vector<int> const & deck,
 
 
 auto writing_fastq_output(std::vector<int> const & deck,
-                          char * ptr_fastq_file_name,
-                          std::FILE * ptr_fastq_file) -> void {
-  if (ptr_fastq_file_name == nullptr) {
+                          struct a_file const & fastq_file) -> void {
+  if (fastq_file.name == nullptr) {
     return;
   }
   int amplicons_printed = 0;
@@ -325,7 +323,7 @@ auto writing_fastq_output(std::vector<int> const & deck,
         continue;
       }
       ++amplicons_printed;
-      fastq_print_general(ptr_fastq_file,
+      fastq_print_general(fastq_file.handle,
                           db_getsequence(counter),
                           static_cast<int>(db_getsequencelen(counter)),
                           db_getheader(counter),
@@ -388,13 +386,13 @@ auto subsample() -> void
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
   // writing to output files
-  writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept.name, ouput_files.fasta.kept.handle);
-  writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept.name, ouput_files.fastq.kept.handle);
+  writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept);
+  writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept);
   if ((ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr)) {
     auto const discarded_abundances = substract_two_decks(original_abundances,
                                                           subsampled_abundances);
-    writing_fasta_output(discarded_abundances, ouput_files.fasta.lost.name, ouput_files.fasta.lost.handle);
-    writing_fastq_output(discarded_abundances, ouput_files.fastq.lost.name, ouput_files.fastq.lost.handle);
+    writing_fasta_output(discarded_abundances, ouput_files.fasta.lost);
+    writing_fastq_output(discarded_abundances, ouput_files.fastq.lost);
   }
 
   write_subsampling_stats(subsampled_abundances, n_reads, opt_quiet, opt_log, fp_log);
