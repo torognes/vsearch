@@ -323,15 +323,15 @@ auto subsample() -> void
 
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
+  // writing output files
   writing_fasta_output(subsampled_abundances, opt_fastaout, fp_fastaout);
   writing_fastq_output(subsampled_abundances, opt_fastqout, fp_fastqout);
-
-  // if ((fp_fastaout_discarded != nullptr) or (fp_fastqout_discarded != nullptr)) {...}
-  auto const discarded_abundances = substract_two_decks(original_abundances,
-                                                        subsampled_abundances);
-
-  writing_fasta_output(discarded_abundances, opt_fastaout_discarded, fp_fastaout_discarded);
-  writing_fastq_output(discarded_abundances, opt_fastqout_discarded, fp_fastqout_discarded);
+  if ((fp_fastaout_discarded != nullptr) or (fp_fastqout_discarded != nullptr)) {
+    auto const discarded_abundances = substract_two_decks(original_abundances,
+                                                          subsampled_abundances);
+    writing_fasta_output(discarded_abundances, opt_fastaout_discarded, fp_fastaout_discarded);
+    writing_fastq_output(discarded_abundances, opt_fastqout_discarded, fp_fastqout_discarded);
+  }
 
   // refactoring: extract to a function, move after writing_fastx_output?
   int const samples = std::count_if(subsampled_abundances.cbegin(),
