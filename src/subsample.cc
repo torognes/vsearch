@@ -205,7 +205,7 @@ auto number_of_reads_to_sample(int64_t const opt_sample_size,
   if (opt_sample_size != 0) {
     return static_cast<uint64_t>(opt_sample_size);
   }
-  return static_cast<uint64_t>(std::floor(mass_total * opt_sample_pct / 100.0));
+  return static_cast<uint64_t>(std::floor(static_cast<double>(mass_total) * opt_sample_pct / 100.0));
 }
 
 
