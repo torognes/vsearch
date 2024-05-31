@@ -380,7 +380,7 @@ auto subsample() -> void
 
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
-  // writing to output files
+  // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept);
   writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept);
   if ((ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr)) {
