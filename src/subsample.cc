@@ -374,7 +374,7 @@ auto subsample() -> void
   auto subsampled_abundances = original_abundances;
   std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
 
-  write_original_stats(original_abundances, mass_total, opt_quiet, opt_log, fp_log);
+  write_original_stats(original_abundances, mass_total, opt_quiet, opt_log, fp_log);  // refactoring: move up?
 
   auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
 
