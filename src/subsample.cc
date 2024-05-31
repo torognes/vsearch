@@ -124,6 +124,25 @@ namespace {
 }
 
 
+auto write_original_stats(std::vector<int> const & deck,
+                          uint64_t const mass_total,
+                          bool const opt_quiet,
+                          char * opt_log,
+                          std::FILE * ptr_log_file) -> void {
+  if (not opt_quiet)
+    {
+      std::fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
+                   mass_total, static_cast<int>(deck.size()));
+    }
+
+  if (opt_log != nullptr)
+    {
+      std::fprintf(ptr_log_file, "Got %" PRIu64 " reads from %d amplicons\n",
+                   mass_total, static_cast<int>(deck.size()));
+    }
+}
+
+
 auto number_of_reads_to_sample(int64_t const opt_sample_size,
                                double const opt_sample_pct,
                                uint64_t const mass_total) -> uint64_t {
@@ -132,6 +151,24 @@ auto number_of_reads_to_sample(int64_t const opt_sample_size,
     return static_cast<uint64_t>(opt_sample_size);
   }
   return static_cast<uint64_t>(std::floor(mass_total * opt_sample_pct / 100.0));
+}
+
+
+auto write_subsampling_stats(std::vector<int> const & deck,
+                             uint64_t const n_reads,
+                             bool const opt_quiet,
+                             char * opt_log,
+                             std::FILE * ptr_log_file) -> void {
+  int const samples = std::count_if(deck.begin(),
+                                    deck.end(), [](int abundance) { return abundance != 0; });
+  if (not opt_quiet)
+    {
+      std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+    }
+  if (opt_log != nullptr)
+    {
+      std::fprintf(ptr_log_file, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+    }
 }
 
 
@@ -302,17 +339,7 @@ auto subsample() -> void
   auto subsampled_abundances = original_abundances;
   std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
 
-  if (not opt_quiet)
-    {
-      std::fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
-                   mass_total, static_cast<int>(original_abundances.size()));
-    }
-
-  if (opt_log != nullptr)
-    {
-      std::fprintf(fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
-                   mass_total, static_cast<int>(original_abundances.size()));
-    }
+  write_original_stats(original_abundances, mass_total, opt_quiet, opt_log, fp_log);
 
   auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
 
@@ -323,7 +350,7 @@ auto subsample() -> void
 
   random_subsampling(subsampled_abundances, mass_total, n_reads);
 
-  // writing output files
+  // writing to output files
   writing_fasta_output(subsampled_abundances, opt_fastaout, fp_fastaout);
   writing_fastq_output(subsampled_abundances, opt_fastqout, fp_fastqout);
   if ((fp_fastaout_discarded != nullptr) or (fp_fastqout_discarded != nullptr)) {
@@ -333,17 +360,7 @@ auto subsample() -> void
     writing_fastq_output(discarded_abundances, opt_fastqout_discarded, fp_fastqout_discarded);
   }
 
-  // refactoring: extract to a function, move after writing_fastx_output?
-  int const samples = std::count_if(subsampled_abundances.cbegin(),
-                                    subsampled_abundances.cend(), [](int abundance) { return abundance != 0; });
-  if (not opt_quiet)
-    {
-      std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
-    }
-  if (opt_log != nullptr)
-    {
-      std::fprintf(fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
-    }
+  write_subsampling_stats(subsampled_abundances, n_reads, opt_quiet, opt_log, fp_log);
 
   db_free();
 
