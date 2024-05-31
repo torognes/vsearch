@@ -338,23 +338,10 @@ auto subsample() -> void
 
   db_free();
 
-  if ((opt_fastaout != nullptr) and (fp_fastaout != nullptr))
-    {
-      static_cast<void>(std::fclose(fp_fastaout));
+  // close output files
+  for (auto * fp_outputfile : {fp_fastaout, fp_fastqout, fp_fastaout_discarded, fp_fastqout_discarded}) {
+    if (fp_outputfile != nullptr) {
+      static_cast<void>(std::fclose(fp_outputfile));
     }
-
-  if ((opt_fastqout != nullptr) and (fp_fastqout != nullptr))
-    {
-      static_cast<void>(std::fclose(fp_fastqout));
-    }
-
-  if ((opt_fastaout_discarded != nullptr) and (fp_fastaout_discarded != nullptr))
-    {
-      static_cast<void>(std::fclose(fp_fastaout_discarded));
-    }
-
-  if ((opt_fastqout_discarded != nullptr) and (fp_fastqout_discarded != nullptr))
-    {
-      static_cast<void>(std::fclose(fp_fastqout_discarded));
-    }
+  }
 }
