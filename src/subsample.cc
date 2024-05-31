@@ -78,6 +78,34 @@
 // - create discarded vector only if needed
 
 
+// // discrete_distribution
+// #include <iostream>
+// #include <random>
+// #include <vector>
+
+// int main()
+// {
+//   const auto nreads = 500ULL; // target number of reads
+
+//   std::random_device r;
+//   std::default_random_engine generator(r());
+//   std::vector<int> v1 = {1000, 100, 10, 1};
+//   std::discrete_distribution<int> distribution(v1.begin(), v1.end());
+
+//   std::vector<int> v2(v1.size());
+
+//   for (auto i=0ULL; i<nreads; ++i) {
+//     int const number = distribution(generator);
+//     ++v2[number];
+//   }
+
+//   for (auto i=0UL; i<v2.size(); ++i)
+//     std::cout << i << ": " << v1[i] << " " << v2[i] << "\n";
+
+//   return 0;
+// }
+
+
 namespace {
   // anonymous namespace to avoid linker error (multiple definitions
   // of function with identical names and parameters)
