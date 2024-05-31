@@ -364,6 +364,7 @@ auto subsample() -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
+  // subsampling
   auto original_abundances = create_deck(opt_sizein);
   auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
   auto subsampled_abundances = original_abundances;
@@ -392,7 +393,7 @@ auto subsample() -> void
 
   write_subsampling_stats(subsampled_abundances, n_reads, opt_quiet, opt_log, fp_log);
 
+  // clean up
   db_free();
-
   close_output_files(ouput_files);
 }
