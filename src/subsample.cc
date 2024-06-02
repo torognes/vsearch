@@ -352,7 +352,6 @@ auto subsample() -> void
   ouput_files.fasta.lost.name = opt_fastaout_discarded;
   ouput_files.fastq.kept.name = opt_fastqout;
   ouput_files.fastq.lost.name = opt_fastqout_discarded;
-
   open_output_files(ouput_files);
   check_output_files(ouput_files);
 
