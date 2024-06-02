@@ -201,7 +201,7 @@ auto write_original_stats(std::vector<int> const & deck,
 auto number_of_reads_to_sample(int64_t const opt_sample_size,
                                double const opt_sample_pct,
                                uint64_t const mass_total) -> uint64_t {
-  // assert(mass_total < max_uint64 / opt_sample_pct)
+  // assert(mass_total <= 9007199254740992) // all integers from 0 to 2^53 can be represented in the mantissa of a double
   if (opt_sample_size != 0) {
     return static_cast<uint64_t>(opt_sample_size);
   }
@@ -383,6 +383,7 @@ auto subsample() -> void
   // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept);
   writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept);
+  // auto is_discarded_output_requested = A1 or B1;
   if ((ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr)) {
     auto const discarded_abundances = substract_two_decks(original_abundances,
                                                           subsampled_abundances);
