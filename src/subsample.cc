@@ -364,7 +364,7 @@ auto subsample() -> void
     }
 
   // subsampling
-  auto original_abundances = create_deck(opt_sizein);
+  auto const original_abundances = create_deck(opt_sizein);
   auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
   auto subsampled_abundances = original_abundances;
   std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
