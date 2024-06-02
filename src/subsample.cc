@@ -378,7 +378,7 @@ auto subsample() -> void
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  random_subsampling(subsampled_abundances, mass_total, n_reads);
+  random_subsampling(subsampled_abundances, mass_total, n_reads);  // refactoring: pass & original, copy, subsample, return new (const) vector
 
   // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept);
