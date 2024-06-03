@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-void fastq_chars()
+auto fastq_chars() -> void
 {
   uint64_t sequence_chars[256];
   uint64_t quality_chars[256];
@@ -369,12 +369,12 @@ void fastq_chars()
     }
 }
 
-double q2p(double q)
+auto q2p(double q) -> double
 {
   return exp10(- q / 10.0);
 }
 
-void fastq_stats()
+auto fastq_stats() -> void
 {
   fastx_handle h = fastq_open(opt_fastq_stats);
 
@@ -729,7 +729,7 @@ void fastq_stats()
     }
 }
 
-void fastx_revcomp()
+auto fastx_revcomp() -> void
 {
   uint64_t buffer_alloc = 512;
   char * seq_buffer = (char*) xmalloc(buffer_alloc);
@@ -871,7 +871,7 @@ void fastx_revcomp()
   xfree(qual_buffer);
 }
 
-void fastq_convert()
+auto fastq_convert() -> void
 {
   if (! opt_fastqout)
     fatal("No output file specified with --fastqout");
