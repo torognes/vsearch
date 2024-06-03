@@ -86,7 +86,7 @@ static unsigned char MAGIC_BZIP[] = "BZ";
 auto buffer_init(struct fastx_buffer_s * buffer) -> void
 {
   buffer->alloc = FASTX_BUFFER_ALLOC;
-  buffer->data = (char*) xmalloc(buffer->alloc);
+  buffer->data = (char *) xmalloc(buffer->alloc);
   buffer->data[0] = 0;
   buffer->length = 0;
   buffer->position = 0;
@@ -115,7 +115,7 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void
       buffer->alloc =
         ((buffer->length + x + FASTX_BUFFER_ALLOC - 1) / FASTX_BUFFER_ALLOC)
         * FASTX_BUFFER_ALLOC;
-      buffer->data = (char*) xrealloc(buffer->data, buffer->alloc);
+      buffer->data = (char *) xrealloc(buffer->data, buffer->alloc);
     }
 }
 
@@ -123,7 +123,7 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char * source_buf,
                    uint64_t len) -> void
 {
-  buffer_makespace(dest_buffer, len+1);
+  buffer_makespace(dest_buffer, len + 1);
   memcpy(dest_buffer->data + dest_buffer->length,
          source_buf,
          len);
@@ -449,7 +449,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
   h->stripped_all = 0;
 
-  for(uint64_t & i : h->stripped)
+  for (uint64_t & i : h->stripped)
     {
       i = 0;
     }
@@ -483,7 +483,7 @@ auto fastx_close(fastx_handle h) -> void
   if (h->stripped_all)
     {
       fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", h->stripped_all, (h->is_fastq ? "FASTQ" : "FASTA"));
-      for (int i=0; i<256;i++)
+      for (int i = 0; i < 256; i++)
         {
           if (h->stripped[i])
             {
