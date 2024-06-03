@@ -86,7 +86,7 @@ struct sff_read_header_s
   uint16_t clip_adapter_right;
 } read_header;
 
-uint64_t fskip(FILE * fp, uint64_t length)
+auto fskip(FILE * fp, uint64_t length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
@@ -110,7 +110,7 @@ uint64_t fskip(FILE * fp, uint64_t length)
   return skipped;
 }
 
-void sff_convert()
+auto sff_convert() -> void
 {
   if (! opt_fastqout)
     {
