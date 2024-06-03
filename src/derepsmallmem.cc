@@ -179,7 +179,7 @@ auto rehash_smallmem() -> void
     (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * new_hashtablesize);
 
   /* zero new hash table */
-  for(uint64_t j = 0; j < new_hashtablesize; j++)
+  for (uint64_t j = 0; j < new_hashtablesize; j++)
     {
       new_hashtable[j].hash.first = 0;
       new_hashtable[j].hash.second = 0;
@@ -187,7 +187,7 @@ auto rehash_smallmem() -> void
     }
 
   /* rehash all from old to new */
-  for(uint64_t i = 0; i < hashtablesize; i++)
+  for (uint64_t i = 0; i < hashtablesize; i++)
     {
       struct sm_bucket * old_bp = hashtable + i;
       if (old_bp->size)
@@ -257,7 +257,7 @@ auto derep_smallmem(char * input_filename) -> void
   hashtable = (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * hashtablesize);
 
   /* zero hash table */
-  for(uint64_t j = 0; j < hashtablesize; j++)
+  for (uint64_t j = 0; j < hashtablesize; j++)
     {
       hashtable[j].hash.first = 0;
       hashtable[j].hash.second = 0;
@@ -289,7 +289,7 @@ auto derep_smallmem(char * input_filename) -> void
 
   /* first pass */
 
-  while(fastx_next(h, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h, not opt_notrunclabels, chrmap_no_change))
     {
       int64_t seqlen = fastx_get_sequence_length(h);
 
@@ -547,7 +547,7 @@ auto derep_smallmem(char * input_filename) -> void
 
   uint64_t selected = 0;
 
-  while(fastx_next(h2, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h2, not opt_notrunclabels, chrmap_no_change))
     {
       int64_t seqlen = fastx_get_sequence_length(h2);
 
