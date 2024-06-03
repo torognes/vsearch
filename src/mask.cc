@@ -161,14 +161,14 @@ auto dust(char * m, int len) -> void
         {
           if (opt_hardmask)
             {
-              for(int j = a + i; j <= b + i; j++)
+              for (int j = a + i; j <= b + i; j++)
                 {
                   m[j] = 'N';
                 }
             }
           else
             {
-              for(int j = a + i; j <= b + i; j++)
+              for (int j = a + i; j <= b + i; j++)
                 {
                   m[j] = local_seq[j] | 0x20;
                 }
@@ -193,7 +193,7 @@ static int seqcount = 0;
 auto dust_all_worker(void * vp) -> void *
 {
   (void) vp; // not used, but required for thread creation
-  while(true)
+  while (true)
     {
       xpthread_mutex_lock(&mutex);
       const int seqno = nextseq;
@@ -227,12 +227,12 @@ auto dust_all() -> void
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
     }
 
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -251,7 +251,7 @@ auto hardmask(char * seq, int len) -> void
 {
   /* convert all lower case letters in seq to N */
 
-  for(int j = 0; j < len; j++)
+  for (int j = 0; j < len; j++)
     {
       if (seq[j] & 0x20)
         {
@@ -263,7 +263,7 @@ auto hardmask(char * seq, int len) -> void
 
 auto hardmask_all() -> void
 {
-  for(uint64_t i = 0; i < db_getsequencecount(); i++)
+  for (uint64_t i = 0; i < db_getsequencecount(); i++)
     {
       hardmask(db_getsequence(i), db_getsequencelen(i));
     }
@@ -297,7 +297,7 @@ auto maskfasta() -> void
   show_rusage();
 
   progress_init("Writing output", seqcount);
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(fp_output, i, i + 1);
       progress_update(i);
