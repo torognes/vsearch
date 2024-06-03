@@ -68,7 +68,7 @@
 constexpr int dust_window = 64;
 
 
-int wo(int len, const char *s, int *beg, int *end)
+auto wo(int len, const char *s, int *beg, int *end) -> int
 {
   static constexpr int dust_word = 3;
   static constexpr int word_count = 1 << (2 * dust_word);  // 64
@@ -126,7 +126,7 @@ int wo(int len, const char *s, int *beg, int *end)
 }
 
 
-void dust(char * m, int len)
+auto dust(char * m, int len) -> void
 {
   static constexpr int dust_level = 20;
   static constexpr int half_dust_window = dust_window / 2;
@@ -190,7 +190,7 @@ static pthread_mutex_t mutex;
 static int nextseq = 0;
 static int seqcount = 0;
 
-void * dust_all_worker(void * vp)
+auto dust_all_worker(void * vp) -> void *
 {
   (void) vp; // not used, but required for thread creation
   while(true)
@@ -214,7 +214,7 @@ void * dust_all_worker(void * vp)
 }
 
 
-void dust_all()
+auto dust_all() -> void
 {
   nextseq = 0;
   seqcount = db_getsequencecount();
@@ -247,7 +247,7 @@ void dust_all()
 }
 
 
-void hardmask(char * seq, int len)
+auto hardmask(char * seq, int len) -> void
 {
   /* convert all lower case letters in seq to N */
 
@@ -261,7 +261,7 @@ void hardmask(char * seq, int len)
 }
 
 
-void hardmask_all()
+auto hardmask_all() -> void
 {
   for(uint64_t i = 0; i < db_getsequencecount(); i++)
     {
@@ -270,7 +270,7 @@ void hardmask_all()
 }
 
 
-void maskfasta()
+auto maskfasta() -> void
 {
   if (! opt_output)
     fatal("Output file for masking must be specified with --output");
@@ -310,7 +310,7 @@ void maskfasta()
 }
 
 
-void fastx_mask()
+auto fastx_mask() -> void
 {
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
