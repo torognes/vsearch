@@ -100,10 +100,10 @@ static int queries = 0;
 static int classified = 0;
 
 
-void sintax_analyse(char * query_head,
+auto sintax_analyse(char * query_head,
                     int strand,
                     int * all_seqno,
-                    int count)
+                    int count) -> void
 {
   int level_match[tax_levels];
   int level_best[tax_levels];
@@ -253,7 +253,7 @@ void sintax_analyse(char * query_head,
   xpthread_mutex_unlock(&mutex_output);
 }
 
-void sintax_search_topscores(struct searchinfo_s * si)
+auto sintax_search_topscores(struct searchinfo_s * si) -> void
 {
   /*
     Count the number of kmer hits in each database sequence and select
@@ -358,7 +358,7 @@ void sintax_search_topscores(struct searchinfo_s * si)
     minheap_add(si->m, & best);
 }
 
-void sintax_query(int64_t t)
+auto sintax_query(int64_t t) -> void
 {
   int all_seqno[2][bootstrap_count];
   int boot_count[2] = {0, 0};
@@ -459,7 +459,7 @@ void sintax_query(int64_t t)
   bitmap_free(b);
 }
 
-void sintax_thread_run(int64_t t)
+auto sintax_thread_run(int64_t t) -> void
 {
   while (true)
     {
@@ -540,7 +540,7 @@ void sintax_thread_run(int64_t t)
     }
 }
 
-void sintax_thread_init(struct searchinfo_s * si)
+auto sintax_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
@@ -556,7 +556,7 @@ void sintax_thread_init(struct searchinfo_s * si)
   si->s = nullptr;
 }
 
-void sintax_thread_exit(struct searchinfo_s * si)
+auto sintax_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
   unique_exit(si->uh);
@@ -572,14 +572,14 @@ void sintax_thread_exit(struct searchinfo_s * si)
     }
 }
 
-void * sintax_thread_worker(void * vp)
+auto sintax_thread_worker(void * vp) -> void *
 {
   auto t = (int64_t) vp;
   sintax_thread_run(t);
   return nullptr;
 }
 
-void sintax_thread_worker_run()
+auto sintax_thread_worker_run() -> void
 {
   /* initialize threads, start them, join them and return */
 
@@ -612,7 +612,7 @@ void sintax_thread_worker_run()
   xpthread_attr_destroy(&attr);
 }
 
-void sintax()
+auto sintax() -> void
 {
   /* tophits = the maximum number of hits we need to store */
 
