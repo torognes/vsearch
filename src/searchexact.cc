@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
 static pthread_t * pthread;
@@ -97,6 +98,7 @@ static FILE * fp_tsegout = nullptr;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
+
 auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
 {
   if (search_acceptable_unaligned(si, seqno))
@@ -119,7 +121,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
       hp->mismatches = 0;
 
       int ret = xsprintf(&hp->nwalignment, "%dM", si->qseqlen);
-      if ((ret == -1) || (!hp->nwalignment))
+      if ((ret == -1) || (! hp->nwalignment))
         {
           fatal("Out of memory");
         }
@@ -159,7 +161,7 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 
   char * seq = si->qsequence;
   uint64_t seqlen = si->qseqlen;
-  char * normalized = (char*) xmalloc(seqlen+1);
+  char * normalized = (char *) xmalloc(seqlen+1);
   string_normalize(normalized, seq, seqlen);
 
   si->hit_count = 0;
@@ -217,7 +219,7 @@ auto search_exact_output_results(int hit_count,
                        qsize);
         }
 
-      for(int t = 0; t < toreport; t++)
+      for (int t = 0; t < toreport; t++)
         {
           struct hit * hp = hits + t;
 
@@ -253,7 +255,7 @@ auto search_exact_output_results(int hit_count,
 
           if (fp_uc)
             {
-              if ((t==0) || opt_uc_allhits)
+              if ((t == 0) || opt_uc_allhits)
                 {
                   results_show_uc_one(fp_uc,
                                       hp,
@@ -406,7 +408,7 @@ auto search_exact_query(int64_t t) -> int
                               si_plus[t].qsize);
 
   /* free memory for alignment strings */
-  for(int i=0; i<hit_count; i++)
+  for (int i = 0; i < hit_count; i++)
     {
       if (hits[i].aligned)
         {
@@ -449,14 +451,14 @@ auto search_exact_thread_run(int64_t t) -> void
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
-                  si->query_head = (char*)
+                  si->query_head = (char *)
                     xrealloc(si->query_head, (size_t)(si->query_head_alloc));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
-                  si->qsequence = (char*)
+                  si->qsequence = (char *)
                     xrealloc(si->qsequence, (size_t)(si->seq_alloc));
                 }
             }
@@ -554,25 +556,25 @@ auto search_exact_thread_worker_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
-      search_exact_thread_init(si_plus+t);
+      search_exact_thread_init(si_plus + t);
       if (si_minus)
         {
-          search_exact_thread_init(si_minus+t);
+          search_exact_thread_init(si_minus + t);
         }
-      xpthread_create(pthread+t, &attr,
-                      search_exact_thread_worker, (void*)(int64_t)t);
+      xpthread_create(pthread + t, &attr,
+                      search_exact_thread_worker, (void *) (int64_t) t);
     }
 
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
-      search_exact_thread_exit(si_plus+t);
+      search_exact_thread_exit(si_plus + t);
       if (si_minus)
         {
-          search_exact_thread_exit(si_minus+t);
+          search_exact_thread_exit(si_minus + t);
         }
     }
 
@@ -858,7 +860,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
 
   fastx_close(query_fastx_h);
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "Matching unique query sequences: %d of %d",
               qmatches, queries);
@@ -906,7 +908,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
 
   // Add OTUs with no matches to OTU table
   if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
-    for(int64_t i=0; i<seqcount; i++)
+    for(int64_t i = 0; i < seqcount; i++)
       if (! dbmatched[i])
         otutable_add(nullptr, db_getheader(i), 0);
 
@@ -935,7 +937,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
 
   if (opt_dbmatched || opt_dbnotmatched)
     {
-      for(int64_t i=0; i<seqcount; i++)
+      for(int64_t i = 0; i < seqcount; i++)
         {
           if (dbmatched[i])
             {
