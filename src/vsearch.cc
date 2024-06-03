@@ -452,7 +452,7 @@ void args_get_ee_cutoffs(char * arg)
   /* save in ee_cutoffs_count and ee_cutoffs_values */
 
   int commas = 0;
-  for (size_t i=0; i<strlen(arg); i++)
+  for (size_t i = 0; i < strlen(arg); i++)
     {
       if (arg[i] == ',')
         {
@@ -461,10 +461,10 @@ void args_get_ee_cutoffs(char * arg)
     }
 
   opt_ee_cutoffs_count = 0;
-  opt_ee_cutoffs_values = (double*) xrealloc(opt_ee_cutoffs_values, (commas+1) * sizeof(double));
+  opt_ee_cutoffs_values = (double *) xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double));
 
   char * s = arg;
-  while(true)
+  while (true)
     {
       double val = 0;
       int skip = 0;
@@ -510,7 +510,7 @@ void args_get_length_cutoffs(char * arg)
     }
   else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
     {
-      if ((size_t)skip < strlen(arg))
+      if ((size_t) skip < strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
@@ -586,7 +586,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
       int set_Q = 0;
       int set_T = 0;
 
-      while((*p) && (*p != '/'))
+      while ((*p) && (*p != '/'))
         {
           switch(*p)
             {
@@ -633,7 +633,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
 
       /* if neither L, I, R nor E is specified, it applies to all */
 
-      if ((!set_L) && (!set_I) && (!set_R))
+      if ((! set_L) && (! set_I) && (! set_R))
         {
           set_L = 1;
           set_I = 1;
@@ -642,7 +642,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
 
       /* if neither Q nor T is specified, it applies to both */
 
-      if ((!set_Q) && (!set_T))
+      if ((! set_Q) && (! set_T))
         {
           set_Q = 1;
           set_T = 1;
@@ -723,7 +723,7 @@ int64_t args_getlong(char * arg)
   int len = 0;
   int64_t temp = 0;
   const int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
-  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
+  if ((ret == 0) || (((unsigned int) (len)) < strlen(arg)))
     {
       fatal("Illegal option argument");
     }
@@ -1596,7 +1596,7 @@ void args_init(int argc, char **argv)
           break;
 
         case option_userfields:
-          if (!parse_userfields_arg(optarg))
+          if (! parse_userfields_arg(optarg))
             {
               fatal("Unrecognized userfield argument");
             }
@@ -5735,7 +5735,7 @@ void getentirecommandline(int argc, char** argv)
       len += strlen(argv[i]);
     }
 
-  cmdline = (char*) xmalloc(len+argc);
+  cmdline = (char *) xmalloc(len + argc);
   cmdline[0] = 0;
 
   for (int i = 0; i < argc; i++)
@@ -5792,7 +5792,7 @@ int main(int argc, char** argv)
   dynlibs_open();
 
 #ifdef __x86_64__
-  if (!sse2_present)
+  if (! sse2_present)
     {
       fatal("Sorry, this program requires a cpu with SSE2.");
     }
