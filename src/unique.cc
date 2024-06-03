@@ -125,12 +125,12 @@ auto unique_compare(const void * a, const void * b) -> int
   auto * x = (unsigned int*) a;
   auto * y = (unsigned int*) b;
 
-  if (x<y)
+  if (x < y)
     {
       return -1;
     }
   else
-    if (x>y)
+    if (x > y)
       {
         return +1;
       }
@@ -177,7 +177,7 @@ auto unique_count_bitmap(struct uhandle_s * uh,
   uint64_t kmer = 0;
   uint64_t mask = size - 1ULL;
   char * s = seq;
-  char * e1 = s + k-1;
+  char * e1 = s + k - 1;
   char * e2 = s + seqlen;
   if (e2 < e1)
     {
@@ -201,18 +201,18 @@ auto unique_count_bitmap(struct uhandle_s * uh,
   while (s < e2)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
+      bad |= maskmap[(int) (*s)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
+      kmer |= chrmap_2bit[(int) (*s++)];
       kmer &= mask;
 
-      if (!bad)
+      if (! bad)
         {
           uint64_t x = kmer >> 6ULL;
           uint64_t y = 1ULL << (kmer & 63ULL);
-          if (!(uh->bitmap[x] & y))
+          if (! (uh->bitmap[x] & y))
             {
               /* not seen before */
               uh->list[unique++] = kmer;
@@ -235,9 +235,9 @@ auto unique_count_hash(struct uhandle_s * uh,
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
-  if (uh->alloc < 2*seqlen)
+  if (uh->alloc < 2 * seqlen)
     {
-      while (uh->alloc < 2*seqlen)
+      while (uh->alloc < 2 * seqlen)
         {
           uh->alloc *= 2;
         }
@@ -261,9 +261,9 @@ auto unique_count_hash(struct uhandle_s * uh,
   uint64_t bad = 0;
   uint64_t j;
   unsigned int kmer = 0;
-  unsigned int mask = (1ULL<<(2ULL*k)) - 1ULL;
+  unsigned int mask = (1ULL << (2ULL * k)) - 1ULL;
   char * s = seq;
-  char * e1 = s + k-1;
+  char * e1 = s + k - 1;
   char * e2 = s + seqlen;
   if (e2 < e1)
     {
@@ -276,10 +276,10 @@ auto unique_count_hash(struct uhandle_s * uh,
   while (s < e1)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
+      bad |= maskmap[(int) (*s)];
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
+      kmer |= chrmap_2bit[(int) (*s++)];
     }
 
   uint64_t unique = 0;
@@ -287,23 +287,23 @@ auto unique_count_hash(struct uhandle_s * uh,
   while (s < e2)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
+      bad |= maskmap[(int) (*s)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
+      kmer |= chrmap_2bit[(int) (*s++)];
       kmer &= mask;
 
-      if (!bad)
+      if (! bad)
         {
           /* find free appropriate bucket in hash */
-          j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
+          j = HASH((char *) &kmer, (k + 3) / 4) & uh->hash_mask;
           while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
             {
               j = (j + 1) & uh->hash_mask;
             }
 
-          if (!(uh->hash[j].count))
+          if (! (uh->hash[j].count))
             {
               /* not seen before */
               uh->list[unique++] = kmer;
@@ -325,7 +325,7 @@ auto unique_count(struct uhandle_s * uh,
                   unsigned int * * list,
                   int seqmask) -> void
 {
-  if (k<10)
+  if (k < 10)
     {
       unique_count_bitmap(uh, k, seqlen, seq, listlen, list, seqmask);
     }
@@ -344,9 +344,9 @@ auto unique_count_shared(struct uhandle_s * uh,
      (already computed) hash or bitmap */
 
   int count = 0;
-  if (k<10)
+  if (k < 10)
     {
-      for(int i = 0; i<listlen; i++)
+      for (int i = 0; i < listlen; i++)
         {
           unsigned int kmer = list[i];
           uint64_t x = kmer >> 6ULL;
@@ -359,10 +359,10 @@ auto unique_count_shared(struct uhandle_s * uh,
     }
   else
     {
-      for(int i = 0; i<listlen; i++)
+      for (int i = 0; i < listlen; i++)
         {
           unsigned int kmer = list[i];
-          uint64_t j = HASH((char*)&kmer, (k+3)/4) & uh->hash_mask;
+          uint64_t j = HASH((char *) &kmer, (k + 3) / 4) & uh->hash_mask;
           while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
             {
               j = (j + 1) & uh->hash_mask;
