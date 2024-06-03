@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-inline int fastq_get_qual(char q)
+inline auto fastq_get_qual(char q) -> int
 {
   int qual = q - opt_fastq_ascii;
 
@@ -114,7 +114,7 @@ struct analysis_res
   double ee;
 };
 
-struct analysis_res analyse(fastx_handle h)
+auto analyse(fastx_handle h) -> struct analysis_res
 {
   struct analysis_res res = { false, false, 0, 0, -1.0 };
   res.length = fastx_get_sequence_length(h);
@@ -237,12 +237,12 @@ struct analysis_res analyse(fastx_handle h)
   return res;
 }
 
-void filter(bool fastq_only, char * filename)
+auto filter(bool fastq_only, char * filename) -> void
 {
-  if ((!opt_fastqout) && (!opt_fastaout) &&
-      (!opt_fastqout_discarded) && (!opt_fastaout_discarded) &&
-      (!opt_fastqout_rev) && (!opt_fastaout_rev) &&
-      (!opt_fastqout_discarded_rev) && (!opt_fastaout_discarded_rev))
+  if ((! opt_fastqout) && (! opt_fastaout) &&
+      (! opt_fastqout_discarded) && (! opt_fastaout_discarded) &&
+      (! opt_fastqout_rev) && (! opt_fastaout_rev) &&
+      (! opt_fastqout_discarded_rev) && (! opt_fastaout_discarded_rev))
     {
       fatal("No output files specified");
     }
@@ -252,7 +252,7 @@ void filter(bool fastq_only, char * filename)
 
   h1 = fastx_open(filename);
 
-  if (!h1)
+  if (! h1)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
@@ -287,7 +287,7 @@ void filter(bool fastq_only, char * filename)
     {
       h2 = fastx_open(opt_reverse);
 
-      if (!h2)
+      if (! h2)
         {
           fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
         }
@@ -335,7 +335,7 @@ void filter(bool fastq_only, char * filename)
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (!fp_fastaout)
+      if (! fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -344,7 +344,7 @@ void filter(bool fastq_only, char * filename)
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (!fp_fastqout)
+      if (! fp_fastqout)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -353,7 +353,7 @@ void filter(bool fastq_only, char * filename)
   if (opt_fastaout_discarded)
     {
       fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (!fp_fastaout_discarded)
+      if (! fp_fastaout_discarded)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -362,7 +362,7 @@ void filter(bool fastq_only, char * filename)
   if (opt_fastqout_discarded)
     {
       fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (!fp_fastqout_discarded)
+      if (! fp_fastqout_discarded)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -373,7 +373,7 @@ void filter(bool fastq_only, char * filename)
       if (opt_fastaout_rev)
         {
           fp_fastaout_rev = fopen_output(opt_fastaout_rev);
-          if (!fp_fastaout_rev)
+          if (! fp_fastaout_rev)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -382,7 +382,7 @@ void filter(bool fastq_only, char * filename)
       if (opt_fastqout_rev)
         {
           fp_fastqout_rev = fopen_output(opt_fastqout_rev);
-          if (!fp_fastqout_rev)
+          if (! fp_fastqout_rev)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
@@ -391,7 +391,7 @@ void filter(bool fastq_only, char * filename)
       if (opt_fastaout_discarded_rev)
         {
           fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
-          if (!fp_fastaout_discarded_rev)
+          if (! fp_fastaout_discarded_rev)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -400,7 +400,7 @@ void filter(bool fastq_only, char * filename)
       if (opt_fastqout_discarded_rev)
         {
           fp_fastqout_discarded_rev = fopen_output(opt_fastqout_discarded_rev);
-          if (!fp_fastqout_discarded_rev)
+          if (! fp_fastqout_discarded_rev)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
@@ -649,12 +649,12 @@ void filter(bool fastq_only, char * filename)
   fastx_close(h1);
 }
 
-void fastq_filter()
+auto fastq_filter() -> void
 {
   filter(true, opt_fastq_filter);
 }
 
-void fastx_filter()
+auto fastx_filter() -> void
 {
   filter(false, opt_fastx_filter);
 }
