@@ -61,7 +61,7 @@
 #include "vsearch.h"
 
 
-uint32_t sff_magic = 0x2e736666;
+constexpr uint32_t sff_magic = 0x2e736666;
 
 struct sff_header_s
 {
