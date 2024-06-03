@@ -77,12 +77,12 @@ static size_t seqindex_alloc = 0;
 seqinfo_t * seqindex = nullptr;
 char * datap = nullptr;
 
-void db_setinfo(bool new_is_fastq,
+auto db_setinfo(bool new_is_fastq,
                 uint64_t new_sequences,
                 uint64_t new_nucleotides,
                 uint64_t new_longest,
                 uint64_t new_shortest,
-                uint64_t new_longestheader)
+                uint64_t new_longestheader) -> void
 {
   is_fastq = new_is_fastq;
   sequences = new_sequences;
@@ -92,12 +92,12 @@ void db_setinfo(bool new_is_fastq,
   longestheader = new_longestheader;
 }
 
-bool db_is_fastq()
+auto db_is_fastq() -> bool
 {
   return is_fastq;
 }
 
-char * db_getquality(uint64_t seqno)
+auto db_getquality(uint64_t seqno) -> char *
 {
   if (is_fastq)
     {
@@ -109,13 +109,13 @@ char * db_getquality(uint64_t seqno)
     }
 }
 
-void db_add(bool is_fastq,
+auto db_add(bool is_fastq,
             char * header,
             char * sequence,
             char * quality,
             size_t headerlength,
             size_t sequencelength,
-            int64_t abundance)
+            int64_t abundance) -> void
 {
   /* Add a sequence to the database. Assumes that the database has been initialized. */
 
@@ -199,7 +199,7 @@ void db_add(bool is_fastq,
 }
 
 
-void db_read(const char * filename, int upcase)
+auto db_read(const char * filename, int upcase) -> void
 {
   h = fastx_open(filename);
 
@@ -378,32 +378,32 @@ void db_read(const char * filename, int upcase)
   show_rusage();
 }
 
-uint64_t db_getsequencecount()
+auto db_getsequencecount() -> uint64_t
 {
   return sequences;
 }
 
-uint64_t db_getnucleotidecount()
+auto db_getnucleotidecount() -> uint64_t
 {
   return nucleotides;
 }
 
-uint64_t db_getlongestheader()
+auto db_getlongestheader() -> uint64_t
 {
   return longestheader;
 }
 
-uint64_t db_getlongestsequence()
+auto db_getlongestsequence() -> uint64_t
 {
   return longest;
 }
 
-uint64_t db_getshortestsequence()
+auto db_getshortestsequence() -> uint64_t
 {
   return shortest;
 }
 
-void db_free()
+auto db_free() -> void
 {
   if (datap)
     {
@@ -415,7 +415,7 @@ void db_free()
     }
 }
 
-int compare_bylength(const void * a, const void * b)
+auto compare_bylength(const void * a, const void * b) -> int
 {
   auto * x = (seqinfo_t *) a;
   auto * y = (seqinfo_t *) b;
@@ -466,7 +466,7 @@ int compare_bylength(const void * a, const void * b)
     }
 }
 
-int compare_bylength_shortest_first(const void * a, const void * b)
+auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 {
   auto * x = (seqinfo_t *) a;
   auto * y = (seqinfo_t *) b;
@@ -517,7 +517,7 @@ int compare_bylength_shortest_first(const void * a, const void * b)
     }
 }
 
-inline int compare_byabundance(const void * a, const void * b)
+inline auto compare_byabundance(const void * a, const void * b) -> int
 {
   auto * x = (seqinfo_t *) a;
   auto * y = (seqinfo_t *) b;
@@ -557,7 +557,7 @@ inline int compare_byabundance(const void * a, const void * b)
     }
 }
 
-void db_sortbylength()
+auto db_sortbylength() -> void
 {
   progress_init("Sorting by length", 100);
   qsort(seqindex,
@@ -567,7 +567,7 @@ void db_sortbylength()
   progress_done();
 }
 
-void db_sortbylength_shortest_first()
+auto db_sortbylength_shortest_first() -> void
 {
   progress_init("Sorting by length", 100);
   qsort(seqindex,
@@ -577,7 +577,7 @@ void db_sortbylength_shortest_first()
   progress_done();
 }
 
-void db_sortbyabundance()
+auto db_sortbyabundance() -> void
 {
   progress_init("Sorting by abundance", 100);
   qsort(seqindex,
