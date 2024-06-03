@@ -103,7 +103,7 @@ struct uhandle_s * unique_init()
   return uh;
 }
 
-void unique_exit(struct uhandle_s * uh)
+auto unique_exit(struct uhandle_s * uh) -> void
 {
   if (uh->bitmap)
     {
@@ -120,7 +120,7 @@ void unique_exit(struct uhandle_s * uh)
   xfree(uh);
 }
 
-int unique_compare(const void * a, const void * b)
+auto unique_compare(const void * a, const void * b) -> int
 {
   auto * x = (unsigned int*) a;
   auto * y = (unsigned int*) b;
@@ -141,13 +141,13 @@ int unique_compare(const void * a, const void * b)
 }
 
 
-void unique_count_bitmap(struct uhandle_s * uh,
+auto unique_count_bitmap(struct uhandle_s * uh,
                          int k,
                          int seqlen,
                          char * seq,
                          unsigned int * listlen,
                          unsigned int * * list,
-                         int seqmask)
+                         int seqmask) -> void
 {
   /* if necessary, reallocate list of unique kmers */
 
@@ -225,13 +225,13 @@ void unique_count_bitmap(struct uhandle_s * uh,
   *list = uh->list;
 }
 
-void unique_count_hash(struct uhandle_s * uh,
+auto unique_count_hash(struct uhandle_s * uh,
                        int k,
                        int seqlen,
                        char * seq,
                        unsigned int * listlen,
                        unsigned int * * list,
-                       int seqmask)
+                       int seqmask) -> void
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
@@ -317,13 +317,13 @@ void unique_count_hash(struct uhandle_s * uh,
   *list = uh->list;
 }
 
-void unique_count(struct uhandle_s * uh,
+auto unique_count(struct uhandle_s * uh,
                   int k,
                   int seqlen,
                   char * seq,
                   unsigned int * listlen,
                   unsigned int * * list,
-                  int seqmask)
+                  int seqmask) -> void
 {
   if (k<10)
     {
@@ -335,10 +335,10 @@ void unique_count(struct uhandle_s * uh,
     }
 }
 
-int unique_count_shared(struct uhandle_s * uh,
+auto unique_count_shared(struct uhandle_s * uh,
                         int k,
                         int listlen,
-                        unsigned int * list)
+                        unsigned int * list) -> int
 {
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
