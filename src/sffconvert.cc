@@ -92,15 +92,15 @@ auto fskip(FILE * fp, uint64_t length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
-  static constexpr auto BLOCKSIZE = 4096U;
-  char buffer[BLOCKSIZE];
+  static constexpr auto blocksize = 4096U;
+  char buffer[blocksize];
 
   uint64_t skipped = 0;
   uint64_t rest = length;
 
   while (rest > 0)
     {
-      uint64_t want = ((rest > BLOCKSIZE) ? BLOCKSIZE : rest);
+      uint64_t want = ((rest > blocksize) ? blocksize : rest);
       uint64_t got = fread(buffer, 1, want, fp);
       skipped += got;
       rest -= got;
