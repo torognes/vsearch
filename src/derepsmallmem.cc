@@ -71,7 +71,7 @@ struct sm_bucket
 static struct sm_bucket * hashtable = nullptr;
 static uint64_t hashtablesize = 0;
 
-double find_median()
+auto find_median() -> double
 {
   /* find the median size, based on an iterative search starting at e.g. 1 */
 
@@ -161,17 +161,17 @@ double find_median()
     }
 }
 
-uint64_t inline hash2bucket(uint128 hash, uint64_t htsize)
+inline auto hash2bucket(uint128 hash, uint64_t htsize) -> uint64_t
 {
   return Uint128Low64(hash) % htsize;
 }
 
-uint64_t inline next_bucket(uint64_t prev_bucket, uint64_t htsize)
+inline auto next_bucket(uint64_t prev_bucket, uint64_t htsize) -> uint64_t
 {
   return (prev_bucket + 1) % htsize;
 }
 
-void rehash_smallmem()
+auto rehash_smallmem() -> void
 {
   /* allocate new hash table, 50% larger */
   uint64_t new_hashtablesize = 3 * hashtablesize / 2;
@@ -210,7 +210,7 @@ void rehash_smallmem()
   hashtablesize = new_hashtablesize;
 }
 
-void derep_smallmem(char * input_filename)
+auto derep_smallmem(char * input_filename) -> void
 {
   /*
     dereplicate full length sequences using a small amount of memory
