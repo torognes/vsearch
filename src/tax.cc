@@ -96,7 +96,7 @@ auto tax_parse(const char * header,
       i = r - header;
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i-1] != ';'))
+      if ((i > 0) && (header[i - 1] != ';'))
         {
           i += alen + 1;
           continue;
@@ -105,7 +105,7 @@ auto tax_parse(const char * header,
       * tax_start = i;
 
       /* find end (semicolon or end of header) */
-      const char * s = strchr(header+i+alen, ';');
+      const char * s = strchr(header + i + alen, ';');
       if (s == nullptr)
         {
           * tax_end = hlen;
