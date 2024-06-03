@@ -348,7 +348,7 @@ char * STDOUT_NAME = (char *) "/dev/stdout";
                         : "a" (f1), "c" (f2));
 #endif
 
-void cpu_features_detect()
+auto cpu_features_detect() -> void
 {
 #ifdef __aarch64__
 #ifdef __ARM_NEON
@@ -392,7 +392,7 @@ void cpu_features_detect()
 #endif
 }
 
-void cpu_features_show()
+auto cpu_features_show() -> void
 {
   fprintf(stderr, "CPU features:");
   if (neon_present)
@@ -446,7 +446,7 @@ void cpu_features_show()
   fprintf(stderr, "\n");
 }
 
-void args_get_ee_cutoffs(char * arg)
+auto args_get_ee_cutoffs(char * arg) -> void
 {
   /* get comma-separated list of floating point numbers */
   /* save in ee_cutoffs_count and ee_cutoffs_values */
@@ -493,7 +493,7 @@ void args_get_ee_cutoffs(char * arg)
     }
 }
 
-void args_get_length_cutoffs(char * arg)
+auto args_get_length_cutoffs(char * arg) -> void
 {
   /* get comma-separated list of 3 integers: */
   /* smallest, largest and increment. */
@@ -503,7 +503,7 @@ void args_get_length_cutoffs(char * arg)
   int skip = 0;
   if (sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
     {
-      if ((size_t)skip < strlen(arg))
+      if ((size_t) skip < strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
@@ -531,7 +531,7 @@ void args_get_length_cutoffs(char * arg)
 
 
 
-void args_get_gap_penalty_string(char * arg, int is_open)
+auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 {
   /* See http://www.drive5.com/usearch/manual/aln_params.html
 
@@ -718,7 +718,7 @@ void args_get_gap_penalty_string(char * arg, int is_open)
 }
 
 
-int64_t args_getlong(char * arg)
+auto args_getlong(char * arg) -> int64_t
 {
   int len = 0;
   int64_t temp = 0;
@@ -730,7 +730,7 @@ int64_t args_getlong(char * arg)
   return temp;
 }
 
-double args_getdouble(char * arg)
+auto args_getdouble(char * arg) -> double
 {
   int len = 0;
   double temp = 0;
@@ -742,7 +742,7 @@ double args_getdouble(char * arg)
   return temp;
 }
 
-void args_init(int argc, char **argv)
+auto args_init(int argc, char **argv) -> void
 {
   /* Set defaults */
 
@@ -4931,7 +4931,7 @@ void args_init(int argc, char **argv)
     }
 }
 
-void show_publication()
+auto show_publication() -> void
 {
   fprintf(stdout,
           "Rognes T, Flouri T, Nichols B, Quince C, Mahe F (2016)\n"
@@ -4940,7 +4940,7 @@ void show_publication()
           "\n");
 }
 
-void cmd_version()
+auto cmd_version() -> void
 {
   if (! opt_quiet)
     {
@@ -4992,7 +4992,7 @@ void cmd_version()
     }
 }
 
-void cmd_help()
+auto cmd_help() -> void
 {
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
@@ -5480,7 +5480,7 @@ void cmd_help()
     }
 }
 
-void cmd_allpairs_global()
+auto cmd_allpairs_global() -> void
 {
   /* check options */
 
@@ -5500,7 +5500,7 @@ void cmd_allpairs_global()
   allpairs_global(cmdline, progheader);
 }
 
-void cmd_usearch_global()
+auto cmd_usearch_global() -> void
 {
   /* check options */
 
@@ -5528,7 +5528,7 @@ void cmd_usearch_global()
   usearch_global(cmdline, progheader);
 }
 
-void cmd_search_exact()
+auto cmd_search_exact() -> void
 {
   /* check options */
 
@@ -5551,7 +5551,7 @@ void cmd_search_exact()
   search_exact(cmdline, progheader);
 }
 
-void cmd_subsample()
+auto cmd_subsample() -> void
 {
   if ((not opt_fastaout) and (not opt_fastqout))
     {
@@ -5612,7 +5612,7 @@ auto cmd_none() -> void
     }
 }
 
-void cmd_cluster()
+auto cmd_cluster() -> void
 {
   if ((! opt_alnout) && (! opt_userout) &&
       (! opt_uc) && (! opt_blast6out) &&
@@ -5652,7 +5652,7 @@ void cmd_cluster()
     }
 }
 
-void cmd_chimera()
+auto cmd_chimera() -> void
 {
   if ((! opt_chimeras)  && (! opt_nonchimeras) &&
       (! opt_uchimeout) && (! opt_uchimealns))
@@ -5696,7 +5696,7 @@ void cmd_chimera()
   chimera();
 }
 
-void cmd_fastq_mergepairs()
+auto cmd_fastq_mergepairs() -> void
 {
   if (! opt_reverse)
     {
@@ -5716,7 +5716,7 @@ void cmd_fastq_mergepairs()
 }
 
 
-void fillheader()
+auto fillheader() -> void
 {
   constexpr static double one_gigabyte {1024 * 1024 * 1024};
   snprintf(progheader, 80,
@@ -5727,7 +5727,7 @@ void fillheader()
 }
 
 
-void getentirecommandline(int argc, char** argv)
+auto getentirecommandline(int argc, char** argv) -> void
 {
   int len = 0;
   for (int i = 0; i < argc; i++)
@@ -5748,7 +5748,7 @@ void getentirecommandline(int argc, char** argv)
     }
 }
 
-void show_header()
+auto show_header() -> void
 {
   if (! opt_quiet)
     {
@@ -5758,7 +5758,7 @@ void show_header()
     }
 }
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
   fillheader();
 
