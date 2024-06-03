@@ -220,9 +220,9 @@ auto align_show(std::FILE * f,
   headwidth = namewidth;
   alignlen = alignwidth;
 
-  q_line = (char*) xmalloc(alignwidth + 1);
-  a_line = (char*) xmalloc(alignwidth + 1);
-  d_line = (char*) xmalloc(alignwidth + 1);
+  q_line = (char *) xmalloc(alignwidth + 1);
+  a_line = (char *) xmalloc(alignwidth + 1);
+  d_line = (char *) xmalloc(alignwidth + 1);
 
   q_pos = strand != 0 ? seq1len - 1 - seq1off : seq1off;
   d_pos = seq2off;
