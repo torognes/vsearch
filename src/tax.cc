@@ -62,10 +62,10 @@
 
 const char * tax_letters = "dkpcofgst";
 
-bool tax_parse(const char * header,
+auto tax_parse(const char * header,
                int header_length,
                int * tax_start,
-               int * tax_end)
+               int * tax_end) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
@@ -120,7 +120,7 @@ bool tax_parse(const char * header,
   return false;
 }
 
-void tax_split(int seqno, int * level_start, int * level_len)
+auto tax_split(int seqno, int * level_start, int * level_len) -> void
 {
   /* Parse taxonomy string into the following 9 parts
      d domain
