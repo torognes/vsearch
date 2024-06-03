@@ -73,7 +73,7 @@ typedef struct wordfreq
   unsigned int count;
 } wordfreq_t;
 
-int wc_compare(const void * a, const void * b)
+auto wc_compare(const void * a, const void * b) -> int
 {
   auto * x = (wordfreq_t *) a;
   auto * y = (wordfreq_t *) b;
@@ -102,7 +102,7 @@ int wc_compare(const void * a, const void * b)
     }
 }
 
-uint64_t largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset)
+auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call pread multiple times and update progress */
 
@@ -128,7 +128,7 @@ uint64_t largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset)
   return nbyte;
 }
 
-uint64_t largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset)
+auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call write multiple times and update progress */
 
@@ -196,7 +196,7 @@ auto udb_detect_isudb(const char * filename) -> bool
   return false;
 }
 
-void udb_info()
+auto udb_info() -> void
 {
   /* Read UDB header and show basic info */
 
@@ -258,9 +258,9 @@ void udb_info()
   close(fd_udbinfo);
 }
 
-void udb_read(const char * filename,
+auto udb_read(const char * filename,
               bool create_bitmaps,
-              bool parse_abundances)
+              bool parse_abundances) -> void
 {
   /* read UDB as indexed database */
 
@@ -606,7 +606,7 @@ void udb_read(const char * filename,
     }
 }
 
-void udb_fasta()
+auto udb_fasta() -> void
 {
   if (!opt_output)
     fatal("FASTA output file must be specified with --output");
@@ -639,7 +639,7 @@ void udb_fasta()
   db_free();
 }
 
-void udb_stats()
+auto udb_stats() -> void
 {
   /* show word statistics for an UDB file */
 
@@ -872,7 +872,7 @@ void udb_stats()
   db_free();
 }
 
-void udb_make()
+auto udb_make() -> void
 {
   if (!opt_output)
     fatal("UDB output file must be specified with --output");
