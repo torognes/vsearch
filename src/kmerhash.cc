@@ -109,7 +109,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kh,
                            unsigned int pos) -> void
 {
   /* find free bucket in hash */
-  unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
+  unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
   while(kh->hash[j].pos)
     {
       j = (j + 1) & kh->hash_mask;
@@ -137,7 +137,7 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
     }
 
   kh->size = 1;
-  while(kh->size < 2 * len)
+  while (kh->size < 2 * len)
     {
       kh->size *= 2;
     }
@@ -165,7 +165,7 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
       kmer |= chrmap_2bit[c];
       kmer &= kmer_mask;
 
-      if (!bad)
+      if (! bad)
         {
           /* 1-based pos of start of kmer */
           kh_insert_kmer(kh, k, kmer, pos - k + 1 + 1);
@@ -198,10 +198,10 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
 
-      if (!bad)
+      if (! bad)
         {
           /* find matching buckets in hash */
-          unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
+          unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
           while(kh->hash[j].pos)
             {
               if (kh->hash[j].kmer == kmer)
@@ -222,7 +222,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
   int best_diag = -1;
   int good_diags = 0;
 
-  for(int d = 0; d < kh->maxpos - k + 1; d++)
+  for (int d = 0; d < kh->maxpos - k + 1; d++)
     {
       int diag_len = kh->maxpos - d;
       int minmatch = MAX(1, diag_len - k + 1 - k * MAX(diag_len / 20, 0));
@@ -277,10 +277,10 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
 
-      if (!bad)
+      if (! bad)
         {
           /* find matching buckets in hash */
-          unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
+          unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
           while(kh->hash[j].pos)
             {
               if (kh->hash[j].kmer == kmer)
