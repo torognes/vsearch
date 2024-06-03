@@ -100,7 +100,7 @@ auto fskip(FILE * fp, uint64_t length) -> uint64_t
 
   while (rest > 0)
     {
-      uint64_t want = ((rest > blocksize) ? blocksize : rest);
+      uint64_t want = (rest > blocksize) ? blocksize : rest;
       uint64_t got = fread(buffer, 1, want, fp);
       skipped += got;
       rest -= got;
