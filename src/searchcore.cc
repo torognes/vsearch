@@ -64,7 +64,7 @@
 
 /* per thread data */
 
-inline int hit_compare_byid_typed(struct hit * x, struct hit * y)
+inline auto hit_compare_byid_typed(struct hit * x, struct hit * y) -> int
 {
   /*
     Order:
@@ -115,7 +115,7 @@ inline int hit_compare_byid_typed(struct hit * x, struct hit * y)
     }
 }
 
-inline int hit_compare_bysize_typed(struct hit * x, struct hit * y)
+inline auto hit_compare_bysize_typed(struct hit * x, struct hit * y) -> int
 {
   // high abundance, then low abundance
   // high id, then low id
@@ -186,23 +186,23 @@ inline int hit_compare_bysize_typed(struct hit * x, struct hit * y)
                           }
 }
 
-int hit_compare_byid(const void * a, const void * b)
+auto hit_compare_byid(const void * a, const void * b) -> int
 {
   return hit_compare_byid_typed((struct hit *) a, (struct hit *) b);
 }
 
-int hit_compare_bysize(const void * a, const void * b)
+auto hit_compare_bysize(const void * a, const void * b) -> int
 {
   return hit_compare_bysize_typed((struct hit *) a, (struct hit *) b);
 }
 
-bool search_enough_kmers(struct searchinfo_s * si,
-                         unsigned int count)
+auto search_enough_kmers(struct searchinfo_s * si,
+                         unsigned int count) -> bool
 {
   return (count >= opt_minwordmatches) or (count >= si->kmersamplecount);
 }
 
-void search_topscores(struct searchinfo_s * si)
+auto search_topscores(struct searchinfo_s * si) -> void
 {
   /*
     Count the kmer hits in each database sequence and
@@ -274,7 +274,7 @@ void search_topscores(struct searchinfo_s * si)
   minheap_sort(si->m);
 }
 
-int seqncmp(char * a, char * b, uint64_t n)
+auto seqncmp(char * a, char * b, uint64_t n) -> int
 {
   for(unsigned int i = 0; i < n; i++)
     {
@@ -293,7 +293,7 @@ int seqncmp(char * a, char * b, uint64_t n)
 }
 
 
-void align_trim(struct hit * hit)
+auto align_trim(struct hit * hit) -> void
 {
   /* trim alignment and fill in info */
   /* assumes that the hit has been aligned */
@@ -564,7 +564,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
     }
 }
 
-void align_delayed(struct searchinfo_s * si)
+auto align_delayed(struct searchinfo_s * si) -> void
 {
   /* compute global alignment */
 
@@ -703,7 +703,7 @@ void align_delayed(struct searchinfo_s * si)
   si->finalized = si->hit_count;
 }
 
-void search_onequery(struct searchinfo_s * si, int seqmask)
+auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
 {
   si->hit_count = 0;
 
@@ -787,8 +787,8 @@ void search_onequery(struct searchinfo_s * si, int seqmask)
   xfree(scorematrix);
 }
 
-struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
-                                   struct searchinfo_s * si_m)
+auto search_findbest2_byid(struct searchinfo_s * si_p,
+                           struct searchinfo_s * si_m) -> struct hit *
 {
   struct hit * best = nullptr;
 
@@ -819,8 +819,8 @@ struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
   return best;
 }
 
-struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
-                                     struct searchinfo_s * si_m)
+auto search_findbest2_bysize(struct searchinfo_s * si_p,
+                             struct searchinfo_s * si_m) -> struct hit *
 {
   struct hit * best = nullptr;
 
@@ -851,10 +851,10 @@ struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
   return best;
 }
 
-void search_joinhits(struct searchinfo_s * si_p,
+auto search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
                      struct hit * * hitsp,
-                     int * hit_count)
+                     int * hit_count) -> void
 {
   /* join and sort accepted and weak hits from both strands */
   /* free the remaining alignments */
