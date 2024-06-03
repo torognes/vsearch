@@ -87,7 +87,7 @@ struct uhandle_s
   uint64_t * bitmap;
 };
 
-struct uhandle_s * unique_init()
+auto unique_init() -> struct uhandle_s *
 {
   auto * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
 
