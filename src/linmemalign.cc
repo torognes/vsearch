@@ -674,10 +674,10 @@ auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
 
 
 
-char * LinearMemoryAligner::align(char * _a_seq,
+auto LinearMemoryAligner::align(char * _a_seq,
                                   char * _b_seq,
                                   int64_t a_len,
-                                  int64_t b_len)
+                                  int64_t b_len) -> char *
 {
   /* copy parameters */
   a_seq = _a_seq;
@@ -699,14 +699,14 @@ char * LinearMemoryAligner::align(char * _a_seq,
   return cigar_string;
 }
 
-void LinearMemoryAligner::alignstats(char * cigar,
+auto LinearMemoryAligner::alignstats(char * cigar,
                                      char * _a_seq,
                                      char * _b_seq,
                                      int64_t * _nwscore,
                                      int64_t * _nwalignmentlength,
                                      int64_t * _nwmatches,
                                      int64_t * _nwmismatches,
-                                     int64_t * _nwgaps)
+                                     int64_t * _nwgaps) -> void
 {
   a_seq = _a_seq;
   b_seq = _b_seq;
@@ -799,4 +799,3 @@ void LinearMemoryAligner::alignstats(char * cigar,
   *_nwmismatches = nwmismatches;
   *_nwgaps = nwgaps;
 }
-
