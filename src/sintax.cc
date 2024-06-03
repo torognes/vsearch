@@ -311,7 +311,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
   best.seqno = 0;
   best.length = 0;
 
-  for(int i = 0; i < indexed_count; i++)
+  for (int i = 0; i < indexed_count; i++)
     {
       count_t count = si->kmers[i];
       unsigned int seqno = dbindex_getmapping(i);
@@ -392,7 +392,7 @@ auto sintax_query(int64_t t) -> void
               unsigned int kmersample_subset[subset_size];
               int subsamples = 0;
               bitmap_reset_all(b);
-              for(int j = 0; j < subset_size ; j++)
+              for (int j = 0; j < subset_size ; j++)
                 {
                   int64_t x = random_int(kmersamplecount);
                   if (! bitmap_get(b, x))
@@ -491,14 +491,14 @@ auto sintax_thread_run(int64_t t) -> void
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
-                  si->query_head = (char*)
+                  si->query_head = (char *)
                     xrealloc(si->query_head, (size_t)(si->query_head_alloc));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
-                  si->qsequence = (char*)
+                  si->qsequence = (char *)
                     xrealloc(si->qsequence, (size_t)(si->seq_alloc));
                 }
             }
@@ -587,25 +587,25 @@ auto sintax_thread_worker_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
-      sintax_thread_init(si_plus+t);
+      sintax_thread_init(si_plus + t);
       if (si_minus)
         {
-          sintax_thread_init(si_minus+t);
+          sintax_thread_init(si_minus + t);
         }
-      xpthread_create(pthread+t, &attr,
-                      sintax_thread_worker, (void*)(int64_t)t);
+      xpthread_create(pthread + t, &attr,
+                      sintax_thread_worker, (void *) (int64_t)t);
     }
 
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
-      sintax_thread_exit(si_plus+t);
+      sintax_thread_exit(si_plus + t);
       if (si_minus)
         {
-          sintax_thread_exit(si_minus+t);
+          sintax_thread_exit(si_minus + t);
         }
     }
 
@@ -653,7 +653,7 @@ auto sintax() -> void
 
   seqcount = db_getsequencecount();
 
-  if (!is_udb)
+  if (! is_udb)
     {
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
