@@ -360,7 +360,7 @@ auto fastx_mask() -> void
   int discarded_less = 0;
   int discarded_more = 0;
   progress_init("Writing output", seqcount);
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       int unmasked = 0;
       char * seq = db_getsequence(i);
@@ -371,7 +371,7 @@ auto fastx_mask() -> void
         }
       else if (opt_hardmask)
         {
-          for(int j = 0; j < len; j++)
+          for (int j = 0; j < len; j++)
             {
               if (seq[j] != 'N')
                 {
@@ -381,7 +381,7 @@ auto fastx_mask() -> void
         }
       else
         {
-          for(int j = 0; j < len; j++)
+          for (int j = 0; j < len; j++)
             {
               if (isupper(seq[j]))
                 {
