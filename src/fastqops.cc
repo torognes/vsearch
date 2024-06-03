@@ -68,7 +68,7 @@ auto fastq_chars() -> void
   uint64_t total_chars = 0;
   int maxrun[256];
 
-  for(int c = 0; c < 256; c++)
+  for (int c = 0; c < 256; c++)
     {
       sequence_chars[c] = 0;
       quality_chars[c] = 0;
@@ -87,7 +87,7 @@ auto fastq_chars() -> void
   int qmin_n = 255;
   int qmax_n = 0;
 
-  while(fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(h, false, chrmap_upcase))
     {
       int64_t len = fastq_get_sequence_length(h);
       char * p = fastq_get_sequence(h);
@@ -100,7 +100,7 @@ auto fastq_chars() -> void
       int run = 0;
 
       int64_t i = 0;
-      while(i < len)
+      while (i < len)
         {
           int pc = *p++;
           int qc = *q++;
@@ -141,7 +141,7 @@ auto fastq_chars() -> void
           q = fastq_get_quality(h) + len - 1;
           int tail_char = *q--;
           int tail_len = 1;
-          while(*q-- == tail_char)
+          while (*q-- == tail_char)
             {
               tail_len++;
               if (tail_len >= opt_fastq_tail)
@@ -164,7 +164,7 @@ auto fastq_chars() -> void
   char qmin = 0;
   char qmax = 0;
 
-  for(int c=0; c<=255; c++)
+  for (int c = 0; c <= 255; c++)
     {
       if (quality_chars[c])
         {
@@ -241,7 +241,7 @@ auto fastq_chars() -> void
           fprintf(stderr, "Letter          N   Freq MaxRun\n");
           fprintf(stderr, "------ ---------- ------ ------\n");
 
-          for(int c = 0; c < 256; c++)
+          for (int c = 0; c < 256; c++)
             {
               if (sequence_chars[c] > 0)
                 {
@@ -269,7 +269,7 @@ auto fastq_chars() -> void
           fprintf(stderr, "Char  ASCII    Freq       Tails\n");
           fprintf(stderr, "----  -----  ------  ----------\n");
 
-          for(int c = qmin; c <= qmax; c++)
+          for (int c = qmin; c <= qmax; c++)
             {
               if (quality_chars[c] > 0)
                 {
@@ -326,7 +326,7 @@ auto fastq_chars() -> void
           fprintf(fp_log, "Letter          N   Freq MaxRun\n");
           fprintf(fp_log, "------ ---------- ------ ------\n");
 
-          for(int c = 0; c < 256; c++)
+          for (int c = 0; c < 256; c++)
             {
               if (sequence_chars[c] > 0)
                 {
@@ -354,7 +354,7 @@ auto fastq_chars() -> void
           fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
           fprintf(fp_log, "----  -----  ------  ----------\n");
 
-          for(int c = qmin; c <= qmax; c++)
+          for (int c = qmin; c <= qmax; c++)
             {
               if (quality_chars[c] > 0)
                 {
@@ -387,10 +387,10 @@ auto fastq_stats() -> void
 
   int64_t read_length_alloc = 512;
 
-  auto * read_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc);
+  auto * read_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc);
   memset(read_length_table, 0, sizeof(uint64_t) * read_length_alloc);
 
-  auto * qual_length_table = (uint64_t*) xmalloc(sizeof(uint64_t) * read_length_alloc * 256);
+  auto * qual_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 256);
   memset(qual_length_table, 0, sizeof(uint64_t) * read_length_alloc * 256);
 
   auto * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
@@ -409,12 +409,12 @@ auto fastq_stats() -> void
   int qmax = -1000;
 
   uint64_t quality_chars[256];
-  for(uint64_t & quality_char : quality_chars)
+  for (uint64_t & quality_char : quality_chars)
     {
       quality_char = 0;
     }
 
-  while(fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(h, false, chrmap_upcase))
     {
       seq_count++;
 
@@ -423,24 +423,24 @@ auto fastq_stats() -> void
 
       /* update length statistics */
 
-      if (len+1 > read_length_alloc)
+      if (len + 1 > read_length_alloc)
         {
-          read_length_table = (uint64_t*) xrealloc(read_length_table,
+          read_length_table = (uint64_t *) xrealloc(read_length_table,
                                                    sizeof(uint64_t) * (len+1));
           memset(read_length_table + read_length_alloc, 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc));
 
-          qual_length_table = (uint64_t*) xrealloc(qual_length_table,
+          qual_length_table = (uint64_t *) xrealloc(qual_length_table,
                                                    sizeof(uint64_t) * (len+1) * 256);
           memset(qual_length_table + 256 * read_length_alloc, 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 256);
 
-          ee_length_table = (uint64_t*) xrealloc(ee_length_table,
+          ee_length_table = (uint64_t *) xrealloc(ee_length_table,
                                                  sizeof(uint64_t) * (len+1) * 4);
           memset(ee_length_table + 4 * read_length_alloc, 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
-          q_length_table = (uint64_t*) xrealloc(q_length_table,
+          q_length_table = (uint64_t *) xrealloc(q_length_table,
                                                 sizeof(uint64_t) * (len+1) * 4);
           memset(q_length_table + 4 * read_length_alloc, 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
@@ -472,7 +472,7 @@ auto fastq_stats() -> void
 
       double ee = 0.0;
       int qmin_this = 1000;
-      for(int64_t i = 0; i < len; i++)
+      for (int64_t i = 0; i < len; i++)
         {
           int qc = q[i];
 
@@ -506,17 +506,17 @@ auto fastq_stats() -> void
               qmax = qc;
             }
 
-          qual_length_table[256*i + qc]++;
+          qual_length_table[256 * i + qc]++;
 
           ee += q2p(qual);
 
           sumee_length_table[i] += ee;
 
-          for(int z = 0; z < 4; z++)
+          for (int z = 0; z < 4; z++)
             {
               if (ee <= ee_limit[z])
                 {
-                  ee_length_table[4*i+z]++;
+                  ee_length_table[4 * i + z]++;
                 }
               else
                 {
@@ -559,7 +559,7 @@ auto fastq_stats() -> void
   int64_t length_accum = 0;
   int64_t symb_accum = 0;
 
-  for(int64_t i = 0; i <= len_max; i++)
+  for (int64_t i = 0; i <= len_max; i++)
     {
       length_accum += read_length_table[i];
       length_dist[i] = length_accum;
@@ -570,7 +570,7 @@ auto fastq_stats() -> void
       int64_t q = 0;
       int64_t x = 0;
       double e_sum = 0.0;
-      for(int c = qmin; c <= qmax; c++)
+      for (int c = qmin; c <= qmax; c++)
         {
           int qual = c - opt_fastq_ascii;
           x += qual_length_table[256 * i + c];
@@ -590,7 +590,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "      L           N      Pct   AccPct\n");
       fprintf(fp_log, "-------  ----------  -------  -------\n");
 
-      for(int64_t i = len_max; i >= len_min; i--)
+      for (int64_t i = len_max; i >= len_min; i--)
         {
           if (read_length_table[i] > 0)
             {
@@ -609,7 +609,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
 
       int64_t qual_accum = 0;
-      for(int c = qmax ; c >= qmin ; c--)
+      for (int c = qmax ; c >= qmin ; c--)
         {
           if (quality_chars[c] > 0)
             {
@@ -629,7 +629,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
       fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
-      for(int64_t i = 2; i <= len_max; i++)
+      for (int64_t i = 2; i <= len_max; i++)
         {
           double PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
           double AvgQ = avgq_dist[i - 1];
@@ -653,12 +653,12 @@ auto fastq_stats() -> void
       fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
       fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
-      for(int64_t i = len_max; i >= 1; i--)
+      for (int64_t i = len_max; i >= 1; i--)
         {
           int64_t read_count[4];
           double read_percentage[4];
 
-          for(int z = 0; z < 4; z++)
+          for (int z = 0; z < 4; z++)
             {
               read_count[z] = ee_length_table[4 * (i - 1) + z];
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
@@ -683,11 +683,11 @@ auto fastq_stats() -> void
       fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
       fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
-      for(int64_t i = len_max; i >= MAX(1, len_max / 2); i--)
+      for (int64_t i = len_max; i >= MAX(1, len_max / 2); i--)
         {
           double read_percentage[4];
 
-          for(int z = 0; z < 4; z++)
+          for (int z = 0; z < 4; z++)
             {
               read_percentage[z] = 100.0 * q_length_table[4 * (i - 1) + z] / seq_count;
             }
@@ -723,7 +723,7 @@ auto fastq_stats() -> void
 
   fastq_close(h);
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
     }
@@ -784,7 +784,7 @@ auto fastx_revcomp() -> void
 
   int count = 0;
 
-  while(fastx_next(h, false, chrmap_no_change))
+  while (fastx_next(h, false, chrmap_no_change))
     {
       count++;
 
@@ -817,7 +817,7 @@ auto fastx_revcomp() -> void
       if (fastx_is_fastq(h))
         {
           /* reverse quality values */
-          for(uint64_t i = 0; i < length; i++)
+          for (uint64_t i = 0; i < length; i++)
             {
               qual_buffer[i] = q[length - 1 - i];
             }
@@ -896,7 +896,7 @@ auto fastq_convert() -> void
   progress_init("Reading FASTQ file", filesize);
 
   int j = 1;
-  while(fastq_next(h, false, chrmap_no_change))
+  while (fastq_next(h, false, chrmap_no_change))
     {
       /* header */
 
@@ -911,7 +911,7 @@ auto fastq_convert() -> void
       /* convert quality values */
 
       char * quality = fastq_get_quality(h);
-      for(uint64_t i = 0; i < length; i++)
+      for (uint64_t i = 0; i < length; i++)
         {
           int q = quality[i] - opt_fastq_ascii;
           if (q < opt_fastq_qmin)
