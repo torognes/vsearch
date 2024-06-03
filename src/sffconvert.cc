@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <array>
 
 
 constexpr uint32_t sff_magic = 0x2e736666;
@@ -93,7 +94,7 @@ auto fskip(FILE * fp, uint64_t length) -> uint64_t
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
   static constexpr auto blocksize = 4096U;
-  char buffer[blocksize];
+  std::array<char, blocksize> buffer;
 
   uint64_t skipped = 0;
   uint64_t rest = length;
@@ -101,7 +102,7 @@ auto fskip(FILE * fp, uint64_t length) -> uint64_t
   while (rest > 0)
     {
       uint64_t const want = (rest > blocksize) ? blocksize : rest;
-      uint64_t const got = fread(buffer, 1, want, fp);
+      uint64_t const got = fread(buffer.data(), 1, want, fp);
       skipped += got;
       rest -= got;
       if (got < want)
