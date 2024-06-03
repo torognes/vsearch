@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-void fastq_fatal(uint64_t lineno, const char * msg)
+auto fastq_fatal(uint64_t lineno, const char * msg) -> void
 {
   char * string;
   if (xsprintf(& string,
@@ -82,14 +82,14 @@ void fastq_fatal(uint64_t lineno, const char * msg)
     }
 }
 
-void buffer_filter_extend(fastx_handle h,
+auto buffer_filter_extend(fastx_handle h,
                           struct fastx_buffer_s * dest_buffer,
                           char * source_buf,
                           uint64_t len,
                           unsigned int * char_action,
                           const unsigned char * char_mapping,
                           bool * ok,
-                          char * illegal_char)
+                          char * illegal_char) -> void
 {
   buffer_makespace(dest_buffer, len+1);
 
@@ -143,7 +143,7 @@ void buffer_filter_extend(fastx_handle h,
   dest_buffer->length += q - d;
 }
 
-fastx_handle fastq_open(const char * filename)
+auto fastq_open(const char * filename) -> fastx_handle
 {
   fastx_handle h = fastx_open(filename);
 
@@ -155,14 +155,14 @@ fastx_handle fastq_open(const char * filename)
   return h;
 }
 
-void fastq_close(fastx_handle h)
+auto fastq_close(fastx_handle h) -> void
 {
   fastx_close(h);
 }
 
-bool fastq_next(fastx_handle h,
+auto fastq_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping)
+                const unsigned char * char_mapping) -> bool
 {
   h->header_buffer.length = 0;
   h->header_buffer.data[0] = 0;
@@ -436,57 +436,57 @@ bool fastq_next(fastx_handle h,
   return true;
 }
 
-char * fastq_get_quality(fastx_handle h)
+auto fastq_get_quality(fastx_handle h) -> char *
 {
   return h->quality_buffer.data;
 }
 
-uint64_t fastq_get_quality_length(fastx_handle h)
+auto fastq_get_quality_length(fastx_handle h) -> uint64_t
 {
   return h->quality_buffer.length;
 }
 
-uint64_t fastq_get_position(fastx_handle h)
+auto fastq_get_position(fastx_handle h) -> uint64_t
 {
   return h->file_position;
 }
 
-uint64_t fastq_get_size(fastx_handle h)
+auto fastq_get_size(fastx_handle h) -> uint64_t
 {
   return h->file_size;
 }
 
-uint64_t fastq_get_lineno(fastx_handle h)
+auto fastq_get_lineno(fastx_handle h) -> uint64_t
 {
   return h->lineno_start;
 }
 
-uint64_t fastq_get_seqno(fastx_handle h)
+auto fastq_get_seqno(fastx_handle h) -> uint64_t
 {
   return h->seqno;
 }
 
-uint64_t fastq_get_header_length(fastx_handle h)
+auto fastq_get_header_length(fastx_handle h) -> uint64_t
 {
   return h->header_buffer.length;
 }
 
-uint64_t fastq_get_sequence_length(fastx_handle h)
+auto fastq_get_sequence_length(fastx_handle h) -> uint64_t
 {
   return h->sequence_buffer.length;
 }
 
-char * fastq_get_header(fastx_handle h)
+auto fastq_get_header(fastx_handle h) -> char *
 {
   return h->header_buffer.data;
 }
 
-char * fastq_get_sequence(fastx_handle h)
+auto fastq_get_sequence(fastx_handle h) -> char *
 {
   return h->sequence_buffer.data;
 }
 
-int64_t fastq_get_abundance(fastx_handle h)
+auto fastq_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
   int64_t size = header_get_size(h->header_buffer.data,
@@ -501,19 +501,19 @@ int64_t fastq_get_abundance(fastx_handle h)
     }
 }
 
-int64_t fastq_get_abundance_and_presence(fastx_handle h)
+auto fastq_get_abundance_and_presence(fastx_handle h) -> int64_t
 {
   // return 0 if not present
   return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 
-inline void fprint_seq_label(FILE * fp, char * seq, int len)
+inline auto fprint_seq_label(FILE * fp, char * seq, int len) -> void
 {
   /* normalize first? */
   fprintf(fp, "%.*s", len, seq);
 }
 
-void fastq_print_general(FILE * fp,
+auto fastq_print_general(FILE * fp,
                          char * seq,
                          int len,
                          char * header,
@@ -521,7 +521,7 @@ void fastq_print_general(FILE * fp,
                          char * quality,
                          int abundance,
                          int ordinal,
-                         double ee)
+                         double ee) -> void
 {
   fprintf(fp, "@");
 
@@ -607,7 +607,7 @@ void fastq_print_general(FILE * fp,
   fprintf(fp, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
 }
 
-void fastq_print(FILE * fp, char * header, char * sequence, char * quality)
+auto fastq_print(FILE * fp, char * header, char * sequence, char * quality) -> void
 {
   int slen = strlen(sequence);
   int hlen = strlen(header);
