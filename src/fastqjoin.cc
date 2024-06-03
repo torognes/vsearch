@@ -62,7 +62,7 @@
 
 /* static variables */
 
-FILE * join_fileopenw(char * filename)
+auto join_fileopenw(char * filename) -> FILE *
 {
   FILE * fp = nullptr;
   fp = fopen_output(filename);
@@ -73,7 +73,7 @@ FILE * join_fileopenw(char * filename)
   return fp;
 }
 
-void fastq_join()
+auto fastq_join() -> void
 {
   FILE * fp_fastqout = nullptr;
   FILE * fp_fastaout = nullptr;
