@@ -68,7 +68,7 @@ static uint64_t progress_size;
 static uint64_t progress_pct;
 static bool progress_show;
 
-void progress_init(const char * prompt, uint64_t size)
+auto progress_init(const char * prompt, uint64_t size) -> void
 {
   progress_show = isatty(fileno(stderr)) && (! opt_quiet) && (! opt_no_progress);
   progress_prompt = prompt;
@@ -86,7 +86,7 @@ void progress_init(const char * prompt, uint64_t size)
     }
 }
 
-void progress_update(uint64_t progress)
+auto progress_update(uint64_t progress) -> void
 {
   if ((progress >= progress_next) && progress_show)
     {
@@ -106,7 +106,7 @@ void progress_update(uint64_t progress)
     }
 }
 
-void progress_done()
+auto progress_done() -> void
 {
   if (! opt_quiet)
     {
@@ -118,7 +118,8 @@ void progress_done()
     }
 }
 
-void  __attribute__((noreturn)) fatal(const char * msg)
+__attribute__((noreturn))
+auto fatal(const char * msg) -> void
 {
   fprintf(stderr, "\n\n");
   fprintf(stderr, "Fatal error: %s\n", msg);
@@ -132,8 +133,9 @@ void  __attribute__((noreturn)) fatal(const char * msg)
   exit(EXIT_FAILURE);
 }
 
-void  __attribute__((noreturn)) fatal(const char * format,
-                                      const char * message)
+__attribute__((noreturn))
+auto fatal(const char * format,
+           const char * message) -> void
 {
   fprintf(stderr, "\n\nFatal error: ");
   fprintf(stderr, format, message);
@@ -149,7 +151,7 @@ void  __attribute__((noreturn)) fatal(const char * format,
   exit(EXIT_FAILURE);
 }
 
-char * xstrdup(const char *s)
+auto xstrdup(const char *s) -> char *
 {
   size_t len = strlen(s);
   char * p = (char *) xmalloc(len + 1);
@@ -157,7 +159,7 @@ char * xstrdup(const char *s)
 }
 
 
-char * xstrchrnul(char *s, int c)
+auto xstrchrnul(char *s, int c) -> char *
 {
   char * r = strchr(s, c);
 
@@ -171,7 +173,7 @@ char * xstrchrnul(char *s, int c)
     }
 }
 
-int xsprintf(char * * ret, const char * format, ...)
+auto xsprintf(char * * ret, const char * format, ...) -> int
 {
   va_list ap;
   va_start(ap, format);
@@ -189,17 +191,17 @@ int xsprintf(char * * ret, const char * format, ...)
   return len;
 }
 
-uint64_t hash_cityhash64(char * s, uint64_t n)
+auto hash_cityhash64(char * s, uint64_t n) -> uint64_t
 {
   return CityHash64((const char *) s, n);
 }
 
-uint128 hash_cityhash128(char * s, uint64_t n)
+auto hash_cityhash128(char * s, uint64_t n) -> uint128
 {
   return CityHash128((const char *) s, n);
 }
 
-int64_t getusec()
+auto getusec() -> int64_t
 {
   struct timeval tv;
   if (gettimeofday(&tv,nullptr) != 0)
@@ -209,7 +211,7 @@ int64_t getusec()
   return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
-void show_rusage()
+auto show_rusage() -> void
 {
 #ifdef SHOW_RUSAGE
   double user_time = 0.0;
@@ -228,7 +230,7 @@ void show_rusage()
 #endif
 }
 
-void reverse_complement(char * rc, char * seq, int64_t len)
+auto reverse_complement(char * rc, char * seq, int64_t len) -> void
 {
   /* Write the reverse complementary sequence to rc.
      The memory for rc must be long enough for the rc of the sequence
@@ -241,12 +243,12 @@ void reverse_complement(char * rc, char * seq, int64_t len)
   rc[len] = 0;
 }
 
-void random_init()
+auto random_init() -> void
 {
   arch_srandom();
 }
 
-int64_t random_int(int64_t n)
+auto random_int(int64_t n) -> int64_t
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive.
@@ -267,7 +269,7 @@ int64_t random_int(int64_t n)
   return r % n;
 }
 
-uint64_t random_ulong(uint64_t n)
+auto random_ulong(uint64_t n) -> uint64_t
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive,
@@ -286,7 +288,7 @@ uint64_t random_ulong(uint64_t n)
   return r % n;
 }
 
-void string_normalize(char * normalized, char * s, unsigned int len)
+auto string_normalize(char * normalized, char * s, unsigned int len) -> void
 {
   /* convert string to upper case and replace U by T */
   char * p = s;
@@ -298,7 +300,7 @@ void string_normalize(char * normalized, char * s, unsigned int len)
   *q = 0;
 }
 
-void fprint_hex(FILE * fp, unsigned char * data, int len)
+auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void
 {
   for (int i = 0; i < len; i++)
     {
@@ -306,7 +308,7 @@ void fprint_hex(FILE * fp, unsigned char * data, int len)
     }
 }
 
-void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
+auto SHA1(const unsigned char * d, unsigned long n, unsigned char * md) -> void
 {
   if (! md)
     {
@@ -318,7 +320,7 @@ void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
   SHA1_Final(&c, md);
 }
 
-void MD5(void * d, unsigned long n, unsigned char * md)
+auto MD5(void * d, unsigned long n, unsigned char * md) -> void
 {
   if (! md)
     {
@@ -332,7 +334,7 @@ void MD5(void * d, unsigned long n, unsigned char * md)
 
 static const char hexdigits[] = "0123456789abcdef";
 
-void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
+auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 {
   /* Save hexadecimal representation of the SHA1 hash of the sequence.
      The string array digest must be large enough (LEN_HEX_DIG_SHA1).
@@ -355,7 +357,7 @@ void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
   hex[2 * LEN_DIG_SHA1] = 0;
 }
 
-void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
+auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 {
   /* Save hexadecimal representation of the MD5 hash of the sequence.
      The string array digest must be large enough (LEN_HEX_DIG_MD5).
@@ -379,21 +381,21 @@ void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
 }
 
 
-void fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen)
+auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[LEN_HEX_DIG_SHA1];
   get_hex_seq_digest_sha1(digest, seq, seqlen);
   fprintf(fp, "%s", digest);
 }
 
-void fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen)
+auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[LEN_HEX_DIG_MD5];
   get_hex_seq_digest_md5(digest, seq, seqlen);
   fprintf(fp, "%s", digest);
 }
 
-FILE * fopen_input(const char * filename)
+auto fopen_input(const char * filename) -> FILE *
 {
   /* open the input stream given by filename, but use stdin if name is - */
   if (strcmp(filename, "-") == 0)
@@ -414,7 +416,7 @@ FILE * fopen_input(const char * filename)
     }
 }
 
-FILE * fopen_output(const char * filename)
+auto fopen_output(const char * filename) -> FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
   if (strcmp(filename, "-") == 0)
