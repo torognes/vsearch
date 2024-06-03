@@ -4827,7 +4827,9 @@ void args_init(int argc, char **argv)
   if (opt_chimeras_denovo)
     {
       if (! options_selected[option_alignwidth])
-        opt_alignwidth = 60;
+        {
+          opt_alignwidth = 60;
+        }
     }
 
 
