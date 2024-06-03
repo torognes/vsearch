@@ -66,7 +66,7 @@ auto join_fileopenw(char * filename) -> FILE *
 {
   FILE * fp = nullptr;
   fp = fopen_output(filename);
-  if (!fp)
+  if (! fp)
     {
       fatal("Unable to open file for writing (%s)", filename);
     }
@@ -85,12 +85,12 @@ auto fastq_join() -> void
 
   /* check input and options */
 
-  if (!opt_reverse)
+  if (! opt_reverse)
     {
       fatal("No reverse reads file specified with --reverse");
     }
 
-  if ((!opt_fastqout) && (!opt_fastaout))
+  if ((! opt_fastqout) && (! opt_fastaout))
     {
       fatal("No output files specified");
     }
@@ -116,7 +116,7 @@ auto fastq_join() -> void
   else
     {
       padgapq = (char *) xmalloc(padlen + 1);
-      for(uint64_t i = 0; i < padlen; i++)
+      for (uint64_t i = 0; i < padlen; i++)
         {
           padgapq[i] = 'I';
         }
@@ -158,7 +158,7 @@ auto fastq_join() -> void
   char * seq = nullptr;
   char * qual = nullptr;
 
-  while(fastq_next(fastq_fwd, false, chrmap_no_change))
+  while (fastq_next(fastq_fwd, false, chrmap_no_change))
     {
       if (! fastq_next(fastq_rev, false, chrmap_no_change))
         {
@@ -193,10 +193,10 @@ auto fastq_join() -> void
       char * rev_seq = fastq_get_sequence(fastq_rev);
       char * rev_qual = fastq_get_quality(fastq_rev);
 
-      for(uint64_t i = 0; i < rev_seq_length; i++)
+      for (uint64_t i = 0; i < rev_seq_length; i++)
         {
           uint64_t rev_pos = rev_seq_length - 1 - i;
-          seq[len]  = chrmap_complement[(int)(rev_seq[rev_pos])];
+          seq[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
           qual[len] = rev_qual[rev_pos];
           len++;
         }
