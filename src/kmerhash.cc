@@ -79,7 +79,7 @@ struct kh_handle_s
   int maxpos;
 };
 
-struct kh_handle_s * kh_init()
+auto kh_init() -> struct kh_handle_s *
 {
   auto * kh =
     (struct kh_handle_s *) xmalloc(sizeof(struct kh_handle_s));
@@ -94,7 +94,7 @@ struct kh_handle_s * kh_init()
   return kh;
 }
 
-void kh_exit(struct kh_handle_s * kh)
+auto kh_exit(struct kh_handle_s * kh) -> void
 {
   if (kh->hash)
     {
@@ -103,10 +103,10 @@ void kh_exit(struct kh_handle_s * kh)
   xfree(kh);
 }
 
-inline void kh_insert_kmer(struct kh_handle_s * kh,
+inline auto kh_insert_kmer(struct kh_handle_s * kh,
                            int k,
                            unsigned int kmer,
-                           unsigned int pos)
+                           unsigned int pos) -> void
 {
   /* find free bucket in hash */
   unsigned int j = HASH((char*)&kmer, (k+3)/4) & kh->hash_mask;
@@ -119,7 +119,7 @@ inline void kh_insert_kmer(struct kh_handle_s * kh,
   kh->hash[j].pos = pos;
 }
 
-void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
+auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> void
 {
   int kmers = 1 << (2 * k);
   unsigned int kmer_mask = kmers - 1;
@@ -173,7 +173,7 @@ void kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len)
     }
 }
 
-int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
+auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) -> int
 {
   std::vector<int> diag_counts(kh->maxpos, 0);
 
@@ -250,11 +250,11 @@ int kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len)
     }
 }
 
-void kh_find_diagonals(struct kh_handle_s * kh,
+auto kh_find_diagonals(struct kh_handle_s * kh,
                        int k,
                        char * seq,
                        int len,
-                       int * diags)
+                       int * diags) -> void
 {
   memset(diags, 0, (kh->maxpos+len) * sizeof(int));
 
