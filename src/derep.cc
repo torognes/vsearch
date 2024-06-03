@@ -76,7 +76,7 @@ struct bucket
   char * qual;
 };
 
-int derep_compare_prefix(const void * a, const void * b)
+auto derep_compare_prefix(const void * a, const void * b) -> int
 {
   auto * x = (struct bucket *) a;
   auto * y = (struct bucket *) b;
@@ -128,7 +128,7 @@ int derep_compare_prefix(const void * a, const void * b)
     }
 }
 
-int derep_compare_full(const void * a, const void * b)
+auto derep_compare_full(const void * a, const void * b) -> int
 {
   auto * x = (struct bucket *) a;
   auto * y = (struct bucket *) b;
@@ -183,7 +183,7 @@ int derep_compare_full(const void * a, const void * b)
     }
 }
 
-int seqcmp(char * a, char * b, int n)
+auto seqcmp(char * a, char * b, int n) -> int
 {
   char * p = a;
   char * q = b;
@@ -206,7 +206,7 @@ int seqcmp(char * a, char * b, int n)
   return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
 }
 
-void rehash(struct bucket ** hashtableref, int64_t alloc_clusters)
+auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
 {
   /*
     double the size of the hash table:
@@ -247,7 +247,7 @@ void rehash(struct bucket ** hashtableref, int64_t alloc_clusters)
   * hashtableref = new_hashtable;
 }
 
-inline double convert_q_to_p(int q)
+inline auto convert_q_to_p(int q) -> double
 {
   int x = q - opt_fastq_ascii;
   if (x < 2)
@@ -260,7 +260,7 @@ inline double convert_q_to_p(int q)
     }
 }
 
-inline int convert_p_to_q(double p)
+inline auto convert_p_to_q(double p) -> int
 {
   // int q = round(-10.0 * log10(p));
   int q = int(-10.0 * log10(p));
@@ -269,7 +269,7 @@ inline int convert_p_to_q(double p)
   return opt_fastq_asciiout + q;
 }
 
-void derep(char * input_filename, bool use_header)
+auto derep(char * input_filename, bool use_header) -> void
 {
   /* dereplicate full length sequences, optionally require identical headers */
 
@@ -1065,7 +1065,7 @@ void derep(char * input_filename, bool use_header)
   show_rusage();
 }
 
-void derep_prefix()
+auto derep_prefix() -> void
 {
   FILE * fp_output = nullptr;
   FILE * fp_uc = nullptr;
