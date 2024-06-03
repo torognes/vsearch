@@ -116,7 +116,7 @@ typedef struct thread_info_s
 
 static thread_info_t * ti;
 
-inline int compare_byclusterno(const void * a, const void * b)
+inline auto compare_byclusterno(const void * a, const void * b) -> int
 {
   auto * x = (clusterinfo_t *) a;
   auto * y = (clusterinfo_t *) b;
@@ -142,7 +142,7 @@ inline int compare_byclusterno(const void * a, const void * b)
     }
 }
 
-inline int compare_byclusterabundance(const void * a, const void * b)
+inline auto compare_byclusterabundance(const void * a, const void * b) -> int
 {
   auto * x = (clusterinfo_t *) a;
   auto * y = (clusterinfo_t *) b;
@@ -177,7 +177,7 @@ inline int compare_byclusterabundance(const void * a, const void * b)
 }
 
 
-inline void cluster_query_core(struct searchinfo_s * si)
+inline auto cluster_query_core(struct searchinfo_s * si) -> void
 {
   /* the main core function for clustering */
 
@@ -200,7 +200,7 @@ inline void cluster_query_core(struct searchinfo_s * si)
   search_onequery(si, opt_qmask);
 }
 
-inline void cluster_worker(int64_t t)
+inline auto cluster_worker(int64_t t) -> void
 {
   /* wrapper for the main threaded core function for clustering */
   for (int q = 0; q < ti[t].query_count; q++)
@@ -213,7 +213,7 @@ inline void cluster_worker(int64_t t)
     }
 }
 
-void * threads_worker(void * vp)
+auto threads_worker(void * vp) -> void *
 {
   auto t = (int64_t) vp;
   thread_info_s * tip = ti + t;
@@ -237,7 +237,7 @@ void * threads_worker(void * vp)
   return nullptr;
 }
 
-void threads_wakeup(int queries)
+auto threads_wakeup(int queries) -> void
 {
   int threads = queries > opt_threads ? opt_threads : queries;
   int queries_rest = queries;
@@ -274,7 +274,7 @@ void threads_wakeup(int queries)
     }
 }
 
-void threads_init()
+auto threads_init() -> void
 {
   xpthread_attr_init(&attr);
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -293,7 +293,7 @@ void threads_init()
     }
 }
 
-void threads_exit()
+auto threads_exit() -> void
 {
   /* finish and clean up worker threads */
   for(int t = 0; t < opt_threads; t++)
@@ -316,7 +316,7 @@ void threads_exit()
   xpthread_attr_destroy(&attr);
 }
 
-void cluster_query_init(struct searchinfo_s * si)
+auto cluster_query_init(struct searchinfo_s * si) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
@@ -352,7 +352,7 @@ void cluster_query_init(struct searchinfo_s * si)
   si->nw = nw_init();
 }
 
-void cluster_query_exit(struct searchinfo_s * si)
+auto cluster_query_exit(struct searchinfo_s * si) -> void
 {
   /* clean up after thread execution; called once per thread */
 
@@ -375,7 +375,7 @@ void cluster_query_exit(struct searchinfo_s * si)
     }
 }
 
-char * relabel_otu(int clusterno, char * sequence, int seqlen)
+auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
 {
   char * label = nullptr;
   if (opt_relabel)
@@ -403,13 +403,13 @@ char * relabel_otu(int clusterno, char * sequence, int seqlen)
   return label;
 }
 
-void cluster_core_results_hit(struct hit * best,
+auto cluster_core_results_hit(struct hit * best,
                               int clusterno,
                               char * query_head,
                               int qseqlen,
                               char * qsequence,
                               char * qsequence_rc,
-                              int qsize)
+                              int qsize) -> void
 {
   ++count_matched;
 
@@ -505,12 +505,12 @@ void cluster_core_results_hit(struct hit * best,
     }
 }
 
-void cluster_core_results_nohit(int clusterno,
+auto cluster_core_results_nohit(int clusterno,
                                 char * query_head,
                                 int qseqlen,
                                 char * qsequence,
                                 char * qsequence_rc,
-                                int qsize)
+                                int qsize) -> void
 {
   ++count_notmatched;
 
@@ -570,7 +570,7 @@ void cluster_core_results_nohit(int clusterno,
     }
 }
 
-int compare_kmersample(const void * a, const void * b)
+auto compare_kmersample(const void * a, const void * b) -> int
 {
   unsigned int x = * (unsigned int *) a;
   unsigned int y = * (unsigned int *) b;
@@ -589,7 +589,7 @@ int compare_kmersample(const void * a, const void * b)
     }
 }
 
-void cluster_core_parallel()
+auto cluster_core_parallel() -> void
 {
   /* create threads and set them in stand-by mode */
   threads_init();
@@ -1040,7 +1040,7 @@ void cluster_core_parallel()
   xfree(scorematrix);
 }
 
-void cluster_core_serial()
+auto cluster_core_serial() -> void
 {
   struct searchinfo_s si_p[1];
   struct searchinfo_s si_m[1];
@@ -1148,9 +1148,9 @@ void cluster_core_serial()
 }
 
 
-void cluster(char * dbname,
+auto cluster(char * dbname,
              char * cmdline,
-             char * progheader)
+             char * progheader) -> void
 {
   if (opt_centroids)
     {
@@ -1757,22 +1757,22 @@ void cluster(char * dbname,
   show_rusage();
 }
 
-void cluster_fast(char * cmdline, char * progheader)
+auto cluster_fast(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_fast, cmdline, progheader);
 }
 
-void cluster_smallmem(char * cmdline, char * progheader)
+auto cluster_smallmem(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_smallmem, cmdline, progheader);
 }
 
-void cluster_size(char * cmdline, char * progheader)
+auto cluster_size(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_size, cmdline, progheader);
 }
 
-void cluster_unoise(char * cmdline, char * progheader)
+auto cluster_unoise(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_unoise, cmdline, progheader);
 }
