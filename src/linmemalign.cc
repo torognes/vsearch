@@ -125,9 +125,9 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 {
   auto * newscorematrix = (int64_t*) xmalloc(16 * 16 * sizeof(int64_t));
 
-  for(int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++)
     {
-      for(int j = 0; j < 16; j++)
+      for (int j = 0; j < 16; j++)
         {
           int64_t value;
           if (ambiguous_4bit[i] || ambiguous_4bit[j])
@@ -171,10 +171,10 @@ auto LinearMemoryAligner::alloc_vectors(size_t x) -> void
           xfree(YY);
         }
 
-      HH = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-      EE = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-      XX = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
-      YY = (int64_t*) xmalloc(vector_alloc * (sizeof(int64_t)));
+      HH = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
+      EE = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
+      XX = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
+      YY = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
     }
 }
 
@@ -183,7 +183,7 @@ auto LinearMemoryAligner::cigar_reset() -> void
   if (cigar_alloc < 1)
     {
       cigar_alloc = 64;
-      cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
+      cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
     }
   cigar_string[0] = 0;
   cigar_length = 0;
@@ -220,7 +220,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
           else if (n >= rest)
             {
               cigar_alloc += MAX(n - rest + 1, 64);
-              cigar_string = (char*) xrealloc(cigar_string, cigar_alloc);
+              cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
             }
           else
             {
@@ -247,12 +247,12 @@ auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 
 auto LinearMemoryAligner::show_matrix() -> void
 {
-  for(int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++)
     {
       printf("%2d:", i);
-      for(int j = 0; j < 16; j++)
+      for (int j = 0; j < 16; j++)
         {
-          printf(" %2" PRId64, scorematrix[16*i+j]);
+          printf(" %2" PRId64, scorematrix[16 * i + j]);
         }
       printf("\n");
     }
