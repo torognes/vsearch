@@ -68,7 +68,7 @@ static int labels_count = 0;
 static int labels_longest = 0;
 static char * * labels_data = nullptr;
 
-void read_labels_file(char * filename)
+auto read_labels_file(char * filename) -> void
 {
   FILE * fp_labels = fopen_input(filename);
   if (! fp_labels)
@@ -145,7 +145,7 @@ void read_labels_file(char * filename)
     }
 }
 
-void free_labels()
+auto free_labels() -> void
 {
   for(int i=0; i < labels_count; i++)
     {
@@ -155,7 +155,7 @@ void free_labels()
   labels_data = nullptr;
 }
 
-bool test_label_match(fastx_handle h)
+auto test_label_match(fastx_handle h) -> bool
 {
   char * header = fastx_get_header(h);
   int hlen = fastx_get_header_length(h);
@@ -311,7 +311,7 @@ bool test_label_match(fastx_handle h)
   return false;
 }
 
-void getseq(char * filename)
+auto getseq(char * filename) -> void
 {
   if ((!opt_fastqout) && (!opt_fastaout) &&
       (!opt_notmatched) && (!opt_notmatchedfq))
@@ -596,17 +596,17 @@ void getseq(char * filename)
     }
 }
 
-void fastx_getseq()
+auto fastx_getseq() -> void
 {
   getseq(opt_fastx_getseq);
 }
 
-void fastx_getseqs()
+auto fastx_getseqs() -> void
 {
   getseq(opt_fastx_getseqs);
 }
 
-void fastx_getsubseq()
+auto fastx_getsubseq() -> void
 {
   getseq(opt_fastx_getsubseq);
 }
