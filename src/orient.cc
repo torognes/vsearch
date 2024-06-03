@@ -220,7 +220,7 @@ auto orient() -> void
       unsigned int count_rev = 0;
       const unsigned int hits_factor = 8;
 
-      for(unsigned int i = 0; i < kmer_count_fwd; i++)
+      for (unsigned int i = 0; i < kmer_count_fwd; i++)
         {
           unsigned int kmer_fwd = kmer_list_fwd[i];
           unsigned int kmer_rev = rc_kmer(kmer_fwd);
@@ -340,7 +340,7 @@ auto orient() -> void
 
               if (fastx_is_fastq(query_h))
                 {
-                  for(int i = 0; i < qseqlen; i++)
+                  for (int i = 0; i < qseqlen; i++)
                     {
                       query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
                     }
