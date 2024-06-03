@@ -227,7 +227,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   memset(new_hashtable, 0, sizeof(struct bucket) * new_hashtablesize);
 
   /* rehash all */
-  for(uint64_t i = 0; i < old_hashtablesize; i++)
+  for (uint64_t i = 0; i < old_hashtablesize; i++)
     {
       struct bucket * old_bp = old_hashtable + i;
       if (old_bp->size)
@@ -439,7 +439,7 @@ auto derep(char * input_filename, bool use_header) -> void
   double median = 0.0;
   double average = 0.0;
 
-  while(fastx_next(h, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h, not opt_notrunclabels, chrmap_no_change))
     {
       int64_t seqlen = fastx_get_sequence_length(h);
 
@@ -1138,7 +1138,7 @@ auto derep_prefix() -> void
     xmalloc(sizeof(uint64_t) * (len_longest+1));
 
   progress_init("Dereplicating", dbsequencecount);
-  for(int64_t i = 0; i < dbsequencecount; i++)
+  for (int64_t i = 0; i < dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -1173,7 +1173,7 @@ auto derep_prefix() -> void
 
       uint64_t fnv1a_hash = 14695981039346656037ULL;
       prefix_hashes[0] = fnv1a_hash;
-      for(unsigned int j = 0; j < seqlen; j++)
+      for (unsigned int j = 0; j < seqlen; j++)
         {
           fnv1a_hash ^= seq_up[j];
           fnv1a_hash *= 1099511628211ULL;
@@ -1223,7 +1223,7 @@ auto derep_prefix() -> void
         {
           /* look for prefix match */
 
-          while((not bp->size) and (prefix_len > len_shortest))
+          while ((not bp->size) and (prefix_len > len_shortest))
             {
               prefix_len--;
               hash = prefix_hashes[prefix_len];
