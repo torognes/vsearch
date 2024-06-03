@@ -209,7 +209,7 @@ auto orient() -> void
       /* find kmers in query sequence */
 
       unsigned int kmer_count_fwd = 0;
-      unsigned int * kmer_list_fwd = 0;
+      unsigned int * kmer_list_fwd = nullptr;
 
       unique_count(uh_fwd, opt_wordlength, qseqlen, qseq_fwd,
                    & kmer_count_fwd, & kmer_list_fwd, opt_qmask);
