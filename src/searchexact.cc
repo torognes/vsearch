@@ -579,7 +579,7 @@ auto search_exact_thread_worker_run() -> void
   xpthread_attr_destroy(&attr);
 }
 
-void search_exact_prep(char * cmdline, char * progheader)
+auto search_exact_prep(char * cmdline, char * progheader) -> void
 {
   /* open output files */
 
@@ -748,7 +748,7 @@ void search_exact_prep(char * cmdline, char * progheader)
   dbhash_add_all();
 }
 
-void search_exact_done()
+auto search_exact_done() -> void
 {
   /* clean up, global */
   dbhash_close();
@@ -808,7 +808,7 @@ void search_exact_done()
   show_rusage();
 }
 
-void search_exact(char * cmdline, char * progheader)
+auto search_exact(char * cmdline, char * progheader) -> void
 {
   opt_id = 1.0;
 
