@@ -107,7 +107,7 @@ class xstring
       }
   }
 
-  std::size_t get_length() const
+  auto get_length() const -> std::size_t
   {
     return length;
   }
