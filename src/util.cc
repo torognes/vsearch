@@ -70,7 +70,7 @@ static bool progress_show;
 
 void progress_init(const char * prompt, uint64_t size)
 {
-  progress_show = isatty(fileno(stderr)) && (!opt_quiet) && (!opt_no_progress);
+  progress_show = isatty(fileno(stderr)) && (! opt_quiet) && (! opt_no_progress);
   progress_prompt = prompt;
   progress_size = size;
   progress_pct = 0;
@@ -152,7 +152,7 @@ void  __attribute__((noreturn)) fatal(const char * format,
 char * xstrdup(const char *s)
 {
   size_t len = strlen(s);
-  char * p = (char*) xmalloc(len+1);
+  char * p = (char *) xmalloc(len + 1);
   return strcpy(p, s);
 }
 
@@ -191,12 +191,12 @@ int xsprintf(char * * ret, const char * format, ...)
 
 uint64_t hash_cityhash64(char * s, uint64_t n)
 {
-  return CityHash64((const char*)s, n);
+  return CityHash64((const char *) s, n);
 }
 
 uint128 hash_cityhash128(char * s, uint64_t n)
 {
-  return CityHash128((const char*)s, n);
+  return CityHash128((const char *) s, n);
 }
 
 int64_t getusec()
@@ -234,9 +234,9 @@ void reverse_complement(char * rc, char * seq, int64_t len)
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1. */
 
-  for(int64_t i=0; i<len; i++)
+  for (int64_t i = 0; i < len; i++)
     {
-      rc[i] = chrmap_complement[(int)(seq[len-1-i])];
+      rc[i] = chrmap_complement[(int) (seq[len - 1 - i])];
     }
   rc[len] = 0;
 }
@@ -291,16 +291,16 @@ void string_normalize(char * normalized, char * s, unsigned int len)
   /* convert string to upper case and replace U by T */
   char * p = s;
   char * q = normalized;
-  for(unsigned int i=0; i<len; i++)
+  for (unsigned int i = 0; i < len; i++)
     {
-      *q++ = chrmap_normalize[(int)(*p++)];
+      *q++ = chrmap_normalize[(int) (*p++)];
     }
   *q = 0;
 }
 
 void fprint_hex(FILE * fp, unsigned char * data, int len)
 {
-  for(int i=0; i<len; i++)
+  for (int i = 0; i < len; i++)
     {
       fprintf(fp, "%02x", data[i]);
     }
@@ -308,7 +308,7 @@ void fprint_hex(FILE * fp, unsigned char * data, int len)
 
 void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
 {
-  if (!md)
+  if (! md)
     {
       fatal("Error in computing SHA1 digest");
     }
@@ -320,7 +320,7 @@ void SHA1(const unsigned char * d, unsigned long n, unsigned char * md)
 
 void MD5(void * d, unsigned long n, unsigned char * md)
 {
-  if (!md)
+  if (! md)
     {
       fatal("Error in computing MD5 digest");
     }
@@ -338,7 +338,7 @@ void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
      The string array digest must be large enough (LEN_HEX_DIG_SHA1).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  char * normalized = (char*) xmalloc(seqlen+1);
+  char * normalized = (char *) xmalloc(seqlen+1);
   string_normalize(normalized, seq, seqlen);
 
   unsigned char digest[LEN_DIG_SHA1];
@@ -347,12 +347,12 @@ void get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen)
 
   xfree(normalized);
 
-  for(int i=0; i<LEN_DIG_SHA1; i++)
+  for (int i = 0; i < LEN_DIG_SHA1; i++)
     {
-      hex[2*i+0] = hexdigits[digest[i] >> 4];
-      hex[2*i+1] = hexdigits[digest[i] & 15];
+      hex[2 * i + 0] = hexdigits[digest[i] >> 4];
+      hex[2 * i + 1] = hexdigits[digest[i] & 15];
     }
-  hex[2*LEN_DIG_SHA1] = 0;
+  hex[2 * LEN_DIG_SHA1] = 0;
 }
 
 void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
@@ -361,7 +361,7 @@ void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
      The string array digest must be large enough (LEN_HEX_DIG_MD5).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  char * normalized = (char*) xmalloc(seqlen+1);
+  char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
 
   unsigned char digest[MD5_DIGEST_LENGTH];
@@ -370,12 +370,12 @@ void get_hex_seq_digest_md5(char * hex, char * seq, int seqlen)
 
   xfree(normalized);
 
-  for(int i=0; i<MD5_DIGEST_LENGTH; i++)
+  for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
     {
-      hex[2*i+0] = hexdigits[digest[i] >> 4];
-      hex[2*i+1] = hexdigits[digest[i] & 15];
+      hex[2 * i + 0] = hexdigits[digest[i] >> 4];
+      hex[2 * i + 1] = hexdigits[digest[i] & 15];
     }
-  hex[2*MD5_DIGEST_LENGTH] = 0;
+  hex[2 * MD5_DIGEST_LENGTH] = 0;
 }
 
 
