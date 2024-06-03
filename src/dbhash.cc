@@ -67,7 +67,7 @@ static unsigned int dbhash_shift;
 static uint64_t dbhash_mask;
 static struct dbhash_bucket_s * dbhash_table;
 
-int dbhash_seqcmp(char * a, char * b, uint64_t n)
+auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
 {
   char * p = a;
   char * q = b;
@@ -90,7 +90,7 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
   return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
 }
 
-void dbhash_open(uint64_t maxelements)
+auto dbhash_open(uint64_t maxelements) -> void
 {
   /* adjust size of hash table for 2/3 fill rate */
   /* and use a multiple of 2 */
@@ -112,7 +112,7 @@ void dbhash_open(uint64_t maxelements)
   bitmap_reset_all(dbhash_bitmap);
 }
 
-void dbhash_close()
+auto dbhash_close() -> void
 {
   bitmap_free(dbhash_bitmap);
   dbhash_bitmap = nullptr;
@@ -120,9 +120,9 @@ void dbhash_close()
   dbhash_table = nullptr;
 }
 
-int64_t dbhash_search_first(char * seq,
-                            uint64_t seqlen,
-                            struct dbhash_search_info_s * info)
+auto dbhash_search_first(char * seq,
+                         uint64_t seqlen,
+                         struct dbhash_search_info_s * info) -> int64_t
 {
 
   uint64_t hash = hash_cityhash64(seq, seqlen);
@@ -154,7 +154,7 @@ int64_t dbhash_search_first(char * seq,
     }
 }
 
-int64_t dbhash_search_next(struct dbhash_search_info_s * info)
+auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 {
   uint64_t hash = info->hash;
   char * seq = info->seq;
@@ -184,7 +184,7 @@ int64_t dbhash_search_next(struct dbhash_search_info_s * info)
     }
 }
 
-void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
+auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 {
   struct dbhash_search_info_s info;
 
@@ -200,7 +200,7 @@ void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
   bp->seqno = seqno;
 }
 
-void dbhash_add_one(uint64_t seqno)
+auto dbhash_add_one(uint64_t seqno) -> void
 {
   char * seq = db_getsequence(seqno);
   uint64_t seqlen = db_getsequencelen(seqno);
@@ -209,11 +209,11 @@ void dbhash_add_one(uint64_t seqno)
   dbhash_add(normalized, seqlen, seqno);
 }
 
-void dbhash_add_all()
+auto dbhash_add_all() -> void
 {
   progress_init("Hashing database sequences", db_getsequencecount());
   char * normalized = (char *) xmalloc(db_getlongestsequence() + 1);
-  for(uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
+  for (uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
     {
       char * seq = db_getsequence(seqno);
       uint64_t seqlen = db_getsequencelen(seqno);
