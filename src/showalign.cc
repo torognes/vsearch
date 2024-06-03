@@ -101,7 +101,7 @@ inline auto putop(char c, int64_t len) -> void
   const int64_t delta = q_strand != 0 ? -1 : +1;
 
   int64_t count = len;
-  while(count != 0)
+  while (count != 0)
     {
       if (line_pos == 0)
         {
@@ -229,7 +229,7 @@ auto align_show(std::FILE * f,
 
   line_pos = 0;
 
-  while(p < e)
+  while (p < e)
     {
       int64_t len;
       int n;
@@ -252,12 +252,12 @@ auto align_show(std::FILE * f,
 
 auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 {
-  char * row = (char*) xmalloc(alignlen + 1);
+  char * row = (char *) xmalloc(alignlen + 1);
   char * r = row;
   char * p = cigar;
   char * s = seq;
 
-  while(*p != 0)
+  while (*p != 0)
     {
       int64_t len;
       int n;
@@ -280,7 +280,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
       else
         {
           /* insert len gap symbols */
-          for(int64_t i = 0; i < len; i++)
+          for (int64_t i = 0; i < len; i++)
             {
               *r++ = '-';
             }
@@ -307,7 +307,7 @@ auto align_fprint_uncompressed_alignment(std::FILE * f, char * cigar) -> void
           int x = 0;
           if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
             {
-              for(int i = 0; i<n; i++)
+              for (int i = 0; i < n; i++)
                 {
                   fprintf(f, "%c", c);
                 }
