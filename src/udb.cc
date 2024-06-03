@@ -107,7 +107,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   /* call pread multiple times and update progress */
 
   uint64_t progress = offset;
-  for(uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
+  for (uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
     {
       uint64_t res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
@@ -116,7 +116,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
         }
 
       uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t bytesread = read(fd, ((char*)buf) + i, rem);
+      uint64_t bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
@@ -133,7 +133,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   /* call write multiple times and update progress */
 
   uint64_t progress = offset;
-  for(uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
+  for (uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
     {
       uint64_t res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
@@ -142,7 +142,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
         }
 
       uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t byteswritten = write(fd, ((char*)buf) + i, rem);
+      uint64_t byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
           fatal("Unable to write to UDB file");
@@ -179,7 +179,7 @@ auto udb_detect_isudb(const char * filename) -> bool
 
   int fd = 0;
   fd = xopen_read(filename);
-  if (!fd)
+  if (! fd)
     {
       fatal("Unable to open input file for reading (%s)", filename);
     }
@@ -227,7 +227,7 @@ auto udb_info() -> void
       fatal("Invalid UDB file");
     }
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "           Seqs  %u\n", buffer[13]);
       fprintf(stderr, "     SeqIx bits  %u\n", buffer[2]);
@@ -333,16 +333,16 @@ auto udb_read(const char * filename,
   /* word match counts */
 
   kmerhashsize = 1 << (2 * udb_wordlength);
-  kmercount = (unsigned int*) xmalloc(kmerhashsize * sizeof(unsigned int));
+  kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
   kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
-  kmerbitmap = (bitmap_t * *) xmalloc(kmerhashsize * sizeof(bitmap_t**));
+  kmerbitmap = (bitmap_t * *) xmalloc(kmerhashsize * sizeof(bitmap_t **));
 
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t**));
+  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t **));
 
   pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos);
 
   kmerindexsize = 0;
-  for(uint64_t i = 0; i < kmerhashsize; i++)
+  for (uint64_t i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = kmerindexsize;
       kmerindexsize += kmercount[i];
@@ -389,7 +389,7 @@ auto udb_read(const char * filename,
   header_index[seqcount] = udb_headerchars;
 
   unsigned last = 0;
-  for(unsigned int i = 0; i < seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
       unsigned int x = header_index[i];
       if ((x < last) || (x >= udb_headerchars))
@@ -411,7 +411,7 @@ auto udb_read(const char * filename,
   pos += largeread(fd_udb, datap, udb_headerchars, pos);
 
   uint64_t longestheader = 0;
-  for(unsigned int i = 0; i < seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
       if (seqindex[i].headerlen > longestheader)
         {
@@ -429,7 +429,7 @@ auto udb_read(const char * filename,
   unsigned int shortest = UINT_MAX;
   unsigned int longest = 0;
 
-  for(unsigned int i = 0; i < seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
       unsigned int x = sequence_lengths[i];
 
@@ -481,7 +481,7 @@ auto udb_read(const char * filename,
   /* move sequences and insert zero at end of each sequence */
 
   progress_init("Reorganizing data in memory", seqcount);
-  for(unsigned int i = seqcount-1; i > 0; i--)
+  for (unsigned int i = seqcount-1; i > 0; i--)
     {
       size_t old_p = seqindex[i].seq_p;
       size_t new_p = seqindex[i].seq_p + i;
@@ -500,13 +500,13 @@ auto udb_read(const char * filename,
     {
       progress_init("Creating bitmaps", kmerhashsize);
       unsigned int bitmap_mincount = seqcount / 8;
-      for(unsigned int i = 0; i < kmerhashsize; i++)
+      for (unsigned int i = 0; i < kmerhashsize; i++)
         {
           if (kmercount[i] >= bitmap_mincount)
             {
               kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
               bitmap_reset_all(kmerbitmap[i]);
-              for(unsigned j = 0; j < kmercount[i]; j++)
+              for (unsigned j = 0; j < kmercount[i]; j++)
                 {
                   bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
                 }
@@ -521,7 +521,7 @@ auto udb_read(const char * filename,
   if (parse_abundances)
     {
       progress_init("Parsing abundances", seqcount);
-      for(unsigned int i = 0; i < seqcount; i++)
+      for (unsigned int i = 0; i < seqcount; i++)
         {
           int64_t size = header_get_size(datap + seqindex[i].header_p,
                                          seqindex[i].headerlen);
@@ -563,7 +563,7 @@ auto udb_read(const char * filename,
 
   /* some stats */
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       if (seqcount > 0)
         {
@@ -608,13 +608,13 @@ auto udb_read(const char * filename,
 
 auto udb_fasta() -> void
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("FASTA output file must be specified with --output");
 
   /* open FASTA file for writing */
 
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (! fp_output)
     {
       fatal("Unable to open FASTA output file for writing");
     }
@@ -652,7 +652,7 @@ auto udb_stats() -> void
   auto * freqtable = (wordfreq_t *) xmalloc
     (sizeof(wordfreq_t) * kmerhashsize);
 
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       freqtable[i].kmer = i;
       freqtable[i].count = kmercount[i];
@@ -701,7 +701,7 @@ auto udb_stats() -> void
       fprintf(fp_log,
               "----------  ------------  ----------  ----------  ---\n");
 
-      for(unsigned int i = 0; i < kmerhashsize; i++)
+      for (unsigned int i = 0; i < kmerhashsize; i++)
         {
           fprintf(fp_log,
                   "%10u  ",
@@ -719,7 +719,7 @@ auto udb_stats() -> void
 
           fprintf(fp_log, " ");
 
-          for(unsigned j = 0; j < freqtable[kmerhashsize-1-i].count; j++)
+          for (unsigned j = 0; j < freqtable[kmerhashsize-1-i].count; j++)
             {
               fprintf(fp_log,
                       " %u", kmerindex[kmerhash[freqtable[kmerhashsize-1-i].kmer]+j]);
@@ -767,7 +767,7 @@ auto udb_stats() -> void
 
           int count = 0;
           int size = 0;
-          while((x < kmerhashsize) && (freqtable[x].count <= size_hi))
+          while ((x < kmerhashsize) && (freqtable[x].count <= size_hi))
             {
               count++;
               size += freqtable[x].count;
@@ -874,13 +874,13 @@ auto udb_stats() -> void
 
 auto udb_make() -> void
 {
-  if (!opt_output)
+  if (! opt_output)
     fatal("UDB output file must be specified with --output");
 
   int fd_output = 0;
 
   fd_output = xopen_write(opt_output);
-  if (!fd_output)
+  if (! fd_output)
     {
       fatal("Unable to open output file for writing");
     }
@@ -903,7 +903,7 @@ auto udb_make() -> void
   uint64_t ntcount = db_getnucleotidecount();
 
   uint64_t header_characters = 0;
-  for (unsigned int i=0; i<seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
       header_characters += db_getheaderlen(i) + 1;
     }
@@ -989,11 +989,11 @@ auto udb_make() -> void
   /* number of sequences, uint32 */
   buffer[2] = seqcount;
   /* total number of nucleotides, uint64 */
-  buffer[3] = (unsigned int)(ntcount & 0xffffffff);
-  buffer[4] = (unsigned int)(ntcount >> 32);
+  buffer[3] = (unsigned int) (ntcount & 0xffffffff);
+  buffer[4] = (unsigned int) (ntcount >> 32);
   /* total number of header characters, incl zero-terminator, uint64 */
-  buffer[5] = (unsigned int)(header_characters & 0xffffffff);
-  buffer[6] = (unsigned int)(header_characters >> 32);
+  buffer[5] = (unsigned int) (header_characters & 0xffffffff);
+  buffer[6] = (unsigned int) (header_characters >> 32);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
   pos += largewrite(fd_output, buffer, 4 * 8, pos);
