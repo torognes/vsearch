@@ -167,7 +167,7 @@ auto fastq_eestats() -> void
   int64_t len_min = LONG_MAX;
   int64_t len_max = 0;
 
-  while(fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(h, false, chrmap_upcase))
     {
       seq_count++;
 
@@ -224,7 +224,7 @@ auto fastq_eestats() -> void
 
       double ee = 0.0;
 
-      for(int64_t i = 0; i < len; i++)
+      for (int64_t i = 0; i < len; i++)
         {
           read_length_table[i]++;
 
@@ -263,7 +263,7 @@ auto fastq_eestats() -> void
           "Min_Pe\tLow_Pe\tMed_Pe\tMean_Pe\tHi_Pe\tMax_Pe\t"
           "Min_EE\tLow_EE\tMed_EE\tMean_EE\tHi_EE\tMax_EE\n");
 
-  for(int64_t i = 0; i < len_max; i++)
+  for (int64_t i = 0; i < len_max; i++)
     {
       int64_t reads = read_length_table[i];
       double pctrecs = 100.0 * reads / seq_count;
@@ -279,7 +279,7 @@ auto fastq_eestats() -> void
 
       double qsum = 0;
       double n = 0;
-      for(int q = 0; q <= max_quality; q++)
+      for (int q = 0; q <= max_quality; q++)
         {
           double x = qual_length_table[(max_quality + 1) * i + q];
 
@@ -325,7 +325,7 @@ auto fastq_eestats() -> void
 
       double pesum = 0;
       n = 0;
-      for(int q = max_quality; q >= 0; q--)
+      for (int q = max_quality; q >= 0; q--)
         {
           double x = qual_length_table[(max_quality + 1) * i + q];
 
@@ -374,7 +374,7 @@ auto fastq_eestats() -> void
       int64_t max_errors = resolution * (i + 1);
 
       n = 0;
-      for(int64_t e = 0; e <= max_errors; e++)
+      for (int64_t e = 0; e <= max_errors; e++)
         {
           int64_t x = ee_length_table[ee_offset + e];
 
@@ -466,7 +466,7 @@ auto fastq_eestats2() -> void
 
   uint64_t * count_table = nullptr;
 
-  while(fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(h, false, chrmap_upcase))
     {
       seq_count++;
 
@@ -497,7 +497,7 @@ auto fastq_eestats2() -> void
 
       double ee = 0.0;
 
-      for(uint64_t i = 0; i < len; i++)
+      for (uint64_t i = 0; i < len; i++)
         {
           /* quality score */
 
