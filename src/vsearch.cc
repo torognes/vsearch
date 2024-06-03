@@ -5566,7 +5566,7 @@ void cmd_subsample()
   subsample();
 }
 
-void cmd_none()
+auto cmd_none() -> void
 {
   if (! opt_quiet)
     {
