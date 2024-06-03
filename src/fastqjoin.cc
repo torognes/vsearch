@@ -66,7 +66,7 @@ auto join_fileopenw(char * filename) -> FILE *
 {
   FILE * fp = nullptr;
   fp = fopen_output(filename);
-  if (! fp)
+  if (not fp)
     {
       fatal("Unable to open file for writing (%s)", filename);
     }
@@ -85,12 +85,12 @@ auto fastq_join() -> void
 
   /* check input and options */
 
-  if (! opt_reverse)
+  if (not opt_reverse)
     {
       fatal("No reverse reads file specified with --reverse");
     }
 
-  if ((! opt_fastqout) && (! opt_fastaout))
+  if ((not opt_fastqout) and (not opt_fastaout))
     {
       fatal("No output files specified");
     }
@@ -160,7 +160,7 @@ auto fastq_join() -> void
 
   while (fastq_next(fastq_fwd, false, chrmap_no_change))
     {
-      if (! fastq_next(fastq_rev, false, chrmap_no_change))
+      if (not fastq_next(fastq_rev, false, chrmap_no_change))
         {
           fatal("More forward reads than reverse reads");
         }
