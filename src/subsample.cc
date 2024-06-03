@@ -215,7 +215,7 @@ auto write_subsampling_stats(std::vector<int> const & deck,
                              char * opt_log,
                              std::FILE * ptr_log_file) -> void {
   int const samples = std::count_if(deck.begin(),
-                                    deck.end(), [](int abundance) { return abundance != 0; });
+                                    deck.end(), [](int abundance) -> bool { return abundance != 0; });
   if (not opt_quiet) {
     std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
   }
