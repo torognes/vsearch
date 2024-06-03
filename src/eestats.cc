@@ -62,7 +62,7 @@
 #include <algorithm>  // std::max
 
 
-inline int fastq_get_qual_eestats(char q)
+inline auto fastq_get_qual_eestats(char q) -> int
 {
   int qual = q - opt_fastq_ascii;
 
@@ -107,17 +107,17 @@ inline int fastq_get_qual_eestats(char q)
   return qual;
 }
 
-double q2p(int q)
+auto q2p(int q) -> double
 {
   return exp10(- q / 10.0);
 }
 
-int64_t ee_start(int pos, int resolution)
+auto ee_start(int pos, int resolution) -> int64_t
 {
   return pos * (resolution * (pos + 1) + 2) / 2;
 }
 
-void fastq_eestats()
+auto fastq_eestats() -> void
 {
   if (not opt_output)
     fatal("Output file for fastq_eestats must be specified with --output");
@@ -436,7 +436,7 @@ void fastq_eestats()
   fastq_close(h);
 }
 
-void fastq_eestats2()
+auto fastq_eestats2() -> void
 {
   if (! opt_output)
     fatal("Output file for fastq_eestats2 must be specified with --output");
