@@ -63,6 +63,7 @@
 
 #include "vsearch.h"
 
+
 static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
@@ -91,7 +92,7 @@ auto read_labels_file(char * filename) -> void
 
   progress_init("Reading labels", file_size);
 
-  while(true)
+  while (true)
     {
       const int buffer_size = 1024;
       char buffer[buffer_size];
@@ -133,7 +134,7 @@ auto read_labels_file(char * filename) -> void
 
   if (labels_longest >= 1023)
     {
-      if (!opt_quiet)
+      if (! opt_quiet)
         {
           fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
@@ -147,7 +148,7 @@ auto read_labels_file(char * filename) -> void
 
 auto free_labels() -> void
 {
-  for(int i=0; i < labels_count; i++)
+  for(int i = 0; i < labels_count; i++)
     {
       free(labels_data[i]);
     }
@@ -245,9 +246,9 @@ auto test_label_match(fastx_handle h) -> bool
                 {
                   /* check of full word */
                   if (((hit == header) ||
-                       (!isalnum(*(hit - 1)))) &&
+                       (! isalnum(*(hit - 1)))) &&
                       ((hit + wlen == header + hlen) ||
-                       (!isalnum(*(hit + wlen)))))
+                       (! isalnum(*(hit + wlen)))))
                     {
                       return true;
                     }
@@ -292,9 +293,9 @@ auto test_label_match(fastx_handle h) -> bool
                     {
                       /* check of full word */
                       if (((hit == header) ||
-                           (!isalnum(*(hit - 1)))) &&
+                           (! isalnum(*(hit - 1)))) &&
                           ((hit + wlen == header + hlen) ||
-                           (!isalnum(*(hit + wlen)))))
+                           (! isalnum(*(hit + wlen)))))
                         {
                           return true;
                         }
@@ -313,8 +314,8 @@ auto test_label_match(fastx_handle h) -> bool
 
 auto getseq(char * filename) -> void
 {
-  if ((!opt_fastqout) && (!opt_fastaout) &&
-      (!opt_notmatched) && (!opt_notmatchedfq))
+  if ((! opt_fastqout) && (! opt_fastaout) &&
+      (! opt_notmatched) && (! opt_notmatchedfq))
     {
       fatal("No output files specified");
     }
@@ -383,7 +384,7 @@ auto getseq(char * filename) -> void
 
   h1 = fastx_open(filename);
 
-  if (!h1)
+  if (! h1)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
@@ -403,7 +404,7 @@ auto getseq(char * filename) -> void
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (!fp_fastaout)
+      if (! fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -412,7 +413,7 @@ auto getseq(char * filename) -> void
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (!fp_fastqout)
+      if (! fp_fastqout)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -421,7 +422,7 @@ auto getseq(char * filename) -> void
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (!fp_notmatched)
+      if (! fp_notmatched)
         {
           fatal("Unable to open FASTA output file (notmatched) for writing");
         }
@@ -430,7 +431,7 @@ auto getseq(char * filename) -> void
   if (opt_notmatchedfq)
     {
       fp_notmatchedfq = fopen_output(opt_notmatchedfq);
-      if (!fp_notmatchedfq)
+      if (! fp_notmatchedfq)
         {
           fatal("Unable to open FASTQ output file (notmatchedfq) for writing");
         }
