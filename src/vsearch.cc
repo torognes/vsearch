@@ -338,8 +338,8 @@ static time_t time_finish;
 
 FILE * fp_log = nullptr;
 
-char * STDIN_NAME = (char*) "/dev/stdin";
-char * STDOUT_NAME = (char*) "/dev/stdout";
+char * STDIN_NAME = (char *) "/dev/stdin";
+char * STDOUT_NAME = (char *) "/dev/stdout";
 
 #ifdef __x86_64__
 #define cpuid(f1, f2, a, b, c, d)                                       \
