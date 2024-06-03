@@ -121,7 +121,7 @@ LinearMemoryAligner::~LinearMemoryAligner()
     }
 }
 
-int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch)
+auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
   auto * newscorematrix = (int64_t*) xmalloc(16 * 16 * sizeof(int64_t));
 
@@ -148,7 +148,7 @@ int64_t * LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatc
   return newscorematrix;
 }
 
-void LinearMemoryAligner::alloc_vectors(size_t x)
+auto LinearMemoryAligner::alloc_vectors(size_t x) -> void
 {
   if (vector_alloc < x)
     {
@@ -178,7 +178,7 @@ void LinearMemoryAligner::alloc_vectors(size_t x)
     }
 }
 
-void LinearMemoryAligner::cigar_reset()
+auto LinearMemoryAligner::cigar_reset() -> void
 {
   if (cigar_alloc < 1)
     {
@@ -191,7 +191,7 @@ void LinearMemoryAligner::cigar_reset()
   op_run = 0;
 }
 
-void LinearMemoryAligner::cigar_flush()
+auto LinearMemoryAligner::cigar_flush() -> void
 {
   if (op_run > 0)
     {
@@ -231,7 +231,7 @@ void LinearMemoryAligner::cigar_flush()
     }
 }
 
-void LinearMemoryAligner::cigar_add(char _op, int64_t run)
+auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 {
   if (op == _op)
     {
@@ -245,7 +245,7 @@ void LinearMemoryAligner::cigar_add(char _op, int64_t run)
     }
 }
 
-void LinearMemoryAligner::show_matrix()
+auto LinearMemoryAligner::show_matrix() -> void
 {
   for(int i = 0; i < 16; i++)
     {
@@ -258,7 +258,7 @@ void LinearMemoryAligner::show_matrix()
     }
 }
 
-void LinearMemoryAligner::diff(int64_t a_start,
+auto LinearMemoryAligner::diff(int64_t a_start,
                                int64_t b_start,
                                int64_t a_len,
                                int64_t b_len,
@@ -267,7 +267,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
                                bool a_left,      /* includes left end of a  */
                                bool a_right,     /* includes right end of a */
                                bool b_left,      /* includes left end of b  */
-                               bool b_right)     /* includes right end of b */
+                               bool b_right) -> void  /* includes right end of b */
 {
   if (b_len == 0)
     {
@@ -637,7 +637,7 @@ void LinearMemoryAligner::diff(int64_t a_start,
     }
 }
 
-void LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
+auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
                                          int64_t _gap_open_query_left,
                                          int64_t _gap_open_target_left,
                                          int64_t _gap_open_query_interior,
@@ -649,7 +649,7 @@ void LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
                                          int64_t _gap_extension_query_interior,
                                          int64_t _gap_extension_target_interior,
                                          int64_t _gap_extension_query_right,
-                                         int64_t _gap_extension_target_right)
+                                         int64_t _gap_extension_target_right) -> void
 {
   scorematrix = _scorematrix;
 
