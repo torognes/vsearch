@@ -106,7 +106,7 @@ struct otutable_s
 
 static otutable_s * otutable;
 
-void otutable_init()
+auto otutable_init() -> void
 {
   otutable = new otutable_s;
 
@@ -135,7 +135,7 @@ void otutable_init()
 #endif
 }
 
-void otutable_done()
+auto otutable_done() -> void
 {
 #ifdef HAVE_REGEX_H
   regfree(&otutable->regex_sample);
@@ -150,7 +150,7 @@ void otutable_done()
   delete otutable;
 }
 
-void otutable_add(char * query_header, char * target_header, int64_t abundance)
+auto otutable_add(char * query_header, char * target_header, int64_t abundance) -> void
 {
   /* read sample annotation in query */
 
@@ -232,7 +232,7 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
       char * start_tax = target_header;
 
       regmatch_t pmatch_tax[4];
-      if (!regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
+      if (! regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
         {
           /* match: use the matching tax name */
           int len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
@@ -276,14 +276,13 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
     xfree(sample_name);
 }
 
-void otutable_print_otutabout(FILE * fp)
+auto otutable_print_otutabout(FILE * fp) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (classic)", otutable->otu_set.size());
 
   fprintf(fp, "#OTU ID");
-  for (const
-         auto & it_sample : otutable->sample_set)
+  for (auto const & it_sample : otutable->sample_set)
     {
       fprintf(fp, "\t%s", it_sample.c_str());
     }
@@ -330,7 +329,7 @@ void otutable_print_otutabout(FILE * fp)
   progress_done();
 }
 
-void otutable_print_mothur_shared_out(FILE * fp)
+auto otutable_print_mothur_shared_out(FILE * fp) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (mothur)", otutable->sample_set.size());
@@ -375,7 +374,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
   progress_done();
 }
 
-void otutable_print_biomout(FILE * fp)
+auto otutable_print_biomout(FILE * fp) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size());
