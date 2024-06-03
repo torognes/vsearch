@@ -226,7 +226,7 @@ static pthread_mutex_t mutex_chunks;
 static pthread_cond_t cond_chunks;
 
 
-FILE * fileopenw(char * filename)
+auto fileopenw(char * filename) -> FILE *
 {
   FILE * fp = nullptr;
   fp = fopen_output(filename);
@@ -237,7 +237,7 @@ FILE * fileopenw(char * filename)
   return fp;
 }
 
-inline int get_qual(char q)
+inline auto get_qual(char q) -> int
 {
   int qual = q - opt_fastq_ascii;
 
@@ -304,7 +304,7 @@ inline auto q_to_p(int quality_symbol) -> double
 }
 
 
-void precompute_qual()
+auto precompute_qual() -> void
 {
   /* Precompute tables of scores etc */
 
@@ -356,9 +356,9 @@ void precompute_qual()
     }
 }
 
-void merge_sym(char * sym,       char * qual,
+auto merge_sym(char * sym,       char * qual,
                char fwd_sym,     char rev_sym,
-               char fwd_qual,    char rev_qual)
+               char fwd_qual,    char rev_qual) -> void
 {
   if (rev_sym == 'N')
     {
@@ -392,7 +392,7 @@ void merge_sym(char * sym,       char * qual,
     }
 }
 
-void keep(merge_data_t * ip)
+auto keep(merge_data_t * ip) -> void
 {
   merged++;
 
@@ -442,7 +442,7 @@ void keep(merge_data_t * ip)
     }
 }
 
-void discard(merge_data_t * ip)
+auto discard(merge_data_t * ip) -> void
 {
   switch(ip->reason)
     {
@@ -569,7 +569,7 @@ void discard(merge_data_t * ip)
     }
 }
 
-void merge(merge_data_t * ip)
+auto merge(merge_data_t * ip) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
@@ -692,8 +692,8 @@ void merge(merge_data_t * ip)
     }
 }
 
-int64_t optimize(merge_data_t * ip,
-                 kh_handle_s * kmerhash)
+auto optimize(merge_data_t * ip,
+                 kh_handle_s * kmerhash) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
@@ -855,8 +855,8 @@ int64_t optimize(merge_data_t * ip,
   return best_i;
 }
 
-void process(merge_data_t * ip,
-             struct kh_handle_s * kmerhash)
+auto process(merge_data_t * ip,
+             struct kh_handle_s * kmerhash) -> void
 {
   ip->merged = false;
 
@@ -977,7 +977,7 @@ void process(merge_data_t * ip,
   ip->state = processed;
 }
 
-bool read_pair(merge_data_t * ip)
+auto read_pair(merge_data_t * ip) -> bool
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
@@ -1048,7 +1048,7 @@ bool read_pair(merge_data_t * ip)
     }
 }
 
-void keep_or_discard(merge_data_t * ip)
+auto keep_or_discard(merge_data_t * ip) -> void
 {
   if (ip->merged)
     {
@@ -1060,7 +1060,7 @@ void keep_or_discard(merge_data_t * ip)
     }
 }
 
-void init_merge_data(merge_data_t * ip)
+auto init_merge_data(merge_data_t * ip) -> void
 {
   ip->fwd_header = nullptr;
   ip->rev_header = nullptr;
@@ -1082,7 +1082,7 @@ void init_merge_data(merge_data_t * ip)
   ip->merged_length = 0;
 }
 
-void free_merge_data(merge_data_t * ip)
+auto free_merge_data(merge_data_t * ip) -> void
 {
   if (ip->fwd_header)
     {
@@ -1119,7 +1119,7 @@ void free_merge_data(merge_data_t * ip)
     }
 }
 
-inline void chunk_perform_read()
+inline auto chunk_perform_read() -> void
 {
   while((!finished_reading) && (chunks[chunk_read_next].state == empty))
     {
@@ -1151,7 +1151,7 @@ inline void chunk_perform_read()
     }
 }
 
-inline void chunk_perform_write()
+inline auto chunk_perform_write() -> void
 {
   while (chunks[chunk_write_next].state == processed)
     {
@@ -1172,7 +1172,7 @@ inline void chunk_perform_write()
     }
 }
 
-inline void chunk_perform_process(struct kh_handle_s * kmerhash)
+inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
 {
   int chunk_current = chunk_process_next;
   if (chunks[chunk_current].state == filled)
@@ -1191,7 +1191,7 @@ inline void chunk_perform_process(struct kh_handle_s * kmerhash)
     }
 }
 
-void * pair_worker(void * vp)
+auto pair_worker(void * vp) -> void *
 {
   /* new */
 
@@ -1318,7 +1318,7 @@ void * pair_worker(void * vp)
 }
 
 
-void pair_all()
+auto pair_all() -> void
 {
   /* prepare chunks */
 
@@ -1385,7 +1385,7 @@ void pair_all()
   chunks = nullptr;
 }
 
-void print_stats(FILE * fp)
+auto print_stats(FILE * fp) -> void
 {
   fprintf(fp,
           "%10" PRIu64 "  Pairs\n",
@@ -1583,7 +1583,7 @@ void print_stats(FILE * fp)
     }
 }
 
-void fastq_mergepairs()
+auto fastq_mergepairs() -> void
 {
   /* fatal error if specified overlap is too small */
 
