@@ -98,13 +98,13 @@ static FILE * fp_tsegout = nullptr;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
-void search_output_results(int hit_count,
+auto search_output_results(int hit_count,
                            struct hit * hits,
                            char * query_head,
                            int qseqlen,
                            char * qsequence,
                            char * qsequence_rc,
-                           int qsize)
+                           int qsize) -> void
 {
   xpthread_mutex_lock(&mutex_output);
 
@@ -302,7 +302,7 @@ void search_output_results(int hit_count,
   xpthread_mutex_unlock(&mutex_output);
 }
 
-int search_query(int64_t t)
+auto search_query(int64_t t) -> int
 {
   for (int s = 0; s < opt_strand; s++)
     {
@@ -352,7 +352,7 @@ int search_query(int64_t t)
   return hit_count;
 }
 
-void search_thread_run(int64_t t)
+auto search_thread_run(int64_t t) -> void
 {
   while (true)
     {
@@ -443,7 +443,7 @@ void search_thread_run(int64_t t)
     }
 }
 
-void search_thread_init(struct searchinfo_s * si)
+auto search_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
@@ -477,7 +477,7 @@ void search_thread_init(struct searchinfo_s * si)
                         opt_gap_extension_target_right);
 }
 
-void search_thread_exit(struct searchinfo_s * si)
+auto search_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
   search16_exit(si->s);
@@ -500,14 +500,14 @@ void search_thread_exit(struct searchinfo_s * si)
 
 
 
-void * search_thread_worker(void * vp)
+auto search_thread_worker(void * vp) -> void *
 {
   auto t = (int64_t) vp;
   search_thread_run(t);
   return nullptr;
 }
 
-void search_thread_worker_run()
+auto search_thread_worker_run() -> void
 {
   /* initialize threads, start them, join them and return */
 
@@ -542,7 +542,7 @@ void search_thread_worker_run()
 
 
 
-void search_prep(char * cmdline, char * progheader)
+auto search_prep(char * cmdline, char * progheader) -> void
 {
   /* open output files */
 
@@ -724,7 +724,7 @@ void search_prep(char * cmdline, char * progheader)
     }
 }
 
-void search_done()
+auto search_done() -> void
 {
   /* clean up, global */
 
@@ -778,7 +778,7 @@ void search_done()
   show_rusage();
 }
 
-void usearch_global(char * cmdline, char * progheader)
+auto usearch_global(char * cmdline, char * progheader) -> void
 {
   search_prep(cmdline, progheader);
 
