@@ -96,7 +96,7 @@ static const char * d_name;
 static int64_t q_len;
 static int64_t d_len;
 
-inline void putop(char c, int64_t len)
+inline auto putop(char c, int64_t len) -> void
 {
   const int64_t delta = q_strand != 0 ? -1 : +1;
 
@@ -186,7 +186,7 @@ inline void putop(char c, int64_t len)
     }
 }
 
-void align_show(std::FILE * f,
+auto align_show(std::FILE * f,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
@@ -200,7 +200,7 @@ void align_show(std::FILE * f,
                 int numwidth,
                 int namewidth,
                 int alignwidth,
-                int strand)
+                int strand) -> void
 {
   out = f;
 
@@ -250,7 +250,7 @@ void align_show(std::FILE * f,
   xfree(d_line);
 }
 
-char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
+auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 {
   char * row = (char*) xmalloc(alignlen + 1);
   char * r = row;
@@ -291,7 +291,7 @@ char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
   return row;
 }
 
-void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar)
+auto align_fprint_uncompressed_alignment(std::FILE * f, char * cigar) -> void
 {
   char * p = cigar;
   while (*p != 0)
