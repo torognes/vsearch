@@ -162,7 +162,7 @@ auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
   std::vector<int> max_insertions(centroid_len + 1);
-  for(auto i = 1; i < target_count; ++i)
+  for (auto i = 1; i < target_count; ++i)
     {
       char * cigar_start = target_list_v[i].cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
@@ -202,7 +202,7 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 auto find_longest_target_on_reverse_strand(int const target_count,
                                            std::vector<struct msa_target_s> const & target_list_v) -> int64_t {
   int64_t longest_reversed = 0;
-  for(auto i = 0; i < target_count; ++i)
+  for (auto i = 0; i < target_count; ++i)
     {
       auto const & target = target_list_v[i];
       if (target.strand == 0) { continue; }
@@ -273,9 +273,9 @@ auto process_and_print_centroid(char *rc_buffer,
   prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
   auto position_in_alignment = 0;
 
-  for(auto i = 0; i < centroid_len; ++i)
+  for (auto i = 0; i < centroid_len; ++i)
     {
-      for(auto j = 0; j < max_insertions[i]; ++j)
+      for (auto j = 0; j < max_insertions[i]; ++j)
         {
           update_profile('-', position_in_alignment, target_abundance, profile);
           update_msa('-', position_in_alignment, aln_v);
@@ -285,7 +285,7 @@ auto process_and_print_centroid(char *rc_buffer,
     }
 
   // insert
-  for(auto j = 0; j < max_insertions[centroid_len]; ++j)
+  for (auto j = 0; j < max_insertions[centroid_len]; ++j)
     {
       update_profile('-', position_in_alignment, target_abundance, profile);
       update_msa('-', position_in_alignment, aln_v);
@@ -331,7 +331,7 @@ auto compute_and_print_msa(int const target_count,
                              profile, aln_v, fp_msaout);
 
   // --------------------------------- deal with other sequences in the cluster
-  for(auto i = 1; i < target_count; ++i)
+  for (auto i = 1; i < target_count; ++i)
     {
       auto const & target = target_list_v[i];
       auto const target_seqno = target.seqno;
@@ -360,13 +360,13 @@ auto compute_and_print_msa(int const target_count,
 
           switch (operation) {
           case 'D':
-            for(auto j = 0; j < runlength; ++j)
+            for (auto j = 0; j < runlength; ++j)
               {
                 update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
                 update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                 ++tpos;
               }
-            for(auto j = runlength; j < max_insertions[qpos]; ++j)
+            for (auto j = runlength; j < max_insertions[qpos]; ++j)
               {
                 update_profile('-', position_in_alignment, target_abundance, profile);
                 update_msa('-', position_in_alignment, aln_v);
@@ -374,7 +374,7 @@ auto compute_and_print_msa(int const target_count,
             is_inserted = true;
             break;
           case 'M':
-            for(auto j = 0; j < runlength; ++j)
+            for (auto j = 0; j < runlength; ++j)
               {
                 insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                                      position_in_alignment, target_abundance,
@@ -387,7 +387,7 @@ auto compute_and_print_msa(int const target_count,
               }
             break;
           case 'I':
-            for(auto j = 0; j < runlength; ++j)
+            for (auto j = 0; j < runlength; ++j)
               {
                 insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                                      position_in_alignment, target_abundance,
@@ -429,21 +429,21 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   /* Censor part of the consensus sequence outside the centroid sequence */
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
-  for(auto i = 0; i < left_censored; ++i)
+  for (auto i = 0; i < left_censored; ++i)
     {
       aln_v[i] = '+';
     }
-  for(auto i = alignment_length - right_censored; i < alignment_length; ++i)
+  for (auto i = alignment_length - right_censored; i < alignment_length; ++i)
     {
       aln_v[i] = '+';
     }
 
-  for(auto i = left_censored; i < alignment_length - right_censored; ++i)
+  for (auto i = left_censored; i < alignment_length - right_censored; ++i)
     {
       /* find most common symbol of A, C, G and T */
       char best_sym = 0;
       prof_type best_count = 0;
-      for(auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
+      for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
           auto const count = profile[PROFSIZE * i + nucleotide];
           if (count > best_count)
