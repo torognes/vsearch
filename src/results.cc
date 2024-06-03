@@ -60,11 +60,12 @@
 
 #include "vsearch.h"
 
-void results_show_fastapairs_one(FILE * fp,
+
+auto results_show_fastapairs_one(FILE * fp,
                                  struct hit * hp,
                                  char * query_head,
                                  char * qsequence,
-                                 char * rc)
+                                 char * rc) -> void
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
 
@@ -113,12 +114,12 @@ void results_show_fastapairs_one(FILE * fp,
 }
 
 
-void results_show_qsegout_one(FILE * fp,
+auto results_show_qsegout_one(FILE * fp,
                               struct hit * hp,
                               char * query_head,
                               char * qsequence,
                               int64_t qseqlen,
-                              char * rc)
+                              char * rc) -> void
 {
   if (hp)
     {
@@ -142,8 +143,8 @@ void results_show_qsegout_one(FILE * fp,
     }
 }
 
-void results_show_tsegout_one(FILE * fp,
-                              struct hit * hp)
+auto results_show_tsegout_one(FILE * fp,
+                              struct hit * hp) -> void
 {
   if (hp)
     {
@@ -168,10 +169,10 @@ void results_show_tsegout_one(FILE * fp,
 }
 
 
-void results_show_blast6out_one(FILE * fp,
+auto results_show_blast6out_one(FILE * fp,
                                 struct hit * hp,
                                 char * query_head,
-                                int64_t qseqlen)
+                                int64_t qseqlen) -> void
 {
 
   /*
@@ -221,11 +222,11 @@ void results_show_blast6out_one(FILE * fp,
     }
 }
 
-void results_show_uc_one(FILE * fp,
+auto results_show_uc_one(FILE * fp,
                          struct hit * hp,
                          char * query_head,
                          int64_t qseqlen,
-                         int clusterno)
+                         int clusterno) -> void
 {
   /*
     http://www.drive5.com/usearch/manual/ucout.html
@@ -289,10 +290,10 @@ void results_show_uc_one(FILE * fp,
     }
 }
 
-void results_show_userout_one(FILE * fp, struct hit * hp,
+auto results_show_userout_one(FILE * fp, struct hit * hp,
                               char * query_head,
                               char * qsequence, int64_t qseqlen,
-                              char * rc)
+                              char * rc) -> void
 {
 
   /*
@@ -496,10 +497,10 @@ void results_show_userout_one(FILE * fp, struct hit * hp,
   fprintf(fp, "\n");
 }
 
-void results_show_lcaout(FILE * fp,
+auto results_show_lcaout(FILE * fp,
                          struct hit * hits,
                          int hitcount,
-                         char * query_head)
+                         char * query_head) -> void
 {
   /* Output last common ancestor (LCA) of the hits,
      in a similar way to the Sintax command */
@@ -637,12 +638,12 @@ void results_show_lcaout(FILE * fp,
   fprintf(fp, "\n");
 }
 
-void results_show_alnout(FILE * fp,
+auto results_show_alnout(FILE * fp,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         int64_t qseqlen)
+                         int64_t qseqlen) -> void
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
@@ -741,16 +742,16 @@ void results_show_alnout(FILE * fp,
     }
 }
 
-bool inline nucleotide_equal(char a, char b)
+auto inline nucleotide_equal(char a, char b) -> bool
 {
   return chrmap_4bit[(int)a] == chrmap_4bit[(int)b];
 }
 
-void build_sam_strings(char * alignment,
+auto build_sam_strings(char * alignment,
                        char * queryseq,
                        char * targetseq,
                        xstring * cigar,
-                       xstring * md)
+                       xstring * md) -> void
 {
   /*
     convert cigar to sam format:
@@ -845,9 +846,9 @@ void build_sam_strings(char * alignment,
     }
 }
 
-void results_show_samheader(FILE * fp,
+auto results_show_samheader(FILE * fp,
                             char * cmdline,
-                            char * dbname)
+                            char * dbname) -> void
 {
   if (opt_samout && opt_samheader)
     {
@@ -875,12 +876,12 @@ void results_show_samheader(FILE * fp,
     }
 }
 
-void results_show_samout(FILE * fp,
+auto results_show_samout(FILE * fp,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         char * rc)
+                         char * rc) -> void
 {
   /*
     SAM format output
