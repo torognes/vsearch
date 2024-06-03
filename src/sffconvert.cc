@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 uint32_t sff_magic = 0x2e736666;
 
 struct sff_header_s
@@ -86,11 +87,12 @@ struct sff_read_header_s
   uint16_t clip_adapter_right;
 } read_header;
 
+
 auto fskip(FILE * fp, uint64_t length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
-#define BLOCKSIZE 4096
+  static constexpr auto BLOCKSIZE = 4096U;
   char buffer[BLOCKSIZE];
 
   uint64_t skipped = 0;
@@ -110,6 +112,7 @@ auto fskip(FILE * fp, uint64_t length) -> uint64_t
   return skipped;
 }
 
+
 auto sff_convert() -> void
 {
   if (! opt_fastqout)
@@ -118,13 +121,13 @@ auto sff_convert() -> void
     }
 
   FILE * fp_fastqout = fopen_output(opt_fastqout);
-  if (!fp_fastqout)
+  if (! fp_fastqout)
     {
       fatal("Unable to open FASTQ output file for writing.");
     }
 
   FILE * fp_sff = fopen_input(opt_sff_convert);
-  if (!fp_sff)
+  if (! fp_sff)
     {
       fatal("Unable to open SFF input file for reading.");
     }
@@ -231,7 +234,7 @@ auto sff_convert() -> void
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
 
-  for(uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
+  for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
     {
       /* check if the index block is here */
 
@@ -340,7 +343,7 @@ auto sff_convert() -> void
       filepos += read_header.number_of_bases;
 
       /* convert quality scores to ascii characters */
-      for(uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
+      for (uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
         {
           int q = qual[base_no];
           if (q < opt_fastq_qminout)
