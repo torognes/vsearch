@@ -63,7 +63,7 @@
 #include <cstddef> // size_t
 
 
-unsigned int rc_kmer(unsigned int kmer)
+auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
 
@@ -82,7 +82,7 @@ unsigned int rc_kmer(unsigned int kmer)
 }
 
 
-void orient()
+auto orient() -> void
 {
   fastx_handle query_h = nullptr;
 
@@ -450,7 +450,7 @@ void orient()
 
   fasta_close(query_h);
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
