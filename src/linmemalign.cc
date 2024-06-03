@@ -734,7 +734,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
         {
         case 'M':
           nwalignmentlength += run;
-          for(int64_t k = 0; k < run; k++)
+          for (int64_t k = 0; k < run; k++)
             {
               nwscore += subst_score(a_pos, b_pos);
 
