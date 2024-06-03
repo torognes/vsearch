@@ -97,7 +97,7 @@ static FILE * fp_tsegout = nullptr;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
-void add_hit(struct searchinfo_s * si, uint64_t seqno)
+auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
 {
   if (search_acceptable_unaligned(si, seqno))
     {
@@ -153,7 +153,7 @@ void add_hit(struct searchinfo_s * si, uint64_t seqno)
     }
 }
 
-void search_exact_onequery(struct searchinfo_s * si)
+auto search_exact_onequery(struct searchinfo_s * si) -> void
 {
   dbhash_search_info_s info;
 
@@ -173,13 +173,13 @@ void search_exact_onequery(struct searchinfo_s * si)
   xfree(normalized);
 }
 
-void search_exact_output_results(int hit_count,
+auto search_exact_output_results(int hit_count,
                                  struct hit * hits,
                                  char * query_head,
                                  int qseqlen,
                                  char * qsequence,
                                  char * qsequence_rc,
-                                 int qsize)
+                                 int qsize) -> void
 {
   xpthread_mutex_lock(&mutex_output);
 
@@ -369,7 +369,7 @@ void search_exact_output_results(int hit_count,
   xpthread_mutex_unlock(&mutex_output);
 }
 
-int search_exact_query(int64_t t)
+auto search_exact_query(int64_t t) -> int
 {
   for (int s = 0; s < opt_strand; s++)
     {
@@ -419,7 +419,7 @@ int search_exact_query(int64_t t)
   return hit_count;
 }
 
-void search_exact_thread_run(int64_t t)
+auto search_exact_thread_run(int64_t t) -> void
 {
   while (true)
     {
@@ -508,7 +508,7 @@ void search_exact_thread_run(int64_t t)
     }
 }
 
-void search_exact_thread_init(struct searchinfo_s * si)
+auto search_exact_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = nullptr;
@@ -525,7 +525,7 @@ void search_exact_thread_init(struct searchinfo_s * si)
   si->s = nullptr;
 }
 
-void search_exact_thread_exit(struct searchinfo_s * si)
+auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
   xfree(si->hits);
@@ -539,14 +539,14 @@ void search_exact_thread_exit(struct searchinfo_s * si)
     }
 }
 
-void * search_exact_thread_worker(void * vp)
+auto search_exact_thread_worker(void * vp) -> void *
 {
   auto t = (int64_t) vp;
   search_exact_thread_run(t);
   return nullptr;
 }
 
-void search_exact_thread_worker_run()
+auto search_exact_thread_worker_run() -> void
 {
   /* initialize threads, start them, join them and return */
 
