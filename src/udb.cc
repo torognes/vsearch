@@ -628,7 +628,7 @@ auto udb_fasta() -> void
 
   unsigned int seqcount = db_getsequencecount();
   progress_init("Writing FASTA file", seqcount);
-  for(std::size_t i = 0; i < seqcount; i++)
+  for (std::size_t i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(fp_output, i, i+1);
       progress_update(i+1);
@@ -914,7 +914,7 @@ auto udb_make() -> void
 
   /* count word matches */
   uint64_t wordmatches = 0;
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       wordmatches += kmercount[i];
     }
@@ -957,7 +957,7 @@ auto udb_make() -> void
   pos += largewrite(fd_output, buffer, 1 * 4, pos);
 
   /* lists of sequence no's with matches for all words */
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       if (kmerbitmap[i])
         {
