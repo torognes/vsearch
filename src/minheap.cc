@@ -180,7 +180,7 @@ auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
 
   /* start with root */
   int parent = 0;
-  int nth_child = 2 * parent + 1;
+  int nth_child = (2 * parent) + 1;
 
   /* while at least one child */
   while (nth_child < a_minheap->count)
