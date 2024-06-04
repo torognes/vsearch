@@ -322,8 +322,8 @@ auto search_query(int64_t t) -> int
       search_onequery(si, opt_qmask);
     }
 
-  struct hit * hits;
-  int hit_count;
+  struct hit * hits = nullptr;
+  int hit_count = 0;
 
   search_joinhits(si_plus + t,
                   opt_strand > 1 ? si_minus + t : nullptr,
