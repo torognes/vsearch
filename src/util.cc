@@ -208,7 +208,7 @@ auto getusec() -> int64_t
     {
       return 0;
     }
-  return tv.tv_sec * 1000000 + tv.tv_usec;
+  return (tv.tv_sec * 1000000) + tv.tv_usec;
 }
 
 auto show_rusage() -> void
@@ -260,7 +260,7 @@ auto random_int(int64_t n) -> int64_t
   */
 
   int64_t random_max = RAND_MAX;
-  int64_t limit = random_max - (random_max + 1) % n;
+  int64_t limit = random_max - ((random_max + 1) % n);
   int64_t r = arch_random();
   while (r > limit)
     {
@@ -277,7 +277,7 @@ auto random_ulong(uint64_t n) -> uint64_t
   */
 
   uint64_t random_max = ULONG_MAX;
-  uint64_t limit = random_max - (random_max - n + 1) % n;
+  uint64_t limit = random_max - ((random_max - n + 1) % n);
   uint64_t r = ((arch_random() << 48) ^ (arch_random() << 32) ^
                 (arch_random() << 16) ^ (arch_random()));
   while (r > limit)
@@ -351,8 +351,8 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 
   for (int i = 0; i < LEN_DIG_SHA1; i++)
     {
-      hex[2 * i + 0] = hexdigits[digest[i] >> 4];
-      hex[2 * i + 1] = hexdigits[digest[i] & 15];
+      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4];
+      hex[(2 * i) + 1] = hexdigits[digest[i] & 15];
     }
   hex[2 * LEN_DIG_SHA1] = 0;
 }
@@ -374,8 +374,8 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 
   for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
     {
-      hex[2 * i + 0] = hexdigits[digest[i] >> 4];
-      hex[2 * i + 1] = hexdigits[digest[i] & 15];
+      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4];
+      hex[(2 * i) + 1] = hexdigits[digest[i] & 15];
     }
   hex[2 * MD5_DIGEST_LENGTH] = 0;
 }
