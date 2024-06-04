@@ -60,7 +60,8 @@
 
 #include "vsearch.h"
 #include <cassert>
-#include <cstddef> // size_t
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
 
 
 auto rc_kmer(unsigned int kmer) -> unsigned int
