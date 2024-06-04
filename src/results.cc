@@ -954,7 +954,7 @@ auto results_show_samout(FILE * fp,
                   "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
                   "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
                   query_head,
-                  0x10 * hp->strand | (t>0 ? 0x100 : 0),
+                  (0x10 * hp->strand) | (t>0 ? 0x100 : 0),
                   db_getheader(hp->target),
                   (uint64_t) 1,
                   255,
