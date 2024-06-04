@@ -5980,7 +5980,7 @@ auto main(int argc, char** argv) -> int
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
               floor(time_diff / 60.0),
-              floor(time_diff - 60.0 * floor(time_diff / 60.0)));
+              floor(time_diff - (60.0 * floor(time_diff / 60.0))));
       double maxmem = arch_get_memused() / 1048576.0;
       if (maxmem < 1024.0)
         {
