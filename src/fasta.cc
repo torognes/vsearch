@@ -88,7 +88,7 @@ auto fasta_filter_sequence(fastx_handle h,
 
   char * p = h->sequence_buffer.data;
   char * q = p;
-  char c;
+  char c = '\0';
   char msg[200];
 
   while ((c = *p++))
