@@ -432,17 +432,17 @@ auto fastq_stats() -> void
 
           qual_length_table = (uint64_t *) xrealloc(qual_length_table,
                                                    sizeof(uint64_t) * (len+1) * 256);
-          memset(qual_length_table + 256 * read_length_alloc, 0,
+          memset(qual_length_table + (256 * read_length_alloc), 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 256);
 
           ee_length_table = (uint64_t *) xrealloc(ee_length_table,
                                                  sizeof(uint64_t) * (len+1) * 4);
-          memset(ee_length_table + 4 * read_length_alloc, 0,
+          memset(ee_length_table + (4 * read_length_alloc), 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
           q_length_table = (uint64_t *) xrealloc(q_length_table,
                                                 sizeof(uint64_t) * (len+1) * 4);
-          memset(q_length_table + 4 * read_length_alloc, 0,
+          memset(q_length_table + (4 * read_length_alloc), 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
           sumee_length_table = (double *) xrealloc(sumee_length_table,
@@ -506,7 +506,7 @@ auto fastq_stats() -> void
               qmax = qc;
             }
 
-          qual_length_table[256 * i + qc]++;
+          qual_length_table[(256 * i) + qc]++;
 
           ee += q2p(qual);
 
@@ -516,7 +516,7 @@ auto fastq_stats() -> void
             {
               if (ee <= ee_limit[z])
                 {
-                  ee_length_table[4 * i + z]++;
+                  ee_length_table[(4 * i) + z]++;
                 }
               else
                 {
@@ -529,11 +529,11 @@ auto fastq_stats() -> void
               qmin_this = qual;
             }
 
-          for(int z = 0; z < 4; z++)
+          for (int z = 0; z < 4; z++)
             {
               if (qmin_this > 5 * (z + 1))
                 {
-                  q_length_table[4 * i + z]++;
+                  q_length_table[(4 * i) + z]++;
                 }
               else
                 {
@@ -573,9 +573,9 @@ auto fastq_stats() -> void
       for (int c = qmin; c <= qmax; c++)
         {
           int qual = c - opt_fastq_ascii;
-          x += qual_length_table[256 * i + c];
-          q += qual_length_table[256 * i + c] * qual;
-          e_sum += qual_length_table[256 * i + c] * q2p(qual);
+          x += qual_length_table[(256 * i) + c];
+          q += qual_length_table[(256 * i) + c] * qual;
+          e_sum += qual_length_table[(256 * i) + c] * q2p(qual);
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
@@ -660,7 +660,7 @@ auto fastq_stats() -> void
 
           for (int z = 0; z < 4; z++)
             {
-              read_count[z] = ee_length_table[4 * (i - 1) + z];
+              read_count[z] = ee_length_table[(4 * (i - 1)) + z];
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
             }
 
@@ -689,7 +689,7 @@ auto fastq_stats() -> void
 
           for (int z = 0; z < 4; z++)
             {
-              read_percentage[z] = 100.0 * q_length_table[4 * (i - 1) + z] / seq_count;
+              read_percentage[z] = 100.0 * q_length_table[(4 * (i - 1)) + z] / seq_count;
             }
 
           fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
