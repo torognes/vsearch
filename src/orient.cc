@@ -73,7 +73,7 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
 
   for (int i = 0; i < opt_wordlength; i++)
     {
-      unsigned int x = (fwd & 3U) ^ 3U;
+      auto const x = (fwd & 3U) ^ 3U;
       fwd = fwd >> 2U;
       rev = rev << 2U;
       rev |= x;
