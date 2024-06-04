@@ -119,8 +119,9 @@ auto ee_start(int pos, int resolution) -> int64_t
 
 auto fastq_eestats() -> void
 {
-  if (not opt_output)
+  if (not opt_output) {
     fatal("Output file for fastq_eestats must be specified with --output");
+  }
 
   fastx_handle h = fastq_open(opt_fastq_eestats);
 
@@ -438,8 +439,9 @@ auto fastq_eestats() -> void
 
 auto fastq_eestats2() -> void
 {
-  if (! opt_output)
+  if (! opt_output) {
     fatal("Output file for fastq_eestats2 must be specified with --output");
+  }
 
   fastx_handle h = fastq_open(opt_fastq_eestats2);
 
