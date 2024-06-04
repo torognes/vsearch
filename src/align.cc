@@ -249,13 +249,13 @@ auto nw_align(char * dseq,
     nw->hearray[2 * i] = -gapopen_t_left - (i + 1) * gapextend_t_left;
     if (i < qlen-1)
       {
-        nw->hearray[2 * i + 1] =
+        nw->hearray[(2 * i) + 1] =
           - gapopen_t_left - (i + 1) * gapextend_t_left
           - gapopen_q_interior - gapextend_q_interior;
       }
     else
       {
-        nw->hearray[2 * i + 1] =
+        nw->hearray[(2 * i) + 1] =
           - gapopen_t_left - (i + 1) * gapextend_t_left
           - gapopen_q_right - gapextend_q_right;
       }
@@ -287,7 +287,7 @@ auto nw_align(char * dseq,
 
     for (i = 0; i < qlen; i++)
     {
-      char * d = nw->dir + qlen * j + i;
+      char * d = nw->dir + (qlen * j) + i;
 
       n = *hep;
       e = *(hep + 1);
@@ -353,7 +353,7 @@ auto nw_align(char * dseq,
     }
   }
 
-  int64_t dist = nw->hearray[2 * qlen - 2];
+  int64_t dist = nw->hearray[(2 * qlen) - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -380,7 +380,7 @@ auto nw_align(char * dseq,
     int64_t gapopen_t   = (j < dlen) ? gapopen_t_interior   : gapopen_t_right;
     int64_t gapextend_t = (j < dlen) ? gapextend_t_interior : gapextend_t_right;
 
-    int d = nw->dir[qlen * (j - 1) + (i - 1)];
+    int d = nw->dir[(qlen * (j - 1)) + (i - 1)];
 
     ++alength;
 
