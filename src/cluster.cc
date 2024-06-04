@@ -245,7 +245,7 @@ auto threads_wakeup(int queries) -> void
   int query_next = 0;
 
   /* tell the threads that there is work to do */
-  for(int t = 0; t < threads; t++)
+  for (int t = 0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
 
@@ -262,7 +262,7 @@ auto threads_wakeup(int queries) -> void
     }
 
   /* wait for theads to finish their work */
-  for(int t = 0; t < threads; t++)
+  for (int t = 0; t < threads; t++)
     {
       thread_info_t * tip = ti + t;
       xpthread_mutex_lock(&tip->mutex);
@@ -283,7 +283,7 @@ auto threads_init() -> void
   ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
 
   /* init and create worker threads */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       thread_info_t * tip = ti + t;
       tip->work = 0;
@@ -296,7 +296,7 @@ auto threads_init() -> void
 auto threads_exit() -> void
 {
   /* finish and clean up worker threads */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
 
@@ -606,7 +606,7 @@ auto cluster_core_parallel() -> void
       si_minus = (struct searchinfo_s *) xmalloc(max_queries *
                                                  sizeof(struct searchinfo_s));
     }
-  for(int i = 0; i < max_queries; i++)
+  for (int i = 0; i < max_queries; i++)
     {
       cluster_query_init(si_plus+i);
       si_plus[i].strand = 0;
@@ -650,7 +650,7 @@ auto cluster_core_parallel() -> void
 
       int queries = 0;
 
-      for(int i = 0; i < max_queries; i++)
+      for (int i = 0; i < max_queries; i++)
         {
           if (seqno < seqcount)
             {
@@ -685,12 +685,12 @@ auto cluster_core_parallel() -> void
       /* analyse results */
       int extra_count = 0;
 
-      for(int i = 0; i < queries; i++)
+      for (int i = 0; i < queries; i++)
         {
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m = opt_strand > 1 ? si_minus + i : nullptr;
 
-          for(int s = 0; s < opt_strand; s++)
+          for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
 
@@ -747,7 +747,7 @@ auto cluster_core_parallel() -> void
                                 }
 
                               /* move the rest down */
-                              for(int z = si->hit_count; z > x; z--)
+                              for (int z = si->hit_count; z > x; z--)
                                 {
                                   si->hits[z] = si->hits[z - 1];
                                 }
@@ -780,13 +780,13 @@ auto cluster_core_parallel() -> void
 
                   /* set all statuses to undetermined */
 
-                  for(int t = 0; t < si->hit_count; t++)
+                  for (int t = 0; t < si->hit_count; t++)
                     {
                       si->hits[t].accepted = false;
                       si->hits[t].rejected = false;
                     }
 
-                  for(int t = 0;
+                  for (int t = 0;
                       (si->accepts < opt_maxaccepts) and
                         (si->rejects < opt_maxrejects) and
                         (t < si->hit_count);
@@ -917,7 +917,7 @@ auto cluster_core_parallel() -> void
                   /* delete all undetermined hits */
 
                   int new_hit_count = si->hit_count;
-                  for(int t = si->hit_count - 1; t >= 0; t--)
+                  for (int t = si->hit_count - 1; t >= 0; t--)
                     {
                       struct hit * hit = si->hits + t;
                       if (not hit->accepted and not hit->rejected)
@@ -997,7 +997,7 @@ auto cluster_core_parallel() -> void
           for (int s = 0; s < opt_strand; s++)
             {
               struct searchinfo_s * si = s ? si_m : si_p;
-              for(int j = 0; j < si->hit_count; j++)
+              for (int j = 0; j < si->hit_count; j++)
                 {
                   if (si->hits[j].aligned)
                     {
@@ -1017,7 +1017,7 @@ auto cluster_core_parallel() -> void
   progress_done();
 
   /* clean up search info */
-  for(int i = 0; i < max_queries; i++)
+  for (int i = 0; i < max_queries; i++)
     {
       cluster_query_exit(si_plus+i);
       if (opt_strand > 1)
@@ -1124,7 +1124,7 @@ auto cluster_core_serial() -> void
       for (int s = 0; s < opt_strand; s++)
         {
           struct searchinfo_s * si = s ? si_m : si_p;
-          for(int i = 0; i < si->hit_count; i++)
+          for (int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
                 {
@@ -1366,7 +1366,7 @@ auto cluster(char * dbname,
   memset(cluster_abundance, 0, clusters * sizeof(int64_t));
   memset(cluster_size, 0, clusters * sizeof(int));
 
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       int seqno = clusterinfo[i].seqno;
       int clusterno = clusterinfo[i].clusterno;
@@ -1379,7 +1379,7 @@ auto cluster(char * dbname,
   int size_max = 0;
   int singletons = 0;
 
-  for(int z = 0; z < clusters; z++)
+  for (int z = 0; z < clusters; z++)
     {
       int64_t abundance = cluster_abundance[z];
       if (abundance < abundance_min)
@@ -1436,7 +1436,7 @@ auto cluster(char * dbname,
   int lastcluster = -1;
   int ordinal = 0;
 
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       int seqno = clusterinfo[i].seqno;
       int clusterno = clusterinfo[i].clusterno;
@@ -1613,7 +1613,7 @@ auto cluster(char * dbname,
 
       lastcluster = -1;
 
-      for(int i = 0; i < seqcount; i++)
+      for (int i = 0; i < seqcount; i++)
         {
           int clusterno = clusterinfo[i].clusterno;
           int seqno = clusterinfo[i].seqno;
@@ -1677,7 +1677,7 @@ auto cluster(char * dbname,
 
   /* free cigar strings for all aligned sequences */
 
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       if (clusterinfo[i].cigar)
         {
