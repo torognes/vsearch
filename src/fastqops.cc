@@ -182,9 +182,9 @@ auto fastq_chars() -> void
         }
     }
 
-  char fastq_ascii;
-  char fastq_qmin;
-  char fastq_qmax;
+  char fastq_ascii = '\0';
+  char fastq_qmin = '\0';
+  char fastq_qmax = '\0';
 
   if ((qmin < 59) || (qmax < 75))
     {
@@ -479,7 +479,7 @@ auto fastq_stats() -> void
           int qual = qc - opt_fastq_ascii;
           if ((qual < opt_fastq_qmin) || (qual > opt_fastq_qmax))
             {
-              char * msg;
+              char * msg = nullptr;
               if (xsprintf(& msg,
                            "FASTQ quality value (%d) out of range (%" PRId64 "-%" PRId64 ").\n"
                            "Please adjust the FASTQ quality base character or range with the\n"
