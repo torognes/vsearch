@@ -360,10 +360,10 @@ auto cpu_features_detect() -> void
 #elif __PPC__
   altivec_present = 1;
 #elif __x86_64__
-  unsigned int a;
-  unsigned int b;
-  unsigned int c;
-  unsigned int d;
+  unsigned int a = 0;
+  unsigned int b = 0;
+  unsigned int c = 0;
+  unsigned int d = 0;
 
   cpuid(0, 0, a, b, c, d);
   unsigned int maxlevel = a & 0xff;
@@ -1503,7 +1503,7 @@ auto args_init(int argc, char **argv) -> void
   memset(options_selected, 0, sizeof(options_selected));
 
   int options_index = 0;
-  int c;
+  int c = 0;
 
   while ((c = getopt_long_only(argc, argv, "", long_options,
                                &options_index)) == 0)
