@@ -138,12 +138,14 @@ auto sintax_analyse(char * query_head,
 
       /* Count matching names among candidates */
 
-      for (int i = 0; i < count ; i++)
-        for (int k = 0; k < tax_levels; k++)
+      for (int i = 0; i < count ; i++) {
+        for (int k = 0; k < tax_levels; k++) {
           cand_level_matches[i][k] = 0;
+        }
+      }
 
-      for (int k = 0; k < tax_levels; k++)
-        for (int i = 0; i < count ; i++)
+      for (int k = 0; k < tax_levels; k++) {
+        for (int i = 0; i < count ; i++) {
           for (int c = 0; c <= i ; c++)
             {
               /* check match at current and all higher levels */
@@ -165,6 +167,8 @@ auto sintax_analyse(char * query_head,
                   break; /* stop at first match */
                 }
             }
+        }
+      }
 
       /* Find most common name at each taxonomic level */
 
@@ -181,8 +185,9 @@ auto sintax_analyse(char * query_head,
                   level_best[k] = i;
                   level_match[k] = cand_level_matches[i][k];
                 }
-              if (m >= count)
+              if (m >= count) {
                 break;
+              }
             }
         }
     }
@@ -354,8 +359,9 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
     }
 
   minheap_empty(si->m);
-  if (best.count > 1)
-    minheap_add(si->m, & best);
+  if (best.count > 1) {
+    minheap_add(si->m, &best);
+  }
 }
 
 auto sintax_query(int64_t t) -> void
