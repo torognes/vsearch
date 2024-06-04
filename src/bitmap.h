@@ -73,30 +73,43 @@ auto bitmap_free(bitmap_t * b) -> void;
 
 inline auto bitmap_get(bitmap_t * b, unsigned int x) -> unsigned char
 {
-  return (b->bitmap[x >> 3] >> (x & 7)) & 1;
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  return (b->bitmap[x >> divider] >> (x & mask_111)) & 1;
 }
 
 inline auto bitmap_reset_all(bitmap_t * b) -> void
 {
-  std::memset(b->bitmap, 0, (b->size + 7) / 8);
+  constexpr auto n_bits_in_a_byte = 8U;
+  const auto size_in_bytes = (b->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
+  std::memset(b->bitmap, 0, size_in_bytes);
 }
 
 inline auto bitmap_set_all(bitmap_t * b) -> void
 {
-  std::memset(b->bitmap, 255, (b->size + 7) / 8);
+  constexpr auto max_byte_value = 255;
+  constexpr auto n_bits_in_a_byte = 8U;
+  const auto size_in_bytes = (b->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
+  std::memset(b->bitmap, max_byte_value, size_in_bytes);
 }
 
 inline auto bitmap_reset(bitmap_t * b, unsigned int x) -> void
 {
-  b->bitmap[x >> 3] &= ~ (1 << (x & 7));
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  b->bitmap[x >> divider] &= ~ (1 << (x & mask_111));
 }
 
 inline auto bitmap_set(bitmap_t * b, unsigned int x) -> void
 {
-  b->bitmap[x >> 3] |= 1 << (x & 7);
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  b->bitmap[x >> divider] |= 1 << (x & mask_111);
 }
 
 inline auto bitmap_flip(bitmap_t * b, unsigned int x) -> void
 {
-  b->bitmap[x >> 3] ^= 1 << (x & 7);
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  b->bitmap[x >> divider] ^= 1 << (x & mask_111);
 }
