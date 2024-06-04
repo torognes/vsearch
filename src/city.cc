@@ -143,7 +143,7 @@ static auto Mur(uint32 a, uint32 h) -> uint32 {
   a *= c2;
   h ^= a;
   h = Rotate32(h, 19);
-  return h * 5 + 0xe6546b64;
+  return (h * 5) + 0xe6546b64;
 }
 
 static auto Hash32Len13to24(const char *s, size_t len) -> uint32 {
@@ -278,10 +278,10 @@ static auto HashLen16(uint64 u, uint64 v, uint64 mul) -> uint64 {
 
 static auto HashLen0to16(const char *s, size_t len) -> uint64 {
   if (len >= 8) {
-    const uint64 mul = k2 + len * 2;
+    const uint64 mul = k2 + (len * 2);
     const uint64 a = Fetch64(s) + k2;
     const uint64 b = Fetch64(s + len - 8);
-    const uint64 c = Rotate(b, 37) * mul + a;
+    const uint64 c = (Rotate(b, 37) * mul) + a;
     const uint64 d = (Rotate(a, 25) + b) * mul;
     return HashLen16(c, d, mul);
   }
@@ -296,7 +296,7 @@ static auto HashLen0to16(const char *s, size_t len) -> uint64 {
     const uint8 c = s[len - 1];
     const uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8);
     const uint32 z = len + (static_cast<uint32>(c) << 2);
-    return ShiftMix(y * k2 ^ z * k0) * k2;
+    return ShiftMix((y * k2) ^ (z * k0)) * k2;
   }
   return k2;
 }
@@ -304,7 +304,7 @@ static auto HashLen0to16(const char *s, size_t len) -> uint64 {
 // This probably works well for 16-byte strings as well, but it may be overkill
 // in that case.
 static auto HashLen17to32(const char *s, size_t len) -> uint64 {
-  const uint64 mul = k2 + len * 2;
+  const uint64 mul = k2 + (len * 2);
   const uint64 a = Fetch64(s) * k1;
   const uint64 b = Fetch64(s + 8);
   const uint64 c = Fetch64(s + len - 8) * mul;
@@ -340,7 +340,7 @@ static auto WeakHashLen32WithSeeds(const char *s, uint64 a, uint64 b)
 
 // Return an 8-byte hash for 33 to 64 bytes.
 static auto HashLen33to64(const char *s, size_t len) -> uint64 {
-  const uint64 mul = k2 + len * 2;
+  const uint64 mul = k2 + (len * 2);
   uint64 a = Fetch64(s) * k2;
   uint64 b = Fetch64(s + 8);
   const uint64 c = Fetch64(s + len - 24);
@@ -349,14 +349,14 @@ static auto HashLen33to64(const char *s, size_t len) -> uint64 {
   const uint64 f = Fetch64(s + 24) * 9;
   const uint64 g = Fetch64(s + len - 8);
   const uint64 h = Fetch64(s + len - 16) * mul;
-  const uint64 u = Rotate(a + g, 43) + (Rotate(b, 30) + c) * 9;
+  const uint64 u = Rotate(a + g, 43) + ((Rotate(b, 30) + c) * 9);
   const uint64 v = ((a + g) ^ d) + f + 1;
   const uint64 w = bswap_64((u + v) * mul) + h;
   const uint64 x = Rotate(e + f, 42) + c;
   const uint64 y = (bswap_64((v + w) * mul) + g) * mul;
   const uint64 z = e + f + c;
-  a = bswap_64((x + z) * mul + y) + b;
-  b = ShiftMix((z + a) * mul + d + h) * mul;
+  a = bswap_64(((x + z) * mul) + y) + b;
+  b = ShiftMix(((z + a) * mul) + d + h) * mul;
   return b + x;
 }
 
@@ -394,7 +394,7 @@ auto CityHash64(const char *s, size_t len) -> uint64 {
     s += 64;
     len -= 64;
   } while (len != 0);
-  return HashLen16(HashLen16(v.first, w.first) + ShiftMix(y) * k1 + z,
+  return HashLen16(HashLen16(v.first, w.first) + (ShiftMix(y) * k1) + z,
                    HashLen16(v.second, w.second) + x);
 }
 
