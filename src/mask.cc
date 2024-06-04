@@ -272,8 +272,9 @@ auto hardmask_all() -> void
 
 auto maskfasta() -> void
 {
-  if (! opt_output)
+  if (! opt_output) {
     fatal("Output file for masking must be specified with --output");
+  }
 
   std::FILE * fp_output = fopen_output(opt_output);
   if (! fp_output)
@@ -315,8 +316,9 @@ auto fastx_mask() -> void
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if ((! opt_fastaout) && (! opt_fastqout))
+  if ((! opt_fastaout) && (! opt_fastqout)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
+  }
 
   if (opt_fastaout)
     {
