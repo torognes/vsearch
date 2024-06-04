@@ -246,7 +246,7 @@ auto results_show_uc_one(FILE * fp,
 
   if (hp)
     {
-      bool perfect;
+      bool perfect = false;
 
       if (opt_cluster_fast)
         {
@@ -321,8 +321,8 @@ auto results_show_userout_one(FILE * fp, struct hit * hp,
           t_head = db_getheader(hp->target);
         }
 
-      char * qrow;
-      char * trow;
+      char * qrow = nullptr;
+      char * trow = nullptr;
 
       switch (field)
         {
