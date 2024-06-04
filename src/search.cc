@@ -291,7 +291,7 @@ auto search_output_results(int hit_count,
     }
 
   /* update matching db sequences */
-  for (int i=0; i < hit_count; i++)
+  for (int i = 0; i < hit_count; i++)
     {
       if (hits[i].accepted || hits[i].weak)
         {
@@ -339,7 +339,7 @@ auto search_query(int64_t t) -> int
                         si_plus[t].qsize);
 
   /* free memory for alignment strings */
-  for(int i=0; i<hit_count; i++)
+  for (int i = 0; i < hit_count; i++)
     {
       if (hits[i].aligned)
         {
@@ -384,15 +384,15 @@ auto search_thread_run(int64_t t) -> void
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
-                  si->query_head = (char*)
-                    xrealloc(si->query_head, (size_t)(si->query_head_alloc));
+                  si->query_head = (char *)
+                    xrealloc(si->query_head, (size_t) (si->query_head_alloc));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
-                  si->qsequence = (char*)
-                    xrealloc(si->qsequence, (size_t)(si->seq_alloc));
+                  si->qsequence = (char *)
+                    xrealloc(si->qsequence, (size_t) (si->seq_alloc));
                 }
             }
 
