@@ -117,8 +117,9 @@ auto find_median() -> double
             }
         }
 
-      if (below_count + cand_count + above_count == 0U) // fix -Wfloat-equal
+      if (below_count + cand_count + above_count == 0U) { // fix -Wfloat-equal
         return 0;
+      }
 
       if (above_count + cand_count >= below_count)
         // mid >= below_count
