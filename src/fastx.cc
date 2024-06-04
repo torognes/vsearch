@@ -75,9 +75,9 @@
 #define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
 #endif
 
-#define FORMAT_PLAIN 1
-#define FORMAT_BZIP  2
-#define FORMAT_GZIP  3
+constexpr int FORMAT_PLAIN = 1;
+constexpr int FORMAT_BZIP = 2;
+constexpr int FORMAT_GZIP = 3;
 
 static unsigned char MAGIC_GZIP[] = "\x1f\x8b";
 static unsigned char MAGIC_BZIP[] = "BZ";
