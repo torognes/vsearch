@@ -70,7 +70,7 @@ uint64_t kmerindexsize;
 unsigned int dbindex_count;
 uhandle_s * dbindex_uh;
 
-#define BITMAP_THRESHOLD 8
+constexpr unsigned int BITMAP_THRESHOLD = 8;
 
 static unsigned int bitmap_mincount;
 
