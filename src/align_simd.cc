@@ -1216,9 +1216,9 @@ auto search16(s16info_s * s,
               unsigned short * pgaps,
               char ** pcigar) -> void
 {
-  CELL ** q_start = (CELL**) s->qtable;
-  CELL * dprofile = (CELL*) s->dprofile;
-  CELL * hearray = (CELL*) s->hearray;
+  CELL ** q_start = (CELL **) s->qtable;
+  CELL * dprofile = (CELL *) s->dprofile;
+  CELL * hearray = (CELL *) s->hearray;
   uint64_t qlen = s->qlen;
 
   if (qlen == 0)
