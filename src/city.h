@@ -101,11 +101,12 @@ auto CityHash32(const char *s, std::size_t len) -> uint32;
 // This is intended to be a reasonably good hash function.
 inline auto Hash128to64(const uint128& x) -> uint64 {
   // Murmur-inspired hashing.
+  static constexpr auto divider = 47U;
   const uint64 kMul = 0x9ddfea08eb382d69ULL;
   uint64 a = (Uint128Low64(x) ^ Uint128High64(x)) * kMul;
-  a ^= (a >> 47);
+  a ^= (a >> divider);
   uint64 b = (Uint128High64(x) ^ a) * kMul;
-  b ^= (b >> 47);
+  b ^= (b >> divider);
   b *= kMul;
   return b;
 }
