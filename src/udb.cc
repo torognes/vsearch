@@ -921,14 +921,14 @@ auto udb_make() -> void
 
   uint64_t pos = 0;
   uint64_t progress_all =
-    4 * 50 +
-    4 * kmerhashsize +
-    4 * 1 +
-    4 * wordmatches +
-    4 * 8 +
-    4 * seqcount +
+    (4 * 50) +
+    (4 * kmerhashsize) +
+    (4 * 1) +
+    (4 * wordmatches) +
+    (4 * 8) +
+    (4 * seqcount) +
     header_characters +
-    4 * seqcount +
+    (4 * seqcount) +
     ntcount;
 
   progress_init("Writing UDB file", progress_all);
