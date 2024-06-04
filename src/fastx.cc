@@ -75,9 +75,9 @@
 #define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
 #endif
 
-constexpr int FORMAT_PLAIN = 1;
-constexpr int FORMAT_BZIP = 2;
-constexpr int FORMAT_GZIP = 3;
+constexpr int format_plain = 1;
+constexpr int format_bzip = 2;
+constexpr int format_gzip = 3;
 
 static unsigned char MAGIC_GZIP[] = "\x1f\x8b";
 static unsigned char MAGIC_BZIP[] = "BZ";
@@ -272,15 +272,15 @@ auto fastx_open(const char * filename) -> fastx_handle
 
   if (opt_gzip_decompress)
     {
-      h->format = FORMAT_GZIP;
+      h->format = format_gzip;
     }
   else if (opt_bzip2_decompress)
     {
-      h->format = FORMAT_BZIP;
+      h->format = format_bzip;
     }
   else if (h->is_pipe)
     {
-      h->format = FORMAT_PLAIN;
+      h->format = format_plain;
     }
   else
     {
@@ -290,7 +290,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       unsigned char magic[2];
 
-      h->format = FORMAT_PLAIN;
+      h->format = format_plain;
 
       size_t bytes_read = fread(&magic, 1, 2, h->fp);
 
@@ -298,11 +298,11 @@ auto fastx_open(const char * filename) -> fastx_handle
         {
           if (memcmp(magic, MAGIC_GZIP, 2) == 0)
             {
-              h->format = FORMAT_GZIP;
+              h->format = format_gzip;
             }
           else if (memcmp(magic, MAGIC_BZIP, 2) == 0)
             {
-              h->format = FORMAT_BZIP;
+              h->format = format_bzip;
             }
         }
       else
@@ -321,7 +321,7 @@ auto fastx_open(const char * filename) -> fastx_handle
         }
     }
 
-  if (h->format == FORMAT_GZIP)
+  if (h->format == format_gzip)
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
@@ -339,7 +339,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 #endif
     }
 
-  if (h->format == FORMAT_BZIP)
+  if (h->format == format_bzip)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_BZLIB_H
@@ -397,17 +397,17 @@ auto fastx_open(const char * filename) -> fastx_handle
 
           switch(h->format)
             {
-            case FORMAT_PLAIN:
+            case format_plain:
               break;
 
-            case FORMAT_GZIP:
+            case format_gzip:
 #ifdef HAVE_ZLIB_H
               (*gzclose_p)(h->fp_gz);
               h->fp_gz = nullptr;
               break;
 #endif
 
-            case FORMAT_BZIP:
+            case format_bzip:
 #ifdef HAVE_BZLIB_H
               (*BZ2_bzReadClose_p)(&bzError, h->fp_bz);
               h->fp_bz = nullptr;
@@ -514,17 +514,17 @@ auto fastx_close(fastx_handle h) -> void
 
   switch(h->format)
     {
-    case FORMAT_PLAIN:
+    case format_plain:
       break;
 
-    case FORMAT_GZIP:
+    case format_gzip:
 #ifdef HAVE_ZLIB_H
       (*gzclose_p)(h->fp_gz);
       h->fp_gz = nullptr;
       break;
 #endif
 
-    case FORMAT_BZIP:
+    case format_bzip:
 #ifdef HAVE_BZLIB_H
       (*BZ2_bzReadClose_p)(&bz_error, h->fp_bz);
       h->fp_bz = nullptr;
@@ -583,7 +583,7 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
 
       switch(h->format)
         {
-        case FORMAT_PLAIN:
+        case format_plain:
           bytes_read = fread(h->file_buffer.data
                              + h->file_buffer.position,
                              1,
@@ -591,7 +591,7 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
                              h->fp);
           break;
 
-        case FORMAT_GZIP:
+        case format_gzip:
 #ifdef HAVE_ZLIB_H
           bytes_read = (*gzread_p)(h->fp_gz,
                                    h->file_buffer.data
@@ -604,7 +604,7 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
           break;
 #endif
 
-        case FORMAT_BZIP:
+        case format_bzip:
 #ifdef HAVE_BZLIB_H
           bytes_read = (*BZ2_bzRead_p)(& bzError,
                                        h->fp_bz,
@@ -628,7 +628,7 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
       if (! h->is_pipe)
         {
 #ifdef HAVE_ZLIB_H
-          if (h->format == FORMAT_GZIP)
+          if (h->format == format_gzip)
             {
               /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
               int fd = dup(fileno(h->fp));
