@@ -509,7 +509,7 @@ auto fastx_close(fastx_handle h) -> void
     }
 
 #ifdef HAVE_BZLIB_H
-  int bz_error;
+  int bz_error = 0;
 #endif
 
   switch(h->format)
