@@ -259,7 +259,7 @@ auto unique_count_hash(struct uhandle_s * uh,
   memset(uh->hash, 0, sizeof(struct bucket_s) * uh->size);
 
   uint64_t bad = 0;
-  uint64_t j;
+  uint64_t j = 0;
   unsigned int kmer = 0;
   unsigned int mask = (1ULL << (2ULL * k)) - 1ULL;
   char * s = seq;
