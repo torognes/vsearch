@@ -227,7 +227,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->scan_q = (double *) xrealloc(ci->scan_q,
                                        (maxqlen + 1) * sizeof(double));
 
-      const int maxalnlen = maxqlen + 2 * db_getlongestsequence();
+      const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
       for (int f = 0; f < maxparents ; f++)
         {
           ci->paln[f] = (char *) xrealloc(ci->paln[f], maxalnlen + 1);
@@ -250,7 +250,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
   for (int i = 0; i < ci->cand_count; i++) {
     for (int j = 0; j < ci->query_len; j++)
       {
-        int x = i * ci->query_len + j;
+        int x = (i * ci->query_len) + j;
         ci->match[x] = 0;
         ci->insert[x] = 0;
       }
@@ -281,7 +281,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
                   if (chrmap_4bit[(int) (qseq[qpos])] &
                       chrmap_4bit[(int) (tseq[tpos])])
                     {
-                      ci->match[i * ci->query_len + qpos] = 1;
+                      ci->match[(i * ci->query_len) + qpos] = 1;
                     }
                   ++qpos;
                   ++tpos;
@@ -289,7 +289,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
               break;
 
             case 'I':
-              ci->insert[i * ci->query_len + qpos] = run;
+              ci->insert[(i * ci->query_len) + qpos] = run;
               tpos += run;
               break;
 
@@ -431,7 +431,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
               len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[j]) &&
-                     ((len == 0) or (ci->insert[i * ci->query_len + j] == 0)))
+                     ((len == 0) or (ci->insert[(i * ci->query_len) + j] == 0)))
                 {
                   ++len;
                   ++j;
@@ -441,7 +441,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                   int scan_best_start = 0;
                   int scan_best_len = 0;
                   if (scan_matches(ci,
-                                   ci->match + i * ci->query_len + start,
+                                   ci->match + (i * ci->query_len) + start,
                                    len,
                                    opt_chimeras_diff_pct,
                                    & scan_best_start,
@@ -540,14 +540,14 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
           for (int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
-              int z = best_parent_cand[f - 1] * ci->query_len + qpos;
+              int z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
               if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
                   for (int i = qpos + 1 - window; i <= qpos; i++)
                     {
                       for (int j = 0; j < ci->cand_count; j++)
                         {
-                          ci->match[j * ci->query_len + i] = 0;
+                          ci->match[(j * ci->query_len) + i] = 0;
                         }
                     }
                 }
@@ -569,7 +569,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
               int sum = 0;
               for(int qpos = 0; qpos < ci->query_len; qpos++)
                 {
-                  int z = i * ci->query_len + qpos;
+                  int z = (i * ci->query_len) + qpos;
                   sum += ci->match[z];
                   if (qpos >= window)
                     {
@@ -600,7 +600,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                 {
                   if (not cand_selected[i])
                     {
-                      int z = i * ci->query_len + qpos;
+                      int z = (i * ci->query_len) + qpos;
                       if (ci->smooth[z] == ci->maxsmooth[qpos])
                         {
                           wins[i]++;
@@ -1663,7 +1663,7 @@ auto query_init(struct searchinfo_s * si) -> void
   si->qsequence = nullptr;
   si->kmers = nullptr;
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
-  si->kmers = (count_t *) xmalloc(db_getsequencecount() * sizeof(count_t) + 32);
+  si->kmers = (count_t *) xmalloc((db_getsequencecount() * sizeof(count_t)) + 32);
   si->hit_count = 0;
   si->uh = unique_init();
   si->s = search16_init(opt_match,
