@@ -123,7 +123,7 @@ LinearMemoryAligner::~LinearMemoryAligner()
 
 auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
-  auto * newscorematrix = (int64_t*) xmalloc(16 * 16 * sizeof(int64_t));
+  auto * newscorematrix = (int64_t *) xmalloc(16 * 16 * sizeof(int64_t));
 
   for (int i = 0; i < 16; i++)
     {
@@ -142,7 +142,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             {
               value = mismatch;
             }
-          newscorematrix[16 * i + j] = value;
+          newscorematrix[(16 * i) + j] = value;
         }
     }
   return newscorematrix;
@@ -252,7 +252,7 @@ auto LinearMemoryAligner::show_matrix() -> void
       printf("%2d:", i);
       for (int j = 0; j < 16; j++)
         {
-          printf(" %2" PRId64, scorematrix[16 * i + j]);
+          printf(" %2" PRId64, scorematrix[(16 * i) + j]);
         }
       printf("\n");
     }
@@ -321,7 +321,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* gap penalty for gap in A of length b_len */
 
-      Score -= a_right ? go_q_r + b_len * ge_q_r : go_q_i + b_len * ge_q_i;
+      Score -= a_right ? go_q_r + (b_len * ge_q_r) : go_q_i + (b_len * ge_q_i);
 
       MaxScore = Score;
       best = -1;
@@ -335,7 +335,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* gap penalty for gap in A of length b_len */
 
-      Score -= a_left ? go_q_l + b_len * ge_q_l : go_q_i + b_len * ge_q_i;
+      Score -= a_left ? go_q_l + (b_len * ge_q_l) : go_q_i + (b_len * ge_q_i);
 
       /* gap penalty for gap in B of length 1 */
 
@@ -365,7 +365,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
           if (j > 0)
             {
-              Score -= a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i;
+              Score -= a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i);
             }
 
           Score += subst_score(a_start, b_start + j);
@@ -373,8 +373,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
           if (j < b_len - 1)
             {
               Score -= a_right ?
-                go_q_r + (b_len - 1 - j) * ge_q_r :
-                go_q_i + (b_len - 1 - j) * ge_q_i;
+                go_q_r + ((b_len - 1 - j) * ge_q_r) :
+                go_q_i + ((b_len - 1 - j) * ge_q_i);
             }
 
           if (Score > MaxScore)
@@ -425,7 +425,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t j = 1; j <= b_len; j++)
         {
-          HH[j] = - (a_left ? go_q_l + j * ge_q_l : go_q_i + j * ge_q_i);
+          HH[j] = - (a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i));
           EE[j] = LONG_MIN;
         }
 
@@ -436,8 +436,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
           int64_t p = HH[0];
 
           int64_t h = - (b_left ?
-                         (gap_b_left ? 0 : go_t_l) + i * ge_t_l :
-                         (gap_b_left ? 0 : go_t_i) + i * ge_t_i);
+                         (gap_b_left ? 0 : go_t_l) + (i * ge_t_l) :
+                         (gap_b_left ? 0 : go_t_i) + (i * ge_t_i));
 
           HH[0] = h;
           int64_t f = LONG_MIN;
@@ -481,7 +481,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t j = 1; j <= b_len; j++)
         {
-          XX[j] = - (a_right ? go_q_r + j * ge_q_r : go_q_i + j * ge_q_i);
+          XX[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
           YY[j] = LONG_MIN;
         }
 
@@ -492,8 +492,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
           int64_t p = XX[0];
 
           int64_t h = - (b_right ?
-                         (gap_b_right ? 0 : go_t_r) + i * ge_t_r :
-                         (gap_b_right ? 0 : go_t_i) + i * ge_t_i);
+                         (gap_b_right ? 0 : go_t_r) + (i * ge_t_r) :
+                         (gap_b_right ? 0 : go_t_i) + (i * ge_t_i));
           XX[0] = h;
           int64_t f = LONG_MIN;
 
