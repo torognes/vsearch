@@ -79,9 +79,9 @@ auto find_median() -> double
   uint64_t below = 0;   /* closest value below the candidate */
   uint64_t above = 0;   /* closest value above the candidate */
 
-  uint64_t cand_count;  /* number of clusters with same size as cand */
-  uint64_t below_count; /* number of clusters with smaller size than cand */
-  uint64_t above_count; /* number of clusters with larger size than cand */
+  uint64_t cand_count = 0;  /* number of clusters with same size as cand */
+  uint64_t below_count = 0; /* number of clusters with smaller size than cand */
+  uint64_t above_count = 0; /* number of clusters with larger size than cand */
 
   while (true)
     {
