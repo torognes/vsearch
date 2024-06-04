@@ -140,8 +140,8 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       level_len[i] = 0;
     }
 
-  int tax_start;
-  int tax_end;
+  int tax_start = 0;
+  int tax_end = 0;
   char * h = db_getheader(seqno);
   int hlen = db_getheaderlen(seqno);
   if (tax_parse(h, hlen, & tax_start, & tax_end))
