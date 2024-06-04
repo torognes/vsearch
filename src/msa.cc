@@ -445,7 +445,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
       prof_type best_count = 0;
       for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          auto const count = profile[PROFSIZE * i + nucleotide];
+          auto const count = profile[(PROFSIZE * i) + nucleotide];
           if (count > best_count)
             {
               best_count = count;
@@ -454,7 +454,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* if no A, C, G, or T, check if there are any N's */
-      auto const N_count = profile[PROFSIZE * i + 4];
+      auto const N_count = profile[(PROFSIZE * i) + 4];
       if ((best_count == 0) and (N_count > 0))
         {
           best_count = N_count;
@@ -462,7 +462,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* compare to the number of gap symbols */
-      auto const gap_count = profile[PROFSIZE * i + 5];
+      auto const gap_count = profile[(PROFSIZE * i) + 5];
       if (best_count >= gap_count)
         {
           auto const index = static_cast<unsigned char>(best_sym);
@@ -537,7 +537,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * counter + symbol_index]));
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(PROFSIZE * counter) + symbol_index]));
       }
       static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;
