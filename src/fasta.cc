@@ -93,19 +93,19 @@ auto fasta_filter_sequence(fastx_handle h,
 
   while ((c = *p++))
     {
-      char m = char_action[(unsigned char)c];
+      char m = char_action[(unsigned char) c];
 
       switch(m)
         {
         case 0:
           /* stripped */
           h->stripped_all++;
-          h->stripped[(unsigned char)c]++;
+          h->stripped[(unsigned char) c]++;
           break;
 
         case 1:
           /* legal character */
-          *q++ = char_mapping[(unsigned char)(c)];
+          *q++ = char_mapping[(unsigned char) (c)];
           break;
 
         case 2:
@@ -115,7 +115,7 @@ auto fasta_filter_sequence(fastx_handle h,
               snprintf(msg,
                        200,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-                       (unsigned char)c,
+                       (unsigned char) c,
                        h->lineno);
             }
           else
