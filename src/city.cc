@@ -286,7 +286,7 @@ static auto HashLen0to16(const char *s, size_t len) -> uint64 {
     return HashLen16(c, d, mul);
   }
   if (len >= 4) {
-    const uint64 mul = k2 + len * 2;
+    const uint64 mul = k2 + (len * 2);
     const uint64 a = Fetch32(s);
     return HashLen16(len + (a << 3), Fetch32(s + len - 4), mul);
   }
