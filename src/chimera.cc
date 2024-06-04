@@ -1107,7 +1107,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
     ci->ignore[i] = 0;
   }
 
-  for(int i = 0; i < alnlen; i++)
+  for (int i = 0; i < alnlen; i++)
     {
       unsigned int qsym  = chrmap_4bit[(int) (ci->qaln   [i])];
       unsigned int p1sym = chrmap_4bit[(int) (ci->paln[0][i])];
@@ -1149,7 +1149,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       /* compute diffs */
 
-      char diff;
+      char diff = '\0';
 
       if (qsym and p1sym and p2sym)
         {
