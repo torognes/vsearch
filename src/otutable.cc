@@ -255,11 +255,13 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   /* store data */
 
-  if (sample_name)
+  if (sample_name) {
     otutable->sample_set.insert(sample_name);
+  }
 
-  if (otu_name)
+  if (otu_name) {
     otutable->otu_set.insert(otu_name);
+  }
 
   if (sample_name && otu_name && abundance)
     {
@@ -269,11 +271,13 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         += abundance;
     }
 
-  if (otu_name)
+  if (otu_name) {
     xfree(otu_name);
+  }
 
-  if (sample_name)
+  if (sample_name) {
     xfree(sample_name);
+  }
 }
 
 auto otutable_print_otutabout(FILE * fp) -> void
