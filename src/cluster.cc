@@ -330,7 +330,7 @@ auto cluster_query_init(struct searchinfo_s * si) -> void
   si->seq_alloc = db_getlongestsequence() + 1;
   si->qsequence = (char *) xmalloc(si->seq_alloc);
 
-  si->kmers = (count_t *) xmalloc(seqcount * sizeof(count_t) + 32);
+  si->kmers = (count_t *) xmalloc((seqcount * sizeof(count_t)) + 32);
   si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
 
   si->uh = unique_init();
