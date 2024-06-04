@@ -89,8 +89,8 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
   printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
 #endif
 
-  unsigned int uniquecount;
-  unsigned int * uniquelist;
+  unsigned int uniquecount = 0;
+  unsigned int * uniquelist = nullptr;
   unique_count(dbindex_uh, opt_wordlength,
                db_getsequencelen(seqno), db_getsequence(seqno),
                & uniquecount, & uniquelist, seqmask);
@@ -138,8 +138,8 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   progress_init("Counting k-mers", seqcount);
   for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
-      unsigned int uniquecount;
-      unsigned int * uniquelist;
+      unsigned int uniquecount = 0;
+      unsigned int * uniquelist = nullptr;
       unique_count(dbindex_uh, opt_wordlength,
                    db_getsequencelen(seqno), db_getsequence(seqno),
                    & uniquecount, & uniquelist, seqmask);
