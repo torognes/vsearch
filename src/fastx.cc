@@ -63,7 +63,7 @@
 /* file compression and format detector */
 /* basic file buffering function for fastq and fastx parsers */
 
-#define FASTX_BUFFER_ALLOC 8192
+constexpr uint64_t FASTX_BUFFER_ALLOC = 8192;
 
 #ifdef HAVE_BZLIB_H
 #define BZ_VERBOSE_0 0
