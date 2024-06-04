@@ -129,7 +129,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
     {
       for (int j = 0; j < 16; j++)
         {
-          int64_t value;
+          int64_t value = 0;
           if (ambiguous_4bit[i] || ambiguous_4bit[j])
             {
               value = 0;
@@ -200,7 +200,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
           /* try writing string until enough memory has been allocated */
 
           int64_t rest = cigar_alloc - cigar_length;
-          int n;
+          int n = 0;
           if (op_run > 1)
             {
               n = snprintf(cigar_string + cigar_length,
@@ -299,8 +299,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       */
 
 
-      int64_t MaxScore;
-      int64_t best;
+      int64_t MaxScore = 0;
+      int64_t best = 0;
 
       int64_t Score = 0;
 
@@ -552,7 +552,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t j = 0; j <= b_len; j++)
         {
-          int64_t g;
+          int64_t g = 0;
           if (b_left && (j == 0))
             {
               g = go_t_l;
@@ -575,8 +575,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
             }
         }
 
-      int64_t P;
-      int64_t best;
+      int64_t P = 0;
+      int64_t best = 0;
 
       if (MaxScore0 > MaxScore1)
         {
@@ -722,7 +722,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
 
   char * p = cigar;
 
-  int64_t g;
+  int64_t g = 0;
 
   while (*p)
     {
