@@ -86,7 +86,7 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
 auto orient() -> void
 {
   fastx_handle query_h = nullptr;
-
+  // refactoring: use struct, like in subsample
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_tabbedout = nullptr;
