@@ -219,7 +219,7 @@ auto orient() -> void
 
       unsigned int count_fwd = 0;
       unsigned int count_rev = 0;
-      const unsigned int hits_factor = 8;
+      constexpr auto hits_factor = 8U;
 
       for (unsigned int i = 0; i < kmer_count_fwd; i++)
         {
