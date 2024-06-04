@@ -189,7 +189,7 @@ auto orient() -> void
 
   uhandle_s * uh_fwd = unique_init();
 
-  size_t alloc = 0;
+  std::size_t alloc = 0;
   char * qseq_rev = nullptr;
   char * query_qual_rev = nullptr;
 
