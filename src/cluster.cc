@@ -805,19 +805,19 @@ auto cluster_core_parallel() -> void
 
                               unsigned int nwtarget = target;
 
-                              int64_t nwscore;
-                              int64_t nwalignmentlength;
-                              int64_t nwmatches;
-                              int64_t nwmismatches;
-                              int64_t nwgaps;
+                              int64_t nwscore = 0;
+                              int64_t nwalignmentlength = 0;
+                              int64_t nwmatches = 0;
+                              int64_t nwmismatches = 0;
+                              int64_t nwgaps = 0;
                               char * nwcigar = nullptr;
 
                               /* short variants for simd aligner */
-                              CELL snwscore;
-                              unsigned short snwalignmentlength;
-                              unsigned short snwmatches;
-                              unsigned short snwmismatches;
-                              unsigned short snwgaps;
+                              CELL snwscore = 0;
+                              unsigned short snwalignmentlength = 0;
+                              unsigned short snwmatches = 0;
+                              unsigned short snwmismatches = 0;
+                              unsigned short snwgaps = 0;
 
                               search16(si->s,
                                        1,
