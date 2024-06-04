@@ -146,7 +146,7 @@ static auto Mur(uint32 a, uint32 h) -> uint32 {
   return (h * 5) + 0xe6546b64;
 }
 
-static auto Hash32Len13to24(const char *s, size_t len) -> uint32 {
+static auto Hash32Len13to24(const char * s, size_t len) -> uint32 {
   const uint32 a = Fetch32(s - 4 + (len >> 1));
   const uint32 b = Fetch32(s + 4);
   const uint32 c = Fetch32(s + len - 8);
@@ -158,7 +158,7 @@ static auto Hash32Len13to24(const char *s, size_t len) -> uint32 {
   return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
 }
 
-static auto Hash32Len0to4(const char *s, size_t len) -> uint32 {
+static auto Hash32Len0to4(const char * s, size_t len) -> uint32 {
   uint32 b = 0;
   uint32 c = 9;
   for (int i = 0; i < len; i++) {
@@ -169,7 +169,7 @@ static auto Hash32Len0to4(const char *s, size_t len) -> uint32 {
   return fmix(Mur(b, Mur(len, c)));
 }
 
-static auto Hash32Len5to12(const char *s, size_t len) -> uint32 {
+static auto Hash32Len5to12(const char * s, size_t len) -> uint32 {
   uint32 a = len;
   uint32 b = len * 5;
   uint32 c = 9;
@@ -180,7 +180,7 @@ static auto Hash32Len5to12(const char *s, size_t len) -> uint32 {
   return fmix(Mur(c, Mur(b, Mur(a, d))));
 }
 
-auto CityHash32(const char *s, size_t len) -> uint32 {
+auto CityHash32(const char * s, size_t len) -> uint32 {
   if (len <= 24) {
     return len <= 12 ?
         (len <= 4 ? Hash32Len0to4(s, len) : Hash32Len5to12(s, len)) :
