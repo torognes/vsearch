@@ -169,7 +169,7 @@ auto orient() -> void
       db_read(opt_db, 0);
     }
 
-  if (!is_udb)
+  if (! is_udb)
     {
       if (opt_dbmask == MASK_DUST)
         {
@@ -181,7 +181,7 @@ auto orient() -> void
         }
     }
 
-  if (!is_udb)
+  if (! is_udb)
     {
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
