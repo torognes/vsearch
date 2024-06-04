@@ -62,6 +62,8 @@
 #include <cstdint>  // uint64_t
 
 
+constexpr auto byte_range = 256U;
+
 struct fastx_buffer_s
 {
   char * data;
@@ -108,7 +110,7 @@ struct fastx_s
   int64_t seqno;
 
   uint64_t stripped_all;
-  uint64_t stripped[256];
+  uint64_t stripped[byte_range];
 
   int format;
 };
