@@ -380,8 +380,8 @@ auto sintax_query(int64_t t) -> void
 
       /* perform search */
 
-      unsigned int kmersamplecount;
-      unsigned int * kmersample;
+      unsigned int kmersamplecount = 0;
+      unsigned int * kmersample = nullptr;
 
       /* find unique kmers */
       unique_count(si->uh, opt_wordlength,
@@ -428,7 +428,7 @@ auto sintax_query(int64_t t) -> void
         }
     }
 
-  int best_strand;
+  int best_strand = 0;
 
   if (opt_strand == 1)
     {
