@@ -256,7 +256,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
       }
   }
 
-  for(int i = 0; i < ci->cand_count; i++)
+  for (int i = 0; i < ci->cand_count; i++)
     {
       char * tseq = db_getsequence(ci->cand_list[i]);
 
@@ -2001,15 +2001,15 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                ci->snwgaps,
                ci->nwcigar);
 
-      for(int i = 0; i < ci->cand_count; i++)
+      for (int i = 0; i < ci->cand_count; i++)
         {
           int64_t target = ci->cand_list[i];
           int64_t nwscore = ci->snwscore[i];
-          char * nwcigar;
-          int64_t nwalignmentlength;
-          int64_t nwmatches;
-          int64_t nwmismatches;
-          int64_t nwgaps;
+          char * nwcigar = nullptr;
+          int64_t nwalignmentlength = 0;
+          int64_t nwmatches = 0;
+          int64_t nwmismatches = 0;
+          int64_t nwgaps = 0;
 
           if (nwscore == std::numeric_limits<short>::max())
             {
@@ -2323,7 +2323,7 @@ auto chimera() -> void
 
   tophits = opt_maxaccepts + opt_maxrejects;
 
-  uint64_t progress_total;
+  uint64_t progress_total = 0;
   chimera_count = 0;
   nonchimera_count = 0;
   progress = 0;
