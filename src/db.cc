@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-#define MEMCHUNK 16777216
+constexpr uint64_t MEMCHUNK = 16777216;  // 2^24
 
 static fastx_handle h = nullptr;
 static bool is_fastq = false;
