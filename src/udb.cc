@@ -608,8 +608,9 @@ auto udb_read(const char * filename,
 
 auto udb_fasta() -> void
 {
-  if (! opt_output)
+  if (! opt_output) {
     fatal("FASTA output file must be specified with --output");
+  }
 
   /* open FASTA file for writing */
 
@@ -874,8 +875,9 @@ auto udb_stats() -> void
 
 auto udb_make() -> void
 {
-  if (! opt_output)
+  if (! opt_output) {
     fatal("UDB output file must be specified with --output");
+  }
 
   int fd_output = 0;
 
