@@ -447,7 +447,7 @@ auto search_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
-  si->kmers = (count_t *) xmalloc(seqcount * sizeof(count_t) + 32);
+  si->kmers = (count_t *) xmalloc((seqcount * sizeof(count_t)) + 32);
   si->m = minheap_init(tophits);
   si->hits = (struct hit *) xmalloc
     (sizeof(struct hit) * (tophits) * opt_strand);
