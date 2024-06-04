@@ -607,7 +607,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   f3 = v_sub(f3, QR_t_3);
 
 
-  for(i = 0; i < ql - 1; i++)
+  for (i = 0; i < ql - 1; i++)
     {
       vp = qp[i + 0];
 
@@ -1102,9 +1102,9 @@ auto search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
-  for(int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++)
     {
-      for(int j = 0; j < 16; j++)
+      for (int j = 0; j < 16; j++)
         {
           CELL value;
           if (ambiguous_4bit[i] or ambiguous_4bit[j])
@@ -1119,7 +1119,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL*) (&s->matrix))[16 * i + j] = value;
+          ((CELL *) (&s->matrix))[16 * i + j] = value;
           scorematrix[i][j] = value;
         }
     }
@@ -1200,7 +1200,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
     }
   s->qtable = (VECTOR_SHORT **) xmalloc(s->qlen * sizeof(VECTOR_SHORT*));
 
-  for(int i = 0; i < qlen; i++)
+  for (int i = 0; i < qlen; i++)
     {
       s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int) (qseq[i])];
     }
@@ -1267,7 +1267,7 @@ auto search16(s16info_s * s,
 
   /* find longest target sequence and reallocate direction buffer */
   uint64_t maxdlen = 0;
-  for(int64_t i = 0; i < sequences; i++)
+  for (int64_t i = 0; i < sequences; i++)
     {
       uint64_t dlen = db_getsequencelen(seqnos[i]);
       /* skip the very long sequences */
