@@ -255,7 +255,7 @@ auto dprofile_dump16(CELL * dprofile) -> void
           printf("[");
           for(int j = 0; j < CHANNELS; j++)
             {
-              printf(" %3d", dprofile[CHANNELS * CDEPTH * i + CHANNELS * k + j]);
+              printf(" %3d", dprofile[(CHANNELS * CDEPTH * i) + (CHANNELS * k) + j]);
             }
           printf("]");
         }
@@ -270,7 +270,7 @@ auto dumpscorematrix(CELL * m) -> void
       printf("%2d %c", i, sym_nt_4bit[i]);
       for(int j = 0; j < 16; j++)
         {
-          printf(" %2d", m[16 * i + j]);
+          printf(" %2d", m[(16 * i) + j]);
         }
       printf("\n");
     }
@@ -296,7 +296,7 @@ auto dprofile_fill16(CELL * dprofile_word,
       int d[CHANNELS];
       for(int z = 0; z < CHANNELS; z++)
         {
-          d[z] = dseq[j * CHANNELS + z] << 4;
+          d[z] = dseq[(j * CHANNELS) + z] << 4;
         }
 
       for(int i = 0; i < 16; i += 8)
@@ -446,14 +446,14 @@ auto dprofile_fill16(CELL * dprofile_word,
           reg31 = v_merge_hi_64(reg21, reg23);
 #endif
 
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j, reg24);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j, reg25);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j, reg26);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j, reg27);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j, reg28);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j, reg29);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j, reg30);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j, reg31);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 0)) + (CHANNELS * j), reg24);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 1)) + (CHANNELS * j), reg25);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 2)) + (CHANNELS * j), reg26);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 3)) + (CHANNELS * j), reg27);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 4)) + (CHANNELS * j), reg28);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 5)) + (CHANNELS * j), reg29);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 6)) + (CHANNELS * j), reg30);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 7)) + (CHANNELS * j), reg31);
         }
     }
 #if 0
@@ -611,9 +611,9 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
     {
       vp = qp[i + 0];
 
-      h4 = hep[2 * i + 0];
+      h4 = hep[(2 * i) + 0];
 
-      E  = hep[2 * i + 1];
+      E  = hep[(2 * i) + 1];
 
       /*
         Initialize selected h and e values for next/this round.
@@ -656,8 +656,8 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      hep[(2 * i) + 0] = h8;
+      hep[(2 * i) + 1] = E;
 
       h0 = h4;
       h1 = h5;
@@ -669,7 +669,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 
   vp = qp[i + 0];
 
-  E  = hep[2 * i + 1];
+  E  = hep[(2 * i) + 1];
 
   E  = v_sub_unsigned(E, Mm);
   E  = v_sub(E, M_QR_t_left);
@@ -701,8 +701,8 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 #endif
 
 
-  hep[2 * i + 0] = h8;
-  hep[2 * i + 1] = E;
+  hep[(2 * i) + 0] = h8;
+  hep[(2 * i) + 1] = E;
 
   Sm[0] = h5;
   Sm[1] = h6;
@@ -771,9 +771,9 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
     {
       vp = qp[i + 0];
 
-      h4 = hep[2 * i + 0];
+      h4 = hep[(2 * i) + 0];
 
-      E  = hep[2 * i + 1];
+      E  = hep[(2 * i) + 1];
 
 #ifdef __PPC__
       ALIGNCORE(h0, h5, f0, vp[0], RES1,
@@ -799,8 +799,8 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      hep[(2 * i) + 0] = h8;
+      hep[(2 * i) + 1] = E;
 
       h0 = h4;
       h1 = h5;
@@ -812,7 +812,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
 
   vp = qp[i + 0];
 
-  E  = hep[2 * i + 1];
+  E  = hep[(2 * i) + 1];
 
 #ifdef __PPC__
   ALIGNCORE(h0, h5, f0, vp[0], RES1,
@@ -838,8 +838,8 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
             QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
-  hep[2 * i + 0] = h8;
-  hep[2 * i + 1] = E;
+  hep[(2 * i) + 0] = h8;
+  hep[(2 * i) + 1] = E;
 
   Sm[0] = h5;
   Sm[1] = h6;
@@ -987,8 +987,8 @@ auto backtrack16(s16info_s * s,
       ++aligned;
 
       uint64_t d = *((uint64_t *) (dirbuffer +
-                                   (offset + 16 * s->qlen * (j / 4) +
-                                    16 * i + 4 *(j & 3)) % dirbuffersize));
+                                   (offset + (16 * s->qlen * (j / 4)) +
+                                    (16 * i) + 4 * (j & 3)) % dirbuffersize));
 
       if ((s->op == 'I') && (d & maskextleft))
         {
@@ -1119,7 +1119,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL *) (&s->matrix))[16 * i + j] = value;
+          ((CELL *) (&s->matrix))[(16 * i) + j] = value;
           scorematrix[i][j] = value;
         }
     }
@@ -1241,9 +1241,9 @@ auto search16(s16info_s * s,
             {
               pscores[cand_id] =
                 MAX(- s->penalty_gap_open_target_left -
-                    length * s->penalty_gap_extension_target_left,
+                    (length * s->penalty_gap_extension_target_left),
                     - s->penalty_gap_open_target_right -
-                    length * s->penalty_gap_extension_target_right);
+                    (length * s->penalty_gap_extension_target_right));
             }
 
           char * cigar = nullptr;
@@ -1442,11 +1442,11 @@ auto search16(s16info_s * s,
                 {
                   if (d_begin[c] < d_end[c])
                     {
-                      dseq[CHANNELS * j + c] = chrmap_4bit[*(d_begin[c]++)];
+                      dseq[(CHANNELS * j) + c] = chrmap_4bit[*(d_begin[c]++)];
                     }
                   else
                     {
-                      dseq[CHANNELS * j + c] = 0;
+                      dseq[(CHANNELS * j) + c] = 0;
                     }
                 }
               if (d_begin[c] == d_end[c])
@@ -1549,11 +1549,11 @@ auto search16(s16info_s * s,
                     {
                       if (d_begin[c] < d_end[c])
                         {
-                          dseq[CHANNELS * j + c] = chrmap_4bit[*(d_begin[c]++)];
+                          dseq[(CHANNELS * j) + c] = chrmap_4bit[*(d_begin[c]++)];
                         }
                       else
                         {
-                          dseq[CHANNELS * j + c] = 0;
+                          dseq[(CHANNELS * j) + c] = 0;
                         }
                     }
                   if (d_begin[c] == d_end[c])
@@ -1576,7 +1576,7 @@ auto search16(s16info_s * s,
                       char * dbseq = (char *) d_address[c];
                       int64_t dbseqlen = d_length[c];
                       int64_t z = (dbseqlen + 3) % 4;
-                      int64_t score = ((CELL *) S)[z * CHANNELS + c];
+                      int64_t score = ((CELL *) S)[(z * CHANNELS) + c];
 
                       if (overflow[c])
                         {
@@ -1658,12 +1658,12 @@ auto search16(s16info_s * s,
                         {
                           if (d_begin[c] < d_end[c])
                             {
-                              dseq[CHANNELS * j + c] =
+                              dseq[(CHANNELS * j) + c] =
                                 chrmap_4bit[*(d_begin[c]++)];
                             }
                           else
                             {
-                              dseq[CHANNELS * j + c] = 0;
+                              dseq[(CHANNELS * j) + c] = 0;
                             }
                         }
                       if (d_begin[c] == d_end[c])
@@ -1683,7 +1683,7 @@ auto search16(s16info_s * s,
                       d_offset[c] = 0;
                       for (int j = 0; j < CDEPTH; j++)
                         {
-                          dseq[CHANNELS * j + c] = 0;
+                          dseq[(CHANNELS * j) + c] = 0;
                         }
                     }
                 }
