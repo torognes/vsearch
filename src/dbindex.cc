@@ -70,7 +70,7 @@ uint64_t kmerindexsize;
 unsigned int dbindex_count;
 uhandle_s * dbindex_uh;
 
-constexpr unsigned int BITMAP_THRESHOLD = 8;
+constexpr unsigned int bitmap_threshold = 8;
 
 static unsigned int bitmap_mincount;
 
@@ -165,7 +165,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   /* determine minimum kmer count for bitmap usage */
   if (use_bitmap)
     {
-      bitmap_mincount = seqcount / BITMAP_THRESHOLD;
+      bitmap_mincount = seqcount / bitmap_threshold;
     }
   else
     {
