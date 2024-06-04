@@ -895,10 +895,13 @@ auto usearch_global(char * cmdline, char * progheader) -> void
 
 
   // Add OTUs with no matches to OTU table
-  if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
-    for(int64_t i=0; i<seqcount; i++)
-      if (! dbmatched[i])
+  if (opt_otutabout || opt_mothur_shared_out || opt_biomout) {
+    for (int64_t i = 0; i < seqcount; i++) {
+      if (! dbmatched[i]) {
         otutable_add(nullptr, db_getheader(i), 0);
+      }
+    }
+  }
 
   if (opt_biomout)
     {
