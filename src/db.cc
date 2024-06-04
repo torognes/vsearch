@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 
-constexpr uint64_t MEMCHUNK = 16777216;  // 2^24
+constexpr uint64_t memchunk = 16777216;  // 2^24
 
 static fastx_handle h = nullptr;
 static bool is_fastq = false;
@@ -130,7 +130,7 @@ auto db_add(bool is_fastq,
     }
   while (dataalloc < needed)
     {
-      dataalloc += MEMCHUNK;
+      dataalloc += memchunk;
     }
   if (dataalloc > dataalloc_old)
     {
@@ -165,7 +165,7 @@ auto db_add(bool is_fastq,
   size_t seqindex_alloc_old = seqindex_alloc;
   while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
     {
-      seqindex_alloc += MEMCHUNK;
+      seqindex_alloc += memchunk;
     }
   if (seqindex_alloc > seqindex_alloc_old)
     {
