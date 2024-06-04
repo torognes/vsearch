@@ -98,11 +98,12 @@ static double sum_fragment_length = 0.0;
 static pthread_t * pthread;
 static pthread_attr_t attr;
 
-static char merge_qual_same[128][128];
-static char merge_qual_diff[128][128];
-static double match_score[128][128];
-static double mism_score[128][128];
-static double q2p[128];
+constexpr auto n_quality_symbols = 128U;
+static char merge_qual_same[n_quality_symbols][n_quality_symbols];
+static char merge_qual_diff[n_quality_symbols][n_quality_symbols];
+static double match_score[n_quality_symbols][n_quality_symbols];
+static double mism_score[n_quality_symbols][n_quality_symbols];
+static double q2p[n_quality_symbols];
 
 static double sum_ee_fwd = 0.0;
 static double sum_ee_rev = 0.0;
