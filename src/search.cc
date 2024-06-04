@@ -928,7 +928,7 @@ auto usearch_global(char * cmdline, char * progheader) -> void
 
   if (opt_dbmatched || opt_dbnotmatched)
     {
-      for(int64_t i=0; i<seqcount; i++)
+      for (int64_t i = 0; i < seqcount; i++)
         {
           if (dbmatched[i])
             {
