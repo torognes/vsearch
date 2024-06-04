@@ -541,7 +541,7 @@ auto derep(char * input_filename, bool use_header) -> void
         collision when the number of sequences is about 5e9.
       */
 
-      uint64_t hash_header;
+      uint64_t hash_header = 0;
       if (use_header)
         {
           hash_header = HASH(header, headerlen);
@@ -623,7 +623,7 @@ auto derep(char * input_filename, bool use_header) -> void
                   int q2 = qual[i];
                   double p1 = convert_q_to_p(q1);
                   double p2 = convert_q_to_p(q2);
-                  double p3;
+                  double p3 = 0.0;
 
                   /* how to compute the new quality score? */
 
