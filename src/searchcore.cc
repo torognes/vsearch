@@ -310,8 +310,8 @@ auto align_trim(struct hit * hit) -> void
   /* left trim alignment */
 
   char * p = hit->nwalignment;
-  char op;
-  int64_t run;
+  char op = '\0';
+  int64_t run = 0;
   if (*p)
     {
       run = 1;
@@ -618,11 +618,11 @@ auto align_delayed(struct searchinfo_s * si) -> void
               int64_t target = hit->target;
               int64_t nwscore = nwscore_list[i];
 
-              char * nwcigar;
-              int64_t nwalignmentlength;
-              int64_t nwmatches;
-              int64_t nwmismatches;
-              int64_t nwgaps;
+              char * nwcigar = nullptr;
+              int64_t nwalignmentlength = 0;
+              int64_t nwmatches = 0;
+              int64_t nwmismatches = 0;
+              int64_t nwgaps = 0;
 
               int64_t dseqlen = db_getsequencelen(target);
 
