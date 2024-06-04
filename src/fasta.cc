@@ -427,26 +427,27 @@ auto fasta_print_general(std::FILE * fp,
 
   if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
     {
-      if (ee < 0.000000001)
+      if (ee < 0.000000001) {
         fprintf(fp, ";ee=%.13lf", ee);
-      else if (ee < 0.00000001)
+      } else if (ee < 0.00000001) {
         fprintf(fp, ";ee=%.12lf", ee);
-      else if (ee < 0.0000001)
+      } else if (ee < 0.0000001) {
         fprintf(fp, ";ee=%.11lf", ee);
-      else if (ee < 0.000001)
+      } else if (ee < 0.000001) {
         fprintf(fp, ";ee=%.10lf", ee);
-      else if (ee < 0.00001)
+      } else if (ee < 0.00001) {
         fprintf(fp, ";ee=%.9lf", ee);
-      else if (ee < 0.0001)
+      } else if (ee < 0.0001) {
         fprintf(fp, ";ee=%.8lf", ee);
-      else if (ee < 0.001)
+      } else if (ee < 0.001) {
         fprintf(fp, ";ee=%.7lf", ee);
-      else if (ee < 0.01)
+      } else if (ee < 0.01) {
         fprintf(fp, ";ee=%.6lf", ee);
-      else if (ee < 0.1)
+      } else if (ee < 0.1) {
         fprintf(fp, ";ee=%.5lf", ee);
-      else
+      } else {
         fprintf(fp, ";ee=%.4lf", ee);
+      }
     }
 
   if (opt_lengthout)
