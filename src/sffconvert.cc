@@ -359,7 +359,7 @@ auto sff_convert() -> void
         }
       qual[read_header.number_of_bases] = 0;
 
-      uint32_t read_data_length = (2 * sff_header.flows_per_read + 3 * read_header.number_of_bases);
+      uint32_t read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
       uint32_t read_data_padded_length = 8 * ((read_data_length + 7) / 8);
       uint32_t read_data_padding_length = read_data_padded_length - read_data_length;
 
