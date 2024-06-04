@@ -62,7 +62,7 @@
 
 auto fastq_fatal(uint64_t lineno, const char * msg) -> void
 {
-  char * string;
+  char * string = nullptr;
   if (xsprintf(& string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
