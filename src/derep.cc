@@ -291,15 +291,20 @@ auto derep(char * input_filename, bool use_header) -> void
     {
       if (fastx_is_fastq(h))
         {
-          if (not opt_fastx_uniques)
+          if (not opt_fastx_uniques) {
             fatal("FASTQ input is only allowed with the fastx_uniques command");
+          }
         }
       else
         {
-          if (opt_fastqout)
-            fatal("Cannot write FASTQ output when input file is not in FASTQ format");
-          if (opt_tabbedout)
-            fatal("Cannot write tab separated output file when input file is not in FASTQ format");
+          if (opt_fastqout) {
+            fatal("Cannot write FASTQ output when input file is not in FASTQ "
+                  "format");
+          }
+          if (opt_tabbedout) {
+            fatal("Cannot write tab separated output file when input file is "
+                  "not in FASTQ format");
+          }
         }
     }
 
@@ -310,14 +315,16 @@ auto derep(char * input_filename, bool use_header) -> void
 
   if (opt_fastx_uniques)
     {
-      if ((not opt_uc) and (not opt_fastaout) and (not opt_fastqout) and (not opt_tabbedout))
-        fatal("Output file for dereplication with fastx_uniques must be specified with --fastaout, --fastqout, --tabbedout, or --uc");
+      if ((not opt_uc) and (not opt_fastaout) and (not opt_fastqout) and (not opt_tabbedout)) {
+        fatal("Output file for dereplication with fastx_uniques must be "
+              "specified with --fastaout, --fastqout, --tabbedout, or --uc");
+      }
+    } else {
+    if ((not opt_output) and (not opt_uc)) {
+      fatal("Output file for dereplication must be specified with --output "
+            "or --uc");
     }
-  else
-    {
-      if ((not opt_output) and (not opt_uc))
-        fatal("Output file for dereplication must be specified with --output or --uc");
-    }
+  }
 
   if (opt_fastx_uniques)
     {
@@ -675,10 +682,11 @@ auto derep(char * input_filename, bool use_header) -> void
           bp->seq = xstrdup(seq);
           bp->header = xstrdup(header);
           bp->count = 1;
-          if (qual)
+          if (qual) {
             bp->qual = xstrdup(qual);
-          else
+          } else {
             bp->qual = nullptr;
+          }
           ++clusters;
         }
 
@@ -987,14 +995,15 @@ auto derep(char * input_filename, bool use_header) -> void
                next != terminal;
                next = nextseqtab[next])
             {
-              if (opt_relabel)
+              if (opt_relabel) {
                 fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                         headertab[next], opt_relabel, i + 1, i, j, bp->count, hh);
-              else
+              } else {
                 fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                         headertab[next], hh, i, j, bp->count, hh);
+              }
               ++j;
             }
 
@@ -1039,8 +1048,9 @@ auto derep(char * input_filename, bool use_header) -> void
         {
           xfree(bp->seq);
           xfree(bp->header);
-          if (bp->qual)
+          if (bp->qual) {
             xfree(bp->qual);
+          }
         }
     }
 
