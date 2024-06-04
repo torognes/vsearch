@@ -87,10 +87,10 @@ auto orient() -> void
 {
   fastx_handle query_h = nullptr;
 
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_tabbedout = nullptr;
-  FILE * fp_notmatched = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_tabbedout = nullptr;
+  std::FILE * fp_notmatched = nullptr;
 
   int queries = 0;
   int qmatches = 0;
