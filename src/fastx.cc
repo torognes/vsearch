@@ -63,7 +63,7 @@
 /* file compression and format detector */
 /* basic file buffering function for fastq and fastx parsers */
 
-constexpr uint64_t FASTX_BUFFER_ALLOC = 8192;
+constexpr uint64_t fastx_buffer_alloc = 8192;
 
 #ifdef HAVE_BZLIB_H
 #define BZ_VERBOSE_0 0
@@ -85,7 +85,7 @@ static unsigned char MAGIC_BZIP[] = "BZ";
 
 auto buffer_init(struct fastx_buffer_s * buffer) -> void
 {
-  buffer->alloc = FASTX_BUFFER_ALLOC;
+  buffer->alloc = fastx_buffer_alloc;
   buffer->data = (char *) xmalloc(buffer->alloc);
   buffer->data[0] = 0;
   buffer->length = 0;
@@ -113,8 +113,8 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void
       /* alloc space for x more characters,
          but round up to nearest block size */
       buffer->alloc =
-        ((buffer->length + x + FASTX_BUFFER_ALLOC - 1) / FASTX_BUFFER_ALLOC)
-        * FASTX_BUFFER_ALLOC;
+        ((buffer->length + x + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
+        * fastx_buffer_alloc;
       buffer->data = (char *) xrealloc(buffer->data, buffer->alloc);
     }
 }
