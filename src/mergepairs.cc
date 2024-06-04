@@ -1657,10 +1657,12 @@ auto fastq_mergepairs() -> void
       fatal("More reverse reads than forward reads");
     }
 
-  if (fp_log)
+  if (fp_log) {
     print_stats(fp_log);
-  else
+  }
+  else {
     print_stats(stderr);
+  }
 
   /* clean up */
 
