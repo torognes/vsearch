@@ -225,7 +225,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
   for (int d = 0; d < kh->maxpos - k + 1; d++)
     {
       int diag_len = kh->maxpos - d;
-      int minmatch = MAX(1, diag_len - k + 1 - k * MAX(diag_len / 20, 0));
+      int minmatch = MAX(1, diag_len - k + 1 - (k * MAX(diag_len / 20, 0)));
       int c = diag_counts[d];
 
       if (c >= minmatch)
