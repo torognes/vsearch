@@ -109,10 +109,10 @@ inline auto putop(char c, int64_t len) -> void
           d_start = d_pos;
         }
 
-      char qs;
-      char ds;
-      unsigned int qs4;
-      unsigned int ds4;
+      char qs = '\0';
+      char ds = '\0';
+      unsigned int qs4 = 0;
+      unsigned int ds4 = 0;
 
       switch(c)
         {
@@ -231,8 +231,8 @@ auto align_show(std::FILE * f,
 
   while (p < e)
     {
-      int64_t len;
-      int n;
+      int64_t len = 0;
+      int n = 0;
       if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
@@ -259,8 +259,8 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 
   while (*p != 0)
     {
-      int64_t len;
-      int n;
+      int64_t len = 0;
+      int n = 0;
       if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
