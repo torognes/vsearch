@@ -149,7 +149,7 @@ void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
 
 #ifdef SHA1HANDSOFF
     static uint8_t workspace[64];
-    block = (CHAR64LONG16*)workspace;
+    block = (CHAR64LONG16 *) workspace;
     memcpy(block, buffer, 64);
 #else
     block = (CHAR64LONG16*)buffer;
@@ -232,10 +232,9 @@ void SHA1_Update(SHA1_CTX* context, const uint8_t* data, const size_t len)
             SHA1_Transform(context->state, data + i);
         }
         j = 0;
+    } else {
+      i = 0;
     }
-    else { i = 0;
-
-        }
     memcpy(&context->buffer[j], &data[i], len - i);
 
 #ifdef VERBOSE
