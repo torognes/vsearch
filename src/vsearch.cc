@@ -5727,8 +5727,9 @@ auto cmd_fastq_mergepairs() -> void
 
 auto fillheader() -> void
 {
+  static constexpr auto max_line_length = std::size_t{80};
   constexpr static double one_gigabyte {1024 * 1024 * 1024};
-  snprintf(progheader, 80,
+  snprintf(progheader, max_line_length,
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / one_gigabyte,
