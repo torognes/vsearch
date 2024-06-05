@@ -5568,48 +5568,46 @@ auto cmd_subsample() -> void
 
 
 auto cmd_none() -> void {
-  if (! opt_quiet)
-    {
-      fprintf(stderr,
-              "For more help, please enter: %s --help\n"
-              "For further details, please consult the manual by entering: man vsearch\n"
-              "\n"
-              "Selected command examples:\n"
-              "\n"
-              "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
-              "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
-              "vsearch --cut FILENAME --cut_pattern G^AATT_C --fastaout FILENAME\n"
-              "vsearch --fastq_chars FILENAME\n"
-              "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
-              "vsearch --fastq_eestats FILENAME --output FILENAME\n"
-              "vsearch --fastq_eestats2 FILENAME --output FILENAME\n"
-              "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
-              "vsearch --fastq_stats FILENAME --log FILENAME\n"
-              "vsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\n"
-              "vsearch --fastx_getseq FILENAME --label LABEL --fastaout FILENAME\n"
-              "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
-              "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
-              "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
-              "vsearch --fastx_uniques FILENAME --output FILENAME\n"
-              "vsearch --makeudb_usearch FILENAME --output FILENAME\n"
-              "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
-              "vsearch --sff_convert FILENAME --output FILENAME --sff_clip\n"
-              "vsearch --shuffle FILENAME --output FILENAME\n"
-              "vsearch --sintax FILENAME --db FILENAME --tabbedout FILENAME\n"
-              "vsearch --sortbylength FILENAME --output FILENAME\n"
-              "vsearch --sortbysize FILENAME --output FILENAME\n"
-              "vsearch --uchime_denovo FILENAME --nonchimeras FILENAME\n"
-              "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
-              "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
-              "\n"
-              "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
-              "                derep_id, derep_fulllength, derep_prefix, derep_smallmem,\n"
-              "                fasta2fastq, fastq_filter, fastq_join, fastx_getseqs,\n"
-              "                fastx_getsubseq, maskfasta, orient, rereplicate, uchime2_denovo,\n"
-              "                uchime3_denovo, udb2fasta, udbinfo, udbstats, version\n"
-              "\n",
-              progname);
-    }
+  if (opt_quiet) { return ; }
+  fprintf(stderr,
+          "For more help, please enter: %s --help\n"
+          "For further details, please consult the manual by entering: man vsearch\n"
+          "\n"
+          "Selected command examples:\n"
+          "\n"
+          "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
+          "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
+          "vsearch --cut FILENAME --cut_pattern G^AATT_C --fastaout FILENAME\n"
+          "vsearch --fastq_chars FILENAME\n"
+          "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
+          "vsearch --fastq_eestats FILENAME --output FILENAME\n"
+          "vsearch --fastq_eestats2 FILENAME --output FILENAME\n"
+          "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
+          "vsearch --fastq_stats FILENAME --log FILENAME\n"
+          "vsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\n"
+          "vsearch --fastx_getseq FILENAME --label LABEL --fastaout FILENAME\n"
+          "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
+          "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
+          "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
+          "vsearch --fastx_uniques FILENAME --output FILENAME\n"
+          "vsearch --makeudb_usearch FILENAME --output FILENAME\n"
+          "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
+          "vsearch --sff_convert FILENAME --output FILENAME --sff_clip\n"
+          "vsearch --shuffle FILENAME --output FILENAME\n"
+          "vsearch --sintax FILENAME --db FILENAME --tabbedout FILENAME\n"
+          "vsearch --sortbylength FILENAME --output FILENAME\n"
+          "vsearch --sortbysize FILENAME --output FILENAME\n"
+          "vsearch --uchime_denovo FILENAME --nonchimeras FILENAME\n"
+          "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
+          "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
+          "\n"
+          "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
+          "                derep_id, derep_fulllength, derep_prefix, derep_smallmem,\n"
+          "                fasta2fastq, fastq_filter, fastq_join, fastx_getseqs,\n"
+          "                fastx_getsubseq, maskfasta, orient, rereplicate, uchime2_denovo,\n"
+          "                uchime3_denovo, udb2fasta, udbinfo, udbstats, version\n"
+          "\n",
+          progname);
 }
 
 
