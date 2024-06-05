@@ -556,7 +556,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
   */
 
-  char *p = arg;
+  char * p = arg;
 
   while (*p)
     {
@@ -730,6 +730,7 @@ auto args_getlong(char * arg) -> int64_t
   return temp;
 }
 
+
 auto args_getdouble(char * arg) -> double
 {
   int len = 0;
@@ -741,6 +742,7 @@ auto args_getdouble(char * arg) -> double
     }
   return temp;
 }
+
 
 auto args_init(int argc, char **argv) -> void
 {
@@ -4931,6 +4933,7 @@ auto args_init(int argc, char **argv) -> void
     }
 }
 
+
 auto show_publication() -> void
 {
   fprintf(stdout,
@@ -4939,6 +4942,7 @@ auto show_publication() -> void
           "PeerJ 4:e2584 doi: 10.7717/peerj.2584 https://doi.org/10.7717/peerj.2584\n"
           "\n");
 }
+
 
 auto cmd_version() -> void
 {
@@ -5500,6 +5504,7 @@ auto cmd_allpairs_global() -> void
   allpairs_global(cmdline, progheader);
 }
 
+
 auto cmd_usearch_global() -> void
 {
   /* check options */
@@ -5528,6 +5533,7 @@ auto cmd_usearch_global() -> void
   usearch_global(cmdline, progheader);
 }
 
+
 auto cmd_search_exact() -> void
 {
   /* check options */
@@ -5550,6 +5556,7 @@ auto cmd_search_exact() -> void
 
   search_exact(cmdline, progheader);
 }
+
 
 auto cmd_subsample() -> void
 {
@@ -5651,6 +5658,7 @@ auto cmd_cluster() -> void
     }
 }
 
+
 auto cmd_chimera() -> void
 {
   if ((! opt_chimeras)  && (! opt_nonchimeras) &&
@@ -5694,6 +5702,7 @@ auto cmd_chimera() -> void
 
   chimera();
 }
+
 
 auto cmd_fastq_mergepairs() -> void
 {
