@@ -5566,8 +5566,8 @@ auto cmd_subsample() -> void
   subsample();
 }
 
-auto cmd_none() -> void
-{
+
+auto cmd_none() -> void {
   if (! opt_quiet)
     {
       fprintf(stderr,
@@ -5611,6 +5611,7 @@ auto cmd_none() -> void
               progname);
     }
 }
+
 
 auto cmd_cluster() -> void
 {
