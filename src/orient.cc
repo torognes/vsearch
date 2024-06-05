@@ -176,7 +176,7 @@ auto orient() -> void
         {
           dust_all();
         }
-      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
         {
           hardmask_all();
         }
@@ -253,7 +253,7 @@ auto orient() -> void
       unsigned int min_count = 1;
       unsigned int min_factor = 4;
 
-      if ((count_fwd >= min_count) && (count_fwd >= min_factor * count_rev))
+      if ((count_fwd >= min_count) and (count_fwd >= min_factor * count_rev))
         {
           /* fwd */
 
@@ -291,7 +291,7 @@ auto orient() -> void
                                   -1.0);
             }
         }
-      else if ((count_rev >= min_count) && (count_rev >= min_factor * count_fwd))
+      else if ((count_rev >= min_count) and (count_rev >= min_factor * count_fwd))
         {
           /* rev */
 
