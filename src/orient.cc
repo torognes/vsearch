@@ -68,8 +68,8 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
 
-  unsigned int fwd = kmer;
-  unsigned int rev = 0;
+  auto fwd = kmer;
+  auto rev = 0U;
 
   for (int i = 0; i < opt_wordlength; i++)
     {
