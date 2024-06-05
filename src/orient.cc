@@ -105,7 +105,7 @@ auto orient() -> void
       fatal("Database not specified with --db");
     }
 
-  if (not (opt_fastaout || opt_fastqout || opt_notmatched || opt_tabbedout))
+  if (not (opt_fastaout or opt_fastqout or opt_notmatched or opt_tabbedout))
     {
       fatal("Output file not specified with --fastaout, --fastqout, --notmatched or --tabbedout");
     }
