@@ -633,7 +633,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
       /* if neither L, I, R nor E is specified, it applies to all */
 
-      if ((! set_L) && (! set_I) && (! set_R))
+      if ((not set_L) && (not set_I) && (not set_R))
         {
           set_L = 1;
           set_I = 1;
@@ -642,7 +642,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
       /* if neither Q nor T is specified, it applies to both */
 
-      if ((! set_Q) && (! set_T))
+      if ((not set_Q) && (not set_T))
         {
           set_Q = 1;
           set_T = 1;
@@ -1598,7 +1598,7 @@ auto args_init(int argc, char **argv) -> void
           break;
 
         case option_userfields:
-          if (! parse_userfields_arg(optarg))
+          if (not parse_userfields_arg(optarg))
             {
               fatal("Unrecognized userfield argument");
             }
@@ -4539,7 +4539,7 @@ auto args_init(int argc, char **argv) -> void
                     }
                   j++;
                 }
-              if (! ok)
+              if (not ok)
                 {
                   invalid_options++;
 
@@ -4567,7 +4567,7 @@ auto args_init(int argc, char **argv) -> void
               fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
               count++;
             }
-          if (! count)
+          if (not count)
             {
               fprintf(stderr, " (none)");
             }
@@ -4828,7 +4828,7 @@ auto args_init(int argc, char **argv) -> void
 
   if (opt_chimeras_denovo)
     {
-      if (! options_selected[option_alignwidth])
+      if (not options_selected[option_alignwidth])
         {
           opt_alignwidth = 60;
         }
@@ -4888,7 +4888,7 @@ auto args_init(int argc, char **argv) -> void
     }
 
   /* set default opt_abskew depending on command */
-  if (! options_selected[option_abskew])
+  if (not options_selected[option_abskew])
     {
       if (opt_chimeras_denovo)
         {
@@ -5486,15 +5486,15 @@ auto cmd_allpairs_global() -> void
 {
   /* check options */
 
-  if ((! opt_alnout) && (! opt_userout) &&
-      (! opt_uc) && (! opt_blast6out) &&
-      (! opt_matched) && (! opt_notmatched) &&
-      (! opt_samout) && (! opt_fastapairs))
+  if ((not opt_alnout) && (not opt_userout) &&
+      (not opt_uc) && (not opt_blast6out) &&
+      (not opt_matched) && (not opt_notmatched) &&
+      (not opt_samout) && (not opt_fastapairs))
     {
       fatal("No output files specified");
     }
 
-  if (! (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
+  if (not (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
     {
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
@@ -5507,18 +5507,18 @@ auto cmd_usearch_global() -> void
 {
   /* check options */
 
-  if ((! opt_alnout) && (! opt_userout) &&
-      (! opt_uc) && (! opt_blast6out) &&
-      (! opt_matched) && (! opt_notmatched) &&
-      (! opt_dbmatched) && (! opt_dbnotmatched) &&
-      (! opt_samout) && (! opt_otutabout) &&
-      (! opt_biomout) && (! opt_mothur_shared_out) &&
-      (! opt_fastapairs) && (! opt_lcaout))
+  if ((not opt_alnout) && (not opt_userout) &&
+      (not opt_uc) && (not opt_blast6out) &&
+      (not opt_matched) && (not opt_notmatched) &&
+      (not opt_dbmatched) && (not opt_dbnotmatched) &&
+      (not opt_samout) && (not opt_otutabout) &&
+      (not opt_biomout) && (not opt_mothur_shared_out) &&
+      (not opt_fastapairs) && (not opt_lcaout))
     {
       fatal("No output files specified");
     }
 
-  if (! opt_db)
+  if (not opt_db)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5536,18 +5536,18 @@ auto cmd_search_exact() -> void
 {
   /* check options */
 
-  if ((! opt_alnout) && (! opt_userout) &&
-      (! opt_uc) && (! opt_blast6out) &&
-      (! opt_matched) && (! opt_notmatched) &&
-      (! opt_dbmatched) && (! opt_dbnotmatched) &&
-      (! opt_samout) && (! opt_otutabout) &&
-      (! opt_biomout) && (! opt_mothur_shared_out) &&
-      (! opt_fastapairs) && (! opt_lcaout))
+  if ((not opt_alnout) && (not opt_userout) &&
+      (not opt_uc) && (not opt_blast6out) &&
+      (not opt_matched) && (not opt_notmatched) &&
+      (not opt_dbmatched) && (not opt_dbnotmatched) &&
+      (not opt_samout) && (not opt_otutabout) &&
+      (not opt_biomout) && (not opt_mothur_shared_out) &&
+      (not opt_fastapairs) && (not opt_lcaout))
     {
       fatal("No output files specified");
     }
 
-  if (! opt_db)
+  if (not opt_db)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5618,19 +5618,19 @@ auto cmd_none() -> void {
 
 auto cmd_cluster() -> void
 {
-  if ((! opt_alnout) && (! opt_userout) &&
-      (! opt_uc) && (! opt_blast6out) &&
-      (! opt_matched) && (! opt_notmatched) &&
-      (! opt_centroids) && (! opt_clusters) &&
-      (! opt_consout) && (! opt_msaout) &&
-      (! opt_samout) && (! opt_profile) &&
-      (! opt_otutabout) && (! opt_biomout) &&
-      (! opt_mothur_shared_out))
+  if ((not opt_alnout) && (not opt_userout) &&
+      (not opt_uc) && (not opt_blast6out) &&
+      (not opt_matched) && (not opt_notmatched) &&
+      (not opt_centroids) && (not opt_clusters) &&
+      (not opt_consout) && (not opt_msaout) &&
+      (not opt_samout) && (not opt_profile) &&
+      (not opt_otutabout) && (not opt_biomout) &&
+      (not opt_mothur_shared_out))
     {
       fatal("No output files specified");
     }
 
-  if (! opt_cluster_unoise)
+  if (not opt_cluster_unoise)
     {
       if ((opt_id < 0.0) || (opt_id > 1.0))
         {
@@ -5659,13 +5659,13 @@ auto cmd_cluster() -> void
 
 auto cmd_chimera() -> void
 {
-  if ((! opt_chimeras)  && (! opt_nonchimeras) &&
-      (! opt_uchimeout) && (! opt_uchimealns))
+  if ((not opt_chimeras)  && (not opt_nonchimeras) &&
+      (not opt_uchimeout) && (not opt_uchimealns))
     {
       fatal("No output files specified");
     }
 
-  if (opt_uchime_ref && ! opt_db)
+  if (opt_uchime_ref && not opt_db)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5680,7 +5680,7 @@ auto cmd_chimera() -> void
       fatal("Argument to --dn must be > 0");
     }
 
-  if ((! opt_uchime2_denovo) && (! opt_uchime3_denovo))
+  if ((not opt_uchime2_denovo) && (not opt_uchime3_denovo))
     {
       if (opt_mindiffs <= 0)
         {
@@ -5704,17 +5704,17 @@ auto cmd_chimera() -> void
 
 auto cmd_fastq_mergepairs() -> void
 {
-  if (! opt_reverse)
+  if (not opt_reverse)
     {
       fatal("No reverse reads file specified with --reverse");
     }
-  if ((! opt_fastqout) &&
-      (! opt_fastaout) &&
-      (! opt_fastqout_notmerged_fwd) &&
-      (! opt_fastqout_notmerged_rev) &&
-      (! opt_fastaout_notmerged_fwd) &&
-      (! opt_fastaout_notmerged_rev) &&
-      (! opt_eetabbedout))
+  if ((not opt_fastqout) &&
+      (not opt_fastaout) &&
+      (not opt_fastqout_notmerged_fwd) &&
+      (not opt_fastqout_notmerged_rev) &&
+      (not opt_fastaout_notmerged_fwd) &&
+      (not opt_fastaout_notmerged_rev) &&
+      (not opt_eetabbedout))
     {
       fatal("No output files specified");
     }
@@ -5776,7 +5776,7 @@ auto main(int argc, char** argv) -> int
   if (opt_log)
     {
       fp_log = fopen_output(opt_log);
-      if (! fp_log)
+      if (not fp_log)
         {
           fatal("Unable to open log file for writing");
         }
@@ -5797,7 +5797,7 @@ auto main(int argc, char** argv) -> int
   dynlibs_open();
 
 #ifdef __x86_64__
-  if (! sse2_present)
+  if (not sse2_present)
     {
       fatal("Sorry, this program requires a cpu with SSE2.");
     }
