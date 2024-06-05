@@ -348,6 +348,7 @@ char * STDOUT_NAME = (char *) "/dev/stdout";
                         : "a" (f1), "c" (f2));
 #endif
 
+
 auto cpu_features_detect() -> void
 {
 #ifdef __aarch64__
@@ -391,6 +392,7 @@ auto cpu_features_detect() -> void
 #error Unknown architecture
 #endif
 }
+
 
 auto cpu_features_show() -> void
 {
@@ -446,6 +448,7 @@ auto cpu_features_show() -> void
   fprintf(stderr, "\n");
 }
 
+
 auto args_get_ee_cutoffs(char * arg) -> void
 {
   /* get comma-separated list of floating point numbers */
@@ -493,6 +496,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
     }
 }
 
+
 auto args_get_length_cutoffs(char * arg) -> void
 {
   /* get comma-separated list of 3 integers: */
@@ -528,7 +532,6 @@ auto args_get_length_cutoffs(char * arg) -> void
       fatal("Invalid arguments to length_cutoffs");
     }
 }
-
 
 
 auto args_get_gap_penalty_string(char * arg, int is_open) -> void
