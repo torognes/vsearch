@@ -4946,54 +4946,53 @@ auto show_publication() -> void
 
 auto cmd_version() -> void
 {
-  if (! opt_quiet)
-    {
-      show_publication();
+  if (opt_quiet) { return ; }
+
+  show_publication();
 
 #ifdef HAVE_ZLIB_H
-      printf("Compiled with support for gzip-compressed files,");
-      if (gz_lib)
-        {
-          printf(" and the library is loaded.\n");
+  printf("Compiled with support for gzip-compressed files,");
+  if (gz_lib)
+    {
+      printf(" and the library is loaded.\n");
 
-          char * (*zlibVersion_p)();
-          zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib,
-                                                    "zlibVersion");
-          char * gz_version = (*zlibVersion_p)();
-          uLong (*zlibCompileFlags_p)();
-          zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
-                                                        "zlibCompileFlags");
-          uLong flags = (*zlibCompileFlags_p)();
+      char * (*zlibVersion_p)();
+      zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib,
+                                                "zlibVersion");
+      char * gz_version = (*zlibVersion_p)();
+      uLong (*zlibCompileFlags_p)();
+      zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
+                                                    "zlibCompileFlags");
+      uLong flags = (*zlibCompileFlags_p)();
 
-          printf("zlib version %s, compile flags %lx", gz_version, flags);
-          if (flags & 0x0400)
-            {
-              printf(" (ZLIB_WINAPI)");
-            }
-          printf("\n");
-        }
-      else
+      printf("zlib version %s, compile flags %lx", gz_version, flags);
+      if (flags & 0x0400)
         {
-          printf(" but the library was not found.\n");
+          printf(" (ZLIB_WINAPI)");
         }
+      printf("\n");
+    }
+  else
+    {
+      printf(" but the library was not found.\n");
+    }
 #else
-      printf("Compiled without support for gzip-compressed files.\n");
+  printf("Compiled without support for gzip-compressed files.\n");
 #endif
 
 #ifdef HAVE_BZLIB_H
-      printf("Compiled with support for bzip2-compressed files,");
-      if (bz2_lib)
-        {
-          printf(" and the library is loaded.\n");
-        }
-      else
-        {
-          printf(" but the library was not found.\n");
-        }
-#else
-      printf("Compiled without support for bzip2-compressed files.\n");
-#endif
+  printf("Compiled with support for bzip2-compressed files,");
+  if (bz2_lib)
+    {
+      printf(" and the library is loaded.\n");
     }
+  else
+    {
+      printf(" but the library was not found.\n");
+    }
+#else
+  printf("Compiled without support for bzip2-compressed files.\n");
+#endif
 }
 
 
