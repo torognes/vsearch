@@ -5747,8 +5747,8 @@ auto getentirecommandline(int argc, char** argv) -> void
     }
 }
 
-auto show_header() -> void
-{
+
+auto show_header() -> void {
   if (! opt_quiet)
     {
       fprintf(stderr, "%s\n", progheader);
@@ -5756,6 +5756,7 @@ auto show_header() -> void
       fprintf(stderr, "\n");
     }
 }
+
 
 auto main(int argc, char** argv) -> int
 {
