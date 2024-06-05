@@ -233,11 +233,11 @@ auto orient() -> void
 
           if (hits_fwd > hits_factor * hits_rev)
             {
-              count_fwd++;
+              ++count_fwd;
             }
           else if (hits_rev > hits_factor * hits_fwd)
             {
-              count_rev++;
+              ++count_rev;
             }
         }
 
@@ -247,7 +247,7 @@ auto orient() -> void
 
       /* update stats */
 
-      queries++;
+      ++queries;
 
       int strand = 2;
       unsigned int min_count = 1;
@@ -258,8 +258,8 @@ auto orient() -> void
           /* fwd */
 
           strand = 0;
-          matches_fwd++;
-          qmatches++;
+          ++matches_fwd;
+          ++qmatches;
 
           if (opt_fastaout)
             {
@@ -364,7 +364,7 @@ auto orient() -> void
           /* undecided */
 
           strand = 2;
-          notmatched++;
+          ++notmatched;
 
           if (opt_notmatched)
             {
