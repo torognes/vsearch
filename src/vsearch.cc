@@ -5749,12 +5749,10 @@ auto getentirecommandline(int argc, char** argv) -> void
 
 
 auto show_header() -> void {
-  if (! opt_quiet)
-    {
-      fprintf(stderr, "%s\n", progheader);
-      fprintf(stderr, "https://github.com/torognes/vsearch\n");
-      fprintf(stderr, "\n");
-    }
+  if (opt_quiet) { return ; }
+  fprintf(stderr, "%s\n", progheader);
+  fprintf(stderr, "https://github.com/torognes/vsearch\n");
+  fprintf(stderr, "\n");
 }
 
 
