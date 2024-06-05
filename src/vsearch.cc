@@ -589,7 +589,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
       int set_Q = 0;
       int set_T = 0;
 
-      while ((*p) && (*p != '/'))
+      while ((*p) and (*p != '/'))
         {
           switch(*p)
             {
@@ -623,7 +623,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
           p++;
         }
 
-      if (set_E && (set_L or set_R))
+      if (set_E and (set_L or set_R))
         {
           fatal("Invalid gap penalty string (E and L or R) '%s'", q);
         }
@@ -636,7 +636,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
       /* if neither L, I, R nor E is specified, it applies to all */
 
-      if ((not set_L) && (not set_I) && (not set_R))
+      if ((not set_L) and (not set_I) and (not set_R))
         {
           set_L = 1;
           set_I = 1;
@@ -645,7 +645,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
       /* if neither Q nor T is specified, it applies to both */
 
-      if ((not set_Q) && (not set_T))
+      if ((not set_Q) and (not set_T))
         {
           set_Q = 1;
           set_T = 1;
@@ -4604,7 +4604,7 @@ auto args_init(int argc, char **argv) -> void
         }
       opt_threads = 1;
     }
-  if (opt_sintax && opt_randseed && (opt_threads > 1))
+  if (opt_sintax and opt_randseed and (opt_threads > 1))
     {
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
@@ -4716,12 +4716,12 @@ auto args_init(int argc, char **argv) -> void
       fatal("The argument to --fastq_tail must be positive");
     }
 
-  if ((opt_min_unmasked_pct < 0.0) && (opt_min_unmasked_pct > 100.0))
+  if ((opt_min_unmasked_pct < 0.0) and (opt_min_unmasked_pct > 100.0))
     {
       fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
     }
 
-  if ((opt_max_unmasked_pct < 0.0) && (opt_max_unmasked_pct > 100.0))
+  if ((opt_max_unmasked_pct < 0.0) and (opt_max_unmasked_pct > 100.0))
     {
       fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
     }
@@ -4731,7 +4731,7 @@ auto args_init(int argc, char **argv) -> void
       fatal("The argument to --min_unmasked_pct cannot be larger than --max_unmasked_pct");
     }
 
-  if ((opt_fastq_ascii != 33) && (opt_fastq_ascii != 64))
+  if ((opt_fastq_ascii != 33) and (opt_fastq_ascii != 64))
     {
       fatal("The argument to --fastq_ascii must be 33 or 64");
     }
@@ -4756,7 +4756,7 @@ auto args_init(int argc, char **argv) -> void
       fatal("The argument to --fastq_qminout cannot be larger than --fastq_qmaxout");
     }
 
-  if ((opt_fastq_asciiout != 33) && (opt_fastq_asciiout != 64))
+  if ((opt_fastq_asciiout != 33) and (opt_fastq_asciiout != 64))
     {
       fatal("The argument to --fastq_asciiout must be 33 or 64");
     }
@@ -4771,7 +4771,7 @@ auto args_init(int argc, char **argv) -> void
       fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
     }
 
-  if (opt_gzip_decompress && opt_bzip2_decompress)
+  if (opt_gzip_decompress and opt_bzip2_decompress)
     {
       fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
     }
@@ -4823,7 +4823,7 @@ auto args_init(int argc, char **argv) -> void
       fatal("The argument to chimeras_diff_pct must be in the range 0.0 to 50.0");
     }
 
-  if (options_selected[option_chimeras_parts] &&
+  if (options_selected[option_chimeras_parts] and
       ((opt_chimeras_parts < 2) or (opt_chimeras_parts > 100)))
     {
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
@@ -5489,15 +5489,15 @@ auto cmd_allpairs_global() -> void
 {
   /* check options */
 
-  if ((not opt_alnout) && (not opt_userout) &&
-      (not opt_uc) && (not opt_blast6out) &&
-      (not opt_matched) && (not opt_notmatched) &&
-      (not opt_samout) && (not opt_fastapairs))
+  if ((not opt_alnout) and (not opt_userout) and
+      (not opt_uc) and (not opt_blast6out) and
+      (not opt_matched) and (not opt_notmatched) and
+      (not opt_samout) and (not opt_fastapairs))
     {
       fatal("No output files specified");
     }
 
-  if (not (opt_acceptall or ((opt_id >= 0.0) && (opt_id <= 1.0))))
+  if (not (opt_acceptall or ((opt_id >= 0.0) and (opt_id <= 1.0))))
     {
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
@@ -5510,13 +5510,13 @@ auto cmd_usearch_global() -> void
 {
   /* check options */
 
-  if ((not opt_alnout) && (not opt_userout) &&
-      (not opt_uc) && (not opt_blast6out) &&
-      (not opt_matched) && (not opt_notmatched) &&
-      (not opt_dbmatched) && (not opt_dbnotmatched) &&
-      (not opt_samout) && (not opt_otutabout) &&
-      (not opt_biomout) && (not opt_mothur_shared_out) &&
-      (not opt_fastapairs) && (not opt_lcaout))
+  if ((not opt_alnout) and (not opt_userout) and
+      (not opt_uc) and (not opt_blast6out) and
+      (not opt_matched) and (not opt_notmatched) and
+      (not opt_dbmatched) and (not opt_dbnotmatched) and
+      (not opt_samout) and (not opt_otutabout) and
+      (not opt_biomout) and (not opt_mothur_shared_out) and
+      (not opt_fastapairs) and (not opt_lcaout))
     {
       fatal("No output files specified");
     }
@@ -5539,13 +5539,13 @@ auto cmd_search_exact() -> void
 {
   /* check options */
 
-  if ((not opt_alnout) && (not opt_userout) &&
-      (not opt_uc) && (not opt_blast6out) &&
-      (not opt_matched) && (not opt_notmatched) &&
-      (not opt_dbmatched) && (not opt_dbnotmatched) &&
-      (not opt_samout) && (not opt_otutabout) &&
-      (not opt_biomout) && (not opt_mothur_shared_out) &&
-      (not opt_fastapairs) && (not opt_lcaout))
+  if ((not opt_alnout) and (not opt_userout) and
+      (not opt_uc) and (not opt_blast6out) and
+      (not opt_matched) and (not opt_notmatched) and
+      (not opt_dbmatched) and (not opt_dbnotmatched) and
+      (not opt_samout) and (not opt_otutabout) and
+      (not opt_biomout) and (not opt_mothur_shared_out) and
+      (not opt_fastapairs) and (not opt_lcaout))
     {
       fatal("No output files specified");
     }
@@ -5621,13 +5621,13 @@ auto cmd_none() -> void {
 
 auto cmd_cluster() -> void
 {
-  if ((not opt_alnout) && (not opt_userout) &&
-      (not opt_uc) && (not opt_blast6out) &&
-      (not opt_matched) && (not opt_notmatched) &&
-      (not opt_centroids) && (not opt_clusters) &&
-      (not opt_consout) && (not opt_msaout) &&
-      (not opt_samout) && (not opt_profile) &&
-      (not opt_otutabout) && (not opt_biomout) &&
+  if ((not opt_alnout) and (not opt_userout) and
+      (not opt_uc) and (not opt_blast6out) and
+      (not opt_matched) and (not opt_notmatched) and
+      (not opt_centroids) and (not opt_clusters) and
+      (not opt_consout) and (not opt_msaout) and
+      (not opt_samout) and (not opt_profile) and
+      (not opt_otutabout) and (not opt_biomout) and
       (not opt_mothur_shared_out))
     {
       fatal("No output files specified");
@@ -5662,13 +5662,13 @@ auto cmd_cluster() -> void
 
 auto cmd_chimera() -> void
 {
-  if ((not opt_chimeras)  && (not opt_nonchimeras) &&
-      (not opt_uchimeout) && (not opt_uchimealns))
+  if ((not opt_chimeras)  and (not opt_nonchimeras) and
+      (not opt_uchimeout) and (not opt_uchimealns))
     {
       fatal("No output files specified");
     }
 
-  if (opt_uchime_ref && not opt_db)
+  if (opt_uchime_ref and not opt_db)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5683,7 +5683,7 @@ auto cmd_chimera() -> void
       fatal("Argument to --dn must be > 0");
     }
 
-  if ((not opt_uchime2_denovo) && (not opt_uchime3_denovo))
+  if ((not opt_uchime2_denovo) and (not opt_uchime3_denovo))
     {
       if (opt_mindiffs <= 0)
         {
@@ -5711,12 +5711,12 @@ auto cmd_fastq_mergepairs() -> void
     {
       fatal("No reverse reads file specified with --reverse");
     }
-  if ((not opt_fastqout) &&
-      (not opt_fastaout) &&
-      (not opt_fastqout_notmerged_fwd) &&
-      (not opt_fastqout_notmerged_rev) &&
-      (not opt_fastaout_notmerged_fwd) &&
-      (not opt_fastaout_notmerged_rev) &&
+  if ((not opt_fastqout) and
+      (not opt_fastaout) and
+      (not opt_fastqout_notmerged_fwd) and
+      (not opt_fastqout_notmerged_rev) and
+      (not opt_fastaout_notmerged_fwd) and
+      (not opt_fastaout_notmerged_rev) and
       (not opt_eetabbedout))
     {
       fatal("No output files specified");
