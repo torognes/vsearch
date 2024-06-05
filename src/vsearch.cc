@@ -472,7 +472,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
       double val = 0;
       int skip = 0;
 
-      if ((sscanf(s, "%lf%n", &val, &skip) != 1) || (val <= 0.0))
+      if ((sscanf(s, "%lf%n", &val, &skip) != 1) or (val <= 0.0))
         {
           fatal("Invalid arguments to ee_cutoffs");
         }
@@ -525,8 +525,8 @@ auto args_get_length_cutoffs(char * arg) -> void
       fatal("Invalid arguments to length_cutoffs");
     }
 
-  if ((opt_length_cutoffs_shortest < 1) ||
-      (opt_length_cutoffs_shortest > opt_length_cutoffs_longest) ||
+  if ((opt_length_cutoffs_shortest < 1) or
+      (opt_length_cutoffs_shortest > opt_length_cutoffs_longest) or
       (opt_length_cutoffs_increment < 1))
     {
       fatal("Invalid arguments to length_cutoffs");
@@ -623,7 +623,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
           p++;
         }
 
-      if (set_E && (set_L || set_R))
+      if (set_E && (set_L or set_R))
         {
           fatal("Invalid gap penalty string (E and L or R) '%s'", q);
         }
@@ -726,7 +726,7 @@ auto args_getlong(char * arg) -> int64_t
   int len = 0;
   int64_t temp = 0;
   const int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
-  if ((ret == 0) || (((unsigned int) (len)) < strlen(arg)))
+  if ((ret == 0) or (((unsigned int) (len)) < strlen(arg)))
     {
       fatal("Illegal option argument");
     }
@@ -739,7 +739,7 @@ auto args_getdouble(char * arg) -> double
   int len = 0;
   double temp = 0;
   const int ret = sscanf(arg, "%lf%n", &temp, &len);
-  if ((ret == 0) || (((unsigned int)(len)) < strlen(arg)))
+  if ((ret == 0) or (((unsigned int)(len)) < strlen(arg)))
     {
       fatal("Illegal option argument");
     }
@@ -4581,15 +4581,15 @@ auto args_init(int argc, char **argv) -> void
 
   /* multi-threaded commands */
 
-  if ((opt_threads < 0) || (opt_threads > 1024))
+  if ((opt_threads < 0) or (opt_threads > 1024))
     {
       fatal("The argument to --threads must be in the range 0 (default) to 1024");
     }
 
-  if (opt_allpairs_global || opt_cluster_fast || opt_cluster_size ||
-      opt_cluster_smallmem || opt_cluster_unoise || opt_fastq_mergepairs ||
-      opt_fastx_mask || opt_maskfasta || opt_search_exact || opt_sintax ||
-      opt_uchime_ref || opt_usearch_global)
+  if (opt_allpairs_global or opt_cluster_fast or opt_cluster_size or
+      opt_cluster_smallmem or opt_cluster_unoise or opt_fastq_mergepairs or
+      opt_fastx_mask or opt_maskfasta or opt_search_exact or opt_sintax or
+      opt_uchime_ref or opt_usearch_global)
     {
       if (opt_threads == 0)
         {
@@ -4654,12 +4654,12 @@ auto args_init(int argc, char **argv) -> void
         }
     }
 
-  if ((opt_wordlength < 3) || (opt_wordlength > 15))
+  if ((opt_wordlength < 3) or (opt_wordlength > 15))
     {
       fatal("The argument to --wordlength must be in the range 3 to 15");
     }
 
-  if ((opt_iddef < 0) || (opt_iddef > 4))
+  if ((opt_iddef < 0) or (opt_iddef > 4))
     {
       fatal("The argument to --iddef must in the range 0 to 4");
     }
@@ -4695,7 +4695,7 @@ auto args_init(int argc, char **argv) -> void
       fatal("The argument to --dbmask must be none, dust or soft");
     }
 
-  if ((opt_sample_pct < 0.0) || (opt_sample_pct > 100.0))
+  if ((opt_sample_pct < 0.0) or (opt_sample_pct > 100.0))
     {
       fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
     }
@@ -4776,12 +4776,12 @@ auto args_init(int argc, char **argv) -> void
       fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
     }
 
-  if ((opt_sintax_cutoff < 0.0) || (opt_sintax_cutoff > 1.0))
+  if ((opt_sintax_cutoff < 0.0) or (opt_sintax_cutoff > 1.0))
     {
       fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
     }
 
-  if ((opt_lca_cutoff <= 0.5) || (opt_lca_cutoff > 1.0))
+  if ((opt_lca_cutoff <= 0.5) or (opt_lca_cutoff > 1.0))
     {
       fatal("The argument to lca_cutoff must be larger than 0.5, but not larger than 1.0");
     }
@@ -4811,20 +4811,20 @@ auto args_init(int argc, char **argv) -> void
       fatal("The argument to chimeras_length_min must be at least 1");
     }
 
-  if ((opt_chimeras_parents_max < 2) || (opt_chimeras_parents_max > maxparents))
+  if ((opt_chimeras_parents_max < 2) or (opt_chimeras_parents_max > maxparents))
     {
       char maxparents_string[25];
       snprintf(maxparents_string, 25, "%d", maxparents);
       fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string);
     }
 
-  if ((opt_chimeras_diff_pct < 0.0) || (opt_chimeras_diff_pct > 50.0))
+  if ((opt_chimeras_diff_pct < 0.0) or (opt_chimeras_diff_pct > 50.0))
     {
       fatal("The argument to chimeras_diff_pct must be in the range 0.0 to 50.0");
     }
 
   if (options_selected[option_chimeras_parts] &&
-      ((opt_chimeras_parts < 2) || (opt_chimeras_parts > 100)))
+      ((opt_chimeras_parts < 2) or (opt_chimeras_parts > 100)))
     {
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
     }
@@ -4911,15 +4911,15 @@ auto args_init(int argc, char **argv) -> void
 
   if (opt_minseqlength < 0)
     {
-      if (opt_cluster_fast ||
-          opt_cluster_size ||
-          opt_cluster_smallmem ||
-          opt_cluster_unoise ||
-          opt_derep_fulllength ||
-          opt_derep_id ||
-          opt_derep_prefix ||
-          opt_makeudb_usearch ||
-          opt_sintax ||
+      if (opt_cluster_fast or
+          opt_cluster_size or
+          opt_cluster_smallmem or
+          opt_cluster_unoise or
+          opt_derep_fulllength or
+          opt_derep_id or
+          opt_derep_prefix or
+          opt_makeudb_usearch or
+          opt_sintax or
           opt_usearch_global)
         {
           opt_minseqlength = 32;
@@ -5497,7 +5497,7 @@ auto cmd_allpairs_global() -> void
       fatal("No output files specified");
     }
 
-  if (not (opt_acceptall || ((opt_id >= 0.0) && (opt_id <= 1.0))))
+  if (not (opt_acceptall or ((opt_id >= 0.0) && (opt_id <= 1.0))))
     {
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
@@ -5526,7 +5526,7 @@ auto cmd_usearch_global() -> void
       fatal("Database filename not specified with --db");
     }
 
-  if ((opt_id < 0.0) || (opt_id > 1.0))
+  if ((opt_id < 0.0) or (opt_id > 1.0))
     {
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
     }
@@ -5635,7 +5635,7 @@ auto cmd_cluster() -> void
 
   if (not opt_cluster_unoise)
     {
-      if ((opt_id < 0.0) || (opt_id > 1.0))
+      if ((opt_id < 0.0) or (opt_id > 1.0))
         {
           fatal("Identity between 0.0 and 1.0 must be specified with --id");
         }
@@ -5854,11 +5854,11 @@ auto main(int argc, char** argv) -> int
     {
       maskfasta();
     }
-  else if (opt_cluster_smallmem || opt_cluster_fast || opt_cluster_size || opt_cluster_unoise)
+  else if (opt_cluster_smallmem or opt_cluster_fast or opt_cluster_size or opt_cluster_unoise)
     {
       cmd_cluster();
     }
-  else if (opt_uchime_denovo || opt_uchime_ref || opt_uchime2_denovo || opt_uchime3_denovo || opt_chimeras_denovo)
+  else if (opt_uchime_denovo or opt_uchime_ref or opt_uchime2_denovo or opt_uchime3_denovo or opt_chimeras_denovo)
     {
       cmd_chimera();
     }
