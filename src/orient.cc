@@ -100,12 +100,12 @@ auto orient() -> void
 
   /* check arguments */
 
-  if (! opt_db)
+  if (not opt_db)
     {
       fatal("Database not specified with --db");
     }
 
-  if (! (opt_fastaout || opt_fastqout || opt_notmatched || opt_tabbedout))
+  if (not (opt_fastaout || opt_fastqout || opt_notmatched || opt_tabbedout))
     {
       fatal("Output file not specified with --fastaout, --fastqout, --notmatched or --tabbedout");
     }
@@ -119,7 +119,7 @@ auto orient() -> void
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (not fp_fastaout)
         {
           fatal("Unable to open fasta output file for writing");
         }
@@ -127,13 +127,13 @@ auto orient() -> void
 
   if (opt_fastqout)
     {
-      if (! fastx_is_fastq(query_h))
+      if (not fastx_is_fastq(query_h))
         {
           fatal("Cannot write FASTQ output with FASTA input");
         }
 
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (not fp_fastqout)
         {
           fatal("Unable to open fastq output file for writing");
         }
@@ -142,7 +142,7 @@ auto orient() -> void
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (not fp_notmatched)
         {
           fatal("Unable to open notmatched output file for writing");
         }
@@ -151,7 +151,7 @@ auto orient() -> void
   if (opt_tabbedout)
     {
       fp_tabbedout = fopen_output(opt_tabbedout);
-      if (! fp_tabbedout)
+      if (not fp_tabbedout)
         {
           fatal("Unable to open tabbedout output file for writing");
         }
@@ -170,7 +170,7 @@ auto orient() -> void
       db_read(opt_db, 0);
     }
 
-  if (! is_udb)
+  if (not is_udb)
     {
       if (opt_dbmask == MASK_DUST)
         {
@@ -182,7 +182,7 @@ auto orient() -> void
         }
     }
 
-  if (! is_udb)
+  if (not is_udb)
     {
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
@@ -197,7 +197,7 @@ auto orient() -> void
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
   while (fastx_next(query_h,
-                    ! opt_notrunclabels,
+                    not opt_notrunclabels,
                     chrmap_no_change))
     {
       char * query_head = fastx_get_header(query_h);
@@ -451,7 +451,7 @@ auto orient() -> void
 
   fasta_close(query_h);
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
