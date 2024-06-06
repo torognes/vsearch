@@ -78,7 +78,7 @@
 /* Compute multiple sequence alignment (msa), profile, and consensus
    sequence of clustered sequences */
 
-using prof_type = uint64_t;
+using prof_type = std::uint64_t;
 constexpr auto PROFSIZE = 6;
 
 
