@@ -79,7 +79,7 @@
    sequence of clustered sequences */
 
 using prof_type = std::uint64_t;
-constexpr auto PROFSIZE = 6;
+constexpr auto profsize = 6;
 
 
 auto update_profile(char const nucleotide,
@@ -92,7 +92,7 @@ auto update_profile(char const nucleotide,
   static constexpr auto U_counter = 3;  // note: T converted to U?
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  auto const offset = PROFSIZE * position_in_alignment;
+  auto const offset = profsize * position_in_alignment;
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
   switch(std::toupper(nucleotide))
@@ -445,7 +445,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
       prof_type best_count = 0;
       for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          auto const count = profile[(PROFSIZE * i) + nucleotide];
+          auto const count = profile[(profsize * i) + nucleotide];
           if (count > best_count)
             {
               best_count = count;
@@ -454,7 +454,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* if no A, C, G, or T, check if there are any N's */
-      auto const N_count = profile[(PROFSIZE * i) + 4];
+      auto const N_count = profile[(profsize * i) + 4];
       if ((best_count == 0) and (N_count > 0))
         {
           best_count = N_count;
@@ -462,7 +462,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* compare to the number of gap symbols */
-      auto const gap_count = profile[(PROFSIZE * i) + 5];
+      auto const gap_count = profile[(profsize * i) + 5];
       if (best_count >= gap_count)
         {
           auto const index = static_cast<unsigned char>(best_sym);
@@ -537,7 +537,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(PROFSIZE * counter) + symbol_index]));
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(profsize * counter) + symbol_index]));
       }
       static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;
@@ -559,7 +559,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alignment_length);  // C++20 refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);
+  std::vector<prof_type> profile(static_cast<unsigned long>(profsize) * alignment_length);  // C++20 refactoring: std::vector<std::array<prof_type, profsize>>(alnlen);
   std::vector<char> aln_v(alignment_length + 1);
   std::vector<char> cons_v(alignment_length + 1);
 
