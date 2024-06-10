@@ -121,7 +121,7 @@ auto db_add(bool is_fastq,
 
   /* grow space for data, if necessary */
 
-  size_t dataalloc_old = dataalloc;
+  size_t const dataalloc_old = dataalloc;
 
   size_t needed = datalen + headerlength + 1 + sequencelength + 1;
   if (is_fastq)
@@ -138,20 +138,20 @@ auto db_add(bool is_fastq,
     }
 
   /* store the header */
-  size_t header_p = datalen;
+  size_t const header_p = datalen;
   memcpy(datap + header_p,
          header,
          headerlength + 1);
   datalen += headerlength + 1;
 
   /* store sequence */
-  size_t sequence_p = datalen;
+  size_t const sequence_p = datalen;
   memcpy(datap + sequence_p,
          sequence,
          sequencelength + 1);
   datalen += sequencelength + 1;
 
-  size_t quality_p = datalen;
+  size_t const quality_p = datalen;
   if (is_fastq)
     {
       /* store quality */
@@ -162,7 +162,7 @@ auto db_add(bool is_fastq,
     }
 
   /* grow space for index, if necessary */
-  size_t seqindex_alloc_old = seqindex_alloc;
+  size_t const seqindex_alloc_old = seqindex_alloc;
   while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
     {
       seqindex_alloc += memchunk;
@@ -210,7 +210,7 @@ auto db_read(const char * filename, int upcase) -> void
 
   is_fastq = fastx_is_fastq(h);
 
-  int64_t filesize = fastx_get_size(h);
+  int64_t const filesize = fastx_get_size(h);
 
   char * prompt = nullptr;
   if (xsprintf(& prompt, "Reading file %s", filename) == -1)
@@ -243,8 +243,8 @@ auto db_read(const char * filename, int upcase) -> void
                    not opt_notrunclabels,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {
-      size_t sequencelength = fastx_get_sequence_length(h);
-      int64_t abundance = fastx_get_abundance(h);
+      size_t const sequencelength = fastx_get_sequence_length(h);
+      int64_t const abundance = fastx_get_abundance(h);
 
       if (sequencelength < (size_t) opt_minseqlength)
         {
@@ -442,7 +442,7 @@ auto compare_bylength(const void * a, const void * b) -> int
         }
       else
         {
-          int r = strcmp(datap + x->header_p, datap + y->header_p);
+          int const r = strcmp(datap + x->header_p, datap + y->header_p);
           if (r != 0)
             {
               return r;
@@ -493,7 +493,7 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
         }
       else
         {
-          int r = strcmp(datap + x->header_p, datap + y->header_p);
+          int const r = strcmp(datap + x->header_p, datap + y->header_p);
           if (r != 0)
             {
               return r;
@@ -534,7 +534,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
     }
   else
     {
-      int r = strcmp(datap + x->header_p, datap + y->header_p);
+      int const r = strcmp(datap + x->header_p, datap + y->header_p);
       if (r != 0)
         {
           return r;
