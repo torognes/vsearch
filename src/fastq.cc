@@ -103,8 +103,8 @@ auto buffer_filter_extend(fastx_handle h,
 
   for(uint64_t i = 0; i < len; i++)
     {
-      char c = *p++;
-      char m = char_action[(unsigned char)c];
+      char const c = *p++;
+      char const m = char_action[(unsigned char)c];
 
       switch(m)
         {
@@ -489,7 +489,7 @@ auto fastq_get_sequence(fastx_handle h) -> char *
 auto fastq_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
-  int64_t size = header_get_size(h->header_buffer.data,
+  int64_t const size = header_get_size(h->header_buffer.data,
                                  h->header_buffer.length);
   if (size > 0)
     {
@@ -543,9 +543,9 @@ auto fastq_print_general(FILE * fp,
     }
   else
     {
-      bool xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      bool xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      bool xlength = opt_xlength || opt_lengthout;
+      bool const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
+      bool const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      bool const xlength = opt_xlength || opt_lengthout;
       header_fprint_strip(fp,
                           header,
                           header_len,
@@ -610,7 +610,7 @@ auto fastq_print_general(FILE * fp,
 
 auto fastq_print(FILE * fp, char * header, char * sequence, char * quality) -> void
 {
-  int slen = strlen(sequence);
-  int hlen = strlen(header);
+  int const slen = strlen(sequence);
+  int const hlen = strlen(header);
   fastq_print_general(fp, sequence, slen, header, hlen, quality, 0, 0, -1.0);
 }
