@@ -167,6 +167,24 @@ auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void 
 }
 
 
+// auto trim_deck(std::vector<struct sortinfo_size_s> & deck)
+//     -> std::vector<struct sortinfo_size_s> {
+//   // assume deck is sorted by decreasing abundance
+//   // - opt_minsize = 0 by default
+//   // - opt_maxsize = LONG_MAX by default
+//   // - size is unsigned int
+//   auto begin = std::upper_bound(deck.begin(), deck.end(), opt_maxsize,
+//                                 [](int64_t maxsize, struct sortinfo_size_s & seq) -> bool {
+//                                   return seq.size > maxsize;
+//                                 });
+//   auto end = std::lower_bound(deck.begin(), deck.end(), opt_minsize,
+//                               [](int64_t minsize, struct sortinfo_size_s & seq) -> bool {
+//                                 return seq.size <= minsize;
+//                               });
+//   return std::vector<struct sortinfo_size_s>{begin, end};
+// }
+
+
 auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
                    long int const n_first_sequences) -> void {
   auto const final_size = std::min(deck.size(),
