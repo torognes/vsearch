@@ -76,7 +76,7 @@ static unsigned int bitmap_mincount;
 
 void fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer)
 {
-  uint64_t x = kmer;
+  uint64_t const x = kmer;
   for (unsigned int i = 0; i < kk; i++)
     {
       fprintf(f, "%c", sym_nt_2bit[(x >> (2 * (kk - i - 1))) & 3]);
@@ -97,7 +97,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
   dbindex_map[dbindex_count] = seqno;
   for (unsigned int i = 0; i < uniquecount; i++)
     {
-      unsigned int kmer = uniquelist[i];
+      unsigned int const kmer = uniquelist[i];
       if (kmerbitmap[kmer])
         {
           kmercount[kmer]++;
@@ -113,7 +113,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
 
 void dbindex_addallsequences(int seqmask)
 {
-  unsigned int seqcount = db_getsequencecount();
+  unsigned int const seqcount = db_getsequencecount();
   progress_init("Creating k-mer index", seqcount);
   for (unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
@@ -127,7 +127,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 {
   dbindex_uh = unique_init();
 
-  unsigned int seqcount = db_getsequencecount();
+  unsigned int const seqcount = db_getsequencecount();
   kmerhashsize = 1 << (2 * opt_wordlength);
 
   /* allocate memory for kmer count array */
