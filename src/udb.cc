@@ -68,7 +68,7 @@
 #include <cstring>  // std::memset, std::memmove
 
 
-constexpr auto BLOCKSIZE = 4096U * 4096U;
+constexpr auto blocksize = 4096U * 4096U;
 
 static unsigned int udb_dbaccel = 0;
 
@@ -112,7 +112,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   /* call pread multiple times and update progress */
 
   uint64_t progress = offset;
-  for (uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
+  for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
       uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
@@ -120,7 +120,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 const rem = MIN(BLOCKSIZE, nbyte - i);
+      uint64 const rem = MIN(blocksize, nbyte - i);
       uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
@@ -138,7 +138,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   /* call write multiple times and update progress */
 
   uint64_t progress = offset;
-  for (uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
+  for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
       uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
@@ -146,7 +146,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 const rem = MIN(BLOCKSIZE, nbyte - i);
+      uint64 const rem = MIN(blocksize, nbyte - i);
       uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
