@@ -114,7 +114,7 @@ auto sintax_analyse(char * query_head,
 
   /* Check number of successful bootstraps, must be at least half */
 
-  bool enough = count >= (bootstrap_count + 1) / 2;
+  bool const enough = count >= (bootstrap_count + 1) / 2;
 
   if (enough)
     {
@@ -125,7 +125,7 @@ auto sintax_analyse(char * query_head,
         {
           /* Split headers of all candidates by taxonomy ranks */
 
-          int seqno = all_seqno[i];
+          int const seqno = all_seqno[i];
           int new_level_start[tax_levels];
           int new_level_len[tax_levels];
           tax_split(seqno, new_level_start, new_level_len);
@@ -205,7 +205,7 @@ auto sintax_analyse(char * query_head,
       bool comma = false;
       for (int j = 0; j < tax_levels; j++)
         {
-          int best = level_best[j];
+          int const best = level_best[j];
           if (cand_level_len[best][j] > 0)
             {
               fprintf(fp_tabbedout,
@@ -227,7 +227,7 @@ auto sintax_analyse(char * query_head,
           bool comma = false;
           for (int j = 0; j < tax_levels; j++)
             {
-              int best = level_best[j];
+              int const best = level_best[j];
               if ((cand_level_len[best][j] > 0) &&
                   (1.0 * level_match[j] / count >= opt_sintax_cutoff))
                 {
@@ -278,7 +278,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
 
   for(unsigned int i = 0; i < si->kmersamplecount; i++)
     {
-      unsigned int kmer = si->kmersample[i];
+      unsigned int const kmer = si->kmersample[i];
       unsigned char * bitmap = dbindex_getbitmap(kmer);
 
       if (bitmap)
@@ -301,7 +301,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
       else
         {
           unsigned int * list = dbindex_getmatchlist(kmer);
-          unsigned int count = dbindex_getmatchcount(kmer);
+          unsigned int const count = dbindex_getmatchcount(kmer);
           for(unsigned int j = 0; j < count; j++)
             {
               si->kmers[list[j]]++;
@@ -318,9 +318,9 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
 
   for (int i = 0; i < indexed_count; i++)
     {
-      count_t count = si->kmers[i];
-      unsigned int seqno = dbindex_getmapping(i);
-      unsigned int length = db_getsequencelen(best.seqno);
+      count_t const count = si->kmers[i];
+      unsigned int const seqno = dbindex_getmapping(i);
+      unsigned int const length = db_getsequencelen(best.seqno);
 
       if (count > best.count)
         {
@@ -369,7 +369,7 @@ auto sintax_query(int64_t t) -> void
   int all_seqno[2][bootstrap_count];
   int boot_count[2] = {0, 0};
   unsigned int best_count[2] = {0, 0};
-  int qseqlen = si_plus[t].qseqlen;
+  int const qseqlen = si_plus[t].qseqlen;
   char * query_head = si_plus[t].query_head;
 
   bitmap_t * b = bitmap_init(qseqlen);
@@ -400,7 +400,7 @@ auto sintax_query(int64_t t) -> void
               bitmap_reset_all(b);
               for (int j = 0; j < subset_size ; j++)
                 {
-                  int64_t x = random_int(kmersamplecount);
+                  int64_t const x = random_int(kmersamplecount);
                   if (! bitmap_get(b, x))
                     {
                       kmersample_subset[subsamples++] = kmersample[x];
@@ -415,7 +415,7 @@ auto sintax_query(int64_t t) -> void
 
               if (! minheap_isempty(si->m))
                 {
-                  elem_t e = minheap_poplast(si->m);
+                  elem_t const e = minheap_poplast(si->m);
 
                   all_seqno[s][boot_count[s]++] = e.seqno;
 
@@ -476,11 +476,11 @@ auto sintax_thread_run(int64_t t) -> void
                      chrmap_no_change))
         {
           char * qhead = fastx_get_header(query_fastx_h);
-          int query_head_len = fastx_get_header_length(query_fastx_h);
+          int const query_head_len = fastx_get_header_length(query_fastx_h);
           char * qseq = fastx_get_sequence(query_fastx_h);
-          int qseqlen = fastx_get_sequence_length(query_fastx_h);
-          int query_no = fastx_get_seqno(query_fastx_h);
-          int qsize = fastx_get_abundance(query_fastx_h);
+          int const qseqlen = fastx_get_sequence_length(query_fastx_h);
+          int const query_no = fastx_get_seqno(query_fastx_h);
+          int const qsize = fastx_get_abundance(query_fastx_h);
 
           for (int s = 0; s < opt_strand; s++)
             {
@@ -514,7 +514,7 @@ auto sintax_thread_run(int64_t t) -> void
           strcpy(si_plus[t].qsequence, qseq);
 
           /* get progress as amount of input file read */
-          uint64_t progress = fastx_get_position(query_fastx_h);
+          uint64_t const progress = fastx_get_position(query_fastx_h);
 
           /* let other threads read input */
           xpthread_mutex_unlock(&mutex_input);
@@ -646,7 +646,7 @@ auto sintax() -> void
 
   /* check if db may be an UDB file */
 
-  bool is_udb = udb_detect_isudb(opt_db);
+  bool const is_udb = udb_detect_isudb(opt_db);
 
   if (is_udb)
     {
