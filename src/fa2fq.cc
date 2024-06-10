@@ -115,7 +115,7 @@ auto fasta2fastq() -> void
 
       ++count;
 
-      /* write to fasta file */
+      /* write to fastq file */
 
       fastq_print_general(fp_fastqout,
                           fastq_get_sequence(fp_input),
