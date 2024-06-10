@@ -240,7 +240,7 @@ auto fileopenw(char * filename) -> FILE *
 
 inline auto get_qual(char q) -> int
 {
-  int qual = q - opt_fastq_ascii;
+  int const qual = q - opt_fastq_ascii;
 
   if (qual < opt_fastq_qmin)
     {
@@ -311,12 +311,12 @@ auto precompute_qual() -> void
 
   for (int x = 33; x <= 126; x++)
     {
-      double px = q_to_p(x);
+      double const px = q_to_p(x);
       q2p[x] = px;
 
       for (int y = 33; y <= 126; y++)
         {
-          double py = q_to_p(y);
+          double const py = q_to_p(y);
 
           double p = 0.0;
           double q = 0.0;
@@ -575,7 +575,7 @@ auto merge(merge_data_t * ip) -> void
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
-  int64_t fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
+  int64_t const fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
     ip->fwd_trunc - ip->offset : 0;
 
   ip->ee_merged = 0.0;
@@ -619,7 +619,7 @@ auto merge(merge_data_t * ip) -> void
 
   // Merged region
 
-  int64_t rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
+  int64_t const rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
     ip->offset - ip->fwd_trunc : 0;
 
   rev_pos = ip->rev_trunc - 1 - rev_3prime_overhang;
@@ -676,7 +676,7 @@ auto merge(merge_data_t * ip) -> void
       rev_pos--;
     }
 
-  int64_t mergelen = merged_pos;
+  int64_t const mergelen = merged_pos;
   ip->merged_length = mergelen;
 
   ip->merged_sequence[mergelen] = 0;
@@ -698,8 +698,8 @@ auto optimize(merge_data_t * ip,
 {
   /* ungapped alignment in each diagonal */
 
-  int64_t i1 = 1;
-  int64_t i2 = ip->fwd_trunc + ip->rev_trunc - 1;
+  int64_t const i1 = 1;
+  int64_t const i2 = ip->fwd_trunc + ip->rev_trunc - 1;
 
   double best_score = 0.0;
   int64_t best_i = 0;
@@ -716,8 +716,8 @@ auto optimize(merge_data_t * ip,
 
   for (int64_t i = i1; i <= i2; i++)
     {
-      int diag = ip->rev_trunc + ip->fwd_trunc - i;
-      int diagcount = diags[diag];
+      int const diag = ip->rev_trunc + ip->fwd_trunc - i;
+      int const diagcount = diags[diag];
 
       if (diagcount >= merge_mindiagcount)
         {
@@ -725,15 +725,15 @@ auto optimize(merge_data_t * ip,
 
           /* for each interesting diagonal */
 
-          int64_t fwd_3prime_overhang
+          int64_t const fwd_3prime_overhang
             = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
-          int64_t rev_3prime_overhang
+          int64_t const rev_3prime_overhang
             = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
-          int64_t overlap
+          int64_t const overlap
             = i - fwd_3prime_overhang - rev_3prime_overhang;
-          int64_t fwd_pos_start
+          int64_t const fwd_pos_start
             = ip->fwd_trunc - fwd_3prime_overhang - 1;
-          int64_t rev_pos_start
+          int64_t const rev_pos_start
             = ip->rev_trunc - rev_3prime_overhang - overlap;
 
           int64_t fwd_pos = fwd_pos_start;
@@ -748,13 +748,13 @@ auto optimize(merge_data_t * ip,
             {
               /* for each pair of bases in the overlap */
 
-              char fwd_sym
+              char const fwd_sym
                 = ip->fwd_sequence[fwd_pos];
-              char rev_sym
+              char const rev_sym
                 = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
 
-              unsigned int fwd_qual = ip->fwd_quality[fwd_pos];
-              unsigned int rev_qual = ip->rev_quality[rev_pos];
+              unsigned int const fwd_qual = ip->fwd_quality[fwd_pos];
+              unsigned int const rev_qual = ip->rev_quality[rev_pos];
 
               fwd_pos--;
               rev_pos++;
@@ -839,7 +839,7 @@ auto optimize(merge_data_t * ip,
       return 0;
     }
 
-  int mergelen = ip->fwd_trunc + ip->rev_trunc - best_i;
+  int const mergelen = ip->fwd_trunc + ip->rev_trunc - best_i;
 
   if (mergelen < opt_fastq_minmergelen)
     {
@@ -989,9 +989,9 @@ auto read_pair(merge_data_t * ip) -> bool
 
       /* allocate more memory if necessary */
 
-      int64_t fwd_header_len = fastq_get_header_length(fastq_fwd);
-      int64_t rev_header_len = fastq_get_header_length(fastq_rev);
-      int64_t header_needed = MAX(fwd_header_len, rev_header_len) + 1;
+      int64_t const fwd_header_len = fastq_get_header_length(fastq_fwd);
+      int64_t const rev_header_len = fastq_get_header_length(fastq_rev);
+      int64_t const header_needed = MAX(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > ip->header_alloc)
         {
@@ -1002,7 +1002,7 @@ auto read_pair(merge_data_t * ip) -> bool
 
       ip->fwd_length = fastq_get_sequence_length(fastq_fwd);
       ip->rev_length = fastq_get_sequence_length(fastq_rev);
-      int64_t seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
+      int64_t const seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
 
       sum_read_length += ip->fwd_length + ip->rev_length;
 
@@ -1016,7 +1016,7 @@ auto read_pair(merge_data_t * ip) -> bool
         }
 
 
-      int64_t merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
+      int64_t const merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
 
       if (merged_seq_needed > ip->merged_seq_alloc)
         {
@@ -1175,7 +1175,7 @@ inline auto chunk_perform_write() -> void
 
 inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
 {
-  int chunk_current = chunk_process_next;
+  int const chunk_current = chunk_process_next;
   if (chunks[chunk_current].state == filled)
     {
       chunks[chunk_current].state = inprogress;
@@ -1530,7 +1530,7 @@ auto print_stats(FILE * fp) -> void
     {
       fprintf(fp, "Statistics of all reads:\n");
 
-      double mean_read_length = sum_read_length / (2.0 * pairs_read);
+      double const mean_read_length = sum_read_length / (2.0 * pairs_read);
 
       fprintf(fp,
               "%10.2f  Mean read length\n",
@@ -1543,13 +1543,13 @@ auto print_stats(FILE * fp) -> void
 
       fprintf(fp, "Statistics of merged reads:\n");
 
-      double mean = sum_fragment_length / merged;
+      double const mean = sum_fragment_length / merged;
 
       fprintf(fp,
               "%10.2f  Mean fragment length\n",
               mean);
 
-      double stdev = sqrt((sum_squared_fragment_length
+      double const stdev = sqrt((sum_squared_fragment_length
                            - 2.0 * mean * sum_fragment_length
                            + mean * mean * merged)
                           / (merged + 0.0));
@@ -1643,7 +1643,7 @@ auto fastq_mergepairs() -> void
 
   /* main */
 
-  uint64_t filesize = fastq_get_size(fastq_fwd);
+  uint64_t const filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
 
   if (! fastq_fwd->is_empty)
