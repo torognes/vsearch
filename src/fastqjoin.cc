@@ -107,7 +107,7 @@ auto fastq_join() -> void
       padgap = xstrdup("NNNNNNNN");
     }
 
-  uint64_t padlen = strlen(padgap);
+  uint64_t const padlen = strlen(padgap);
 
   if (opt_join_padgapq)
     {
@@ -146,7 +146,7 @@ auto fastq_join() -> void
 
   /* main */
 
-  uint64_t filesize = fastq_get_size(fastq_fwd);
+  uint64_t const filesize = fastq_get_size(fastq_fwd);
   progress_init("Joining reads", filesize);
 
   /* do it */
@@ -165,12 +165,12 @@ auto fastq_join() -> void
           fatal("More forward reads than reverse reads");
         }
 
-      uint64_t fwd_seq_length = fastq_get_sequence_length(fastq_fwd);
-      uint64_t rev_seq_length = fastq_get_sequence_length(fastq_rev);
+      uint64_t const fwd_seq_length = fastq_get_sequence_length(fastq_fwd);
+      uint64_t const rev_seq_length = fastq_get_sequence_length(fastq_rev);
 
       /* allocate enough mem */
 
-      uint64_t needed = fwd_seq_length + rev_seq_length + padlen + 1;
+      uint64_t const needed = fwd_seq_length + rev_seq_length + padlen + 1;
       if (alloc < needed)
         {
           seq = (char *) xrealloc(seq, needed);
@@ -195,7 +195,7 @@ auto fastq_join() -> void
 
       for (uint64_t i = 0; i < rev_seq_length; i++)
         {
-          uint64_t rev_pos = rev_seq_length - 1 - i;
+          uint64_t const rev_pos = rev_seq_length - 1 - i;
           seq[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
           qual[len] = rev_qual[rev_pos];
           len++;
