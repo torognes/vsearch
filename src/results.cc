@@ -59,6 +59,10 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::snprintf, std::sscanf
+#include <cstring>  // std::strlen, std::strncmp
 
 
 auto results_show_fastapairs_one(FILE * fp,
