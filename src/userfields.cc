@@ -165,7 +165,7 @@ auto parse_userfields_arg(char * arg) -> int
           return 0; // bad argument
         }
 
-      int i = (int) (((const char **) u) - userfields_names);
+      int const i = (int) (((const char **) u) - userfields_names);
       userfields_requested[fields++] = i;
 
       p = q;
