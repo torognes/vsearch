@@ -59,6 +59,10 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::memset
+
 
 unsigned int * kmercount;
 uint64_t * kmerhash;
