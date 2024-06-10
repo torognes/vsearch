@@ -208,7 +208,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
       ci->query_seq = (char *) xrealloc(ci->query_seq, maxqlen + 1);
 
-      for(auto & i: ci->si)
+      for (auto & i: ci->si)
         {
           i.qsequence = (char *) xrealloc(i.qsequence, maxpartlen + 1);
         }
@@ -567,7 +567,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           if (not cand_selected[i])
             {
               int sum = 0;
-              for(int qpos = 0; qpos < ci->query_len; qpos++)
+              for (int qpos = 0; qpos < ci->query_len; qpos++)
                 {
                   int const z = (i * ci->query_len) + qpos;
                   sum += ci->match[z];
@@ -958,7 +958,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       }
       int rest = alnlen;
 
-      for(int i = 0; i < alnlen; i += width)
+      for (int i = 0; i < alnlen; i += width)
         {
           /* count non-gap symbols on current line */
 
@@ -970,7 +970,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
           int const w = MIN(rest, width);
 
-          for(int j = 0; j < w; j++)
+          for (int j = 0; j < w; j++)
             {
               if (ci->qaln[i + j] != '-')
                 {
@@ -1317,7 +1317,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       if (best_reverse)
         {
-          for(int i = 0; i < alnlen; i++)
+          for (int i = 0; i < alnlen; i++)
             {
               char const diff = ci->diffs[i];
               if (diff == 'A')
@@ -1333,7 +1333,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       /* fill in votes and model */
 
-      for(int i = 0; i < alnlen; i++)
+      for (int i = 0; i < alnlen; i++)
         {
           char const m = i <= best_i ? 'A' : 'B';
           ci->model[i] = m;
@@ -1370,7 +1370,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       /* fill in crossover region */
 
-      for(int i = best_i + 1; i < alnlen; i++)
+      for (int i = best_i + 1; i < alnlen; i++)
         {
           if ((ci->diffs[i] == ' ') or (ci->diffs[i] == 'A'))
             {
@@ -1396,7 +1396,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       int match_QM = 0;
       int cols = 0;
 
-      for(int i = 0; i < alnlen; i++)
+      for (int i = 0; i < alnlen; i++)
         {
           if (not ci->ignore[i])
             {
@@ -1507,7 +1507,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           int p2pos = 0;
           int rest = alnlen;
 
-          for(int i = 0; i < alnlen; i += width)
+          for (int i = 0; i < alnlen; i += width)
             {
               /* count non-gap symbols on current line */
 
@@ -1517,7 +1517,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
               int const w = MIN(rest,width);
 
-              for(int j = 0; j < w; j++)
+              for (int j = 0; j < w; j++)
                 {
                   if (ci->qaln[i + j] != '-')
                     {
@@ -1756,7 +1756,7 @@ auto chimera_thread_init(struct chimera_info_s * ci) -> void
       ci->paln[f] = nullptr;
     }
 
-  for(int i = 0; i < maxparts; i++)
+  for (int i = 0; i < maxparts; i++)
     {
       query_init(ci->si + i);
     }
@@ -1781,7 +1781,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
   search16_exit(ci->s);
 
-  for(int i = 0; i < maxparts; i++)
+  for (int i = 0; i < maxparts; i++)
     {
       query_exit(ci->si + i);
     }
@@ -1948,7 +1948,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               int hit_count = 0;
               search_onequery(ci->si + i, opt_qmask);
               search_joinhits(ci->si + i, nullptr, & hits, & hit_count);
-              for(int j = 0; j < hit_count; j++)
+              for (int j = 0; j < hit_count; j++)
                 {
                   if (hits[j].accepted)
                     {
@@ -1959,13 +1959,13 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
         }
 
-      for(int i = 0; i < allhits_count; i++)
+      for (int i = 0; i < allhits_count; i++)
         {
           unsigned int const target = allhits_list[i].target;
 
           /* skip duplicates */
           int k {0};
-          for(k = 0; k < ci->cand_count; k++)
+          for (k = 0; k < ci->cand_count; k++)
             {
               if (ci->cand_list[k] == target)
                 {
@@ -2246,14 +2246,14 @@ auto chimera_threads_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* create worker threads */
-  for(int64_t t = 0; t < opt_threads; t++)
+  for (int64_t t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread + t, & attr,
                       chimera_thread_worker, (void*)t);
     }
 
   /* finish worker threads */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
