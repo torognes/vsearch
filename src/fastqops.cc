@@ -78,7 +78,7 @@ auto fastq_chars() -> void
 
   fastx_handle h = fastq_open(opt_fastq_chars);
 
-  uint64_t filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(h);
 
   progress_init("Reading FASTQ file", filesize);
 
@@ -89,7 +89,7 @@ auto fastq_chars() -> void
 
   while (fastq_next(h, false, chrmap_upcase))
     {
-      int64_t len = fastq_get_sequence_length(h);
+      int64_t const len = fastq_get_sequence_length(h);
       char * p = fastq_get_sequence(h);
       char * q = fastq_get_quality(h);
 
@@ -102,8 +102,8 @@ auto fastq_chars() -> void
       int64_t i = 0;
       while (i < len)
         {
-          int pc = *p++;
-          int qc = *q++;
+          int const pc = *p++;
+          int const qc = *q++;
           sequence_chars[pc]++;
           quality_chars[qc]++;
 
@@ -139,7 +139,7 @@ auto fastq_chars() -> void
       if (len >= opt_fastq_tail)
         {
           q = fastq_get_quality(h) + len - 1;
-          int tail_char = *q--;
+          int const tail_char = *q--;
           int tail_len = 1;
           while (*q-- == tail_char)
             {
@@ -378,7 +378,7 @@ auto fastq_stats() -> void
 {
   fastx_handle h = fastq_open(opt_fastq_stats);
 
-  uint64_t filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(h);
 
   progress_init("Reading FASTQ file", filesize);
 
@@ -418,7 +418,7 @@ auto fastq_stats() -> void
     {
       seq_count++;
 
-      int64_t len = fastq_get_sequence_length(h);
+      int64_t const len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
 
       /* update length statistics */
@@ -468,15 +468,15 @@ auto fastq_stats() -> void
 
       symbols += len;
 
-      double ee_limit[4] = { 1.0, 0.5, 0.25, 0.1 };
+      double const ee_limit[4] = { 1.0, 0.5, 0.25, 0.1 };
 
       double ee = 0.0;
       int qmin_this = 1000;
       for (int64_t i = 0; i < len; i++)
         {
-          int qc = q[i];
+          int const qc = q[i];
 
-          int qual = qc - opt_fastq_ascii;
+          int const qual = qc - opt_fastq_ascii;
           if ((qual < opt_fastq_qmin) || (qual > opt_fastq_qmax))
             {
               char * msg = nullptr;
@@ -572,7 +572,7 @@ auto fastq_stats() -> void
       double e_sum = 0.0;
       for (int c = qmin; c <= qmax; c++)
         {
-          int qual = c - opt_fastq_ascii;
+          int const qual = c - opt_fastq_ascii;
           x += qual_length_table[(256 * i) + c];
           q += qual_length_table[(256 * i) + c] * qual;
           e_sum += qual_length_table[(256 * i) + c] * q2p(qual);
@@ -631,11 +631,11 @@ auto fastq_stats() -> void
 
       for (int64_t i = 2; i <= len_max; i++)
         {
-          double PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
-          double AvgQ = avgq_dist[i - 1];
-          double AvgP = avgp_dist[i - 1];
-          double AvgEE = avgee_dist[i - 1];
-          double Rate = rate_dist[i - 1];
+          double const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
+          double const AvgQ = avgq_dist[i - 1];
+          double const AvgP = avgp_dist[i - 1];
+          double const AvgEE = avgee_dist[i - 1];
+          double const Rate = rate_dist[i - 1];
 
           fprintf(fp_log,
                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
@@ -751,7 +751,7 @@ auto fastx_revcomp() -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  uint64_t filesize = fastx_get_size(h);
+  uint64_t const filesize = fastx_get_size(h);
 
   FILE * fp_fastaout = nullptr;
   FILE * fp_fastqout = nullptr;
@@ -791,14 +791,14 @@ auto fastx_revcomp() -> void
 
       /* header */
 
-      uint64_t hlen = fastx_get_header_length(h);
+      uint64_t const hlen = fastx_get_header_length(h);
       char * header = fastx_get_header(h);
-      int64_t abundance = fastx_get_abundance(h);
+      int64_t const abundance = fastx_get_abundance(h);
 
 
       /* sequence */
 
-      uint64_t length = fastx_get_sequence_length(h);
+      uint64_t const length = fastx_get_sequence_length(h);
 
       if (length + 1 > buffer_alloc)
         {
@@ -885,7 +885,7 @@ auto fastq_convert() -> void
       fatal("Unable to open FASTQ file");
     }
 
-  uint64_t filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(h);
 
   FILE * fp_fastqout = nullptr;
 
@@ -903,11 +903,11 @@ auto fastq_convert() -> void
       /* header */
 
       char * header = fastq_get_header(h);
-      int64_t abundance = fastq_get_abundance(h);
+      int64_t const abundance = fastq_get_abundance(h);
 
       /* sequence */
 
-      uint64_t length = fastq_get_sequence_length(h);
+      uint64_t const length = fastq_get_sequence_length(h);
       char * sequence = fastq_get_sequence(h);
 
       /* convert quality values */
@@ -961,7 +961,7 @@ auto fastq_convert() -> void
         }
       quality[length] = 0;
 
-      int hlen = fastq_get_header_length(h);
+      int const hlen = fastq_get_header_length(h);
       fastq_print_general(fp_fastqout,
                           sequence,
                           length,
