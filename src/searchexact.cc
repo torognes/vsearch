@@ -120,7 +120,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
       hp->matches = si->qseqlen;
       hp->mismatches = 0;
 
-      int ret = xsprintf(&hp->nwalignment, "%dM", si->qseqlen);
+      int const ret = xsprintf(&hp->nwalignment, "%dM", si->qseqlen);
       if ((ret == -1) || (! hp->nwalignment))
         {
           fatal("Out of memory");
@@ -160,7 +160,7 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
   dbhash_search_info_s info;
 
   char * seq = si->qsequence;
-  uint64_t seqlen = si->qseqlen;
+  uint64_t const seqlen = si->qseqlen;
   char * normalized = (char *) xmalloc(seqlen+1);
   string_normalize(normalized, seq, seqlen);
 
@@ -186,7 +186,7 @@ auto search_exact_output_results(int hit_count,
   xpthread_mutex_lock(&mutex_output);
 
   /* show results */
-  int64_t toreport = MIN(opt_maxhits, hit_count);
+  int64_t const toreport = MIN(opt_maxhits, hit_count);
 
   if (fp_alnout)
     {
@@ -210,7 +210,7 @@ auto search_exact_output_results(int hit_count,
 
   if (toreport)
     {
-      double top_hit_id = hits[0].id;
+      double const top_hit_id = hits[0].id;
 
       if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
         {
@@ -430,11 +430,11 @@ auto search_exact_thread_run(int64_t t) -> void
       if (fastx_next(query_fastx_h, ! opt_notrunclabels, chrmap_no_change))
         {
           char * qhead = fastx_get_header(query_fastx_h);
-          int query_head_len = fastx_get_header_length(query_fastx_h);
+          int const query_head_len = fastx_get_header_length(query_fastx_h);
           char * qseq = fastx_get_sequence(query_fastx_h);
-          int qseqlen = fastx_get_sequence_length(query_fastx_h);
-          int query_no = fastx_get_seqno(query_fastx_h);
-          int qsize = fastx_get_abundance(query_fastx_h);
+          int const qseqlen = fastx_get_sequence_length(query_fastx_h);
+          int const query_no = fastx_get_seqno(query_fastx_h);
+          int const qsize = fastx_get_abundance(query_fastx_h);
 
           for (int s = 0; s < opt_strand; s++)
             {
@@ -468,7 +468,7 @@ auto search_exact_thread_run(int64_t t) -> void
           strcpy(si_plus[t].qsequence, qseq);
 
           /* get progress as amount of input file read */
-          uint64_t progress = fastx_get_position(query_fastx_h);
+          uint64_t const progress = fastx_get_position(query_fastx_h);
 
           /* let other threads read input */
           xpthread_mutex_unlock(&mutex_input);
@@ -482,7 +482,7 @@ auto search_exact_thread_run(int64_t t) -> void
                                  si_plus[t].qseqlen);
             }
 
-          int match = search_exact_query(t);
+          int const match = search_exact_query(t);
 
           /* lock mutex for update of global data and output */
           xpthread_mutex_lock(&mutex_output);
