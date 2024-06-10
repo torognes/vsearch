@@ -62,7 +62,7 @@
 
 inline auto fastq_get_qual(char q) -> int
 {
-  int qual = q - opt_fastq_ascii;
+  int const qual = q - opt_fastq_ascii;
 
   if (qual < opt_fastq_qmin)
     {
@@ -118,7 +118,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
 {
   struct analysis_res res = { false, false, 0, 0, -1.0 };
   res.length = fastx_get_sequence_length(h);
-  int64_t old_length = res.length;
+  int64_t const old_length = res.length;
 
   /* strip left (5') end */
   if (opt_fastq_stripleft < res.length)
@@ -167,8 +167,8 @@ auto analyse(fastx_handle h) -> struct analysis_res
       char * q = fastx_get_quality(h) + res.start;
       for (int64_t i = 0; i < res.length; i++)
         {
-          int qual = fastq_get_qual(q[i]);
-          double e = exp10(-0.1 * qual);
+          int const qual = fastq_get_qual(q[i]);
+          double const e = exp10(-0.1 * qual);
           res.ee += e;
 
           if ((qual <= opt_fastq_truncqual) ||
@@ -210,7 +210,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
   char * p = fastx_get_sequence(h) + res.start;
   for (int64_t i = 0; i < res.length; i++)
     {
-      int pc = p[i];
+      int const pc = p[i];
       if ((pc == 'N') || (pc == 'n'))
         {
           ncount++;
@@ -222,7 +222,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
     }
 
   /* filter by abundance */
-  int64_t abundance = fastx_get_abundance(h);
+  int64_t const abundance = fastx_get_abundance(h);
   if (abundance < opt_minsize)
     {
       res.discarded = true;
@@ -281,7 +281,7 @@ auto filter(bool fastq_only, char * filename) -> void
         }
     }
 
-  uint64_t filesize = fastx_get_size(h1);
+  uint64_t const filesize = fastx_get_size(h1);
 
   if (opt_reverse)
     {
