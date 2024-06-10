@@ -523,4 +523,4 @@ extern int64_t popcnt_present;
 extern int64_t avx_present;
 extern int64_t avx2_present;
 
-extern FILE * fp_log;
+extern std::FILE * fp_log;
