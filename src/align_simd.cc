@@ -107,7 +107,7 @@ static int64_t scorematrix[16][16];
 
 #ifdef __PPC__
 
-typedef __vector signed short VECTOR_SHORT;
+using VECTOR_SHORT = __vector signed short;
 
 const __vector unsigned char perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -136,7 +136,7 @@ const __vector unsigned char perm_merge_long_high =
 
 #elif defined __aarch64__
 
-typedef int16x8_t VECTOR_SHORT;
+using VECTOR_SHORT = int16x8_t;
 
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
@@ -164,7 +164,7 @@ const uint16x8_t neon_mask =
 
 #elif __x86_64__
 
-typedef __m128i VECTOR_SHORT;
+using VECTOR_SHORT = __m128i;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
 #define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
