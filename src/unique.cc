@@ -161,7 +161,7 @@ auto unique_count_bitmap(struct uhandle_s * uh,
         xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
     }
 
-  uint64_t size = 1ULL << (k << 1ULL);
+  uint64_t const size = 1ULL << (k << 1ULL);
 
   /* reallocate bitmap arrays if necessary */
 
@@ -175,7 +175,7 @@ auto unique_count_bitmap(struct uhandle_s * uh,
 
   uint64_t bad = 0;
   uint64_t kmer = 0;
-  uint64_t mask = size - 1ULL;
+  uint64_t const mask = size - 1ULL;
   char * s = seq;
   char * e1 = s + k - 1;
   char * e2 = s + seqlen;
@@ -210,8 +210,8 @@ auto unique_count_bitmap(struct uhandle_s * uh,
 
       if (! bad)
         {
-          uint64_t x = kmer >> 6ULL;
-          uint64_t y = 1ULL << (kmer & 63ULL);
+          uint64_t const x = kmer >> 6ULL;
+          uint64_t const y = 1ULL << (kmer & 63ULL);
           if (! (uh->bitmap[x] & y))
             {
               /* not seen before */
@@ -261,7 +261,7 @@ auto unique_count_hash(struct uhandle_s * uh,
   uint64_t bad = 0;
   uint64_t j = 0;
   unsigned int kmer = 0;
-  unsigned int mask = (1ULL << (2ULL * k)) - 1ULL;
+  unsigned int const mask = (1ULL << (2ULL * k)) - 1ULL;
   char * s = seq;
   char * e1 = s + k - 1;
   char * e2 = s + seqlen;
@@ -348,9 +348,9 @@ auto unique_count_shared(struct uhandle_s * uh,
     {
       for (int i = 0; i < listlen; i++)
         {
-          unsigned int kmer = list[i];
-          uint64_t x = kmer >> 6ULL;
-          uint64_t y = 1ULL << (kmer & 63ULL);
+          unsigned int const kmer = list[i];
+          uint64_t const x = kmer >> 6ULL;
+          uint64_t const y = 1ULL << (kmer & 63ULL);
           if (uh->bitmap[x] & y)
             {
               count++;
