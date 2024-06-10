@@ -199,7 +199,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
         {
           /* try writing string until enough memory has been allocated */
 
-          int64_t rest = cigar_alloc - cigar_length;
+          int64_t const rest = cigar_alloc - cigar_length;
           int n = 0;
           if (op_run > 1)
             {
@@ -411,7 +411,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
     {
       /* a_len >= 2, b_len >= 1 */
 
-      int64_t I = a_len / 2;
+      int64_t const I = a_len / 2;
 
       // Compute HH & EE in forward phase
       // Upper part
@@ -536,7 +536,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t j = 0; j <= b_len; j++)
         {
-          int64_t Score = HH[j] + XX[b_len - j];
+          int64_t const Score = HH[j] + XX[b_len - j];
 
           if (Score > MaxScore0)
             {
@@ -566,7 +566,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               g = go_t_i;
             }
 
-          int64_t Score = EE[j] + YY[b_len - j] + g;
+          int64_t const Score = EE[j] + YY[b_len - j] + g;
 
           if (Score > MaxScore1)
             {
