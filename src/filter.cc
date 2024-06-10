@@ -59,6 +59,12 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // DBL_MAX, LONG_MIN
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+
 
 inline auto fastq_get_qual(char q) -> int
 {
