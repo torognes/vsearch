@@ -153,7 +153,7 @@ auto fatal(const char * format,
 
 auto xstrdup(const char *s) -> char *
 {
-  size_t len = strlen(s);
+  size_t const len = strlen(s);
   char * p = (char *) xmalloc(len + 1);
   return strcpy(p, s);
 }
@@ -259,8 +259,8 @@ auto random_int(int64_t n) -> int64_t
     avoid modulo bias.
   */
 
-  int64_t random_max = RAND_MAX;
-  int64_t limit = random_max - ((random_max + 1) % n);
+  int64_t const random_max = RAND_MAX;
+  int64_t const limit = random_max - ((random_max + 1) % n);
   int64_t r = arch_random();
   while (r > limit)
     {
@@ -276,8 +276,8 @@ auto random_ulong(uint64_t n) -> uint64_t
     n must be > 0
   */
 
-  uint64_t random_max = ULONG_MAX;
-  uint64_t limit = random_max - ((random_max - n + 1) % n);
+  uint64_t const random_max = ULONG_MAX;
+  uint64_t const limit = random_max - ((random_max - n + 1) % n);
   uint64_t r = ((arch_random() << 48) ^ (arch_random() << 32) ^
                 (arch_random() << 16) ^ (arch_random()));
   while (r > limit)
@@ -400,7 +400,7 @@ auto fopen_input(const char * filename) -> FILE *
   /* open the input stream given by filename, but use stdin if name is - */
   if (strcmp(filename, "-") == 0)
     {
-      int fd = dup(STDIN_FILENO);
+      int const fd = dup(STDIN_FILENO);
       if (fd < 0)
         {
           return nullptr;
@@ -421,7 +421,7 @@ auto fopen_output(const char * filename) -> FILE *
   /* open the output stream given by filename, but use stdout if name is - */
   if (strcmp(filename, "-") == 0)
     {
-      int fd = dup(STDOUT_FILENO);
+      int const fd = dup(STDOUT_FILENO);
       if (fd < 0)
         {
           return nullptr;
