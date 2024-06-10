@@ -115,7 +115,7 @@ struct fastx_s
   int format;
 };
 
-typedef struct fastx_s * fastx_handle;
+using fastx_handle = struct fastx_s *;
 
 
 /* fastx input */
