@@ -109,14 +109,14 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   uint64_t progress = offset;
   for (uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
     {
-      uint64_t res = xlseek(fd, offset + i, SEEK_SET);
+      uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t bytesread = read(fd, ((char *) buf) + i, rem);
+      uint64 const rem = MIN(BLOCKSIZE, nbyte - i);
+      uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
@@ -135,14 +135,14 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   uint64_t progress = offset;
   for (uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
     {
-      uint64_t res = xlseek(fd, offset + i, SEEK_SET);
+      uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t byteswritten = write(fd, ((char *) buf) + i, rem);
+      uint64 const rem = MIN(BLOCKSIZE, nbyte - i);
+      uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
           fatal("Unable to write to UDB file");
@@ -171,7 +171,7 @@ auto udb_detect_isudb(const char * filename) -> bool
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  bool is_pipe = S_ISFIFO(fs.st_mode);
+  bool const is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
     {
       return false;
@@ -185,7 +185,7 @@ auto udb_detect_isudb(const char * filename) -> bool
     }
 
   unsigned int magic = 0;
-  uint64_t bytesread = read(fd, & magic, expected_n_bytes);
+  uint64_t const bytesread = read(fd, & magic, expected_n_bytes);
   close(fd);
 
   if ((bytesread == expected_n_bytes) && (magic == udb_file_signature))
@@ -210,7 +210,7 @@ auto udb_info() -> void
       fatal("Unable to open UDB file for reading");
     }
 
-  uint64_t bytesread = read(fd_udbinfo, buffer, 4 * 50);
+  uint64_t const bytesread = read(fd_udbinfo, buffer, 4 * 50);
   if (bytesread != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");
@@ -274,7 +274,7 @@ auto udb_read(const char * filename,
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  bool is_pipe = S_ISFIFO(fs.st_mode);
+  bool const is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
     {
       fatal("Cannot read UDB file from a pipe");
@@ -282,7 +282,7 @@ auto udb_read(const char * filename,
 
   /* get file size */
 
-  uint64_t filesize = fs.st_size;
+  uint64_t const filesize = fs.st_size;
 
   /* open UDB file */
 
@@ -376,7 +376,7 @@ auto udb_read(const char * filename,
     }
 
   nucleotides = (((uint64_t) buffer[4]) << 32) | buffer[3];
-  uint64_t udb_headerchars = (((uint64_t) buffer[6]) << 32) | buffer[5];
+  uint64_t const udb_headerchars = (((uint64_t) buffer[6]) << 32) | buffer[5];
 
   /* header index */
 
@@ -391,7 +391,7 @@ auto udb_read(const char * filename,
   unsigned last = 0;
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int x = header_index[i];
+      unsigned int const x = header_index[i];
       if ((x < last) || (x >= udb_headerchars))
         {
           fatal("Invalid UDB file");
@@ -431,7 +431,7 @@ auto udb_read(const char * filename,
 
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int x = sequence_lengths[i];
+      unsigned int const x = sequence_lengths[i];
 
       seqindex[i].seq_p = udb_headerchars + sum;
       seqindex[i].seqlen = x;
@@ -483,9 +483,9 @@ auto udb_read(const char * filename,
   progress_init("Reorganizing data in memory", seqcount);
   for (unsigned int i = seqcount-1; i > 0; i--)
     {
-      size_t old_p = seqindex[i].seq_p;
-      size_t new_p = seqindex[i].seq_p + i;
-      size_t len   = seqindex[i].seqlen;
+      size_t const old_p = seqindex[i].seq_p;
+      size_t const new_p = seqindex[i].seq_p + i;
+      size_t const len   = seqindex[i].seqlen;
       memmove(datap + new_p, datap + old_p, len);
       *(datap + new_p + len) = 0;
       seqindex[i].seq_p = new_p;
@@ -499,7 +499,7 @@ auto udb_read(const char * filename,
   if (create_bitmaps)
     {
       progress_init("Creating bitmaps", kmerhashsize);
-      unsigned int bitmap_mincount = seqcount / 8;
+      unsigned int const bitmap_mincount = seqcount / 8;
       for (unsigned int i = 0; i < kmerhashsize; i++)
         {
           if (kmercount[i] >= bitmap_mincount)
@@ -523,7 +523,7 @@ auto udb_read(const char * filename,
       progress_init("Parsing abundances", seqcount);
       for (unsigned int i = 0; i < seqcount; i++)
         {
-          int64_t size = header_get_size(datap + seqindex[i].header_p,
+          int64_t const size = header_get_size(datap + seqindex[i].header_p,
                                          seqindex[i].headerlen);
           if (size > 0)
             {
@@ -626,7 +626,7 @@ auto udb_fasta() -> void
 
   /* dump fasta */
 
-  unsigned int seqcount = db_getsequencecount();
+  unsigned int const seqcount = db_getsequencecount();
   progress_init("Writing FASTA file", seqcount);
   for (std::size_t i = 0; i < seqcount; i++)
     {
@@ -661,12 +661,12 @@ auto udb_stats() -> void
 
   qsort(freqtable, kmerhashsize, sizeof(wordfreq_t), wc_compare);
 
-  unsigned int wcmax = freqtable[kmerhashsize-1].count;
-  unsigned int wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
+  unsigned int const wcmax = freqtable[kmerhashsize-1].count;
+  unsigned int const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
                             freqtable[kmerhashsize / 2].count ) / 2;
 
-  unsigned int seqcount = db_getsequencecount();
-  uint64_t nt = db_getnucleotidecount();
+  unsigned int const seqcount = db_getsequencecount();
+  uint64_t const nt = db_getnucleotidecount();
 
   /* show stats */
 
@@ -775,7 +775,7 @@ auto udb_stats() -> void
               x++;
             }
 
-          double pct = 100.0 * count / kmerhashsize;
+          double const pct = 100.0 * count / kmerhashsize;
           totpct += pct;
 
           if (size_lo < size_hi)
@@ -901,8 +901,8 @@ auto udb_make() -> void
   dbindex_prepare(1, opt_dbmask);
   dbindex_addallsequences(opt_dbmask);
 
-  unsigned int seqcount = db_getsequencecount();
-  uint64_t ntcount = db_getnucleotidecount();
+  unsigned int const seqcount = db_getsequencecount();
+  uint64_t const ntcount = db_getnucleotidecount();
 
   uint64_t header_characters = 0;
   for (unsigned int i = 0; i < seqcount; i++)
@@ -910,7 +910,7 @@ auto udb_make() -> void
       header_characters += db_getheaderlen(i) + 1;
     }
 
-  uint64_t kmerhashsize = 1 << (2 * opt_wordlength);
+  uint64_t const kmerhashsize = 1 << (2 * opt_wordlength);
 
   /* count word matches */
   uint64_t wordmatches = 0;
@@ -920,7 +920,7 @@ auto udb_make() -> void
     }
 
   uint64_t pos = 0;
-  uint64_t progress_all =
+  uint64_t const progress_all =
     (4 * 50) +
     (4 * kmerhashsize) +
     (4 * 1) +
@@ -933,7 +933,7 @@ auto udb_make() -> void
 
   progress_init("Writing UDB file", progress_all);
 
-  uint64_t buffersize = 4 * MAX(50, seqcount);
+  uint64_t const buffersize = 4 * MAX(50, seqcount);
   auto * buffer = (unsigned int *) xmalloc(buffersize);
   memset(buffer, 0, buffersize);
 
@@ -1012,7 +1012,7 @@ auto udb_make() -> void
   /* headers (ascii, zero terminated, not padded) */
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int len = db_getheaderlen(i);
+      unsigned int const len = db_getheaderlen(i);
       pos += largewrite(fd_output, db_getheader(i), len + 1, pos);
     }
 
@@ -1026,7 +1026,7 @@ auto udb_make() -> void
   /* sequences (ascii, no term, no pad) */
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int len = db_getsequencelen(i);
+      unsigned int const len = db_getsequencelen(i);
       pos += largewrite(fd_output, db_getsequence(i), len, pos);
     }
 
