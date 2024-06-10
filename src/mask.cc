@@ -229,7 +229,7 @@ auto dust_all() -> void
 
   for (int t = 0; t < opt_threads; t++)
     {
-      xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
+      xpthread_create(pthread + t, &attr, dust_all_worker, (void *) (int64_t) t);
     }
 
   for (int t = 0; t < opt_threads; t++)
