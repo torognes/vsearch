@@ -250,7 +250,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
   for (int i = 0; i < ci->cand_count; i++) {
     for (int j = 0; j < ci->query_len; j++)
       {
-        int x = (i * ci->query_len) + j;
+        int const x = (i * ci->query_len) + j;
         ci->match[x] = 0;
         ci->insert[x] = 0;
       }
@@ -272,7 +272,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
           int scanlength = 0;
           sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char op = *p++;
+          char const op = *p++;
           switch (op)
             {
             case 'M':
@@ -339,8 +339,8 @@ auto scan_matches(struct chimera_info_s * ci,
     If the percentage is 2%, matches are given a score of 2 and mismatches -98.
   */
 
-  double score_match = percentage;
-  double score_mismatch = percentage - 100.0;
+  double const score_match = percentage;
+  double const score_mismatch = percentage - 100.0;
 
   double * p = ci->scan_p;
   double * q = ci->scan_q;
@@ -362,10 +362,10 @@ auto scan_matches(struct chimera_info_s * ci,
   int j = 1;
   while (j <= len)
     {
-      double c = q[j] - p[i - 1];
+      double const c = q[j] - p[i - 1];
       if (c >= 0.0)
         {
-          int d = j - i + 1;
+          int const d = j - i + 1;
           if (d > best_d)
             {
               best_i = i;
@@ -540,7 +540,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
           for (int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
-              int z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
+              int const z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
               if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
                   for (int i = qpos + 1 - window; i <= qpos; i++)
@@ -569,7 +569,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
               int sum = 0;
               for(int qpos = 0; qpos < ci->query_len; qpos++)
                 {
-                  int z = (i * ci->query_len) + qpos;
+                  int const z = (i * ci->query_len) + qpos;
                   sum += ci->match[z];
                   if (qpos >= window)
                     {
@@ -600,7 +600,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                 {
                   if (not cand_selected[i])
                     {
-                      int z = (i * ci->query_len) + qpos;
+                      int const z = (i * ci->query_len) + qpos;
                       if (ci->smooth[z] == ci->maxsmooth[qpos])
                         {
                           wins[i]++;
@@ -615,7 +615,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       int maxwins = 0;
       for (int i = 0; i < ci->cand_count; i++)
         {
-          int w = wins[i];
+          int const w = wins[i];
           if (w > maxwins)
             {
               maxwins = w;
@@ -654,7 +654,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
 
   for (int f = 0; f < ci->parents_found; f++)
     {
-      int best_parent = ci->best_parents[f];
+      int const best_parent = ci->best_parents[f];
       char * p = ci->nwcigar[best_parent];
       char * e = p + strlen(p);
       int pos = 0;
@@ -664,7 +664,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
           int scanlength = 0;
           sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char op = *p++;
+          char const op = *p++;
           switch (op)
             {
             case 'M':
@@ -699,8 +699,8 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
   for (int j = 0; j < ci->parents_found; j++)
     {
-      int cand = ci->best_parents[j];
-      int target_seqno = ci->cand_list[cand];
+      int const cand = ci->best_parents[j];
+      int const target_seqno = ci->cand_list[cand];
       char * target_seq = db_getsequence(target_seqno);
 
       int inserted = 0;
@@ -717,7 +717,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
           int scanlength = 0;
           sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char op = *p++;
+          char const op = *p++;
 
           if (op == 'I')
             {
@@ -780,9 +780,9 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 auto eval_parents_long(struct chimera_info_s * ci) -> int
 {
   /* always chimeric if called */
-  int status = 4;
+  int const status = 4;
 
-  int alnlen = find_max_alignment_length(ci);
+  int const alnlen = find_max_alignment_length(ci);
 
   fill_alignment_parents(ci);
 
@@ -815,7 +815,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      unsigned int qsym = chrmap_4bit[(int) (ci->qaln[i])];
+      unsigned int const qsym = chrmap_4bit[(int) (ci->qaln[i])];
       unsigned int psym[maxparents];
       for (int f = 0; f < maxparents; f++) {
         psym[f] = 0;
@@ -877,11 +877,11 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     {
       ++cols;
 
-      char qsym = chrmap_4bit[(int) (ci->qaln[i])];
+      char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
 
       for (int f = 0; f < ci->parents_found; f++)
         {
-          char psym = chrmap_4bit[(int) (ci->paln[f][i])];
+          char const psym = chrmap_4bit[(int) (ci->paln[f][i])];
           if (qsym == psym) {
             match_QP[f]++;
           }
@@ -889,8 +889,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     }
 
 
-  int seqno_a = ci->cand_list[ci->best_parents[0]];
-  int seqno_b = ci->cand_list[ci->best_parents[1]];
+  int const seqno_a = ci->cand_list[ci->best_parents[0]];
+  int const seqno_b = ci->cand_list[ci->best_parents[1]];
   int seqno_c = -1;
   if (ci->parents_found > 2) {
     seqno_c = ci->cand_list[ci->best_parents[2]];
@@ -911,11 +911,11 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       }
     }
 
-  double QA = QP[0];
-  double QB = QP[1];
-  double QC = ci->parents_found > 2 ? QP[2] : 0.00;
-  double QM = 100.00;
-  double divfrac = 100.00 * (QM - QT) / QT;
+  double const QA = QP[0];
+  double const QB = QP[1];
+  double const QC = ci->parents_found > 2 ? QP[2] : 0.00;
+  double const QM = 100.00;
+  double const divfrac = 100.00 * (QM - QT) / QT;
 
   xpthread_mutex_lock(&mutex_output);
 
@@ -935,7 +935,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
       for (int f = 0; f < ci->parents_found; f++)
         {
-          int seqno = ci->cand_list[ci->best_parents[f]];
+          int const seqno = ci->cand_list[ci->best_parents[f]];
           fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                   'A' + f,
                   db_getsequencelen(seqno));
@@ -950,7 +950,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       fprintf(fp_uchimealns, "\n\n");
 
 
-      int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
+      int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
       qpos = 0;
       int ppos[maxparents];
       for (int f = 0; f < ci->parents_found; f++) {
@@ -968,7 +968,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
             pnt[f] = 0;
           }
 
-          int w = MIN(rest, width);
+          int const w = MIN(rest, width);
 
           for(int j = 0; j < w; j++)
             {
@@ -1079,7 +1079,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   int status = 1;
   ci->parents_found = 2;
 
-  int alnlen = find_max_alignment_length(ci);
+  int const alnlen = find_max_alignment_length(ci);
 
   fill_alignment_parents(ci);
 
@@ -1109,9 +1109,9 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      unsigned int qsym  = chrmap_4bit[(int) (ci->qaln   [i])];
-      unsigned int p1sym = chrmap_4bit[(int) (ci->paln[0][i])];
-      unsigned int p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
+      unsigned int const qsym  = chrmap_4bit[(int) (ci->qaln   [i])];
+      unsigned int const p1sym = chrmap_4bit[(int) (ci->paln[0][i])];
+      unsigned int const p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
 
       /* ignore gap positions and those next to the gap */
       if ((not qsym) or (not p1sym) or (not p2sym))
@@ -1200,7 +1200,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
     {
       if (not ci->ignore[i])
         {
-          char diff = ci->diffs[i];
+          char const diff = ci->diffs[i];
 
           if (diff == 'A')
             {
@@ -1240,7 +1240,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
     {
       if(not ci->ignore[i])
         {
-          char diff = ci->diffs[i];
+          char const diff = ci->diffs[i];
           if (diff != ' ')
             {
               if (diff == 'A')
@@ -1319,7 +1319,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         {
           for(int i = 0; i < alnlen; i++)
             {
-              char diff = ci->diffs[i];
+              char const diff = ci->diffs[i];
               if (diff == 'A')
                 {
                   ci->diffs[i] = 'B';
@@ -1335,13 +1335,13 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       for(int i = 0; i < alnlen; i++)
         {
-          char m = i <= best_i ? 'A' : 'B';
+          char const m = i <= best_i ? 'A' : 'B';
           ci->model[i] = m;
 
           char v = ' ';
           if (not ci->ignore[i])
             {
-              char d = ci->diffs[i];
+              char const d = ci->diffs[i];
 
               if ((d == 'A') or (d == 'B'))
                 {
@@ -1387,8 +1387,8 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       /* count matches */
 
-      int index_a = best_reverse ? 1 : 0;
-      int index_b = best_reverse ? 0 : 1;
+      int const index_a = best_reverse ? 1 : 0;
+      int const index_b = best_reverse ? 0 : 1;
 
       int match_QA = 0;
       int match_QB = 0;
@@ -1402,10 +1402,10 @@ auto eval_parents(struct chimera_info_s * ci) -> int
             {
               ++cols;
 
-              char qsym = chrmap_4bit[(int) (ci->qaln[i])];
-              char asym = chrmap_4bit[(int) (ci->paln[index_a][i])];
-              char bsym = chrmap_4bit[(int) (ci->paln[index_b][i])];
-              char msym = (i <= best_i) ? asym : bsym;
+              char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
+              char const asym = chrmap_4bit[(int) (ci->paln[index_a][i])];
+              char const bsym = chrmap_4bit[(int) (ci->paln[index_b][i])];
+              char const msym = (i <= best_i) ? asym : bsym;
 
               if (qsym == asym)
                 {
@@ -1429,19 +1429,19 @@ auto eval_parents(struct chimera_info_s * ci) -> int
             }
         }
 
-      int seqno_a = ci->cand_list[ci->best_parents[index_a]];
-      int seqno_b = ci->cand_list[ci->best_parents[index_b]];
+      int const seqno_a = ci->cand_list[ci->best_parents[index_a]];
+      int const seqno_b = ci->cand_list[ci->best_parents[index_b]];
 
-      double QA = 100.0 * match_QA / cols;
-      double QB = 100.0 * match_QB / cols;
-      double AB = 100.0 * match_AB / cols;
-      double QT = MAX(QA, QB);
-      double QM = 100.0 * match_QM / cols;
-      double divdiff = QM - QT;
-      double divfrac = 100.0 * divdiff / QT;
+      double const QA = 100.0 * match_QA / cols;
+      double const QB = 100.0 * match_QB / cols;
+      double const AB = 100.0 * match_AB / cols;
+      double const QT = MAX(QA, QB);
+      double const QM = 100.0 * match_QM / cols;
+      double const divdiff = QM - QT;
+      double const divfrac = 100.0 * divdiff / QT;
 
-      int sumL = best_left_n + best_left_a + best_left_y;
-      int sumR = best_right_n + best_right_a + best_right_y;
+      int const sumL = best_left_n + best_left_a + best_left_y;
+      int const sumR = best_right_n + best_right_a + best_right_y;
 
       if (opt_uchime2_denovo or opt_uchime3_denovo)
         {
@@ -1501,7 +1501,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                               opt_xlength);
           fprintf(fp_uchimealns, "\n\n");
 
-          int width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
+          int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
           qpos = 0;
           int p1pos = 0;
           int p2pos = 0;
@@ -1515,7 +1515,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
               int p1nt = 0;
               int p2nt = 0;
 
-              int w = MIN(rest,width);
+              int const w = MIN(rest,width);
 
               for(int j = 0; j < w; j++)
                 {
@@ -1714,7 +1714,7 @@ auto partition_query(struct chimera_info_s * ci) -> void
   char * p = ci->query_seq;
   for (int i = 0; i < parts; i++)
     {
-      int len = (rest + (parts - i - 1)) / (parts - i);
+      int const len = (rest + (parts - i - 1)) / (parts - i);
 
       struct searchinfo_s * si = ci->si + i;
 
@@ -1961,7 +1961,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       for(int i = 0; i < allhits_count; i++)
         {
-          unsigned int target = allhits_list[i].target;
+          unsigned int const target = allhits_list[i].target;
 
           /* skip duplicates */
           int k {0};
@@ -2003,7 +2003,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       for (int i = 0; i < ci->cand_count; i++)
         {
-          int64_t target = ci->cand_list[i];
+          int64_t const target = ci->cand_list[i];
           int64_t nwscore = ci->snwscore[i];
           char * nwcigar = nullptr;
           int64_t nwalignmentlength = 0;
@@ -2018,7 +2018,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                  linear memory aligner */
 
               char * tseq = db_getsequence(target);
-              int64_t tseqlen = db_getsequencelen(target);
+              int64_t const tseqlen = db_getsequencelen(target);
 
               if (ci->nwcigar[i])
                 {
