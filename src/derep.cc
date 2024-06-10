@@ -103,7 +103,7 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
         }
       else
         {
-          int r = strcmp(db_getheader(x->seqno_first),
+          int const r = strcmp(db_getheader(x->seqno_first),
                          db_getheader(y->seqno_first));
           if (r != 0)
             {
@@ -159,7 +159,7 @@ auto derep_compare_full(const void * a, const void * b) -> int
             {
               return 0;
             }
-          int r = strcmp(x->header, y->header);
+          int const r = strcmp(x->header, y->header);
           if (r != 0)
             {
               return r;
@@ -218,9 +218,9 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   */
 
   struct bucket * old_hashtable = * hashtableref;
-  uint64_t old_hashtablesize = 2 * alloc_clusters;
-  uint64_t new_hashtablesize = 2 * old_hashtablesize;
-  uint64_t new_hash_mask = new_hashtablesize - 1;
+  uint64_t const old_hashtablesize = 2 * alloc_clusters;
+  uint64_t const new_hashtablesize = 2 * old_hashtablesize;
+  uint64_t const new_hash_mask = new_hashtablesize - 1;
 
   auto * new_hashtable =
     (struct bucket *) xmalloc(sizeof(struct bucket) * new_hashtablesize);
@@ -249,7 +249,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
 
 inline auto convert_q_to_p(int q) -> double
 {
-  int x = q - opt_fastq_ascii;
+  int const x = q - opt_fastq_ascii;
   if (x < 2)
     {
       return 0.75;
@@ -376,7 +376,7 @@ auto derep(char * input_filename, bool use_header) -> void
         }
     }
 
-  uint64_t filesize = fastx_get_size(h);
+  uint64_t const filesize = fastx_get_size(h);
 
 
   /* allocate initial memory for 1024 clusters
@@ -399,7 +399,7 @@ auto derep(char * input_filename, bool use_header) -> void
   char ** headertab = nullptr;
   char * match_strand = nullptr;
 
-  bool extra_info = opt_uc or opt_tabbedout;
+  bool const extra_info = opt_uc or opt_tabbedout;
 
   if (extra_info)
     {
@@ -448,7 +448,7 @@ auto derep(char * input_filename, bool use_header) -> void
 
   while (fastx_next(h, not opt_notrunclabels, chrmap_no_change))
     {
-      int64_t seqlen = fastx_get_sequence_length(h);
+      int64_t const seqlen = fastx_get_sequence_length(h);
 
       if (seqlen < opt_minseqlength)
         {
@@ -485,7 +485,7 @@ auto derep(char * input_filename, bool use_header) -> void
 
       if (extra_info and (sequencecount + 1 > alloc_seqs))
         {
-          uint64_t new_alloc_seqs = 2 * alloc_seqs;
+          uint64_t const new_alloc_seqs = 2 * alloc_seqs;
 
           nextseqtab =
             (unsigned int *) xrealloc(nextseqtab,
@@ -508,7 +508,7 @@ auto derep(char * input_filename, bool use_header) -> void
 
       if (clusters + 1 > alloc_clusters)
         {
-          uint64_t new_alloc_clusters = 2 * alloc_clusters;
+          uint64_t const new_alloc_clusters = 2 * alloc_clusters;
 
           rehash(& hashtable, alloc_clusters);
 
@@ -521,7 +521,7 @@ auto derep(char * input_filename, bool use_header) -> void
 
       char * seq = fastx_get_sequence(h);
       char * header = fastx_get_header(h);
-      int64_t headerlen = fastx_get_header_length(h);
+      int64_t const headerlen = fastx_get_header_length(h);
       char * qual = fastx_get_quality(h); // nullptr if FASTA
 
       /* normalize sequence: uppercase and replace U by T  */
@@ -551,7 +551,7 @@ auto derep(char * input_filename, bool use_header) -> void
           hash_header = 0;
         }
 
-      uint64_t hash = HASH(seq_up, seqlen) ^ hash_header;
+      uint64_t const hash = HASH(seq_up, seqlen) ^ hash_header;
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
@@ -570,7 +570,7 @@ auto derep(char * input_filename, bool use_header) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint64_t rc_hash = HASH(rc_seq_up, seqlen) ^ hash_header;
+          uint64_t const rc_hash = HASH(rc_seq_up, seqlen) ^ hash_header;
           uint64_t k = rc_hash & hash_mask;
           struct bucket * rc_bp = hashtable + k;
 
@@ -595,8 +595,8 @@ auto derep(char * input_filename, bool use_header) -> void
             }
         }
 
-      int abundance = fastx_get_abundance(h);
-      int64_t ab = opt_sizein ? abundance : 1;
+      int const abundance = fastx_get_abundance(h);
+      int64_t const ab = opt_sizein ? abundance : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -604,25 +604,25 @@ auto derep(char * input_filename, bool use_header) -> void
           /* at least one identical sequence already */
           if (extra_info)
             {
-              unsigned int last = bp->seqno_last;
+              unsigned int const last = bp->seqno_last;
               nextseqtab[last] = sequencecount;
               bp->seqno_last = sequencecount;
               headertab[sequencecount] = xstrdup(header);
             }
 
-          int64_t s1 = bp->size;
-          int64_t s2 = ab;
-          int64_t s3 = s1 + s2;
+          int64_t const s1 = bp->size;
+          int64_t const s2 = ab;
+          int64_t const s3 = s1 + s2;
 
           if (opt_fastqout)
             {
               /* update quality scores */
               for (int i = 0; i < seqlen; i++)
                 {
-                  int q1 = bp->qual[i];
-                  int q2 = qual[i];
-                  double p1 = convert_q_to_p(q1);
-                  double p2 = convert_q_to_p(q2);
+                  int const q1 = bp->qual[i];
+                  int const q2 = qual[i];
+                  double const p1 = convert_q_to_p(q1);
+                  double const p2 = convert_q_to_p(q2);
                   double p3 = 0.0;
 
                   /* how to compute the new quality score? */
@@ -664,7 +664,7 @@ auto derep(char * input_filename, bool use_header) -> void
                   // always best quality possible, perfect, no errors */
                   // p3 = 0.0;
 
-                  int q3 = convert_p_to_q(p3);
+                  int const q3 = convert_p_to_q(p3);
                   bp->qual[i] = q3;
                 }
             }
@@ -850,7 +850,7 @@ auto derep(char * input_filename, bool use_header) -> void
   for (uint64_t i = 0; i < clusters; i++)
     {
       struct bucket * bp = hashtable + i;
-      int64_t size = bp->size;
+      int64_t const size = bp->size;
       if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
         {
           ++selected;
@@ -873,7 +873,7 @@ auto derep(char * input_filename, bool use_header) -> void
       for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          int64_t size = bp->size;
+          int64_t const size = bp->size;
           if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
               ++relabel_count;
@@ -907,7 +907,7 @@ auto derep(char * input_filename, bool use_header) -> void
       for (uint64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          int64_t size = bp->size;
+          int64_t const size = bp->size;
           if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
               relabel_count++;
@@ -941,7 +941,7 @@ auto derep(char * input_filename, bool use_header) -> void
         {
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
-          int64_t len = strlen(bp->seq);
+          int64_t const len = strlen(bp->seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, hh);
@@ -1109,7 +1109,7 @@ auto derep_prefix() -> void
 
   show_rusage();
 
-  int64_t dbsequencecount = db_getsequencecount();
+  int64_t const dbsequencecount = db_getsequencecount();
 
   /* adjust size of hash table for 2/3 fill rate */
 
@@ -1118,7 +1118,7 @@ auto derep_prefix() -> void
     {
       hashtablesize <<= 1;
     }
-  int hash_mask = hashtablesize - 1;
+  int const hash_mask = hashtablesize - 1;
 
   auto * hashtable =
     (struct bucket *) xmalloc(sizeof(struct bucket) * hashtablesize);
@@ -1142,21 +1142,21 @@ auto derep_prefix() -> void
 
   /* make table of hash values of prefixes */
 
-  unsigned int len_longest = db_getlongestsequence();
-  unsigned int len_shortest = db_getshortestsequence();
+  unsigned int const len_longest = db_getlongestsequence();
+  unsigned int const len_shortest = db_getshortestsequence();
   auto * prefix_hashes = (uint64_t *)
     xmalloc(sizeof(uint64_t) * (len_longest+1));
 
   progress_init("Dereplicating", dbsequencecount);
   for (int64_t i = 0; i < dbsequencecount; i++)
     {
-      unsigned int seqlen = db_getsequencelen(i);
+      unsigned int const seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up, seq, seqlen);
 
-      uint64_t ab = opt_sizein ? db_getabundance(i) : 1;
+      uint64_t const ab = opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
       /*
@@ -1213,14 +1213,14 @@ auto derep_prefix() -> void
       /* at this point, bp points either to (1) a free empty hash bucket, or
          (2) a bucket with an exact match. */
 
-      uint64_t orig_hash = hash;
+      uint64_t const orig_hash = hash;
       struct bucket * orig_bp = bp;
 
       if (bp->size)
         {
           /* exact match */
           bp->size += ab;
-          unsigned int last = bp->seqno_last;
+          unsigned int const last = bp->seqno_last;
           nextseqtab[last] = i;
           bp->seqno_last = i;
 
@@ -1260,9 +1260,9 @@ auto derep_prefix() -> void
               /* prefix match */
 
               /* get necessary info, then delete prefix from hash */
-              unsigned int first = bp->seqno_first;
-              unsigned int last = bp->seqno_last;
-              unsigned int size = bp->size;
+              unsigned int const first = bp->seqno_first;
+              unsigned int const last = bp->seqno_last;
+              unsigned int const size = bp->size;
               bp->deleted = true;
 
               /* create new hash entry */
@@ -1364,7 +1364,7 @@ auto derep_prefix() -> void
   for (int64_t i = 0; i < clusters; i++)
     {
       struct bucket * bp = hashtable + i;
-      int64_t size = bp->size;
+      int64_t const size = bp->size;
       if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
         {
           ++selected;
@@ -1386,7 +1386,7 @@ auto derep_prefix() -> void
       for (int64_t i = 0; i < clusters; i++)
         {
           struct bucket * bp = hashtable + i;
-          int64_t size = bp->size;
+          int64_t const size = bp->size;
           if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
               ++relabel_count;
@@ -1421,7 +1421,7 @@ auto derep_prefix() -> void
         {
           struct bucket * bp = hashtable + i;
           char * h =  db_getheader(bp->seqno_first);
-          int64_t len = db_getsequencelen(bp->seqno_first);
+          int64_t const len = db_getsequencelen(bp->seqno_first);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
