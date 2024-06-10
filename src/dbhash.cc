@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // int64_t, uint64_t
+#include <cstring>  // std::memset
 
 
 static bitmap_t * dbhash_bitmap;
