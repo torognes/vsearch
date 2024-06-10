@@ -72,8 +72,8 @@
 
 /* chunk constants */
 
-static const int chunk_size = 500; /* read pairs per chunk */
-static const int chunk_factor = 2; /* chunks per thread */
+constexpr auto chunk_size = 500; /* read pairs per chunk */
+constexpr auto chunk_factor = 2; /* chunks per thread */
 
 /* scores in bits */
 
