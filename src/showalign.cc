@@ -59,9 +59,10 @@
 */
 
 #include "vsearch.h"
-
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
+#include <cstring>  // std::strncpy
 
 
 static int64_t line_pos;
