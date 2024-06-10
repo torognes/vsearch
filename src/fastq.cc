@@ -59,6 +59,10 @@
 */
 
 #include "vsearch.h"
+#include <cstdint> // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf
+#include <cstring>  // std::memcmp, std::memchr, std::strlen
+
 
 auto fastq_fatal(uint64_t lineno, const char * msg) -> void
 {
