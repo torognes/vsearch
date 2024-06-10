@@ -72,11 +72,13 @@ constexpr auto blocksize = 4096U * 4096U;
 
 static unsigned int udb_dbaccel = 0;
 
-typedef struct wordfreq
+struct wordfreq
 {
   unsigned int kmer;
   unsigned int count;
-} wordfreq_t;
+};
+
+using wordfreq_t = struct wordfreq;
 
 auto wc_compare(const void * a, const void * b) -> int
 {
