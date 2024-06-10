@@ -87,8 +87,7 @@ auto fasta2fastq() -> void
   int count {0};
   std::size_t alloc {0};
   char * quality {nullptr};
-  // refactoring: std::vector<char> quality_v, reserve(1024*1024), resize(length
-  // + 1), fill(max_ascii_value), quality_v[length] = '\0'
+  // refactoring: std::vector<char> quality_v(1024, max_ascii_value), if (length > size()) {quality.resize(length + 1, max_ascii_value)} , quality_v[length] = '\0', fastq_print_general(), quality_v[length] = max_ascii_value
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
 
