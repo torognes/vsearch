@@ -68,7 +68,7 @@
 #include <cstring>  // std::memset, std::memmove
 
 
-#define BLOCKSIZE (4096 * 4096)
+constexpr auto BLOCKSIZE = 4096U * 4096U;
 
 static unsigned int udb_dbaccel = 0;
 
