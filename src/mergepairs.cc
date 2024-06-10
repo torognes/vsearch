@@ -85,13 +85,13 @@ static const double merge_mismatchmax     = -4.0;
 
 /* static variables */
 
-static FILE * fp_fastqout = nullptr;
-static FILE * fp_fastaout = nullptr;
-static FILE * fp_fastqout_notmerged_fwd = nullptr;
-static FILE * fp_fastqout_notmerged_rev = nullptr;
-static FILE * fp_fastaout_notmerged_fwd = nullptr;
-static FILE * fp_fastaout_notmerged_rev = nullptr;
-static FILE * fp_eetabbedout = nullptr;
+static std::FILE * fp_fastqout = nullptr;
+static std::FILE * fp_fastaout = nullptr;
+static std::FILE * fp_fastqout_notmerged_fwd = nullptr;
+static std::FILE * fp_fastqout_notmerged_rev = nullptr;
+static std::FILE * fp_fastaout_notmerged_fwd = nullptr;
+static std::FILE * fp_fastaout_notmerged_rev = nullptr;
+static std::FILE * fp_eetabbedout = nullptr;
 
 static fastx_handle fastq_fwd;
 static fastx_handle fastq_rev;
@@ -236,9 +236,9 @@ static pthread_mutex_t mutex_chunks;
 static pthread_cond_t cond_chunks;
 
 
-auto fileopenw(char * filename) -> FILE *
+auto fileopenw(char * filename) -> std::FILE *
 {
-  FILE * fp = nullptr;
+  std::FILE * fp = nullptr;
   fp = fopen_output(filename);
   if (! fp)
     {
@@ -1395,7 +1395,7 @@ auto pair_all() -> void
   chunks = nullptr;
 }
 
-auto print_stats(FILE * fp) -> void
+auto print_stats(std::FILE * fp) -> void
 {
   fprintf(fp,
           "%10" PRIu64 "  Pairs\n",
