@@ -63,9 +63,9 @@
 
 
 #ifdef _WIN32
-typedef struct __stat64 xstat_t;
+using xstat_t = struct __stat64;
 #else
-typedef struct stat xstat_t;
+using xstat_t = struct stat;
 #endif
 
 auto arch_get_memused() -> uint64_t;
