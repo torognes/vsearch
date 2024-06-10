@@ -78,8 +78,8 @@ auto tax_parse(const char * header,
 
   const char * attribute = "tax=";
 
-  int hlen = header_length;
-  int alen = strlen(attribute);
+  int const hlen = header_length;
+  int const alen = strlen(attribute);
 
   int i = 0;
 
@@ -143,7 +143,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   int tax_start = 0;
   int tax_end = 0;
   char * h = db_getheader(seqno);
-  int hlen = db_getheaderlen(seqno);
+  int const hlen = db_getheaderlen(seqno);
   if (tax_parse(h, hlen, & tax_start, & tax_end))
     {
       int t = tax_start + 4;
@@ -154,7 +154,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
           const char * r = strchr(tax_letters, tolower(h[t]));
           if (r)
             {
-              int level = r - tax_letters;
+              int const level = r - tax_letters;
 
               /* Is there a colon after it? */
               if (h[t + 1] == ':')
