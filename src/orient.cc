@@ -201,10 +201,10 @@ auto orient() -> void
                     chrmap_no_change))
     {
       char * query_head = fastx_get_header(query_h);
-      int query_head_len = fastx_get_header_length(query_h);
+      int const query_head_len = fastx_get_header_length(query_h);
       char * qseq_fwd = fastx_get_sequence(query_h);
-      int qseqlen = fastx_get_sequence_length(query_h);
-      int qsize = fastx_get_abundance(query_h);
+      int const qseqlen = fastx_get_sequence_length(query_h);
+      int const qsize = fastx_get_abundance(query_h);
       char * query_qual_fwd = fastx_get_quality(query_h);
 
       /* find kmers in query sequence */
@@ -223,11 +223,11 @@ auto orient() -> void
 
       for (unsigned int i = 0; i < kmer_count_fwd; i++)
         {
-          unsigned int kmer_fwd = kmer_list_fwd[i];
-          unsigned int kmer_rev = rc_kmer(kmer_fwd);
+          unsigned int const kmer_fwd = kmer_list_fwd[i];
+          unsigned int const kmer_rev = rc_kmer(kmer_fwd);
 
-          unsigned int hits_fwd = dbindex_getmatchcount(kmer_fwd);
-          unsigned int hits_rev = dbindex_getmatchcount(kmer_rev);
+          unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
+          unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
 
           /* require 8 times as many matches on one stand than the other */
 
@@ -243,15 +243,15 @@ auto orient() -> void
 
       /* get progress as amount of input file read */
 
-      uint64_t progress = fasta_get_position(query_h);
+      uint64_t const progress = fasta_get_position(query_h);
 
       /* update stats */
 
       ++queries;
 
       int strand = 2;
-      unsigned int min_count = 1;
-      unsigned int min_factor = 4;
+      unsigned int const min_count = 1;
+      unsigned int const min_factor = 4;
 
       if ((count_fwd >= min_count) and (count_fwd >= min_factor * count_rev))
         {
