@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <cctype>  // std::tolower
+#include <cstring>  // std::strlen, std::strstr, std::strchr
+
 
 const char * tax_letters = "dkpcofgst";
 
