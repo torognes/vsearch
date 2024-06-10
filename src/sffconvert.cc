@@ -60,6 +60,11 @@
 
 #include "vsearch.h"
 #include <array>
+#include <cctype>  // std::tolower, std::toupper
+#include <climits>  // UINT_MAX
+#include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread
+#include <cstring>  // std::strlen
 
 
 constexpr uint32_t sff_magic = 0x2e736666;
