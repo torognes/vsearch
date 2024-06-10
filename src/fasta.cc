@@ -93,7 +93,7 @@ auto fasta_filter_sequence(fastx_handle h,
 
   while ((c = *p++))
     {
-      char m = char_action[(unsigned char) c];
+      char const m = char_action[(unsigned char) c];
 
       switch(m)
         {
@@ -252,7 +252,7 @@ auto fasta_next(fastx_handle h,
 auto fasta_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
-  int64_t size = header_get_size(h->header_buffer.data,
+  int64_t const size = header_get_size(h->header_buffer.data,
                                  h->header_buffer.length);
   if (size > 0)
     {
@@ -389,9 +389,9 @@ auto fasta_print_general(std::FILE * fp,
     }
   else
     {
-      bool xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      bool xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      bool xlength = opt_xlength || opt_lengthout;
+      bool const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
+      bool const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      bool const xlength = opt_xlength || opt_lengthout;
       header_fprint_strip(fp,
                           header,
                           header_len,
