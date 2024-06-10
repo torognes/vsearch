@@ -67,10 +67,10 @@
 #include <utility>  // std::pair
 
 
-typedef uint8_t uint8;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-typedef std::pair<uint64, uint64> uint128;
+using uint8 = uint8_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
+using uint128 = std::pair<uint64, uint64>;
 
 inline auto Uint128Low64(const uint128& x) -> uint64 { return x.first; }
 inline auto Uint128High64(const uint128& x) -> uint64 { return x.second; }
