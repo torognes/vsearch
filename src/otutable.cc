@@ -83,11 +83,11 @@ const std::regex regex_tax("(^|;)tax=([^;]*)($|;)",
                            std::regex::extended);
 #endif
 
-typedef std::set<std::string> string_set_t;
-typedef std::pair<std::string, std::string> string_pair_t;
-typedef std::map<string_pair_t, uint64_t> string_pair_map_t;
-typedef std::map<std::string, std::string> otu_tax_map_t;
-typedef std::map<std::string, uint64_t> string_no_map_t;
+using string_set_t = std::set<std::string>;
+using string_pair_t = std::pair<std::string, std::string>;
+using string_pair_map_t = std::map<string_pair_t, uint64_t>;
+using otu_tax_map_t = std::map<std::string, std::string>;
+using string_no_map_t = std::map<std::string, uint64_t>;
 
 struct otutable_s
 {
