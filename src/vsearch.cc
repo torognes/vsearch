@@ -367,7 +367,7 @@ auto cpu_features_detect() -> void
   unsigned int d = 0;
 
   cpuid(0, 0, a, b, c, d);
-  unsigned int maxlevel = a & 0xff;
+  unsigned int const maxlevel = a & 0xff;
 
   if (maxlevel >= 1)
     {
@@ -2579,7 +2579,7 @@ auto args_init(int argc, char **argv) -> void
 
   /* Below is a list of all command names, in alphabetical order. */
 
-  int command_options[] =
+  int const command_options[] =
     {
       option_allpairs_global,
       option_chimeras_denovo,
@@ -4513,7 +4513,7 @@ auto args_init(int argc, char **argv) -> void
     {
       /* check if any options are specified */
       bool any_options = false;
-      for (bool i: options_selected)
+      for (bool const i: options_selected)
         {
           if (i)
             {
@@ -4966,7 +4966,7 @@ auto cmd_version() -> void
       uLong (*zlibCompileFlags_p)();
       zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
                                                     "zlibCompileFlags");
-      uLong flags = (*zlibCompileFlags_p)();
+      uLong const flags = (*zlibCompileFlags_p)();
 
       printf("zlib version %s, compile flags %lx", gz_version, flags);
       if (flags & 0x0400)
@@ -5985,12 +5985,12 @@ auto main(int argc, char** argv) -> int
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Finished %s", time_string);
 
-      double time_diff = difftime(time_finish, time_start);
+      double const time_diff = difftime(time_finish, time_start);
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
               floor(time_diff / 60.0),
               floor(time_diff - (60.0 * floor(time_diff / 60.0))));
-      double maxmem = arch_get_memused() / 1048576.0;
+      double const maxmem = arch_get_memused() / 1048576.0;
       if (maxmem < 1024.0)
         {
           fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
