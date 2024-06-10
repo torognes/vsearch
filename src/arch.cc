@@ -111,8 +111,8 @@ auto arch_get_memtotal() -> uint64_t
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
-  int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
-  int64_t pagesize = sysconf(_SC_PAGESIZE);
+  int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
+  int64_t const pagesize = sysconf(_SC_PAGESIZE);
   if ((phys_pages == -1) || (pagesize == -1))
     {
       fatal("Cannot determine amount of RAM");
@@ -174,7 +174,7 @@ auto arch_srandom() -> void
 #ifdef _WIN32
       srand(GetTickCount());
 #else
-      int fd = open("/dev/urandom", O_RDONLY);
+      int const fd = open("/dev/urandom", O_RDONLY);
       if (fd < 0)
         {
           fatal("Unable to open /dev/urandom");
