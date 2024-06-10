@@ -68,13 +68,15 @@
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
 
-typedef struct clusterinfo_s
+struct clusterinfo_s
 {
   int seqno;
   int clusterno;
   char * cigar;
   int strand;
-} clusterinfo_t;
+};
+
+using clusterinfo_t = struct clusterinfo_s;
 
 static clusterinfo_t * clusterinfo = nullptr;
 static int clusters = 0;
@@ -104,7 +106,7 @@ static pthread_attr_t attr;
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
 
-typedef struct thread_info_s
+struct thread_info_s
 {
   pthread_t thread;
   pthread_mutex_t mutex;
@@ -112,7 +114,9 @@ typedef struct thread_info_s
   int work;
   int query_first;
   int query_count;
-} thread_info_t;
+};
+
+using thread_info_t = struct thread_info_s;
 
 static thread_info_t * ti;
 
