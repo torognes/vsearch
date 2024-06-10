@@ -863,7 +863,7 @@ inline auto pushop(s16info_s * s, char newop) -> void
         {
           const int size = 11;
           char buf[size];
-          int len = snprintf(buf, size, "%d", s->opcount);
+          int const len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
@@ -881,7 +881,7 @@ inline auto finishop(s16info_s * s) -> void
         {
           const int size = 11;
           char buf[size];
-          int len = snprintf(buf, size, "%d", s->opcount);
+          int const len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
@@ -901,14 +901,14 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pgaps) -> void
 {
   unsigned short * dirbuffer = s->dir;
-  uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
-  uint64_t qlen = s->qlen;
+  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const qlen = s->qlen;
   char * qseq = s->qseq;
 
-  uint64_t maskup      = 3ULL << (2 * channel + 0);
-  uint64_t maskleft    = 3ULL << (2 * channel + 16);
-  uint64_t maskextup   = 3ULL << (2 * channel + 32);
-  uint64_t maskextleft = 3ULL << (2 * channel + 48);
+  uint64_t const maskup      = 3ULL << (2 * channel + 0);
+  uint64_t const maskleft    = 3ULL << (2 * channel + 16);
+  uint64_t const maskextup   = 3ULL << (2 * channel + 32);
+  uint64_t const maskextleft = 3ULL << (2 * channel + 48);
 
 #if 0
 
@@ -986,7 +986,7 @@ auto backtrack16(s16info_s * s,
     {
       ++aligned;
 
-      uint64_t d = *((uint64_t *) (dirbuffer +
+      uint64_t const d = *((uint64_t *) (dirbuffer +
                                    (offset + (16 * s->qlen * (j / 4)) +
                                     (16 * i) + (4 * (j & 3)) % dirbuffersize)));
 
@@ -1059,7 +1059,7 @@ auto backtrack16(s16info_s * s,
   finishop(s);
 
   /* move cigar to beginning of allocated memory area */
-  int cigarlen = s->cigar + s->qlen + s->maxdlen - s->cigarend;
+  int const cigarlen = s->cigar + s->qlen + s->maxdlen - s->cigarend;
   memmove(s->cigar, s->cigarend, cigarlen + 1);
 
   * paligned = aligned;
@@ -1219,14 +1219,14 @@ auto search16(s16info_s * s,
   CELL ** q_start = (CELL **) s->qtable;
   CELL * dprofile = (CELL *) s->dprofile;
   CELL * hearray = (CELL *) s->hearray;
-  uint64_t qlen = s->qlen;
+  uint64_t const qlen = s->qlen;
 
   if (qlen == 0)
     {
       for (unsigned int cand_id = 0; cand_id < sequences; cand_id++)
         {
-          unsigned int seqno = seqnos[cand_id];
-          int64_t length = db_getsequencelen(seqno);
+          unsigned int const seqno = seqnos[cand_id];
+          int64_t const length = db_getsequencelen(seqno);
 
           paligned[cand_id] = length;
           pmatches[cand_id] = 0;
@@ -1249,7 +1249,7 @@ auto search16(s16info_s * s,
           char * cigar = nullptr;
           if (length > 0)
             {
-              int ret = xsprintf(&cigar, "%ldI", length);
+              int const ret = xsprintf(&cigar, "%ldI", length);
               if ((ret < 2) or not cigar)
                 {
                   fatal("Unable to allocate enough memory.");
@@ -1269,7 +1269,7 @@ auto search16(s16info_s * s,
   uint64_t maxdlen = 0;
   for (int64_t i = 0; i < sequences; i++)
     {
-      uint64_t dlen = db_getsequencelen(seqnos[i]);
+      uint64_t const dlen = db_getsequencelen(seqnos[i]);
       /* skip the very long sequences */
       if ((int64_t) (s->qlen) * dlen <= MAXSEQLENPRODUCT)
         {
@@ -1281,7 +1281,7 @@ auto search16(s16info_s * s,
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = maxdlen;
-  uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
 
   if (dirbuffersize > s->diralloc)
     {
@@ -1407,8 +1407,8 @@ auto search16(s16info_s * s,
                         s->penalty_gap_open_target_right +
                         s->penalty_gap_extension_target_right);
 
-  short score_min = std::numeric_limits<short>::min() + gap_penalty_max;
-  short score_max = std::numeric_limits<short>::max();
+  short const score_min = std::numeric_limits<short>::min() + gap_penalty_max;
+  short const score_max = std::numeric_limits<short>::max();
 
   for (int i = 0; i < 4; i++)
     {
@@ -1472,9 +1472,9 @@ auto search16(s16info_s * s,
             {
               /* one or more sequences ended */
 
-              VECTOR_SHORT QR_diff = v_sub(QR_target_right,
+              VECTOR_SHORT const QR_diff = v_sub(QR_target_right,
                                            QR_target_interior);
-              VECTOR_SHORT R_diff  = v_sub(R_target_right,
+              VECTOR_SHORT const R_diff  = v_sub(R_target_right,
                                            R_target_interior);
               for (unsigned int j = 0; j < CDEPTH; j++)
                 {
@@ -1519,8 +1519,8 @@ auto search16(s16info_s * s,
             {
               if (not overflow[c])
                 {
-                  signed short h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
+                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
                   if ((h_min_c <= score_min) or
                       (h_max_c >= score_max))
                     {
@@ -1574,9 +1574,9 @@ auto search16(s16info_s * s,
                       /* save score */
 
                       char * dbseq = (char *) d_address[c];
-                      int64_t dbseqlen = d_length[c];
-                      int64_t z = (dbseqlen + 3) % 4;
-                      int64_t score = ((CELL *) S)[(z * CHANNELS) + c];
+                      int64_t const dbseqlen = d_length[c];
+                      int64_t const z = (dbseqlen + 3) % 4;
+                      int64_t const score = ((CELL *) S)[(z * CHANNELS) + c];
 
                       if (overflow[c])
                         {
@@ -1722,9 +1722,9 @@ auto search16(s16info_s * s,
             {
               /* one or more sequences ended */
 
-              VECTOR_SHORT QR_diff = v_sub(QR_target_right,
+              VECTOR_SHORT const QR_diff = v_sub(QR_target_right,
                                            QR_target_interior);
-              VECTOR_SHORT R_diff  = v_sub(R_target_right,
+              VECTOR_SHORT const R_diff  = v_sub(R_target_right,
                                            R_target_interior);
               for (unsigned int j = 0; j < CDEPTH; j++)
                 {
@@ -1773,8 +1773,8 @@ auto search16(s16info_s * s,
             {
               if (not overflow[c])
                 {
-                  signed short h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
+                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
                   if ((h_min_c <= score_min) or (h_max_c >= score_max))
                     {
                       overflow[c] = true;
