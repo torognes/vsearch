@@ -315,7 +315,7 @@ auto cut() -> void
       fatal("No cut pattern string specified with --cut_pattern");
     }
 
-  int n = strlen(pattern);
+  int const n = strlen(pattern);
 
   if (n == 0)
     {
@@ -328,7 +328,7 @@ auto cut() -> void
   int j = 0;
   for (int i = 0; i < n ; i++)
     {
-      unsigned char x = pattern[i];
+      unsigned char const x = pattern[i];
       if (x == '^')
         {
           if (j < 0)
