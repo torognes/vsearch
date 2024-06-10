@@ -115,7 +115,7 @@ struct hit
 };
 
 /* type of kmer hit counter element remember possibility of overflow */
-typedef unsigned short count_t;
+using count_t = unsigned short;
 
 struct searchinfo_s
 {
