@@ -235,7 +235,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       if (! regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
         {
           /* match: use the matching tax name */
-          int len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
+          int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
           start_tax += pmatch_tax[2].rm_so;
 
           char * tax_name = (char *) xmalloc(len_tax+1);
@@ -383,10 +383,10 @@ auto otutable_print_biomout(FILE * fp) -> void
   int64_t progress = 0;
   progress_init("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size());
 
-  int64_t rows = otutable->otu_set.size();
-  int64_t columns = otutable->sample_set.size();
+  int64_t const rows = otutable->otu_set.size();
+  int64_t const columns = otutable->sample_set.size();
 
-  static time_t time_now = time(nullptr);
+  static const time_t time_now = time(nullptr);
   struct tm * tm_now = localtime(& time_now);
   char date[50];
   strftime(date, 50, "%Y-%m-%dT%H:%M:%S", tm_now);
