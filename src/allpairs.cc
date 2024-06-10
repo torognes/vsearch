@@ -159,7 +159,7 @@ auto allpairs_output_results(int hit_count,
     {
       double const top_hit_id = hits[0].id;
 
-      for(int t = 0; t < toreport; t++)
+      for (int t = 0; t < toreport; t++)
         {
           struct hit * hp = hits + t;
 
@@ -392,7 +392,7 @@ auto allpairs_thread_run(int64_t t) -> void
           si->accepts = 0;
           si->hit_count = 0;
 
-          for(int target = si->query_no + 1;
+          for (int target = si->query_no + 1;
               target < seqcount; target++)
             {
               if (opt_acceptall or search_acceptable_unaligned(si, target))
@@ -530,7 +530,7 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_unlock(&mutex_output);
 
           /* free memory for alignment strings */
-          for(int i = 0; i < si->hit_count; i++)
+          for (int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
                 {
@@ -581,14 +581,14 @@ auto allpairs_thread_worker_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread + t, &attr,
                       allpairs_thread_worker, (void *) (int64_t) t);
     }
 
   /* finish and clean up worker threads */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
