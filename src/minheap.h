@@ -58,20 +58,23 @@
 
 */
 
-typedef struct topscore
+struct topscore
 {
   unsigned int count;
   unsigned int seqno;
   unsigned int length;
-} elem_t;
+};
 
+using elem_t = struct topscore;
 
-typedef struct minheap_s
+struct minheap_s
 {
   int alloc;
   int count;
   elem_t * array;
-} minheap_t;
+};
+
+using minheap_t = struct minheap_s;
 
 inline auto minheap_isempty(minheap_t * a_minheap) -> int
 {
