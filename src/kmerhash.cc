@@ -121,8 +121,8 @@ inline auto kh_insert_kmer(struct kh_handle_s * kh,
 
 auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> void
 {
-  int kmers = 1 << (2 * k);
-  unsigned int kmer_mask = kmers - 1;
+  int const kmers = 1 << (2 * k);
+  unsigned int const kmer_mask = kmers - 1;
 
   /* reallocate hash table if necessary */
 
@@ -155,7 +155,7 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
 
   for (int pos = 0; pos < len; pos++)
     {
-      int c = *s++;
+      int const c = *s++;
 
       bad <<= 2ULL;
       bad |= maskmap[c];
@@ -177,8 +177,8 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
 {
   std::vector<int> diag_counts(kh->maxpos, 0);
 
-  int kmers = 1 << (2 * k);
-  unsigned int kmer_mask = kmers - 1;
+  int const kmers = 1 << (2 * k);
+  unsigned int const kmer_mask = kmers - 1;
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -188,7 +188,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
 
   for (int pos = 0; pos < len; pos++)
     {
-      int c = *s--;
+      int const c = *s--;
 
       bad <<= 2ULL;
       bad |= maskmap[c];
@@ -206,8 +206,8 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
             {
               if (kh->hash[j].kmer == kmer)
                 {
-                  int fpos = kh->hash[j].pos - 1;
-                  int diag = fpos - (pos - k + 1);
+                  int const fpos = kh->hash[j].pos - 1;
+                  int const diag = fpos - (pos - k + 1);
                   if (diag >= 0)
                     {
                       diag_counts[diag]++;
@@ -224,9 +224,9 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
 
   for (int d = 0; d < kh->maxpos - k + 1; d++)
     {
-      int diag_len = kh->maxpos - d;
-      int minmatch = MAX(1, diag_len - k + 1 - (k * MAX(diag_len / 20, 0)));
-      int c = diag_counts[d];
+      int const diag_len = kh->maxpos - d;
+      int const minmatch = MAX(1, diag_len - k + 1 - (k * MAX(diag_len / 20, 0)));
+      int const c = diag_counts[d];
 
       if (c >= minmatch)
         {
@@ -258,8 +258,8 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
 {
   memset(diags, 0, (kh->maxpos+len) * sizeof(int));
 
-  int kmers = 1 << (2 * k);
-  unsigned int kmer_mask = kmers - 1;
+  int const kmers = 1 << (2 * k);
+  unsigned int const kmer_mask = kmers - 1;
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -267,7 +267,7 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
 
   for (int pos = 0; pos < len; pos++)
     {
-      int c = *s--;
+      int const c = *s--;
 
       bad <<= 2ULL;
       bad |= chrmap_mask_ambig[c];
@@ -285,8 +285,8 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
             {
               if (kh->hash[j].kmer == kmer)
                 {
-                  int fpos = kh->hash[j].pos - 1;
-                  int diag = len + fpos - (pos - k + 1);
+                  int const fpos = kh->hash[j].pos - 1;
+                  int const diag = len + fpos - (pos - k + 1);
                   if (diag >= 0)
                     {
                       diags[diag]++;
