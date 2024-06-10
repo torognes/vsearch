@@ -158,11 +158,11 @@ auto header_get_size(char * header, int header_length) -> int64_t
   return abundance;
 }
 
-auto swap(int * a, int * b) -> void
+auto swap(int * lhs, int * rhs) -> void
 {
-  int const temp = *a;
-  *a = *b;
-  *b = temp;
+  int const temp = *lhs;
+  *lhs = *rhs;
+  *rhs = temp;
 }
 
 auto header_fprint_strip(FILE * fp,
