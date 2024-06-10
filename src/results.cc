@@ -124,7 +124,7 @@ auto results_show_qsegout_one(FILE * fp,
   if (hp)
     {
       char * qseg = (hp->strand ? rc : qsequence) + hp->trim_q_left;
-      int qseglen = qseqlen
+      int const qseglen = qseqlen
         - hp->trim_q_left - hp->trim_q_right;
 
       fasta_print_general(fp,
@@ -149,7 +149,7 @@ auto results_show_tsegout_one(FILE * fp,
   if (hp)
     {
       char * tseg = db_getsequence(hp->target) + hp->trim_t_left;
-      int tseglen = db_getsequencelen(hp->target)
+      int const tseglen = db_getsequencelen(hp->target)
         - hp->trim_t_left - hp->trim_t_right;
 
       fasta_print_general(fp,
@@ -308,7 +308,7 @@ auto results_show_userout_one(FILE * fp, struct hit * hp,
           fprintf(fp, "\t");
         }
 
-      int field = userfields_requested[c];
+      int const field = userfields_requested[c];
 
       char * tsequence = nullptr;
       int64_t tseqlen = 0;
@@ -523,7 +523,7 @@ auto results_show_lcaout(FILE * fp,
       level_match[k] = 0;
     }
 
-  double top_hit_id = hits[0].id;
+  double const top_hit_id = hits[0].id;
   int tophitcount = 0;
 
   for (int t = 0; t < hitcount; t++)
@@ -537,7 +537,7 @@ auto results_show_lcaout(FILE * fp,
 
       tophitcount++;
 
-      int seqno = hp->target;
+      int const seqno = hp->target;
       int new_level_start[tax_levels];
       int new_level_len[tax_levels];
       tax_split(seqno, new_level_start, new_level_len);
@@ -584,7 +584,7 @@ auto results_show_lcaout(FILE * fp,
 
   for (int t = 0; t < tophitcount; t++)
     {
-      int seqno = hits[t].target;
+      int const seqno = hits[t].target;
       int new_level_start[tax_levels];
       int new_level_len[tax_levels];
       tax_split(seqno, new_level_start, new_level_len);
@@ -654,7 +654,7 @@ auto results_show_alnout(FILE * fp,
       fprintf(fp,"Query >%s\n", query_head);
       fprintf(fp," %%Id   TLen  Target\n");
 
-      double top_hit_id = hits[0].id;
+      double const top_hit_id = hits[0].id;
 
       for(int t = 0; t < hitcount; t++)
         {
@@ -684,18 +684,18 @@ auto results_show_alnout(FILE * fp,
 
 
           char * dseq = db_getsequence(hp->target);
-          int64_t dseqlen = db_getsequencelen(hp->target);
+          int64_t const dseqlen = db_getsequencelen(hp->target);
 
-          int qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
-          int tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
-          int numwidth = MAX(qlenlen, tlenlen);
+          int const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
+          int const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
+          int const numwidth = MAX(qlenlen, tlenlen);
 
           fprintf(fp," Query %*" PRId64 "nt >%s\n", numwidth,
                   qseqlen, query_head);
           fprintf(fp,"Target %*" PRId64 "nt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
 
-          int rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
+          int const rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
 
           align_show(fp,
                      qsequence,
@@ -779,7 +779,7 @@ auto build_sam_strings(char * alignment,
       int scanned = 0;
       sscanf(p, "%d%n", & run, & scanned);
       p += scanned;
-      char op = *p++;
+      char const op = *p++;
 
       switch (op)
         {
@@ -922,7 +922,7 @@ auto results_show_samout(FILE * fp,
 
   if (hitcount > 0)
     {
-      double top_hit_id = hits[0].id;
+      double const top_hit_id = hits[0].id;
 
       for(int t = 0; t < hitcount; t++)
         {
