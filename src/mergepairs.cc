@@ -183,7 +183,7 @@ enum state_enum
     processed
   };
 
-typedef struct merge_data_s
+struct merge_data_s
 {
   char * fwd_header;
   char * rev_header;
@@ -211,15 +211,18 @@ typedef struct merge_data_s
   bool merged;
   reason_enum reason;
   state_enum state;
-} merge_data_t;
+};
 
+using merge_data_t = struct merge_data_s;
 
-typedef struct chunk_s
+struct chunk_s
 {
   int size; /* size of merge_data = number of pairs of reads */
   state_enum state; /* state of chunk: empty, read, processed */
   merge_data_t * merge_data; /* data for merging */
-} chunk_t;
+};
+
+using chunk_t = struct chunk_s;
 
 static chunk_t * chunks; /* pointer to array of chunks */
 
