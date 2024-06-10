@@ -59,7 +59,16 @@
 */
 
 #include "vsearch.h"
+#include <cassert>
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstring>  // std::strcpy, std::strlen
+#include <pthread.h>
 #include <vector>
+
 
 /* chunk constants */
 
