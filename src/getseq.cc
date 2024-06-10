@@ -83,7 +83,7 @@ auto read_labels_file(char * filename) -> void
       fatal("Unable to get status for labels file (%s)", filename);
     }
 
-  bool is_pipe = S_ISFIFO(fs.st_mode);
+  bool const is_pipe = S_ISFIFO(fs.st_mode);
   uint64_t file_size = 0;
   if (! is_pipe)
     {
@@ -159,7 +159,7 @@ auto free_labels() -> void
 auto test_label_match(fastx_handle h) -> bool
 {
   char * header = fastx_get_header(h);
-  int hlen = fastx_get_header_length(h);
+  int const hlen = fastx_get_header_length(h);
   char * field_buffer = nullptr;
   int field_len = 0;
   if (opt_label_field)
@@ -181,7 +181,7 @@ auto test_label_match(fastx_handle h) -> bool
   if (opt_label)
     {
       char * needle = opt_label;
-      int wlen = strlen(needle);
+      int const wlen = strlen(needle);
       if (opt_label_substr_match)
         {
           return xstrcasestr(header, needle);
@@ -208,7 +208,7 @@ auto test_label_match(fastx_handle h) -> bool
           for (int i = 0; i < labels_count; i++)
             {
               char * needle = labels_data[i];
-              int wlen = strlen(needle);
+              int const wlen = strlen(needle);
               if ((hlen == wlen) && ! strcasecmp(header, needle))
                 {
                   return true;
@@ -224,7 +224,7 @@ auto test_label_match(fastx_handle h) -> bool
           strcpy(field_buffer + field_len + 1, needle);
           needle = field_buffer;
         }
-      int wlen = strlen(needle);
+      int const wlen = strlen(needle);
       char * hit = header;
       while (true)
         {
@@ -271,7 +271,7 @@ auto test_label_match(fastx_handle h) -> bool
               strcpy(field_buffer + field_len + 1, needle);
               needle = field_buffer;
             }
-          int wlen = strlen(needle);
+          int const wlen = strlen(needle);
           char * hit = header;
           while (true)
             {
@@ -394,7 +394,7 @@ auto getseq(char * filename) -> void
       fatal("Cannot write FASTQ output from FASTA input");
     }
 
-  uint64_t filesize = fastx_get_size(h1);
+  uint64_t const filesize = fastx_get_size(h1);
 
   FILE * fp_fastaout = nullptr;
   FILE * fp_fastqout = nullptr;
@@ -444,7 +444,7 @@ auto getseq(char * filename) -> void
 
   while(fastx_next(h1, ! opt_notrunclabels, chrmap_no_change))
     {
-      bool match = test_label_match(h1);
+      bool const match = test_label_match(h1);
 
       int64_t start = 1;
       int64_t end = fastx_get_sequence_length(h1);
@@ -459,7 +459,7 @@ auto getseq(char * filename) -> void
               end = opt_subseq_end;
             }
         }
-      int64_t length = end - start + 1;
+      int64_t const length = end - start + 1;
 
       if (match)
         {
