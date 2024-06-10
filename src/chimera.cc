@@ -1944,8 +1944,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
         {
           for (int i = 0; i < parts; i++)
             {
-              struct hit * hits;
-              int hit_count;
+              struct hit * hits = nullptr;
+              int hit_count = 0;
               search_onequery(ci->si + i, opt_qmask);
               search_joinhits(ci->si + i, nullptr, & hits, & hit_count);
               for(int j = 0; j < hit_count; j++)
