@@ -151,7 +151,7 @@ auto fastq_open(const char * filename) -> fastx_handle
 {
   fastx_handle h = fastx_open(filename);
 
-  if (!fastx_is_fastq(h))
+  if (! fastx_is_fastq(h))
     {
       fatal("FASTQ file expected, FASTA file found (%s)", filename);
     }
@@ -274,7 +274,7 @@ auto fastq_next(fastx_handle h,
       h->file_buffer.position += len;
       rest -= len;
 
-      if (!ok)
+      if (! ok)
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
