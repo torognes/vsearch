@@ -59,6 +59,13 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // LONG_MAX
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstring>  // std::memcpy, std::memcmp
+
 
 /* file compression and format detector */
 /* basic file buffering function for fastq and fastx parsers */
