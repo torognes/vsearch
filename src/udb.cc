@@ -59,8 +59,12 @@
 */
 
 #include "vsearch.h"
+#include <climits>  // UINT_MAX
 #include <cmath>
-#include <cstdio> // std::FILE, std::fprintf, std::size_t
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::memset, std::memmove
 
 
 #define BLOCKSIZE (4096 * 4096)
