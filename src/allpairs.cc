@@ -133,7 +133,7 @@ auto allpairs_output_results(int hit_count,
                              char * qsequence_rc) -> void
 {
   /* show results */
-  int64_t toreport = MIN(opt_maxhits, hit_count);
+  int64_t const toreport = MIN(opt_maxhits, hit_count);
 
   if (fp_alnout)
     {
@@ -157,7 +157,7 @@ auto allpairs_output_results(int hit_count,
 
   if (toreport)
     {
-      double top_hit_id = hits[0].id;
+      double const top_hit_id = hits[0].id;
 
       for(int t = 0; t < toreport; t++)
         {
@@ -348,7 +348,7 @@ auto allpairs_thread_run(int64_t t) -> void
                      opt_gap_extension_target_right);
 
   /* allocate memory for alignment results */
-  unsigned int maxhits = seqcount;
+  unsigned int const maxhits = seqcount;
   auto * pseqnos =
     (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
   CELL * pscores =
@@ -372,7 +372,7 @@ auto allpairs_thread_run(int64_t t) -> void
     {
       xpthread_mutex_lock(&mutex_input);
 
-      int query_no = queries;
+      int const query_no = queries;
 
       if (query_no < seqcount)
         {
@@ -422,7 +422,7 @@ auto allpairs_thread_run(int64_t t) -> void
                 {
                   struct hit * hit = si->hits + h;
 
-                  unsigned int target = pseqnos[h];
+                  unsigned int const target = pseqnos[h];
                   int64_t nwscore = pscores[h];
 
                   char * nwcigar {nullptr};
@@ -438,7 +438,7 @@ auto allpairs_thread_run(int64_t t) -> void
                          linear memory aligner */
 
                       char * tseq = db_getsequence(target);
-                      int64_t tseqlen = db_getsequencelen(target);
+                      int64_t const tseqlen = db_getsequencelen(target);
 
                       if (pcigar[h])
                         {
@@ -487,7 +487,7 @@ auto allpairs_thread_run(int64_t t) -> void
                   hit->matches = nwalignmentlength - hit->nwdiff;
                   hit->mismatches = hit->nwdiff - hit->nwindels;
 
-                  int64_t dseqlen = db_getsequencelen(target);
+                  int64_t const dseqlen = db_getsequencelen(target);
                   hit->shortest = MIN(si->qseqlen, dseqlen);
                   hit->longest = MAX(si->qseqlen, dseqlen);
 
