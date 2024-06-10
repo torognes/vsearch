@@ -91,7 +91,7 @@ inline auto pushop(char newop, char ** cigarendp, char * op, int * count) -> voi
         {
           const int size = 25;
           char buf[size];
-          int len = snprintf(buf, size, "%d", *count);
+          int const len = snprintf(buf, size, "%d", *count);
           *cigarendp -= len;
           std::memcpy(*cigarendp, buf, (size_t) len);
         }
@@ -109,7 +109,7 @@ inline auto finishop(char ** cigarendp, char * op, int * count) -> void
     {
       const int size = 25;
       char buf[size];
-      int len = snprintf(buf, size, "%d", *count);
+      int const len = snprintf(buf, size, "%d", *count);
       *cigarendp -= len;
       std::memcpy(*cigarendp, buf, (size_t) len);
     }
@@ -223,8 +223,8 @@ auto nw_align(char * dseq,
   int64_t h_f = 0;
   int64_t * hep = nullptr;
 
-  int64_t qlen = qend - qseq;
-  int64_t dlen = dend - dseq;
+  int64_t const qlen = qend - qseq;
+  int64_t const dlen = dend - dseq;
 
   if (qlen * dlen > nw->dir_alloc)
     {
@@ -232,7 +232,7 @@ auto nw_align(char * dseq,
       nw->dir = (char *) xrealloc(nw->dir, (size_t) nw->dir_alloc);
     }
 
-  int64_t need = 2 * qlen * (int64_t) sizeof(int64_t);
+  int64_t const need = 2 * qlen * (int64_t) sizeof(int64_t);
   if (need > nw->hearray_alloc)
     {
       nw->hearray_alloc = need;
@@ -353,7 +353,7 @@ auto nw_align(char * dseq,
     }
   }
 
-  int64_t dist = nw->hearray[(2 * qlen) - 2];
+  int64_t const dist = nw->hearray[(2 * qlen) - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -375,12 +375,12 @@ auto nw_align(char * dseq,
 
   while ((i > 0) and (j > 0))
   {
-    int64_t gapopen_q   = (i < qlen) ? gapopen_q_interior   : gapopen_q_right;
-    int64_t gapextend_q = (i < qlen) ? gapextend_q_interior : gapextend_q_right;
-    int64_t gapopen_t   = (j < dlen) ? gapopen_t_interior   : gapopen_t_right;
-    int64_t gapextend_t = (j < dlen) ? gapextend_t_interior : gapextend_t_right;
+    int64_t const gapopen_q   = (i < qlen) ? gapopen_q_interior   : gapopen_q_right;
+    int64_t const gapextend_q = (i < qlen) ? gapextend_q_interior : gapextend_q_right;
+    int64_t const gapopen_t   = (j < dlen) ? gapopen_t_interior   : gapopen_t_right;
+    int64_t const gapextend_t = (j < dlen) ? gapextend_t_interior : gapextend_t_right;
 
-    int d = nw->dir[(qlen * (j - 1)) + (i - 1)];
+    int const d = nw->dir[(qlen * (j - 1)) + (i - 1)];
 
     ++alength;
 
@@ -467,7 +467,7 @@ auto nw_align(char * dseq,
 
   /* move and reallocate cigar */
 
-  int64_t cigarlength = cigar + qlen + dlen - cigarend;
+  int64_t const cigarlength = cigar + qlen + dlen - cigarend;
   std::memmove(cigar, cigarend, (size_t) (cigarlength + 1));
   cigar = (char *) xrealloc(cigar, (size_t) (cigarlength + 1));
 
