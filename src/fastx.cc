@@ -140,8 +140,8 @@ auto fastx_filter_header(fastx_handle h, bool truncateatspace) -> void
 
   while (true)
     {
-      unsigned char c = *p++;
-      unsigned int m = char_header_action[c];
+      unsigned char const c = *p++;
+      unsigned int const m = char_header_action[c];
 
       switch(m)
         {
@@ -292,7 +292,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       h->format = format_plain;
 
-      size_t bytes_read = fread(&magic, 1, 2, h->fp);
+      size_t const bytes_read = fread(&magic, 1, 2, h->fp);
 
       if (bytes_read >= 2)
         {
@@ -367,7 +367,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
   /* start filling up file buffer */
 
-  uint64_t rest = fastx_file_fill_buffer(h);
+  uint64_t const rest = fastx_file_fill_buffer(h);
 
   /* examine first char and see if it starts with > or @ */
 
@@ -557,7 +557,7 @@ auto fastx_close(fastx_handle h) -> void
 auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
 {
   /* read more data if necessary */
-  uint64_t rest = h->file_buffer.length - h->file_buffer.position;
+  uint64_t const rest = h->file_buffer.length - h->file_buffer.position;
 
   if (rest > 0)
     {
@@ -631,7 +631,7 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
           if (h->format == format_gzip)
             {
               /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
-              int fd = dup(fileno(h->fp));
+              int const fd = dup(fileno(h->fp));
               h->file_position = xlseek(fd, 0, SEEK_CUR);
               close(fd);
             }
