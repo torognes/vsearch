@@ -59,6 +59,11 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // LONG_MIN
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::FILE, std::printf, std::size_t, std::snprintf, std::sscanf
+
 
 /*
 
