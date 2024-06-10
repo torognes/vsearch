@@ -61,11 +61,13 @@
 #include <cstring> // std::memset
 
 
-typedef struct bitmap_s
+struct bitmap_s
 {
   unsigned char * bitmap; /* the actual bitmap */
   unsigned int size;      /* size in bits */
-} bitmap_t;
+};
+
+using bitmap_t = struct bitmap_s;
 
 auto bitmap_init(unsigned int size) -> bitmap_t *;
 
