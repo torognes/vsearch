@@ -64,7 +64,7 @@
 
 inline auto fastq_get_qual_eestats(char q) -> int
 {
-  int qual = q - opt_fastq_ascii;
+  int const qual = q - opt_fastq_ascii;
 
   if (qual < opt_fastq_qmin)
     {
@@ -125,7 +125,7 @@ auto fastq_eestats() -> void
 
   fastx_handle h = fastq_open(opt_fastq_eestats);
 
-  uint64_t filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(h);
 
   FILE * fp_output = nullptr;
 
@@ -145,7 +145,7 @@ auto fastq_eestats() -> void
   int64_t len_alloc = 10;
 
   const int resolution = 1000;
-  int max_quality = opt_fastq_qmax - opt_fastq_qmin + 1;
+  int const max_quality = opt_fastq_qmax - opt_fastq_qmin + 1;
 
   int64_t ee_size = ee_start(len_alloc, resolution);
 
@@ -172,16 +172,16 @@ auto fastq_eestats() -> void
     {
       seq_count++;
 
-      int64_t len = fastq_get_sequence_length(h);
+      int64_t const len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
 
       /* update length statistics */
 
-      int64_t new_alloc = len + 1;
+      int64_t const new_alloc = len + 1;
 
       if (new_alloc > len_alloc)
         {
-          int64_t new_ee_size = ee_start(new_alloc, resolution);
+          int64_t const new_ee_size = ee_start(new_alloc, resolution);
 
           read_length_table = (uint64_t *) xrealloc(read_length_table,
                                                     sizeof(uint64_t) * new_alloc);
@@ -241,7 +241,7 @@ auto fastq_eestats() -> void
 
           /* Pe */
 
-          double pe = q2p(qual);
+          double const pe = q2p(qual);
           sum_pe_length_table[i] += pe;
 
 
@@ -249,7 +249,7 @@ auto fastq_eestats() -> void
 
           ee += pe;
 
-          int64_t e_int = MIN(resolution * (i + 1), (int) (resolution * ee));
+          int64_t const e_int = MIN(resolution * (i + 1), (int) (resolution * ee));
           ee_length_table[ee_start(i, resolution) + e_int]++;
 
           sum_ee_length_table[i] += ee;
@@ -266,8 +266,8 @@ auto fastq_eestats() -> void
 
   for (int64_t i = 0; i < len_max; i++)
     {
-      int64_t reads = read_length_table[i];
-      double pctrecs = 100.0 * reads / seq_count;
+      int64_t const reads = read_length_table[i];
+      double const pctrecs = 100.0 * reads / seq_count;
 
 
       /* q */
@@ -282,7 +282,7 @@ auto fastq_eestats() -> void
       double n = 0;
       for (int q = 0; q <= max_quality; q++)
         {
-          double x = qual_length_table[((max_quality + 1) * i) + q];
+          double const x = qual_length_table[((max_quality + 1) * i) + q];
 
           if (x > 0)
             {
@@ -313,7 +313,7 @@ auto fastq_eestats() -> void
             }
         }
 
-      double mean_q = 1.0 * qsum / reads;
+      double const mean_q = 1.0 * qsum / reads;
 
 
       /* pe */
@@ -328,11 +328,11 @@ auto fastq_eestats() -> void
       n = 0;
       for (int q = max_quality; q >= 0; q--)
         {
-          double x = qual_length_table[((max_quality + 1) * i) + q];
+          double const x = qual_length_table[((max_quality + 1) * i) + q];
 
           if (x > 0)
             {
-              double pe = q2p(q);
+              double const pe = q2p(q);
               pesum += pe * x;
               n += x;
 
@@ -360,7 +360,7 @@ auto fastq_eestats() -> void
             }
         }
 
-      double mean_pe = 1.0 * pesum / reads;
+      double const mean_pe = 1.0 * pesum / reads;
 
 
       /* expected errors */
@@ -371,13 +371,13 @@ auto fastq_eestats() -> void
       double hi_ee  = -1.0;
       double max_ee = -1.0;
 
-      int64_t ee_offset = ee_start(i, resolution);
-      int64_t max_errors = resolution * (i + 1);
+      int64_t const ee_offset = ee_start(i, resolution);
+      int64_t const max_errors = resolution * (i + 1);
 
       n = 0;
       for (int64_t e = 0; e <= max_errors; e++)
         {
-          int64_t x = ee_length_table[ee_offset + e];
+          int64_t const x = ee_length_table[ee_offset + e];
 
           if (x > 0)
             {
@@ -407,7 +407,7 @@ auto fastq_eestats() -> void
             }
         }
 
-      double mean_ee = sum_ee_length_table[i] / reads;
+      double const mean_ee = sum_ee_length_table[i] / reads;
 
       min_ee  = (min_ee  + 0.5) / resolution;
       low_ee  = (low_ee  + 0.5) / resolution;
@@ -445,7 +445,7 @@ auto fastq_eestats2() -> void
 
   fastx_handle h = fastq_open(opt_fastq_eestats2);
 
-  uint64_t filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(h);
 
   FILE * fp_output = nullptr;
 
@@ -472,7 +472,7 @@ auto fastq_eestats2() -> void
     {
       seq_count++;
 
-      uint64_t len = fastq_get_sequence_length(h);
+      uint64_t const len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
 
       /* update length statistics */
@@ -481,8 +481,8 @@ auto fastq_eestats2() -> void
         {
           longest = len;
           // opt_length_cutoffs_longest is an int between 1 and INT_MAX
-          int high = MIN(longest, (uint64_t) (opt_length_cutoffs_longest));
-          int new_len_steps = 1 + MAX(0, ((high - opt_length_cutoffs_shortest)
+          int const high = MIN(longest, (uint64_t) (opt_length_cutoffs_longest));
+          int const new_len_steps = 1 + MAX(0, ((high - opt_length_cutoffs_shortest)
                                           / opt_length_cutoffs_increment));
 
           if (new_len_steps > len_steps)
@@ -509,13 +509,13 @@ auto fastq_eestats2() -> void
               qual = 0;
             }
 
-          double pe = q2p(qual);
+          double const pe = q2p(qual);
 
           ee += pe;
 
           for (int x = 0; x < len_steps; x++)
             {
-              uint64_t len_cutoff = opt_length_cutoffs_shortest + (x * opt_length_cutoffs_increment);
+              uint64_t const len_cutoff = opt_length_cutoffs_shortest + (x * opt_length_cutoffs_increment);
               if (i + 1 == len_cutoff)
                 {
                   for (int y = 0; y < opt_ee_cutoffs_count; y++)
@@ -560,7 +560,7 @@ auto fastq_eestats2() -> void
 
   for (int x = 0; x < len_steps; x++)
     {
-      int len_cutoff = opt_length_cutoffs_shortest + (x * opt_length_cutoffs_increment);
+      int const len_cutoff = opt_length_cutoffs_shortest + (x * opt_length_cutoffs_increment);
 
       if (len_cutoff > opt_length_cutoffs_longest)
         {
@@ -600,7 +600,7 @@ auto fastq_eestats2() -> void
 
       for (int x = 0; x < len_steps; x++)
         {
-          int len_cutoff = opt_length_cutoffs_shortest + (x * opt_length_cutoffs_increment);
+          int const len_cutoff = opt_length_cutoffs_shortest + (x * opt_length_cutoffs_increment);
 
           if (len_cutoff > opt_length_cutoffs_longest)
             {
