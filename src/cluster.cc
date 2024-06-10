@@ -239,7 +239,7 @@ auto threads_worker(void * vp) -> void *
 
 auto threads_wakeup(int queries) -> void
 {
-  int threads = queries > opt_threads ? opt_threads : queries;
+  int const threads = queries > opt_threads ? opt_threads : queries;
   int queries_rest = queries;
   int threads_rest = threads;
   int query_next = 0;
@@ -380,13 +380,13 @@ auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
   char * label = nullptr;
   if (opt_relabel)
     {
-      int size = strlen(opt_relabel) + 21;
+      int const size = strlen(opt_relabel) + 21;
       label = (char *) xmalloc(size);
       snprintf(label, size, "%s%d", opt_relabel, clusterno + 1);
     }
   else if (opt_relabel_self)
     {
-      int size = seqlen + 1;
+      int const size = seqlen + 1;
       label = (char *) xmalloc(size);
       snprintf(label, size, "%.*s", seqlen, sequence);
     }
@@ -572,8 +572,8 @@ auto cluster_core_results_nohit(int clusterno,
 
 auto compare_kmersample(const void * a, const void * b) -> int
 {
-  unsigned int x = * (unsigned int *) a;
-  unsigned int y = * (unsigned int *) b;
+  unsigned int const x = * (unsigned int *) a;
+  unsigned int const y = * (unsigned int *) b;
 
   if (x < y)
     {
@@ -654,7 +654,7 @@ auto cluster_core_parallel() -> void
         {
           if (seqno < seqcount)
             {
-              int length = db_getsequencelen(seqno);
+              int const length = db_getsequencelen(seqno);
 
 #if 1
               if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
@@ -706,7 +706,7 @@ auto cluster_core_parallel() -> void
                       struct searchinfo_s * sic = si_plus + extra_list[j];
 
                       /* find the number of shared unique kmers */
-                      unsigned int shared
+                      unsigned int const shared
                         = unique_count_shared(si->uh,
                                               opt_wordlength,
                                               sic->kmersamplecount,
@@ -715,7 +715,7 @@ auto cluster_core_parallel() -> void
                       /* check if min number of shared kmers is satisfied */
                       if (search_enough_kmers(si, shared))
                         {
-                          unsigned int length = sic->qseqlen;
+                          unsigned int const length = sic->qseqlen;
 
                           /* Go through the list of hits and see if the current
                              match is better than any on the list in terms of
@@ -797,7 +797,7 @@ auto cluster_core_parallel() -> void
                       if (not hit->aligned)
                         {
                           /* Test accept/reject criteria before alignment */
-                          unsigned int target = hit->target;
+                          unsigned int const target = hit->target;
                           if (search_acceptable_unaligned(si, target))
                             {
                               /* perform vectorized alignment */
@@ -829,7 +829,7 @@ auto cluster_core_parallel() -> void
                                        & snwgaps,
                                        & nwcigar);
 
-                              int64_t tseqlen = db_getsequencelen(target);
+                              int64_t const tseqlen = db_getsequencelen(target);
 
                               if (snwscore == std::numeric_limits<short>::max())
                                 {
@@ -868,8 +868,8 @@ auto cluster_core_parallel() -> void
                                 }
 
 
-                              int64_t nwdiff = nwalignmentlength - nwmatches;
-                              int64_t nwindels = nwdiff - nwmismatches;
+                              int64_t const nwdiff = nwalignmentlength - nwmatches;
+                              int64_t const nwindels = nwdiff - nwmismatches;
 
                               hit->aligned = true;
                               hit->nwalignment = nwcigar;
@@ -944,12 +944,12 @@ auto cluster_core_parallel() -> void
               best = search_findbest2_byid(si_p, si_m);
             }
 
-          int myseqno = si_p->query_no;
+          int const myseqno = si_p->query_no;
 
           if (best)
             {
               /* a hit was found, cluster current sequence with hit */
-              int target = best->target;
+              int const target = best->target;
 
               /* output intermediate results to uc etc */
               cluster_core_results_hit(best,
@@ -1056,7 +1056,7 @@ auto cluster_core_serial() -> void
   progress_init("Clustering", seqcount);
   for (int seqno=0; seqno<seqcount; seqno++)
     {
-      int length = db_getsequencelen(seqno);
+      int const length = db_getsequencelen(seqno);
 
 #if 1
       if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
@@ -1090,7 +1090,7 @@ auto cluster_core_serial() -> void
 
       if (best)
         {
-          int target = best->target;
+          int const target = best->target;
           cluster_core_results_hit(best,
                                    clusterinfo[target].clusterno,
                                    si_p->query_head,
@@ -1334,7 +1334,7 @@ auto cluster(char * dbname,
 
   if (opt_log)
     {
-      uint64_t slots = 1ULL << (opt_wordlength << 1ULL);
+      uint64_t const slots = 1ULL << (opt_wordlength << 1ULL);
       fprintf(fp_log, "\n");
       fprintf(fp_log, "      Alphabet  nt\n");
       fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
@@ -1368,8 +1368,8 @@ auto cluster(char * dbname,
 
   for (int i = 0; i < seqcount; i++)
     {
-      int seqno = clusterinfo[i].seqno;
-      int clusterno = clusterinfo[i].clusterno;
+      int const seqno = clusterinfo[i].seqno;
+      int const clusterno = clusterinfo[i].clusterno;
       cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
       cluster_size[clusterno]++;
     }
@@ -1381,7 +1381,7 @@ auto cluster(char * dbname,
 
   for (int z = 0; z < clusters; z++)
     {
-      int64_t abundance = cluster_abundance[z];
+      int64_t const abundance = cluster_abundance[z];
       if (abundance < abundance_min)
         {
           abundance_min = abundance;
@@ -1396,7 +1396,7 @@ auto cluster(char * dbname,
           ++singletons;
         }
 
-      int size = cluster_size[z];
+      int const size = cluster_size[z];
       if (size > size_max)
         {
           size_max = size;
@@ -1438,8 +1438,8 @@ auto cluster(char * dbname,
 
   for (int i = 0; i < seqcount; i++)
     {
-      int seqno = clusterinfo[i].seqno;
-      int clusterno = clusterinfo[i].clusterno;
+      int const seqno = clusterinfo[i].seqno;
+      int const clusterno = clusterinfo[i].clusterno;
 
       if (clusterno != lastcluster)
         {
@@ -1615,10 +1615,10 @@ auto cluster(char * dbname,
 
       for (int i = 0; i < seqcount; i++)
         {
-          int clusterno = clusterinfo[i].clusterno;
-          int seqno = clusterinfo[i].seqno;
+          int const clusterno = clusterinfo[i].clusterno;
+          int const seqno = clusterinfo[i].seqno;
           char * cigar = clusterinfo[i].cigar;
-          int strand = clusterinfo[i].strand;
+          int const strand = clusterinfo[i].strand;
 
           if (clusterno != lastcluster)
             {
