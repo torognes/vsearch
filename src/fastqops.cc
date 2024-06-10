@@ -59,6 +59,12 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // LONG_MAX
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstring>  // std::memset
+
 
 auto fastq_chars() -> void
 {
