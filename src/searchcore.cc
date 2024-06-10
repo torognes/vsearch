@@ -221,7 +221,7 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   for(unsigned int i = 0; i < si->kmersamplecount; i++)
     {
-      unsigned int kmer = si->kmersample[i];
+      unsigned int const kmer = si->kmersample[i];
       unsigned char * bitmap = dbindex_getbitmap(kmer);
 
       if (bitmap)
@@ -244,7 +244,7 @@ auto search_topscores(struct searchinfo_s * si) -> void
       else
         {
           unsigned int * list = dbindex_getmatchlist(kmer);
-          unsigned int count = dbindex_getmatchcount(kmer);
+          unsigned int const count = dbindex_getmatchcount(kmer);
           for(unsigned int j = 0; j < count; j++)
             {
               si->kmers[list[j]]++;
@@ -256,11 +256,11 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   for(int i = 0; i < indexed_count; i++)
     {
-      count_t count = si->kmers[i];
+      count_t const count = si->kmers[i];
       if (count >= minmatches)
         {
-          unsigned int seqno = dbindex_getmapping(i);
-          unsigned int length = db_getsequencelen(seqno);
+          unsigned int const seqno = dbindex_getmapping(i);
+          unsigned int const length = db_getsequencelen(seqno);
 
           elem_t novel;
           novel.count = count;
@@ -615,7 +615,7 @@ auto align_delayed(struct searchinfo_s * si) -> void
             }
           else
             {
-              int64_t target = hit->target;
+              int64_t const target = hit->target;
               int64_t nwscore = nwscore_list[i];
 
               char * nwcigar = nullptr;
@@ -624,7 +624,7 @@ auto align_delayed(struct searchinfo_s * si) -> void
               int64_t nwmismatches = 0;
               int64_t nwgaps = 0;
 
-              int64_t dseqlen = db_getsequencelen(target);
+              int64_t const dseqlen = db_getsequencelen(target);
 
               if (nwscore == std::numeric_limits<short>::max())
                 {
@@ -747,7 +747,7 @@ auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
          (si->accepts < opt_maxaccepts) &&
          (not minheap_isempty(si->m)))
     {
-      elem_t e = minheap_poplast(si->m);
+      elem_t const e = minheap_poplast(si->m);
 
       struct hit * hit = si->hits + si->hit_count;
 
