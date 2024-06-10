@@ -125,7 +125,7 @@ auto dbhash_search_first(char * seq,
                          struct dbhash_search_info_s * info) -> int64_t
 {
 
-  uint64_t hash = hash_cityhash64(seq, seqlen);
+  uint64_t const hash = hash_cityhash64(seq, seqlen);
   info->hash = hash;
   info->seq = seq;
   info->seqlen = seqlen;
@@ -156,9 +156,9 @@ auto dbhash_search_first(char * seq,
 
 auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 {
-  uint64_t hash = info->hash;
+  uint64_t const hash = info->hash;
   char * seq = info->seq;
-  uint64_t seqlen = info->seqlen;
+  uint64_t const seqlen = info->seqlen;
   uint64_t index = (info->index + 1) & dbhash_mask;
   struct dbhash_bucket_s * bp = dbhash_table + index;
 
@@ -203,7 +203,7 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 auto dbhash_add_one(uint64_t seqno) -> void
 {
   char * seq = db_getsequence(seqno);
-  uint64_t seqlen = db_getsequencelen(seqno);
+  uint64_t const seqlen = db_getsequencelen(seqno);
   char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
   dbhash_add(normalized, seqlen, seqno);
@@ -216,7 +216,7 @@ auto dbhash_add_all() -> void
   for (uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
     {
       char * seq = db_getsequence(seqno);
-      uint64_t seqlen = db_getsequencelen(seqno);
+      uint64_t const seqlen = db_getsequencelen(seqno);
       string_normalize(normalized, seq, seqlen);
       dbhash_add(normalized, seqlen, seqno);
       progress_update(seqno + 1);
