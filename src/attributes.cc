@@ -82,8 +82,8 @@ auto header_find_attribute(const char * header,
       return false;
     }
 
-  int hlen = header_length;
-  int alen = strlen(attribute);
+  int const hlen = header_length;
+  int const alen = strlen(attribute);
 
   int i = 0;
 
@@ -106,7 +106,7 @@ auto header_find_attribute(const char * header,
           continue;
         }
 
-      int digits
+      int const digits
         = (int) strspn(header + i + alen,
                        (allow_decimal ? digit_chars_decimal : digit_chars));
 
@@ -145,7 +145,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
                             &end,
                             false))
     {
-      int64_t number = atol(header + start + 5);
+      int64_t const number = atol(header + start + 5);
       if (number > 0)
         {
           abundance = number;
@@ -160,7 +160,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
 
 auto swap(int * a, int * b) -> void
 {
-  int temp = *a;
+  int const temp = *a;
   *a = *b;
   *b = temp;
 }
