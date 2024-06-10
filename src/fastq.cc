@@ -105,7 +105,7 @@ auto buffer_filter_extend(fastx_handle h,
   char * q = d;
   * ok = true;
 
-  for(uint64_t i = 0; i < len; i++)
+  for (uint64_t i = 0; i < len; i++)
     {
       char const c = *p++;
       char const m = char_action[(unsigned char)c];
