@@ -91,7 +91,7 @@ auto find_median() -> double
 
       for (uint64_t i = 0; i < hashtablesize; i++)
         {
-          uint64_t v = hashtable[i].size;
+          uint64_t const v = hashtable[i].size;
           if (v > 0)
             {
               if (v > cand)
@@ -175,7 +175,7 @@ inline auto next_bucket(uint64_t prev_bucket, uint64_t htsize) -> uint64_t
 auto rehash_smallmem() -> void
 {
   /* allocate new hash table, 50% larger */
-  uint64_t new_hashtablesize = 3 * hashtablesize / 2;
+  uint64_t const new_hashtablesize = 3 * hashtablesize / 2;
   auto * new_hashtable =
     (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * new_hashtablesize);
 
@@ -247,7 +247,7 @@ auto derep_smallmem(char * input_filename) -> void
       fatal("Output file for dereplication must be specified with --fastaout");
     }
 
-  uint64_t filesize = fastx_get_size(h);
+  uint64_t const filesize = fastx_get_size(h);
 
   /* allocate initial memory for sequences of length up to 1023 chars */
   int64_t alloc_seqlen = 1024;
@@ -292,7 +292,7 @@ auto derep_smallmem(char * input_filename) -> void
 
   while (fastx_next(h, not opt_notrunclabels, chrmap_no_change))
     {
-      int64_t seqlen = fastx_get_sequence_length(h);
+      int64_t const seqlen = fastx_get_sequence_length(h);
 
       if (seqlen < opt_minseqlength)
         {
@@ -353,7 +353,7 @@ auto derep_smallmem(char * input_filename) -> void
         collision when the number of sequences is about 5e9.
       */
 
-      uint128 hash = HASH(seq_up, seqlen);
+      uint128 const hash = HASH(seq_up, seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
@@ -368,7 +368,7 @@ auto derep_smallmem(char * input_filename) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 rc_hash = HASH(rc_seq_up, seqlen);
+          uint128 const rc_hash = HASH(rc_seq_up, seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
@@ -385,8 +385,8 @@ auto derep_smallmem(char * input_filename) -> void
             }
         }
 
-      int abundance = fastx_get_abundance(h);
-      int64_t ab = opt_sizein ? abundance : 1;
+      int const abundance = fastx_get_abundance(h);
+      int64_t const ab = opt_sizein ? abundance : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -550,7 +550,7 @@ auto derep_smallmem(char * input_filename) -> void
 
   while (fastx_next(h2, not opt_notrunclabels, chrmap_no_change))
     {
-      int64_t seqlen = fastx_get_sequence_length(h2);
+      int64_t const seqlen = fastx_get_sequence_length(h2);
 
       if ((seqlen < opt_minseqlength) or (seqlen > opt_maxseqlength))
         {
@@ -568,7 +568,7 @@ auto derep_smallmem(char * input_filename) -> void
           reverse_complement(rc_seq_up, seq_up, seqlen);
         }
 
-      uint128 hash = HASH(seq_up, seqlen);
+      uint128 const hash = HASH(seq_up, seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
@@ -583,7 +583,7 @@ auto derep_smallmem(char * input_filename) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 rc_hash = HASH(rc_seq_up, seqlen);
+          uint128 const rc_hash = HASH(rc_seq_up, seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
@@ -600,14 +600,14 @@ auto derep_smallmem(char * input_filename) -> void
             }
         }
 
-      int64_t size = bp->size;
+      int64_t const size = bp->size;
 
       if (size > 0)
         {
           /* print sequence */
 
           char * header = fastx_get_header(h2);
-          int headerlen = fastx_get_header_length(h2);
+          int const headerlen = fastx_get_header_length(h2);
 
           if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
             {
