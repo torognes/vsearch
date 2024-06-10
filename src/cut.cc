@@ -59,7 +59,10 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRId64
+#include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::strlen
 
 
 static uint64_t fragment_no = 0;
