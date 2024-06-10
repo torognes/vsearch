@@ -588,7 +588,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT E;
   VECTOR_SHORT HE;
   VECTOR_SHORT HF;
-  VECTOR_SHORT * vp;
+  VECTOR_SHORT * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
@@ -599,7 +599,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   __vector unsigned long long RES;
 #endif
 
-  int64_t i;
+  int64_t i = 0;
 
   f0 = v_sub(f0, QR_t_0);
   f1 = v_sub(f1, QR_t_1);
@@ -749,7 +749,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT E;
   VECTOR_SHORT HE;
   VECTOR_SHORT HF;
-  VECTOR_SHORT * vp;
+  VECTOR_SHORT * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
@@ -760,7 +760,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   __vector unsigned long long RES;
 #endif
 
-  int64_t i;
+  int64_t i = 0;
 
   f0 = v_sub(f0, QR_t_0);
   f1 = v_sub(f1, QR_t_1);
@@ -1106,7 +1106,7 @@ auto search16_init(CELL score_match,
     {
       for (int j = 0; j < 16; j++)
         {
-          CELL value;
+          CELL value = 0;
           if (ambiguous_4bit[i] or ambiguous_4bit[j])
             {
               value = 0;
@@ -1328,8 +1328,8 @@ auto search16(s16info_s * s,
   VECTOR_SHORT QR_target[4];
   VECTOR_SHORT R_target[4];
 
-  VECTOR_SHORT *hep;
-  VECTOR_SHORT **qp;
+  VECTOR_SHORT * hep = nullptr;
+  VECTOR_SHORT ** qp = nullptr;
 
   BYTE * d_begin[CHANNELS];
   BYTE * d_end[CHANNELS];
