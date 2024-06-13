@@ -843,7 +843,8 @@ auto search_exact(char * cmdline, char * progheader) -> void
       si_minus = nullptr;
     }
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  std::vector<pthread_t> pthread_v(opt_threads);
+  pthread = pthread_v.data();
 
   /* init mutexes for input and output */
   xpthread_mutex_init(&mutex_input, nullptr);
@@ -856,7 +857,6 @@ auto search_exact(char * cmdline, char * progheader) -> void
   xpthread_mutex_destroy(&mutex_output);
   xpthread_mutex_destroy(&mutex_input);
 
-  xfree(pthread);
   xfree(si_plus);
   if (si_minus)
     {
