@@ -67,9 +67,9 @@
 #include <vector>
 
 
-static struct searchinfo_s * si_plus;
-static struct searchinfo_s * si_minus;
-static pthread_t * pthread;
+static struct searchinfo_s * si_plus = nullptr;
+static struct searchinfo_s * si_minus = nullptr;
+static pthread_t * pthread = nullptr;
 
 /* global constants/data, no need for synchronization */
 static int tophits; /* the maximum number of hits to keep */
