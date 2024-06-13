@@ -59,6 +59,11 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint> // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstring>  // std::strlen, std::memset, std::strcpy
+#include <pthread.h>
 
 
 static struct searchinfo_s * si_plus;
