@@ -115,7 +115,7 @@ auto fastq_join() -> void
     }
   else
     {
-      padgapq = (char *) xmalloc(padlen + 1);
+      padgapq = (char *) xmalloc(padlen + 1);  // refactoring: hard to eliminate without tests
       for (uint64_t i = 0; i < padlen; i++)
         {
           padgapq[i] = 'I';
