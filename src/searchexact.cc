@@ -331,7 +331,7 @@ auto search_exact_output_results(int hit_count,
 
   if (hit_count)
     {
-      count_matched++;
+      ++count_matched;
       if (opt_matched)
         {
           fasta_print_general(fp_matched,
@@ -348,7 +348,7 @@ auto search_exact_output_results(int hit_count,
     }
   else
     {
-      count_notmatched++;
+      ++count_notmatched;
       if (opt_notmatched)
         {
           fasta_print_general(fp_notmatched,
