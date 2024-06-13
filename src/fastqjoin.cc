@@ -120,7 +120,7 @@ auto fastq_join() -> void
         {
           padgapq[i] = 'I';
         }
-      padgapq[padlen] = 0;
+      padgapq[padlen] = '\0';
     }
 
   if (padlen != strlen(padgapq))
