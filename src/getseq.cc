@@ -62,6 +62,13 @@
    https://drive5.com/usearch/manual/cmd_fastx_getseqs.html                  */
 
 #include "vsearch.h"
+#include <cctype>  // isalnum
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint> // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets
+#include <cstdlib>  // std::realloc, std::free
+#include <cstring>  // std::strlen, std::memset, std::strcpy, std::strstr
+#include <string.h>  // strdup
 
 
 static int labels_alloc = 0;
