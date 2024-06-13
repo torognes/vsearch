@@ -59,6 +59,18 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // LONG_MAX, LONG_MIN, INT_MAX, DBL_MAX
+#include <cmath>  // std::floor
+#include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
+#include <cstdint> // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::sscanf, std::fclose, std::snprintf, std::printf, std::strcat
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstring>  // std::strlen, std::memset
+#include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
+                     // option (no_argument, required_argument)
+#include <string.h>  // strcasecmp
+
 
 /* options */
 
