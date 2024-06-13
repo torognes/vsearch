@@ -380,7 +380,7 @@ auto search_exact_query(int64_t t) -> int
 {
   for (int s = 0; s < opt_strand; s++)
     {
-      struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
+      struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
 
       /* mask query */
       if (opt_qmask == MASK_DUST)
