@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include "md5.h"
+
 
 //#define SHOW_RUSAGE
 

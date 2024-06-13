@@ -205,7 +205,6 @@
 #endif
 
 #include "city.h"
-#include "md5.h"
 #include "sha1.h"
 
 #include "arch.h"
