@@ -64,6 +64,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::strlen, std::memset, std::strcpy
 #include <pthread.h>
+#include <vector>
 
 
 static struct searchinfo_s * si_plus;
@@ -166,18 +167,17 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 
   char * seq = si->qsequence;
   uint64_t const seqlen = si->qseqlen;
-  char * normalized = (char *) xmalloc(seqlen + 1);
-  string_normalize(normalized, seq, seqlen);
+  std::vector<char> normalized(seqlen + 1);
+  string_normalize(normalized.data(), seq, seqlen);
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash_search_first(normalized, seqlen, & info);
+  int64_t ret = dbhash_search_first(normalized.data(), seqlen, & info);
   while (ret >= 0)
     {
       add_hit(si, ret);
       ret = dbhash_search_next(&info);
     }
-  xfree(normalized);
 }
 
 auto search_exact_output_results(int hit_count,
