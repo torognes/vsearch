@@ -59,6 +59,21 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm
+#include <cstdint> // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::strncpy, std::strcspn, std::strspn
+#include <map>
+#include <set>
+#include <string>
+#include <utility>  // std::pair
+
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#else
+#include <regex>
+#endif
 
 
 /*
