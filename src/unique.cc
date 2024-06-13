@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <cstdint> // uint64_t
+#include <cstring>  // std::memset
+
 
 /*
   Find the unique kmers or words in a given sequence.
