@@ -90,7 +90,7 @@ auto read_labels_file(char * filename) -> void
       fatal("Unable to get status for labels file (%s)", filename);
     }
 
-  bool const is_pipe = S_ISFIFO(fs.st_mode);
+  bool const is_pipe = S_ISFIFO(fs.st_mode);  // linuxism
   uint64_t file_size = 0;
   if (! is_pipe)
     {
@@ -195,7 +195,7 @@ auto test_label_match(fastx_handle h) -> bool
         }
       else
         {
-          return (hlen == wlen) && ! strcasecmp(header, needle);
+          return (hlen == wlen) && ! strcasecmp(header, needle); // strcasecmp is a linuxism
         }
     }
   else if (opt_labels)
@@ -216,7 +216,7 @@ auto test_label_match(fastx_handle h) -> bool
             {
               char * needle = labels_data[i];
               int const wlen = strlen(needle);
-              if ((hlen == wlen) && ! strcasecmp(header, needle))
+              if ((hlen == wlen) && ! strcasecmp(header, needle)) // strcasecmp is a linuxism
                 {
                   return true;
                 }
