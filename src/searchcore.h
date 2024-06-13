@@ -108,7 +108,11 @@ struct hit
   /* more info */
 
   double id;             /* identity used for ranking */
-  double id0, id1, id2, id3, id4;
+  double id0;
+  double id1;
+  double id2;
+  double id3;
+  double id4;
 
   int shortest;          /* length of shortest of query and target */
   int longest;           /* length of longest of query and target */
