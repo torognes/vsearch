@@ -838,10 +838,6 @@ auto search_exact(char * cmdline, char * progheader) -> void
       std::vector<struct searchinfo_s> si_minus_v(opt_threads);
       si_minus = si_minus_v.data();
     }
-  else
-    {
-      si_minus = nullptr;
-    }
 
   std::vector<pthread_t> pthread_v(opt_threads);
   pthread = pthread_v.data();
