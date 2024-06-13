@@ -443,7 +443,7 @@ auto search_exact_thread_run(int64_t t) -> void
 
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
+              struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
 
               si->query_head_len = query_head_len;
               si->qseqlen = qseqlen;
@@ -457,14 +457,14 @@ auto search_exact_thread_run(int64_t t) -> void
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
                   si->query_head = (char *)
-                    xrealloc(si->query_head, (size_t)(si->query_head_alloc));
+                    xrealloc(si->query_head, (size_t) (si->query_head_alloc));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
                   si->qsequence = (char *)
-                    xrealloc(si->qsequence, (size_t)(si->seq_alloc));
+                    xrealloc(si->qsequence, (size_t) (si->seq_alloc));
                 }
             }
 
@@ -945,7 +945,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
 
   if (opt_dbmatched || opt_dbnotmatched)
     {
-      for(int64_t i = 0; i < seqcount; i++)
+      for (int64_t i = 0; i < seqcount; i++)
         {
           if (dbmatched[i])
             {
