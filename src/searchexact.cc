@@ -835,8 +835,8 @@ auto search_exact(char * cmdline, char * progheader) -> void
   si_plus = si_plus_v.data();
   if (opt_strand > 1)
     {
-      si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
-                                                 sizeof(struct searchinfo_s));
+      std::vector<struct searchinfo_s> si_minus_v(opt_threads);
+      si_minus = si_minus_v.data();
     }
   else
     {
@@ -858,10 +858,8 @@ auto search_exact(char * cmdline, char * progheader) -> void
   xpthread_mutex_destroy(&mutex_input);
 
   // si_plus not used below that point
-  if (si_minus)
-    {
-      xfree(si_minus);
-    }
+  // si_minus not used below that point
+
 
   fastx_close(query_fastx_h);
 
