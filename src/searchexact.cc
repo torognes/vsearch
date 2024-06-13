@@ -161,7 +161,7 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 
   char * seq = si->qsequence;
   uint64_t const seqlen = si->qseqlen;
-  char * normalized = (char *) xmalloc(seqlen+1);
+  char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
 
   si->hit_count = 0;
