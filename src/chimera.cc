@@ -59,7 +59,14 @@
 */
 
 #include "vsearch.h"
+#include <cctype>  // std::tolower
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint> // int64_t, uint64_t
+#include <cstdlib>  // std::qsort
+#include <cstdio>  // std::FILE, std::fprintf, std::sscanf
+#include <cstring>  // std::strlen, std::strncpy, std::strcpy
 #include <limits>
+#include <pthread.h>
 #include <vector>
 
 
