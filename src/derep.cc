@@ -59,6 +59,12 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cmath>  // std::log10
+#include <cstdint> // int64_t, uint64_t
+#include <cstdlib>  // std::qsort
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstring>  // std::strlen, std::strcmp, std::memset
 
 
 #define HASH hash_cityhash64
