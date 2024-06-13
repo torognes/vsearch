@@ -68,7 +68,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets
 #include <cstdlib>  // std::realloc, std::free
 #include <cstring>  // std::strlen, std::memset, std::strcpy, std::strstr
-#include <string.h>  // strdup
+#include <string.h>  // strdup, strcasecmp
 
 
 static int labels_alloc = 0;
