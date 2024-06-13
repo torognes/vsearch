@@ -949,7 +949,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
         {
           if (dbmatched[i])
             {
-              count_dbmatched++;
+              ++count_dbmatched;
               if (opt_dbmatched)
                 {
                   fasta_print_general(fp_dbmatched,
@@ -966,7 +966,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
             }
           else
             {
-              count_dbnotmatched++;
+              ++count_dbnotmatched;
               if (opt_dbnotmatched)
                 {
                   fasta_print_general(fp_dbnotmatched,
