@@ -1029,17 +1029,17 @@ auto cluster_core_parallel() -> void
   /* clean up search info */
   for (int i = 0; i < max_queries; i++)
     {
-      cluster_query_exit(si_plus+i);
+      cluster_query_exit(si_plus + i);
       if (opt_strand > 1)
         {
-          cluster_query_exit(si_minus+i);
+          cluster_query_exit(si_minus + i);
         }
     }
 
   // extra_list no used after that point
 
   xfree(si_plus);
-  if (opt_strand>1)
+  if (opt_strand > 1)
     {
       xfree(si_minus);
     }
