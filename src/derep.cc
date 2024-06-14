@@ -1122,7 +1122,7 @@ auto derep_prefix() -> void
   int64_t hashtablesize = 1;
   while (3 * dbsequencecount > 2 * hashtablesize)
     {
-      hashtablesize <<= 1;
+      hashtablesize <<= 1U;
     }
   int const hash_mask = hashtablesize - 1;
 
