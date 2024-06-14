@@ -354,7 +354,7 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 
   unsigned char digest[LEN_DIG_SHA1];
 
-  SHA1((const unsigned char*) normalized, (size_t) seqlen, digest);
+  SHA1((const unsigned char *) normalized, (size_t) seqlen, digest);
 
   xfree(normalized);
 
