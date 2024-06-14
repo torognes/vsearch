@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdio>  // std::FILE
+
 
 #ifdef HAVE_ZLIB_H
 # ifdef _WIN32
