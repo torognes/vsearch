@@ -61,6 +61,8 @@
 #include "vsearch.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <cstdlib>  // std::realloc, std::free
+#include <string.h>  // strcasestr
 
 
 const int memalignment = 16;
