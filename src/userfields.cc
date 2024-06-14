@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // uint64_t
+#include <cstring>  // std::strcmp, std::strchr, std::strlen
 
 
 static const char * userfields_names[] =
