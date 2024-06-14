@@ -60,8 +60,14 @@
 
 #include "vsearch.h"
 #include "msa.h"
-#include <cstdio>  // std::FILE
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // INT_MAX, LONG_MAX
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::memset, std::strcpy, std::strlen
 #include <limits>
+#include <pthread.h>
 #include <vector>
 
 
