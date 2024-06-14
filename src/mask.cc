@@ -91,8 +91,8 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
 
   for (int j = 0; j < len; j++)
     {
-      word <<= 2;
-      word |= chrmap_2bit[(int)(s[j])];
+      word <<= 2U;
+      word |= chrmap_2bit[(int) (s[j])];
       words[j] = word & bitmask;
     }
 
