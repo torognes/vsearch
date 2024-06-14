@@ -1344,7 +1344,7 @@ auto cluster(char * dbname,
 
   if (opt_log)
     {
-      uint64_t const slots = 1ULL << (opt_wordlength << 1ULL);
+      uint64_t const slots = 1ULL << (static_cast<uint64_t>(opt_wordlength) << 1ULL);
       fprintf(fp_log, "\n");
       fprintf(fp_log, "      Alphabet  nt\n");
       fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
