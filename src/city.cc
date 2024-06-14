@@ -120,11 +120,11 @@ static const uint32_t c2 = 0x1b873593;
 // A 32-bit to 32-bit integer hash copied from Murmur3.
 static auto fmix(uint32 h) -> uint32
 {
-  h ^= h >> 16;
+  h ^= h >> 16U;
   h *= 0x85ebca6b;
-  h ^= h >> 13;
+  h ^= h >> 13U;
   h *= 0xc2b2ae35;
-  h ^= h >> 16;
+  h ^= h >> 16U;
   return h;
 }
 
@@ -147,10 +147,10 @@ static auto Mur(uint32 a, uint32 h) -> uint32 {
 }
 
 static auto Hash32Len13to24(const char * s, size_t len) -> uint32 {
-  const uint32 a = Fetch32(s - 4 + (len >> 1));
+  const uint32 a = Fetch32(s - 4 + (len >> 1U));
   const uint32 b = Fetch32(s + 4);
   const uint32 c = Fetch32(s + len - 8);
-  const uint32 d = Fetch32(s + (len >> 1));
+  const uint32 d = Fetch32(s + (len >> 1U));
   const uint32 e = Fetch32(s);
   const uint32 f = Fetch32(s + len - 4);
   const uint32 h = len;
@@ -176,7 +176,7 @@ static auto Hash32Len5to12(const char * s, size_t len) -> uint32 {
   uint32 const d = b;
   a += Fetch32(s);
   b += Fetch32(s + len - 4);
-  c += Fetch32(s + ((len >> 1) & 4));
+  c += Fetch32(s + ((len >> 1U) & 4U));
   return fmix(Mur(c, Mur(b, Mur(a, d))));
 }
 
@@ -255,11 +255,11 @@ auto CityHash32(const char * s, size_t len) -> uint32 {
 // instruction, especially if the shift is a manifest constant.
 static auto Rotate(uint64 val, int shift) -> uint64 {
   // Avoid shifting by 64: doing so yields an undefined result.
-  return shift == 0 ? val : ((val >> shift) | (val << (64 - shift)));
+  return shift == 0 ? val : ((val >> shift) | (val << (64U - shift)));
 }
 
 static auto ShiftMix(uint64 val) -> uint64 {
-  return val ^ (val >> 47);
+  return val ^ (val >> 47U);
 }
 
 static auto HashLen16(uint64 u, uint64 v) -> uint64 {
@@ -269,9 +269,9 @@ static auto HashLen16(uint64 u, uint64 v) -> uint64 {
 static auto HashLen16(uint64 u, uint64 v, uint64 mul) -> uint64 {
   // Murmur-inspired hashing.
   uint64 a = (u ^ v) * mul;
-  a ^= (a >> 47);
+  a ^= (a >> 47U);
   uint64 b = (v ^ a) * mul;
-  b ^= (b >> 47);
+  b ^= (b >> 47U);
   b *= mul;
   return b;
 }
@@ -288,14 +288,14 @@ static auto HashLen0to16(const char *s, size_t len) -> uint64 {
   if (len >= 4) {
     const uint64 mul = k2 + (len * 2);
     const uint64 a = Fetch32(s);
-    return HashLen16(len + (a << 3), Fetch32(s + len - 4), mul);
+    return HashLen16(len + (a << 3U), Fetch32(s + len - 4), mul);
   }
   if (len > 0) {
     const uint8 a = s[0];
-    const uint8 b = s[len >> 1];
+    const uint8 b = s[len >> 1U];
     const uint8 c = s[len - 1];
-    const uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8);
-    const uint32 z = len + (static_cast<uint32>(c) << 2);
+    const uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8U);
+    const uint32 z = len + (static_cast<uint32>(c) << 2U);
     return ShiftMix((y * k2) ^ (z * k0)) * k2;
   }
   return k2;
