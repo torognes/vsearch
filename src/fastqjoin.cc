@@ -59,6 +59,11 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint> // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstring>  // std::strlen, std::strcpy
+
 
 /* static variables */
 
