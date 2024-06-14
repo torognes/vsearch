@@ -59,6 +59,10 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdlib>  // std::atol
+#include <cstring>  // std::strlen, std::strstr, std::strspn
 
 
 auto header_find_attribute(const char * header,
