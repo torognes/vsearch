@@ -78,6 +78,11 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstring>  // std::memset, std::strncmp, std::strcpy
+#include <pthread.h>
+
 
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
