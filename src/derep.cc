@@ -1241,7 +1241,7 @@ auto derep_prefix() -> void
 
           while ((not bp->size) and (prefix_len > len_shortest))
             {
-              prefix_len--;
+              --prefix_len;
               hash = prefix_hashes[prefix_len];
               bp = hashtable + (hash & hash_mask);
 
