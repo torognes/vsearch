@@ -253,12 +253,13 @@ auto dust_all() -> void
 auto hardmask(char * seq, int len) -> void
 {
   /* convert all lower case letters in seq to N */
-
+  static constexpr auto check_5th_bit = 32U; // 0x20
+  static constexpr auto hardmask_char = 'N';
   for (int j = 0; j < len; j++)
     {
-      if (seq[j] & 0x20)
+      if (seq[j] & check_5th_bit)
         {
-          seq[j] = 'N';
+          seq[j] = hardmask_char;
         }
     }
 }
