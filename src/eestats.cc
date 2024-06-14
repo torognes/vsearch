@@ -59,7 +59,13 @@
 */
 
 #include "vsearch.h"
-#include <algorithm>  // std::max
+// #include <algorithm>  // std::max
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // LONG_MAX
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstring>  // std::memset
 
 
 inline auto fastq_get_qual_eestats(char q) -> int
