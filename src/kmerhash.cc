@@ -122,7 +122,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kh,
 
 auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> void
 {
-  int const kmers = 1 << (2 * k);
+  int const kmers = 1U << (2U * k);
   unsigned int const kmer_mask = kmers - 1;
 
   /* reallocate hash table if necessary */
@@ -178,7 +178,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
 {
   std::vector<int> diag_counts(kh->maxpos, 0);
 
-  int const kmers = 1 << (2 * k);
+  int const kmers = 1U << (2U * k);
   unsigned int const kmer_mask = kmers - 1;
 
   unsigned int bad = kmer_mask;
@@ -259,7 +259,7 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
 {
   memset(diags, 0, (kh->maxpos+len) * sizeof(int));
 
-  int const kmers = 1 << (2 * k);
+  int const kmers = 1U << (2U * k);
   unsigned int const kmer_mask = kmers - 1;
 
   unsigned int bad = kmer_mask;
