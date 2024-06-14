@@ -1193,7 +1193,7 @@ auto derep_prefix() -> void
         {
           fnv1a_hash ^= seq_up[j];
           fnv1a_hash *= 1099511628211ULL;
-          prefix_hashes[j+1] = fnv1a_hash;
+          prefix_hashes[j + 1] = fnv1a_hash;
         }
 
       /* first, look for an identical match */
