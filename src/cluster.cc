@@ -1371,7 +1371,7 @@ auto cluster(char * dbname,
   /* find size and abundance of each cluster and save stats */
 
   cluster_abundance = (int64_t *) xmalloc(clusters * sizeof(int64_t));
-  std::vector<int> cluster_size_v(clusters);
+  std::vector<int> cluster_size(clusters);
 
   memset(cluster_abundance, 0, clusters * sizeof(int64_t));
 
@@ -1380,7 +1380,7 @@ auto cluster(char * dbname,
       int const seqno = clusterinfo[i].seqno;
       int const clusterno = clusterinfo[i].clusterno;
       cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
-      cluster_size_v[clusterno]++;
+      cluster_size[clusterno]++;
     }
 
   int64_t abundance_min = LONG_MAX;
@@ -1405,7 +1405,7 @@ auto cluster(char * dbname,
           ++singletons;
         }
 
-      int const size = cluster_size_v[z];
+      int const size = cluster_size[z];
       if (size > size_max)
         {
           size_max = size;
