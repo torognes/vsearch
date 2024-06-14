@@ -74,7 +74,7 @@ constexpr int dust_window = 64;
 auto wo(int len, const char *s, int *beg, int *end) -> int
 {
   static constexpr int dust_word = 3;
-  static constexpr int word_count = 1 << (2 * dust_word);  // 64
+  static constexpr int word_count = 1U << (2U * dust_word);  // 64
   static constexpr int bitmask = word_count - 1;
   const int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
@@ -173,7 +173,7 @@ auto dust(char * m, int len) -> void
             {
               for (int j = a + i; j <= b + i; j++)
                 {
-                  m[j] = local_seq[j] | 0x20;
+                  m[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
                 }
             }
 
