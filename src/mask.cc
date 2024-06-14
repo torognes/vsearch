@@ -60,8 +60,11 @@
 
 #include "vsearch.h"
 #include <array>
-#include <cstdio>  // FILE
-#include <cstring>  // memset
+#include <cctype>  // std::toupper, std::isupper
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE
+#include <cstring>  // std::strcpy
+#include <pthread.h>
 // #include <string>
 
 
