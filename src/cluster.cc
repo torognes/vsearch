@@ -1371,7 +1371,8 @@ auto cluster(char * dbname,
   /* find size and abundance of each cluster and save stats */
 
   cluster_abundance = (int64_t *) xmalloc(clusters * sizeof(int64_t));
-  int * cluster_size = (int *) xmalloc(clusters * sizeof(int));
+  std::vector<int> cluster_size_v(clusters);
+  auto * cluster_size = cluster_size_v.data();
 
   memset(cluster_abundance, 0, clusters * sizeof(int64_t));
   memset(cluster_size, 0, clusters * sizeof(int));
@@ -1683,7 +1684,7 @@ auto cluster(char * dbname,
     }
 
   xfree(cluster_abundance);
-  xfree(cluster_size);
+  // cluster_size not used below that point
 
   /* free cigar strings for all aligned sequences */
 
