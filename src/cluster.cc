@@ -1375,7 +1375,6 @@ auto cluster(char * dbname,
   auto * cluster_size = cluster_size_v.data();
 
   memset(cluster_abundance, 0, clusters * sizeof(int64_t));
-  memset(cluster_size, 0, clusters * sizeof(int));
 
   for (int i = 0; i < seqcount; i++)
     {
