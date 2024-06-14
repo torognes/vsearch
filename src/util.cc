@@ -287,12 +287,12 @@ auto random_ulong(uint64_t n) -> uint64_t
 
   uint64_t const random_max = ULONG_MAX;
   uint64_t const limit = random_max - ((random_max - n + 1) % n);
-  uint64_t r = ((arch_random() << 48) ^ (arch_random() << 32) ^
-                (arch_random() << 16) ^ (arch_random()));
+  uint64_t r = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
+                (arch_random() << 16U) ^ (arch_random()));
   while (r > limit)
     {
-      r = ((arch_random() << 48) ^ (arch_random() << 32) ^
-           (arch_random() << 16) ^ (arch_random()));
+      r = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
+           (arch_random() << 16U) ^ (arch_random()));
     }
   return r % n;
 }
@@ -360,8 +360,8 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 
   for (int i = 0; i < LEN_DIG_SHA1; i++)
     {
-      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4];
-      hex[(2 * i) + 1] = hexdigits[digest[i] & 15];
+      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4U];
+      hex[(2 * i) + 1] = hexdigits[digest[i] & 15U];
     }
   hex[2 * LEN_DIG_SHA1] = 0;
 }
@@ -383,8 +383,8 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 
   for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
     {
-      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4];
-      hex[(2 * i) + 1] = hexdigits[digest[i] & 15];
+      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4U];
+      hex[(2 * i) + 1] = hexdigits[digest[i] & 15U];
     }
   hex[2 * MD5_DIGEST_LENGTH] = 0;
 }
