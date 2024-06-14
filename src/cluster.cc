@@ -1380,7 +1380,7 @@ auto cluster(char * dbname,
       int const seqno = clusterinfo[i].seqno;
       int const clusterno = clusterinfo[i].clusterno;
       cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
-      cluster_size[clusterno]++;
+      ++cluster_size[clusterno];
     }
 
   int64_t abundance_min = LONG_MAX;
