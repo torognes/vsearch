@@ -627,7 +627,7 @@ auto cluster_core_parallel() -> void
         }
     }
 
-  std::vector<int> extra_list_v(max_queries);
+  std::vector<int> extra_list(max_queries);
 
   LinearMemoryAligner lma;
   int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
@@ -713,7 +713,7 @@ auto cluster_core_parallel() -> void
 
                   for (int j = 0; j < extra_count; j++)
                     {
-                      struct searchinfo_s * sic = si_plus + extra_list_v[j];
+                      struct searchinfo_s * sic = si_plus + extra_list[j];
 
                       /* find the number of shared unique kmers */
                       unsigned int const shared
@@ -982,7 +982,7 @@ auto cluster_core_parallel() -> void
               /* no hit found; add it to the list of extra sequences
                  that must be considered by the coming queries in this
                  round */
-              extra_list_v[extra_count++] = i;
+              extra_list[extra_count++] = i;
 
               /* update cluster info about this sequence */
               clusterinfo[myseqno].seqno = myseqno;
