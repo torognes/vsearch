@@ -59,6 +59,13 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // LONG_MAX
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::fprintf, std::size_t
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::memcpy, std::strcmp
+
 
 constexpr uint64_t memchunk = 16777216;  // 2^24
 
