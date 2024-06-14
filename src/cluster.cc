@@ -982,7 +982,8 @@ auto cluster_core_parallel() -> void
               /* no hit found; add it to the list of extra sequences
                  that must be considered by the coming queries in this
                  round */
-              extra_list[extra_count++] = i;
+              extra_list[extra_count] = i;
+              ++extra_count;
 
               /* update cluster info about this sequence */
               clusterinfo[myseqno].seqno = myseqno;
