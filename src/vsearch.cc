@@ -384,20 +384,20 @@ auto cpu_features_detect() -> void
   if (maxlevel >= 1)
     {
       cpuid(1, 0, a, b, c, d);
-      mmx_present    = (d >> 23) & 1;
-      sse_present    = (d >> 25) & 1;
-      sse2_present   = (d >> 26) & 1;
-      sse3_present   = (c >>  0) & 1;
-      ssse3_present  = (c >>  9) & 1;
-      sse41_present  = (c >> 19) & 1;
-      sse42_present  = (c >> 20) & 1;
-      popcnt_present = (c >> 23) & 1;
-      avx_present    = (c >> 28) & 1;
+      mmx_present    = (d >> 23U) & 1U;
+      sse_present    = (d >> 25U) & 1U;
+      sse2_present   = (d >> 26U) & 1U;
+      sse3_present   = (c >>  0U) & 1U;
+      ssse3_present  = (c >>  9U) & 1U;
+      sse41_present  = (c >> 19U) & 1U;
+      sse42_present  = (c >> 20U) & 1U;
+      popcnt_present = (c >> 23U) & 1U;
+      avx_present    = (c >> 28U) & 1U;
 
       if (maxlevel >= 7)
         {
           cpuid(7, 0, a, b, c, d);
-          avx2_present = (b >>  5) & 1;
+          avx2_present = (b >>  5U) & 1U;
         }
     }
 #else
@@ -4981,7 +4981,8 @@ auto cmd_version() -> void
       uLong const flags = (*zlibCompileFlags_p)();
 
       printf("zlib version %s, compile flags %lx", gz_version, flags);
-      if (flags & 0x0400)
+      static constexpr auto check_10th_bit = 1024U; // 0x0400
+      if (flags & check_10th_bit)
         {
           printf(" (ZLIB_WINAPI)");
         }
