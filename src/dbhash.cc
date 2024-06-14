@@ -101,7 +101,7 @@ auto dbhash_open(uint64_t maxelements) -> void
   dbhash_shift = 0;
   while (3 * maxelements > 2 * dbhash_size)
     {
-      dbhash_size <<= 1;
+      dbhash_size <<= 1U;
       ++dbhash_shift;
     }
   dbhash_mask = dbhash_size - 1;
