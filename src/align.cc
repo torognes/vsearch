@@ -184,7 +184,7 @@ auto nw_exit(struct nwinfo_s * nw) -> void
 
 inline auto getscore(int64_t * score_matrix, char a, char b) -> int64_t
 {
-  return score_matrix[(chrmap_4bit[(int) a] << 4) + chrmap_4bit[(int) b]];
+  return score_matrix[(chrmap_4bit[(int) a] << 4U) + chrmap_4bit[(int) b]];
 }
 
 auto nw_align(char * dseq,
