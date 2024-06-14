@@ -242,8 +242,8 @@ auto udb_info() -> void
       fprintf(stderr, "     Word width  %u\n", buffer[4]);
       fprintf(stderr, "          Slots  %u\n", buffer[11]);
       fprintf(stderr, "      Dict size  %u (%.1fk)\n",
-              (1 << (2 * buffer[4])),
-              (1 << (2 * buffer[4])) * 1.0 / 1000.0);
+              (1U << (2 * buffer[4])),
+              (1U << (2 * buffer[4])) * 1.0 / 1000.0);
       fprintf(stderr, "         DBstep  %u\n", buffer[5]);
       fprintf(stderr, "        DBAccel  %u%%\n", buffer[6]);
     }
@@ -256,8 +256,8 @@ auto udb_info() -> void
       fprintf(fp_log, "     Word width  %u\n", buffer[4]);
       fprintf(fp_log, "          Slots  %u\n", buffer[11]);
       fprintf(fp_log, "      Dict size  %u (%.1fk)\n",
-              (1 << (2 * buffer[4])),
-              (1 << (2 * buffer[4])) * 1.0 / 1000.0);
+              (1U << (2 * buffer[4])),
+              (1U << (2 * buffer[4])) * 1.0 / 1000.0);
       fprintf(fp_log, "         DBstep  %u\n", buffer[5]);
       fprintf(fp_log, "        DBAccel  %u%%\n", buffer[6]);
     }
@@ -339,7 +339,7 @@ auto udb_read(const char * filename,
 
   /* word match counts */
 
-  kmerhashsize = 1 << (2 * udb_wordlength);
+  kmerhashsize = 1U << (2 * udb_wordlength);
   kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
   kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
   kmerbitmap = (bitmap_t * *) xmalloc(kmerhashsize * sizeof(bitmap_t **));
@@ -382,8 +382,8 @@ auto udb_read(const char * filename,
       fatal("Invalid UDB file");
     }
 
-  nucleotides = (((uint64_t) buffer[4]) << 32) | buffer[3];
-  uint64_t const udb_headerchars = (((uint64_t) buffer[6]) << 32) | buffer[5];
+  nucleotides = (((uint64_t) buffer[4]) << 32U) | buffer[3];
+  uint64_t const udb_headerchars = (((uint64_t) buffer[6]) << 32U) | buffer[5];
 
   /* header index */
 
@@ -917,7 +917,7 @@ auto udb_make() -> void
       header_characters += db_getheaderlen(i) + 1;
     }
 
-  uint64_t const kmerhashsize = 1 << (2 * opt_wordlength);
+  uint64_t const kmerhashsize = 1U << (2 * opt_wordlength);
 
   /* count word matches */
   uint64_t wordmatches = 0;
@@ -999,10 +999,10 @@ auto udb_make() -> void
   buffer[2] = seqcount;
   /* total number of nucleotides, uint64 */
   buffer[3] = (unsigned int) (ntcount & 0xffffffff);
-  buffer[4] = (unsigned int) (ntcount >> 32);
+  buffer[4] = (unsigned int) (ntcount >> 32U);
   /* total number of header characters, incl zero-terminator, uint64 */
   buffer[5] = (unsigned int) (header_characters & 0xffffffff);
-  buffer[6] = (unsigned int) (header_characters >> 32);
+  buffer[6] = (unsigned int) (header_characters >> 32U);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
   pos += largewrite(fd_output, buffer, 4 * 8, pos);
