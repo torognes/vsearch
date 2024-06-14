@@ -627,7 +627,8 @@ auto cluster_core_parallel() -> void
         }
     }
 
-  int * extra_list = (int *) xmalloc(max_queries * sizeof(int));
+  std::vector<int> extra_list_v(max_queries);
+  auto * extra_list = extra_list_v.data();
 
   LinearMemoryAligner lma;
   int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
@@ -1036,7 +1037,7 @@ auto cluster_core_parallel() -> void
         }
     }
 
-  xfree(extra_list);
+  // extra_list no used after that point
 
   xfree(si_plus);
   if (opt_strand>1)
