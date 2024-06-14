@@ -1219,14 +1219,14 @@ auto derep_prefix() -> void
       /* at this point, bp points either to (1) a free empty hash bucket, or
          (2) a bucket with an exact match. */
 
-      uint64_t const orig_hash = hash;
+      auto const orig_hash = hash;
       struct bucket * orig_bp = bp;
 
       if (bp->size)
         {
           /* exact match */
           bp->size += ab;
-          unsigned int const last = bp->seqno_last;
+          auto const last = bp->seqno_last;
           nextseqtab[last] = i;
           bp->seqno_last = i;
 
