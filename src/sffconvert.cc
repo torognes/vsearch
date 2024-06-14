@@ -219,9 +219,9 @@ auto sff_convert() -> void
   char index_kind[9];
 
   uint32_t index_padding = 0;
-  if ((sff_header.index_length & 7) > 0)
+  if ((sff_header.index_length & 7U) > 0)
     {
-      index_padding = 8 - (sff_header.index_length & 7);
+      index_padding = 8 - (sff_header.index_length & 7U);
     }
 
   if (! opt_quiet)
