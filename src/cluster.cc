@@ -1670,13 +1670,12 @@ auto cluster(char * dbname,
 
   /* free cigar strings for all aligned sequences */
 
-  for (int i = 0; i < seqcount; i++)
-    {
-      if (clusterinfo_v[i].cigar != nullptr)
-        {
-          xfree(clusterinfo_v[i].cigar);
-        }
-    }
+  for (auto & clusterinfo : clusterinfo_v) {
+    if (clusterinfo.cigar != nullptr)
+      {
+        xfree(clusterinfo.cigar);
+      }
+  }
 
   // clusterinfo not used after this point
 
