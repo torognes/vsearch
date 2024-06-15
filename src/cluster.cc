@@ -1672,7 +1672,7 @@ auto cluster(char * dbname,
 
   for (int i = 0; i < seqcount; i++)
     {
-      if (clusterinfo_v[i].cigar)
+      if (clusterinfo_v[i].cigar != nullptr)
         {
           xfree(clusterinfo_v[i].cigar);
         }
