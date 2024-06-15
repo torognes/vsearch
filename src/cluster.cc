@@ -1380,18 +1380,18 @@ auto cluster(char * dbname,
     {
       int const seqno = clusterinfo_v[i].seqno;
       int const clusterno = clusterinfo_v[i].clusterno;
-      cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
+      cluster_abundance_v[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
       ++cluster_size[clusterno];
     }
 
   int64_t abundance_min = LONG_MAX;
   int64_t abundance_max = 0;
   int size_max = 0;
-  int singletons = 0;
+  int singletons = 0;  // std::count(cluster_abundance_v.begin(), cluster_abundance_v.end(), 1);
 
   for (int z = 0; z < clusters; z++)
     {
-      int64_t const abundance = cluster_abundance[z];
+      int64_t const abundance = cluster_abundance_v[z];
       if (abundance < abundance_min)
         {
           abundance_min = abundance;
@@ -1465,7 +1465,7 @@ auto cluster(char * dbname,
                                   db_getsequencelen(seqno),
                                   db_getheader(seqno),
                                   db_getheaderlen(seqno),
-                                  cluster_abundance[clusterno],
+                                  cluster_abundance_v[clusterno],
                                   clusterno + 1,
                                   -1.0,
                                   -1,
@@ -1477,7 +1477,7 @@ auto cluster(char * dbname,
             {
               fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
-                      cluster_abundance[clusterno]);
+                      cluster_abundance_v[clusterno]);
               header_fprint_strip(fp_uc,
                                   db_getheader(seqno),
                                   db_getheaderlen(seqno),
@@ -1638,7 +1638,7 @@ auto cluster(char * dbname,
                   msa(fp_msaout, fp_consout, fp_profile,
                       lastcluster,
                       msa_target_count, msa_target_list_v,
-                      cluster_abundance[lastcluster]);
+                      cluster_abundance_v[lastcluster]);
                 }
 
               /* start new cluster */
@@ -1661,7 +1661,7 @@ auto cluster(char * dbname,
           msa(fp_msaout, fp_consout, fp_profile,
               lastcluster,
               msa_target_count, msa_target_list_v,
-              cluster_abundance[lastcluster]);
+              cluster_abundance_v[lastcluster]);
         }
 
       progress_done();
