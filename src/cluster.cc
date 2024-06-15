@@ -69,6 +69,7 @@
 #include <cstring>  // std::strcpy, std::strlen
 #include <limits>
 #include <pthread.h>
+#include <utility>  // std::get
 #include <vector>
 
 
@@ -1385,23 +1386,17 @@ auto cluster(char * dbname,
       ++cluster_size[clusterno];
     }
 
-  int64_t abundance_min = LONG_MAX;
-  int64_t abundance_max = 0;
   int size_max = 0;
-  int const singletons = std::count(cluster_abundance_v.cbegin(), cluster_abundance_v.cend(), int64_t{1});
+  auto const minmax_elements = std::minmax_element(cluster_abundance_v.cbegin(),
+                                                   cluster_abundance_v.cend());
+  int64_t const abundance_min = *std::get<0>(minmax_elements);
+  int64_t const abundance_max = *std::get<1>(minmax_elements);
+  int const singletons = std::count(cluster_abundance_v.cbegin(),
+                                    cluster_abundance_v.cend(), int64_t{1});
+
 
   for (int z = 0; z < clusters; z++)
     {
-      int64_t const abundance = cluster_abundance_v[z];
-      if (abundance < abundance_min)
-        {
-          abundance_min = abundance;
-        }
-      if (abundance > abundance_max)
-        {
-          abundance_max = abundance;
-        }
-
       int const size = cluster_size[z];
       if (size > size_max)
         {
