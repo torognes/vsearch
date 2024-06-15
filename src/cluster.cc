@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "msa.h"
+#include <algorithm>  // std::count
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // INT_MAX, LONG_MAX
 #include <cstdint>  // int64_t, uint64_t
@@ -1387,7 +1388,7 @@ auto cluster(char * dbname,
   int64_t abundance_min = LONG_MAX;
   int64_t abundance_max = 0;
   int size_max = 0;
-  int singletons = 0;  // std::count(cluster_abundance_v.begin(), cluster_abundance_v.end(), 1);
+  int const singletons = std::count(cluster_abundance_v.cbegin(), cluster_abundance_v.cend(), int64_t{1});
 
   for (int z = 0; z < clusters; z++)
     {
@@ -1399,11 +1400,6 @@ auto cluster(char * dbname,
       if (abundance > abundance_max)
         {
           abundance_max = abundance;
-        }
-
-      if (abundance == 1)
-        {
-          ++singletons;
         }
 
       int const size = cluster_size[z];
