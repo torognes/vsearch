@@ -1388,8 +1388,8 @@ auto cluster(char * dbname,
 
   auto const minmax_elements = std::minmax_element(cluster_abundance_v.cbegin(),
                                                    cluster_abundance_v.cend());
-  int64_t const abundance_min = *std::get<0>(minmax_elements);
-  int64_t const abundance_max = *std::get<1>(minmax_elements);
+  auto const abundance_min = *std::get<0>(minmax_elements);
+  auto const abundance_max = *std::get<1>(minmax_elements);
   int const singletons = std::count(cluster_abundance_v.cbegin(),
                                     cluster_abundance_v.cend(), int64_t{1});
   auto const max_element = std::max_element(cluster_size.cbegin(),
