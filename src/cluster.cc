@@ -1341,7 +1341,8 @@ auto cluster(char * dbname,
       tophits = seqcount;
     }
 
-  clusterinfo = (clusterinfo_t *) xmalloc(seqcount * sizeof(clusterinfo_t));
+  std::vector<clusterinfo_t> clusterinfo_v(seqcount);
+  clusterinfo = clusterinfo_v.data();
 
   if (opt_log)
     {
