@@ -1379,8 +1379,8 @@ auto cluster(char * dbname,
 
   for (int i = 0; i < seqcount; i++)
     {
-      int const seqno = clusterinfo[i].seqno;
-      int const clusterno = clusterinfo[i].clusterno;
+      int const seqno = clusterinfo_v[i].seqno;
+      int const clusterno = clusterinfo_v[i].clusterno;
       cluster_abundance[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
       ++cluster_size[clusterno];
     }
@@ -1449,8 +1449,8 @@ auto cluster(char * dbname,
 
   for (int i = 0; i < seqcount; i++)
     {
-      int const seqno = clusterinfo[i].seqno;
-      int const clusterno = clusterinfo[i].clusterno;
+      int const seqno = clusterinfo_v[i].seqno;
+      int const clusterno = clusterinfo_v[i].clusterno;
 
       if (clusterno != lastcluster)
         {
@@ -1626,10 +1626,10 @@ auto cluster(char * dbname,
 
       for (int i = 0; i < seqcount; i++)
         {
-          int const clusterno = clusterinfo[i].clusterno;
-          int const seqno = clusterinfo[i].seqno;
-          char * cigar = clusterinfo[i].cigar;
-          int const strand = clusterinfo[i].strand;
+          int const clusterno = clusterinfo_v[i].clusterno;
+          int const seqno = clusterinfo_v[i].seqno;
+          char * cigar = clusterinfo_v[i].cigar;
+          int const strand = clusterinfo_v[i].strand;
 
           if (clusterno != lastcluster)
             {
@@ -1690,13 +1690,13 @@ auto cluster(char * dbname,
 
   for (int i = 0; i < seqcount; i++)
     {
-      if (clusterinfo[i].cigar)
+      if (clusterinfo_v[i].cigar)
         {
-          xfree(clusterinfo[i].cigar);
+          xfree(clusterinfo_v[i].cigar);
         }
     }
 
-  xfree(clusterinfo);
+  // clusterinfo not used after this point
 
   if (fp_biomout)
     {
