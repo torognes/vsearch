@@ -755,7 +755,7 @@ auto cluster_core_parallel() -> void
                                     {
                                       xfree(si->hits[si->hit_count - 1].nwalignment);
                                     }
-                                  si->hit_count--;
+                                  --si->hit_count;
                                 }
 
                               /* move the rest down */
@@ -766,7 +766,7 @@ auto cluster_core_parallel() -> void
 
                               /* init new hit */
                               struct hit * hit = si->hits + x;
-                              si->hit_count++;
+                              ++si->hit_count;
 
                               hit->target = sic->query_no;
                               hit->strand = si->strand;
@@ -908,7 +908,7 @@ auto cluster_core_parallel() -> void
                             {
                               /* rejection without alignment */
                               hit->rejected = true;
-                              si->rejects++;
+                              ++si->rejects;
                             }
                         }
 
@@ -917,11 +917,11 @@ auto cluster_core_parallel() -> void
                           /* test accept/reject criteria after alignment */
                           if (search_acceptable_aligned(si, hit))
                             {
-                              si->accepts++;
+                              ++si->accepts;
                             }
                           else
                             {
-                              si->rejects++;
+                              ++si->rejects;
                             }
                         }
                     }
