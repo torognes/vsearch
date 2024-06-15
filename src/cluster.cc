@@ -1422,12 +1422,12 @@ auto cluster(char * dbname,
   progress_init("Sorting clusters", clusters);
   if (opt_clusterout_sort)
     {
-      qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
+      qsort(clusterinfo_v.data(), seqcount, sizeof(clusterinfo_t),
             compare_byclusterabundance);
     }
   else
     {
-      qsort(clusterinfo, seqcount, sizeof(clusterinfo_t),
+      qsort(clusterinfo_v.data(), seqcount, sizeof(clusterinfo_t),
             compare_byclusterno);
     }
   progress_done();
