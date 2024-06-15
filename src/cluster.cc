@@ -65,7 +65,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::qsort
-#include <cstring>  // std::memset, std::strcpy, std::strlen
+#include <cstring>  // std::strcpy, std::strlen
 #include <limits>
 #include <pthread.h>
 #include <vector>
@@ -1375,8 +1375,6 @@ auto cluster(char * dbname,
   std::vector<int64_t> cluster_abundance_v(clusters);
   cluster_abundance = cluster_abundance_v.data();
   std::vector<int> cluster_size(clusters);
-
-  memset(cluster_abundance, 0, clusters * sizeof(int64_t));
 
   for (int i = 0; i < seqcount; i++)
     {
