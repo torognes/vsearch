@@ -620,7 +620,7 @@ auto cluster_core_parallel() -> void
     }
   for (int i = 0; i < max_queries; i++)
     {
-      cluster_query_init(si_plus+i);
+      cluster_query_init(si_plus + i);
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
