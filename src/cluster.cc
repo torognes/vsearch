@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "msa.h"
-#include <algorithm>  // std::count
+#include <algorithm>  // std::count, std::minmax_element, std::max_element
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // INT_MAX, LONG_MAX
 #include <cstdint>  // int64_t, uint64_t
