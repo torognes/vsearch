@@ -1386,23 +1386,15 @@ auto cluster(char * dbname,
       ++cluster_size[clusterno];
     }
 
-  int size_max = 0;
   auto const minmax_elements = std::minmax_element(cluster_abundance_v.cbegin(),
                                                    cluster_abundance_v.cend());
   int64_t const abundance_min = *std::get<0>(minmax_elements);
   int64_t const abundance_max = *std::get<1>(minmax_elements);
   int const singletons = std::count(cluster_abundance_v.cbegin(),
                                     cluster_abundance_v.cend(), int64_t{1});
-
-
-  for (int z = 0; z < clusters; z++)
-    {
-      int const size = cluster_size[z];
-      if (size > size_max)
-        {
-          size_max = size;
-        }
-    }
+  auto const max_element = std::max_element(cluster_size.cbegin(),
+                                            cluster_size.cend());
+  auto const size_max = *max_element;
 
 
   /* Sort sequences in clusters by their abundance or ordinal number */
