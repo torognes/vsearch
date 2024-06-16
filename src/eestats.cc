@@ -134,7 +134,7 @@ auto fastq_eestats() -> void
 
   uint64_t const filesize = fastq_get_size(h);
 
-  FILE * fp_output = nullptr;
+  std::FILE * fp_output = nullptr;
 
   if (opt_output)
     {
@@ -419,7 +419,7 @@ auto fastq_eestats2() -> void
 
   uint64_t const filesize = fastq_get_size(h);
 
-  FILE * fp_output = nullptr;
+  std::FILE * fp_output = nullptr;
 
   if (opt_output)
     {
