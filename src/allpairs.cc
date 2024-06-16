@@ -355,7 +355,7 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<unsigned short> paligned(maxhits);
   std::vector<unsigned short> pmatches(maxhits);
   std::vector<unsigned short> pmismatches(maxhits);
-  std::vector<unsigned short> pgaps_v(maxhits);
+  std::vector<unsigned short> pgaps(maxhits);
   char** pcigar = (char **) xmalloc(sizeof(char *) * maxhits);
 
   auto * finalhits
@@ -409,7 +409,7 @@ auto allpairs_thread_run(int64_t t) -> void
                        paligned.data(),
                        pmatches.data(),
                        pmismatches.data(),
-                       pgaps_v.data(),
+                       pgaps.data(),
                        pcigar);
 
               /* convert to hit structure */
@@ -459,7 +459,7 @@ auto allpairs_thread_run(int64_t t) -> void
                       nwalignmentlength = paligned[h];
                       nwmatches = pmatches[h];
                       nwmismatches = pmismatches[h];
-                      nwgaps = pgaps_v[h];
+                      nwgaps = pgaps[h];
                     }
 
                   hit->target = target;
