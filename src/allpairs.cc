@@ -540,9 +540,9 @@ auto allpairs_thread_run(int64_t t) -> void
   xfree(scorematrix);
 }
 
-auto allpairs_thread_worker(void * vp) -> void *
+auto allpairs_thread_worker(void * void_ptr) -> void *
 {
-  auto const nth_thread = reinterpret_cast<int64_t>(vp);
+  auto const nth_thread = reinterpret_cast<int64_t>(void_ptr);
   allpairs_thread_run(nth_thread);
   return nullptr;
 }
