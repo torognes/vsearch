@@ -132,7 +132,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   dbindex_uh = unique_init();
 
   unsigned int const seqcount = db_getsequencecount();
-  kmerhashsize = 1 << (2 * opt_wordlength);
+  kmerhashsize = 1U << (2 * opt_wordlength);
 
   /* allocate memory for kmer count array */
   kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
