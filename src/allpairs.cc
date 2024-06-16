@@ -356,7 +356,8 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<unsigned short> pmatches(maxhits);
   std::vector<unsigned short> pmismatches(maxhits);
   std::vector<unsigned short> pgaps(maxhits);
-  char** pcigar = (char **) xmalloc(sizeof(char *) * maxhits);
+  std::vector<char *> pcigar_v(maxhits);
+  char ** pcigar = pcigar_v.data();
 
   auto * finalhits
     = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
@@ -543,8 +544,6 @@ auto allpairs_thread_run(int64_t t) -> void
     }
 
   xfree(finalhits);
-
-  xfree(pcigar);
 
   search16_exit(si->s);
 
