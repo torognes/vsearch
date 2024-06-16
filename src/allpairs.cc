@@ -359,7 +359,7 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<char *> pcigar(maxhits);
   std::vector<struct hit> finalhits(maxhits);
 
-  bool cont = true;
+  auto cont = true;
 
   while (cont)
     {
