@@ -65,6 +65,7 @@
 #include <cstring>  // std::strlen
 #include <limits>
 #include <pthread.h>
+#include <vector>
 
 
 static pthread_t * pthread;
@@ -349,8 +350,8 @@ auto allpairs_thread_run(int64_t t) -> void
 
   /* allocate memory for alignment results */
   unsigned int const maxhits = seqcount;
-  auto * pseqnos =
-    (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
+  std::vector<unsigned int> pseqnos_v(maxhits);
+  auto * pseqnos = pseqnos_v.data();
   CELL * pscores =
     (CELL *) xmalloc(sizeof(CELL) * maxhits);
   auto * paligned =
@@ -555,7 +556,6 @@ auto allpairs_thread_run(int64_t t) -> void
   xfree(pmatches);
   xfree(paligned);
   xfree(pscores);
-  xfree(pseqnos);
 
   search16_exit(si->s);
 
