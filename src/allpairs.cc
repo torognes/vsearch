@@ -351,7 +351,7 @@ auto allpairs_thread_run(int64_t t) -> void
   /* allocate memory for alignment results */
   unsigned int const maxhits = seqcount;
   std::vector<unsigned int> pseqnos(maxhits);
-  std::vector<CELL> pscores_v(maxhits);
+  std::vector<CELL> pscores(maxhits);
   auto * paligned =
     (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   auto * pmatches =
@@ -409,7 +409,7 @@ auto allpairs_thread_run(int64_t t) -> void
               search16(si->s,
                        si->hit_count,
                        pseqnos.data(),
-                       pscores_v.data(),
+                       pscores.data(),
                        paligned,
                        pmatches,
                        pmismatches,
@@ -422,7 +422,7 @@ auto allpairs_thread_run(int64_t t) -> void
                   struct hit * hit = si->hits + h;
 
                   unsigned int const target = pseqnos[h];
-                  int64_t nwscore = pscores_v[h];
+                  int64_t nwscore = pscores[h];
 
                   char * nwcigar {nullptr};
                   int64_t nwalignmentlength {0};
