@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::fprintf, std::FILE, std:fclose
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen
 #include <limits>
@@ -349,7 +349,7 @@ auto allpairs_thread_run(int64_t t) -> void
                      opt_gap_extension_target_right);
 
   /* allocate memory for alignment results */
-  unsigned int const maxhits = seqcount;
+  auto const maxhits = static_cast<std::size_t>(seqcount);
   std::vector<unsigned int> pseqnos(maxhits);
   std::vector<CELL> pscores(maxhits);
   std::vector<unsigned short> paligned(maxhits);
