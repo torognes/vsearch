@@ -414,7 +414,7 @@ auto allpairs_thread_run(int64_t t) -> void
               /* convert to hit structure */
               for (int h = 0; h < si->hit_count; h++)
                 {
-                  struct hit * hit = si->hits_v.data() + h;
+                  struct hit * hit = &si->hits_v[h];
 
                   unsigned int const target = pseqnos[h];
                   int64_t nwscore = pscores[h];
