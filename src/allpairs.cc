@@ -354,8 +354,8 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<CELL> pscores(maxhits);
   std::vector<unsigned short> paligned(maxhits);
   std::vector<unsigned short> pmatches(maxhits);
-  auto * pmismatches =
-    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
+  std::vector<unsigned short> pmismatches_v(maxhits);
+  auto * pmismatches = pmismatches_v.data();
   auto * pgaps =
     (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   char** pcigar = (char **) xmalloc(sizeof(char *) * maxhits);
@@ -548,7 +548,6 @@ auto allpairs_thread_run(int64_t t) -> void
 
   xfree(pcigar);
   xfree(pgaps);
-  xfree(pmismatches);
 
   search16_exit(si->s);
 
