@@ -542,8 +542,8 @@ auto allpairs_thread_run(int64_t t) -> void
 
 auto allpairs_thread_worker(void * vp) -> void *
 {
-  auto t = (int64_t) vp;
-  allpairs_thread_run(t);
+  auto nth_thread = (int64_t) vp;
+  allpairs_thread_run(nth_thread);
   return nullptr;
 }
 
