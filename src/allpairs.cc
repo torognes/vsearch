@@ -352,7 +352,7 @@ auto allpairs_thread_run(int64_t t) -> void
   unsigned int const maxhits = seqcount;
   std::vector<unsigned int> pseqnos(maxhits);
   std::vector<CELL> pscores(maxhits);
-  std::vector<unsigned short> paligned_v(maxhits);
+  std::vector<unsigned short> paligned(maxhits);
   auto * pmatches =
     (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   auto * pmismatches =
@@ -409,7 +409,7 @@ auto allpairs_thread_run(int64_t t) -> void
                        si->hit_count,
                        pseqnos.data(),
                        pscores.data(),
-                       paligned_v.data(),
+                       paligned.data(),
                        pmatches,
                        pmismatches,
                        pgaps,
@@ -459,7 +459,7 @@ auto allpairs_thread_run(int64_t t) -> void
                   else
                     {
                       nwcigar = pcigar[h];
-                      nwalignmentlength = paligned_v[h];
+                      nwalignmentlength = paligned[h];
                       nwmatches = pmatches[h];
                       nwmismatches = pmismatches[h];
                       nwgaps = pgaps[h];
