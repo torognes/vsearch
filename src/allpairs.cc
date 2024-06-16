@@ -433,7 +433,7 @@ auto allpairs_thread_run(int64_t t) -> void
                       char * tseq = db_getsequence(target);
                       int64_t const tseqlen = db_getsequencelen(target);
 
-                      if (pcigar[h])
+                      if (pcigar[h] != nullptr)
                         {
                           xfree(pcigar[h]);
                         }
