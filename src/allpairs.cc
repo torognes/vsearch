@@ -542,7 +542,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
 auto allpairs_thread_worker(void * vp) -> void *
 {
-  auto nth_thread = (int64_t) vp;
+  auto const nth_thread = reinterpret_cast<int64_t>(vp);
   allpairs_thread_run(nth_thread);
   return nullptr;
 }
