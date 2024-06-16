@@ -701,7 +701,7 @@ auto allpairs_global(char * cmdline, char * progheader) -> void
   xpthread_mutex_init(&mutex_output, nullptr);
 
   progress = 0;
-  progress_init("Aligning", MAX(0, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);
+  progress_init("Aligning", MAX(0, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);  // refactoring: issue with parenthesis?
   allpairs_thread_worker_run();
   progress_done();
 
