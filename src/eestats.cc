@@ -114,9 +114,9 @@ inline auto fastq_get_qual_eestats(char q) -> int
   return qual;
 }
 
-auto q2p(int q) -> double
+auto q2p(int quality_value) -> double
 {
-  return exp10(- q / 10.0);
+  return exp10(- quality_value / 10.0);
 }
 
 auto ee_start(int pos, int resolution) -> int64_t
