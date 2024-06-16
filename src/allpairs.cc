@@ -310,7 +310,8 @@ auto allpairs_thread_run(int64_t t) -> void
   si->m = nullptr;
   si->finalized = 0;
 
-  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
+  si->hits_v.resize(seqcount);
+  si->hits = si->hits_v.data();
 
   struct nwinfo_s * nw = nw_init();
 
@@ -413,7 +414,7 @@ auto allpairs_thread_run(int64_t t) -> void
               /* convert to hit structure */
               for (int h = 0; h < si->hit_count; h++)
                 {
-                  struct hit * hit = si->hits + h;
+                  struct hit * hit = si->hits_v.data() + h;
 
                   unsigned int const target = pseqnos[h];
                   int64_t nwscore = pscores[h];
@@ -526,9 +527,9 @@ auto allpairs_thread_run(int64_t t) -> void
           /* free memory for alignment strings */
           for (int i = 0; i < si->hit_count; i++)
             {
-              if (si->hits[i].aligned)
+              if (si->hits_v[i].aligned)
                 {
-                  xfree(si->hits[i].nwalignment);
+                  xfree(si->hits_v[i].nwalignment);
                 }
             }
         }
@@ -546,8 +547,6 @@ auto allpairs_thread_run(int64_t t) -> void
   nw_exit(nw);
 
   xfree(scorematrix);
-
-  xfree(si->hits);
 }
 
 auto allpairs_thread_worker(void * vp) -> void *
