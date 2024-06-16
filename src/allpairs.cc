@@ -357,9 +357,7 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<unsigned short> pmismatches(maxhits);
   std::vector<unsigned short> pgaps(maxhits);
   std::vector<char *> pcigar(maxhits);
-
-  auto * finalhits
-    = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
+  std::vector<struct hit> finalhits_v(maxhits);
 
   bool cont = true;
 
@@ -492,12 +490,12 @@ auto allpairs_thread_run(int64_t t) -> void
                   /* test accept/reject criteria after alignment */
                   if (opt_acceptall or search_acceptable_aligned(si, hit))
                     {
-                      finalhits[si->accepts++] = *hit;
+                      finalhits_v[si->accepts++] = *hit;
                     }
                 }
 
               /* sort hits */
-              qsort(finalhits, si->accepts,
+              qsort(finalhits_v.data(), si->accepts,
                     sizeof(struct hit), allpairs_hit_compare);
             }
 
@@ -506,7 +504,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
           /* output results */
           allpairs_output_results(si->accepts,
-                                  finalhits,
+                                  finalhits_v.data(),
                                   si->query_head,
                                   si->qseqlen,
                                   si->qsequence,
@@ -541,8 +539,6 @@ auto allpairs_thread_run(int64_t t) -> void
           cont = false;
         }
     }
-
-  xfree(finalhits);
 
   search16_exit(si->s);
 
