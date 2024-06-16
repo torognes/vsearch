@@ -367,7 +367,7 @@ auto unique_count_shared(struct uhandle_s * uh,
             }
           if (uh->hash[j].count)
             {
-              count++;
+              ++count;
             }
         }
     }
