@@ -296,7 +296,7 @@ auto dprofile_fill16(CELL * dprofile_word,
       int d[CHANNELS];
       for (int z = 0; z < CHANNELS; z++)
         {
-          d[z] = dseq[(j * CHANNELS) + z] << 4;
+          d[z] = dseq[(j * CHANNELS) + z] << 4U;
         }
 
       for (int i = 0; i < 16; i += 8)
