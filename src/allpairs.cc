@@ -390,7 +390,8 @@ auto allpairs_thread_run(int64_t t) -> void
             {
               if (opt_acceptall or search_acceptable_unaligned(si, target))
                 {
-                  pseqnos[si->hit_count++] = target;
+                  pseqnos[si->hit_count] = target;
+                  ++si->hit_count;
                 }
             }
 
