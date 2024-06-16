@@ -357,7 +357,6 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<unsigned short> pmismatches(maxhits);
   std::vector<unsigned short> pgaps(maxhits);
   std::vector<char *> pcigar_v(maxhits);
-  char ** pcigar = pcigar_v.data();
 
   auto * finalhits
     = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
@@ -411,7 +410,7 @@ auto allpairs_thread_run(int64_t t) -> void
                        pmatches.data(),
                        pmismatches.data(),
                        pgaps.data(),
-                       pcigar);
+                       pcigar_v.data());
 
               /* convert to hit structure */
               for (int h = 0; h < si->hit_count; h++)
@@ -436,9 +435,9 @@ auto allpairs_thread_run(int64_t t) -> void
                       char * tseq = db_getsequence(target);
                       int64_t const tseqlen = db_getsequencelen(target);
 
-                      if (pcigar[h])
+                      if (pcigar_v[h])
                         {
-                          xfree(pcigar[h]);
+                          xfree(pcigar_v[h]);
                         }
 
                       nwcigar = xstrdup(lma.align(si->qsequence,
@@ -456,7 +455,7 @@ auto allpairs_thread_run(int64_t t) -> void
                     }
                   else
                     {
-                      nwcigar = pcigar[h];
+                      nwcigar = pcigar_v[h];
                       nwalignmentlength = paligned[h];
                       nwmatches = pmatches[h];
                       nwmismatches = pmismatches[h];
