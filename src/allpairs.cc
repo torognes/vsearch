@@ -301,15 +301,6 @@ auto allpairs_thread_run(int64_t t) -> void
   struct searchinfo_s searchinfo;
 
   struct searchinfo_s * si = & searchinfo;
-
-  searchinfo.strand = 0;
-  searchinfo.query_head_alloc = 0;
-  searchinfo.seq_alloc = 0;
-  searchinfo.kmersamplecount = 0;
-  searchinfo.kmers = nullptr;
-  searchinfo.m = nullptr;
-  searchinfo.finalized = 0;
-
   searchinfo.hits_v.resize(seqcount);
   searchinfo.hits = searchinfo.hits_v.data();
 
