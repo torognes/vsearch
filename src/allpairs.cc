@@ -490,7 +490,8 @@ auto allpairs_thread_run(int64_t t) -> void
                   /* test accept/reject criteria after alignment */
                   if (opt_acceptall or search_acceptable_aligned(si, hit))
                     {
-                      finalhits[si->accepts++] = *hit;
+                      finalhits[si->accepts] = *hit;
+                      ++si->accepts;
                     }
                 }
 
