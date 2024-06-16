@@ -357,7 +357,7 @@ auto allpairs_thread_run(int64_t t) -> void
   std::vector<unsigned short> pmismatches(maxhits);
   std::vector<unsigned short> pgaps(maxhits);
   std::vector<char *> pcigar(maxhits);
-  std::vector<struct hit> finalhits_v(maxhits);
+  std::vector<struct hit> finalhits(maxhits);
 
   bool cont = true;
 
@@ -490,12 +490,12 @@ auto allpairs_thread_run(int64_t t) -> void
                   /* test accept/reject criteria after alignment */
                   if (opt_acceptall or search_acceptable_aligned(si, hit))
                     {
-                      finalhits_v[si->accepts++] = *hit;
+                      finalhits[si->accepts++] = *hit;
                     }
                 }
 
               /* sort hits */
-              qsort(finalhits_v.data(), si->accepts,
+              qsort(finalhits.data(), si->accepts,
                     sizeof(struct hit), allpairs_hit_compare);
             }
 
@@ -504,7 +504,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
           /* output results */
           allpairs_output_results(si->accepts,
-                                  finalhits_v.data(),
+                                  finalhits.data(),
                                   si->query_head,
                                   si->qseqlen,
                                   si->qsequence,
