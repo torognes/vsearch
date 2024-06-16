@@ -352,7 +352,6 @@ auto allpairs_thread_run(int64_t t) -> void
   unsigned int const maxhits = seqcount;
   std::vector<unsigned int> pseqnos(maxhits);
   std::vector<CELL> pscores_v(maxhits);
-  CELL * pscores = pscores_v.data();
   auto * paligned =
     (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
   auto * pmatches =
@@ -410,7 +409,7 @@ auto allpairs_thread_run(int64_t t) -> void
               search16(si->s,
                        si->hit_count,
                        pseqnos.data(),
-                       pscores,
+                       pscores_v.data(),
                        paligned,
                        pmatches,
                        pmismatches,
@@ -423,7 +422,7 @@ auto allpairs_thread_run(int64_t t) -> void
                   struct hit * hit = si->hits + h;
 
                   unsigned int const target = pseqnos[h];
-                  int64_t nwscore = pscores[h];
+                  int64_t nwscore = pscores_v[h];
 
                   char * nwcigar {nullptr};
                   int64_t nwalignmentlength {0};
