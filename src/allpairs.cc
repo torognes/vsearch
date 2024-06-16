@@ -385,8 +385,7 @@ auto allpairs_thread_run(int64_t t) -> void
           si->accepts = 0;
           si->hit_count = 0;
 
-          for (int target = si->query_no + 1;
-              target < seqcount; target++)
+          for (int target = si->query_no + 1; target < seqcount; target++)
             {
               if (opt_acceptall or search_acceptable_unaligned(si, target))
                 {
