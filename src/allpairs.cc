@@ -473,9 +473,9 @@ auto allpairs_thread_run(int64_t t) -> void
                   hit->matches = nwalignmentlength - hit->nwdiff;
                   hit->mismatches = hit->nwdiff - hit->nwindels;
 
-                  int64_t const dseqlen = db_getsequencelen(target);
-                  hit->shortest = MIN(searchinfo.qseqlen, dseqlen);
-                  hit->longest = MAX(searchinfo.qseqlen, dseqlen);
+                  auto const dseqlen = static_cast<int>(db_getsequencelen(target));
+                  hit->shortest = std::min(searchinfo.qseqlen, dseqlen);
+                  hit->longest = std::max(searchinfo.qseqlen, dseqlen);
 
                   /* trim alignment, compute numbers excluding terminal gaps */
                   align_trim(hit);
