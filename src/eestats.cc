@@ -167,7 +167,7 @@ auto fastq_eestats() -> void
 
   while (fastq_next(h, false, chrmap_upcase))
     {
-      seq_count++;
+      ++seq_count;
 
       int64_t const len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
@@ -205,7 +205,7 @@ auto fastq_eestats() -> void
 
       for (int64_t i = 0; i < len; i++)
         {
-          read_length_table[i]++;
+          ++read_length_table[i];
 
           /* quality score */
 
@@ -214,7 +214,7 @@ auto fastq_eestats() -> void
             {
               qual = 0;
             }
-          qual_length_table[((max_quality + 1) * i) + qual]++;
+          ++qual_length_table[((max_quality + 1) * i) + qual];
 
 
           /* Pe */
@@ -228,7 +228,7 @@ auto fastq_eestats() -> void
           ee += pe;
 
           int64_t const e_int = MIN(resolution * (i + 1), (int) (resolution * ee));
-          ee_length_table[ee_start(i, resolution) + e_int]++;
+          ++ee_length_table[ee_start(i, resolution) + e_int];
 
           sum_ee_length_table[i] += ee;
         }
@@ -442,7 +442,7 @@ auto fastq_eestats2() -> void
 
   while (fastq_next(h, false, chrmap_upcase))
     {
-      seq_count++;
+      ++seq_count;
 
       uint64_t const len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
@@ -494,7 +494,7 @@ auto fastq_eestats2() -> void
                     {
                       if (ee <= opt_ee_cutoffs_values[y])
                         {
-                          count_table[(x * opt_ee_cutoffs_count) + y]++;
+                          ++count_table[(x * opt_ee_cutoffs_count) + y];
                         }
                     }
                 }
