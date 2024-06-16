@@ -351,7 +351,7 @@ auto unique_count_shared(struct uhandle_s * uh,
           uint64_t const y = 1ULL << (kmer & 63ULL);
           if (uh->bitmap[x] & y)
             {
-              count++;
+              ++count;
             }
         }
     }
