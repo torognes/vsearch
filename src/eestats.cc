@@ -438,7 +438,7 @@ auto fastq_eestats2() -> void
 
   int len_steps = 0;
 
-  uint64_t * count_table = nullptr;
+  std::vector<uint64_t> count_table;
 
   while (fastq_next(h, false, chrmap_upcase))
     {
@@ -459,8 +459,7 @@ auto fastq_eestats2() -> void
 
           if (new_len_steps > len_steps)
             {
-              count_table = (uint64_t *) xrealloc(count_table, sizeof(uint64_t) * new_len_steps * opt_ee_cutoffs_count);
-              memset(count_table + (len_steps * opt_ee_cutoffs_count), 0, sizeof(uint64_t) * (new_len_steps - len_steps) * opt_ee_cutoffs_count);
+              count_table.resize(new_len_steps * opt_ee_cutoffs_count);
               len_steps = new_len_steps;
             }
         }
@@ -590,12 +589,6 @@ auto fastq_eestats2() -> void
             }
           fprintf(fp_log, "\n");
         }
-    }
-
-  if (count_table)
-    {
-      xfree(count_table);
-      count_table = nullptr;
     }
 
   fclose(fp_output);
