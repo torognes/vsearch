@@ -193,10 +193,10 @@ auto unique_count_bitmap(struct uhandle_s * uh,
   while (s < e1)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int)(*s)];
+      bad |= maskmap[(int) (*s)];
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int)(*s++)];
+      kmer |= chrmap_2bit[(int) (*s++)];
     }
 
   int unique = 0;
