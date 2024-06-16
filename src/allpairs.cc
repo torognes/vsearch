@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
 #include <cstdlib>  // std::qsort
@@ -134,7 +135,7 @@ auto allpairs_output_results(int hit_count,
                              char * qsequence_rc) -> void
 {
   /* show results */
-  int64_t const toreport = MIN(opt_maxhits, hit_count);
+  auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
 
   if (fp_alnout)
     {
