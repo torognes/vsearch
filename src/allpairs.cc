@@ -298,24 +298,24 @@ auto allpairs_thread_run(int64_t t) -> void
 {
   (void) t;
 
-  struct searchinfo_s sia;
+  struct searchinfo_s searchinfo;
 
-  struct searchinfo_s * si = & sia;
+  struct searchinfo_s * si = & searchinfo;
 
-  sia.strand = 0;
-  sia.query_head_alloc = 0;
-  sia.seq_alloc = 0;
-  sia.kmersamplecount = 0;
-  sia.kmers = nullptr;
-  sia.m = nullptr;
-  sia.finalized = 0;
+  searchinfo.strand = 0;
+  searchinfo.query_head_alloc = 0;
+  searchinfo.seq_alloc = 0;
+  searchinfo.kmersamplecount = 0;
+  searchinfo.kmers = nullptr;
+  searchinfo.m = nullptr;
+  searchinfo.finalized = 0;
 
-  sia.hits_v.resize(seqcount);
-  sia.hits = sia.hits_v.data();
+  searchinfo.hits_v.resize(seqcount);
+  searchinfo.hits = searchinfo.hits_v.data();
 
   struct nwinfo_s * nw = nw_init();
 
-  sia.s = search16_init(opt_match,
+  searchinfo.s = search16_init(opt_match,
                         opt_mismatch,
                         opt_gap_open_query_left,
                         opt_gap_open_target_left,
@@ -376,33 +376,33 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_unlock(&mutex_input);
 
           /* init search info */
-          sia.query_no = query_no;
-          sia.qsize = db_getabundance(query_no);
-          sia.query_head_len = db_getheaderlen(query_no);
-          sia.query_head = db_getheader(query_no);
-          sia.qseqlen = db_getsequencelen(query_no);
-          sia.qsequence = db_getsequence(query_no);
-          sia.rejects = 0;
-          sia.accepts = 0;
-          sia.hit_count = 0;
+          searchinfo.query_no = query_no;
+          searchinfo.qsize = db_getabundance(query_no);
+          searchinfo.query_head_len = db_getheaderlen(query_no);
+          searchinfo.query_head = db_getheader(query_no);
+          searchinfo.qseqlen = db_getsequencelen(query_no);
+          searchinfo.qsequence = db_getsequence(query_no);
+          searchinfo.rejects = 0;
+          searchinfo.accepts = 0;
+          searchinfo.hit_count = 0;
 
-          for (int target = sia.query_no + 1; target < seqcount; target++)
+          for (int target = searchinfo.query_no + 1; target < seqcount; target++)
             {
               if (opt_acceptall or search_acceptable_unaligned(si, target))
                 {
-                  pseqnos[sia.hit_count] = target;
-                  ++sia.hit_count;
+                  pseqnos[searchinfo.hit_count] = target;
+                  ++searchinfo.hit_count;
                 }
             }
 
-          if (sia.hit_count)
+          if (searchinfo.hit_count)
             {
               /* perform alignments */
 
-              search16_qprep(sia.s, sia.qsequence, sia.qseqlen);
+              search16_qprep(searchinfo.s, searchinfo.qsequence, searchinfo.qseqlen);
 
-              search16(sia.s,
-                       sia.hit_count,
+              search16(searchinfo.s,
+                       searchinfo.hit_count,
                        pseqnos.data(),
                        pscores.data(),
                        paligned.data(),
@@ -412,9 +412,9 @@ auto allpairs_thread_run(int64_t t) -> void
                        pcigar.data());
 
               /* convert to hit structure */
-              for (int h = 0; h < sia.hit_count; h++)
+              for (int h = 0; h < searchinfo.hit_count; h++)
                 {
-                  struct hit * hit = &sia.hits_v[h];
+                  struct hit * hit = &searchinfo.hits_v[h];
 
                   unsigned int const target = pseqnos[h];
                   int64_t nwscore = pscores[h];
@@ -439,12 +439,12 @@ auto allpairs_thread_run(int64_t t) -> void
                           xfree(pcigar[h]);
                         }
 
-                      nwcigar = xstrdup(lma.align(sia.qsequence,
+                      nwcigar = xstrdup(lma.align(searchinfo.qsequence,
                                                   tseq,
-                                                  sia.qseqlen,
+                                                  searchinfo.qseqlen,
                                                   tseqlen));
                       lma.alignstats(nwcigar,
-                                     sia.qsequence,
+                                     searchinfo.qsequence,
                                      tseq,
                                      & nwscore,
                                      & nwalignmentlength,
@@ -482,8 +482,8 @@ auto allpairs_thread_run(int64_t t) -> void
                   hit->mismatches = hit->nwdiff - hit->nwindels;
 
                   int64_t const dseqlen = db_getsequencelen(target);
-                  hit->shortest = MIN(sia.qseqlen, dseqlen);
-                  hit->longest = MAX(sia.qseqlen, dseqlen);
+                  hit->shortest = MIN(searchinfo.qseqlen, dseqlen);
+                  hit->longest = MAX(searchinfo.qseqlen, dseqlen);
 
                   /* trim alignment, compute numbers excluding terminal gaps */
                   align_trim(hit);
@@ -491,13 +491,13 @@ auto allpairs_thread_run(int64_t t) -> void
                   /* test accept/reject criteria after alignment */
                   if (opt_acceptall or search_acceptable_aligned(si, hit))
                     {
-                      finalhits[sia.accepts] = *hit;
-                      ++sia.accepts;
+                      finalhits[searchinfo.accepts] = *hit;
+                      ++searchinfo.accepts;
                     }
                 }
 
               /* sort hits */
-              qsort(finalhits.data(), sia.accepts,
+              qsort(finalhits.data(), searchinfo.accepts,
                     sizeof(struct hit), allpairs_hit_compare);
             }
 
@@ -505,15 +505,15 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_lock(&mutex_output);
 
           /* output results */
-          allpairs_output_results(sia.accepts,
+          allpairs_output_results(searchinfo.accepts,
                                   finalhits.data(),
-                                  sia.query_head,
-                                  sia.qseqlen,
-                                  sia.qsequence,
+                                  searchinfo.query_head,
+                                  searchinfo.qseqlen,
+                                  searchinfo.qsequence,
                                   nullptr);
 
           /* update stats */
-          if (sia.accepts)
+          if (searchinfo.accepts)
             {
               ++qmatches;
             }
@@ -525,11 +525,11 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_unlock(&mutex_output);
 
           /* free memory for alignment strings */
-          for (int i = 0; i < sia.hit_count; i++)
+          for (int i = 0; i < searchinfo.hit_count; i++)
             {
-              if (sia.hits_v[i].aligned)
+              if (searchinfo.hits_v[i].aligned)
                 {
-                  xfree(sia.hits_v[i].nwalignment);
+                  xfree(searchinfo.hits_v[i].nwalignment);
                 }
             }
         }
@@ -542,7 +542,7 @@ auto allpairs_thread_run(int64_t t) -> void
         }
     }
 
-  search16_exit(sia.s);
+  search16_exit(searchinfo.s);
 
   nw_exit(nw);
 
