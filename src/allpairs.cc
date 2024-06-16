@@ -702,7 +702,8 @@ auto allpairs_global(char * cmdline, char * progheader) -> void
   qmatches = 0;
   queries = 0;
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  std::vector<pthread_t> pthread_v(opt_threads);
+  pthread = pthread_v.data();
 
   /* init mutexes for input and output */
   xpthread_mutex_init(&mutex_input, nullptr);
@@ -738,7 +739,7 @@ auto allpairs_global(char * cmdline, char * progheader) -> void
   xpthread_mutex_destroy(&mutex_output);
   xpthread_mutex_destroy(&mutex_input);
 
-  xfree(pthread);
+  // pthread_v not used after this point
 
   /* clean up, global */
   db_free();
