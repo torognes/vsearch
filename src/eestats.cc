@@ -159,10 +159,7 @@ auto fastq_eestats() -> void
   std::vector<uint64_t> read_length_table(len_alloc);
   std::vector<uint64_t> qual_length_table(len_alloc * (max_quality + 1));
   std::vector<uint64_t> ee_length_table(ee_size);
-
-  auto * sum_ee_length_table = (double *) xmalloc(sizeof(double) * len_alloc);
-  memset(sum_ee_length_table, 0, sizeof(double) * len_alloc);
-
+  std::vector<double> sum_ee_length_table(len_alloc);
   auto * sum_pe_length_table = (double *) xmalloc(sizeof(double) * len_alloc);
   memset(sum_pe_length_table, 0, sizeof(double) * len_alloc);
 
@@ -187,11 +184,7 @@ auto fastq_eestats() -> void
           read_length_table.resize(new_alloc);
           qual_length_table.resize(new_alloc * (max_quality + 1));
           ee_length_table.resize(new_ee_size);
-
-          sum_ee_length_table = (double *) xrealloc(sum_ee_length_table,
-                                                    sizeof(double) * new_alloc);
-          memset(sum_ee_length_table + len_alloc, 0,
-                 sizeof(double) * (new_alloc - len_alloc));
+          sum_ee_length_table.resize(new_alloc);
 
           sum_pe_length_table = (double *) xrealloc(sum_pe_length_table,
                                                     sizeof(double) * new_alloc);
@@ -416,7 +409,6 @@ auto fastq_eestats() -> void
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
     }
 
-  xfree(sum_ee_length_table);
   xfree(sum_pe_length_table);
 
   fclose(fp_output);
