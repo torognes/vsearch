@@ -66,6 +66,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::memset
+#include <vector>
 
 
 inline auto fastq_get_qual_eestats(char q) -> int
@@ -155,8 +156,7 @@ auto fastq_eestats() -> void
 
   int64_t ee_size = ee_start(len_alloc, resolution);
 
-  auto * read_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * len_alloc);
-  memset(read_length_table, 0, sizeof(uint64_t) * len_alloc);
+  std::vector<uint64_t> read_length_table(len_alloc);
 
   auto * qual_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * len_alloc *
                                                  (max_quality+1));
@@ -189,10 +189,7 @@ auto fastq_eestats() -> void
         {
           int64_t const new_ee_size = ee_start(new_alloc, resolution);
 
-          read_length_table = (uint64_t *) xrealloc(read_length_table,
-                                                    sizeof(uint64_t) * new_alloc);
-          memset(read_length_table + len_alloc, 0,
-                 sizeof(uint64_t) * (new_alloc - len_alloc));
+          read_length_table.resize(new_alloc);
 
           qual_length_table = (uint64_t *) xrealloc(qual_length_table, sizeof(uint64_t) *
                                                     new_alloc * (max_quality + 1));
@@ -432,7 +429,6 @@ auto fastq_eestats() -> void
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
     }
 
-  xfree(read_length_table);
   xfree(qual_length_table);
   xfree(ee_length_table);
   xfree(sum_ee_length_table);
