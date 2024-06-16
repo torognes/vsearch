@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::min
 #include <cstdint> // uint64_t
 #include <cstring>  // std::memset
 
@@ -182,10 +183,7 @@ auto unique_count_bitmap(struct uhandle_s * uh,
   char * s = seq;
   char * e1 = s + k - 1;
   char * e2 = s + seqlen;
-  if (e2 < e1)
-    {
-      e1 = e2;
-    }
+  e1 = std::min(e2, e1);
 
   unsigned int * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
@@ -268,10 +266,7 @@ auto unique_count_hash(struct uhandle_s * uh,
   char * s = seq;
   char * e1 = s + k - 1;
   char * e2 = s + seqlen;
-  if (e2 < e1)
-    {
-      e1 = e2;
-    }
+  e1 = std::min(e2, e1);
 
   unsigned int * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
