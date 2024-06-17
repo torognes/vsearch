@@ -65,6 +65,7 @@
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread
 #include <cstring>  // std::strlen
+#include <vector>
 
 
 constexpr uint32_t sff_magic = 0x2e736666;
@@ -304,8 +305,8 @@ auto sff_convert() -> void
           fatal("Invalid SFF file. Incorrect clip_adapter_right value.");
         }
 
-      char * read_name = (char *) xmalloc(read_header.name_length + 1);
-      if (fread(read_name, 1, read_header.name_length, fp_sff) < read_header.name_length)
+      std::vector<char> read_name(read_header.name_length + 1);
+      if (fread(read_name.data(), 1, read_header.name_length, fp_sff) < read_header.name_length)
         {
           fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
         }
@@ -409,12 +410,11 @@ auto sff_convert() -> void
       fastq_print_general(fp_fastqout,
                           bases + clip_start,
                           length,
-                          read_name,
-                          strlen(read_name),
+                          read_name.data(),
+                          strlen(read_name.data()),
                           qual + clip_start,
                           1, read_no + 1, -1.0);
 
-      xfree(read_name);
       xfree(bases);
       xfree(qual);
 
