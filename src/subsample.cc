@@ -362,8 +362,7 @@ auto close_output_files(struct file_types const & ouput_files) -> void {
 }
 
 
-auto subsample() -> void
-{
+auto subsample() -> void {
   struct file_types ouput_files = {};
   ouput_files.fasta.kept.name = opt_fastaout;
   ouput_files.fasta.lost.name = opt_fastaout_discarded;
