@@ -373,8 +373,6 @@ extern char * opt_sample;
 extern char * opt_search_exact;
 extern char * opt_sff_convert;
 extern char * opt_sintax;
-extern char * opt_sortbylength;
-extern char * opt_sortbysize;
 extern char * opt_tabbedout;
 extern char * opt_tsegout;
 extern char * opt_uc;

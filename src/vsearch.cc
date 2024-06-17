@@ -187,8 +187,6 @@ char * opt_sample;
 char * opt_search_exact;
 char * opt_sff_convert;
 char * opt_sintax;
-char * opt_sortbylength;
-char * opt_sortbysize;
 char * opt_tabbedout;
 char * opt_tsegout;
 char * opt_uc;
@@ -974,8 +972,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_sizeorder = false;
   opt_sizeout = false;
   opt_slots = 0;
-  opt_sortbylength = nullptr;
-  opt_sortbysize = nullptr;
   opt_strand = 1;
   opt_subseq_end = LONG_MAX;
   opt_subseq_start = 1;
@@ -1640,7 +1636,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_sortbysize:
-          opt_sortbysize = optarg;
           parameters.opt_sortbysize = optarg;
           break;
 
@@ -1706,7 +1701,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_sortbylength:
-          opt_sortbylength = optarg;
           parameters.opt_sortbylength = optarg;
           break;
 
