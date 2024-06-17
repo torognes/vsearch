@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::count_if
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
@@ -68,6 +69,12 @@
 #include <numeric>  // std::fill
 #include <vector>
 
+
+#ifndef NDEBUG
+// all contiguous integers from 0 to 2^53 can be represented in the
+// mantissa of a double
+constexpr uint64_t contiguous_mantissa = 9007199254740992;  // 9 x 10^15 reads
+#endif
 
 struct a_file {
   char * name = nullptr;
@@ -201,7 +208,7 @@ auto write_original_stats(std::vector<int> const & deck,
 auto number_of_reads_to_sample(int64_t const opt_sample_size,
                                double const opt_sample_pct,
                                uint64_t const mass_total) -> uint64_t {
-  // assert(mass_total <= 9007199254740992) // all integers from 0 to 2^53 can be represented in the mantissa of a double
+  assert(mass_total <= contiguous_mantissa);
   if (opt_sample_size != 0) {
     return static_cast<uint64_t>(opt_sample_size);
   }
