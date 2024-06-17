@@ -523,3 +523,8 @@ extern int64_t avx_present;
 extern int64_t avx2_present;
 
 extern std::FILE * fp_log;
+
+struct Parameters {
+  char * opt_fastx_subsample = nullptr;
+  // std::FILE * logfile {stderr};  // stderr macro expands to type std::FILE*
+};

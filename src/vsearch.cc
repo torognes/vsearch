@@ -759,7 +759,7 @@ auto args_getdouble(char * arg) -> double
 }
 
 
-auto args_init(int argc, char **argv) -> void
+auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 {
   /* Set defaults */
 
@@ -2018,6 +2018,7 @@ auto args_init(int argc, char **argv) -> void
 
         case option_fastx_subsample:
           opt_fastx_subsample = optarg;
+          parameters.opt_fastx_subsample = optarg;
           break;
 
         case option_sample_pct:
@@ -5572,7 +5573,7 @@ auto cmd_search_exact() -> void
 }
 
 
-auto cmd_subsample() -> void
+auto cmd_subsample(struct Parameters const & parameters) -> void
 {
   if ((not opt_fastaout) and (not opt_fastqout))
     {
@@ -5584,7 +5585,7 @@ auto cmd_subsample() -> void
       fatal("Specify either --sample_pct or --sample_size");
     }
 
-  subsample();
+  subsample(parameters);
 }
 
 
@@ -5784,11 +5785,13 @@ auto main(int argc, char** argv) -> int
 {
   fillheader();
 
+  struct Parameters parameters;
+
   getentirecommandline(argc, argv);
 
   cpu_features_detect();
 
-  args_init(argc, argv);
+  args_init(argc, argv, parameters);
 
   if (opt_log)
     {
@@ -5860,9 +5863,9 @@ auto main(int argc, char** argv) -> int
     {
       shuffle();
     }
-  else if (opt_fastx_subsample)
+  else if (parameters.opt_fastx_subsample)
     {
-      cmd_subsample();
+      cmd_subsample(parameters);
     }
   else if (opt_maskfasta)
     {

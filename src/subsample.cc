@@ -362,7 +362,7 @@ auto close_output_files(struct file_types const & ouput_files) -> void {
 }
 
 
-auto subsample() -> void {
+auto subsample(struct Parameters const & parameters) -> void {
   struct file_types ouput_files = {};
   ouput_files.fasta.kept.name = opt_fastaout;
   ouput_files.fasta.lost.name = opt_fastaout_discarded;
@@ -371,7 +371,7 @@ auto subsample() -> void {
   open_output_files(ouput_files);
   check_output_files(ouput_files);
 
-  db_read(opt_fastx_subsample, 0);
+  db_read(parameters.opt_fastx_subsample, 0);
   show_rusage();
 
   abort_if_fastq_out_of_fasta(ouput_files);
