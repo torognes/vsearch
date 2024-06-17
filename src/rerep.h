@@ -58,4 +58,4 @@
 
 */
 
-auto rereplicate() -> void;
+auto rereplicate(struct Parameters & parameters) -> void;

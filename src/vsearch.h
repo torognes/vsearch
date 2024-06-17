@@ -527,6 +527,7 @@ struct Parameters {
   char * opt_fastx_subsample = nullptr;
   char * opt_log = nullptr;
   char * opt_output = nullptr;
+  char * opt_rereplicate = nullptr;
   char * opt_shuffle = nullptr;
   char * opt_sortbylength = nullptr;
   char * opt_sortbysize = nullptr;
@@ -540,8 +541,9 @@ struct Parameters {
   int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
   bool opt_help = false;
+  bool opt_notrunclabels = false;
   bool opt_quiet = false;
   bool opt_sizein = false;
   bool opt_version = false;
+  bool opt_xsize = false;
 };
-

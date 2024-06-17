@@ -1633,6 +1633,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_notrunclabels:
           opt_notrunclabels = 1;
+          parameters.opt_notrunclabels = true;
           break;
 
         case option_sortbysize:
@@ -2041,6 +2042,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_xsize:
           opt_xsize = true;
+          parameters.opt_xsize = true;
           break;
 
         case option_clusterout_id:
@@ -2272,6 +2274,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_rereplicate:
           opt_rereplicate = optarg;
+          parameters.opt_rereplicate = optarg;
           break;
 
         case option_xdrop_nw:
@@ -4950,7 +4953,8 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
   if (opt_sintax)
     {
-      opt_notrunclabels = 1;
+    opt_notrunclabels = 1;
+    parameters.opt_notrunclabels = true;
     }
 }
 
@@ -5933,9 +5937,9 @@ auto main(int argc, char** argv) -> int
     {
       fastq_join();
     }
-  else if (opt_rereplicate)
+  else if (parameters.opt_rereplicate)
     {
-      rereplicate();
+      rereplicate(parameters);
     }
   else if (parameters.opt_version)
     {

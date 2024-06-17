@@ -66,19 +66,20 @@
 #include <cstdint>  // int64_t
 
 
-auto rereplicate() -> void
+auto rereplicate(struct Parameters & parameters) -> void
 {
-  if (opt_output == nullptr) {
+  if (parameters.opt_output == nullptr) {
     fatal("FASTA output file for rereplicate must be specified with --output");
   }
 
-  auto * fp_output = fopen_output(opt_output);
+  auto * fp_output = fopen_output(parameters.opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open FASTA output file for writing");
   }
 
   opt_xsize = true;
-  fastx_handle file_handle = fasta_open(opt_rereplicate);
+  parameters.opt_xsize = true;
+  fastx_handle file_handle = fasta_open(parameters.opt_rereplicate);
   auto const filesize = static_cast<int64_t>(fasta_get_size(file_handle));
 
   progress_init("Rereplicating", filesize);
@@ -86,7 +87,7 @@ auto rereplicate() -> void
   int64_t n_amplicons = 0;
   int64_t missing = 0;
   int64_t n_reads = 0;
-  auto const truncateatspace = (opt_notrunclabels == 0);
+  auto const truncateatspace = not parameters.opt_notrunclabels;
   while (fasta_next(file_handle, truncateatspace, chrmap_no_change_array.data()))
     {
       ++n_amplicons;
@@ -100,7 +101,7 @@ auto rereplicate() -> void
       for(int64_t i = 0; i < abundance; ++i)
         {
           ++n_reads;
-          if (opt_output != nullptr)
+          if (parameters.opt_output != nullptr)
             {
               fasta_print_general(fp_output,
                                   nullptr,
@@ -119,7 +120,7 @@ auto rereplicate() -> void
     }
   progress_done();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (missing != 0)
         {
@@ -128,7 +129,7 @@ auto rereplicate() -> void
       std::fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       if (missing != 0)
         {
