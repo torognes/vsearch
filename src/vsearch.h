@@ -536,7 +536,9 @@ struct Parameters {
   double opt_sample_pct = 0;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
+  int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
+  bool opt_help = false;
   bool opt_quiet = false;
   bool opt_sizein = false;
 };

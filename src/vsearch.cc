@@ -1530,6 +1530,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
         {
         case option_help:
           opt_help = 1;
+          parameters.opt_help = true;
           break;
 
         case option_version:
@@ -1593,7 +1594,8 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_threads:
-          opt_threads = (int64_t) args_getdouble(optarg);
+          opt_threads = static_cast<int64_t>(args_getdouble(optarg));
+          parameters.opt_threads = static_cast<int64_t>(args_getdouble(optarg));
           break;
 
         case option_gapopen:
@@ -2158,6 +2160,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_h:
           opt_help = 1;
+          parameters.opt_help = true;
           break;
 
         case option_samheader:
@@ -4611,20 +4614,22 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       opt_fastx_mask or opt_maskfasta or opt_search_exact or opt_sintax or
       opt_uchime_ref or opt_usearch_global)
     {
-      if (opt_threads == 0)
+      if (parameters.opt_threads == 0)
         {
           opt_threads = arch_get_cores();
+          parameters.opt_threads = arch_get_cores();
         }
     }
   else
     {
-      if (opt_threads > 1)
+      if (parameters.opt_threads > 1)
         {
           fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[command_options[k]].name);
         }
       opt_threads = 1;
+      parameters.opt_threads = 1;
     }
-  if (opt_sintax and parameters.opt_randseed and (opt_threads > 1))
+  if (opt_sintax and parameters.opt_randseed and (parameters.opt_threads > 1))
     {
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
@@ -5831,7 +5836,7 @@ auto main(int argc, char** argv) -> int
     }
 #endif
 
-  if (opt_help)
+  if (parameters.opt_help)
     {
       cmd_help();
     }
