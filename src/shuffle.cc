@@ -87,10 +87,10 @@ auto generate_seed(long int const user_seed) -> unsigned int {
 }
 
 
-auto shuffle_deck(std::vector<int> & deck) -> void {
+auto shuffle_deck(std::vector<int> & deck, long int const user_seed) -> void {
   static constexpr auto one_hundred_percent = 100ULL;
   progress_init("Shuffling", one_hundred_percent);
-  auto const seed = generate_seed(opt_randseed);
+  auto const seed = generate_seed(user_seed);
   std::mt19937_64 uniform_generator(seed);
   std::shuffle(deck.begin(), deck.end(), uniform_generator);
   progress_done();
@@ -118,25 +118,25 @@ auto output_shuffled_fasta(std::vector<int> const & deck,
 }
 
 
-auto shuffle() -> void {
+auto shuffle(struct Parameters const & parameters) -> void {
   // pre-conditions
-  if (opt_output == nullptr) {
+  if (parameters.opt_output == nullptr) {
     fatal("Output file for shuffling must be specified with --output");
   }
 
-  auto * fp_output = fopen_output(opt_output);
+  auto * fp_output = fopen_output(parameters.opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open shuffle output file for writing");
   }
 
-  db_read(opt_shuffle, 0);
+  db_read(parameters.opt_shuffle, 0);
   show_rusage();
 
   auto deck = create_deck();
-  shuffle_deck(deck);
+  shuffle_deck(deck, parameters.opt_randseed);
   show_rusage();
 
-  truncate_deck(deck, opt_topn);
+  truncate_deck(deck, parameters.opt_topn);
   output_shuffled_fasta(deck, fp_output);
   show_rusage();
 

@@ -1651,6 +1651,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_output:
           opt_output = optarg;
+          parameters.opt_output = optarg;
           break;
 
         case option_minsize:
@@ -1691,7 +1692,8 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_topn:
           opt_topn = args_getlong(optarg);
-          if (opt_topn == 0)
+          parameters.opt_topn = args_getlong(optarg);
+          if (parameters.opt_topn == 0)
             {
               fatal("The argument to --topn must be greater than zero");
             }
@@ -1832,10 +1834,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_shuffle:
           opt_shuffle = optarg;
+          parameters.opt_shuffle = optarg;
           break;
 
         case option_randseed:
           opt_randseed = args_getlong(optarg);
+          parameters.opt_randseed = args_getlong(optarg);
           break;
 
         case option_maskfasta:
@@ -4623,7 +4627,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
         }
       opt_threads = 1;
     }
-  if (opt_sintax and opt_randseed and (opt_threads > 1))
+  if (opt_sintax and parameters.opt_randseed and (opt_threads > 1))
     {
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
@@ -5866,9 +5870,9 @@ auto main(int argc, char** argv) -> int
     {
       derep(opt_derep_id, true);
     }
-  else if (opt_shuffle)
+  else if (parameters.opt_shuffle)
     {
-      shuffle();
+      shuffle(parameters);
     }
   else if (parameters.opt_fastx_subsample)
     {

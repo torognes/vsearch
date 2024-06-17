@@ -58,4 +58,4 @@
 
 */
 
-auto shuffle() -> void;
+auto shuffle(struct Parameters const & parameters) -> void;

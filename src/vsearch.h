@@ -84,6 +84,7 @@
 #include <set>
 #include <string>
 #include <cassert>
+#include <limits>
 
 /* include appropriate regex library */
 
@@ -530,9 +531,14 @@ struct Parameters {
   char * opt_fastqout_discarded = nullptr;
   char * opt_fastx_subsample = nullptr;
   char * opt_log = nullptr;
+  char * opt_output = nullptr;
+  char * opt_shuffle = nullptr;
   std::FILE * fp_log = nullptr;
   double opt_sample_pct = 0;
+  int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
+  int64_t opt_topn = std::numeric_limits<int64_t>::max();
   bool opt_quiet = false;
   bool opt_sizein = false;
 };
+
