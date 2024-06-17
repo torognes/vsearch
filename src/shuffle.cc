@@ -142,6 +142,6 @@ auto shuffle(struct Parameters const & parameters) -> void {
 
   db_free();
   if (fp_output != nullptr) {
-    static_cast<void>(fclose(fp_output));
+    static_cast<void>(std::fclose(fp_output));
   }
 }
