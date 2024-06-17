@@ -147,6 +147,16 @@ auto open_output_files(struct file_types & ouput_files) -> void {
 }
 
 
+auto abort_if_fastq_out_of_fasta(struct file_types const &ouput_files) -> void {
+  auto const output_is_fastq = (ouput_files.fastq.kept.handle != nullptr
+                                or ouput_files.fastq.lost.handle != nullptr);
+  auto const input_is_fasta = not db_is_fastq();
+  if (input_is_fasta and output_is_fastq) {
+    fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
+  }
+}
+
+
 auto check_output_files(struct file_types const & ouput_files) -> void {
   if (ouput_files.fasta.kept.name != nullptr) {
     if (ouput_files.fasta.kept.handle == nullptr) {
@@ -365,10 +375,7 @@ auto subsample() -> void
   db_read(opt_fastx_subsample, 0);
   show_rusage();
 
-  if ((ouput_files.fastq.kept.handle != nullptr or ouput_files.fastq.lost.handle != nullptr) and not db_is_fastq())
-    {
-      fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
-    }
+  abort_if_fastq_out_of_fasta(ouput_files);
 
   // subsampling
   auto const original_abundances = create_deck(opt_sizein);
