@@ -184,10 +184,10 @@ auto check_output_files(struct file_types const & ouput_files) -> void {
 namespace {
   // anonymous namespace to avoid linker error (multiple definitions
   // of function with identical names and parameters)
-  auto create_deck(bool const opt_sizein) -> std::vector<int> {
+  auto create_deck(bool const sizein_requested) -> std::vector<int> {
     auto const dbsequencecount = db_getsequencecount();
     std::vector<int> deck(dbsequencecount, 1);
-    if (opt_sizein) {
+    if (sizein_requested) {
       auto counter = std::size_t{0};
       for (auto & abundance : deck) {
         abundance = db_getabundance(counter);
@@ -201,54 +201,49 @@ namespace {
 
 auto write_original_stats(std::vector<int> const & deck,
                           uint64_t const mass_total,
-                          bool const opt_quiet,
-                          char * opt_log,
-                          std::FILE * ptr_log_file) -> void {
-  if (not opt_quiet) {
+                          struct Parameters const & parameters) -> void {
+  if (not parameters.opt_quiet) {
     std::fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
                  mass_total, static_cast<int>(deck.size()));
   }
-  if (opt_log != nullptr) {
-    std::fprintf(ptr_log_file, "Got %" PRIu64 " reads from %d amplicons\n",
+  if (parameters.opt_log != nullptr) {
+    std::fprintf(parameters.fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
                  mass_total, static_cast<int>(deck.size()));
   }
 }
 
 
-auto number_of_reads_to_sample(int64_t const opt_sample_size,
-                               double const opt_sample_pct,
+auto number_of_reads_to_sample(struct Parameters const & parameters,
                                uint64_t const mass_total) -> uint64_t {
   assert(mass_total <= contiguous_mantissa);
-  if (opt_sample_size != 0) {
-    return static_cast<uint64_t>(opt_sample_size);
+  if (parameters.opt_sample_size != 0) {
+    return static_cast<uint64_t>(parameters.opt_sample_size);
   }
-  return static_cast<uint64_t>(std::floor(static_cast<double>(mass_total) * opt_sample_pct / 100.0));
+  return static_cast<uint64_t>(std::floor(static_cast<double>(mass_total) * parameters.opt_sample_pct / 100.0));
 }
 
 
-auto write_subsampling_stats(std::vector<int> const & deck,
+auto write_subsampling_stats(std::vector<int> const &deck,
                              uint64_t const n_reads,
-                             bool const opt_quiet,
-                             char * opt_log,
-                             std::FILE * ptr_log_file) -> void {
+                             struct Parameters const & parameters) -> void {
   int const samples = std::count_if(deck.begin(),
                                     deck.end(), [](int abundance) -> bool { return abundance != 0; });
-  if (not opt_quiet) {
+  if (not parameters.opt_quiet) {
     std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
   }
-  if (opt_log != nullptr) {
-    std::fprintf(ptr_log_file, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+  if (parameters.opt_log != nullptr) {
+    std::fprintf(parameters.fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
   }
 }
 
 
 auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
-                        uint64_t const n_reads) -> void {
+                        uint64_t const n_reads, bool const sizein_requested) -> void {
   auto n_reads_left = n_reads;
   auto amplicon_number = 0;
   uint64_t n_read_being_checked = 0;
   uint64_t accumulated_mass = 0;
-  auto amplicon_mass = opt_sizein ? db_getabundance(0) : 1;
+  auto amplicon_mass = sizein_requested ? db_getabundance(0) : 1;
 
   // refactoring C++17: std::sample()
   progress_init("Subsampling", mass_total);
@@ -269,7 +264,7 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
         {
           /* next amplicon */
           ++amplicon_number;
-          amplicon_mass = opt_sizein ? db_getabundance(amplicon_number) : 1;
+          amplicon_mass = sizein_requested ? db_getabundance(amplicon_number) : 1;
           accumulated_mass = 0;
         }
       progress_update(n_read_being_checked);
@@ -382,16 +377,16 @@ auto subsample(struct Parameters const & parameters) -> void {
   auto subsampled_abundances = original_abundances;
   std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
 
-  write_original_stats(original_abundances, mass_total, opt_quiet, opt_log, fp_log);  // refactoring: move up?
+  write_original_stats(original_abundances, mass_total, parameters);  // refactoring: move up?
 
-  auto const n_reads = number_of_reads_to_sample(opt_sample_size, opt_sample_pct, mass_total);
+  auto const n_reads = number_of_reads_to_sample(parameters, mass_total);
 
   if (n_reads > mass_total)
     {
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  random_subsampling(subsampled_abundances, mass_total, n_reads);  // refactoring: pass & original, copy, subsample, return new (const) vector
+  random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein);  // refactoring: pass & original, copy, subsample, return new (const) vector
 
   // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept);
@@ -404,7 +399,7 @@ auto subsample(struct Parameters const & parameters) -> void {
     writing_fastq_output(discarded_abundances, ouput_files.fastq.lost);
   }
 
-  write_subsampling_stats(subsampled_abundances, n_reads, opt_quiet, opt_log, fp_log);
+  write_subsampling_stats(subsampled_abundances, n_reads, parameters);
 
   // clean up
   db_free();
