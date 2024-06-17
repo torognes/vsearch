@@ -1531,6 +1531,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_version:
           opt_version = 1;
+          parameters.opt_version = true;
           break;
 
         case option_alnout:
@@ -2176,6 +2177,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_v:
           opt_version = 1;
+          parameters.opt_version = true;
           break;
 
         case option_relabel_keep:
@@ -4967,9 +4969,9 @@ auto show_publication() -> void
 }
 
 
-auto cmd_version() -> void
+auto cmd_version(struct Parameters const & parameters) -> void
 {
-  if (opt_quiet) { return ; }
+  if (parameters.opt_quiet) { return ; }
 
   show_publication();
 
@@ -5939,9 +5941,9 @@ auto main(int argc, char** argv) -> int
     {
       rereplicate();
     }
-  else if (opt_version)
+  else if (parameters.opt_version)
     {
-      cmd_version();
+      cmd_version(parameters);
     }
   else if (opt_makeudb_usearch)
     {

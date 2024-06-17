@@ -541,5 +541,6 @@ struct Parameters {
   bool opt_help = false;
   bool opt_quiet = false;
   bool opt_sizein = false;
+  bool opt_version = false;
 };
 
