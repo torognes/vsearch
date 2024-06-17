@@ -347,7 +347,7 @@ static char * cmdline;
 static time_t time_start;
 static time_t time_finish;
 
-FILE * fp_log = nullptr;
+std::FILE * fp_log = nullptr;
 
 char * STDIN_NAME = (char *) "/dev/stdin";
 char * STDOUT_NAME = (char *) "/dev/stdout";
@@ -1703,6 +1703,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_sizein:
           opt_sizein = true;
+          parameters.opt_sizein = true;
           break;
 
         case option_sortbylength:
@@ -2008,10 +2009,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_log:
           opt_log = optarg;
+          parameters.opt_log = optarg;
           break;
 
         case option_quiet:
           opt_quiet = true;
+          parameters.opt_quiet = true;
           break;
 
         case option_fastx_subsample:
@@ -2020,6 +2023,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_sample_pct:
           opt_sample_pct = args_getdouble(optarg);
+          parameters.opt_sample_pct = args_getdouble(optarg);
           break;
 
         case option_fastq_chars:
@@ -2032,10 +2036,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_sample_size:
           opt_sample_size = args_getlong(optarg);
+          parameters.opt_sample_size = args_getlong(optarg);
           break;
 
         case option_fastaout:
           opt_fastaout = optarg;
+          parameters.opt_fastaout = optarg;
           break;
 
         case option_xsize:
@@ -2072,14 +2078,17 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastqout:
           opt_fastqout = optarg;
+          parameters.opt_fastqout = optarg;
           break;
 
         case option_fastaout_discarded:
           opt_fastaout_discarded = optarg;
+          parameters.opt_fastaout_discarded = optarg;
           break;
 
         case option_fastqout_discarded:
           opt_fastqout_discarded = optarg;
+          parameters.opt_fastqout_discarded = optarg;
           break;
 
         case option_fastq_truncqual:
@@ -5790,9 +5799,10 @@ auto main(int argc, char** argv) -> int
 
   args_init(argc, argv, parameters);
 
-  if (opt_log)
+  if (parameters.opt_log != nullptr)
     {
       fp_log = fopen_output(opt_log);
+      parameters.fp_log = fp_log;
       if (not fp_log)
         {
           fatal("Unable to open log file for writing");

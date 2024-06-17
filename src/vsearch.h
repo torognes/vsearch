@@ -524,6 +524,15 @@ extern int64_t avx2_present;
 extern std::FILE * fp_log;
 
 struct Parameters {
+  char * opt_fastaout = nullptr;
+  char * opt_fastaout_discarded = nullptr;
+  char * opt_fastqout = nullptr;
+  char * opt_fastqout_discarded = nullptr;
   char * opt_fastx_subsample = nullptr;
-  // std::FILE * logfile {stderr};  // stderr macro expands to type std::FILE*
+  char * opt_log = nullptr;
+  std::FILE * fp_log = nullptr;
+  double opt_sample_pct = 0;
+  int64_t opt_sample_size = 0;
+  bool opt_quiet = false;
+  bool opt_sizein = false;
 };

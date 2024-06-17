@@ -364,10 +364,10 @@ auto close_output_files(struct file_types const & ouput_files) -> void {
 
 auto subsample(struct Parameters const & parameters) -> void {
   struct file_types ouput_files = {};
-  ouput_files.fasta.kept.name = opt_fastaout;
-  ouput_files.fasta.lost.name = opt_fastaout_discarded;
-  ouput_files.fastq.kept.name = opt_fastqout;
-  ouput_files.fastq.lost.name = opt_fastqout_discarded;
+  ouput_files.fasta.kept.name = parameters.opt_fastaout;
+  ouput_files.fasta.lost.name = parameters.opt_fastaout_discarded;
+  ouput_files.fastq.kept.name = parameters.opt_fastqout;
+  ouput_files.fastq.lost.name = parameters.opt_fastqout_discarded;
   open_output_files(ouput_files);
   check_output_files(ouput_files);
 
@@ -377,7 +377,7 @@ auto subsample(struct Parameters const & parameters) -> void {
   abort_if_fastq_out_of_fasta(ouput_files);
 
   // subsampling
-  auto const original_abundances = create_deck(opt_sizein);
+  auto const original_abundances = create_deck(parameters.opt_sizein);
   auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
   auto subsampled_abundances = original_abundances;
   std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
