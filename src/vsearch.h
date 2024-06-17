@@ -437,7 +437,6 @@ extern int opt_gap_open_query_right;
 extern int opt_gap_open_target_interior;
 extern int opt_gap_open_target_left;
 extern int opt_gap_open_target_right;
-extern int opt_help;
 extern int opt_length_cutoffs_increment;
 extern int opt_length_cutoffs_longest;
 extern int opt_length_cutoffs_shortest;

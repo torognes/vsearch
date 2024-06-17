@@ -251,7 +251,6 @@ int opt_gap_open_query_right;
 int opt_gap_open_target_interior;
 int opt_gap_open_target_left;
 int opt_gap_open_target_right;
-int opt_help;
 int opt_length_cutoffs_increment;
 int opt_length_cutoffs_longest;
 int opt_length_cutoffs_shortest;
@@ -879,7 +878,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_gap_open_target_right=2;
   opt_gzip_decompress = false;
   opt_hardmask = 0;
-  opt_help = 0;
   opt_id = -1.0;
   opt_iddef = 2;
   opt_idprefix = 0;
@@ -1530,7 +1528,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       switch(options_index)
         {
         case option_help:
-          opt_help = 1;
           parameters.opt_help = true;
           break;
 
@@ -2160,7 +2157,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_h:
-          opt_help = 1;
           parameters.opt_help = true;
           break;
 
