@@ -339,7 +339,6 @@ int64_t popcnt_present = 0;
 int64_t avx_present = 0;
 int64_t avx2_present = 0;
 
-static char * progname;
 static char progheader[80];  //   static constexpr auto max_line_length = std::size_t{80};
 static char * cmdline;
 static time_t time_start;
@@ -760,7 +759,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 {
   /* Set defaults */
 
-  progname = argv[0];
   parameters.progname = argv[0];
 
   opt_abskew = 0.0;
@@ -5598,8 +5596,8 @@ auto cmd_subsample(struct Parameters const & parameters) -> void
 }
 
 
-auto cmd_none() -> void {
-  if (opt_quiet) { return ; }
+auto cmd_none(struct Parameters const & parameters) -> void {
+  if (parameters.opt_quiet) { return ; }
   fprintf(stderr,
           "For more help, please enter: %s --help\n"
           "For further details, please consult the manual by entering: man vsearch\n"
@@ -5638,7 +5636,7 @@ auto cmd_none() -> void {
           "                fastx_getsubseq, maskfasta, orient, rereplicate, uchime2_denovo,\n"
           "                uchime3_denovo, udb2fasta, udbinfo, udbstats, version\n"
           "\n",
-          progname);
+          parameters.progname);
 }
 
 
@@ -5999,7 +5997,7 @@ auto main(int argc, char** argv) -> int
     }
   else
     {
-      cmd_none();
+      cmd_none(parameters);
     }
 
   if (opt_log)
