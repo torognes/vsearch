@@ -123,22 +123,22 @@ auto rereplicate() -> void
     {
       if (missing != 0)
         {
-          fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
+          std::fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
+      std::fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
   if (opt_log != nullptr)
     {
       if (missing != 0)
         {
-          fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
+          std::fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
+      std::fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
   fasta_close(file_handle);
   if (fp_output != nullptr) {
-    static_cast<void>(fclose(fp_output));
+    static_cast<void>(std::fclose(fp_output));
   }
 }
