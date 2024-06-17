@@ -154,7 +154,6 @@ char * opt_fastx_getseqs;
 char * opt_fastx_getsubseq;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
-char * opt_fastx_subsample;
 char * opt_fastx_uniques;
 char * opt_join_padgap;
 char * opt_join_padgapq;
@@ -865,7 +864,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastx_getsubseq = nullptr;
   opt_fastx_mask = nullptr;
   opt_fastx_revcomp = nullptr;
-  opt_fastx_subsample = nullptr;
   opt_fulldp = 0;
   opt_gap_extension_query_interior=2;
   opt_gap_extension_query_left=1;
@@ -2017,7 +2015,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastx_subsample:
-          opt_fastx_subsample = optarg;
           parameters.opt_fastx_subsample = optarg;
           break;
 
