@@ -762,6 +762,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   /* Set defaults */
 
   progname = argv[0];
+  parameters.progname = argv[0];
 
   opt_abskew = 0.0;
   opt_acceptall = 0;
@@ -5025,15 +5026,15 @@ auto cmd_version() -> void
 }
 
 
-auto cmd_help() -> void {
-  if (opt_quiet) { return ; }
+auto cmd_help(struct Parameters const & parameters) -> void {
+  if (parameters.opt_quiet) { return ; }
 
   show_publication();
 
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   fprintf(stdout,
-          "Usage: %s [OPTIONS]\n", progname);
+          "Usage: %s [OPTIONS]\n", parameters.progname);
 
   fprintf(stdout,
           "\n"
@@ -5838,7 +5839,7 @@ auto main(int argc, char** argv) -> int
 
   if (parameters.opt_help)
     {
-      cmd_help();
+      cmd_help(parameters);
     }
   else if (opt_allpairs_global)
     {

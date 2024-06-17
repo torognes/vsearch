@@ -532,6 +532,7 @@ struct Parameters {
   char * opt_log = nullptr;
   char * opt_output = nullptr;
   char * opt_shuffle = nullptr;
+  char * progname = nullptr;
   std::FILE * fp_log = nullptr;
   double opt_sample_pct = 0;
   int64_t opt_randseed = 0;
