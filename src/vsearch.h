@@ -372,7 +372,6 @@ extern char * opt_samout;
 extern char * opt_sample;
 extern char * opt_search_exact;
 extern char * opt_sff_convert;
-extern char * opt_shuffle;
 extern char * opt_sintax;
 extern char * opt_sortbylength;
 extern char * opt_sortbysize;

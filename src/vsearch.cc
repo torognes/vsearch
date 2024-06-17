@@ -186,7 +186,6 @@ char * opt_samout;
 char * opt_sample;
 char * opt_search_exact;
 char * opt_sff_convert;
-char * opt_shuffle;
 char * opt_sintax;
 char * opt_sortbylength;
 char * opt_sortbysize;
@@ -972,7 +971,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_selfid = 0;
   opt_sff_clip = false;
   opt_sff_convert = nullptr;
-  opt_shuffle = nullptr;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
   opt_sintax_random = false;
@@ -1833,7 +1831,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_shuffle:
-          opt_shuffle = optarg;
           parameters.opt_shuffle = optarg;
           break;
 
