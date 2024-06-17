@@ -82,7 +82,7 @@ struct sortinfo_size_s
 namespace {
   // anonymous namespace to avoid linker error (multiple definitions
   // of function with identical names and parameters)
-  auto create_deck() -> std::vector<struct sortinfo_size_s> {
+  auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
     auto const dbsequencecount = db_getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
     std::vector<struct sortinfo_size_s> deck(dbsequencecount);
@@ -90,7 +90,7 @@ namespace {
     auto counter = std::size_t{0};
     for (auto seqno = 0U; seqno < dbsequencecount; ++seqno) {
       auto const size = static_cast<int64_t>(db_getabundance(seqno));
-      if ((size < opt_minsize) or (size > opt_maxsize)) {
+      if ((size < parameters.opt_minsize) or (size > parameters.opt_maxsize)) {
         continue;
       }
       deck[counter].seqno = seqno;
@@ -155,13 +155,14 @@ auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) -> double
 }
 
 
-auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void {
+auto output_median_abundance(std::vector<sortinfo_size_s> const & deck,
+                             struct Parameters const & parameters) -> void {
   // Banker's rounding (round half to even)
   auto const median = find_median_abundance(deck);
-  if (not opt_quiet) {
+  if (not parameters.opt_quiet) {
       static_cast<void>(fprintf(stderr, "Median abundance: %.0f\n", median));
   }
-  if (opt_log != nullptr) {
+  if (parameters.opt_log != nullptr) {
     static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));
   }
 }
@@ -233,35 +234,35 @@ auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
 // - std::min(subdeck.size(), topn);
 
 
-auto sortbysize() -> void
+auto sortbysize(struct Parameters const & parameters) -> void
 {
-  if (opt_output == nullptr) {
+  if (parameters.opt_output == nullptr) {
     fatal("FASTA output file for sortbysize must be specified with --output");
   }
 
-  auto * fp_output = fopen_output(opt_output);
+  auto * fp_output = fopen_output(parameters.opt_output);
   if (fp_output == nullptr) {
     fatal("Unable to open sortbysize output file for writing");
   }
 
-  db_read(opt_sortbysize, 0);
+  db_read(parameters.opt_sortbysize, 0);
   show_rusage();
 
-  auto deck = create_deck();
+  auto deck = create_deck(parameters);
   show_rusage();
 
   sort_deck(deck);
 
-  output_median_abundance(deck);
+  output_median_abundance(deck, parameters);
   show_rusage();
 
-  truncate_deck(deck, opt_topn);
+  truncate_deck(deck, parameters.opt_topn);
   output_sorted_fasta(deck, fp_output);
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();
 
   if (fp_output != nullptr) {
-    static_cast<void>(fclose(fp_output));
+    static_cast<void>(std::fclose(fp_output));
   }
 }

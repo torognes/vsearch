@@ -530,9 +530,13 @@ struct Parameters {
   char * opt_log = nullptr;
   char * opt_output = nullptr;
   char * opt_shuffle = nullptr;
+  char * opt_sortbylength = nullptr;
+  char * opt_sortbysize = nullptr;
   char * progname = nullptr;
   std::FILE * fp_log = nullptr;
   double opt_sample_pct = 0;
+  int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
+  int64_t opt_minsize = 0;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;

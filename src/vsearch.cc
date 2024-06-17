@@ -1641,6 +1641,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_sortbysize:
           opt_sortbysize = optarg;
+          parameters.opt_sortbysize = optarg;
           break;
 
         case option_output:
@@ -1650,7 +1651,8 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_minsize:
           opt_minsize = args_getlong(optarg);
-          if (opt_minsize <= 0)
+          parameters.opt_minsize = args_getlong(optarg);
+          if (parameters.opt_minsize <= 0)
             {
               fatal("The argument to --minsize must be at least 1");
             }
@@ -1658,6 +1660,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_maxsize:
           opt_maxsize = args_getlong(optarg);
+          parameters.opt_maxsize = args_getlong(optarg);
           break;
 
         case option_relabel:
@@ -1704,6 +1707,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_sortbylength:
           opt_sortbylength = optarg;
+          parameters.opt_sortbylength = optarg;
           break;
 
         case option_matched:
@@ -4814,7 +4818,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("The argument to maxuniquesize must be at least 1");
     }
 
-  if (opt_maxsize < 1)
+  if (parameters.opt_maxsize < 1)
     {
       fatal("The argument to maxsize must be at least 1");
     }
@@ -4896,15 +4900,17 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
     }
 
   /* set default opt_minsize depending on command */
-  if (opt_minsize == 0)
+  if (parameters.opt_minsize == 0)
     {
       if (opt_cluster_unoise)
         {
           opt_minsize = 8;
+          parameters.opt_minsize = 8;
         }
       else
         {
           opt_minsize = 1;
+          parameters.opt_minsize = 1;
         }
     }
 
@@ -5841,13 +5847,13 @@ auto main(int argc, char** argv) -> int
     {
       cmd_usearch_global();
     }
-  else if (opt_sortbysize)
+  else if (parameters.opt_sortbysize)
     {
-      sortbysize();
+      sortbysize(parameters);
     }
-  else if (opt_sortbylength)
+  else if (parameters.opt_sortbylength)
     {
-      sortbylength();
+      sortbylength(parameters);
     }
   else if (opt_derep_fulllength)
     {
