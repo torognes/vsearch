@@ -180,7 +180,6 @@ char * opt_pattern;
 char * opt_profile;
 char * opt_qsegout;
 char * opt_relabel;
-char * opt_rereplicate;
 char * opt_reverse;
 char * opt_samout;
 char * opt_sample;
@@ -951,7 +950,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_relabel_md5 = false;
   opt_relabel_self = false;
   opt_relabel_sha1 = false;
-  opt_rereplicate = nullptr;
   opt_reverse = nullptr;
   opt_rightjust = 0;
   opt_rowlen = 64;
@@ -2273,7 +2271,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_rereplicate:
-          opt_rereplicate = optarg;
           parameters.opt_rereplicate = optarg;
           break;
 

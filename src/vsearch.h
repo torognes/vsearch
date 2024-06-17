@@ -366,7 +366,6 @@ extern char * opt_pattern;
 extern char * opt_profile;
 extern char * opt_qsegout;
 extern char * opt_relabel;
-extern char * opt_rereplicate;
 extern char * opt_reverse;
 extern char * opt_samout;
 extern char * opt_sample;
