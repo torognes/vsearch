@@ -258,7 +258,6 @@ int opt_mindiffs;
 int opt_slots;
 int opt_uchimeout5;
 int opt_usersort;
-int opt_version;
 int64_t opt_dbmask;
 int64_t opt_fasta_width;
 int64_t opt_fastq_ascii;
@@ -1002,7 +1001,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_usearch_global = nullptr;
   opt_userout = nullptr;
   opt_usersort = 0;
-  opt_version = 0;
   opt_weak_id = 10.0;
   opt_wordlength = 0;
   opt_xee = false;
@@ -1530,7 +1528,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_version:
-          opt_version = 1;
           parameters.opt_version = true;
           break;
 
@@ -2176,7 +2173,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_v:
-          opt_version = 1;
           parameters.opt_version = true;
           break;
 

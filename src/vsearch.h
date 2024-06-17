@@ -444,7 +444,6 @@ extern int opt_mindiffs;
 extern int opt_slots;
 extern int opt_uchimeout5;
 extern int opt_usersort;
-extern int opt_version;
 extern int64_t opt_dbmask;
 extern int64_t opt_fasta_width;
 extern int64_t opt_fastq_ascii;
