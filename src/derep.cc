@@ -290,7 +290,7 @@ auto derep(char * input_filename, bool use_header) -> void
 
   if (not h)
     {
-      fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");
+      fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");  // unreachable? case already handled in fastx_open(), assert(h != nullptr) should always be true
     }
 
   if (not fastx_is_empty(h))
