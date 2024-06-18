@@ -182,7 +182,7 @@ auto derep_compare_full(const void * a, const void * b) -> int
                 }
               else
                 {
-                  return 0;
+                  return 0;  // unreachable
                 }
             }
         }
