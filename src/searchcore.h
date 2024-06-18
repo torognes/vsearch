@@ -59,6 +59,7 @@
 */
 
 #include <array>
+#include <vector>
 
 
 /* the number of alignments that can be delayed */

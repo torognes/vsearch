@@ -521,8 +521,8 @@ auto search_exact_thread_init(struct searchinfo_s * si) -> void
   si->uh = nullptr;
   si->kmers = nullptr;
   si->m = nullptr;
-  si->hits = (struct hit *) xmalloc
-    (sizeof(struct hit) * (tophits) * opt_strand);
+  si->hits_v.resize(tophits * opt_strand);
+  si->hits = si->hits_v.data();
   si->qsize = 1;
   si->query_head_alloc = 0;
   si->query_head = nullptr;
@@ -535,7 +535,6 @@ auto search_exact_thread_init(struct searchinfo_s * si) -> void
 auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
-  xfree(si->hits);
   if (si->query_head)
     {
       xfree(si->query_head);
