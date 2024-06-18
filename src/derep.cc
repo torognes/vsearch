@@ -561,8 +561,7 @@ auto derep(char * input_filename, bool use_header) -> void
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
-      while ((bp->size)
-             and
+      while ((bp->size) and
              ((hash != bp->hash) or
               (seqcmp(seq_up, bp->seq, seqlen)) or
               (use_header and strcmp(header, bp->header))))
