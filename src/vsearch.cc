@@ -5617,7 +5617,7 @@ auto cmd_none(struct Parameters const & parameters) -> void {
           "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
           "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
           "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
-          "vsearch --fastx_uniques FILENAME --output FILENAME\n"
+          "vsearch --fastx_uniques FILENAME --fastaout FILENAME\n"
           "vsearch --makeudb_usearch FILENAME --output FILENAME\n"
           "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
           "vsearch --sff_convert FILENAME --output FILENAME --sff_clip\n"
