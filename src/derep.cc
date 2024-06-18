@@ -141,11 +141,11 @@ auto derep_compare_full(const void * a, const void * b) -> int
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->deleted > y->deleted)
+  if (x->deleted > y->deleted)  // refactoring: deleted is always set to false for derep_fulllength
     {
       return +1;
     }
-  else if (x->deleted < y->deleted)
+  else if (x->deleted < y->deleted)  // refactoring: deleted is always set to false for derep_fulllength
     {
       return -1;
     }
