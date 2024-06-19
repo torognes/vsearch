@@ -4754,7 +4754,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
   if (opt_fastq_qmin > opt_fastq_qmax)
     {
-      fatal("The argument to --fastq_qmin cannot be equal to or greater than --fastq_qmax");
+      fatal("The argument to --fastq_qmin cannot be greater than --fastq_qmax");
     }
 
   if (opt_fastq_ascii + opt_fastq_qmin < 33)
