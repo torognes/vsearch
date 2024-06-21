@@ -328,8 +328,8 @@ auto derep_smallmem(char * input_filename) -> void
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up = (char*) xrealloc(seq_up, alloc_seqlen + 1);
-          rc_seq_up = (char*) xrealloc(rc_seq_up, alloc_seqlen + 1);
+          seq_up = (char *) xrealloc(seq_up, alloc_seqlen + 1);
+          rc_seq_up = (char *) xrealloc(rc_seq_up, alloc_seqlen + 1);
 
           show_rusage();
         }
