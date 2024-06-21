@@ -125,7 +125,7 @@ auto find_median() -> double
         }
 
       if (below_count + cand_count + above_count == 0U) { // fix -Wfloat-equal
-        return 0;
+        return 0;  // unreachable?
       }
 
       if (above_count + cand_count >= below_count)
@@ -150,7 +150,7 @@ auto find_median() -> double
                 // which simplifies into:
                 // above_count + cand_count == below_count
                 {
-                  return (below + cand) / 2.0;
+                  return (below + cand) / 2.0;  // cannot reach?
                 }
               else
                 {
@@ -164,7 +164,7 @@ auto find_median() -> double
         }
       else
         {
-          cand = below;
+          cand = below;  // cannot reach?
         }
     }
 }
