@@ -75,7 +75,7 @@ auto fasta2fastq() -> void
   auto * fp_input = fasta_open(opt_fasta2fastq);
   if (fp_input == nullptr)
     {
-      fatal("Unable to open FASTA file for reading");
+      fatal("Unable to open FASTA file for reading");  // unreachable: already covered in fasta_opn(fastx_open())
     }
 
   auto * fp_fastqout = fopen_output(opt_fastqout);
