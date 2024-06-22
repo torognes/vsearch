@@ -69,7 +69,7 @@ auto fasta2fastq() -> void
 
   if (opt_fastqout == nullptr)
     {
-      fatal("Output FASTQ file not specified with the --fastqout option");  // unreachable? assert(opt_fastqout != nullptr)
+      fatal("Output FASTQ file not specified with the --fastqout option");  // unreachable, already covered by <getopt.h>, assert(opt_fastqout != nullptr)
     }
 
   auto * fp_input = fasta_open(opt_fasta2fastq);
