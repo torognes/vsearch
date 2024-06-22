@@ -391,8 +391,8 @@ auto subsample(struct Parameters const & parameters) -> void {
   // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept);
   writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept);
-  auto const discarded_output_requested = (ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr);
-  if (discarded_output_requested) {
+  auto const discarded_output_is_requested = (ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr);
+  if (discarded_output_is_requested) {
     auto const discarded_abundances = substract_two_decks(original_abundances,
                                                           subsampled_abundances);
     writing_fasta_output(discarded_abundances, ouput_files.fasta.lost);
