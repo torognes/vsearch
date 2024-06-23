@@ -1665,6 +1665,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_derep_fulllength:
           opt_derep_fulllength = optarg;
+          parameters.opt_derep_fulllength = optarg;
           break;
 
         case option_minseqlength:
@@ -2063,6 +2064,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_derep_prefix:
           opt_derep_prefix = optarg;
+          parameters.opt_derep_prefix = optarg;
           break;
 
         case option_fastq_filter:
@@ -2500,6 +2502,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_derep_id:
           opt_derep_id = optarg;
+          parameters.opt_derep_id = optarg;
           break;
 
         case option_orient:
@@ -2540,6 +2543,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_derep_smallmem:
           opt_derep_smallmem = optarg;
+          parameters.opt_derep_smallmem = optarg;
           break;
 
         case option_lengthout:
@@ -4933,9 +4937,9 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           opt_cluster_size or
           opt_cluster_smallmem or
           opt_cluster_unoise or
-          opt_derep_fulllength or
-          opt_derep_id or
-          opt_derep_prefix or
+          parameters.opt_derep_fulllength or
+          parameters.opt_derep_id or
+          parameters.opt_derep_prefix or
           opt_makeudb_usearch or
           opt_sintax or
           opt_usearch_global)
@@ -5850,21 +5854,21 @@ auto main(int argc, char** argv) -> int
     {
       sortbylength(parameters);
     }
-  else if (opt_derep_fulllength)
+  else if (parameters.opt_derep_fulllength)
     {
-      derep(opt_derep_fulllength, false);
+      derep(parameters.opt_derep_fulllength, false);
     }
-  else if (opt_derep_prefix)
+  else if (parameters.opt_derep_prefix)
     {
       derep_prefix();
     }
-  else if (opt_derep_smallmem)
+  else if (parameters.opt_derep_smallmem)
     {
-      derep_smallmem(opt_derep_smallmem);
+      derep_smallmem(parameters.opt_derep_smallmem);
     }
-  else if (opt_derep_id)
+  else if (parameters.opt_derep_id)
     {
-      derep(opt_derep_id, true);
+      derep(parameters.opt_derep_id, true);
     }
   else if (parameters.opt_shuffle)
     {
