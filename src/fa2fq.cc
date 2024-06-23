@@ -61,7 +61,6 @@
 #include "vsearch.h"
 #include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
-#include <cstdint>  // uint64_t
 #include <vector>
 
 
