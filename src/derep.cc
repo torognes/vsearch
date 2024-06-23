@@ -314,10 +314,10 @@ auto derep(char * input_filename, bool use_header) -> void
         }
     }
 
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_uc = nullptr;
-  FILE * fp_tabbedout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_uc = nullptr;
+  std::FILE * fp_tabbedout = nullptr;
 
   if (opt_fastx_uniques)
     {
@@ -1082,8 +1082,8 @@ auto derep(char * input_filename, bool use_header) -> void
 
 auto derep_prefix(struct Parameters const & parameters) -> void
 {
-  FILE * fp_output = nullptr;
-  FILE * fp_uc = nullptr;
+  std::FILE * fp_output = nullptr;
+  std::FILE * fp_uc = nullptr;
 
   if (opt_strand > 1)
     {
