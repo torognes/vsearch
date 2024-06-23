@@ -270,7 +270,6 @@ extern bool opt_fasta_score;
 extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
-extern bool opt_fastq_qout_max;
 extern bool opt_gzip_decompress;
 extern bool opt_label_substr_match;
 extern bool opt_lengthout;

@@ -82,7 +82,6 @@ bool opt_fasta_score;
 bool opt_fastq_allowmergestagger;
 bool opt_fastq_eeout;
 bool opt_fastq_nostagger;
-bool opt_fastq_qout_max;
 bool opt_gzip_decompress;
 bool opt_label_substr_match;
 bool opt_lengthout;
@@ -830,7 +829,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
   opt_fastq_qminout = 0;
-  opt_fastq_qout_max = false;
   opt_fastq_stats = nullptr;
   opt_fastq_stripleft = 0;
   opt_fastq_stripright = 0;
@@ -2531,7 +2529,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_qout_max:
-          opt_fastq_qout_max = true;
           parameters.opt_fastq_qout_max = true;
           break;
 
