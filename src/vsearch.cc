@@ -1568,10 +1568,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           if (strcasecmp(optarg, "plus") == 0)
             {
               opt_strand = 1;
+              parameters.opt_strand = 1;
             }
           else if (strcasecmp(optarg, "both") == 0)
             {
               opt_strand = 2;
+              parameters.opt_strand = 2;
             }
           else
             {
@@ -1670,7 +1672,8 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_minseqlength:
           opt_minseqlength = args_getlong(optarg);
-          if (opt_minseqlength < 0)
+          parameters.opt_minseqlength = args_getlong(optarg);
+          if (parameters.opt_minseqlength < 0)
             {
               fatal("The argument to --minseqlength must not be negative");
             }
@@ -1691,6 +1694,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_maxseqlength:
           opt_maxseqlength = args_getlong(optarg);
+          parameters.opt_maxseqlength = args_getlong(optarg);
           break;
 
         case option_sizein:
@@ -4932,7 +4936,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
   /* set default opt_minseqlength depending on command */
 
-  if (opt_minseqlength < 0)
+  if (parameters.opt_minseqlength < 0)
     {
       if (opt_cluster_fast or
           opt_cluster_size or
@@ -4946,10 +4950,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           opt_usearch_global)
         {
           opt_minseqlength = 32;
+          parameters.opt_minseqlength = 32;
         }
       else
         {
           opt_minseqlength = 1;
+          parameters.opt_minseqlength = 1;
         }
     }
 
