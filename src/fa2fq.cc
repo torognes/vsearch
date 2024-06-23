@@ -80,7 +80,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       fatal("Unable to open FASTQ output file for writing");
     }
 
-  int count {0};
+  auto count = 0;
   std::size_t alloc{0};
   std::vector<char> quality;
   // refactoring: std::vector<char> quality_v(1024, max_ascii_value), if (length + 1 > size()) {quality.resize(length + 1, max_ascii_value)} , quality_v[length] = '\0', fastq_print_general(), quality_v[length] = max_ascii_value
