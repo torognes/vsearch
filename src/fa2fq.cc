@@ -97,15 +97,8 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       if (alloc < length + 1)
         {
           alloc = length + 1;
-          quality_v.resize(alloc);
+          quality_v.resize(alloc, max_ascii_value);
           quality = quality_v.data();
-        }
-
-      /* set quality values */
-
-      for (uint64_t i = 0; i < length; i++)
-        {
-          quality[i] = max_ascii_value;
         }
 
       quality[length] = '\0';
@@ -124,6 +117,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           count,
                           -1.0);
 
+      quality[length] = max_ascii_value;
       progress_update(fasta_get_position(fp_input));
     }
 
