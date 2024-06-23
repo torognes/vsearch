@@ -121,5 +121,4 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   static_cast<void>(std::fclose(fp_fastqout));
 
   fasta_close(fp_input);
-
 }
