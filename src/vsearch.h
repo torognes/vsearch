@@ -522,6 +522,7 @@ struct Parameters {
   char * opt_derep_fulllength = nullptr;
   char * opt_derep_id = nullptr;
   char * opt_derep_prefix = nullptr;
+  char * opt_derep_smallmem = nullptr;
   char * opt_fasta2fastq = nullptr;
   char * opt_fastaout = nullptr;
   char * opt_fastaout_discarded = nullptr;
