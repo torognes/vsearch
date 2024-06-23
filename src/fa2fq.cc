@@ -68,7 +68,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 {
   auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
 
-  assert(parameters.opt_fastqout != nullptr);
+  assert(parameters.opt_fastqout != nullptr);  // check performed in <getopt.h>
 
   auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
   assert(fp_input != nullptr);  // check performed in fasta_opn(fastx_open())
