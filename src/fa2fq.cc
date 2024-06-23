@@ -62,6 +62,7 @@
 #include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
 #include <cstdint>  // uint64_t
+#include <vector>
 
 
 auto fasta2fastq(struct Parameters const & parameters) -> void
@@ -80,8 +81,9 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
     }
 
   int count {0};
-  std::size_t alloc {0};
-  char * quality {nullptr};
+  std::size_t alloc{0};
+  std::vector<char> quality_v;
+  char * quality = quality_v.data();
   // refactoring: std::vector<char> quality_v(1024, max_ascii_value), if (length + 1 > size()) {quality.resize(length + 1, max_ascii_value)} , quality_v[length] = '\0', fastq_print_general(), quality_v[length] = max_ascii_value
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
@@ -95,7 +97,8 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       if (alloc < length + 1)
         {
           alloc = length + 1;
-          quality = static_cast<char *>(xrealloc(quality, alloc));
+          quality_v.resize(alloc);
+          quality = quality_v.data();
         }
 
       /* set quality values */
@@ -116,7 +119,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           static_cast<int>(length),
                           fasta_get_header(fp_input),
                           static_cast<int>(fasta_get_header_length(fp_input)),
-                          quality,
+                          quality_v.data(),
                           static_cast<int>(fastq_get_abundance(fp_input)),
                           count,
                           -1.0);
@@ -125,12 +128,6 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
     }
 
   progress_done();
-
-  /* clean up */
-
-  if (quality != nullptr) {
-    xfree(quality);
-  }
 
   static_cast<void>(std::fclose(fp_fastqout));
 
