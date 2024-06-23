@@ -97,7 +97,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
           quality.resize(length + 1, max_ascii_value);
         }
 
-      quality[length] = '\0';
+      quality[length] = '\0';  // not needed, done by fastq_print_general()
 
       ++counter;
 
@@ -113,7 +113,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           counter,
                           -1.0);
 
-      quality[length] = max_ascii_value;
+      quality[length] = max_ascii_value;  // also not needed
       progress_update(fasta_get_position(fp_input));
     }
 
