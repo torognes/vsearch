@@ -2523,6 +2523,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastx_uniques:
           opt_fastx_uniques = optarg;
+          parameters.opt_fastx_uniques = optarg;
           break;
 
         case option_fastq_qout_max:
@@ -5994,9 +5995,9 @@ auto main(int argc, char** argv) -> int
     {
       fasta2fastq(parameters);
     }
-  else if (opt_fastx_uniques)
+  else if (parameters.opt_fastx_uniques)
     {
-      derep(opt_fastx_uniques, false);
+      derep(parameters.opt_fastx_uniques, false);
     }
   else
     {
