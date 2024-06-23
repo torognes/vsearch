@@ -218,7 +218,7 @@ auto rehash_smallmem() -> void
   hashtablesize = new_hashtablesize;
 }
 
-auto derep_smallmem(char * input_filename) -> void
+auto derep_smallmem(struct Parameters const & parameters, char * input_filename) -> void
 {
   /*
     dereplicate full length sequences using a small amount of memory
