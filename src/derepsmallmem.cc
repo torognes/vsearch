@@ -227,7 +227,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  char * input_filename = parameters.opt_derep_smallmem;
+  auto * input_filename = parameters.opt_derep_smallmem;
   fastx_handle h = fastx_open(input_filename);
 
   if (not h)
