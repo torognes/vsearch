@@ -1617,6 +1617,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_uc:
           opt_uc = optarg;
+          parameters.opt_uc = optarg;
           break;
 
         case option_weak_id:
