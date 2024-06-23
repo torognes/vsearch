@@ -80,12 +80,12 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       fatal("Unable to open FASTQ output file for writing");
     }
 
-  auto counter = 0;
   static constexpr auto initial_length = 1024U;
   std::vector<char> quality(initial_length, max_ascii_value);
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
 
+  auto counter = 0;
   while (fasta_next(fp_input, false, chrmap_no_change))
     {
       /* get sequence length and allocate more mem if necessary */
