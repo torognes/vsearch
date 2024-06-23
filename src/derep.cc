@@ -992,7 +992,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                     hh, parameters.opt_relabel, i + 1, i, (uint64_t) 0, bp->count, hh);
           } else {
             fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    hh, hh, i, (uint64_t)0, bp->count, hh);
+                    hh, hh, i, (uint64_t) 0, bp->count, hh);
           }
 
           uint64_t j = 1;
