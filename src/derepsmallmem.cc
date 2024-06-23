@@ -348,7 +348,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       string_normalize(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
-      if (parameters.opt_strand > 1)
+      if (parameters.opt_strand)
         {
           reverse_complement(rc_seq_up, seq_up, seqlen);
         }
@@ -371,7 +371,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           bp = hashtable + j;
         }
 
-      if ((parameters.opt_strand > 1) and not bp->size)
+      if (parameters.opt_strand and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -571,7 +571,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       string_normalize(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
-      if (parameters.opt_strand > 1)
+      if (parameters.opt_strand)
         {
           reverse_complement(rc_seq_up, seq_up, seqlen);
         }
@@ -586,7 +586,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           bp = hashtable + j;
         }
 
-      if ((parameters.opt_strand > 1) and not bp->size)
+      if (parameters.opt_strand and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */

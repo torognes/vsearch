@@ -1566,12 +1566,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           if (strcasecmp(optarg, "plus") == 0)
             {
               opt_strand = 1;
-              parameters.opt_strand = 1;
+              parameters.opt_strand = false;
             }
           else if (strcasecmp(optarg, "both") == 0)
             {
               opt_strand = 2;
-              parameters.opt_strand = 2;
+              parameters.opt_strand = true;
             }
           else
             {

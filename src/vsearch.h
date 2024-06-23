@@ -548,13 +548,13 @@ struct Parameters {
   int64_t opt_minuniquesize = 1;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
-  int64_t opt_strand = 1;  // refactoring: bool
   int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
   bool opt_help = false;
   bool opt_notrunclabels = false;
   bool opt_quiet = false;
   bool opt_sizein = false;
+  bool opt_strand = false;
   bool opt_version = false;
   bool opt_xsize = false;
 };
