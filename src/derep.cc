@@ -710,7 +710,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (sequencecount > 0)
         {
@@ -732,7 +732,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  if (opt_log)
+  if (parameters.opt_log)
     {
       if (sequencecount > 0)
         {
@@ -758,15 +758,15 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minseqlength,
+              parameters.opt_minseqlength,
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_minseqlength,
+                  parameters.opt_minseqlength,
                   discarded_short,
                   (discarded_short == 1 ? "sequence" : "sequences"));
         }
@@ -776,15 +776,15 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_maxseqlength,
+              parameters.opt_maxseqlength,
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_maxseqlength,
+                  parameters.opt_maxseqlength,
                   discarded_long,
                   (discarded_long == 1 ? "sequence" : "sequences"));
         }
@@ -818,12 +818,12 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (clusters < 1)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -831,7 +831,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     }
   else
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -839,7 +839,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -856,10 +856,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       struct bucket * bp = hashtable + i;
       int64_t const size = bp->size;
-      if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
+      if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
           ++selected;
-          if (selected == (uint64_t) opt_topn)
+          if (selected == (uint64_t) parameters.opt_topn)
             {
               break;
             }
@@ -870,7 +870,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* write output */
 
-  if (opt_output or opt_fastaout)
+  if (parameters.opt_output or parameters.opt_fastaout)
     {
       progress_init("Writing FASTA output file", clusters);
 
@@ -879,7 +879,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           struct bucket * bp = hashtable + i;
           int64_t const size = bp->size;
-          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
@@ -892,7 +892,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                                   relabel_count,
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
-              if (relabel_count == opt_topn)
+              if (relabel_count == parameters.opt_topn)
                 {
                   break;
                 }
@@ -904,7 +904,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       fclose(fp_fastaout);
     }
 
-  if (opt_fastqout)
+  if (parameters.opt_fastqout)
     {
       progress_init("Writing FASTQ output file", clusters);
 
@@ -913,7 +913,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           struct bucket * bp = hashtable + i;
           int64_t const size = bp->size;
-          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               relabel_count++;
               fastq_print_general(fp_fastqout,
@@ -925,7 +925,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                                   size,
                                   relabel_count,
                                   -1.0);
-              if (relabel_count == opt_topn)
+              if (relabel_count == parameters.opt_topn)
                 {
                   break;
                 }
@@ -939,7 +939,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  if (opt_uc)
+  if (parameters.opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
       for (uint64_t i = 0; i < clusters; i++)
@@ -978,7 +978,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_done();
     }
 
-  if (opt_tabbedout)
+  if (parameters.opt_tabbedout)
     {
       progress_init("Writing tab separated file", clusters);
       for (uint64_t i = 0; i < clusters; i++)
@@ -986,10 +986,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
 
-          if (opt_relabel) {
+          if (parameters.opt_relabel) {
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    hh, opt_relabel, i + 1, i, (uint64_t) 0, bp->count, hh);
+                    hh, parameters.opt_relabel, i + 1, i, (uint64_t) 0, bp->count, hh);
           } else {
             fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                     hh, hh, i, (uint64_t)0, bp->count, hh);
@@ -1000,10 +1000,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                next != terminal;
                next = nextseqtab[next])
             {
-              if (opt_relabel) {
+              if (parameters.opt_relabel) {
                 fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next], opt_relabel, i + 1, i, j, bp->count, hh);
+                        headertab[next], parameters.opt_relabel, i + 1, i, j, bp->count, hh);
               } else {
                 fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
@@ -1023,7 +1023,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (selected < clusters)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %"
@@ -1032,7 +1032,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
@@ -1059,7 +1059,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  if (opt_uc)
+  if (parameters.opt_uc)
     {
       for (uint64_t i = 0; i < alloc_seqs; i++)
         {
