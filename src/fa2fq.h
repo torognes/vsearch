@@ -58,4 +58,4 @@
 
 */
 
-auto fasta2fastq() -> void;
+auto fasta2fastq(struct Parameters const & parameters) -> void;

@@ -2508,6 +2508,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fasta2fastq:
           opt_fasta2fastq = optarg;
+          parameters.opt_fasta2fastq = optarg;
           break;
 
         case option_lcaout:
@@ -5986,9 +5987,9 @@ auto main(int argc, char** argv) -> int
     {
       orient();
     }
-  else if (opt_fasta2fastq)
+  else if (parameters.opt_fasta2fastq)
     {
-      fasta2fastq();
+      fasta2fastq(parameters);
     }
   else if (opt_fastx_uniques)
     {

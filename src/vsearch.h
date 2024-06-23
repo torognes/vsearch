@@ -519,6 +519,7 @@ extern int64_t avx2_present;
 extern std::FILE * fp_log;
 
 struct Parameters {
+  char * opt_fasta2fastq = nullptr;
   char * opt_fastaout = nullptr;
   char * opt_fastaout_discarded = nullptr;
   char * opt_fastqout = nullptr;
