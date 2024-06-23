@@ -275,8 +275,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  char * seq_up = (char*) xmalloc(alloc_seqlen + 1);
-  char * rc_seq_up = (char*) xmalloc(alloc_seqlen + 1);
+  char * seq_up = (char *) xmalloc(alloc_seqlen + 1);
+  char * rc_seq_up = (char *) xmalloc(alloc_seqlen + 1);
 
   char * prompt = nullptr;
   if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
