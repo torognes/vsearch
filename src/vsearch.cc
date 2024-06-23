@@ -2396,6 +2396,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_tabbedout:
           opt_tabbedout = optarg;
+          parameters.opt_tabbedout = optarg;
           break;
 
         case option_fastq_maxdiffpct:

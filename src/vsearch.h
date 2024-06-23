@@ -534,6 +534,7 @@ struct Parameters {
   char * opt_shuffle = nullptr;
   char * opt_sortbylength = nullptr;
   char * opt_sortbysize = nullptr;
+  char * opt_tabbedout = nullptr;
   char * opt_uc = nullptr;
   char * progname = nullptr;
   std::FILE * fp_log = nullptr;
