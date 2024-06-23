@@ -124,7 +124,6 @@ char * opt_dbnotmatched;
 char * opt_derep_fulllength;
 char * opt_derep_id;
 char * opt_derep_prefix;
-char * opt_derep_smallmem;
 char * opt_eetabbedout;
 char * opt_fastaout;
 char * opt_fastaout_discarded;
@@ -790,7 +789,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_derep_fulllength = nullptr;
   opt_derep_id = nullptr;
   opt_derep_prefix = nullptr;
-  opt_derep_smallmem = nullptr;
   opt_dn = 1.4;
   opt_ee_cutoffs_count = 3;
   opt_ee_cutoffs_values = (double*) xmalloc(opt_ee_cutoffs_count * sizeof(double));
@@ -2547,7 +2545,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_derep_smallmem:
-          opt_derep_smallmem = optarg;
           parameters.opt_derep_smallmem = optarg;
           break;
 
