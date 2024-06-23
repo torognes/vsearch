@@ -81,8 +81,8 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
     }
 
   auto counter = 0;
-  std::size_t alloc = 0;
-  std::vector<char> quality;
+  std::size_t alloc = 1024;
+  std::vector<char> quality(alloc, max_ascii_value);
   // refactoring: std::vector<char> quality_v(1024, max_ascii_value), if (length + 1 > size()) {quality.resize(length + 1, max_ascii_value)} , quality_v[length] = '\0', fastq_print_general(), quality_v[length] = max_ascii_value
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
@@ -96,7 +96,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       if (quality.size() < length + 1)
         {
           alloc = length + 1;
-          quality.resize(alloc, max_ascii_value);
+          quality.resize(length + 1, max_ascii_value);
         }
 
       quality.back() = '\0';
