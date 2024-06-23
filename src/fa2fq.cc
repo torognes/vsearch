@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/maps.hpp"
 #include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
 #include <vector>
@@ -85,7 +86,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
 
   auto counter = 0;
-  while (fasta_next(fp_input, false, chrmap_no_change))
+  while (fasta_next(fp_input, false, chrmap_no_change_array.data()))
     {
       /* get sequence length and allocate more mem if necessary */
 
