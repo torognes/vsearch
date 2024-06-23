@@ -2130,6 +2130,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_qmaxout:
           opt_fastq_qmaxout = args_getlong(optarg);
+          parameters.opt_fastq_qmaxout = args_getlong(optarg);
           break;
 
         case option_fastq_stats:
@@ -4766,7 +4767,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
     }
 
-  if (opt_fastq_qminout > opt_fastq_qmaxout)
+  if (opt_fastq_qminout > parameters.opt_fastq_qmaxout)
     {
       fatal("The argument to --fastq_qminout cannot be larger than --fastq_qmaxout");
     }
@@ -4781,7 +4782,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
     }
 
-  if (parameters.opt_fastq_asciiout + opt_fastq_qmaxout > 126)
+  if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout > 126)
     {
       fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
     }

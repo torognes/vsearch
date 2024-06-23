@@ -65,7 +65,7 @@
 
 auto fasta2fastq(struct Parameters const & parameters) -> void
 {
-  auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + opt_fastq_qmaxout);
+  auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
 
   if (parameters.opt_fastqout == nullptr)
     {
