@@ -5865,7 +5865,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_derep_smallmem)
     {
-      derep_smallmem(parameters, parameters.opt_derep_smallmem);
+      derep_smallmem(parameters);
     }
   else if (parameters.opt_derep_id)
     {
