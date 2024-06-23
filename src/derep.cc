@@ -1085,30 +1085,30 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   std::FILE * fp_output = nullptr;
   std::FILE * fp_uc = nullptr;
 
-  if (opt_strand > 1)
+  if (parameters.opt_strand)
     {
       fatal("Option '--strand both' not supported with --derep_prefix");
     }
 
   if (parameters.opt_output)
     {
-      fp_output = fopen_output(opt_output);
+      fp_output = fopen_output(parameters.opt_output);
       if (not fp_output)
         {
           fatal("Unable to open output file for writing");
         }
     }
 
-  if (opt_uc)
+  if (parameters.opt_uc)
     {
-      fp_uc = fopen_output(opt_uc);
+      fp_uc = fopen_output(parameters.opt_uc);
       if (not fp_uc)
         {
           fatal("Unable to open output (uc) file for writing");
         }
     }
 
-  db_read(opt_derep_prefix, 0);
+  db_read(parameters.opt_derep_prefix, 0);
 
   db_sortbylength_shortest_first();
 
@@ -1161,7 +1161,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up, seq, seqlen);
 
-      uint64_t const ab = opt_sizein ? db_getabundance(i) : 1;
+      uint64_t const ab = parameters.opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
       /*
@@ -1330,12 +1330,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (clusters < 1)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -1343,7 +1343,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     }
   else
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -1351,7 +1351,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -1370,10 +1370,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       struct bucket * bp = hashtable + i;
       int64_t const size = bp->size;
-      if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
+      if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
           ++selected;
-          if (selected == opt_topn)
+          if (selected == parameters.opt_topn)
             {
               break;
             }
@@ -1383,7 +1383,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* write output */
 
-  if (opt_output)
+  if (parameters.opt_output)
     {
       progress_init("Writing output file", clusters);
 
@@ -1392,7 +1392,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         {
           struct bucket * bp = hashtable + i;
           int64_t const size = bp->size;
-          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_output,
@@ -1405,7 +1405,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                                   relabel_count,
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
-              if (relabel_count == opt_topn)
+              if (relabel_count == parameters.opt_topn)
                 {
                   break;
                 }
@@ -1419,7 +1419,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  if (opt_uc)
+  if (parameters.opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
       for (int64_t i = 0; i < clusters; i++)
@@ -1460,7 +1460,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (selected < clusters)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %" PRId64
@@ -1469,7 +1469,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %" PRId64
