@@ -5860,7 +5860,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_derep_fulllength)
     {
-      derep(parameters.opt_derep_fulllength, false);
+      derep(parameters, parameters.opt_derep_fulllength, false);
     }
   else if (parameters.opt_derep_prefix)
     {
@@ -5872,7 +5872,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_derep_id)
     {
-      derep(parameters.opt_derep_id, true);
+      derep(parameters, parameters.opt_derep_id, true);
     }
   else if (parameters.opt_shuffle)
     {
@@ -6000,7 +6000,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastx_uniques)
     {
-      derep(parameters.opt_fastx_uniques, false);
+      derep(parameters, parameters.opt_fastx_uniques, false);
     }
   else
     {

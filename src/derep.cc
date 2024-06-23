@@ -275,7 +275,7 @@ inline auto convert_p_to_q(double p) -> int
   return opt_fastq_asciiout + q;
 }
 
-auto derep(char * input_filename, bool use_header) -> void
+auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void
 {
   /* dereplicate full length sequences, optionally require identical headers */
 
@@ -297,13 +297,13 @@ auto derep(char * input_filename, bool use_header) -> void
     {
       if (fastx_is_fastq(h))
         {
-          if (not opt_fastx_uniques) {
+          if (not parameters.opt_fastx_uniques) {
             fatal("FASTQ input is only allowed with the fastx_uniques command");
           }
         }
       else
         {
-          if (opt_fastqout) {
+          if (parameters.opt_fastqout) {
             fatal("Cannot write FASTQ output when input file is not in FASTQ "
                   "format");
           }
