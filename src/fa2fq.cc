@@ -93,7 +93,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 
       auto const length = fastq_get_sequence_length(fp_input);
 
-      if (alloc < length + 1)
+      if (quality.size() < length + 1)
         {
           alloc = length + 1;
           quality.resize(alloc, max_ascii_value);
