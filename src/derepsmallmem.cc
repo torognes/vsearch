@@ -255,7 +255,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       fatal("Output file for dereplication must be specified with --fastaout");
     }
 
-  uint64_t const filesize = fastx_get_size(h);
+  auto const filesize = fastx_get_size(h);
 
   /* allocate initial memory for sequences of length up to 1023 chars */
   int64_t alloc_seqlen = 1024;
