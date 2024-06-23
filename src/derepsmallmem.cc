@@ -242,9 +242,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   FILE * fp_fastaout = nullptr;
 
-  if (opt_fastaout)
+  if (parameters.opt_fastaout)
     {
-      fp_fastaout = fopen_output(opt_fastaout);
+      fp_fastaout = fopen_output(parameters.opt_fastaout);
       if (not fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
@@ -298,17 +298,17 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* first pass */
 
-  while (fastx_next(h, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change))
     {
       int64_t const seqlen = fastx_get_sequence_length(h);
 
-      if (seqlen < opt_minseqlength)
+      if (seqlen < parameters.opt_minseqlength)
         {
           ++discarded_short;
           continue;
         }
 
-      if (seqlen > opt_maxseqlength)
+      if (seqlen > parameters.opt_maxseqlength)
         {
           ++discarded_long;
           continue;
@@ -348,7 +348,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       string_normalize(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
-      if (opt_strand > 1)
+      if (parameters.opt_strand > 1)
         {
           reverse_complement(rc_seq_up, seq_up, seqlen);
         }
@@ -371,7 +371,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) and not bp->size)
+      if ((parameters.opt_strand > 1) and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -394,7 +394,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
 
       int const abundance = fastx_get_abundance(h);
-      int64_t const ab = opt_sizein ? abundance : 1;
+      int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -424,7 +424,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (sequencecount > 0)
         {
@@ -446,7 +446,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
     }
 
-  if (opt_log)
+  if (parameters.opt_log)
     {
       if (sequencecount > 0)
         {
@@ -472,15 +472,15 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minseqlength,
+              parameters.opt_minseqlength,
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_minseqlength,
+                  parameters.opt_minseqlength,
                   discarded_short,
                   (discarded_short == 1 ? "sequence" : "sequences"));
         }
@@ -490,15 +490,15 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_maxseqlength,
+              parameters.opt_maxseqlength,
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_maxseqlength,
+                  parameters.opt_maxseqlength,
                   discarded_long,
                   (discarded_long == 1 ? "sequence" : "sequences"));
         }
@@ -509,12 +509,12 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   if (clusters < 1)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -524,7 +524,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       const double average = 1.0 * sumsize / clusters;
       const auto median = find_median();
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -532,7 +532,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -556,11 +556,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   uint64_t selected = 0;
 
-  while (fastx_next(h2, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change))
     {
       int64_t const seqlen = fastx_get_sequence_length(h2);
 
-      if ((seqlen < opt_minseqlength) or (seqlen > opt_maxseqlength))
+      if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
         {
           continue;
         }
@@ -571,7 +571,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       string_normalize(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
-      if (opt_strand > 1)
+      if (parameters.opt_strand > 1)
         {
           reverse_complement(rc_seq_up, seq_up, seqlen);
         }
@@ -586,7 +586,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) and not bp->size)
+      if ((parameters.opt_strand > 1) and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -617,7 +617,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           char * header = fastx_get_header(h2);
           int const headerlen = fastx_get_header_length(h2);
 
-          if ((size >= opt_minuniquesize) and (size <= opt_maxuniquesize))
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++selected;
               fasta_print_general(fp_fastaout,
@@ -644,7 +644,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   if (selected < clusters)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %"
@@ -653,7 +653,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
