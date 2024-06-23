@@ -99,7 +99,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
           quality_v.resize(alloc, max_ascii_value);
         }
 
-      quality_v[length] = '\0';
+      quality_v.back() = '\0';
 
       ++count;
 
@@ -115,7 +115,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           count,
                           -1.0);
 
-      quality_v[length] = max_ascii_value;
+      quality_v.back() = max_ascii_value;
       progress_update(fasta_get_position(fp_input));
     }
 
