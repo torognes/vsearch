@@ -1679,6 +1679,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_minuniquesize:
           opt_minuniquesize = args_getlong(optarg);
+          parameters.opt_minuniquesize = args_getlong(optarg);
           break;
 
         case option_topn:
@@ -1932,6 +1933,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_maxuniquesize:
           opt_maxuniquesize = args_getlong(optarg);
+          parameters.opt_maxuniquesize = args_getlong(optarg);
           break;
 
         case option_abskew:
@@ -4808,12 +4810,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("The argument to lca_cutoff must be larger than 0.5, but not larger than 1.0");
     }
 
-  if (opt_minuniquesize < 1)
+  if (parameters.opt_minuniquesize < 1)
     {
       fatal("The argument to minuniquesize must be at least 1");
     }
 
-  if (opt_maxuniquesize < 1)
+  if (parameters.opt_maxuniquesize < 1)
     {
       fatal("The argument to maxuniquesize must be at least 1");
     }
