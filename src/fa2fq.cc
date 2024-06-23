@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
 #include <cstdint>  // uint64_t
 
@@ -67,10 +68,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 {
   auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
 
-  if (parameters.opt_fastqout == nullptr)
-    {
-      fatal("Output FASTQ file not specified with the --fastqout option");  // unreachable, already covered by <getopt.h>, assert(opt_fastqout != nullptr)
-    }
+  assert(parameters.opt_fastqout != nullptr);
 
   auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
   if (fp_input == nullptr)
