@@ -1656,6 +1656,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_relabel:
           opt_relabel = optarg;
+          parameters.opt_relabel = optarg;
           break;
 
         case option_sizeout:
@@ -4729,7 +4730,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("The argument to --sample_size must not be negative");
     }
 
-  if (((opt_relabel ? 1 : 0) +
+  if (((parameters.opt_relabel ? 1 : 0) +
        opt_relabel_md5 + opt_relabel_self + opt_relabel_sha1) > 1)
     {
       fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");

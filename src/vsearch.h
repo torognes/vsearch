@@ -530,6 +530,7 @@ struct Parameters {
   char * opt_fastx_subsample = nullptr;
   char * opt_log = nullptr;
   char * opt_output = nullptr;
+  char * opt_relabel = nullptr;
   char * opt_rereplicate = nullptr;
   char * opt_shuffle = nullptr;
   char * opt_sortbylength = nullptr;
