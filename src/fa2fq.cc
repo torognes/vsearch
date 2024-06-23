@@ -71,10 +71,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   assert(parameters.opt_fastqout != nullptr);
 
   auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
-  if (fp_input == nullptr)
-    {
-      fatal("Unable to open FASTA file for reading");  // unreachable: already covered in fasta_opn(fastx_open())
-    }
+  assert(fp_input != nullptr);  // check performed in fasta_opn(fastx_open())
 
   auto * fp_fastqout = fopen_output(parameters.opt_fastqout);
   if (fp_fastqout == nullptr)
