@@ -307,7 +307,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
             fatal("Cannot write FASTQ output when input file is not in FASTQ "
                   "format");
           }
-          if (opt_tabbedout) {
+          if (parameters.opt_tabbedout) {
             fatal("Cannot write tab separated output file when input file is "
                   "not in FASTQ format");
           }
@@ -319,42 +319,42 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   std::FILE * fp_uc = nullptr;
   std::FILE * fp_tabbedout = nullptr;
 
-  if (opt_fastx_uniques)
+  if (parameters.opt_fastx_uniques)
     {
-      if ((not opt_uc) and (not opt_fastaout) and (not opt_fastqout) and (not opt_tabbedout)) {
+      if ((not parameters.opt_uc) and (not parameters.opt_fastaout) and (not parameters.opt_fastqout) and (not parameters.opt_tabbedout)) {
         fatal("Output file for dereplication with fastx_uniques must be "
               "specified with --fastaout, --fastqout, --tabbedout, or --uc");
       }
     } else {
-    if ((not opt_output) and (not opt_uc)) {
+    if ((not parameters.opt_output) and (not parameters.opt_uc)) {
       fatal("Output file for dereplication must be specified with --output "
             "or --uc");
     }
   }
 
-  if (opt_fastx_uniques)
+  if (parameters.opt_fastx_uniques)
     {
-      if (opt_fastaout)
+      if (parameters.opt_fastaout)
         {
-          fp_fastaout = fopen_output(opt_fastaout);
+          fp_fastaout = fopen_output(parameters.opt_fastaout);
           if (not fp_fastaout)
             {
               fatal("Unable to open FASTA output file for writing");
             }
         }
 
-      if (opt_fastqout)
+      if (parameters.opt_fastqout)
         {
-          fp_fastqout = fopen_output(opt_fastqout);
+          fp_fastqout = fopen_output(parameters.opt_fastqout);
           if (not fp_fastqout)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
         }
 
-      if (opt_tabbedout)
+      if (parameters.opt_tabbedout)
         {
-          fp_tabbedout = fopen_output(opt_tabbedout);
+          fp_tabbedout = fopen_output(parameters.opt_tabbedout);
           if (not fp_tabbedout)
             {
               fatal("Unable to open tab delimited output file for writing");
@@ -363,9 +363,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     }
   else
     {
-      if (opt_output)
+      if (parameters.opt_output)
         {
-          fp_fastaout = fopen_output(opt_output);
+          fp_fastaout = fopen_output(parameters.opt_output);
           if (not fp_fastaout)
             {
               fatal("Unable to open FASTA output file for writing");
@@ -373,9 +373,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  if (opt_uc)
+  if (parameters.opt_uc)
     {
-      fp_uc = fopen_output(opt_uc);
+      fp_uc = fopen_output(parameters.opt_uc);
       if (not fp_uc)
         {
           fatal("Unable to open output (uc) file for writing");
@@ -405,7 +405,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   char ** headertab = nullptr;
   char * match_strand = nullptr;
 
-  bool const extra_info = opt_uc or opt_tabbedout;
+  bool const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
 
   if (extra_info)
     {
@@ -452,17 +452,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   double median = 0.0;
   double average = 0.0;
 
-  while (fastx_next(h, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change))
     {
       int64_t const seqlen = fastx_get_sequence_length(h);
 
-      if (seqlen < opt_minseqlength)
+      if (seqlen < parameters.opt_minseqlength)
         {
           ++discarded_short;
           continue;
         }
 
-      if (seqlen > opt_maxseqlength)
+      if (seqlen > parameters.opt_maxseqlength)
         {
           ++discarded_long;
           continue;
@@ -534,7 +534,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       string_normalize(seq_up, seq, seqlen);
 
       /* reverse complement if necessary */
-      if (opt_strand > 1)
+      if (parameters.opt_strand)
         {
           reverse_complement(rc_seq_up, seq_up, seqlen);
         }
@@ -570,7 +570,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) and not bp->size)
+      if (parameters.opt_strand and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -601,7 +601,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
 
       int const abundance = fastx_get_abundance(h);
-      int64_t const ab = opt_sizein ? abundance : 1;
+      int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -619,7 +619,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           int64_t const s2 = ab;
           int64_t const s3 = s1 + s2;
 
-          if (opt_fastqout)
+          if (parameters.opt_fastqout)
             {
               /* update quality scores */
               for (int i = 0; i < seqlen; i++)
@@ -632,7 +632,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
                   /* how to compute the new quality score? */
 
-                  if (opt_fastq_qout_max)
+                  if (parameters.opt_fastq_qout_max)
                     {
                       // fastq_qout_max
                       /* min error prob, highest quality */
