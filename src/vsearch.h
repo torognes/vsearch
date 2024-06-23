@@ -312,7 +312,6 @@ extern char * opt_derep_fulllength;
 extern char * opt_derep_id;
 extern char * opt_derep_prefix;
 extern char * opt_eetabbedout;
-extern char * opt_fasta2fastq;
 extern char * opt_fastaout;
 extern char * opt_fastaout_discarded;
 extern char * opt_fastaout_discarded_rev;

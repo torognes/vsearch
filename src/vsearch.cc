@@ -126,7 +126,6 @@ char * opt_derep_id;
 char * opt_derep_prefix;
 char * opt_derep_smallmem;
 char * opt_eetabbedout;
-char * opt_fasta2fastq;
 char * opt_fastaout;
 char * opt_fastaout_discarded;
 char * opt_fastaout_discarded_rev;
@@ -800,7 +799,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_ee_cutoffs_values[2] = 2.0;
   opt_eeout = false;
   opt_eetabbedout = nullptr;
-  opt_fasta2fastq = nullptr;
   opt_fasta_score = false;
   opt_fasta_width = 80;
   opt_fastaout = nullptr;
@@ -2507,7 +2505,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fasta2fastq:
-          opt_fasta2fastq = optarg;
           parameters.opt_fasta2fastq = optarg;
           break;
 
