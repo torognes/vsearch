@@ -240,7 +240,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       fatal("The derep_smallmem command does not support input from a pipe.");
     }
 
-  FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
 
   if (parameters.opt_fastaout)
     {
