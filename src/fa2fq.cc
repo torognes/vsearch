@@ -81,7 +81,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
     }
 
   auto counter = 0;
-  std::size_t const initial_length = 1024;
+  static constexpr auto initial_length = 1024U;
   std::vector<char> quality(initial_length, max_ascii_value);
 
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
