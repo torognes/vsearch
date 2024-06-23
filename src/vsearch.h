@@ -551,6 +551,7 @@ struct Parameters {
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
+  bool opt_fastq_qout_max = false;
   bool opt_help = false;
   bool opt_notrunclabels = false;
   bool opt_quiet = false;

@@ -2531,6 +2531,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_qout_max:
           opt_fastq_qout_max = true;
+          parameters.opt_fastq_qout_max = true;
           break;
 
         case option_sample:
