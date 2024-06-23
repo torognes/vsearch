@@ -1080,7 +1080,7 @@ auto derep(char * input_filename, bool use_header) -> void
   show_rusage();
 }
 
-auto derep_prefix() -> void
+auto derep_prefix(struct Parameters const & parameters) -> void
 {
   FILE * fp_output = nullptr;
   FILE * fp_uc = nullptr;
@@ -1090,7 +1090,7 @@ auto derep_prefix() -> void
       fatal("Option '--strand both' not supported with --derep_prefix");
     }
 
-  if (opt_output)
+  if (parameters.opt_output)
     {
       fp_output = fopen_output(opt_output);
       if (not fp_output)

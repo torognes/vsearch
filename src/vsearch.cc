@@ -5866,7 +5866,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_derep_prefix)
     {
-      derep_prefix();
+      derep_prefix(parameters);
     }
   else if (parameters.opt_derep_smallmem)
     {
