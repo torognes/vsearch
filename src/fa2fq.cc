@@ -117,7 +117,9 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  static_cast<void>(std::fclose(fp_fastqout));
+  if (fp_fastqout != nullptr) {
+    static_cast<void>(std::fclose(fp_fastqout));
+  }
 
   fasta_close(fp_input);
 }
