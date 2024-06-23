@@ -518,6 +518,10 @@ extern int64_t avx2_present;
 extern std::FILE * fp_log;
 
 struct Parameters {
+  char * opt_fastx_uniques = nullptr;
+  char * opt_derep_fulllength = nullptr;
+  char * opt_derep_id = nullptr;
+  char * opt_derep_prefix = nullptr;
   char * opt_fasta2fastq = nullptr;
   char * opt_fastaout = nullptr;
   char * opt_fastaout_discarded = nullptr;
