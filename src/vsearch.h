@@ -536,8 +536,10 @@ struct Parameters {
   char * progname = nullptr;
   std::FILE * fp_log = nullptr;
   double opt_sample_pct = 0;
+  int64_t opt_fastq_ascii = 33;
   int64_t opt_fastq_asciiout = 33;
   int64_t opt_fastq_qmaxout = 41;
+  int64_t opt_fastq_qminout = 0;
   int64_t opt_maxseqlength = 50000;
   int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
   int64_t opt_maxuniquesize = std::numeric_limits<int64_t>::max();

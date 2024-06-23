@@ -2115,6 +2115,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_ascii:
           opt_fastq_ascii = args_getlong(optarg);
+          parameters.opt_fastq_ascii = args_getlong(optarg);
           break;
 
         case option_fastq_qmin:
@@ -2201,6 +2202,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_qminout:
           opt_fastq_qminout = args_getlong(optarg);
+          parameters.opt_fastq_qminout = args_getlong(optarg);
           break;
 
         case option_fastq_mergepairs:
@@ -4745,7 +4747,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("The argument to --min_unmasked_pct cannot be larger than --max_unmasked_pct");
     }
 
-  if ((opt_fastq_ascii != 33) and (opt_fastq_ascii != 64))
+  if ((parameters.opt_fastq_ascii != 33) and (parameters.opt_fastq_ascii != 64))
     {
       fatal("The argument to --fastq_ascii must be 33 or 64");
     }
@@ -4755,17 +4757,17 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("The argument to --fastq_qmin cannot be greater than --fastq_qmax");
     }
 
-  if (opt_fastq_ascii + opt_fastq_qmin < 33)
+  if (parameters.opt_fastq_ascii + opt_fastq_qmin < 33)
     {
       fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
     }
 
-  if (opt_fastq_ascii + opt_fastq_qmax > 126)
+  if (parameters.opt_fastq_ascii + opt_fastq_qmax > 126)
     {
       fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
     }
 
-  if (opt_fastq_qminout > parameters.opt_fastq_qmaxout)
+  if (parameters.opt_fastq_qminout > parameters.opt_fastq_qmaxout)
     {
       fatal("The argument to --fastq_qminout cannot be larger than --fastq_qmaxout");
     }
@@ -4775,7 +4777,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("The argument to --fastq_asciiout must be 33 or 64");
     }
 
-  if (parameters.opt_fastq_asciiout + opt_fastq_qminout < 33)
+  if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < 33)
     {
       fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
     }
