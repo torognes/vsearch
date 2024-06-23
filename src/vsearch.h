@@ -542,8 +542,10 @@ struct Parameters {
   int64_t opt_fastq_qmaxout = 41;
   int64_t opt_maxseqlength = 50000;
   int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
+  int64_t opt_maxuniquesize = std::numeric_limits<int64_t>::max();
   int64_t opt_minseqlength = -1;
   int64_t opt_minsize = 0;
+  int64_t opt_minuniquesize = 1;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
   int64_t opt_strand = 1;  // refactoring: bool
