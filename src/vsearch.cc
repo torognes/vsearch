@@ -5999,7 +5999,7 @@ auto main(int argc, char** argv) -> int
       cmd_none(parameters);
     }
 
-  if (opt_log)
+  if (parameters.opt_log)
     {
       time_finish = time(nullptr);
       struct tm * tm_finish = localtime(& time_finish);
