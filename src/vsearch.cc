@@ -120,8 +120,6 @@ char * opt_cut_pattern;
 char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
-char * opt_derep_fulllength;
-char * opt_derep_id;
 char * opt_eetabbedout;
 char * opt_fastaout;
 char * opt_fastaout_discarded;
@@ -150,7 +148,6 @@ char * opt_fastx_getseqs;
 char * opt_fastx_getsubseq;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
-char * opt_fastx_uniques;
 char * opt_join_padgap;
 char * opt_join_padgapq;
 char * opt_label;
@@ -784,8 +781,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_dbmask = MASK_DUST;
   opt_dbmatched = nullptr;
   opt_dbnotmatched = nullptr;
-  opt_derep_fulllength = nullptr;
-  opt_derep_id = nullptr;
   opt_dn = 1.4;
   opt_ee_cutoffs_count = 3;
   opt_ee_cutoffs_values = (double*) xmalloc(opt_ee_cutoffs_count * sizeof(double));
@@ -1662,7 +1657,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_derep_fulllength:
-          opt_derep_fulllength = optarg;
           parameters.opt_derep_fulllength = optarg;
           break;
 
@@ -2503,7 +2497,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_derep_id:
-          opt_derep_id = optarg;
           parameters.opt_derep_id = optarg;
           break;
 
@@ -2524,7 +2517,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastx_uniques:
-          opt_fastx_uniques = optarg;
           parameters.opt_fastx_uniques = optarg;
           break;
 
