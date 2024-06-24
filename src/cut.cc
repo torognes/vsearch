@@ -259,9 +259,7 @@ auto cut(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  fastx_handle h = nullptr;
-
-  h = fasta_open(opt_cut);
+  fastx_handle h = fasta_open(opt_cut);
 
   if (not h)
     {
