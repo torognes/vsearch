@@ -512,6 +512,10 @@ extern int64_t avx2_present;
 
 extern std::FILE * fp_log;
 
+constexpr int64_t default_maxseqlength = 50000;
+constexpr int64_t default_ascii_offset = 33;
+constexpr int64_t default_max_quality = 41;
+
 struct Parameters {
   char * opt_derep_fulllength = nullptr;
   char * opt_derep_id = nullptr;
@@ -536,11 +540,11 @@ struct Parameters {
   char * progname = nullptr;
   std::FILE * fp_log = nullptr;
   double opt_sample_pct = 0;
-  int64_t opt_fastq_ascii = 33;
-  int64_t opt_fastq_asciiout = 33;
-  int64_t opt_fastq_qmaxout = 41;
+  int64_t opt_fastq_ascii = default_ascii_offset;
+  int64_t opt_fastq_asciiout = default_ascii_offset;
+  int64_t opt_fastq_qmaxout = default_max_quality;
   int64_t opt_fastq_qminout = 0;
-  int64_t opt_maxseqlength = 50000;
+  int64_t opt_maxseqlength = default_maxseqlength;
   int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
   int64_t opt_maxuniquesize = std::numeric_limits<int64_t>::max();
   int64_t opt_minseqlength = -1;
