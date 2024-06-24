@@ -265,7 +265,7 @@ auto cut() -> void
 
   if (not h)
     {
-      fatal("Unrecognized file type (not proper FASTA format)");
+      fatal("Unrecognized file type (not proper FASTA format)");  // unreachable
     }
 
   auto const filesize = fasta_get_size(h);
@@ -315,7 +315,7 @@ auto cut() -> void
 
   if (pattern == nullptr)
     {
-      fatal("No cut pattern string specified with --cut_pattern");
+      fatal("No cut pattern string specified with --cut_pattern");  // unreachable
     }
 
   int const n = strlen(pattern);
@@ -328,7 +328,7 @@ auto cut() -> void
   int cut_fwd = -1;
   int cut_rev = -1;
 
-  int j = 0;
+  int j = 0;  // number of nucleotides (pattern minus cutting sites)
   for (int i = 0; i < n ; i++)
     {
       unsigned char const x = pattern[i];
