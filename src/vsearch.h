@@ -515,6 +515,7 @@ extern std::FILE * fp_log;
 constexpr int64_t default_maxseqlength = 50000;
 constexpr int64_t default_ascii_offset = 33;
 constexpr int64_t default_max_quality = 41;
+constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 
 struct Parameters {
   char * opt_derep_fulllength = nullptr;
@@ -545,15 +546,15 @@ struct Parameters {
   int64_t opt_fastq_qmaxout = default_max_quality;
   int64_t opt_fastq_qminout = 0;
   int64_t opt_maxseqlength = default_maxseqlength;
-  int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
-  int64_t opt_maxuniquesize = std::numeric_limits<int64_t>::max();
+  int64_t opt_maxsize = int64_max;
+  int64_t opt_maxuniquesize = int64_max;
   int64_t opt_minseqlength = -1;
   int64_t opt_minsize = 0;
   int64_t opt_minuniquesize = 1;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;
-  int64_t opt_topn = std::numeric_limits<int64_t>::max();
+  int64_t opt_topn = int64_max;
   bool opt_fastq_qout_max = false;
   bool opt_help = false;
   bool opt_notrunclabels = false;
