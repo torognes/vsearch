@@ -334,7 +334,7 @@ auto cut() -> void
       unsigned char const x = pattern[i];
       if (x == '^')
         {
-          if (j < 0)
+          if (cut_fwd != -1)
             {
               fatal("Multiple cut sites not supported");
 
@@ -343,7 +343,7 @@ auto cut() -> void
         }
       else if (x == '_')
         {
-          if (j < 0)
+          if (cut_rev != -1)
             {
               fatal("Multiple cut sites not supported");
 
