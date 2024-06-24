@@ -2420,18 +2420,22 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastaout_rev:
           opt_fastaout_rev = optarg;
+          parameters.opt_fastaout_rev = optarg;
           break;
 
         case option_fastaout_discarded_rev:
           opt_fastaout_discarded_rev = optarg;
+          parameters.opt_fastaout_discarded_rev = optarg;
           break;
 
         case option_fastqout_rev:
           opt_fastqout_rev = optarg;
+          parameters.opt_fastqout_rev = optarg;
           break;
 
         case option_fastqout_discarded_rev:
           opt_fastqout_discarded_rev = optarg;
+          parameters.opt_fastqout_discarded_rev = optarg;
           break;
 
         case option_xee:

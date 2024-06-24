@@ -526,9 +526,13 @@ struct Parameters {
   char * opt_derep_smallmem = nullptr;
   char * opt_fasta2fastq = nullptr;
   char * opt_fastaout = nullptr;
+  char * opt_fastaout_rev = nullptr;
   char * opt_fastaout_discarded = nullptr;
+  char * opt_fastaout_discarded_rev = nullptr;
   char * opt_fastqout = nullptr;
+  char * opt_fastqout_rev = nullptr;
   char * opt_fastqout_discarded = nullptr;
+  char * opt_fastqout_discarded_rev = nullptr;
   char * opt_fastx_subsample = nullptr;
   char * opt_fastx_uniques = nullptr;
   char * opt_log = nullptr;
