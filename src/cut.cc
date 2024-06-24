@@ -259,7 +259,7 @@ auto cut(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  fastx_handle h = fasta_open(opt_cut);
+  fastx_handle h = fasta_open(parameters.opt_cut);
 
   if (not h)
     {
@@ -273,43 +273,43 @@ auto cut(struct Parameters const & parameters) -> void
   std::FILE * fp_fastaout_rev = nullptr;
   std::FILE * fp_fastaout_discarded_rev = nullptr;
 
-  if (opt_fastaout)
+  if (parameters.opt_fastaout)
     {
-      fp_fastaout = fopen_output(opt_fastaout);
+      fp_fastaout = fopen_output(parameters.opt_fastaout);
       if (not fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastaout_rev)
+  if (parameters.opt_fastaout_rev)
     {
-      fp_fastaout_rev = fopen_output(opt_fastaout_rev);
+      fp_fastaout_rev = fopen_output(parameters.opt_fastaout_rev);
       if (not fp_fastaout_rev)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastaout_discarded)
+  if (parameters.opt_fastaout_discarded)
     {
-      fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
+      fp_fastaout_discarded = fopen_output(parameters.opt_fastaout_discarded);
       if (not fp_fastaout_discarded)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastaout_discarded_rev)
+  if (parameters.opt_fastaout_discarded_rev)
     {
-      fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
+      fp_fastaout_discarded_rev = fopen_output(parameters.opt_fastaout_discarded_rev);
       if (not fp_fastaout_discarded_rev)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  char * pattern = opt_cut_pattern;
+  char * pattern = parameters.opt_cut_pattern;
 
   if (pattern == nullptr)
     {
@@ -401,36 +401,36 @@ auto cut(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       std::fprintf(stderr,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
               cut, matches, uncut);
     }
 
-  if (opt_log)
+  if (parameters.opt_log)
     {
       std::fprintf(fp_log,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
               cut, matches, uncut);
     }
 
-  if (opt_fastaout)
+  if (parameters.opt_fastaout)
     {
       fclose(fp_fastaout);
     }
 
-  if (opt_fastaout_rev)
+  if (parameters.opt_fastaout_rev)
     {
       fclose(fp_fastaout_rev);
     }
 
-  if (opt_fastaout_discarded)
+  if (parameters.opt_fastaout_discarded)
     {
       fclose(fp_fastaout_discarded);
     }
 
-  if (opt_fastaout_discarded_rev)
+  if (parameters.opt_fastaout_discarded_rev)
     {
       fclose(fp_fastaout_discarded_rev);
     }
