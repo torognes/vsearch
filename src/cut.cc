@@ -249,12 +249,12 @@ auto cut_one(fastx_handle h,
   return matches;
 }
 
-auto cut() -> void
+auto cut(struct Parameters const & parameters) -> void
 {
-  if ((not opt_fastaout) and
-      (not opt_fastaout_discarded) and
-      (not opt_fastaout_rev) and
-      (not opt_fastaout_discarded_rev))
+  if ((not parameters.opt_fastaout) and
+      (not parameters.opt_fastaout_discarded) and
+      (not parameters.opt_fastaout_rev) and
+      (not parameters.opt_fastaout_discarded_rev))
     {
       fatal("No output files specified");
     }

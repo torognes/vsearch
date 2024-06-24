@@ -5988,7 +5988,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_cut)
     {
-      cut();
+      cut(parameters);
     }
   else if (opt_orient)
     {

@@ -58,4 +58,4 @@
 
 */
 
-auto cut() -> void;
+auto cut(struct Parameters const & parameters) -> void;
