@@ -812,9 +812,9 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_maxdiffs = 10;
   opt_fastq_maxee = DBL_MAX;
   opt_fastq_maxee_rate = DBL_MAX;
-  opt_fastq_maxlen = LONG_MAX;
+  opt_fastq_maxlen = int64_max;
   opt_fastq_maxmergelen  = 1000000;
-  opt_fastq_maxns = LONG_MAX;
+  opt_fastq_maxns = int64_max;
   opt_fastq_mergepairs = nullptr;
   opt_fastq_minlen = 1;
   opt_fastq_minmergelen = 0;
@@ -894,11 +894,11 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_maxqt = DBL_MAX;
   opt_maxrejects = -1;
   opt_maxseqlength = default_maxseqlength;
-  opt_maxsize = LONG_MAX;
+  opt_maxsize = int64_max;
   opt_maxsizeratio = DBL_MAX;
   opt_maxsl = DBL_MAX;
   opt_maxsubs = INT_MAX;
-  opt_maxuniquesize = LONG_MAX;
+  opt_maxuniquesize = int64_max;
   opt_mid = 0.0;
   opt_min_unmasked_pct = 0.0;
   opt_mincols = 0;
@@ -958,13 +958,13 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_sizeout = false;
   opt_slots = 0;
   opt_strand = 1;
-  opt_subseq_end = LONG_MAX;
+  opt_subseq_end = int64_max;
   opt_subseq_start = 1;
   opt_tabbedout = nullptr;
   opt_target_cov = 0.0;
   opt_threads = 0;
   opt_top_hits_only = 0;
-  opt_topn = LONG_MAX;
+  opt_topn = int64_max;
   opt_tsegout = nullptr;
   opt_uc = nullptr;
   opt_uc_allhits = 0;
@@ -4885,7 +4885,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
   if (opt_maxhits == 0)
     {
-      opt_maxhits = LONG_MAX;
+      opt_maxhits = int64_max;
     }
 
   if (opt_minwordmatches < 0)
