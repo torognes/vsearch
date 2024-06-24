@@ -253,9 +253,9 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   * hashtableref = new_hashtable;
 }
 
-inline auto convert_q_to_p(int q) -> double
+inline auto convert_q_to_p(int const q, struct Parameters const & parameters) -> double
 {
-  int const x = q - opt_fastq_ascii;
+  int const x = q - parameters.opt_fastq_ascii;
   if (x < 2)
     {
       return 0.75;
@@ -266,13 +266,13 @@ inline auto convert_q_to_p(int q) -> double
     }
 }
 
-inline auto convert_p_to_q(double p) -> int
+inline auto convert_p_to_q(double const p, struct Parameters const & parameters) -> int
 {
   // int q = round(-10.0 * log10(p));
   int q = int(-10.0 * log10(p));
-  q = MIN(q, opt_fastq_qmaxout);
-  q = MAX(q, opt_fastq_qminout);
-  return opt_fastq_asciiout + q;
+  q = MIN(q, parameters.opt_fastq_qmaxout);
+  q = MAX(q, parameters.opt_fastq_qminout);
+  return parameters.opt_fastq_asciiout + q;
 }
 
 auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void
@@ -626,8 +626,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                 {
                   int const q1 = bp->qual[i];
                   int const q2 = qual[i];
-                  double const p1 = convert_q_to_p(q1);
-                  double const p2 = convert_q_to_p(q2);
+                  double const p1 = convert_q_to_p(q1, parameters);
+                  double const p2 = convert_q_to_p(q2, parameters);
                   double p3 = 0.0;
 
                   /* how to compute the new quality score? */
@@ -669,7 +669,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   // always best quality possible, perfect, no errors */
                   // p3 = 0.0;
 
-                  int const q3 = convert_p_to_q(p3);
+                  int const q3 = convert_p_to_q(p3, parameters);
                   bp->qual[i] = q3;
                 }
             }
