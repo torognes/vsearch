@@ -2488,10 +2488,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_cut:
           opt_cut = optarg;
+          parameters.opt_cut = optarg;
           break;
 
         case option_cut_pattern:
           opt_cut_pattern = optarg;
+          parameters.opt_cut_pattern = optarg;
           break;
 
         case option_relabel_self:
@@ -5980,7 +5982,7 @@ auto main(int argc, char** argv) -> int
     {
       fastx_getsubseq();
     }
-  else if (opt_cut)
+  else if (parameters.opt_cut)
     {
       cut();
     }

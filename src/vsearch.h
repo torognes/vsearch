@@ -518,6 +518,8 @@ constexpr int64_t default_max_quality = 41;
 constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 
 struct Parameters {
+  char * opt_cut = nullptr;
+  char * opt_cut_pattern = nullptr;
   char * opt_derep_fulllength = nullptr;
   char * opt_derep_id = nullptr;
   char * opt_derep_prefix = nullptr;
