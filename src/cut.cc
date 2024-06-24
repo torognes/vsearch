@@ -350,7 +350,8 @@ auto cut(struct Parameters const & parameters) -> void
         }
       else if (chrmap_4bit[(unsigned int) x])
         {
-          pattern[j++] = x;
+          pattern[j] = x;
+          ++j;
         }
       else
         {
