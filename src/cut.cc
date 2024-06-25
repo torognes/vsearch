@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cassert>
 #include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -289,11 +290,7 @@ auto cut(struct Parameters const & parameters) -> void
   ouput.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
 
   fastx_handle h = fasta_open(parameters.opt_cut);
-
-  if (not h)
-    {
-      fatal("Unrecognized file type (not proper FASTA format)");  // unreachable
-    }
+  assert(h != nullptr);  // verified by fasta_open()
 
   auto const filesize = fasta_get_size(h);
 
@@ -339,11 +336,7 @@ auto cut(struct Parameters const & parameters) -> void
     }
 
   char * pattern = parameters.opt_cut_pattern;
-
-  if (pattern == nullptr)
-    {
-      fatal("No cut pattern string specified with --cut_pattern");  // unreachable
-    }
+  assert(pattern != nullptr);  // verified by <getopt.h>
 
   int const n = strlen(pattern);
 
