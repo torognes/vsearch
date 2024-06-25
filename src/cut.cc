@@ -70,6 +70,22 @@ static uint64_t fragment_rev_no = 0;
 static uint64_t fragment_discarded_no = 0;
 static uint64_t fragment_discarded_rev_no = 0;
 
+struct a_file {
+  char * name = nullptr;
+  std::FILE * handle = nullptr;
+};
+
+struct a_strand {
+  a_file forward;
+  a_file reverse;
+};
+
+struct file_purpose {
+  a_strand kept;
+  a_strand discarded;
+};
+
+
 auto cut_one(fastx_handle h,
             std::FILE * fp_fastaout,
             std::FILE * fp_fastaout_discarded,
@@ -249,15 +265,28 @@ auto cut_one(fastx_handle h,
   return matches;
 }
 
-auto cut(struct Parameters const & parameters) -> void
+
+auto ckeck_if_output_is_set(struct Parameters const & parameters) -> void
 {
-  if ((not parameters.opt_fastaout) and
-      (not parameters.opt_fastaout_discarded) and
-      (not parameters.opt_fastaout_rev) and
-      (not parameters.opt_fastaout_discarded_rev))
+  if ((parameters.opt_fastaout == nullptr) and
+      (parameters.opt_fastaout_discarded == nullptr) and
+      (parameters.opt_fastaout_rev == nullptr) and
+      (parameters.opt_fastaout_discarded_rev == nullptr))
     {
       fatal("No output files specified");
     }
+}
+
+
+auto cut(struct Parameters const & parameters) -> void
+{
+  ckeck_if_output_is_set(parameters);
+
+  struct file_purpose ouput;
+  ouput.kept.forward.name = parameters.opt_fastaout;
+  ouput.discarded.forward.name = parameters.opt_fastaout_discarded;
+  ouput.kept.reverse.name = parameters.opt_fastaout_rev;
+  ouput.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
 
   fastx_handle h = fasta_open(parameters.opt_cut);
 
