@@ -127,7 +127,7 @@ auto cut_one(fastx_handle input_handle,
       auto match = true;
       for (int j = 0; j < pattern_length; j++)
         {
-          if ((chrmap_4bit[(unsigned char) (restriction.pattern[j])] &
+          if ((restriction.coded_pattern[j] &
                chrmap_4bit[(unsigned char) (seq[i + j])]) == 0)
             {
               match = false;
