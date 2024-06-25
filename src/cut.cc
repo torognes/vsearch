@@ -283,11 +283,11 @@ auto cut(struct Parameters const & parameters) -> void
 {
   ckeck_if_output_is_set(parameters);
 
-  struct file_purpose ouput;
-  ouput.kept.forward.name = parameters.opt_fastaout;
-  ouput.discarded.forward.name = parameters.opt_fastaout_discarded;
-  ouput.kept.reverse.name = parameters.opt_fastaout_rev;
-  ouput.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
+  struct file_purpose fastaout;
+  fastaout.kept.forward.name = parameters.opt_fastaout;
+  fastaout.discarded.forward.name = parameters.opt_fastaout_discarded;
+  fastaout.kept.reverse.name = parameters.opt_fastaout_rev;
+  fastaout.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
 
   fastx_handle h = fasta_open(parameters.opt_cut);
   assert(h != nullptr);  // verified by fasta_open()
