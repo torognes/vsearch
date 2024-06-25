@@ -88,13 +88,13 @@ struct file_purpose {
 
 
 auto cut_one(fastx_handle h,
-            std::FILE * fp_fastaout,
-            std::FILE * fp_fastaout_discarded,
-            std::FILE * fp_fastaout_rev,
-            std::FILE * fp_fastaout_discarded_rev,
-            char * pattern,
-            int pattern_length,
-            int cut_fwd,
+             std::FILE * fp_fastaout,
+             std::FILE * fp_fastaout_discarded,
+             std::FILE * fp_fastaout_rev,
+             std::FILE * fp_fastaout_discarded_rev,
+             char * pattern,
+             int pattern_length,
+             int cut_fwd,
              int cut_rev,
              struct Parameters const & parameters) -> int64_t
 {
