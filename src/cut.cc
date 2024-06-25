@@ -353,7 +353,7 @@ auto cut(struct Parameters const & parameters) -> void
   char * pattern = parameters.opt_cut_pattern;
   assert(pattern != nullptr);  // verified by <getopt.h>
 
-  int const pattern_length = strlen(pattern);
+  auto const pattern_length = static_cast<int>(strlen(pattern));
 
   if (pattern_length == 0)
     {
