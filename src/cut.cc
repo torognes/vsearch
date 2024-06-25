@@ -96,7 +96,7 @@ struct file_purpose {
 
 
 auto cut_one(fastx_handle input_handle,
-             char * pattern,
+             char const * pattern,
              int pattern_length,
              int cut_fwd,
              int cut_rev,
@@ -438,7 +438,7 @@ auto cut(struct Parameters const & parameters) -> void
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
-                                   pattern,
+                                   pattern_s.c_str(),
                                    pattern_length - 2,
                                    cut_fwd,
                                    cut_rev,
