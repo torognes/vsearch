@@ -64,6 +64,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strlen
+#include <vector>
 
 
 struct statistics {
@@ -103,7 +104,8 @@ auto cut_one(fastx_handle input_handle,
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
 
   /* get reverse complement */
-  char * rc_buffer = (char *) xmalloc(seq_length + 1);
+  std::vector<char> rc_buffer_v(seq_length + 1);
+  char * rc_buffer = rc_buffer_v.data();
   reverse_complement(rc_buffer, seq, seq_length);
 
   int frag_start = 0;
@@ -262,8 +264,6 @@ auto cut_one(fastx_handle input_handle,
                               0.0);
         }
     }
-
-  xfree(rc_buffer);
 
   return matches;
 }
