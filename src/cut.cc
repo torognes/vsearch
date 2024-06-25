@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
-#include <algorithm>  // std::count
+#include <algorithm>  // std::count, std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -364,6 +364,16 @@ auto remove_restriction_sites(std::string & pattern) -> void {
   pattern.erase(circumflex_position, 1);
   auto const underscore_position = pattern.find('_');
   pattern.erase(underscore_position, 1);
+}
+
+
+auto search_illegal_characters(std::string const & pattern) -> void {
+  auto character_is_illegal = [](char const & character) {
+    if (chrmap_4bit[static_cast<unsigned int>(character)] == 0) {
+      fatal("Illegal character in cut pattern");
+    }
+  };
+  std::for_each(pattern.cbegin(), pattern.cend(), character_is_illegal);
 }
 
 
