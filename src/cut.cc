@@ -101,8 +101,8 @@ auto cut_one(fastx_handle input_handle,
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
 
   /* get reverse complement */
-  char * rc = (char *) xmalloc(seq_length + 1);
-  reverse_complement(rc, seq, seq_length);
+  char * rc_buffer = (char *) xmalloc(seq_length + 1);
+  reverse_complement(rc_buffer, seq, seq_length);
 
   int frag_start = 0;
   int frag_length = seq_length;
@@ -159,7 +159,7 @@ auto cut_one(fastx_handle input_handle,
                 {
                   fasta_print_general(fastaout.cut.reverse.handle,
                                       nullptr,
-                                      rc + rc_start,
+                                      rc_buffer + rc_start,
                                       rc_length,
                                       fasta_get_header(input_handle),
                                       fasta_get_header_length(input_handle),
@@ -210,7 +210,7 @@ auto cut_one(fastx_handle input_handle,
             {
               fasta_print_general(fastaout.cut.reverse.handle,
                                   nullptr,
-                                  rc + rc_start,
+                                  rc_buffer + rc_start,
                                   rc_length,
                                   fasta_get_header(input_handle),
                                   fasta_get_header_length(input_handle),
@@ -247,7 +247,7 @@ auto cut_one(fastx_handle input_handle,
         {
           fasta_print_general(fastaout.discarded.reverse.handle,
                               nullptr,
-                              rc,
+                              rc_buffer,
                               seq_length,
                               fasta_get_header(input_handle),
                               fasta_get_header_length(input_handle),
@@ -261,7 +261,7 @@ auto cut_one(fastx_handle input_handle,
         }
     }
 
-  xfree(rc);
+  xfree(rc_buffer);
 
   return matches;
 }
