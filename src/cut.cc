@@ -105,8 +105,7 @@ auto cut_one(fastx_handle input_handle,
 
   /* get reverse complement */
   std::vector<char> rc_buffer_v(seq_length + 1);
-  char * rc_buffer = rc_buffer_v.data();
-  reverse_complement(rc_buffer, seq, seq_length);
+  reverse_complement(rc_buffer_v.data(), seq, seq_length);
 
   int frag_start = 0;
   int frag_length = seq_length;
@@ -163,7 +162,7 @@ auto cut_one(fastx_handle input_handle,
                 {
                   fasta_print_general(fastaout.cut.reverse.handle,
                                       nullptr,
-                                      rc_buffer + rc_start,
+                                      rc_buffer_v.data() + rc_start,
                                       rc_length,
                                       fasta_get_header(input_handle),
                                       fasta_get_header_length(input_handle),
@@ -214,7 +213,7 @@ auto cut_one(fastx_handle input_handle,
             {
               fasta_print_general(fastaout.cut.reverse.handle,
                                   nullptr,
-                                  rc_buffer + rc_start,
+                                  rc_buffer_v.data() + rc_start,
                                   rc_length,
                                   fasta_get_header(input_handle),
                                   fasta_get_header_length(input_handle),
@@ -251,7 +250,7 @@ auto cut_one(fastx_handle input_handle,
         {
           fasta_print_general(fastaout.discarded.reverse.handle,
                               nullptr,
-                              rc_buffer,
+                              rc_buffer_v.data(),
                               seq_length,
                               fasta_get_header(input_handle),
                               fasta_get_header_length(input_handle),
