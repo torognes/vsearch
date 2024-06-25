@@ -60,11 +60,13 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
+#include <algorithm>  // std::count
 #include <cassert>
 #include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strlen
+#include <string>
 #include <vector>
 
 
@@ -321,6 +323,28 @@ auto check_output_files(struct file_purpose const & fastaout) -> void {
 }
 
 
+auto check_if_contains_circumflex(std::string const & pattern) -> void {
+  auto const occurrences = std::count(pattern.cbegin(), pattern.cend(), '^');
+  if (occurrences == 0) {
+    fatal("No forward sequence cut site (^) found in pattern");
+  }
+  if (occurrences > 1) {
+    fatal("Multiple cut sites not supported");
+  }
+}
+
+
+auto check_if_contains_underscore(std::string const & pattern) -> void {
+  auto const occurrences = std::count(pattern.cbegin(), pattern.cend(), '_');
+  if (occurrences == 0) {
+    fatal("No reverse sequence cut site (_) found in pattern");
+  }
+  if (occurrences > 1) {
+    fatal("Multiple cut sites not supported");
+  }
+}
+
+
 auto close_output_files(struct file_purpose const & fastaout) -> void {
   for (auto * fp_outputfile : {
            fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
@@ -351,12 +375,22 @@ auto cut(struct Parameters const & parameters) -> void
   open_output_files(fastaout);
   check_output_files(fastaout);
 
-  char * pattern = parameters.opt_cut_pattern;
+  std::string pattern_s = parameters.opt_cut_pattern;
+  auto * pattern = const_cast<char *>(parameters.opt_cut_pattern.c_str());
   assert(pattern != nullptr);  // verified by <getopt.h>
+
+  // checks
+  check_if_contains_circumflex(pattern_s);
+  check_if_contains_underscore(pattern_s);
+
+  // auto coordinate = pattern_s.find('^');
+  // if (coordinate == std::string::npos) {
+  //   fatal("No forward sequence cut site (^) found in pattern");
+  // }
 
   auto const pattern_length = static_cast<int>(strlen(pattern));
 
-  if (pattern_length == 0)
+  if (pattern_s.empty())
     {
       fatal("Empty cut pattern string");
     }
