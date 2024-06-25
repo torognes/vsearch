@@ -359,6 +359,14 @@ auto locate_reverse_restriction_site(std::string pattern) -> int {
 }
 
 
+auto remove_restriction_sites(std::string & pattern) -> void {
+  auto const circumflex_position = pattern.find('^');
+  pattern.erase(circumflex_position, 1);
+  auto const underscore_position = pattern.find('_');
+  pattern.erase(underscore_position, 1);
+}
+
+
 auto close_output_files(struct file_purpose const & fastaout) -> void {
   for (auto * fp_outputfile : {
            fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
