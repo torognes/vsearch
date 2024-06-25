@@ -408,8 +408,7 @@ auto cut(struct Parameters const & parameters) -> void
   check_output_files(fastaout);
 
   std::string pattern_s = parameters.opt_cut_pattern;
-  auto * pattern = const_cast<char *>(parameters.opt_cut_pattern.c_str());
-  assert(pattern != nullptr);  // verified by <getopt.h>
+  // assert(pattern != nullptr);  // verified by <getopt.h>
 
   // check for the expected number of restriction sites
   check_if_contains_circumflex(pattern_s);
@@ -419,34 +418,13 @@ auto cut(struct Parameters const & parameters) -> void
   auto const cut_fwd = locate_forward_restriction_site(pattern_s);
   auto const cut_rev = locate_reverse_restriction_site(pattern_s);
 
-  auto const pattern_length = static_cast<int>(strlen(pattern));
+  remove_restriction_sites(pattern_s);
+
+  search_illegal_characters(pattern_s);
 
   if (pattern_s.empty())
     {
       fatal("Empty cut pattern string");
-    }
-
-  int j = 0;  // number of nucleotides (pattern minus cutting sites)
-  for (int i = 0; i < pattern_length ; i++)
-    {
-      unsigned char const x = pattern[i];
-      if (x == '^')
-        {
-          continue;
-        }
-      else if (x == '_')
-        {
-          continue;
-        }
-      else if (chrmap_4bit[(unsigned int) x] != 0)
-        {
-          pattern[j] = x;
-          ++j;
-        }
-      else
-        {
-          fatal("Illegal character in cut pattern");
-        }
     }
 
   progress_init("Cutting sequences", filesize);
@@ -457,7 +435,7 @@ auto cut(struct Parameters const & parameters) -> void
     {
       auto const a_match = cut_one(input_handle,
                                    pattern_s.c_str(),
-                                   pattern_length - 2,
+                                   pattern_s.size(),
                                    cut_fwd,
                                    cut_rev,
                                    fastaout,
