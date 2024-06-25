@@ -96,8 +96,8 @@ struct file_purpose {
 
 struct restriction_pattern {
   std::string pattern;
-  int cut_fwd = -1;
-  int cut_rev = -1;
+  int cut_fwd;
+  int cut_rev;
 };
 
 
