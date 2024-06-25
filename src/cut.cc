@@ -92,7 +92,7 @@ auto cut_one(fastx_handle h,
              int pattern_length,
              int cut_fwd,
              int cut_rev,
-             struct file_purpose & fastaout) -> int64_t
+             struct file_purpose const & fastaout) -> int64_t
 {
   char * seq  = fasta_get_sequence(h);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(h));
