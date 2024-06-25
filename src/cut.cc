@@ -422,16 +422,16 @@ auto cut(struct Parameters const & parameters) -> void
   check_if_contains_circumflex(pattern_s);
   check_if_contains_underscore(pattern_s);
 
-  // locate restriction sites
-  auto const cut_fwd = locate_forward_restriction_site(pattern_s);
-  auto const cut_rev = locate_reverse_restriction_site(pattern_s);
+  // locate restriction sites and trim pattern
+  struct restriction_pattern const restriction = {
+    remove_restriction_sites(pattern_s),
+    locate_forward_restriction_site(pattern_s),
+    locate_reverse_restriction_site(pattern_s)
+  };
 
-  auto const trimmed_pattern = remove_restriction_sites(pattern_s);
-  struct restriction_pattern restriction;
+  search_illegal_characters(restriction.pattern);
 
-  search_illegal_characters(trimmed_pattern);
-
-  if (trimmed_pattern.empty())
+  if (restriction.pattern.empty())
     {
       fatal("Empty cut pattern string");
     }
@@ -443,9 +443,9 @@ auto cut(struct Parameters const & parameters) -> void
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
-                                   trimmed_pattern,
-                                   cut_fwd,
-                                   cut_rev,
+                                   restriction.pattern,
+                                   restriction.cut_fwd,
+                                   restriction.cut_rev,
                                    fastaout,
                                    counters);
       matches += a_match;
