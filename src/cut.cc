@@ -67,6 +67,7 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strlen
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 
@@ -373,7 +374,7 @@ auto remove_restriction_sites(std::string pattern) -> std::string {
 
 
 auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
-  auto pattern = remove_restriction_sites(raw_pattern);
+  auto pattern = remove_restriction_sites(std::move(raw_pattern));
   auto encode_characters = [](char const & character) {
     auto const unsigned_character = static_cast<unsigned char>(character);
     return chrmap_4bit_array[static_cast<unsigned int>(unsigned_character)];
