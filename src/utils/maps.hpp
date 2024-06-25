@@ -95,7 +95,7 @@ const std::array<unsigned char, 256> chrmap_no_change_array = {
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'};
 
 
-const std::array<unsigned int, 256> chrmap_4bit_array =
+const std::array<unsigned char, 256> chrmap_4bit_array =
   {
     /*
       Map from ascii to 4-bit nucleotide code
