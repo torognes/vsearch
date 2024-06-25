@@ -341,10 +341,10 @@ auto cut(struct Parameters const & parameters) -> void
   fastaout.cut.reverse.name = parameters.opt_fastaout_rev;
   fastaout.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
 
-  fastx_handle h = fasta_open(parameters.opt_cut);
-  assert(h != nullptr);  // verified by fasta_open()
+  fastx_handle input_handle = fasta_open(parameters.opt_cut);
+  assert(input_handle != nullptr);  // verified by fasta_open()
 
-  auto const filesize = fasta_get_size(h);
+  auto const filesize = fasta_get_size(input_handle);
 
   open_output_files(fastaout);
   check_output_files(fastaout);
@@ -411,9 +411,9 @@ auto cut(struct Parameters const & parameters) -> void
   int64_t uncut = 0;
   int64_t matches = 0;
 
-  while (fasta_next(h, false, chrmap_no_change))
+  while (fasta_next(input_handle, false, chrmap_no_change))
     {
-      auto const a_match = cut_one(h,
+      auto const a_match = cut_one(input_handle,
                                    pattern,
                                    pattern_length - 2,
                                    cut_fwd,
@@ -430,7 +430,7 @@ auto cut(struct Parameters const & parameters) -> void
           ++uncut;
         }
 
-      progress_update(fasta_get_position(h));
+      progress_update(fasta_get_position(input_handle));
     }
 
   progress_done();
@@ -450,5 +450,5 @@ auto cut(struct Parameters const & parameters) -> void
     }
 
   close_output_files(fastaout);
-  fasta_close(h);
+  fasta_close(input_handle);
 }
