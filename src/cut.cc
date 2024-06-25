@@ -72,10 +72,10 @@
 
 
 struct statistics {
-  uint64_t fragment_no = 0;
-  uint64_t fragment_rev_no = 0;
-  uint64_t fragment_discarded_no = 0;
-  uint64_t fragment_discarded_rev_no = 0;
+  int fragment_no = 0;
+  int fragment_rev_no = 0;
+  int fragment_discarded_no = 0;
+  int fragment_discarded_rev_no = 0;
   int64_t cut = 0;
   int64_t uncut = 0;
 };
