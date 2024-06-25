@@ -105,7 +105,7 @@ auto cut_one(fastx_handle input_handle,
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
 
   /* get reverse complement */
-  std::vector<char> rc_buffer_v(seq_length + 1);
+  std::vector<char> rc_buffer_v(seq_length + 1);  // refactoring: static with resize?
   reverse_complement(rc_buffer_v.data(), seq, seq_length);
 
   int frag_start = 0;
