@@ -82,7 +82,7 @@ struct a_strand {
 };
 
 struct file_purpose {
-  a_strand kept;
+  a_strand cut;
   a_strand discarded;
 };
 
@@ -135,7 +135,7 @@ auto cut_one(fastx_handle h,
             {
               if (parameters.opt_fastaout)
                 {
-                  fasta_print_general(fastaout.kept.forward.handle,
+                  fasta_print_general(fastaout.cut.forward.handle,
                                       nullptr,
                                       fasta_get_sequence(h) + frag_start,
                                       frag_length,
@@ -155,7 +155,7 @@ auto cut_one(fastx_handle h,
             {
               if (parameters.opt_fastaout_rev)
                 {
-                  fasta_print_general(fastaout.kept.reverse.handle,
+                  fasta_print_general(fastaout.cut.reverse.handle,
                                       nullptr,
                                       rc + rc_start,
                                       rc_length,
@@ -183,7 +183,7 @@ auto cut_one(fastx_handle h,
         {
           if (parameters.opt_fastaout)
             {
-              fasta_print_general(fastaout.kept.forward.handle,
+              fasta_print_general(fastaout.cut.forward.handle,
                                   nullptr,
                                   fasta_get_sequence(h) + frag_start,
                                   frag_length,
@@ -206,7 +206,7 @@ auto cut_one(fastx_handle h,
         {
           if (parameters.opt_fastaout_rev)
             {
-              fasta_print_general(fastaout.kept.reverse.handle,
+              fasta_print_general(fastaout.cut.reverse.handle,
                                   nullptr,
                                   rc + rc_start,
                                   rc_length,
@@ -278,14 +278,14 @@ auto ckeck_if_output_is_set(struct Parameters const & parameters) -> void
 
 
 auto open_output_files(struct file_purpose & fastaout) -> void {
-  if (fastaout.kept.forward.name != nullptr) {
-    fastaout.kept.forward.handle = fopen_output(fastaout.kept.forward.name);
+  if (fastaout.cut.forward.name != nullptr) {
+    fastaout.cut.forward.handle = fopen_output(fastaout.cut.forward.name);
   }
   if (fastaout.discarded.forward.name != nullptr) {
     fastaout.discarded.forward.handle = fopen_output(fastaout.discarded.forward.name);
   }
-  if (fastaout.kept.reverse.name != nullptr) {
-    fastaout.kept.reverse.handle = fopen_output(fastaout.kept.reverse.name);
+  if (fastaout.cut.reverse.name != nullptr) {
+    fastaout.cut.reverse.handle = fopen_output(fastaout.cut.reverse.name);
   }
   if (fastaout.discarded.reverse.name != nullptr) {
     fastaout.discarded.reverse.handle = fopen_output(fastaout.discarded.reverse.name);
@@ -294,8 +294,8 @@ auto open_output_files(struct file_purpose & fastaout) -> void {
 
 
 auto check_output_files(struct file_purpose const & fastaout) -> void {
-  if (fastaout.kept.forward.name != nullptr) {
-    if (fastaout.kept.forward.handle == nullptr) {
+  if (fastaout.cut.forward.name != nullptr) {
+    if (fastaout.cut.forward.handle == nullptr) {
       fatal("Unable to open FASTA output file for writing");
     }
   }
@@ -304,8 +304,8 @@ auto check_output_files(struct file_purpose const & fastaout) -> void {
       fatal("Unable to open FASTA output file for writing");
     }
   }
-  if (fastaout.kept.reverse.name != nullptr) {
-    if (fastaout.kept.reverse.handle == nullptr) {
+  if (fastaout.cut.reverse.name != nullptr) {
+    if (fastaout.cut.reverse.handle == nullptr) {
       fatal("Unable to open FASTQ output file for writing");
     }
   }
@@ -319,8 +319,8 @@ auto check_output_files(struct file_purpose const & fastaout) -> void {
 
 auto close_output_files(struct file_purpose const & fastaout) -> void {
   for (auto * fp_outputfile : {
-           fastaout.kept.forward.handle, fastaout.discarded.forward.handle,
-           fastaout.kept.reverse.handle, fastaout.discarded.reverse.handle}) {
+           fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
+           fastaout.cut.reverse.handle, fastaout.discarded.reverse.handle}) {
     if (fp_outputfile != nullptr) {
       static_cast<void>(std::fclose(fp_outputfile));
     }
@@ -333,9 +333,9 @@ auto cut(struct Parameters const & parameters) -> void
   ckeck_if_output_is_set(parameters);
 
   struct file_purpose fastaout;
-  fastaout.kept.forward.name = parameters.opt_fastaout;
+  fastaout.cut.forward.name = parameters.opt_fastaout;
   fastaout.discarded.forward.name = parameters.opt_fastaout_discarded;
-  fastaout.kept.reverse.name = parameters.opt_fastaout_rev;
+  fastaout.cut.reverse.name = parameters.opt_fastaout_rev;
   fastaout.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
 
   fastx_handle h = fasta_open(parameters.opt_cut);
