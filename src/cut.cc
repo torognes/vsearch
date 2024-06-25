@@ -92,7 +92,6 @@ auto cut_one(fastx_handle h,
              int pattern_length,
              int cut_fwd,
              int cut_rev,
-             struct Parameters const & parameters,
              struct file_purpose & fastaout) -> int64_t
 {
   char * seq  = fasta_get_sequence(h);
@@ -133,7 +132,7 @@ auto cut_one(fastx_handle h,
 
           if (frag_length > 0)
             {
-              if (parameters.opt_fastaout)
+              if (fastaout.cut.forward.name != nullptr)
                 {
                   fasta_print_general(fastaout.cut.forward.handle,
                                       nullptr,
@@ -153,7 +152,7 @@ auto cut_one(fastx_handle h,
 
           if (rc_length > 0)
             {
-              if (parameters.opt_fastaout_rev)
+              if (fastaout.cut.reverse.name != nullptr)
                 {
                   fasta_print_general(fastaout.cut.reverse.handle,
                                       nullptr,
@@ -181,7 +180,7 @@ auto cut_one(fastx_handle h,
 
       if (frag_length > 0)
         {
-          if (parameters.opt_fastaout)
+          if (fastaout.cut.forward.name != nullptr)
             {
               fasta_print_general(fastaout.cut.forward.handle,
                                   nullptr,
@@ -204,7 +203,7 @@ auto cut_one(fastx_handle h,
 
       if (rc_length > 0)
         {
-          if (parameters.opt_fastaout_rev)
+          if (fastaout.cut.reverse.name != nullptr)
             {
               fasta_print_general(fastaout.cut.reverse.handle,
                                   nullptr,
@@ -224,7 +223,7 @@ auto cut_one(fastx_handle h,
     }
   else
     {
-      if (parameters.opt_fastaout_discarded)
+      if (fastaout.discarded.forward.name != nullptr)
         {
           fasta_print_general(fastaout.discarded.forward.handle,
                               nullptr,
@@ -241,7 +240,7 @@ auto cut_one(fastx_handle h,
                               0.0);
         }
 
-      if (parameters.opt_fastaout_discarded_rev)
+      if (fastaout.discarded.reverse.name != nullptr)
         {
           fasta_print_general(fastaout.discarded.reverse.handle,
                               nullptr,
@@ -415,7 +414,6 @@ auto cut(struct Parameters const & parameters) -> void
                                    n - 2,
                                    cut_fwd,
                                    cut_rev,
-                                   parameters,
                                    fastaout);
       matches += a_match;
       if (a_match > 0)
