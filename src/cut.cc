@@ -95,7 +95,8 @@ auto cut_one(fastx_handle h,
             char * pattern,
             int pattern_length,
             int cut_fwd,
-            int cut_rev) -> int64_t
+             int cut_rev,
+             struct Parameters const & parameters) -> int64_t
 {
   char * seq  = fasta_get_sequence(h);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(h));
@@ -135,7 +136,7 @@ auto cut_one(fastx_handle h,
 
           if (frag_length > 0)
             {
-              if (opt_fastaout)
+              if (parameters.opt_fastaout)
                 {
                   fasta_print_general(fp_fastaout,
                                       nullptr,
@@ -155,7 +156,7 @@ auto cut_one(fastx_handle h,
 
           if (rc_length > 0)
             {
-              if (opt_fastaout_rev)
+              if (parameters.opt_fastaout_rev)
                 {
                   fasta_print_general(fp_fastaout_rev,
                                       nullptr,
@@ -183,7 +184,7 @@ auto cut_one(fastx_handle h,
 
       if (frag_length > 0)
         {
-          if (opt_fastaout)
+          if (parameters.opt_fastaout)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -206,7 +207,7 @@ auto cut_one(fastx_handle h,
 
       if (rc_length > 0)
         {
-          if (opt_fastaout_rev)
+          if (parameters.opt_fastaout_rev)
             {
               fasta_print_general(fp_fastaout_rev,
                                   nullptr,
@@ -226,7 +227,7 @@ auto cut_one(fastx_handle h,
     }
   else
     {
-      if (opt_fastaout_discarded)
+      if (parameters.opt_fastaout_discarded)
         {
           fasta_print_general(fp_fastaout_discarded,
                               nullptr,
@@ -243,7 +244,7 @@ auto cut_one(fastx_handle h,
                               0.0);
         }
 
-      if (opt_fastaout_discarded_rev)
+      if (parameters.opt_fastaout_discarded_rev)
         {
           fasta_print_general(fp_fastaout_discarded_rev,
                               nullptr,
@@ -407,7 +408,8 @@ auto cut(struct Parameters const & parameters) -> void
                                    pattern,
                                    n - 2,
                                    cut_fwd,
-                                   cut_rev);
+                                   cut_rev,
+                                   parameters);
       matches += a_match;
       if (a_match > 0)
         {
