@@ -66,10 +66,12 @@
 #include <cstring>  // std::strlen
 
 
-static uint64_t fragment_no = 0;
-static uint64_t fragment_rev_no = 0;
-static uint64_t fragment_discarded_no = 0;
-static uint64_t fragment_discarded_rev_no = 0;
+struct statistics {
+  uint64_t fragment_no = 0;
+  uint64_t fragment_rev_no = 0;
+  uint64_t fragment_discarded_no = 0;
+  uint64_t fragment_discarded_rev_no = 0;
+};
 
 struct a_file {
   char * name = nullptr;
@@ -92,7 +94,8 @@ auto cut_one(fastx_handle input_handle,
              int pattern_length,
              int cut_fwd,
              int cut_rev,
-             struct file_purpose const & fastaout) -> int64_t
+             struct file_purpose const & fastaout,
+             struct statistics & counters) -> int64_t
 {
   char * seq  = fasta_get_sequence(input_handle);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
@@ -141,7 +144,7 @@ auto cut_one(fastx_handle input_handle,
                                       fasta_get_header(input_handle),
                                       fasta_get_header_length(input_handle),
                                       fasta_get_abundance(input_handle),
-                                      ++fragment_no,
+                                      ++counters.fragment_no,
                                       -1.0,
                                       -1,
                                       -1,
@@ -161,7 +164,7 @@ auto cut_one(fastx_handle input_handle,
                                       fasta_get_header(input_handle),
                                       fasta_get_header_length(input_handle),
                                       fasta_get_abundance(input_handle),
-                                      ++fragment_rev_no,
+                                      ++counters.fragment_rev_no,
                                       -1.0,
                                       -1,
                                       -1,
@@ -189,7 +192,7 @@ auto cut_one(fastx_handle input_handle,
                                   fasta_get_header(input_handle),
                                   fasta_get_header_length(input_handle),
                                   fasta_get_abundance(input_handle),
-                                  ++fragment_no,
+                                  ++counters.fragment_no,
                                   -1.0,
                                   -1,
                                   -1,
@@ -212,7 +215,7 @@ auto cut_one(fastx_handle input_handle,
                                   fasta_get_header(input_handle),
                                   fasta_get_header_length(input_handle),
                                   fasta_get_abundance(input_handle),
-                                  ++fragment_rev_no,
+                                  ++counters.fragment_rev_no,
                                   -1.0,
                                   -1,
                                   -1,
@@ -232,7 +235,7 @@ auto cut_one(fastx_handle input_handle,
                               fasta_get_header(input_handle),
                               fasta_get_header_length(input_handle),
                               fasta_get_abundance(input_handle),
-                              ++fragment_discarded_no,
+                              ++counters.fragment_discarded_no,
                               -1.0,
                               -1,
                               -1,
@@ -249,7 +252,7 @@ auto cut_one(fastx_handle input_handle,
                               fasta_get_header(input_handle),
                               fasta_get_header_length(input_handle),
                               fasta_get_abundance(input_handle),
-                              ++fragment_discarded_rev_no,
+                              ++counters.fragment_discarded_rev_no,
                               -1.0,
                               -1,
                               -1,
@@ -331,6 +334,7 @@ auto cut(struct Parameters const & parameters) -> void
 {
   ckeck_if_output_is_set(parameters);
 
+  struct statistics counters;
   struct file_purpose fastaout;
   fastaout.cut.forward.name = parameters.opt_fastaout;
   fastaout.discarded.forward.name = parameters.opt_fastaout_discarded;
@@ -414,7 +418,8 @@ auto cut(struct Parameters const & parameters) -> void
                                    n - 2,
                                    cut_fwd,
                                    cut_rev,
-                                   fastaout);
+                                   fastaout,
+                                   counters);
       matches += a_match;
       if (a_match > 0)
         {
