@@ -442,7 +442,7 @@ auto cut(struct Parameters const & parameters) -> void
               cut, matches, uncut);
     }
 
-  if (parameters.opt_log)
+  if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
