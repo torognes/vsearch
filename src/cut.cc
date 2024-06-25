@@ -370,7 +370,8 @@ auto remove_restriction_sites(std::string & pattern) -> void {
 
 auto search_illegal_characters(std::string const & pattern) -> void {
   auto character_is_illegal = [](char const & character) {
-    if (chrmap_4bit[static_cast<unsigned int>(character)] == 0) {
+    auto const unsigned_character = static_cast<unsigned char>(character);
+    if (chrmap_4bit[static_cast<unsigned int>(unsigned_character)] == 0) {
       fatal("Illegal character in cut pattern");
     }
   };
