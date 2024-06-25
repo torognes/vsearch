@@ -109,8 +109,9 @@ auto cut_one(fastx_handle input_handle,
              struct statistics & counters) -> int64_t
 {
   auto const pattern_length = static_cast<int>(restriction.pattern.size());
-  char * seq  = fasta_get_sequence(input_handle);
+  char * seq = fasta_get_sequence(input_handle);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
+  // refactoring: use transform to create a coded std::string and find() to search for pattern occurrences
 
   /* get reverse complement */
   std::vector<char> rc_buffer_v(seq_length + 1);  // refactoring: static with resize?
