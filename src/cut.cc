@@ -366,11 +366,11 @@ auto locate_reverse_restriction_site(std::string pattern) -> int {
 }
 
 
-auto remove_restriction_sites(std::string & pattern) -> void {
+auto remove_restriction_sites(std::string pattern) -> std::string {
   auto const circumflex_position = pattern.find('^');
   pattern.erase(circumflex_position, 1);
   auto const underscore_position = pattern.find('_');
-  pattern.erase(underscore_position, 1);
+  return pattern.erase(underscore_position, 1);
 }
 
 
@@ -426,11 +426,12 @@ auto cut(struct Parameters const & parameters) -> void
   auto const cut_fwd = locate_forward_restriction_site(pattern_s);
   auto const cut_rev = locate_reverse_restriction_site(pattern_s);
 
-  remove_restriction_sites(pattern_s);
+  auto const trimmed_pattern = remove_restriction_sites(pattern_s);
+  struct restriction_pattern restriction;
 
-  search_illegal_characters(pattern_s);
+  search_illegal_characters(trimmed_pattern);
 
-  if (pattern_s.empty())
+  if (trimmed_pattern.empty())
     {
       fatal("Empty cut pattern string");
     }
@@ -442,7 +443,7 @@ auto cut(struct Parameters const & parameters) -> void
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
-                                   pattern_s,
+                                   trimmed_pattern,
                                    cut_fwd,
                                    cut_rev,
                                    fastaout,
