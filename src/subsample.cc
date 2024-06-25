@@ -147,7 +147,7 @@ auto open_output_files(struct file_types & ouput_files) -> void {
 }
 
 
-auto abort_if_fastq_out_of_fasta(struct file_types const &ouput_files) -> void {
+auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files) -> void {
   auto const output_is_fastq = (ouput_files.fastq.kept.handle != nullptr
                                 or ouput_files.fastq.lost.handle != nullptr);
   auto const input_is_fasta = not db_is_fastq();
