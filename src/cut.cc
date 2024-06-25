@@ -71,6 +71,8 @@ struct statistics {
   uint64_t fragment_rev_no = 0;
   uint64_t fragment_discarded_no = 0;
   uint64_t fragment_discarded_rev_no = 0;
+  int64_t cut = 0;
+  int64_t uncut = 0;
 };
 
 struct a_file {
@@ -407,8 +409,6 @@ auto cut(struct Parameters const & parameters) -> void
 
   progress_init("Cutting sequences", filesize);
 
-  int64_t cut = 0;
-  int64_t uncut = 0;
   int64_t matches = 0;
 
   while (fasta_next(input_handle, false, chrmap_no_change))
@@ -423,11 +423,11 @@ auto cut(struct Parameters const & parameters) -> void
       matches += a_match;
       if (a_match > 0)
         {
-          ++cut;
+          ++counters.cut;
         }
       else
         {
-          ++uncut;
+          ++counters.uncut;
         }
 
       progress_update(fasta_get_position(input_handle));
@@ -439,14 +439,14 @@ auto cut(struct Parameters const & parameters) -> void
     {
       static_cast<void>(std::fprintf(stderr,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                     cut, matches, uncut));
+                                     counters.cut, matches, counters.uncut));
     }
 
   if (parameters.opt_log != nullptr)
     {
       static_cast<void>(std::fprintf(fp_log,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                     cut, matches, uncut));
+                                     counters.cut, matches, counters.uncut));
     }
 
   close_output_files(fastaout);
