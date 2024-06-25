@@ -371,6 +371,18 @@ auto remove_restriction_sites(std::string pattern) -> std::string {
 }
 
 
+auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
+  auto pattern = remove_restriction_sites(raw_pattern);
+  auto encode_characters = [](char const & character) {
+    auto const unsigned_character = static_cast<unsigned char>(character);
+    return chrmap_4bit[static_cast<unsigned int>(unsigned_character)];
+  };
+  std::transform(pattern.cbegin(), pattern.cend(),
+                 pattern.begin(), encode_characters);
+  return pattern;
+}
+
+
 auto search_illegal_characters(std::string const & pattern) -> void {
   auto character_is_illegal = [](char const & character) {
     auto const unsigned_character = static_cast<unsigned char>(character);
