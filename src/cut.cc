@@ -393,11 +393,11 @@ auto cut(struct Parameters const & parameters) -> void
   auto * pattern = const_cast<char *>(parameters.opt_cut_pattern.c_str());
   assert(pattern != nullptr);  // verified by <getopt.h>
 
-  // checks
+  // check for the expected number of restriction sites
   check_if_contains_circumflex(pattern_s);
   check_if_contains_underscore(pattern_s);
 
-  // locate
+  // locate restriction sites
   auto const cut_fwd = locate_forward_restriction_site(pattern_s);
   auto const cut_rev = locate_reverse_restriction_site(pattern_s);
 
