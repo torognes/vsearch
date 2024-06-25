@@ -96,13 +96,14 @@ struct file_purpose {
 
 
 auto cut_one(fastx_handle input_handle,
-             char const * pattern,
-             int pattern_length,
+             std::string const & pattern_s,
              int cut_fwd,
              int cut_rev,
              struct file_purpose const & fastaout,
              struct statistics & counters) -> int64_t
 {
+  auto const * pattern = pattern_s.c_str();
+  auto const pattern_length = static_cast<int>(pattern_s.size());
   char * seq  = fasta_get_sequence(input_handle);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
 
@@ -434,8 +435,7 @@ auto cut(struct Parameters const & parameters) -> void
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
-                                   pattern_s.c_str(),
-                                   pattern_s.size(),
+                                   pattern_s,
                                    cut_fwd,
                                    cut_rev,
                                    fastaout,
