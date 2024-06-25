@@ -94,6 +94,12 @@ struct file_purpose {
   a_strand discarded;
 };
 
+struct restriction_pattern {
+  std::string pattern;
+  int cut_fwd = -1;
+  int cut_rev = -1;
+};
+
 
 auto cut_one(fastx_handle input_handle,
              std::string const & pattern_s,
