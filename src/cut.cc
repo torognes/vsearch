@@ -352,9 +352,9 @@ auto cut(struct Parameters const & parameters) -> void
   char * pattern = parameters.opt_cut_pattern;
   assert(pattern != nullptr);  // verified by <getopt.h>
 
-  int const n = strlen(pattern);
+  int const pattern_length = strlen(pattern);
 
-  if (n == 0)
+  if (pattern_length == 0)
     {
       fatal("Empty cut pattern string");
     }
@@ -363,7 +363,7 @@ auto cut(struct Parameters const & parameters) -> void
   int cut_rev = -1;
 
   int j = 0;  // number of nucleotides (pattern minus cutting sites)
-  for (int i = 0; i < n ; i++)
+  for (int i = 0; i < pattern_length ; i++)
     {
       unsigned char const x = pattern[i];
       if (x == '^')
@@ -415,7 +415,7 @@ auto cut(struct Parameters const & parameters) -> void
     {
       auto const a_match = cut_one(h,
                                    pattern,
-                                   n - 2,
+                                   pattern_length - 2,
                                    cut_fwd,
                                    cut_rev,
                                    fastaout,
