@@ -106,7 +106,6 @@ auto cut_one(fastx_handle input_handle,
              struct file_purpose const & fastaout,
              struct statistics & counters) -> int64_t
 {
-  auto const * pattern = restriction.pattern.c_str();
   auto const pattern_length = static_cast<int>(restriction.pattern.size());
   char * seq  = fasta_get_sequence(input_handle);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
@@ -127,7 +126,7 @@ auto cut_one(fastx_handle input_handle,
       auto match = true;
       for (int j = 0; j < pattern_length; j++)
         {
-          if ((chrmap_4bit[(unsigned char) (pattern[j])] &
+          if ((chrmap_4bit[(unsigned char) (restriction.pattern[j])] &
                chrmap_4bit[(unsigned char) (seq[i + j])]) == 0)
             {
               match = false;
