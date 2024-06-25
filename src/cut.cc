@@ -410,7 +410,7 @@ auto cut(struct Parameters const & parameters) -> void
         {
           cut_rev = j;
         }
-      else if (chrmap_4bit[(unsigned int) x])
+      else if (chrmap_4bit[(unsigned int) x] != 0)
         {
           pattern[j] = x;
           ++j;
