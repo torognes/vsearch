@@ -102,14 +102,12 @@ struct restriction_pattern {
 
 
 auto cut_one(fastx_handle input_handle,
-             std::string const & pattern_s,
-             int cut_fwd,
-             int cut_rev,
+             struct restriction_pattern const & restriction,
              struct file_purpose const & fastaout,
              struct statistics & counters) -> int64_t
 {
-  auto const * pattern = pattern_s.c_str();
-  auto const pattern_length = static_cast<int>(pattern_s.size());
+  auto const * pattern = restriction.pattern.c_str();
+  auto const pattern_length = static_cast<int>(restriction.pattern.size());
   char * seq  = fasta_get_sequence(input_handle);
   auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
 
@@ -141,9 +139,9 @@ auto cut_one(fastx_handle input_handle,
         {
           ++matches;
 
-          frag_length = i + cut_fwd - frag_start;
+          frag_length = i + restriction.cut_fwd - frag_start;
 
-          rc_length = rc_start - (seq_length - (i + cut_rev));
+          rc_length = rc_start - (seq_length - (i + restriction.cut_rev));
           rc_start -= rc_length;
 
           if (frag_length > 0)
@@ -443,9 +441,7 @@ auto cut(struct Parameters const & parameters) -> void
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
-                                   restriction.pattern,
-                                   restriction.cut_fwd,
-                                   restriction.cut_rev,
+                                   restriction,
                                    fastaout,
                                    counters);
       matches += a_match;
