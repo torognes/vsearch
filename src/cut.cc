@@ -404,20 +404,10 @@ auto cut(struct Parameters const & parameters) -> void
       unsigned char const x = pattern[i];
       if (x == '^')
         {
-          if (cut_fwd != -1)
-            {
-              fatal("Multiple cut sites not supported");
-
-            }
           cut_fwd = j;
         }
       else if (x == '_')
         {
-          if (cut_rev != -1)
-            {
-              fatal("Multiple cut sites not supported");
-
-            }
           cut_rev = j;
         }
       else if (chrmap_4bit[(unsigned int) x])
@@ -429,16 +419,6 @@ auto cut(struct Parameters const & parameters) -> void
         {
           fatal("Illegal character in cut pattern");
         }
-    }
-
-  if (cut_fwd < 0)
-    {
-      fatal("No forward sequence cut site (^) found in pattern");
-    }
-
-  if (cut_rev < 0)
-    {
-      fatal("No reverse sequence cut site (_) found in pattern");
     }
 
   progress_init("Cutting sequences", filesize);
