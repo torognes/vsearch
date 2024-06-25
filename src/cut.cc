@@ -424,18 +424,18 @@ auto cut(struct Parameters const & parameters) -> void
   open_output_files(fastaout);
   check_output_files(fastaout);
 
-  auto const pattern_s = parameters.opt_cut_pattern;
+  auto const raw_pattern = parameters.opt_cut_pattern;
   // assert(pattern != nullptr);  // verified by <getopt.h>
 
   // check for the expected number of restriction sites
-  check_if_contains_circumflex(pattern_s);
-  check_if_contains_underscore(pattern_s);
+  check_if_contains_circumflex(raw_pattern);
+  check_if_contains_underscore(raw_pattern);
 
   // locate restriction sites and trim pattern
   struct restriction_pattern const restriction = {
-    remove_restriction_sites(pattern_s),
-    locate_forward_restriction_site(pattern_s),
-    locate_reverse_restriction_site(pattern_s)
+    remove_restriction_sites(raw_pattern),
+    locate_forward_restriction_site(raw_pattern),
+    locate_reverse_restriction_site(raw_pattern)
   };
 
   search_illegal_characters(restriction.pattern);
