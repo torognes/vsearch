@@ -437,16 +437,16 @@ auto cut(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      std::fprintf(stderr,
+      static_cast<void>(std::fprintf(stderr,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-              cut, matches, uncut);
+                                     cut, matches, uncut));
     }
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(fp_log,
+      static_cast<void>(std::fprintf(fp_log,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-              cut, matches, uncut);
+                                     cut, matches, uncut));
     }
 
   close_output_files(fastaout);
