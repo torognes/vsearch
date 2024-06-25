@@ -415,7 +415,7 @@ auto cut(struct Parameters const & parameters) -> void
   open_output_files(fastaout);
   check_output_files(fastaout);
 
-  std::string pattern_s = parameters.opt_cut_pattern;
+  auto const pattern_s = parameters.opt_cut_pattern;
   // assert(pattern != nullptr);  // verified by <getopt.h>
 
   // check for the expected number of restriction sites
