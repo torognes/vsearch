@@ -96,6 +96,7 @@ struct file_purpose {
 
 struct restriction_pattern {
   std::string pattern;
+  std::string coded_pattern;
   int cut_fwd;
   int cut_rev;
 };
@@ -434,6 +435,7 @@ auto cut(struct Parameters const & parameters) -> void
   // locate restriction sites and trim pattern
   struct restriction_pattern const restriction = {
     remove_restriction_sites(raw_pattern),
+    reencode_restriction_pattern(raw_pattern),
     locate_forward_restriction_site(raw_pattern),
     locate_reverse_restriction_site(raw_pattern)
   };
