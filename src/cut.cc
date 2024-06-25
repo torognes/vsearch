@@ -345,6 +345,20 @@ auto check_if_contains_underscore(std::string const & pattern) -> void {
 }
 
 
+auto locate_forward_restriction_site(std::string pattern) -> int {
+  auto const underscore_position = pattern.find('_');
+  pattern.erase(underscore_position, 1);
+  return static_cast<int>(pattern.find('^'));
+}
+
+
+auto locate_reverse_restriction_site(std::string pattern) -> int {
+  auto const circumflex_position = pattern.find('^');
+  pattern.erase(circumflex_position, 1);
+  return static_cast<int>(pattern.find('_'));
+}
+
+
 auto close_output_files(struct file_purpose const & fastaout) -> void {
   for (auto * fp_outputfile : {
            fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
@@ -383,10 +397,9 @@ auto cut(struct Parameters const & parameters) -> void
   check_if_contains_circumflex(pattern_s);
   check_if_contains_underscore(pattern_s);
 
-  // auto coordinate = pattern_s.find('^');
-  // if (coordinate == std::string::npos) {
-  //   fatal("No forward sequence cut site (^) found in pattern");
-  // }
+  // locate
+  auto const cut_fwd = locate_forward_restriction_site(pattern_s);
+  auto const cut_rev = locate_reverse_restriction_site(pattern_s);
 
   auto const pattern_length = static_cast<int>(strlen(pattern));
 
@@ -395,20 +408,17 @@ auto cut(struct Parameters const & parameters) -> void
       fatal("Empty cut pattern string");
     }
 
-  int cut_fwd = -1;
-  int cut_rev = -1;
-
   int j = 0;  // number of nucleotides (pattern minus cutting sites)
   for (int i = 0; i < pattern_length ; i++)
     {
       unsigned char const x = pattern[i];
       if (x == '^')
         {
-          cut_fwd = j;
+          continue;
         }
       else if (x == '_')
         {
-          cut_rev = j;
+          continue;
         }
       else if (chrmap_4bit[(unsigned int) x] != 0)
         {
