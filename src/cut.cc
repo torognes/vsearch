@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/maps.hpp"
 #include <cassert>
 #include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -410,7 +411,7 @@ auto cut(struct Parameters const & parameters) -> void
 
   int64_t matches = 0;
 
-  while (fasta_next(input_handle, false, chrmap_no_change))
+  while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
                                    pattern,
