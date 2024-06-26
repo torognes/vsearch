@@ -194,80 +194,81 @@ auto cut_one(fastx_handle input_handle,
     {
       ++counters.cut;
       frag_length = seq_length - frag_start;
-
-      if ((frag_length > 0) and (fastaout.cut.forward.name != nullptr))
-        {
-          fasta_print_general(fastaout.cut.forward.handle,
-                              nullptr,
-                              fasta_get_sequence(input_handle) + frag_start,
-                              frag_length,
-                              fasta_get_header(input_handle),
-                              static_cast<int>(fasta_get_header_length(input_handle)),
-                              fasta_get_abundance(input_handle),
-                              ++counters.fragment_no,
-                              -1.0,
-                              -1,
-                              -1,
-                              nullptr,
-                              0.0);
-        }
-
       rc_length = rc_start;
       rc_start = 0;
-
-      if ((rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
-        {
-          fasta_print_general(fastaout.cut.reverse.handle,
-                              nullptr,
-                              rc_buffer.data() + rc_start,
-                              rc_length,
-                              fasta_get_header(input_handle),
-                              static_cast<int>(fasta_get_header_length(input_handle)),
-                              fasta_get_abundance(input_handle),
-                              ++counters.fragment_rev_no,
-                              -1.0,
-                              -1,
-                              -1,
-                              nullptr,
-                              0.0);
-        }
     }
-  else
+
+  if ((local_matches > 0) and (frag_length > 0) and (fastaout.cut.forward.name != nullptr))
+    {
+      fasta_print_general(fastaout.cut.forward.handle,
+                          nullptr,
+                          fasta_get_sequence(input_handle) + frag_start,
+                          frag_length,
+                          fasta_get_header(input_handle),
+                          static_cast<int>(fasta_get_header_length(input_handle)),
+                          fasta_get_abundance(input_handle),
+                          ++counters.fragment_no,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
+    }
+
+  if ((local_matches > 0) and (rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
+    {
+      fasta_print_general(fastaout.cut.reverse.handle,
+                          nullptr,
+                          rc_buffer.data() + rc_start,
+                          rc_length,
+                          fasta_get_header(input_handle),
+                          static_cast<int>(fasta_get_header_length(input_handle)),
+                          fasta_get_abundance(input_handle),
+                          ++counters.fragment_rev_no,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
+    }
+
+  if (local_matches == 0)
     {
       ++counters.uncut;
-      if (fastaout.discarded.forward.name != nullptr)
-        {
-          fasta_print_general(fastaout.discarded.forward.handle,
-                              nullptr,
-                              fasta_get_sequence(input_handle),
-                              seq_length,
-                              fasta_get_header(input_handle),
-                              static_cast<int>(fasta_get_header_length(input_handle)),
-                              fasta_get_abundance(input_handle),
-                              ++counters.fragment_discarded_no,
-                              -1.0,
-                              -1,
-                              -1,
-                              nullptr,
-                              0.0);
-        }
+    }
 
-      if (fastaout.discarded.reverse.name != nullptr)
-        {
-          fasta_print_general(fastaout.discarded.reverse.handle,
-                              nullptr,
-                              rc_buffer.data(),
-                              seq_length,
-                              fasta_get_header(input_handle),
-                              static_cast<int>(fasta_get_header_length(input_handle)),
-                              fasta_get_abundance(input_handle),
-                              ++counters.fragment_discarded_rev_no,
-                              -1.0,
-                              -1,
-                              -1,
-                              nullptr,
-                              0.0);
-        }
+  if ((local_matches == 0) and (fastaout.discarded.forward.name != nullptr))
+    {
+      fasta_print_general(fastaout.discarded.forward.handle,
+                          nullptr,
+                          fasta_get_sequence(input_handle),
+                          seq_length,
+                          fasta_get_header(input_handle),
+                          static_cast<int>(fasta_get_header_length(input_handle)),
+                          fasta_get_abundance(input_handle),
+                          ++counters.fragment_discarded_no,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
+    }
+
+  if ((local_matches == 0) and (fastaout.discarded.reverse.name != nullptr))
+    {
+      fasta_print_general(fastaout.discarded.reverse.handle,
+                          nullptr,
+                          rc_buffer.data(),
+                          seq_length,
+                          fasta_get_header(input_handle),
+                          static_cast<int>(fasta_get_header_length(input_handle)),
+                          fasta_get_abundance(input_handle),
+                          ++counters.fragment_discarded_rev_no,
+                          -1.0,
+                          -1,
+                          -1,
+                          nullptr,
+                          0.0);
     }
 
   counters.matches += local_matches;
