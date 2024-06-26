@@ -106,7 +106,8 @@ struct restriction_pattern {
 auto cut_one(fastx_handle input_handle,
              struct restriction_pattern const & restriction,
              struct file_purpose const & fastaout,
-             struct statistics & counters) -> int64_t
+             struct statistics & counters,
+             std::vector<char> & rc_buffer) -> int64_t
 {
   auto const pattern_length = static_cast<int>(restriction.pattern.size());
   char * seq = fasta_get_sequence(input_handle);
@@ -117,7 +118,8 @@ auto cut_one(fastx_handle input_handle,
 
 
   /* get reverse complement */
-  std::vector<char> rc_buffer(seq_length + 1);  // refactoring: static with resize?
+  rc_buffer.clear();
+  rc_buffer.resize(seq_length + 1);
   reverse_complement(rc_buffer.data(), seq, seq_length);
 
   int frag_start = 0;
@@ -456,13 +458,14 @@ auto cut(struct Parameters const & parameters) -> void
   progress_init("Cutting sequences", filesize);
 
   int64_t matches = 0;
-
+  std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
       auto const a_match = cut_one(input_handle,
                                    restriction,
                                    fastaout,
-                                   counters);
+                                   counters,
+                                   rc_buffer);
       matches += a_match;
       if (a_match > 0)
         {
