@@ -197,6 +197,7 @@ auto cut_one(fastx_handle input_handle,
 
   if (local_matches > 0)
     {
+      ++counters.cut;
       frag_length = seq_length - frag_start;
 
       if (frag_length > 0)
@@ -244,6 +245,7 @@ auto cut_one(fastx_handle input_handle,
     }
   else
     {
+      ++counters.uncut;
       if (fastaout.discarded.forward.name != nullptr)
         {
           fasta_print_general(fastaout.discarded.forward.handle,
@@ -280,14 +282,6 @@ auto cut_one(fastx_handle input_handle,
     }
 
   counters.matches += local_matches;
-  if (local_matches > 0)
-    {
-      ++counters.cut;
-    }
-  else
-    {
-      ++counters.uncut;
-    }
 }
 
 
