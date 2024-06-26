@@ -123,7 +123,7 @@ auto cut_one(fastx_handle input_handle,
 
   int frag_start = 0;
   int frag_length = seq_length;
-  int64_t matches = 0;
+  int64_t local_matches = 0;
 
   int rc_start = seq_length;
   int rc_length = 0;
@@ -143,7 +143,7 @@ auto cut_one(fastx_handle input_handle,
 
       if (match)
         {
-          ++matches;
+          ++local_matches;
 
           frag_length = i + restriction.cut_fwd - frag_start;
 
@@ -194,7 +194,7 @@ auto cut_one(fastx_handle input_handle,
         }
     }
 
-  if (matches > 0)
+  if (local_matches > 0)
     {
       frag_length = seq_length - frag_start;
 
@@ -278,7 +278,7 @@ auto cut_one(fastx_handle input_handle,
         }
     }
 
-  return matches;
+  return local_matches;
 }
 
 
