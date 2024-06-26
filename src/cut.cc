@@ -457,7 +457,6 @@ auto cut(struct Parameters const & parameters) -> void
 
   progress_init("Cutting sequences", filesize);
 
-  int64_t matches = 0;
   std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
@@ -466,7 +465,6 @@ auto cut(struct Parameters const & parameters) -> void
                                    fastaout,
                                    counters,
                                    rc_buffer);
-      matches += a_match;
       counters.matches += a_match;
       if (a_match > 0)
         {
