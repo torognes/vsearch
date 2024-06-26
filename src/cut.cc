@@ -108,7 +108,7 @@ auto cut_one(fastx_handle input_handle,
              struct restriction_pattern const & restriction,
              struct file_purpose const & fastaout,
              struct statistics & counters,
-             std::vector<char> & rc_buffer) -> int64_t
+             std::vector<char> & rc_buffer) -> void
 {
   auto const pattern_length = static_cast<int>(restriction.pattern.size());
   char * seq = fasta_get_sequence(input_handle);
@@ -288,8 +288,6 @@ auto cut_one(fastx_handle input_handle,
     {
       ++counters.uncut;
     }
-
-  return local_matches;
 }
 
 
@@ -470,11 +468,11 @@ auto cut(struct Parameters const & parameters) -> void
   std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
-      auto const a_match = cut_one(input_handle,
-                                   restriction,
-                                   fastaout,
-                                   counters,
-                                   rc_buffer);
+      cut_one(input_handle,
+              restriction,
+              fastaout,
+              counters,
+              rc_buffer);
 
       progress_update(fasta_get_position(input_handle));
     }
