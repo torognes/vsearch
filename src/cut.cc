@@ -116,7 +116,6 @@ auto cut_one(fastx_handle input_handle,
   // and find() to search for pattern occurrences, IUPAC chars make it
   // harder to compare sequences
 
-
   /* get reverse complement */
   rc_buffer.clear();
   rc_buffer.resize(seq_length + 1);
