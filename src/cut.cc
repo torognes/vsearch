@@ -78,6 +78,7 @@ struct statistics {
   int fragment_discarded_rev_no = 0;
   int64_t cut = 0;
   int64_t uncut = 0;
+  int64_t matches = 0;
 };
 
 struct a_file {
@@ -466,6 +467,7 @@ auto cut(struct Parameters const & parameters) -> void
                                    counters,
                                    rc_buffer);
       matches += a_match;
+      counters.matches += a_match;
       if (a_match > 0)
         {
           ++counters.cut;
@@ -484,14 +486,14 @@ auto cut(struct Parameters const & parameters) -> void
     {
       static_cast<void>(std::fprintf(stderr,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                     counters.cut, matches, counters.uncut));
+                                     counters.cut, counters.matches, counters.uncut));
     }
 
   if (parameters.opt_log != nullptr)
     {
       static_cast<void>(std::fprintf(fp_log,
               "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                     counters.cut, matches, counters.uncut));
+                                     counters.cut, counters.matches, counters.uncut));
     }
 
   close_output_files(fastaout);
