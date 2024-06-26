@@ -279,6 +279,8 @@ auto cut_one(fastx_handle input_handle,
         }
     }
 
+  counters.matches += local_matches;
+
   return local_matches;
 }
 
@@ -465,7 +467,6 @@ auto cut(struct Parameters const & parameters) -> void
                                    fastaout,
                                    counters,
                                    rc_buffer);
-      counters.matches += a_match;
       if (a_match > 0)
         {
           ++counters.cut;
