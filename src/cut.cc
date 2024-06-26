@@ -60,12 +60,13 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
-#include <algorithm>  // std::count, std::for_each
+#include <algorithm>  // std::count, std::for_each, std::equal
 #include <cassert>
 #include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strlen
+#include <iterator>  // std::next
 #include <string>
 #include <utility>  // std::move
 #include <vector>
@@ -131,16 +132,14 @@ auto cut_one(fastx_handle input_handle,
 
   for (int i = 0; i < seq_length - pattern_length + 1; ++i)
     {
-      auto match = true;
-      for (int j = 0; j < pattern_length; ++j)
-        {
-          if ((static_cast<unsigned char>(restriction.coded_pattern[j]) &
-               chrmap_4bit_array[static_cast<unsigned char>(seq[i + j])]) == 0)
-            {
-              match = false;
-              break;
-            }
-        }
+      auto const match = std::equal(restriction.coded_pattern.cbegin(),
+                                    restriction.coded_pattern.cend(),
+                                    std::next(seq, i),
+                                    [](char const & lhs, char const & rhs) -> bool {
+                                      auto const lhs_unsigned = static_cast<unsigned char>(lhs);
+                                      auto const rhs_unsigned = chrmap_4bit_array[static_cast<unsigned char>(rhs)];
+                                      return ((lhs_unsigned & rhs_unsigned) != 0);  // explanation needed
+                                    });
 
       if (not match) {
         continue;
