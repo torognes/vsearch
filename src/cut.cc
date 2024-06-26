@@ -195,24 +195,21 @@ auto cut_one(fastx_handle input_handle,
       ++counters.cut;
       frag_length = seq_length - frag_start;
 
-      if (frag_length > 0)
+      if ((frag_length > 0) and (fastaout.cut.forward.name != nullptr))
         {
-          if (fastaout.cut.forward.name != nullptr)
-            {
-              fasta_print_general(fastaout.cut.forward.handle,
-                                  nullptr,
-                                  fasta_get_sequence(input_handle) + frag_start,
-                                  frag_length,
-                                  fasta_get_header(input_handle),
-                                  static_cast<int>(fasta_get_header_length(input_handle)),
-                                  fasta_get_abundance(input_handle),
-                                  ++counters.fragment_no,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0);
-            }
+          fasta_print_general(fastaout.cut.forward.handle,
+                              nullptr,
+                              fasta_get_sequence(input_handle) + frag_start,
+                              frag_length,
+                              fasta_get_header(input_handle),
+                              static_cast<int>(fasta_get_header_length(input_handle)),
+                              fasta_get_abundance(input_handle),
+                              ++counters.fragment_no,
+                              -1.0,
+                              -1,
+                              -1,
+                              nullptr,
+                              0.0);
         }
 
       rc_length = rc_start;
