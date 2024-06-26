@@ -280,6 +280,14 @@ auto cut_one(fastx_handle input_handle,
     }
 
   counters.matches += local_matches;
+  if (local_matches > 0)
+    {
+      ++counters.cut;
+    }
+  else
+    {
+      ++counters.uncut;
+    }
 
   return local_matches;
 }
@@ -467,14 +475,6 @@ auto cut(struct Parameters const & parameters) -> void
                                    fastaout,
                                    counters,
                                    rc_buffer);
-      if (a_match > 0)
-        {
-          ++counters.cut;
-        }
-      else
-        {
-          ++counters.uncut;
-        }
 
       progress_update(fasta_get_position(input_handle));
     }
