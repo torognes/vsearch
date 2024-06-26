@@ -274,15 +274,13 @@ auto cut_one(fastx_handle input_handle,
 }
 
 
-auto ckeck_if_output_is_set(struct Parameters const & parameters) -> void
-{
+auto ckeck_if_output_is_set(struct Parameters const & parameters) -> void {
   if ((parameters.opt_fastaout == nullptr) and
       (parameters.opt_fastaout_discarded == nullptr) and
       (parameters.opt_fastaout_rev == nullptr) and
-      (parameters.opt_fastaout_discarded_rev == nullptr))
-    {
-      fatal("No output files specified");
-    }
+      (parameters.opt_fastaout_discarded_rev == nullptr)) {
+    fatal("No output files specified");
+  }
 }
 
 
