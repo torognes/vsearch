@@ -215,24 +215,21 @@ auto cut_one(fastx_handle input_handle,
       rc_length = rc_start;
       rc_start = 0;
 
-      if (rc_length > 0)
+      if ((rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
         {
-          if (fastaout.cut.reverse.name != nullptr)
-            {
-              fasta_print_general(fastaout.cut.reverse.handle,
-                                  nullptr,
-                                  rc_buffer.data() + rc_start,
-                                  rc_length,
-                                  fasta_get_header(input_handle),
-                                  static_cast<int>(fasta_get_header_length(input_handle)),
-                                  fasta_get_abundance(input_handle),
-                                  ++counters.fragment_rev_no,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0);
-            }
+          fasta_print_general(fastaout.cut.reverse.handle,
+                              nullptr,
+                              rc_buffer.data() + rc_start,
+                              rc_length,
+                              fasta_get_header(input_handle),
+                              static_cast<int>(fasta_get_header_length(input_handle)),
+                              fasta_get_abundance(input_handle),
+                              ++counters.fragment_rev_no,
+                              -1.0,
+                              -1,
+                              -1,
+                              nullptr,
+                              0.0);
         }
     }
   else
