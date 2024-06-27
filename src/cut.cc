@@ -123,10 +123,9 @@ auto cut_one(fastx_handle input_handle,
   rc_buffer.resize(seq_length + 1);
   reverse_complement(rc_buffer.data(), seq, seq_length);
 
+  int64_t local_matches = 0;
   int frag_start = 0;
   int frag_length = seq_length;
-  int64_t local_matches = 0;
-
   int rc_start = seq_length;
   int rc_length = 0;
 
