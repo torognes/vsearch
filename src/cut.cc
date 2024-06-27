@@ -405,6 +405,25 @@ auto stats_message(std::FILE * output_stream,
 }
 
 
+auto output_stats_message(struct Parameters const & parameters,
+                          struct statistics const & counters,
+                          char * filename) -> void {
+  if (filename == nullptr) {
+    return;
+  }
+  stats_message(parameters.fp_log, counters);
+}
+
+
+auto output_stats_message(struct Parameters const & parameters,
+                          struct statistics const & counters) -> void {
+  if (parameters.opt_quiet) {
+    return;
+  }
+  stats_message(stderr, counters);
+}
+
+
 auto close_output_files(struct file_purpose const & fastaout) -> void {
   for (auto * fp_outputfile : {
       fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
@@ -464,13 +483,8 @@ auto cut(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  if (not parameters.opt_quiet) {
-    stats_message(stderr, counters);
-  }
-
-  if (parameters.opt_log != nullptr) {
-    stats_message(parameters.fp_log, counters);
-  }
+  output_stats_message(parameters, counters);
+  output_stats_message(parameters, counters, parameters.opt_log);
 
   close_output_files(fastaout);
   fasta_close(input_handle);
