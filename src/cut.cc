@@ -394,8 +394,8 @@ auto search_illegal_characters(std::string const & pattern) -> void {
 
 auto close_output_files(struct file_purpose const & fastaout) -> void {
   for (auto * fp_outputfile : {
-           fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
-           fastaout.cut.reverse.handle, fastaout.discarded.reverse.handle}) {
+      fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
+      fastaout.cut.reverse.handle, fastaout.discarded.reverse.handle}) {
     if (fp_outputfile != nullptr) {
       static_cast<void>(std::fclose(fp_outputfile));
     }
