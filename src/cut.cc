@@ -65,7 +65,6 @@
 #include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <string>
 #include <utility>  // std::move
