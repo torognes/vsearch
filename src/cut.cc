@@ -407,7 +407,7 @@ auto stats_message(std::FILE * output_stream,
 
 auto output_stats_message(struct Parameters const & parameters,
                           struct statistics const & counters,
-                          char * filename) -> void {
+                          char const * filename) -> void {
   if (filename == nullptr) {
     return;
   }
