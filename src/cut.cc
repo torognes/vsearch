@@ -105,10 +105,10 @@ struct restriction_pattern {
 
 
 auto cut_a_sequence(fastx_handle input_handle,
-             struct restriction_pattern const & restriction,
-             struct file_purpose const & fastaout,
-             struct statistics & counters,
-             std::vector<char> & rc_buffer) -> void
+                    struct restriction_pattern const & restriction,
+                    struct file_purpose const & fastaout,
+                    struct statistics & counters,
+                    std::vector<char> & rc_buffer) -> void
 {
   auto const pattern_length = static_cast<int>(restriction.pattern.size());
   char * seq = fasta_get_sequence(input_handle);
@@ -379,6 +379,13 @@ auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
 }
 
 
+auto check_if_pattern_is_empty(std::string const & pattern) -> void {
+  if (pattern.empty()) {
+    fatal("Empty cut pattern string");
+  }
+}
+
+
 auto search_illegal_characters(std::string const & pattern) -> void {
   auto character_is_illegal = [](char const & character) {
     auto const unsigned_character = static_cast<unsigned char>(character);
@@ -387,6 +394,14 @@ auto search_illegal_characters(std::string const & pattern) -> void {
     }
   };
   std::for_each(pattern.cbegin(), pattern.cend(), character_is_illegal);
+}
+
+
+auto stats_message(std::FILE * output_stream,
+                   struct statistics const & counters) -> void {
+  static_cast<void>(std::fprintf(output_stream,
+                                 "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
+                                 counters.cut, counters.matches, counters.uncut));
 }
 
 
@@ -434,43 +449,28 @@ auto cut(struct Parameters const & parameters) -> void
     locate_forward_restriction_site(raw_pattern),
     locate_reverse_restriction_site(raw_pattern)
   };
-
+  check_if_pattern_is_empty(restriction.pattern);
   search_illegal_characters(restriction.pattern);
-
-  if (restriction.pattern.empty())
-    {
-      fatal("Empty cut pattern string");
-    }
 
   progress_init("Cutting sequences", filesize);
 
   std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
-      cut_a_sequence(input_handle,
-              restriction,
-              fastaout,
-              counters,
-              rc_buffer);
+      cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer);
 
       progress_update(fasta_get_position(input_handle));
     }
 
   progress_done();
 
-  if (not parameters.opt_quiet)
-    {
-      static_cast<void>(std::fprintf(stderr,
-              "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                     counters.cut, counters.matches, counters.uncut));
-    }
+  if (not parameters.opt_quiet) {
+    stats_message(stderr, counters);
+  }
 
-  if (parameters.opt_log != nullptr)
-    {
-      static_cast<void>(std::fprintf(fp_log,
-              "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                     counters.cut, counters.matches, counters.uncut));
-    }
+  if (parameters.opt_log != nullptr) {
+    stats_message(parameters.fp_log, counters);
+  }
 
   close_output_files(fastaout);
   fasta_close(input_handle);
