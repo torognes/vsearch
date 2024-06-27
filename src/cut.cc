@@ -104,7 +104,7 @@ struct restriction_pattern {
 };
 
 
-auto cut_one(fastx_handle input_handle,
+auto cut_a_sequence(fastx_handle input_handle,
              struct restriction_pattern const & restriction,
              struct file_purpose const & fastaout,
              struct statistics & counters,
@@ -447,7 +447,7 @@ auto cut(struct Parameters const & parameters) -> void
   std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
-      cut_one(input_handle,
+      cut_a_sequence(input_handle,
               restriction,
               fastaout,
               counters,
