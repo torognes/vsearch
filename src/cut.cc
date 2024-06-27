@@ -144,9 +144,7 @@ auto cut_a_sequence(fastx_handle input_handle,
       }
 
       ++local_matches;
-
       frag_length = i + restriction.cut_fwd - frag_start;
-
       rc_length = rc_start - (seq_length - (i + restriction.cut_rev));
       rc_start -= rc_length;
 
