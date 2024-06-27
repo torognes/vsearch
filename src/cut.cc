@@ -137,7 +137,7 @@ auto cut_one(fastx_handle input_handle,
                                     std::next(seq, i),
                                     [](char const & lhs, char const & rhs) -> bool {
                                       auto const lhs_unsigned = static_cast<unsigned char>(lhs);
-                                      auto const rhs_unsigned = chrmap_4bit_array[static_cast<unsigned char>(rhs)];
+                                      auto const rhs_unsigned = chrmap_4bit_vector[static_cast<unsigned char>(rhs)];
                                       return ((lhs_unsigned & rhs_unsigned) != 0);  // explanation needed
                                     });
 
@@ -372,7 +372,7 @@ auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
   auto pattern = remove_restriction_sites(std::move(raw_pattern));
   auto encode_characters = [](char const & character) -> char {
     auto const symbol_uchar = static_cast<unsigned char>(character);
-    auto const coded_symbol_uchar = chrmap_4bit_array[symbol_uchar];
+    auto const coded_symbol_uchar = chrmap_4bit_vector[symbol_uchar];
     return static_cast<char>(coded_symbol_uchar);
   };
   std::transform(pattern.cbegin(), pattern.cend(),
@@ -384,7 +384,7 @@ auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
 auto search_illegal_characters(std::string const & pattern) -> void {
   auto character_is_illegal = [](char const & character) {
     auto const unsigned_character = static_cast<unsigned char>(character);
-    if (chrmap_4bit_array[unsigned_character] == 0) {
+    if (chrmap_4bit_vector[unsigned_character] == 0) {
       fatal("Illegal character in cut pattern");
     }
   };

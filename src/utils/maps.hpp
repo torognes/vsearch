@@ -59,6 +59,7 @@
 */
 
 #include <array>
+#include <vector>
 
 
 const std::array<unsigned char, 256> chrmap_no_change_array = {
@@ -95,7 +96,7 @@ const std::array<unsigned char, 256> chrmap_no_change_array = {
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'};
 
 
-const std::array<unsigned char, 256> chrmap_4bit_array =
+const std::vector<unsigned char> chrmap_4bit_vector =
   {
     /*
       Map from ascii to 4-bit nucleotide code
