@@ -136,7 +136,7 @@ auto cut_a_sequence(fastx_handle input_handle,
                                     [](char const & lhs, char const & rhs) -> bool {
                                       auto const lhs_unsigned = static_cast<unsigned char>(lhs);
                                       auto const rhs_unsigned = chrmap_4bit_vector[static_cast<unsigned char>(rhs)];
-                                      return ((lhs_unsigned & rhs_unsigned) != 0);  // explanation needed
+                                      return ((lhs_unsigned & rhs_unsigned) != 0);  // see maps.hpp
                                     });
 
       if (not match) {
