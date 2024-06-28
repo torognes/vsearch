@@ -583,7 +583,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                  and
                  ((rc_hash != rc_bp->hash) or
                   (seqcmp(rc_seq_up, rc_bp->seq, seqlen)) or
-                  (use_header and strcmp(header, bp->header))))
+                  (use_header and strcmp(header, rc_bp->header))))
             {
               k = (k + 1) & hash_mask;
               rc_bp = hashtable + k;
