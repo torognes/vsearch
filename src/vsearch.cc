@@ -115,8 +115,6 @@ char * opt_cluster_smallmem;
 char * opt_cluster_unoise;
 char * opt_clusters;
 char * opt_consout;
-char * opt_cut;
-char * opt_cut_pattern;
 char * opt_db;
 char * opt_dbmatched;
 char * opt_dbnotmatched;
@@ -775,8 +773,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_clusters = nullptr;
   opt_cons_truncate = 0;
   opt_consout = nullptr;
-  opt_cut = nullptr;
-  opt_cut_pattern = nullptr;
   opt_db = nullptr;
   opt_dbmask = MASK_DUST;
   opt_dbmatched = nullptr;
@@ -2491,12 +2487,10 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_cut:
-          opt_cut = optarg;
           parameters.opt_cut = optarg;
           break;
 
         case option_cut_pattern:
-          opt_cut_pattern = optarg;
           parameters.opt_cut_pattern = optarg;
           break;
 

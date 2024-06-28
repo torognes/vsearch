@@ -302,8 +302,6 @@ extern char * opt_cluster_smallmem;
 extern char * opt_cluster_unoise;
 extern char * opt_clusters;
 extern char * opt_consout;
-extern char * opt_cut;
-extern char * opt_cut_pattern;
 extern char * opt_db;
 extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
