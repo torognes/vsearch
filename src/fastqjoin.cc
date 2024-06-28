@@ -203,7 +203,7 @@ auto fastq_join() -> void
           auto const rev_pos = rev_seq_length - 1 - i;
           seq[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
           qual[len] = rev_qual[rev_pos];
-          len++;
+          ++len;
         }
       seq[len] = 0;
       qual[len] = 0;
@@ -240,7 +240,7 @@ auto fastq_join() -> void
                               0);
         }
 
-      total++;
+      ++total;
       progress_update(fastq_get_position(fastq_fwd));
     }
 
