@@ -101,22 +101,22 @@ const std::vector<unsigned char> chrmap_4bit_vector =
     /*
       Map from ascii to 4-bit nucleotide code
 
-      Aa:  1
-      Bb: 14
-      Cc:  2
-      Dd: 13
-      Gg:  4
-      Hh: 11
-      Kk: 12
-      Mm:  3
-      Nn: 15
-      Rr:  5
-      Ss:  6
-      Tt:  8
-      Uu:  8
-      Vv:  7
-      Ww:  9
-      Yy: 10
+      Aa:  1    0001
+      Bb: 14    1110   ex: 'B' & 'A' == 0000 while 'B' & anyother != 0000
+      Cc:  2    0010
+      Dd: 13    1101
+      Gg:  4    0100
+      Hh: 11    1011
+      Kk: 12    1100
+      Mm:  3    0011
+      Nn: 15    1111   ex: 'N' & any != 0000
+      Rr:  5    0101
+      Ss:  6    0110
+      Tt:  8    1000
+      Uu:  8    1000
+      Vv:  7    0111
+      Ww:  9    1001
+      Yy: 10    1010   ex: 'Y' & 'C' or 'T' == 0000
       Others: 0
 
      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
