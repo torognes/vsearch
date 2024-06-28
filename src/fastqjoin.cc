@@ -67,9 +67,9 @@
 
 /* static variables */
 
-auto join_fileopenw(char * filename) -> FILE *
+auto join_fileopenw(char * filename) -> std::FILE *
 {
-  FILE * fp = nullptr;
+  std::FILE * fp = nullptr;
   fp = fopen_output(filename);
   if (not fp)
     {
@@ -80,8 +80,8 @@ auto join_fileopenw(char * filename) -> FILE *
 
 auto fastq_join() -> void
 {
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
 
   fastx_handle fastq_fwd = nullptr;
   fastx_handle fastq_rev = nullptr;
