@@ -123,7 +123,7 @@ auto fastq_join() -> void
       padgapq = (char *) xmalloc(padlen + 1);  // refactoring: hard to eliminate without tests
       for (uint64_t i = 0; i < padlen; i++)
         {
-          padgapq[i] = 'I';
+          padgapq[i] = 'I';  // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
         }
       padgapq[padlen] = '\0';
     }
