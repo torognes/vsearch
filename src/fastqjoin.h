@@ -58,4 +58,4 @@
 
 */
 
-auto fastq_join() -> void;
+auto fastq_join(struct Parameters const & parameters) -> void;
