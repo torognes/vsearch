@@ -70,11 +70,11 @@
 
 
 auto check_parameters(struct Parameters const & parameters) -> void {
-  if (not parameters.opt_reverse) {
+  if (parameters.opt_reverse == nullptr) {
     fatal("No reverse reads file specified with --reverse");
   }
 
-  if ((not parameters.opt_fastqout) and (not parameters.opt_fastaout)) {
+  if ((parameters.opt_fastqout == nullptr) and (parameters.opt_fastaout == nullptr)) {
     fatal("No output files specified");
   }
 
