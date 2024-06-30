@@ -173,6 +173,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       char * rev_seq = fastq_get_sequence(fastq_rev);
       char * rev_qual = fastq_get_quality(fastq_rev);
 
+      // refactor with transform?
       for (uint64_t i = 0; i < rev_seq_length; ++i)
         {
           auto const rev_pos = rev_seq_length - 1 - i;
