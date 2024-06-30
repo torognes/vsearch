@@ -148,11 +148,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  if (parameters.opt_fastqout)
+  if (parameters.opt_fastqout != nullptr)
     {
       fp_fastqout = join_fileopenw(parameters.opt_fastqout);
     }
-  if (parameters.opt_fastaout)
+  if (parameters.opt_fastaout != nullptr)
     {
       fp_fastaout = join_fileopenw(parameters.opt_fastaout);
     }
