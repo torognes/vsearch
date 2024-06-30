@@ -262,11 +262,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      static_cast<void>(std::fclose(fp_fastaout));
     }
   if (parameters.opt_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      static_cast<void>(std::fclose(fp_fastqout));
     }
 
   fastq_close(fastq_rev);
