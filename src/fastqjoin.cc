@@ -69,13 +69,13 @@
 
 auto join_fileopenw(char * filename) -> std::FILE *
 {
-  std::FILE * fp = nullptr;
-  fp = fopen_output(filename);
-  if (not fp)
+  std::FILE * file_ptr = nullptr;
+  file_ptr = fopen_output(filename);
+  if (not file_ptr)
     {
       fatal("Unable to open file for writing (%s)", filename);
     }
-  return fp;
+  return file_ptr;
 }
 
 auto fastq_join(struct Parameters const & parameters) -> void
