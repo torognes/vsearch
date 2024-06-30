@@ -63,6 +63,7 @@
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcpy
+#include <vector>
 
 
 /* static variables */
@@ -137,7 +138,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   uint64_t alloc = 0;
   uint64_t len = 0;
-  char * seq = nullptr;
+  std::vector<char> seq_v;
+  std::vector<char> qual_v;
   char * qual = nullptr;
 
   while (fastq_next(fastq_fwd, false, chrmap_no_change))
@@ -155,18 +157,18 @@ auto fastq_join(struct Parameters const & parameters) -> void
       auto const needed = fwd_seq_length + rev_seq_length + padlen + 1;
       if (alloc < needed)
         {
-          seq = (char *) xrealloc(seq, needed);
+          seq_v.resize(needed);
           qual = (char *) xrealloc(qual, needed);
           alloc = needed;
         }
 
       /* join them */
 
-      strcpy(seq, fastq_get_sequence(fastq_fwd));
+      strcpy(seq_v.data(), fastq_get_sequence(fastq_fwd));
       strcpy(qual, fastq_get_quality(fastq_fwd));
       len = fwd_seq_length;
 
-      strcpy(seq + len, parameters.opt_join_padgap.data());
+      strcpy(seq_v.data() + len, parameters.opt_join_padgap.data());
       strcpy(qual + len, parameters.opt_join_padgapq.data());
       len += padlen;
 
@@ -178,11 +180,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
       for (uint64_t i = 0; i < rev_seq_length; ++i)
         {
           auto const rev_pos = rev_seq_length - 1 - i;
-          seq[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
+          seq_v[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
           qual[len] = rev_qual[rev_pos];
           ++len;
         }
-      seq[len] = 0;
+      seq_v[len] = 0;
       qual[len] = 0;
 
       /* write output */
@@ -190,7 +192,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       if (parameters.opt_fastqout)
         {
           fastq_print_general(fp_fastqout,
-                              seq,
+                              seq_v.data(),
                               len,
                               fastq_get_header(fastq_fwd),
                               fastq_get_header_length(fastq_fwd),
@@ -204,7 +206,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
-                              seq,
+                              seq_v.data(),
                               len,
                               fastq_get_header(fastq_fwd),
                               fastq_get_header_length(fastq_fwd),
@@ -248,10 +250,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   fastq_close(fastq_fwd);
   fastq_fwd = nullptr;
 
-  if (seq)
-    {
-      xfree(seq);
-    }
   if (qual)
     {
       xfree(qual);
