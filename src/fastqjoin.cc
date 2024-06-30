@@ -121,7 +121,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
   else
     {
       padgapq = (char *) xmalloc(padlen + 1);  // refactoring: hard to eliminate without tests
-      for (uint64_t i = 0; i < padlen; i++)
+      for (uint64_t i = 0; i < padlen; ++i)
         {
           padgapq[i] = 'I';  // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
         }
@@ -198,7 +198,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       char * rev_seq = fastq_get_sequence(fastq_rev);
       char * rev_qual = fastq_get_quality(fastq_rev);
 
-      for (uint64_t i = 0; i < rev_seq_length; i++)
+      for (uint64_t i = 0; i < rev_seq_length; ++i)
         {
           auto const rev_pos = rev_seq_length - 1 - i;
           seq[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
