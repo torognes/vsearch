@@ -2251,6 +2251,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_reverse:
           opt_reverse = optarg;
+          parameters.opt_reverse = optarg;
           break;
 
         case option_eetabbedout:
@@ -2396,14 +2397,17 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_join:
           opt_fastq_join = optarg;
+          parameters.opt_fastq_join = optarg;
           break;
 
         case option_join_padgap:
           opt_join_padgap = optarg;
+          parameters.opt_join_padgap = optarg;
           break;
 
         case option_join_padgapq:
           opt_join_padgapq = optarg;
+          parameters.opt_join_padgapq = optarg;
           break;
 
         case option_sff_convert:
@@ -5932,9 +5936,9 @@ auto main(int argc, char** argv) -> int
     {
       fastq_eestats2();
     }
-  else if (opt_fastq_join)
+  else if (parameters.opt_fastq_join)
     {
-      fastq_join();
+      fastq_join(parameters);
     }
   else if (parameters.opt_rereplicate)
     {
