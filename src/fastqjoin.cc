@@ -90,12 +90,12 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* check input and options */
 
-  if (not opt_reverse)
+  if (not parameters.opt_reverse)
     {
       fatal("No reverse reads file specified with --reverse");
     }
 
-  if ((not opt_fastqout) and (not opt_fastaout))
+  if ((not parameters.opt_fastqout) and (not parameters.opt_fastaout))
     {
       fatal("No output files specified");
     }
@@ -103,9 +103,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
   char * padgap = nullptr;
   char * padgapq = nullptr;
 
-  if (opt_join_padgap)
+  if (parameters.opt_join_padgap)
     {
-      padgap = xstrdup(opt_join_padgap);
+      padgap = xstrdup(parameters.opt_join_padgap);
     }
   else
     {
@@ -114,9 +114,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   uint64_t const padlen = strlen(padgap);
 
-  if (opt_join_padgapq)
+  if (parameters.opt_join_padgapq)
     {
-      padgapq = xstrdup(opt_join_padgapq);
+      padgapq = xstrdup(parameters.opt_join_padgapq);
     }
   else
     {
@@ -135,18 +135,18 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* open input files */
 
-  fastq_fwd = fastq_open(opt_fastq_join);
-  fastq_rev = fastq_open(opt_reverse);
+  fastq_fwd = fastq_open(parameters.opt_fastq_join);
+  fastq_rev = fastq_open(parameters.opt_reverse);
 
   /* open output files */
 
-  if (opt_fastqout)
+  if (parameters.opt_fastqout)
     {
-      fp_fastqout = join_fileopenw(opt_fastqout);
+      fp_fastqout = join_fileopenw(parameters.opt_fastqout);
     }
-  if (opt_fastaout)
+  if (parameters.opt_fastaout)
     {
-      fp_fastaout = join_fileopenw(opt_fastaout);
+      fp_fastaout = join_fileopenw(parameters.opt_fastaout);
     }
 
   /* main */
@@ -210,7 +210,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* write output */
 
-      if (opt_fastqout)
+      if (parameters.opt_fastqout)
         {
           fastq_print_general(fp_fastqout,
                               seq,
@@ -223,7 +223,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               -1.0);
         }
 
-      if (opt_fastaout)
+      if (parameters.opt_fastaout)
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
@@ -257,11 +257,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  if (opt_fastaout)
+  if (parameters.opt_fastaout)
     {
       fclose(fp_fastaout);
     }
-  if (opt_fastqout)
+  if (parameters.opt_fastqout)
     {
       fclose(fp_fastqout);
     }
