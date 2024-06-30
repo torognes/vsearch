@@ -260,11 +260,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  if (parameters.opt_fastaout)
+  if (parameters.opt_fastaout != nullptr)
     {
       std::fclose(fp_fastaout);
     }
-  if (parameters.opt_fastqout)
+  if (parameters.opt_fastqout != nullptr)
     {
       std::fclose(fp_fastqout);
     }
