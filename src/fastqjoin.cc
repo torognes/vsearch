@@ -68,6 +68,19 @@
 #include <vector>
 
 
+auto check_parameters(struct Parameters const & parameters) -> void {
+  if (not parameters.opt_reverse) {
+    fatal("No reverse reads file specified with --reverse");
+  }
+
+  if ((not parameters.opt_fastqout) and (not parameters.opt_fastaout)) {
+    fatal("No output files specified");
+  }
+
+  if (parameters.opt_join_padgap.length() != parameters.opt_join_padgapq.length()) {
+    fatal("Strings given by --join_padgap and --join_padgapq differ in length");
+  }
+}
 
 
 auto join_fileopenw(char * filename) -> std::FILE *
@@ -121,24 +134,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* check input and options */
 
-  if (not parameters.opt_reverse)
-    {
-      fatal("No reverse reads file specified with --reverse");
-    }
-
-  if ((not parameters.opt_fastqout) and (not parameters.opt_fastaout))
-    {
-      fatal("No output files specified");
-    }
+  check_parameters(parameters);
 
   // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
 
   auto const padlen = parameters.opt_join_padgap.length();
-
-  if (parameters.opt_join_padgap.length() != parameters.opt_join_padgapq.length())
-    {
-      fatal("Strings given by --join_padgap and --join_padgapq differ in length");
-    }
 
   /* open input files */
 
