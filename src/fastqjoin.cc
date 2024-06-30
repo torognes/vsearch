@@ -82,6 +82,33 @@ auto join_fileopenw(char * filename) -> std::FILE *
 }
 
 
+auto stats_message(std::FILE * output_stream,
+                   uint64_t const total) -> void {
+  static_cast<void>(std::fprintf(output_stream,
+                                 "%" PRIu64 " pairs joined\n",
+                                 total));
+}
+
+
+auto output_stats_message(struct Parameters const & parameters,
+                          uint64_t const total,
+                          char const * log_filename) -> void {
+  if (log_filename == nullptr) {
+    return;
+  }
+  stats_message(parameters.fp_log, total);
+}
+
+
+auto output_stats_message(struct Parameters const & parameters,
+                          uint64_t const total) -> void {
+  if (parameters.opt_quiet) {
+    return;
+  }
+  stats_message(stderr, total);
+}
+
+
 auto fastq_join(struct Parameters const & parameters) -> void
 {
   std::FILE * fp_fastqout = nullptr;
@@ -227,9 +254,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
       fatal("More reverse reads than forward reads");
     }
 
-  std::fprintf(stderr,
-               "%" PRIu64 " pairs joined\n",
-               total);
+  output_stats_message(parameters, total);
+  output_stats_message(parameters, total, parameters.opt_log);
 
   /* clean up */
 
