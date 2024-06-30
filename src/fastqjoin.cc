@@ -136,7 +136,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   total = 0;
 
-  uint64_t alloc = 0;
   uint64_t len = 0;
   std::vector<char> seq_v;
   std::vector<char> qual_v;
@@ -154,11 +153,10 @@ auto fastq_join(struct Parameters const & parameters) -> void
       /* allocate enough mem */
 
       auto const needed = fwd_seq_length + rev_seq_length + padlen + 1;
-      if (alloc < needed)
+      if (seq_v.size() < needed)
         {
           seq_v.resize(needed);
           qual_v.resize(needed);
-          alloc = needed;
         }
 
       /* join them */
