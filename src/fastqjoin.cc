@@ -103,7 +103,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
 
-  uint64_t const padlen = parameters.opt_join_padgap.length();
+  auto const padlen = parameters.opt_join_padgap.length();
 
   if (parameters.opt_join_padgap.length() != parameters.opt_join_padgapq.length())
     {
