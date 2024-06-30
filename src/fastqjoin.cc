@@ -218,12 +218,12 @@ auto fastq_join(struct Parameters const & parameters) -> void
         {
           fastq_print_general(fp_fastqout,
                               seq_v.data(),
-                              len,
+                              static_cast<int>(len),
                               fastq_get_header(fastq_fwd),
-                              fastq_get_header_length(fastq_fwd),
+                              static_cast<int>(fastq_get_header_length(fastq_fwd)),
                               qual_v.data(),
                               0,
-                              total + 1,
+                              static_cast<int>(total + 1),
                               -1.0);
         }
 
@@ -232,11 +232,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
           fasta_print_general(fp_fastaout,
                               nullptr,
                               seq_v.data(),
-                              len,
+                              static_cast<int>(len),
                               fastq_get_header(fastq_fwd),
-                              fastq_get_header_length(fastq_fwd),
+                              static_cast<int>(fastq_get_header_length(fastq_fwd)),
                               0,
-                              total + 1,
+                              static_cast<int>(total + 1),
                               -1.0,
                               -1,
                               -1,
