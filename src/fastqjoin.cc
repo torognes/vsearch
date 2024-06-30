@@ -203,7 +203,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       std::transform(std::reverse_iterator<char *>{std::next(fastq_get_sequence(fastq_rev), rev_seq_length)},
                      std::reverse_iterator<char *>{fastq_get_sequence(fastq_rev)},
                      &seq_v[len],
-                     [](char const & lhs) -> char { return chrmap_complement_vector[static_cast<unsigned char>(lhs)]; }
+                     [](char const & lhs) -> char { return static_cast<char>(chrmap_complement_vector[static_cast<unsigned char>(lhs)]); }
                      );
       std::transform(std::reverse_iterator<char *>{std::next(fastq_get_quality(fastq_rev), rev_seq_length)},
                      std::reverse_iterator<char *>{fastq_get_quality(fastq_rev)},
