@@ -101,8 +101,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  char * padgap = const_cast<char *>(parameters.opt_join_padgap.data());
-  char * padgapq = const_cast<char *>(parameters.opt_join_padgapq.data()); // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
+  // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
 
   uint64_t const padlen = parameters.opt_join_padgap.length();
 
@@ -167,8 +166,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
       strcpy(qual, fastq_get_quality(fastq_fwd));
       len = fwd_seq_length;
 
-      strcpy(seq + len, padgap);
-      strcpy(qual + len, padgapq);
+      strcpy(seq + len, parameters.opt_join_padgap.data());
+      strcpy(qual + len, parameters.opt_join_padgapq.data());
       len += padlen;
 
       /* reverse complement reverse read */
