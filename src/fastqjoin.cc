@@ -68,7 +68,7 @@
 #include <vector>
 
 
-/* static variables */
+
 
 auto join_fileopenw(char * filename) -> std::FILE *
 {
