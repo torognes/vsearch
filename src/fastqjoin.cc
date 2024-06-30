@@ -88,7 +88,7 @@ auto join_fileopenw(char * filename) -> std::FILE *
 {
   std::FILE * file_ptr = nullptr;
   file_ptr = fopen_output(filename);
-  if (not file_ptr)
+  if (file_ptr == nullptr)
     {
       fatal("Unable to open file for writing (%s)", filename);
     }
