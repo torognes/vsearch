@@ -140,7 +140,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   uint64_t len = 0;
   std::vector<char> seq_v;
   std::vector<char> qual_v;
-  char * qual = nullptr;
 
   while (fastq_next(fastq_fwd, false, chrmap_no_change))
     {
@@ -158,18 +157,18 @@ auto fastq_join(struct Parameters const & parameters) -> void
       if (alloc < needed)
         {
           seq_v.resize(needed);
-          qual = (char *) xrealloc(qual, needed);
+          qual_v.resize(needed);
           alloc = needed;
         }
 
       /* join them */
 
       strcpy(seq_v.data(), fastq_get_sequence(fastq_fwd));
-      strcpy(qual, fastq_get_quality(fastq_fwd));
+      strcpy(qual_v.data(), fastq_get_quality(fastq_fwd));
       len = fwd_seq_length;
 
       strcpy(seq_v.data() + len, parameters.opt_join_padgap.data());
-      strcpy(qual + len, parameters.opt_join_padgapq.data());
+      strcpy(qual_v.data() + len, parameters.opt_join_padgapq.data());
       len += padlen;
 
       /* reverse complement reverse read */
@@ -181,11 +180,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
         {
           auto const rev_pos = rev_seq_length - 1 - i;
           seq_v[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
-          qual[len] = rev_qual[rev_pos];
+          qual_v[len] = rev_qual[rev_pos];
           ++len;
         }
       seq_v[len] = 0;
-      qual[len] = 0;
+      qual_v[len] = 0;
 
       /* write output */
 
@@ -196,7 +195,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               len,
                               fastq_get_header(fastq_fwd),
                               fastq_get_header_length(fastq_fwd),
-                              qual,
+                              qual_v.data(),
                               0,
                               total + 1,
                               -1.0);
@@ -249,9 +248,4 @@ auto fastq_join(struct Parameters const & parameters) -> void
   fastq_rev = nullptr;
   fastq_close(fastq_fwd);
   fastq_fwd = nullptr;
-
-  if (qual)
-    {
-      xfree(qual);
-    }
 }
