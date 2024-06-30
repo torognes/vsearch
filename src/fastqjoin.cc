@@ -147,17 +147,16 @@ auto fastq_join(struct Parameters const & parameters) -> void
           fatal("More forward reads than reverse reads");
         }
 
+      seq_v.clear();
+      qual_v.clear();
       auto const fwd_seq_length = fastq_get_sequence_length(fastq_fwd);
       auto const rev_seq_length = fastq_get_sequence_length(fastq_rev);
 
       /* allocate enough mem */
 
       auto const needed = fwd_seq_length + rev_seq_length + padlen + 1;
-      if (seq_v.size() < needed)
-        {
-          seq_v.resize(needed);
-          qual_v.resize(needed);
-        }
+      seq_v.resize(needed);
+      qual_v.resize(needed);
 
       /* join them */
 
