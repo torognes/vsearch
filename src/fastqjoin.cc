@@ -128,7 +128,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* main */
 
-  uint64_t const filesize = fastq_get_size(fastq_fwd);
+  auto const filesize = fastq_get_size(fastq_fwd);
   progress_init("Joining reads", filesize);
 
   /* do it */
