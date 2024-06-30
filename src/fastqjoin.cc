@@ -226,19 +226,19 @@ auto fastq_join(struct Parameters const & parameters) -> void
       fatal("More reverse reads than forward reads");
     }
 
-  fprintf(stderr,
-          "%" PRIu64 " pairs joined\n",
-          total);
+  std::fprintf(stderr,
+               "%" PRIu64 " pairs joined\n",
+               total);
 
   /* clean up */
 
   if (parameters.opt_fastaout)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
   if (parameters.opt_fastqout)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   fastq_close(fastq_rev);
