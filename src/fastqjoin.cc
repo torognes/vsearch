@@ -180,8 +180,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
           qual_v[len] = rev_qual[rev_pos];
           ++len;
         }
-      seq_v[len] = 0;
-      qual_v[len] = 0;
+      seq_v[len] = '\0';
+      qual_v[len] = '\0';
 
       /* write output */
 
