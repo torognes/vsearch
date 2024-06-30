@@ -170,9 +170,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
   std::vector<char> seq_v;
   std::vector<char> qual_v;
 
-  while (fastq_next(fastq_fwd, false, chrmap_no_change))
+  while (fastq_next(fastq_fwd, false, chrmap_no_change_array.data()))
     {
-      if (not fastq_next(fastq_rev, false, chrmap_no_change))
+      if (not fastq_next(fastq_rev, false, chrmap_no_change_array.data()))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -250,7 +250,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  if (fastq_next(fastq_rev, false, chrmap_no_change))
+  if (fastq_next(fastq_rev, false, chrmap_no_change_array.data()))
     {
       fatal("More reverse reads than forward reads");
     }
