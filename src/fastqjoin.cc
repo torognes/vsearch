@@ -214,7 +214,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* write output */
 
-      if (parameters.opt_fastqout)
+      if (parameters.opt_fastqout != nullptr)
         {
           fastq_print_general(fp_fastqout,
                               seq_v.data(),
@@ -227,7 +227,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               -1.0);
         }
 
-      if (parameters.opt_fastaout)
+      if (parameters.opt_fastaout != nullptr)
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
