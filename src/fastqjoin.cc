@@ -183,7 +183,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* allocate enough mem */
 
-      auto const needed = fwd_seq_length + rev_seq_length + padlen + 1;
+      auto const needed = fwd_seq_length + padlen + rev_seq_length + 1;
       seq_v.resize(needed);
       qual_v.resize(needed);
 
