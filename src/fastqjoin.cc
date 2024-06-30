@@ -78,6 +78,7 @@ auto join_fileopenw(char * filename) -> std::FILE *
   return file_ptr;
 }
 
+
 auto fastq_join(struct Parameters const & parameters) -> void
 {
   std::FILE * fp_fastqout = nullptr;
