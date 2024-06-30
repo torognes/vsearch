@@ -164,8 +164,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
       std::strcpy(qual_v.data(), fastq_get_quality(fastq_fwd));
       len = fwd_seq_length;
 
-      std::strcpy(seq_v.data() + len, parameters.opt_join_padgap.data());
-      std::strcpy(qual_v.data() + len, parameters.opt_join_padgapq.data());
+      std::strcpy(&seq_v[len], parameters.opt_join_padgap.data());
+      std::strcpy(&qual_v[len], parameters.opt_join_padgapq.data());
       len += padlen;
 
       /* reverse complement reverse read */
