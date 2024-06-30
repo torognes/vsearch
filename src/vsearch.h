@@ -534,8 +534,8 @@ struct Parameters {
   char * opt_fastqout_discarded_rev = nullptr;
   char * opt_fastx_subsample = nullptr;
   char * opt_fastx_uniques = nullptr;
-  char * opt_join_padgap = nullptr;
-  char * opt_join_padgapq = nullptr;
+  std::string opt_join_padgap = "NNNNNNNN";
+  std::string opt_join_padgapq = "IIIIIIII";
   char * opt_log = nullptr;
   char * opt_output = nullptr;
   char * opt_relabel = nullptr;

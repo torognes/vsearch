@@ -101,33 +101,10 @@ auto fastq_join(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  char * padgap = nullptr;
-  char * padgapq = nullptr;
-
-  if (parameters.opt_join_padgap)
-    {
-      padgap = xstrdup(parameters.opt_join_padgap);
-    }
-  else
-    {
-      padgap = xstrdup("NNNNNNNN");
-    }
+  char * padgap = const_cast<char *>(parameters.opt_join_padgap.data());
+  char * padgapq = const_cast<char *>(parameters.opt_join_padgapq.data()); // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
 
   uint64_t const padlen = strlen(padgap);
-
-  if (parameters.opt_join_padgapq)
-    {
-      padgapq = xstrdup(parameters.opt_join_padgapq);
-    }
-  else
-    {
-      padgapq = (char *) xmalloc(padlen + 1);  // refactoring: hard to eliminate without tests
-      for (uint64_t i = 0; i < padlen; ++i)
-        {
-          padgapq[i] = 'I';  // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
-        }
-      padgapq[padlen] = '\0';
-    }
 
   if (padlen != strlen(padgapq))
     {
@@ -280,6 +257,4 @@ auto fastq_join(struct Parameters const & parameters) -> void
     {
       xfree(qual);
     }
-  xfree(padgap);
-  xfree(padgapq);
 }
