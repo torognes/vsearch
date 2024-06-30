@@ -104,9 +104,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
   char * padgap = const_cast<char *>(parameters.opt_join_padgap.data());
   char * padgapq = const_cast<char *>(parameters.opt_join_padgapq.data()); // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
 
-  uint64_t const padlen = strlen(padgap);
+  uint64_t const padlen = parameters.opt_join_padgap.length();
 
-  if (padlen != strlen(padgapq))
+  if (parameters.opt_join_padgap.length() != parameters.opt_join_padgapq.length())
     {
       fatal("Strings given by --join_padgap and --join_padgapq differ in length");
     }
