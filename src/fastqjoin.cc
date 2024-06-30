@@ -59,10 +59,12 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcpy
+#include <iterator>  // std::reverse_iterator, std::next
 #include <vector>
 
 
@@ -170,17 +172,17 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* reverse complement reverse read */
 
-      char * rev_seq = fastq_get_sequence(fastq_rev);
-      char * rev_qual = fastq_get_quality(fastq_rev);
-
-      // refactor with transform?
-      for (uint64_t i = 0; i < rev_seq_length; ++i)
-        {
-          auto const rev_pos = rev_seq_length - 1 - i;
-          seq_v[len]  = chrmap_complement[(int) (rev_seq[rev_pos])];
-          qual_v[len] = rev_qual[rev_pos];
-          ++len;
-        }
+      std::transform(std::reverse_iterator<char *>{std::next(fastq_get_sequence(fastq_rev), rev_seq_length)},
+                     std::reverse_iterator<char *>{fastq_get_sequence(fastq_rev)},
+                     &seq_v[len],
+                     [](char const & lhs) -> char { return chrmap_complement[(int) (lhs)]; }
+                     );
+      std::transform(std::reverse_iterator<char *>{std::next(fastq_get_quality(fastq_rev), rev_seq_length)},
+                     std::reverse_iterator<char *>{fastq_get_quality(fastq_rev)},
+                     &qual_v[len],
+                     [](char const & lhs) -> char { return lhs; }
+                     );
+      len += rev_seq_length;
 
       /* write output */
 
