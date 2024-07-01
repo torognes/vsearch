@@ -137,7 +137,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   check_parameters(parameters);
 
-  // bug fixing: if offset 64 then Q40 = 'h', not 'I'!
+  // bug fixing: if offset 64 then Q40 = 'h', not 'I'! unless user wants IIIIIIII
 
   auto const padlen = parameters.opt_join_padgap.length();
 
@@ -190,7 +190,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* join them */
 
-      std::strcpy(seq_v.data(), fastq_get_sequence(fastq_fwd));
+      std::strcpy(seq_v.data(), fastq_get_sequence(fastq_fwd));  // refactoring: std::copy()  // algorithm
       std::strcpy(qual_v.data(), fastq_get_quality(fastq_fwd));
       len = fwd_seq_length;
 
