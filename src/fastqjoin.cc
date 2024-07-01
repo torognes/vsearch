@@ -95,32 +95,32 @@ auto check_parameters(struct Parameters const & parameters) -> void {
 }
 
 
-auto open_output_files(struct output_files & outfile) -> void {
-  if (outfile.fasta.name != nullptr) {
-    outfile.fasta.handle = fopen_output(outfile.fasta.name);
+auto open_output_files(struct output_files & outfiles) -> void {
+  if (outfiles.fasta.name != nullptr) {
+    outfiles.fasta.handle = fopen_output(outfiles.fasta.name);
   }
-  if (outfile.fastq.name != nullptr) {
-    outfile.fastq.handle = fopen_output(outfile.fastq.name);
-  }
-}
-
-
-auto check_output_files(struct output_files const & outfile) -> void {
-  if (outfile.fasta.name != nullptr) {
-    if (outfile.fasta.handle == nullptr) {
-      fatal("Unable to open file for writing (%s)", outfile.fasta.name);
-    }
-  }
-  if (outfile.fastq.name != nullptr) {
-    if (outfile.fastq.handle == nullptr) {
-      fatal("Unable to open file for writing (%s)", outfile.fastq.name);
-    }
+  if (outfiles.fastq.name != nullptr) {
+    outfiles.fastq.handle = fopen_output(outfiles.fastq.name);
   }
 }
 
 
-auto close_output_files(struct output_files const & outfile) -> void {
-  for (auto * fp_outputfile : {outfile.fasta.handle, outfile.fastq.handle}) {
+auto check_output_files(struct output_files const & outfiles) -> void {
+  if (outfiles.fasta.name != nullptr) {
+    if (outfiles.fasta.handle == nullptr) {
+      fatal("Unable to open file for writing (%s)", outfiles.fasta.name);
+    }
+  }
+  if (outfiles.fastq.name != nullptr) {
+    if (outfiles.fastq.handle == nullptr) {
+      fatal("Unable to open file for writing (%s)", outfiles.fastq.name);
+    }
+  }
+}
+
+
+auto close_output_files(struct output_files const & outfiles) -> void {
+  for (auto * fp_outputfile : {outfiles.fasta.handle, outfiles.fastq.handle}) {
     if (fp_outputfile != nullptr) {
       static_cast<void>(std::fclose(fp_outputfile));
     }
@@ -157,9 +157,9 @@ auto output_stats_message(struct Parameters const & parameters,
 
 auto fastq_join(struct Parameters const & parameters) -> void
 {
-  struct output_files outfile;
-  outfile.fasta.name = parameters.opt_fastaout;
-  outfile.fastq.name = parameters.opt_fastqout;
+  struct output_files outfiles;
+  outfiles.fasta.name = parameters.opt_fastaout;
+  outfiles.fastq.name = parameters.opt_fastqout;
 
   fastx_handle fastq_fwd = nullptr;
   fastx_handle fastq_rev = nullptr;
@@ -179,8 +179,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  open_output_files(outfile);
-  check_output_files(outfile);
+  open_output_files(outfiles);
+  check_output_files(outfiles);
 
 
   /* main */
@@ -242,7 +242,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       if (parameters.opt_fastqout != nullptr)
         {
-          fastq_print_general(outfile.fastq.handle,
+          fastq_print_general(outfiles.fastq.handle,
                               seq_v.data(),
                               static_cast<int>(len),
                               fastq_get_header(fastq_fwd),
@@ -255,7 +255,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       if (parameters.opt_fastaout != nullptr)
         {
-          fasta_print_general(outfile.fasta.handle,
+          fasta_print_general(outfiles.fasta.handle,
                               nullptr,
                               seq_v.data(),
                               static_cast<int>(len),
@@ -286,7 +286,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  close_output_files(outfile);
+  close_output_files(outfiles);
 
   fastq_close(fastq_rev);
   fastq_rev = nullptr;
