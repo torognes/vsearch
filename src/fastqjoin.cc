@@ -175,7 +175,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   check_parameters(parameters);
 
-  auto const padlen = parameters.opt_join_padgap.length();
 
   /* open input files */
   struct input_files infiles;
@@ -200,6 +199,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* do it */
 
+  auto const padlen = parameters.opt_join_padgap.length();
   uint64_t total = 0;
   uint64_t len = 0;
   std::vector<char> seq_v;
