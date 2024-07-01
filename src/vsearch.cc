@@ -5939,6 +5939,10 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_join)
     {
+      if ((not parameters.opt_join_padgapq_set_by_user) and
+          (parameters.opt_fastq_ascii != default_ascii_offset)) {
+        parameters.opt_join_padgapq = alternative_quality_padding;
+      }
       fastq_join(parameters);
     }
   else if (parameters.opt_rereplicate)
