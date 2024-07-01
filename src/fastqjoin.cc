@@ -105,6 +105,16 @@ auto check_parameters(struct Parameters const & parameters) -> void {
 }
 
 
+auto open_input_files(struct input_files & infiles) -> void {
+  if (infiles.forward.name != nullptr) {
+    infiles.forward.handle = fastq_open(infiles.forward.name);
+  }
+  if (infiles.reverse.name != nullptr) {
+    infiles.reverse.handle = fastq_open(infiles.reverse.name);
+  }
+}
+
+
 auto open_output_files(struct output_files & outfiles) -> void {
   if (outfiles.fasta.name != nullptr) {
     outfiles.fasta.handle = fopen_output(outfiles.fasta.name);
@@ -133,6 +143,15 @@ auto close_output_files(struct output_files const & outfiles) -> void {
   for (auto * fp_outputfile : {outfiles.fasta.handle, outfiles.fastq.handle}) {
     if (fp_outputfile != nullptr) {
       static_cast<void>(std::fclose(fp_outputfile));
+    }
+  }
+}
+
+
+auto close_input_files(struct input_files const & infiles) -> void {
+  for (auto * fp_inputfile : {infiles.forward.handle, infiles.reverse.handle}) {
+    if (fp_inputfile != nullptr) {
+        fastq_close(fp_inputfile);
     }
   }
 }
@@ -180,8 +199,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
   struct input_files infiles;
   infiles.forward.name = parameters.opt_fastq_join;
   infiles.reverse.name = parameters.opt_reverse;
-  fastq_fwd = fastq_open(infiles.forward.name);
-  fastq_rev = fastq_open(infiles.reverse.name);
+  open_input_files(infiles);
+  fastq_fwd = infiles.forward.handle;
+  fastq_rev = infiles.reverse.handle;
 
   /* open and check output files */
 
@@ -295,9 +315,5 @@ auto fastq_join(struct Parameters const & parameters) -> void
   /* clean up */
 
   close_output_files(outfiles);
-
-  fastq_close(fastq_rev);
-  fastq_rev = nullptr;
-  fastq_close(fastq_fwd);
-  fastq_fwd = nullptr;
+  close_input_files(infiles);
 }
