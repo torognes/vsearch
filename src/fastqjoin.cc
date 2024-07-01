@@ -137,8 +137,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   check_parameters(parameters);
 
-  // bug fixing: if offset 64 then Q40 = 'h', not 'I'! unless user wants IIIIIIII
-
   auto const padlen = parameters.opt_join_padgap.length();
 
   /* open input files */
