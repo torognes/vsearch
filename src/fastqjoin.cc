@@ -239,8 +239,14 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* join them */
 
-      std::strcpy(seq_v.data(), fastq_get_sequence(infiles.forward.handle));  // refactoring: std::copy()  // algorithm
-      std::strcpy(qual_v.data(), fastq_get_quality(infiles.forward.handle));
+      auto const * seq_begin = fastq_get_sequence(infiles.forward.handle);
+      std::copy(seq_begin,
+                std::next(seq_begin, fwd_seq_length),
+                seq_v.data());
+      auto const * qual_begin = fastq_get_quality(infiles.forward.handle);
+      std::copy(qual_begin,
+                std::next(qual_begin, fwd_seq_length),
+                qual_v.data());
       len = fwd_seq_length;
 
       std::strcpy(&seq_v[len], parameters.opt_join_padgap.data());
