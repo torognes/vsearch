@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
-#include <algorithm>  // std::transform
+#include <algorithm>  // std::transform, std::copy
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
