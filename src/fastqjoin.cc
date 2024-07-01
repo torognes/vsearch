@@ -69,6 +69,17 @@
 #include <vector>
 
 
+struct a_file {
+  char * name = nullptr;
+  std::FILE * handle = nullptr;
+};
+
+struct output_files {
+  a_file fasta;
+  a_file fastq;
+};
+
+
 auto check_parameters(struct Parameters const & parameters) -> void {
   if (parameters.opt_reverse == nullptr) {
     fatal("No reverse reads file specified with --reverse");
@@ -84,15 +95,27 @@ auto check_parameters(struct Parameters const & parameters) -> void {
 }
 
 
-auto join_fileopenw(char * filename) -> std::FILE *
-{
-  std::FILE * file_ptr = nullptr;
-  file_ptr = fopen_output(filename);
-  if (file_ptr == nullptr)
-    {
-      fatal("Unable to open file for writing (%s)", filename);
+auto open_output_files(struct output_files & outfile) -> void {
+  if (outfile.fasta.name != nullptr) {
+    outfile.fasta.handle = fopen_output(outfile.fasta.name);
+  }
+  if (outfile.fastq.name != nullptr) {
+    outfile.fastq.handle = fopen_output(outfile.fastq.name);
+  }
+}
+
+
+auto check_output_files(struct output_files const & outfile) -> void {
+  if (outfile.fasta.name != nullptr) {
+    if (outfile.fasta.handle == nullptr) {
+      fatal("Unable to open file for writing (%s)", outfile.fasta.name);
     }
-  return file_ptr;
+  }
+  if (outfile.fastq.name != nullptr) {
+    if (outfile.fastq.handle == nullptr) {
+      fatal("Unable to open file for writing (%s)", outfile.fastq.name);
+    }
+  }
 }
 
 
@@ -125,8 +148,9 @@ auto output_stats_message(struct Parameters const & parameters,
 
 auto fastq_join(struct Parameters const & parameters) -> void
 {
-  std::FILE * fp_fastqout = nullptr;
-  std::FILE * fp_fastaout = nullptr;
+  struct output_files outfile;
+  outfile.fasta.name = parameters.opt_fastaout;
+  outfile.fastq.name = parameters.opt_fastqout;
 
   fastx_handle fastq_fwd = nullptr;
   fastx_handle fastq_rev = nullptr;
@@ -146,14 +170,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fp_fastqout = join_fileopenw(parameters.opt_fastqout);
-    }
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fp_fastaout = join_fileopenw(parameters.opt_fastaout);
-    }
+  open_output_files(outfile);
+  check_output_files(outfile);
+
 
   /* main */
 
@@ -214,7 +233,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       if (parameters.opt_fastqout != nullptr)
         {
-          fastq_print_general(fp_fastqout,
+          fastq_print_general(outfile.fastq.handle,
                               seq_v.data(),
                               static_cast<int>(len),
                               fastq_get_header(fastq_fwd),
@@ -227,7 +246,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       if (parameters.opt_fastaout != nullptr)
         {
-          fasta_print_general(fp_fastaout,
+          fasta_print_general(outfile.fasta.handle,
                               nullptr,
                               seq_v.data(),
                               static_cast<int>(len),
@@ -260,11 +279,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastaout != nullptr)
     {
-      static_cast<void>(std::fclose(fp_fastaout));
+      static_cast<void>(std::fclose(outfile.fasta.handle));
     }
   if (parameters.opt_fastqout != nullptr)
     {
-      static_cast<void>(std::fclose(fp_fastqout));
+      static_cast<void>(std::fclose(outfile.fastq.handle));
     }
 
   fastq_close(fastq_rev);
