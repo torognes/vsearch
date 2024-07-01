@@ -175,7 +175,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   check_parameters(parameters);
 
-
   /* open input files */
   struct input_files infiles;
   infiles.forward.name = parameters.opt_fastq_join;
