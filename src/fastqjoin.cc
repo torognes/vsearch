@@ -200,6 +200,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
   infiles.forward.name = parameters.opt_fastq_join;
   infiles.reverse.name = parameters.opt_reverse;
   open_input_files(infiles);
+  // check already done by the function fastq_open()
   fastq_fwd = infiles.forward.handle;
   fastq_rev = infiles.reverse.handle;
 
