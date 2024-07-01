@@ -264,7 +264,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       std::transform(seq_rev_rbegin,
                      seq_rev_rend,
                      &seq_v[len],
-                     [](char const &lhs) -> char {
+                     [](char const & lhs) -> char {
                        return static_cast<char>(chrmap_complement_vector[static_cast<unsigned char>(lhs)]);
                      });
       auto * qual_rev_begin = fastq_get_quality(infiles.reverse.handle);
