@@ -514,6 +514,9 @@ constexpr int64_t default_maxseqlength = 50000;
 constexpr int64_t default_ascii_offset = 33;
 constexpr int64_t default_max_quality = 41;
 constexpr auto int64_max = std::numeric_limits<int64_t>::max();
+std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
+std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
+std::string const default_sequence_padding = "NNNNNNNN";
 
 struct Parameters {
   char * opt_cut = nullptr;
@@ -534,8 +537,8 @@ struct Parameters {
   char * opt_fastqout_discarded_rev = nullptr;
   char * opt_fastx_subsample = nullptr;
   char * opt_fastx_uniques = nullptr;
-  std::string opt_join_padgap = "NNNNNNNN";
-  std::string opt_join_padgapq = "IIIIIIII";
+  std::string opt_join_padgap = default_sequence_padding;
+  std::string opt_join_padgapq = default_quality_padding;
   char * opt_log = nullptr;
   char * opt_output = nullptr;
   char * opt_relabel = nullptr;
