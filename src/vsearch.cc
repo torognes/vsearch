@@ -2408,6 +2408,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
         case option_join_padgapq:
           opt_join_padgapq = optarg;
           parameters.opt_join_padgapq = optarg;
+          parameters.opt_join_padgapq_set_by_user = true;
           break;
 
         case option_sff_convert:

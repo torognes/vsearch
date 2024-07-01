@@ -565,6 +565,7 @@ struct Parameters {
   int64_t opt_topn = int64_max;
   bool opt_fastq_qout_max = false;
   bool opt_help = false;
+  bool opt_join_padgapq_set_by_user = false;
   bool opt_notrunclabels = false;
   bool opt_quiet = false;
   bool opt_sizein = false;
