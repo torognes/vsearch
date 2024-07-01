@@ -171,8 +171,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   fastx_handle fastq_fwd = nullptr;
   fastx_handle fastq_rev = nullptr;
 
-  uint64_t total = 0;
-
   /* check input and options */
 
   check_parameters(parameters);
@@ -202,8 +200,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* do it */
 
-  total = 0;
-
+  uint64_t total = 0;
   uint64_t len = 0;
   std::vector<char> seq_v;
   std::vector<char> qual_v;
