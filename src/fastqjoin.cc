@@ -187,9 +187,6 @@ auto output_stats_message(struct Parameters const & parameters,
 auto fastq_join(struct Parameters const & parameters) -> void
 {
 
-  fastx_handle fastq_fwd = nullptr;
-  fastx_handle fastq_rev = nullptr;
-
   /* check input and options */
 
   check_parameters(parameters);
@@ -201,8 +198,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
   infiles.reverse.name = parameters.opt_reverse;
   open_input_files(infiles);
   // check already done by the function fastq_open()
-  fastq_fwd = infiles.forward.handle;
-  fastq_rev = infiles.reverse.handle;
+  auto fastq_fwd = infiles.forward.handle;
+  auto fastq_rev = infiles.reverse.handle;
 
   /* open and check output files */
 
