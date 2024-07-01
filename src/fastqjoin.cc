@@ -241,11 +241,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       auto const * seq_begin = fastq_get_sequence(infiles.forward.handle);
       std::copy(seq_begin,
-                std::next(seq_begin, fwd_seq_length),
+                std::next(seq_begin, static_cast<long>(fwd_seq_length)),
                 seq_v.data());
       auto const * qual_begin = fastq_get_quality(infiles.forward.handle);
       std::copy(qual_begin,
-                std::next(qual_begin, fwd_seq_length),
+                std::next(qual_begin, static_cast<long>(fwd_seq_length)),
                 qual_v.data());
       len = fwd_seq_length;
 
