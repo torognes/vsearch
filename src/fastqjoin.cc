@@ -69,14 +69,14 @@
 #include <vector>
 
 
-struct a_file {
+struct output_file {
   char * name = nullptr;
   std::FILE * handle = nullptr;
 };
 
 struct output_files {
-  a_file fasta;
-  a_file fastq;
+  output_file fasta;
+  output_file fastq;
 };
 
 
