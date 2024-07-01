@@ -150,11 +150,20 @@ void increment_counters_from_bitmap(count_t * counters,
     }
 }
 
-#elif __x86_64__
+#elif __x86_64__ || defined(SIMDE_VERSION)
 
+#ifdef __x86_64__
 #include <emmintrin.h>
+#else
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/x86/sse2.h>
+#endif
 
-#ifdef SSSE3
+#if defined(SIMDE_VERSION)
+void increment_counters_from_bitmap(count_t * counters,
+                                    unsigned char * bitmap,
+                                    unsigned int totalbits)
+#elif defined(SSSE3)
 void increment_counters_from_bitmap_ssse3(count_t * counters,
                                           unsigned char * bitmap,
                                           unsigned int totalbits)
@@ -189,7 +198,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   // 0xf7fbfdfe -> 1111'0111'1111'1011'1111'1101'1111'1110 (32 bits)
   static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfe);
 
-#ifdef SSSE3
+#if defined(SSSE3) || defined(SIMDE_VERSION)
   const auto c1 = _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
 #endif
   const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
@@ -202,7 +211,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   for(auto j = 0U; j < r; j++)
     {
       const auto xmm0 = _mm_loadu_si128((__m128i *) p++);
-#ifdef SSSE3
+#if defined(SSSE3) || defined(SIMDE_VERSION)
       const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
       const auto xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);

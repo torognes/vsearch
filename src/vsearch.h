@@ -106,13 +106,13 @@
 
 #ifdef __x86_64__
 
-#define PROG_CPU "x86_64"
+#define PROG_CPU x86_64
 #include <x86intrin.h>
 
 #elif __PPC__
 
 #ifdef __LITTLE_ENDIAN__
-#define PROG_CPU "ppc64le"
+#define PROG_CPU ppc64le
 #include <altivec.h>
 #undef bool
 #else
@@ -121,13 +121,14 @@
 
 #elif __aarch64__
 
-#define PROG_CPU "aarch64"
+#define PROG_CPU aarch64
 #include <arm_neon.h>
 
 #else
 
-#error Unknown architecture (not ppc64le, aarch64 or x86_64)
-
+#define PROG_CPU simde
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/x86/avx512.h>
 #endif
 
 
@@ -190,7 +191,7 @@
 #endif
 
 
-#define PROG_ARCH PROG_OS "_" PROG_CPU
+#define PROG_ARCH PROG_OS "_" "PROG_CPU"
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
