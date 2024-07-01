@@ -157,9 +157,6 @@ auto output_stats_message(struct Parameters const & parameters,
 
 auto fastq_join(struct Parameters const & parameters) -> void
 {
-  struct output_files outfiles;
-  outfiles.fasta.name = parameters.opt_fastaout;
-  outfiles.fastq.name = parameters.opt_fastqout;
 
   fastx_handle fastq_fwd = nullptr;
   fastx_handle fastq_rev = nullptr;
@@ -177,8 +174,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
   fastq_fwd = fastq_open(parameters.opt_fastq_join);
   fastq_rev = fastq_open(parameters.opt_reverse);
 
-  /* open output files */
+  /* open and check output files */
 
+  struct output_files outfiles;
+  outfiles.fasta.name = parameters.opt_fastaout;
+  outfiles.fastq.name = parameters.opt_fastqout;
   open_output_files(outfiles);
   check_output_files(outfiles);
 
