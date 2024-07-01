@@ -175,7 +175,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   check_parameters(parameters);
 
-  /* open input files */
+  /* open and check input files */
+
   struct input_files infiles;
   infiles.forward.name = parameters.opt_fastq_join;
   infiles.reverse.name = parameters.opt_reverse;
@@ -189,7 +190,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   outfiles.fastq.name = parameters.opt_fastqout;
   open_output_files(outfiles);
   check_output_files(outfiles);
-
 
   /* main */
 
