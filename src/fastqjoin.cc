@@ -119,6 +119,15 @@ auto check_output_files(struct output_files const & outfile) -> void {
 }
 
 
+auto close_output_files(struct output_files const & outfile) -> void {
+  for (auto * fp_outputfile : {outfile.fasta.handle, outfile.fastq.handle}) {
+    if (fp_outputfile != nullptr) {
+      static_cast<void>(std::fclose(fp_outputfile));
+    }
+  }
+}
+
+
 auto stats_message(std::FILE * output_stream,
                    uint64_t const total) -> void {
   static_cast<void>(std::fprintf(output_stream,
@@ -277,14 +286,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  if (parameters.opt_fastaout != nullptr)
-    {
-      static_cast<void>(std::fclose(outfile.fasta.handle));
-    }
-  if (parameters.opt_fastqout != nullptr)
-    {
-      static_cast<void>(std::fclose(outfile.fastq.handle));
-    }
+  close_output_files(outfile);
 
   fastq_close(fastq_rev);
   fastq_rev = nullptr;
