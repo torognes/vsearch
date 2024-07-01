@@ -259,12 +259,12 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* reverse complement reverse read */
 
-      std::transform(std::reverse_iterator<char *>{std::next(fastq_get_sequence(infiles.reverse.handle), rev_seq_length)},
+      std::transform(std::reverse_iterator<char *>{std::next(fastq_get_sequence(infiles.reverse.handle), static_cast<long>(rev_seq_length))},
                      std::reverse_iterator<char *>{fastq_get_sequence(infiles.reverse.handle)},
                      &seq_v[len],
                      [](char const & lhs) -> char { return static_cast<char>(chrmap_complement_vector[static_cast<unsigned char>(lhs)]); }
                      );
-      std::transform(std::reverse_iterator<char *>{std::next(fastq_get_quality(infiles.reverse.handle), rev_seq_length)},
+      std::transform(std::reverse_iterator<char *>{std::next(fastq_get_quality(infiles.reverse.handle), static_cast<long>(rev_seq_length))},
                      std::reverse_iterator<char *>{fastq_get_quality(infiles.reverse.handle)},
                      &qual_v[len],
                      [](char const & lhs) -> char { return lhs; }
