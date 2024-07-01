@@ -69,6 +69,16 @@
 #include <vector>
 
 
+struct input_file {
+  char * name = nullptr;
+  fastx_handle handle = nullptr;
+};
+
+struct input_files {
+  input_file forward;
+  input_file reverse;
+};
+
 struct output_file {
   char * name = nullptr;
   std::FILE * handle = nullptr;
@@ -170,9 +180,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
   auto const padlen = parameters.opt_join_padgap.length();
 
   /* open input files */
-
-  fastq_fwd = fastq_open(parameters.opt_fastq_join);
-  fastq_rev = fastq_open(parameters.opt_reverse);
+  struct input_files infiles;
+  infiles.forward.name = parameters.opt_fastq_join;
+  infiles.reverse.name = parameters.opt_reverse;
+  fastq_fwd = fastq_open(infiles.forward.name);
+  fastq_rev = fastq_open(infiles.reverse.name);
 
   /* open and check output files */
 
