@@ -170,6 +170,7 @@ auto fastq_chars() -> void
   char qmin = 0;
   char qmax = 0;
 
+  // refactor: find first non-null
   for (int c = 0; c <= 255; c++)
     {
       if (quality_chars[c])
@@ -179,6 +180,7 @@ auto fastq_chars() -> void
         }
     }
 
+  // refactor: find last non-null
   for(int c = 255; c >= 0; c--)
     {
       if (quality_chars[c])
