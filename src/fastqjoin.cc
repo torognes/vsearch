@@ -239,7 +239,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
       auto const needed = fwd_seq_length + padlen + rev_seq_length;
 
-      /* allocate enough mem */
+      /* allocate enough memory */
       if (rev_seq_length > reverse_sequence.capacity()) {
         reverse_sequence.reserve(rev_seq_length);
       }
