@@ -214,7 +214,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   constexpr auto bufferlength = 1024U;
   auto const padlen = parameters.opt_join_padgap.length();
   uint64_t total = 0;
-  uint64_t len = 0;
   std::string final_sequence;
   final_sequence.reserve(bufferlength + padlen + bufferlength + 1);
   std::string final_quality;
@@ -245,7 +244,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
       auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
       auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
       auto const needed = fwd_seq_length + padlen + rev_seq_length;
-      len = fwd_seq_length + padlen + rev_seq_length;
 
       /* allocate enough mem */
       if (fwd_seq_length > forward_sequence.capacity()) {
@@ -292,7 +290,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
         {
           fastq_print_general(outfiles.fastq.handle,
                               const_cast<char *>(final_sequence.c_str()),
-                              static_cast<int>(len),
+                              static_cast<int>(needed),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
                               const_cast<char *>(final_quality.c_str()),
@@ -306,7 +304,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
           fasta_print_general(outfiles.fasta.handle,
                               nullptr,
                               const_cast<char *>(final_sequence.c_str()),
-                              static_cast<int>(len),
+                              static_cast<int>(needed),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
                               0,
