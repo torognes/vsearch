@@ -244,7 +244,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
       auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
-      auto const needed = fwd_seq_length + padlen + rev_seq_length + 1;
+      auto const needed = fwd_seq_length + padlen + rev_seq_length;
       len = fwd_seq_length + padlen + rev_seq_length;
 
       /* allocate enough mem */
@@ -282,8 +282,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* join them */
 
-      final_sequence = forward_sequence + parameters.opt_join_padgap + reverse_sequence + '\0';
-      final_quality = forward_quality + parameters.opt_join_padgapq + reverse_quality + '\0';
+      final_sequence = forward_sequence + parameters.opt_join_padgap + reverse_sequence;
+      final_quality = forward_quality + parameters.opt_join_padgapq + reverse_quality;
 
 
       /* write output */
