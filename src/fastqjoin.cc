@@ -64,8 +64,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <iterator>  // std::reverse_iterator, std::next
-#include <vector>
+#include <string>
 
 
 struct input_file {
@@ -212,11 +211,22 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* do it */
 
+  constexpr auto bufferlength = 1024U;
   auto const padlen = parameters.opt_join_padgap.length();
   uint64_t total = 0;
   uint64_t len = 0;
-  std::vector<char> seq_v;
-  std::vector<char> qual_v;
+  std::string final_sequence;
+  final_sequence.reserve(bufferlength + padlen + bufferlength + 1);
+  std::string final_quality;
+  final_quality.reserve(final_sequence.capacity());
+  std::string forward_sequence;  // refactoring: eliminate by constructing in place?
+  forward_sequence.reserve(bufferlength);
+  std::string forward_quality;
+  forward_quality.reserve(bufferlength);
+  std::string reverse_sequence;
+  reverse_sequence.reserve(bufferlength);
+  std::string reverse_quality;
+  reverse_quality.reserve(bufferlength);
 
   while (fastq_next(infiles.forward.handle, false, chrmap_no_change_array.data()))
     {
@@ -225,76 +235,67 @@ auto fastq_join(struct Parameters const & parameters) -> void
           fatal("More forward reads than reverse reads");
         }
 
-      seq_v.clear();
-      qual_v.clear();
+      final_sequence.clear();
+      final_quality.clear();
+      forward_sequence.clear();
+      reverse_sequence.clear();
+      forward_quality.clear();
+      reverse_quality.clear();
+
       auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
       auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
+      auto const needed = fwd_seq_length + padlen + rev_seq_length + 1;
+      len = fwd_seq_length + padlen + rev_seq_length;
 
       /* allocate enough mem */
+      if (fwd_seq_length > forward_sequence.capacity()) {
+        forward_sequence.reserve(fwd_seq_length);
+      }
+      if (fwd_seq_length > forward_quality.capacity()) {
+        forward_quality.reserve(fwd_seq_length);
+      }
+      if (rev_seq_length > reverse_sequence.capacity()) {
+        reverse_sequence.reserve(rev_seq_length);
+      }
+      if (rev_seq_length > reverse_quality.capacity()) {
+        reverse_quality.reserve(rev_seq_length);
+      }
+      if (needed > final_sequence.capacity()) {
+        final_sequence.reserve(needed);
+      }
 
-      auto const needed = fwd_seq_length + padlen + rev_seq_length + 1;
-      seq_v.resize(needed);
-      qual_v.resize(needed);
+      forward_sequence.assign(fastq_get_sequence(infiles.forward.handle), fwd_seq_length);
+      forward_quality.assign(fastq_get_quality(infiles.forward.handle), fwd_seq_length);
 
-      /* join them */
+      reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), fwd_seq_length);
+      reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), fwd_seq_length);
 
-      auto const * seq_fwd_begin = fastq_get_sequence(infiles.forward.handle);
-      std::copy(seq_fwd_begin,
-                std::next(seq_fwd_begin, static_cast<long>(fwd_seq_length)),
-                seq_v.data());
-      auto const * qual_fwd_begin = fastq_get_quality(infiles.forward.handle);
-      std::copy(qual_fwd_begin,
-                std::next(qual_fwd_begin, static_cast<long>(fwd_seq_length)),
-                qual_v.data());
-      len = fwd_seq_length;
+      std::reverse(reverse_sequence.begin(), reverse_sequence.end());
+      std::reverse(reverse_quality.begin(), reverse_quality.end());
 
-      std::copy(parameters.opt_join_padgap.cbegin(),
-                parameters.opt_join_padgap.cend(),
-                &seq_v[len]);
-      std::copy(parameters.opt_join_padgapq.cbegin(),
-                parameters.opt_join_padgapq.cend(),
-                &qual_v[len]);
-      len += padlen;
-
-      /* reverse complement reverse read */
-
-      auto * seq_rev_begin = fastq_get_sequence(infiles.reverse.handle);
-      std::reverse_iterator<char *> seq_rev_rbegin(std::next(seq_rev_begin, static_cast<long>(rev_seq_length)));
-      std::reverse_iterator<char *> seq_rev_rend(seq_rev_begin);
-      std::transform(seq_rev_rbegin,
-                     seq_rev_rend,
-                     &seq_v[len],
+      std::transform(reverse_sequence.begin(),
+                     reverse_sequence.end(),
+                     reverse_sequence.begin(),
                      [](char const & lhs) -> char {
                        return static_cast<char>(chrmap_complement_vector[static_cast<unsigned char>(lhs)]);
                      });
-      auto * qual_rev_begin = fastq_get_quality(infiles.reverse.handle);
-      std::reverse_iterator<char *> qual_rev_rbegin(std::next(qual_rev_begin, static_cast<long>(rev_seq_length)));
-      std::reverse_iterator<char *> qual_rev_rend(qual_rev_begin);
-      std::copy(qual_rev_rbegin, qual_rev_rend, &qual_v[len]);
-      len += rev_seq_length;
 
-      // std::string refactoring:
-      //  - std::string seq_forward;
-      //  - seq_forward.clear();
-      //  - if (fwd_seq_length > seq_forward.capacity()) seq_forward.reserve(fwd_seq_length);
-      //  - seq_forward.assign(fastq_get_sequence(infiles.forward.handle), fwd_seq_length);
-      // same thing for reverse
-      // std::reverse(seq_reverse.begin(), seq_reverse.end());
-      // complement (std::transform(seq_reverse.begin(), seq_reverse.end(), seq_reverse.begin(), lambda))
-      // final_seq = seq_forward + padding + seq_reverse + '\0'
-      // ...
-      // (same thing for quality)
+      /* join them */
+
+      final_sequence = forward_sequence + parameters.opt_join_padgap + reverse_sequence + '\0';
+      final_quality = forward_quality + parameters.opt_join_padgapq + reverse_quality + '\0';
+
 
       /* write output */
 
       if (parameters.opt_fastqout != nullptr)
         {
           fastq_print_general(outfiles.fastq.handle,
-                              seq_v.data(),
+                              const_cast<char *>(final_sequence.c_str()),
                               static_cast<int>(len),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
-                              qual_v.data(),
+                              const_cast<char *>(final_quality.c_str()),
                               0,
                               static_cast<int>(total + 1),
                               -1.0);
@@ -304,7 +305,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
         {
           fasta_print_general(outfiles.fasta.handle,
                               nullptr,
-                              seq_v.data(),
+                              const_cast<char *>(final_sequence.c_str()),
                               static_cast<int>(len),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
