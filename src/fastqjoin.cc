@@ -218,10 +218,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   final_sequence.reserve(bufferlength + padlen + bufferlength + 1);
   std::string final_quality;
   final_quality.reserve(final_sequence.capacity());
-  std::string forward_sequence;  // refactoring: eliminate by constructing in place?
-  forward_sequence.reserve(bufferlength);
-  std::string forward_quality;
-  forward_quality.reserve(bufferlength);
   std::string reverse_sequence;
   reverse_sequence.reserve(bufferlength);
   std::string reverse_quality;
@@ -236,9 +232,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       final_sequence.clear();
       final_quality.clear();
-      forward_sequence.clear();
       reverse_sequence.clear();
-      forward_quality.clear();
       reverse_quality.clear();
 
       auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
@@ -246,12 +240,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
       auto const needed = fwd_seq_length + padlen + rev_seq_length;
 
       /* allocate enough mem */
-      if (fwd_seq_length > forward_sequence.capacity()) {
-        forward_sequence.reserve(fwd_seq_length);
-      }
-      if (fwd_seq_length > forward_quality.capacity()) {
-        forward_quality.reserve(fwd_seq_length);
-      }
       if (rev_seq_length > reverse_sequence.capacity()) {
         reverse_sequence.reserve(rev_seq_length);
       }
@@ -262,15 +250,10 @@ auto fastq_join(struct Parameters const & parameters) -> void
         final_sequence.reserve(needed);
       }
 
-      forward_sequence.assign(fastq_get_sequence(infiles.forward.handle), fwd_seq_length);
-      forward_quality.assign(fastq_get_quality(infiles.forward.handle), fwd_seq_length);
+      /* reverse read: reverse-complement sequence */
 
       reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), fwd_seq_length);
-      reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), fwd_seq_length);
-
       std::reverse(reverse_sequence.begin(), reverse_sequence.end());
-      std::reverse(reverse_quality.begin(), reverse_quality.end());
-
       std::transform(reverse_sequence.begin(),
                      reverse_sequence.end(),
                      reverse_sequence.begin(),
