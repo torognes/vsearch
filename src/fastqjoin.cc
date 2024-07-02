@@ -252,7 +252,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* reverse read: reverse-complement sequence */
 
-      reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), fwd_seq_length);
+      reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), rev_seq_length);
       std::reverse(reverse_sequence.begin(), reverse_sequence.end());
       std::transform(reverse_sequence.begin(),
                      reverse_sequence.end(),
@@ -265,7 +265,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
       /* reverse read: reverse quality */
 
-      reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), fwd_seq_length);
+      reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), rev_seq_length);
       std::reverse(reverse_quality.begin(), reverse_quality.end());
 
       /* join them */
