@@ -191,14 +191,14 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* open and check input files */
 
-  struct input_files infiles;
+  struct input_files infiles;  // refactor: make const
   infiles.forward.name = parameters.opt_fastq_join;
   infiles.reverse.name = parameters.opt_reverse;
   open_input_files(infiles);  // handles checked by the function fastq_open()
 
   /* open and check output files */
 
-  struct output_files outfiles;
+  struct output_files outfiles;  // refactor: make const
   outfiles.fasta.name = parameters.opt_fastaout;
   outfiles.fastq.name = parameters.opt_fastqout;
   open_output_files(outfiles);
