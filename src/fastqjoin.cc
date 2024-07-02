@@ -193,16 +193,14 @@ auto output_stats_message(struct Parameters const & parameters,
 auto fastq_join(struct Parameters const & parameters) -> void
 {
 
-  /* check input and options */
+  /* check parameters */
 
   check_parameters(parameters);
 
-  /* open and check input files */
+  /* open and check input and output files */
 
-  auto const infiles = open_input_files(parameters);  // handles checked by the function fastq_open()
-
-  /* open and check output files */
-
+  auto const infiles = open_input_files(parameters);
+  // check_input_files(infiles)? already done by the function fastq_open()
   auto const outfiles = open_output_files(parameters);
   check_output_files(outfiles);
 
