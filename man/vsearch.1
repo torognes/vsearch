@@ -1662,10 +1662,10 @@ quality score when writing FASTQ output files. The default is 33. Only
 .TP
 .BI \-\-fastq_chars \0filename
 Summarize the composition of sequence and quality strings contained in
-the input FASTQ file. For each of the four DNA letters,
-\-\-fastq_chars gives the number of occurrences of the letter, its
+the input FASTQ file. For each sequence symbol (IUPAC),
+\-\-fastq_chars gives the number of occurrences of the symbol, its
 relative frequency and the length of the longest run of that
-letter. For each character present in the quality strings,
+symbol. For each character present in the quality strings,
 \-\-fastq_chars gives the ASCII value of the character, its relative
 frequency, and the number of times a \fIk\fR-mer of that character
 appears at the end of quality strings. The length of the \fIk\fR-mer
