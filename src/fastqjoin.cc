@@ -278,11 +278,15 @@ auto fastq_join(struct Parameters const & parameters) -> void
                        return static_cast<char>(chrmap_complement_vector[static_cast<unsigned char>(lhs)]);
                      });
 
+      /* reverse read: reverse quality */
+
+      reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), fwd_seq_length);
+      std::reverse(reverse_quality.begin(), reverse_quality.end());
+
       /* join them */
 
-      final_sequence = forward_sequence + parameters.opt_join_padgap + reverse_sequence;
-      final_quality = forward_quality + parameters.opt_join_padgapq + reverse_quality;
-
+      final_sequence = std::string{fastq_get_sequence(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgap + reverse_sequence;
+      final_quality = std::string{fastq_get_quality(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgapq + reverse_quality;
 
       /* write output */
 
