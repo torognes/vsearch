@@ -258,7 +258,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
                      reverse_sequence.end(),
                      reverse_sequence.begin(),
                      [](char const & lhs) -> char {
-                       return static_cast<char>(chrmap_complement_vector[static_cast<unsigned char>(lhs)]);
+                       auto const unsigned_lhs = static_cast<unsigned char>(lhs);
+                       auto const complement_lhs = chrmap_complement_vector[unsigned_lhs];
+                       return static_cast<char>(complement_lhs);
                      });
 
       /* reverse read: reverse quality */
