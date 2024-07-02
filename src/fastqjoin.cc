@@ -273,6 +273,18 @@ auto fastq_join(struct Parameters const & parameters) -> void
       std::copy(qual_rev_rbegin, qual_rev_rend, &qual_v[len]);
       len += rev_seq_length;
 
+      // std::string refactoring:
+      //  - std::string seq_forward;
+      //  - seq_forward.clear();
+      //  - if (fwd_seq_length > seq_forward.capacity()) seq_forward.reserve(fwd_seq_length);
+      //  - seq_forward.assign(fastq_get_sequence(infiles.forward.handle), fwd_seq_length);
+      // same thing for reverse
+      // std::reverse(seq_reverse.begin(), seq_reverse.end());
+      // complement (std::transform(seq_reverse.begin(), seq_reverse.end(), seq_reverse.begin(), lambda))
+      // final_seq = seq_forward + padding + seq_reverse + '\0'
+      // ...
+      // (same thing for quality)
+
       /* write output */
 
       if (parameters.opt_fastqout != nullptr)
