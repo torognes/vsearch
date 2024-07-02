@@ -131,7 +131,6 @@ char * opt_fastq_convert;
 char * opt_fastq_eestats2;
 char * opt_fastq_eestats;
 char * opt_fastq_filter;
-char * opt_fastq_join;
 char * opt_fastq_mergepairs;
 char * opt_fastq_stats;
 char * opt_fastqout;
@@ -146,8 +145,6 @@ char * opt_fastx_getseqs;
 char * opt_fastx_getsubseq;
 char * opt_fastx_mask;
 char * opt_fastx_revcomp;
-char * opt_join_padgap;
-char * opt_join_padgapq;
 char * opt_label;
 char * opt_label_field;
 char * opt_label_suffix;
@@ -803,7 +800,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_eestats = nullptr;
   opt_fastq_eestats2 = nullptr;
   opt_fastq_filter = nullptr;
-  opt_fastq_join = nullptr;
   opt_fastq_maxdiffpct = 100.0;
   opt_fastq_maxdiffs = 10;
   opt_fastq_maxee = DBL_MAX;
@@ -859,8 +855,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_iddef = 2;
   opt_idprefix = 0;
   opt_idsuffix = 0;
-  opt_join_padgap = nullptr;
-  opt_join_padgapq = nullptr;
   opt_label = nullptr;
   opt_label_field = nullptr;
   opt_label_substr_match = false;
@@ -2396,17 +2390,14 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_join:
-          opt_fastq_join = optarg;
           parameters.opt_fastq_join = optarg;
           break;
 
         case option_join_padgap:
-          opt_join_padgap = optarg;
           parameters.opt_join_padgap = optarg;
           break;
 
         case option_join_padgapq:
-          opt_join_padgapq = optarg;
           parameters.opt_join_padgapq = optarg;
           parameters.opt_join_padgapq_set_by_user = true;
           break;
