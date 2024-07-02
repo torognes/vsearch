@@ -215,7 +215,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
   auto const padlen = parameters.opt_join_padgap.length();
   uint64_t total = 0;
   std::string final_sequence;
-  final_sequence.reserve(bufferlength + padlen + bufferlength + 1);
+  final_sequence.reserve(bufferlength + padlen + bufferlength);
   std::string final_quality;
   final_quality.reserve(final_sequence.capacity());
   std::string reverse_sequence;
