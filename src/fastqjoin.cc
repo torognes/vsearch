@@ -103,23 +103,31 @@ auto check_parameters(struct Parameters const & parameters) -> void {
 }
 
 
-auto open_input_files(struct input_files & infiles) -> void {
+auto open_input_files(struct Parameters const & parameters) -> struct input_files {
+  struct input_files infiles;
+  infiles.forward.name = parameters.opt_fastq_join;
+  infiles.reverse.name = parameters.opt_reverse;
   if (infiles.forward.name != nullptr) {
     infiles.forward.handle = fastq_open(infiles.forward.name);
   }
   if (infiles.reverse.name != nullptr) {
     infiles.reverse.handle = fastq_open(infiles.reverse.name);
   }
+  return infiles;
 }
 
 
-auto open_output_files(struct output_files & outfiles) -> void {
+auto open_output_files(struct Parameters const & parameters) -> struct output_files {
+  struct output_files outfiles;
+  outfiles.fasta.name = parameters.opt_fastaout;
+  outfiles.fastq.name = parameters.opt_fastqout;
   if (outfiles.fasta.name != nullptr) {
     outfiles.fasta.handle = fopen_output(outfiles.fasta.name);
   }
   if (outfiles.fastq.name != nullptr) {
     outfiles.fastq.handle = fopen_output(outfiles.fastq.name);
   }
+  return outfiles;
 }
 
 
@@ -191,17 +199,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* open and check input files */
 
-  struct input_files infiles;  // refactor: make const
-  infiles.forward.name = parameters.opt_fastq_join;
-  infiles.reverse.name = parameters.opt_reverse;
-  open_input_files(infiles);  // handles checked by the function fastq_open()
+  auto const infiles = open_input_files(parameters);  // handles checked by the function fastq_open()
 
   /* open and check output files */
 
-  struct output_files outfiles;  // refactor: make const
-  outfiles.fasta.name = parameters.opt_fastaout;
-  outfiles.fastq.name = parameters.opt_fastqout;
-  open_output_files(outfiles);
+  auto const outfiles = open_output_files(parameters);
   check_output_files(outfiles);
 
   /* main */
