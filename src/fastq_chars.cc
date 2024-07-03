@@ -86,7 +86,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.quality_chars.resize(n_characters);
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
-  uint64_t total_chars = 0;
 
   for (int c = 0; c < 256; c++)
     {
@@ -114,7 +113,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       char * q = fastq_get_quality(h);
 
       seq_count++;
-      total_chars += len;
+      stats.total_chars += len;
 
       int run_char = -1;
       int run = 0;
@@ -270,7 +269,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                   fprintf(stderr, "     %c %10" PRIu64 " %5.1f%% %6d",
                           c,
                           stats.sequence_chars[c],
-                          100.0 * stats.sequence_chars[c] / total_chars,
+                          100.0 * stats.sequence_chars[c] / stats.total_chars,
                           stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
@@ -298,7 +297,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                   fprintf(stderr, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                           c,
                           c,
-                          100.0 * stats.quality_chars[c] / total_chars,
+                          100.0 * stats.quality_chars[c] / stats.total_chars,
                           stats.tail_chars[c]);
                 }
             }
@@ -355,7 +354,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                   fprintf(fp_log, "     %c %10" PRIu64 " %5.1f%% %6d",
                           c,
                           stats.sequence_chars[c],
-                          100.0 * stats.sequence_chars[c] / total_chars,
+                          100.0 * stats.sequence_chars[c] / stats.total_chars,
                           stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
@@ -383,7 +382,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                   fprintf(fp_log, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                           c,
                           c,
-                          100.0 * stats.quality_chars[c] / total_chars,
+                          100.0 * stats.quality_chars[c] / stats.total_chars,
                           stats.tail_chars[c]);
                 }
             }
