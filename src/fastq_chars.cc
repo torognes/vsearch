@@ -64,7 +64,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 
 
-auto fastq_chars() -> void
+auto fastq_chars(struct Parameters const & parameters) -> void
 {
   uint64_t sequence_chars[256];
   uint64_t quality_chars[256];
@@ -80,7 +80,7 @@ auto fastq_chars() -> void
       maxrun[c] = 0;
     }
 
-  fastx_handle h = fastq_open(opt_fastq_chars);
+  fastx_handle h = fastq_open(parameters.opt_fastq_chars);
 
   uint64_t const filesize = fastq_get_size(h);
 

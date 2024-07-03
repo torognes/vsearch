@@ -5888,7 +5888,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_chars)
     {
-      fastq_chars();
+      fastq_chars(parameters);
     }
   else if (opt_fastq_stats)
     {
