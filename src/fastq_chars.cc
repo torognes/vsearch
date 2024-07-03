@@ -169,8 +169,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   fastq_close(h);
 
-  char qmax = 0;
-
   // refactor: find first non-null
   for (int c = 0; c <= 255; c++)
     {
@@ -186,7 +184,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     {
       if (stats.quality_chars[c])
         {
-          qmax = c;
+          stats.qmax = c;
           break;
         }
     }
@@ -195,7 +193,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   char fastq_qmin = '\0';
   char fastq_qmax = '\0';
 
-  if ((stats.qmin < 59) || (qmax < 75))
+  if ((stats.qmin < 59) || (stats.qmax < 75))
     {
       fastq_ascii = 33;
     }
@@ -204,7 +202,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       fastq_ascii = 64;
     }
 
-  fastq_qmax = qmax - fastq_ascii;
+  fastq_qmax = stats.qmax - fastq_ascii;
   fastq_qmin = stats.qmin - fastq_ascii;
 
   if (! parameters.opt_quiet)
@@ -214,7 +212,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (stats.seq_count > 0)
         {
           fprintf(stderr, "Qmin %d, Qmax %d, Range %d\n",
-                  stats.qmin, qmax, qmax - stats.qmin + 1);
+                  stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
 
           fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                   fastq_qmin, fastq_qmax, fastq_ascii);
@@ -236,7 +234,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
           else
             {
-              if (qmax > 73)
+              if (stats.qmax > 73)
                 {
                   fprintf(stderr, "Guess: Illumina 1.8+ format (phred+33)\n");
                 }
@@ -278,7 +276,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(stderr, "Char  ASCII    Freq       Tails\n");
           fprintf(stderr, "----  -----  ------  ----------\n");
 
-          for (int c = stats.qmin; c <= qmax; c++)
+          for (int c = stats.qmin; c <= stats.qmax; c++)
             {
               if (stats.quality_chars[c] > 0)
                 {
@@ -299,7 +297,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (stats.seq_count > 0)
         {
           fprintf(fp_log, "Qmin %d, Qmax %d, Range %d\n",
-                  stats.qmin, qmax, qmax-stats.qmin + 1);
+                  stats.qmin, stats.qmax, stats.qmax-stats.qmin + 1);
 
           fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                   fastq_qmin, fastq_qmax, fastq_ascii);
@@ -321,7 +319,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
           else
             {
-              if (qmax > 73)
+              if (stats.qmax > 73)
                 {
                   fprintf(fp_log, "Guess: Illumina 1.8+ format (phred+33)\n");
                 }
@@ -363,7 +361,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
           fprintf(fp_log, "----  -----  ------  ----------\n");
 
-          for (int c = stats.qmin; c <= qmax; c++)
+          for (int c = stats.qmin; c <= stats.qmax; c++)
             {
               if (stats.quality_chars[c] > 0)
                 {
