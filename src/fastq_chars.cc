@@ -76,6 +76,8 @@ struct statistics {
   uint64_t seq_count = 0;
   int qmin_n = 255;
   int qmax_n = 0;
+  char qmin = '\0';
+  char qmax = '\0';
 };
 
 
@@ -167,7 +169,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   fastq_close(h);
 
-  char qmin = 0;
   char qmax = 0;
 
   // refactor: find first non-null
@@ -175,7 +176,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     {
       if (stats.quality_chars[c])
         {
-          qmin = c;
+          stats.qmin = c;
           break;
         }
     }
@@ -194,7 +195,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   char fastq_qmin = '\0';
   char fastq_qmax = '\0';
 
-  if ((qmin < 59) || (qmax < 75))
+  if ((stats.qmin < 59) || (qmax < 75))
     {
       fastq_ascii = 33;
     }
@@ -204,7 +205,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     }
 
   fastq_qmax = qmax - fastq_ascii;
-  fastq_qmin = qmin - fastq_ascii;
+  fastq_qmin = stats.qmin - fastq_ascii;
 
   if (! parameters.opt_quiet)
     {
@@ -213,18 +214,18 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (stats.seq_count > 0)
         {
           fprintf(stderr, "Qmin %d, Qmax %d, Range %d\n",
-                  qmin, qmax, qmax - qmin + 1);
+                  stats.qmin, qmax, qmax - stats.qmin + 1);
 
           fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                   fastq_qmin, fastq_qmax, fastq_ascii);
 
           if (fastq_ascii == 64)
             {
-              if (qmin < 64)
+              if (stats.qmin < 64)
                 {
                   fprintf(stderr, "Guess: Solexa format (phred+64)\n");
                 }
-              else if (qmin < 66)
+              else if (stats.qmin < 66)
                 {
                   fprintf(stderr, "Guess: Illumina 1.3+ format (phred+64)\n");
                 }
@@ -277,7 +278,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(stderr, "Char  ASCII    Freq       Tails\n");
           fprintf(stderr, "----  -----  ------  ----------\n");
 
-          for (int c = qmin; c <= qmax; c++)
+          for (int c = stats.qmin; c <= qmax; c++)
             {
               if (stats.quality_chars[c] > 0)
                 {
@@ -298,18 +299,18 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (stats.seq_count > 0)
         {
           fprintf(fp_log, "Qmin %d, Qmax %d, Range %d\n",
-                  qmin, qmax, qmax-qmin + 1);
+                  stats.qmin, qmax, qmax-stats.qmin + 1);
 
           fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                   fastq_qmin, fastq_qmax, fastq_ascii);
 
           if (fastq_ascii == 64)
             {
-              if (qmin < 64)
+              if (stats.qmin < 64)
                 {
                   fprintf(fp_log, "Guess: Solexa format (phred+64)\n");
                 }
-              else if (qmin < 66)
+              else if (stats.qmin < 66)
                 {
                   fprintf(fp_log, "Guess: Illumina 1.3+ format (phred+64)\n");
                 }
@@ -362,7 +363,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
           fprintf(fp_log, "----  -----  ------  ----------\n");
 
-          for (int c = qmin; c <= qmax; c++)
+          for (int c = stats.qmin; c <= qmax; c++)
             {
               if (stats.quality_chars[c] > 0)
                 {
