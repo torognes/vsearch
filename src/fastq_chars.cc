@@ -100,7 +100,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   fastx_handle h = fastq_open(parameters.opt_fastq_chars);
 
-  uint64_t const filesize = fastq_get_size(h);
+  auto const filesize = fastq_get_size(h);
 
   progress_init("Reading FASTQ file", filesize);
 
