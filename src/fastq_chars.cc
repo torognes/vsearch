@@ -364,7 +364,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
           fprintf(fp_log, "----  -----  ------  ----------\n");
 
-          for (int c = stats.qmin; c <= stats.qmax; c++)
+          for (int c = stats.qmin; c <= stats.qmax; ++c)
             {
               if (stats.quality_chars[c] > 0)
                 {
