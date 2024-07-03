@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
-#include <algorithm>  // std::lower_bound
+#include <algorithm>  // std::find_if
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
@@ -179,25 +179,19 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   fastq_close(fastq_handle);
 
-  // refactor: find first non-null
-  for (int c = 0; c <= 255; c++)
-    {
-      if (stats.quality_chars[c])
-        {
-          stats.qmin = c;
-          break;
-        }
-    }
+  // find first non null
+  auto lower = std::find_if(stats.quality_chars.cbegin(), stats.quality_chars.cend(),
+                            [](uint64_t const & lhs) -> bool { return lhs != 0;});
+  if (lower != stats.quality_chars.cend()) {
+    stats.qmin = std::distance(stats.quality_chars.cbegin(), lower);
+  }
 
-  // refactor: find last non-null
-  for(auto c = 255; c >= 0; c--)
-    {
-      if (stats.quality_chars[c])
-        {
-          stats.qmax = c;
-          break;
-        }
-    }
+  // find last non null
+  auto upper = std::find_if(stats.quality_chars.rbegin(), stats.quality_chars.rend(),
+                            [](uint64_t const & lhs) -> bool { return lhs != 0;});
+  if (upper != stats.quality_chars.rend()) {
+    stats.qmax = std::distance(upper, stats.quality_chars.rend()) - 1;
+  }
 
   if ((stats.qmin < 59) or (stats.qmax < 75))
     {
