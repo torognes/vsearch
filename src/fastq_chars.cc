@@ -104,7 +104,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       char * p = fastq_get_sequence(fastq_handle);
       char * q = fastq_get_quality(fastq_handle);
 
-      stats.seq_count++;
+      ++stats.seq_count;
       stats.total_chars += len;
 
       int run_char = -1;
@@ -115,8 +115,8 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         {
           int const pc = *p++;
           int const qc = *q++;
-          stats.sequence_chars[pc]++;
-          stats.quality_chars[qc]++;
+          ++stats.sequence_chars[pc];
+          ++stats.quality_chars[qc];
 
           if ((pc == 'N') || (pc == 'n'))
             {
@@ -132,7 +132,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           if (pc == run_char)
             {
-              run++;
+              ++run;
               if (run > stats.maxrun[run_char])
                 {
                   stats.maxrun[run_char] = run;
@@ -144,7 +144,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
               run = 0;
             }
 
-          i++;
+          ++i;
         }
 
       if (len >= parameters.opt_fastq_tail)
@@ -154,7 +154,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           int tail_len = 1;
           while (*q-- == tail_char)
             {
-              tail_len++;
+              ++tail_len;
               if (tail_len >= parameters.opt_fastq_tail)
                 {
                   break;
@@ -162,7 +162,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
           if (tail_len >= parameters.opt_fastq_tail)
             {
-              stats.tail_chars[tail_char]++;
+              ++stats.tail_chars[tail_char];
             }
         }
 
