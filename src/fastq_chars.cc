@@ -101,14 +101,14 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   while (fastq_next(fastq_handle, false, chrmap_upcase))
     {
       int64_t const len = fastq_get_sequence_length(fastq_handle);
-      char * seq_ptr = fastq_get_sequence(fastq_handle);
-      char * qual_ptr = fastq_get_quality(fastq_handle);
+      auto * seq_ptr = fastq_get_sequence(fastq_handle);
+      auto * qual_ptr = fastq_get_quality(fastq_handle);
 
       ++stats.seq_count;
       stats.total_chars += len;
 
-      int run_char = -1;
-      int run = 0;
+      auto run_char = -1;
+      auto run = 0;
 
       int64_t i = 0;
       while (i < len)
@@ -151,7 +151,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         {
           qual_ptr = fastq_get_quality(fastq_handle) + len - 1;
           int const tail_char = *qual_ptr--;
-          int tail_len = 1;
+          auto tail_len = 1;
           while (*qual_ptr-- == tail_char)
             {
               ++tail_len;
@@ -183,7 +183,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     }
 
   // refactor: find last non-null
-  for(int c = 255; c >= 0; c--)
+  for(auto c = 255; c >= 0; c--)
     {
       if (stats.quality_chars[c])
         {
@@ -247,7 +247,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(stderr, "Letter          N   Freq MaxRun\n");
           fprintf(stderr, "------ ---------- ------ ------\n");
 
-          for (int c = 0; c < 256; c++)
+          for (auto c = 0; c < 256; c++)
             {
               if (stats.sequence_chars[c] > 0)
                 {
@@ -332,7 +332,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           fprintf(fp_log, "Letter          N   Freq MaxRun\n");
           fprintf(fp_log, "------ ---------- ------ ------\n");
 
-          for (int c = 0; c < 256; c++)
+          for (auto c = 0; c < 256; c++)
             {
               if (stats.sequence_chars[c] > 0)
                 {
