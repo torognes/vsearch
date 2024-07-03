@@ -101,7 +101,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   while (fastq_next(fastq_handle, false, chrmap_upcase))
     {
       int64_t const len = fastq_get_sequence_length(fastq_handle);
-      char * p = fastq_get_sequence(fastq_handle);
+      char * seq_ptr = fastq_get_sequence(fastq_handle);
       char * q = fastq_get_quality(fastq_handle);
 
       ++stats.seq_count;
@@ -113,7 +113,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       int64_t i = 0;
       while (i < len)
         {
-          int const pc = *p++;
+          int const pc = *seq_ptr++;
           int const qc = *q++;
           ++stats.sequence_chars[pc];
           ++stats.quality_chars[qc];
