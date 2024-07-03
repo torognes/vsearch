@@ -59,9 +59,12 @@
 */
 
 #include "vsearch.h"
+#include "utils/maps.hpp"
+#include <algorithm>  // std::lower_bound
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <iterator>  // std::distance
 #include <vector>
 
 
@@ -98,7 +101,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  while (fastq_next(fastq_handle, false, chrmap_upcase))
+  while (fastq_next(fastq_handle, false, chrmap_upcase_vector.data()))
     {
       int64_t const len = fastq_get_sequence_length(fastq_handle);
       auto * seq_ptr = fastq_get_sequence(fastq_handle);
