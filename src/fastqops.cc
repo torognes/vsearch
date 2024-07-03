@@ -212,7 +212,7 @@ auto fastq_chars() -> void
 
       if (seq_count > 0)
         {
-          fprintf(stderr, "Qmin %d, QMax %d, Range %d\n",
+          fprintf(stderr, "Qmin %d, Qmax %d, Range %d\n",
                   qmin, qmax, qmax-qmin+1);
 
           fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
@@ -297,7 +297,7 @@ auto fastq_chars() -> void
 
       if (seq_count > 0)
         {
-          fprintf(fp_log, "Qmin %d, QMax %d, Range %d\n",
+          fprintf(fp_log, "Qmin %d, Qmax %d, Range %d\n",
                   qmin, qmax, qmax-qmin+1);
 
           fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
