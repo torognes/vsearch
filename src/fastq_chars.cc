@@ -86,7 +86,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.quality_chars.resize(n_characters);
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
-  uint64_t quality_chars[256];
   uint64_t tail_chars[256];
   uint64_t total_chars = 0;
   int maxrun[256];
@@ -94,7 +93,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   for (int c = 0; c < 256; c++)
     {
       stats.sequence_chars[c] = 0;
-      quality_chars[c] = 0;
+      stats.quality_chars[c] = 0;
       tail_chars[c] = 0;
       maxrun[c] = 0;
     }
@@ -128,7 +127,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           int const pc = *p++;
           int const qc = *q++;
           stats.sequence_chars[pc]++;
-          quality_chars[qc]++;
+          stats.quality_chars[qc]++;
 
           if ((pc == 'N') || (pc == 'n'))
             {
@@ -190,7 +189,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   // refactor: find first non-null
   for (int c = 0; c <= 255; c++)
     {
-      if (quality_chars[c])
+      if (stats.quality_chars[c])
         {
           qmin = c;
           break;
@@ -200,7 +199,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   // refactor: find last non-null
   for(int c = 255; c >= 0; c--)
     {
-      if (quality_chars[c])
+      if (stats.quality_chars[c])
         {
           qmax = c;
           break;
@@ -296,12 +295,12 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           for (int c = qmin; c <= qmax; c++)
             {
-              if (quality_chars[c] > 0)
+              if (stats.quality_chars[c] > 0)
                 {
                   fprintf(stderr, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                           c,
                           c,
-                          100.0 * quality_chars[c] / total_chars,
+                          100.0 * stats.quality_chars[c] / total_chars,
                           tail_chars[c]);
                 }
             }
@@ -381,12 +380,12 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           for (int c = qmin; c <= qmax; c++)
             {
-              if (quality_chars[c] > 0)
+              if (stats.quality_chars[c] > 0)
                 {
                   fprintf(fp_log, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                           c,
                           c,
-                          100.0 * quality_chars[c] / total_chars,
+                          100.0 * stats.quality_chars[c] / total_chars,
                           tail_chars[c]);
                 }
             }
