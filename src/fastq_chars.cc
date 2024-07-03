@@ -92,17 +92,17 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
 
-  fastx_handle h = fastq_open(parameters.opt_fastq_chars);
+  fastx_handle fastq_handle = fastq_open(parameters.opt_fastq_chars);
 
-  auto const filesize = fastq_get_size(h);
+  auto const filesize = fastq_get_size(fastq_handle);
 
   progress_init("Reading FASTQ file", filesize);
 
-  while (fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(fastq_handle, false, chrmap_upcase))
     {
-      int64_t const len = fastq_get_sequence_length(h);
-      char * p = fastq_get_sequence(h);
-      char * q = fastq_get_quality(h);
+      int64_t const len = fastq_get_sequence_length(fastq_handle);
+      char * p = fastq_get_sequence(fastq_handle);
+      char * q = fastq_get_quality(fastq_handle);
 
       stats.seq_count++;
       stats.total_chars += len;
@@ -149,7 +149,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
       if (len >= parameters.opt_fastq_tail)
         {
-          q = fastq_get_quality(h) + len - 1;
+          q = fastq_get_quality(fastq_handle) + len - 1;
           int const tail_char = *q--;
           int tail_len = 1;
           while (*q-- == tail_char)
@@ -166,11 +166,11 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
         }
 
-      progress_update(fastq_get_position(h));
+      progress_update(fastq_get_position(fastq_handle));
     }
   progress_done();
 
-  fastq_close(h);
+  fastq_close(fastq_handle);
 
   // refactor: find first non-null
   for (int c = 0; c <= 255; c++)
