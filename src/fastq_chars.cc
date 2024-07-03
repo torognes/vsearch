@@ -92,7 +92,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
 
-  fastx_handle fastq_handle = fastq_open(parameters.opt_fastq_chars);
+  auto fastq_handle = fastq_open(parameters.opt_fastq_chars);
 
   auto const filesize = fastq_get_size(fastq_handle);
 
