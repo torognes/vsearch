@@ -113,8 +113,10 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       int64_t i = 0;
       while (i < len)
         {
-          int const pc = *seq_ptr++;
-          int const qc = *qual_ptr++;
+          int const pc = *seq_ptr;
+          ++seq_ptr;
+          int const qc = *qual_ptr;
+          ++qual_ptr;
           ++stats.sequence_chars[pc];
           ++stats.quality_chars[qc];
 
@@ -150,7 +152,8 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (len >= parameters.opt_fastq_tail)
         {
           qual_ptr = fastq_get_quality(fastq_handle) + len - 1;
-          int const tail_char = *qual_ptr--;
+          int const tail_char = *qual_ptr;
+          --qual_ptr;
           auto tail_len = 1;
           while (*qual_ptr-- == tail_char)
             {
