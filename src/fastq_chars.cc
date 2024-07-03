@@ -87,14 +87,13 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
   uint64_t total_chars = 0;
-  int maxrun[256];
 
   for (int c = 0; c < 256; c++)
     {
       stats.sequence_chars[c] = 0;
       stats.quality_chars[c] = 0;
       stats.tail_chars[c] = 0;
-      maxrun[c] = 0;
+      stats.maxrun[c] = 0;
     }
 
   fastx_handle h = fastq_open(parameters.opt_fastq_chars);
@@ -143,9 +142,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           if (pc == run_char)
             {
               run++;
-              if (run > maxrun[run_char])
+              if (run > stats.maxrun[run_char])
                 {
-                  maxrun[run_char] = run;
+                  stats.maxrun[run_char] = run;
                 }
             }
           else
@@ -272,7 +271,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           c,
                           stats.sequence_chars[c],
                           100.0 * stats.sequence_chars[c] / total_chars,
-                          maxrun[c]);
+                          stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
                       if (qmin_n < qmax_n)
@@ -357,7 +356,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           c,
                           stats.sequence_chars[c],
                           100.0 * stats.sequence_chars[c] / total_chars,
-                          maxrun[c]);
+                          stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
                       if (qmin_n < qmax_n)
