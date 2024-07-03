@@ -298,7 +298,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (stats.seq_count > 0)
         {
           fprintf(fp_log, "Qmin %d, Qmax %d, Range %d\n",
-                  qmin, qmax, qmax-qmin+1);
+                  qmin, qmax, qmax-qmin + 1);
 
           fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                   fastq_qmin, fastq_qmax, fastq_ascii);
