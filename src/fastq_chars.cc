@@ -86,7 +86,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.quality_chars.resize(n_characters);
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
-  uint64_t tail_chars[256];
   uint64_t total_chars = 0;
   int maxrun[256];
 
@@ -94,7 +93,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     {
       stats.sequence_chars[c] = 0;
       stats.quality_chars[c] = 0;
-      tail_chars[c] = 0;
+      stats.tail_chars[c] = 0;
       maxrun[c] = 0;
     }
 
@@ -173,7 +172,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
           if (tail_len >= parameters.opt_fastq_tail)
             {
-              tail_chars[tail_char]++;
+              stats.tail_chars[tail_char]++;
             }
         }
 
@@ -301,7 +300,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           c,
                           c,
                           100.0 * stats.quality_chars[c] / total_chars,
-                          tail_chars[c]);
+                          stats.tail_chars[c]);
                 }
             }
         }
@@ -386,7 +385,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           c,
                           c,
                           100.0 * stats.quality_chars[c] / total_chars,
-                          tail_chars[c]);
+                          stats.tail_chars[c]);
                 }
             }
         }
