@@ -71,6 +71,7 @@ auto q2p(double q) -> double
   return exp10(- q / 10.0);
 }
 
+
 auto fastq_stats() -> void
 {
   fastx_handle h = fastq_open(opt_fastq_stats);
@@ -426,6 +427,7 @@ auto fastq_stats() -> void
     }
 }
 
+
 auto fastx_revcomp() -> void
 {
   uint64_t buffer_alloc = 512;
@@ -568,6 +570,7 @@ auto fastx_revcomp() -> void
   xfree(seq_buffer);
   xfree(qual_buffer);
 }
+
 
 auto fastq_convert() -> void
 {
