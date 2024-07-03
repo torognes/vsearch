@@ -93,7 +93,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  int qmin_n = 255;
   int qmax_n = 0;
 
   while (fastq_next(h, false, chrmap_upcase))
@@ -118,9 +117,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           if ((pc == 'N') || (pc == 'n'))
             {
-              if (qc < qmin_n)
+              if (qc < stats.qmin_n)
                 {
-                  qmin_n = qc;
+                  stats.qmin_n = qc;
                 }
               if (qc > qmax_n)
                 {
@@ -263,13 +262,13 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
-                      if (qmin_n < qmax_n)
+                      if (stats.qmin_n < qmax_n)
                         {
-                          fprintf(stderr, "  Q=%c..%c", qmin_n, qmax_n);
+                          fprintf(stderr, "  Q=%c..%c", stats.qmin_n, qmax_n);
                         }
                       else
                         {
-                          fprintf(stderr, "  Q=%c", qmin_n);
+                          fprintf(stderr, "  Q=%c", stats.qmin_n);
                         }
                     }
                   fprintf(stderr, "\n");
@@ -348,13 +347,13 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
-                      if (qmin_n < qmax_n)
+                      if (stats.qmin_n < qmax_n)
                         {
-                          fprintf(fp_log, "  Q=%c..%c", qmin_n, qmax_n);
+                          fprintf(fp_log, "  Q=%c..%c", stats.qmin_n, qmax_n);
                         }
                       else
                         {
-                          fprintf(fp_log, "  Q=%c", qmin_n);
+                          fprintf(fp_log, "  Q=%c", stats.qmin_n);
                         }
                     }
                   fprintf(fp_log, "\n");
