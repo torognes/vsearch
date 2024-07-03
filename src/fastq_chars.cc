@@ -140,7 +140,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           i++;
         }
 
-      if (len >= opt_fastq_tail)
+      if (len >= parameters.opt_fastq_tail)
         {
           q = fastq_get_quality(h) + len - 1;
           int const tail_char = *q--;
@@ -148,12 +148,12 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           while (*q-- == tail_char)
             {
               tail_len++;
-              if (tail_len >= opt_fastq_tail)
+              if (tail_len >= parameters.opt_fastq_tail)
                 {
                   break;
                 }
             }
-          if (tail_len >= opt_fastq_tail)
+          if (tail_len >= parameters.opt_fastq_tail)
             {
               tail_chars[tail_char]++;
             }
@@ -204,7 +204,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   fastq_qmax = qmax - fastq_ascii;
   fastq_qmin = qmin - fastq_ascii;
 
-  if (! opt_quiet)
+  if (! parameters.opt_quiet)
     {
       fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
 
@@ -289,7 +289,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         }
     }
 
-  if (opt_log)
+  if (parameters.opt_log)
     {
       fprintf(fp_log, "Read %" PRIu64 " sequences.\n", seq_count);
 
