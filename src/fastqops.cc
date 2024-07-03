@@ -123,27 +123,27 @@ auto fastq_stats() -> void
       if (len + 1 > read_length_alloc)
         {
           read_length_table = (uint64_t *) xrealloc(read_length_table,
-                                                   sizeof(uint64_t) * (len+1));
+                                                   sizeof(uint64_t) * (len + 1));
           memset(read_length_table + read_length_alloc, 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc));
 
           qual_length_table = (uint64_t *) xrealloc(qual_length_table,
-                                                   sizeof(uint64_t) * (len+1) * 256);
+                                                   sizeof(uint64_t) * (len + 1) * 256);
           memset(qual_length_table + (256 * read_length_alloc), 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 256);
 
           ee_length_table = (uint64_t *) xrealloc(ee_length_table,
-                                                 sizeof(uint64_t) * (len+1) * 4);
+                                                 sizeof(uint64_t) * (len + 1) * 4);
           memset(ee_length_table + (4 * read_length_alloc), 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
           q_length_table = (uint64_t *) xrealloc(q_length_table,
-                                                sizeof(uint64_t) * (len+1) * 4);
+                                                sizeof(uint64_t) * (len + 1) * 4);
           memset(q_length_table + (4 * read_length_alloc), 0,
                  sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
 
           sumee_length_table = (double *) xrealloc(sumee_length_table,
-                                                   sizeof(double) * (len+1));
+                                                   sizeof(double) * (len + 1));
           memset(sumee_length_table + read_length_alloc, 0,
                  sizeof(double) * (len + 1 - read_length_alloc));
 
@@ -245,13 +245,13 @@ auto fastq_stats() -> void
 
   /* compute various distributions */
 
-  auto * length_dist = (uint64_t*) xmalloc(sizeof(uint64_t) * (len_max+1));
-  auto * symb_dist = (int64_t*) xmalloc(sizeof(int64_t) * (len_max+1));
+  auto * length_dist = (uint64_t *) xmalloc(sizeof(uint64_t) * (len_max + 1));
+  auto * symb_dist = (int64_t *) xmalloc(sizeof(int64_t) * (len_max + 1));
 
-  auto * rate_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
-  auto * avgq_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
-  auto * avgee_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
-  auto * avgp_dist = (double*) xmalloc(sizeof(double) * (len_max+1));
+  auto * rate_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
+  auto * avgq_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
+  auto * avgee_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
+  auto * avgp_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
 
   int64_t length_accum = 0;
   int64_t symb_accum = 0;
