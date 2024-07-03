@@ -101,8 +101,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  uint64_t seq_count = 0;
-
   int qmin_n = 255;
   int qmax_n = 0;
 
@@ -112,7 +110,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       char * p = fastq_get_sequence(h);
       char * q = fastq_get_quality(h);
 
-      seq_count++;
+      stats.seq_count++;
       stats.total_chars += len;
 
       int run_char = -1;
@@ -221,9 +219,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
+      fprintf(stderr, "Read %" PRIu64 " sequences.\n", stats.seq_count);
 
-      if (seq_count > 0)
+      if (stats.seq_count > 0)
         {
           fprintf(stderr, "Qmin %d, Qmax %d, Range %d\n",
                   qmin, qmax, qmax - qmin + 1);
@@ -306,9 +304,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log)
     {
-      fprintf(fp_log, "Read %" PRIu64 " sequences.\n", seq_count);
+      fprintf(fp_log, "Read %" PRIu64 " sequences.\n", stats.seq_count);
 
-      if (seq_count > 0)
+      if (stats.seq_count > 0)
         {
           fprintf(fp_log, "Qmin %d, Qmax %d, Range %d\n",
                   qmin, qmax, qmax-qmin+1);
