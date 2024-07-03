@@ -62,11 +62,30 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <vector>
+
+
+constexpr unsigned int n_characters = 256;
+
+struct statistics {
+  std::vector<uint64_t> sequence_chars;
+  std::vector<uint64_t> quality_chars;
+  std::vector<uint64_t> tail_chars;
+  std::vector<int> maxrun;
+  uint64_t total_chars = 0;
+  uint64_t seq_count = 0;
+  int qmin_n = 255;
+  int qmax_n = 0;
+};
 
 
 auto fastq_chars(struct Parameters const & parameters) -> void
 {
-  uint64_t sequence_chars[256];
+  struct statistics stats;
+  stats.sequence_chars.resize(n_characters);
+  stats.quality_chars.resize(n_characters);
+  stats.tail_chars.resize(n_characters);
+  stats.maxrun.resize(n_characters);
   uint64_t quality_chars[256];
   uint64_t tail_chars[256];
   uint64_t total_chars = 0;
@@ -74,7 +93,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   for (int c = 0; c < 256; c++)
     {
-      sequence_chars[c] = 0;
+      stats.sequence_chars[c] = 0;
       quality_chars[c] = 0;
       tail_chars[c] = 0;
       maxrun[c] = 0;
@@ -108,7 +127,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         {
           int const pc = *p++;
           int const qc = *q++;
-          sequence_chars[pc]++;
+          stats.sequence_chars[pc]++;
           quality_chars[qc]++;
 
           if ((pc == 'N') || (pc == 'n'))
@@ -249,12 +268,12 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           for (int c = 0; c < 256; c++)
             {
-              if (sequence_chars[c] > 0)
+              if (stats.sequence_chars[c] > 0)
                 {
                   fprintf(stderr, "     %c %10" PRIu64 " %5.1f%% %6d",
                           c,
-                          sequence_chars[c],
-                          100.0 * sequence_chars[c] / total_chars,
+                          stats.sequence_chars[c],
+                          100.0 * stats.sequence_chars[c] / total_chars,
                           maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
@@ -334,12 +353,12 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           for (int c = 0; c < 256; c++)
             {
-              if (sequence_chars[c] > 0)
+              if (stats.sequence_chars[c] > 0)
                 {
                   fprintf(fp_log, "     %c %10" PRIu64 " %5.1f%% %6d",
                           c,
-                          sequence_chars[c],
-                          100.0 * sequence_chars[c] / total_chars,
+                          stats.sequence_chars[c],
+                          100.0 * stats.sequence_chars[c] / total_chars,
                           maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
