@@ -192,7 +192,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         }
     }
 
-  char fastq_qmin = '\0';
   char fastq_qmax = '\0';
 
   if ((stats.qmin < 59) || (stats.qmax < 75))
@@ -205,7 +204,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     }
 
   fastq_qmax = stats.qmax - stats.fastq_ascii;
-  fastq_qmin = stats.qmin - stats.fastq_ascii;
+  stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
 
   if (! parameters.opt_quiet)
     {
@@ -217,7 +216,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                   stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
 
           fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-                  fastq_qmin, fastq_qmax, stats.fastq_ascii);
+                  stats.fastq_qmin, fastq_qmax, stats.fastq_ascii);
 
           if (stats.fastq_ascii == 64)
             {
@@ -302,7 +301,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                   stats.qmin, stats.qmax, stats.qmax-stats.qmin + 1);
 
           fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-                  fastq_qmin, fastq_qmax, stats.fastq_ascii);
+                  stats.fastq_qmin, fastq_qmax, stats.fastq_ascii);
 
           if (stats.fastq_ascii == 64)
             {
