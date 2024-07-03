@@ -58,6 +58,4 @@
 
 */
 
-auto fastq_convert() -> void;
-auto fastq_stats() -> void;
-auto fastx_revcomp() -> void;
+auto fastq_chars() -> void;

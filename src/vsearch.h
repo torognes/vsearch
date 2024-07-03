@@ -240,6 +240,7 @@
 #include "fastx.h"
 #include "fasta.h"
 #include "fastq.h"
+#include "fastq_chars.h"
 #include "fastqops.h"
 #include "filter.h"
 #include "dbhash.h"

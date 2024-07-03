@@ -50,6 +50,7 @@ eestats.h \
 fa2fq.h \
 fasta.h \
 fastq.h \
+fastq_chars.h \
 fastqjoin.h \
 fastqops.h \
 fastx.h \
@@ -146,6 +147,7 @@ eestats.cc \
 fa2fq.cc \
 fasta.cc \
 fastq.cc \
+fastq_chars.cc \
 fastqjoin.cc \
 fastqops.cc \
 fastx.cc \
