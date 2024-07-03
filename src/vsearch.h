@@ -528,6 +528,7 @@ struct Parameters {
   char * opt_fastaout_rev = nullptr;
   char * opt_fastaout_discarded = nullptr;
   char * opt_fastaout_discarded_rev = nullptr;
+  char * opt_fastq_chars = nullptr;
   char * opt_fastq_join = nullptr;
   char * opt_fastqout = nullptr;
   char * opt_fastqout_rev = nullptr;
@@ -554,6 +555,7 @@ struct Parameters {
   int64_t opt_fastq_asciiout = default_ascii_offset;
   int64_t opt_fastq_qmaxout = default_max_quality;
   int64_t opt_fastq_qminout = 0;
+  int64_t opt_fastq_tail = 4;
   int64_t opt_maxseqlength = default_maxseqlength;
   int64_t opt_maxsize = int64_max;
   int64_t opt_maxuniquesize = int64_max;

@@ -2007,6 +2007,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_chars:
           opt_fastq_chars = optarg;
+          parameters.opt_fastq_chars = optarg;
           break;
 
         case option_profile:
@@ -2127,6 +2128,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 
         case option_fastq_tail:
           opt_fastq_tail = args_getlong(optarg);
+          parameters.opt_fastq_tail = args_getlong(optarg);
           break;
 
         case option_fastx_revcomp:
@@ -4723,7 +4725,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
       fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
     }
 
-  if (opt_fastq_tail < 1)
+  if (parameters.opt_fastq_tail < 1)
     {
       fatal("The argument to --fastq_tail must be positive");
     }
@@ -5884,7 +5886,7 @@ auto main(int argc, char** argv) -> int
     {
       cmd_chimera();
     }
-  else if (opt_fastq_chars)
+  else if (parameters.opt_fastq_chars)
     {
       fastq_chars();
     }
