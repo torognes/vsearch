@@ -93,8 +93,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  int qmax_n = 0;
-
   while (fastq_next(h, false, chrmap_upcase))
     {
       int64_t const len = fastq_get_sequence_length(h);
@@ -121,9 +119,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                 {
                   stats.qmin_n = qc;
                 }
-              if (qc > qmax_n)
+              if (qc > stats.qmax_n)
                 {
-                  qmax_n = qc;
+                  stats.qmax_n = qc;
                 }
             }
 
@@ -262,9 +260,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
-                      if (stats.qmin_n < qmax_n)
+                      if (stats.qmin_n < stats.qmax_n)
                         {
-                          fprintf(stderr, "  Q=%c..%c", stats.qmin_n, qmax_n);
+                          fprintf(stderr, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
                         }
                       else
                         {
@@ -347,9 +345,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           stats.maxrun[c]);
                   if ((c == 'N') || (c == 'n'))
                     {
-                      if (stats.qmin_n < qmax_n)
+                      if (stats.qmin_n < stats.qmax_n)
                         {
-                          fprintf(fp_log, "  Q=%c..%c", stats.qmin_n, qmax_n);
+                          fprintf(fp_log, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
                         }
                       else
                         {
