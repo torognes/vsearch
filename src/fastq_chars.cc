@@ -87,14 +87,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
 
-  for (int c = 0; c < 256; c++)
-    {
-      stats.sequence_chars[c] = 0;
-      stats.quality_chars[c] = 0;
-      stats.tail_chars[c] = 0;
-      stats.maxrun[c] = 0;
-    }
-
   fastx_handle h = fastq_open(parameters.opt_fastq_chars);
 
   auto const filesize = fastq_get_size(h);
