@@ -120,7 +120,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           ++stats.sequence_chars[pc];
           ++stats.quality_chars[qc];
 
-          if ((pc == 'N') || (pc == 'n'))
+          if ((pc == 'N') or (pc == 'n'))
             {
               if (qc < stats.qmin_n)
                 {
@@ -196,7 +196,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         }
     }
 
-  if ((stats.qmin < 59) || (stats.qmax < 75))
+  if ((stats.qmin < 59) or (stats.qmax < 75))
     {
       stats.fastq_ascii = 33;
     }
@@ -208,7 +208,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
   stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
 
-  if (! parameters.opt_quiet)
+  if (not parameters.opt_quiet)
     {
       fprintf(stderr, "Read %" PRIu64 " sequences.\n", stats.seq_count);
 
@@ -260,7 +260,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           stats.sequence_chars[c],
                           100.0 * stats.sequence_chars[c] / stats.total_chars,
                           stats.maxrun[c]);
-                  if ((c == 'N') || (c == 'n'))
+                  if ((c == 'N') or (c == 'n'))
                     {
                       if (stats.qmin_n < stats.qmax_n)
                         {
@@ -345,7 +345,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
                           stats.sequence_chars[c],
                           100.0 * stats.sequence_chars[c] / stats.total_chars,
                           stats.maxrun[c]);
-                  if ((c == 'N') || (c == 'n'))
+                  if ((c == 'N') or (c == 'n'))
                     {
                       if (stats.qmin_n < stats.qmax_n)
                         {
