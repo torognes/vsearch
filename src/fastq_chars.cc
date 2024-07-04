@@ -274,7 +274,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       auto run_char = -1;
       auto run = 0;
 
-      for (int64_t i = 0 ; i < len ; ++i)
+      for (auto i = 0LL ; i < len ; ++i)
         {
           int const pc = *seq_ptr;
           ++seq_ptr;
