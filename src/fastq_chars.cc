@@ -301,7 +301,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       if (len >= parameters.opt_fastq_tail)
         {
           qual_ptr = fastq_get_quality(fastq_handle) + len - 1;
-          int const tail_char = *qual_ptr;
+          auto const tail_char = *qual_ptr;
           --qual_ptr;
           auto tail_len = 1;
           while (*qual_ptr == tail_char)
