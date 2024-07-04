@@ -285,15 +285,15 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         {
           int const pc = *seq_ptr;
           ++seq_ptr;
-          int const qc = *qual_ptr;
+          int const qual_symbol = *qual_ptr;
           ++qual_ptr;
           ++stats.sequence_chars[pc];
-          ++stats.quality_chars[qc];
+          ++stats.quality_chars[qual_symbol];
 
           if ((pc == 'N') or (pc == 'n'))
             {
-              stats.qmin_n = std::min(qc, stats.qmin_n);
-              stats.qmax_n = std::max(qc, stats.qmax_n);
+              stats.qmin_n = std::min(qual_symbol, stats.qmin_n);
+              stats.qmax_n = std::max(qual_symbol, stats.qmax_n);
             }
 
           if (pc == run_char)
