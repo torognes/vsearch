@@ -133,26 +133,24 @@ namespace {
 
         for (auto c = 0; c < 256; c++)
           {
-            if (stats.sequence_chars[c] > 0)
+            if (stats.sequence_chars[c] == 0) { continue; }
+            fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
+                    c,
+                    stats.sequence_chars[c],
+                    100.0 * stats.sequence_chars[c] / stats.total_chars,
+                    stats.maxrun[c]);
+            if ((c == 'N') or (c == 'n'))
               {
-                fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
-                        c,
-                        stats.sequence_chars[c],
-                        100.0 * stats.sequence_chars[c] / stats.total_chars,
-                        stats.maxrun[c]);
-                if ((c == 'N') or (c == 'n'))
+                if (stats.qmin_n < stats.qmax_n)
                   {
-                    if (stats.qmin_n < stats.qmax_n)
-                      {
-                        fprintf(output_stream, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
-                      }
-                    else
-                      {
-                        fprintf(output_stream, "  Q=%c", stats.qmin_n);
-                      }
+                    fprintf(output_stream, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
                   }
-                fprintf(output_stream, "\n");
+                else
+                  {
+                    fprintf(output_stream, "  Q=%c", stats.qmin_n);
+                  }
               }
+            fprintf(output_stream, "\n");
           }
 
         fprintf(output_stream, "\n");
