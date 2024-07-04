@@ -274,8 +274,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       auto run_char = -1;
       auto run = 0;
 
-      int64_t i = 0;
-      while (i < len)
+      for (int64_t i = 0 ; i < len ; ++i)
         {
           int const pc = *seq_ptr;
           ++seq_ptr;
@@ -300,8 +299,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
               run_char = pc;
               run = 0;
             }
-
-          ++i;
         }
 
       if (len >= parameters.opt_fastq_tail)
