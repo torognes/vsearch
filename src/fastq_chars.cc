@@ -131,7 +131,7 @@ namespace {
         std::fprintf(output_stream, "Letter          N   Freq MaxRun\n");
         std::fprintf(output_stream, "------ ---------- ------ ------\n");
 
-        for (auto c = 0; c < 256; c++)
+        for (auto c = 0; c < 256; ++c)
           {
             if (stats.sequence_chars[c] == 0) { continue; }
             std::fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
@@ -157,7 +157,7 @@ namespace {
         std::fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
         std::fprintf(output_stream, "----  -----  ------  ----------\n");
 
-        for (int c = stats.qmin; c <= stats.qmax; c++)
+        for (int c = stats.qmin; c <= stats.qmax; ++c)
           {
             if (stats.quality_chars[c] > 0)
               {
