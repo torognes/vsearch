@@ -214,14 +214,14 @@ namespace {
 
         for (int c = stats.qmin; c <= stats.qmax; ++c)
           {
-            if (stats.quality_chars[c] > 0)
-              {
-                std::fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                        c,
-                        c,
-                        100.0 * stats.quality_chars[c] / stats.total_chars,
-                        stats.tail_chars[c]);
-              }
+            if (stats.quality_chars[c] == 0) {
+              continue;
+            }
+            std::fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
+                         c,
+                         c,
+                         100.0 * stats.quality_chars[c] / stats.total_chars,
+                         stats.tail_chars[c]);
           }
       }
   }
