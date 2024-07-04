@@ -283,27 +283,27 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
       for (auto i = 0LL ; i < len ; ++i)
         {
-          int const pc = *seq_ptr;
+          int const seq_symbol = *seq_ptr;
           ++seq_ptr;
           int const qual_symbol = *qual_ptr;
           ++qual_ptr;
-          ++stats.sequence_chars[pc];
+          ++stats.sequence_chars[seq_symbol];
           ++stats.quality_chars[qual_symbol];
 
-          if ((pc == 'N') or (pc == 'n'))
+          if ((seq_symbol == 'N') or (seq_symbol == 'n'))
             {
               stats.qmin_n = std::min(qual_symbol, stats.qmin_n);
               stats.qmax_n = std::max(qual_symbol, stats.qmax_n);
             }
 
-          if (pc == run_char)
+          if (seq_symbol == run_char)
             {
               ++run;
               stats.maxrun[run_char] = std::max(run, stats.maxrun[run_char]);
             }
           else
             {
-              run_char = pc;
+              run_char = seq_symbol;
               run = 0;
             }
         }
