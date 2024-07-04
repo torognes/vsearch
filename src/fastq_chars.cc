@@ -61,12 +61,18 @@
 #include "vsearch.h"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::find_if
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <iterator>  // std::distance
 #include <vector>
 
+
+#ifndef NDEBUG
+#include <limits>
+constexpr long int char_max = std::numeric_limits<char>::max();
+#endif
 
 constexpr unsigned int n_characters = 256;
 
@@ -112,6 +118,8 @@ namespace {
                                });
     if (lowest != stats.quality_chars.cend()) {
       auto const index = std::distance(stats.quality_chars.cbegin(), lowest);
+      assert(index >= 0);
+      assert(index <= char_max);
       stats.qmin = static_cast<char>(index);
     }
   }
@@ -126,6 +134,8 @@ namespace {
                                 );
     if (highest != stats.quality_chars.rend()) {
       auto const index = std::distance(highest, stats.quality_chars.rend()) - 1;
+      assert(index >= 0);
+      assert(index <= char_max);
       stats.qmax = static_cast<char>(index);
     }
   }
