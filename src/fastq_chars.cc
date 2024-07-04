@@ -87,6 +87,112 @@ struct statistics {
 };
 
 
+namespace {
+  auto stats_message(std::FILE * output_stream,
+                     struct statistics const & stats) -> void {
+    fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
+
+    if (stats.seq_count > 0)
+      {
+        fprintf(output_stream, "Qmin %d, Qmax %d, Range %d\n",
+                stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
+
+        fprintf(output_stream, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
+                stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
+
+        if (stats.fastq_ascii == 64)
+          {
+            if (stats.qmin < 64)
+              {
+                fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
+              }
+            else if (stats.qmin < 66)
+              {
+                fprintf(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
+              }
+            else
+              {
+                fprintf(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
+              }
+          }
+        else
+          {
+            if (stats.qmax > 73)
+              {
+                fprintf(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
+              }
+            else
+              {
+                fprintf(output_stream, "Guess: Original Sanger format (phred+33)\n");
+              }
+          }
+
+        fprintf(output_stream, "\n");
+        fprintf(output_stream, "Letter          N   Freq MaxRun\n");
+        fprintf(output_stream, "------ ---------- ------ ------\n");
+
+        for (auto c = 0; c < 256; c++)
+          {
+            if (stats.sequence_chars[c] > 0)
+              {
+                fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
+                        c,
+                        stats.sequence_chars[c],
+                        100.0 * stats.sequence_chars[c] / stats.total_chars,
+                        stats.maxrun[c]);
+                if ((c == 'N') or (c == 'n'))
+                  {
+                    if (stats.qmin_n < stats.qmax_n)
+                      {
+                        fprintf(output_stream, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
+                      }
+                    else
+                      {
+                        fprintf(output_stream, "  Q=%c", stats.qmin_n);
+                      }
+                  }
+                fprintf(output_stream, "\n");
+              }
+          }
+
+        fprintf(output_stream, "\n");
+        fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
+        fprintf(output_stream, "----  -----  ------  ----------\n");
+
+        for (int c = stats.qmin; c <= stats.qmax; c++)
+          {
+            if (stats.quality_chars[c] > 0)
+              {
+                fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
+                        c,
+                        c,
+                        100.0 * stats.quality_chars[c] / stats.total_chars,
+                        stats.tail_chars[c]);
+              }
+          }
+      }
+  }
+
+
+  auto output_stats_message(struct Parameters const & parameters,
+                            struct statistics const & stats,
+                            char const * log_filename) -> void {
+    if (log_filename == nullptr) {
+      return;
+    }
+    stats_message(parameters.fp_log, stats);
+  }
+
+
+  auto output_stats_message(struct Parameters const & parameters,
+                            struct statistics const & stats) -> void {
+    if (parameters.opt_quiet) {
+      return;
+    }
+    stats_message(stderr, stats);
+  }
+}
+
 auto fastq_chars(struct Parameters const & parameters) -> void
 {
   struct statistics stats;
@@ -205,173 +311,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
   stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
 
-  if (not parameters.opt_quiet)
-    {
-      fprintf(stderr, "Read %" PRIu64 " sequences.\n", stats.seq_count);
-
-      if (stats.seq_count > 0)
-        {
-          fprintf(stderr, "Qmin %d, Qmax %d, Range %d\n",
-                  stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
-
-          fprintf(stderr, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-                  stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
-
-          if (stats.fastq_ascii == 64)
-            {
-              if (stats.qmin < 64)
-                {
-                  fprintf(stderr, "Guess: Solexa format (phred+64)\n");
-                }
-              else if (stats.qmin < 66)
-                {
-                  fprintf(stderr, "Guess: Illumina 1.3+ format (phred+64)\n");
-                }
-              else
-                {
-                  fprintf(stderr, "Guess: Illumina 1.5+ format (phred+64)\n");
-                }
-            }
-          else
-            {
-              if (stats.qmax > 73)
-                {
-                  fprintf(stderr, "Guess: Illumina 1.8+ format (phred+33)\n");
-                }
-              else
-                {
-                  fprintf(stderr, "Guess: Original Sanger format (phred+33)\n");
-                }
-            }
-
-          fprintf(stderr, "\n");
-          fprintf(stderr, "Letter          N   Freq MaxRun\n");
-          fprintf(stderr, "------ ---------- ------ ------\n");
-
-          for (auto c = 0; c < 256; c++)
-            {
-              if (stats.sequence_chars[c] > 0)
-                {
-                  fprintf(stderr, "     %c %10" PRIu64 " %5.1f%% %6d",
-                          c,
-                          stats.sequence_chars[c],
-                          100.0 * stats.sequence_chars[c] / stats.total_chars,
-                          stats.maxrun[c]);
-                  if ((c == 'N') or (c == 'n'))
-                    {
-                      if (stats.qmin_n < stats.qmax_n)
-                        {
-                          fprintf(stderr, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
-                        }
-                      else
-                        {
-                          fprintf(stderr, "  Q=%c", stats.qmin_n);
-                        }
-                    }
-                  fprintf(stderr, "\n");
-                }
-            }
-
-          fprintf(stderr, "\n");
-          fprintf(stderr, "Char  ASCII    Freq       Tails\n");
-          fprintf(stderr, "----  -----  ------  ----------\n");
-
-          for (int c = stats.qmin; c <= stats.qmax; c++)
-            {
-              if (stats.quality_chars[c] > 0)
-                {
-                  fprintf(stderr, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                          c,
-                          c,
-                          100.0 * stats.quality_chars[c] / stats.total_chars,
-                          stats.tail_chars[c]);
-                }
-            }
-        }
-    }
-
-  if (parameters.opt_log)
-    {
-      fprintf(fp_log, "Read %" PRIu64 " sequences.\n", stats.seq_count);
-
-      if (stats.seq_count > 0)
-        {
-          fprintf(fp_log, "Qmin %d, Qmax %d, Range %d\n",
-                  stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
-
-          fprintf(fp_log, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-                  stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
-
-          if (stats.fastq_ascii == 64)
-            {
-              if (stats.qmin < 64)
-                {
-                  fprintf(fp_log, "Guess: Solexa format (phred+64)\n");
-                }
-              else if (stats.qmin < 66)
-                {
-                  fprintf(fp_log, "Guess: Illumina 1.3+ format (phred+64)\n");
-                }
-              else
-                {
-                  fprintf(fp_log, "Guess: Illumina 1.5+ format (phred+64)\n");
-                }
-            }
-          else
-            {
-              if (stats.qmax > 73)
-                {
-                  fprintf(fp_log, "Guess: Illumina 1.8+ format (phred+33)\n");
-                }
-              else
-                {
-                  fprintf(fp_log, "Guess: Original Sanger format (phred+33)\n");
-                }
-            }
-
-          fprintf(fp_log, "\n");
-          fprintf(fp_log, "Letter          N   Freq MaxRun\n");
-          fprintf(fp_log, "------ ---------- ------ ------\n");
-
-          for (auto c = 0; c < 256; c++)
-            {
-              if (stats.sequence_chars[c] > 0)
-                {
-                  fprintf(fp_log, "     %c %10" PRIu64 " %5.1f%% %6d",
-                          c,
-                          stats.sequence_chars[c],
-                          100.0 * stats.sequence_chars[c] / stats.total_chars,
-                          stats.maxrun[c]);
-                  if ((c == 'N') or (c == 'n'))
-                    {
-                      if (stats.qmin_n < stats.qmax_n)
-                        {
-                          fprintf(fp_log, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
-                        }
-                      else
-                        {
-                          fprintf(fp_log, "  Q=%c", stats.qmin_n);
-                        }
-                    }
-                  fprintf(fp_log, "\n");
-                }
-            }
-
-          fprintf(fp_log, "\n");
-          fprintf(fp_log, "Char  ASCII    Freq       Tails\n");
-          fprintf(fp_log, "----  -----  ------  ----------\n");
-
-          for (int c = stats.qmin; c <= stats.qmax; ++c)
-            {
-              if (stats.quality_chars[c] > 0)
-                {
-                  fprintf(fp_log, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                          c,
-                          c,
-                          100.0 * stats.quality_chars[c] / stats.total_chars,
-                          stats.tail_chars[c]);
-                }
-            }
-        }
-    }
+  output_stats_message(parameters, stats);
+  output_stats_message(parameters, stats, parameters.opt_log);
 }
