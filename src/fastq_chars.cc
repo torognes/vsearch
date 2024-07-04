@@ -230,6 +230,7 @@ namespace {
   }
 }
 
+
 auto fastq_chars(struct Parameters const & parameters) -> void
 {
   struct statistics stats;
