@@ -102,6 +102,31 @@ namespace {
   }
 
 
+  auto find_lowest_quality_symbol(struct statistics & stats) -> void {
+    auto lowest = std::find_if(stats.quality_chars.cbegin(),
+                               stats.quality_chars.cend(),
+                               [](uint64_t const counter) -> bool {
+                                 return counter != 0;
+                               });
+    if (lowest != stats.quality_chars.cend()) {
+      stats.qmin = std::distance(stats.quality_chars.cbegin(), lowest);
+    }
+  }
+
+
+  auto find_highest_quality_symbol(struct statistics & stats) -> void {
+    // note: searching using reverse iterators
+    auto highest = std::find_if(stats.quality_chars.rbegin(),
+                                stats.quality_chars.rend(),
+                                [](uint64_t const counter) -> bool {
+                                  return counter != 0; }
+                                );
+    if (highest != stats.quality_chars.rend()) {
+      stats.qmax = std::distance(highest, stats.quality_chars.rend()) - 1;
+    }
+  }
+
+
   auto stats_message(std::FILE * output_stream,
                      struct statistics const & stats) -> void {
     std::fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
@@ -297,20 +322,8 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   fastq_close(fastq_handle);
 
-  // find first non null
-  auto lower = std::find_if(stats.quality_chars.cbegin(), stats.quality_chars.cend(),
-                            [](uint64_t const & lhs) -> bool { return lhs != 0;});
-  if (lower != stats.quality_chars.cend()) {
-    stats.qmin = std::distance(stats.quality_chars.cbegin(), lower);
-  }
-
-  // find last non null
-  auto upper = std::find_if(stats.quality_chars.rbegin(), stats.quality_chars.rend(),
-                            [](uint64_t const & lhs) -> bool { return lhs != 0;});
-  if (upper != stats.quality_chars.rend()) {
-    stats.qmax = std::distance(upper, stats.quality_chars.rend()) - 1;
-  }
-
+  find_lowest_quality_symbol(stats);
+  find_highest_quality_symbol(stats);
   guess_quality_offset(stats);
   stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
   stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
