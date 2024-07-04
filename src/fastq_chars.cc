@@ -147,82 +147,83 @@ namespace {
                      struct statistics const & stats) -> void {
     std::fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
 
-    if (stats.seq_count > 0)
+    if (stats.seq_count == 0) {
+      return;
+    }
+
+    std::fprintf(output_stream, "Qmin %d, Qmax %d, Range %d\n",
+                 stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
+
+    std::fprintf(output_stream, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
+                 stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
+
+    if (stats.fastq_ascii == 64)
       {
-        std::fprintf(output_stream, "Qmin %d, Qmax %d, Range %d\n",
-                stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
-
-        std::fprintf(output_stream, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-                stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
-
-        if (stats.fastq_ascii == 64)
+        if (stats.qmin < 64)
           {
-            if (stats.qmin < 64)
-              {
-                std::fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
-              }
-            else if (stats.qmin < 66)
-              {
-                std::fprintf(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
-              }
-            else
-              {
-                std::fprintf(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
-              }
+            std::fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
+          }
+        else if (stats.qmin < 66)
+          {
+            std::fprintf(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
           }
         else
           {
-            if (stats.qmax > 73)
+            std::fprintf(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
+          }
+      }
+    else
+      {
+        if (stats.qmax > 73)
+          {
+            std::fprintf(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
+          }
+        else
+          {
+            std::fprintf(output_stream, "Guess: Original Sanger format (phred+33)\n");
+          }
+      }
+
+    std::fprintf(output_stream, "\n");
+    std::fprintf(output_stream, "Letter          N   Freq MaxRun\n");
+    std::fprintf(output_stream, "------ ---------- ------ ------\n");
+
+    for (auto c = 0; c < 256; ++c)
+      {
+        if (stats.sequence_chars[c] == 0) { continue; }
+        std::fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
+                     c,
+                     stats.sequence_chars[c],
+                     100.0 * stats.sequence_chars[c] / stats.total_chars,
+                     stats.maxrun[c]);
+        if ((c == 'N') or (c == 'n'))
+          {
+            if (stats.qmin_n < stats.qmax_n)
               {
-                std::fprintf(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
+                std::fprintf(output_stream, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
               }
             else
               {
-                std::fprintf(output_stream, "Guess: Original Sanger format (phred+33)\n");
+                std::fprintf(output_stream, "  Q=%c", stats.qmin_n);
               }
           }
-
         std::fprintf(output_stream, "\n");
-        std::fprintf(output_stream, "Letter          N   Freq MaxRun\n");
-        std::fprintf(output_stream, "------ ---------- ------ ------\n");
+      }
 
-        for (auto c = 0; c < 256; ++c)
-          {
-            if (stats.sequence_chars[c] == 0) { continue; }
-            std::fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
-                    c,
-                    stats.sequence_chars[c],
-                    100.0 * stats.sequence_chars[c] / stats.total_chars,
-                    stats.maxrun[c]);
-            if ((c == 'N') or (c == 'n'))
-              {
-                if (stats.qmin_n < stats.qmax_n)
-                  {
-                    std::fprintf(output_stream, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
-                  }
-                else
-                  {
-                    std::fprintf(output_stream, "  Q=%c", stats.qmin_n);
-                  }
-              }
-            std::fprintf(output_stream, "\n");
-          }
+    std::fprintf(output_stream, "\n");
+    std::fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
+    std::fprintf(output_stream, "----  -----  ------  ----------\n");
 
-        std::fprintf(output_stream, "\n");
-        std::fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
-        std::fprintf(output_stream, "----  -----  ------  ----------\n");
-
-        for (int c = stats.qmin; c <= stats.qmax; ++c)
-          {
-            if (stats.quality_chars[c] == 0) {
-              continue;
-            }
-            std::fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                         c,
-                         c,
-                         100.0 * stats.quality_chars[c] / stats.total_chars,
-                         stats.tail_chars[c]);
-          }
+    for (int c = stats.qmin; c <= stats.qmax; ++c)
+      {
+        if (stats.quality_chars[c] == 0) {
+          continue;
+        }
+        std::fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
+                     c,
+                     c,
+                     100.0 * stats.quality_chars[c] / stats.total_chars,
+                     stats.tail_chars[c]);
       }
   }
 
