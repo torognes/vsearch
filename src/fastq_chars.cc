@@ -145,6 +145,7 @@ namespace {
 
   auto stats_message(std::FILE * output_stream,
                      struct statistics const & stats) -> void {
+    assert(stats.sequence_chars['n'] == 0);  // sequences are uppercased, no results for lowercase symbols
     std::fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
 
     if (stats.seq_count == 0) {
@@ -196,7 +197,7 @@ namespace {
                      stats.sequence_chars[c],
                      100.0 * stats.sequence_chars[c] / stats.total_chars,
                      stats.maxrun[c]);
-        if ((c == 'N') or (c == 'n'))
+        if (c == 'N')
           {
             if (stats.qmin_n < stats.qmax_n)
               {
@@ -290,7 +291,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           ++stats.sequence_chars[seq_symbol];
           ++stats.quality_chars[qual_symbol];
 
-          if ((seq_symbol == 'N') or (seq_symbol == 'n'))
+          if (seq_symbol == 'N')
             {
               stats.qmin_n = std::min(qual_symbol, stats.qmin_n);
               stats.qmax_n = std::max(qual_symbol, stats.qmax_n);
