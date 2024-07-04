@@ -116,12 +116,13 @@ namespace {
                                [](uint64_t const counter) -> bool {
                                  return counter != 0;
                                });
-    if (lowest != stats.quality_chars.cend()) {
-      auto const index = std::distance(stats.quality_chars.cbegin(), lowest);
-      assert(index >= 0);
-      assert(index <= char_max);
-      stats.qmin = static_cast<char>(index);
+    if (lowest == stats.quality_chars.cend()) {
+      return;
     }
+    auto const index = std::distance(stats.quality_chars.cbegin(), lowest);
+    assert(index >= 0);
+    assert(index <= char_max);
+    stats.qmin = static_cast<char>(index);
   }
 
 
@@ -132,13 +133,14 @@ namespace {
                                 [](uint64_t const counter) -> bool {
                                   return counter != 0; }
                                 );
-    if (highest != stats.quality_chars.rend()) {
-      auto const index = std::distance(highest, stats.quality_chars.rend()) - 1;
-      assert(index >= 0);
-      assert(index <= char_max);
-      stats.qmax = static_cast<char>(index);
+    if (highest == stats.quality_chars.rend()) {
+      return;
     }
-  }
+    auto const index = std::distance(highest, stats.quality_chars.rend()) - 1;
+    assert(index >= 0);
+    assert(index <= char_max);
+    stats.qmax = static_cast<char>(index);
+}
 
 
   auto stats_message(std::FILE * output_stream,
