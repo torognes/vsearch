@@ -271,23 +271,14 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
           if ((pc == 'N') or (pc == 'n'))
             {
-              if (qc < stats.qmin_n)
-                {
-                  stats.qmin_n = qc;
-                }
-              if (qc > stats.qmax_n)
-                {
-                  stats.qmax_n = qc;
-                }
+              stats.qmin_n = std::min(qc, stats.qmin_n);
+              stats.qmax_n = std::max(qc, stats.qmax_n);
             }
 
           if (pc == run_char)
             {
               ++run;
-              if (run > stats.maxrun[run_char])
-                {
-                  stats.maxrun[run_char] = run;
-                }
+              stats.maxrun[run_char] = std::max(run, stats.maxrun[run_char]);
             }
           else
             {
