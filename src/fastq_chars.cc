@@ -111,7 +111,8 @@ namespace {
                                  return counter != 0;
                                });
     if (lowest != stats.quality_chars.cend()) {
-      stats.qmin = static_cast<char>(std::distance(stats.quality_chars.cbegin(), lowest));
+      auto const index = std::distance(stats.quality_chars.cbegin(), lowest);
+      stats.qmin = static_cast<char>(index);
     }
   }
 
@@ -124,7 +125,8 @@ namespace {
                                   return counter != 0; }
                                 );
     if (highest != stats.quality_chars.rend()) {
-      stats.qmax = static_cast<char>(std::distance(highest, stats.quality_chars.rend()) - 1);
+      auto const index = std::distance(highest, stats.quality_chars.rend()) - 1;
+      stats.qmax = static_cast<char>(index);
     }
   }
 
