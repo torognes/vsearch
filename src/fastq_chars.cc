@@ -99,6 +99,8 @@ namespace {
     else {
       stats.fastq_ascii = static_cast<char>(alternative_ascii_offset);  // +64, from vsearch.h
     }
+    stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
+    stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
   }
 
 
@@ -326,8 +328,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   find_lowest_quality_symbol(stats);
   find_highest_quality_symbol(stats);
   guess_quality_offset(stats);
-  stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
-  stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
 
   output_stats_message(parameters, stats);
   output_stats_message(parameters, stats, parameters.opt_log);
