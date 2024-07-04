@@ -88,6 +88,20 @@ struct statistics {
 
 
 namespace {
+
+  auto guess_quality_offset(struct statistics & stats) -> void {
+    static constexpr auto lowerbound = ';';  // char 59 (-5 to offset +64)
+    static constexpr auto upperbound = 'K';  // char 75 (+1 after offset +33 normal range)
+
+    if ((stats.qmin < lowerbound) or (stats.qmax < upperbound)) {
+      stats.fastq_ascii = static_cast<char>(default_ascii_offset);  // +33, from vsearch.h
+    }
+    else {
+      stats.fastq_ascii = static_cast<char>(alternative_ascii_offset);  // +64, from vsearch.h
+    }
+  }
+
+
   auto stats_message(std::FILE * output_stream,
                      struct statistics const & stats) -> void {
     std::fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
@@ -297,15 +311,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     stats.qmax = std::distance(upper, stats.quality_chars.rend()) - 1;
   }
 
-  if ((stats.qmin < 59) or (stats.qmax < 75))
-    {
-      stats.fastq_ascii = 33;
-    }
-  else
-    {
-      stats.fastq_ascii = 64;
-    }
-
+  guess_quality_offset(stats);
   stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
   stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
 

@@ -510,6 +510,7 @@ extern std::FILE * fp_log;
 
 constexpr int64_t default_maxseqlength = 50000;
 constexpr int64_t default_ascii_offset = 33;
+constexpr int64_t alternative_ascii_offset = 64;
 constexpr int64_t default_max_quality = 41;
 constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
