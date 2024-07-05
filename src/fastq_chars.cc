@@ -275,13 +275,6 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       auto run_char = -1;
       auto run = 0;
 
-      // tally sequence symbols (slower)
-      // std::for_each(seq_ptr,
-      //               std::next(seq_ptr, len),
-      //               [& stats](char const & symbol) -> void {
-      //                 ++stats.sequence_chars[symbol];
-      //               });
-
       for (auto i = 0ULL ; i < seq_length ; ++i)
         {
           int const seq_symbol = *seq_ptr;
