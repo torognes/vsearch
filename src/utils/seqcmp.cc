@@ -62,10 +62,7 @@
 #include <iterator>
 
 
-auto seqcmp(char * a, char * b, int length) -> int {
-  char * lhs = a;
-  char * rhs = b;
-
+auto seqcmp(char * lhs, char * rhs, int length) -> int {
   if (length <= 0) {
     return 0;
   }
