@@ -145,6 +145,8 @@ namespace {
 
   auto stats_message(std::FILE * output_stream,
                      struct statistics const & stats) -> void {
+    static constexpr char first_char_in_Illumina_1_5 = 'B';  // 66th char
+    static constexpr char last_char_in_original_Sanger = 'I';  // 73th char
     assert(stats.sequence_chars['n'] == 0);  // sequences are uppercased, no results for lowercase symbols
     std::fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
 
@@ -164,23 +166,26 @@ namespace {
           {
             std::fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
           }
-        else if (stats.qmin < 66)
+        else if (stats.qmin < first_char_in_Illumina_1_5)
           {
             std::fprintf(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
           }
         else
           {
+            // Illumina 1.5+ Phred+64, quality values ranging from 3 to 41 (ascii: 67 to 105)
+            // Q2 (ascii 66, 'B') is the Read Segment Quality Control Indicator
             std::fprintf(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
           }
       }
     else
       {
-        if (stats.qmax > 73)
+        if (stats.qmax > last_char_in_original_Sanger)
           {
             std::fprintf(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
           }
         else
           {
+            // Sanger Phred+33, quality values ranging from 0 to 40 (ascii: 33 to 73)
             std::fprintf(output_stream, "Guess: Original Sanger format (phred+33)\n");
           }
       }
