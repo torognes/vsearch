@@ -278,9 +278,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       for (auto i = 0ULL ; i < seq_length ; ++i)
         {
           auto const seq_symbol = static_cast<unsigned char>(*seq_ptr);
-          ++seq_ptr;
+          std::advance(seq_ptr, 1);
           auto const qual_symbol = static_cast<unsigned char>(*qual_ptr);
-          ++qual_ptr;
+          std::advance(qual_ptr, 1);
           ++stats.sequence_chars[seq_symbol];
           ++stats.quality_chars[qual_symbol];
 
