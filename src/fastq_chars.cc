@@ -105,8 +105,8 @@ namespace {
     else {
       stats.fastq_ascii = alternative_ascii_offset;  // +64, from vsearch.h
     }
-    stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
-    stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
+    stats.fastq_qmax = static_cast<char>(stats.qmax - stats.fastq_ascii);
+    stats.fastq_qmin = static_cast<char>(stats.qmin - stats.fastq_ascii);
   }
 
 
