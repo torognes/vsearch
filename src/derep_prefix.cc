@@ -201,8 +201,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   unsigned int const len_longest = db_getlongestsequence();
   unsigned int const len_shortest = db_getshortestsequence();
-  auto * prefix_hashes = (uint64_t *)
-    xmalloc(sizeof(uint64_t) * (len_longest+1));
+  std::vector<uint64_t> prefix_hashes(len_longest + 1);
 
   progress_init("Dereplicating", dbsequencecount);
   for (int64_t i = 0; i < dbsequencecount; i++)
@@ -354,8 +353,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_update(i);
     }
   progress_done();
-
-  xfree(prefix_hashes);
 
   xfree(seq_up);
 
