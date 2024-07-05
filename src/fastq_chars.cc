@@ -194,6 +194,7 @@ namespace {
     std::fprintf(output_stream, "Letter          N   Freq MaxRun\n");
     std::fprintf(output_stream, "------ ---------- ------ ------\n");
 
+    double const percentage_factor = 100.0 / static_cast<double>(stats.total_chars);
     unsigned char index = 0;
     for (auto const counter: stats.sequence_chars)
       {
@@ -201,7 +202,7 @@ namespace {
         std::fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
                      index,
                      counter,
-                     100.0 * counter / stats.total_chars,
+                     static_cast<double>(counter) * percentage_factor,
                      stats.maxrun[index]);
         if (index == 'N')
           {
@@ -231,7 +232,7 @@ namespace {
                      " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                      i,
                      i,
-                     100.0 * stats.quality_chars[i] / stats.total_chars,
+                     static_cast<double>(stats.quality_chars[i]) * percentage_factor,
                      stats.tail_chars[i]);
       }
   }
