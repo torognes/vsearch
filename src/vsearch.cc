@@ -126,7 +126,6 @@ char * opt_fastaout_notmerged_fwd;
 char * opt_fastaout_notmerged_rev;
 char * opt_fastaout_rev;
 char * opt_fastapairs;
-char * opt_fastq_chars;
 char * opt_fastq_convert;
 char * opt_fastq_eestats2;
 char * opt_fastq_eestats;
@@ -260,7 +259,6 @@ int64_t opt_fastq_qmin;
 int64_t opt_fastq_qminout;
 int64_t opt_fastq_stripleft;
 int64_t opt_fastq_stripright;
-int64_t opt_fastq_tail;
 int64_t opt_fastq_trunclen;
 int64_t opt_fastq_trunclen_keep;
 int64_t opt_fastq_truncqual;
@@ -794,7 +792,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_allowmergestagger = false;
   opt_fastq_ascii = 33;
   opt_fastq_asciiout = 33;
-  opt_fastq_chars = nullptr;
   opt_fastq_convert = nullptr;
   opt_fastq_eeout = false;
   opt_fastq_eestats = nullptr;
@@ -819,7 +816,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_stats = nullptr;
   opt_fastq_stripleft = 0;
   opt_fastq_stripright = 0;
-  opt_fastq_tail = 4;
   opt_fastq_truncee = DBL_MAX;
   opt_fastq_trunclen = -1;
   opt_fastq_trunclen_keep = -1;
@@ -2006,7 +2002,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_chars:
-          opt_fastq_chars = optarg;
           parameters.opt_fastq_chars = optarg;
           break;
 
@@ -2127,7 +2122,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_tail:
-          opt_fastq_tail = args_getlong(optarg);
           parameters.opt_fastq_tail = args_getlong(optarg);
           break;
 
