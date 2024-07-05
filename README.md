@@ -231,7 +231,7 @@ File | Description
 **fa2fq.cc** | FASTA to FASTQ conversion
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
-**fastqjoin.cc** | FASTQ paired-end reads joining
+**fastq_join.cc** | FASTQ paired-end reads joining
 **fastqops.cc** | FASTQ file statistics etc
 **fastx.cc** | Detection of FASTA and FASTQ files, wrapper for FASTA and FASTQ parsers
 **filter.cc** | Trimming and filtering of sequences in FASTA and FASTQ files

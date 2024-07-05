@@ -51,7 +51,7 @@ fa2fq.h \
 fasta.h \
 fastq.h \
 fastq_chars.h \
-fastqjoin.h \
+fastq_join.h \
 fastqops.h \
 fastx.h \
 filter.h \
@@ -148,7 +148,7 @@ fa2fq.cc \
 fasta.cc \
 fastq.cc \
 fastq_chars.cc \
-fastqjoin.cc \
+fastq_join.cc \
 fastqops.cc \
 fastx.cc \
 filter.cc \

@@ -253,7 +253,7 @@
 #include "kmerhash.h"
 #include "tax.h"
 #include "sintax.h"
-#include "fastqjoin.h"
+#include "fastq_join.h"
 #include "sffconvert.h"
 #include "getseq.h"
 #include "cut.h"
