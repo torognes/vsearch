@@ -306,11 +306,11 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         {
           qual_ptr = std::next(fastq_get_quality(fastq_handle), seq_length - 1);
           auto const tail_char = *qual_ptr;
-          qual_ptr = std::prev(qual_ptr);
+          std::advance(qual_ptr, -1);
           auto tail_len = 1;
           while (*qual_ptr == tail_char)
             {
-              qual_ptr = std::prev(qual_ptr);
+              std::advance(qual_ptr, -1);
               ++tail_len;
               if (tail_len >= parameters.opt_fastq_tail)
                 {
