@@ -220,7 +220,8 @@ namespace {
         if (stats.quality_chars[i] == 0) {
           continue;
         }
-        std::fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
+        std::fprintf(output_stream,
+                     " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                      i,
                      i,
                      100.0 * stats.quality_chars[i] / stats.total_chars,
