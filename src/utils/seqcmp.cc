@@ -61,25 +61,21 @@
 #include "maps.hpp"
 
 
-auto seqcmp(char * a, char * b, int length) -> int
-{
+auto seqcmp(char * a, char * b, int length) -> int {
   char * p = a;
   char * q = b;
 
-  if (length <= 0)
-    {
-      return 0;
-    }
+  if (length <= 0) {
+    return 0;
+  }
 
-  while ((length-- > 0) and (chrmap_4bit_vector[(int) (*p)] == chrmap_4bit_vector[(int) (*q)]))
-    {
-      if ((length == 0) or (*p == 0) or (*q == 0))
-        {
-          break;
-        }
-      ++p;
-      ++q;
+  while ((length-- > 0) and (chrmap_4bit_vector[(int) (*p)] == chrmap_4bit_vector[(int) (*q)])) {
+    if ((length == 0) or (*p == 0) or (*q == 0)) {
+      break;
     }
+    ++p;
+    ++q;
+  }
 
   return chrmap_4bit_vector[(int) (*p)] - chrmap_4bit_vector[(int) (*q)];
 }
