@@ -83,8 +83,8 @@ struct statistics {
   std::vector<int> maxrun;
   uint64_t total_chars = 0;
   uint64_t seq_count = 0;
-  int qmin_n = 255;
-  int qmax_n = 0;
+  unsigned char qmin_n = 255;
+  unsigned char qmax_n = 0;
   char qmin = '\0';
   char qmax = '\0';
   char fastq_ascii = '\0';
@@ -277,9 +277,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
       for (auto i = 0ULL ; i < seq_length ; ++i)
         {
-          int const seq_symbol = *seq_ptr;
+          auto const seq_symbol = static_cast<unsigned char>(*seq_ptr);
           ++seq_ptr;
-          int const qual_symbol = *qual_ptr;
+          auto const qual_symbol = static_cast<unsigned char>(*qual_ptr);
           ++qual_ptr;
           ++stats.sequence_chars[seq_symbol];
           ++stats.quality_chars[qual_symbol];
