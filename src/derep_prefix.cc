@@ -194,7 +194,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   std::vector<unsigned int> nextseqtab(dbsequencecount, std::numeric_limits<unsigned int>::max());
   auto const terminal = (unsigned int) (-1);
 
-  char * seq_up = (char *) xmalloc(db_getlongestsequence() + 1);
+  std::vector<char> seq_up(db_getlongestsequence() + 1);
 
   /* make table of hash values of prefixes */
 
@@ -209,7 +209,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       char * seq = db_getsequence(i);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up, seq, seqlen);
+      string_normalize(seq_up.data(), seq, seqlen);
 
       uint64_t const ab = parameters.opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
@@ -256,7 +256,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
              ((bp->deleted) or
               (bp->hash != hash) or
               (prefix_len != db_getsequencelen(bp->seqno_first)) or
-              (seqcmp(seq_up, db_getsequence(bp->seqno_first), prefix_len))))
+              (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len))))
         {
           ++bp;
           if (bp >= &hashtable[hashtablesize])
@@ -298,7 +298,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                      ((bp->deleted) or
                       (bp->hash != hash) or
                       (prefix_len != db_getsequencelen(bp->seqno_first)) or
-                      (seqcmp(seq_up,
+                      (seqcmp(seq_up.data(),
                               db_getsequence(bp->seqno_first),
                               prefix_len))))
                 {
@@ -352,8 +352,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_update(i);
     }
   progress_done();
-
-  xfree(seq_up);
 
   show_rusage();
 
