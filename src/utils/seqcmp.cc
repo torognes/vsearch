@@ -70,7 +70,7 @@ auto seqcmp(char * a, char * b, int length) -> int {
   }
 
   while ((length-- > 0) and (chrmap_4bit_vector[(int) (*lhs)] == chrmap_4bit_vector[(int) (*rhs)])) {
-    if ((length == 0) or (*lhs == 0) or (*rhs == 0)) {
+    if ((length == 0) or (*lhs == '\0') or (*rhs == '\0')) {
       break;
     }
     ++lhs;
