@@ -62,20 +62,20 @@
 
 
 auto seqcmp(char * a, char * b, int length) -> int {
-  char * p = a;
-  char * q = b;
+  char * lhs = a;
+  char * rhs = b;
 
   if (length <= 0) {
     return 0;
   }
 
-  while ((length-- > 0) and (chrmap_4bit_vector[(int) (*p)] == chrmap_4bit_vector[(int) (*q)])) {
-    if ((length == 0) or (*p == 0) or (*q == 0)) {
+  while ((length-- > 0) and (chrmap_4bit_vector[(int) (*lhs)] == chrmap_4bit_vector[(int) (*rhs)])) {
+    if ((length == 0) or (*lhs == 0) or (*rhs == 0)) {
       break;
     }
-    ++p;
-    ++q;
+    ++lhs;
+    ++rhs;
   }
 
-  return chrmap_4bit_vector[(int) (*p)] - chrmap_4bit_vector[(int) (*q)];
+  return chrmap_4bit_vector[(int) (*lhs)] - chrmap_4bit_vector[(int) (*rhs)];
 }
