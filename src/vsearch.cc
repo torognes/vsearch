@@ -63,6 +63,7 @@
 #include "cluster.h"
 #include "cut.h"
 #include "derep.h"
+#include "derep_prefix.h"
 #include "derepsmallmem.h"
 #include "eestats.h"
 #include "fasta2fastq.h"

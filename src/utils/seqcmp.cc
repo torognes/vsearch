@@ -58,4 +58,28 @@
 
 */
 
-auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void;
+#include "../maps.h"
+
+
+auto seqcmp(char * a, char * b, int n) -> int
+{
+  char * p = a;
+  char * q = b;
+
+  if (n <= 0)
+    {
+      return 0;
+    }
+
+  while ((n-- > 0) and (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
+    {
+      if ((n == 0) or (*p == 0) or (*q == 0))
+        {
+          break;
+        }
+      ++p;
+      ++q;
+    }
+
+  return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
+}

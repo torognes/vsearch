@@ -58,4 +58,4 @@
 
 */
 
-auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void;
+auto seqcmp(char * a, char * b, int n) -> int;

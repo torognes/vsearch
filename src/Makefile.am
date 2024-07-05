@@ -44,6 +44,7 @@ db.h \
 dbhash.h \
 dbindex.h \
 derep.h \
+derep_prefix.h \
 derepsmallmem.h \
 dynlibs.h \
 eestats.h \
@@ -84,6 +85,7 @@ udb.h \
 unique.h \
 userfields.h \
 util.h \
+utils/seqcmp.h \
 vsearch.h \
 xstring.h
 
@@ -141,6 +143,7 @@ db.cc \
 dbhash.cc \
 dbindex.cc \
 derep.cc \
+derep_prefix.cc \
 derepsmallmem.cc \
 dynlibs.cc \
 eestats.cc \
@@ -181,4 +184,5 @@ udb.cc \
 unique.cc \
 userfields.cc \
 util.cc \
+utils/seqcmp.cc \
 vsearch.cc
