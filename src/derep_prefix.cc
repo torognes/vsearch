@@ -65,19 +65,20 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strcmp, std::memset
+#include <vector>
 
 
 struct bucket
 {
-  uint64_t hash;
-  unsigned int seqno_first;
-  unsigned int seqno_last;
-  unsigned int size;
-  unsigned int count;
-  bool deleted;
-  char * header;
-  char * seq;
-  char * qual;
+  uint64_t hash = 0;
+  unsigned int seqno_first = 0;
+  unsigned int seqno_last = 0;
+  unsigned int size = 0;
+  unsigned int count = 0;
+  bool deleted = false;
+  char * header = nullptr;
+  char * seq = nullptr;
+  char * qual = nullptr;
 };
 
 
@@ -179,10 +180,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     }
   int const hash_mask = hashtablesize - 1;
 
-  auto * hashtable =
-    (struct bucket *) xmalloc(sizeof(struct bucket) * hashtablesize);
-
-  memset(hashtable, 0, sizeof(struct bucket) * hashtablesize);
+  std::vector<struct bucket> hashtable_v(hashtablesize);
+  auto * hashtable = hashtable_v.data();
 
   int64_t clusters = 0;
   int64_t sumsize = 0;
@@ -534,6 +533,5 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     }
 
   xfree(nextseqtab);
-  xfree(hashtable);
   db_free();
 }
