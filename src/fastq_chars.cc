@@ -265,7 +265,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   while (fastq_next(fastq_handle, false, chrmap_upcase_vector.data()))
     {
-      int64_t const len = fastq_get_sequence_length(fastq_handle);
+      auto const len = fastq_get_sequence_length(fastq_handle);
       auto * seq_ptr = fastq_get_sequence(fastq_handle);
       auto * qual_ptr = fastq_get_quality(fastq_handle);
 
@@ -282,7 +282,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
       //                 ++stats.sequence_chars[symbol];
       //               });
 
-      for (auto i = 0LL ; i < len ; ++i)
+      for (auto i = 0ULL ; i < len ; ++i)
         {
           int const seq_symbol = *seq_ptr;
           ++seq_ptr;
@@ -309,7 +309,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
         }
 
-      if (len >= parameters.opt_fastq_tail)
+      if (len >= static_cast<uint64_t>(parameters.opt_fastq_tail))
         {
           qual_ptr = fastq_get_quality(fastq_handle) + len - 1;
           auto const tail_char = *qual_ptr;
