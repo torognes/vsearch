@@ -180,8 +180,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     }
   int const hash_mask = hashtablesize - 1;
 
-  std::vector<struct bucket> hashtable_v(hashtablesize);
-  auto * hashtable = hashtable_v.data();
+  std::vector<struct bucket> hashtable(hashtablesize);
 
   int64_t clusters = 0;
   int64_t sumsize = 0;
@@ -253,7 +252,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       unsigned int prefix_len = seqlen;
 
       uint64_t hash = prefix_hashes[prefix_len];
-      struct bucket * bp = hashtable + (hash & hash_mask);
+      struct bucket * bp = &hashtable[hash & hash_mask];
 
       while ((bp->size) and
              ((bp->deleted) or
@@ -262,9 +261,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               (seqcmp(seq_up, db_getsequence(bp->seqno_first), prefix_len))))
         {
           ++bp;
-          if (bp >= hashtable + hashtablesize)
+          if (bp >= &hashtable[hashtablesize])
             {
-              bp = hashtable;
+              bp = hashtable.data();
             }
         }
 
@@ -295,7 +294,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             {
               --prefix_len;
               hash = prefix_hashes[prefix_len];
-              bp = hashtable + (hash & hash_mask);
+              bp = &hashtable[hash & hash_mask];
 
               while ((bp->size) and
                      ((bp->deleted) or
@@ -306,9 +305,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                               prefix_len))))
                 {
                   ++bp;
-                  if (bp >= hashtable + hashtablesize)
+                  if (bp >= &hashtable[hashtablesize])
                     {
-                      bp = hashtable;
+                      bp = hashtable.data();
                     }
                 }
             }
@@ -363,7 +362,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable, hashtablesize, sizeof(struct bucket), derep_compare_prefix);
+  qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_prefix);
   progress_done();
 
   if (clusters > 0)
@@ -421,7 +420,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   int64_t selected = 0;
   for (int64_t i = 0; i < clusters; i++)
     {
-      struct bucket * bp = hashtable + i;
+      struct bucket * bp = &hashtable[i];
       int64_t const size = bp->size;
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
@@ -443,7 +442,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       int64_t relabel_count = 0;
       for (int64_t i = 0; i < clusters; i++)
         {
-          struct bucket * bp = hashtable + i;
+          struct bucket * bp = &hashtable[i];
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -477,7 +476,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_init("Writing uc file, first part", clusters);
       for (int64_t i = 0; i < clusters; i++)
         {
-          struct bucket * bp = hashtable + i;
+          struct bucket * bp = &hashtable[i];
           char * h =  db_getheader(bp->seqno_first);
           int64_t const len = db_getsequencelen(bp->seqno_first);
 
@@ -501,7 +500,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_init("Writing uc file, second part", clusters);
       for (int64_t i = 0; i < clusters; i++)
         {
-          struct bucket * bp = hashtable + i;
+          struct bucket * bp = &hashtable[i];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, db_getheader(bp->seqno_first));
           progress_update(i);
