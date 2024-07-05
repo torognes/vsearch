@@ -2,6 +2,11 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
 AM_CFLAGS = -Wall -Wextra -Wpedantic
 
+# Conditionally set profiling based on ENABLE_PROFILING
+if ENABLE_PROFILING
+AM_CFLAGS += -pg -O1
+endif
+
 if TARGET_PPC
 AM_CFLAGS += -mcpu=powerpc64le -maltivec
 else
