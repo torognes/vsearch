@@ -59,6 +59,7 @@
 */
 
 #include "maps.hpp"
+#include <iterator>
 
 
 auto seqcmp(char * a, char * b, int length) -> int {
@@ -73,8 +74,8 @@ auto seqcmp(char * a, char * b, int length) -> int {
     if ((length == 0) or (*lhs == '\0') or (*rhs == '\0')) {
       break;
     }
-    ++lhs;
-    ++rhs;
+    std::advance(lhs, 1);
+    std::advance(rhs, 1);
   }
 
   return chrmap_4bit_vector[(int) (*lhs)] - chrmap_4bit_vector[(int) (*rhs)];
