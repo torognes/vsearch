@@ -60,7 +60,12 @@
 
 #include "vsearch.h"
 #include "cut.h"
+#include "derep.h"
 #include "fastq_chars.h"
+#include "shuffle.h"
+#include "sortbylength.h"
+#include "sortbysize.h"
+#include "subsample.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MAX, LONG_MIN, INT_MAX, DBL_MAX
 #include <cmath>  // std::floor
