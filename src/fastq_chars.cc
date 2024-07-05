@@ -160,7 +160,7 @@ namespace {
 
     if (stats.fastq_ascii == alternative_ascii_offset)
       {
-        if (stats.qmin < 64)
+        if (stats.qmin < alternative_ascii_offset)
           {
             std::fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
           }
