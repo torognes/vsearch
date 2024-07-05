@@ -189,15 +189,16 @@ namespace {
     std::fprintf(output_stream, "Letter          N   Freq MaxRun\n");
     std::fprintf(output_stream, "------ ---------- ------ ------\n");
 
-    for (auto c = 0; c < 256; ++c)
+    unsigned char index = 0;
+    for (auto const counter: stats.sequence_chars)
       {
-        if (stats.sequence_chars[c] == 0) { continue; }
+        if (counter == 0) { ++index ; continue; }
         std::fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
-                     c,
-                     stats.sequence_chars[c],
-                     100.0 * stats.sequence_chars[c] / stats.total_chars,
-                     stats.maxrun[c]);
-        if (c == 'N')
+                     index,
+                     counter,
+                     100.0 * counter / stats.total_chars,
+                     stats.maxrun[index]);
+        if (index == 'N')
           {
             if (stats.qmin_n < stats.qmax_n)
               {
@@ -209,6 +210,7 @@ namespace {
               }
           }
         std::fprintf(output_stream, "\n");
+        ++index;
       }
 
     std::fprintf(output_stream, "\n");
