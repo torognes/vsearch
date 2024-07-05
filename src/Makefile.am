@@ -85,6 +85,7 @@ udb.h \
 unique.h \
 userfields.h \
 util.h \
+utils/maps.hpp \
 utils/seqcmp.h \
 vsearch.h \
 xstring.h
