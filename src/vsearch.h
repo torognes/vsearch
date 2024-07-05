@@ -258,7 +258,7 @@
 #include "getseq.h"
 #include "cut.h"
 #include "orient.h"
-#include "fa2fq.h"
+#include "fasta2fastq.h"
 #include "derepsmallmem.h"
 
 /* options */

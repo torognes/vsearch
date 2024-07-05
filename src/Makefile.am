@@ -47,7 +47,7 @@ derep.h \
 derepsmallmem.h \
 dynlibs.h \
 eestats.h \
-fa2fq.h \
+fasta2fastq.h \
 fasta.h \
 fastq.h \
 fastq_chars.h \
@@ -144,7 +144,7 @@ derep.cc \
 derepsmallmem.cc \
 dynlibs.cc \
 eestats.cc \
-fa2fq.cc \
+fasta2fastq.cc \
 fasta.cc \
 fastq.cc \
 fastq_chars.cc \

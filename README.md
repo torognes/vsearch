@@ -228,7 +228,7 @@ File | Description
 **derep.cc** | Dereplication
 **dynlibs.cc** | Dynamic loading of compression libraries
 **eestats.cc** | Produce statistics for fastq_eestats command
-**fa2fq.cc** | FASTA to FASTQ conversion
+**fasta2fastq.cc** | FASTA to FASTQ conversion
 **fasta.cc** | FASTA file parser
 **fastq.cc** | FASTQ file parser
 **fastq_join.cc** | FASTQ paired-end reads joining
