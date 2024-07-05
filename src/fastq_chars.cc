@@ -215,16 +215,16 @@ namespace {
     std::fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
     std::fprintf(output_stream, "----  -----  ------  ----------\n");
 
-    for (int c = stats.qmin; c <= stats.qmax; ++c)
+    for (int i = stats.qmin; i <= stats.qmax; ++i)
       {
-        if (stats.quality_chars[c] == 0) {
+        if (stats.quality_chars[i] == 0) {
           continue;
         }
         std::fprintf(output_stream, " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                     c,
-                     c,
-                     100.0 * stats.quality_chars[c] / stats.total_chars,
-                     stats.tail_chars[c]);
+                     i,
+                     i,
+                     100.0 * stats.quality_chars[i] / stats.total_chars,
+                     stats.tail_chars[i]);
       }
   }
 
