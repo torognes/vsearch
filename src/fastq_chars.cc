@@ -215,7 +215,7 @@ namespace {
     std::fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
     std::fprintf(output_stream, "----  -----  ------  ----------\n");
 
-    for (int i = stats.qmin; i <= stats.qmax; ++i)
+    for (char i = stats.qmin; i <= stats.qmax; ++i)
       {
         if (stats.quality_chars[i] == 0) {
           continue;
