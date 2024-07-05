@@ -66,6 +66,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcmp, std::memset
+#include <vector>
 
 
 #define HASH hash_cityhash64
@@ -331,7 +332,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   unsigned int * nextseqtab = nullptr;
   const auto terminal = (unsigned int) (-1);
   char ** headertab = nullptr;
-  char * match_strand = nullptr;
+  std::vector<char> match_strand;
 
   bool const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
 
@@ -351,8 +352,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       memset(headertab, 0, sizeof(char*) * alloc_seqs);
 
       /* Matching strand */
-      match_strand = (char *) xmalloc(alloc_seqs);
-      memset(match_strand, 0, alloc_seqs);
+      match_strand.resize(alloc_seqs);
     }
 
   show_rusage();
@@ -432,8 +432,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                                          sizeof(char*) * new_alloc_seqs);
           memset(headertab + alloc_seqs, 0, sizeof(char *) * alloc_seqs);
 
-          match_strand = (char *) xrealloc(match_strand, new_alloc_seqs);
-          memset(match_strand + alloc_seqs, 0, alloc_seqs);
+          match_strand.resize(new_alloc_seqs);
 
           alloc_seqs = new_alloc_seqs;
 
@@ -998,7 +997,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
       xfree(headertab);
       xfree(nextseqtab);
-      xfree(match_strand);
     }
 
   show_rusage();
