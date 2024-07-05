@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "minheap.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t

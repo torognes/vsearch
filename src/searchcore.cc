@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "minheap.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t

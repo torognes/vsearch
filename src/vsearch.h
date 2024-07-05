@@ -220,7 +220,6 @@
 #include "unique.h"
 #include "bitmap.h"
 #include "dbindex.h"
-#include "minheap.h"
 #include "linmemalign.h"
 #include "searchcore.h"
 #include "showalign.h"

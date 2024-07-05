@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "minheap.h"
 #include "msa.h"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element
 #include <cinttypes>  // macros PRIu64 and PRId64
