@@ -312,7 +312,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
       if (seq_length >= static_cast<uint64_t>(parameters.opt_fastq_tail))
         {
-          qual_ptr = std::next(fastq_get_quality(fastq_handle), seq_length - 1);
+          qual_ptr = std::next(fastq_get_quality(fastq_handle), static_cast<long>(seq_length - 1));
           auto const tail_char = *qual_ptr;
           std::advance(qual_ptr, -1);
           auto tail_len = 1;
