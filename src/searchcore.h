@@ -145,7 +145,7 @@ struct searchinfo_s
   LinearMemoryAligner * lma = nullptr;    /* Linear memory aligner instance pointer */
   int accepts = 0;                  /* number of accepts */
   int rejects = 0;                  /* number of rejects */
-  minheap_t * m = nullptr;                /* min heap with the top kmer db seqs */
+  struct minheap_s * m = nullptr;   /* min heap with the top kmer db seqs */
   int finalized = 0;
 };
 
