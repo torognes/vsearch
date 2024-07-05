@@ -246,7 +246,7 @@ File | Description
 **msa.cc** | Simple multiple sequence alignment and consensus sequence computation for clusters
 **orient.cc** | Orient direction of sequences based on reference database
 **otutable.cc** | Generate OTU tables in various formats
-**rerep.cc** | Rereplication
+**rereplicate.cc** | Rereplication
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection

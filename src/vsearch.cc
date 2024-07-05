@@ -72,7 +72,7 @@
 #include "filter.h"
 #include "mergepairs.h"
 #include "orient.h"
-#include "rerep.h"
+#include "rereplicate.h"
 #include "search.h"
 #include "search_exact.h"
 #include "sffconvert.h"

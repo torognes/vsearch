@@ -66,7 +66,7 @@ minheap.h \
 msa.h \
 orient.h \
 otutable.h \
-rerep.h \
+rereplicate.h \
 results.h \
 search.h \
 searchcore.h \
@@ -163,7 +163,7 @@ minheap.cc \
 msa.cc \
 orient.cc \
 otutable.cc \
-rerep.cc \
+rereplicate.cc \
 results.cc \
 search.cc \
 searchcore.cc \
