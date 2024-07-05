@@ -65,6 +65,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strcmp, std::memset
+#include <limits>
 #include <vector>
 
 
@@ -190,10 +191,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* alloc and init table of links to other sequences in cluster */
 
-  auto * nextseqtab
-    = (unsigned int *) xmalloc(sizeof(unsigned int) * dbsequencecount);
+  std::vector<unsigned int> nextseqtab(dbsequencecount, std::numeric_limits<unsigned int>::max());
   auto const terminal = (unsigned int) (-1);
-  memset(nextseqtab, -1, sizeof(unsigned int) * dbsequencecount);
 
   char * seq_up = (char *) xmalloc(db_getlongestsequence() + 1);
 
@@ -528,6 +527,5 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
     }
 
-  xfree(nextseqtab);
   db_free();
 }
