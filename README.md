@@ -250,7 +250,7 @@ File | Description
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
 **searchcore.cc** | Core search functions for searching, clustering and chimera detection
-**searchexact.cc** | Exact search functions
+**search_exact.cc** | Exact search functions
 **sffconvert.cc** | SFF to FASTQ file conversion
 **sha1.c** | SHA1 message digest
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences

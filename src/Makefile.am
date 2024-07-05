@@ -70,7 +70,7 @@ rerep.h \
 results.h \
 search.h \
 searchcore.h \
-searchexact.h \
+search_exact.h \
 sffconvert.h \
 showalign.h \
 sha1.h \
@@ -167,7 +167,7 @@ rerep.cc \
 results.cc \
 search.cc \
 searchcore.cc \
-searchexact.cc \
+search_exact.cc \
 sffconvert.cc \
 sha1.c \
 showalign.cc \

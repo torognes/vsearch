@@ -74,7 +74,7 @@
 #include "orient.h"
 #include "rerep.h"
 #include "search.h"
-#include "searchexact.h"
+#include "search_exact.h"
 #include "sffconvert.h"
 #include "shuffle.h"
 #include "sintax.h"
