@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include "cut.h"
+#include "fastq_chars.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MAX, LONG_MIN, INT_MAX, DBL_MAX
 #include <cmath>  // std::floor
