@@ -103,7 +103,7 @@ namespace {
       stats.fastq_ascii = static_cast<char>(default_ascii_offset);  // +33, from vsearch.h
     }
     else {
-      stats.fastq_ascii = static_cast<char>(alternative_ascii_offset);  // +64, from vsearch.h
+      stats.fastq_ascii = alternative_ascii_offset;  // +64, from vsearch.h
     }
     stats.fastq_qmax = stats.qmax - stats.fastq_ascii;
     stats.fastq_qmin = stats.qmin - stats.fastq_ascii;
@@ -158,7 +158,7 @@ namespace {
     std::fprintf(output_stream, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                  stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
 
-    if (stats.fastq_ascii == 64)
+    if (stats.fastq_ascii == alternative_ascii_offset)
       {
         if (stats.qmin < 64)
           {
