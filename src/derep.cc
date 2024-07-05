@@ -331,7 +331,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   unsigned int * nextseqtab = nullptr;
   const auto terminal = (unsigned int) (-1);
-  char ** headertab = nullptr;
+  std::vector<char *> headertab;
   std::vector<char> match_strand;
 
   bool const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
@@ -348,8 +348,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       memset(nextseqtab, terminal, sizeof(unsigned int) * alloc_seqs);
 
       /* Pointers to the header strings */
-      headertab = (char **) xmalloc(sizeof(char*) * alloc_seqs);
-      memset(headertab, 0, sizeof(char*) * alloc_seqs);
+      headertab.resize(alloc_seqs);
 
       /* Matching strand */
       match_strand.resize(alloc_seqs);
@@ -428,9 +427,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                  terminal,
                  sizeof(unsigned int) * alloc_seqs);
 
-          headertab = (char **) xrealloc(headertab,
-                                         sizeof(char*) * new_alloc_seqs);
-          memset(headertab + alloc_seqs, 0, sizeof(char *) * alloc_seqs);
+          headertab.resize(new_alloc_seqs);
 
           match_strand.resize(new_alloc_seqs);
 
@@ -990,12 +987,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       for (uint64_t i = 0; i < alloc_seqs; i++)
         {
-          if (headertab[i])
+          if (headertab[i] != nullptr)
             {
               xfree(headertab[i]);
             }
         }
-      xfree(headertab);
       xfree(nextseqtab);
     }
 
