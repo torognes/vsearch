@@ -330,8 +330,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  unsigned int * nextseqtab = nullptr;
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
+  std::vector<unsigned int> nextseqtab;
   std::vector<char *> headertab;
   std::vector<char> match_strand;
 
@@ -344,9 +344,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
          Allocate and init memory for this. */
 
       /* Links to other sequences in cluster */
-      nextseqtab =
-        (unsigned int*) xmalloc(sizeof(unsigned int) * alloc_seqs);
-      memset(nextseqtab, terminal, sizeof(unsigned int) * alloc_seqs);
+      nextseqtab.resize(alloc_seqs, terminal);
 
       /* Pointers to the header strings */
       headertab.resize(alloc_seqs);
@@ -421,12 +419,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           uint64_t const new_alloc_seqs = 2 * alloc_seqs;
 
-          nextseqtab =
-            (unsigned int *) xrealloc(nextseqtab,
-                                      sizeof(unsigned int) * new_alloc_seqs);
-          memset(nextseqtab + alloc_seqs,
-                 terminal,
-                 sizeof(unsigned int) * alloc_seqs);
+          nextseqtab.resize(new_alloc_seqs, terminal);
 
           headertab.resize(new_alloc_seqs);
 
@@ -993,7 +986,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               xfree(headertab[i]);
             }
         }
-      xfree(nextseqtab);
     }
 
   show_rusage();
