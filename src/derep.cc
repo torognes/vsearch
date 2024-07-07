@@ -66,6 +66,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcmp, std::memset
+#include <limits>
 #include <vector>
 
 
@@ -330,7 +331,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   show_rusage();
 
   unsigned int * nextseqtab = nullptr;
-  const auto terminal = (unsigned int) (-1);
+  constexpr auto terminal = std::numeric_limits<unsigned int>::max();
   std::vector<char *> headertab;
   std::vector<char> match_strand;
 
