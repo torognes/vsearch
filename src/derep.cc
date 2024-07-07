@@ -334,7 +334,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   std::vector<char *> headertab;
   std::vector<char> match_strand;
 
-  bool const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
+  auto const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
 
   if (extra_info)
     {
