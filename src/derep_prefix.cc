@@ -192,7 +192,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   /* alloc and init table of links to other sequences in cluster */
 
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
-  std::vector<unsigned int> nextseqtab(dbsequencecount, std::numeric_limits<unsigned int>::max());
+  std::vector<unsigned int> nextseqtab(dbsequencecount, terminal);
 
   std::vector<char> seq_up(db_getlongestsequence() + 1);
 
