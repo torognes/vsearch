@@ -356,7 +356,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   show_rusage();
 
   std::vector<char> seq_up(alloc_seqlen + 1);
-  char * rc_seq_up = (char *) xmalloc(alloc_seqlen + 1);
+  std::vector<char> rc_seq_up_v(alloc_seqlen + 1);
+  char * rc_seq_up = rc_seq_up_v.data();
 
   char * prompt = nullptr;
   if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
@@ -410,7 +411,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           alloc_seqlen = seqlen;
           seq_up.resize(alloc_seqlen + 1);
-          rc_seq_up = (char *) xrealloc(rc_seq_up, alloc_seqlen + 1);
+          rc_seq_up_v.resize(alloc_seqlen + 1);
 
           show_rusage();
         }
@@ -707,8 +708,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   (discarded_long == 1 ? "sequence" : "sequences"));
         }
     }
-
-  xfree(rc_seq_up);
 
   show_rusage();
 
