@@ -50,7 +50,7 @@ dbhash.h \
 dbindex.h \
 derep.h \
 derep_prefix.h \
-derepsmallmem.h \
+derep_smallmem.h \
 dynlibs.h \
 eestats.h \
 fasta2fastq.h \
@@ -150,7 +150,7 @@ dbhash.cc \
 dbindex.cc \
 derep.cc \
 derep_prefix.cc \
-derepsmallmem.cc \
+derep_smallmem.cc \
 dynlibs.cc \
 eestats.cc \
 fasta2fastq.cc \
