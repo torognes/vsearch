@@ -355,7 +355,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  char * seq_up = (char *) xmalloc(alloc_seqlen + 1);
+  std::vector<char> seq_up_v(alloc_seqlen + 1);
+  char * seq_up = seq_up_v.data();
   char * rc_seq_up = (char *) xmalloc(alloc_seqlen + 1);
 
   char * prompt = nullptr;
@@ -409,7 +410,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up = (char *) xrealloc(seq_up, alloc_seqlen + 1);
+          seq_up_v.resize(alloc_seqlen + 1);
           rc_seq_up = (char *) xrealloc(rc_seq_up, alloc_seqlen + 1);
 
           show_rusage();
@@ -708,7 +709,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  xfree(seq_up);
   xfree(rc_seq_up);
 
   show_rusage();
