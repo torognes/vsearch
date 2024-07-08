@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/seqcmp.h"
+#include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10
 #include <cstdint> // int64_t, uint64_t
@@ -550,7 +551,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                     {
                       // fastq_qout_max
                       /* min error prob, highest quality */
-                      p3 = MIN(p1, p2);
+                      p3 = std::min(p1, p2);
                     }
                   else
                     {
