@@ -77,7 +77,7 @@ results.h \
 search.h \
 searchcore.h \
 search_exact.h \
-sffconvert.h \
+sff_convert.h \
 showalign.h \
 sha1.h \
 shuffle.h \
@@ -177,7 +177,7 @@ results.cc \
 search.cc \
 searchcore.cc \
 search_exact.cc \
-sffconvert.cc \
+sff_convert.cc \
 sha1.c \
 showalign.cc \
 shuffle.cc \

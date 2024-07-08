@@ -76,7 +76,7 @@
 #include "rereplicate.h"
 #include "search.h"
 #include "search_exact.h"
-#include "sffconvert.h"
+#include "sff_convert.h"
 #include "shuffle.h"
 #include "sintax.h"
 #include "sortbylength.h"
