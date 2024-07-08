@@ -356,7 +356,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   show_rusage();
 
   std::vector<char> seq_up(alloc_seqlen + 1);
-  std::vector<char> rc_seq_up_v(alloc_seqlen + 1);
+  std::vector<char> rc_seq_up(alloc_seqlen + 1);
 
   char * prompt = nullptr;
   if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
@@ -410,7 +410,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           alloc_seqlen = seqlen;
           seq_up.resize(alloc_seqlen + 1);
-          rc_seq_up_v.resize(alloc_seqlen + 1);
+          rc_seq_up.resize(alloc_seqlen + 1);
 
           show_rusage();
         }
@@ -454,7 +454,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       /* reverse complement if necessary */
       if (parameters.opt_strand)
         {
-          reverse_complement(rc_seq_up_v.data(), seq_up.data(), seqlen);
+          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
       /*
@@ -493,14 +493,14 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint64_t const rc_hash = HASH(rc_seq_up_v.data(), seqlen) ^ hash_header;
+          uint64_t const rc_hash = HASH(rc_seq_up.data(), seqlen) ^ hash_header;
           uint64_t k = rc_hash & hash_mask;
           struct bucket * rc_bp = hashtable + k;
 
           while ((rc_bp->size)
                  and
                  ((rc_hash != rc_bp->hash) or
-                  (seqcmp(rc_seq_up_v.data(), rc_bp->seq, seqlen)) or
+                  (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen)) or
                   (use_header and strcmp(header, rc_bp->header))))
             {
               k = (k + 1) & hash_mask;
