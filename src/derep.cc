@@ -593,7 +593,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
             }
 
           bp->size = s3;
-          bp->count++;
+          ++bp->count;
         }
       else
         {
@@ -770,7 +770,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   /* count selected */
 
   uint64_t selected = 0;
-  for (uint64_t i = 0; i < clusters; i++)
+  for (uint64_t i = 0; i < clusters; ++i)
     {
       struct bucket * bp = hashtable + i;
       int64_t const size = bp->size;
@@ -793,7 +793,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing FASTA output file", clusters);
 
       int64_t relabel_count = 0;
-      for (uint64_t i = 0; i < clusters; i++)
+      for (uint64_t i = 0; i < clusters; ++i)
         {
           struct bucket * bp = hashtable + i;
           int64_t const size = bp->size;
@@ -827,13 +827,13 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing FASTQ output file", clusters);
 
       int64_t relabel_count = 0;
-      for (uint64_t i = 0; i < clusters; i++)
+      for (uint64_t i = 0; i < clusters; ++i)
         {
           struct bucket * bp = hashtable + i;
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
-              relabel_count++;
+              ++relabel_count;
               fastq_print_general(fp_fastqout,
                                   bp->seq,
                                   strlen(bp->seq),
@@ -860,7 +860,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   if (parameters.opt_uc)
     {
       progress_init("Writing uc file, first part", clusters);
-      for (uint64_t i = 0; i < clusters; i++)
+      for (uint64_t i = 0; i < clusters; ++i)
         {
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
@@ -885,7 +885,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_done();
 
       progress_init("Writing uc file, second part", clusters);
-      for (uint64_t i = 0; i < clusters; i++)
+      for (uint64_t i = 0; i < clusters; ++i)
         {
           struct bucket * bp = hashtable + i;
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
@@ -899,7 +899,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   if (parameters.opt_tabbedout)
     {
       progress_init("Writing tab separated file", clusters);
-      for (uint64_t i = 0; i < clusters; i++)
+      for (uint64_t i = 0; i < clusters; ++i)
         {
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
@@ -964,7 +964,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* Free all seqs and headers */
 
-  for (uint64_t i = 0; i < clusters; i++)
+  for (uint64_t i = 0; i < clusters; ++i)
     {
       struct bucket * bp = hashtable + i;
       if (bp->size)
@@ -979,7 +979,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (parameters.opt_uc)
     {
-      for (uint64_t i = 0; i < alloc_seqs; i++)
+      for (uint64_t i = 0; i < alloc_seqs; ++i)
         {
           if (headertab[i] != nullptr)
             {
