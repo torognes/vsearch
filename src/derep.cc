@@ -979,11 +979,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (parameters.opt_uc)
     {
-      for (uint64_t i = 0; i < alloc_seqs; ++i)
+      for (char * header_ptr: headertab)
         {
-          if (headertab[i] != nullptr)
+          if (header_ptr != nullptr)
             {
-              xfree(headertab[i]);
+              xfree(header_ptr);
             }
         }
     }
