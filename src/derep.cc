@@ -333,7 +333,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
   std::vector<unsigned int> nextseqtab;
-  std::vector<char *> headertab;
+  std::vector<std::string> headertab;
   std::vector<char> match_strand;
 
   auto const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
@@ -526,7 +526,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               unsigned int const last = bp->seqno_last;
               nextseqtab[last] = sequencecount;
               bp->seqno_last = sequencecount;
-              headertab[sequencecount] = xstrdup(header);
+              headertab[sequencecount] = header;
             }
 
           int64_t const s1 = bp->size;
@@ -869,7 +869,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                       "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                       i, len, 100.0,
                       (match_strand[next] ? "-" : "+"),
-                      headertab[next], hh);
+                      headertab[next].c_str(), hh);
             }
 
           progress_update(i);
@@ -913,11 +913,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               if (parameters.opt_relabel) {
                 fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next], parameters.opt_relabel, i + 1, i, j, bp->count, hh);
+                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, bp->count, hh);
               } else {
                 fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next], hh, i, j, bp->count, hh);
+                        headertab[next].c_str(), hh, i, j, bp->count, hh);
               }
               ++j;
             }
@@ -966,17 +966,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           if (bp->qual) {
             xfree(bp->qual);
           }
-        }
-    }
-
-  if (parameters.opt_uc)
-    {
-      for (char * header_ptr: headertab)
-        {
-          if (header_ptr != nullptr)
-            {
-              xfree(header_ptr);
-            }
         }
     }
 
