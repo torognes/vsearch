@@ -218,16 +218,16 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  fastx_handle h = fastx_open(input_filename);
+  fastx_handle input_handle = fastx_open(input_filename);
 
-  if (not h)
+  if (not input_handle)
     {
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");  // unreachable? case already handled in fastx_open(), assert(h != nullptr) should always be true
     }
 
-  if (not fastx_is_empty(h))
+  if (not fastx_is_empty(input_handle))
     {
-      if (fastx_is_fastq(h))
+      if (fastx_is_fastq(input_handle))
         {
           if (not parameters.opt_fastx_uniques) {
             fatal("FASTQ input is only allowed with the fastx_uniques command");
@@ -314,7 +314,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  uint64_t const filesize = fastx_get_size(h);
+  uint64_t const filesize = fastx_get_size(input_handle);
 
 
   /* allocate initial memory for 1024 clusters
@@ -375,9 +375,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   double median = 0.0;
   double average = 0.0;
 
-  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change))
     {
-      int64_t const seqlen = fastx_get_sequence_length(h);
+      int64_t const seqlen = fastx_get_sequence_length(input_handle);
 
       if (seqlen < parameters.opt_minseqlength)
         {
@@ -440,10 +440,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           show_rusage();
         }
 
-      char * seq = fastx_get_sequence(h);
-      char * header = fastx_get_header(h);
-      int64_t const headerlen = fastx_get_header_length(h);
-      char * qual = fastx_get_quality(h); // nullptr if FASTA
+      char * seq = fastx_get_sequence(input_handle);
+      char * header = fastx_get_header(input_handle);
+      int64_t const headerlen = fastx_get_header_length(input_handle);
+      char * qual = fastx_get_quality(input_handle); // nullptr if FASTA
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -515,7 +515,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
             }
         }
 
-      int const abundance = fastx_get_abundance(h);
+      int const abundance = fastx_get_abundance(input_handle);
       int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 
@@ -617,10 +617,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
       ++sequencecount;
 
-      progress_update(fastx_get_position(h));
+      progress_update(fastx_get_position(input_handle));
     }
   progress_done();
-  fastx_close(h);
+  fastx_close(input_handle);
 
   show_rusage();
 
