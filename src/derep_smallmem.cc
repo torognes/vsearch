@@ -65,6 +65,7 @@
 #include <cstdio>  // std::fprintf, std::fclose
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memcpy, std::strcmp
+#include <string>
 
 
 #define HASH hash_cityhash128
@@ -278,13 +279,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   char * seq_up = (char *) xmalloc(alloc_seqlen + 1);
   char * rc_seq_up = (char *) xmalloc(alloc_seqlen + 1);
 
-  char * prompt = nullptr;
-  if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
-    {
-      fatal("Out of memory");
-    }
+  std::string prompt = std::string("Dereplicating file ") + input_filename;
 
-  progress_init(prompt, filesize);
+  progress_init(prompt.c_str(), filesize);
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
@@ -419,7 +416,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       progress_update(fastx_get_position(h));
     }
   progress_done();
-  xfree(prompt);
   fastx_close(h);
 
   show_rusage();
