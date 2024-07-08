@@ -355,7 +355,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  std::vector<char> seq_up_v(alloc_seqlen + 1);
+  std::vector<char> seq_up(alloc_seqlen + 1);
   char * rc_seq_up = (char *) xmalloc(alloc_seqlen + 1);
 
   char * prompt = nullptr;
@@ -409,7 +409,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up_v.resize(alloc_seqlen + 1);
+          seq_up.resize(alloc_seqlen + 1);
           rc_seq_up = (char *) xrealloc(rc_seq_up, alloc_seqlen + 1);
 
           show_rusage();
@@ -449,12 +449,12 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       char * qual = fastx_get_quality(h); // nullptr if FASTA
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up_v.data(), seq, seqlen);
+      string_normalize(seq_up.data(), seq, seqlen);
 
       /* reverse complement if necessary */
       if (parameters.opt_strand)
         {
-          reverse_complement(rc_seq_up, seq_up_v.data(), seqlen);
+          reverse_complement(rc_seq_up, seq_up.data(), seqlen);
         }
 
       /*
@@ -475,13 +475,13 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           hash_header = 0;
         }
 
-      uint64_t const hash = HASH(seq_up_v.data(), seqlen) ^ hash_header;
+      uint64_t const hash = HASH(seq_up.data(), seqlen) ^ hash_header;
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
       while ((bp->size) and
              ((hash != bp->hash) or
-              (seqcmp(seq_up_v.data(), bp->seq, seqlen)) or
+              (seqcmp(seq_up.data(), bp->seq, seqlen)) or
               (use_header and strcmp(header, bp->header))))
         {
           j = (j + 1) & hash_mask;
