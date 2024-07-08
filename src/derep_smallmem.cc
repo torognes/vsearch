@@ -66,6 +66,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memcpy, std::strcmp
 #include <string>
+#include <vector>
 
 
 #define HASH hash_cityhash128
@@ -276,8 +277,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  char * seq_up = (char *) xmalloc(alloc_seqlen + 1);
-  char * rc_seq_up = (char *) xmalloc(alloc_seqlen + 1);
+  std::vector<char> seq_up(alloc_seqlen + 1);
+  std::vector<char> rc_seq_up(alloc_seqlen + 1);
 
   std::string prompt = std::string("Dereplicating file ") + input_filename;
 
@@ -326,8 +327,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up = (char *) xrealloc(seq_up, alloc_seqlen + 1);
-          rc_seq_up = (char *) xrealloc(rc_seq_up, alloc_seqlen + 1);
+          seq_up.resize(alloc_seqlen + 1);
+          rc_seq_up.resize(alloc_seqlen + 1);
 
           show_rusage();
         }
@@ -342,12 +343,12 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       char * seq = fastx_get_sequence(h);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up, seq, seqlen);
+      string_normalize(seq_up.data(), seq, seqlen);
 
       /* reverse complement if necessary */
       if (parameters.opt_strand)
         {
-          reverse_complement(rc_seq_up, seq_up, seqlen);
+          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
       /*
@@ -358,7 +359,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         collision when the number of sequences is about 5e9.
       */
 
-      uint128 const hash = HASH(seq_up, seqlen);
+      uint128 const hash = HASH(seq_up.data(), seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
@@ -373,7 +374,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 const rc_hash = HASH(rc_seq_up, seqlen);
+          uint128 const rc_hash = HASH(rc_seq_up.data(), seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
@@ -564,15 +565,15 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       char * seq = fastx_get_sequence(h2);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up, seq, seqlen);
+      string_normalize(seq_up.data(), seq, seqlen);
 
       /* reverse complement if necessary */
       if (parameters.opt_strand)
         {
-          reverse_complement(rc_seq_up, seq_up, seqlen);
+          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
-      uint128 const hash = HASH(seq_up, seqlen);
+      uint128 const hash = HASH(seq_up.data(), seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
@@ -587,7 +588,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 const rc_hash = HASH(rc_seq_up, seqlen);
+          uint128 const rc_hash = HASH(rc_seq_up.data(), seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
@@ -661,8 +662,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  xfree(seq_up);
-  xfree(rc_seq_up);
   xfree(hashtable);
 
   show_rusage();
