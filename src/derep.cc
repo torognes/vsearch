@@ -67,6 +67,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcmp, std::memset
 #include <limits>
+#include <string>
 #include <vector>
 
 
@@ -357,14 +358,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   std::vector<char> seq_up(alloc_seqlen + 1);
   std::vector<char> rc_seq_up(alloc_seqlen + 1);
+  std::string prompt = std::string("Dereplicating file ") + input_filename;
 
-  char * prompt = nullptr;
-  if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
-    {
-      fatal("Out of memory");
-    }
-
-  progress_init(prompt, filesize);
+  progress_init(prompt.c_str(), filesize);
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
@@ -623,7 +619,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_update(fastx_get_position(h));
     }
   progress_done();
-  xfree(prompt);
   fastx_close(h);
 
   show_rusage();
