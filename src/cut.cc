@@ -447,13 +447,10 @@ auto cut(struct Parameters const & parameters) -> void {
   fastx_handle input_handle = fasta_open(parameters.opt_cut);
   assert(input_handle != nullptr);  // verified by fasta_open()
 
-  auto const filesize = fasta_get_size(input_handle);
-
   auto const fastaout = open_output_files(parameters);
   check_output_files(fastaout);
 
   auto const raw_pattern = parameters.opt_cut_pattern;
-  // assert(pattern != nullptr);  // verified by <getopt.h>
 
   // check for the expected number of restriction sites
   check_if_contains_circumflex(raw_pattern);
@@ -469,6 +466,7 @@ auto cut(struct Parameters const & parameters) -> void {
   check_if_pattern_is_empty(restriction.pattern);
   search_illegal_characters(restriction.pattern);
 
+  auto const filesize = fasta_get_size(input_handle);
   progress_init("Cutting sequences", filesize);
 
   struct statistics counters;
