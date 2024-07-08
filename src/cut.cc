@@ -437,7 +437,6 @@ auto cut(struct Parameters const & parameters) -> void
 {
   ckeck_if_output_is_set(parameters);
 
-  struct statistics counters;
   struct file_purpose fastaout;
   fastaout.cut.forward.name = parameters.opt_fastaout;
   fastaout.discarded.forward.name = parameters.opt_fastaout_discarded;
@@ -471,6 +470,7 @@ auto cut(struct Parameters const & parameters) -> void
 
   progress_init("Cutting sequences", filesize);
 
+  struct statistics counters;
   std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_array.data()))
     {
