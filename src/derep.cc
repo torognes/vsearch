@@ -183,7 +183,7 @@ inline auto convert_quality_symbol_to_probability(int const quality_symbol, stru
 {
   static constexpr auto minimal_quality_value = 2;
   static constexpr auto maximal_probability = 0.75;
-  int const quality_value = quality_symbol - parameters.opt_fastq_ascii;
+  auto const quality_value = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
   if (quality_value < minimal_quality_value)
     {
       return maximal_probability;
