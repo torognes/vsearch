@@ -87,14 +87,10 @@ auto progress_init(const char * prompt, uint64_t size) -> void
   progress_pct = 0;
   progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
 
-  if (not opt_quiet)
-    {
-      fprintf(stderr, "%s", prompt);
-      if (progress_show)
-        {
-          fprintf(stderr, " %d%%", 0);
-        }
-    }
+  if (opt_quiet) { return; }
+  fprintf(stderr, "%s", prompt);
+  if (not progress_show) { return; }
+  fprintf(stderr, " %d%%", 0);
 }
 
 
