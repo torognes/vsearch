@@ -67,6 +67,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcmp, std::memset
+#include <iterator>  // std::next
 #include <limits>
 #include <string>
 #include <vector>
@@ -159,7 +160,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   /* rehash all */
   for (uint64_t i = 0; i < old_hashtablesize; ++i)
     {
-      struct bucket * old_bp = old_hashtable + i;
+      struct bucket * old_bp = std::next(old_hashtable, i);
       if (old_bp->size)
         {
           uint64_t k = old_bp->hash & new_hash_mask;
@@ -167,7 +168,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
             {
               k = (k + 1) & new_hash_mask;
             }
-          struct bucket * new_bp = new_hashtable + k;
+          struct bucket * new_bp = std::next(new_hashtable, k);
 
           *new_bp = * old_bp;
         }
