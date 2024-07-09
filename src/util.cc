@@ -232,7 +232,7 @@ auto show_rusage() -> void
 }
 
 
-auto reverse_complement(char * rc, char * seq, int64_t len) -> void
+auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
 {
   /* Write the reverse complementary sequence to rc.
      The memory for rc must be long enough for the rc of the sequence
@@ -240,9 +240,9 @@ auto reverse_complement(char * rc, char * seq, int64_t len) -> void
 
   for (int64_t i = 0; i < len; i++)
     {
-      rc[i] = chrmap_complement[(int) (seq[len - 1 - i])];
+      rc_seq[i] = chrmap_complement[(int) (seq[len - 1 - i])];
     }
-  rc[len] = 0;
+  rc_seq[len] = 0;
 }
 
 
