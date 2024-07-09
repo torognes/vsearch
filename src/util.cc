@@ -169,7 +169,7 @@ auto xstrdup(char const * src) -> char *
 }
 
 
-auto xstrchrnul(char *s, int c) -> char *
+auto xstrchrnul(char * s, int c) -> char *
 {
   char * r = strchr(s, c);
 
