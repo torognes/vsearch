@@ -304,15 +304,13 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t
 auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void
 {
   /* convert string to upper case and replace U by T */
-  auto * p = raw_seq;
-  auto * q = normalized;
   for (auto i = 0U; i < len; ++i)
     {
-      *q = chrmap_normalize[(int) (*p)];
-      std::advance(q, 1);
-      std::advance(p, 1);
+      *normalized = chrmap_normalize[(int) (*raw_seq)];
+      std::advance(normalized, 1);
+      std::advance(raw_seq, 1);
     }
-  *q = '\0';
+  *normalized = '\0';
 }
 
 
