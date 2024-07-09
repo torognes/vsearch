@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "city.h"
 #include "md5.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // ULONG_MAX, RAND_MAX
