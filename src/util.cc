@@ -78,6 +78,7 @@ static uint64_t progress_size;
 static uint64_t progress_pct;
 static bool progress_show;
 
+
 auto progress_init(const char * prompt, uint64_t size) -> void
 {
   progress_show = isatty(fileno(stderr)) and (not opt_quiet) and (not opt_no_progress);
@@ -95,6 +96,7 @@ auto progress_init(const char * prompt, uint64_t size) -> void
         }
     }
 }
+
 
 auto progress_update(uint64_t progress) -> void
 {
@@ -116,6 +118,7 @@ auto progress_update(uint64_t progress) -> void
     }
 }
 
+
 auto progress_done() -> void
 {
   if (not opt_quiet)
@@ -127,6 +130,7 @@ auto progress_done() -> void
       fprintf(stderr, " %d%%\n", 100);
     }
 }
+
 
 __attribute__((noreturn))
 auto fatal(const char * msg) -> void
@@ -142,6 +146,7 @@ auto fatal(const char * msg) -> void
 
   exit(EXIT_FAILURE);
 }
+
 
 __attribute__((noreturn))
 auto fatal(const char * format,
@@ -160,6 +165,7 @@ auto fatal(const char * format,
 
   exit(EXIT_FAILURE);
 }
+
 
 auto xstrdup(char const * src) -> char *
 {
@@ -183,6 +189,7 @@ auto xstrchrnul(char * s, int c) -> char *
     }
 }
 
+
 auto xsprintf(char * * ret, const char * format, ...) -> int
 {
   va_list ap;
@@ -201,15 +208,18 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
   return len;
 }
 
+
 auto hash_cityhash64(char * s, uint64_t n) -> uint64_t
 {
   return CityHash64((const char *) s, n);
 }
 
+
 auto hash_cityhash128(char * s, uint64_t n) -> uint128
 {
   return CityHash128((const char *) s, n);
 }
+
 
 auto getusec() -> int64_t
 {
@@ -220,6 +230,7 @@ auto getusec() -> int64_t
     }
   return (tv.tv_sec * 1000000) + tv.tv_usec;
 }
+
 
 auto show_rusage() -> void
 {
@@ -240,6 +251,7 @@ auto show_rusage() -> void
 #endif
 }
 
+
 auto reverse_complement(char * rc, char * seq, int64_t len) -> void
 {
   /* Write the reverse complementary sequence to rc.
@@ -253,10 +265,12 @@ auto reverse_complement(char * rc, char * seq, int64_t len) -> void
   rc[len] = 0;
 }
 
+
 auto random_init() -> void
 {
   arch_srandom();
 }
+
 
 auto random_int(int64_t n) -> int64_t
 {
@@ -279,6 +293,7 @@ auto random_int(int64_t n) -> int64_t
   return r % n;
 }
 
+
 auto random_ulong(uint64_t n) -> uint64_t
 {
   /*
@@ -298,6 +313,7 @@ auto random_ulong(uint64_t n) -> uint64_t
   return r % n;
 }
 
+
 auto string_normalize(char * normalized, char * s, unsigned int len) -> void
 {
   /* convert string to upper case and replace U by T */
@@ -310,6 +326,7 @@ auto string_normalize(char * normalized, char * s, unsigned int len) -> void
   *q = 0;
 }
 
+
 auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void
 {
   for (int i = 0; i < len; i++)
@@ -317,6 +334,7 @@ auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void
       fprintf(fp, "%02x", data[i]);
     }
 }
+
 
 auto SHA1(const unsigned char * d, unsigned long n, unsigned char * md) -> void
 {
@@ -330,6 +348,7 @@ auto SHA1(const unsigned char * d, unsigned long n, unsigned char * md) -> void
   SHA1_Final(&c, md);
 }
 
+
 auto MD5(void * d, unsigned long n, unsigned char * md) -> void
 {
   if (not md)
@@ -341,6 +360,7 @@ auto MD5(void * d, unsigned long n, unsigned char * md) -> void
   MD5_Update(&c, d, n);
   MD5_Final(md, &c);
 }
+
 
 static const char hexdigits[] = "0123456789abcdef";
 
@@ -364,6 +384,7 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
     }
   hex[2 * sha1_digest_length] = '\0';
 }
+
 
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 {
@@ -396,12 +417,14 @@ auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
   fprintf(fp, "%s", digest);
 }
 
+
 auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[len_hex_dig_md5];
   get_hex_seq_digest_md5(digest, seq, seqlen);
   fprintf(fp, "%s", digest);
 }
+
 
 auto fopen_input(const char * filename) -> FILE *
 {
@@ -423,6 +446,7 @@ auto fopen_input(const char * filename) -> FILE *
       return fopen(filename, "rb");
     }
 }
+
 
 auto fopen_output(const char * filename) -> FILE *
 {
