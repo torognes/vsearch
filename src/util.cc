@@ -183,13 +183,13 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
 {
   std::va_list args;
   va_start(args, format);
-  int len = std::vsnprintf(nullptr, 0, format, args);
+  auto len = std::vsnprintf(nullptr, 0, format, args);
   va_end(args);
   if (len < 0)
     {
       fatal("Error with vsnprintf in xsprintf");
     }
-  char * buffer = (char *) xmalloc(len + 1);
+  auto * buffer = (char *) xmalloc(len + 1);
   va_start(args, format);
   len = std::vsnprintf(buffer, len + 1, format, args);
   va_end(args);
