@@ -209,7 +209,7 @@ inline auto convert_probability_to_quality_symbol(double const probability, stru
   int quality_value = int(-10.0 * log10(probability));
   quality_value = MIN(quality_value, parameters.opt_fastq_qmaxout);
   quality_value = MAX(quality_value, parameters.opt_fastq_qminout);
-  return parameters.opt_fastq_asciiout + quality_value;
+  return quality_value + parameters.opt_fastq_asciiout;
 }
 
 
