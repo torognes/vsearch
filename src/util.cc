@@ -242,7 +242,7 @@ auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
     {
       rc_seq[i] = chrmap_complement[(int) (seq[len - 1 - i])];
     }
-  rc_seq[len] = 0;
+  rc_seq[len] = '\0';
 }
 
 
