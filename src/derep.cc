@@ -186,7 +186,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
 }
 
 
-inline auto convert_quality_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
+inline auto convert_quality_symbol_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
 {
   static constexpr auto minimal_quality_value = 2;
   static constexpr auto maximal_probability = 0.75;
@@ -203,7 +203,7 @@ inline auto convert_quality_to_probability(int const quality_symbol, struct Para
 }
 
 
-inline auto convert_probability_to_quality(double const probability, struct Parameters const & parameters) -> int
+inline auto convert_probability_to_quality_symbol(double const probability, struct Parameters const & parameters) -> int
 {
   // auto quality_value = static_cast<int64_t>(std::trunc(-10.0 * std::log10(p)));
   int q = int(-10.0 * log10(probability));
@@ -547,8 +547,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                 {
                   int const q1 = bp->qual[i];
                   int const q2 = qual[i];
-                  double const p1 = convert_quality_to_probability(q1, parameters);
-                  double const p2 = convert_quality_to_probability(q2, parameters);
+                  double const p1 = convert_quality_symbol_to_probability(q1, parameters);
+                  double const p2 = convert_quality_symbol_to_probability(q2, parameters);
                   double p3 = 0.0;
 
                   /* how to compute the new quality score? */
@@ -590,7 +590,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   // always best quality possible, perfect, no errors */
                   // p3 = 0.0;
 
-                  int const q3 = convert_probability_to_quality(p3, parameters);
+                  int const q3 = convert_probability_to_quality_symbol(p3, parameters);
                   bp->qual[i] = q3;
                 }
             }
