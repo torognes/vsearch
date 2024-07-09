@@ -119,10 +119,10 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
             {
               return 0;
             }
-          int const r = std::strcmp(lhs->header, rhs->header);
-          if (r != 0)
+          int const result = std::strcmp(lhs->header, rhs->header);
+          if (result != 0)
             {
-              return r;
+              return result;
             }
           else
             {
