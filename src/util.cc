@@ -310,7 +310,7 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
     {
       *q++ = chrmap_normalize[(int) (*p++)];
     }
-  *q = 0;
+  *q = '\0';
 }
 
 
