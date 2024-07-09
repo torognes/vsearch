@@ -304,9 +304,9 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t
 auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void
 {
   /* convert string to upper case and replace U by T */
-  char * p = raw_seq;
-  char * q = normalized;
-  for (unsigned int i = 0; i < len; ++i)
+  auto * p = raw_seq;
+  auto * q = normalized;
+  for (auto i = 0U; i < len; ++i)
     {
       *q++ = chrmap_normalize[(int) (*p++)];
     }
