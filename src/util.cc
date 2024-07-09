@@ -198,15 +198,15 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
 }
 
 
-auto hash_cityhash64(char * s, uint64_t n) -> uint64_t
+auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t
 {
-  return CityHash64((const char *) s, n);
+  return CityHash64((const char *) sequence, length);
 }
 
 
-auto hash_cityhash128(char * s, uint64_t n) -> uint128
+auto hash_cityhash128(char * sequence, uint64_t length) -> uint128
 {
-  return CityHash128((const char *) s, n);
+  return CityHash128((const char *) sequence, length);
 }
 
 
