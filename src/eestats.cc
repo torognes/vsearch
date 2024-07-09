@@ -116,7 +116,8 @@ inline auto fastq_get_qual_eestats(char q) -> int
 
 auto q2p(int quality_value) -> double
 {
-  return exp10(- quality_value / 10.0);
+  static constexpr auto base = 10.0;
+  return std::pow(base, -quality_value / base);
 }
 
 auto ee_start(int pos, int resolution) -> int64_t
