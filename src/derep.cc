@@ -155,7 +155,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
     - update variables
   */
 
-  struct bucket * old_hashtable = * hashtableref;
+  struct bucket * old_hashtable = *hashtableref;
   uint64_t const old_hashtablesize = 2 * alloc_clusters;
   uint64_t const new_hashtablesize = 2 * old_hashtablesize;
   uint64_t const new_hash_mask = new_hashtablesize - 1;
