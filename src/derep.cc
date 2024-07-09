@@ -225,17 +225,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       if (fastx_is_fastq(input_handle))
         {
-          if (not parameters.opt_fastx_uniques) {
+          if (parameters.opt_fastx_uniques == nullptr) {
             fatal("FASTQ input is only allowed with the fastx_uniques command");
           }
         }
       else
         {
-          if (parameters.opt_fastqout) {
+          if (parameters.opt_fastqout != nullptr) {
             fatal("Cannot write FASTQ output when input file is not in FASTQ "
                   "format");
           }
-          if (parameters.opt_tabbedout) {
+          if (parameters.opt_tabbedout != nullptr) {
             fatal("Cannot write tab separated output file when input file is "
                   "not in FASTQ format");
           }
@@ -247,7 +247,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   std::FILE * fp_uc = nullptr;
   std::FILE * fp_tabbedout = nullptr;
 
-  if (parameters.opt_fastx_uniques)
+  if (parameters.opt_fastx_uniques != nullptr)
     {
       if ((not parameters.opt_uc) and (not parameters.opt_fastaout) and (not parameters.opt_fastqout) and (not parameters.opt_tabbedout)) {
         fatal("Output file for dereplication with fastx_uniques must be "
@@ -260,7 +260,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     }
   }
 
-  if (parameters.opt_fastx_uniques)
+  if (parameters.opt_fastx_uniques != nullptr)
     {
       if (parameters.opt_fastaout)
         {
