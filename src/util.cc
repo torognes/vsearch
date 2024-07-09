@@ -240,9 +240,11 @@ auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
      (identical to the length of seq + 1). */
 
   for (auto i = 0LL; i < len; ++i) {
-      rc_seq[i] = chrmap_complement_vector[(unsigned char) (seq[len - 1 - i])];
+    auto const unsigned_char = static_cast<unsigned char>(*std::next(seq, len - 1 - i));
+    auto const complement_char = static_cast<char>(chrmap_complement_vector[unsigned_char]);
+    *std::next(rc_seq, i) = complement_char;
   }
-  rc_seq[len] = '\0';
+  *std::next(rc_seq, len) = '\0';
 }
 
 
