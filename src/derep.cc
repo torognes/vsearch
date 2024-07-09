@@ -164,7 +164,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
       if (old_bucket.size != 0U)
         {
           uint64_t k = old_bucket.hash & new_hash_mask;
-          while (new_hashtable[k].size)
+          while (new_hashtable[k].size != 0U)
             {
               k = (k + 1) & new_hash_mask;
             }
