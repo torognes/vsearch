@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "city.h"
 #include "md5.h"
+#include "utils/maps.hpp"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // ULONG_MAX, RAND_MAX
 #include <cstdarg>  // va_list
@@ -240,7 +241,7 @@ auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
 
   for (auto i = 0LL; i < len; ++i)
     {
-      rc_seq[i] = chrmap_complement[(int) (seq[len - 1 - i])];
+      rc_seq[i] = chrmap_complement_vector[(int) (seq[len - 1 - i])];
     }
   rc_seq[len] = '\0';
 }
