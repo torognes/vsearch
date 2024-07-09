@@ -160,11 +160,11 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   /* rehash all */
   for (auto i = 0UL; i < old_hashtablesize; ++i)
     {
-      auto const & old_bucket = *std::next(old_hashtable, i);
+      auto const & old_bucket = *std::next(old_hashtable, static_cast<long>(i));
       if (old_bucket.size != 0U)
         {
           auto new_index = old_bucket.hash & new_hash_mask;
-          while (std::next(new_hashtable, new_index)->size != 0U)
+          while (std::next(new_hashtable, static_cast<long>(new_index))->size != 0U)
             {
               new_index = (new_index + 1) & new_hash_mask;
             }
