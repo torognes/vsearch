@@ -127,7 +127,7 @@ auto fatal(const char * msg) -> void
   std::fprintf(stderr, "\n\n");
   std::fprintf(stderr, "Fatal error: %s\n", msg);
 
-  if (fp_log)
+  if (fp_log != nullptr)
     {
       std::fprintf(fp_log, "\n\n");
       std::fprintf(fp_log, "Fatal error: %s\n", msg);
@@ -145,7 +145,7 @@ auto fatal(const char * format,
   std::fprintf(stderr, format, message);
   std::fprintf(stderr, "\n");
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       std::fprintf(fp_log, "\n\nFatal error: ");
       std::fprintf(fp_log, format, message);
