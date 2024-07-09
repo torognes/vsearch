@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MIN, DBL_MAX
+#include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
@@ -170,11 +171,12 @@ auto analyse(fastx_handle h) -> struct analysis_res
     {
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
+      static constexpr auto base = 10.0;
       char * q = fastx_get_quality(h) + res.start;
       for (int64_t i = 0; i < res.length; i++)
         {
           int const qual = fastq_get_qual(q[i]);
-          double const e = exp10(-0.1 * qual);
+          auto const e = std::pow(base, -qual / base);
           res.ee += e;
 
           if ((qual <= opt_fastq_truncqual) ||
