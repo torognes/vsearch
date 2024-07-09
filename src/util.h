@@ -70,10 +70,6 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
-#ifndef exp10
-#define exp10(x) (pow(10.0,(x)))
-#endif
-
 #define SHA_DIGEST_LENGTH SHA1_DIGEST_SIZE
 
 constexpr int MD5_DIGEST_LENGTH {16};
