@@ -161,11 +161,11 @@ auto fatal(const char * format,
   exit(EXIT_FAILURE);
 }
 
-auto xstrdup(const char * s) -> char *
+auto xstrdup(const char * src) -> char *
 {
-  auto const len = strlen(s);
-  auto * p = (char *) xmalloc(len + 1);
-  return strcpy(p, s);
+  auto const len = strlen(src);
+  auto * dest = (char *) xmalloc(len + 1);
+  return strcpy(dest, src);
 }
 
 
