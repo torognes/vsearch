@@ -67,6 +67,7 @@
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -173,7 +174,7 @@ auto xstrchrnul(char * str, int target) -> char *
   if (first_occurrence != nullptr) {
     return first_occurrence;
   }
-  return str + std::strlen(str);
+  return std::next(str, static_cast<long>(std::strlen(str)));
 }
 
 
