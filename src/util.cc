@@ -306,7 +306,7 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
   /* convert string to upper case and replace U by T */
   for (auto i = 0U; i < len; ++i)
     {
-      *normalized = chrmap_normalize[(int) (*raw_seq)];
+      *normalized = chrmap_normalize_vector[(int) (*raw_seq)];
       std::advance(normalized, 1);
       std::advance(raw_seq, 1);
     }
