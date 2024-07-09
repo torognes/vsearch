@@ -148,7 +148,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
     - update variables
   */
 
-  struct bucket * old_hashtable = *hashtableref;
+  auto * old_hashtable = *hashtableref;
   uint64_t const old_hashtablesize = 2 * alloc_clusters;
   uint64_t const new_hashtablesize = 2 * old_hashtablesize;
   uint64_t const new_hash_mask = new_hashtablesize - 1;
@@ -158,17 +158,17 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   memset(new_hashtable, 0, sizeof(struct bucket) * new_hashtablesize);
 
   /* rehash all */
-  for (uint64_t i = 0; i < old_hashtablesize; ++i)
+  for (auto i = 0UL; i < old_hashtablesize; ++i)
     {
-      struct bucket & old_bucket = *std::next(old_hashtable, i);
+      auto & old_bucket = *std::next(old_hashtable, i);
       if (old_bucket.size != 0U)
         {
-          uint64_t new_index = old_bucket.hash & new_hash_mask;
+          auto new_index = old_bucket.hash & new_hash_mask;
           while (new_hashtable[new_index].size != 0U)
             {
               new_index = (new_index + 1) & new_hash_mask;
             }
-          struct bucket & new_bp = *std::next(new_hashtable, new_index);
+          auto & new_bp = *std::next(new_hashtable, new_index);
 
           new_bp = old_bucket;
         }
