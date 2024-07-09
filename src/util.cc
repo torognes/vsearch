@@ -316,11 +316,11 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
 }
 
 
-auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void
+auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> void
 {
   for (int i = 0; i < len; ++i)
     {
-      std::fprintf(fp, "%02x", data[i]);
+      std::fprintf(output_handle, "%02x", *std::next(data, i));
     }
 }
 
