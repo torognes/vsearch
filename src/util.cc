@@ -96,22 +96,17 @@ auto progress_init(const char * prompt, uint64_t size) -> void
 
 auto progress_update(uint64_t progress) -> void
 {
-  if ((progress >= progress_next) and progress_show)
-    {
-      if (progress_size > 0)
-        {
-          progress_pct = 100 * progress / progress_size;
-          fprintf(stderr,
-                  "  \r%s %" PRIu64 "%%",
-                  progress_prompt,
-                  progress_pct);
-          progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
-        }
-      else
-        {
-          fprintf(stderr, "  \r%s 0%%", progress_prompt);
-        }
-    }
+  if ((progress < progress_next) or not progress_show) { return; }
+  if (progress_size == 0) {
+    fprintf(stderr, "  \r%s 0%%", progress_prompt);
+    return;
+  }
+  progress_pct = 100 * progress / progress_size;
+  fprintf(stderr,
+          "  \r%s %" PRIu64 "%%",
+          progress_prompt,
+          progress_pct);
+  progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
 }
 
 
