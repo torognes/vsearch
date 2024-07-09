@@ -71,7 +71,7 @@
 
 
 //#define SHOW_RUSAGE
-
+constexpr auto one_hundred_percent = 100UL;
 static const char * progress_prompt;
 static uint64_t progress_next;
 static uint64_t progress_size;
@@ -85,7 +85,7 @@ auto progress_init(const char * prompt, uint64_t size) -> void
   progress_prompt = prompt;
   progress_size = size;
   progress_pct = 0;
-  progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
+  progress_next = ((progress_pct + 1) * progress_size + 99) / one_hundred_percent;
 
   if (opt_quiet) { return; }
   std::fprintf(stderr, "%s", prompt);
@@ -101,12 +101,12 @@ auto progress_update(uint64_t progress) -> void
     std::fprintf(stderr, "  \r%s 0%%", progress_prompt);
     return;
   }
-  progress_pct = 100 * progress / progress_size;
+  progress_pct = one_hundred_percent * progress / progress_size;
   std::fprintf(stderr,
           "  \r%s %" PRIu64 "%%",
           progress_prompt,
           progress_pct);
-  progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
+  progress_next = ((progress_pct + 1) * progress_size + 99) / one_hundred_percent;
 }
 
 
@@ -117,7 +117,7 @@ auto progress_done() -> void
     {
       std::fprintf(stderr, "  \r%s", progress_prompt);
     }
-  std::fprintf(stderr, " %d%%\n", 100);
+  std::fprintf(stderr, " %ld%%\n", one_hundred_percent);
 }
 
 
