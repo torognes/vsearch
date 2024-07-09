@@ -306,7 +306,7 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
   /* convert string to upper case and replace U by T */
   char * p = raw_seq;
   char * q = normalized;
-  for (unsigned int i = 0; i < len; i++)
+  for (unsigned int i = 0; i < len; ++i)
     {
       *q++ = chrmap_normalize[(int) (*p++)];
     }
