@@ -90,47 +90,47 @@ struct bucket
 
 auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 {
-  auto * x = (struct bucket *) void_lhs;
-  auto * y = (struct bucket *) void_rhs;
+  auto * lhs = (struct bucket *) void_lhs;
+  auto * rhs = (struct bucket *) void_rhs;
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->deleted > y->deleted)  // refactoring: deleted is always set to false for derep_fulllength
+  if (lhs->deleted > rhs->deleted)  // refactoring: deleted is always set to false for derep_fulllength
     {
       return +1;
     }
-  else if (x->deleted < y->deleted)  // refactoring: deleted is always set to false for derep_fulllength
+  else if (lhs->deleted < rhs->deleted)  // refactoring: deleted is always set to false for derep_fulllength
     {
       return -1;
     }
   else
     {
-      if (x->size < y->size)
+      if (lhs->size < rhs->size)
         {
           return +1;
         }
-      else if (x->size > y->size)
+      else if (lhs->size > rhs->size)
         {
           return -1;
         }
       else
         {
-          if (x->size == 0)
+          if (lhs->size == 0)
             {
               return 0;
             }
-          int const r = strcmp(x->header, y->header);
+          int const r = strcmp(lhs->header, rhs->header);
           if (r != 0)
             {
               return r;
             }
           else
             {
-              if (x->seqno_first < y->seqno_first)
+              if (lhs->seqno_first < rhs->seqno_first)
                 {
                   return -1;
                 }
-              else if (x->seqno_first > y->seqno_first)
+              else if (lhs->seqno_first > rhs->seqno_first)
                 {
                   return +1;
                 }
