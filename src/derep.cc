@@ -174,7 +174,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
     }
 
   xfree(old_hashtable);
-  * hashtableref = new_hashtable;
+  *hashtableref = new_hashtable;
 }
 
 
