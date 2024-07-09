@@ -205,7 +205,7 @@ inline auto convert_quality_to_probability(int const quality_symbol, struct Para
 
 inline auto convert_probability_to_quality(double const probability, struct Parameters const & parameters) -> int
 {
-  // int q = round(-10.0 * log10(p));
+  // auto quality_value = static_cast<int64_t>(std::trunc(-10.0 * std::log10(p)));
   int q = int(-10.0 * log10(probability));
   q = MIN(q, parameters.opt_fastq_qmaxout);
   q = MAX(q, parameters.opt_fastq_qminout);
