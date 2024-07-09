@@ -238,7 +238,7 @@ auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1. */
 
-  for (int64_t i = 0; i < len; i++)
+  for (int64_t i = 0; i < len; ++i)
     {
       rc_seq[i] = chrmap_complement[(int) (seq[len - 1 - i])];
     }
