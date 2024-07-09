@@ -287,11 +287,11 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t
   uint64_t const random_max = ULONG_MAX;
   uint64_t const limit = random_max - ((random_max - upper_limit + 1) % upper_limit);
   uint64_t random_value = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
-                (arch_random() << 16U) ^ (arch_random()));
+                           (arch_random() << 16U) ^ (arch_random()));
   while (random_value > limit)
     {
       random_value = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
-           (arch_random() << 16U) ^ (arch_random()));
+                      (arch_random() << 16U) ^ (arch_random()));
     }
   return random_value % upper_limit;
 }
