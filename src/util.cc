@@ -254,7 +254,7 @@ auto random_init() -> void
 }
 
 
-auto random_int(int64_t n) -> int64_t
+auto random_int(int64_t upper_limit) -> int64_t
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive.
@@ -266,13 +266,13 @@ auto random_int(int64_t n) -> int64_t
   */
 
   int64_t const random_max = RAND_MAX;
-  int64_t const limit = random_max - ((random_max + 1) % n);
-  int64_t r = arch_random();
-  while (r > limit)
+  int64_t const limit = random_max - ((random_max + 1) % upper_limit);
+  int64_t random_value = arch_random();
+  while (random_value > limit)
     {
-      r = arch_random();
+      random_value = arch_random();
     }
-  return r % n;
+  return random_value % upper_limit;
 }
 
 
