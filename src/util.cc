@@ -112,14 +112,12 @@ auto progress_update(uint64_t progress) -> void
 
 auto progress_done() -> void
 {
-  if (not opt_quiet)
+  if (opt_quiet) { return; }
+  if (progress_show)
     {
-      if (progress_show)
-        {
-          fprintf(stderr, "  \r%s", progress_prompt);
-        }
-      fprintf(stderr, " %d%%\n", 100);
+      fprintf(stderr, "  \r%s", progress_prompt);
     }
+  fprintf(stderr, " %d%%\n", 100);
 }
 
 
