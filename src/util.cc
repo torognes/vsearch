@@ -133,7 +133,7 @@ auto fatal(const char * msg) -> void
       std::fprintf(fp_log, "Fatal error: %s\n", msg);
     }
 
-  exit(EXIT_FAILURE);
+  std::exit(EXIT_FAILURE);
 }
 
 
