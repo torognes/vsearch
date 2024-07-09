@@ -277,23 +277,23 @@ auto random_int(int64_t upper_limit) -> int64_t
 }
 
 
-auto random_ulong(uint64_t n) -> uint64_t
+auto random_ulong(uint64_t upper_limit) -> uint64_t
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive,
     n must be > 0
   */
-
+  assert(upper_limit != 0U);
   uint64_t const random_max = ULONG_MAX;
-  uint64_t const limit = random_max - ((random_max - n + 1) % n);
-  uint64_t r = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
+  uint64_t const limit = random_max - ((random_max - upper_limit + 1) % upper_limit);
+  uint64_t random_value = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
                 (arch_random() << 16U) ^ (arch_random()));
-  while (r > limit)
+  while (random_value > limit)
     {
-      r = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
+      random_value = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
            (arch_random() << 16U) ^ (arch_random()));
     }
-  return r % n;
+  return random_value % upper_limit;
 }
 
 
