@@ -168,7 +168,7 @@ auto xstrdup(char const * src) -> char *
 auto xstrchrnul(char * str, int target) -> char *
 {
   // find the first occurrence to static_cast<char>(target)
-  char * first_occurrence = std::strchr(str, target);
+  auto * first_occurrence = std::strchr(str, target);
 
   if (first_occurrence)
     {
