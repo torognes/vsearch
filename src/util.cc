@@ -325,29 +325,29 @@ auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> voi
 }
 
 
-auto SHA1(const unsigned char * d, unsigned long n, unsigned char * md) -> void
+auto SHA1(const unsigned char * data, unsigned long len, unsigned char * digest) -> void
 {
-  if (not md)
+  if (not digest)
     {
       fatal("Error in computing SHA1 digest");
     }
-  SHA1_CTX c;
-  SHA1_Init(&c);
-  SHA1_Update(&c, d, n);
-  SHA1_Final(&c, md);
+  SHA1_CTX a_context;
+  SHA1_Init(&a_context);
+  SHA1_Update(&a_context, data, len);
+  SHA1_Final(&a_context, digest);
 }
 
 
-auto MD5(void * d, unsigned long n, unsigned char * md) -> void
+auto MD5(void * data, unsigned long len, unsigned char * digest) -> void
 {
-  if (not md)
+  if (not digest)
     {
       fatal("Error in computing MD5 digest");
     }
-  MD5_CTX c;
-  MD5_Init(&c);
-  MD5_Update(&c, d, n);
-  MD5_Final(md, &c);
+  MD5_CTX a_context;
+  MD5_Init(&a_context);
+  MD5_Update(&a_context, data, len);
+  MD5_Final(digest, &a_context);
 }
 
 
