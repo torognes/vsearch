@@ -62,6 +62,7 @@
 #include "md5.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // ULONG_MAX, RAND_MAX
+#include <cstdarg>  // va_list
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::vsnprintf, std::fopen
 #include <cstdlib>  // std::exit, EXIT_FAILURE
@@ -180,7 +181,7 @@ auto xstrchrnul(char * str, int target) -> char *
 
 auto xsprintf(char * * ret, const char * format, ...) -> int
 {
-  va_list ap;
+  std::va_list ap;
   va_start(ap, format);
   int len = std::vsnprintf(nullptr, 0, format, ap);
   va_end(ap);
