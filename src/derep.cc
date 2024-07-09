@@ -186,9 +186,9 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
 }
 
 
-inline auto convert_quality_to_probability(int const q, struct Parameters const & parameters) -> double
+inline auto convert_quality_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
 {
-  int const x = q - parameters.opt_fastq_ascii;
+  int const x = quality_symbol - parameters.opt_fastq_ascii;
   if (x < 2)
     {
       return 0.75;
