@@ -405,7 +405,7 @@ auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
     }
   else if (opt_relabel_sha1)
     {
-      label = (char *) xmalloc(LEN_HEX_DIG_SHA1);
+      label = (char *) xmalloc(len_hex_dig_sha1);
       get_hex_seq_digest_sha1(label, sequence, seqlen);
     }
   else if (opt_relabel_md5)

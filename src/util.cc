@@ -346,7 +346,7 @@ static const char hexdigits[] = "0123456789abcdef";
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 {
   /* Save hexadecimal representation of the SHA1 hash of the sequence.
-     The string array digest must be large enough (LEN_HEX_DIG_SHA1).
+     The string array digest must be large enough (len_hex_dig_sha1).
      First normalize string by uppercasing it and replacing U's with T's. */
 
   char * normalized = (char *) xmalloc(seqlen+1);
@@ -392,7 +392,7 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 
 auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
 {
-  char digest[LEN_HEX_DIG_SHA1];
+  char digest[len_hex_dig_sha1];
   get_hex_seq_digest_sha1(digest, seq, seqlen);
   fprintf(fp, "%s", digest);
 }
