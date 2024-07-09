@@ -268,10 +268,10 @@ auto random_int(int64_t upper_limit) -> int64_t
   assert(upper_limit != 0);
   int64_t const random_max = RAND_MAX;
   int64_t const limit = random_max - ((random_max + 1) % upper_limit);
-  int64_t random_value = arch_random();
+  auto random_value = static_cast<int64_t>(arch_random());
   while (random_value > limit)
     {
-      random_value = arch_random();
+      random_value = static_cast<int64_t>(arch_random());
     }
   return random_value % upper_limit;
 }
