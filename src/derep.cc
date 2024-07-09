@@ -188,11 +188,8 @@ inline auto convert_quality_symbol_to_probability(int const quality_symbol, stru
     {
       return maximal_probability;
     }
-  else
-    {
-      static constexpr auto base = 10.0;
-      return std::pow(base, -quality_value / base);
-    }
+  static constexpr auto base = 10.0;
+  return std::pow(base, -quality_value / base);
 }
 
 
