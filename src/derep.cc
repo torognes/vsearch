@@ -197,7 +197,7 @@ inline auto convert_quality_to_probability(int const quality_symbol, struct Para
     }
   else
     {
-      static constexpr double base = 10.0;
+      static constexpr auto base = 10.0;
       return std::pow(base, -quality_value / base);
     }
 }
