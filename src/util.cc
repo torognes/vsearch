@@ -170,7 +170,7 @@ auto xstrchrnul(char * str, int target) -> char *
   // find the first occurrence to static_cast<char>(target)
   auto * first_occurrence = std::strchr(str, target);
 
-  if (first_occurrence) {
+  if (first_occurrence != nullptr) {
     return first_occurrence;
   }
   return str + std::strlen(str);
