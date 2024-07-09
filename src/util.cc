@@ -375,18 +375,18 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
   char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
 
-  unsigned char digest[MD5_DIGEST_LENGTH];
+  unsigned char digest[md5_digest_length];
 
   MD5(normalized, (size_t) seqlen, digest);
 
   xfree(normalized);
 
-  for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
+  for (int i = 0; i < md5_digest_length; i++)
     {
       hex[(2 * i) + 0] = hexdigits[digest[i] >> 4U];
       hex[(2 * i) + 1] = hexdigits[digest[i] & 15U];
     }
-  hex[2 * MD5_DIGEST_LENGTH] = 0;
+  hex[2 * md5_digest_length] = 0;
 }
 
 
