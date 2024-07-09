@@ -239,10 +239,9 @@ auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
      The memory for rc_seq must be long enough for the rc_seq of the sequence
      (identical to the length of seq + 1). */
 
-  for (auto i = 0LL; i < len; ++i)
-    {
+  for (auto i = 0LL; i < len; ++i) {
       rc_seq[i] = chrmap_complement_vector[(unsigned char) (seq[len - 1 - i])];
-    }
+  }
   rc_seq[len] = '\0';
 }
 
