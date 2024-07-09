@@ -72,6 +72,7 @@
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
+#include <limits>
 #include <vector>
 
 
@@ -284,14 +285,17 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t
     n must be > 0
   */
   assert(upper_limit != 0U);
-  uint64_t const random_max = ULONG_MAX;
-  uint64_t const limit = random_max - ((random_max - upper_limit + 1) % upper_limit);
-  uint64_t random_value = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
-                           (arch_random() << 16U) ^ (arch_random()));
+  static constexpr auto shift_16_bits = 16U;
+  static constexpr auto shift_32_bits = 32U;
+  static constexpr auto shift_48_bits = 48U;
+  auto const random_max = std::numeric_limits<uint64_t>::max();
+  auto const limit = random_max - ((random_max - upper_limit + 1) % upper_limit);
+  auto random_value = ((arch_random() << shift_48_bits) ^ (arch_random() << shift_32_bits) ^
+                       (arch_random() << shift_16_bits) ^ (arch_random()));
   while (random_value > limit)
     {
-      random_value = ((arch_random() << 48U) ^ (arch_random() << 32U) ^
-                      (arch_random() << 16U) ^ (arch_random()));
+      random_value = ((arch_random() << shift_48_bits) ^ (arch_random() << shift_32_bits) ^
+                      (arch_random() << shift_16_bits) ^ (arch_random()));
     }
   return random_value % upper_limit;
 }
