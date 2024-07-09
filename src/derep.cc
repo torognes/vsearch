@@ -88,10 +88,10 @@ struct bucket
 };
 
 
-auto derep_compare_full(const void * a, const void * b) -> int
+auto derep_compare_full(const void * void_lhs, const void * void_rhs) -> int
 {
-  auto * x = (struct bucket *) a;
-  auto * y = (struct bucket *) b;
+  auto * x = (struct bucket *) void_lhs;
+  auto * y = (struct bucket *) void_rhs;
 
   /* highest abundance first, then by label, otherwise keep order */
 
