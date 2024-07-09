@@ -80,13 +80,13 @@ static bool progress_show;
 
 auto progress_init(const char * prompt, uint64_t size) -> void
 {
-  progress_show = isatty(fileno(stderr)) && (! opt_quiet) && (! opt_no_progress);
+  progress_show = isatty(fileno(stderr)) and (not opt_quiet) and (not opt_no_progress);
   progress_prompt = prompt;
   progress_size = size;
   progress_pct = 0;
   progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "%s", prompt);
       if (progress_show)
@@ -98,7 +98,7 @@ auto progress_init(const char * prompt, uint64_t size) -> void
 
 auto progress_update(uint64_t progress) -> void
 {
-  if ((progress >= progress_next) && progress_show)
+  if ((progress >= progress_next) and progress_show)
     {
       if (progress_size > 0)
         {
@@ -118,7 +118,7 @@ auto progress_update(uint64_t progress) -> void
 
 auto progress_done() -> void
 {
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (progress_show)
         {
@@ -320,7 +320,7 @@ auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void
 
 auto SHA1(const unsigned char * d, unsigned long n, unsigned char * md) -> void
 {
-  if (! md)
+  if (not md)
     {
       fatal("Error in computing SHA1 digest");
     }
@@ -332,7 +332,7 @@ auto SHA1(const unsigned char * d, unsigned long n, unsigned char * md) -> void
 
 auto MD5(void * d, unsigned long n, unsigned char * md) -> void
 {
-  if (! md)
+  if (not md)
     {
       fatal("Error in computing MD5 digest");
     }
