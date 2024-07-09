@@ -185,6 +185,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   * hashtableref = new_hashtable;
 }
 
+
 inline auto convert_q_to_p(int const q, struct Parameters const & parameters) -> double
 {
   int const x = q - parameters.opt_fastq_ascii;
@@ -198,6 +199,7 @@ inline auto convert_q_to_p(int const q, struct Parameters const & parameters) ->
     }
 }
 
+
 inline auto convert_p_to_q(double const p, struct Parameters const & parameters) -> int
 {
   // int q = round(-10.0 * log10(p));
@@ -206,6 +208,7 @@ inline auto convert_p_to_q(double const p, struct Parameters const & parameters)
   q = MAX(q, parameters.opt_fastq_qminout);
   return parameters.opt_fastq_asciiout + q;
 }
+
 
 auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void
 {
