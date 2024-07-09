@@ -161,7 +161,7 @@ auto fatal(const char * format,
   exit(EXIT_FAILURE);
 }
 
-auto xstrdup(const char *s) -> char *
+auto xstrdup(const char * s) -> char *
 {
   auto const len = strlen(s);
   auto * p = (char *) xmalloc(len + 1);
