@@ -369,7 +369,7 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 {
   /* Save hexadecimal representation of the MD5 hash of the sequence.
-     The string array digest must be large enough (LEN_HEX_DIG_MD5).
+     The string array digest must be large enough (len_hex_dig_md5).
      First normalize string by uppercasing it and replacing U's with T's. */
 
   char * normalized = (char *) xmalloc(seqlen + 1);
@@ -399,7 +399,7 @@ auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
 
 auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void
 {
-  char digest[LEN_HEX_DIG_MD5];
+  char digest[len_hex_dig_md5];
   get_hex_seq_digest_md5(digest, seq, seqlen);
   fprintf(fp, "%s", digest);
 }

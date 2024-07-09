@@ -860,7 +860,7 @@ auto results_show_samheader(FILE * fp,
 
       for(uint64_t i=0; i<db_getsequencecount(); i++)
         {
-          char md5hex[LEN_HEX_DIG_MD5];
+          char md5hex[len_hex_dig_md5];
           get_hex_seq_digest_md5(md5hex,
                                  db_getsequence(i),
                                  db_getsequencelen(i));
