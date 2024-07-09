@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MAX
+#include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::memset
@@ -68,7 +69,8 @@
 
 auto q2p(double quality_value) -> double
 {
-  return exp10(- quality_value / 10.0);
+  static constexpr auto base = 10.0;
+  return std::pow(base, -quality_value / base);
 }
 
 
