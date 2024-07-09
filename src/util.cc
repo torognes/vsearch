@@ -163,7 +163,7 @@ auto fatal(const char * format,
 
 auto xstrdup(char const * src) -> char *
 {
-  auto const len = strlen(src);
+  auto const len = std::strlen(src);
   auto * dest = (char *) xmalloc(len + 1);
   return strcpy(dest, src);
 }
