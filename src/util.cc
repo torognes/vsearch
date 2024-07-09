@@ -62,6 +62,7 @@
 #include "city.h"
 #include "md5.h"
 #include "utils/maps.hpp"
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // ULONG_MAX, RAND_MAX
 #include <cstdarg>  // va_list
@@ -264,7 +265,7 @@ auto random_int(int64_t upper_limit) -> int64_t
     We should avoid some of the upper generated numbers to
     avoid modulo bias.
   */
-
+  assert(upper_limit != 0);
   int64_t const random_max = RAND_MAX;
   int64_t const limit = random_max - ((random_max + 1) % upper_limit);
   int64_t random_value = arch_random();
