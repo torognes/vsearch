@@ -206,10 +206,10 @@ inline auto convert_quality_symbol_to_probability(int const quality_symbol, stru
 inline auto convert_probability_to_quality_symbol(double const probability, struct Parameters const & parameters) -> int
 {
   // auto quality_value = static_cast<int64_t>(std::trunc(-10.0 * std::log10(p)));
-  int q = int(-10.0 * log10(probability));
-  q = MIN(q, parameters.opt_fastq_qmaxout);
-  q = MAX(q, parameters.opt_fastq_qminout);
-  return parameters.opt_fastq_asciiout + q;
+  int quality_value = int(-10.0 * log10(probability));
+  quality_value = MIN(quality_value, parameters.opt_fastq_qmaxout);
+  quality_value = MAX(quality_value, parameters.opt_fastq_qminout);
+  return parameters.opt_fastq_asciiout + quality_value;
 }
 
 
