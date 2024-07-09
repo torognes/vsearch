@@ -349,7 +349,7 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
      The string array digest must be large enough (len_hex_dig_sha1).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  char * normalized = (char *) xmalloc(seqlen+1);
+  char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
 
   unsigned char digest[sha1_digest_length];
