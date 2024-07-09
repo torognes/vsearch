@@ -99,48 +99,40 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
     {
       return +1;
     }
-  else if ((lhs->deleted == false) and (rhs->deleted == true))  // refactoring: deleted is always set to false for derep_fulllength
+  if ((lhs->deleted == false) and (rhs->deleted == true))  // refactoring: deleted is always set to false for derep_fulllength
     {
       return -1;
     }
-  else
+  // same status
+  if (lhs->size < rhs->size)
     {
-      if (lhs->size < rhs->size)
-        {
-          return +1;
-        }
-      else if (lhs->size > rhs->size)
-        {
-          return -1;
-        }
-      else
-        {
-          if (lhs->size == 0)
-            {
-              return 0;
-            }
-          auto const result = std::strcmp(lhs->header, rhs->header);
-          if (result != 0)
-            {
-              return result;
-            }
-          else
-            {
-              if (lhs->seqno_first < rhs->seqno_first)
-                {
-                  return -1;
-                }
-              else if (lhs->seqno_first > rhs->seqno_first)
-                {
-                  return +1;
-                }
-              else
-                {
-                  return 0;  // unreachable
-                }
-            }
-        }
+      return +1;
     }
+  if (lhs->size > rhs->size)
+    {
+      return -1;
+    }
+  // same abundance
+  if (lhs->size == 0)
+    {
+      return 0;
+    }
+  auto const result = std::strcmp(lhs->header, rhs->header);
+  if (result != 0)
+    {
+      return result;
+    }
+  // same header (label)
+  if (lhs->seqno_first < rhs->seqno_first)
+    {
+      return -1;
+    }
+  if (lhs->seqno_first > rhs->seqno_first)
+    {
+      return +1;
+    }
+  // same ordinal value (impossible)
+  return 0;  // unreachable
 }
 
 
