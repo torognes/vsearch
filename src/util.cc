@@ -214,7 +214,7 @@ auto hash_cityhash128(char * sequence, uint64_t length) -> uint128
 auto getusec() -> int64_t
 {
   struct timeval tv;
-  if (gettimeofday(&tv,nullptr) != 0)
+  if (gettimeofday(&tv, nullptr) != 0)
     {
       return 0;
     }
