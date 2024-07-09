@@ -234,9 +234,9 @@ auto show_rusage() -> void
 
 auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
 {
-  /* Write the reverse complementary sequence to rc.
-     The memory for rc must be long enough for the rc of the sequence
-     (identical to the length of seq + 1. */
+  /* Write the reverse complementary sequence to rc_seq.
+     The memory for rc_seq must be long enough for the rc_seq of the sequence
+     (identical to the length of seq + 1). */
 
   for (int64_t i = 0; i < len; ++i)
     {
