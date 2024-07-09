@@ -169,7 +169,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
             }
           struct bucket * new_bp = new_hashtable + k;
 
-          * new_bp = * old_bp;
+          *new_bp = * old_bp;
         }
     }
 
