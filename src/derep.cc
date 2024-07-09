@@ -62,7 +62,7 @@
 #include "utils/seqcmp.h"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <cmath>  // std::log10
+#include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
@@ -195,7 +195,8 @@ inline auto convert_quality_to_probability(int const quality_symbol, struct Para
     }
   else
     {
-      return exp10(-quality_value / 10.0);
+      static constexpr double base = 10.0;
+      return std::pow(base, -quality_value / base);
     }
 }
 
