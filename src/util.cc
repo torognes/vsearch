@@ -182,7 +182,7 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
 {
   va_list ap;
   va_start(ap, format);
-  int len = vsnprintf(nullptr, 0, format, ap);
+  int len = std::vsnprintf(nullptr, 0, format, ap);
   va_end(ap);
   if (len < 0)
     {
@@ -190,7 +190,7 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
     }
   char * p = (char *) xmalloc(len + 1);
   va_start(ap, format);
-  len = vsnprintf(p, len + 1, format, ap);
+  len = std::vsnprintf(p, len + 1, format, ap);
   va_end(ap);
   *ret = p;
   return len;
