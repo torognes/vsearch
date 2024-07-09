@@ -66,9 +66,9 @@
 #include <cstring>  // std::memset
 
 
-auto q2p(double q) -> double
+auto q2p(double quality_value) -> double
 {
-  return exp10(- q / 10.0);
+  return exp10(- quality_value / 10.0);
 }
 
 
