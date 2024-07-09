@@ -67,6 +67,7 @@
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
+#include <vector>
 
 
 //#define SHOW_RUSAGE
@@ -349,14 +350,12 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
      The string array digest must be large enough (len_hex_dig_sha1).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  char * normalized = (char *) xmalloc(seqlen + 1);
-  string_normalize(normalized, seq, seqlen);
+  std::vector<char> normalized(seqlen + 1);
+  string_normalize(normalized.data(), seq, seqlen);
 
   unsigned char digest[sha1_digest_length];
 
-  SHA1((const unsigned char *) normalized, (size_t) seqlen, digest);
-
-  xfree(normalized);
+  SHA1((const unsigned char *) normalized.data(), (size_t) seqlen, digest);
 
   for (int i = 0; i < sha1_digest_length; i++)
     {
