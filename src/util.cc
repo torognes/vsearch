@@ -362,7 +362,7 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
       hex[(2 * i) + 0] = hexdigits[digest[i] >> 4U];
       hex[(2 * i) + 1] = hexdigits[digest[i] & 15U];
     }
-  hex[2 * sha1_digest_length] = 0;
+  hex[2 * sha1_digest_length] = '\0';
 }
 
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
