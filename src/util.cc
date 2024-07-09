@@ -211,17 +211,6 @@ auto hash_cityhash128(char * sequence, uint64_t length) -> uint128
 }
 
 
-auto getusec() -> int64_t
-{
-  struct timeval tv;
-  if (gettimeofday(&tv, nullptr) != 0)
-    {
-      return 0;
-    }
-  return (tv.tv_sec * 1000000) + tv.tv_usec;
-}
-
-
 auto show_rusage() -> void
 {
 #ifdef SHOW_RUSAGE
