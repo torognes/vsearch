@@ -308,7 +308,9 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
   auto * q = normalized;
   for (auto i = 0U; i < len; ++i)
     {
-      *q++ = chrmap_normalize[(int) (*p++)];
+      *q = chrmap_normalize[(int) (*p)];
+      std::advance(q, 1);
+      std::advance(p, 1);
     }
   *q = '\0';
 }
