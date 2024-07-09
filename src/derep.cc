@@ -88,7 +88,7 @@ struct bucket
 };
 
 
-auto derep_compare_full(const void * void_lhs, const void * void_rhs) -> int
+auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 {
   auto * x = (struct bucket *) void_lhs;
   auto * y = (struct bucket *) void_rhs;
