@@ -214,12 +214,13 @@ auto hash_cityhash128(char * sequence, uint64_t length) -> uint128
 auto show_rusage() -> void
 {
 #ifdef SHOW_RUSAGE
+  static constexpr auto a_megabyte = 1024.0 * 1024.0;
   double user_time = 0.0;
   double system_time = 0.0;
 
   arch_get_user_system_time(&user_time, &system_time);
 
-  double megabytes = arch_get_memused() / 1024.0 / 1024.0;
+  double const megabytes = arch_get_memused() / a_megabyte;
 
   std::fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
           user_time, system_time, megabytes);
