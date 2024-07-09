@@ -160,17 +160,17 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
   /* rehash all */
   for (uint64_t i = 0; i < old_hashtablesize; ++i)
     {
-      struct bucket * old_bp = std::next(old_hashtable, i);
-      if (old_bp->size)
+      struct bucket & old_bp = *std::next(old_hashtable, i);
+      if (old_bp.size)
         {
-          uint64_t k = old_bp->hash & new_hash_mask;
+          uint64_t k = old_bp.hash & new_hash_mask;
           while (new_hashtable[k].size)
             {
               k = (k + 1) & new_hash_mask;
             }
           struct bucket * new_bp = std::next(new_hashtable, k);
 
-          *new_bp = * old_bp;
+          *new_bp = old_bp;
         }
     }
 
