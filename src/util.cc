@@ -88,9 +88,9 @@ auto progress_init(const char * prompt, uint64_t size) -> void
   progress_next = ((progress_pct + 1) * progress_size + 99) / 100;
 
   if (opt_quiet) { return; }
-  fprintf(stderr, "%s", prompt);
+  std::fprintf(stderr, "%s", prompt);
   if (not progress_show) { return; }
-  fprintf(stderr, " %d%%", 0);
+  std::fprintf(stderr, " %d%%", 0);
 }
 
 
@@ -98,11 +98,11 @@ auto progress_update(uint64_t progress) -> void
 {
   if ((progress < progress_next) or not progress_show) { return; }
   if (progress_size == 0) {
-    fprintf(stderr, "  \r%s 0%%", progress_prompt);
+    std::fprintf(stderr, "  \r%s 0%%", progress_prompt);
     return;
   }
   progress_pct = 100 * progress / progress_size;
-  fprintf(stderr,
+  std::fprintf(stderr,
           "  \r%s %" PRIu64 "%%",
           progress_prompt,
           progress_pct);
@@ -115,22 +115,22 @@ auto progress_done() -> void
   if (opt_quiet) { return; }
   if (progress_show)
     {
-      fprintf(stderr, "  \r%s", progress_prompt);
+      std::fprintf(stderr, "  \r%s", progress_prompt);
     }
-  fprintf(stderr, " %d%%\n", 100);
+  std::fprintf(stderr, " %d%%\n", 100);
 }
 
 
 __attribute__((noreturn))
 auto fatal(const char * msg) -> void
 {
-  fprintf(stderr, "\n\n");
-  fprintf(stderr, "Fatal error: %s\n", msg);
+  std::fprintf(stderr, "\n\n");
+  std::fprintf(stderr, "Fatal error: %s\n", msg);
 
   if (fp_log)
     {
-      fprintf(fp_log, "\n\n");
-      fprintf(fp_log, "Fatal error: %s\n", msg);
+      std::fprintf(fp_log, "\n\n");
+      std::fprintf(fp_log, "Fatal error: %s\n", msg);
     }
 
   exit(EXIT_FAILURE);
@@ -141,18 +141,18 @@ __attribute__((noreturn))
 auto fatal(const char * format,
            const char * message) -> void
 {
-  fprintf(stderr, "\n\nFatal error: ");
-  fprintf(stderr, format, message);
-  fprintf(stderr, "\n");
+  std::fprintf(stderr, "\n\nFatal error: ");
+  std::fprintf(stderr, format, message);
+  std::fprintf(stderr, "\n");
 
   if (opt_log)
     {
-      fprintf(fp_log, "\n\nFatal error: ");
-      fprintf(fp_log, format, message);
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n\nFatal error: ");
+      std::fprintf(fp_log, format, message);
+      std::fprintf(fp_log, "\n");
     }
 
-  exit(EXIT_FAILURE);
+  std::exit(EXIT_FAILURE);
 }
 
 
@@ -160,13 +160,13 @@ auto xstrdup(char const * src) -> char *
 {
   auto const len = std::strlen(src);
   auto * dest = (char *) xmalloc(len + 1);
-  return strcpy(dest, src);
+  return std::strcpy(dest, src);
 }
 
 
 auto xstrchrnul(char * s, int c) -> char *
 {
-  char * r = strchr(s, c);
+  char * r = std::strchr(s, c);
 
   if (r)
     {
@@ -174,7 +174,7 @@ auto xstrchrnul(char * s, int c) -> char *
     }
   else
     {
-      return s + strlen(s);
+      return s + std::strlen(s);
     }
 }
 
@@ -231,11 +231,11 @@ auto show_rusage() -> void
 
   double megabytes = arch_get_memused() / 1024.0 / 1024.0;
 
-  fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
+  std::fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
           user_time, system_time, megabytes);
 
   if (opt_log)
-    fprintf(fp_log, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
+    std::fprintf(fp_log, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
             user_time, system_time, megabytes);
 #endif
 }
@@ -320,7 +320,7 @@ auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void
 {
   for (int i = 0; i < len; i++)
     {
-      fprintf(fp, "%02x", data[i]);
+      std::fprintf(fp, "%02x", data[i]);
     }
 }
 
@@ -403,7 +403,7 @@ auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[len_hex_dig_sha1];
   get_hex_seq_digest_sha1(digest, seq, seqlen);
-  fprintf(fp, "%s", digest);
+  std::fprintf(fp, "%s", digest);
 }
 
 
@@ -411,14 +411,14 @@ auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[len_hex_dig_md5];
   get_hex_seq_digest_md5(digest, seq, seqlen);
-  fprintf(fp, "%s", digest);
+  std::fprintf(fp, "%s", digest);
 }
 
 
 auto fopen_input(const char * filename) -> FILE *
 {
   /* open the input stream given by filename, but use stdin if name is - */
-  if (strcmp(filename, "-") == 0)
+  if (std::strcmp(filename, "-") == 0)
     {
       int const fd = dup(STDIN_FILENO);
       if (fd < 0)
@@ -440,7 +440,7 @@ auto fopen_input(const char * filename) -> FILE *
 auto fopen_output(const char * filename) -> FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
-  if (strcmp(filename, "-") == 0)
+  if (std::strcmp(filename, "-") == 0)
     {
       int const fd = dup(STDOUT_FILENO);
       if (fd < 0)
