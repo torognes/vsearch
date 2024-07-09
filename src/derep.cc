@@ -168,9 +168,9 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
             {
               k = (k + 1) & new_hash_mask;
             }
-          struct bucket * new_bp = std::next(new_hashtable, k);
+          struct bucket & new_bp = *std::next(new_hashtable, k);
 
-          *new_bp = old_bucket;
+          new_bp = old_bucket;
         }
     }
 
