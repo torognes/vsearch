@@ -301,10 +301,10 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t
 }
 
 
-auto string_normalize(char * normalized, char * s, unsigned int len) -> void
+auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void
 {
   /* convert string to upper case and replace U by T */
-  char * p = s;
+  char * p = raw_seq;
   char * q = normalized;
   for (unsigned int i = 0; i < len; i++)
     {
