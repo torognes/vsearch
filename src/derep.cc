@@ -186,7 +186,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
 }
 
 
-inline auto convert_q_to_p(int const q, struct Parameters const & parameters) -> double
+inline auto convert_quality_to_probability(int const q, struct Parameters const & parameters) -> double
 {
   int const x = q - parameters.opt_fastq_ascii;
   if (x < 2)
@@ -200,7 +200,7 @@ inline auto convert_q_to_p(int const q, struct Parameters const & parameters) ->
 }
 
 
-inline auto convert_p_to_q(double const p, struct Parameters const & parameters) -> int
+inline auto convert_probability_to_quality(double const p, struct Parameters const & parameters) -> int
 {
   // int q = round(-10.0 * log10(p));
   int q = int(-10.0 * log10(p));
@@ -544,8 +544,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                 {
                   int const q1 = bp->qual[i];
                   int const q2 = qual[i];
-                  double const p1 = convert_q_to_p(q1, parameters);
-                  double const p2 = convert_q_to_p(q2, parameters);
+                  double const p1 = convert_quality_to_probability(q1, parameters);
+                  double const p2 = convert_quality_to_probability(q2, parameters);
                   double p3 = 0.0;
 
                   /* how to compute the new quality score? */
@@ -587,7 +587,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   // always best quality possible, perfect, no errors */
                   // p3 = 0.0;
 
-                  int const q3 = convert_p_to_q(p3, parameters);
+                  int const q3 = convert_probability_to_quality(p3, parameters);
                   bp->qual[i] = q3;
                 }
             }
