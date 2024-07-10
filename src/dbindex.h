@@ -86,10 +86,7 @@ inline auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
     {
       return kmerbitmap[kmer]->bitmap;
     }
-  else
-    {
-      return nullptr;
-    }
+  return nullptr;
 }
 
 inline auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int
