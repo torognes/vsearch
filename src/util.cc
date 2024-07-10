@@ -385,14 +385,13 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
      The string array digest must be large enough (len_hex_dig_md5).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  char * normalized = (char *) xmalloc(seqlen + 1);
-  string_normalize(normalized, seq, seqlen);
+  std::vector<char> normalized(seqlen + 1);
+  string_normalize(normalized.data(), seq, seqlen);
 
   unsigned char digest[md5_digest_length];
 
-  MD5(normalized, (size_t) seqlen, digest);
+  MD5(normalized.data(), (size_t) seqlen, digest);
 
-  xfree(normalized);
 
   for (int i = 0; i < md5_digest_length; i++)
     {
