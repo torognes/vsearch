@@ -425,7 +425,7 @@ auto fopen_input(const char * filename) -> std::FILE *
   /* open the input stream given by filename, but use stdin if name is - */
   if (std::strcmp(filename, "-") == 0)
     {
-      int const fd = dup(STDIN_FILENO);
+      auto const fd = dup(STDIN_FILENO);
       if (fd < 0)
         {
           return nullptr;
@@ -447,7 +447,7 @@ auto fopen_output(const char * filename) -> std::FILE *
   /* open the output stream given by filename, but use stdout if name is - */
   if (std::strcmp(filename, "-") == 0)
     {
-      int const fd = dup(STDOUT_FILENO);
+      auto const fd = dup(STDOUT_FILENO);
       if (fd < 0)
         {
           return nullptr;
