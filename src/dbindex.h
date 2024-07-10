@@ -82,7 +82,7 @@ auto dbindex_udb_write() -> void;
 
 inline auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
 {
-  if (kmerbitmap[kmer])
+  if (kmerbitmap[kmer] != nullptr)
     {
       return kmerbitmap[kmer]->bitmap;
     }
