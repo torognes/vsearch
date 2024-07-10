@@ -367,12 +367,13 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 
   SHA1((const unsigned char *) normalized.data(), (size_t) seqlen, digest.data());
 
-  for (int i = 0; i < sha1_digest_length; ++i)
-    {
-      hex[(2 * i) + 0] = hexdigits[digest[i] >> 4U];
-      hex[(2 * i) + 1] = hexdigits[digest[i] & 15U];
-    }
-  hex[2 * sha1_digest_length] = '\0';
+  for (auto const & element: digest) {
+    *hex = hexdigits[element >> 4U];
+    std::advance(hex, 1);
+    *hex = hexdigits[element & 15U];
+    std::advance(hex, 1);
+  }
+  *hex = '\0';
 }
 
 
