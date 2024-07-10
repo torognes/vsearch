@@ -110,7 +110,7 @@ auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void;
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;
 
-inline auto xpthread_attr_init(pthread_attr_t *attr) -> void
+inline auto xpthread_attr_init(pthread_attr_t * attr) -> void
 {
   if (pthread_attr_init(attr) != 0)
     {
@@ -118,7 +118,7 @@ inline auto xpthread_attr_init(pthread_attr_t *attr) -> void
     }
 }
 
-inline auto xpthread_attr_destroy(pthread_attr_t *attr) -> void
+inline auto xpthread_attr_destroy(pthread_attr_t * attr) -> void
 {
   if (pthread_attr_destroy(attr) != 0)
     {
@@ -126,7 +126,7 @@ inline auto xpthread_attr_destroy(pthread_attr_t *attr) -> void
     }
 }
 
-inline auto xpthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) -> void
+inline auto xpthread_attr_setdetachstate(pthread_attr_t * attr, int detachstate) -> void
 {
   if (pthread_attr_setdetachstate(attr, detachstate) != 0)
     {
@@ -134,8 +134,8 @@ inline auto xpthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) 
     }
 }
 
-inline auto xpthread_create(pthread_t *thread, const pthread_attr_t *attr,
-                            void *(*start_routine)(void *), void *arg) -> void
+inline auto xpthread_create(pthread_t * thread, const pthread_attr_t * attr,
+                            void *(*start_routine)(void *), void * arg) -> void
 {
   if (pthread_create(thread, attr, start_routine, arg) != 0)
     {
@@ -143,7 +143,7 @@ inline auto xpthread_create(pthread_t *thread, const pthread_attr_t *attr,
     }
 }
 
-inline auto xpthread_join(pthread_t thread, void **value_ptr) -> void
+inline auto xpthread_join(pthread_t thread, void ** value_ptr) -> void
 {
   if (pthread_join(thread, value_ptr) != 0)
     {
@@ -151,8 +151,8 @@ inline auto xpthread_join(pthread_t thread, void **value_ptr) -> void
     }
 }
 
-inline auto xpthread_mutex_init(pthread_mutex_t *mutex,
-                                const pthread_mutexattr_t *attr) -> void
+inline auto xpthread_mutex_init(pthread_mutex_t * mutex,
+                                const pthread_mutexattr_t * attr) -> void
 {
   if (pthread_mutex_init(mutex, attr) != 0)
     {
@@ -160,7 +160,7 @@ inline auto xpthread_mutex_init(pthread_mutex_t *mutex,
     }
 }
 
-inline auto xpthread_mutex_destroy(pthread_mutex_t *mutex) -> void
+inline auto xpthread_mutex_destroy(pthread_mutex_t * mutex) -> void
 {
   if (pthread_mutex_destroy(mutex) != 0)
     {
@@ -168,7 +168,7 @@ inline auto xpthread_mutex_destroy(pthread_mutex_t *mutex) -> void
     }
 }
 
-inline auto xpthread_mutex_lock(pthread_mutex_t *mutex) -> void
+inline auto xpthread_mutex_lock(pthread_mutex_t * mutex) -> void
 {
   if (pthread_mutex_lock(mutex) != 0)
     {
@@ -176,7 +176,7 @@ inline auto xpthread_mutex_lock(pthread_mutex_t *mutex) -> void
     }
 }
 
-inline auto xpthread_mutex_unlock(pthread_mutex_t *mutex) -> void
+inline auto xpthread_mutex_unlock(pthread_mutex_t * mutex) -> void
 {
   if (pthread_mutex_unlock(mutex) != 0)
     {
@@ -184,8 +184,8 @@ inline auto xpthread_mutex_unlock(pthread_mutex_t *mutex) -> void
     }
 }
 
-inline auto xpthread_cond_init(pthread_cond_t *cond,
-                               const pthread_condattr_t *attr) -> void
+inline auto xpthread_cond_init(pthread_cond_t * cond,
+                               const pthread_condattr_t * attr) -> void
 {
   if (pthread_cond_init(cond, attr) != 0)
     {
@@ -193,7 +193,7 @@ inline auto xpthread_cond_init(pthread_cond_t *cond,
     }
 }
 
-inline auto xpthread_cond_destroy(pthread_cond_t *cond) -> void
+inline auto xpthread_cond_destroy(pthread_cond_t * cond) -> void
 {
   if (pthread_cond_destroy(cond) != 0)
     {
@@ -201,7 +201,7 @@ inline auto xpthread_cond_destroy(pthread_cond_t *cond) -> void
     }
 }
 
-inline auto xpthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) -> void
+inline auto xpthread_cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex) -> void
 {
   if (pthread_cond_wait(cond, mutex) != 0)
     {
@@ -209,7 +209,7 @@ inline auto xpthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) -> 
     }
 }
 
-inline auto xpthread_cond_signal(pthread_cond_t *cond) -> void
+inline auto xpthread_cond_signal(pthread_cond_t * cond) -> void
 {
   if (pthread_cond_signal(cond) != 0)
     {
@@ -217,7 +217,7 @@ inline auto xpthread_cond_signal(pthread_cond_t *cond) -> void
     }
 }
 
-inline auto xpthread_cond_broadcast(pthread_cond_t *cond) -> void
+inline auto xpthread_cond_broadcast(pthread_cond_t * cond) -> void
 {
   if (pthread_cond_broadcast(cond) != 0)
     {
