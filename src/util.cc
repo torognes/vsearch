@@ -76,7 +76,6 @@
 #include <vector>
 
 
-//#define SHOW_RUSAGE
 constexpr auto one_hundred_percent = 100UL;
 constexpr auto nighty_nine_percent = 99UL;
 static const char * progress_prompt;
