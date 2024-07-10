@@ -58,4 +58,4 @@
 
 */
 
-auto seqcmp(char * a, char * b, int n) -> int;
+auto seqcmp(char * lhs, char * rhs, int length) -> int;
