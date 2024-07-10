@@ -307,7 +307,7 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
     {
       auto const unsigned_char = static_cast<unsigned char>(*raw_seq);
       auto const normalized_char = chrmap_normalize_vector[unsigned_char];
-      *normalized = static_cast<unsigned char>(normalized_char);
+      *normalized = static_cast<char>(normalized_char);
       std::advance(normalized, 1);
       std::advance(raw_seq, 1);
     }
