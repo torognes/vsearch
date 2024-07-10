@@ -223,7 +223,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
     {
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_otu[4];
-      if (!regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0))
+      if (! regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0))
         {
           /* match: use the matching otu name */
           len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
