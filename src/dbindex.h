@@ -60,6 +60,7 @@
 
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <iterator>  // std::next
 
 
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
@@ -91,7 +92,7 @@ inline auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
 
 inline auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int
 {
-  return kmercount[kmer];
+  return *std::next(kmercount, kmer);
 }
 
 inline auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *
@@ -101,7 +102,7 @@ inline auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *
 
 inline auto dbindex_getmapping(unsigned int index) -> unsigned int
 {
-  return dbindex_map[index];
+  return *std::next(dbindex_map, index);
 }
 
 inline auto dbindex_getcount() -> unsigned int
