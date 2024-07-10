@@ -232,7 +232,6 @@
 #include "fasta.h"
 #include "fastq.h"
 #include "dbhash.h"
-#include "otutable.h"
 #include "udb.h"
 #include "kmerhash.h"
 #include "tax.h"
