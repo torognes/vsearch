@@ -430,15 +430,9 @@ auto fopen_input(const char * filename) -> std::FILE *
         {
           return nullptr;
         }
-      else
-        {
-          return fdopen(file_descriptor, "rb");
-        }
+      return fdopen(file_descriptor, "rb");
     }
-  else
-    {
-      return fopen(filename, "rb");
-    }
+  return fopen(filename, "rb");
 }
 
 
@@ -452,13 +446,7 @@ auto fopen_output(const char * filename) -> std::FILE *
         {
           return nullptr;
         }
-      else
-        {
-          return fdopen(file_descriptor, "w");
-        }
+      return fdopen(file_descriptor, "w");
     }
-  else
-    {
-      return fopen(filename, "w");
-    }
+  return fopen(filename, "w");
 }
