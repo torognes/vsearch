@@ -78,7 +78,7 @@ constexpr unsigned int bitmap_threshold = 8;
 
 static unsigned int bitmap_mincount;
 
-void fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer)
+auto fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer) -> void
 {
   uint64_t const x = kmer;
   for (unsigned int i = 0; i < kk; i++)
@@ -87,7 +87,7 @@ void fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer)
     }
 }
 
-void dbindex_addsequence(unsigned int seqno, int seqmask)
+auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 {
 #if 0
   printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
@@ -115,7 +115,7 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
   ++dbindex_count;
 }
 
-void dbindex_addallsequences(int seqmask)
+auto dbindex_addallsequences(int seqmask) -> void
 {
   unsigned int const seqcount = db_getsequencecount();
   progress_init("Creating k-mer index", seqcount);
@@ -127,7 +127,7 @@ void dbindex_addallsequences(int seqmask)
   progress_done();
 }
 
-void dbindex_prepare(int use_bitmap, int seqmask)
+auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 {
   dbindex_uh = unique_init();
 
@@ -219,7 +219,7 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   show_rusage();
 }
 
-void dbindex_free()
+auto dbindex_free() -> void
 {
   xfree(kmerhash);
   xfree(kmerindex);
