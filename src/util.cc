@@ -62,7 +62,6 @@
 #include "city.h"
 #include "md5.h"
 #include "utils/maps.hpp"
-#include <array>
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // ULONG_MAX, RAND_MAX
