@@ -327,7 +327,7 @@ auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> voi
 
 auto SHA1(const unsigned char * data, unsigned long len, unsigned char * digest) -> void
 {
-  if (not digest)
+  if (digest == nullptr)
     {
       fatal("Error in computing SHA1 digest");
     }
@@ -340,7 +340,7 @@ auto SHA1(const unsigned char * data, unsigned long len, unsigned char * digest)
 
 auto MD5(void * data, unsigned long len, unsigned char * digest) -> void
 {
-  if (not digest)
+  if (digest == nullptr)
     {
       fatal("Error in computing MD5 digest");
     }
