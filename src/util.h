@@ -99,13 +99,13 @@ auto string_normalize(char * normalized, char * s, unsigned int len) -> void;
 
 auto reverse_complement(char * rc, char * seq, int64_t len) -> void;
 
-auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void;
+auto fprint_hex(std::FILE * fp, unsigned char * data, int len) -> void;
 
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void;
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void;
 
-auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_sha1(std::FILE * fp, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_md5(std::FILE * fp, char * seq, int seqlen) -> void;
 
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;
