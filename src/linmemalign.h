@@ -105,13 +105,13 @@ class LinearMemoryAligner
 
   auto cigar_add(char _op, int64_t run) -> void;
 
-  auto subst_score(int64_t x, int64_t y) -> int64_t
+  auto subst_score(int64_t lhs_pos, int64_t rhs_pos) -> int64_t
   {
-    /* return substitution score for replacing symbol at position x in a
-       with symbol at position y in b */
+    /* return substitution score for replacing symbol at position lhs_pos in a
+       with symbol at position rhs_pos in b */
     constexpr auto offset = 16;
-    return scorematrix[(chrmap_4bit[(int) (b_seq[y])] * offset) +
-                       chrmap_4bit[(int) (a_seq[x])]];
+    return scorematrix[(chrmap_4bit[(int) (b_seq[rhs_pos])] * offset) +
+                       chrmap_4bit[(int) (a_seq[lhs_pos])]];
   }
 
   auto diff(int64_t a_start,
