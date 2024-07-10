@@ -222,7 +222,6 @@
 #include "dbindex.h"
 #include "linmemalign.h"
 #include "searchcore.h"
-#include "showalign.h"
 #include "userfields.h"
 #include "results.h"
 #include "mask.h"
