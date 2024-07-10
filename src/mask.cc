@@ -129,7 +129,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
 }
 
 
-auto dust(char * m, int len) -> void
+auto dust(char * seq, int len) -> void
 {
   static constexpr int dust_level = 20;
   static constexpr int half_dust_window = dust_window / 2;
@@ -138,7 +138,7 @@ auto dust(char * m, int len) -> void
 
   /* make a local copy of the original sequence */
   char * local_seq = (char*) xmalloc(len + 1);
-  strcpy(local_seq, m);
+  strcpy(local_seq, seq);
   // refactoring: <string>
   // std::string local_seq2;
   // local_seq2.reserve(len + 1);
@@ -150,9 +150,9 @@ auto dust(char * m, int len) -> void
       /* convert sequence to upper case unless hardmask in effect */
       for(int i = 0; i < len; i++)
         {
-          m[i] = toupper(m[i]);
+          seq[i] = toupper(seq[i]);
         }
-      m[len] = 0;
+      seq[len] = 0;
     }
 
   for (int i = 0; i < len; i += half_dust_window)
@@ -166,14 +166,14 @@ auto dust(char * m, int len) -> void
             {
               for (int j = a + i; j <= b + i; j++)
                 {
-                  m[j] = 'N';
+                  seq[j] = 'N';
                 }
             }
           else
             {
               for (int j = a + i; j <= b + i; j++)
                 {
-                  m[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
+                  seq[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
                 }
             }
 
