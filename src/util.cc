@@ -365,7 +365,9 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 
   std::vector<unsigned char> digest(sha1_digest_length);
 
-  SHA1((const unsigned char *) normalized.data(), (size_t) seqlen, digest.data());
+  SHA1((const unsigned char *) normalized.data(),
+       static_cast<std::size_t>(seqlen),
+       digest.data());
 
   for (auto const & element: digest) {
     *hex = hexdigits[element >> 4U];
