@@ -264,12 +264,12 @@ auto xfree(void * ptr) -> void
     }
 }
 
-auto xfstat(int fd, xstat_t * buf) -> int
+auto xfstat(int file_descriptor, xstat_t * buf) -> int
 {
 #ifdef _WIN32
-  return _fstat64(fd, buf);
+  return _fstat64(file_descriptor, buf);
 #else
-  return fstat(fd, buf);
+  return fstat(file_descriptor, buf);
 #endif
 }
 
@@ -282,12 +282,12 @@ auto xstat(const char * path, xstat_t * buf) -> int
 #endif
 }
 
-auto xlseek(int fd, uint64_t offset, int whence) -> uint64_t
+auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 {
 #ifdef _WIN32
-  return _lseeki64(fd, offset, whence);
+  return _lseeki64(file_descriptor, offset, whence);
 #else
-  return lseek(fd, offset, whence);
+  return lseek(file_descriptor, offset, whence);
 #endif
 }
 
