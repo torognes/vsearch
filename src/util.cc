@@ -404,7 +404,7 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 }
 
 
-auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
+auto fprint_seq_digest_sha1(std::FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[len_hex_dig_sha1];
   get_hex_seq_digest_sha1(digest, seq, seqlen);
@@ -412,7 +412,7 @@ auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void
 }
 
 
-auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void
+auto fprint_seq_digest_md5(std::FILE * fp, char * seq, int seqlen) -> void
 {
   char digest[len_hex_dig_md5];
   get_hex_seq_digest_md5(digest, seq, seqlen);
@@ -420,7 +420,7 @@ auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void
 }
 
 
-auto fopen_input(const char * filename) -> FILE *
+auto fopen_input(const char * filename) -> std::FILE *
 {
   /* open the input stream given by filename, but use stdin if name is - */
   if (std::strcmp(filename, "-") == 0)
@@ -442,7 +442,7 @@ auto fopen_input(const char * filename) -> FILE *
 }
 
 
-auto fopen_output(const char * filename) -> FILE *
+auto fopen_output(const char * filename) -> std::FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
   if (std::strcmp(filename, "-") == 0)
