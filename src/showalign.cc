@@ -187,7 +187,7 @@ inline auto putop(char c, int64_t len) -> void
     }
 }
 
-auto align_show(std::FILE * f,
+auto align_show(std::FILE * output_handle,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
@@ -203,7 +203,7 @@ auto align_show(std::FILE * f,
                 int alignwidth,
                 int strand) -> void
 {
-  out = f;
+  out = output_handle;
 
   q_seq = seq1;
   q_len = seq1len;
@@ -292,14 +292,14 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
   return row;
 }
 
-auto align_fprint_uncompressed_alignment(std::FILE * f, char * cigar) -> void
+auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
 {
   char * p = cigar;
   while (*p != 0)
     {
       if (*p > '9')
         {
-          fprintf(f, "%c", *p++);
+          fprintf(output_handle, "%c", *p++);
         }
       else
         {
@@ -310,7 +310,7 @@ auto align_fprint_uncompressed_alignment(std::FILE * f, char * cigar) -> void
             {
               for (int i = 0; i < n; i++)
                 {
-                  fprintf(f, "%c", c);
+                  fprintf(output_handle, "%c", c);
                 }
               p += x;
             }
