@@ -352,7 +352,7 @@ auto MD5(void * data, unsigned long len, unsigned char * digest) -> void
 }
 
 
-static const std::array<char, 16> hexdigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+static const std::vector<char> hexdigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 {
