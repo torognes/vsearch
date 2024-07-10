@@ -113,7 +113,7 @@ class xstring
     return length;
   }
 
-  auto add_c(char c) -> void
+  auto add_c(char a_char) -> void
   {
     const std::size_t needed = 1;
     if (length + needed + 1 > alloc)
@@ -121,14 +121,14 @@ class xstring
         alloc = length + needed + 1;
         string = (char *) xrealloc(string, alloc);
       }
-    string[length] = c;
+    string[length] = a_char;
     length += 1;
     string[length] = 0;
   }
 
-  auto add_d(int d) -> void
+  auto add_d(int a_number) -> void
   {
-    auto const needed = snprintf(nullptr, 0, "%d", d);
+    auto const needed = snprintf(nullptr, 0, "%d", a_number);
     if (needed < 0)
       {
         fatal("snprintf failed");
@@ -139,19 +139,19 @@ class xstring
         alloc = length + needed + 1;
         string = (char *) xrealloc(string, alloc);
       }
-    std::snprintf(string + length, needed + 1, "%d", d);
+    std::snprintf(string + length, needed + 1, "%d", a_number);
     length += needed;
   }
 
-  auto add_s(char * s) -> void
+  auto add_s(char * a_string) -> void
   {
-    auto const needed = std::strlen(s);
+    auto const needed = std::strlen(a_string);
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
         string = (char *) xrealloc(string, alloc);
       }
-    std::strcpy(string + length, s);
+    std::strcpy(string + length, a_string);
     length += needed;
   }
 };
