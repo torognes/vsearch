@@ -68,6 +68,7 @@
 #include <set>
 #include <string>
 #include <utility>  // std::pair
+#include <vector>
 
 #ifdef HAVE_REGEX_H
 #include <regex.h>
@@ -174,7 +175,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   int len_sample = 0;
   char * start_sample = query_header;
-  char * sample_name = nullptr;
+  std::vector<char> sample_name;
 
   if (query_header)
     {
@@ -197,16 +198,18 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       else
         {
           /* no match: use first name in header with A-Za-z0-9_ */
-          len_sample = strspn(query_header,
+          len_sample = std::strspn(query_header,
                               "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                               "abcdefghijklmnopqrstuvwxyz"
                               "_"
                               "0123456789");
         }
 
-      sample_name = (char *) xmalloc(len_sample + 1);
-      strncpy(sample_name, start_sample, len_sample);
-      sample_name[len_sample] = '\0';
+      if (len_sample > 0) {
+        sample_name.resize(len_sample + 1);
+        std::strncpy(sample_name.data(), start_sample, len_sample);
+        sample_name[len_sample] = '\0';
+      }
     }
 
 
@@ -273,26 +276,22 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   /* store data */
 
-  if (sample_name) {
-    otutable->sample_set.insert(sample_name);
+  if (not sample_name.empty()) {
+    otutable->sample_set.insert(sample_name.data());
   }
 
   if (otu_name) {
     otutable->otu_set.insert(otu_name);
   }
 
-  if (sample_name && otu_name && abundance)
+  if ((not sample_name.empty()) && otu_name && abundance)
     {
-      otutable->sample_otu_count[string_pair_t(sample_name,otu_name)] += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name,sample_name)] += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name.data(),otu_name)] += abundance;
+      otutable->otu_sample_count[string_pair_t(otu_name,sample_name.data())] += abundance;
     }
 
   if (otu_name) {
     xfree(otu_name);
-  }
-
-  if (sample_name) {
-    xfree(sample_name);
   }
 }
 
