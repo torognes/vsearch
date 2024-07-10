@@ -206,7 +206,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 
       sample_name = (char *) xmalloc(len_sample + 1);
-      strncpy(sample_name, start_sample, len_sample);
+      std::strncpy(sample_name, start_sample, len_sample);
       sample_name[len_sample] = '\0';
     }
 
@@ -242,7 +242,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 
       otu_name = (char *) xmalloc(len_otu + 1);
-      strncpy(otu_name, start_otu, len_otu);
+      std::strncpy(otu_name, start_otu, len_otu);
       otu_name[len_otu] = 0;
 
       /* read tax annotation in target */
@@ -258,7 +258,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           start_tax += pmatch_tax[2].rm_so;
 
           std::vector<char> tax_name(len_tax + 1);
-          strncpy(tax_name.data(), start_tax, len_tax);
+          std::strncpy(tax_name.data(), start_tax, len_tax);
           tax_name[len_tax] = '\0';
           otutable->otu_tax_map[otu_name] = tax_name.data();
         }
