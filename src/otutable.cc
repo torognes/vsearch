@@ -68,6 +68,7 @@
 #include <set>
 #include <string>
 #include <utility>  // std::pair
+#include <vector>
 
 #ifdef HAVE_REGEX_H
 #include <regex.h>
@@ -256,11 +257,10 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
           start_tax += pmatch_tax[2].rm_so;
 
-          char * tax_name = (char *) xmalloc(len_tax + 1);
-          strncpy(tax_name, start_tax, len_tax);
+          std::vector<char> tax_name(len_tax + 1);
+          strncpy(tax_name.data(), start_tax, len_tax);
           tax_name[len_tax] = 0;
-          otutable->otu_tax_map[otu_name] = tax_name;
-          xfree(tax_name);
+          otutable->otu_tax_map[otu_name] = tax_name.data();
         }
 #else
       std::cmatch cmatch_tax;
