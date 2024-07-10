@@ -404,19 +404,19 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 }
 
 
-auto fprint_seq_digest_sha1(std::FILE * fp, char * seq, int seqlen) -> void
+auto fprint_seq_digest_sha1(std::FILE * output_handle, char * seq, int seqlen) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_sha1);
   get_hex_seq_digest_sha1(hex_digest.data(), seq, seqlen);
-  std::fprintf(fp, "%s", hex_digest.data());
+  std::fprintf(output_handle, "%s", hex_digest.data());
 }
 
 
-auto fprint_seq_digest_md5(std::FILE * fp, char * seq, int seqlen) -> void
+auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_md5);
   get_hex_seq_digest_md5(hex_digest.data(), seq, seqlen);
-  std::fprintf(fp, "%s", hex_digest.data());
+  std::fprintf(output_handle, "%s", hex_digest.data());
 }
 
 
