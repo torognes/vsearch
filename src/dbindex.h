@@ -73,7 +73,7 @@ extern unsigned int kmerhashsize;
 extern uint64_t kmerindexsize;
 extern uhandle_s * dbindex_uh;
 
-auto fprint_kmer(std::FILE * f, unsigned int k, uint64_t kmer) -> void;
+auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
 
 auto dbindex_prepare(int use_bitmap, int seqmask) -> void;
 auto dbindex_addallsequences(int seqmask) -> void;
