@@ -206,7 +206,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
       sample_name = (char *) xmalloc(len_sample + 1);
       strncpy(sample_name, start_sample, len_sample);
-      sample_name[len_sample] = 0;
+      sample_name[len_sample] = '\0';
     }
 
 
