@@ -76,7 +76,7 @@ struct minheap_s
 
 using minheap_t = struct minheap_s;
 
-inline auto minheap_isempty(minheap_t * a_minheap) -> int
+inline auto minheap_isempty(minheap_t * a_minheap) -> bool
 {
   return (a_minheap->count == 0);
 }
