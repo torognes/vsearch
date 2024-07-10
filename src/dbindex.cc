@@ -78,7 +78,7 @@ constexpr unsigned int bitmap_threshold = 8;
 
 static unsigned int bitmap_mincount;
 
-auto fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer) -> void
+auto fprint_kmer(std::FILE * f, unsigned int kk, uint64_t kmer) -> void
 {
   uint64_t const x = kmer;
   for (unsigned int i = 0; i < kk; i++)
