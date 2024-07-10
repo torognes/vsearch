@@ -367,7 +367,7 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
 
   SHA1((const unsigned char *) normalized.data(), (size_t) seqlen, digest.data());
 
-  for (int i = 0; i < sha1_digest_length; i++)
+  for (int i = 0; i < sha1_digest_length; ++i)
     {
       hex[(2 * i) + 0] = hexdigits[digest[i] >> 4U];
       hex[(2 * i) + 1] = hexdigits[digest[i] & 15U];
