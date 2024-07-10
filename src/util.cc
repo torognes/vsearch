@@ -390,7 +390,7 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
 
   std::vector<unsigned char> digest(md5_digest_length);
 
-  MD5(normalized.data(), (size_t) seqlen, digest.data());
+  MD5(normalized.data(), static_cast<std::size_t>(seqlen), digest.data());
 
 
   for (int i = 0; i < md5_digest_length; i++)
