@@ -283,10 +283,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   if (sample_name && otu_name && abundance)
     {
-      otutable->sample_otu_count[string_pair_t(sample_name,otu_name)]
-        += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name,sample_name)]
-        += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name,otu_name)] += abundance;
+      otutable->otu_sample_count[string_pair_t(otu_name,sample_name)] += abundance;
     }
 
   if (otu_name) {
