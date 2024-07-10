@@ -79,11 +79,11 @@ constexpr int len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
 auto fatal(const char * msg) -> void;
 auto fatal(const char * format, const char * message) -> void;
-auto xstrdup(const char *s) -> char *;
-auto xstrchrnul(char *s, int c) -> char *;
+auto xstrdup(const char * src) -> char *;
+auto xstrchrnul(char * str, int target) -> char *;
 auto xsprintf(char * * ret, const char * format, ...) -> int;
-auto hash_cityhash64(char * s, uint64_t n) -> uint64_t;
-auto hash_cityhash128(char * s, uint64_t n) -> uint128;
+auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t;
+auto hash_cityhash128(char * sequence, uint64_t length) -> uint128;
 auto getusec() -> int64_t;
 auto show_rusage() -> void;
 
@@ -92,20 +92,20 @@ auto progress_update(uint64_t progress) -> void;
 auto progress_done() -> void;
 
 auto random_init() -> void;
-auto random_int(int64_t n) -> int64_t;
-auto random_ulong(uint64_t n) -> uint64_t;
+auto random_int(int64_t upper_limit) -> int64_t;
+auto random_ulong(uint64_t upper_limit) -> uint64_t;
 
-auto string_normalize(char * normalized, char * s, unsigned int len) -> void;
+auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void;
 
-auto reverse_complement(char * rc, char * seq, int64_t len) -> void;
+auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void;
 
-auto fprint_hex(std::FILE * fp, unsigned char * data, int len) -> void;
+auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> void;
 
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void;
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void;
 
-auto fprint_seq_digest_sha1(std::FILE * fp, char * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(std::FILE * fp, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_sha1(std::FILE * output_handle, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) -> void;
 
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;
