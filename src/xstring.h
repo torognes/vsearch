@@ -58,11 +58,12 @@
 
 */
 
+#include <array>
 #include <cstdio>  // std::size_t, std::snprintf
 #include <cstring>  // std::strlen, std::strcpy
 
 
-static char empty_string[1] = "";
+static std::array<char, 1> empty_string = {""};
 
 class xstring
 {
@@ -103,7 +104,7 @@ class xstring
       }
     else
       {
-        return empty_string;
+        return empty_string.data();
       }
   }
 
