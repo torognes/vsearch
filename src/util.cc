@@ -88,7 +88,7 @@ static bool progress_show;
 
 auto progress_init(const char * prompt, uint64_t size) -> void
 {
-  progress_show = isatty(fileno(stderr)) and (not opt_quiet) and (not opt_no_progress);
+  progress_show = (isatty(fileno(stderr)) != 0) and (not opt_quiet) and (not opt_no_progress);
   progress_prompt = prompt;
   progress_size = size;
   progress_pct = 0;
