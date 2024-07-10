@@ -83,9 +83,10 @@ auto dbindex_udb_write() -> void;
 
 inline auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
 {
-  if (kmerbitmap[kmer] != nullptr)
+  if (std::next(kmerbitmap, kmer) != nullptr)
     {
-      return kmerbitmap[kmer]->bitmap;
+      auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
+      return a_bitmap_s->bitmap;
     }
   return nullptr;
 }
@@ -97,7 +98,7 @@ inline auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int
 
 inline auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *
 {
-  return kmerindex + kmerhash[kmer];
+  return std::next(kmerindex, *std::next(kmerhash, kmer));
 }
 
 inline auto dbindex_getmapping(unsigned int index) -> unsigned int
