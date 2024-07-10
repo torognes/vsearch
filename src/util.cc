@@ -363,9 +363,9 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
   std::vector<char> normalized(seqlen + 1);
   string_normalize(normalized.data(), seq, seqlen);
 
-  unsigned char digest[sha1_digest_length];
+  std::vector<unsigned char> digest(sha1_digest_length);
 
-  SHA1((const unsigned char *) normalized.data(), (size_t) seqlen, digest);
+  SHA1((const unsigned char *) normalized.data(), (size_t) seqlen, digest.data());
 
   for (int i = 0; i < sha1_digest_length; i++)
     {
