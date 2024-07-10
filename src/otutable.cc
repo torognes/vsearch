@@ -121,6 +121,7 @@ struct otutable_s
 
 static otutable_s * otutable;
 
+
 auto otutable_init() -> void
 {
   otutable = new otutable_s;
@@ -150,6 +151,7 @@ auto otutable_init() -> void
 #endif
 }
 
+
 auto otutable_done() -> void
 {
 #ifdef HAVE_REGEX_H
@@ -165,6 +167,7 @@ auto otutable_done() -> void
   delete otutable;
 }
 
+
 auto otutable_add(char * query_header, char * target_header, int64_t abundance) -> void
 {
   /* read sample annotation in query */
@@ -177,7 +180,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
     {
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_sample[5];
-      if (!regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0))
+      if (! regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0))
         {
           /* match: use the matching sample name */
           len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
@@ -201,7 +204,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
                               "0123456789");
         }
 
-      sample_name = (char *) xmalloc(len_sample+1);
+      sample_name = (char *) xmalloc(len_sample + 1);
       strncpy(sample_name, start_sample, len_sample);
       sample_name[len_sample] = 0;
     }
@@ -237,7 +240,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           len_otu = strcspn(target_header, ";");
         }
 
-      otu_name = (char *) xmalloc(len_otu+1);
+      otu_name = (char *) xmalloc(len_otu + 1);
       strncpy(otu_name, start_otu, len_otu);
       otu_name[len_otu] = 0;
 
@@ -253,7 +256,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
           start_tax += pmatch_tax[2].rm_so;
 
-          char * tax_name = (char *) xmalloc(len_tax+1);
+          char * tax_name = (char *) xmalloc(len_tax + 1);
           strncpy(tax_name, start_tax, len_tax);
           tax_name[len_tax] = 0;
           otutable->otu_tax_map[otu_name] = tax_name;
@@ -294,6 +297,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
     xfree(sample_name);
   }
 }
+
 
 auto otutable_print_otutabout(std::FILE * output_handle) -> void
 {
@@ -348,6 +352,7 @@ auto otutable_print_otutabout(std::FILE * output_handle) -> void
   progress_done();
 }
 
+
 auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
 {
   int64_t progress = 0;
@@ -355,8 +360,7 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
 
   fprintf(output_handle, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
-  for (const
-         auto & it_otu : otutable->otu_set)
+  for (const auto & it_otu : otutable->otu_set)
     {
       const char * otu_name = it_otu.c_str();
       fprintf(output_handle, "\t%s", otu_name);
@@ -392,6 +396,7 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
     }
   progress_done();
 }
+
 
 auto otutable_print_biomout(std::FILE * output_handle) -> void
 {
@@ -444,8 +449,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
       else
         {
           fprintf(output_handle, R"({"taxonomy":")");
-          auto it
-            = otutable->otu_tax_map.find(otu_name);
+          auto it = otutable->otu_tax_map.find(otu_name);
           if (it != otutable->otu_tax_map.end())
             {
               fprintf(output_handle, "%s", it->second.c_str());
@@ -478,10 +482,9 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
   bool first = true;
   fprintf(output_handle, "\t\"data\": [");
 
-  for (auto
-         & it_map : otutable->otu_sample_count)
+  for (auto & it_map : otutable->otu_sample_count)
     {
-      if (!first)
+      if (! first)
         {
           fprintf(output_handle, ",");
         }
