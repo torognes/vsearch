@@ -352,6 +352,8 @@ auto MD5(void * data, unsigned long len, unsigned char * digest) -> void
 }
 
 
+static constexpr auto drop_lower_nibble = 4U;
+static constexpr auto mask_upper_nibble = 15U;
 static const std::vector<char> hexdigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
@@ -370,9 +372,9 @@ auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void
        digest.data());
 
   for (auto const & element: digest) {
-    *hex = hexdigits[element >> 4U];
+    *hex = hexdigits[element >> drop_lower_nibble];
     std::advance(hex, 1);
-    *hex = hexdigits[element & 15U];
+    *hex = hexdigits[element & mask_upper_nibble];
     std::advance(hex, 1);
   }
   *hex = '\0';
@@ -393,9 +395,9 @@ auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
   MD5(normalized.data(), static_cast<std::size_t>(seqlen), digest.data());
 
   for (auto const & element: digest) {
-    *hex = hexdigits[element >> 4U];
+    *hex = hexdigits[element >> drop_lower_nibble];
     std::advance(hex, 1);
-    *hex = hexdigits[element & 15U];
+    *hex = hexdigits[element & mask_upper_nibble];
     std::advance(hex, 1);
   }
   *hex = '\0';
