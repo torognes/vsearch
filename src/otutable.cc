@@ -259,7 +259,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
           std::vector<char> tax_name(len_tax + 1);
           strncpy(tax_name.data(), start_tax, len_tax);
-          tax_name[len_tax] = 0;
+          tax_name[len_tax] = '\0';
           otutable->otu_tax_map[otu_name] = tax_name.data();
         }
 #else
