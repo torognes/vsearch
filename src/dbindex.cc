@@ -80,10 +80,9 @@ static unsigned int bitmap_mincount;
 
 auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void
 {
-  uint64_t const x = kmer;
-  for (unsigned int i = 0; i < kmer_length; i++)
+  for (auto i = 0U; i < kmer_length; ++i)
     {
-      fprintf(output_handle, "%c", sym_nt_2bit[(x >> (2 * (kmer_length - i - 1))) & 3]);
+      std::fprintf(output_handle, "%c", sym_nt_2bit[(kmer >> (2 * (kmer_length - i - 1))) & 3]);
     }
 }
 
