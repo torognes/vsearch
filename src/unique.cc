@@ -93,18 +93,18 @@ struct uhandle_s
 
 auto unique_init() -> struct uhandle_s *
 {
-  auto * uh = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
+  auto * unique_handle = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
 
-  uh->alloc = 2048;
-  uh->size = 0;
-  uh->hash_mask = uh->alloc - 1;
-  uh->hash = (struct bucket_s *) xmalloc(sizeof(struct bucket_s) * uh->alloc);
-  uh->list = (unsigned int *) xmalloc(sizeof(unsigned int) * uh->alloc);
+  unique_handle->alloc = 2048;
+  unique_handle->size = 0;
+  unique_handle->hash_mask = unique_handle->alloc - 1;
+  unique_handle->hash = (struct bucket_s *) xmalloc(sizeof(struct bucket_s) * unique_handle->alloc);
+  unique_handle->list = (unsigned int *) xmalloc(sizeof(unsigned int) * unique_handle->alloc);
 
-  uh->bitmap_size = 0;
-  uh->bitmap = nullptr;
+  unique_handle->bitmap_size = 0;
+  unique_handle->bitmap = nullptr;
 
-  return uh;
+  return unique_handle;
 }
 
 auto unique_exit(struct uhandle_s * unique_handle) -> void
@@ -146,7 +146,7 @@ auto unique_compare(const void * a, const void * b) -> int
 
 
 auto unique_count_bitmap(struct uhandle_s * unique_handle,
-                         int k,
+                         int wordlength,
                          int seqlen,
                          char * seq,
                          unsigned int * listlen,
@@ -165,7 +165,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
         xrealloc(unique_handle->list, sizeof(unsigned int) * unique_handle->alloc);
     }
 
-  uint64_t const size = 1ULL << (k << 1ULL);
+  uint64_t const size = 1ULL << (wordlength << 1ULL);
 
   /* reallocate bitmap arrays if necessary */
 
@@ -181,7 +181,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   uint64_t kmer = 0;
   uint64_t const mask = size - 1ULL;
   char * s = seq;
-  char * e1 = s + k - 1;
+  char * e1 = s + wordlength - 1;
   char * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
@@ -226,8 +226,8 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   *list = unique_handle->list;
 }
 
-auto unique_count_hash(struct uhandle_s * uh,
-                       int k,
+auto unique_count_hash(struct uhandle_s * unique_handle,
+                       int wordlength,
                        int seqlen,
                        char * seq,
                        unsigned int * listlen,
@@ -236,35 +236,35 @@ auto unique_count_hash(struct uhandle_s * uh,
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
-  if (uh->alloc < 2 * seqlen)
+  if (unique_handle->alloc < 2 * seqlen)
     {
-      while (uh->alloc < 2 * seqlen)
+      while (unique_handle->alloc < 2 * seqlen)
         {
-          uh->alloc *= 2;
+          unique_handle->alloc *= 2;
         }
-      uh->hash = (struct bucket_s *)
-        xrealloc(uh->hash, sizeof(struct bucket_s) * uh->alloc);
-      uh->list = (unsigned int *)
-        xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
+      unique_handle->hash = (struct bucket_s *)
+        xrealloc(unique_handle->hash, sizeof(struct bucket_s) * unique_handle->alloc);
+      unique_handle->list = (unsigned int *)
+        xrealloc(unique_handle->list, sizeof(unsigned int) * unique_handle->alloc);
     }
 
   /* hashtable variant */
 
-  uh->size = 1;
-  while (uh->size < 2*seqlen)
+  unique_handle->size = 1;
+  while (unique_handle->size < 2*seqlen)
     {
-      uh->size *= 2;
+      unique_handle->size *= 2;
     }
-  uh->hash_mask = uh->size - 1;
+  unique_handle->hash_mask = unique_handle->size - 1;
 
-  memset(uh->hash, 0, sizeof(struct bucket_s) * uh->size);
+  memset(unique_handle->hash, 0, sizeof(struct bucket_s) * unique_handle->size);
 
   uint64_t bad = 0;
   uint64_t j = 0;
   unsigned int kmer = 0;
-  unsigned int const mask = (1ULL << (2ULL * k)) - 1ULL;
+  unsigned int const mask = (1ULL << (2ULL * wordlength)) - 1ULL;
   char * s = seq;
-  char * e1 = s + k - 1;
+  char * e1 = s + wordlength - 1;
   char * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
@@ -295,24 +295,24 @@ auto unique_count_hash(struct uhandle_s * uh,
       if (! bad)
         {
           /* find free appropriate bucket in hash */
-          j = HASH((char *) &kmer, (k + 3) / 4) & uh->hash_mask;
-          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+          j = HASH((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
+          while((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
             {
-              j = (j + 1) & uh->hash_mask;
+              j = (j + 1) & unique_handle->hash_mask;
             }
 
-          if (! (uh->hash[j].count))
+          if (! (unique_handle->hash[j].count))
             {
               /* not seen before */
-              uh->list[unique++] = kmer;
-              uh->hash[j].kmer = kmer;
-              uh->hash[j].count = 1;
+              unique_handle->list[unique++] = kmer;
+              unique_handle->hash[j].kmer = kmer;
+              unique_handle->hash[j].count = 1;
             }
         }
     }
 
   *listlen = unique;
-  *list = uh->list;
+  *list = unique_handle->list;
 }
 
 auto unique_count(struct uhandle_s * unique_handle,
