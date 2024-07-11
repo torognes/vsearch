@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "attributes.h"
 #include "minheap.h"
+#include "udb.h"
 #include "unique.h"
 #include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64

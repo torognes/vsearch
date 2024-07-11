@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "minheap.h"
 #include "otutable.h"
+#include "udb.h"
 #include "unique.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t, int64_t

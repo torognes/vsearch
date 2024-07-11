@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "udb.h"
 #include "unique.h"
 #include <cassert>
 #include <cstdint>  // uint64_t
