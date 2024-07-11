@@ -58,38 +58,9 @@
 
 */
 
-#include <cstdint> // int64_t
-
 
 struct nwinfo_s;
 
 auto nw_init() -> struct nwinfo_s *;
 
 auto nw_exit(struct nwinfo_s * newick) -> void;
-
-auto nw_align(char * dseq,
-              char * dend,
-              char * qseq,
-              char * qend,
-              int64_t * score_matrix,
-              int64_t gapopen_q_left,
-              int64_t gapopen_q_interior,
-              int64_t gapopen_q_right,
-              int64_t gapopen_t_left,
-              int64_t gapopen_t_interior,
-              int64_t gapopen_t_right,
-              int64_t gapextend_q_left,
-              int64_t gapextend_q_interior,
-              int64_t gapextend_q_right,
-              int64_t gapextend_t_left,
-              int64_t gapextend_t_interior,
-              int64_t gapextend_t_right,
-              int64_t * nwscore,
-              int64_t * nwdiff,
-              int64_t * nwgaps,
-              int64_t * nwindels,
-              int64_t * nwalignmentlength,
-              char ** nwalignment,
-              int64_t queryno,
-              int64_t dbseqno,
-              struct nwinfo_s * newick) -> void;
