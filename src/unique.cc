@@ -126,8 +126,8 @@ auto unique_exit(struct uhandle_s * unique_handle) -> void
 
 auto unique_compare(const void * a, const void * b) -> int
 {
-  auto * x = (unsigned int*) a;
-  auto * y = (unsigned int*) b;
+  auto * x = (unsigned int *) a;
+  auto * y = (unsigned int *) b;
 
   if (x < y)
     {
