@@ -145,7 +145,7 @@ auto unique_compare(const void * a, const void * b) -> int
 }
 
 
-auto unique_count_bitmap(struct uhandle_s * uh,
+auto unique_count_bitmap(struct uhandle_s * unique_handle,
                          int k,
                          int seqlen,
                          char * seq,
@@ -155,27 +155,27 @@ auto unique_count_bitmap(struct uhandle_s * uh,
 {
   /* if necessary, reallocate list of unique kmers */
 
-  if (uh->alloc < seqlen)
+  if (unique_handle->alloc < seqlen)
     {
-      while (uh->alloc < seqlen)
+      while (unique_handle->alloc < seqlen)
         {
-          uh->alloc *= 2;
+          unique_handle->alloc *= 2;
         }
-      uh->list = (unsigned int *)
-        xrealloc(uh->list, sizeof(unsigned int) * uh->alloc);
+      unique_handle->list = (unsigned int *)
+        xrealloc(unique_handle->list, sizeof(unsigned int) * unique_handle->alloc);
     }
 
   uint64_t const size = 1ULL << (k << 1ULL);
 
   /* reallocate bitmap arrays if necessary */
 
-  if (uh->bitmap_size < size)
+  if (unique_handle->bitmap_size < size)
     {
-      uh->bitmap = (uint64_t *) xrealloc(uh->bitmap, size >> 3ULL);
-      uh->bitmap_size = size;
+      unique_handle->bitmap = (uint64_t *) xrealloc(unique_handle->bitmap, size >> 3ULL);
+      unique_handle->bitmap_size = size;
     }
 
-  memset(uh->bitmap, 0, size >> 3ULL);
+  memset(unique_handle->bitmap, 0, size >> 3ULL);
 
   uint64_t bad = 0;
   uint64_t kmer = 0;
@@ -213,17 +213,17 @@ auto unique_count_bitmap(struct uhandle_s * uh,
         {
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if (! (uh->bitmap[x] & y))
+          if (! (unique_handle->bitmap[x] & y))
             {
               /* not seen before */
-              uh->list[unique++] = kmer;
-              uh->bitmap[x] |= y;
+              unique_handle->list[unique++] = kmer;
+              unique_handle->bitmap[x] |= y;
             }
         }
     }
 
   *listlen = unique;
-  *list = uh->list;
+  *list = unique_handle->list;
 }
 
 auto unique_count_hash(struct uhandle_s * uh,
@@ -315,26 +315,26 @@ auto unique_count_hash(struct uhandle_s * uh,
   *list = uh->list;
 }
 
-auto unique_count(struct uhandle_s * uh,
-                  int k,
+auto unique_count(struct uhandle_s * unique_handle,
+                  int wordlength,
                   int seqlen,
                   char * seq,
                   unsigned int * listlen,
                   unsigned int * * list,
                   int seqmask) -> void
 {
-  if (k < 10)
+  if (wordlength < 10)
     {
-      unique_count_bitmap(uh, k, seqlen, seq, listlen, list, seqmask);
+      unique_count_bitmap(unique_handle, wordlength, seqlen, seq, listlen, list, seqmask);
     }
   else
     {
-      unique_count_hash(uh, k, seqlen, seq, listlen, list, seqmask);
+      unique_count_hash(unique_handle, wordlength, seqlen, seq, listlen, list, seqmask);
     }
 }
 
-auto unique_count_shared(struct uhandle_s * uh,
-                        int k,
+auto unique_count_shared(struct uhandle_s * unique_handle,
+                        int wordlength,
                         int listlen,
                         unsigned int * list) -> int
 {
@@ -342,14 +342,14 @@ auto unique_count_shared(struct uhandle_s * uh,
      (already computed) hash or bitmap */
 
   int count = 0;
-  if (k < 10)
+  if (wordlength < 10)
     {
       for (int i = 0; i < listlen; i++)
         {
           unsigned int const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if (uh->bitmap[x] & y)
+          if (unique_handle->bitmap[x] & y)
             {
               ++count;
             }
@@ -360,12 +360,12 @@ auto unique_count_shared(struct uhandle_s * uh,
       for (int i = 0; i < listlen; i++)
         {
           unsigned int kmer = list[i];
-          uint64_t j = HASH((char *) &kmer, (k + 3) / 4) & uh->hash_mask;
-          while((uh->hash[j].count) && (uh->hash[j].kmer != kmer))
+          uint64_t j = HASH((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
+          while((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
             {
-              j = (j + 1) & uh->hash_mask;
+              j = (j + 1) & unique_handle->hash_mask;
             }
-          if (uh->hash[j].count)
+          if (unique_handle->hash[j].count)
             {
               ++count;
             }
