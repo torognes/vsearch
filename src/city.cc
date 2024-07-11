@@ -30,7 +30,7 @@
 #include "config.h"
 #include <city.h>
 
-#include <algorithm>
+#include <algorithm>  // std::swap
 #include <cstdint>  // int32_t
 #include <cstring>  // std::memcpy, std::memset
 #include <utility> // std::pair, std::make_pair
