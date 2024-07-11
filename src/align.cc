@@ -161,25 +161,25 @@ inline auto finishop(char ** cigarendp, char * op, int * count) -> void
 
 auto nw_init() -> struct nwinfo_s *
 {
-  auto * nw = (struct nwinfo_s *) xmalloc(sizeof(struct nwinfo_s));
-  nw->dir = nullptr;
-  nw->dir_alloc = 0;
-  nw->hearray = nullptr;
-  nw->hearray_alloc = 0;
-  return nw;
+  auto * newick = (struct nwinfo_s *) xmalloc(sizeof(struct nwinfo_s));
+  newick->dir = nullptr;
+  newick->dir_alloc = 0;
+  newick->hearray = nullptr;
+  newick->hearray_alloc = 0;
+  return newick;
 }
 
-auto nw_exit(struct nwinfo_s * nw) -> void
+auto nw_exit(struct nwinfo_s * newick) -> void
 {
-  if (nw->dir)
+  if (newick->dir)
     {
-      xfree(nw->dir);
+      xfree(newick->dir);
     }
-  if (nw->hearray)
+  if (newick->hearray)
     {
-      xfree(nw->hearray);
+      xfree(newick->hearray);
     }
-  xfree(nw);
+  xfree(newick);
 }
 
 inline auto getscore(int64_t * score_matrix, char a, char b) -> int64_t
@@ -212,7 +212,7 @@ auto nw_align(char * dseq,
               char ** nwalignment,
               int64_t queryno,
               int64_t dbseqno,
-              struct nwinfo_s * nw) -> void
+              struct nwinfo_s * newick) -> void
 {
 
   int64_t h = 0;
@@ -226,36 +226,36 @@ auto nw_align(char * dseq,
   int64_t const qlen = qend - qseq;
   int64_t const dlen = dend - dseq;
 
-  if (qlen * dlen > nw->dir_alloc)
+  if (qlen * dlen > newick->dir_alloc)
     {
-      nw->dir_alloc = qlen * dlen;
-      nw->dir = (char *) xrealloc(nw->dir, (size_t) nw->dir_alloc);
+      newick->dir_alloc = qlen * dlen;
+      newick->dir = (char *) xrealloc(newick->dir, (size_t) newick->dir_alloc);
     }
 
   int64_t const need = 2 * qlen * (int64_t) sizeof(int64_t);
-  if (need > nw->hearray_alloc)
+  if (need > newick->hearray_alloc)
     {
-      nw->hearray_alloc = need;
-      nw->hearray = (int64_t *) xrealloc(nw->hearray, (size_t) nw->hearray_alloc);
+      newick->hearray_alloc = need;
+      newick->hearray = (int64_t *) xrealloc(newick->hearray, (size_t) newick->hearray_alloc);
     }
 
-  std::memset(nw->dir, 0, (size_t) (qlen * dlen));
+  std::memset(newick->dir, 0, (size_t) (qlen * dlen));
 
   int64_t i = 0;
   int64_t j = 0;
 
   for (i = 0; i < qlen; i++)
   {
-    nw->hearray[2 * i] = -gapopen_t_left - (i + 1) * gapextend_t_left;
+    newick->hearray[2 * i] = -gapopen_t_left - (i + 1) * gapextend_t_left;
     if (i < qlen-1)
       {
-        nw->hearray[(2 * i) + 1] =
+        newick->hearray[(2 * i) + 1] =
           - gapopen_t_left - (i + 1) * gapextend_t_left
           - gapopen_q_interior - gapextend_q_interior;
       }
     else
       {
-        nw->hearray[(2 * i) + 1] =
+        newick->hearray[(2 * i) + 1] =
           - gapopen_t_left - (i + 1) * gapextend_t_left
           - gapopen_q_right - gapextend_q_right;
       }
@@ -263,7 +263,7 @@ auto nw_align(char * dseq,
 
   for (j = 0; j < dlen; j++)
   {
-    hep = nw->hearray;
+    hep = newick->hearray;
 
     if (j == 0)
       {
@@ -287,7 +287,7 @@ auto nw_align(char * dseq,
 
     for (i = 0; i < qlen; i++)
     {
-      char * d = nw->dir + (qlen * j) + i;
+      char * d = newick->dir + (qlen * j) + i;
 
       n = *hep;
       e = *(hep + 1);
@@ -353,7 +353,7 @@ auto nw_align(char * dseq,
     }
   }
 
-  int64_t const dist = nw->hearray[(2 * qlen) - 2];
+  int64_t const dist = newick->hearray[(2 * qlen) - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -380,7 +380,7 @@ auto nw_align(char * dseq,
     int64_t const gapopen_t   = (j < dlen) ? gapopen_t_interior   : gapopen_t_right;
     int64_t const gapextend_t = (j < dlen) ? gapextend_t_interior : gapextend_t_right;
 
-    int const d = nw->dir[(qlen * (j - 1)) + (i - 1)];
+    int const d = newick->dir[(qlen * (j - 1)) + (i - 1)];
 
     ++alength;
 

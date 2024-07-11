@@ -65,7 +65,7 @@ struct nwinfo_s;
 
 auto nw_init() -> struct nwinfo_s *;
 
-auto nw_exit(struct nwinfo_s * nw) -> void;
+auto nw_exit(struct nwinfo_s * newick) -> void;
 
 auto nw_align(char * dseq,
               char * dend,
@@ -92,4 +92,4 @@ auto nw_align(char * dseq,
               char ** nwalignment,
               int64_t queryno,
               int64_t dbseqno,
-              struct nwinfo_s * nw) -> void;
+              struct nwinfo_s * newick) -> void;
