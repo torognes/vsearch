@@ -229,7 +229,6 @@
 #include "fastq.h"
 #include "dbhash.h"
 #include "kmerhash.h"
-#include "tax.h"
 
 /* options */
 
@@ -476,6 +475,7 @@ extern int64_t avx2_present;
 
 extern std::FILE * fp_log;
 
+constexpr auto tax_levels = 9;
 constexpr int64_t default_maxseqlength = 50000;
 constexpr int64_t default_ascii_offset = 33;
 constexpr char alternative_ascii_offset = 64;

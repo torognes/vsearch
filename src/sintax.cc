@@ -79,6 +79,7 @@
 
 #include "vsearch.h"
 #include "minheap.h"
+#include "tax.h"
 #include "udb.h"
 #include "unique.h"
 #include <cstdint>  // int64_t, uint64_t
