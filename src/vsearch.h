@@ -219,7 +219,6 @@
 #include "dbindex.h"
 #include "linmemalign.h"
 #include "searchcore.h"
-#include "userfields.h"
 #include "results.h"
 #include "mask.h"
 #include "chimera.h"
