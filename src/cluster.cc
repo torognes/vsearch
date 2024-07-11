@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "align.h"
 #include "minheap.h"
 #include "msa.h"
 #include "otutable.h"

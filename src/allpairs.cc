@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "align.h"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t

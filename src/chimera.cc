@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "align.h"
 #include "minheap.h"
 #include "unique.h"
 #include <cctype>  // std::tolower
