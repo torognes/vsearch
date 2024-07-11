@@ -79,6 +79,7 @@
 
 #include "vsearch.h"
 #include "minheap.h"
+#include "unique.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::memset, std::strncmp, std::strcpy

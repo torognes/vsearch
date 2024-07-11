@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "unique.h"
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose

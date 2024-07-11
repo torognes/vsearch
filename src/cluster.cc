@@ -62,6 +62,7 @@
 #include "minheap.h"
 #include "msa.h"
 #include "otutable.h"
+#include "unique.h"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // INT_MAX, LONG_MAX

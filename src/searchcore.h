@@ -61,6 +61,7 @@
 #include <array>
 #include <vector>
 
+struct uhandle_s;
 
 /* the number of alignments that can be delayed */
 constexpr auto MAXDELAYED = 8U;

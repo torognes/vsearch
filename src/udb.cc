@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "unique.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // UINT_MAX
 #include <cmath>

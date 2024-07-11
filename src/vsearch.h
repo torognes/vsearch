@@ -217,7 +217,6 @@
 #include "attributes.h"
 #include "db.h"
 #include "align.h"
-#include "unique.h"
 #include "bitmap.h"
 #include "dbindex.h"
 #include "linmemalign.h"

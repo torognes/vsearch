@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "unique.h"
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::memset

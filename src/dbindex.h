@@ -62,6 +62,7 @@
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 
+struct uhandle_s;
 
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
 extern uint64_t * kmerhash;  /* index into the list below for each kmer */
