@@ -169,7 +169,7 @@ auto swap(int * lhs, int * rhs) -> void
   *rhs = temp;
 }
 
-auto header_fprint_strip(FILE * fp,
+auto header_fprint_strip(FILE * output_handle,
                          char * header,
                          int header_length,
                          bool strip_size,
@@ -265,7 +265,7 @@ auto header_fprint_strip(FILE * fp,
 
   if (attributes == 0)
     {
-      fprintf(fp, "%.*s", header_length, header);
+      fprintf(output_handle, "%.*s", header_length, header);
     }
   else
     {
@@ -275,7 +275,7 @@ auto header_fprint_strip(FILE * fp,
           /* print part of header in front of this attribute */
           if (attribute_start[i] > prev_end + 1)
             {
-              fprintf(fp, "%.*s",
+              fprintf(output_handle, "%.*s",
                       attribute_start[i] - prev_end - 1,
                       header + prev_end);
             }
@@ -285,7 +285,7 @@ auto header_fprint_strip(FILE * fp,
       /* print the rest, if any */
       if (header_length > prev_end + 1)
         {
-          fprintf(fp, "%.*s",
+          fprintf(output_handle, "%.*s",
                   header_length - prev_end,
                   header + prev_end);
         }
