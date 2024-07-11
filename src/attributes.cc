@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::swap
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::atol
@@ -162,12 +163,6 @@ auto header_get_size(char * header, int header_length) -> int64_t
   return abundance;
 }
 
-auto swap(int * lhs, int * rhs) -> void
-{
-  int const temp = *lhs;
-  *lhs = *rhs;
-  *rhs = temp;
-}
 
 auto header_fprint_strip(FILE * output_handle,
                          char * header,
@@ -253,8 +248,8 @@ auto header_fprint_strip(FILE * output_handle,
         {
           if (attribute_start[i] > attribute_start[i + 1])
             {
-              swap(attribute_start + i, attribute_start + i + 1);
-              swap(attribute_end   + i, attribute_end   + i + 1);
+              std::swap(attribute_start[i], attribute_start[i + 1]);
+              std::swap(attribute_end[i], attribute_end[i + 1]);
               last_swap = i;
             }
         }
