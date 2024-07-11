@@ -33,7 +33,6 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
 export MACOSX_DEPLOYMENT_TARGET=10.9
 
 VSEARCHHEADERS=\
-align.h \
 align_simd.h \
 allpairs.h \
 arch.h \
@@ -136,7 +135,6 @@ endif
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
-align.cc \
 align_simd.cc \
 allpairs.cc \
 arch.cc \

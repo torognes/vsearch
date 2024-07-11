@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "align.h"
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
@@ -466,11 +465,6 @@ auto search_thread_init(struct searchinfo_s * si) -> void
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
-#ifdef COMPARENONVECTORIZED
-  si->nw = nw_init();
-#else
-  si->nw = nullptr;
-#endif
   si->s = search16_init(opt_match,
                         opt_mismatch,
                         opt_gap_open_query_left,
@@ -491,9 +485,6 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
   search16_exit(si->s);
-#ifdef COMPARENONVECTORIZED
-  nw_exit(si->nw);
-#endif
   unique_exit(si->uh);
   xfree(si->hits);
   minheap_exit(si->m);

@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "align.h"
 #include "minheap.h"
 #include "unique.h"
 #include <cctype>  // std::tolower
@@ -1690,7 +1689,6 @@ auto query_init(struct searchinfo_s * si) -> void
                         opt_gap_extension_target_interior,
                         opt_gap_extension_query_right,
                         opt_gap_extension_target_right);
-  si->nw = nw_init();
   si->m = minheap_init(tophits);
 }
 
@@ -1699,7 +1697,6 @@ auto query_exit(struct searchinfo_s * si) -> void
   search16_exit(si->s);
   unique_exit(si->uh);
   minheap_exit(si->m);
-  nw_exit(si->nw);
 
   if (si->qsequence)
     {

@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "align.h"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
@@ -306,8 +305,6 @@ auto allpairs_thread_run(int64_t t) -> void
   searchinfo.hits_v.resize(seqcount);
   searchinfo.hits = searchinfo.hits_v.data();
 
-  struct nwinfo_s * newick = nw_init();
-
   searchinfo.s = search16_init(opt_match,
                         opt_mismatch,
                         opt_gap_open_query_left,
@@ -536,8 +533,6 @@ auto allpairs_thread_run(int64_t t) -> void
     }
 
   search16_exit(searchinfo.s);
-
-  nw_exit(newick);
 
   xfree(scorematrix);
 }
