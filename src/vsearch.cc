@@ -71,6 +71,7 @@
 #include "fastq_join.h"
 #include "fastqops.h"
 #include "filter.h"
+#include "getseq.h"
 #include "mergepairs.h"
 #include "orient.h"
 #include "rereplicate.h"

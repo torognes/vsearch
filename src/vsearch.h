@@ -230,7 +230,6 @@
 #include "dbhash.h"
 #include "kmerhash.h"
 #include "tax.h"
-#include "getseq.h"
 
 /* options */
 
