@@ -306,7 +306,7 @@ auto allpairs_thread_run(int64_t t) -> void
   searchinfo.hits_v.resize(seqcount);
   searchinfo.hits = searchinfo.hits_v.data();
 
-  struct nwinfo_s * nw = nw_init();
+  struct nwinfo_s * newick = nw_init();
 
   searchinfo.s = search16_init(opt_match,
                         opt_mismatch,
@@ -537,7 +537,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
   search16_exit(searchinfo.s);
 
-  nw_exit(nw);
+  nw_exit(newick);
 
   xfree(scorematrix);
 }
