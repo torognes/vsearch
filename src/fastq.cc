@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "attributes.h"
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf
 #include <cstring>  // std::memcmp, std::memchr, std::strlen

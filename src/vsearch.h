@@ -214,7 +214,6 @@
 #include "xstring.h"
 #include "align_simd.h"
 #include "maps.h"
-#include "attributes.h"
 #include "db.h"
 #include "bitmap.h"
 #include "dbindex.h"
