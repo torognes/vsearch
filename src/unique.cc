@@ -107,21 +107,21 @@ auto unique_init() -> struct uhandle_s *
   return uh;
 }
 
-auto unique_exit(struct uhandle_s * uh) -> void
+auto unique_exit(struct uhandle_s * unique_handle) -> void
 {
-  if (uh->bitmap)
+  if (unique_handle->bitmap)
     {
-      xfree(uh->bitmap);
+      xfree(unique_handle->bitmap);
     }
-  if (uh->hash)
+  if (unique_handle->hash)
     {
-      xfree(uh->hash);
+      xfree(unique_handle->hash);
     }
-  if (uh->list)
+  if (unique_handle->list)
     {
-      xfree(uh->list);
+      xfree(unique_handle->list);
     }
-  xfree(uh);
+  xfree(unique_handle);
 }
 
 auto unique_compare(const void * a, const void * b) -> int

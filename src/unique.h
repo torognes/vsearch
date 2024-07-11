@@ -63,7 +63,7 @@ struct uhandle_s;
 
 auto unique_init() -> struct uhandle_s *;
 
-auto unique_exit(struct uhandle_s * u) -> void;
+auto unique_exit(struct uhandle_s * unique_handle) -> void;
 
 auto unique_count(struct uhandle_s * uh,
                   int k,
