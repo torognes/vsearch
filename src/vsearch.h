@@ -212,7 +212,6 @@
 #include "dynlibs.h"
 #include "util.h"
 #include "xstring.h"
-#include "align_simd.h"
 #include "maps.h"
 #include "db.h"
 #include "bitmap.h"

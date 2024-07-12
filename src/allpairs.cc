@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "align_simd.h"
 #include "mask.h"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t

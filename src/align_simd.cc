@@ -91,6 +91,9 @@ constexpr auto CDEPTH = 4;
   the linear memory aligner.
 */
 
+#include "align_simd.h"
+
+
 constexpr auto MAXSEQLENPRODUCT = 25000000LL;
 
 static int64_t scorematrix[16][16];
