@@ -714,24 +714,24 @@ auto udb_stats() -> void
         {
           fprintf(fp_log,
                   "%10u  ",
-                  freqtable[kmerhashsize-1-i].kmer);
+                  freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
                   "%.*s", MAX(12 - (int)(opt_wordlength), 0), "            ");
 
-          fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize-1-i].kmer);
+          fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
                   "  %10u  %10u",
                   0,
-                  freqtable[kmerhashsize-1-i].count);
+                  freqtable[kmerhashsize - 1 - i].count);
 
           fprintf(fp_log, " ");
 
-          for (unsigned j = 0; j < freqtable[kmerhashsize-1-i].count; j++)
+          for (unsigned j = 0; j < freqtable[kmerhashsize - 1 - i].count; j++)
             {
               fprintf(fp_log,
-                      " %u", kmerindex[kmerhash[freqtable[kmerhashsize-1-i].kmer]+j]);
+                      " %u", kmerindex[kmerhash[freqtable[kmerhashsize - 1 - i].kmer] + j]);
 
               if (j == 7)
                 {
@@ -759,7 +759,7 @@ auto udb_stats() -> void
       fprintf(fp_log, "Slots       %u\n", kmerhashsize);
       fprintf(fp_log, "Words       %" PRIu64 "\n", kmerindexsize);
       fprintf(fp_log, "Max size    %u (", wcmax);
-      fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize-1].kmer);
+      fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1].kmer);
       fprintf(fp_log, ")\n\n");
 
       fprintf(fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
