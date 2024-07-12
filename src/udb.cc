@@ -407,7 +407,7 @@ auto udb_read(const char * filename,
           fatal("Invalid UDB file");
         }
       seqindex[i].header_p = x;
-      seqindex[i].headerlen = header_index[i+1] - x - 1;
+      seqindex[i].headerlen = header_index[i + 1] - x - 1;
       seqindex[i].size = 1;
       last = x;
     }
