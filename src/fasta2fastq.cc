@@ -86,7 +86,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
 
   auto counter = 0;
-  while (fasta_next(fp_input, false, chrmap_no_change_array.data()))
+  while (fasta_next(fp_input, false, chrmap_no_change_vector.data()))
     {
       /* get sequence length and allocate more mem if necessary */
 

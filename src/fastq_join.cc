@@ -223,9 +223,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
   std::string reverse_quality;
   reverse_quality.reserve(bufferlength);
 
-  while (fastq_next(infiles.forward.handle, false, chrmap_no_change_array.data()))
+  while (fastq_next(infiles.forward.handle, false, chrmap_no_change_vector.data()))
     {
-      if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change_array.data()))
+      if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -311,7 +311,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  if (fastq_next(infiles.reverse.handle, false, chrmap_no_change_array.data()))
+  if (fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
     {
       fatal("More reverse reads than forward reads");
     }

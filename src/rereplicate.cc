@@ -88,7 +88,7 @@ auto rereplicate(struct Parameters & parameters) -> void
   int64_t missing = 0;
   int64_t n_reads = 0;
   auto const truncateatspace = not parameters.opt_notrunclabels;
-  while (fasta_next(file_handle, truncateatspace, chrmap_no_change_array.data()))
+  while (fasta_next(file_handle, truncateatspace, chrmap_no_change_vector.data()))
     {
       ++n_amplicons;
       int64_t abundance = fasta_get_abundance_and_presence(file_handle);
