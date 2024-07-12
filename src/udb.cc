@@ -431,9 +431,9 @@ auto udb_read(const char * filename,
 
   /* sequence lengths */
 
-  int * sequence_lengths = (int *) xmalloc(4 * seqcount);
+  std::vector<int> sequence_lengths(seqcount);
 
-  pos += largeread(fd_udb, sequence_lengths, 4 * seqcount, pos);
+  pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos);
 
   uint64_t sum = 0;
   unsigned int shortest = UINT_MAX;
@@ -465,7 +465,6 @@ auto udb_read(const char * filename,
         }
     }
 
-  xfree(sequence_lengths);
 
   if (sum != nucleotides)
     {
