@@ -940,9 +940,8 @@ auto udb_make() -> void
 
   progress_init("Writing UDB file", progress_all);
 
-  uint64_t const buffersize = 4 * MAX(50, seqcount);
-  auto * buffer = (unsigned int *) xmalloc(buffersize);
-  memset(buffer, 0, buffersize);
+  uint64_t const buffersize = MAX(50, seqcount);
+  std::vector<unsigned int> buffer(buffersize);
 
   /* Header */
   buffer[0]  = 0x55444246; /* FBDU UDBF */
@@ -954,21 +953,21 @@ auto udb_make() -> void
   buffer[13] = seqcount; /* number of sequences */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
-  pos += largewrite(fd_output, buffer, 50 * 4, 0);
+  pos += largewrite(fd_output, buffer.data(), 50 * 4, 0);
 
   /* write 4^wordlength uint32's with word match counts */
   pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos);
 
   /* 3BDU */
   buffer[0] = 0x55444233; /* 3BDU UDB3 */
-  pos += largewrite(fd_output, buffer, 1 * 4, pos);
+  pos += largewrite(fd_output, buffer.data(), 1 * 4, pos);
 
   /* lists of sequence no's with matches for all words */
   for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       if (kmerbitmap[i])
         {
-          memset(buffer, 0, 4 * kmercount[i]);
+          memset(buffer.data(), 0, 4 * kmercount[i]);
           unsigned int elements = 0;
           for (unsigned int j = 0; j < seqcount; j++)
             {
@@ -977,7 +976,7 @@ auto udb_make() -> void
                   buffer[elements++] = j;
                 }
             }
-          pos += largewrite(fd_output, buffer, 4 * elements, pos);
+          pos += largewrite(fd_output, buffer.data(), 4 * elements, pos);
         }
       else
         {
@@ -1005,7 +1004,7 @@ auto udb_make() -> void
   buffer[6] = (unsigned int) (header_characters >> 32U);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
-  pos += largewrite(fd_output, buffer, 4 * 8, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * 8, pos);
 
   /* indices to headers (uint32) */
   unsigned int sum = 0;
@@ -1014,7 +1013,7 @@ auto udb_make() -> void
       buffer[i] = sum;
       sum += db_getheaderlen(i) + 1;
     }
-  pos += largewrite(fd_output, buffer, 4 * seqcount, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
 
   /* headers (ascii, zero terminated, not padded) */
   for (unsigned int i = 0; i < seqcount; i++)
@@ -1028,7 +1027,7 @@ auto udb_make() -> void
     {
       buffer[i] = db_getsequencelen(i);
     }
-  pos += largewrite(fd_output, buffer, 4 * seqcount, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
 
   /* sequences (ascii, no term, no pad) */
   for (unsigned int i = 0; i < seqcount; i++)
@@ -1045,5 +1044,4 @@ auto udb_make() -> void
   progress_done();
   dbindex_free();
   db_free();
-  xfree(buffer);
 }
