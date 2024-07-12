@@ -382,7 +382,7 @@ auto sintax_query(int64_t t) -> void
   int const qseqlen = si_plus[t].qseqlen;
   char * query_head = si_plus[t].query_head;
 
-  bitmap_t * b = bitmap_init(qseqlen);
+  auto * b = bitmap_init(qseqlen);
 
   for (int s = 0; s < opt_strand; s++)
     {
