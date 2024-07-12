@@ -87,20 +87,20 @@ inline auto bitmap_reset_all(bitmap_t * a_bitmap) -> void
   std::memset(a_bitmap->bitmap, 0, size_in_bytes);
 }
 
-inline auto bitmap_set_all(bitmap_t * a_bitmap) -> void
-{
-  constexpr auto max_byte_value = 255;
-  constexpr auto n_bits_in_a_byte = 8U;
-  const auto size_in_bytes = (a_bitmap->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
-  std::memset(a_bitmap->bitmap, max_byte_value, size_in_bytes);
-}
+// inline auto bitmap_set_all(bitmap_t * a_bitmap) -> void
+// {
+//   constexpr auto max_byte_value = 255;
+//   constexpr auto n_bits_in_a_byte = 8U;
+//   const auto size_in_bytes = (a_bitmap->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
+//   std::memset(a_bitmap->bitmap, max_byte_value, size_in_bytes);
+// }
 
-inline auto bitmap_reset(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
-{
-  constexpr auto mask_111 = 7U;
-  constexpr auto divider = 3U;  // divide by 8
-  a_bitmap->bitmap[seed_value >> divider] &= ~ (1U << (seed_value & mask_111));
-}
+// inline auto bitmap_reset(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
+// {
+//   constexpr auto mask_111 = 7U;
+//   constexpr auto divider = 3U;  // divide by 8
+//   a_bitmap->bitmap[seed_value >> divider] &= ~ (1U << (seed_value & mask_111));
+// }
 
 inline auto bitmap_set(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
 {
@@ -109,9 +109,9 @@ inline auto bitmap_set(bitmap_t * a_bitmap, unsigned int const seed_value) -> vo
   a_bitmap->bitmap[seed_value >> divider] |= 1U << (seed_value & mask_111);
 }
 
-inline auto bitmap_flip(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
-{
-  constexpr auto mask_111 = 7U;
-  constexpr auto divider = 3U;  // divide by 8
-  a_bitmap->bitmap[seed_value >> divider] ^= 1U << (seed_value & mask_111);
-}
+// inline auto bitmap_flip(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
+// {
+//   constexpr auto mask_111 = 7U;
+//   constexpr auto divider = 3U;  // divide by 8
+//   a_bitmap->bitmap[seed_value >> divider] ^= 1U << (seed_value & mask_111);
+// }
