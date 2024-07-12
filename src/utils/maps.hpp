@@ -58,6 +58,9 @@
 
 */
 
+#ifndef MAPS_HPP
+#define MAPS_HPP
+
 #include <array>
 #include <vector>
 
@@ -96,145 +99,12 @@ const std::array<unsigned char, 256> chrmap_no_change_array = {
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'};
 
 
-const std::vector<unsigned char> chrmap_4bit_vector =
-  {
-    /*
-      Map from ascii to 4-bit nucleotide code
+extern const std::vector<unsigned char> chrmap_4bit_vector;
 
-      Aa:  1    0001
-      Bb: 14    1110   ex: 'B' & 'A' == 0000 while 'B' & anyother != 0000
-      Cc:  2    0010
-      Dd: 13    1101
-      Gg:  4    0100
-      Hh: 11    1011
-      Kk: 12    1100
-      Mm:  3    0011
-      Nn: 15    1111   ex: 'N' & any != 0000
-      Rr:  5    0101
-      Ss:  6    0110
-      Tt:  8    1000
-      Uu:  8    1000
-      Vv:  7    0111
-      Ww:  9    1001
-      Yy: 10    1010   ex: 'Y' & 'C' or 'T' == 0000
-      Others: 0
+extern const std::vector<unsigned char> chrmap_complement_vector;
 
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
+extern const std::vector<unsigned char> chrmap_normalize_vector;
 
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  1, 14,  2, 13,  0,  0,  4, 11,  0,  0, 12,  0,  3, 15,  0,
-     0,  0,  5,  6,  8,  8,  7,  9,  0, 10,  0,  0,  0,  0,  0,  0,
-     0,  1, 14,  2, 13,  0,  0,  4, 11,  0,  0, 12,  0,  3, 15,  0,
-     0,  0,  5,  6,  8,  8,  7,  9,  0, 10,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-  };
+extern const std::vector<unsigned char> chrmap_upcase_vector;
 
-
-const std::vector<unsigned char> chrmap_complement_vector =
-  {
-    /*
-
-      Map from ascii to ascii, complementary nucleotide
-
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','T','V','G','H','N','N','C','D','N','N','M','N','K','N','N',
-    'N','N','Y','S','A','A','B','W','N','R','N','N','N','N','N','N',
-    'N','t','v','g','h','N','N','c','d','N','N','m','N','k','n','N',
-    'N','N','y','s','a','a','b','w','N','r','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
-
-
-const std::vector<unsigned char> chrmap_normalize_vector =
-  {
-    /*
-
-      Map from ascii to ascii
-      Convert to upper case nucleotide, and replace U by T
-
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
-    'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
-    'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
-    'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
-
-
-const std::vector<unsigned char> chrmap_upcase_vector =
-  {
-    /*
-
-      Map from ascii to ascii
-      Convert to upper case nucleotide
-
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
-    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
-    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
-    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
+#endif // MAPS_HPP

@@ -188,5 +188,6 @@ udb.cc \
 unique.cc \
 userfields.cc \
 util.cc \
+utils/maps.cpp \
 utils/seqcmp.cc \
 vsearch.cc
