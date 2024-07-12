@@ -61,7 +61,7 @@
 #include "vsearch.h"
 
 
-auto bitmap_init(unsigned int size) -> bitmap_t *
+auto bitmap_init(unsigned int const size) -> bitmap_t *
 {
   auto * b = (bitmap_t *) xmalloc(sizeof(bitmap_t));
   b->size = size;
