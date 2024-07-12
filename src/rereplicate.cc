@@ -1,4 +1,3 @@
-
 /*
 
   VSEARCH: a versatile open source tool for metagenomics
