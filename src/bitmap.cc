@@ -62,16 +62,16 @@
 #include <cstring> // std::memset
 
 
-auto bitmap_init(unsigned int const size) -> bitmap_t *
+auto bitmap_init(unsigned int const size) -> struct bitmap_s *
 {
-  auto * b = (bitmap_t *) xmalloc(sizeof(bitmap_t));
+  auto * b = (struct bitmap_s *) xmalloc(sizeof(struct bitmap_s));
   b->size = size;
   b->bitmap = (unsigned char *) xmalloc((size + 7) / 8);
   return b;
 }
 
 
-auto bitmap_get(bitmap_t * a_bitmap, unsigned int const seed_value) -> unsigned char
+auto bitmap_get(struct bitmap_s * a_bitmap, unsigned int const seed_value) -> unsigned char
 {
   constexpr auto mask_111 = 7U;
   constexpr auto divider = 3U;  // divide by 8
@@ -79,7 +79,7 @@ auto bitmap_get(bitmap_t * a_bitmap, unsigned int const seed_value) -> unsigned 
 }
 
 
-auto bitmap_reset_all(bitmap_t * a_bitmap) -> void
+auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void
 {
   constexpr auto n_bits_in_a_byte = 8U;
   const auto size_in_bytes = (a_bitmap->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
@@ -87,7 +87,7 @@ auto bitmap_reset_all(bitmap_t * a_bitmap) -> void
 }
 
 
-auto bitmap_set(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
+auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int const seed_value) -> void
 {
   constexpr auto mask_111 = 7U;
   constexpr auto divider = 3U;  // divide by 8
@@ -95,7 +95,7 @@ auto bitmap_set(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
 }
 
 
-auto bitmap_free(bitmap_t * a_bitmap) -> void
+auto bitmap_free(struct bitmap_s * a_bitmap) -> void
 {
   if (a_bitmap->bitmap)
     {
