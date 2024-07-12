@@ -69,6 +69,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memset, std::memmove
+#include <vector>
 
 
 constexpr auto blocksize = 4096U * 4096U;
@@ -392,9 +393,9 @@ auto udb_read(const char * filename,
 
   seqindex = (seqinfo_t *) xmalloc(seqcount * sizeof(seqinfo_t));
 
-  int * header_index = (int *) xmalloc(4 * (seqcount+1));
+  std::vector<int> header_index(seqcount + 1);
 
-  pos += largeread(fd_udb, header_index, 4 * seqcount, pos);
+  pos += largeread(fd_udb, header_index.data(), 4 * seqcount, pos);
 
   header_index[seqcount] = udb_headerchars;
 
@@ -412,7 +413,6 @@ auto udb_read(const char * filename,
       last = x;
     }
 
-  xfree(header_index);
 
   /* headers */
 
