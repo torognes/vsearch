@@ -58,6 +58,6 @@
 
 */
 
-const int maxparents = 20; /* max, could be fewer */
+constexpr auto maxparents = 20; /* max, could be fewer */
 
 auto chimera() -> void;
