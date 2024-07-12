@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "mask.h"
 #include <array>
 #include <cctype>  // std::toupper, std::isupper
 #include <cstdint>  // int64_t, uint64_t

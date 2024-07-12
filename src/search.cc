@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "mask.h"
 #include "minheap.h"
 #include "otutable.h"
 #include "udb.h"

@@ -220,7 +220,6 @@
 #include "linmemalign.h"
 #include "searchcore.h"
 #include "results.h"
-#include "mask.h"
 #include "chimera.h"
 #include "cpu.h"
 #include "fastx.h"

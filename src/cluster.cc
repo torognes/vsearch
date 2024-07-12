@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "attributes.h"
+#include "mask.h"
 #include "minheap.h"
 #include "msa.h"
 #include "otutable.h"

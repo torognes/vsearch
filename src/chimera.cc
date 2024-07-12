@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "attributes.h"
+#include "mask.h"
 #include "minheap.h"
 #include "udb.h"
 #include "unique.h"

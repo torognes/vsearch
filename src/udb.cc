@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "attributes.h"
+#include "mask.h"
 #include "unique.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // UINT_MAX
