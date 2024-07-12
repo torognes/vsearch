@@ -659,8 +659,7 @@ auto udb_stats() -> void
 
   /* analyze word counts */
 
-  auto * freqtable = (wordfreq_t *) xmalloc
-    (sizeof(wordfreq_t) * kmerhashsize);
+  std::vector<wordfreq_t> freqtable(kmerhashsize);
 
   for (unsigned int i = 0; i < kmerhashsize; i++)
     {
@@ -668,7 +667,7 @@ auto udb_stats() -> void
       freqtable[i].count = kmercount[i];
     }
 
-  qsort(freqtable, kmerhashsize, sizeof(wordfreq_t), wc_compare);
+  qsort(freqtable.data(), kmerhashsize, sizeof(wordfreq_t), wc_compare);
 
   unsigned int const wcmax = freqtable[kmerhashsize-1].count;
   unsigned int const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
@@ -877,7 +876,6 @@ auto udb_stats() -> void
       fprintf(fp_log, "%10" PRIu64 "  Indexed words\n", kmerindexsize);
     }
 
-  xfree(freqtable);
   dbindex_free();
   db_free();
 }
