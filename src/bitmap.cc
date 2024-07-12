@@ -69,11 +69,11 @@ auto bitmap_init(unsigned int size) -> bitmap_t *
   return b;
 }
 
-auto bitmap_free(bitmap_t * b) -> void
+auto bitmap_free(bitmap_t * a_bitmap) -> void
 {
-  if (b->bitmap)
+  if (a_bitmap->bitmap)
     {
-      xfree(b->bitmap);
+      xfree(a_bitmap->bitmap);
     }
-  xfree(b);
+  xfree(a_bitmap);
 }
