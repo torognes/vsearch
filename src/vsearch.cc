@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "allpairs.h"
+#include "chimera.h"
 #include "cluster.h"
 #include "cut.h"
 #include "derep.h"
