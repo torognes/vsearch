@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <cstring> // std::memset
 
 
 auto bitmap_init(unsigned int const size) -> bitmap_t *
@@ -68,6 +69,31 @@ auto bitmap_init(unsigned int const size) -> bitmap_t *
   b->bitmap = (unsigned char *) xmalloc((size + 7) / 8);
   return b;
 }
+
+
+auto bitmap_get(bitmap_t * a_bitmap, unsigned int const seed_value) -> unsigned char
+{
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  return (a_bitmap->bitmap[seed_value >> divider] >> (seed_value & mask_111)) & 1U;
+}
+
+
+auto bitmap_reset_all(bitmap_t * a_bitmap) -> void
+{
+  constexpr auto n_bits_in_a_byte = 8U;
+  const auto size_in_bytes = (a_bitmap->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
+  std::memset(a_bitmap->bitmap, 0, size_in_bytes);
+}
+
+
+auto bitmap_set(bitmap_t * a_bitmap, unsigned int const seed_value) -> void
+{
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  a_bitmap->bitmap[seed_value >> divider] |= 1U << (seed_value & mask_111);
+}
+
 
 auto bitmap_free(bitmap_t * a_bitmap) -> void
 {
