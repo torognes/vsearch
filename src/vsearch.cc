@@ -65,6 +65,7 @@
 #include "derep.h"
 #include "derep_prefix.h"
 #include "derep_smallmem.h"
+#include "dynlibs.h"
 #include "eestats.h"
 #include "fasta2fastq.h"
 #include "fastq_chars.h"

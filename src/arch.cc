@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "dynlibs.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::realloc, std::free

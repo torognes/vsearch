@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "dynlibs.h"
 #include <cstdio>  // std::FILE
 
 
