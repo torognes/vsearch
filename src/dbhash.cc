@@ -63,7 +63,7 @@
 #include <cstring>  // std::memset
 
 
-static bitmap_t * dbhash_bitmap;
+static struct bitmap_s * dbhash_bitmap;
 static uint64_t dbhash_size;
 static unsigned int dbhash_shift;
 static uint64_t dbhash_mask;
