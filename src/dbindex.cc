@@ -68,7 +68,7 @@
 unsigned int * kmercount;
 uint64_t * kmerhash;
 unsigned int * kmerindex;
-bitmap_t * * kmerbitmap;
+struct bitmap_s * * kmerbitmap;
 unsigned int * dbindex_map;
 unsigned int kmerhashsize;
 uint64_t kmerindexsize;
