@@ -78,6 +78,7 @@
 */
 
 #include "vsearch.h"
+#include "bitmap.h"
 #include "mask.h"
 #include "minheap.h"
 #include "tax.h"

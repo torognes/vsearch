@@ -58,12 +58,16 @@
 
 */
 
+#ifndef BITMAP_S
+#define BITMAP_S
 
 struct bitmap_s
 {
   unsigned char * bitmap; /* the actual bitmap */
   unsigned int size;      /* size in bits */
 };
+
+#endif // BITMAP_S
 
 
 auto bitmap_init(unsigned int size) -> struct bitmap_s *;
