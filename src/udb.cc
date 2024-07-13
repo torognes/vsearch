@@ -346,9 +346,9 @@ auto udb_read(const char * filename,
   kmerhashsize = 1U << (2 * udb_wordlength);
   kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
   kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
-  kmerbitmap = (bitmap_t * *) xmalloc(kmerhashsize * sizeof(bitmap_t **));
+  kmerbitmap = (struct bitmap_s * *) xmalloc(kmerhashsize * sizeof(struct bitmap_s **));
 
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t **));
+  memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
 
   pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos);
 

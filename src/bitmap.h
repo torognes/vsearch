@@ -65,7 +65,6 @@ struct bitmap_s
   unsigned int size;      /* size in bits */
 };
 
-using bitmap_t = struct bitmap_s;
 
 auto bitmap_init(unsigned int size) -> struct bitmap_s *;
 

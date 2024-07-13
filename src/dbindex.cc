@@ -177,8 +177,8 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
     }
 
   /* allocate and zero bitmap pointers */
-  kmerbitmap = (bitmap_t **) xmalloc(kmerhashsize * sizeof(bitmap_t *));
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t *));
+  kmerbitmap = (struct bitmap_s **) xmalloc(kmerhashsize * sizeof(struct bitmap_s *));
+  memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s *));
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */

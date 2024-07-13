@@ -67,7 +67,7 @@ struct uhandle_s;
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
 extern uint64_t * kmerhash;  /* index into the list below for each kmer */
 extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
-extern bitmap_t * * kmerbitmap;
+extern struct bitmap_s * * kmerbitmap;
 extern unsigned int * dbindex_map;
 extern unsigned int dbindex_count;
 extern unsigned int kmerhashsize;
