@@ -88,7 +88,7 @@ auto fastq_fatal(uint64_t lineno, const char * msg) -> void
 }
 
 
-auto buffer_filter_extend(fastx_handle h,
+auto buffer_filter_extend(fastx_handle input_handle,
                           struct fastx_buffer_s * dest_buffer,
                           char * source_buf,
                           uint64_t len,
@@ -116,8 +116,8 @@ auto buffer_filter_extend(fastx_handle h,
         {
         case 0:
           /* stripped */
-          h->stripped_all++;
-          h->stripped[(unsigned char) c]++;
+          input_handle->stripped_all++;
+          input_handle->stripped[(unsigned char) c]++;
           break;
 
         case 1:
@@ -163,9 +163,9 @@ auto fastq_open(const char * filename) -> fastx_handle
 }
 
 
-auto fastq_close(fastx_handle h) -> void
+auto fastq_close(fastx_handle input_handle) -> void
 {
-  fastx_close(h);
+  fastx_close(input_handle);
 }
 
 
