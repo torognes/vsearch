@@ -152,14 +152,14 @@ auto buffer_filter_extend(fastx_handle h,
 
 auto fastq_open(const char * filename) -> fastx_handle
 {
-  fastx_handle h = fastx_open(filename);
+  auto input_handle = fastx_open(filename);
 
-  if (! fastx_is_fastq(h))
+  if (! fastx_is_fastq(input_handle))
     {
       fatal("FASTQ file expected, FASTA file found (%s)", filename);
     }
 
-  return h;
+  return input_handle;
 }
 
 
