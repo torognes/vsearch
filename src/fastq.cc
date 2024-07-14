@@ -632,9 +632,9 @@ auto fastq_print_general(FILE * fp,
 }
 
 
-auto fastq_print(FILE * fp, char * header, char * sequence, char * quality) -> void
+auto fastq_print(std::FILE * fp, char * header, char * sequence, char * quality) -> void
 {
-  int const slen = strlen(sequence);
-  int const hlen = strlen(header);
+  int const slen = std::strlen(sequence);
+  int const hlen = std::strlen(header);
   fastq_print_general(fp, sequence, slen, header, hlen, quality, 0, 0, -1.0);
 }
