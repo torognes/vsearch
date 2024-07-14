@@ -97,7 +97,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
                           bool * ok,
                           char * illegal_char) -> void
 {
-  buffer_makespace(dest_buffer, len+1);
+  buffer_makespace(dest_buffer, len + 1);
 
   /* Strip unwanted characters from the string and raise warnings or
      errors on certain characters. */
