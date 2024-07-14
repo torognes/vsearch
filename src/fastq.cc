@@ -529,10 +529,10 @@ auto fastq_get_abundance_and_presence(fastx_handle h) -> int64_t
 }
 
 
-inline auto fprint_seq_label(FILE * output_handle, char * seq, int len) -> void
+inline auto fprint_seq_label(std::FILE * output_handle, char * seq, int len) -> void
 {
   /* normalize first? */
-  fprintf(output_handle, "%.*s", len, seq);
+  std::fprintf(output_handle, "%.*s", len, seq);
 }
 
 
@@ -546,7 +546,7 @@ auto fastq_print_general(FILE * output_handle,
                          int ordinal,
                          double ee) -> void
 {
-  fprintf(output_handle, "@");
+  std::fprintf(output_handle, "@");
 
   if (opt_relabel_self)
     {
@@ -562,7 +562,7 @@ auto fastq_print_general(FILE * output_handle,
     }
   else if (opt_relabel && (ordinal > 0))
     {
-      fprintf(output_handle, "%s%d", opt_relabel, ordinal);
+      std::fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
   else
     {
@@ -579,56 +579,56 @@ auto fastq_print_general(FILE * output_handle,
 
   if (opt_label_suffix)
     {
-      fprintf(output_handle, "%s", opt_label_suffix);
+      std::fprintf(output_handle, "%s", opt_label_suffix);
     }
 
   if (opt_sample)
     {
-      fprintf(output_handle, ";sample=%s", opt_sample);
+      std::fprintf(output_handle, ";sample=%s", opt_sample);
     }
 
   if (opt_sizeout && (abundance > 0))
     {
-      fprintf(output_handle, ";size=%u", abundance);
+      std::fprintf(output_handle, ";size=%u", abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
     {
       if (ee < 0.000000001) {
-        fprintf(output_handle, ";ee=%.13lf", ee);
+        std::fprintf(output_handle, ";ee=%.13lf", ee);
       } else if (ee < 0.00000001) {
-        fprintf(output_handle, ";ee=%.12lf", ee);
+        std::fprintf(output_handle, ";ee=%.12lf", ee);
       } else if (ee < 0.0000001) {
-        fprintf(output_handle, ";ee=%.11lf", ee);
+        std::fprintf(output_handle, ";ee=%.11lf", ee);
       } else if (ee < 0.000001) {
-        fprintf(output_handle, ";ee=%.10lf", ee);
+        std::fprintf(output_handle, ";ee=%.10lf", ee);
       } else if (ee < 0.00001) {
-        fprintf(output_handle, ";ee=%.9lf", ee);
+        std::fprintf(output_handle, ";ee=%.9lf", ee);
       } else if (ee < 0.0001) {
-        fprintf(output_handle, ";ee=%.8lf", ee);
+        std::fprintf(output_handle, ";ee=%.8lf", ee);
       } else if (ee < 0.001) {
-        fprintf(output_handle, ";ee=%.7lf", ee);
+        std::fprintf(output_handle, ";ee=%.7lf", ee);
       } else if (ee < 0.01) {
-        fprintf(output_handle, ";ee=%.6lf", ee);
+        std::fprintf(output_handle, ";ee=%.6lf", ee);
       } else if (ee < 0.1) {
-        fprintf(output_handle, ";ee=%.5lf", ee);
+        std::fprintf(output_handle, ";ee=%.5lf", ee);
       } else {
-        fprintf(output_handle, ";ee=%.4lf", ee);
+        std::fprintf(output_handle, ";ee=%.4lf", ee);
       }
     }
 
   if (opt_lengthout)
     {
-      fprintf(output_handle, ";length=%d", len);
+      std::fprintf(output_handle, ";length=%d", len);
     }
 
   if (opt_relabel_keep &&
       ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     {
-      fprintf(output_handle, " %.*s", header_len, header);
+      std::fprintf(output_handle, " %.*s", header_len, header);
     }
 
-  fprintf(output_handle, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
+  std::fprintf(output_handle, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
 }
 
 
