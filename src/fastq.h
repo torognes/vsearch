@@ -62,28 +62,28 @@
 #include <cstdint>  // uint64_t
 
 
-auto fastq_open_rest(fastx_handle h) -> void;
+auto fastq_open_rest(fastx_handle input_handle) -> void;
 auto fastq_open(const char * filename) -> fastx_handle;
-auto fastq_close(fastx_handle h) -> void;
-auto fastq_next(fastx_handle h,
+auto fastq_close(fastx_handle input_handle) -> void;
+auto fastq_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;
-auto fastq_get_position(fastx_handle h) -> uint64_t;
-auto fastq_get_size(fastx_handle h) -> uint64_t;
-auto fastq_get_lineno(fastx_handle h) -> uint64_t;
-auto fastq_get_seqno(fastx_handle h) -> uint64_t;
-auto fastq_get_header(fastx_handle h) -> char *;
-auto fastq_get_sequence(fastx_handle h) -> char *;
-auto fastq_get_quality(fastx_handle h) -> char *;
-auto fastq_get_abundance(fastx_handle h) -> int64_t;
-auto fastq_get_abundance_and_presence(fastx_handle h) -> int64_t;
-auto fastq_get_header_length(fastx_handle h) -> uint64_t;
-auto fastq_get_sequence_length(fastx_handle h) -> uint64_t;
-auto fastq_get_quality_length(fastx_handle h) -> uint64_t;
+auto fastq_get_position(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_size(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_lineno(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_seqno(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_header(fastx_handle input_handle) -> char *;
+auto fastq_get_sequence(fastx_handle input_handle) -> char *;
+auto fastq_get_quality(fastx_handle input_handle) -> char *;
+auto fastq_get_abundance(fastx_handle input_handle) -> int64_t;
+auto fastq_get_abundance_and_presence(fastx_handle input_handle) -> int64_t;
+auto fastq_get_header_length(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_sequence_length(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_quality_length(fastx_handle input_handle) -> uint64_t;
 
-auto fastq_print(std::FILE * fp, char * header, char * sequence, char * quality) -> void;
+auto fastq_print(std::FILE * output_handle, char * header, char * sequence, char * quality) -> void;
 
-auto fastq_print_general(std::FILE * fp,
+auto fastq_print_general(std::FILE * output_handle,
                          char * seq,
                          int len,
                          char * header,
