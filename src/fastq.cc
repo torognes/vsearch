@@ -188,7 +188,7 @@ auto fastq_next(fastx_handle h,
   auto ok = true;
   char illegal_char = '\0';
 
-  uint64_t rest = fastx_file_fill_buffer(h);
+  auto rest = fastx_file_fill_buffer(h);
 
   /* check end of file */
 
