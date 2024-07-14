@@ -536,7 +536,7 @@ inline auto fprint_seq_label(FILE * fp, char * seq, int len) -> void
 }
 
 
-auto fastq_print_general(FILE * fp,
+auto fastq_print_general(FILE * output_handle,
                          char * seq,
                          int len,
                          char * header,
@@ -546,30 +546,30 @@ auto fastq_print_general(FILE * fp,
                          int ordinal,
                          double ee) -> void
 {
-  fprintf(fp, "@");
+  fprintf(output_handle, "@");
 
   if (opt_relabel_self)
     {
-      fprint_seq_label(fp, seq, len);
+      fprint_seq_label(output_handle, seq, len);
     }
   else if (opt_relabel_sha1)
     {
-      fprint_seq_digest_sha1(fp, seq, len);
+      fprint_seq_digest_sha1(output_handle, seq, len);
     }
   else if (opt_relabel_md5)
     {
-      fprint_seq_digest_md5(fp, seq, len);
+      fprint_seq_digest_md5(output_handle, seq, len);
     }
   else if (opt_relabel && (ordinal > 0))
     {
-      fprintf(fp, "%s%d", opt_relabel, ordinal);
+      fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
   else
     {
       bool const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
       bool const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
       bool const xlength = opt_xlength || opt_lengthout;
-      header_fprint_strip(fp,
+      header_fprint_strip(output_handle,
                           header,
                           header_len,
                           xsize,
@@ -579,62 +579,62 @@ auto fastq_print_general(FILE * fp,
 
   if (opt_label_suffix)
     {
-      fprintf(fp, "%s", opt_label_suffix);
+      fprintf(output_handle, "%s", opt_label_suffix);
     }
 
   if (opt_sample)
     {
-      fprintf(fp, ";sample=%s", opt_sample);
+      fprintf(output_handle, ";sample=%s", opt_sample);
     }
 
   if (opt_sizeout && (abundance > 0))
     {
-      fprintf(fp, ";size=%u", abundance);
+      fprintf(output_handle, ";size=%u", abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
     {
       if (ee < 0.000000001) {
-        fprintf(fp, ";ee=%.13lf", ee);
+        fprintf(output_handle, ";ee=%.13lf", ee);
       } else if (ee < 0.00000001) {
-        fprintf(fp, ";ee=%.12lf", ee);
+        fprintf(output_handle, ";ee=%.12lf", ee);
       } else if (ee < 0.0000001) {
-        fprintf(fp, ";ee=%.11lf", ee);
+        fprintf(output_handle, ";ee=%.11lf", ee);
       } else if (ee < 0.000001) {
-        fprintf(fp, ";ee=%.10lf", ee);
+        fprintf(output_handle, ";ee=%.10lf", ee);
       } else if (ee < 0.00001) {
-        fprintf(fp, ";ee=%.9lf", ee);
+        fprintf(output_handle, ";ee=%.9lf", ee);
       } else if (ee < 0.0001) {
-        fprintf(fp, ";ee=%.8lf", ee);
+        fprintf(output_handle, ";ee=%.8lf", ee);
       } else if (ee < 0.001) {
-        fprintf(fp, ";ee=%.7lf", ee);
+        fprintf(output_handle, ";ee=%.7lf", ee);
       } else if (ee < 0.01) {
-        fprintf(fp, ";ee=%.6lf", ee);
+        fprintf(output_handle, ";ee=%.6lf", ee);
       } else if (ee < 0.1) {
-        fprintf(fp, ";ee=%.5lf", ee);
+        fprintf(output_handle, ";ee=%.5lf", ee);
       } else {
-        fprintf(fp, ";ee=%.4lf", ee);
+        fprintf(output_handle, ";ee=%.4lf", ee);
       }
     }
 
   if (opt_lengthout)
     {
-      fprintf(fp, ";length=%d", len);
+      fprintf(output_handle, ";length=%d", len);
     }
 
   if (opt_relabel_keep &&
       ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     {
-      fprintf(fp, " %.*s", header_len, header);
+      fprintf(output_handle, " %.*s", header_len, header);
     }
 
-  fprintf(fp, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
+  fprintf(output_handle, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
 }
 
 
-auto fastq_print(std::FILE * fp, char * header, char * sequence, char * quality) -> void
+auto fastq_print(std::FILE * output_handle, char * header, char * sequence, char * quality) -> void
 {
   int const slen = std::strlen(sequence);
   int const hlen = std::strlen(header);
-  fastq_print_general(fp, sequence, slen, header, hlen, quality, 0, 0, -1.0);
+  fastq_print_general(output_handle, sequence, slen, header, hlen, quality, 0, 0, -1.0);
 }
