@@ -185,8 +185,8 @@ auto fastq_next(fastx_handle h,
   h->lineno_start = h->lineno;
 
   char msg[200];
-  bool ok = true;
-  char illegal_char = 0;
+  auto ok = true;
+  char illegal_char = '\0';
 
   uint64_t rest = fastx_file_fill_buffer(h);
 
@@ -509,7 +509,7 @@ auto fastq_get_sequence(fastx_handle h) -> char *
 auto fastq_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
-  int64_t const size = header_get_size(h->header_buffer.data,
+  auto const size = header_get_size(h->header_buffer.data,
                                  h->header_buffer.length);
   if (size > 0)
     {
@@ -566,9 +566,9 @@ auto fastq_print_general(FILE * output_handle,
     }
   else
     {
-      bool const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      bool const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      bool const xlength = opt_xlength || opt_lengthout;
+      auto const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
+      auto const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      auto const xlength = opt_xlength || opt_lengthout;
       header_fprint_strip(output_handle,
                           header,
                           header_len,
