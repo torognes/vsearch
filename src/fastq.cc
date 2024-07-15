@@ -170,7 +170,7 @@ auto fastq_close(fastx_handle input_handle) -> void
 
 
 auto fastq_next(fastx_handle input_handle,
-                bool truncateatspace,
+                bool const truncateatspace,
                 const unsigned char * char_mapping) -> bool
 {
   input_handle->header_buffer.length = 0;
