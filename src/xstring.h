@@ -102,10 +102,7 @@ class xstring
       {
         return string;
       }
-    else
-      {
-        return empty_string.data();
-      }
+    return empty_string.data();
   }
 
   auto get_length() const -> std::size_t
