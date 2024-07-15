@@ -68,7 +68,7 @@
 auto fastq_fatal(uint64_t lineno, const char * msg) -> void
 {
   char * string = nullptr;
-  if (xsprintf(& string,
+  if (xsprintf(&string,
                "Invalid line %lu in FASTQ file: %s",
                lineno,
                msg) == -1)
@@ -231,7 +231,7 @@ auto fastq_next(fastx_handle input_handle,
           len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           input_handle->lineno++;
         }
-      buffer_extend(& input_handle->header_buffer,
+      buffer_extend(&input_handle->header_buffer,
                     input_handle->file_buffer.data + input_handle->file_buffer.position,
                     len);
       input_handle->file_buffer.position += len;
@@ -271,11 +271,11 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       buffer_filter_extend(input_handle,
-                           & input_handle->sequence_buffer,
+                           &input_handle->sequence_buffer,
                            input_handle->file_buffer.data + input_handle->file_buffer.position,
                            len,
                            char_fq_action_seq, char_mapping,
-                           & ok, & illegal_char);
+                           &ok, &illegal_char);
       input_handle->file_buffer.position += len;
       rest -= len;
 
@@ -329,7 +329,7 @@ auto fastq_next(fastx_handle input_handle,
           len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           input_handle->lineno++;
         }
-      buffer_extend(& input_handle->plusline_buffer,
+      buffer_extend(&input_handle->plusline_buffer,
                     input_handle->file_buffer.data + input_handle->file_buffer.position,
                     len);
       input_handle->file_buffer.position += len;
@@ -398,11 +398,11 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       buffer_filter_extend(input_handle,
-                           & input_handle->quality_buffer,
+                           &input_handle->quality_buffer,
                            input_handle->file_buffer.data + input_handle->file_buffer.position,
                            len,
                            char_fq_action_qual, chrmap_identity,
-                           & ok, & illegal_char);
+                           &ok, &illegal_char);
       input_handle->file_buffer.position += len;
       rest -= len;
 
