@@ -262,7 +262,7 @@ auto fastq_next(fastx_handle input_handle,
                            '\n', rest);
 
       /* copy to sequence buffer */
-      uint64_t len = rest;
+      auto len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
