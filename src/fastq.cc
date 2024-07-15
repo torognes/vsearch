@@ -152,7 +152,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
 
 auto fastq_open(const char * filename) -> fastx_handle
 {
-  auto input_handle = fastx_open(filename);
+  auto * input_handle = fastx_open(filename);
 
   if (! fastx_is_fastq(input_handle))
     {
