@@ -58,16 +58,14 @@
 
 */
 
-#ifndef BITMAP_S
-#define BITMAP_S
+#ifndef BITMAP_H
+#define BITMAP_H
 
 struct bitmap_s
 {
   unsigned char * bitmap; /* the actual bitmap */
   unsigned int size;      /* size in bits */
 };
-
-#endif // BITMAP_S
 
 
 auto bitmap_init(unsigned int size) -> struct bitmap_s *;
@@ -79,3 +77,5 @@ auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void;
 auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int const seed_value) -> void;
 
 auto bitmap_free(struct bitmap_s * a_bitmap) -> void;
+
+#endif // BITMAP_H
