@@ -110,14 +110,14 @@ auto buffer_filter_extend(fastx_handle input_handle,
   for (auto i = 0ULL; i < len; i++)
     {
       auto const c = *p++;
-      char const m = char_action[(unsigned char) c];
+      char const m = char_action[(unsigned char) (c)];
 
       switch(m)
         {
         case 0:
           /* stripped */
           input_handle->stripped_all++;
-          input_handle->stripped[(unsigned char) c]++;
+          input_handle->stripped[(unsigned char) (c)]++;
           break;
 
         case 1:
