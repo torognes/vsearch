@@ -102,14 +102,14 @@ auto buffer_filter_extend(fastx_handle input_handle,
   /* Strip unwanted characters from the string and raise warnings or
      errors on certain characters. */
 
-  char * p = source_buf;
-  char * d = dest_buffer->data + dest_buffer->length;
-  char * q = d;
+  auto * p = source_buf;
+  auto * d = dest_buffer->data + dest_buffer->length;
+  auto * q = d;
   *ok = true;
 
-  for (uint64_t i = 0; i < len; i++)
+  for (auto i = 0ULL; i < len; i++)
     {
-      char const c = *p++;
+      auto const c = *p++;
       char const m = char_action[(unsigned char) c];
 
       switch(m)
@@ -389,7 +389,7 @@ auto fastq_next(fastx_handle input_handle,
                            '\n', rest);
 
       /* copy to quality buffer */
-      uint64_t len = rest;
+      auto len = rest;
       if (lf)
         {
           /* LF found, copy up to and including LF */
