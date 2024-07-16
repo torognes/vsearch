@@ -86,8 +86,6 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void;
 
 auto dbindex_free() -> void;
 
-auto dbindex_udb_write() -> void;
-
 auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *;
 
 auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int;
