@@ -61,7 +61,7 @@
 #include "bitmap.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
-#include <iterator>  // std::next
+
 
 struct uhandle_s;
 

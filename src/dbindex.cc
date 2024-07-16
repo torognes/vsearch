@@ -64,6 +64,7 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::memset
+#include <iterator>  // std::next
 
 
 unsigned int * kmercount;
