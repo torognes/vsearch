@@ -152,6 +152,7 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
   ++dbindex_count;
 }
 
+
 auto dbindex_addallsequences(int seqmask) -> void
 {
   unsigned int const seqcount = db_getsequencecount();
@@ -163,6 +164,7 @@ auto dbindex_addallsequences(int seqmask) -> void
     }
   progress_done();
 }
+
 
 auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 {
