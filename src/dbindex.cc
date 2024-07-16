@@ -80,6 +80,42 @@ constexpr unsigned int bitmap_threshold = 8;
 
 static unsigned int bitmap_mincount;
 
+
+auto dbindex_getbitmap(unsigned int const kmer) -> unsigned char *
+{
+  if (std::next(kmerbitmap, kmer) != nullptr)
+    {
+      auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
+      return a_bitmap_s->bitmap;
+    }
+  return nullptr;
+}
+
+
+auto dbindex_getmatchcount(unsigned int const kmer) -> unsigned int
+{
+  return *std::next(kmercount, kmer);
+}
+
+
+auto dbindex_getmatchlist(unsigned int const kmer) -> unsigned int *
+{
+  return std::next(kmerindex, *std::next(kmerhash, kmer));
+}
+
+
+auto dbindex_getmapping(unsigned int const index) -> unsigned int
+{
+  return *std::next(dbindex_map, index);
+}
+
+
+auto dbindex_getcount() -> unsigned int
+{
+  return dbindex_count;
+}
+
+
 auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint64_t const kmer) -> void
 {
   for (auto i = 0U; i < kmer_length; ++i)
