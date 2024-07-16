@@ -258,6 +258,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
   show_rusage();
 }
 
+
 auto dbindex_free() -> void
 {
   xfree(kmerhash);
