@@ -69,7 +69,7 @@
 #include <cstring>  // std::strlen, std::strncmp
 
 
-auto results_show_fastapairs_one(FILE * fp,
+auto results_show_fastapairs_one(FILE * output_handle,
                                  struct hit * hp,
                                  char * query_head,
                                  char * qsequence,
@@ -83,7 +83,7 @@ auto results_show_fastapairs_one(FILE * fp,
                                  hp->nwalignment,
                                  hp->nwalignmentlength,
                                  0);
-      fasta_print_general(fp,
+      fasta_print_general(output_handle,
                           nullptr,
                           qrow + hp->trim_q_left + hp->trim_t_left,
                           hp->internal_alignmentlength,
@@ -102,7 +102,7 @@ auto results_show_fastapairs_one(FILE * fp,
                                  hp->nwalignment,
                                  hp->nwalignmentlength,
                                  1);
-      fasta_print_general(fp,
+      fasta_print_general(output_handle,
                           nullptr,
                           trow + hp->trim_q_left + hp->trim_t_left,
                           hp->internal_alignmentlength,
@@ -117,12 +117,12 @@ auto results_show_fastapairs_one(FILE * fp,
                           0.0);
       xfree(trow);
 
-      fprintf(fp, "\n");
+      fprintf(output_handle, "\n");
     }
 }
 
 
-auto results_show_qsegout_one(FILE * fp,
+auto results_show_qsegout_one(FILE * output_handle,
                               struct hit * hp,
                               char * query_head,
                               char * qsequence,
@@ -135,7 +135,7 @@ auto results_show_qsegout_one(FILE * fp,
       int const qseglen = qseqlen
         - hp->trim_q_left - hp->trim_q_right;
 
-      fasta_print_general(fp,
+      fasta_print_general(output_handle,
                           nullptr,
                           qseg,
                           qseglen,
@@ -151,7 +151,7 @@ auto results_show_qsegout_one(FILE * fp,
     }
 }
 
-auto results_show_tsegout_one(FILE * fp,
+auto results_show_tsegout_one(FILE * output_handle,
                               struct hit * hp) -> void
 {
   if (hp)
@@ -160,7 +160,7 @@ auto results_show_tsegout_one(FILE * fp,
       int const tseglen = db_getsequencelen(hp->target)
         - hp->trim_t_left - hp->trim_t_right;
 
-      fasta_print_general(fp,
+      fasta_print_general(output_handle,
                           nullptr,
                           tseg,
                           tseglen,
@@ -177,7 +177,7 @@ auto results_show_tsegout_one(FILE * fp,
 }
 
 
-auto results_show_blast6out_one(FILE * fp,
+auto results_show_blast6out_one(FILE * output_handle,
                                 struct hit * hp,
                                 char * query_head,
                                 int64_t qseqlen) -> void
@@ -209,7 +209,7 @@ auto results_show_blast6out_one(FILE * fp,
       const int qstart = hp->strand ? qseqlen : 1;
       const int qend = hp->strand ? 1 : qseqlen;
 
-      fprintf(fp,
+      fprintf(output_handle,
 	      "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
 	      query_head,
 	      db_getheader(hp->target),
@@ -226,11 +226,11 @@ auto results_show_blast6out_one(FILE * fp,
     }
   else
     {
-      fprintf(fp, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
+      fprintf(output_handle, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
     }
 }
 
-auto results_show_uc_one(FILE * fp,
+auto results_show_uc_one(FILE * output_handle,
                          struct hit * hp,
                          char * query_head,
                          int64_t qseqlen,
@@ -270,35 +270,35 @@ auto results_show_uc_one(FILE * fp,
           perfect = (hp->matches == hp->nwalignmentlength);
         }
 
-      fprintf(fp,
+      fprintf(output_handle,
               "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
               clusterno,
               qseqlen,
               hp->id,
               hp->strand ? '-' : '+',
               perfect ? "=" : hp->nwalignment);
-      header_fprint_strip(fp,
+      header_fprint_strip(output_handle,
                           query_head,
                           strlen(query_head),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      fprintf(fp, "\t");
-      header_fprint_strip(fp,
+      fprintf(output_handle, "\t");
+      header_fprint_strip(output_handle,
                           db_getheader(hp->target),
                           db_getheaderlen(hp->target),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      fprintf(fp, "\n");
+      fprintf(output_handle, "\n");
     }
   else
     {
-      fprintf(fp, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
+      fprintf(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
     }
 }
 
-auto results_show_userout_one(FILE * fp, struct hit * hp,
+auto results_show_userout_one(FILE * output_handle, struct hit * hp,
                               char * query_head,
                               char * qsequence, int64_t qseqlen,
                               char * rc) -> void
@@ -313,7 +313,7 @@ auto results_show_userout_one(FILE * fp, struct hit * hp,
     {
       if (c)
         {
-          fprintf(fp, "\t");
+          fprintf(output_handle, "\t");
         }
 
       int const field = userfields_requested[c];
@@ -335,93 +335,93 @@ auto results_show_userout_one(FILE * fp, struct hit * hp,
       switch (field)
         {
         case 0: /* query */
-          fprintf(fp, "%s", query_head);
+          fprintf(output_handle, "%s", query_head);
           break;
         case 1: /* target */
-          fprintf(fp, "%s", hp ? t_head : "*");
+          fprintf(output_handle, "%s", hp ? t_head : "*");
           break;
         case 2: /* evalue */
-          fprintf(fp, "-1");
+          fprintf(output_handle, "-1");
           break;
         case 3: /* id */
-          fprintf(fp, "%.1f", hp ? hp->id : 0.0);
+          fprintf(output_handle, "%.1f", hp ? hp->id : 0.0);
           break;
         case 4: /* pctpv */
-          fprintf(fp, "%.1f", (hp && (hp->internal_alignmentlength > 0)) ? 100.0 * hp->matches / hp->internal_alignmentlength : 0.0);
+          fprintf(output_handle, "%.1f", (hp && (hp->internal_alignmentlength > 0)) ? 100.0 * hp->matches / hp->internal_alignmentlength : 0.0);
           break;
         case 5: /* pctgaps */
-          fprintf(fp, "%.1f", (hp && (hp->internal_alignmentlength > 0)) ? 100.0 * hp->internal_indels / hp->internal_alignmentlength : 0.0);
+          fprintf(output_handle, "%.1f", (hp && (hp->internal_alignmentlength > 0)) ? 100.0 * hp->internal_indels / hp->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
-          fprintf(fp, "%d", hp ? hp->matches + hp->mismatches : 0);
+          fprintf(output_handle, "%d", hp ? hp->matches + hp->mismatches : 0);
           break;
         case 7: /* gaps */
-          fprintf(fp, "%d", hp ? hp->internal_indels : 0);
+          fprintf(output_handle, "%d", hp ? hp->internal_indels : 0);
           break;
         case 8: /* qlo */
-          fprintf(fp, "%" PRId64, hp ? (hp->strand ? qseqlen : 1) : 0);
+          fprintf(output_handle, "%" PRId64, hp ? (hp->strand ? qseqlen : 1) : 0);
           break;
         case 9: /* qhi */
-          fprintf(fp, "%" PRId64, hp ? (hp->strand ? 1 : qseqlen) : 0);
+          fprintf(output_handle, "%" PRId64, hp ? (hp->strand ? 1 : qseqlen) : 0);
           break;
         case 10: /* tlo */
-          fprintf(fp, "%d", hp ? 1 : 0);
+          fprintf(output_handle, "%d", hp ? 1 : 0);
           break;
         case 11: /* thi */
-          fprintf(fp, "%" PRId64, tseqlen);
+          fprintf(output_handle, "%" PRId64, tseqlen);
           break;
         case 12: /* pv */
-          fprintf(fp, "%d", hp ? hp->matches : 0);
+          fprintf(output_handle, "%d", hp ? hp->matches : 0);
           break;
         case 13: /* ql */
-          fprintf(fp, "%" PRId64, qseqlen);
+          fprintf(output_handle, "%" PRId64, qseqlen);
           break;
         case 14: /* tl */
-          fprintf(fp, "%" PRId64, hp ? tseqlen : 0);
+          fprintf(output_handle, "%" PRId64, hp ? tseqlen : 0);
           break;
         case 15: /* qs */
-          fprintf(fp, "%" PRId64, qseqlen);
+          fprintf(output_handle, "%" PRId64, qseqlen);
           break;
         case 16: /* ts */
-          fprintf(fp, "%" PRId64, hp ? tseqlen : 0);
+          fprintf(output_handle, "%" PRId64, hp ? tseqlen : 0);
           break;
         case 17: /* alnlen */
-          fprintf(fp, "%d", hp ? hp->internal_alignmentlength : 0);
+          fprintf(output_handle, "%d", hp ? hp->internal_alignmentlength : 0);
           break;
         case 18: /* opens */
-          fprintf(fp, "%d", hp ? hp->internal_gaps : 0);
+          fprintf(output_handle, "%d", hp ? hp->internal_gaps : 0);
           break;
         case 19: /* exts */
-          fprintf(fp, "%d", hp ? hp->internal_indels - hp->internal_gaps : 0);
+          fprintf(output_handle, "%d", hp ? hp->internal_indels - hp->internal_gaps : 0);
           break;
         case 20: /* raw */
-          fprintf(fp, "%d", hp ? hp->nwscore : 0);
+          fprintf(output_handle, "%d", hp ? hp->nwscore : 0);
           break;
         case 21: /* bits */
-          fprintf(fp, "%d", 0);
+          fprintf(output_handle, "%d", 0);
           break;
         case 22: /* aln */
           if (hp)
             {
-              align_fprint_uncompressed_alignment(fp, hp->nwalignment);
+              align_fprint_uncompressed_alignment(output_handle, hp->nwalignment);
             }
           break;
         case 23: /* caln */
           if (hp)
             {
-              fprintf(fp, "%s", hp->nwalignment);
+              fprintf(output_handle, "%s", hp->nwalignment);
             }
           break;
         case 24: /* qstrand */
           if (hp)
             {
-              fprintf(fp, "%c", hp->strand ? '-' : '+');
+              fprintf(output_handle, "%c", hp->strand ? '-' : '+');
             }
           break;
         case 25: /* tstrand */
           if (hp)
             {
-              fprintf(fp, "%c", '+');
+              fprintf(output_handle, "%c", '+');
             }
           break;
         case 26: /* qrow */
@@ -431,7 +431,7 @@ auto results_show_userout_one(FILE * fp, struct hit * hp,
                                   hp->nwalignment,
                                   hp->nwalignmentlength,
                                   0);
-              fprintf(fp, "%.*s",
+              fprintf(output_handle, "%.*s",
                       hp->internal_alignmentlength,
                       qrow + hp->trim_q_left + hp->trim_t_left);
               xfree(qrow);
@@ -444,68 +444,68 @@ auto results_show_userout_one(FILE * fp, struct hit * hp,
                                   hp->nwalignment,
                                   hp->nwalignmentlength,
                                   1);
-              fprintf(fp, "%.*s",
+              fprintf(output_handle, "%.*s",
                       hp->internal_alignmentlength,
                       trow + hp->trim_q_left + hp->trim_t_left);
               xfree(trow);
             }
           break;
         case 28: /* qframe */
-          fprintf(fp, "+0");
+          fprintf(output_handle, "+0");
           break;
         case 29: /* tframe */
-          fprintf(fp, "+0");
+          fprintf(output_handle, "+0");
           break;
         case 30: /* mism */
-          fprintf(fp, "%d", hp ? hp->mismatches : 0);
+          fprintf(output_handle, "%d", hp ? hp->mismatches : 0);
           break;
         case 31: /* ids */
-          fprintf(fp, "%d", hp ? hp->matches : 0);
+          fprintf(output_handle, "%d", hp ? hp->matches : 0);
           break;
         case 32: /* qcov */
-          fprintf(fp, "%.1f",
+          fprintf(output_handle, "%.1f",
                   hp ? 100.0 * (hp->matches + hp->mismatches) / qseqlen : 0.0);
           break;
         case 33: /* tcov */
-          fprintf(fp, "%.1f",
+          fprintf(output_handle, "%.1f",
                   hp ? 100.0 * (hp->matches + hp->mismatches) / tseqlen : 0.0);
           break;
         case 34: /* id0 */
-          fprintf(fp, "%.1f", hp ? hp->id0 : 0.0);
+          fprintf(output_handle, "%.1f", hp ? hp->id0 : 0.0);
           break;
         case 35: /* id1 */
-          fprintf(fp, "%.1f", hp ? hp->id1 : 0.0);
+          fprintf(output_handle, "%.1f", hp ? hp->id1 : 0.0);
           break;
         case 36: /* id2 */
-          fprintf(fp, "%.1f", hp ? hp->id2 : 0.0);
+          fprintf(output_handle, "%.1f", hp ? hp->id2 : 0.0);
           break;
         case 37: /* id3 */
-          fprintf(fp, "%.1f", hp ? hp->id3 : 0.0);
+          fprintf(output_handle, "%.1f", hp ? hp->id3 : 0.0);
           break;
         case 38: /* id4 */
-          fprintf(fp, "%.1f", hp ? hp->id4 : 0.0);
+          fprintf(output_handle, "%.1f", hp ? hp->id4 : 0.0);
           break;
 
           /* new internal alignment coordinates */
 
         case 39: /* qilo */
-          fprintf(fp, "%d", hp ? hp->trim_q_left + 1 : 0);
+          fprintf(output_handle, "%d", hp ? hp->trim_q_left + 1 : 0);
           break;
         case 40: /* qihi */
-          fprintf(fp, "%" PRId64, hp ? qseqlen - hp->trim_q_right : 0);
+          fprintf(output_handle, "%" PRId64, hp ? qseqlen - hp->trim_q_right : 0);
           break;
         case 41: /* tilo */
-          fprintf(fp, "%d", hp ? hp->trim_t_left + 1 : 0);
+          fprintf(output_handle, "%d", hp ? hp->trim_t_left + 1 : 0);
           break;
         case 42: /* tihi */
-          fprintf(fp, "%" PRId64, hp ? tseqlen - hp->trim_t_right : 0);
+          fprintf(output_handle, "%" PRId64, hp ? tseqlen - hp->trim_t_right : 0);
           break;
         }
     }
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 }
 
-auto results_show_lcaout(FILE * fp,
+auto results_show_lcaout(FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
                          char * query_head) -> void
@@ -516,7 +516,7 @@ auto results_show_lcaout(FILE * fp,
   /* Use a modified Boyer-Moore majority voting algorithm at each taxonomic
      level to find the most common name at each level */
 
-  fprintf(fp, "%s\t", query_head);
+  fprintf(output_handle, "%s\t", query_head);
 
   int votes[tax_levels];
   int cand[tax_levels];
@@ -632,7 +632,7 @@ auto results_show_lcaout(FILE * fp,
 
           if (cand_level_len[j][j] > 0)
             {
-              fprintf(fp,
+              fprintf(output_handle,
                       "%s%c:%.*s",
                       (comma ? "," : ""),
                       tax_letters[j],
@@ -643,10 +643,10 @@ auto results_show_lcaout(FILE * fp,
         }
     }
 
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 }
 
-auto results_show_alnout(FILE * fp,
+auto results_show_alnout(FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
@@ -657,10 +657,10 @@ auto results_show_alnout(FILE * fp,
 
   if (hitcount)
     {
-      fprintf(fp, "\n");
+      fprintf(output_handle, "\n");
 
-      fprintf(fp,"Query >%s\n", query_head);
-      fprintf(fp," %%Id   TLen  Target\n");
+      fprintf(output_handle,"Query >%s\n", query_head);
+      fprintf(output_handle," %%Id   TLen  Target\n");
 
       double const top_hit_id = hits[0].id;
 
@@ -673,7 +673,7 @@ auto results_show_alnout(FILE * fp,
               break;
             }
 
-          fprintf(fp,"%3.0f%% %6" PRIu64 "  %s\n",
+          fprintf(output_handle,"%3.0f%% %6" PRIu64 "  %s\n",
                   hp->id,
                   db_getsequencelen(hp->target),
                   db_getheader(hp->target));
@@ -688,7 +688,7 @@ auto results_show_alnout(FILE * fp,
               break;
             }
 
-          fprintf(fp,"\n");
+          fprintf(output_handle,"\n");
 
 
           char * dseq = db_getsequence(hp->target);
@@ -698,14 +698,14 @@ auto results_show_alnout(FILE * fp,
           int const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
           int const numwidth = MAX(qlenlen, tlenlen);
 
-          fprintf(fp," Query %*" PRId64 "nt >%s\n", numwidth,
+          fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
                   qseqlen, query_head);
-          fprintf(fp,"Target %*" PRId64 "nt >%s\n", numwidth,
+          fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
 
           int const rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
 
-          align_show(fp,
+          align_show(output_handle,
                      qsequence,
                      qseqlen,
                      hp->trim_q_left,
@@ -722,7 +722,7 @@ auto results_show_alnout(FILE * fp,
                      rowlen,
                      hp->strand);
 
-          fprintf(fp, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
+          fprintf(output_handle, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
                   hp->internal_alignmentlength,
                   hp->matches,
                   hp->id,
@@ -732,7 +732,7 @@ auto results_show_alnout(FILE * fp,
                   0.0);
 
 #if 0
-          fprintf(fp, "%d kmers, %d score, %d gap opens. %s %s %d %d %d %d %d\n",
+          fprintf(output_handle, "%d kmers, %d score, %d gap opens. %s %s %d %d %d %d %d\n",
                   hp->count, hp->nwscore, hp->nwgaps,
                   hp->accepted ? "accepted" : "not accepted",
                   hp->nwalignment, hp->nwalignmentlength,
@@ -744,9 +744,9 @@ auto results_show_alnout(FILE * fp,
     }
   else if (opt_output_no_hits)
     {
-      fprintf(fp, "\n");
-      fprintf(fp,"Query >%s\n", query_head);
-      fprintf(fp,"No hits\n");
+      fprintf(output_handle, "\n");
+      fprintf(output_handle,"Query >%s\n", query_head);
+      fprintf(output_handle,"No hits\n");
     }
 }
 
@@ -854,13 +854,13 @@ auto build_sam_strings(char * alignment,
     }
 }
 
-auto results_show_samheader(FILE * fp,
+auto results_show_samheader(FILE * output_handle,
                             char * cmdline,
                             char * dbname) -> void
 {
   if (opt_samout && opt_samheader)
     {
-      fprintf(fp, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
+      fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
       for(uint64_t i=0; i<db_getsequencecount(); i++)
         {
@@ -868,7 +868,7 @@ auto results_show_samheader(FILE * fp,
           get_hex_seq_digest_md5(md5hex,
                                  db_getsequence(i),
                                  db_getsequencelen(i));
-          fprintf(fp,
+          fprintf(output_handle,
                   "@SQ\tSN:%s\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
                   db_getheader(i),
                   db_getsequencelen(i),
@@ -876,7 +876,7 @@ auto results_show_samheader(FILE * fp,
                   dbname);
         }
 
-      fprintf(fp,
+      fprintf(output_handle,
               "@PG\tID:%s\tVN:%s\tCL:%s\n",
               PROG_NAME,
               PROG_VERSION,
@@ -884,7 +884,7 @@ auto results_show_samheader(FILE * fp,
     }
 }
 
-auto results_show_samout(FILE * fp,
+auto results_show_samout(FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
@@ -954,7 +954,7 @@ auto results_show_samout(FILE * fp,
                             & cigar,
                             & md);
 
-          fprintf(fp,
+          fprintf(output_handle,
                   "%s\t%u\t%s\t%" PRIu64
                   "\t%u\t%s\t%s\t%" PRIu64
                   "\t%" PRIu64
@@ -984,7 +984,7 @@ auto results_show_samout(FILE * fp,
     }
   else if (opt_output_no_hits)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%s\t%u\t%s\t%" PRIu64 "\t%u\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
               query_head,
               0x04,
