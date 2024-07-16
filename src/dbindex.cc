@@ -268,7 +268,7 @@ auto dbindex_free() -> void
 
   for (unsigned int kmer = 0; kmer < kmerhashsize; kmer++)
     {
-      if (kmerbitmap[kmer])
+      if (kmerbitmap[kmer] != nullptr)
         {
           bitmap_free(kmerbitmap[kmer]);
         }
