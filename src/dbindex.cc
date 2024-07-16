@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "bitmap.h"
+#include "dbindex.h"
 #include "unique.h"
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf

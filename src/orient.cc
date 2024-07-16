@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "dbindex.h"
 #include "mask.h"
 #include "udb.h"
 #include "unique.h"

@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "align_simd.h"
+#include "dbindex.h"
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"

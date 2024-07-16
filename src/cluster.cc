@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "align_simd.h"
 #include "attributes.h"
+#include "dbindex.h"
 #include "mask.h"
 #include "minheap.h"
 #include "msa.h"

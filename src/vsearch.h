@@ -213,7 +213,6 @@
 #include "xstring.h"
 #include "maps.h"  // used in 32 compilation units!
 #include "db.h"
-#include "dbindex.h"
 #include "linmemalign.h"
 #include "searchcore.h"
 #include "results.h"

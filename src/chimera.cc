@@ -62,6 +62,7 @@
 #include "align_simd.h"
 #include "attributes.h"
 #include "chimera.h"
+#include "dbindex.h"
 #include "mask.h"
 #include "minheap.h"
 #include "udb.h"
