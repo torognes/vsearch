@@ -127,7 +127,7 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint
 auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 {
 #if 0
-  printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
+  std::printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
 #endif
 
   unsigned int uniquecount = 0;
@@ -175,7 +175,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 
   /* allocate memory for kmer count array */
   kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
-  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
+  std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
   progress_init("Counting k-mers", seqcount);
@@ -196,13 +196,13 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 
 #if 0
   /* dump kmer counts */
-  FILE * f = fopen_output("kmercounts.txt");
+  std::FILE * f = fopen_output("kmercounts.txt");
   for (unsigned int kmer=0; kmer < kmerhashsize; kmer++)
     {
       fprint_kmer(f, 8, kmer);
-      fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
+      std::fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
     }
-  fclose(f);
+  std::fclose(f);
 #endif
 
   /* determine minimum kmer count for bitmap usage */
@@ -217,7 +217,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 
   /* allocate and zero bitmap pointers */
   kmerbitmap = (struct bitmap_s **) xmalloc(kmerhashsize * sizeof(struct bitmap_s *));
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s *));
+  std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s *));
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
@@ -241,11 +241,11 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 
 #if 0
   if (! opt_quiet)
-    fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
+    std::fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
 
   /* reset counts */
-  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
+  std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* allocate space for actual data */
   kmerindex = (unsigned int *) xmalloc(kmerindexsize * sizeof(unsigned int));
