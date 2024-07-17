@@ -252,7 +252,7 @@ auto results_show_uc_one(std::FILE * output_handle,
     target label
   */
 
-  if (hits)
+  if (hits != nullptr)
     {
       auto perfect = false;
 
@@ -323,7 +323,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
       int64_t tseqlen = 0;
       char * t_head = nullptr;
 
-      if (hits)
+      if (hits != nullptr)
         {
           tsequence = db_getsequence(hits->target);
           tseqlen = db_getsequencelen(hits->target);
