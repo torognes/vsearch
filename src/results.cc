@@ -545,7 +545,7 @@ auto results_show_lcaout(std::FILE * output_handle,
           break;
         }
 
-      tophitcount++;
+      ++tophitcount;
 
       int const seqno = hp->target;
       int new_level_start[tax_levels];
@@ -580,11 +580,11 @@ auto results_show_lcaout(std::FILE * output_handle,
                 }
               if (match)
                 {
-                  votes[k]++;
+                  ++votes[k];
                 }
               else
                 {
-                  votes[k]--;
+                  --votes[k];
                 }
             }
         }
@@ -615,7 +615,7 @@ auto results_show_lcaout(std::FILE * output_handle,
             }
           if (match)
             {
-              level_match[k]++;
+              ++level_match[k];
             }
         }
     }
@@ -804,7 +804,7 @@ auto build_sam_strings(char * alignment,
             {
               if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
                 {
-                  matched++;
+                  ++matched;
                 }
               else
                 {
@@ -818,8 +818,8 @@ auto build_sam_strings(char * alignment,
                   md->add_c(targetseq[tpos]);
                   flag = false;
                 }
-              qpos++;
-              tpos++;
+              ++qpos;
+              ++tpos;
             }
 
           break;
