@@ -63,6 +63,7 @@
 #include "showalign.h"
 #include "tax.h"
 #include "userfields.h"
+#include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::snprintf, std::sscanf
@@ -701,7 +702,7 @@ auto results_show_alnout(std::FILE * output_handle,
 
           int const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
           int const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
-          int const numwidth = MAX(qlenlen, tlenlen);
+          int const numwidth = std::max(qlenlen, tlenlen);
 
           fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
                   qseqlen, query_head);
