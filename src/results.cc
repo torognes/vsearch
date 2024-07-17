@@ -80,7 +80,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
   if (hits)
     {
-      char * qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
+      auto * qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
                                  hits->nwalignment,
                                  hits->nwalignmentlength,
                                  0);
@@ -99,7 +99,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                           0.0);
       xfree(qrow);
 
-      char * trow = align_getrow(db_getsequence(hits->target),
+      auto * trow = align_getrow(db_getsequence(hits->target),
                                  hits->nwalignment,
                                  hits->nwalignmentlength,
                                  1);
@@ -158,7 +158,7 @@ auto results_show_tsegout_one(std::FILE * output_handle,
 {
   if (hits)
     {
-      char * tseg = db_getsequence(hits->target) + hits->trim_t_left;
+      auto * tseg = db_getsequence(hits->target) + hits->trim_t_left;
       int const tseglen = db_getsequencelen(hits->target)
         - hits->trim_t_left - hits->trim_t_right;
 
@@ -257,7 +257,7 @@ auto results_show_uc_one(std::FILE * output_handle,
 
   if (hits)
     {
-      bool perfect = false;
+      auto perfect = false;
 
       if (opt_cluster_fast)
         {
@@ -313,14 +313,14 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
     qlo, qhi, tlo, thi and raw are given more meaningful values here
   */
 
-  for (int c = 0; c < userfields_requested_count; c++)
+  for (auto c = 0; c < userfields_requested_count; c++)
     {
       if (c)
         {
           fprintf(output_handle, "\t");
         }
 
-      int const field = userfields_requested[c];
+      auto const field = userfields_requested[c];
 
       char * tsequence = nullptr;
       int64_t tseqlen = 0;
@@ -529,17 +529,17 @@ auto results_show_lcaout(std::FILE * output_handle,
   int cand_level_len[tax_levels][tax_levels];
   int level_match[tax_levels];
 
-  for (int k = 0; k < tax_levels; k++)
+  for (auto k = 0; k < tax_levels; k++)
     {
       votes[k] = 0;
       cand[k] = -1;
       level_match[k] = 0;
     }
 
-  double const top_hit_id = hits[0].id;
-  int tophitcount = 0;
+  auto const top_hit_id = hits[0].id;
+  auto tophitcount = 0;
 
-  for (int t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; t++)
     {
       struct hit * hp = hits + t;
 
@@ -555,13 +555,13 @@ auto results_show_lcaout(std::FILE * output_handle,
       int new_level_len[tax_levels];
       tax_split(seqno, new_level_start, new_level_len);
 
-      for (int k = 0; k < tax_levels; k++)
+      for (auto k = 0; k < tax_levels; k++)
         {
           if (votes[k] == 0)
             {
               cand[k] = seqno;
               votes[k] = 1;
-              for (int j = 0; j < tax_levels; j++)
+              for (auto j = 0; j < tax_levels; j++)
                 {
                   cand_level_start[k][j] = new_level_start[j];
                   cand_level_len[k][j] = new_level_len[j];
@@ -569,8 +569,8 @@ auto results_show_lcaout(std::FILE * output_handle,
             }
           else
             {
-              bool match = true;
-              for (int j = 0; j <= k; j++)
+              auto match = true;
+              for (auto j = 0; j <= k; j++)
                 {
                   if ((new_level_len[j] != cand_level_len[k][j]) ||
                       (strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
@@ -595,17 +595,17 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   /* count actual matches to the candidate at each level */
 
-  for (int t = 0; t < tophitcount; t++)
+  for (auto t = 0; t < tophitcount; t++)
     {
-      int const seqno = hits[t].target;
+      auto const seqno = hits[t].target;
       int new_level_start[tax_levels];
       int new_level_len[tax_levels];
       tax_split(seqno, new_level_start, new_level_len);
 
-      for (int k = 0; k < tax_levels; k++)
+      for (auto k = 0; k < tax_levels; k++)
         {
-          bool match = true;
-          for (int j = 0; j <= k; j++)
+          auto match = true;
+          for (auto j = 0; j <= k; j++)
             {
               if ((new_level_len[j] != cand_level_len[k][j]) ||
                   (strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
@@ -627,8 +627,8 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   if (tophitcount > 0)
     {
-      bool comma = false;
-      for (int j = 0; j < tax_levels; j++)
+      auto comma = false;
+      for (auto j = 0; j < tax_levels; j++)
         {
           if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
             {
@@ -668,11 +668,11 @@ auto results_show_alnout(std::FILE * output_handle,
       fprintf(output_handle,"Query >%s\n", query_head);
       fprintf(output_handle," %%Id   TLen  Target\n");
 
-      double const top_hit_id = hits[0].id;
+      auto const top_hit_id = hits[0].id;
 
-      for(int t = 0; t < hitcount; t++)
+      for(auto t = 0; t < hitcount; t++)
         {
-          struct hit * hp = hits + t;
+          auto * hp = hits + t;
 
           if (opt_top_hits_only && (hp->id < top_hit_id))
             {
@@ -685,9 +685,9 @@ auto results_show_alnout(std::FILE * output_handle,
                   db_getheader(hp->target));
         }
 
-      for(int t = 0; t < hitcount; t++)
+      for(auto t = 0; t < hitcount; t++)
         {
-          struct hit * hp = hits + t;
+          auto * hp = hits + t;
 
           if (opt_top_hits_only && (hp->id < top_hit_id))
             {
@@ -697,12 +697,12 @@ auto results_show_alnout(std::FILE * output_handle,
           fprintf(output_handle,"\n");
 
 
-          char * dseq = db_getsequence(hp->target);
+          auto * dseq = db_getsequence(hp->target);
           int64_t const dseqlen = db_getsequencelen(hp->target);
 
-          int const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
-          int const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
-          int const numwidth = std::max(qlenlen, tlenlen);
+          auto const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
+          auto const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
+          auto const numwidth = std::max(qlenlen, tlenlen);
 
           fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
                   qseqlen, query_head);
@@ -783,16 +783,16 @@ auto build_sam_strings(char * alignment,
   char * p = alignment;
   char * e = p + strlen(p);
 
-  int qpos = 0;
-  int tpos = 0;
+  auto qpos = 0;
+  auto tpos = 0;
 
-  int matched = 0;
-  bool flag = false; /* 1: MD string ends with a number */
+  auto matched = 0;
+  auto flag = false; /* 1: MD string ends with a number */
 
   while(p < e)
     {
-      int run = 1;
-      int scanned = 0;
+      auto run = 1;
+      auto scanned = 0;
       sscanf(p, "%d%n", &run, &scanned);
       p += scanned;
       char const op = *p++;
@@ -845,7 +845,7 @@ auto build_sam_strings(char * alignment,
             }
 
           md->add_c('^');
-          for(int i = 0; i < run; i++)
+          for(auto i = 0; i < run; i++)
             {
               md->add_c(targetseq[tpos++]);
             }
@@ -938,11 +938,11 @@ auto results_show_samout(std::FILE * output_handle,
 
   if (hitcount > 0)
     {
-      double const top_hit_id = hits[0].id;
+      auto const top_hit_id = hits[0].id;
 
-      for(int t = 0; t < hitcount; t++)
+      for(auto t = 0; t < hitcount; t++)
         {
-          struct hit * hp = hits + t;
+          auto * hp = hits + t;
 
           if (opt_top_hits_only && (hp->id < top_hit_id))
             {
