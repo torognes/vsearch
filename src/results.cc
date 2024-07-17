@@ -801,7 +801,7 @@ auto build_sam_strings(char * alignment,
           cigar->add_d(run);
           cigar->add_c('M');
 
-          for (int i = 0; i < run; i++)
+          for (auto i = 0; i < run; i++)
             {
               if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
                 {
