@@ -787,7 +787,7 @@ auto build_sam_strings(char * alignment,
   auto matched = 0;
   auto flag = false; /* 1: MD string ends with a number */
 
-  while(p < e)
+  while (p < e)
     {
       auto run = 1;
       auto scanned = 0;
