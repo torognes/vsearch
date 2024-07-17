@@ -131,52 +131,51 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                               int64_t qseqlen,
                               char * qsequence_rc) -> void
 {
-  if (hits)
-    {
-      char * qseg = (hits->strand ? qsequence_rc : qsequence) + hits->trim_q_left;
-      int const qseglen = qseqlen
-        - hits->trim_q_left - hits->trim_q_right;
+  if (hits == nullptr) {
+    return;
+  }
 
-      fasta_print_general(output_handle,
-                          nullptr,
-                          qseg,
-                          qseglen,
-                          query_head,
-                          strlen(query_head),
-                          0,
-                          0,
-                          -1.0,
-                          -1,
-                          -1,
-                          nullptr,
-                          0.0);
-    }
+  char * qseg = (hits->strand ? qsequence_rc : qsequence) + hits->trim_q_left;
+  int const qseglen = qseqlen - hits->trim_q_left - hits->trim_q_right;
+
+  fasta_print_general(output_handle,
+                      nullptr,
+                      qseg,
+                      qseglen,
+                      query_head,
+                      strlen(query_head),
+                      0,
+                      0,
+                      -1.0,
+                      -1,
+                      -1,
+                      nullptr,
+                      0.0);
 }
 
 
 auto results_show_tsegout_one(std::FILE * output_handle,
                               struct hit * hits) -> void
 {
-  if (hits)
-    {
-      auto * tseg = db_getsequence(hits->target) + hits->trim_t_left;
-      int const tseglen = db_getsequencelen(hits->target)
-        - hits->trim_t_left - hits->trim_t_right;
+  if (hits == nullptr) {
+    return;
+  }
+  auto * tseg = db_getsequence(hits->target) + hits->trim_t_left;
+  int const tseglen = db_getsequencelen(hits->target) - hits->trim_t_left - hits->trim_t_right;
 
-      fasta_print_general(output_handle,
-                          nullptr,
-                          tseg,
-                          tseglen,
-                          db_getheader(hits->target),
-                          db_getheaderlen(hits->target),
-                          0,
-                          0,
-                          -1.0,
-                          -1,
-                          -1,
-                          nullptr,
-                          0.0);
-    }
+  fasta_print_general(output_handle,
+                      nullptr,
+                      tseg,
+                      tseglen,
+                      db_getheader(hits->target),
+                      db_getheaderlen(hits->target),
+                      0,
+                      0,
+                      -1.0,
+                      -1,
+                      -1,
+                      nullptr,
+                      0.0);
 }
 
 
@@ -206,31 +205,28 @@ auto results_show_blast6out_one(std::FILE * output_handle,
     but only 12 when there is a hit. Fixed in VSEARCH.
   */
 
-  if (hits)
-    {
-      // if 'hp->strand' then 'minus strand' else 'plus strand'
-      const int qstart = hits->strand ? qseqlen : 1;
-      const int qend = hits->strand ? 1 : qseqlen;
+  if (hits == nullptr) {
+    fprintf(output_handle, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
+    return;
+  }
+  // if 'hp->strand' then 'minus strand' else 'plus strand'
+  const int qstart = hits->strand ? qseqlen : 1;
+  const int qend = hits->strand ? 1 : qseqlen;
 
-      fprintf(output_handle,
-	      "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
-	      query_head,
-	      db_getheader(hits->target),
-	      hits->id,
-	      hits->internal_alignmentlength,
-	      hits->mismatches,
-	      hits->internal_gaps,
-	      qstart,
-	      qend,
-	      1,
-	      db_getsequencelen(hits->target),
-	      -1,
-	      0);
-    }
-  else
-    {
-      fprintf(output_handle, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
-    }
+  fprintf(output_handle,
+          "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
+          query_head,
+          db_getheader(hits->target),
+          hits->id,
+          hits->internal_alignmentlength,
+          hits->mismatches,
+          hits->internal_gaps,
+          qstart,
+          qend,
+          1,
+          db_getsequencelen(hits->target),
+          -1,
+          0);
 }
 
 
