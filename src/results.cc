@@ -869,7 +869,7 @@ auto results_show_samheader(std::FILE * output_handle,
     {
       fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
-      for(uint64_t i=0; i<db_getsequencecount(); i++)
+      for(uint64_t i = 0; i < db_getsequencecount(); i++)
         {
           char md5hex[len_hex_dig_md5];
           get_hex_seq_digest_md5(md5hex,
