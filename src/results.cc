@@ -810,7 +810,7 @@ auto build_sam_strings(char * alignment,
                 }
               else
                 {
-                  if (! flag)
+                  if (not flag)
                     {
                       md->add_d(matched);
                       matched = 0;
@@ -836,7 +836,7 @@ auto build_sam_strings(char * alignment,
           cigar->add_d(run);
           cigar->add_c('D');
 
-          if (! flag)
+          if (not flag)
             {
               md->add_d(matched);
               matched = 0;
@@ -854,7 +854,7 @@ auto build_sam_strings(char * alignment,
         }
     }
 
-  if (! flag)
+  if (not flag)
     {
       md->add_d(matched);
       matched = 0;
