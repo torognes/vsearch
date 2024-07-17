@@ -521,17 +521,15 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   fprintf(output_handle, "%s\t", query_head);
 
-  int votes[tax_levels];
+  std::array<int, tax_levels> votes {{}};
   int cand[tax_levels];
   int cand_level_start[tax_levels][tax_levels];
   int cand_level_len[tax_levels][tax_levels];
-  int level_match[tax_levels];
+  std::array<int, tax_levels> level_match {{}};
 
   for (auto k = 0; k < tax_levels; k++)
     {
-      votes[k] = 0;
       cand[k] = -1;
-      level_match[k] = 0;
     }
 
   auto const top_hit_id = hits[0].id;
