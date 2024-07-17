@@ -778,8 +778,8 @@ auto build_sam_strings(char * alignment,
   cigar->empty();
   md->empty();
 
-  char * p = alignment;
-  char * e = p + strlen(p);
+  auto * p = alignment;
+  auto * e = p + strlen(p);
 
   auto qpos = 0;
   auto tpos = 0;
@@ -793,7 +793,7 @@ auto build_sam_strings(char * alignment,
       auto scanned = 0;
       sscanf(p, "%d%n", &run, &scanned);
       p += scanned;
-      char const op = *p++;
+      auto const op = *p++;
 
       switch (op)
         {
