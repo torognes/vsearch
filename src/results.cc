@@ -69,7 +69,7 @@
 #include <cstring>  // std::strlen, std::strncmp
 
 
-auto results_show_fastapairs_one(FILE * output_handle,
+auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit * hits,
                                  char * query_head,
                                  char * qsequence,
@@ -122,7 +122,7 @@ auto results_show_fastapairs_one(FILE * output_handle,
 }
 
 
-auto results_show_qsegout_one(FILE * output_handle,
+auto results_show_qsegout_one(std::FILE * output_handle,
                               struct hit * hits,
                               char * query_head,
                               char * qsequence,
@@ -152,7 +152,7 @@ auto results_show_qsegout_one(FILE * output_handle,
 }
 
 
-auto results_show_tsegout_one(FILE * output_handle,
+auto results_show_tsegout_one(std::FILE * output_handle,
                               struct hit * hits) -> void
 {
   if (hits)
@@ -178,7 +178,7 @@ auto results_show_tsegout_one(FILE * output_handle,
 }
 
 
-auto results_show_blast6out_one(FILE * output_handle,
+auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit * hits,
                                 char * query_head,
                                 int64_t qseqlen) -> void
@@ -232,7 +232,7 @@ auto results_show_blast6out_one(FILE * output_handle,
 }
 
 
-auto results_show_uc_one(FILE * output_handle,
+auto results_show_uc_one(std::FILE * output_handle,
                          struct hit * hits,
                          char * query_head,
                          int64_t qseqlen,
@@ -301,7 +301,7 @@ auto results_show_uc_one(FILE * output_handle,
 }
 
 
-auto results_show_userout_one(FILE * output_handle, struct hit * hits,
+auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
                               char * query_head,
                               char * qsequence, int64_t qseqlen,
                               char * rc) -> void
@@ -509,7 +509,7 @@ auto results_show_userout_one(FILE * output_handle, struct hit * hits,
 }
 
 
-auto results_show_lcaout(FILE * output_handle,
+auto results_show_lcaout(std::FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
                          char * query_head) -> void
@@ -651,7 +651,7 @@ auto results_show_lcaout(FILE * output_handle,
 }
 
 
-auto results_show_alnout(FILE * output_handle,
+auto results_show_alnout(std::FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
@@ -861,7 +861,7 @@ auto build_sam_strings(char * alignment,
     }
 }
 
-auto results_show_samheader(FILE * output_handle,
+auto results_show_samheader(std::FILE * output_handle,
                             char * cmdline,
                             char * dbname) -> void
 {
@@ -891,7 +891,7 @@ auto results_show_samheader(FILE * output_handle,
     }
 }
 
-auto results_show_samout(FILE * output_handle,
+auto results_show_samout(std::FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
                          char * query_head,
