@@ -956,8 +956,8 @@ auto results_show_samout(std::FILE * output_handle,
           build_sam_strings(hp->nwalignment,
                             hp->strand ? qsequence_rc : qsequence,
                             db_getsequence(hp->target),
-                            & cigar,
-                            & md);
+                            &cigar,
+                            &md);
 
           fprintf(output_handle,
                   "%s\t%u\t%s\t%" PRIu64
