@@ -73,13 +73,13 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit * hits,
                                  char * query_head,
                                  char * qsequence,
-                                 char * rc) -> void
+                                 char * qsequence_rc) -> void
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
 
   if (hits)
     {
-      char * qrow = align_getrow(hits->strand ? rc : qsequence,
+      char * qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
                                  hits->nwalignment,
                                  hits->nwalignmentlength,
                                  0);
@@ -127,11 +127,11 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                               char * query_head,
                               char * qsequence,
                               int64_t qseqlen,
-                              char * rc) -> void
+                              char * qsequence_rc) -> void
 {
   if (hits)
     {
-      char * qseg = (hits->strand ? rc : qsequence) + hits->trim_q_left;
+      char * qseg = (hits->strand ? qsequence_rc : qsequence) + hits->trim_q_left;
       int const qseglen = qseqlen
         - hits->trim_q_left - hits->trim_q_right;
 
@@ -304,7 +304,7 @@ auto results_show_uc_one(std::FILE * output_handle,
 auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
                               char * query_head,
                               char * qsequence, int64_t qseqlen,
-                              char * rc) -> void
+                              char * qsequence_rc) -> void
 {
 
   /*
@@ -430,7 +430,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         case 26: /* qrow */
           if (hits)
             {
-              qrow = align_getrow(hits->strand ? rc : qsequence,
+              qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
                                   0);
@@ -756,9 +756,9 @@ auto results_show_alnout(std::FILE * output_handle,
 }
 
 
-auto inline nucleotide_equal(char a, char b) -> bool
+auto inline nucleotide_equal(char lhs, char rhs) -> bool
 {
-  return chrmap_4bit[(int)a] == chrmap_4bit[(int)b];
+  return chrmap_4bit[(int) lhs] == chrmap_4bit[(int) rhs];
 }
 
 
@@ -896,7 +896,7 @@ auto results_show_samout(std::FILE * output_handle,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         char * rc) -> void
+                         char * qsequence_rc) -> void
 {
   /*
     SAM format output
@@ -956,7 +956,7 @@ auto results_show_samout(std::FILE * output_handle,
           xstring md;
 
           build_sam_strings(hp->nwalignment,
-                            hp->strand ? rc : qsequence,
+                            hp->strand ? qsequence_rc : qsequence,
                             db_getsequence(hp->target),
                             & cigar,
                             & md);
@@ -977,7 +977,7 @@ auto results_show_samout(std::FILE * output_handle,
                   "*",
                   (uint64_t) 0,
                   (uint64_t) 0,
-                  hp->strand ? rc : qsequence,
+                  hp->strand ? qsequence_rc : qsequence,
                   "*",
                   hp->id,
                   0,

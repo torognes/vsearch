@@ -90,20 +90,20 @@ auto results_show_userout_one(std::FILE * output_handle,
                               char * query_head,
                               char * qsequence,
                               int64_t qseqlen,
-                              char * rc) -> void;
+                              char * qsequence_rc) -> void;
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit * hits,
                                  char * query_head,
                                  char * qsequence,
-                                 char * rc) -> void;
+                                 char * qsequence_rc) -> void;
 
 auto results_show_qsegout_one(std::FILE * output_handle,
                               struct hit * hits,
                               char * query_head,
                               char * qsequence,
                               int64_t qseqlen,
-                              char * rc) -> void;
+                              char * qsequence_rc) -> void;
 
 auto results_show_tsegout_one(std::FILE * output_handle,
                               struct hit * hits) -> void;
@@ -117,4 +117,4 @@ auto results_show_samout(std::FILE * output_handle,
                          int hitcount,
                          char * query_head,
                          char * qsequence,
-                         char * rc) -> void;
+                         char * qsequence_rc) -> void;
