@@ -349,10 +349,10 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
           fprintf(output_handle, "%.1f", hits ? hits->id : 0.0);
           break;
         case 4: /* pctpv */
-          fprintf(output_handle, "%.1f", (hits && (hits->internal_alignmentlength > 0)) ? 100.0 * hits->matches / hits->internal_alignmentlength : 0.0);
+          fprintf(output_handle, "%.1f", (hits and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->matches / hits->internal_alignmentlength : 0.0);
           break;
         case 5: /* pctgaps */
-          fprintf(output_handle, "%.1f", (hits && (hits->internal_alignmentlength > 0)) ? 100.0 * hits->internal_indels / hits->internal_alignmentlength : 0.0);
+          fprintf(output_handle, "%.1f", (hits and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->internal_indels / hits->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
           fprintf(output_handle, "%d", hits ? hits->matches + hits->mismatches : 0);
@@ -541,7 +541,7 @@ auto results_show_lcaout(std::FILE * output_handle,
     {
       struct hit * hp = hits + t;
 
-      if (opt_top_hits_only && (hp->id < top_hit_id))
+      if (opt_top_hits_only and (hp->id < top_hit_id))
         {
           break;
         }
@@ -570,7 +570,7 @@ auto results_show_lcaout(std::FILE * output_handle,
               auto match = true;
               for (auto j = 0; j <= k; j++)
                 {
-                  if ((new_level_len[j] != cand_level_len[k][j]) ||
+                  if ((new_level_len[j] != cand_level_len[k][j]) or
                       (strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
                                db_getheader(seqno) + new_level_start[j],
                                new_level_len[j]) != 0))
@@ -605,7 +605,7 @@ auto results_show_lcaout(std::FILE * output_handle,
           auto match = true;
           for (auto j = 0; j <= k; j++)
             {
-              if ((new_level_len[j] != cand_level_len[k][j]) ||
+              if ((new_level_len[j] != cand_level_len[k][j]) or
                   (strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
                            db_getheader(seqno) + new_level_start[j],
                            new_level_len[j]) != 0))
@@ -672,7 +672,7 @@ auto results_show_alnout(std::FILE * output_handle,
         {
           auto * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only and (hp->id < top_hit_id))
             {
               break;
             }
@@ -687,7 +687,7 @@ auto results_show_alnout(std::FILE * output_handle,
         {
           auto * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only and (hp->id < top_hit_id))
             {
               break;
             }
@@ -866,7 +866,7 @@ auto results_show_samheader(std::FILE * output_handle,
                             char * cmdline,
                             char * dbname) -> void
 {
-  if (opt_samout && opt_samheader)
+  if (opt_samout and opt_samheader)
     {
       fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
@@ -945,7 +945,7 @@ auto results_show_samout(std::FILE * output_handle,
         {
           auto * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if (opt_top_hits_only and (hp->id < top_hit_id))
             {
               break;
             }
