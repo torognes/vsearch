@@ -793,7 +793,8 @@ auto build_sam_strings(char * alignment,
       auto scanned = 0;
       sscanf(p, "%d%n", &run, &scanned);
       p += scanned;
-      auto const op = *p++;
+      auto const op = *p;
+      ++p;
 
       switch (op)
         {
