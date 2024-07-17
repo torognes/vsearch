@@ -78,48 +78,49 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
 
-  if (hits)
-    {
-      auto * qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
-                                 hits->nwalignment,
-                                 hits->nwalignmentlength,
-                                 0);
-      fasta_print_general(output_handle,
-                          nullptr,
-                          qrow + hits->trim_q_left + hits->trim_t_left,
-                          hits->internal_alignmentlength,
-                          query_head,
-                          strlen(query_head),
-                          0,
-                          0,
-                          -1.0,
-                          -1,
-                          -1,
-                          nullptr,
-                          0.0);
-      xfree(qrow);
+  if (hits == nullptr) {
+    return;
+  }
 
-      auto * trow = align_getrow(db_getsequence(hits->target),
-                                 hits->nwalignment,
-                                 hits->nwalignmentlength,
-                                 1);
-      fasta_print_general(output_handle,
-                          nullptr,
-                          trow + hits->trim_q_left + hits->trim_t_left,
-                          hits->internal_alignmentlength,
-                          db_getheader(hits->target),
-                          db_getheaderlen(hits->target),
-                          0,
-                          0,
-                          -1.0,
-                          -1,
-                          -1,
-                          nullptr,
-                          0.0);
-      xfree(trow);
+  auto * qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
+                             hits->nwalignment,
+                             hits->nwalignmentlength,
+                             0);
+  fasta_print_general(output_handle,
+                      nullptr,
+                      qrow + hits->trim_q_left + hits->trim_t_left,
+                      hits->internal_alignmentlength,
+                      query_head,
+                      strlen(query_head),
+                      0,
+                      0,
+                      -1.0,
+                      -1,
+                      -1,
+                      nullptr,
+                      0.0);
+  xfree(qrow);
 
-      fprintf(output_handle, "\n");
-    }
+  auto * trow = align_getrow(db_getsequence(hits->target),
+                             hits->nwalignment,
+                             hits->nwalignmentlength,
+                             1);
+  fasta_print_general(output_handle,
+                      nullptr,
+                      trow + hits->trim_q_left + hits->trim_t_left,
+                      hits->internal_alignmentlength,
+                      db_getheader(hits->target),
+                      db_getheaderlen(hits->target),
+                      0,
+                      0,
+                      -1.0,
+                      -1,
+                      -1,
+                      nullptr,
+                      0.0);
+  xfree(trow);
+
+  fprintf(output_handle, "\n");
 }
 
 
