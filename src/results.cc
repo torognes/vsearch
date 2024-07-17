@@ -64,6 +64,7 @@
 #include "tax.h"
 #include "userfields.h"
 #include <algorithm>  // std::max
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::snprintf, std::sscanf
@@ -867,17 +868,17 @@ auto results_show_samheader(std::FILE * output_handle,
     {
       fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
+      std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db_getsequencecount(); i++)
         {
-          char md5hex[len_hex_dig_md5];
-          get_hex_seq_digest_md5(md5hex,
+          get_hex_seq_digest_md5(md5hex.data(),
                                  db_getsequence(i),
                                  db_getsequencelen(i));
           fprintf(output_handle,
                   "@SQ\tSN:%s\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
                   db_getheader(i),
                   db_getsequencelen(i),
-                  md5hex,
+                  md5hex.data(),
                   dbname);
         }
 
