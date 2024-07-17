@@ -312,7 +312,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
 
   for (auto c = 0; c < userfields_requested_count; c++)
     {
-      if (c)
+      if (c != 0)
         {
           fprintf(output_handle, "\t");
         }
@@ -658,7 +658,7 @@ auto results_show_alnout(std::FILE * output_handle,
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
-  if (hitcount)
+  if (hitcount > 0)
     {
       fprintf(output_handle, "\n");
 
