@@ -846,7 +846,8 @@ auto build_sam_strings(char * alignment,
           md->add_c('^');
           for (auto i = 0; i < run; i++)
             {
-              md->add_c(targetseq[tpos++]);
+              md->add_c(targetseq[tpos]);
+              ++tpos;
             }
           flag = false;
           break;
