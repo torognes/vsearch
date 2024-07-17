@@ -889,6 +889,7 @@ auto results_show_samheader(std::FILE * output_handle,
     }
 }
 
+
 auto results_show_samout(std::FILE * output_handle,
                          struct hit * hits,
                          int hitcount,
