@@ -670,7 +670,7 @@ auto results_show_alnout(std::FILE * output_handle,
 
       auto const top_hit_id = hits[0].id;
 
-      for(auto t = 0; t < hitcount; t++)
+      for (auto t = 0; t < hitcount; t++)
         {
           auto * hp = hits + t;
 
@@ -685,7 +685,7 @@ auto results_show_alnout(std::FILE * output_handle,
                   db_getheader(hp->target));
         }
 
-      for(auto t = 0; t < hitcount; t++)
+      for (auto t = 0; t < hitcount; t++)
         {
           auto * hp = hits + t;
 
@@ -709,7 +709,7 @@ auto results_show_alnout(std::FILE * output_handle,
           fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
 
-          int const rowlen = opt_rowlen == 0 ? qseqlen+dseqlen : opt_rowlen;
+          int const rowlen = opt_rowlen == 0 ? qseqlen + dseqlen : opt_rowlen;
 
           align_show(output_handle,
                      qsequence,
@@ -803,7 +803,7 @@ auto build_sam_strings(char * alignment,
           cigar->add_d(run);
           cigar->add_c('M');
 
-          for(int i = 0; i < run; i++)
+          for (int i = 0; i < run; i++)
             {
               if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
                 {
@@ -845,7 +845,7 @@ auto build_sam_strings(char * alignment,
             }
 
           md->add_c('^');
-          for(auto i = 0; i < run; i++)
+          for (auto i = 0; i < run; i++)
             {
               md->add_c(targetseq[tpos++]);
             }
@@ -870,7 +870,7 @@ auto results_show_samheader(std::FILE * output_handle,
     {
       fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
-      for(uint64_t i = 0; i < db_getsequencecount(); i++)
+      for (uint64_t i = 0; i < db_getsequencecount(); i++)
         {
           char md5hex[len_hex_dig_md5];
           get_hex_seq_digest_md5(md5hex,
@@ -940,7 +940,7 @@ auto results_show_samout(std::FILE * output_handle,
     {
       auto const top_hit_id = hits[0].id;
 
-      for(auto t = 0; t < hitcount; t++)
+      for (auto t = 0; t < hitcount; t++)
         {
           auto * hp = hits + t;
 
