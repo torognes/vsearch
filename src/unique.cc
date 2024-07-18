@@ -343,12 +343,12 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
 
-  int count = 0;
+  auto count = 0;
   if (wordlength < 10)
     {
-      for (int i = 0; i < listlen; i++)
+      for (auto i = 0; i < listlen; i++)
         {
-          unsigned int const kmer = list[i];
+          auto const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
           if (unique_handle->bitmap[x] & y)
@@ -359,11 +359,11 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
     }
   else
     {
-      for (int i = 0; i < listlen; i++)
+      for (auto i = 0; i < listlen; i++)
         {
-          unsigned int kmer = list[i];
+          auto kmer = list[i];
           uint64_t j = HASH((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
+          while ((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
             }
