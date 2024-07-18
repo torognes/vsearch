@@ -92,6 +92,7 @@ struct uhandle_s
   uint64_t * bitmap;
 };
 
+
 auto unique_init() -> struct uhandle_s *
 {
   auto * unique_handle = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
@@ -107,6 +108,7 @@ auto unique_init() -> struct uhandle_s *
 
   return unique_handle;
 }
+
 
 auto unique_exit(struct uhandle_s * unique_handle) -> void
 {
@@ -124,6 +126,7 @@ auto unique_exit(struct uhandle_s * unique_handle) -> void
     }
   xfree(unique_handle);
 }
+
 
 auto unique_compare(const void * a, const void * b) -> int
 {
@@ -227,6 +230,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   *list = unique_handle->list;
 }
 
+
 auto unique_count_hash(struct uhandle_s * unique_handle,
                        int wordlength,
                        int seqlen,
@@ -252,7 +256,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   /* hashtable variant */
 
   unique_handle->size = 1;
-  while (unique_handle->size < 2*seqlen)
+  while (unique_handle->size < 2 * seqlen)
     {
       unique_handle->size *= 2;
     }
@@ -315,6 +319,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   *listlen = unique;
   *list = unique_handle->list;
 }
+
 
 auto unique_count(struct uhandle_s * unique_handle,
                   int wordlength,
