@@ -741,7 +741,7 @@ auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
   /* extract unique kmer samples from query*/
   unique_count(si->uh, opt_wordlength,
                si->qseqlen, si->qsequence,
-               & si->kmersamplecount, & si->kmersample, seqmask);
+               &si->kmersamplecount, &si->kmersample, seqmask);
 
   /* find database sequences with the most kmer hits */
   search_topscores(si);
