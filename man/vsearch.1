@@ -2733,10 +2733,11 @@ a proxy for sequence similarity. That efficient pre-filtering also
 prevents pairwise alignments with very short, or with weakly matching
 targets, as there needs to be by default at least 12 shared
 \fIk\fR-mers to start the pairwise alignment, and at least one out of
-every 16 \fIk\fR-mers from the query needs to match the
-target. Consequently, using values lower than \-\-id 0.5 is not likely
-to capture more weakly matching targets. The pairwise identity is by
-default defined as the number of (matching columns) / (alignment
+every 16 \fIk\fR-mers from the query needs to match the target (see
+options \-\-wordlength and \-\-minwordmatches to change that
+behaviour). Consequently, using values lower than \-\-id 0.5 is not
+likely to capture more weakly matching targets. The pairwise identity
+is by default defined as the number of (matching columns) / (alignment
 length - terminal gaps). That definition can be modified by \-\-iddef.
 .TAG iddef
 .TP
