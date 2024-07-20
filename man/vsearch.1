@@ -2932,13 +2932,13 @@ Reject target sequences with an abundance lower than \fIinteger\fR.
 .TAG minwordmatches
 .TP
 .BI \-\-minwordmatches\~ "non-negative integer"
-Minimum number of word matches required for a sequence to be
-considered further. Default value is 12 for the default word length
-8. For word lengths 3-15, the default minimum word matches are 18, 17,
-16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the query
-sequence has fewer unique words than the number specified, all words
-in the query must match. If the argument is 0, no word matches are
-required.
+Minimum number of \fIk\fR-mers or word matches required for a sequence
+to be considered further. Default value is 12 for the default word
+length 8. For word lengths 3-15, the default minimum word matches are
+18, 17, 16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the
+query sequence has fewer unique words than the number specified, all
+words in the query must match. If the argument is 0, no word matches
+are required.
 .TAG mismatch
 .TP
 .BI \-\-mismatch\~ "integer"
