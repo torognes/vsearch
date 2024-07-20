@@ -524,8 +524,8 @@ auto results_show_lcaout(std::FILE * output_handle,
   std::array<int, tax_levels> votes {{}};
   std::array<int, tax_levels> cand;
   cand.fill(-1);
-  int cand_level_start[tax_levels][tax_levels];
-  int cand_level_len[tax_levels][tax_levels];
+  std::array<std::array<int, tax_levels>, tax_levels> cand_level_start {{}};
+  std::array<std::array<int, tax_levels>, tax_levels> cand_level_len {{}};
   std::array<int, tax_levels> level_match {{}};
 
   auto const top_hit_id = hits[0].id;
