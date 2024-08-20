@@ -81,6 +81,7 @@ struct sm_bucket
 static struct sm_bucket * hashtable = nullptr;
 static uint64_t hashtablesize = 0;
 
+
 auto find_median() -> double
 {
   /* find the median size, based on an iterative search starting at e.g. 1 */
@@ -172,15 +173,18 @@ auto find_median() -> double
     }
 }
 
+
 inline auto hash2bucket(uint128 hash, uint64_t htsize) -> uint64_t
 {
   return Uint128Low64(hash) % htsize;
 }
 
+
 inline auto next_bucket(uint64_t prev_bucket, uint64_t htsize) -> uint64_t
 {
   return (prev_bucket + 1) % htsize;
 }
+
 
 auto rehash_smallmem() -> void
 {
@@ -220,6 +224,7 @@ auto rehash_smallmem() -> void
   hashtable = new_hashtable;
   hashtablesize = new_hashtablesize;
 }
+
 
 auto derep_smallmem(struct Parameters const & parameters) -> void
 {
