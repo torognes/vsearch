@@ -113,6 +113,7 @@ inline auto fastq_get_qual(char q) -> int
   return qual;
 }
 
+
 struct analysis_res
 {
   bool discarded;
@@ -121,6 +122,7 @@ struct analysis_res
   int length;
   double ee;
 };
+
 
 auto analyse(fastx_handle h) -> struct analysis_res
 {
@@ -245,6 +247,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
 
   return res;
 }
+
 
 auto filter(bool fastq_only, char * filename) -> void
 {
@@ -661,10 +664,12 @@ auto filter(bool fastq_only, char * filename) -> void
   fastx_close(h1);
 }
 
+
 auto fastq_filter() -> void
 {
   filter(true, opt_fastq_filter);
 }
+
 
 auto fastx_filter() -> void
 {
