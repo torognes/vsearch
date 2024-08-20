@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // INT64_MAX
 #include <cstdint>  // int64_t, uint64_t
@@ -319,14 +320,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
 
       nucleotidecount += seqlen;
-      if (seqlen > longest)
-        {
-          longest = seqlen;
-        }
-      if (seqlen < shortest)
-        {
-          shortest = seqlen;
-        }
+      longest = std::max(seqlen, longest);
+      shortest = std::min(seqlen, shortest);
 
       /* check allocations */
 
