@@ -63,6 +63,7 @@
 // #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MAX
+#include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
