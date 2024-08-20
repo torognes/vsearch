@@ -89,7 +89,6 @@
 #include "udb.h"
 #include "userfields.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MIN
 #include <cmath>  // std::floor
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
 #include <cstdint> // int64_t, uint64_t
