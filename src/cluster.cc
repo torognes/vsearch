@@ -67,7 +67,7 @@
 #include "msa.h"
 #include "otutable.h"
 #include "unique.h"
-#include <algorithm>  // std::count, std::minmax_element, std::max_element
+#include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // INT_MAX, LONG_MAX
 #include <cstdint>  // int64_t, uint64_t
@@ -1342,11 +1342,7 @@ auto cluster(char * dbname,
     }
 
   tophits = opt_maxrejects + opt_maxaccepts + MAXDELAYED;
-
-  if (tophits > seqcount)
-    {
-      tophits = seqcount;
-    }
+  tophits = std::min(tophits, seqcount);
 
   std::vector<clusterinfo_t> clusterinfo_v(seqcount);
   clusterinfo = clusterinfo_v.data();
