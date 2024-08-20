@@ -308,7 +308,7 @@ auto threads_init() -> void
       tip->work = 0;
       xpthread_mutex_init(&tip->mutex, nullptr);
       xpthread_cond_init(&tip->cond, nullptr);
-      xpthread_create(&tip->thread, &attr, threads_worker, (void*)(int64_t)t);
+      xpthread_create(&tip->thread, &attr, threads_worker, (void *) (int64_t) t);
     }
 }
 
@@ -370,6 +370,7 @@ auto cluster_query_init(struct searchinfo_s * si) -> void
                         opt_gap_extension_target_right);
 }
 
+
 auto cluster_query_exit(struct searchinfo_s * si) -> void
 {
   /* clean up after thread execution; called once per thread */
@@ -391,6 +392,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
       xfree(si->kmers);
     }
 }
+
 
 auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
 {
@@ -419,6 +421,7 @@ auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
     }
   return label;
 }
+
 
 auto cluster_core_results_hit(struct hit * best,
                               int clusterno,
@@ -522,6 +525,7 @@ auto cluster_core_results_hit(struct hit * best,
     }
 }
 
+
 auto cluster_core_results_nohit(int clusterno,
                                 char * query_head,
                                 int qseqlen,
@@ -587,6 +591,7 @@ auto cluster_core_results_nohit(int clusterno,
     }
 }
 
+
 auto compare_kmersample(const void * a, const void * b) -> int
 {
   unsigned int const x = * (unsigned int *) a;
@@ -605,6 +610,7 @@ auto compare_kmersample(const void * a, const void * b) -> int
       return 0;
     }
 }
+
 
 auto cluster_core_parallel() -> void
 {
@@ -1057,6 +1063,7 @@ auto cluster_core_parallel() -> void
 
   xfree(scorematrix);
 }
+
 
 auto cluster_core_serial() -> void
 {
@@ -1750,20 +1757,24 @@ auto cluster(char * dbname,
   show_rusage();
 }
 
+
 auto cluster_fast(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_fast, cmdline, progheader);
 }
+
 
 auto cluster_smallmem(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_smallmem, cmdline, progheader);
 }
 
+
 auto cluster_size(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_size, cmdline, progheader);
 }
+
 
 auto cluster_unoise(char * cmdline, char * progheader) -> void
 {
