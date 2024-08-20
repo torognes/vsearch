@@ -89,7 +89,7 @@
 #include "udb.h"
 #include "userfields.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MAX, LONG_MIN, INT_MAX, DBL_MAX
+#include <climits>  // LONG_MAX, LONG_MIN, INT_MAX
 #include <cmath>  // std::floor
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
 #include <cstdint> // int64_t, uint64_t
@@ -98,6 +98,7 @@
 #include <cstring>  // std::strlen, std::memset
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
+#include <limits>
 #include <string.h>  // strcasecmp
 
 
@@ -769,6 +770,7 @@ auto args_getdouble(char * arg) -> double
 auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 {
   /* Set defaults */
+  static constexpr auto dbl_max = std::numeric_limits<double>::max();
 
   parameters.progname = argv[0];
 
@@ -828,8 +830,8 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_filter = nullptr;
   opt_fastq_maxdiffpct = 100.0;
   opt_fastq_maxdiffs = 10;
-  opt_fastq_maxee = DBL_MAX;
-  opt_fastq_maxee_rate = DBL_MAX;
+  opt_fastq_maxee = dbl_max;
+  opt_fastq_maxee_rate = dbl_max;
   opt_fastq_maxlen = int64_max;
   opt_fastq_maxmergelen  = 1000000;
   opt_fastq_maxns = int64_max;
@@ -845,7 +847,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_fastq_stats = nullptr;
   opt_fastq_stripleft = 0;
   opt_fastq_stripright = 0;
-  opt_fastq_truncee = DBL_MAX;
+  opt_fastq_truncee = dbl_max;
   opt_fastq_trunclen = -1;
   opt_fastq_trunclen_keep = -1;
   opt_fastq_truncqual = LONG_MIN;
@@ -906,12 +908,12 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_maxhits = 0;
   opt_maxid = 1.0;
   opt_maxqsize = INT_MAX;
-  opt_maxqt = DBL_MAX;
+  opt_maxqt = dbl_max;
   opt_maxrejects = -1;
   opt_maxseqlength = default_maxseqlength;
   opt_maxsize = int64_max;
-  opt_maxsizeratio = DBL_MAX;
-  opt_maxsl = DBL_MAX;
+  opt_maxsizeratio = dbl_max;
+  opt_maxsl = dbl_max;
   opt_maxsubs = INT_MAX;
   opt_maxuniquesize = int64_max;
   opt_mid = 0.0;
