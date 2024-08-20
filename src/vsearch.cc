@@ -772,6 +772,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* Set defaults */
   static constexpr auto dbl_max = std::numeric_limits<double>::max();
   static constexpr auto int_max = std::numeric_limits<int>::max();
+  static constexpr auto long_min = std::numeric_limits<long>::min();
 
   parameters.progname = argv[0];
 
@@ -851,7 +852,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_truncee = dbl_max;
   opt_fastq_trunclen = -1;
   opt_fastq_trunclen_keep = -1;
-  opt_fastq_truncqual = LONG_MIN;
+  opt_fastq_truncqual = long_min;
   opt_fastqout = nullptr;
   opt_fastqout_discarded = nullptr;
   opt_fastqout_discarded_rev = nullptr;
