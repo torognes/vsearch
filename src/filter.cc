@@ -428,7 +428,7 @@ auto filter(bool fastq_only, char * filename) -> void
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  while(fastx_next(h1, false, chrmap_no_change))
+  while (fastx_next(h1, false, chrmap_no_change))
     {
       if (h2 && ! fastx_next(h2, false, chrmap_no_change))
         {
