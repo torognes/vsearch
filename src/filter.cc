@@ -116,17 +116,17 @@ inline auto fastq_get_qual(char q) -> int
 
 struct analysis_res
 {
-  bool discarded;
-  bool truncated;
-  int start;
-  int length;
-  double ee;
+  bool discarded = false;
+  bool truncated = false;
+  int start = 0;
+  int length = 0;
+  double ee = -1.0;
 };
 
 
 auto analyse(fastx_handle h) -> struct analysis_res
 {
-  struct analysis_res res = { false, false, 0, 0, -1.0 };
+  struct analysis_res res;
   res.length = fastx_get_sequence_length(h);
   int64_t const old_length = res.length;
 
@@ -435,8 +435,9 @@ auto filter(bool fastq_only, char * filename) -> void
           fatal("More forward reads than reverse reads");
         }
 
-      struct analysis_res res1 = { false, false, 0, 0, 0.0 } ;
-      struct analysis_res res2 = { false, false, 0, 0, -1.0 } ;
+      struct analysis_res res1;
+      res1.ee = 0.0;
+      struct analysis_res res2;
 
       res1 = analyse(h1);
       if (h2)
