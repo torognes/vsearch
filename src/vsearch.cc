@@ -89,7 +89,7 @@
 #include "udb.h"
 #include "userfields.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MAX, LONG_MIN, INT_MAX
+#include <climits>  // LONG_MAX, LONG_MIN
 #include <cmath>  // std::floor
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
 #include <cstdint> // int64_t, uint64_t
@@ -538,7 +538,7 @@ auto args_get_length_cutoffs(char * arg) -> void
         {
           fatal("Invalid arguments to length_cutoffs");
         }
-      opt_length_cutoffs_longest = INT_MAX;
+      opt_length_cutoffs_longest = std::numeric_limits<int>::max();
     }
   else
     {
@@ -771,6 +771,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
 {
   /* Set defaults */
   static constexpr auto dbl_max = std::numeric_limits<double>::max();
+  static constexpr auto int_max = std::numeric_limits<int>::max();
 
   parameters.progname = argv[0];
 
@@ -893,7 +894,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_lcaout = nullptr;
   opt_leftjust = 0;
   opt_length_cutoffs_increment = 50;
-  opt_length_cutoffs_longest = INT_MAX;
+  opt_length_cutoffs_longest = int_max;
   opt_length_cutoffs_shortest = 50;
   opt_lengthout = false;
   opt_log = nullptr;
@@ -903,18 +904,18 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_matched = nullptr;
   opt_max_unmasked_pct = 100.0;
   opt_maxaccepts = 1;
-  opt_maxdiffs = INT_MAX;
-  opt_maxgaps = INT_MAX;
+  opt_maxdiffs = int_max;
+  opt_maxgaps = int_max;
   opt_maxhits = 0;
   opt_maxid = 1.0;
-  opt_maxqsize = INT_MAX;
+  opt_maxqsize = int_max;
   opt_maxqt = dbl_max;
   opt_maxrejects = -1;
   opt_maxseqlength = default_maxseqlength;
   opt_maxsize = int64_max;
   opt_maxsizeratio = dbl_max;
   opt_maxsl = dbl_max;
-  opt_maxsubs = INT_MAX;
+  opt_maxsubs = int_max;
   opt_maxuniquesize = int64_max;
   opt_mid = 0.0;
   opt_min_unmasked_pct = 0.0;
