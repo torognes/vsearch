@@ -62,6 +62,7 @@
    https://drive5.com/usearch/manual/cmd_fastx_getseqs.html                  */
 
 #include "vsearch.h"
+#include "maps.h"
 #include <cctype>  // isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t

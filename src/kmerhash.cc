@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include <cstring>  // std::memset
 #include <vector>
 

@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "attributes.h"
+#include "maps.h"
 #include "showalign.h"
 #include "tax.h"
 #include "userfields.h"

@@ -211,7 +211,6 @@
 #include "arch.h"
 #include "util.h"
 #include "xstring.h"
-#include "maps.h"  // used in 32 compilation units!
 #include "db.h"
 #include "linmemalign.h"
 #include "searchcore.h"

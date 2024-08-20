@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include "msa.h"
 #include <array>
 #include <algorithm>  // std::max()

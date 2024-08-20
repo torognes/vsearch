@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen

@@ -58,6 +58,7 @@
 
 */
 
+#include "maps.h"
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
 

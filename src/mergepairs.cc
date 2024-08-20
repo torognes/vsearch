@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2

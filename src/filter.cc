@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MIN, DBL_MAX
 #include <cmath>  // std::pow

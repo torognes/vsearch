@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include "utils/seqcmp.h"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64

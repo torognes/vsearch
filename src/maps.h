@@ -58,6 +58,9 @@
 
 */
 
+#ifndef MAPS_H
+#define MAPS_H
+
 constexpr auto two_bit_capacity = 4U;
 constexpr auto four_bit_capacity = 16U;
 constexpr auto byte_capacity = 256U;
@@ -80,3 +83,5 @@ extern const unsigned char chrmap_normalize[byte_capacity];
 extern const unsigned char chrmap_upcase[byte_capacity];
 extern const unsigned char chrmap_no_change[byte_capacity];
 extern const unsigned char chrmap_identity[byte_capacity];
+
+#endif // MAPS_H

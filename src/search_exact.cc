@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include "mask.h"
 #include "otutable.h"
 #include <cinttypes>  // macros PRIu64 and PRId64

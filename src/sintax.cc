@@ -80,6 +80,7 @@
 #include "vsearch.h"
 #include "bitmap.h"
 #include "dbindex.h"
+#include "maps.h"
 #include "mask.h"
 #include "minheap.h"
 #include "tax.h"

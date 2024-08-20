@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include "mask.h"
 #include <algorithm>  // std::min
 #include <cstdint> // uint64_t

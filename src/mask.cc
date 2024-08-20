@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include "mask.h"
 #include <array>
 #include <cctype>  // std::toupper, std::isupper
