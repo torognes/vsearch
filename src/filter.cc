@@ -61,11 +61,11 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MIN, DBL_MAX
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <limits>
 
 
 inline auto fastq_get_qual(char q) -> int
@@ -248,6 +248,9 @@ auto analyse(fastx_handle h) -> struct analysis_res
 
 auto filter(bool fastq_only, char * filename) -> void
 {
+  static constexpr auto dbl_max = std::numeric_limits<double>::max();
+  static constexpr auto long_min = std::numeric_limits<long>::min();
+
   if ((! opt_fastqout) && (! opt_fastaout) &&
       (! opt_fastqout_discarded) && (! opt_fastaout_discarded) &&
       (! opt_fastqout_rev) && (! opt_fastaout_rev) &&
@@ -275,13 +278,13 @@ auto filter(bool fastq_only, char * filename) -> void
       else if (opt_eeout ||
                (opt_fastq_ascii != 33) ||
                opt_fastq_eeout ||
-               (opt_fastq_maxee < DBL_MAX) ||
-               (opt_fastq_maxee_rate < DBL_MAX) ||
+               (opt_fastq_maxee < dbl_max) ||
+               (opt_fastq_maxee_rate < dbl_max) ||
                opt_fastqout ||
                (opt_fastq_qmax < 41) ||
                (opt_fastq_qmin > 0) ||
-               (opt_fastq_truncee < DBL_MAX) ||
-               (opt_fastq_truncqual < LONG_MIN) ||
+               (opt_fastq_truncee < dbl_max) ||
+               (opt_fastq_truncqual < long_min) ||
                opt_fastqout_discarded ||
                opt_fastqout_discarded_rev ||
                opt_fastqout_rev)
@@ -315,13 +318,13 @@ auto filter(bool fastq_only, char * filename) -> void
           else if (opt_eeout ||
                    (opt_fastq_ascii != 33) ||
                    opt_fastq_eeout ||
-                   (opt_fastq_maxee < DBL_MAX) ||
-                   (opt_fastq_maxee_rate < DBL_MAX) ||
+                   (opt_fastq_maxee < dbl_max) ||
+                   (opt_fastq_maxee_rate < dbl_max) ||
                    opt_fastqout ||
                    (opt_fastq_qmax < 41) ||
                    (opt_fastq_qmin > 0) ||
-                   (opt_fastq_truncee < DBL_MAX) ||
-                   (opt_fastq_truncqual < LONG_MIN) ||
+                   (opt_fastq_truncee < dbl_max) ||
+                   (opt_fastq_truncqual < long_min) ||
                    opt_fastqout_discarded ||
                    opt_fastqout_discarded_rev ||
                    opt_fastqout_rev)
