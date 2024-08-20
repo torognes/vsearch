@@ -767,7 +767,7 @@ auto args_getdouble(char * arg) -> double
 }
 
 
-auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 {
   /* Set defaults */
   static constexpr auto dbl_max = std::numeric_limits<double>::max();
@@ -806,7 +806,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> void
   opt_dbnotmatched = nullptr;
   opt_dn = 1.4;
   opt_ee_cutoffs_count = 3;
-  opt_ee_cutoffs_values = (double*) xmalloc(opt_ee_cutoffs_count * sizeof(double));
+  opt_ee_cutoffs_values = (double *) xmalloc(opt_ee_cutoffs_count * sizeof(double));
   opt_ee_cutoffs_values[0] = 0.5;
   opt_ee_cutoffs_values[1] = 1.0;
   opt_ee_cutoffs_values[2] = 2.0;
