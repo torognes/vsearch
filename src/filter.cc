@@ -224,7 +224,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
       int const pc = p[i];
       if ((pc == 'N') || (pc == 'n'))
         {
-          ncount++;
+          ++ncount;
         }
     }
   if (ncount > opt_fastq_maxns)
@@ -449,7 +449,7 @@ auto filter(bool fastq_only, char * filename) -> void
         {
           /* discard the sequence(s) */
 
-          discarded++;
+          ++discarded;
 
           if (opt_fastaout_discarded)
             {
@@ -518,11 +518,11 @@ auto filter(bool fastq_only, char * filename) -> void
         {
           /* keep the sequence(s) */
 
-          kept++;
+          ++kept;
 
           if (res1.truncated || res2.truncated)
             {
-              truncated++;
+              ++truncated;
             }
 
           if (opt_fastaout)
