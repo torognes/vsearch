@@ -135,7 +135,7 @@ struct searchinfo_s
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
   char * qsequence = nullptr;             /* query sequence */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
-  unsigned int * kmersample = 0;    /* list of kmers sampled from query */
+  unsigned int * kmersample = nullptr;    /* list of kmers sampled from query */
   count_t * kmers = nullptr;              /* list of kmer counts for each db seq */
   std::vector<struct hit> hits_v; /* vector of hits */
   struct hit * hits = nullptr;            /* list of hits */
