@@ -61,11 +61,11 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MAX
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::memset
+#include <limits>
 
 
 auto q2p(double quality_value) -> double
@@ -103,7 +103,7 @@ auto fastq_stats() -> void
   auto * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
   memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
 
-  int64_t len_min = LONG_MAX;
+  int64_t len_min = std::numeric_limits<long>::max();
   int64_t len_max = 0;
 
   int qmin = +1000;
