@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/seqcmp.h"
+#include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::qsort
@@ -279,10 +280,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           nextseqtab[last] = i;
           bp->seqno_last = i;
 
-          if (bp->size > maxsize)
-            {
-              maxsize = bp->size;
-            }
+          maxsize = std::max<uint64_t>(bp->size, maxsize);
         }
       else
         {
@@ -328,10 +326,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               nextseqtab[i] = first;
               bp->seqno_last = last;
 
-              if (bp->size > maxsize)
-                {
-                  maxsize = bp->size;
-                }
+              maxsize = std::max<uint64_t>(bp->size, maxsize);
             }
           else
             {
@@ -341,10 +336,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               orig_bp->seqno_first = i;
               orig_bp->seqno_last = i;
 
-              if (ab > maxsize)
-                {
-                  maxsize = ab;
-                }
+              maxsize = std::max(ab, maxsize);
               ++clusters;
             }
         }
