@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::printf, std::size_t, std::snprintf, std::sscanf
@@ -471,14 +472,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
               h = p + subst_score(a_start + i - 1, b_start + j - 1);
 
-              if (f > h)
-                {
-                  h = f;
-                }
-              if (EE[j] > h)
-                {
-                  h = EE[j];
-                }
+              h = std::max(f, h);
+              h = std::max(EE[j], h);
               p = HH[j];
               HH[j] = h;
             }
@@ -526,14 +521,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
               h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
 
-              if (f > h)
-                {
-                  h = f;
-                }
-              if (YY[j] > h)
-                {
-                  h = YY[j];
-                }
+              h = std::max(f, h);
+              h = std::max(YY[j], h);
               p = XX[j];
               XX[j] = h;
             }
