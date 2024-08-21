@@ -206,14 +206,14 @@ auto fastq_eestats() -> void
 
           /* quality score */
 
-          int qual = fastq_get_qual_eestats(q[i]);
+          auto qual = fastq_get_qual_eestats(q[i]);
           qual = std::max(qual, 0);
           ++qual_length_table[((max_quality + 1) * i) + qual];
 
 
           /* Pe */
 
-          double const pe = q2p(qual);
+          auto const pe = q2p(qual);
           sum_pe_length_table[i] += pe;
 
 
