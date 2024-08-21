@@ -61,9 +61,9 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MIN
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::printf, std::size_t, std::snprintf, std::sscanf
+#include <limits>
 
 
 /*
@@ -283,6 +283,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                                bool b_left,      /* includes left end of b  */
                                bool b_right) -> void  /* includes right end of b */
 {
+  static constexpr auto long_min = std::numeric_limits<long>::min();
   if (b_len == 0)
     {
       /* B and possibly A is empty */
@@ -440,7 +441,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       for (int64_t j = 1; j <= b_len; j++)
         {
           HH[j] = - (a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i));
-          EE[j] = LONG_MIN;
+          EE[j] = long_min;
         }
 
       /* compute matrix */
@@ -454,7 +455,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                          (gap_b_left ? 0 : go_t_i) + (i * ge_t_i));
 
           HH[0] = h;
-          int64_t f = LONG_MIN;
+          int64_t f = long_min;
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -496,7 +497,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       for (int64_t j = 1; j <= b_len; j++)
         {
           XX[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
-          YY[j] = LONG_MIN;
+          YY[j] = long_min;
         }
 
       /* compute matrix */
@@ -509,7 +510,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                          (gap_b_right ? 0 : go_t_r) + (i * ge_t_r) :
                          (gap_b_right ? 0 : go_t_i) + (i * ge_t_i));
           XX[0] = h;
-          int64_t f = LONG_MIN;
+          int64_t f = long_min;
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -543,7 +544,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* find maximum score along division line */
 
-      int64_t MaxScore0 = LONG_MIN;
+      int64_t MaxScore0 = long_min;
       int64_t best0 = -1;
 
       /* solutions with diagonal at break */
@@ -559,7 +560,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
             }
         }
 
-      int64_t MaxScore1 = LONG_MIN;
+      int64_t MaxScore1 = long_min;
       int64_t best1 = -1;
 
       /* solutions that end with a gap in b from both ends at break */
