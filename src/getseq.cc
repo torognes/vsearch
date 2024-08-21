@@ -152,15 +152,17 @@ auto read_labels_file(char * filename) -> void
     }
 }
 
+
 auto free_labels() -> void
 {
-  for(int i = 0; i < labels_count; i++)
+  for (int i = 0; i < labels_count; i++)
     {
       free(labels_data[i]);
     }
   free(labels_data);
   labels_data = nullptr;
 }
+
 
 auto test_label_match(fastx_handle h) -> bool
 {
@@ -318,6 +320,7 @@ auto test_label_match(fastx_handle h) -> bool
   return false;
 }
 
+
 auto getseq(char * filename) -> void
 {
   if ((! opt_fastqout) && (! opt_fastaout) &&
@@ -448,7 +451,7 @@ auto getseq(char * filename) -> void
   int64_t kept = 0;
   int64_t discarded = 0;
 
-  while(fastx_next(h1, ! opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h1, ! opt_notrunclabels, chrmap_no_change))
     {
       bool const match = test_label_match(h1);
 
@@ -597,15 +600,18 @@ auto getseq(char * filename) -> void
     }
 }
 
+
 auto fastx_getseq() -> void
 {
   getseq(opt_fastx_getseq);
 }
 
+
 auto fastx_getseqs() -> void
 {
   getseq(opt_fastx_getseqs);
 }
+
 
 auto fastx_getsubseq() -> void
 {
