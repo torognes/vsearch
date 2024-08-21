@@ -471,10 +471,7 @@ auto fastq_eestats2() -> void
           /* quality score */
 
           int qual = fastq_get_qual_eestats(q[i]);
-          if (qual < 0)
-            {
-              qual = 0;
-            }
+          qual = std::max(qual, 0);
 
           double const pe = q2p(qual);
 
