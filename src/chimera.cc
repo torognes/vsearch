@@ -182,7 +182,9 @@ struct chimera_info_s
   double best_h;
 };
 
+
 static struct chimera_info_s * cia;
+
 
 auto realloc_arrays(struct chimera_info_s * ci) -> void
 {
@@ -257,6 +259,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
     }
 }
 
+
 auto find_matches(struct chimera_info_s * ci) -> void
 {
   /* find the positions with matches for each potential parent */
@@ -318,12 +321,14 @@ auto find_matches(struct chimera_info_s * ci) -> void
     }
 }
 
+
 struct parents_info_s
 {
   int cand;
   int start;
   int len;
 };
+
 
 auto compare_positions(const void * a, const void * b) -> int
 {
@@ -340,6 +345,7 @@ auto compare_positions(const void * a, const void * b) -> int
     return 0;
   }
 }
+
 
 auto scan_matches(struct chimera_info_s * ci,
                   int * matches,
@@ -407,6 +413,7 @@ auto scan_matches(struct chimera_info_s * ci,
     return false;
   }
 }
+
 
 auto find_best_parents_long(struct chimera_info_s * ci) -> int
 {
@@ -703,6 +710,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
 
   return alnlen;
 }
+
 
 auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 {
@@ -1083,6 +1091,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   return status;
 }
 
+
 auto eval_parents(struct chimera_info_s * ci) -> int
 {
   int status = 1;
@@ -1247,7 +1256,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if(not ci->ignore[i])
+      if (not ci->ignore[i])
         {
           char const diff = ci->diffs[i];
           if (diff != ' ')
@@ -1611,7 +1620,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                               opt_xlength);
           fprintf(fp_uchimeout, "\t");
 
-          if(not opt_uchimeout5)
+          if (not opt_uchimeout5)
             {
               if (QA >= QB)
                 {
@@ -1657,6 +1666,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   return status;
 }
 
+
 // refactoring: enum struct status {};
 /*
   new chimeric status:
@@ -1692,6 +1702,7 @@ auto query_init(struct searchinfo_s * si) -> void
   si->m = minheap_init(tophits);
 }
 
+
 auto query_exit(struct searchinfo_s * si) -> void
 {
   search16_exit(si->s);
@@ -1714,6 +1725,7 @@ auto query_exit(struct searchinfo_s * si) -> void
       si->kmers = nullptr;
     }
 }
+
 
 auto partition_query(struct chimera_info_s * ci) -> void
 {
@@ -1738,6 +1750,7 @@ auto partition_query(struct chimera_info_s * ci) -> void
       p += len;
     }
 }
+
 
 auto chimera_thread_init(struct chimera_info_s * ci) -> void
 {
@@ -1783,6 +1796,7 @@ auto chimera_thread_init(struct chimera_info_s * ci) -> void
                         opt_gap_extension_query_right,
                         opt_gap_extension_target_right);
 }
+
 
 auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
@@ -1858,6 +1872,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   }
 }
 
+
 auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 {
   chimera_thread_init(ci);
@@ -1883,7 +1898,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                      opt_gap_extension_query_right,
                      opt_gap_extension_target_right);
 
-  while(true)
+  while (true)
     {
       /* get next sequence */
 
@@ -1935,8 +1950,6 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
         }
 
       xpthread_mutex_unlock(&mutex_input);
-
-
 
       int status = 0;
 
@@ -2242,10 +2255,12 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
   return 0;
 }
 
+
 auto chimera_thread_worker(void * vp) -> void *
 {
   return (void *) chimera_thread_core(cia + (int64_t) vp);
 }
+
 
 auto chimera_threads_run() -> void
 {
@@ -2284,6 +2299,7 @@ auto open_chimera_file(FILE ** f, char * name) -> void
     }
 }
 
+
 auto close_chimera_file(FILE * f) -> void
 {
   if (f)
@@ -2291,6 +2307,7 @@ auto close_chimera_file(FILE * f) -> void
       fclose(f);
     }
 }
+
 
 auto chimera() -> void
 {
