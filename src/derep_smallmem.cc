@@ -409,10 +409,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           ++clusters;
         }
 
-      if (bp->size > maxsize)
-        {
-          maxsize = bp->size;
-        }
+      maxsize = std::max(bp->size, maxsize);
 
       ++sequencecount;
       progress_update(fastx_get_position(h));
