@@ -200,7 +200,7 @@ auto fasta_next(fastx_handle h,
 
       /* copy to header buffer */
       uint64_t len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
@@ -227,7 +227,7 @@ auto fasta_next(fastx_handle h,
         }
 
       /* end if new sequence starts */
-      if (lf && (h->file_buffer.data[h->file_buffer.position] == '>'))
+      if ((lf != nullptr) && (h->file_buffer.data[h->file_buffer.position] == '>'))
         {
           break;
         }
@@ -237,7 +237,7 @@ auto fasta_next(fastx_handle h,
                            '\n', rest);
 
       uint64_t len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
@@ -387,7 +387,7 @@ auto fasta_print_general(std::FILE * output_handle,
 {
   fprintf(output_handle, ">");
 
-  if (prefix)
+  if (prefix != nullptr)
     {
       fprintf(output_handle, "%s", prefix);
     }
@@ -404,7 +404,7 @@ auto fasta_print_general(std::FILE * output_handle,
     {
       fprint_seq_digest_md5(output_handle, seq, len);
     }
-  else if (opt_relabel && (ordinal > 0))
+  else if ((opt_relabel != nullptr) && (ordinal > 0))
     {
       fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
@@ -421,12 +421,12 @@ auto fasta_print_general(std::FILE * output_handle,
                           strip_length);
     }
 
-  if (opt_label_suffix)
+  if (opt_label_suffix != nullptr)
     {
       fprintf(output_handle, "%s", opt_label_suffix);
     }
 
-  if (opt_sample)
+  if (opt_sample != nullptr)
     {
       fprintf(output_handle, ";sample=%s", opt_sample);
     }
@@ -476,20 +476,20 @@ auto fasta_print_general(std::FILE * output_handle,
       fprintf(output_handle, ";length=%d", len);
     }
 
-  if (score_name)
+  if (score_name != nullptr)
     {
       fprintf(output_handle, ";%s=%.4lf", score_name, score);
     }
 
   if (opt_relabel_keep &&
-      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
+      (((opt_relabel != nullptr) && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     {
       fprintf(output_handle, " %s", header);
     }
 
   fprintf(output_handle, "\n");
 
-  if (seq)
+  if (seq != nullptr)
     {
       fasta_print_sequence(output_handle, seq, len, opt_fasta_width);
     }
