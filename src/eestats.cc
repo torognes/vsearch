@@ -210,15 +210,15 @@ auto fastq_eestats() -> void
           ++qual_length_table[((max_quality + 1) * i) + qual];
 
 
-          /* Pe */
+          /* probability of error (Pe) */
 
-          auto const pe = q2p(qual);
-          sum_pe_length_table[i] += pe;
+          auto const probability_of_error = q2p(qual);
+          sum_pe_length_table[i] += probability_of_error;
 
 
           /* expected number of errors */
 
-          ee += pe;
+          ee += probability_of_error;
 
           int64_t const e_int = MIN(resolution * (i + 1), (int) (resolution * ee));
           ++ee_length_table[ee_start(i, resolution) + e_int];
