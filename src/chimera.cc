@@ -68,6 +68,7 @@
 #include "minheap.h"
 #include "udb.h"
 #include "unique.h"
+#include <algorithm>  // std::max
 #include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -594,10 +595,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                   if (qpos >= window - 1)
                     {
                       ci->smooth[z] = sum;
-                      if (ci->smooth[z] > ci->maxsmooth[qpos])
-                        {
-                          ci->maxsmooth[qpos] = ci->smooth[z];
-                        }
+                      ci->maxsmooth[qpos] = std::max(ci->smooth[z], ci->maxsmooth[qpos]);
                     }
                 }
             }
@@ -689,10 +687,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
               break;
 
             case 'I':
-              if (run > ci->maxi[pos])
-                {
-                  ci->maxi[pos] = run;
-                }
+              ci->maxi[pos] = std::max(run, ci->maxi[pos]);
               break;
             }
         }
@@ -922,9 +917,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       } else {
         QP[f] = 0.0;
       }
-      if (QP[f] > QT) {
-        QT = QP[f];
-      }
+      QT = std::max(QP[f], QT);
     }
 
   double const QA = QP[0];
