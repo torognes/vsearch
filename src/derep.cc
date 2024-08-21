@@ -389,14 +389,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
 
       nucleotidecount += seqlen;
-      if (seqlen > longest)
-        {
-          longest = seqlen;
-        }
-      if (seqlen < shortest)
-        {
-          shortest = seqlen;
-        }
+      longest = std::max(seqlen, longest);
+      shortest = std::min(seqlen, shortest);
 
       /* check allocations */
 
@@ -607,10 +601,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           ++clusters;
         }
 
-      if (bp->size > maxsize)
-        {
-          maxsize = bp->size;
-        }
+      maxsize = std::max<uint64_t>(bp->size, maxsize);
 
       ++sequencecount;
 
