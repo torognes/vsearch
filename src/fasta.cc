@@ -349,7 +349,7 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
       int64_t rest = len;
       for (uint64_t i = 0; i < len; i += width)
         {
-          fprintf(fp, "%.*s\n", (int) (MIN(rest,width)), seq + i);
+          fprintf(fp, "%.*s\n", (int) (MIN(rest, width)), seq + i);
           rest -= width;
         }
     }
