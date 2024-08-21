@@ -120,8 +120,8 @@ auto read_labels_file(char * filename) -> void
           if (labels_count + 1 > labels_alloc)
             {
               labels_alloc += 1024;
-              labels_data = (char * *) realloc(labels_data,
-                                               labels_alloc * sizeof (char*));
+              labels_data = (char **) realloc(labels_data,
+                                              labels_alloc * sizeof (char *));
               if (! labels_data)
                 {
                   fatal("Unable to allocate memory for labels");
