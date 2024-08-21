@@ -86,6 +86,7 @@
 #include "tax.h"
 #include "udb.h"
 #include "unique.h"
+#include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::memset, std::strncmp, std::strcpy
@@ -362,10 +363,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
                 }
               else if (length == best.length)
                 {
-                  if (seqno < best.seqno)
-                    {
-                      best.seqno = seqno;
-                    }
+                  best.seqno = std::min(seqno, best.seqno);
                 }
             }
         }
@@ -432,10 +430,7 @@ auto sintax_query(int64_t t) -> void
 
                   all_seqno[s][boot_count[s]++] = e.seqno;
 
-                  if (e.count > best_count[s])
-                    {
-                      best_count[s] = e.count;
-                    }
+                  best_count[s] = std::max(e.count, best_count[s]);
                 }
             }
         }
