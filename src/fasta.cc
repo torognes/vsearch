@@ -410,15 +410,15 @@ auto fasta_print_general(std::FILE * fp,
     }
   else
     {
-      bool const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      bool const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      bool const xlength = opt_xlength || opt_lengthout;
+      bool const strip_size = opt_xsize || (opt_sizeout && (abundance > 0));
+      bool const strip_ee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      bool const strip_length = opt_xlength || opt_lengthout;
       header_fprint_strip(fp,
                           header,
                           header_len,
-                          xsize,
-                          xee,
-                          xlength);
+                          strip_size,
+                          strip_ee,
+                          strip_length);
     }
 
   if (opt_label_suffix)
