@@ -112,7 +112,7 @@ auto read_labels_file(char * filename) -> void
           if ((len > 0) && (buffer[len - 1] == '\n'))
             {
               buffer[len - 1] = 0;
-              len--;
+              --len;
             }
 
           labels_longest = std::max(len, labels_longest);
@@ -261,7 +261,7 @@ auto test_label_match(fastx_handle h) -> bool
                       return true;
                     }
                 }
-              hit++;
+              ++hit;
             }
           else
             {
@@ -308,7 +308,7 @@ auto test_label_match(fastx_handle h) -> bool
                           return true;
                         }
                     }
-                  hit++;
+                  ++hit;
                 }
               else
                 {
@@ -358,19 +358,19 @@ auto getseq(char * filename) -> void
       int label_options = 0;
       if (opt_label)
         {
-          label_options++;
+          ++label_options;
         }
       if (opt_labels)
         {
-          label_options++;
+          ++label_options;
         }
       if (opt_label_word)
         {
-          label_options++;
+          ++label_options;
         }
       if (opt_label_words)
         {
-          label_options++;
+          ++label_options;
         }
 
       if (label_options != 1)
@@ -468,7 +468,7 @@ auto getseq(char * filename) -> void
         {
           /* keep the sequence(s) */
 
-          kept++;
+          ++kept;
 
           if (opt_fastaout)
             {
@@ -504,7 +504,7 @@ auto getseq(char * filename) -> void
         {
           /* discard the sequence */
 
-          discarded++;
+          ++discarded;
 
           if (opt_notmatched)
             {
