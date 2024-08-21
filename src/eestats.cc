@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
-// #include <algorithm>  // std::max
+#include <algorithm>  // std::max, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // LONG_MAX
 #include <cmath>  // std::pow
@@ -193,14 +193,8 @@ auto fastq_eestats() -> void
           ee_size = new_ee_size;
         }
 
-      if (len < len_min)
-        {
-          len_min = len;
-        }
-      if (len > len_max)
-        {
-          len_max = len;
-        }
+      len_min = std::min(len, len_min);
+      len_max = std::max(len, len_max);
 
       /* update quality statistics */
 
