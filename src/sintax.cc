@@ -145,7 +145,7 @@ auto sintax_analyse(char * query_head,
           tax_split(seqno, new_level_start, new_level_len);
           for (int k = 0; k < tax_levels; k++)
             {
-              cand_level_start[i][k] = db_getheader(seqno)+new_level_start[k];
+              cand_level_start[i][k] = db_getheader(seqno) + new_level_start[k];
               cand_level_len[i][k] = new_level_len[k];
             }
         }
@@ -290,7 +290,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
   /* zero counts */
   memset(si->kmers, 0, indexed_count * sizeof(count_t));
 
-  for(unsigned int i = 0; i < si->kmersamplecount; i++)
+  for (unsigned int i = 0; i < si->kmersamplecount; i++)
     {
       unsigned int const kmer = si->kmersample[i];
       unsigned char * bitmap = dbindex_getbitmap(kmer);
@@ -316,7 +316,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
         {
           unsigned int * list = dbindex_getmatchlist(kmer);
           unsigned int const count = dbindex_getmatchcount(kmer);
-          for(unsigned int j = 0; j < count; j++)
+          for (unsigned int j = 0; j < count; j++)
             {
               si->kmers[list[j]]++;
             }
@@ -387,7 +387,7 @@ auto sintax_query(int64_t t) -> void
 
   for (int s = 0; s < opt_strand; s++)
     {
-      struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
+      struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
 
       /* perform search */
 
@@ -492,7 +492,7 @@ auto sintax_thread_run(int64_t t) -> void
 
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
+              struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
 
               si->query_head_len = query_head_len;
               si->qseqlen = qseqlen;
