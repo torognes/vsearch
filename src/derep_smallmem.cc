@@ -62,11 +62,11 @@
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // INT64_MAX
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::fclose
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memcpy, std::strcmp
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -293,7 +293,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
-  int64_t shortest = INT64_MAX;
+  int64_t shortest = std::numeric_limits<long>::max();
   int64_t longest = 0;
   uint64_t discarded_short = 0;
   uint64_t discarded_long = 0;
