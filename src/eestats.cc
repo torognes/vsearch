@@ -220,7 +220,7 @@ auto fastq_eestats() -> void
 
           ee += probability_of_error;
 
-          int64_t const e_int = MIN(resolution * (i + 1), (int) (resolution * ee));
+          auto const e_int = std::min<int64_t>(resolution * (i + 1), (int) (resolution * ee));
           ++ee_length_table[ee_start(i, resolution) + e_int];
 
           sum_ee_length_table[i] += ee;
