@@ -62,12 +62,12 @@
 #include "maps.h"
 #include <algorithm>  // std::max, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MAX
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::memset
+#include <limits>
 #include <vector>
 
 
@@ -165,7 +165,7 @@ auto fastq_eestats() -> void
   std::vector<double> sum_ee_length_table(len_alloc);
   std::vector<double> sum_pe_length_table(len_alloc);
 
-  int64_t len_min = LONG_MAX;
+  int64_t len_min = std::numeric_limits<long>::max();
   int64_t len_max = 0;
 
   while (fastq_next(h, false, chrmap_upcase))
