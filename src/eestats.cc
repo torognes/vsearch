@@ -206,8 +206,7 @@ auto fastq_eestats() -> void
 
           /* quality score */
 
-          auto qual = fastq_get_qual_eestats(q[i]);
-          qual = std::max(qual, 0);
+          auto const qual = std::max(fastq_get_qual_eestats(q[i]), 0);
           ++qual_length_table[((max_quality + 1) * i) + qual];
 
 
