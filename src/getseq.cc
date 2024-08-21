@@ -63,6 +63,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::max, std::min
 #include <cctype>  // isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -114,10 +115,7 @@ auto read_labels_file(char * filename) -> void
               len--;
             }
 
-          if (len > labels_longest)
-            {
-              labels_longest = len;
-            }
+          labels_longest = std::max(len, labels_longest);
 
           if (labels_count + 1 > labels_alloc)
             {
@@ -458,14 +456,8 @@ auto getseq(char * filename) -> void
       int64_t end = fastx_get_sequence_length(h1);
       if (opt_fastx_getsubseq)
         {
-          if (opt_subseq_start > start)
-            {
-              start = opt_subseq_start;
-            }
-          if (opt_subseq_end < end)
-            {
-              end = opt_subseq_end;
-            }
+          start = std::max(opt_subseq_start, start);
+          end = std::min(opt_subseq_end, end);
         }
       int64_t const length = end - start + 1;
 
