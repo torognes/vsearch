@@ -207,10 +207,7 @@ auto fastq_eestats() -> void
           /* quality score */
 
           int qual = fastq_get_qual_eestats(q[i]);
-          if (qual < 0)
-            {
-              qual = 0;
-            }
+          qual = std::max(qual, 0);
           ++qual_length_table[((max_quality + 1) * i) + qual];
 
 
