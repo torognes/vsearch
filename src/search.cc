@@ -67,6 +67,7 @@
 #include "otutable.h"
 #include "udb.h"
 #include "unique.h"
+#include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
@@ -724,10 +725,7 @@ auto search_prep(char * cmdline, char * progheader) -> void
 
   tophits = opt_maxrejects + opt_maxaccepts + MAXDELAYED;
 
-  if (tophits > seqcount)
-    {
-      tophits = seqcount;
-    }
+  tophits = std::min(tophits, seqcount);
 }
 
 auto search_done() -> void
