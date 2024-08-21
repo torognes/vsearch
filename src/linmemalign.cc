@@ -103,6 +103,7 @@ LinearMemoryAligner::LinearMemoryAligner()
   YY = nullptr;
 }
 
+
 LinearMemoryAligner::~LinearMemoryAligner()
 {
   if (cigar_string)
@@ -126,6 +127,7 @@ LinearMemoryAligner::~LinearMemoryAligner()
       xfree(YY);
     }
 }
+
 
 auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
@@ -153,6 +155,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
     }
   return newscorematrix;
 }
+
 
 auto LinearMemoryAligner::alloc_vectors(size_t x) -> void
 {
@@ -184,6 +187,7 @@ auto LinearMemoryAligner::alloc_vectors(size_t x) -> void
     }
 }
 
+
 auto LinearMemoryAligner::cigar_reset() -> void
 {
   if (cigar_alloc < 1)
@@ -196,6 +200,7 @@ auto LinearMemoryAligner::cigar_reset() -> void
   op = 0;
   op_run = 0;
 }
+
 
 auto LinearMemoryAligner::cigar_flush() -> void
 {
@@ -237,6 +242,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
     }
 }
 
+
 auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 {
   if (op == _op)
@@ -251,6 +257,7 @@ auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
     }
 }
 
+
 auto LinearMemoryAligner::show_matrix() -> void
 {
   for (int i = 0; i < 16; i++)
@@ -263,6 +270,7 @@ auto LinearMemoryAligner::show_matrix() -> void
       printf("\n");
     }
 }
+
 
 auto LinearMemoryAligner::diff(int64_t a_start,
                                int64_t b_start,
@@ -642,6 +650,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
         }
     }
 }
+
 
 auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
                                          int64_t _gap_open_query_left,
