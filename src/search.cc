@@ -124,7 +124,7 @@ auto search_output_results(int hit_count,
   xpthread_mutex_lock(&mutex_output);
 
   /* show results */
-  int64_t const toreport = MIN(opt_maxhits, hit_count);
+  auto const toreport = std::min<int64_t>(opt_maxhits, hit_count);
 
   if (fp_alnout)
     {
