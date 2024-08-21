@@ -79,10 +79,12 @@ auto fasta_open(const char * filename) -> fastx_handle
   return h;
 }
 
+
 auto fasta_close(fastx_handle h) -> void
 {
   fastx_close(h);
 }
+
 
 auto fasta_filter_sequence(fastx_handle h,
                            unsigned int * char_action,
@@ -100,7 +102,7 @@ auto fasta_filter_sequence(fastx_handle h,
     {
       char const m = char_action[(unsigned char) c];
 
-      switch(m)
+      switch (m)
         {
         case 0:
           /* stripped */
@@ -149,6 +151,7 @@ auto fasta_filter_sequence(fastx_handle h,
   *q = 0;
   h->sequence_buffer.length = q - h->sequence_buffer.data;
 }
+
 
 auto fasta_next(fastx_handle h,
                 bool truncateatspace,
@@ -254,6 +257,7 @@ auto fasta_next(fastx_handle h,
   return true;
 }
 
+
 auto fasta_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
@@ -269,46 +273,55 @@ auto fasta_get_abundance(fastx_handle h) -> int64_t
     }
 }
 
+
 auto fasta_get_abundance_and_presence(fastx_handle h) -> int64_t
 {
   // return 0 if not present
   return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 
+
 auto fasta_get_position(fastx_handle h) -> uint64_t
 {
   return h->file_position;
 }
+
 
 auto fasta_get_size(fastx_handle h) -> uint64_t
 {
   return h->file_size;
 }
 
+
 auto fasta_get_lineno(fastx_handle h) -> uint64_t
 {
   return h->lineno_start;
 }
+
 
 auto fasta_get_seqno(fastx_handle h) -> uint64_t
 {
   return h->seqno;
 }
 
+
 auto fasta_get_header_length(fastx_handle h) -> uint64_t
 {
   return h->header_buffer.length;
 }
+
 
 auto fasta_get_sequence_length(fastx_handle h) -> uint64_t
 {
   return h->sequence_buffer.length;
 }
 
+
 auto fasta_get_header(fastx_handle h) -> char *
 {
   return h->header_buffer.data;
 }
+
 
 auto fasta_get_sequence(fastx_handle h) -> char *
 {
@@ -334,13 +347,14 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
   else
     {
       int64_t rest = len;
-      for(uint64_t i = 0; i < len; i += width)
+      for (uint64_t i = 0; i < len; i += width)
         {
-          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq + i);
+          fprintf(fp, "%.*s\n", (int) (MIN(rest,width)), seq + i);
           rest -= width;
         }
     }
 }
+
 
 auto fasta_print(std::FILE * fp, const char * hdr,
                  char * seq, uint64_t len) -> void
@@ -349,11 +363,13 @@ auto fasta_print(std::FILE * fp, const char * hdr,
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
+
 inline auto fprint_seq_label(std::FILE * fp, char * seq, int len) -> void
 {
   /* normalize first? */
   fprintf(fp, "%.*s", len, seq);
 }
+
 
 auto fasta_print_general(std::FILE * fp,
                          const char * prefix,
@@ -478,6 +494,7 @@ auto fasta_print_general(std::FILE * fp,
       fasta_print_sequence(fp, seq, len, opt_fasta_width);
     }
 }
+
 
 auto fasta_print_db_relabel(std::FILE * fp,
                             uint64_t seqno,
