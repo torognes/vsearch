@@ -116,6 +116,7 @@ inline auto fastq_get_qual_eestats(char q) -> int
   return qual;
 }
 
+
 auto q2p(int quality_value) -> double
 {
   static constexpr auto base = 10.0;
@@ -126,6 +127,7 @@ auto ee_start(int pos, int resolution) -> int64_t
 {
   return pos * (resolution * (pos + 1) + 2) / 2;
 }
+
 
 auto fastq_eestats() -> void
 {
@@ -401,6 +403,7 @@ auto fastq_eestats() -> void
 
   fastq_close(h);
 }
+
 
 auto fastq_eestats2() -> void
 {
