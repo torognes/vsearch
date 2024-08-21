@@ -165,7 +165,7 @@ auto search_output_results(int hit_count,
                        qsize);
         }
 
-      for(int t = 0; t < toreport; t++)
+      for (int t = 0; t < toreport; t++)
         {
           struct hit * hp = hits + t;
 
@@ -317,11 +317,12 @@ auto search_output_results(int hit_count,
   xpthread_mutex_unlock(&mutex_output);
 }
 
+
 auto search_query(int64_t t) -> int
 {
   for (int s = 0; s < opt_strand; s++)
     {
-      struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
+      struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
 
       /* mask query */
       if (opt_qmask == MASK_DUST)
@@ -367,6 +368,7 @@ auto search_query(int64_t t) -> int
   return hit_count;
 }
 
+
 auto search_thread_run(int64_t t) -> void
 {
   while (true)
@@ -386,7 +388,7 @@ auto search_thread_run(int64_t t) -> void
 
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_minus+t : si_plus+t;
+              struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
 
               si->query_head_len = query_head_len;
               si->qseqlen = qseqlen;
@@ -458,6 +460,7 @@ auto search_thread_run(int64_t t) -> void
     }
 }
 
+
 auto search_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
@@ -487,6 +490,7 @@ auto search_thread_init(struct searchinfo_s * si) -> void
                         opt_gap_extension_target_right);
 }
 
+
 auto search_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
@@ -514,6 +518,7 @@ auto search_thread_worker(void * vp) -> void *
   return nullptr;
 }
 
+
 auto search_thread_worker_run() -> void
 {
   /* initialize threads, start them, join them and return */
@@ -522,31 +527,30 @@ auto search_thread_worker_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
-      search_thread_init(si_plus+t);
+      search_thread_init(si_plus + t);
       if (si_minus)
         {
-          search_thread_init(si_minus+t);
+          search_thread_init(si_minus + t);
         }
-      xpthread_create(pthread+t, &attr,
-                      search_thread_worker, (void*)(int64_t)t);
+      xpthread_create(pthread + t, &attr,
+                      search_thread_worker, (void *) (int64_t) t);
     }
 
   /* finish and clean up worker threads */
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
-      search_thread_exit(si_plus+t);
+      search_thread_exit(si_plus + t);
       if (si_minus)
         {
-          search_thread_exit(si_minus+t);
+          search_thread_exit(si_minus + t);
         }
     }
 
   xpthread_attr_destroy(&attr);
 }
-
 
 
 auto search_prep(char * cmdline, char * progheader) -> void
@@ -728,6 +732,7 @@ auto search_prep(char * cmdline, char * progheader) -> void
   tophits = std::min(tophits, seqcount);
 }
 
+
 auto search_done() -> void
 {
   /* clean up, global */
@@ -781,6 +786,7 @@ auto search_done() -> void
     }
   show_rusage();
 }
+
 
 auto usearch_global(char * cmdline, char * progheader) -> void
 {
@@ -851,7 +857,7 @@ auto usearch_global(char * cmdline, char * progheader) -> void
 
   fastx_close(query_fastx_h);
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "Matching unique query sequences: %d of %d",
               qmatches, queries);
