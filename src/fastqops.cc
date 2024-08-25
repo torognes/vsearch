@@ -233,7 +233,7 @@ auto fastq_stats() -> void
   /* compute various distributions */
 
   std::vector<uint64_t> length_dist(len_max + 1);
-  auto * symb_dist = (int64_t *) xmalloc(sizeof(int64_t) * (len_max + 1));
+  std::vector<int64_t> symb_dist(len_max + 1);
 
   auto * rate_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
   auto * avgq_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
@@ -398,7 +398,6 @@ auto fastq_stats() -> void
   xfree(q_length_table);
   xfree(sumee_length_table);
 
-  xfree(symb_dist);
   xfree(rate_dist);
   xfree(avgq_dist);
   xfree(avgee_dist);
