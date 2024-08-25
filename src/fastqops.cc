@@ -117,7 +117,7 @@ auto fastq_stats() -> void
     {
       ++seq_count;
 
-      int64_t const len = fastq_get_sequence_length(input_handle);
+      auto const len = static_cast<int64_t>(fastq_get_sequence_length(input_handle));
       auto * q = fastq_get_quality(input_handle);
 
       /* update length statistics */
