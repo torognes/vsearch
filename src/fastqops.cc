@@ -164,7 +164,7 @@ auto fastq_stats() -> void
       std::array<double, 4> const ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
       double ee = 0.0;
-      int qmin_this = 1000;
+      int qmin_this = std::numeric_limits<int>::max();
       for (int64_t i = 0; i < len; i++)
         {
           int const qc = q[i];
