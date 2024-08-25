@@ -556,14 +556,14 @@ auto fastq_convert() -> void
     fatal("No output file specified with --fastqout");
   }
 
-  fastx_handle input_handle = fastq_open(opt_fastq_convert);
+  auto input_handle = fastq_open(opt_fastq_convert);
 
   if (! input_handle)
     {
       fatal("Unable to open FASTQ file");
     }
 
-  uint64_t const filesize = fastq_get_size(input_handle);
+  auto const filesize = fastq_get_size(input_handle);
 
   FILE * fp_fastqout = nullptr;
 
@@ -575,22 +575,22 @@ auto fastq_convert() -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  int j = 1;
+  auto j = 1;
   while (fastq_next(input_handle, false, chrmap_no_change))
     {
       /* header */
 
-      char * header = fastq_get_header(input_handle);
-      int64_t const abundance = fastq_get_abundance(input_handle);
+      auto * header = fastq_get_header(input_handle);
+      auto const abundance = fastq_get_abundance(input_handle);
 
       /* sequence */
 
-      uint64_t const length = fastq_get_sequence_length(input_handle);
-      char * sequence = fastq_get_sequence(input_handle);
+      auto const length = fastq_get_sequence_length(input_handle);
+      auto * sequence = fastq_get_sequence(input_handle);
 
       /* convert quality values */
 
-      char * quality = fastq_get_quality(input_handle);
+      auto * quality = fastq_get_quality(input_handle);
       for (uint64_t i = 0; i < length; i++)
         {
           int q = quality[i] - opt_fastq_ascii;
