@@ -79,9 +79,9 @@ auto q2p(double quality_value) -> double
 
 auto fastq_stats() -> void
 {
-  fastx_handle input_handle = fastq_open(opt_fastq_stats);
+  auto input_handle = fastq_open(opt_fastq_stats);
 
-  uint64_t const filesize = fastq_get_size(input_handle);
+  auto const filesize = fastq_get_size(input_handle);
 
   progress_init("Reading FASTQ file", filesize);
 
