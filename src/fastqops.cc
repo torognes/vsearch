@@ -79,9 +79,9 @@ auto q2p(double quality_value) -> double
 
 auto fastq_stats() -> void
 {
-  fastx_handle h = fastq_open(opt_fastq_stats);
+  fastx_handle input_handle = fastq_open(opt_fastq_stats);
 
-  uint64_t const filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(input_handle);
 
   progress_init("Reading FASTQ file", filesize);
 
@@ -113,12 +113,12 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> quality_chars(256);
 
-  while (fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(input_handle, false, chrmap_upcase))
     {
       ++seq_count;
 
-      int64_t const len = fastq_get_sequence_length(h);
-      auto * q = fastq_get_quality(h);
+      int64_t const len = fastq_get_sequence_length(input_handle);
+      auto * q = fastq_get_quality(input_handle);
 
       /* update length statistics */
 
@@ -226,7 +226,7 @@ auto fastq_stats() -> void
             }
         }
 
-      progress_update(fastq_get_position(h));
+      progress_update(fastq_get_position(input_handle));
     }
   progress_done();
 
@@ -405,7 +405,7 @@ auto fastq_stats() -> void
   xfree(avgee_dist);
   xfree(avgp_dist);
 
-  fastq_close(h);
+  fastq_close(input_handle);
 
   if (! opt_quiet)
     {
