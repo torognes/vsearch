@@ -575,7 +575,7 @@ auto fastq_convert() -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  auto j = 1;
+  auto n_entries = 1;
   while (fastq_next(input_handle, false, chrmap_no_change))
     {
       /* header */
@@ -635,10 +635,10 @@ auto fastq_convert() -> void
                           hlen,
                           quality,
                           abundance,
-                          j,
+                          n_entries,
                           -1.0);
 
-      ++j;
+      ++n_entries;
       progress_update(fastq_get_position(input_handle));
     }
 
