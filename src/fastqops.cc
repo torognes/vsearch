@@ -237,7 +237,7 @@ auto fastq_stats() -> void
   std::vector<double> rate_dist(len_max + 1);
   std::vector<double> avgq_dist(len_max + 1);
   std::vector<double> avgee_dist(len_max + 1);
-  auto * avgp_dist = (double *) xmalloc(sizeof(double) * (len_max + 1));
+  std::vector<double> avgp_dist(len_max + 1);
 
   int64_t length_accum = 0;
   int64_t symb_accum = 0;
@@ -396,8 +396,6 @@ auto fastq_stats() -> void
   xfree(ee_length_table);
   xfree(q_length_table);
   xfree(sumee_length_table);
-
-  xfree(avgp_dist);
 
   fastq_close(input_handle);
 
