@@ -556,14 +556,14 @@ auto fastq_convert() -> void
     fatal("No output file specified with --fastqout");
   }
 
-  fastx_handle h = fastq_open(opt_fastq_convert);
+  fastx_handle input_handle = fastq_open(opt_fastq_convert);
 
-  if (! h)
+  if (! input_handle)
     {
       fatal("Unable to open FASTQ file");
     }
 
-  uint64_t const filesize = fastq_get_size(h);
+  uint64_t const filesize = fastq_get_size(input_handle);
 
   FILE * fp_fastqout = nullptr;
 
@@ -576,21 +576,21 @@ auto fastq_convert() -> void
   progress_init("Reading FASTQ file", filesize);
 
   int j = 1;
-  while (fastq_next(h, false, chrmap_no_change))
+  while (fastq_next(input_handle, false, chrmap_no_change))
     {
       /* header */
 
-      char * header = fastq_get_header(h);
-      int64_t const abundance = fastq_get_abundance(h);
+      char * header = fastq_get_header(input_handle);
+      int64_t const abundance = fastq_get_abundance(input_handle);
 
       /* sequence */
 
-      uint64_t const length = fastq_get_sequence_length(h);
-      char * sequence = fastq_get_sequence(h);
+      uint64_t const length = fastq_get_sequence_length(input_handle);
+      char * sequence = fastq_get_sequence(input_handle);
 
       /* convert quality values */
 
-      char * quality = fastq_get_quality(h);
+      char * quality = fastq_get_quality(input_handle);
       for (uint64_t i = 0; i < length; i++)
         {
           int q = quality[i] - opt_fastq_ascii;
@@ -602,8 +602,8 @@ auto fastq_convert() -> void
                       " starting on line %" PRIu64 "\n",
                       q,
                       opt_fastq_qmin,
-                      fastq_get_seqno(h) + 1,
-                      fastq_get_lineno(h));
+                      fastq_get_seqno(input_handle) + 1,
+                      fastq_get_lineno(input_handle));
               fatal("FASTQ quality score too low");
             }
           if (q > opt_fastq_qmax)
@@ -614,8 +614,8 @@ auto fastq_convert() -> void
                       " starting on line %" PRIu64 "\n",
                       q,
                       opt_fastq_qmax,
-                      fastq_get_seqno(h) + 1,
-                      fastq_get_lineno(h));
+                      fastq_get_seqno(input_handle) + 1,
+                      fastq_get_lineno(input_handle));
               fatal("FASTQ quality score too high");
             }
           q = std::max<int64_t>(q, opt_fastq_qminout);
@@ -627,7 +627,7 @@ auto fastq_convert() -> void
         }
       quality[length] = 0;
 
-      int const hlen = fastq_get_header_length(h);
+      int const hlen = fastq_get_header_length(input_handle);
       fastq_print_general(fp_fastqout,
                           sequence,
                           length,
@@ -639,11 +639,11 @@ auto fastq_convert() -> void
                           -1.0);
 
       ++j;
-      progress_update(fastq_get_position(h));
+      progress_update(fastq_get_position(input_handle));
     }
 
   progress_done();
 
   fclose(fp_fastqout);
-  fastq_close(h);
+  fastq_close(input_handle);
 }
