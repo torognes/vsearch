@@ -430,8 +430,8 @@ auto fastx_revcomp() -> void
 
   uint64_t const filesize = fastx_get_size(h);
 
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
 
   if (opt_fastaout)
     {
@@ -565,7 +565,7 @@ auto fastq_convert() -> void
 
   auto const filesize = fastq_get_size(input_handle);
 
-  FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
 
   fp_fastqout = fopen_output(opt_fastqout);
   if (! fp_fastqout)
