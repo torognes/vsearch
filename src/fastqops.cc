@@ -66,6 +66,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::memset
 #include <limits>
+#include <vector>
 
 
 auto q2p(double quality_value) -> double
@@ -109,7 +110,7 @@ auto fastq_stats() -> void
   int qmin = +1000;
   int qmax = -1000;
 
-  uint64_t quality_chars[256];
+  std::vector<uint64_t> quality_chars(256);
   for (uint64_t & quality_char : quality_chars)
     {
       quality_char = 0;
