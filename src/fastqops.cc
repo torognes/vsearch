@@ -108,8 +108,8 @@ auto fastq_stats() -> void
   int64_t len_min = std::numeric_limits<long>::max();
   int64_t len_max = 0;
 
-  int qmin = +1000;
-  int qmax = -1000;
+  auto qmin = std::numeric_limits<int>::max();
+  auto qmax = std::numeric_limits<int>::min();
 
   std::vector<uint64_t> quality_chars(256);
 
