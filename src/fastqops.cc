@@ -114,7 +114,7 @@ auto fastq_stats() -> void
 
   while (fastq_next(h, false, chrmap_upcase))
     {
-      seq_count++;
+      ++seq_count;
 
       int64_t const len = fastq_get_sequence_length(h);
       char * q = fastq_get_quality(h);
@@ -151,7 +151,7 @@ auto fastq_stats() -> void
           read_length_alloc = len + 1;
         }
 
-      read_length_table[len]++;
+      ++read_length_table[len];
 
       len_min = std::min(len, len_min);
       len_max = std::max(len, len_max);
@@ -188,11 +188,11 @@ auto fastq_stats() -> void
               xfree(msg);
             }
 
-          quality_chars[qc]++;
+          ++quality_chars[qc];
           qmin = std::min(qc, qmin);
           qmax = std::max(qc, qmax);
 
-          qual_length_table[(256 * i) + qc]++;
+          ++qual_length_table[(256 * i) + qc];
 
           ee += q2p(qual);
 
@@ -202,7 +202,7 @@ auto fastq_stats() -> void
             {
               if (ee <= ee_limit[z])
                 {
-                  ee_length_table[(4 * i) + z]++;
+                  ++ee_length_table[(4 * i) + z];
                 }
               else
                 {
@@ -216,7 +216,7 @@ auto fastq_stats() -> void
             {
               if (qmin_this > 5 * (z + 1))
                 {
-                  q_length_table[(4 * i) + z]++;
+                  ++q_length_table[(4 * i) + z];
                 }
               else
                 {
@@ -471,7 +471,7 @@ auto fastx_revcomp() -> void
 
   while (fastx_next(h, false, chrmap_no_change))
     {
-      count++;
+      ++count;
 
       /* header */
 
@@ -645,7 +645,7 @@ auto fastq_convert() -> void
                           j,
                           -1.0);
 
-      j++;
+      ++j;
       progress_update(fastq_get_position(h));
     }
 
