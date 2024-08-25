@@ -111,10 +111,6 @@ auto fastq_stats() -> void
   int qmax = -1000;
 
   std::vector<uint64_t> quality_chars(256);
-  for (uint64_t & quality_char : quality_chars)
-    {
-      quality_char = 0;
-    }
 
   while (fastq_next(h, false, chrmap_upcase))
     {
