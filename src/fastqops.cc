@@ -156,14 +156,8 @@ auto fastq_stats() -> void
 
       read_length_table[len]++;
 
-      if (len < len_min)
-        {
-          len_min = len;
-        }
-      if (len > len_max)
-        {
-          len_max = len;
-        }
+      len_min = std::min(len, len_min);
+      len_max = std::max(len, len_max);
 
       /* update quality statistics */
 
@@ -198,14 +192,8 @@ auto fastq_stats() -> void
             }
 
           quality_chars[qc]++;
-          if (qc < qmin)
-            {
-              qmin = qc;
-            }
-          if (qc > qmax)
-            {
-              qmax = qc;
-            }
+          qmin = std::min(qc, qmin);
+          qmax = std::max(qc, qmax);
 
           qual_length_table[(256 * i) + qc]++;
 
@@ -225,10 +213,7 @@ auto fastq_stats() -> void
                 }
             }
 
-          if (qual < qmin_this)
-            {
-              qmin_this = qual;
-            }
+          qmin_this = std::min(qual, qmin_this);
 
           for (int z = 0; z < 4; z++)
             {
@@ -643,23 +628,11 @@ auto fastq_convert() -> void
                       fastq_get_lineno(h));
               fatal("FASTQ quality score too high");
             }
-          if (q < opt_fastq_qminout)
-            {
-              q = opt_fastq_qminout;
-            }
-          if (q > opt_fastq_qmaxout)
-            {
-              q = opt_fastq_qmaxout;
-            }
+          q = std::max<int64_t>(q, opt_fastq_qminout);
+          q = std::min<int64_t>(q, opt_fastq_qmaxout);
           q += opt_fastq_asciiout;
-          if (q < 33)
-            {
-              q = 33;
-            }
-          if (q > 126)
-            {
-              q = 126;
-            }
+          q = std::max(q, 33);
+          q = std::min(q, 126);
           quality[i] = q;
         }
       quality[length] = 0;
