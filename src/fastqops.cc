@@ -576,6 +576,7 @@ auto fastq_convert() -> void
   progress_init("Reading FASTQ file", filesize);
 
   auto n_entries = 1;
+  static constexpr double default_expected_error = -1.0;  // refactoring: print no ee value?
   while (fastq_next(input_handle, false, chrmap_no_change))
     {
       /* header */
@@ -636,7 +637,7 @@ auto fastq_convert() -> void
                           quality,
                           abundance,
                           n_entries,
-                          -1.0);
+                          default_expected_error);  // refactoring: prefer polymorphism?
 
       ++n_entries;
       progress_update(fastq_get_position(input_handle));
