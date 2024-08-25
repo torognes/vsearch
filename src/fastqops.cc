@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
@@ -160,7 +161,7 @@ auto fastq_stats() -> void
 
       symbols += len;
 
-      double const ee_limit[4] = { 1.0, 0.5, 0.25, 0.1 };
+      std::array<double, 4> const ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
       double ee = 0.0;
       int qmin_this = 1000;
@@ -200,7 +201,7 @@ auto fastq_stats() -> void
 
           for (int z = 0; z < 4; z++)
             {
-              if (ee <= ee_limit[z])
+              if (ee <= ee_limits[z])
                 {
                   ++ee_length_table[(4 * i) + z];
                 }
