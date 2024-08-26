@@ -637,7 +637,7 @@ auto fastq_convert() -> void
                           quality,
                           abundance,
                           n_entries,
-                          default_expected_error);  // refactoring: prefer polymorphism?
+                          default_expected_error);  // refactoring: prefer function overload?
 
       ++n_entries;
       progress_update(fastq_get_position(input_handle));
