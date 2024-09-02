@@ -59,7 +59,7 @@ make
 make install  # as root or sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch. Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ compiler is required to build vsearch. Version 3.82 or later of Make may be required on Linux, while version 3.81 is sufficient on macOS.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ (`g++`) compiler is required to build vsearch. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
 The distributed Linux ppc64le and aarch64 binaries were compiled using the C++ cross-compiler. The Windows binary was built using [Mingw-w64](http://mingw-w64.org/).
 
@@ -172,14 +172,14 @@ doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 ## Dependencies
 
-When compiling VSEARCH the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
+Compiling VSEARCH requires either GCC (`g++`) or `clang`, `make` and the autotools (`ui-auto` on Debian-based distributions). Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
-* libz (zlib library) (zlib.h header file) (optional)
-* libbz2 (bzip2lib library) (bzlib.h header file) (optional)
+* libz (zlib library) (zlib.h header file, available as `zlib1g-dev` on Debian-based distributions) (optional)
+* libbz2 (bzip2lib library) (bzlib.h header file, available as `libbz2-dev`on Debian-based distributions) (optional)
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
-On Windows these libraries are called zlib1.dll and libbz2.dll. These DLL's are included with the released distribution of vsearch 2.28.1 and later.
+On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.28.1 and later.
 
 To create the PDF file with the manual the ps2pdf tool is required. It is part of the ghostscript package.
 
