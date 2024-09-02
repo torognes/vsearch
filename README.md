@@ -174,14 +174,14 @@ doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 Compiling VSEARCH requires either GCC (`g++`) or `clang`, `make` and the autotools (`ui-auto` on Debian-based distributions). Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
-* libz (zlib library) (zlib.h header file, available as `zlib1g-dev` on Debian-based distributions) (optional)
-* libbz2 (bzip2lib library) (bzlib.h header file, available as `libbz2-dev`on Debian-based distributions) (optional)
+* libz (zlib library) (`zlib.h` header file, available as `zlib1g-dev` on Debian-based distributions) (optional)
+* libbz2 (bzip2lib library) (`bzlib.h` header file, available as `libbz2-dev`on Debian-based distributions) (optional)
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
 On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.28.1 and later.
 
-To create the PDF file with the manual the ps2pdf tool is required. It is part of the ghostscript package.
+To create the PDF file with the manual the ps2pdf tool is required. It is part of the `ghostscript` package.
 
 
 ## VSEARCH license and third party licenses
