@@ -282,7 +282,7 @@ auto fastq_stats() -> void
                       i,
                       read_length_table[i],
                       read_length_table[i] * 100.0 / seq_count,
-                      100.0 * (seq_count - length_dist[i - 1]) / seq_count);
+                      100.0 * (seq_count - (i > 0 ? length_dist[i - 1] : 0)) / seq_count);
             }
         }
 
