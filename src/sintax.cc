@@ -105,12 +105,10 @@ void sintax_analyse(char * query_head,
                     int * all_seqno,
                     int count)
 {
-  int level_match[tax_levels];
+  int level_matchcount[tax_levels];
   int level_best[tax_levels];
-
-  char * cand_level_start[bootstrap_count][tax_levels];
-  int cand_level_len[bootstrap_count][tax_levels];
-  int cand_level_matches[bootstrap_count][tax_levels];
+  char * cand_level_name_start[bootstrap_count][tax_levels];
+  int cand_level_name_len[bootstrap_count][tax_levels];
 
   /* Check number of successful bootstraps, must be at least half */
 
@@ -126,64 +124,62 @@ void sintax_analyse(char * query_head,
           /* Split headers of all candidates by taxonomy ranks */
 
           int seqno = all_seqno[i];
-          int new_level_start[tax_levels];
-          int new_level_len[tax_levels];
-          tax_split(seqno, new_level_start, new_level_len);
+          int new_level_name_start[tax_levels];
+          int new_level_name_len[tax_levels];
+          tax_split(seqno, new_level_name_start, new_level_name_len);
           for (int k = 0; k < tax_levels; k++)
             {
-              cand_level_start[i][k] = db_getheader(seqno)+new_level_start[k];
-              cand_level_len[i][k] = new_level_len[k];
+              cand_level_name_start[i][k] = db_getheader(seqno) + new_level_name_start[k];
+              cand_level_name_len[i][k] = new_level_name_len[k];
             }
         }
 
+      bool cand_included[bootstrap_count];
+      for (int i = 0; i < count; i++)
+        cand_included[i] = true;
+
       /* Count matching names among candidates */
-
-      for (int i = 0; i < count ; i++)
-        for (int k = 0; k < tax_levels; k++)
-          cand_level_matches[i][k] = 0;
-
-      for (int k = 0; k < tax_levels; k++)
-        for (int i = 0; i < count ; i++)
-          for (int c = 0; c <= i ; c++)
-            {
-              /* check match at current and all higher levels */
-              bool match = true;
-              for (int j = 0; j <= k; j++)
-                {
-                  if ((cand_level_len[i][j] != cand_level_len[c][j]) ||
-                      (strncmp(cand_level_start[i][j],
-                               cand_level_start[c][j],
-                               cand_level_len[i][j]) != 0))
-                    {
-                      match = false;
-                      break;
-                    }
-                }
-              if (match)
-                {
-                  cand_level_matches[c][k]++;
-                  break; /* stop at first match */
-                }
-            }
-
-      /* Find most common name at each taxonomic level */
 
       for (int k = 0; k < tax_levels; k++)
         {
           level_best[k] = -1;
-          level_match[k] = 0;
-          int m = 0;
+          level_matchcount[k] = 0;
+
+          int cand_match[bootstrap_count];
+          int cand_matchcount[bootstrap_count];
           for (int i = 0; i < count ; i++)
             {
-              m += cand_level_matches[i][k];
-              if (cand_level_matches[i][k] > level_match[k])
-                {
-                  level_best[k] = i;
-                  level_match[k] = cand_level_matches[i][k];
-                }
-              if (m >= count)
-                break;
+              cand_match[i] = -1;
+              cand_matchcount[i] = 0;
             }
+
+          for (int i = 0; i < count ; i++)
+            if (cand_included[i])
+              for (int j = 0; j <= i ; j++)
+                if (cand_included[j])
+                  {
+                    /* check match at current level */
+                    if ((cand_level_name_len[i][k] == cand_level_name_len[j][k]) &&
+                                  (strncmp(cand_level_name_start[i][k],
+                                           cand_level_name_start[j][k],
+                                           cand_level_name_len[i][k]) == 0))
+                      {
+                        cand_match[i] = j;
+                        cand_matchcount[j]++;
+                        break; /* stop at first match */
+                      }
+                  }
+
+          for (int i = 0; i < count ; i++)
+            if (cand_matchcount[i] > level_matchcount[k])
+              {
+                level_best[k] = i;
+                level_matchcount[k] = cand_matchcount[i];
+              }
+
+          for (int i = 0; i < count; i++)
+            if (cand_match[i] != level_best[k])
+              cand_included[i] = false;
         }
     }
 
@@ -201,15 +197,15 @@ void sintax_analyse(char * query_head,
       for (int j = 0; j < tax_levels; j++)
         {
           int best = level_best[j];
-          if (cand_level_len[best][j] > 0)
+          if (cand_level_name_len[best][j] > 0)
             {
               fprintf(fp_tabbedout,
                       "%s%c:%.*s(%.2f)",
                       (comma ? "," : ""),
                       tax_letters[j],
-                      cand_level_len[best][j],
-                      cand_level_start[best][j],
-                      1.0 * level_match[j] / count);
+                      cand_level_name_len[best][j],
+                      cand_level_name_start[best][j],
+                      1.0 * level_matchcount[j] / count);
               comma = true;
             }
         }
@@ -223,15 +219,15 @@ void sintax_analyse(char * query_head,
           for (int j = 0; j < tax_levels; j++)
             {
               int best = level_best[j];
-              if ((cand_level_len[best][j] > 0) &&
-                  (1.0 * level_match[j] / count >= opt_sintax_cutoff))
+              if ((cand_level_name_len[best][j] > 0) &&
+                  (1.0 * level_matchcount[j] / count >= opt_sintax_cutoff))
                 {
                   fprintf(fp_tabbedout,
                           "%s%c:%.*s",
                           (comma ? "," : ""),
                           tax_letters[j],
-                          cand_level_len[best][j],
-                          cand_level_start[best][j]);
+                          cand_level_name_len[best][j],
+                          cand_level_name_start[best][j]);
                   comma = true;
                 }
             }
