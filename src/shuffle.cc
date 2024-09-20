@@ -99,9 +99,8 @@ auto shuffle_deck(std::vector<int> & deck) -> void {
 
 auto truncate_deck(std::vector<int> & deck,
                    long int const n_first_sequences) -> void {
-  auto const final_size = std::min(deck.size(),
-                                   static_cast<unsigned long>(n_first_sequences));
-  deck.resize(final_size);
+  if (deck.size() > static_cast<unsigned long>(n_first_sequences))
+    deck.resize(final_size);
 }
 
 
