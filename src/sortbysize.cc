@@ -170,7 +170,7 @@ auto output_median_abundance(std::vector<sortinfo_size_s> const & deck) -> void 
 auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
                    long int const n_first_sequences) -> void {
   if (deck.size() > static_cast<unsigned long>(n_first_sequences))
-    deck.resize(final_size);
+    deck.resize(n_first_sequences);
 }
 
 
