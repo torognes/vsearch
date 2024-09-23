@@ -5718,6 +5718,11 @@ auto cmd_chimera() -> void
       fatal("Database filename not specified with --db");
     }
 
+  if (opt_abskew < 1.0)
+    {
+      fatal("Argument to --abskew must be >= 1.0");
+    }
+
   if (opt_xn <= 1.0)
     {
       fatal("Argument to --xn must be > 1");
