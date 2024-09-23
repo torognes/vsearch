@@ -5771,9 +5771,9 @@ auto cmd_fastq_mergepairs() -> void
     {
       fatal("No output files specified");
     }
-    if (opt_fastq_maxdiffs < 0) {
-      fatal("Argument to --fastq_maxdiffs must be positive");
-    }
+  if (opt_fastq_maxdiffs < 0) {
+    fatal("Argument to --fastq_maxdiffs must be positive");
+  }
   fastq_mergepairs();
 }
 
