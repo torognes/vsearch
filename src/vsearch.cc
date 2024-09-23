@@ -3582,7 +3582,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_gzip_decompress,
         option_log,
         option_no_progress,
-        option_output,
         option_quiet,
         option_threads,
         -1 },
