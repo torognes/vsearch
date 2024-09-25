@@ -122,11 +122,7 @@ libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
 if TARGET_X86_64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 else
-if TARGET_AARCH64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
-else
-__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
-endif
 endif
 
 endif
