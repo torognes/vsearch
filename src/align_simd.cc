@@ -166,7 +166,7 @@ const uint16x8_t neon_mask =
 #define v_shift_left(a) vextq_s16((v_zero), (a), 7)
 #define v_mask_gt(a, b) vaddvq_u16(vandq_u16((vcgtq_s16((a), (b))), neon_mask))
 
-#elif __x86_64__
+#elif defined(__x86_64__) || defined(SIMDE_VERSION)
 
 using VECTOR_SHORT = __m128i;
 

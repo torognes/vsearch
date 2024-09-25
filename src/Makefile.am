@@ -13,7 +13,9 @@ else
 if TARGET_AARCH64
 AM_CFLAGS += -march=armv8-a+simd -mtune=generic
 else
+if TARGET_X86_64
 AM_CFLAGS += -march=x86-64 -mtune=generic
+endif
 endif
 endif
 
@@ -94,20 +96,15 @@ utils/seqcmp.h \
 vsearch.h \
 xstring.h
 
-if TARGET_PPC
-libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-noinst_LIBRARIES = libcpu.a libcityhash.a
-else
-if TARGET_AARCH64
-libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-noinst_LIBRARIES = libcpu.a libcityhash.a
-else
+if TARGET_X86_64
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
-endif
+else
+libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+noinst_LIBRARIES = libcpu.a libcityhash.a
 endif
 
 libcityhash_a_SOURCES = city.cc city.h
@@ -122,8 +119,8 @@ else
 
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
 
-if TARGET_PPC
-__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
+if TARGET_X86_64
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 else
 if TARGET_AARCH64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a

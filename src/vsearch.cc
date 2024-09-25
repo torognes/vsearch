@@ -408,7 +408,7 @@ auto cpu_features_detect() -> void
         }
     }
 #else
-#error Unknown architecture
+    // simde
 #endif
 }
 

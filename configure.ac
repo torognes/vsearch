@@ -94,6 +94,7 @@ have_man_html=no
 case $target in
      aarch64*) target_aarch64="yes" ;;
      powerpc64*) target_ppc="yes" ;;
+     x86_64*) target_x86_64="yes" ;;
 esac
 
 AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
@@ -102,6 +103,7 @@ AM_CONDITIONAL(HAVE_PS2PDF, test "x${have_ps2pdf}" = "xyes")
 AM_CONDITIONAL(HAVE_MAN_HTML, test "x${have_man_html}" = "xyes")
 AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
+AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")
 AM_PROG_CC_C_O
 
 AC_CONFIG_FILES([Makefile
