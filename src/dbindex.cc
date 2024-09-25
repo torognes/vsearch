@@ -86,9 +86,9 @@ static unsigned int bitmap_mincount;
 
 auto dbindex_getbitmap(unsigned int const kmer) -> unsigned char *
 {
-  if (std::next(kmerbitmap, kmer) != nullptr)
+  auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
+  if (a_bitmap_s != nullptr)
     {
-      auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
       return a_bitmap_s->bitmap;
     }
   return nullptr;
