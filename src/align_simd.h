@@ -58,9 +58,9 @@
 
 */
 
-typedef signed short CELL;
-typedef unsigned short WORD;
-typedef unsigned char BYTE;
+using CELL = signed short;
+using WORD = unsigned short;
+using BYTE = unsigned char;
 struct s16info_s;
 
 

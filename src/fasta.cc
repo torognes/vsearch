@@ -59,14 +59,19 @@
 */
 
 #include "vsearch.h"
+#include "attributes.h"
+#include "maps.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint> // int64_t, uint64_t
 #include <cstdio> // std::FILE, std::fprintf, std::size_t
+#include <cstring>  // std::memchr
 
 
-fastx_handle fasta_open(const char * filename)
+auto fasta_open(const char * filename) -> fastx_handle
 {
   fastx_handle h = fastx_open(filename);
 
-  if (fastx_is_fastq(h) && ! h->is_empty)
+  if (fastx_is_fastq(h) and not h->is_empty)
     {
       fatal("FASTA file expected, FASTQ file found (%s)", filename);
     }
@@ -74,48 +79,50 @@ fastx_handle fasta_open(const char * filename)
   return h;
 }
 
-void fasta_close(fastx_handle h)
+
+auto fasta_close(fastx_handle h) -> void
 {
   fastx_close(h);
 }
 
-void fasta_filter_sequence(fastx_handle h,
+
+auto fasta_filter_sequence(fastx_handle h,
                            unsigned int * char_action,
-                           const unsigned char * char_mapping)
+                           const unsigned char * char_mapping) -> void
 {
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
 
   char * p = h->sequence_buffer.data;
   char * q = p;
-  char c;
+  char c = '\0';
   char msg[200];
 
   while ((c = *p++))
     {
-      char m = char_action[(unsigned char)c];
+      char const m = char_action[(unsigned char) c];
 
-      switch(m)
+      switch (m)
         {
         case 0:
           /* stripped */
           h->stripped_all++;
-          h->stripped[(unsigned char)c]++;
+          h->stripped[(unsigned char) c]++;
           break;
 
         case 1:
           /* legal character */
-          *q++ = char_mapping[(unsigned char)(c)];
+          *q++ = char_mapping[(unsigned char) (c)];
           break;
 
         case 2:
           /* fatal character */
-          if ((c>=32) && (c<127))
+          if ((c >= 32) && (c < 127))
             {
               snprintf(msg,
                        200,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-                       (unsigned char)c,
+                       (unsigned char) c,
                        h->lineno);
             }
           else
@@ -145,9 +152,10 @@ void fasta_filter_sequence(fastx_handle h,
   h->sequence_buffer.length = q - h->sequence_buffer.data;
 }
 
-bool fasta_next(fastx_handle h,
+
+auto fasta_next(fastx_handle h,
                 bool truncateatspace,
-                const unsigned char * char_mapping)
+                const unsigned char * char_mapping) -> bool
 {
   h->lineno_start = h->lineno;
 
@@ -173,7 +181,7 @@ bool fasta_next(fastx_handle h,
       fatal("Invalid FASTA - header must start with > character");
     }
   h->file_buffer.position++;
-  rest--;
+  --rest;
 
   char * lf = nullptr;
   while (lf == nullptr)
@@ -192,7 +200,7 @@ bool fasta_next(fastx_handle h,
 
       /* copy to header buffer */
       uint64_t len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
@@ -219,7 +227,7 @@ bool fasta_next(fastx_handle h,
         }
 
       /* end if new sequence starts */
-      if (lf && (h->file_buffer.data[h->file_buffer.position] == '>'))
+      if ((lf != nullptr) && (h->file_buffer.data[h->file_buffer.position] == '>'))
         {
           break;
         }
@@ -229,7 +237,7 @@ bool fasta_next(fastx_handle h,
                            '\n', rest);
 
       uint64_t len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
@@ -241,7 +249,7 @@ bool fasta_next(fastx_handle h,
       rest -= len;
     }
 
-  h->seqno++;
+  ++h->seqno;
 
   fastx_filter_header(h, truncateatspace);
   fasta_filter_sequence(h, char_fasta_action, char_mapping);
@@ -249,10 +257,11 @@ bool fasta_next(fastx_handle h,
   return true;
 }
 
-int64_t fasta_get_abundance(fastx_handle h)
+
+auto fasta_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
-  int64_t size = header_get_size(h->header_buffer.data,
+  int64_t const size = header_get_size(h->header_buffer.data,
                                  h->header_buffer.length);
   if (size > 0)
     {
@@ -264,48 +273,57 @@ int64_t fasta_get_abundance(fastx_handle h)
     }
 }
 
-int64_t fasta_get_abundance_and_presence(fastx_handle h)
+
+auto fasta_get_abundance_and_presence(fastx_handle h) -> int64_t
 {
   // return 0 if not present
   return header_get_size(h->header_buffer.data, h->header_buffer.length);
 }
 
-uint64_t fasta_get_position(fastx_handle h)
+
+auto fasta_get_position(fastx_handle h) -> uint64_t
 {
   return h->file_position;
 }
 
-uint64_t fasta_get_size(fastx_handle h)
+
+auto fasta_get_size(fastx_handle h) -> uint64_t
 {
   return h->file_size;
 }
 
-uint64_t fasta_get_lineno(fastx_handle h)
+
+auto fasta_get_lineno(fastx_handle h) -> uint64_t
 {
   return h->lineno_start;
 }
 
-uint64_t fasta_get_seqno(fastx_handle h)
+
+auto fasta_get_seqno(fastx_handle h) -> uint64_t
 {
   return h->seqno;
 }
 
-uint64_t fasta_get_header_length(fastx_handle h)
+
+auto fasta_get_header_length(fastx_handle h) -> uint64_t
 {
   return h->header_buffer.length;
 }
 
-uint64_t fasta_get_sequence_length(fastx_handle h)
+
+auto fasta_get_sequence_length(fastx_handle h) -> uint64_t
 {
   return h->sequence_buffer.length;
 }
 
-char * fasta_get_header(fastx_handle h)
+
+auto fasta_get_header(fastx_handle h) -> char *
 {
   return h->header_buffer.data;
 }
 
-char * fasta_get_sequence(fastx_handle h)
+
+auto fasta_get_sequence(fastx_handle h) -> char *
 {
   return h->sequence_buffer.data;
 }
@@ -313,7 +331,7 @@ char * fasta_get_sequence(fastx_handle h)
 
 /* fasta output */
 
-void fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width)
+auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -> void
 {
   /*
     The actual length of the sequence may be longer than "len", but only
@@ -324,158 +342,163 @@ void fasta_print_sequence(FILE * fp, char * seq, uint64_t len, int width)
 
   if (width < 1)
     {
-      fprintf(fp, "%.*s\n", (int)(len), seq);
+      fprintf(fp, "%.*s\n", (int) (len), seq);
     }
   else
     {
       int64_t rest = len;
-      for(uint64_t i=0; i<len; i += width)
+      for (uint64_t i = 0; i < len; i += width)
         {
-          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), seq+i);
+          fprintf(fp, "%.*s\n", (int) (MIN(rest, width)), seq + i);
           rest -= width;
         }
     }
 }
 
-void fasta_print(FILE * fp, const char * hdr,
-                 char * seq, uint64_t len)
+
+auto fasta_print(std::FILE * fp, const char * hdr,
+                 char * seq, uint64_t len) -> void
 {
   fprintf(fp, ">%s\n", hdr);
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
-inline void fprint_seq_label(FILE * fp, char * seq, int len)
+
+inline auto fprint_seq_label(std::FILE * fp, char * seq, int len) -> void
 {
   /* normalize first? */
   fprintf(fp, "%.*s", len, seq);
 }
 
-void fasta_print_general(FILE * fp,
+
+auto fasta_print_general(std::FILE * output_handle,
                          const char * prefix,
                          char * seq,
                          int len,
                          char * header,
-                         int header_len,
+                         int header_length,
                          unsigned int abundance,
                          int ordinal,
                          double ee,
                          int clustersize,
                          int clusterid,
                          const char * score_name,
-                         double score)
+                         double score) -> void
 {
-  fprintf(fp, ">");
+  fprintf(output_handle, ">");
 
-  if (prefix)
+  if (prefix != nullptr)
     {
-      fprintf(fp, "%s", prefix);
+      fprintf(output_handle, "%s", prefix);
     }
 
   if (opt_relabel_self)
     {
-      fprint_seq_label(fp, seq, len);
+      fprint_seq_label(output_handle, seq, len);
     }
   else if (opt_relabel_sha1)
     {
-      fprint_seq_digest_sha1(fp, seq, len);
+      fprint_seq_digest_sha1(output_handle, seq, len);
     }
   else if (opt_relabel_md5)
     {
-      fprint_seq_digest_md5(fp, seq, len);
+      fprint_seq_digest_md5(output_handle, seq, len);
     }
-  else if (opt_relabel && (ordinal > 0))
+  else if ((opt_relabel != nullptr) && (ordinal > 0))
     {
-      fprintf(fp, "%s%d", opt_relabel, ordinal);
+      fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
   else
     {
-      bool xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      bool xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      bool xlength = opt_xlength || opt_lengthout;
-      header_fprint_strip(fp,
+      bool const strip_size = opt_xsize || (opt_sizeout && (abundance > 0));
+      bool const strip_ee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      bool const strip_length = opt_xlength || opt_lengthout;
+      header_fprint_strip(output_handle,
                           header,
-                          header_len,
-                          xsize,
-                          xee,
-                          xlength);
+                          header_length,
+                          strip_size,
+                          strip_ee,
+                          strip_length);
     }
 
-  if (opt_label_suffix)
+  if (opt_label_suffix != nullptr)
     {
-      fprintf(fp, "%s", opt_label_suffix);
+      fprintf(output_handle, "%s", opt_label_suffix);
     }
 
-  if (opt_sample)
+  if (opt_sample != nullptr)
     {
-      fprintf(fp, ";sample=%s", opt_sample);
+      fprintf(output_handle, ";sample=%s", opt_sample);
     }
 
   if (clustersize > 0)
     {
-      fprintf(fp, ";seqs=%d", clustersize);
+      fprintf(output_handle, ";seqs=%d", clustersize);
     }
 
   if (clusterid >= 0)
     {
-      fprintf(fp, ";clusterid=%d", clusterid);
+      fprintf(output_handle, ";clusterid=%d", clusterid);
     }
 
   if (opt_sizeout && (abundance > 0))
     {
-      fprintf(fp, ";size=%u", abundance);
+      fprintf(output_handle, ";size=%u", abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
     {
-      if (ee < 0.000000001)
-        fprintf(fp, ";ee=%.13lf", ee);
-      else if (ee < 0.00000001)
-        fprintf(fp, ";ee=%.12lf", ee);
-      else if (ee < 0.0000001)
-        fprintf(fp, ";ee=%.11lf", ee);
-      else if (ee < 0.000001)
-        fprintf(fp, ";ee=%.10lf", ee);
-      else if (ee < 0.00001)
-        fprintf(fp, ";ee=%.9lf", ee);
-      else if (ee < 0.0001)
-        fprintf(fp, ";ee=%.8lf", ee);
-      else if (ee < 0.001)
-        fprintf(fp, ";ee=%.7lf", ee);
-      else if (ee < 0.01)
-        fprintf(fp, ";ee=%.6lf", ee);
-      else if (ee < 0.1)
-        fprintf(fp, ";ee=%.5lf", ee);
-      else
-        fprintf(fp, ";ee=%.4lf", ee);
+      if (ee < 0.000000001) {
+        fprintf(output_handle, ";ee=%.13lf", ee);
+      } else if (ee < 0.00000001) {
+        fprintf(output_handle, ";ee=%.12lf", ee);
+      } else if (ee < 0.0000001) {
+        fprintf(output_handle, ";ee=%.11lf", ee);
+      } else if (ee < 0.000001) {
+        fprintf(output_handle, ";ee=%.10lf", ee);
+      } else if (ee < 0.00001) {
+        fprintf(output_handle, ";ee=%.9lf", ee);
+      } else if (ee < 0.0001) {
+        fprintf(output_handle, ";ee=%.8lf", ee);
+      } else if (ee < 0.001) {
+        fprintf(output_handle, ";ee=%.7lf", ee);
+      } else if (ee < 0.01) {
+        fprintf(output_handle, ";ee=%.6lf", ee);
+      } else if (ee < 0.1) {
+        fprintf(output_handle, ";ee=%.5lf", ee);
+      } else {
+        fprintf(output_handle, ";ee=%.4lf", ee);
+      }
     }
 
   if (opt_lengthout)
     {
-      fprintf(fp, ";length=%d", len);
+      fprintf(output_handle, ";length=%d", len);
     }
 
-  if (score_name)
+  if (score_name != nullptr)
     {
-      fprintf(fp, ";%s=%.4lf", score_name, score);
+      fprintf(output_handle, ";%s=%.4lf", score_name, score);
     }
 
   if (opt_relabel_keep &&
-      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
+      (((opt_relabel != nullptr) && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     {
-      fprintf(fp, " %s", header);
+      fprintf(output_handle, " %s", header);
     }
 
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 
-  if (seq)
+  if (seq != nullptr)
     {
-      fasta_print_sequence(fp, seq, len, opt_fasta_width);
+      fasta_print_sequence(output_handle, seq, len, opt_fasta_width);
     }
 }
 
-void fasta_print_db_relabel(FILE * fp,
+
+auto fasta_print_db_relabel(std::FILE * fp,
                             uint64_t seqno,
-                            int ordinal)
+                            int ordinal) -> void
 {
   fasta_print_general(fp,
                       nullptr,
@@ -509,7 +532,7 @@ auto fasta_print_db_relabel(std::FILE * fp,
 }
 
 
-void fasta_print_db(FILE * fp, uint64_t seqno)
+auto fasta_print_db(std::FILE * fp, uint64_t seqno) -> void
 {
   fasta_print_general(fp,
                       nullptr,

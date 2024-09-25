@@ -59,21 +59,34 @@
 */
 
 #include "vsearch.h"
+#include "attributes.h"
+#include "bitmap.h"
+#include "dbindex.h"
+#include "mask.h"
+#include "unique.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <climits>  // UINT_MAX
 #include <cmath>
-#include <cstdio> // std::FILE, std::fprintf, std::size_t
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::memset, std::memmove
+#include <vector>
 
 
-#define BLOCKSIZE (4096 * 4096)
+constexpr auto blocksize = 4096U * 4096U;
 
 static unsigned int udb_dbaccel = 0;
 
-typedef struct wordfreq
+struct wordfreq
 {
   unsigned int kmer;
   unsigned int count;
-} wordfreq_t;
+};
 
-int wc_compare(const void * a, const void * b)
+using wordfreq_t = struct wordfreq;
+
+auto wc_compare(const void * a, const void * b) -> int
 {
   auto * x = (wordfreq_t *) a;
   auto * y = (wordfreq_t *) b;
@@ -102,21 +115,21 @@ int wc_compare(const void * a, const void * b)
     }
 }
 
-uint64_t largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset)
+auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call pread multiple times and update progress */
 
   uint64_t progress = offset;
-  for(uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
+  for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      uint64_t res = xlseek(fd, offset + i, SEEK_SET);
+      uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t bytesread = read(fd, ((char*)buf) + i, rem);
+      uint64 const rem = MIN(blocksize, nbyte - i);
+      uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
@@ -128,21 +141,21 @@ uint64_t largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset)
   return nbyte;
 }
 
-uint64_t largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset)
+auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call write multiple times and update progress */
 
   uint64_t progress = offset;
-  for(uint64_t i = 0; i < nbyte; i += BLOCKSIZE)
+  for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      uint64_t res = xlseek(fd, offset + i, SEEK_SET);
+      uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 rem = MIN(BLOCKSIZE, nbyte - i);
-      uint64_t byteswritten = write(fd, ((char*)buf) + i, rem);
+      uint64 const rem = MIN(blocksize, nbyte - i);
+      uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
           fatal("Unable to write to UDB file");
@@ -171,7 +184,7 @@ auto udb_detect_isudb(const char * filename) -> bool
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  bool is_pipe = S_ISFIFO(fs.st_mode);
+  bool const is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
     {
       return false;
@@ -179,13 +192,13 @@ auto udb_detect_isudb(const char * filename) -> bool
 
   int fd = 0;
   fd = xopen_read(filename);
-  if (!fd)
+  if (! fd)
     {
       fatal("Unable to open input file for reading (%s)", filename);
     }
 
   unsigned int magic = 0;
-  uint64_t bytesread = read(fd, & magic, expected_n_bytes);
+  uint64_t const bytesread = read(fd, & magic, expected_n_bytes);
   close(fd);
 
   if ((bytesread == expected_n_bytes) && (magic == udb_file_signature))
@@ -196,7 +209,7 @@ auto udb_detect_isudb(const char * filename) -> bool
   return false;
 }
 
-void udb_info()
+auto udb_info() -> void
 {
   /* Read UDB header and show basic info */
 
@@ -210,7 +223,7 @@ void udb_info()
       fatal("Unable to open UDB file for reading");
     }
 
-  uint64_t bytesread = read(fd_udbinfo, buffer, 4 * 50);
+  uint64_t const bytesread = read(fd_udbinfo, buffer, 4 * 50);
   if (bytesread != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");
@@ -227,7 +240,7 @@ void udb_info()
       fatal("Invalid UDB file");
     }
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       fprintf(stderr, "           Seqs  %u\n", buffer[13]);
       fprintf(stderr, "     SeqIx bits  %u\n", buffer[2]);
@@ -235,8 +248,8 @@ void udb_info()
       fprintf(stderr, "     Word width  %u\n", buffer[4]);
       fprintf(stderr, "          Slots  %u\n", buffer[11]);
       fprintf(stderr, "      Dict size  %u (%.1fk)\n",
-              (1 << (2 * buffer[4])),
-              (1 << (2 * buffer[4])) * 1.0 / 1000.0);
+              (1U << (2 * buffer[4])),
+              (1U << (2 * buffer[4])) * 1.0 / 1000.0);
       fprintf(stderr, "         DBstep  %u\n", buffer[5]);
       fprintf(stderr, "        DBAccel  %u%%\n", buffer[6]);
     }
@@ -249,8 +262,8 @@ void udb_info()
       fprintf(fp_log, "     Word width  %u\n", buffer[4]);
       fprintf(fp_log, "          Slots  %u\n", buffer[11]);
       fprintf(fp_log, "      Dict size  %u (%.1fk)\n",
-              (1 << (2 * buffer[4])),
-              (1 << (2 * buffer[4])) * 1.0 / 1000.0);
+              (1U << (2 * buffer[4])),
+              (1U << (2 * buffer[4])) * 1.0 / 1000.0);
       fprintf(fp_log, "         DBstep  %u\n", buffer[5]);
       fprintf(fp_log, "        DBAccel  %u%%\n", buffer[6]);
     }
@@ -258,9 +271,9 @@ void udb_info()
   close(fd_udbinfo);
 }
 
-void udb_read(const char * filename,
+auto udb_read(const char * filename,
               bool create_bitmaps,
-              bool parse_abundances)
+              bool parse_abundances) -> void
 {
   /* read UDB as indexed database */
 
@@ -274,7 +287,7 @@ void udb_read(const char * filename,
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  bool is_pipe = S_ISFIFO(fs.st_mode);
+  bool const is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
     {
       fatal("Cannot read UDB file from a pipe");
@@ -282,7 +295,7 @@ void udb_read(const char * filename,
 
   /* get file size */
 
-  uint64_t filesize = fs.st_size;
+  uint64_t const filesize = fs.st_size;
 
   /* open UDB file */
 
@@ -332,17 +345,17 @@ void udb_read(const char * filename,
 
   /* word match counts */
 
-  kmerhashsize = 1 << (2 * udb_wordlength);
-  kmercount = (unsigned int*) xmalloc(kmerhashsize * sizeof(unsigned int));
+  kmerhashsize = 1U << (2 * udb_wordlength);
+  kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
   kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
-  kmerbitmap = (bitmap_t * *) xmalloc(kmerhashsize * sizeof(bitmap_t**));
+  kmerbitmap = (struct bitmap_s * *) xmalloc(kmerhashsize * sizeof(struct bitmap_s **));
 
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t**));
+  memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
 
   pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos);
 
   kmerindexsize = 0;
-  for(uint64_t i = 0; i < kmerhashsize; i++)
+  for (uint64_t i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = kmerindexsize;
       kmerindexsize += kmercount[i];
@@ -375,34 +388,33 @@ void udb_read(const char * filename,
       fatal("Invalid UDB file");
     }
 
-  nucleotides = (((uint64_t) buffer[4]) << 32) | buffer[3];
-  uint64_t udb_headerchars = (((uint64_t) buffer[6]) << 32) | buffer[5];
+  nucleotides = (((uint64_t) buffer[4]) << 32U) | buffer[3];
+  uint64_t const udb_headerchars = (((uint64_t) buffer[6]) << 32U) | buffer[5];
 
   /* header index */
 
   seqindex = (seqinfo_t *) xmalloc(seqcount * sizeof(seqinfo_t));
 
-  int * header_index = (int *) xmalloc(4 * (seqcount+1));
+  std::vector<int> header_index(seqcount + 1);
 
-  pos += largeread(fd_udb, header_index, 4 * seqcount, pos);
+  pos += largeread(fd_udb, header_index.data(), 4 * seqcount, pos);
 
   header_index[seqcount] = udb_headerchars;
 
   unsigned last = 0;
-  for(unsigned int i = 0; i < seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int x = header_index[i];
+      unsigned int const x = header_index[i];
       if ((x < last) || (x >= udb_headerchars))
         {
           fatal("Invalid UDB file");
         }
       seqindex[i].header_p = x;
-      seqindex[i].headerlen = header_index[i+1] - x - 1;
+      seqindex[i].headerlen = header_index[i + 1] - x - 1;
       seqindex[i].size = 1;
       last = x;
     }
 
-  xfree(header_index);
 
   /* headers */
 
@@ -411,7 +423,7 @@ void udb_read(const char * filename,
   pos += largeread(fd_udb, datap, udb_headerchars, pos);
 
   uint64_t longestheader = 0;
-  for(unsigned int i = 0; i < seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
       if (seqindex[i].headerlen > longestheader)
         {
@@ -421,17 +433,17 @@ void udb_read(const char * filename,
 
   /* sequence lengths */
 
-  int * sequence_lengths = (int *) xmalloc(4 * seqcount);
+  std::vector<int> sequence_lengths(seqcount);
 
-  pos += largeread(fd_udb, sequence_lengths, 4 * seqcount, pos);
+  pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos);
 
   uint64_t sum = 0;
   unsigned int shortest = UINT_MAX;
   unsigned int longest = 0;
 
-  for(unsigned int i = 0; i < seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int x = sequence_lengths[i];
+      unsigned int const x = sequence_lengths[i];
 
       seqindex[i].seq_p = udb_headerchars + sum;
       seqindex[i].seqlen = x;
@@ -455,7 +467,6 @@ void udb_read(const char * filename,
         }
     }
 
-  xfree(sequence_lengths);
 
   if (sum != nucleotides)
     {
@@ -481,11 +492,11 @@ void udb_read(const char * filename,
   /* move sequences and insert zero at end of each sequence */
 
   progress_init("Reorganizing data in memory", seqcount);
-  for(unsigned int i = seqcount-1; i > 0; i--)
+  for (unsigned int i = seqcount-1; i > 0; i--)
     {
-      size_t old_p = seqindex[i].seq_p;
-      size_t new_p = seqindex[i].seq_p + i;
-      size_t len   = seqindex[i].seqlen;
+      size_t const old_p = seqindex[i].seq_p;
+      size_t const new_p = seqindex[i].seq_p + i;
+      size_t const len   = seqindex[i].seqlen;
       memmove(datap + new_p, datap + old_p, len);
       *(datap + new_p + len) = 0;
       seqindex[i].seq_p = new_p;
@@ -499,14 +510,14 @@ void udb_read(const char * filename,
   if (create_bitmaps)
     {
       progress_init("Creating bitmaps", kmerhashsize);
-      unsigned int bitmap_mincount = seqcount / 8;
-      for(unsigned int i = 0; i < kmerhashsize; i++)
+      unsigned int const bitmap_mincount = seqcount / 8;
+      for (unsigned int i = 0; i < kmerhashsize; i++)
         {
           if (kmercount[i] >= bitmap_mincount)
             {
               kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
               bitmap_reset_all(kmerbitmap[i]);
-              for(unsigned j = 0; j < kmercount[i]; j++)
+              for (unsigned j = 0; j < kmercount[i]; j++)
                 {
                   bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
                 }
@@ -521,9 +532,9 @@ void udb_read(const char * filename,
   if (parse_abundances)
     {
       progress_init("Parsing abundances", seqcount);
-      for(unsigned int i = 0; i < seqcount; i++)
+      for (unsigned int i = 0; i < seqcount; i++)
         {
-          int64_t size = header_get_size(datap + seqindex[i].header_p,
+          int64_t const size = header_get_size(datap + seqindex[i].header_p,
                                          seqindex[i].headerlen);
           if (size > 0)
             {
@@ -563,7 +574,7 @@ void udb_read(const char * filename,
 
   /* some stats */
 
-  if (!opt_quiet)
+  if (! opt_quiet)
     {
       if (seqcount > 0)
         {
@@ -606,15 +617,16 @@ void udb_read(const char * filename,
     }
 }
 
-void udb_fasta()
+auto udb_fasta() -> void
 {
-  if (!opt_output)
+  if (! opt_output) {
     fatal("FASTA output file must be specified with --output");
+  }
 
   /* open FASTA file for writing */
 
   FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
+  if (! fp_output)
     {
       fatal("Unable to open FASTA output file for writing");
     }
@@ -625,9 +637,9 @@ void udb_fasta()
 
   /* dump fasta */
 
-  unsigned int seqcount = db_getsequencecount();
+  unsigned int const seqcount = db_getsequencecount();
   progress_init("Writing FASTA file", seqcount);
-  for(std::size_t i = 0; i < seqcount; i++)
+  for (std::size_t i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(fp_output, i, i+1);
       progress_update(i+1);
@@ -639,7 +651,7 @@ void udb_fasta()
   db_free();
 }
 
-void udb_stats()
+auto udb_stats() -> void
 {
   /* show word statistics for an UDB file */
 
@@ -649,23 +661,22 @@ void udb_stats()
 
   /* analyze word counts */
 
-  auto * freqtable = (wordfreq_t *) xmalloc
-    (sizeof(wordfreq_t) * kmerhashsize);
+  std::vector<wordfreq_t> freqtable(kmerhashsize);
 
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       freqtable[i].kmer = i;
       freqtable[i].count = kmercount[i];
     }
 
-  qsort(freqtable, kmerhashsize, sizeof(wordfreq_t), wc_compare);
+  qsort(freqtable.data(), kmerhashsize, sizeof(wordfreq_t), wc_compare);
 
-  unsigned int wcmax = freqtable[kmerhashsize-1].count;
-  unsigned int wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
+  unsigned int const wcmax = freqtable[kmerhashsize-1].count;
+  unsigned int const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
                             freqtable[kmerhashsize / 2].count ) / 2;
 
-  unsigned int seqcount = db_getsequencecount();
-  uint64_t nt = db_getnucleotidecount();
+  unsigned int const seqcount = db_getsequencecount();
+  uint64_t const nt = db_getnucleotidecount();
 
   /* show stats */
 
@@ -701,28 +712,28 @@ void udb_stats()
       fprintf(fp_log,
               "----------  ------------  ----------  ----------  ---\n");
 
-      for(unsigned int i = 0; i < kmerhashsize; i++)
+      for (unsigned int i = 0; i < kmerhashsize; i++)
         {
           fprintf(fp_log,
                   "%10u  ",
-                  freqtable[kmerhashsize-1-i].kmer);
+                  freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
                   "%.*s", MAX(12 - (int)(opt_wordlength), 0), "            ");
 
-          fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize-1-i].kmer);
+          fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
                   "  %10u  %10u",
                   0,
-                  freqtable[kmerhashsize-1-i].count);
+                  freqtable[kmerhashsize - 1 - i].count);
 
           fprintf(fp_log, " ");
 
-          for(unsigned j = 0; j < freqtable[kmerhashsize-1-i].count; j++)
+          for (unsigned j = 0; j < freqtable[kmerhashsize - 1 - i].count; j++)
             {
               fprintf(fp_log,
-                      " %u", kmerindex[kmerhash[freqtable[kmerhashsize-1-i].kmer]+j]);
+                      " %u", kmerindex[kmerhash[freqtable[kmerhashsize - 1 - i].kmer] + j]);
 
               if (j == 7)
                 {
@@ -750,7 +761,7 @@ void udb_stats()
       fprintf(fp_log, "Slots       %u\n", kmerhashsize);
       fprintf(fp_log, "Words       %" PRIu64 "\n", kmerindexsize);
       fprintf(fp_log, "Max size    %u (", wcmax);
-      fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize-1].kmer);
+      fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1].kmer);
       fprintf(fp_log, ")\n\n");
 
       fprintf(fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
@@ -767,14 +778,14 @@ void udb_stats()
 
           int count = 0;
           int size = 0;
-          while((x < kmerhashsize) && (freqtable[x].count <= size_hi))
+          while ((x < kmerhashsize) && (freqtable[x].count <= size_hi))
             {
               count++;
               size += freqtable[x].count;
               x++;
             }
 
-          double pct = 100.0 * count / kmerhashsize;
+          double const pct = 100.0 * count / kmerhashsize;
           totpct += pct;
 
           if (size_lo < size_hi)
@@ -867,20 +878,20 @@ void udb_stats()
       fprintf(fp_log, "%10" PRIu64 "  Indexed words\n", kmerindexsize);
     }
 
-  xfree(freqtable);
   dbindex_free();
   db_free();
 }
 
-void udb_make()
+auto udb_make() -> void
 {
-  if (!opt_output)
+  if (! opt_output) {
     fatal("UDB output file must be specified with --output");
+  }
 
   int fd_output = 0;
 
   fd_output = xopen_write(opt_output);
-  if (!fd_output)
+  if (! fd_output)
     {
       fatal("Unable to open output file for writing");
     }
@@ -899,41 +910,40 @@ void udb_make()
   dbindex_prepare(1, opt_dbmask);
   dbindex_addallsequences(opt_dbmask);
 
-  unsigned int seqcount = db_getsequencecount();
-  uint64_t ntcount = db_getnucleotidecount();
+  unsigned int const seqcount = db_getsequencecount();
+  uint64_t const ntcount = db_getnucleotidecount();
 
   uint64_t header_characters = 0;
-  for (unsigned int i=0; i<seqcount; i++)
+  for (unsigned int i = 0; i < seqcount; i++)
     {
       header_characters += db_getheaderlen(i) + 1;
     }
 
-  uint64_t kmerhashsize = 1 << (2 * opt_wordlength);
+  uint64_t const kmerhashsize = 1U << (2 * static_cast<uint64_t>(opt_wordlength));
 
   /* count word matches */
   uint64_t wordmatches = 0;
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       wordmatches += kmercount[i];
     }
 
   uint64_t pos = 0;
-  uint64_t progress_all =
-    4 * 50 +
-    4 * kmerhashsize +
-    4 * 1 +
-    4 * wordmatches +
-    4 * 8 +
-    4 * seqcount +
+  uint64_t const progress_all =
+    (4 * 50) +
+    (4 * kmerhashsize) +
+    (4 * 1) +
+    (4 * wordmatches) +
+    (4 * 8) +
+    (4 * seqcount) +
     header_characters +
-    4 * seqcount +
+    (4 * seqcount) +
     ntcount;
 
   progress_init("Writing UDB file", progress_all);
 
-  uint64_t buffersize = 4 * MAX(50, seqcount);
-  auto * buffer = (unsigned int *) xmalloc(buffersize);
-  memset(buffer, 0, buffersize);
+  uint64_t const buffersize = MAX(50, seqcount);
+  std::vector<unsigned int> buffer(buffersize);
 
   /* Header */
   buffer[0]  = 0x55444246; /* FBDU UDBF */
@@ -945,21 +955,21 @@ void udb_make()
   buffer[13] = seqcount; /* number of sequences */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
-  pos += largewrite(fd_output, buffer, 50 * 4, 0);
+  pos += largewrite(fd_output, buffer.data(), 50 * 4, 0);
 
   /* write 4^wordlength uint32's with word match counts */
   pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos);
 
   /* 3BDU */
   buffer[0] = 0x55444233; /* 3BDU UDB3 */
-  pos += largewrite(fd_output, buffer, 1 * 4, pos);
+  pos += largewrite(fd_output, buffer.data(), 1 * 4, pos);
 
   /* lists of sequence no's with matches for all words */
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       if (kmerbitmap[i])
         {
-          memset(buffer, 0, 4 * kmercount[i]);
+          memset(buffer.data(), 0, 4 * kmercount[i]);
           unsigned int elements = 0;
           for (unsigned int j = 0; j < seqcount; j++)
             {
@@ -968,7 +978,7 @@ void udb_make()
                   buffer[elements++] = j;
                 }
             }
-          pos += largewrite(fd_output, buffer, 4 * elements, pos);
+          pos += largewrite(fd_output, buffer.data(), 4 * elements, pos);
         }
       else
         {
@@ -989,14 +999,14 @@ void udb_make()
   /* number of sequences, uint32 */
   buffer[2] = seqcount;
   /* total number of nucleotides, uint64 */
-  buffer[3] = (unsigned int)(ntcount & 0xffffffff);
-  buffer[4] = (unsigned int)(ntcount >> 32);
+  buffer[3] = (unsigned int) (ntcount & 0xffffffff);
+  buffer[4] = (unsigned int) (ntcount >> 32U);
   /* total number of header characters, incl zero-terminator, uint64 */
-  buffer[5] = (unsigned int)(header_characters & 0xffffffff);
-  buffer[6] = (unsigned int)(header_characters >> 32);
+  buffer[5] = (unsigned int) (header_characters & 0xffffffff);
+  buffer[6] = (unsigned int) (header_characters >> 32U);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
-  pos += largewrite(fd_output, buffer, 4 * 8, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * 8, pos);
 
   /* indices to headers (uint32) */
   unsigned int sum = 0;
@@ -1005,12 +1015,12 @@ void udb_make()
       buffer[i] = sum;
       sum += db_getheaderlen(i) + 1;
     }
-  pos += largewrite(fd_output, buffer, 4 * seqcount, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
 
   /* headers (ascii, zero terminated, not padded) */
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int len = db_getheaderlen(i);
+      unsigned int const len = db_getheaderlen(i);
       pos += largewrite(fd_output, db_getheader(i), len + 1, pos);
     }
 
@@ -1019,12 +1029,12 @@ void udb_make()
     {
       buffer[i] = db_getsequencelen(i);
     }
-  pos += largewrite(fd_output, buffer, 4 * seqcount, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
 
   /* sequences (ascii, no term, no pad) */
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int len = db_getsequencelen(i);
+      unsigned int const len = db_getsequencelen(i);
       pos += largewrite(fd_output, db_getsequence(i), len, pos);
     }
 
@@ -1036,5 +1046,4 @@ void udb_make()
   progress_done();
   dbindex_free();
   db_free();
-  xfree(buffer);
 }

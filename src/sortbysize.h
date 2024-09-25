@@ -58,4 +58,4 @@
 
 */
 
-auto sortbysize() -> void;
+auto sortbysize(struct Parameters const & parameters) -> void;

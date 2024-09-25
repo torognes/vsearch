@@ -1152,8 +1152,8 @@ files. This command cannot read from a pipe, it must be a proper file,
 as it is read twice. Dereplication is performed with a 128 bit hash
 function and it is not verified that grouped sequences are identical,
 however the probability that two different sequences are grouped in a
-dataset of 1 000 000 000 unique sequences is approximately
-1e-21. Memory footprint is appr. 24 bytes times the number of unique
+dataset of one billion unique sequences is approximately 1e-21. Memory
+footprint is appr. 24 bytes times the number of unique
 sequence. Multithreading and the options \-\-topn, \-\-uc, or
 \-\-tabbedout are not supported.
 .TAG derep_prefix
@@ -1662,20 +1662,19 @@ quality score when writing FASTQ output files. The default is 33. Only
 .TP
 .BI \-\-fastq_chars \0filename
 Summarize the composition of sequence and quality strings contained in
-the input FASTQ file. For each of the four DNA letters,
-\-\-fastq_chars gives the number of occurrences of the letter, its
-relative frequency and the length of the longest run of that
-letter. For each character present in the quality strings,
-\-\-fastq_chars gives the ASCII value of the character, its relative
-frequency, and the number of times a \fIk\fR-mer of that character
-appears at the end of quality strings. The length of the \fIk\fR-mer
-can be set using \-\-fastq_tail (4 by default). The command
-\-\-fastq_chars tries to automatically detect the quality encoding
-(Solexa, Illumina 1.3+, Illumina 1.5+ or Illumina 1.8+/Sanger) by
-analyzing the range of observed quality score values. In case of
-success, \-\-fastq_chars suggests values for the \-\-fastq_ascii (33
-or 64), \-\-fastq_qmin and \-\-fastq_qmax options to be used with the
-other commands that require a FASTQ input file.
+the input FASTQ file. For each sequence symbol, \-\-fastq_chars gives
+the number of occurrences of the symbol, its relative frequency and
+the length of the longest run of that symbol. For each character
+present in the quality strings, \-\-fastq_chars gives the ASCII value
+of the character, its relative frequency, and the number of times a
+\fIk\fR-mer of that character appears at the end of quality
+strings. The length of the \fIk\fR-mer can be set using \-\-fastq_tail
+(4 by default). The command \-\-fastq_chars tries to automatically
+detect the quality encoding (Solexa, Illumina 1.3+, Illumina 1.5+ or
+Illumina 1.8+/Sanger) by analyzing the range of observed quality score
+values. In case of success, \-\-fastq_chars suggests values for the
+\-\-fastq_ascii (33 or 64), \-\-fastq_qmin and \-\-fastq_qmax options
+to be used with the other commands that require a FASTQ input file.
 .TAG fastq_convert
 .TP
 .BI \-\-fastq_convert \0filename
@@ -2552,7 +2551,7 @@ Specify the output file for the non-matching sequences.
 .TAG fastaout_discarded_rev
 .TP
 .BI \-\-fastaout_discarded_rev \0filename
-Specify the output file for the non-matching seqeunces, reverse
+Specify the output file for the non-matching sequences, reverse
 complemented.
 .RE
 .PP
@@ -2731,14 +2730,15 @@ Reject the sequence match if the pairwise identity is lower than
 process sorts target sequences by decreasing number of \fIk\fR-mers
 they have in common with the query sequence, using that information as
 a proxy for sequence similarity. That efficient pre-filtering also
-prevents pairwise alignments with weakly matching targets, as there
-needs to be at least 6 shared \fIk\fR-mers to start the pairwise
-alignment, and at least one out of every 16 \fIk\fR-mers from the
-query needs to match the target. Consequently, using values lower than
-\-\-id 0.5 is not likely to capture more weakly matching targets. The
-pairwise identity is by default defined as the number of (matching
-columns) / (alignment length - terminal gaps). That definition can be
-modified by \-\-iddef.
+prevents pairwise alignments with very short, or with weakly matching
+targets, as there needs to be by default at least 12 shared
+\fIk\fR-mers to start the pairwise alignment, and at least one out of
+every 16 \fIk\fR-mers from the query needs to match the target (see
+options \-\-wordlength and \-\-minwordmatches to change that
+behaviour). Consequently, using values lower than \-\-id 0.5 is not
+likely to capture more weakly matching targets. The pairwise identity
+is by default defined as the number of (matching columns) / (alignment
+length - terminal gaps). That definition can be modified by \-\-iddef.
 .TAG iddef
 .TP
 .BI \-\-iddef\~ "0|1|2|3|4"
@@ -2933,13 +2933,13 @@ Reject target sequences with an abundance lower than \fIinteger\fR.
 .TAG minwordmatches
 .TP
 .BI \-\-minwordmatches\~ "non-negative integer"
-Minimum number of word matches required for a sequence to be
-considered further. Default value is 12 for the default word length
-8. For word lengths 3-15, the default minimum word matches are 18, 17,
-16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the query
-sequence has fewer unique words than the number specified, all words
-in the query must match. If the argument is 0, no word matches are
-required.
+Minimum number of \fIk\fR-mers or word matches required for a sequence
+to be considered further. Default value is 12 for the default word
+length 8. For word lengths 3-15, the default minimum word matches are
+18, 17, 16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the
+query sequence has fewer unique words than the number specified, all
+words in the query must match. If the argument is 0, no word matches
+are required.
 .TAG mismatch
 .TP
 .BI \-\-mismatch\~ "integer"

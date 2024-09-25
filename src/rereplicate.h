@@ -58,4 +58,4 @@
 
 */
 
-auto fasta2fastq() -> void;
+auto rereplicate(struct Parameters & parameters) -> void;

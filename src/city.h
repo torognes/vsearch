@@ -67,10 +67,10 @@
 #include <utility>  // std::pair
 
 
-typedef uint8_t uint8;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-typedef std::pair<uint64, uint64> uint128;
+using uint8 = uint8_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
+using uint128 = std::pair<uint64, uint64>;
 
 inline auto Uint128Low64(const uint128& x) -> uint64 { return x.first; }
 inline auto Uint128High64(const uint128& x) -> uint64 { return x.second; }
@@ -101,11 +101,12 @@ auto CityHash32(const char *s, std::size_t len) -> uint32;
 // This is intended to be a reasonably good hash function.
 inline auto Hash128to64(const uint128& x) -> uint64 {
   // Murmur-inspired hashing.
-  const uint64 kMul = 0x9ddfea08eb382d69ULL;
+  static constexpr auto divider = 47U;
+  static constexpr uint64 kMul = 0x9ddfea08eb382d69ULL;
   uint64 a = (Uint128Low64(x) ^ Uint128High64(x)) * kMul;
-  a ^= (a >> 47);
+  a ^= (a >> divider);
   uint64 b = (Uint128High64(x) ^ a) * kMul;
-  b ^= (b >> 47);
+  b ^= (b >> divider);
   b *= kMul;
   return b;
 }

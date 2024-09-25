@@ -59,12 +59,22 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
+#include <cassert>
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstring>  // std::strcpy, std::strlen
+#include <pthread.h>
 #include <vector>
+
 
 /* chunk constants */
 
-static const int chunk_size = 500; /* read pairs per chunk */
-static const int chunk_factor = 2; /* chunks per thread */
+constexpr auto chunk_size = 500; /* read pairs per chunk */
+constexpr auto chunk_factor = 2; /* chunks per thread */
 
 /* scores in bits */
 
@@ -76,13 +86,13 @@ static const double merge_mismatchmax     = -4.0;
 
 /* static variables */
 
-static FILE * fp_fastqout = nullptr;
-static FILE * fp_fastaout = nullptr;
-static FILE * fp_fastqout_notmerged_fwd = nullptr;
-static FILE * fp_fastqout_notmerged_rev = nullptr;
-static FILE * fp_fastaout_notmerged_fwd = nullptr;
-static FILE * fp_fastaout_notmerged_rev = nullptr;
-static FILE * fp_eetabbedout = nullptr;
+static std::FILE * fp_fastqout = nullptr;
+static std::FILE * fp_fastaout = nullptr;
+static std::FILE * fp_fastqout_notmerged_fwd = nullptr;
+static std::FILE * fp_fastqout_notmerged_rev = nullptr;
+static std::FILE * fp_fastaout_notmerged_fwd = nullptr;
+static std::FILE * fp_fastaout_notmerged_rev = nullptr;
+static std::FILE * fp_eetabbedout = nullptr;
 
 static fastx_handle fastq_fwd;
 static fastx_handle fastq_rev;
@@ -98,11 +108,12 @@ static double sum_fragment_length = 0.0;
 static pthread_t * pthread;
 static pthread_attr_t attr;
 
-static char merge_qual_same[128][128];
-static char merge_qual_diff[128][128];
-static double match_score[128][128];
-static double mism_score[128][128];
-static double q2p[128];
+constexpr auto n_quality_symbols = 128U;
+static char merge_qual_same[n_quality_symbols][n_quality_symbols];
+static char merge_qual_diff[n_quality_symbols][n_quality_symbols];
+static double match_score[n_quality_symbols][n_quality_symbols];
+static double mism_score[n_quality_symbols][n_quality_symbols];
+static double q2p[n_quality_symbols];
 
 static double sum_ee_fwd = 0.0;
 static double sum_ee_rev = 0.0;
@@ -173,7 +184,7 @@ enum state_enum
     processed
   };
 
-typedef struct merge_data_s
+struct merge_data_s
 {
   char * fwd_header;
   char * rev_header;
@@ -201,15 +212,18 @@ typedef struct merge_data_s
   bool merged;
   reason_enum reason;
   state_enum state;
-} merge_data_t;
+};
 
+using merge_data_t = struct merge_data_s;
 
-typedef struct chunk_s
+struct chunk_s
 {
   int size; /* size of merge_data = number of pairs of reads */
   state_enum state; /* state of chunk: empty, read, processed */
   merge_data_t * merge_data; /* data for merging */
-} chunk_t;
+};
+
+using chunk_t = struct chunk_s;
 
 static chunk_t * chunks; /* pointer to array of chunks */
 
@@ -226,20 +240,20 @@ static pthread_mutex_t mutex_chunks;
 static pthread_cond_t cond_chunks;
 
 
-FILE * fileopenw(char * filename)
+auto fileopenw(char * filename) -> std::FILE *
 {
-  FILE * fp = nullptr;
+  std::FILE * fp = nullptr;
   fp = fopen_output(filename);
-  if (!fp)
+  if (! fp)
     {
       fatal("Unable to open file for writing (%s)", filename);
     }
   return fp;
 }
 
-inline int get_qual(char q)
+inline auto get_qual(char q) -> int
 {
-  int qual = q - opt_fastq_ascii;
+  int const qual = q - opt_fastq_ascii;
 
   if (qual < opt_fastq_qmin)
     {
@@ -304,21 +318,21 @@ inline auto q_to_p(int quality_symbol) -> double
 }
 
 
-void precompute_qual()
+auto precompute_qual() -> void
 {
   /* Precompute tables of scores etc */
 
   for (int x = 33; x <= 126; x++)
     {
-      double px = q_to_p(x);
+      double const px = q_to_p(x);
       q2p[x] = px;
 
       for (int y = 33; y <= 126; y++)
         {
-          double py = q_to_p(y);
+          double const py = q_to_p(y);
 
-          double p;
-          double q;
+          double p = 0.0;
+          double q = 0.0;
 
           /* Quality score equations from Edgar & Flyvbjerg (2015) */
 
@@ -356,9 +370,9 @@ void precompute_qual()
     }
 }
 
-void merge_sym(char * sym,       char * qual,
+auto merge_sym(char * sym,       char * qual,
                char fwd_sym,     char rev_sym,
-               char fwd_qual,    char rev_qual)
+               char fwd_qual,    char rev_qual) -> void
 {
   if (rev_sym == 'N')
     {
@@ -392,7 +406,7 @@ void merge_sym(char * sym,       char * qual,
     }
 }
 
-void keep(merge_data_t * ip)
+auto keep(merge_data_t * ip) -> void
 {
   merged++;
 
@@ -442,7 +456,7 @@ void keep(merge_data_t * ip)
     }
 }
 
-void discard(merge_data_t * ip)
+auto discard(merge_data_t * ip) -> void
 {
   switch(ip->reason)
     {
@@ -569,12 +583,12 @@ void discard(merge_data_t * ip)
     }
 }
 
-void merge(merge_data_t * ip)
+auto merge(merge_data_t * ip) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
-  int64_t fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
+  int64_t const fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
     ip->fwd_trunc - ip->offset : 0;
 
   ip->ee_merged = 0.0;
@@ -583,16 +597,16 @@ void merge(merge_data_t * ip)
   ip->fwd_errors = 0;
   ip->rev_errors = 0;
 
-  char sym;
-  char qual;
-  char fwd_sym;
-  char fwd_qual;
-  char rev_sym;
-  char rev_qual;
-  int64_t fwd_pos;
-  int64_t rev_pos;
-  int64_t merged_pos;
-  double ee;
+  char sym = '\0';
+  char qual = '\0';
+  char fwd_sym = '\0';
+  char fwd_qual = '\0';
+  char rev_sym = '\0';
+  char rev_qual = '\0';
+  int64_t fwd_pos = 0;
+  int64_t rev_pos = 0;
+  int64_t merged_pos = 0;
+  double ee = 0.0;
 
   merged_pos = 0;
 
@@ -600,7 +614,7 @@ void merge(merge_data_t * ip)
 
   fwd_pos = 0;
 
-  while(fwd_pos < fwd_5prime_overhang)
+  while (fwd_pos < fwd_5prime_overhang)
     {
       sym = ip->fwd_sequence[fwd_pos];
       qual = ip->fwd_quality[fwd_pos];
@@ -618,7 +632,7 @@ void merge(merge_data_t * ip)
 
   // Merged region
 
-  int64_t rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
+  int64_t const rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
     ip->offset - ip->fwd_trunc : 0;
 
   rev_pos = ip->rev_trunc - 1 - rev_3prime_overhang;
@@ -626,7 +640,7 @@ void merge(merge_data_t * ip)
   while ((fwd_pos < ip->fwd_trunc) && (rev_pos >= 0))
     {
       fwd_sym = ip->fwd_sequence[fwd_pos];
-      rev_sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+      rev_sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
       fwd_qual = ip->fwd_quality[fwd_pos];
       rev_qual = ip->rev_quality[rev_pos];
 
@@ -648,9 +662,9 @@ void merge(merge_data_t * ip)
 
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
-      ip->ee_merged += q2p[(unsigned)qual];
-      ip->ee_fwd += q2p[(unsigned)fwd_qual];
-      ip->ee_rev += q2p[(unsigned)rev_qual];
+      ip->ee_merged += q2p[(unsigned) qual];
+      ip->ee_fwd += q2p[(unsigned) fwd_qual];
+      ip->ee_rev += q2p[(unsigned) rev_qual];
 
       fwd_pos++;
       rev_pos--;
@@ -661,21 +675,21 @@ void merge(merge_data_t * ip)
 
   while (rev_pos >= 0)
     {
-      sym = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+      sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
       qual = ip->rev_quality[rev_pos];
 
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
       merged_pos++;
 
-      ee = q2p[(unsigned)qual];
+      ee = q2p[(unsigned) qual];
       ip->ee_merged += ee;
       ip->ee_rev += ee;
 
       rev_pos--;
     }
 
-  int64_t mergelen = merged_pos;
+  int64_t const mergelen = merged_pos;
   ip->merged_length = mergelen;
 
   ip->merged_sequence[mergelen] = 0;
@@ -692,13 +706,13 @@ void merge(merge_data_t * ip)
     }
 }
 
-int64_t optimize(merge_data_t * ip,
-                 kh_handle_s * kmerhash)
+auto optimize(merge_data_t * ip,
+                 kh_handle_s * kmerhash) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
-  int64_t i1 = 1;
-  int64_t i2 = ip->fwd_trunc + ip->rev_trunc - 1;
+  int64_t const i1 = 1;
+  int64_t const i2 = ip->fwd_trunc + ip->rev_trunc - 1;
 
   double best_score = 0.0;
   int64_t best_i = 0;
@@ -713,10 +727,10 @@ int64_t optimize(merge_data_t * ip,
   kh_insert_kmers(kmerhash, k, ip->fwd_sequence, ip->fwd_trunc);
   kh_find_diagonals(kmerhash, k, ip->rev_sequence, ip->rev_trunc, diags.data());
 
-  for(int64_t i = i1; i <= i2; i++)
+  for (int64_t i = i1; i <= i2; i++)
     {
-      int diag = ip->rev_trunc + ip->fwd_trunc - i;
-      int diagcount = diags[diag];
+      int const diag = ip->rev_trunc + ip->fwd_trunc - i;
+      int const diagcount = diags[diag];
 
       if (diagcount >= merge_mindiagcount)
         {
@@ -724,15 +738,15 @@ int64_t optimize(merge_data_t * ip,
 
           /* for each interesting diagonal */
 
-          int64_t fwd_3prime_overhang
+          int64_t const fwd_3prime_overhang
             = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
-          int64_t rev_3prime_overhang
+          int64_t const rev_3prime_overhang
             = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
-          int64_t overlap
+          int64_t const overlap
             = i - fwd_3prime_overhang - rev_3prime_overhang;
-          int64_t fwd_pos_start
+          int64_t const fwd_pos_start
             = ip->fwd_trunc - fwd_3prime_overhang - 1;
-          int64_t rev_pos_start
+          int64_t const rev_pos_start
             = ip->rev_trunc - rev_3prime_overhang - overlap;
 
           int64_t fwd_pos = fwd_pos_start;
@@ -747,13 +761,13 @@ int64_t optimize(merge_data_t * ip,
             {
               /* for each pair of bases in the overlap */
 
-              char fwd_sym
+              char const fwd_sym
                 = ip->fwd_sequence[fwd_pos];
-              char rev_sym
-                = chrmap_complement[(int)(ip->rev_sequence[rev_pos])];
+              char const rev_sym
+                = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
 
-              unsigned int fwd_qual = ip->fwd_quality[fwd_pos];
-              unsigned int rev_qual = ip->rev_quality[rev_pos];
+              unsigned int const fwd_qual = ip->fwd_quality[fwd_pos];
+              unsigned int const rev_qual = ip->rev_quality[rev_pos];
 
               fwd_pos--;
               rev_pos++;
@@ -838,7 +852,7 @@ int64_t optimize(merge_data_t * ip,
       return 0;
     }
 
-  int mergelen = ip->fwd_trunc + ip->rev_trunc - best_i;
+  int const mergelen = ip->fwd_trunc + ip->rev_trunc - best_i;
 
   if (mergelen < opt_fastq_minmergelen)
     {
@@ -855,8 +869,8 @@ int64_t optimize(merge_data_t * ip,
   return best_i;
 }
 
-void process(merge_data_t * ip,
-             struct kh_handle_s * kmerhash)
+auto process(merge_data_t * ip,
+             struct kh_handle_s * kmerhash) -> void
 {
   ip->merged = false;
 
@@ -882,7 +896,7 @@ void process(merge_data_t * ip,
 
   int64_t fwd_trunc = ip->fwd_length;
 
-  if (!skip)
+  if (! skip)
     {
       for (int64_t i = 0; i < ip->fwd_length; i++)
         {
@@ -903,7 +917,7 @@ void process(merge_data_t * ip,
 
   int64_t rev_trunc = ip->rev_length;
 
-  if (!skip)
+  if (! skip)
     {
       for (int64_t i = 0; i < ip->rev_length; i++)
         {
@@ -926,7 +940,7 @@ void process(merge_data_t * ip,
 
   /* replace quality of N's by zero */
 
-  if (!skip)
+  if (! skip)
     {
       int64_t fwd_ncount = 0;
       for (int64_t i = 0; i < fwd_trunc; i++)
@@ -944,7 +958,7 @@ void process(merge_data_t * ip,
         }
     }
 
-  if (!skip)
+  if (! skip)
     {
       int64_t rev_ncount = 0;
       for (int64_t i = 0; i < rev_trunc; i++)
@@ -964,7 +978,7 @@ void process(merge_data_t * ip,
 
   ip->offset = 0;
 
-  if (!skip)
+  if (! skip)
     {
       ip->offset = optimize(ip, kmerhash);
     }
@@ -977,7 +991,7 @@ void process(merge_data_t * ip,
   ip->state = processed;
 }
 
-bool read_pair(merge_data_t * ip)
+auto read_pair(merge_data_t * ip) -> bool
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
@@ -988,41 +1002,41 @@ bool read_pair(merge_data_t * ip)
 
       /* allocate more memory if necessary */
 
-      int64_t fwd_header_len = fastq_get_header_length(fastq_fwd);
-      int64_t rev_header_len = fastq_get_header_length(fastq_rev);
-      int64_t header_needed = MAX(fwd_header_len, rev_header_len) + 1;
+      int64_t const fwd_header_len = fastq_get_header_length(fastq_fwd);
+      int64_t const rev_header_len = fastq_get_header_length(fastq_rev);
+      int64_t const header_needed = MAX(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > ip->header_alloc)
         {
           ip->header_alloc = header_needed;
-          ip->fwd_header = (char*) xrealloc(ip->fwd_header, header_needed);
-          ip->rev_header = (char*) xrealloc(ip->rev_header, header_needed);
+          ip->fwd_header = (char *) xrealloc(ip->fwd_header, header_needed);
+          ip->rev_header = (char *) xrealloc(ip->rev_header, header_needed);
         }
 
       ip->fwd_length = fastq_get_sequence_length(fastq_fwd);
       ip->rev_length = fastq_get_sequence_length(fastq_rev);
-      int64_t seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
+      int64_t const seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
 
       sum_read_length += ip->fwd_length + ip->rev_length;
 
       if (seq_needed > ip->seq_alloc)
         {
           ip->seq_alloc = seq_needed;
-          ip->fwd_sequence = (char*) xrealloc(ip->fwd_sequence, seq_needed);
-          ip->rev_sequence = (char*) xrealloc(ip->rev_sequence, seq_needed);
-          ip->fwd_quality  = (char*) xrealloc(ip->fwd_quality,  seq_needed);
-          ip->rev_quality  = (char*) xrealloc(ip->rev_quality,  seq_needed);
+          ip->fwd_sequence = (char *) xrealloc(ip->fwd_sequence, seq_needed);
+          ip->rev_sequence = (char *) xrealloc(ip->rev_sequence, seq_needed);
+          ip->fwd_quality  = (char *) xrealloc(ip->fwd_quality,  seq_needed);
+          ip->rev_quality  = (char *) xrealloc(ip->rev_quality,  seq_needed);
         }
 
 
-      int64_t merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
+      int64_t const merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
 
       if (merged_seq_needed > ip->merged_seq_alloc)
         {
           ip->merged_seq_alloc = merged_seq_needed;
-          ip->merged_sequence = (char*) xrealloc(ip->merged_sequence,
+          ip->merged_sequence = (char *) xrealloc(ip->merged_sequence,
                                                  merged_seq_needed);
-          ip->merged_quality = (char*) xrealloc(ip->merged_quality,
+          ip->merged_quality = (char *) xrealloc(ip->merged_quality,
                                                 merged_seq_needed);
         }
 
@@ -1048,7 +1062,7 @@ bool read_pair(merge_data_t * ip)
     }
 }
 
-void keep_or_discard(merge_data_t * ip)
+auto keep_or_discard(merge_data_t * ip) -> void
 {
   if (ip->merged)
     {
@@ -1060,7 +1074,7 @@ void keep_or_discard(merge_data_t * ip)
     }
 }
 
-void init_merge_data(merge_data_t * ip)
+auto init_merge_data(merge_data_t * ip) -> void
 {
   ip->fwd_header = nullptr;
   ip->rev_header = nullptr;
@@ -1082,7 +1096,7 @@ void init_merge_data(merge_data_t * ip)
   ip->merged_length = 0;
 }
 
-void free_merge_data(merge_data_t * ip)
+auto free_merge_data(merge_data_t * ip) -> void
 {
   if (ip->fwd_header)
     {
@@ -1119,7 +1133,7 @@ void free_merge_data(merge_data_t * ip)
     }
 }
 
-inline void chunk_perform_read()
+inline auto chunk_perform_read() -> void
 {
   while((!finished_reading) && (chunks[chunk_read_next].state == empty))
     {
@@ -1151,12 +1165,12 @@ inline void chunk_perform_read()
     }
 }
 
-inline void chunk_perform_write()
+inline auto chunk_perform_write() -> void
 {
   while (chunks[chunk_write_next].state == processed)
     {
       xpthread_mutex_unlock(&mutex_chunks);
-      for(int i = 0; i < chunks[chunk_write_next].size; i++)
+      for (int i = 0; i < chunks[chunk_write_next].size; i++)
         {
           keep_or_discard(chunks[chunk_write_next].merge_data + i);
         }
@@ -1172,16 +1186,16 @@ inline void chunk_perform_write()
     }
 }
 
-inline void chunk_perform_process(struct kh_handle_s * kmerhash)
+inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
 {
-  int chunk_current = chunk_process_next;
+  int const chunk_current = chunk_process_next;
   if (chunks[chunk_current].state == filled)
     {
       chunks[chunk_current].state = inprogress;
       chunk_process_next = (chunk_current + 1) % chunk_count;
       xpthread_cond_broadcast(&cond_chunks);
       xpthread_mutex_unlock(&mutex_chunks);
-      for(int i=0; i<chunks[chunk_current].size; i++)
+      for (int i = 0; i < chunks[chunk_current].size; i++)
         {
           process(chunks[chunk_current].merge_data + i, kmerhash);
         }
@@ -1191,7 +1205,7 @@ inline void chunk_perform_process(struct kh_handle_s * kmerhash)
     }
 }
 
-void * pair_worker(void * vp)
+auto pair_worker(void * vp) -> void *
 {
   /* new */
 
@@ -1221,7 +1235,7 @@ void * pair_worker(void * vp)
                       ||
                       (chunks[chunk_process_next].state == filled)
                       ||
-                      ((!finished_reading) &&
+                      ((! finished_reading) &&
                        chunks[chunk_read_next].state == empty)))
                 {
                   xpthread_cond_wait(&cond_chunks, &mutex_chunks);
@@ -1259,7 +1273,7 @@ void * pair_worker(void * vp)
                      (
                       finished_all
                       ||
-                      ((!finished_reading) &&
+                      ((! finished_reading) &&
                        (chunks[chunk_read_next].state == empty))
                       ||
                       (chunks[chunk_process_next].state == filled)
@@ -1318,7 +1332,7 @@ void * pair_worker(void * vp)
 }
 
 
-void pair_all()
+auto pair_all() -> void
 {
   /* prepare chunks */
 
@@ -1335,7 +1349,7 @@ void pair_all()
       chunks[i].size = 0;
       chunks[i].merge_data =
         (merge_data_t *) xmalloc(chunk_size * sizeof(merge_data_t));
-      for(int64_t j=0; j<chunk_size; j++)
+      for (int64_t j = 0; j < chunk_size; j++)
         {
           init_merge_data(chunks[i].merge_data + j);
         }
@@ -1350,14 +1364,14 @@ void pair_all()
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
-      xpthread_create(pthread+t, &attr, pair_worker, (void*)(int64_t)t);
+      xpthread_create(pthread+t, &attr, pair_worker, (void *) (int64_t) t);
     }
 
   /* wait for threads to terminate */
 
-  for(int t=0; t<opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -1385,7 +1399,7 @@ void pair_all()
   chunks = nullptr;
 }
 
-void print_stats(FILE * fp)
+auto print_stats(std::FILE * fp) -> void
 {
   fprintf(fp,
           "%10" PRIu64 "  Pairs\n",
@@ -1529,7 +1543,7 @@ void print_stats(FILE * fp)
     {
       fprintf(fp, "Statistics of all reads:\n");
 
-      double mean_read_length = sum_read_length / (2.0 * pairs_read);
+      double const mean_read_length = sum_read_length / (2.0 * pairs_read);
 
       fprintf(fp,
               "%10.2f  Mean read length\n",
@@ -1542,13 +1556,13 @@ void print_stats(FILE * fp)
 
       fprintf(fp, "Statistics of merged reads:\n");
 
-      double mean = sum_fragment_length / merged;
+      double const mean = sum_fragment_length / merged;
 
       fprintf(fp,
               "%10.2f  Mean fragment length\n",
               mean);
 
-      double stdev = sqrt((sum_squared_fragment_length
+      double const stdev = sqrt((sum_squared_fragment_length
                            - 2.0 * mean * sum_fragment_length
                            + mean * mean * merged)
                           / (merged + 0.0));
@@ -1583,7 +1597,7 @@ void print_stats(FILE * fp)
     }
 }
 
-void fastq_mergepairs()
+auto fastq_mergepairs() -> void
 {
   /* fatal error if specified overlap is too small */
 
@@ -1642,7 +1656,7 @@ void fastq_mergepairs()
 
   /* main */
 
-  uint64_t filesize = fastq_get_size(fastq_fwd);
+  uint64_t const filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
 
   if (! fastq_fwd->is_empty)
@@ -1657,10 +1671,12 @@ void fastq_mergepairs()
       fatal("More reverse reads than forward reads");
     }
 
-  if (fp_log)
+  if (fp_log) {
     print_stats(fp_log);
-  else
+  }
+  else {
     print_stats(stderr);
+  }
 
   /* clean up */
 

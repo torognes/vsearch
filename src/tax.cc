@@ -59,13 +59,16 @@
 */
 
 #include "vsearch.h"
+#include <cctype>  // std::tolower
+#include <cstring>  // std::strlen, std::strstr, std::strchr
+
 
 const char * tax_letters = "dkpcofgst";
 
-bool tax_parse(const char * header,
+auto tax_parse(const char * header,
                int header_length,
                int * tax_start,
-               int * tax_end)
+               int * tax_end) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
@@ -78,8 +81,8 @@ bool tax_parse(const char * header,
 
   const char * attribute = "tax=";
 
-  int hlen = header_length;
-  int alen = strlen(attribute);
+  int const hlen = header_length;
+  int const alen = strlen(attribute);
 
   int i = 0;
 
@@ -96,7 +99,7 @@ bool tax_parse(const char * header,
       i = r - header;
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i-1] != ';'))
+      if ((i > 0) && (header[i - 1] != ';'))
         {
           i += alen + 1;
           continue;
@@ -105,7 +108,7 @@ bool tax_parse(const char * header,
       * tax_start = i;
 
       /* find end (semicolon or end of header) */
-      const char * s = strchr(header+i+alen, ';');
+      const char * s = strchr(header + i + alen, ';');
       if (s == nullptr)
         {
           * tax_end = hlen;
@@ -120,7 +123,7 @@ bool tax_parse(const char * header,
   return false;
 }
 
-void tax_split(int seqno, int * level_start, int * level_len)
+auto tax_split(int seqno, int * level_start, int * level_len) -> void
 {
   /* Parse taxonomy string into the following 9 parts
      d domain
@@ -140,10 +143,10 @@ void tax_split(int seqno, int * level_start, int * level_len)
       level_len[i] = 0;
     }
 
-  int tax_start;
-  int tax_end;
+  int tax_start = 0;
+  int tax_end = 0;
   char * h = db_getheader(seqno);
-  int hlen = db_getheaderlen(seqno);
+  int const hlen = db_getheaderlen(seqno);
   if (tax_parse(h, hlen, & tax_start, & tax_end))
     {
       int t = tax_start + 4;
@@ -154,7 +157,7 @@ void tax_split(int seqno, int * level_start, int * level_len)
           const char * r = strchr(tax_letters, tolower(h[t]));
           if (r)
             {
-              int level = r - tax_letters;
+              int const level = r - tax_letters;
 
               /* Is there a colon after it? */
               if (h[t + 1] == ':')

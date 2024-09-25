@@ -59,20 +59,26 @@
 */
 
 #include "vsearch.h"
+#include "dbindex.h"
+#include "maps.h"
+#include "mask.h"
+#include "udb.h"
+#include "unique.h"
 #include <cassert>
-#include <cstddef> // size_t
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
 
 
-unsigned int rc_kmer(unsigned int kmer)
+auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
 
-  unsigned int fwd = kmer;
-  unsigned int rev = 0;
+  auto fwd = kmer;
+  auto rev = 0U;
 
-  for (int i = 0; i < opt_wordlength; i++)
+  for (auto i = int64_t{0}; i < opt_wordlength; ++i)
     {
-      unsigned int x = (fwd & 3U) ^ 3U;
+      auto const x = (fwd & 3U) ^ 3U;
       fwd = fwd >> 2U;
       rev = rev << 2U;
       rev |= x;
@@ -82,14 +88,14 @@ unsigned int rc_kmer(unsigned int kmer)
 }
 
 
-void orient()
+auto orient() -> void
 {
-  fastx_handle query_h;
-
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_tabbedout = nullptr;
-  FILE * fp_notmatched = nullptr;
+  fastx_handle query_h = nullptr;
+  // refactoring: use struct, like in subsample
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_tabbedout = nullptr;
+  std::FILE * fp_notmatched = nullptr;
 
   int queries = 0;
   int qmatches = 0;
@@ -99,12 +105,12 @@ void orient()
 
   /* check arguments */
 
-  if (! opt_db)
+  if (not opt_db)
     {
       fatal("Database not specified with --db");
     }
 
-  if (! (opt_fastaout || opt_fastqout || opt_notmatched || opt_tabbedout))
+  if (not (opt_fastaout or opt_fastqout or opt_notmatched or opt_tabbedout))
     {
       fatal("Output file not specified with --fastaout, --fastqout, --notmatched or --tabbedout");
     }
@@ -118,7 +124,7 @@ void orient()
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (not fp_fastaout)
         {
           fatal("Unable to open fasta output file for writing");
         }
@@ -126,13 +132,13 @@ void orient()
 
   if (opt_fastqout)
     {
-      if (! fastx_is_fastq(query_h))
+      if (not fastx_is_fastq(query_h))
         {
           fatal("Cannot write FASTQ output with FASTA input");
         }
 
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (not fp_fastqout)
         {
           fatal("Unable to open fastq output file for writing");
         }
@@ -141,7 +147,7 @@ void orient()
   if (opt_notmatched)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (not fp_notmatched)
         {
           fatal("Unable to open notmatched output file for writing");
         }
@@ -150,7 +156,7 @@ void orient()
   if (opt_tabbedout)
     {
       fp_tabbedout = fopen_output(opt_tabbedout);
-      if (! fp_tabbedout)
+      if (not fp_tabbedout)
         {
           fatal("Unable to open tabbedout output file for writing");
         }
@@ -158,7 +164,7 @@ void orient()
 
   /* check if it may be an UDB file */
 
-  bool is_udb = udb_detect_isudb(opt_db);
+  auto const is_udb = udb_detect_isudb(opt_db);
 
   if (is_udb)
     {
@@ -169,19 +175,19 @@ void orient()
       db_read(opt_db, 0);
     }
 
-  if (!is_udb)
+  if (not is_udb)
     {
       if (opt_dbmask == MASK_DUST)
         {
           dust_all();
         }
-      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
         {
           hardmask_all();
         }
     }
 
-  if (!is_udb)
+  if (not is_udb)
     {
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
@@ -189,27 +195,27 @@ void orient()
 
   uhandle_s * uh_fwd = unique_init();
 
-  size_t alloc = 0;
+  std::size_t alloc = 0;
   char * qseq_rev = nullptr;
   char * query_qual_rev = nullptr;
 
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
   while (fastx_next(query_h,
-                    ! opt_notrunclabels,
+                    not opt_notrunclabels,
                     chrmap_no_change))
     {
       char * query_head = fastx_get_header(query_h);
-      int query_head_len = fastx_get_header_length(query_h);
+      int const query_head_len = fastx_get_header_length(query_h);
       char * qseq_fwd = fastx_get_sequence(query_h);
-      int qseqlen = fastx_get_sequence_length(query_h);
-      int qsize = fastx_get_abundance(query_h);
+      int const qseqlen = fastx_get_sequence_length(query_h);
+      int const qsize = fastx_get_abundance(query_h);
       char * query_qual_fwd = fastx_get_quality(query_h);
 
       /* find kmers in query sequence */
 
-      unsigned int kmer_count_fwd;
-      unsigned int * kmer_list_fwd;
+      unsigned int kmer_count_fwd = 0;
+      unsigned int * kmer_list_fwd = nullptr;
 
       unique_count(uh_fwd, opt_wordlength, qseqlen, qseq_fwd,
                    & kmer_count_fwd, & kmer_list_fwd, opt_qmask);
@@ -218,47 +224,47 @@ void orient()
 
       unsigned int count_fwd = 0;
       unsigned int count_rev = 0;
-      const unsigned int hits_factor = 8;
+      constexpr auto hits_factor = 8U;
 
-      for(unsigned int i = 0; i < kmer_count_fwd; i++)
+      for (unsigned int i = 0; i < kmer_count_fwd; i++)
         {
-          unsigned int kmer_fwd = kmer_list_fwd[i];
-          unsigned int kmer_rev = rc_kmer(kmer_fwd);
+          unsigned int const kmer_fwd = kmer_list_fwd[i];
+          unsigned int const kmer_rev = rc_kmer(kmer_fwd);
 
-          unsigned int hits_fwd = dbindex_getmatchcount(kmer_fwd);
-          unsigned int hits_rev = dbindex_getmatchcount(kmer_rev);
+          unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
+          unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
 
           /* require 8 times as many matches on one stand than the other */
 
           if (hits_fwd > hits_factor * hits_rev)
             {
-              count_fwd++;
+              ++count_fwd;
             }
           else if (hits_rev > hits_factor * hits_fwd)
             {
-              count_rev++;
+              ++count_rev;
             }
         }
 
       /* get progress as amount of input file read */
 
-      uint64_t progress = fasta_get_position(query_h);
+      uint64_t const progress = fasta_get_position(query_h);
 
       /* update stats */
 
-      queries++;
+      ++queries;
 
       int strand = 2;
-      unsigned int min_count = 1;
-      unsigned int min_factor = 4;
+      unsigned int const min_count = 1;
+      unsigned int const min_factor = 4;
 
-      if ((count_fwd >= min_count) && (count_fwd >= min_factor * count_rev))
+      if ((count_fwd >= min_count) and (count_fwd >= min_factor * count_rev))
         {
           /* fwd */
 
           strand = 0;
-          matches_fwd++;
-          qmatches++;
+          ++matches_fwd;
+          ++qmatches;
 
           if (opt_fastaout)
             {
@@ -290,7 +296,7 @@ void orient()
                                   -1.0);
             }
         }
-      else if ((count_rev >= min_count) && (count_rev >= min_factor * count_fwd))
+      else if ((count_rev >= min_count) and (count_rev >= min_factor * count_fwd))
         {
           /* rev */
 
@@ -340,7 +346,7 @@ void orient()
 
               if (fastx_is_fastq(query_h))
                 {
-                  for(int i = 0; i < qseqlen; i++)
+                  for (int i = 0; i < qseqlen; i++)
                     {
                       query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
                     }
@@ -363,7 +369,7 @@ void orient()
           /* undecided */
 
           strand = 2;
-          notmatched++;
+          ++notmatched;
 
           if (opt_notmatched)
             {
@@ -450,7 +456,7 @@ void orient()
 
   fasta_close(query_h);
 
-  if (!opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)

@@ -59,7 +59,16 @@
 */
 
 #include "vsearch.h"
+#include "align_simd.h"
+#include "mask.h"
+#include <algorithm>  // std::min, std::max
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::strlen
 #include <limits>
+#include <pthread.h>
+#include <vector>
 
 
 static pthread_t * pthread;
@@ -128,7 +137,7 @@ auto allpairs_output_results(int hit_count,
                              char * qsequence_rc) -> void
 {
   /* show results */
-  int64_t toreport = MIN(opt_maxhits, hit_count);
+  auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
 
   if (fp_alnout)
     {
@@ -152,9 +161,9 @@ auto allpairs_output_results(int hit_count,
 
   if (toreport)
     {
-      double top_hit_id = hits[0].id;
+      double const top_hit_id = hits[0].id;
 
-      for(int t = 0; t < toreport; t++)
+      for (int t = 0; t < toreport; t++)
         {
           struct hit * hp = hits + t;
 
@@ -292,23 +301,13 @@ auto allpairs_thread_run(int64_t t) -> void
 {
   (void) t;
 
-  struct searchinfo_s sia;
+  struct searchinfo_s searchinfo;
 
-  struct searchinfo_s * si = & sia;
+  struct searchinfo_s * si = & searchinfo;
+  searchinfo.hits_v.resize(seqcount);
+  searchinfo.hits = searchinfo.hits_v.data();
 
-  si->strand = 0;
-  si->query_head_alloc = 0;
-  si->seq_alloc = 0;
-  si->kmersamplecount = 0;
-  si->kmers = nullptr;
-  si->m = nullptr;
-  si->finalized = 0;
-
-  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
-
-  struct nwinfo_s * nw = nw_init();
-
-  si->s = search16_init(opt_match,
+  searchinfo.s = search16_init(opt_match,
                         opt_mismatch,
                         opt_gap_open_query_left,
                         opt_gap_open_target_left,
@@ -343,31 +342,23 @@ auto allpairs_thread_run(int64_t t) -> void
                      opt_gap_extension_target_right);
 
   /* allocate memory for alignment results */
-  unsigned int maxhits = seqcount;
-  auto * pseqnos =
-    (unsigned int *) xmalloc(sizeof(unsigned int) * maxhits);
-  CELL * pscores =
-    (CELL *) xmalloc(sizeof(CELL) * maxhits);
-  auto * paligned =
-    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
-  auto * pmatches =
-    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
-  auto * pmismatches =
-    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
-  auto * pgaps =
-    (unsigned short *) xmalloc(sizeof(unsigned short) * maxhits);
-  char** pcigar = (char **) xmalloc(sizeof(char *) * maxhits);
+  auto const maxhits = static_cast<std::size_t>(seqcount);
+  std::vector<unsigned int> pseqnos(maxhits);
+  std::vector<CELL> pscores(maxhits);
+  std::vector<unsigned short> paligned(maxhits);
+  std::vector<unsigned short> pmatches(maxhits);
+  std::vector<unsigned short> pmismatches(maxhits);
+  std::vector<unsigned short> pgaps(maxhits);
+  std::vector<char *> pcigar(maxhits);
+  std::vector<struct hit> finalhits(maxhits);
 
-  auto * finalhits
-    = (struct hit *) xmalloc(sizeof(struct hit) * seqcount);
-
-  bool cont = true;
+  auto cont = true;
 
   while (cont)
     {
       xpthread_mutex_lock(&mutex_input);
 
-      int query_no = queries;
+      int const query_no = queries;
 
       if (query_no < seqcount)
         {
@@ -377,47 +368,47 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_unlock(&mutex_input);
 
           /* init search info */
-          si->query_no = query_no;
-          si->qsize = db_getabundance(query_no);
-          si->query_head_len = db_getheaderlen(query_no);
-          si->query_head = db_getheader(query_no);
-          si->qseqlen = db_getsequencelen(query_no);
-          si->qsequence = db_getsequence(query_no);
-          si->rejects = 0;
-          si->accepts = 0;
-          si->hit_count = 0;
+          searchinfo.query_no = query_no;
+          searchinfo.qsize = db_getabundance(query_no);
+          searchinfo.query_head_len = db_getheaderlen(query_no);
+          searchinfo.query_head = db_getheader(query_no);
+          searchinfo.qseqlen = db_getsequencelen(query_no);
+          searchinfo.qsequence = db_getsequence(query_no);
+          searchinfo.rejects = 0;
+          searchinfo.accepts = 0;
+          searchinfo.hit_count = 0;
 
-          for(int target = si->query_no + 1;
-              target < seqcount; target++)
+          for (int target = searchinfo.query_no + 1; target < seqcount; target++)
             {
               if (opt_acceptall or search_acceptable_unaligned(si, target))
                 {
-                  pseqnos[si->hit_count++] = target;
+                  pseqnos[searchinfo.hit_count] = target;
+                  ++searchinfo.hit_count;
                 }
             }
 
-          if (si->hit_count)
+          if (searchinfo.hit_count)
             {
               /* perform alignments */
 
-              search16_qprep(si->s, si->qsequence, si->qseqlen);
+              search16_qprep(searchinfo.s, searchinfo.qsequence, searchinfo.qseqlen);
 
-              search16(si->s,
-                       si->hit_count,
-                       pseqnos,
-                       pscores,
-                       paligned,
-                       pmatches,
-                       pmismatches,
-                       pgaps,
-                       pcigar);
+              search16(searchinfo.s,
+                       searchinfo.hit_count,
+                       pseqnos.data(),
+                       pscores.data(),
+                       paligned.data(),
+                       pmatches.data(),
+                       pmismatches.data(),
+                       pgaps.data(),
+                       pcigar.data());
 
               /* convert to hit structure */
-              for (int h = 0; h < si->hit_count; h++)
+              for (int h = 0; h < searchinfo.hit_count; h++)
                 {
-                  struct hit * hit = si->hits + h;
+                  struct hit * hit = &searchinfo.hits_v[h];
 
-                  unsigned int target = pseqnos[h];
+                  unsigned int const target = pseqnos[h];
                   int64_t nwscore = pscores[h];
 
                   char * nwcigar {nullptr};
@@ -433,19 +424,19 @@ auto allpairs_thread_run(int64_t t) -> void
                          linear memory aligner */
 
                       char * tseq = db_getsequence(target);
-                      int64_t tseqlen = db_getsequencelen(target);
+                      int64_t const tseqlen = db_getsequencelen(target);
 
-                      if (pcigar[h])
+                      if (pcigar[h] != nullptr)
                         {
                           xfree(pcigar[h]);
                         }
 
-                      nwcigar = xstrdup(lma.align(si->qsequence,
+                      nwcigar = xstrdup(lma.align(searchinfo.qsequence,
                                                   tseq,
-                                                  si->qseqlen,
+                                                  searchinfo.qseqlen,
                                                   tseqlen));
                       lma.alignstats(nwcigar,
-                                     si->qsequence,
+                                     searchinfo.qsequence,
                                      tseq,
                                      & nwscore,
                                      & nwalignmentlength,
@@ -482,9 +473,9 @@ auto allpairs_thread_run(int64_t t) -> void
                   hit->matches = nwalignmentlength - hit->nwdiff;
                   hit->mismatches = hit->nwdiff - hit->nwindels;
 
-                  int64_t dseqlen = db_getsequencelen(target);
-                  hit->shortest = MIN(si->qseqlen, dseqlen);
-                  hit->longest = MAX(si->qseqlen, dseqlen);
+                  auto const dseqlen = static_cast<int>(db_getsequencelen(target));
+                  hit->shortest = std::min(searchinfo.qseqlen, dseqlen);
+                  hit->longest = std::max(searchinfo.qseqlen, dseqlen);
 
                   /* trim alignment, compute numbers excluding terminal gaps */
                   align_trim(hit);
@@ -492,12 +483,13 @@ auto allpairs_thread_run(int64_t t) -> void
                   /* test accept/reject criteria after alignment */
                   if (opt_acceptall or search_acceptable_aligned(si, hit))
                     {
-                      finalhits[si->accepts++] = *hit;
+                      finalhits[searchinfo.accepts] = *hit;
+                      ++searchinfo.accepts;
                     }
                 }
 
               /* sort hits */
-              qsort(finalhits, si->accepts,
+              qsort(finalhits.data(), searchinfo.accepts,
                     sizeof(struct hit), allpairs_hit_compare);
             }
 
@@ -505,15 +497,15 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_lock(&mutex_output);
 
           /* output results */
-          allpairs_output_results(si->accepts,
-                                  finalhits,
-                                  si->query_head,
-                                  si->qseqlen,
-                                  si->qsequence,
+          allpairs_output_results(searchinfo.accepts,
+                                  finalhits.data(),
+                                  searchinfo.query_head,
+                                  searchinfo.qseqlen,
+                                  searchinfo.qsequence,
                                   nullptr);
 
           /* update stats */
-          if (si->accepts)
+          if (searchinfo.accepts)
             {
               ++qmatches;
             }
@@ -525,11 +517,11 @@ auto allpairs_thread_run(int64_t t) -> void
           xpthread_mutex_unlock(&mutex_output);
 
           /* free memory for alignment strings */
-          for(int i = 0; i < si->hit_count; i++)
+          for (int i = 0; i < searchinfo.hit_count; i++)
             {
-              if (si->hits[i].aligned)
+              if (searchinfo.hits_v[i].aligned)
                 {
-                  xfree(si->hits[i].nwalignment);
+                  xfree(searchinfo.hits_v[i].nwalignment);
                 }
             }
         }
@@ -542,29 +534,15 @@ auto allpairs_thread_run(int64_t t) -> void
         }
     }
 
-  xfree(finalhits);
-
-  xfree(pcigar);
-  xfree(pgaps);
-  xfree(pmismatches);
-  xfree(pmatches);
-  xfree(paligned);
-  xfree(pscores);
-  xfree(pseqnos);
-
-  search16_exit(si->s);
-
-  nw_exit(nw);
+  search16_exit(searchinfo.s);
 
   xfree(scorematrix);
-
-  xfree(si->hits);
 }
 
-auto allpairs_thread_worker(void * vp) -> void *
+auto allpairs_thread_worker(void * void_ptr) -> void *
 {
-  auto t = (int64_t) vp;
-  allpairs_thread_run(t);
+  auto const nth_thread = reinterpret_cast<int64_t>(void_ptr);
+  allpairs_thread_run(nth_thread);
   return nullptr;
 }
 
@@ -576,14 +554,14 @@ auto allpairs_thread_worker_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* init and create worker threads, put them into stand-by mode */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread + t, &attr,
                       allpairs_thread_worker, (void *) (int64_t) t);
     }
 
   /* finish and clean up worker threads */
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -713,14 +691,15 @@ auto allpairs_global(char * cmdline, char * progheader) -> void
   qmatches = 0;
   queries = 0;
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  std::vector<pthread_t> pthread_v(opt_threads);
+  pthread = pthread_v.data();
 
   /* init mutexes for input and output */
   xpthread_mutex_init(&mutex_input, nullptr);
   xpthread_mutex_init(&mutex_output, nullptr);
 
   progress = 0;
-  progress_init("Aligning", MAX(0, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);
+  progress_init("Aligning", MAX(0, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);  // refactoring: issue with parenthesis?
   allpairs_thread_worker_run();
   progress_done();
 
@@ -749,7 +728,7 @@ auto allpairs_global(char * cmdline, char * progheader) -> void
   xpthread_mutex_destroy(&mutex_output);
   xpthread_mutex_destroy(&mutex_input);
 
-  xfree(pthread);
+  // pthread_v not used after this point
 
   /* clean up, global */
   db_free();

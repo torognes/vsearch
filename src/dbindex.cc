@@ -59,45 +59,89 @@
 */
 
 #include "vsearch.h"
+#include "bitmap.h"
+#include "dbindex.h"
+#include "maps.h"
+#include "unique.h"
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::memset
+#include <iterator>  // std::next
+
 
 unsigned int * kmercount;
 uint64_t * kmerhash;
 unsigned int * kmerindex;
-bitmap_t * * kmerbitmap;
+struct bitmap_s * * kmerbitmap;
 unsigned int * dbindex_map;
 unsigned int kmerhashsize;
 uint64_t kmerindexsize;
 unsigned int dbindex_count;
 uhandle_s * dbindex_uh;
 
-#define BITMAP_THRESHOLD 8
+constexpr unsigned int bitmap_threshold = 8;
 
 static unsigned int bitmap_mincount;
 
-void fprint_kmer(FILE * f, unsigned int kk, uint64_t kmer)
+
+auto dbindex_getbitmap(unsigned int const kmer) -> unsigned char *
 {
-  uint64_t x = kmer;
-  for(unsigned int i = 0; i < kk; i++)
+  auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
+  if (a_bitmap_s != nullptr)
     {
-      fprintf(f, "%c", sym_nt_2bit[(x >> (2 * (kk - i - 1))) & 3]);
+      return a_bitmap_s->bitmap;
+    }
+  return nullptr;
+}
+
+
+auto dbindex_getmatchcount(unsigned int const kmer) -> unsigned int
+{
+  return *std::next(kmercount, kmer);
+}
+
+
+auto dbindex_getmatchlist(unsigned int const kmer) -> unsigned int *
+{
+  return std::next(kmerindex, *std::next(kmerhash, kmer));
+}
+
+
+auto dbindex_getmapping(unsigned int const index) -> unsigned int
+{
+  return *std::next(dbindex_map, index);
+}
+
+
+auto dbindex_getcount() -> unsigned int
+{
+  return dbindex_count;
+}
+
+
+auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint64_t const kmer) -> void
+{
+  for (auto i = 0U; i < kmer_length; ++i)
+    {
+      std::fprintf(output_handle, "%c", sym_nt_2bit[(kmer >> (2 * (kmer_length - i - 1))) & 3]);
     }
 }
 
-void dbindex_addsequence(unsigned int seqno, int seqmask)
+auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 {
 #if 0
-  printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
+  std::printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
 #endif
 
-  unsigned int uniquecount;
-  unsigned int * uniquelist;
+  unsigned int uniquecount = 0;
+  unsigned int * uniquelist = nullptr;
   unique_count(dbindex_uh, opt_wordlength,
                db_getsequencelen(seqno), db_getsequence(seqno),
-               & uniquecount, & uniquelist, seqmask);
+               &uniquecount, &uniquelist, seqmask);
   dbindex_map[dbindex_count] = seqno;
-  for(unsigned int i = 0; i < uniquecount; i++)
+  for (unsigned int i = 0; i < uniquecount; i++)
     {
-      unsigned int kmer = uniquelist[i];
+      unsigned int const kmer = uniquelist[i];
       if (kmerbitmap[kmer])
         {
           kmercount[kmer]++;
@@ -111,11 +155,12 @@ void dbindex_addsequence(unsigned int seqno, int seqmask)
   ++dbindex_count;
 }
 
-void dbindex_addallsequences(int seqmask)
+
+auto dbindex_addallsequences(int seqmask) -> void
 {
-  unsigned int seqcount = db_getsequencecount();
+  unsigned int const seqcount = db_getsequencecount();
   progress_init("Creating k-mer index", seqcount);
-  for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
+  for (unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
       dbindex_addsequence(seqno, seqmask);
       progress_update(seqno);
@@ -123,27 +168,28 @@ void dbindex_addallsequences(int seqmask)
   progress_done();
 }
 
-void dbindex_prepare(int use_bitmap, int seqmask)
+
+auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 {
   dbindex_uh = unique_init();
 
-  unsigned int seqcount = db_getsequencecount();
-  kmerhashsize = 1 << (2 * opt_wordlength);
+  unsigned int const seqcount = db_getsequencecount();
+  kmerhashsize = 1U << (2 * opt_wordlength);
 
   /* allocate memory for kmer count array */
   kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
-  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
+  std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
   progress_init("Counting k-mers", seqcount);
-  for(unsigned int seqno = 0; seqno < seqcount ; seqno++)
+  for (unsigned int seqno = 0; seqno < seqcount ; seqno++)
     {
-      unsigned int uniquecount;
-      unsigned int * uniquelist;
+      unsigned int uniquecount = 0;
+      unsigned int * uniquelist = nullptr;
       unique_count(dbindex_uh, opt_wordlength,
                    db_getsequencelen(seqno), db_getsequence(seqno),
-                   & uniquecount, & uniquelist, seqmask);
-      for(unsigned int i = 0; i < uniquecount; i++)
+                   &uniquecount, &uniquelist, seqmask);
+      for (unsigned int i = 0; i < uniquecount; i++)
         {
           kmercount[uniquelist[i]]++;
         }
@@ -153,19 +199,19 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 
 #if 0
   /* dump kmer counts */
-  FILE * f = fopen_output("kmercounts.txt");
-  for(unsigned int kmer=0; kmer < kmerhashsize; kmer++)
+  std::FILE * f = fopen_output("kmercounts.txt");
+  for (unsigned int kmer=0; kmer < kmerhashsize; kmer++)
     {
       fprint_kmer(f, 8, kmer);
-      fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
+      std::fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
     }
-  fclose(f);
+  std::fclose(f);
 #endif
 
   /* determine minimum kmer count for bitmap usage */
   if (use_bitmap)
     {
-      bitmap_mincount = seqcount / BITMAP_THRESHOLD;
+      bitmap_mincount = seqcount / bitmap_threshold;
     }
   else
     {
@@ -173,14 +219,14 @@ void dbindex_prepare(int use_bitmap, int seqmask)
     }
 
   /* allocate and zero bitmap pointers */
-  kmerbitmap = (bitmap_t **) xmalloc(kmerhashsize * sizeof(bitmap_t *));
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(bitmap_t *));
+  kmerbitmap = (struct bitmap_s **) xmalloc(kmerhashsize * sizeof(struct bitmap_s *));
+  std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s *));
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
   kmerhash = (uint64_t *) xmalloc((kmerhashsize + 1) * sizeof(uint64_t));
   uint64_t sum = 0;
-  for(unsigned int i = 0; i < kmerhashsize; i++)
+  for (unsigned int i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = sum;
       if (kmercount[i] >= bitmap_mincount)
@@ -198,11 +244,11 @@ void dbindex_prepare(int use_bitmap, int seqmask)
 
 #if 0
   if (! opt_quiet)
-    fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
+    std::fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
 #endif
 
   /* reset counts */
-  memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
+  std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* allocate space for actual data */
   kmerindex = (unsigned int *) xmalloc(kmerindexsize * sizeof(unsigned int));
@@ -215,16 +261,17 @@ void dbindex_prepare(int use_bitmap, int seqmask)
   show_rusage();
 }
 
-void dbindex_free()
+
+auto dbindex_free() -> void
 {
   xfree(kmerhash);
   xfree(kmerindex);
   xfree(kmercount);
   xfree(dbindex_map);
 
-  for(unsigned int kmer = 0; kmer < kmerhashsize; kmer++)
+  for (unsigned int kmer = 0; kmer < kmerhashsize; kmer++)
     {
-      if (kmerbitmap[kmer])
+      if (kmerbitmap[kmer] != nullptr)
         {
           bitmap_free(kmerbitmap[kmer]);
         }

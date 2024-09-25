@@ -70,26 +70,20 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
-#ifndef exp10
-#define exp10(x) (pow(10.0,(x)))
-#endif
 
-#define SHA_DIGEST_LENGTH SHA1_DIGEST_SIZE
+constexpr auto md5_digest_length = 16;
+constexpr auto sha1_digest_length = 20;
 
-constexpr int MD5_DIGEST_LENGTH {16};
-#define LEN_DIG_SHA1 SHA_DIGEST_LENGTH
-
-constexpr int LEN_HEX_DIG_MD5 {2 * MD5_DIGEST_LENGTH + 1};
-#define LEN_HEX_DIG_SHA1 (2*LEN_DIG_SHA1+1)
+constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
+constexpr int len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
 auto fatal(const char * msg) -> void;
 auto fatal(const char * format, const char * message) -> void;
-auto xstrdup(const char *s) -> char *;
-auto xstrchrnul(char *s, int c) -> char *;
+auto xstrdup(const char * src) -> char *;
+auto xstrchrnul(char * str, int target) -> char *;
 auto xsprintf(char * * ret, const char * format, ...) -> int;
-auto hash_cityhash64(char * s, uint64_t n) -> uint64_t;
-auto hash_cityhash128(char * s, uint64_t n) -> uint128;
-auto getusec() -> int64_t;
+auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t;
+auto hash_cityhash128(char * sequence, uint64_t length) -> uint128;
 auto show_rusage() -> void;
 
 auto progress_init(const char * prompt, uint64_t size) -> void;
@@ -97,134 +91,134 @@ auto progress_update(uint64_t progress) -> void;
 auto progress_done() -> void;
 
 auto random_init() -> void;
-auto random_int(int64_t n) -> int64_t;
-auto random_ulong(uint64_t n) -> uint64_t;
+auto random_int(int64_t upper_limit) -> int64_t;
+auto random_ulong(uint64_t upper_limit) -> uint64_t;
 
-auto string_normalize(char * normalized, char * s, unsigned int len) -> void;
+auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void;
 
-auto reverse_complement(char * rc, char * seq, int64_t len) -> void;
+auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void;
 
-auto fprint_hex(FILE * fp, unsigned char * data, int len) -> void;
+auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> void;
 
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void;
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void;
 
-auto fprint_seq_digest_sha1(FILE * fp, char * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(FILE * fp, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_sha1(std::FILE * output_handle, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) -> void;
 
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;
 
-inline auto xpthread_attr_init(pthread_attr_t *attr) -> void
+inline auto xpthread_attr_init(pthread_attr_t * attr) -> void
 {
-  if (pthread_attr_init(attr))
+  if (pthread_attr_init(attr) != 0)
     {
       fatal("Unable to init thread attributes");
     }
 }
 
-inline auto xpthread_attr_destroy(pthread_attr_t *attr) -> void
+inline auto xpthread_attr_destroy(pthread_attr_t * attr) -> void
 {
-  if (pthread_attr_destroy(attr))
+  if (pthread_attr_destroy(attr) != 0)
     {
       fatal("Unable to destroy thread attributes");
     }
 }
 
-inline auto xpthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) -> void
+inline auto xpthread_attr_setdetachstate(pthread_attr_t * attr, int detachstate) -> void
 {
-  if (pthread_attr_setdetachstate(attr, detachstate))
+  if (pthread_attr_setdetachstate(attr, detachstate) != 0)
     {
       fatal("Unable to set thread attributes detach state");
     }
 }
 
-inline auto xpthread_create(pthread_t *thread, const pthread_attr_t *attr,
-                            void *(*start_routine)(void *), void *arg) -> void
+inline auto xpthread_create(pthread_t * thread, const pthread_attr_t * attr,
+                            void *(*start_routine)(void *), void * arg) -> void
 {
-  if (pthread_create(thread, attr, start_routine, arg))
+  if (pthread_create(thread, attr, start_routine, arg) != 0)
     {
       fatal("Unable to create thread");
     }
 }
 
-inline auto xpthread_join(pthread_t thread, void **value_ptr) -> void
+inline auto xpthread_join(pthread_t thread, void ** value_ptr) -> void
 {
-  if (pthread_join(thread, value_ptr))
+  if (pthread_join(thread, value_ptr) != 0)
     {
       fatal("Unable to join thread");
     }
 }
 
-inline auto xpthread_mutex_init(pthread_mutex_t *mutex,
-                                const pthread_mutexattr_t *attr) -> void
+inline auto xpthread_mutex_init(pthread_mutex_t * mutex,
+                                const pthread_mutexattr_t * attr) -> void
 {
-  if (pthread_mutex_init(mutex, attr))
+  if (pthread_mutex_init(mutex, attr) != 0)
     {
       fatal("Unable to init mutex");
     }
 }
 
-inline auto xpthread_mutex_destroy(pthread_mutex_t *mutex) -> void
+inline auto xpthread_mutex_destroy(pthread_mutex_t * mutex) -> void
 {
-  if (pthread_mutex_destroy(mutex))
+  if (pthread_mutex_destroy(mutex) != 0)
     {
       fatal("Unable to destroy mutex");
     }
 }
 
-inline auto xpthread_mutex_lock(pthread_mutex_t *mutex) -> void
+inline auto xpthread_mutex_lock(pthread_mutex_t * mutex) -> void
 {
-  if (pthread_mutex_lock(mutex))
+  if (pthread_mutex_lock(mutex) != 0)
     {
       fatal("Unable to lock mutex");
     }
 }
 
-inline auto xpthread_mutex_unlock(pthread_mutex_t *mutex) -> void
+inline auto xpthread_mutex_unlock(pthread_mutex_t * mutex) -> void
 {
-  if (pthread_mutex_unlock(mutex))
+  if (pthread_mutex_unlock(mutex) != 0)
     {
       fatal("Unable to unlock mutex");
     }
 }
 
-inline auto xpthread_cond_init(pthread_cond_t *cond,
-                               const pthread_condattr_t *attr) -> void
+inline auto xpthread_cond_init(pthread_cond_t * cond,
+                               const pthread_condattr_t * attr) -> void
 {
-  if (pthread_cond_init(cond, attr))
+  if (pthread_cond_init(cond, attr) != 0)
     {
       fatal("Unable to init condition variable");
     }
 }
 
-inline auto xpthread_cond_destroy(pthread_cond_t *cond) -> void
+inline auto xpthread_cond_destroy(pthread_cond_t * cond) -> void
 {
-  if (pthread_cond_destroy(cond))
+  if (pthread_cond_destroy(cond) != 0)
     {
       fatal("Unable to destroy condition variable");
     }
 }
 
-inline auto xpthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) -> void
+inline auto xpthread_cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex) -> void
 {
-  if (pthread_cond_wait(cond, mutex))
+  if (pthread_cond_wait(cond, mutex) != 0)
     {
       fatal("Unable to wait on condition variable");
     }
 }
 
-inline auto xpthread_cond_signal(pthread_cond_t *cond) -> void
+inline auto xpthread_cond_signal(pthread_cond_t * cond) -> void
 {
-  if (pthread_cond_signal(cond))
+  if (pthread_cond_signal(cond) != 0)
     {
       fatal("Unable to signal condition variable");
     }
 }
 
-inline auto xpthread_cond_broadcast(pthread_cond_t *cond) -> void
+inline auto xpthread_cond_broadcast(pthread_cond_t * cond) -> void
 {
-  if (pthread_cond_broadcast(cond))
+  if (pthread_cond_broadcast(cond) != 0)
     {
       fatal("Unable to broadcast condition variable");
     }

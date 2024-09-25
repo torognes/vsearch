@@ -70,6 +70,16 @@ AS_IF([test "x$enable_pdfman" != "xno"], [
 ])
 
 
+# Check for --enable-profiling option
+AC_ARG_ENABLE([profiling],
+  [AS_HELP_STRING([--enable-profiling], [Enable profiling build])],
+  [enable_profiling=$enableval],
+  [enable_profiling=no])
+
+# Define AM_CONDITIONAL for profiling
+AM_CONDITIONAL([ENABLE_PROFILING], [test "x$enable_profiling" = "xyes"])
+
+
 # Check for --enable-debug option
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [Enable debug build])],

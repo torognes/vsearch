@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
 #include "msa.h"
 #include <array>
 #include <algorithm>  // std::max()
@@ -78,8 +79,8 @@
 /* Compute multiple sequence alignment (msa), profile, and consensus
    sequence of clustered sequences */
 
-using prof_type = uint64_t;
-constexpr auto PROFSIZE = 6;
+using prof_type = std::uint64_t;
+constexpr auto profsize = 6;
 
 
 auto update_profile(char const nucleotide,
@@ -92,7 +93,7 @@ auto update_profile(char const nucleotide,
   static constexpr auto U_counter = 3;  // note: T converted to U?
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  auto const offset = PROFSIZE * position_in_alignment;
+  auto const offset = profsize * position_in_alignment;
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
   switch(std::toupper(nucleotide))
@@ -162,7 +163,7 @@ auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
   std::vector<int> max_insertions(centroid_len + 1);
-  for(auto i = 1; i < target_count; ++i)
+  for (auto i = 1; i < target_count; ++i)
     {
       char * cigar_start = target_list_v[i].cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
@@ -202,7 +203,7 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 auto find_longest_target_on_reverse_strand(int const target_count,
                                            std::vector<struct msa_target_s> const & target_list_v) -> int64_t {
   int64_t longest_reversed = 0;
-  for(auto i = 0; i < target_count; ++i)
+  for (auto i = 0; i < target_count; ++i)
     {
       auto const & target = target_list_v[i];
       if (target.strand == 0) { continue; }
@@ -273,9 +274,9 @@ auto process_and_print_centroid(char *rc_buffer,
   prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
   auto position_in_alignment = 0;
 
-  for(auto i = 0; i < centroid_len; ++i)
+  for (auto i = 0; i < centroid_len; ++i)
     {
-      for(auto j = 0; j < max_insertions[i]; ++j)
+      for (auto j = 0; j < max_insertions[i]; ++j)
         {
           update_profile('-', position_in_alignment, target_abundance, profile);
           update_msa('-', position_in_alignment, aln_v);
@@ -285,7 +286,7 @@ auto process_and_print_centroid(char *rc_buffer,
     }
 
   // insert
-  for(auto j = 0; j < max_insertions[centroid_len]; ++j)
+  for (auto j = 0; j < max_insertions[centroid_len]; ++j)
     {
       update_profile('-', position_in_alignment, target_abundance, profile);
       update_msa('-', position_in_alignment, aln_v);
@@ -331,7 +332,7 @@ auto compute_and_print_msa(int const target_count,
                              profile, aln_v, fp_msaout);
 
   // --------------------------------- deal with other sequences in the cluster
-  for(auto i = 1; i < target_count; ++i)
+  for (auto i = 1; i < target_count; ++i)
     {
       auto const & target = target_list_v[i];
       auto const target_seqno = target.seqno;
@@ -360,13 +361,13 @@ auto compute_and_print_msa(int const target_count,
 
           switch (operation) {
           case 'D':
-            for(auto j = 0; j < runlength; ++j)
+            for (auto j = 0; j < runlength; ++j)
               {
                 update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
                 update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                 ++tpos;
               }
-            for(auto j = runlength; j < max_insertions[qpos]; ++j)
+            for (auto j = runlength; j < max_insertions[qpos]; ++j)
               {
                 update_profile('-', position_in_alignment, target_abundance, profile);
                 update_msa('-', position_in_alignment, aln_v);
@@ -374,7 +375,7 @@ auto compute_and_print_msa(int const target_count,
             is_inserted = true;
             break;
           case 'M':
-            for(auto j = 0; j < runlength; ++j)
+            for (auto j = 0; j < runlength; ++j)
               {
                 insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                                      position_in_alignment, target_abundance,
@@ -387,7 +388,7 @@ auto compute_and_print_msa(int const target_count,
               }
             break;
           case 'I':
-            for(auto j = 0; j < runlength; ++j)
+            for (auto j = 0; j < runlength; ++j)
               {
                 insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
                                                      position_in_alignment, target_abundance,
@@ -429,23 +430,23 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   /* Censor part of the consensus sequence outside the centroid sequence */
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
-  for(auto i = 0; i < left_censored; ++i)
+  for (auto i = 0; i < left_censored; ++i)
     {
       aln_v[i] = '+';
     }
-  for(auto i = alignment_length - right_censored; i < alignment_length; ++i)
+  for (auto i = alignment_length - right_censored; i < alignment_length; ++i)
     {
       aln_v[i] = '+';
     }
 
-  for(auto i = left_censored; i < alignment_length - right_censored; ++i)
+  for (auto i = left_censored; i < alignment_length - right_censored; ++i)
     {
       /* find most common symbol of A, C, G and T */
       char best_sym = 0;
       prof_type best_count = 0;
-      for(auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
+      for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          auto const count = profile[PROFSIZE * i + nucleotide];
+          auto const count = profile[(profsize * i) + nucleotide];
           if (count > best_count)
             {
               best_count = count;
@@ -454,7 +455,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* if no A, C, G, or T, check if there are any N's */
-      auto const N_count = profile[PROFSIZE * i + 4];
+      auto const N_count = profile[(profsize * i) + 4];
       if ((best_count == 0) and (N_count > 0))
         {
           best_count = N_count;
@@ -462,7 +463,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* compare to the number of gap symbols */
-      auto const gap_count = profile[PROFSIZE * i + 5];
+      auto const gap_count = profile[(profsize * i) + 5];
       if (best_count >= gap_count)
         {
           auto const index = static_cast<unsigned char>(best_sym);
@@ -537,7 +538,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE * counter + symbol_index]));
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(profsize * counter) + symbol_index]));
       }
       static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;
@@ -559,7 +560,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(PROFSIZE) * alignment_length);  // C++20 refactoring: std::vector<std::array<prof_type, PROFSIZE>>(alnlen);
+  std::vector<prof_type> profile(static_cast<unsigned long>(profsize) * alignment_length);  // C++20 refactoring: std::vector<std::array<prof_type, profsize>>(alnlen);
   std::vector<char> aln_v(alignment_length + 1);
   std::vector<char> cons_v(alignment_length + 1);
 

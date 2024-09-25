@@ -58,56 +58,40 @@
 
 */
 
+#include "bitmap.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 
 
+struct uhandle_s;
+
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
 extern uint64_t * kmerhash;  /* index into the list below for each kmer */
 extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
-extern bitmap_t * * kmerbitmap;
+extern struct bitmap_s * * kmerbitmap;
 extern unsigned int * dbindex_map;
 extern unsigned int dbindex_count;
 extern unsigned int kmerhashsize;
 extern uint64_t kmerindexsize;
 extern uhandle_s * dbindex_uh;
 
-auto fprint_kmer(std::FILE * f, unsigned int k, uint64_t kmer) -> void;
+
+auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
 
 auto dbindex_prepare(int use_bitmap, int seqmask) -> void;
+
 auto dbindex_addallsequences(int seqmask) -> void;
+
 auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void;
+
 auto dbindex_free() -> void;
-auto dbindex_udb_write() -> void;
 
-inline auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
-{
-  if (kmerbitmap[kmer])
-    {
-      return kmerbitmap[kmer]->bitmap;
-    }
-  else
-    {
-      return nullptr;
-    }
-}
+auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *;
 
-inline auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int
-{
-  return kmercount[kmer];
-}
+auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int;
 
-inline auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *
-{
-  return kmerindex + kmerhash[kmer];
-}
+auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *;
 
-inline auto dbindex_getmapping(unsigned int index) -> unsigned int
-{
-  return dbindex_map[index];
-}
+auto dbindex_getmapping(unsigned int index) -> unsigned int;
 
-inline auto dbindex_getcount() -> unsigned int
-{
-  return dbindex_count;
-}
+auto dbindex_getcount() -> unsigned int;

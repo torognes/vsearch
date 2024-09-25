@@ -58,4 +58,4 @@
 
 */
 
-auto derep_smallmem(char * input_filename) -> void;
+auto derep_prefix(struct Parameters const & parameters) -> void;

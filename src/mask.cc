@@ -59,19 +59,24 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
+#include "mask.h"
 #include <array>
-#include <cstdio>  // FILE
-#include <cstring>  // memset
+#include <cctype>  // std::toupper, std::isupper
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE
+#include <cstring>  // std::strcpy
+#include <pthread.h>
 // #include <string>
 
 
 constexpr int dust_window = 64;
 
 
-int wo(int len, const char *s, int *beg, int *end)
+auto wo(int len, const char *s, int *beg, int *end) -> int
 {
   static constexpr int dust_word = 3;
-  static constexpr int word_count = 1 << (2 * dust_word);  // 64
+  static constexpr int word_count = 1U << (2U * dust_word);  // 64
   static constexpr int bitmask = word_count - 1;
   const int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
@@ -88,8 +93,8 @@ int wo(int len, const char *s, int *beg, int *end)
 
   for (int j = 0; j < len; j++)
     {
-      word <<= 2;
-      word |= chrmap_2bit[(int)(s[j])];
+      word <<= 2U;
+      word |= chrmap_2bit[(int) (s[j])];
       words[j] = word & bitmask;
     }
 
@@ -126,7 +131,7 @@ int wo(int len, const char *s, int *beg, int *end)
 }
 
 
-void dust(char * m, int len)
+auto dust(char * seq, int len) -> void
 {
   static constexpr int dust_level = 20;
   static constexpr int half_dust_window = dust_window / 2;
@@ -135,7 +140,7 @@ void dust(char * m, int len)
 
   /* make a local copy of the original sequence */
   char * local_seq = (char*) xmalloc(len + 1);
-  strcpy(local_seq, m);
+  strcpy(local_seq, seq);
   // refactoring: <string>
   // std::string local_seq2;
   // local_seq2.reserve(len + 1);
@@ -147,9 +152,9 @@ void dust(char * m, int len)
       /* convert sequence to upper case unless hardmask in effect */
       for(int i = 0; i < len; i++)
         {
-          m[i] = toupper(m[i]);
+          seq[i] = toupper(seq[i]);
         }
-      m[len] = 0;
+      seq[len] = 0;
     }
 
   for (int i = 0; i < len; i += half_dust_window)
@@ -161,16 +166,16 @@ void dust(char * m, int len)
         {
           if (opt_hardmask)
             {
-              for(int j = a + i; j <= b + i; j++)
+              for (int j = a + i; j <= b + i; j++)
                 {
-                  m[j] = 'N';
+                  seq[j] = 'N';
                 }
             }
           else
             {
-              for(int j = a + i; j <= b + i; j++)
+              for (int j = a + i; j <= b + i; j++)
                 {
-                  m[j] = local_seq[j] | 0x20;
+                  seq[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
                 }
             }
 
@@ -190,10 +195,10 @@ static pthread_mutex_t mutex;
 static int nextseq = 0;
 static int seqcount = 0;
 
-void * dust_all_worker(void * vp)
+auto dust_all_worker(void * vp) -> void *
 {
   (void) vp; // not used, but required for thread creation
-  while(true)
+  while (true)
     {
       xpthread_mutex_lock(&mutex);
       const int seqno = nextseq;
@@ -214,7 +219,7 @@ void * dust_all_worker(void * vp)
 }
 
 
-void dust_all()
+auto dust_all() -> void
 {
   nextseq = 0;
   seqcount = db_getsequencecount();
@@ -227,12 +232,12 @@ void dust_all()
 
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
-      xpthread_create(pthread+t, &attr, dust_all_worker, (void*)(int64_t)t);
+      xpthread_create(pthread + t, &attr, dust_all_worker, (void *) (int64_t) t);
     }
 
-  for(int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -247,33 +252,35 @@ void dust_all()
 }
 
 
-void hardmask(char * seq, int len)
+auto hardmask(char * seq, int len) -> void
 {
   /* convert all lower case letters in seq to N */
-
-  for(int j = 0; j < len; j++)
+  static constexpr auto check_5th_bit = 32U; // 0x20
+  static constexpr auto hardmask_char = 'N';
+  for (int j = 0; j < len; j++)
     {
-      if (seq[j] & 0x20)
+      if (seq[j] & check_5th_bit)
         {
-          seq[j] = 'N';
+          seq[j] = hardmask_char;
         }
     }
 }
 
 
-void hardmask_all()
+auto hardmask_all() -> void
 {
-  for(uint64_t i = 0; i < db_getsequencecount(); i++)
+  for (uint64_t i = 0; i < db_getsequencecount(); i++)
     {
       hardmask(db_getsequence(i), db_getsequencelen(i));
     }
 }
 
 
-void maskfasta()
+auto maskfasta() -> void
 {
-  if (! opt_output)
+  if (! opt_output) {
     fatal("Output file for masking must be specified with --output");
+  }
 
   std::FILE * fp_output = fopen_output(opt_output);
   if (! fp_output)
@@ -297,7 +304,7 @@ void maskfasta()
   show_rusage();
 
   progress_init("Writing output", seqcount);
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(fp_output, i, i + 1);
       progress_update(i);
@@ -310,13 +317,14 @@ void maskfasta()
 }
 
 
-void fastx_mask()
+auto fastx_mask() -> void
 {
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if ((! opt_fastaout) && (! opt_fastqout))
+  if ((! opt_fastaout) && (! opt_fastqout)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
+  }
 
   if (opt_fastaout)
     {
@@ -360,7 +368,7 @@ void fastx_mask()
   int discarded_less = 0;
   int discarded_more = 0;
   progress_init("Writing output", seqcount);
-  for(int i = 0; i < seqcount; i++)
+  for (int i = 0; i < seqcount; i++)
     {
       int unmasked = 0;
       char * seq = db_getsequence(i);
@@ -371,7 +379,7 @@ void fastx_mask()
         }
       else if (opt_hardmask)
         {
-          for(int j = 0; j < len; j++)
+          for (int j = 0; j < len; j++)
             {
               if (seq[j] != 'N')
                 {
@@ -381,7 +389,7 @@ void fastx_mask()
         }
       else
         {
-          for(int j = 0; j < len; j++)
+          for (int j = 0; j < len; j++)
             {
               if (isupper(seq[j]))
                 {

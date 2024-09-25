@@ -58,4 +58,4 @@
 
 */
 
-auto rereplicate() -> void;
+auto fastq_chars(struct Parameters const & parameters) -> void;

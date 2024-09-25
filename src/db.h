@@ -72,7 +72,7 @@ struct seqinfo_s
   unsigned int size;
 };
 
-typedef struct seqinfo_s seqinfo_t;
+using seqinfo_t = struct seqinfo_s;
 
 extern char * datap;
 extern seqinfo_t * seqindex;

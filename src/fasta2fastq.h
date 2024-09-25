@@ -58,6 +58,4 @@
 
 */
 
-constexpr auto maxparents = 20; /* max, could be fewer */
-
-auto chimera() -> void;
+auto fasta2fastq(struct Parameters const & parameters) -> void;

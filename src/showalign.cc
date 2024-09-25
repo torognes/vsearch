@@ -59,9 +59,11 @@
 */
 
 #include "vsearch.h"
-
+#include "maps.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
+#include <cstring>  // std::strncpy
 
 
 static int64_t line_pos;
@@ -96,12 +98,12 @@ static const char * d_name;
 static int64_t q_len;
 static int64_t d_len;
 
-inline void putop(char c, int64_t len)
+inline auto putop(char c, int64_t len) -> void
 {
   const int64_t delta = q_strand != 0 ? -1 : +1;
 
   int64_t count = len;
-  while(count != 0)
+  while (count != 0)
     {
       if (line_pos == 0)
         {
@@ -109,10 +111,10 @@ inline void putop(char c, int64_t len)
           d_start = d_pos;
         }
 
-      char qs;
-      char ds;
-      unsigned int qs4;
-      unsigned int ds4;
+      char qs = '\0';
+      char ds = '\0';
+      unsigned int qs4 = 0;
+      unsigned int ds4 = 0;
 
       switch(c)
         {
@@ -186,7 +188,7 @@ inline void putop(char c, int64_t len)
     }
 }
 
-void align_show(std::FILE * f,
+auto align_show(std::FILE * output_handle,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
@@ -200,9 +202,9 @@ void align_show(std::FILE * f,
                 int numwidth,
                 int namewidth,
                 int alignwidth,
-                int strand)
+                int strand) -> void
 {
-  out = f;
+  out = output_handle;
 
   q_seq = seq1;
   q_len = seq1len;
@@ -220,19 +222,19 @@ void align_show(std::FILE * f,
   headwidth = namewidth;
   alignlen = alignwidth;
 
-  q_line = (char*) xmalloc(alignwidth + 1);
-  a_line = (char*) xmalloc(alignwidth + 1);
-  d_line = (char*) xmalloc(alignwidth + 1);
+  q_line = (char *) xmalloc(alignwidth + 1);
+  a_line = (char *) xmalloc(alignwidth + 1);
+  d_line = (char *) xmalloc(alignwidth + 1);
 
   q_pos = strand != 0 ? seq1len - 1 - seq1off : seq1off;
   d_pos = seq2off;
 
   line_pos = 0;
 
-  while(p < e)
+  while (p < e)
     {
-      int64_t len;
-      int n;
+      int64_t len = 0;
+      int n = 0;
       if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
@@ -250,17 +252,17 @@ void align_show(std::FILE * f,
   xfree(d_line);
 }
 
-char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
+auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 {
-  char * row = (char*) xmalloc(alignlen + 1);
+  char * row = (char *) xmalloc(alignlen + 1);
   char * r = row;
   char * p = cigar;
   char * s = seq;
 
-  while(*p != 0)
+  while (*p != 0)
     {
-      int64_t len;
-      int n;
+      int64_t len = 0;
+      int n = 0;
       if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
@@ -280,7 +282,7 @@ char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
       else
         {
           /* insert len gap symbols */
-          for(int64_t i = 0; i < len; i++)
+          for (int64_t i = 0; i < len; i++)
             {
               *r++ = '-';
             }
@@ -291,14 +293,14 @@ char * align_getrow(char * seq, char * cigar, int alignlen, int origin)
   return row;
 }
 
-void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar)
+auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
 {
   char * p = cigar;
   while (*p != 0)
     {
       if (*p > '9')
         {
-          fprintf(f, "%c", *p++);
+          fprintf(output_handle, "%c", *p++);
         }
       else
         {
@@ -307,9 +309,9 @@ void align_fprint_uncompressed_alignment(std::FILE * f, char * cigar)
           int x = 0;
           if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
             {
-              for(int i = 0; i<n; i++)
+              for (int i = 0; i < n; i++)
                 {
-                  fprintf(f, "%c", c);
+                  fprintf(output_handle, "%c", c);
                 }
               p += x;
             }

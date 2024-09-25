@@ -59,15 +59,19 @@
 */
 
 #include "vsearch.h"
+#include "bitmap.h"
+#include "maps.h"
+#include <cstdint>  // int64_t, uint64_t
+#include <cstring>  // std::memset
 
 
-static bitmap_t * dbhash_bitmap;
+static struct bitmap_s * dbhash_bitmap;
 static uint64_t dbhash_size;
 static unsigned int dbhash_shift;
 static uint64_t dbhash_mask;
 static struct dbhash_bucket_s * dbhash_table;
 
-int dbhash_seqcmp(char * a, char * b, uint64_t n)
+auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
 {
   char * p = a;
   char * q = b;
@@ -90,7 +94,7 @@ int dbhash_seqcmp(char * a, char * b, uint64_t n)
   return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
 }
 
-void dbhash_open(uint64_t maxelements)
+auto dbhash_open(uint64_t maxelements) -> void
 {
   /* adjust size of hash table for 2/3 fill rate */
   /* and use a multiple of 2 */
@@ -99,7 +103,7 @@ void dbhash_open(uint64_t maxelements)
   dbhash_shift = 0;
   while (3 * maxelements > 2 * dbhash_size)
     {
-      dbhash_size <<= 1;
+      dbhash_size <<= 1U;
       ++dbhash_shift;
     }
   dbhash_mask = dbhash_size - 1;
@@ -112,7 +116,7 @@ void dbhash_open(uint64_t maxelements)
   bitmap_reset_all(dbhash_bitmap);
 }
 
-void dbhash_close()
+auto dbhash_close() -> void
 {
   bitmap_free(dbhash_bitmap);
   dbhash_bitmap = nullptr;
@@ -120,12 +124,12 @@ void dbhash_close()
   dbhash_table = nullptr;
 }
 
-int64_t dbhash_search_first(char * seq,
-                            uint64_t seqlen,
-                            struct dbhash_search_info_s * info)
+auto dbhash_search_first(char * seq,
+                         uint64_t seqlen,
+                         struct dbhash_search_info_s * info) -> int64_t
 {
 
-  uint64_t hash = hash_cityhash64(seq, seqlen);
+  uint64_t const hash = hash_cityhash64(seq, seqlen);
   info->hash = hash;
   info->seq = seq;
   info->seqlen = seqlen;
@@ -154,11 +158,11 @@ int64_t dbhash_search_first(char * seq,
     }
 }
 
-int64_t dbhash_search_next(struct dbhash_search_info_s * info)
+auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 {
-  uint64_t hash = info->hash;
+  uint64_t const hash = info->hash;
   char * seq = info->seq;
-  uint64_t seqlen = info->seqlen;
+  uint64_t const seqlen = info->seqlen;
   uint64_t index = (info->index + 1) & dbhash_mask;
   struct dbhash_bucket_s * bp = dbhash_table + index;
 
@@ -184,7 +188,7 @@ int64_t dbhash_search_next(struct dbhash_search_info_s * info)
     }
 }
 
-void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
+auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 {
   struct dbhash_search_info_s info;
 
@@ -200,23 +204,23 @@ void dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno)
   bp->seqno = seqno;
 }
 
-void dbhash_add_one(uint64_t seqno)
+auto dbhash_add_one(uint64_t seqno) -> void
 {
   char * seq = db_getsequence(seqno);
-  uint64_t seqlen = db_getsequencelen(seqno);
+  uint64_t const seqlen = db_getsequencelen(seqno);
   char * normalized = (char *) xmalloc(seqlen + 1);
   string_normalize(normalized, seq, seqlen);
   dbhash_add(normalized, seqlen, seqno);
 }
 
-void dbhash_add_all()
+auto dbhash_add_all() -> void
 {
   progress_init("Hashing database sequences", db_getsequencecount());
   char * normalized = (char *) xmalloc(db_getlongestsequence() + 1);
-  for(uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
+  for (uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
     {
       char * seq = db_getsequence(seqno);
-      uint64_t seqlen = db_getsequencelen(seqno);
+      uint64_t const seqlen = db_getsequencelen(seqno);
       string_normalize(normalized, seq, seqlen);
       dbhash_add(normalized, seqlen, seqno);
       progress_update(seqno + 1);

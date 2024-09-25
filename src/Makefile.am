@@ -2,6 +2,11 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
 AM_CFLAGS = -Wall -Wextra -Wpedantic
 
+# Conditionally set profiling based on ENABLE_PROFILING
+if ENABLE_PROFILING
+AM_CFLAGS += -pg -O1
+endif
+
 if TARGET_PPC
 AM_CFLAGS += -mcpu=powerpc64le -maltivec
 else
@@ -28,7 +33,6 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
 export MACOSX_DEPLOYMENT_TARGET=10.9
 
 VSEARCHHEADERS=\
-align.h \
 align_simd.h \
 allpairs.h \
 arch.h \
@@ -44,13 +48,15 @@ db.h \
 dbhash.h \
 dbindex.h \
 derep.h \
-derepsmallmem.h \
+derep_prefix.h \
+derep_smallmem.h \
 dynlibs.h \
 eestats.h \
-fa2fq.h \
+fasta2fastq.h \
 fasta.h \
 fastq.h \
-fastqjoin.h \
+fastq_chars.h \
+fastq_join.h \
 fastqops.h \
 fastx.h \
 filter.h \
@@ -65,12 +71,12 @@ minheap.h \
 msa.h \
 orient.h \
 otutable.h \
-rerep.h \
+rereplicate.h \
 results.h \
 search.h \
 searchcore.h \
-searchexact.h \
-sffconvert.h \
+search_exact.h \
+sff_convert.h \
 showalign.h \
 sha1.h \
 shuffle.h \
@@ -83,6 +89,8 @@ udb.h \
 unique.h \
 userfields.h \
 util.h \
+utils/maps.hpp \
+utils/seqcmp.h \
 vsearch.h \
 xstring.h
 
@@ -127,7 +135,6 @@ endif
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
-align.cc \
 align_simd.cc \
 allpairs.cc \
 arch.cc \
@@ -140,13 +147,15 @@ db.cc \
 dbhash.cc \
 dbindex.cc \
 derep.cc \
-derepsmallmem.cc \
+derep_prefix.cc \
+derep_smallmem.cc \
 dynlibs.cc \
 eestats.cc \
-fa2fq.cc \
+fasta2fastq.cc \
 fasta.cc \
 fastq.cc \
-fastqjoin.cc \
+fastq_chars.cc \
+fastq_join.cc \
 fastqops.cc \
 fastx.cc \
 filter.cc \
@@ -161,12 +170,12 @@ minheap.cc \
 msa.cc \
 orient.cc \
 otutable.cc \
-rerep.cc \
+rereplicate.cc \
 results.cc \
 search.cc \
 searchcore.cc \
-searchexact.cc \
-sffconvert.cc \
+search_exact.cc \
+sff_convert.cc \
 sha1.c \
 showalign.cc \
 shuffle.cc \
@@ -179,4 +188,6 @@ udb.cc \
 unique.cc \
 userfields.cc \
 util.cc \
+utils/maps.cpp \
+utils/seqcmp.cc \
 vsearch.cc

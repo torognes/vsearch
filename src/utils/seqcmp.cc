@@ -58,6 +58,22 @@
 
 */
 
-constexpr auto maxparents = 20; /* max, could be fewer */
+#include "maps.hpp"
+#include <iterator>
 
-auto chimera() -> void;
+
+auto seqcmp(char * lhs, char * rhs, int length) -> int {
+  if (length <= 0) {
+    return 0;
+  }
+
+  while ((length-- > 0) and (chrmap_4bit_vector[static_cast<unsigned char>(*lhs)] == chrmap_4bit_vector[static_cast<unsigned char>(*rhs)])) {
+    if ((length == 0) or (*lhs == '\0') or (*rhs == '\0')) {
+      break;
+    }
+    std::advance(lhs, 1);
+    std::advance(rhs, 1);
+  }
+
+  return static_cast<int>(chrmap_4bit_vector[static_cast<unsigned char>(*lhs)] - chrmap_4bit_vector[static_cast<unsigned char>(*rhs)]);
+}

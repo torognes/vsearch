@@ -59,6 +59,10 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::printf, std::snprintf
+#include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
 #include <limits>
 
 
@@ -88,6 +92,9 @@ constexpr auto CDEPTH = 4;
   the linear memory aligner.
 */
 
+#include "align_simd.h"
+
+
 constexpr auto MAXSEQLENPRODUCT = 25000000LL;
 
 static int64_t scorematrix[16][16];
@@ -104,7 +111,7 @@ static int64_t scorematrix[16][16];
 
 #ifdef __PPC__
 
-typedef __vector signed short VECTOR_SHORT;
+using VECTOR_SHORT = __vector signed short;
 
 const __vector unsigned char perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -133,7 +140,7 @@ const __vector unsigned char perm_merge_long_high =
 
 #elif defined __aarch64__
 
-typedef int16x8_t VECTOR_SHORT;
+using VECTOR_SHORT = int16x8_t;
 
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
@@ -161,7 +168,7 @@ const uint16x8_t neon_mask =
 
 #elif __x86_64__
 
-typedef __m128i VECTOR_SHORT;
+using VECTOR_SHORT = __m128i;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
 #define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
@@ -244,15 +251,15 @@ auto dprofile_dump16(CELL * dprofile) -> void
 {
   char * s = sym_nt_4bit;
   printf("\ndprofile:\n");
-  for(int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++)
     {
       printf("%c: ", s[i]);
-      for(int k = 0; k < CDEPTH; k++)
+      for (int k = 0; k < CDEPTH; k++)
         {
           printf("[");
-          for(int j = 0; j < CHANNELS; j++)
+          for (int j = 0; j < CHANNELS; j++)
             {
-              printf(" %3d", dprofile[CHANNELS * CDEPTH * i + CHANNELS * k + j]);
+              printf(" %3d", dprofile[(CHANNELS * CDEPTH * i) + (CHANNELS * k) + j]);
             }
           printf("]");
         }
@@ -262,12 +269,12 @@ auto dprofile_dump16(CELL * dprofile) -> void
 
 auto dumpscorematrix(CELL * m) -> void
 {
-  for(int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++)
     {
       printf("%2d %c", i, sym_nt_4bit[i]);
-      for(int j = 0; j < 16; j++)
+      for (int j = 0; j < 16; j++)
         {
-          printf(" %2d", m[16 * i + j]);
+          printf(" %2d", m[(16 * i) + j]);
         }
       printf("\n");
     }
@@ -282,7 +289,7 @@ auto dprofile_fill16(CELL * dprofile_word,
 
   for (int j = 0; j < CDEPTH; j++)
     {
-      for(int z = 0; z < CHANNELS; z++)
+      for (int z = 0; z < CHANNELS; z++)
         fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j * CHANNELS + z]]);
       fprintf(stderr, "\n");
     }
@@ -291,12 +298,12 @@ auto dprofile_fill16(CELL * dprofile_word,
   for (int j = 0; j < CDEPTH; j++)
     {
       int d[CHANNELS];
-      for(int z = 0; z < CHANNELS; z++)
+      for (int z = 0; z < CHANNELS; z++)
         {
-          d[z] = dseq[j * CHANNELS + z] << 4;
+          d[z] = dseq[(j * CHANNELS) + z] << 4U;
         }
 
-      for(int i = 0; i < 16; i += 8)
+      for (int i = 0; i < 16; i += 8)
         {
 
 #ifdef __PPC__
@@ -443,14 +450,14 @@ auto dprofile_fill16(CELL * dprofile_word,
           reg31 = v_merge_hi_64(reg21, reg23);
 #endif
 
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j, reg24);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j, reg25);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j, reg26);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j, reg27);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j, reg28);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j, reg29);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j, reg30);
-          v_store(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j, reg31);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 0)) + (CHANNELS * j), reg24);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 1)) + (CHANNELS * j), reg25);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 2)) + (CHANNELS * j), reg26);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 3)) + (CHANNELS * j), reg27);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 4)) + (CHANNELS * j), reg28);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 5)) + (CHANNELS * j), reg29);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 6)) + (CHANNELS * j), reg30);
+          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 7)) + (CHANNELS * j), reg31);
         }
     }
 #if 0
@@ -585,7 +592,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT E;
   VECTOR_SHORT HE;
   VECTOR_SHORT HF;
-  VECTOR_SHORT * vp;
+  VECTOR_SHORT * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
@@ -596,7 +603,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   __vector unsigned long long RES;
 #endif
 
-  int64_t i;
+  int64_t i = 0;
 
   f0 = v_sub(f0, QR_t_0);
   f1 = v_sub(f1, QR_t_1);
@@ -604,13 +611,13 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   f3 = v_sub(f3, QR_t_3);
 
 
-  for(i = 0; i < ql - 1; i++)
+  for (i = 0; i < ql - 1; i++)
     {
       vp = qp[i + 0];
 
-      h4 = hep[2 * i + 0];
+      h4 = hep[(2 * i) + 0];
 
-      E  = hep[2 * i + 1];
+      E  = hep[(2 * i) + 1];
 
       /*
         Initialize selected h and e values for next/this round.
@@ -653,8 +660,8 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      hep[(2 * i) + 0] = h8;
+      hep[(2 * i) + 1] = E;
 
       h0 = h4;
       h1 = h5;
@@ -666,7 +673,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 
   vp = qp[i + 0];
 
-  E  = hep[2 * i + 1];
+  E  = hep[(2 * i) + 1];
 
   E  = v_sub_unsigned(E, Mm);
   E  = v_sub(E, M_QR_t_left);
@@ -698,8 +705,8 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 #endif
 
 
-  hep[2 * i + 0] = h8;
-  hep[2 * i + 1] = E;
+  hep[(2 * i) + 0] = h8;
+  hep[(2 * i) + 1] = E;
 
   Sm[0] = h5;
   Sm[1] = h6;
@@ -746,7 +753,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT E;
   VECTOR_SHORT HE;
   VECTOR_SHORT HF;
-  VECTOR_SHORT * vp;
+  VECTOR_SHORT * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
@@ -757,20 +764,20 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   __vector unsigned long long RES;
 #endif
 
-  int64_t i;
+  int64_t i = 0;
 
   f0 = v_sub(f0, QR_t_0);
   f1 = v_sub(f1, QR_t_1);
   f2 = v_sub(f2, QR_t_2);
   f3 = v_sub(f3, QR_t_3);
 
-  for(i = 0; i < ql - 1; i++)
+  for (i = 0; i < ql - 1; i++)
     {
       vp = qp[i + 0];
 
-      h4 = hep[2 * i + 0];
+      h4 = hep[(2 * i) + 0];
 
-      E  = hep[2 * i + 1];
+      E  = hep[(2 * i) + 1];
 
 #ifdef __PPC__
       ALIGNCORE(h0, h5, f0, vp[0], RES1,
@@ -796,8 +803,8 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      hep[(2 * i) + 0] = h8;
+      hep[(2 * i) + 1] = E;
 
       h0 = h4;
       h1 = h5;
@@ -809,7 +816,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
 
   vp = qp[i + 0];
 
-  E  = hep[2 * i + 1];
+  E  = hep[(2 * i) + 1];
 
 #ifdef __PPC__
   ALIGNCORE(h0, h5, f0, vp[0], RES1,
@@ -835,8 +842,8 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
             QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
-  hep[2 * i + 0] = h8;
-  hep[2 * i + 1] = E;
+  hep[(2 * i) + 0] = h8;
+  hep[(2 * i) + 1] = E;
 
   Sm[0] = h5;
   Sm[1] = h6;
@@ -860,7 +867,7 @@ inline auto pushop(s16info_s * s, char newop) -> void
         {
           const int size = 11;
           char buf[size];
-          int len = snprintf(buf, size, "%d", s->opcount);
+          int const len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
@@ -878,7 +885,7 @@ inline auto finishop(s16info_s * s) -> void
         {
           const int size = 11;
           char buf[size];
-          int len = snprintf(buf, size, "%d", s->opcount);
+          int const len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
@@ -898,22 +905,22 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pgaps) -> void
 {
   unsigned short * dirbuffer = s->dir;
-  uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
-  uint64_t qlen = s->qlen;
+  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const qlen = s->qlen;
   char * qseq = s->qseq;
 
-  uint64_t maskup      = 3ULL << (2 * channel + 0);
-  uint64_t maskleft    = 3ULL << (2 * channel + 16);
-  uint64_t maskextup   = 3ULL << (2 * channel + 32);
-  uint64_t maskextleft = 3ULL << (2 * channel + 48);
+  uint64_t const maskup      = 3ULL << (2 * channel + 0);
+  uint64_t const maskleft    = 3ULL << (2 * channel + 16);
+  uint64_t const maskextup   = 3ULL << (2 * channel + 32);
+  uint64_t const maskextleft = 3ULL << (2 * channel + 48);
 
 #if 0
 
   printf("Dumping backtracking array\n");
 
-  for(uint64_t i = 0; i < qlen; i++)
+  for (uint64_t i = 0; i < qlen; i++)
     {
-      for(uint64_t j = 0; j < dlen; j++)
+      for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
                                        (offset + 16 * s->qlen * (j / 4) +
@@ -939,9 +946,9 @@ auto backtrack16(s16info_s * s,
 
   printf("Dumping gap extension array\n");
 
-  for(uint64_t i = 0; i < qlen; i++)
+  for (uint64_t i = 0; i < qlen; i++)
     {
-      for(uint64_t j = 0; j < dlen; j++)
+      for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
                                        (offset + 16 * s->qlen * (j / 4) +
@@ -983,9 +990,9 @@ auto backtrack16(s16info_s * s,
     {
       ++aligned;
 
-      uint64_t d = *((uint64_t *) (dirbuffer +
-                                   (offset + 16 * s->qlen * (j / 4) +
-                                    16 * i + 4 *(j & 3)) % dirbuffersize));
+      uint64_t const d = *((uint64_t *) (dirbuffer +
+                                   (offset + (16 * s->qlen * (j / 4)) +
+                                    (16 * i) + (4 * (j & 3)) % dirbuffersize)));
 
       if ((s->op == 'I') && (d & maskextleft))
         {
@@ -1056,7 +1063,7 @@ auto backtrack16(s16info_s * s,
   finishop(s);
 
   /* move cigar to beginning of allocated memory area */
-  int cigarlen = s->cigar + s->qlen + s->maxdlen - s->cigarend;
+  int const cigarlen = s->cigar + s->qlen + s->maxdlen - s->cigarend;
   memmove(s->cigar, s->cigarend, cigarlen + 1);
 
   * paligned = aligned;
@@ -1099,11 +1106,11 @@ auto search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
-  for(int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++)
     {
-      for(int j = 0; j < 16; j++)
+      for (int j = 0; j < 16; j++)
         {
-          CELL value;
+          CELL value = 0;
           if (ambiguous_4bit[i] or ambiguous_4bit[j])
             {
               value = 0;
@@ -1116,7 +1123,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL*) (&s->matrix))[16 * i + j] = value;
+          ((CELL *) (&s->matrix))[(16 * i) + j] = value;
           scorematrix[i][j] = value;
         }
     }
@@ -1197,7 +1204,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
     }
   s->qtable = (VECTOR_SHORT **) xmalloc(s->qlen * sizeof(VECTOR_SHORT*));
 
-  for(int i = 0; i < qlen; i++)
+  for (int i = 0; i < qlen; i++)
     {
       s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int) (qseq[i])];
     }
@@ -1213,17 +1220,17 @@ auto search16(s16info_s * s,
               unsigned short * pgaps,
               char ** pcigar) -> void
 {
-  CELL ** q_start = (CELL**) s->qtable;
-  CELL * dprofile = (CELL*) s->dprofile;
-  CELL * hearray = (CELL*) s->hearray;
-  uint64_t qlen = s->qlen;
+  CELL ** q_start = (CELL **) s->qtable;
+  CELL * dprofile = (CELL *) s->dprofile;
+  CELL * hearray = (CELL *) s->hearray;
+  uint64_t const qlen = s->qlen;
 
   if (qlen == 0)
     {
       for (unsigned int cand_id = 0; cand_id < sequences; cand_id++)
         {
-          unsigned int seqno = seqnos[cand_id];
-          int64_t length = db_getsequencelen(seqno);
+          unsigned int const seqno = seqnos[cand_id];
+          int64_t const length = db_getsequencelen(seqno);
 
           paligned[cand_id] = length;
           pmatches[cand_id] = 0;
@@ -1238,15 +1245,15 @@ auto search16(s16info_s * s,
             {
               pscores[cand_id] =
                 MAX(- s->penalty_gap_open_target_left -
-                    length * s->penalty_gap_extension_target_left,
+                    (length * s->penalty_gap_extension_target_left),
                     - s->penalty_gap_open_target_right -
-                    length * s->penalty_gap_extension_target_right);
+                    (length * s->penalty_gap_extension_target_right));
             }
 
           char * cigar = nullptr;
           if (length > 0)
             {
-              int ret = xsprintf(&cigar, "%ldI", length);
+              int const ret = xsprintf(&cigar, "%ldI", length);
               if ((ret < 2) or not cigar)
                 {
                   fatal("Unable to allocate enough memory.");
@@ -1264,9 +1271,9 @@ auto search16(s16info_s * s,
 
   /* find longest target sequence and reallocate direction buffer */
   uint64_t maxdlen = 0;
-  for(int64_t i = 0; i < sequences; i++)
+  for (int64_t i = 0; i < sequences; i++)
     {
-      uint64_t dlen = db_getsequencelen(seqnos[i]);
+      uint64_t const dlen = db_getsequencelen(seqnos[i]);
       /* skip the very long sequences */
       if ((int64_t) (s->qlen) * dlen <= MAXSEQLENPRODUCT)
         {
@@ -1278,7 +1285,7 @@ auto search16(s16info_s * s,
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = maxdlen;
-  uint64_t dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
 
   if (dirbuffersize > s->diralloc)
     {
@@ -1325,8 +1332,8 @@ auto search16(s16info_s * s,
   VECTOR_SHORT QR_target[4];
   VECTOR_SHORT R_target[4];
 
-  VECTOR_SHORT *hep;
-  VECTOR_SHORT **qp;
+  VECTOR_SHORT * hep = nullptr;
+  VECTOR_SHORT ** qp = nullptr;
 
   BYTE * d_begin[CHANNELS];
   BYTE * d_end[CHANNELS];
@@ -1404,10 +1411,10 @@ auto search16(s16info_s * s,
                         s->penalty_gap_open_target_right +
                         s->penalty_gap_extension_target_right);
 
-  short score_min = std::numeric_limits<short>::min() + gap_penalty_max;
-  short score_max = std::numeric_limits<short>::max();
+  short const score_min = std::numeric_limits<short>::min() + gap_penalty_max;
+  short const score_max = std::numeric_limits<short>::max();
 
-  for(int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)
     {
       S[i] = v_zero;
       dseqalloc[i] = v_zero;
@@ -1439,11 +1446,11 @@ auto search16(s16info_s * s,
                 {
                   if (d_begin[c] < d_end[c])
                     {
-                      dseq[CHANNELS * j + c] = chrmap_4bit[*(d_begin[c]++)];
+                      dseq[(CHANNELS * j) + c] = chrmap_4bit[*(d_begin[c]++)];
                     }
                   else
                     {
-                      dseq[CHANNELS * j + c] = 0;
+                      dseq[(CHANNELS * j) + c] = 0;
                     }
                 }
               if (d_begin[c] == d_end[c])
@@ -1459,7 +1466,7 @@ auto search16(s16info_s * s,
 
           if (easy)
             {
-              for(unsigned int j = 0; j < CDEPTH; j++)
+              for (unsigned int j = 0; j < CDEPTH; j++)
                 {
                   QR_target[j] = QR_target_interior;
                   R_target[j]  = R_target_interior;
@@ -1469,15 +1476,15 @@ auto search16(s16info_s * s,
             {
               /* one or more sequences ended */
 
-              VECTOR_SHORT QR_diff = v_sub(QR_target_right,
+              VECTOR_SHORT const QR_diff = v_sub(QR_target_right,
                                            QR_target_interior);
-              VECTOR_SHORT R_diff  = v_sub(R_target_right,
+              VECTOR_SHORT const R_diff  = v_sub(R_target_right,
                                            R_target_interior);
-              for(unsigned int j = 0; j < CDEPTH; j++)
+              for (unsigned int j = 0; j < CDEPTH; j++)
                 {
                   VECTOR_SHORT MM = v_zero;
                   VECTOR_SHORT TT = T0;
-                  for(int c = 0; c < CHANNELS; c++)
+                  for (int c = 0; c < CHANNELS; c++)
                     {
                       if ((d_begin[c] == d_end[c]) &&
                           (j >= ((d_length[c] + 3) % 4)))
@@ -1512,12 +1519,12 @@ auto search16(s16info_s * s,
           VECTOR_SHORT h_max_vector;
           v_store(& h_min_vector, h_min);
           v_store(& h_max_vector, h_max);
-          for(int c = 0; c < CHANNELS; c++)
+          for (int c = 0; c < CHANNELS; c++)
             {
               if (not overflow[c])
                 {
-                  signed short h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
+                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
                   if ((h_min_c <= score_min) or
                       (h_max_c >= score_max))
                     {
@@ -1542,15 +1549,15 @@ auto search16(s16info_s * s,
                 {
                   /* this channel has more sequence */
 
-                  for(int j = 0; j < CDEPTH; j++)
+                  for (int j = 0; j < CDEPTH; j++)
                     {
                       if (d_begin[c] < d_end[c])
                         {
-                          dseq[CHANNELS * j + c] = chrmap_4bit[*(d_begin[c]++)];
+                          dseq[(CHANNELS * j) + c] = chrmap_4bit[*(d_begin[c]++)];
                         }
                       else
                         {
-                          dseq[CHANNELS * j + c] = 0;
+                          dseq[(CHANNELS * j) + c] = 0;
                         }
                     }
                   if (d_begin[c] == d_end[c])
@@ -1571,9 +1578,9 @@ auto search16(s16info_s * s,
                       /* save score */
 
                       char * dbseq = (char *) d_address[c];
-                      int64_t dbseqlen = d_length[c];
-                      int64_t z = (dbseqlen + 3) % 4;
-                      int64_t score = ((CELL *) S)[z * CHANNELS + c];
+                      int64_t const dbseqlen = d_length[c];
+                      int64_t const z = (dbseqlen + 3) % 4;
+                      int64_t const score = ((CELL *) S)[(z * CHANNELS) + c];
 
                       if (overflow[c])
                         {
@@ -1651,16 +1658,16 @@ auto search16(s16info_s * s,
 
                       /* fill channel */
 
-                      for(int j = 0; j < CDEPTH; j++)
+                      for (int j = 0; j < CDEPTH; j++)
                         {
                           if (d_begin[c] < d_end[c])
                             {
-                              dseq[CHANNELS * j + c] =
+                              dseq[(CHANNELS * j) + c] =
                                 chrmap_4bit[*(d_begin[c]++)];
                             }
                           else
                             {
-                              dseq[CHANNELS * j + c] = 0;
+                              dseq[(CHANNELS * j) + c] = 0;
                             }
                         }
                       if (d_begin[c] == d_end[c])
@@ -1680,7 +1687,7 @@ auto search16(s16info_s * s,
                       d_offset[c] = 0;
                       for (int j = 0; j < CDEPTH; j++)
                         {
-                          dseq[CHANNELS * j + c] = 0;
+                          dseq[(CHANNELS * j) + c] = 0;
                         }
                     }
                 }
@@ -1709,7 +1716,7 @@ auto search16(s16info_s * s,
 
           if (easy)
             {
-              for(unsigned int j = 0; j < CDEPTH; j++)
+              for (unsigned int j = 0; j < CDEPTH; j++)
                 {
                   QR_target[j] = QR_target_interior;
                   R_target[j]  = R_target_interior;
@@ -1719,15 +1726,15 @@ auto search16(s16info_s * s,
             {
               /* one or more sequences ended */
 
-              VECTOR_SHORT QR_diff = v_sub(QR_target_right,
+              VECTOR_SHORT const QR_diff = v_sub(QR_target_right,
                                            QR_target_interior);
-              VECTOR_SHORT R_diff  = v_sub(R_target_right,
+              VECTOR_SHORT const R_diff  = v_sub(R_target_right,
                                            R_target_interior);
-              for(unsigned int j = 0; j < CDEPTH; j++)
+              for (unsigned int j = 0; j < CDEPTH; j++)
                 {
                   VECTOR_SHORT MM = v_zero;
                   VECTOR_SHORT TT = T0;
-                  for(int c = 0; c < CHANNELS; c++)
+                  for (int c = 0; c < CHANNELS; c++)
                     {
                       if ((d_begin[c] == d_end[c]) &&
                           (j >= ((d_length[c] + 3) % 4)))
@@ -1766,12 +1773,12 @@ auto search16(s16info_s * s,
           VECTOR_SHORT h_max_vector;
           v_store(& h_min_vector, h_min);
           v_store(& h_max_vector, h_max);
-          for(int c = 0; c < CHANNELS; c++)
+          for (int c = 0; c < CHANNELS; c++)
             {
               if (not overflow[c])
                 {
-                  signed short h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
+                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
                   if ((h_min_c <= score_min) or (h_max_c >= score_max))
                     {
                       overflow[c] = true;

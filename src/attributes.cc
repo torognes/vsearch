@@ -59,6 +59,11 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::swap
+#include <cstdint>  // int64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdlib>  // std::atol
+#include <cstring>  // std::strlen, std::strstr, std::strspn
 
 
 auto header_find_attribute(const char * header,
@@ -82,8 +87,8 @@ auto header_find_attribute(const char * header,
       return false;
     }
 
-  int hlen = header_length;
-  int alen = strlen(attribute);
+  int const hlen = header_length;
+  int const alen = strlen(attribute);
 
   int i = 0;
 
@@ -106,7 +111,7 @@ auto header_find_attribute(const char * header,
           continue;
         }
 
-      int digits
+      int const digits
         = (int) strspn(header + i + alen,
                        (allow_decimal ? digit_chars_decimal : digit_chars));
 
@@ -145,7 +150,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
                             &end,
                             false))
     {
-      int64_t number = atol(header + start + 5);
+      int64_t const number = atol(header + start + 5);
       if (number > 0)
         {
           abundance = number;
@@ -158,14 +163,8 @@ auto header_get_size(char * header, int header_length) -> int64_t
   return abundance;
 }
 
-auto swap(int * a, int * b) -> void
-{
-  int temp = *a;
-  *a = *b;
-  *b = temp;
-}
 
-auto header_fprint_strip(FILE * fp,
+auto header_fprint_strip(FILE * output_handle,
                          char * header,
                          int header_length,
                          bool strip_size,
@@ -249,8 +248,8 @@ auto header_fprint_strip(FILE * fp,
         {
           if (attribute_start[i] > attribute_start[i + 1])
             {
-              swap(attribute_start + i, attribute_start + i + 1);
-              swap(attribute_end   + i, attribute_end   + i + 1);
+              std::swap(attribute_start[i], attribute_start[i + 1]);
+              std::swap(attribute_end[i], attribute_end[i + 1]);
               last_swap = i;
             }
         }
@@ -261,7 +260,7 @@ auto header_fprint_strip(FILE * fp,
 
   if (attributes == 0)
     {
-      fprintf(fp, "%.*s", header_length, header);
+      fprintf(output_handle, "%.*s", header_length, header);
     }
   else
     {
@@ -271,7 +270,7 @@ auto header_fprint_strip(FILE * fp,
           /* print part of header in front of this attribute */
           if (attribute_start[i] > prev_end + 1)
             {
-              fprintf(fp, "%.*s",
+              fprintf(output_handle, "%.*s",
                       attribute_start[i] - prev_end - 1,
                       header + prev_end);
             }
@@ -281,7 +280,7 @@ auto header_fprint_strip(FILE * fp,
       /* print the rest, if any */
       if (header_length > prev_end + 1)
         {
-          fprintf(fp, "%.*s",
+          fprintf(output_handle, "%.*s",
                   header_length - prev_end,
                   header + prev_end);
         }
