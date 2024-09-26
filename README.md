@@ -16,18 +16,20 @@ We have implemented a tool called VSEARCH which supports *de novo* and reference
 
 VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This usually results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
-[VSEARCH binaries](https://github.com/torognes/vsearch/releases/latest) are provided for GNU/Linux on three 64-bit processor architectures: x86-64, POWER8 (ppc64le) and ARMv8 (aarch64). Binaries are also provided for MacOS (version 10.9 Mavericks or later) on Intel (x86-64) and Apple Silicon (ARMv8), as well as Windows (64-bit, version 7 or higher, on x86_64). VSEARCH contains dedicated SIMD code for the three processor architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon).
+[VSEARCH binaries](https://github.com/torognes/vsearch/releases/latest) are provided for GNU/Linux on three 64-bit processor architectures: x86_64, POWER8 (ppc64le) and ARMv8 (aarch64). Binaries are also provided for macOS (version 10.9 Mavericks or later) on Intel (x86_64) and Apple Silicon (ARMv8), as well as Windows (64-bit, version 7 or higher, on x86_64). VSEARCH contains dedicated SIMD code for the three processor architectures (SSE2/SSSE3, AltiVec/VMX/VSX, Neon). In addition, VSEARCH uses the SIMD Everywhere (SIMDe) library to enable building on RISCV64, MIPS64EL, and other little-endian architectures.
 
-| CPU \ OS      | GNU/Linux     | MacOS  | Windows   |
+| CPU \ OS      | GNU/Linux     | macOS  | Windows   |
 | ------------- | :-----------: | :----: | :-------: |
 | x86_64        |  ✔            |  ✔     |  ✔        |
 | ARMv8         |  ✔            |  ✔     |           |
 | POWER8        |  ✔            |        |           |
+| RISCV64       |  not tested   |        |           |
+| MIPS64EL      |  not tested   |        |           |
 
 Various packages, plugins and wrappers are also available from other sources - see [below](https://github.com/torognes/vsearch#packages-plugins-and-wrappers).
 
-The source code compiles correctly with `gcc` (versions 4.8.5 to 13.0)
-and `llvm-clang` (3.8 to 17.0). The source code should also compile on
+The source code compiles correctly with `gcc` (versions 4.8.5 to 14.0)
+and `llvm-clang` (3.8 to 19.0). The source code should also compile on
 [FreeBSD](https://www.freebsd.org/) and
 [NetBSD](https://www.netbsd.org/) systems.
 
@@ -55,8 +57,8 @@ tar xzf v2.28.1.tar.gz
 cd vsearch-2.28.1
 ./autogen.sh
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
-make
-make install  # as root or sudo make install
+make ARFLAGS="cr"
+sudo make install
 ```
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ (`g++`) compiler is required to build vsearch. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
@@ -70,8 +72,8 @@ git clone https://github.com/torognes/vsearch.git
 cd vsearch
 ./autogen.sh
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
-make
-make install  # as root or sudo make install
+make ARFLAGS="cr"
+sudo make install
 ```
 
 **Binary distribution** Starting with version 1.4.0, binary distribution files containing pre-compiled binaries as well as the documentation will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`).
@@ -211,7 +213,6 @@ The code is written mostly in C++.
 
 File | Description
 ---|---
-**align.cc** | New Needleman-Wunsch global alignment, serial. Only for testing.
 **align_simd.cc** | SIMD parallel global alignment of 1 query with 8 database sequences
 **allpairs.cc** | All-vs-all optimal global pairwise alignment (no heuristics)
 **arch.cc** | Architecture specific code (Mac/Linux)
@@ -225,12 +226,15 @@ File | Description
 **db.cc** | Handles the database file read, access etc
 **dbhash.cc** | Database hashing for exact searches
 **dbindex.cc** | Indexes the database by identifying unique kmers in the sequences
-**derep.cc** | Dereplication
+**derep.cc** | Dereplication, full-length
+**derep_prefix.cc** | Dereplication, prefix
+**derep_smallmem.cc** | Dereplication, small memory usage
 **dynlibs.cc** | Dynamic loading of compression libraries
 **eestats.cc** | Produce statistics for fastq_eestats command
-**fasta2fastq.cc** | FASTA to FASTQ conversion
 **fasta.cc** | FASTA file parser
+**fasta2fastq.cc** | FASTA to FASTQ conversion
 **fastq.cc** | FASTQ file parser
+**fastq_chars.cc** | FASTQ statistics
 **fastq_join.cc** | FASTQ paired-end reads joining
 **fastqops.cc** | FASTQ file statistics etc
 **fastx.cc** | Detection of FASTA and FASTQ files, wrapper for FASTA and FASTQ parsers
@@ -249,8 +253,8 @@ File | Description
 **rereplicate.cc** | Rereplication
 **results.cc** | Output results in various formats (alnout, userout, blast6, uc)
 **search.cc** | Implements search using global alignment
-**searchcore.cc** | Core search functions for searching, clustering and chimera detection
 **search_exact.cc** | Exact search functions
+**searchcore.cc** | Core search functions for searching, clustering and chimera detection
 **sff_convert.cc** | SFF to FASTQ file conversion
 **sha1.c** | SHA1 message digest
 **showalign.cc** | Output an alignment in a human-readable way given a CIGAR-string and the sequences
@@ -265,7 +269,8 @@ File | Description
 **userfields.cc** | Code for parsing the userfields option argument
 **util.cc** | Various common utility functions
 **vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
-**xstring.h** | Code for a simple string class
+**utils/maps.cc** | Utilities, maps for encoding of nucleotides
+**utils/seqcmp.cc** | Utilities, sequence comparison
 
 VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](https://www.sourceware.org/bzip2/) libraries are needed for this.
 
@@ -300,10 +305,12 @@ Special thanks to the following people for patches, suggestions, computer access
 
 * Davide Albanese
 * Colin Brislawn
+* Michael R. Crusoe
 * Jeff Epler
 * Christopher M. Sullivan
 * Andreas Tille
 * Sarah Westcott
+
 
 ## Citing VSEARCH
 
@@ -313,6 +320,7 @@ Rognes T, Flouri T, Nichols B, Quince C, Mahé F. (2016) VSEARCH: a versatile op
 doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 Please note that citing any of the underlying algorithms, e.g. UCHIME, may also be appropriate.
+
 
 ## Test datasets
 
