@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "April 26, 2024" "version 2.28.1" "USER COMMANDS"
+.TH vsearch 1 "September 26, 2024" "version 2.29.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -210,14 +210,15 @@ Needleman-Wunsch algorithm, making use of the Streaming SIMD
 Extensions (SSE2) of post-2003 x86-64 CPUs.  If SSE2 instructions are
 not available, \fBvsearch\fR exits with an error message. On Power8
 CPUs it will use AltiVec/VSX/VMX instructions, and on ARMv8 CPUs it
-will use Neon instructions. Memory usage increases rapidly with
-sequence length: for example comparing two sequences of length 1 kb
-requires 8 MB of memory per thread, and comparing two 10 kb sequences
-requires 800 MB of memory per thread. For comparisons involving
-sequences with a length product greater than 25 million (for example
-two sequences of length 5 kb), \fBvsearch\fR uses a slower alignment
-method described by Hirschberg (1975) and Myers and Miller (1988),
-with much smaller memory requirements.
+will use Neon instructions. On other systems it can use the SIMD
+Everywhere (simde) library, if available. Memory usage increases
+rapidly with sequence length: for example comparing two sequences of
+length 1 kb requires 8 MB of memory per thread, and comparing two 10
+kb sequences requires 800 MB of memory per thread. For comparisons
+involving sequences with a length product greater than 25 million (for
+example two sequences of length 5 kb), \fBvsearch\fR uses a slower
+alignment method described by Hirschberg (1975) and Myers and Miller
+(1988), with much smaller memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR accept as input fasta or fastq files containing one or
@@ -4098,8 +4099,7 @@ greater than 2:
 .\"
 .\" ============================================================================
 .SH AUTHORS
-Implementation by Torbjørn Rognes and Tomás Flouri, documentation by
-Frédéric Mahé.
+Implementation and documentation by Torbjørn Rognes, Frédéric Mahé and Tomás Flouri.
 .PP
 .\" ============================================================================
 .SH CITATION
@@ -4934,6 +4934,60 @@ ensure reproducibility of the random choices in the algorithm.
 .BR v2.28.1\~ "released April 26th, 2024"
 Fix a segmentation fault that could occur with the blast6out and
 output_no_hits options.
+.TP
+.BR v2.29.0\~ "released September 26th, 2024"
+This version fixes seven bugs (see changelog below), adds
+initial support for RISC-V architectures, and improves code quality
+and code testing (1,210 new tests):
+.RS
+.IP - 2
+add: experimental support for RISCV64 and other 64-bit little-endian
+architectures, thanks to Michael R. Crusoe and his fellow Debian
+developers (issue #566),
+.IP -
+add: official support for clang-19 and gcc 14,
+.IP -
+add: beta support for clang-20,
+.IP -
+remove: unused \-\-output option for command \-\-fastq_stats (issue #572),
+.IP -
+fix: bug in \-\-sintax when selecting the best lineage (only low
+confidence values below 0.5 were affected) (issue #573),
+.IP -
+fix: out-of-bounds error in \-\-fastq_stats when processing empty
+reads (issue #571),
+.IP -
+fix: bug in \-\-cut, patterns with multiple cutting sites were not
+detected (commit 4c4f9fa70f14b28d50185dbf322cf5727087e86a),
+.IP -
+fix: memory error (segmentation fault) when using \-\-derep_id and
+\-\-strand (issue #565),
+.IP -
+fix: \-\-fastq_join now obeys to \-\-quiet and \-\-log options
+(commit 87f968b09f17c17ebf8db00aebe86e89b13a3948),
+.IP -
+fix: \-\-fastq_join quality padding is now also set to Q40 when
+quality offset is 64 (commit be0bf9b48d782286c4ce38f0bf1a4c82bd230250),
+.IP -
+fix: (partial) \-\-fastq_join's handling of abundance annotations
+(commit f2bbcb421dc2f4dfa6603b9f31ec3e4598c1b591),
+.IP -
+improve: additional safeguards to validate input values and to make
+sure that they are within acceptable limits. Changes concern options
+\-\-abskew (commit a530dd8990f8a05cb25fc0b6a5da5a14d28fbedd) and
+\-\-fastq_maxdiffs (commit 4b254db7f120bfd49e86185ef3cd9070c236f940),
+.IP -
+improve: code quality (1.3k+ commits, 6k+ clang-tidy warnings eliminated),
+.IP -
+improve: documentation and help messages (issue #568),
+.IP -
+improve: complete refactoring and modernization of a subset of
+commands (\-\-sortbylength, \-\-sortbysize, \-\-shuffle,
+\-\-rereplicate, \-\-cut, \-\-fastq_join, \-\-fasta2fastq,
+\-\-fastq_chars),
+.IP -
+improve: code-coverage of our test-suite for the above-mentioned commands (1,210 new tests, 4,753 in total)
+.RE
 .LP
 .\" ============================================================================
 .\" TODO:
