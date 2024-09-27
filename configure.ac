@@ -34,10 +34,6 @@ AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
-AC_FUNC_STRTOD
-AC_FUNC_ALLOCA
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove memcpy posix_memalign gettimeofday localtime memchr memset pow regcomp strcasecmp strchr strcspn sysinfo])
 
 have_bzip2=no
