@@ -121,7 +121,7 @@ auto read_labels_file(char * filename) -> void
             {
               labels_alloc += 1024;
               labels_data = (char **) xrealloc(labels_data,
-					       labels_alloc * sizeof (char *));
+                                               labels_alloc * sizeof (char *));
               if (! labels_data)
                 {
                   fatal("Unable to allocate memory for labels");
