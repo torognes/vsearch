@@ -1504,7 +1504,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       { nullptr,                0,                 nullptr, 0 }
     };
 
-  const int options_count = (sizeof(long_options) / sizeof(struct option)) - 1;
+  constexpr int options_count = (sizeof(long_options) / sizeof(struct option)) - 1;
 
   bool options_selected[options_count];
   memset(options_selected, 0, sizeof(options_selected));
