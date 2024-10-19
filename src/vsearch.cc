@@ -104,9 +104,9 @@
 
 /* options */
 
-bool opt_bzip2_decompress;
-bool opt_clusterout_id;
-bool opt_clusterout_sort;
+bool opt_bzip2_decompress = false;
+bool opt_clusterout_id = false;
+bool opt_clusterout_sort = false;
 bool opt_eeout;
 bool opt_fasta_score;
 bool opt_fastq_allowmergestagger;
@@ -784,7 +784,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_biomout = nullptr;
   opt_blast6out = nullptr;
   opt_borderline = nullptr;
-  opt_bzip2_decompress = false;
   opt_centroids = nullptr;
   opt_chimeras = nullptr;
   opt_chimeras_denovo = nullptr;
@@ -796,8 +795,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_cluster_size = nullptr;
   opt_cluster_smallmem = nullptr;
   opt_cluster_unoise = nullptr;
-  opt_clusterout_id = false;
-  opt_clusterout_sort = false;
   opt_clusters = nullptr;
   opt_cons_truncate = 0;
   opt_consout = nullptr;
