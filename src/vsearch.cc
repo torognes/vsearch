@@ -99,6 +99,7 @@
                      // option (no_argument, required_argument)
 #include <limits>
 #include <string.h>  // strcasecmp
+#include <vector>
 
 
 /* options */
