@@ -990,6 +990,13 @@ auto backtrack16(s16info_s * s,
     {
       ++aligned;
 
+      // future refactoring:
+      // d = *(block1)
+      // block1 = dirbuffer + (block2) % dirbuffersize;
+      // block2 = offset + block3 + block4 + block5;
+      // block3 = 16 * s->qlen * (j / 4);
+      // block4 = 16 * i;
+      // block5 = 4 * (j & 3);
       uint64_t const d = *((uint64_t *) (dirbuffer +
                                    (offset + (16 * s->qlen * (j / 4)) +
                                     (16 * i) + (4 * (j & 3))) % dirbuffersize));
