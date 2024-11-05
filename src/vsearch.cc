@@ -5467,6 +5467,7 @@ auto cmd_help(struct Parameters const & parameters) -> void {
           "  --sintax FILENAME           classify sequences in given FASTA/FASTQ file\n"
           " Parameters\n"
           "  --db FILENAME               taxonomic reference db in given FASTA or UDB file\n"
+          "  --randseed INT              seed for PRNG, zero to use random data source (0)\n"
           "  --sintax_cutoff REAL        confidence value cutoff level (0.0)\n"
           "  --sintax_random             use random sequence, not shortest, if equal match\n"
           " Output\n"
