@@ -35,7 +35,9 @@ database than the other strand, then it is chosen.
 `--db` *filename*
 : Read the reference database from the given fasta, fastq, or UDB
   *filename*. Only UDB files created with a `--wordlength` of 12 are
-  accepted (see `vsearch-makeudb_usearch(1)` for more details).
+  accepted (see
+  [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md) for
+  more details).
 
 `--fastaout` *filename*
 : Write the correctly oriented sequences to *filename*, in fasta
