@@ -9,7 +9,7 @@ sff --- a binary file format used to encode pyrosequencing results
 
 # DESCRIPTION
 
-Standard flowgram format (sff), used by Roche 454 and Ion Torrent
+Standard flowgram format (sff), used by Roche 454 and Ion Torrent PGM
 
 (complete description of the SFF format, hard to find on the web)
 
