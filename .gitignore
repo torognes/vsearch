@@ -3,7 +3,6 @@
 *.json
 *.o
 *.pdf
-*.sh
 *.texinfo
 *~
 .cache/
