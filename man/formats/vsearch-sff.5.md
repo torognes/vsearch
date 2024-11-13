@@ -9,7 +9,7 @@ sff --- a binary file format used to encode pyrosequencing results
 
 # DESCRIPTION
 
-used by Roche 454 and ionTorent
+used by Roche 454 and Ion Torrent
 
 (complete description of the SFF format, hard to find on the web)
 
