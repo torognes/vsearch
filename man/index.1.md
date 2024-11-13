@@ -53,3 +53,8 @@ swarm, swipe, [`usearch`](https://github.com/rcedgar/usearch12)
 
 
 #(../commands/fragments/footer.md)
+
+
+# VERSION HISTORY
+
+(inject history here)
