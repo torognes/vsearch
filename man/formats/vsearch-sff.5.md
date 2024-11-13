@@ -9,7 +9,14 @@ sff --- a binary file format used to encode pyrosequencing results
 
 # DESCRIPTION
 
+used by Roche 454 and ionTorent
+
 (complete description of the SFF format, hard to find on the web)
+
+A sff file must start with a 31-byte common header:
+- magic value: 4 bytes spelling '.sff' (0x2e736666),
+- version value: a 32-bit value of 1 (0x00000001)
+
 
 
 # EXAMPLES
