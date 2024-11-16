@@ -9,6 +9,7 @@ udb --- a binary format for ...
 
 # DESCRIPTION
 
+Hosting a detailled description of the UDB format is important.
 
 
 # EXAMPLES
