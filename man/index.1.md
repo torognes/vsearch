@@ -25,34 +25,58 @@ amplicon sequences for metabarcoding, metagenomics, genomics, and
 population genetics.
 
 
-# GIT COMMANDS
+# VSEARCH COMMANDS
 
-Chimera detection:
+Each command is described in a dedicated manpage. For example, type
+`man vsearch-orient` to read about the orient command. Manpages
+reffering to commands all belong to section 1 (executable
+programs). Some vsearch manpages belong to section 5 (file formats and
+conventions). For example, type `man 5 vsearch-sff` to read about the
+SFF format as-seen by vsearch.
+
+## Chimera detection:
 
 | **vsearch** (\-\-uchime_denovo | \-\-uchime2_denovo | \-\-uchime3_denovo) _fastafile_ (\-\-chimeras | \-\-nonchimeras | \-\-uchimealns | \-\-uchimeout) _outputfile_ \[_options_]
 | **vsearch** \-\-uchime_ref _fastafile_ (\-\-chimeras | \-\-nonchimeras | \-\-uchimealns | \-\-uchimeout) _outputfile_ \-\-db _fastafile_ \[_options_]
 
-Clustering:
+## Clustering:
 
 | **vsearch** (\-\-cluster_fast | \-\-cluster_size | \-\-cluster_smallmem | \-\-cluster_unoise) _fastafile_ (\-\-alnout | \-\-biomout | \-\-blast6out | \-\-centroids | \-\-clusters | \-\-mothur_shared_out | \-\-msaout | \-\-otutabout | \-\-profile | \-\-samout | \-\-uc | \-\-userout) _outputfile_ \-\-id _real_ \[_options_]
+
+## FASTA/FASTQ/SFF file processing:
+
+**[`vsearch-fasta2fastq(1)`](./commands/vsearch-fasta2fastq.1.md)**
+: Convert a fasta file to a fastq file with fake quality scores.
+
+**[`vsearch-fastq_chars(1)`](./commands/vsearch-fastq_chars.1.md)**
+: Analyze fastq files to identify the quality encoding and the range
+of quality score values used.
+
+## Orienting:
+
+**[`vsearch-orient(1)`](./commands/vsearch-orient.1.md)**
+: Use a reference database to orient fastq or fasta sequences.
 
 
 # FILE FORMATS
 
-**vsearch-fasta(5)**
+**[`vsearch-fasta(5)`](./formats/vsearch-fasta.5.md)**
 : Define fasta format, as used by vsearch.
 
-**vsearch-fastq(5)**
+**[`vsearch-fastq(5)`](./formats/vsearch-fastq.5.md)**
 : Define fastq format, as used by vsearch.
 
+(also SFF, and UDB).
 
 
 # SEE ALSO
 
-swarm, swipe, [`usearch`](https://github.com/rcedgar/usearch12)
+[swarm](https://github.com/torognes/swarm),
+[swipe](https://github.com/torognes/swipe),
+[`usearch`](https://github.com/rcedgar/usearch12)
 
 
-#(../commands/fragments/footer.md)
+#(./commands/fragments/footer.md)
 
 
 # VERSION HISTORY
