@@ -4,12 +4,14 @@
 
 # NAME
 
-udb --- a binary format for ...
+udb --- a binary format containing fasta sequences and a k-mer index for those sequences
 
 
 # DESCRIPTION
 
 Hosting a detailled description of the UDB format is important.
+
+- magic number?
 
 
 # EXAMPLES
