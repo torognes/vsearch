@@ -11,7 +11,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -31,8 +31,8 @@ jobs:
         with:
           ref: dev
       - name: generate markdown files
+        working-directory: ./man
         run: |
-          cd ./man
           bash ./scripts/generate_online_documentation.sh
       - name: Setup Pages
         uses: actions/configure-pages@v5
