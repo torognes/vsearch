@@ -29,8 +29,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: generate markdown files
-      - run: cd man
-      - run: bash ./scripts/generate_online_documentation.sh
+        run: |
+          cd man
+          bash ./scripts/generate_online_documentation.sh
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll
