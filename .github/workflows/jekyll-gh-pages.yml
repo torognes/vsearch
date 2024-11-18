@@ -28,9 +28,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: dev
       - name: generate markdown files
         run: |
-          cd man
+          cd ./man
           bash ./scripts/generate_online_documentation.sh
       - name: Setup Pages
         uses: actions/configure-pages@v5
