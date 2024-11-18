@@ -5,7 +5,7 @@
 
 ## check dependencies
 for dependency in pandoc perl ; do
-    which "${dependency}" > /dev/null || exit 1
+    which "${dependency}" > /dev/null || { >&2 echo "Error: missing ${dependency}" ; exit 1 ; }
 done
 
 build_markdown_file() {
