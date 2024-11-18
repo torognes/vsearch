@@ -3,6 +3,11 @@
 ## assume script is launched from vsearch/man/
 ## assume any internal link is relative to the md file itself (important)
 
+## check dependencies
+for dependency in pandoc perl ; do
+    which "${dependency}" > /dev/null || exit 1
+done
+
 build_markdown_file() {
     perl -ne \
          's/^#\((.+)\).*/`cat "$1"`/e;print' "${1}"
