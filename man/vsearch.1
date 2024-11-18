@@ -3147,9 +3147,10 @@ command, the table layout is the same than with the
 \-\-allpairs_global. When using the \-\-usearch_global command, the
 table present two different type of entries: hit (H) or no hit
 (N). Each query sequence is compared to all other sequences, and the
-best hit (\-\-maxaccepts 1) or several hits (\-\-maxaccepts > 1) are
-reported (H). Output order may vary when using multiple
-threads. Column content varies with the type of entry (H or N):
+best hit (\-\-maxaccepts 1) or several hits (\-\-maxaccepts > 1 and
+\-\-uc_allhits) are reported (H). Output order may vary when using
+multiple threads. Column content varies with the type of entry (H or
+N):
 .RS
 .RS
 .nr step 1 1
@@ -3183,8 +3184,8 @@ Label of the target centroid sequence. Set to '*' for N.
 .TAG uc_allhits
 .TP
 .B \-\-uc_allhits
-When using the \-\-uc option, show all hits, not just the top hit for
-each query.
+With the commands \-\-search_exact and \-\-usearch_global, when using
+the \-\-uc option, show all hits, not just the top hit for each query.
 .TAG usearch_global
 .TP
 .BI \-\-usearch_global \0filename
