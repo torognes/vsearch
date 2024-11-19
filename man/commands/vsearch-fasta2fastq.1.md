@@ -34,7 +34,7 @@ fasta sequences are discarded.
 #(./fragments/option_fastq_asciiout.md)
 
 `--fastq_qmaxout` *positive integer*
-: specify the fake quality score used when writing the fastq file. The
+: Specify the fake quality score used when writing the fastq file. The
   default is 41, which is the usual maximal quality score for recent
   Sanger/Illumina 1.8+ files (maximal quality score was 40 in older
   formats). Accepted values range from 0 to 93 when the quality offset
