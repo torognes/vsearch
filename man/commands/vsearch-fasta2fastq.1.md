@@ -16,12 +16,12 @@ fake quality scores
 # DESCRIPTION
 
 The `vsearch --fasta2fastq` command can be used to add fake nucleotide
-quality scores to the sequences in the given fasta file (*fastafile*)
-and write them to the fastq file specified with the `--fastqout`
-option. The quality score may be adjusted using the `--fastq_qmaxout`
-option (default is 41). The `--fastq_asciiout` option may be used to
-adjust the fastq output quality offset (in ASCII base character,
-default is 33). Empty fasta sequences are discarded.
+quality scores to the sequences in the given fasta file and write them
+to the fastq file specified with the `--fastqout` option. The quality
+score may be adjusted using the `--fastq_qmaxout` option (default is
+41). The `--fastq_asciiout` option may be used to adjust the fastq
+output quality offset (in ASCII base character, default is 33). Empty
+fasta sequences are discarded.
 
 
 # OPTIONS
