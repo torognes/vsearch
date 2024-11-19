@@ -10,23 +10,28 @@ fake quality scores
 
 # SYNOPSIS
 
-| **vsearch** **`--`fasta2fastq** _fastafile_ \-\-fastqout _fastqfile_ \[_options_]
+| **vsearch** **--fasta2fastq** _fastafile_ \-\-fastqout _fastqfile_ \[_options_]
 
 
 # DESCRIPTION
 
 The `vsearch --fasta2fastq` command can be used to add fake nucleotide
 quality scores to the sequences in the given fasta file and write them
-to the fastq file specified with the `--fastqout` option. The quality
-score may be adjusted using the `--fastq_qmaxout` option (default is
-41). The `--fastq_asciiout` option may be used to adjust the fastq
-output quality offset (in ASCII base character, default is 33). Empty
-fasta sequences are discarded.
+to the fastq file specified with `--fastqout`. The quality score can
+be adjusted with the `--fastq_qmaxout` option (default is 41). The
+fastq output quality offset, in ASCII base character, can be adjusted
+with the `--fastq_asciiout` option (default is 33). Empty fasta
+sequences are discarded.
 
 
 # OPTIONS
 
-`--fastqout` is mandatory.
+## mandatory parameters
+
+`--fastqout` *filename*
+: Write sequences to *filename* in fastq format, with fake quality
+  strings. The default quality value (41) can be changed with option
+  `--fastq_qmaxout`.
 
 
 ## core options
@@ -40,10 +45,6 @@ fasta sequences are discarded.
   formats). Accepted values range from 0 to 93 when the quality offset
   is set to 33 (see `--fastq_asciiout`), and from 0 to 62 when the
   quality offset is set to 64.
-
-`--fastqout` *filename*
-: Write sequences to *filename* in fastq format, with fake quality
-  values.
 
 
 ## secondary options
