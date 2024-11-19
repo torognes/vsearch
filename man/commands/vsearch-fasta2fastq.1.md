@@ -102,30 +102,30 @@ vsearch \
     --fastqout output.fastq
 ```
 
-For instance:
+For instance, the following fasta input:
 
 ```text
 >s1
-ACGT
+CACCGCGGTTATACGAGGGGCTCAAATTGATATT
 >s2
-AC
-GT
+CACCGCGGTTATACGAGGGGCTCAAATTGATATT
+AATATCAATTTGAGCCCCTCGTATAACCGCGGTG
 ```
 
 becomes:
 
 ```text
-@s1;length=4
-ACGT
+@s1;length=34
+CACCGCGGTTATACGAGGGGCTCAAATTGATATT
 +
-hhhh
-@s2;length=4
-ACGT
+hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+@s2;length=68
+CACCGCGGTTATACGAGGGGCTCAAATTGATATTAATATCAATTTGAGCCCCTCGTATAACCGCGGTG
 +
-hhhh
+hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
 ```
 
-(note that output is not wrapped)
+(note that fastq output files are not wrapped)
 
 
 #(./fragments/footer.md)
