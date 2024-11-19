@@ -1,3 +1,4 @@
 `--quiet`
-: Suppress all messages to the standard output (`stdout`) and standard
-  error (`stderr`), except for warnings and fatal error messages.
+: Suppress messages to the _standard output_ (`stdout(3)`) and
+  _standard error_ (`stderr(3)`), except for warnings and error
+  messages.
