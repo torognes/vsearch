@@ -33,7 +33,7 @@ ln ../_config.yml .
 generate_github_markdown ./index.1.md > "../docs/index.md"
 
 # mirror the organization of manpages
-for raw_md in ./{commands,formats}/vsearch*.md ; do
+for raw_md in ./{commands,formats,misc}/vsearch*.md ; do
     FOLDER="$(dirname "${raw_md}")"
     FILENAME="$(basename "${raw_md}")"
     (cd "${FOLDER}" || exit 1
