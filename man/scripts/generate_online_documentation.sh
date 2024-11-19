@@ -26,8 +26,13 @@ generate_github_markdown() {
 # create folder
 mkdir -p ../docs/{commands,formats}
 
+# test: maybe the config file needs to be placed at the root of the documentation?
+ln ../_config.yml .
+
+# future: use vsearch.1.md as the starting page (index.html)
 generate_github_markdown ./index.1.md > "../docs/index.md"
 
+# mirror the organization of manpages
 for raw_md in ./{commands,formats}/vsearch*.md ; do
     FOLDER="$(dirname "${raw_md}")"
     FILENAME="$(basename "${raw_md}")"
