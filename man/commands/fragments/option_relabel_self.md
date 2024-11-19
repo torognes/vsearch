@@ -1,2 +1,2 @@
 `--relabel_self`
-: Relabel sequences using each sequence itself as a label.
+: Replace each sequence header with the sequence itself.
