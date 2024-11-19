@@ -1,9 +1,10 @@
 `--relabel_sha1`
-: Relabel sequences using the SHA1 message digest algorithm applied to
-  each sequence. It is similar to the `--relabel_md5` option but uses
-  the SHA1 algorithm instead of the MD5 algorithm. SHA1 generates a
-  160-bit (20-byte) digest that is represented by 20 hexadecimal
-  numbers (40 symbols). The probability of a collision (two
-  non-identical sequences resulting in the same digest) is smaller for
-  the SHA1 algorithm than it is for the MD5 algorithm. Use `--sizeout`
-  to conserve the abundance annotations.
+: Replace each sequence header with the SHA1 digest derived from the
+  sequence itself. The sequence is converted to upper case, and each
+  'U' is replaced with a 'T' before computation of the digest. The
+  SHA1 digest is a 160-bit value, represented by a string of 40 ascii
+  characters. Each pair of characters encodes an hexadecimal value,
+  ranging from x00 to xff. See `sha1(3)` for more details on MD5, and
+  `--relabel_md5` for an alternative algorithm. Former headers are
+  discarded. Annotations can be conserved with the corresponding
+  options (`--lengthout`, `--eeout`, and `--sizeout`).

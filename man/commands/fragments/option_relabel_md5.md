@@ -1,14 +1,10 @@
 `--relabel_md5`
-: Relabel sequences using the MD5 message digest algorithm applied to
-  each sequence. Former sequence headers are discarded. The sequence
-  is converted to upper case and each 'U' is replaced by a 'T' before
-  computation of the digest.
-
-: The MD5 digest is a cryptographic hash function designed to minimize
-  the probability that two different inputs give the same output, even
-  for very similar, but non-identical inputs. Still, there is a very
-  small, but non-zero, probability that two different inputs give the
-  same digest (i.e. a collision). MD5 generates a 128-bit (16-byte)
-  digest that is represented by 16 hexadecimal numbers (using 32
-  symbols among 0123456789abcdef). Use `--sizeout` to conserve the
-  abundance annotations.
+: Replace each sequence header with the MD5 digest derived from the
+  sequence itself. The sequence is converted to upper case, and each
+  'U' is replaced with a 'T' before computation of the digest. The MD5
+  digest is a 128-bit value, represented by a string of 32 ascii
+  characters. Each pair of characters encodes an hexadecimal value,
+  ranging from x00 to xff. See `md5(3)` for more details on MD5, and
+  `--relabel_sha1` for an alternative algorithm. Former headers are
+  discarded. Annotations can be conserved with the corresponding
+  options (`--lengthout`, `--eeout`, and `--sizeout`).
