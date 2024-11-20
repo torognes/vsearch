@@ -22,7 +22,7 @@ generate_manpage() {
 # create folder
 mkdir -p manpages
 
-for raw_md in ./{commands,formats}/vsearch*.md ; do
+for raw_md in ./{commands,formats,misc}/vsearch*.md ; do
     FOLDER="$(dirname "${raw_md}")"
     FILENAME="$(basename "${raw_md}")"
     (cd "${FOLDER}" || exit 1
