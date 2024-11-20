@@ -4,13 +4,13 @@
 
 # NAME
 
-vsearch `--fasta2fastq` --- convert a fasta file to a fastq file with
+vsearch \-\-fasta2fastq --- convert a fasta file to a fastq file with
 fake quality scores
 
 
 # SYNOPSIS
 
-| **vsearch** **--fasta2fastq** _fastafile_ \-\-fastqout _fastqfile_ \[_options_]
+| **vsearch** **\-\-fasta2fastq** _fastafile_ \-\-fastqout _fastqfile_ \[_options_]
 
 
 # DESCRIPTION
