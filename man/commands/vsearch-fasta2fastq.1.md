@@ -20,8 +20,7 @@ quality scores to the sequences in the given fasta file and write them
 to the fastq file specified with `--fastqout`. The quality score can
 be adjusted with the `--fastq_qmaxout` option (default is 41). The
 fastq output quality offset, in ASCII base character, can be adjusted
-with the `--fastq_asciiout` option (default is 33). Empty fasta
-sequences are discarded.
+with the `--fastq_asciiout` option (default is 33).
 
 
 # OPTIONS
