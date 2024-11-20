@@ -19,12 +19,13 @@ convert_markdown_to_github_markdown() {
 
 generate_github_markdown() {
     build_markdown_file "${1}" | \
+        sed 's/\\\-\\\-/\\-\\-/g' | \
         convert_markdown_to_github_markdown
 }
 
 
 # create folder
-mkdir -p ../docs/{commands,formats}
+mkdir -p ../docs/{commands,formats,misc}
 
 # test: maybe the config file needs to be placed at the root of the documentation?
 ln ../_config.yml .
