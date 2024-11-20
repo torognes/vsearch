@@ -4,7 +4,7 @@
   'U' is replaced with a 'T' before computation of the digest. The
   SHA1 digest is a 160-bit value, represented by a string of 40 ascii
   characters. Each pair of characters encodes an hexadecimal value,
-  ranging from x00 to xff. See `sha1(3)` for more details on MD5, and
-  `--relabel_md5` for an alternative algorithm. Former headers are
+  ranging from `x00` to `xff`. See `sha1(3)` for more details on MD5,
+  and `--relabel_md5` for an alternative algorithm. Former headers are
   discarded. Annotations can be conserved with the corresponding
   options (`--lengthout`, `--eeout`, and `--sizeout`).
