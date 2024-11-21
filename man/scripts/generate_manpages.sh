@@ -14,8 +14,7 @@ convert_markdown_to_groff() {
 
 generate_manpage() {
     build_markdown_file "${1}" | \
-        convert_markdown_to_groff \
-            > "../manpages/${1/\.md/}"
+        convert_markdown_to_groff
 }
 
 
