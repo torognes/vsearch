@@ -1,4 +1,4 @@
 `--bzip2_decompress`
-: When reading from a pipe streaming bzip2-compressed data, decompress
-  the data. This option is not needed when reading from a standard
-  bzip2-compressed file.
+: Specify that the *input pipe* is streaming data compressed using
+  Huffman coding (see `bzip2(1)`). This option is not needed when
+  reading from a regular file compressed with bzip2.
