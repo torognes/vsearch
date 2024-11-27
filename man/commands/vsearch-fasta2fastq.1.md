@@ -15,22 +15,25 @@ fake quality scores
 
 # DESCRIPTION
 
-The `vsearch --fasta2fastq` command can be used to add fake nucleotide
-quality scores to the sequences in the given fasta file and write them
-to the fastq file specified with `--fastqout`. The quality score can
-be adjusted with the `--fastq_qmaxout` option (default is 41). The
-fastq output quality offset, in ASCII base character, can be adjusted
-with the `--fastq_asciiout` option (default is 33).
+The vsearch command `--fasta2fastq` converts fasta sequences into
+fastq sequences by adding fake quality scores. See
+[`vsearch-fasta(5)`](./formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](./formats/vsearch-fastq.5.md) for more
+information on these formats. Sequences are written to the file
+specified with `--fastqout`. The quality score can be adjusted with
+the `--fastq_qmaxout` option (default is 41). The quality offset can
+be adjusted with the `--fastq_asciiout` option (either 33 or 64,
+default is 33).
 
 
 # OPTIONS
 
-## mandatory parameters
+## mandatory options
 
 `--fastqout` *filename*
 : Write sequences to *filename* in fastq format, with fake quality
-  strings. The default quality value (41) can be changed with option
-  `--fastq_qmaxout`.
+  scores. The default quality value (41) and offset (33) can be
+  changed with options `--fastq_qmaxout` and `--fastq_asciiout`.
 
 
 ## core options
@@ -78,8 +81,6 @@ with the `--fastq_asciiout` option (default is 33).
 
 #(./fragments/option_sizeout.md)
 
-#(./fragments/option_threads_not_multithreaded.md)
-
 #(./fragments/option_xee.md)
 
 #(./fragments/option_xlength.md)
@@ -87,17 +88,23 @@ with the `--fastq_asciiout` option (default is 33).
 #(./fragments/option_xsize.md)
 
 
+## ignored options
+
+#(./fragments/option_threads_not_multithreaded.md)
+
+
 # EXAMPLES
 
-Add strings of fake quality values Q = 40 to *input.fasta*
-sequences. Write the results to *output.fastq*, in fastq format with a
-+64 quality offset:
+Convert sequences in *input.fasta* into fastq sequences with fake
+quality values (Q = 40) and a quality offset of 64. Add sequence
+length annotations (`--lengthout`). Write the results to
+*output.fastq*:
 
 ```sh
 vsearch \
     --fasta2fastq input.fasta \
-    --fastq_asciiout 64 \
     --fastq_qmaxout 40 \
+    --fastq_asciiout 64 \
     --lengthout \
     --fastqout output.fastq
 ```
