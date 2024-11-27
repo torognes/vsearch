@@ -1,3 +1,3 @@
 `--relabel_keep`
-: When relabelling, keep the old identifier in the header, after a
-  space.
+: Preserve old sequence identifiers by including them in the new
+  headers, after a space.
