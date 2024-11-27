@@ -1,3 +1,3 @@
 `--lengthout`
-: Write sequence length information to the output files in fasta and
-  fastq format by adding a `;length=integer` attribute in the header.
+: Add a sequence length annotation (`;length=integer`) to each
+  sequence header when writing fasta or fastq files.
