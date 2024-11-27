@@ -61,10 +61,10 @@ of quality score values used.
 # FILE FORMATS
 
 **[`vsearch-fasta(5)`](./formats/vsearch-fasta.5.md)**
-: Define fasta format, as used by vsearch.
+: Specify the fasta format, as used by vsearch.
 
 **[`vsearch-fastq(5)`](./formats/vsearch-fastq.5.md)**
-: Define fastq format, as used by vsearch.
+: Specify the fastq format, as used by vsearch.
 
 (also SFF, and UDB).
 
