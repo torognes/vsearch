@@ -73,7 +73,7 @@ of quality score values used.
 
 [swarm](https://github.com/torognes/swarm),
 [swipe](https://github.com/torognes/swipe),
-[`usearch`](https://github.com/rcedgar/usearch12)
+[usearch](https://github.com/rcedgar/usearch12)
 
 
 #(./commands/fragments/footer.md)
