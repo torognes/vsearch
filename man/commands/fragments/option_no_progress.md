@@ -1,2 +1,3 @@
 `--no_progress`
-: Do not show the gradually increasing progress indicator.
+: Suppress the gradually increasing progress indicator normally
+  written to the *standard error* `stderr(3)`.
