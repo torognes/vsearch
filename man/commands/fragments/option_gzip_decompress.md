@@ -1,4 +1,4 @@
 `--gzip_decompress`
-: When reading from a pipe streaming gzip-compressed data, decompress
-  the data. This option is not needed when reading from a standard
-  gzip-compressed file.
+: Specify that the *input pipe* is streaming data compressed using
+  Lempel-Ziv coding (see `gzip(1)`). This option is not needed when
+  reading from a regular file compressed with gzip.
