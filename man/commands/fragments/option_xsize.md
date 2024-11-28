@@ -1,5 +1,5 @@
 `--xsize`
-: Strip abundance annotations from fastq or fasta headers when writing
-  output files (find and remove the pattern `;size=integer[;]` from
-  sequence headers). Abundance annotations are added by the
+: Strip abundance annotations from sequence headers when writing fasta
+  or fastq files. Search for the pattern
+  `[>@;]size=integer[;]`. Abundance annotations are added by the
   `--sizeout` option.
