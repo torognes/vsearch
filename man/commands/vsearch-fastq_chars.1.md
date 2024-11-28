@@ -49,11 +49,11 @@ Letter          N   Freq MaxRun
      T   11610889  33.1%     24
 ```
 
-For each quality symbol, `--fastq_chars` gives the ASCII
-value of the symbol, its relative frequency, and the number of times a
-*k*-mer of that symbol appears at the end of quality strings. The
-length of the *k*-mer can be set with the option `--fastq_tail` (4 by
-default). For example:
+For each quality symbol, `--fastq_chars` gives the ASCII value of the
+symbol (see `ascii(7)`), its relative frequency, and the number of
+times a *k*-mer of that symbol appears at the end of quality
+strings. The length of the *k*-mer can be set with the option
+`--fastq_tail` (4 by default). For example:
 
 ```text
 Char  ASCII    Freq       Tails
