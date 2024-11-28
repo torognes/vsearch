@@ -26,8 +26,8 @@ Illumina 1.5+ or Illumina 1.8+/Sanger) by analyzing the range of
 observed quality score values. In case of success, `--fastq_chars`
 suggests values for the quality offset `--fastq_ascii` (33 or 64), as
 well as `--fastq_qmin` and `--fastq_qmax` values that could be used
-with other commands. If the quality encoding is ambiguous,
-`--fastq_chars` will favor an offset of 33. For example:
+with other commands. If the quality encoding is ambiguous, an offset
+of 33 is favored. For example:
 
 ```text
 Qmin 45, QMax 73, Range 29
