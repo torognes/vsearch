@@ -1,5 +1,5 @@
 `--xlength`
-: Strip sequence length annotations from fastq or fasta headers when
-  writing output files (find and remove the pattern
-  `;length=integer[;]` from sequence headers). Sequence length
-  annotations are added by the `--lengthout` option.
+: Strip sequence length annotations from sequence headers when writing
+  fasta or fastq files. Search for the pattern
+  `[>@;]length=integer[;]`. Sequence length annotations are added by
+  the `--lengthout` option.
