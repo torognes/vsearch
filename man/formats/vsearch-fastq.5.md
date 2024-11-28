@@ -10,40 +10,41 @@ and their corresponding quality scores
 
 # DESCRIPTION
 
-(WIP)
+In fastq files, each entry is made of *sequence header* starting with
+a symbol '@', a nucleotidic *sequence*, a *quality header* starting
+with a symbol '+', and a *quality string* of ASCII characters (offset
+33 or 64), each one encoding the quality value of the corresponding
+position in the nucleotidic sequence.
 
-In fastq files, each entry is made of _sequence header_ starting with
-a symbol '@', a nucleotidic _sequence_ (same rules as for fasta
-sequences), a _quality header_ starting with a symbol '+', and a
-_quality string_ of ASCII characters (offset 33 or 64), each one
-encoding the quality value of the corresponding position in the
-nucleotidic sequence.
+The *sequence header* is defined as the string comprised between the
+initial '@' symbol and the first space, tabulation, or new line
+symbol, unless the `--notrunclabels` option is in effect, in which
+case the entire line is included.
 
-#(./fragments/sequences.md)
+The sequence header should contain printable ASCII characters
+(33-126). The program will terminate with a fatal error if there are
+unprintable ASCII characters (see `ascii(7)`). A warning will be
+issued if non-ASCII characters (128-255) are encountered.
 
-In fastq files, each entry is made of a _sequence header_, a
-_sequence_, a _quality header_, ... The header is defined as the
-string comprised between the initial '>' symbol and the first space,
-tabulation, or new line symbol, unless the `--notrunclabels` option is
-in effect, in which case the entire line is included.
+If the sequence header contains patterns such as `[@;]size=integer[;]`
+or `[@;]ee=float[;]`, vsearch can interpret these annotations and use
+them for chimera detection, clustering, dereplication, filtering and
+sorting.
 
-The _header_ should contain printable ascii characters (33-126). The
-program will terminate with a fatal error if there are unprintable
-ascii characters (see `ascii(7)`). A warning will be issued if
-non-ascii characters (128-255) are encountered.
+#(./fragments/format_sequence.md)
 
-If the header matches the pattern '>[;]size=integer;label', the
-pattern '>label;size=integer;label', or the pattern
-'>label;size=integer[;]', vsearch will interpret integer as the number
-of occurrences (or abundance) of the sequence in the study. That
-abundance information is used or created during chimera detection,
-clustering, dereplication, sorting and searching.
+The *quality header* is defined as the string comprised between the
+initial '+' symbol and the first space, tabulation, or new line
+symbol.
 
-
-
-# EXAMPLES
-
-(give examples of valid and invalid fastq files)
+The *quality string* is a string of ASCII characters, starting after
+the end of the quality header line and ending before the next header
+line, or the file's end. The range of valid ASCII characters can
+extend from '!' to '~' when the offset is 33, and from '@' to '~' when
+the offset is 64. vsearch silently ignores ASCII characters 9 to 13,
+and exits with an error message if ASCII characters 0 to 8, 14 to 31,
+‘.’ or ‘-’ are present. All other ASCII or non-ASCII characters are
+stripped and complained about in a warning message.
 
 
 # SEE ALSO
