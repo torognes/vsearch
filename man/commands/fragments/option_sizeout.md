@@ -1,6 +1,6 @@
 `--sizeout`
-: Add abundance annotations to the output fastq or fasta files (add
-  the pattern `;size=integer;` to sequence headers). If option
-  `--sizein` is not used, abundances values are set to 1. If
+: Add abundance annotations to sequence headers when writing fasta or
+  fastq files. Add the pattern `;size=integer;`. If option `--sizein`
+  is not used, abundance values are set to 1 for all entries. If
   `--sizein` is used, existing abundance annotations are simply
   reported to output files.
