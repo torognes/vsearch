@@ -33,12 +33,13 @@ population genetics.
 # VSEARCH COMMANDS
 
 Each command is described in a dedicated manpage. For example, type
-`man vsearch-orient` to read about the orient command. Manpages
-reffering to commands all belong to section 1 (executable
-programs). Some vsearch manpages belong to section 5 (file formats and
-conventions). For example, type `man 5 vsearch-sff` to read about the
-SFF format as-seen by vsearch.
+`man vsearch-fasta2fastq` to read about the `--fasta2fastq`
+command. Manpages reffering to commands all belong to section 1
+(executable programs). Some vsearch manpages belong to section 5 (file
+formats and conventions). For example, type `man 'vsearch-fastq(5)'`
+to read about the fastq format as-seen by vsearch.
 
+<!---
 ## Chimera detection:
 
 | **vsearch** (\-\-uchime_denovo | \-\-uchime2_denovo | \-\-uchime3_denovo) _fastafile_ (\-\-chimeras | \-\-nonchimeras | \-\-uchimealns | \-\-uchimeout) _outputfile_ \[_options_]
@@ -47,6 +48,8 @@ SFF format as-seen by vsearch.
 ## Clustering:
 
 | **vsearch** (\-\-cluster_fast | \-\-cluster_size | \-\-cluster_smallmem | \-\-cluster_unoise) _fastafile_ (\-\-alnout | \-\-biomout | \-\-blast6out | \-\-centroids | \-\-clusters | \-\-mothur_shared_out | \-\-msaout | \-\-otutabout | \-\-profile | \-\-samout | \-\-uc | \-\-userout) _outputfile_ \-\-id _real_ \[_options_]
+
+--->
 
 ## FASTA/FASTQ/SFF file processing:
 
@@ -57,11 +60,13 @@ SFF format as-seen by vsearch.
 : Analyze fastq files to identify the quality encoding and the range
 of quality score values used.
 
+<!---
 ## Orienting:
 
 **[`vsearch-orient(1)`](./commands/vsearch-orient.1.md)**
 : Use a reference database to orient fastq or fasta sequences.
 
+-->
 
 # FILE FORMATS
 
