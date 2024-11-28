@@ -17,8 +17,8 @@ fake quality scores
 
 The vsearch command `--fasta2fastq` converts fasta sequences into
 fastq sequences by adding fake quality scores. See
-[`vsearch-fasta(5)`](./formats/vsearch-fasta.5.md) and
-[`vsearch-fastq(5)`](./formats/vsearch-fastq.5.md) for more
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for more
 information on these formats. Sequences are written to the file
 specified with `--fastqout`. The quality score can be adjusted with
 the `--fastq_qmaxout` option (default is 41). The quality offset can
