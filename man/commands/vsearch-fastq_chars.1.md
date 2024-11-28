@@ -132,4 +132,9 @@ vsearch \
     --log output.log
 ```
 
+# SEE ALSO
+
+[`vsearch-fastq_stats(1)`](./commands/vsearch-stats.1.md)
+
+
 #(./fragments/footer.md)
