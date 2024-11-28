@@ -1,7 +1,6 @@
 `--xee`
-: Strip expected error (ee) annotations from fastq or fasta headers
-  when writing output files (find and remove the pattern
-  `;ee=float[;]` from sequence headers). Expected error annotations
-  are added by the synonymous options `--fastq_eeout` and `--eeout`
-  (see for example command `--fastx_filter`, described in
-  [`vsearch-fastx_filter(1)`](./commands/vsearch-fastx_filter.1.md)).
+: Strip expected error (ee) annotations from sequence headers when
+  writing fasta or fastq files. Search for the pattern
+  `[>@;]ee=float[;]`. Expected error annotations are added by the
+  synonymous options `--fastq_eeout` and `--eeout` described in
+  [`vsearch-fastx_filter(1)`](./commands/vsearch-fastx_filter.1.md).
