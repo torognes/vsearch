@@ -95,8 +95,8 @@ default is 33).
 
 # EXAMPLES
 
-Convert sequences in *input.fasta* into fastq sequences with fake
-quality values (Q = 40) and a quality offset of 64. Add sequence
+Convert sequences in *input.fasta* into fastq sequences, with fake
+quality values (Q = 40), and a quality offset of 64. Add sequence
 length annotations (`--lengthout`). Write the results to
 *output.fastq*:
 
