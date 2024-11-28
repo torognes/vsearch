@@ -13,6 +13,11 @@ vsearch --- a versatile open-source tool for metabarcoding and metagenomics
 
 (see below for a list of available commands)
 
+WARNING: this is a pre-release of the future revised and updated
+vsearch documentation. Users can already refer to this content for the
+commands listed below, but be aware that most vsearch commands are not
+yet featured.
+
 
 # DESCRIPTION
 
