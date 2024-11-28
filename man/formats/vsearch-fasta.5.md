@@ -20,25 +20,20 @@ program will terminate with a fatal error if there are unprintable
 ASCII characters (see `ascii(7)`). A warning will be issued if
 non-ASCII characters (128-255) are encountered.
 
-If the header matches the pattern '>[;]size=integer;label', the
-pattern '>label;size=integer;label', or the pattern
-'>label;size=integer[;]', vsearch will interpret integer as the number
-of occurrences (or abundance) of the sequence in the study. That
-abundance information is used or created during chimera detection,
-clustering, dereplication, sorting and searching.
+When using the option `--sizein`, if the header matches the patterns
+`>[;]size=integer;identifier`, `>identifier;size=integer;identifier`,
+or `>identifier;size=integer[;]`, vsearch will interpret integer as
+the number of occurrences (or abundance) of the sequence in the
+study. That abundance information is used or created during chimera
+detection, clustering, dereplication, sorting and searching.
 
 The _sequence_ is defined as a string of IUPAC symbols
-('ACGTURYSWKMDBHVN'), starting after the end of the header line and
-ending before the next header line, or the file's end. vsearch
-silently ignores ASCII characters 9 to 13, and exits with an error
-message if ASCII characters 0 to 8, 14 to 31, '.' or '-' are
+('ACGTURYSWKMDBHVN' and 'acgturyswkmdbhvn'), starting after the end of
+the header line and ending before the next header line, or the file's
+end. vsearch silently ignores ASCII characters 9 to 13, and exits with
+an error message if ASCII characters 0 to 8, 14 to 31, '.' or '-' are
 present. All other ASCII or non-ASCII characters are stripped and
 complained about in a warning message.
-
-
-# EXAMPLES
-
-(give examples of valid and invalid fasta files)
 
 
 # SEE ALSO
