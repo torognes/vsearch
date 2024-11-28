@@ -119,9 +119,10 @@ Char  ASCII    Freq       Tails
 
 # EXAMPLES
 
-Read from *input.fastq.gz*, count *5*-mers at the end of quality
-strings (`--fastq_tail 5`), do not write to the standard error
-(`--quiet`), and write results to *output.log* (`--log`):
+Read from *input.fastq.gz*, count series of 5 identical symbols at the
+end of quality strings (`--fastq_tail 5`), do not write to the
+standard error (`--quiet`), and write results to *output.log*
+(`--log`):
 
 ```sh
 vsearch \
