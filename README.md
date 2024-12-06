@@ -302,9 +302,9 @@ Please note that citing any of the underlying algorithms, e.g. UCHIME, may also 
 
 Test datasets (found in the separate vsearch-data repository) were
 obtained from
-the BioMarks project (Logares et al. 2014),
-the [TARA OCEANS project](https://oceans.taraexpeditions.org/en/) (Karsenti et al. 2011)
-and the [Protist Ribosomal Reference Database (PR<sup>2</sup>)](https://github.com/pr2database/pr2database) (Guillou et al. 2013).
+the BioMarks project ([Logares et al. 2014](https://doi.org/10.1016/j.cub.2014.02.050)),
+the [TARA OCEANS project](https://oceans.taraexpeditions.org/en/) ([Karsenti et al. 2011](https://doi.org/10.1371/journal.pbio.1001177))
+and the [Protist Ribosomal Reference Database (PR<sup>2</sup>)](https://github.com/pr2database/pr2database) ([Guillou et al. 2013](https://doi.org/10.1093/nar/gks1160)).
 
 
 ## References
