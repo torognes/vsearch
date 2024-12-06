@@ -269,7 +269,7 @@ VSEARCH is designed for rather short sequences, and will be slow when sequences 
 The main contributors to VSEARCH:
 
 * Torbj&oslash;rn Rognes <torognes@ifi.uio.no> (Coding, testing, documentation, evaluation)
-* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, feature suggestions)
+* Fr&eacute;d&eacute;ric Mah&eacute; <mahe@rhrk.uni-kl.de> (Documentation, testing, coding, feature suggestions)
 * Tom&aacute;&scaron; Flouri <tomas.flouri@h-its.org> (Coding, testing)
 * Christopher Quince <c.quince@warwick.ac.uk> (Initiator, feature suggestions, evaluation)
 * Ben Nichols <b.nichols.1@research.gla.ac.uk> (Evaluation)
