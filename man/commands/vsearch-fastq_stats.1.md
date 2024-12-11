@@ -27,7 +27,7 @@ described below, with an example for each.
 
 ## Read length distribution
 
-Observed read lengths are sorted in decreasing order. The longest
+Observed read lengths are sorted in decreasing order. The largest
 length value is marked with '>='.
 
 1.  L: read length.
