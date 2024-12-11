@@ -1396,13 +1396,13 @@ auto cluster(char * dbname,
 
   auto const minmax_elements = std::minmax_element(cluster_abundance_v.cbegin(),
                                                    cluster_abundance_v.cend());
-  auto const abundance_min = *std::get<0>(minmax_elements);
-  auto const abundance_max = *std::get<1>(minmax_elements);
+  auto const abundance_min = cluster_abundance_v.empty() ? 0 : *std::get<0>(minmax_elements);
+  auto const abundance_max = cluster_abundance_v.empty() ? 0 : *std::get<1>(minmax_elements);
   int const singletons = std::count(cluster_abundance_v.cbegin(),
                                     cluster_abundance_v.cend(), int64_t{1});
   auto const max_element = std::max_element(cluster_size.cbegin(),
                                             cluster_size.cend());
-  auto const size_max = *max_element;
+  auto const size_max = cluster_size.empty() ? 0 : *max_element;
 
 
   /* Sort sequences in clusters by their abundance or ordinal number */
