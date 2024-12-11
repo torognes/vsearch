@@ -108,7 +108,7 @@ Positions in reads are sorted in increasing order.
 4.  P(AvgQ): error probability corresponding to AvgQ.
 5.  AvgP: average error probability.
 6.  AvgEE: average expected error over all reads up to this position.
-7.  Rate: growth rate of AvgEE between this position and position - 1.
+7.  Rate: growth rate of AvgEE between the current and previous positions.
 8.  RatePct: Rate (as explained above) expressed as a percentage.
 
 ```text
