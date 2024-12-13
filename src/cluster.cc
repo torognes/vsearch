@@ -1394,6 +1394,7 @@ auto cluster(char * dbname,
       ++cluster_size[clusterno];
     }
 
+  // refactoring: isolate in a function (returns struct abundance_stats)
   auto const minmax_elements = std::minmax_element(cluster_abundance_v.cbegin(),
                                                    cluster_abundance_v.cend());
   auto const abundance_min = cluster_abundance_v.empty() ? 0 : *std::get<0>(minmax_elements);
