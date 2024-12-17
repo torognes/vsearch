@@ -130,16 +130,28 @@ Positions in reads are sorted in increasing order.
 
 ## Effect of expected error and length filtering
 
-The first column indicates read lengths (L), sorted in decreasing
-order, and starting with the first L with a cummulated expected error
-smaller or equal to 1.0. The next four columns indicate the number of
-reads that would be retained by the `--fastq_filter` command if the
-reads were truncated at length L (option `--fastq_trunclen L`) and
-filtered to have a maximum expected error of 1.0, 0.5, 0.25 or 0.1
-(with the option `--fastq_maxee float`). The last four columns
-indicate the fraction of reads that would be retained by the
-`--fastq_filter` command using the same length and maximum expected
-error parameters.
+Positions in reads are sorted in decreasing order, starting with the
+first read length (L) with a cummulated expected error smaller or
+equal to 1.0. The next four columns indicate the number of reads that
+would be retained by the command
+[`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md) if
+the reads were truncated at length L with the option
+`--fastq_trunclen`, and filtered to have a maximum expected error
+equal to or lesser than 1.0, 0.5, 0.25 or 0.1 with the option
+`--fastq_maxee`. The last four columns indicate the fraction of reads
+that would be retained by the command
+[`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md)
+using the same length L and maximum expected error parameters.
+
+1.  L: read length
+2.  number of reads if truncating at L and filtering at EE =< 1.0
+3.  number of reads if truncating at L and filtering at EE =< 0.5
+4.  number of reads if truncating at L and filtering at EE =< 0.25
+5.  number of reads if truncating at L and filtering at EE =< 0.1
+6.  fraction of reads if truncating at L and filtering at EE =< 1.0
+7.  fraction of reads if truncating at L and filtering at EE =< 0.5
+8.  fraction of reads if truncating at L and filtering at EE =< 0.25
+9.  fraction of reads if truncating at L and filtering at EE =< 0.1
 
 ```text
     L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000
