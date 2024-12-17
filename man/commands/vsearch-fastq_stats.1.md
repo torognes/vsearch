@@ -104,11 +104,11 @@ Positions in reads are sorted in increasing order.
 
 1.  L: position in reads (starting from position 2).
 2.  PctRecs: fraction of reads with at least this length.
-3.  AvgQ: average quality score over all reads up to this position.
+3.  AvgQ: average quality at this position.
 4.  P(AvgQ): error probability corresponding to AvgQ.
-5.  AvgP: average error probability.
+5.  AvgP: average error probability at this position.
 6.  AvgEE: average expected error over all reads up to this position.
-7.  Rate: growth rate of AvgEE between the current and previous positions.
+7.  Rate: growth rate of AvgEE between the current and previous position.
 8.  RatePct: Rate (as explained above) expressed as a percentage.
 
 ```text
