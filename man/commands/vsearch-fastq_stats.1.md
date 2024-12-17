@@ -172,13 +172,20 @@ using the same length L and maximum expected error parameters.
 
 ## Effect of minimum quality and length filtering
 
-The first column indicates read lengths (Len), sorted in decreasing
-order, and limited to the top *n* lengths, where n = floor(max length
-/ 2) + 1. The next four columns indicate the fraction of reads that
-would be retained by the `--fastq_filter` command if the reads were
-truncated at length Len (option `--fastq_trunclen Len`) or at the
-first position with a quality Q below 5, 10, 15 or 20 (option
-`--fastq_truncqual Q`).
+Positions in reads are sorted in decreasing order, starting with the
+largest read length (Len), and limited to the top *n* lengths, where
+*n* = floor(largest read length / 2) + 1. The next four columns
+indicate the fraction of reads that would be retained by the command
+[`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md) if
+the reads were truncated at length Len with the option
+`--fastq_trunclen`, or at the first position with a quality Q equal to
+or lesser than 5, 10, 15 or 20 with the option `--fastq_truncqual`.
+
+1.  Len: read length
+2.  fraction of reads if truncating at Len or at first Q =< 5
+3.  fraction of reads if truncating at Len or at first Q =< 10
+4.  fraction of reads if truncating at Len or at first Q =< 15
+5.  fraction of reads if truncating at Len or at first Q =< 20
 
 ```text
 Truncate at first Q
