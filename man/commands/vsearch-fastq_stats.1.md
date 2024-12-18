@@ -30,10 +30,10 @@ described below, with an example for each.
 Observed read lengths are sorted in decreasing order. The largest
 length value is marked with '>='.
 
-1.  L: read length.
-2.  N: number of reads.
-3.  Pct: fraction of reads with this length.
-4.  AccPct: fraction of reads with this length or longer.
+1.  L: read length
+2.  N: number of reads
+3.  Pct: fraction of reads with this length
+4.  AccPct: fraction of reads with this length or longer
 
 ```text
 Read length distribution
@@ -57,12 +57,12 @@ Read length distribution
 
 Observed quality values are sorted in decreasing order.
 
-1.  ASCII: character encoding the quality score.
-2.  Q: Phred quality score.
-3.  Pe: probability of error associated with the quality score.
-4.  N: number of bases with this quality score.
-5.  Pct: fraction of bases with this quality score.
-6.  AccPct: fraction of bases with this quality score or higher.
+1.  ASCII: character encoding the quality score
+2.  Q: Phred quality score
+3.  Pe: probability of error associated with the quality score
+4.  N: number of bases with this quality score
+5.  Pct: fraction of bases with this quality score
+6.  AccPct: fraction of bases with this quality score or higher
 
 ```text
 Q score distribution
@@ -102,14 +102,14 @@ ASCII    Q       Pe           N      Pct   AccPct
 
 Positions in reads are sorted in increasing order.
 
-1.  L: position in reads (starting from position 2).
-2.  PctRecs: fraction of reads with at least this length.
-3.  AvgQ: average quality at this position.
-4.  P(AvgQ): error probability corresponding to AvgQ.
-5.  AvgP: average error probability at this position.
-6.  AvgEE: average expected error over all reads up to this position.
-7.  Rate: growth rate of AvgEE between the current and previous position.
-8.  RatePct: Rate (as explained above) expressed as a percentage.
+1.  L: position in reads (starting from position 2)
+2.  PctRecs: fraction of reads with at least this length
+3.  AvgQ: average quality at this position
+4.  P(AvgQ): error probability corresponding to AvgQ
+5.  AvgP: average error probability at this position
+6.  AvgEE: average expected error over all reads up to this position
+7.  Rate: growth rate of AvgEE between the current and previous position
+8.  RatePct: Rate (as explained above) expressed as a percentage
 
 ```text
     L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct
