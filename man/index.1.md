@@ -60,6 +60,13 @@ to read about the fastq format as-seen by vsearch.
 : Analyze fastq files to identify the quality encoding and the range
 of quality score values used.
 
+**[`vsearch-fastq_stats(1)`](./commands/vsearch-fastq_stats.1.md)**
+: Analyze fastq files and output detailed statistics: read length
+  distribution, quality score distribution, length vs quality
+  distribution, effect of expected error and length filtering, effect
+  of quality score and length filtering.
+
+
 <!---
 ## Orienting:
 
