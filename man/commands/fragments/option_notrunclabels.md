@@ -1,3 +1,4 @@
 `--notrunclabels`
-: Do not truncate sequence labels at first space or tab, but use the
-  full header in output files.
+: Retain whole sequence headers in output files. By default, vsearch
+  truncates sequence headers at first space or tabulation. This option
+  suppresses truncation.
