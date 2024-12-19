@@ -69,11 +69,19 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
 
 
-// documentation: assuming opt_wordlength = 8
-// rc_kmer(0b00000000) -> 0b11111111
-//         0b11111111  -> 0b00000000
-//         0b10101010  -> 0b01010101
-//         0b11001100  -> 0b00110011
+// documentation: assuming opt_wordlength = 3 (6 bits)
+// input       output
+// 0b000000 -> 0b111111
+// 0b111111 -> 0b000000
+// 0b111100 -> 0b110000
+// 0b110000 -> 0b111100
+// 0b001100 -> 0b110011
+// 0b000011 -> 0b001111
+// 0b001111 -> 0b000011
+// 0b100001 -> 0b101101
+// 0b011110 -> 0b010010
+// 0b101010 -> 0b010101
+// 0b010101 -> 0b101010
 auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
