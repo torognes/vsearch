@@ -269,7 +269,7 @@ auto orient() -> void
 
       ++queries;
 
-      int strand = 2;
+      int strand = 2;  // refactoring: enum struct strand : char {positive = '+', negative = '-', undetermined = '?'};
       unsigned int const min_count = 1;
       unsigned int const min_factor = 4;
 
