@@ -84,10 +84,10 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
   for (auto i = int64_t{0}; i < opt_wordlength; ++i)
     {
       // compute complement of the last two bits
-      auto const x = (fwd & 3U) ^ 3U;
+      auto const complement_bits = (fwd & 3U) ^ 3U;
       fwd = fwd >> 2U;
       rev = rev << 2U;
-      rev |= x;
+      rev |= complement_bits;
     }
 
   return rev;
