@@ -263,15 +263,15 @@ auto orient() -> void
 
       /* get progress as amount of input file read */
 
-      uint64_t const progress = fasta_get_position(query_h);
+      auto const progress = fasta_get_position(query_h);
 
       /* update stats */
 
       ++queries;
 
-      int strand = 2;  // refactoring: enum struct strand : char {positive = '+', negative = '-', undetermined = '?'};
-      unsigned int const min_count = 1;
-      unsigned int const min_factor = 4;
+      auto strand = 2;  // refactoring: enum struct strand : char {positive = '+', negative = '-', undetermined = '?'};
+      auto const min_count = 1U;
+      auto const min_factor = 4U;
 
       if ((count_fwd >= min_count) and (count_fwd >= min_factor * count_rev))
         {
