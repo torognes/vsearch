@@ -69,6 +69,11 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
 
 
+// documentation: assuming opt_wordlength = 8
+// rc_kmer(0b00000000) -> 0b11111111
+//         0b11111111  -> 0b00000000
+//         0b10101010  -> 0b01010101
+//         0b11001100  -> 0b00110011
 auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
@@ -78,6 +83,7 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
 
   for (auto i = int64_t{0}; i < opt_wordlength; ++i)
     {
+      // compute complement of the last two bits
       auto const x = (fwd & 3U) ^ 3U;
       fwd = fwd >> 2U;
       rev = rev << 2U;
