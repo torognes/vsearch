@@ -1,2 +1,2 @@
 `--minseqlength` *positive integer*
-: Discard sequences shorter than *positive integer* (1 nucleotide by default).
+: Discard sequences shorter than *positive integer* (32 nucleotides by default).
