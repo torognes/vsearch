@@ -1,9 +1,9 @@
 `--wordlength` *positive integer*
-: Length of words (i.e. *k*-mers) used for sequence comparisons. The
-  range of possible values goes from 3 to 15 (default value is
-  12). Longer words may reduce the sensitivity/recall for weak
-  similarities, but can increase precision. On the other hand, shorter
-  words may increase sensitivity or recall, but may reduce
+: Set the length of words (i.e. *k*-mers) used for sequence
+  comparisons. The range of possible values goes from 3 to 15 (default
+  value is 12). Longer words may reduce the sensitivity/recall for
+  weak similarities, but can increase precision. On the other hand,
+  shorter words may increase sensitivity or recall, but may reduce
   precision.
 
     Computation time generally increases with shorter words and
