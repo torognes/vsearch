@@ -86,6 +86,7 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
 
+  assert(opt_wordlength * 2 <= 32);
   auto fwd = kmer;
   auto rev = 0U;
 
