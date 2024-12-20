@@ -36,8 +36,9 @@ Each command is described in a dedicated manpage. For example, type
 `man vsearch-fasta2fastq` to read about the `--fasta2fastq`
 command. Manpages reffering to commands all belong to section 1
 (executable programs). Some vsearch manpages belong to section 5 (file
-formats and conventions). For example, type `man 'vsearch-fastq(5)'`
-to read about the fastq format as-seen by vsearch.
+formats and conventions). For example, type `man 5 vsearch-fastq` or
+`man 'vsearch-fastq(5)'` to read about the fastq format as-seen by
+vsearch.
 
 <!---
 ## Chimera detection:
