@@ -1,4 +1,9 @@
 remote_theme: pages-themes/hacker@v0.2.0
+
+# attempt to fix lack of CSS rendering in deployed mode
+baseurl: /vsearch
+url: https://torognes.github.io
+
 plugins:
   - jekyll-relative-links
   - jekyll-remote-theme
