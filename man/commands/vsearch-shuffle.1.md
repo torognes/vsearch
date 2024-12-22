@@ -36,9 +36,7 @@ generator can be set with the option `--randseed`.
 
 ## mandatory options
 
-`--output` *filename*
-: Write the fasta or fastq entries to *filename*, in fasta format and
-  in a pseudo-randomized order.
+#(./fragments/option_output.md)
 
 
 ## core options
