@@ -123,7 +123,8 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch-sortbylength(1)`](./commands/vsearch-sortbylength.1.md), 
+Inverse operation (sort):
+[`vsearch-sortbylength(1)`](./commands/vsearch-sortbylength.1.md),
 [`vsearch-sortbysize(1)`](../formats/vsearch-sortbysize.1.md)
 
 
