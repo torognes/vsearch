@@ -22,6 +22,23 @@ The vsearch command `--chimeras_denovo` detect chimeras *de novo*
 
 ## mandatory options
 
+At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
+`--tabbedout` must be specified.
+
+`--alnout` *filename*
+: Write three-way alignments to *filename* using a human-readable
+  format. Use `--alignwidth` to set the alignment width (60
+  nucleotides by default). Output order may vary when using multiple
+  threads.
+
+#(./fragments/option_chimeras.md)
+
+#(./fragments/option_nonchimeras.md)
+
+`--tabbedout` *filename*
+: Write chimera info to *filename*, using a tab-separated format with
+  n columns. The columns are...
+
 
 ## core options
 
@@ -38,23 +55,6 @@ The vsearch command `--chimeras_denovo` detect chimeras *de novo*
 #(./fragments/option_sizein.md)
 
 #(./fragments/option_xn.md)
-
-
-## output options
-
-`--alnout` *filename*
-: Write three-way alignments to *filename* using a human-readable
-  format. Use `--alignwidth` to set the alignment width (60
-  nucleotides by default). Output order may vary when using multiple
-  threads.
-
-#(./fragments/option_chimeras.md)
-
-#(./fragments/option_nonchimeras.md)
-
-`--tabbedout` *filename*
-: Write chimera info to *filename*, using a tab-separated format with
-  n columns. The columns are...
 
 
 ## secondary options
