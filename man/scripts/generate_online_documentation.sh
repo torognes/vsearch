@@ -25,7 +25,7 @@ generate_github_markdown() {
     # sed 's/\\\-\\\-/\\\-\\\-/g'
     # sed 's/\\\-\\\-/\\\\-\\\\-/g'
     # sed 's/\\\-\\\-/\\\\\-\\\\\-/g'
-    # sed 's/\\\-\\\-/\\\\\\-\\\\\\-/g'
+    # sed 's/\\\-\\\-/\\\\\\-\\\\\\-/g' -> render: '\-'
     build_markdown_file "${1}" |
         convert_markdown_to_github_markdown
 }
