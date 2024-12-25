@@ -19,6 +19,9 @@ algorithm finds the pairwise alignment with the best score.
 Along the pairwise alignment, each aligned position contributes to the
 score, by being either a *match*, a *mismatch*, or a *gap*.
 
+TODO: inject "reward and penalty system"
+
+
 ## match and mismatches
 
 When aligning sequences, identical symbols will receive a positive
