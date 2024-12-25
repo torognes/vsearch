@@ -20,13 +20,15 @@ convert_markdown_to_github_markdown() {
 
 generate_github_markdown() {
     ## Failed tests:
+    # no replacement
     # sed 's/\\\-\\\-/\-\-/g'
     # sed 's/\\\-\\\-/\\-\\-/g'
     # sed 's/\\\-\\\-/\\\-\\\-/g'
     # sed 's/\\\-\\\-/\\\\-\\\\-/g'
     # sed 's/\\\-\\\-/\\\\\-\\\\\-/g'
-    # sed 's/\\\-\\\-/\\\\\\-\\\\\\-/g' -> render: '\-'
+    # sed 's/\\\-\\\-/\\\\\\-\\\\\\-/g' -> '\\\-' renders '\-'
     build_markdown_file "${1}" |
+        sed 's/\\\-\\\-/\\\\\\\\-\\\\\\\\-/g' | \
         convert_markdown_to_github_markdown
 }
 
