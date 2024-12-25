@@ -17,7 +17,7 @@ algorithm finds the pairwise alignment with the best score.
 (explain the difference with Smith-Waterman?)
 
 Along the pairwise alignment, each aligned position contributes to the
-score, by being either a *match*, a *mismatch*, or a *gap*. 
+score, by being either a *match*, a *mismatch*, or a *gap*.
 
 ## match and mismatches
 
