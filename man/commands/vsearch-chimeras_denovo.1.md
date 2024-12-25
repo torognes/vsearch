@@ -63,23 +63,15 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 #(./fragments/option_fasta_width.md)
 
-#(./fragments/option_gapext.md)
-
-#(./fragments/option_gapopen.md)
-
 #(./fragments/option_hardmask.md)
 
 #(./fragments/option_label_suffix.md)
 
 #(./fragments/option_log.md)
 
-#(./fragments/option_match.md)
-
 #(./fragments/option_maxseqlength.md)
 
 #(./fragments/option_minseqlength_32.md)
-
-#(./fragments/option_mismatch.md)
 
 #(./fragments/option_no_progress.md)
 
@@ -108,6 +100,22 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 #(./fragments/option_xee.md)
 
 #(./fragments/option_xsize.md)
+
+
+## pairwise alignment options
+
+These options modify the parameters of the pairwise alignment
+model. See
+[`vsearch-pairwise_alignment_parameters(7)`](./misc/vsearch-pairwise_alignment_parameters.7.md)
+for a complete description. Modify with caution.
+
+#(./fragments/option_gapext.md)
+
+#(./fragments/option_gapopen.md)
+
+#(./fragments/option_match.md)
+
+#(./fragments/option_mismatch.md)
 
 
 ## ignored options
