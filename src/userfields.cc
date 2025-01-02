@@ -169,8 +169,8 @@ auto parse_userfields_arg(char * arg) -> int
           return 0; // bad argument
         }
 
-      auto const i = static_cast<int>((((const char **) valid_userfield) - userfields_names));
-      userfields_requested[nth_field] = i;
+      auto const nth_valid_userfield = static_cast<int>((((const char **) valid_userfield) - userfields_names));
+      userfields_requested[nth_field] = nth_valid_userfield;
       ++nth_field;
 
       ptr = next_separator;
