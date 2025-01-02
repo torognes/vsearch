@@ -109,27 +109,27 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
       return -1;
     }
 
-      int const r = strcmp(db_getheader(lhs->seqno_first),
-                           db_getheader(rhs->seqno_first));
-      if (r != 0)
+  int const r = strcmp(db_getheader(lhs->seqno_first),
+                       db_getheader(rhs->seqno_first));
+  if (r != 0)
+    {
+      return r;
+    }
+  else
+    {
+      if (lhs->seqno_first < rhs->seqno_first)
         {
-          return r;
+          return -1;
+        }
+      else if (lhs->seqno_first > rhs->seqno_first)
+        {
+          return +1;
         }
       else
         {
-          if (lhs->seqno_first < rhs->seqno_first)
-            {
-              return -1;
-            }
-          else if (lhs->seqno_first > rhs->seqno_first)
-            {
-              return +1;
-            }
-          else
-            {
-              return 0;
-            }
+          return 0;
         }
+    }
 }
 
 
