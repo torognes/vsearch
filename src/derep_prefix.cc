@@ -116,18 +116,18 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
       return result;
     }
 
-      if (lhs->seqno_first < rhs->seqno_first)
-        {
-          return -1;
-        }
-      else if (lhs->seqno_first > rhs->seqno_first)
-        {
-          return +1;
-        }
-      else
-        {
-          return 0;
-        }
+  if (lhs->seqno_first < rhs->seqno_first)
+    {
+      return -1;
+    }
+  else if (lhs->seqno_first > rhs->seqno_first)
+    {
+      return +1;
+    }
+  else
+    {
+      return 0;
+    }
 }
 
 
