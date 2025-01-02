@@ -217,7 +217,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
                   int const diag = fpos - (pos - k + 1);
                   if (diag >= 0)
                     {
-                      diag_counts[diag]++;
+                      ++diag_counts[diag];
                     }
                 }
               j = (j + 1) & kh->hash_mask;
@@ -237,7 +237,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
 
       if (c >= minmatch)
         {
-          good_diags++;
+          ++good_diags;
         }
 
       if (c > best_diag_count)
