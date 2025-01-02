@@ -351,13 +351,12 @@ auto xstrcasestr(const char * haystack, const char * needle) -> const char *
 
 #ifdef _WIN32
 auto arch_dlsym(HMODULE handle, const char * symbol) -> FARPROC
+{
+  return GetProcAddress(handle, symbol);
+}
 #else
 auto arch_dlsym(void * handle, const char * symbol) -> void *
-#endif
 {
-#ifdef _WIN32
-  return GetProcAddress(handle, symbol);
-#else
   return dlsym(handle, symbol);
-#endif
 }
+#endif
