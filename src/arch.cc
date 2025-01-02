@@ -260,7 +260,7 @@ auto xrealloc(void * ptr, size_t size) -> void *
 
 auto xfree(void * ptr) -> void
 {
-  if (ptr)
+  if (ptr != nullptr)
     {
 #ifdef _WIN32
       _aligned_free(ptr);
