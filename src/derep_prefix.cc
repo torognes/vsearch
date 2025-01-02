@@ -95,12 +95,11 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
     {
       return +1;
     }
-  else if (lhs->deleted < rhs->deleted)
+  if (lhs->deleted < rhs->deleted)
     {
       return -1;
     }
-  else
-    {
+
       if (lhs->size < rhs->size)
         {
           return +1;
@@ -133,7 +132,6 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
                 }
             }
         }
-    }
 }
 
 
