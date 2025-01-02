@@ -119,15 +119,15 @@ auto parse_userfields_arg(char * arg) -> int
   // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
   // and returns 1 if it is ok or 0 if not.
 
-  char * p = arg;
-  char * e = p + strlen(p); // pointer to end of string
+  char * ptr = arg;
+  char * e = ptr + strlen(ptr); // pointer to end of string
 
   // refactoring:
   // auto const userfields_requested_count = std::count(v.cbegin(), v.cend(), '+');
   userfields_requested_count = 1;
-  while (p < e)
+  while (ptr < e)
     {
-      if (*p++ == '+')
+      if (*ptr++ == '+')
         {
           ++userfields_requested_count;
         }
@@ -135,7 +135,7 @@ auto parse_userfields_arg(char * arg) -> int
 
   userfields_requested = (int *) xmalloc(sizeof(int) * (uint64_t) userfields_requested_count);
 
-  p = arg;
+  ptr = arg;
 
   char * q = nullptr;
 
@@ -143,19 +143,19 @@ auto parse_userfields_arg(char * arg) -> int
 
   while (true)
     {
-      q = strchr(p, '+');
+      q = strchr(ptr, '+');
       if (not q)
         {
           q = e;
         }
 
-      auto n = (uint64_t) (q - p);
+      auto n = (uint64_t) (q - ptr);
 
       char ** u = (char **) userfields_names;
 
       while (*u)
         {
-          if ((strncmp(p, *u, n) == 0) and (strlen(*u) == n))
+          if ((strncmp(ptr, *u, n) == 0) and (strlen(*u) == n))
             {
               break;
             }
@@ -170,13 +170,13 @@ auto parse_userfields_arg(char * arg) -> int
       int const i = (int) (((const char **) u) - userfields_names);
       userfields_requested[fields++] = i;
 
-      p = q;
+      ptr = q;
 
-      if (p == e)
+      if (ptr == e)
         {  // reached end of argument
           return 1;
         }
 
-      ++p;
+      ++ptr;
     }
 }
