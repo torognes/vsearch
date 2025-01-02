@@ -114,6 +114,7 @@ static const char * userfields_names[] =
 int * userfields_requested = nullptr;
 int userfields_requested_count = 0;
 
+
 auto parse_userfields_arg(char * arg) -> int
 {
   // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
