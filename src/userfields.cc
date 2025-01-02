@@ -119,7 +119,7 @@ auto parse_userfields_arg(char * arg) -> int
 {
   // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
   // and returns 1 if it is ok or 0 if not.
-
+  static constexpr auto separator = '+';
   char * ptr = arg;
   char * end_of_string = ptr + strlen(ptr); // pointer to end of string
 
@@ -128,7 +128,7 @@ auto parse_userfields_arg(char * arg) -> int
   userfields_requested_count = 1;
   while (ptr < end_of_string)
     {
-      if (*ptr == '+')
+      if (*ptr == separator)
         {
           ++userfields_requested_count;
         }
@@ -145,7 +145,7 @@ auto parse_userfields_arg(char * arg) -> int
 
   while (true)
     {
-      q = strchr(ptr, '+');
+      q = strchr(ptr, separator);
       if (q == nullptr)
         {
           q = end_of_string;
