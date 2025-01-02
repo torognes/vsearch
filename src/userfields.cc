@@ -127,10 +127,11 @@ auto parse_userfields_arg(char * arg) -> int
   userfields_requested_count = 1;
   while (ptr < end_of_string)
     {
-      if (*ptr++ == '+')
+      if (*ptr == '+')
         {
           ++userfields_requested_count;
         }
+      ++ptr;
     }
 
   userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * (uint64_t) userfields_requested_count));
