@@ -101,8 +101,8 @@ auto unique_init() -> struct uhandle_s *
   unique_handle->alloc = 2048;
   unique_handle->size = 0;
   unique_handle->hash_mask = unique_handle->alloc - 1;
-  unique_handle->hash = (struct bucket_s *) xmalloc(sizeof(struct bucket_s) * unique_handle->alloc);
-  unique_handle->list = (unsigned int *) xmalloc(sizeof(unsigned int) * unique_handle->alloc);
+  unique_handle->hash = static_cast<struct bucket_s *>(xmalloc(sizeof(struct bucket_s) * unique_handle->alloc));
+  unique_handle->list = static_cast<unsigned int *>(xmalloc(sizeof(unsigned int) * unique_handle->alloc));
 
   unique_handle->bitmap_size = 0;
   unique_handle->bitmap = nullptr;
