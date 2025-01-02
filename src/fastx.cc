@@ -101,6 +101,7 @@ auto buffer_init(struct fastx_buffer_s * buffer) -> void
   buffer->position = 0;
 }
 
+
 auto buffer_free(struct fastx_buffer_s * buffer) -> void
 {
   if (buffer->data)
@@ -112,6 +113,7 @@ auto buffer_free(struct fastx_buffer_s * buffer) -> void
   buffer->length = 0;
   buffer->position = 0;
 }
+
 
 auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void
 {
@@ -128,6 +130,7 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void
     }
 }
 
+
 auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char * source_buf,
                    uint64_t len) -> void
@@ -139,6 +142,7 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
   dest_buffer->length += len;
   dest_buffer->data[dest_buffer->length] = 0;
 }
+
 
 auto fastx_filter_header(fastx_handle h, bool truncateatspace) -> void
 {
@@ -238,6 +242,7 @@ auto fastx_filter_header(fastx_handle h, bool truncateatspace) -> void
   *q = 0;
   h->header_buffer.length = q - h->header_buffer.data;
 }
+
 
 auto fastx_open(const char * filename) -> fastx_handle
 {
@@ -470,20 +475,24 @@ auto fastx_open(const char * filename) -> fastx_handle
   return h;
 }
 
+
 auto fastx_is_fastq(fastx_handle h) -> bool
 {
   return h->is_fastq || h->is_empty;
 }
+
 
 auto fastx_is_empty(fastx_handle h) -> bool
 {
   return h->is_empty;
 }
 
+
 auto fastx_is_pipe(fastx_handle h) -> bool
 {
   return h->is_pipe;
 }
+
 
 auto fastx_close(fastx_handle h) -> void
 {
@@ -562,6 +571,7 @@ auto fastx_close(fastx_handle h) -> void
   xfree(h);
   h=nullptr;
 }
+
 
 auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
 {
@@ -656,6 +666,7 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
     }
 }
 
+
 auto fastx_next(fastx_handle h,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool
@@ -669,6 +680,7 @@ auto fastx_next(fastx_handle h,
       return fasta_next(h, truncateatspace, char_mapping);
     }
 }
+
 
 auto fastx_get_position(fastx_handle h) -> uint64_t
 {
@@ -721,6 +733,7 @@ auto fastx_get_seqno(fastx_handle h) -> uint64_t
     }
 }
 
+
 auto fastx_get_header(fastx_handle h) -> char *
 {
   if (h->is_fastq)
@@ -732,6 +745,7 @@ auto fastx_get_header(fastx_handle h) -> char *
       return fasta_get_header(h);
     }
 }
+
 
 auto fastx_get_sequence(fastx_handle h) -> char *
 {
@@ -745,6 +759,7 @@ auto fastx_get_sequence(fastx_handle h) -> char *
     }
 }
 
+
 auto fastx_get_header_length(fastx_handle h) -> uint64_t
 {
   if (h->is_fastq)
@@ -756,6 +771,7 @@ auto fastx_get_header_length(fastx_handle h) -> uint64_t
       return fasta_get_header_length(h);
     }
 }
+
 
 auto fastx_get_sequence_length(fastx_handle h) -> uint64_t
 {
@@ -781,6 +797,7 @@ auto fastx_get_quality(fastx_handle h) -> char *
       return nullptr;
     }
 }
+
 
 auto fastx_get_abundance(fastx_handle h) -> int64_t
 {
