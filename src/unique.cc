@@ -178,7 +178,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
       unique_handle->bitmap_size = size;
     }
 
-  memset(unique_handle->bitmap, 0, size >> 3ULL);
+  std::memset(unique_handle->bitmap, 0, size >> 3ULL);
 
   uint64_t bad = 0;
   uint64_t kmer = 0;
@@ -261,7 +261,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
     }
   unique_handle->hash_mask = unique_handle->size - 1;
 
-  memset(unique_handle->hash, 0, sizeof(struct bucket_s) * unique_handle->size);
+  std::memset(unique_handle->hash, 0, sizeof(struct bucket_s) * unique_handle->size);
 
   uint64_t bad = 0;
   uint64_t j = 0;
