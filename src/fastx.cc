@@ -673,10 +673,7 @@ auto fastx_next(fastx_handle h,
     {
       return fastq_next(h, truncateatspace, char_mapping);
     }
-  else
-    {
-      return fasta_next(h, truncateatspace, char_mapping);
-    }
+  return fasta_next(h, truncateatspace, char_mapping);
 }
 
 
@@ -686,10 +683,7 @@ auto fastx_get_position(fastx_handle h) -> uint64_t
     {
       return fastq_get_position(h);
     }
-  else
-    {
-      return fasta_get_position(h);
-    }
+  return fasta_get_position(h);
 }
 
 
@@ -699,10 +693,7 @@ auto fastx_get_size(fastx_handle h) -> uint64_t
     {
       return fastq_get_size(h);
     }
-  else
-    {
-      return fasta_get_size(h);
-    }
+  return fasta_get_size(h);
 }
 
 
@@ -712,10 +703,7 @@ auto fastx_get_lineno(fastx_handle h) -> uint64_t
     {
       return fastq_get_lineno(h);
     }
-  else
-    {
-      return fasta_get_lineno(h);
-    }
+  return fasta_get_lineno(h);
 }
 
 
@@ -725,10 +713,7 @@ auto fastx_get_seqno(fastx_handle h) -> uint64_t
     {
       return fastq_get_seqno(h);
     }
-  else
-    {
-      return fasta_get_seqno(h);
-    }
+  return fasta_get_seqno(h);
 }
 
 
@@ -738,10 +723,7 @@ auto fastx_get_header(fastx_handle h) -> char *
     {
       return fastq_get_header(h);
     }
-  else
-    {
-      return fasta_get_header(h);
-    }
+  return fasta_get_header(h);
 }
 
 
@@ -751,10 +733,7 @@ auto fastx_get_sequence(fastx_handle h) -> char *
     {
       return fastq_get_sequence(h);
     }
-  else
-    {
-      return fasta_get_sequence(h);
-    }
+  return fasta_get_sequence(h);
 }
 
 
@@ -764,10 +743,7 @@ auto fastx_get_header_length(fastx_handle h) -> uint64_t
     {
       return fastq_get_header_length(h);
     }
-  else
-    {
-      return fasta_get_header_length(h);
-    }
+  return fasta_get_header_length(h);
 }
 
 
@@ -777,10 +753,7 @@ auto fastx_get_sequence_length(fastx_handle h) -> uint64_t
     {
       return fastq_get_sequence_length(h);
     }
-  else
-    {
-      return fasta_get_sequence_length(h);
-    }
+  return fasta_get_sequence_length(h);
 }
 
 
@@ -790,10 +763,7 @@ auto fastx_get_quality(fastx_handle h) -> char *
     {
       return fastq_get_quality(h);
     }
-  else
-    {
-      return nullptr;
-    }
+  return nullptr;
 }
 
 
@@ -803,8 +773,5 @@ auto fastx_get_abundance(fastx_handle h) -> int64_t
     {
       return fastq_get_abundance(h);
     }
-  else
-    {
-      return fasta_get_abundance(h);
-    }
+  return fasta_get_abundance(h);
 }
