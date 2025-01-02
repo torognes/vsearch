@@ -68,6 +68,7 @@
 
 constexpr auto memalignment = 16;
 
+
 auto arch_get_memused() -> uint64_t
 {
 #ifdef _WIN32
@@ -93,6 +94,7 @@ auto arch_get_memused() -> uint64_t
 
 #endif
 }
+
 
 auto arch_get_memtotal() -> uint64_t
 {
@@ -132,6 +134,7 @@ auto arch_get_memtotal() -> uint64_t
 #endif
 }
 
+
 auto arch_get_cores() -> long
 {
 #ifdef _WIN32
@@ -142,6 +145,7 @@ auto arch_get_cores() -> long
   return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 }
+
 
 auto arch_get_user_system_time(double * user_time, double * system_time) -> void
 {
@@ -167,6 +171,7 @@ auto arch_get_user_system_time(double * user_time, double * system_time) -> void
     + r_usage.ru_stime.tv_usec * 1.0e-6;
 #endif
 }
+
 
 auto arch_srandom() -> void
 {
@@ -200,6 +205,7 @@ auto arch_srandom() -> void
     }
 }
 
+
 auto arch_random() -> uint64_t
 {
 #ifdef _WIN32
@@ -208,6 +214,7 @@ auto arch_random() -> uint64_t
   return random();
 #endif
 }
+
 
 auto xmalloc(size_t size) -> void *
 {
@@ -224,12 +231,13 @@ auto xmalloc(size_t size) -> void *
       t = nullptr;
     }
 #endif
-  if (!t)
+  if (! t)
     {
       fatal("Unable to allocate enough memory.");
     }
   return t;
 }
+
 
 auto xrealloc(void *ptr, size_t size) -> void *
 {
@@ -249,6 +257,7 @@ auto xrealloc(void *ptr, size_t size) -> void *
   return t;
 }
 
+
 auto xfree(void * ptr) -> void
 {
   if (ptr)
@@ -265,6 +274,7 @@ auto xfree(void * ptr) -> void
     }
 }
 
+
 auto xfstat(int file_descriptor, xstat_t * buf) -> int
 {
 #ifdef _WIN32
@@ -273,6 +283,7 @@ auto xfstat(int file_descriptor, xstat_t * buf) -> int
   return fstat(file_descriptor, buf);
 #endif
 }
+
 
 auto xstat(const char * path, xstat_t * buf) -> int
 {
@@ -283,6 +294,7 @@ auto xstat(const char * path, xstat_t * buf) -> int
 #endif
 }
 
+
 auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 {
 #ifdef _WIN32
@@ -291,6 +303,7 @@ auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
   return lseek(file_descriptor, offset, whence);
 #endif
 }
+
 
 auto xftello(std::FILE * stream) -> uint64_t
 {
@@ -301,6 +314,7 @@ auto xftello(std::FILE * stream) -> uint64_t
 #endif
 }
 
+
 auto xopen_read(const char * path) -> int
 {
 #ifdef _WIN32
@@ -309,6 +323,7 @@ auto xopen_read(const char * path) -> int
   return open(path, O_RDONLY);
 #endif
 }
+
 
 auto xopen_write(const char * path) -> int
 {
@@ -323,6 +338,7 @@ auto xopen_write(const char * path) -> int
 #endif
 }
 
+
 auto xstrcasestr(const char * haystack, const char * needle) -> const char *
 {
 #ifdef _WIN32
@@ -331,6 +347,7 @@ auto xstrcasestr(const char * haystack, const char * needle) -> const char *
   return strcasestr(haystack, needle);
 #endif
 }
+
 
 #ifdef _WIN32
 auto arch_dlsym(HMODULE handle, const char * symbol) -> FARPROC
