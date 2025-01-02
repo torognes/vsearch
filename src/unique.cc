@@ -302,16 +302,16 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       ++s;
       kmer &= mask;
 
-      if (not bad)
+      if (bad == 0u)
         {
           /* find free appropriate bucket in hash */
           j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
+          while((unique_handle->hash[j].count != 0u) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
             }
 
-          if (not (unique_handle->hash[j].count))
+          if (unique_handle->hash[j].count == 0u)
             {
               /* not seen before */
               unique_handle->list[unique] = kmer;
@@ -362,7 +362,7 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
           auto const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if (unique_handle->bitmap[x] & y)
+          if ((unique_handle->bitmap[x] & y) != 0u)
             {
               ++count;
             }
@@ -374,11 +374,11 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
         {
           auto kmer = list[i];
           uint64_t j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while ((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
+          while ((unique_handle->hash[j].count != 0u) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
             }
-          if (unique_handle->hash[j].count)
+          if (unique_handle->hash[j].count != 0u)
             {
               ++count;
             }
