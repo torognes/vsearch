@@ -79,8 +79,8 @@ constexpr auto initial_allocation = 2048;
 
 struct bucket_s
 {
-  unsigned int kmer = 0;
-  unsigned int count = 0;
+  unsigned int kmer;
+  unsigned int count;
 };
 
 struct uhandle_s
