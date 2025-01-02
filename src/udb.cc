@@ -95,12 +95,11 @@ auto wc_compare(const void * a, const void * b) -> int
     {
       return -1;
     }
-  else if (lhs->count > rhs->count)
+  if (lhs->count > rhs->count)
     {
       return +1;
     }
-  else
-    {
+
       if (lhs->kmer < rhs->kmer)
         {
           return +1;
@@ -113,7 +112,6 @@ auto wc_compare(const void * a, const void * b) -> int
         {
           return 0;
         }
-    }
 }
 
 
