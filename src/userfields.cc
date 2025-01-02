@@ -139,19 +139,19 @@ auto parse_userfields_arg(char * arg) -> int
 
   ptr = arg;  // reset to the start of the string
 
-  char * q = nullptr;
+  char * next_separator = nullptr;
 
   int fields = 0;
 
   while (true)
     {
-      q = std::strchr(ptr, separator);
-      if (q == nullptr)
+      next_separator = std::strchr(ptr, separator);
+      if (next_separator == nullptr)
         {
-          q = end_of_string;
+          next_separator = end_of_string;
         }
 
-      auto n = (uint64_t) (q - ptr);
+      auto n = (uint64_t) (next_separator - ptr);
 
       char ** u = (char **) userfields_names;
 
@@ -172,7 +172,7 @@ auto parse_userfields_arg(char * arg) -> int
       int const i = (int) (((const char **) u) - userfields_names);
       userfields_requested[fields++] = i;
 
-      ptr = q;
+      ptr = next_separator;
 
       if (ptr == end_of_string)
         {  // reached end of argument
