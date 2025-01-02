@@ -145,7 +145,7 @@ auto parse_userfields_arg(char * arg) -> int
   while (true)
     {
       q = strchr(ptr, '+');
-      if (not q)
+      if (q == nullptr)
         {
           q = end_of_string;
         }
