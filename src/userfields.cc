@@ -121,7 +121,7 @@ auto parse_userfields_arg(char * arg) -> int
   // and returns 1 if it is ok or 0 if not.
   static constexpr auto separator = '+';
   char * ptr = arg;
-  char * end_of_string = ptr + strlen(ptr); // pointer to end of string
+  char * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
 
   // refactoring:
   // auto const userfields_requested_count = std::count(v.cbegin(), v.cend(), '+');
@@ -145,7 +145,7 @@ auto parse_userfields_arg(char * arg) -> int
 
   while (true)
     {
-      q = strchr(ptr, separator);
+      q = std::strchr(ptr, separator);
       if (q == nullptr)
         {
           q = end_of_string;
@@ -157,7 +157,7 @@ auto parse_userfields_arg(char * arg) -> int
 
       while (*u)
         {
-          if ((strncmp(ptr, *u, n) == 0) and (strlen(*u) == n))
+          if ((std::strncmp(ptr, *u, n) == 0) and (strlen(*u) == n))
             {
               break;
             }
