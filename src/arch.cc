@@ -222,20 +222,20 @@ auto xmalloc(size_t size) -> void *
     {
       size = 1;
     }
-  void * t = nullptr;
+  void * ptr = nullptr;
 #ifdef _WIN32
-  t = _aligned_malloc(size, memalignment);
+  ptr = _aligned_malloc(size, memalignment);
 #else
-  if (posix_memalign(& t, memalignment, size))
+  if (posix_memalign(& ptr, memalignment, size))
     {
-      t = nullptr;
+      ptr = nullptr;
     }
 #endif
-  if (not t)
+  if (not ptr)
     {
       fatal("Unable to allocate enough memory.");
     }
-  return t;
+  return ptr;
 }
 
 
