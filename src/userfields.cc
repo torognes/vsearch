@@ -98,16 +98,16 @@ static const char * userfields_names[] =
     "mism",
     "ids",
     "qcov",
-    "tcov",  // 33
+    "tcov",   // 33
     "id0",
     "id1",
     "id2",
     "id3",
-    "id4", // 38
-    "qilo", // 39
+    "id4",    // 38
+    "qilo",   // 39
     "qihi",
     "tilo",
-    "tihi", // 42
+    "tihi",   // 42
     nullptr
   };
 
