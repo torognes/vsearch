@@ -115,15 +115,15 @@ auto unique_init() -> struct uhandle_s *
 
 auto unique_exit(struct uhandle_s * unique_handle) -> void
 {
-  if (unique_handle->bitmap)
+  if (unique_handle->bitmap != nullptr)
     {
       xfree(unique_handle->bitmap);
     }
-  if (unique_handle->hash)
+  if (unique_handle->hash != nullptr)
     {
       xfree(unique_handle->hash);
     }
-  if (unique_handle->list)
+  if (unique_handle->list != nullptr)
     {
       xfree(unique_handle->list);
     }
