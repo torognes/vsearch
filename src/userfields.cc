@@ -151,7 +151,7 @@ auto parse_userfields_arg(char * arg) -> int
           next_separator = end_of_string;
         }
 
-      auto n = (uint64_t) (next_separator - ptr);
+      auto n = static_cast<uint64_t>(next_separator - ptr);
 
       char ** u = (char **) userfields_names;
 
