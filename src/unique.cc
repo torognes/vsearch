@@ -197,7 +197,8 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
       bad |= maskmap[(int) (*s)];
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s++)];
+      kmer |= chrmap_2bit[(int) (*s)];
+      ++s;
     }
 
   int unique = 0;
@@ -209,7 +210,8 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s++)];
+      kmer |= chrmap_2bit[(int) (*s)];
+      ++s;
       kmer &= mask;
 
       if (not bad)
@@ -219,7 +221,8 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
           if (not (unique_handle->bitmap[x] & y))
             {
               /* not seen before */
-              unique_handle->list[unique++] = kmer;
+              unique_handle->list[unique] = kmer;
+              ++unique;
               unique_handle->bitmap[x] |= y;
             }
         }
@@ -281,7 +284,8 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       bad |= maskmap[(int) (*s)];
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s++)];
+      kmer |= chrmap_2bit[(int) (*s)];
+      ++s;
     }
 
   uint64_t unique = 0;
@@ -293,7 +297,8 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s++)];
+      kmer |= chrmap_2bit[(int) (*s)];
+      ++s;
       kmer &= mask;
 
       if (not bad)
@@ -308,7 +313,8 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
           if (not (unique_handle->hash[j].count))
             {
               /* not seen before */
-              unique_handle->list[unique++] = kmer;
+              unique_handle->list[unique] = kmer;
+              ++unique;
               unique_handle->hash[j].kmer = kmer;
               unique_handle->hash[j].count = 1;
             }
