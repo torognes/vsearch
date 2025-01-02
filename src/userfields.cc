@@ -155,7 +155,7 @@ auto parse_userfields_arg(char * arg) -> int
 
       char ** u = (char **) userfields_names;
 
-      while (*u)
+      while (*u != nullptr)
         {
           if ((std::strncmp(ptr, *u, field_length) == 0) and (std::strlen(*u) == field_length))
             {
@@ -164,7 +164,7 @@ auto parse_userfields_arg(char * arg) -> int
           ++u;
         }
 
-      if (not *u)
+      if (*u == nullptr)
         {    // reached end of list -> unrecognized field
           return 0; // bad argument
         }
