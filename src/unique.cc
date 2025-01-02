@@ -184,12 +184,12 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   uint64_t bad = 0;
   uint64_t kmer = 0;
   uint64_t const mask = size - 1ULL;
-  char * s = seq;
-  char * e1 = s + wordlength - 1;
-  char * e2 = s + seqlen;
+  auto * s = seq;
+  auto * e1 = s + wordlength - 1;
+  auto * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  unsigned int * maskmap = (seqmask != MASK_NONE) ?
+  auto * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
 
   while (s < e1)
@@ -202,7 +202,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
       ++s;
     }
 
-  int unique = 0;
+  auto unique = 0;
 
   while (s < e2)
     {
@@ -269,14 +269,14 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
 
   uint64_t bad = 0;
   uint64_t j = 0;
-  unsigned int kmer = 0;
+  auto kmer = 0U;
   unsigned int const mask = (1ULL << (2ULL * wordlength)) - 1ULL;
-  char * s = seq;
-  char * e1 = s + wordlength - 1;
-  char * e2 = s + seqlen;
+  auto * s = seq;
+  auto * e1 = s + wordlength - 1;
+  auto * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  unsigned int * maskmap = (seqmask != MASK_NONE) ?
+  auto * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
 
   while (s < e1)
