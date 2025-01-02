@@ -66,7 +66,7 @@
 #include <string.h>  // strcasestr
 
 
-const int memalignment = 16;
+constexpr auto memalignment = 16;
 
 auto arch_get_memused() -> uint64_t
 {
