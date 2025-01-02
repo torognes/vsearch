@@ -231,7 +231,7 @@ auto xmalloc(size_t size) -> void *
       t = nullptr;
     }
 #endif
-  if (! t)
+  if (not t)
     {
       fatal("Unable to allocate enough memory.");
     }
