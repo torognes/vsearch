@@ -582,8 +582,8 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
     {
       return rest;
     }
-  else
-    {
+
+
       uint64_t space = h->file_buffer.alloc - h->file_buffer.length;
 
       if (space == 0)
@@ -663,7 +663,6 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
 
       h->file_buffer.length += bytes_read;
       return bytes_read;
-    }
 }
 
 
