@@ -151,13 +151,13 @@ auto parse_userfields_arg(char * arg) -> int
           next_separator = end_of_string;
         }
 
-      auto n = static_cast<uint64_t>(next_separator - ptr);
+      auto field_length = static_cast<uint64_t>(next_separator - ptr);
 
       char ** u = (char **) userfields_names;
 
       while (*u)
         {
-          if ((std::strncmp(ptr, *u, n) == 0) and (std::strlen(*u) == n))
+          if ((std::strncmp(ptr, *u, field_length) == 0) and (std::strlen(*u) == field_length))
             {
               break;
             }
