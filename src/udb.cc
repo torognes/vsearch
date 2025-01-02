@@ -86,6 +86,7 @@ struct wordfreq
 
 using wordfreq_t = struct wordfreq;
 
+
 auto wc_compare(const void * a, const void * b) -> int
 {
   auto * x = (wordfreq_t *) a;
@@ -115,6 +116,7 @@ auto wc_compare(const void * a, const void * b) -> int
     }
 }
 
+
 auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call pread multiple times and update progress */
@@ -141,6 +143,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   return nbyte;
 }
 
+
 auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call write multiple times and update progress */
@@ -166,6 +169,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
     }
   return nbyte;
 }
+
 
 auto udb_detect_isudb(const char * filename) -> bool
 {
@@ -208,6 +212,7 @@ auto udb_detect_isudb(const char * filename) -> bool
 
   return false;
 }
+
 
 auto udb_info() -> void
 {
@@ -270,6 +275,7 @@ auto udb_info() -> void
 
   close(fd_udbinfo);
 }
+
 
 auto udb_read(const char * filename,
               bool create_bitmaps,
@@ -617,6 +623,7 @@ auto udb_read(const char * filename,
     }
 }
 
+
 auto udb_fasta() -> void
 {
   if (! opt_output) {
@@ -650,6 +657,7 @@ auto udb_fasta() -> void
   dbindex_free();
   db_free();
 }
+
 
 auto udb_stats() -> void
 {
@@ -881,6 +889,7 @@ auto udb_stats() -> void
   dbindex_free();
   db_free();
 }
+
 
 auto udb_make() -> void
 {
