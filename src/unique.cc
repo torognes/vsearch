@@ -73,7 +73,8 @@
   that caused a problem when searching for sequences with many repeats.
 */
 
-#define HASH CityHash64
+using HASH = decltype(&CityHash64);
+HASH hash_function = CityHash64;
 
 constexpr auto initial_allocation = 2048;
 
@@ -304,7 +305,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       if (not bad)
         {
           /* find free appropriate bucket in hash */
-          j = HASH((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
+          j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
           while((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
@@ -372,7 +373,7 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
       for (auto i = 0; i < listlen; i++)
         {
           auto kmer = list[i];
-          uint64_t j = HASH((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
+          uint64_t j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
           while ((unique_handle->hash[j].count) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
