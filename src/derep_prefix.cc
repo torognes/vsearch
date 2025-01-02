@@ -86,44 +86,44 @@ struct bucket
 
 auto derep_compare_prefix(const void * a, const void * b) -> int
 {
-  auto * x = (struct bucket *) a;
-  auto * y = (struct bucket *) b;
+  auto * lhs = (struct bucket *) a;
+  auto * rhs = (struct bucket *) b;
 
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (x->deleted > y->deleted)
+  if (lhs->deleted > rhs->deleted)
     {
       return +1;
     }
-  else if (x->deleted < y->deleted)
+  else if (lhs->deleted < rhs->deleted)
     {
       return -1;
     }
   else
     {
-      if (x->size < y->size)
+      if (lhs->size < rhs->size)
         {
           return +1;
         }
-      else if (x->size > y->size)
+      else if (lhs->size > rhs->size)
         {
           return -1;
         }
       else
         {
-          int const r = strcmp(db_getheader(x->seqno_first),
-                         db_getheader(y->seqno_first));
+          int const r = strcmp(db_getheader(lhs->seqno_first),
+                         db_getheader(rhs->seqno_first));
           if (r != 0)
             {
               return r;
             }
           else
             {
-              if (x->seqno_first < y->seqno_first)
+              if (lhs->seqno_first < rhs->seqno_first)
                 {
                   return -1;
                 }
-              else if (x->seqno_first > y->seqno_first)
+              else if (lhs->seqno_first > rhs->seqno_first)
                 {
                   return +1;
                 }
