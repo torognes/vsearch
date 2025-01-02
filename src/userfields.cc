@@ -157,7 +157,7 @@ auto parse_userfields_arg(char * arg) -> int
 
       while (*u)
         {
-          if ((std::strncmp(ptr, *u, n) == 0) and (strlen(*u) == n))
+          if ((std::strncmp(ptr, *u, n) == 0) and (std::strlen(*u) == n))
             {
               break;
             }
