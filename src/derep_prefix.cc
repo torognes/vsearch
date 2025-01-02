@@ -100,6 +100,7 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
       return -1;
     }
 
+  // both are deleted, compare abundances
   if (lhs->size < rhs->size)
     {
       return +1;
@@ -109,6 +110,7 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
       return -1;
     }
 
+  // both are deleted, same abundances, compare sequence headers
   auto const result = std::strcmp(db_getheader(lhs->seqno_first),
                                   db_getheader(rhs->seqno_first));
   if (result != 0)
@@ -116,6 +118,7 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
       return result;
     }
 
+  // both are deleted, same abundances, same sequence headers, compare input order
   if (lhs->seqno_first < rhs->seqno_first)
     {
       return -1;
