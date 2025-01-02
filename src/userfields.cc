@@ -170,7 +170,8 @@ auto parse_userfields_arg(char * arg) -> int
         }
 
       int const i = (int) (((const char **) valid_userfield) - userfields_names);
-      userfields_requested[nth_field++] = i;
+      userfields_requested[nth_field] = i;
+      ++nth_field;
 
       ptr = next_separator;
 
