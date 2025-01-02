@@ -584,85 +584,85 @@ auto fastx_file_fill_buffer(fastx_handle h) -> uint64_t
     }
 
 
-      uint64_t space = h->file_buffer.alloc - h->file_buffer.length;
+  uint64_t space = h->file_buffer.alloc - h->file_buffer.length;
 
-      if (space == 0)
-        {
-          /* back to beginning of buffer */
-          h->file_buffer.position = 0;
-          h->file_buffer.length = 0;
-          space = h->file_buffer.alloc;
-        }
+  if (space == 0)
+    {
+      /* back to beginning of buffer */
+      h->file_buffer.position = 0;
+      h->file_buffer.length = 0;
+      space = h->file_buffer.alloc;
+    }
 
-      int bytes_read = 0;
+  int bytes_read = 0;
 
 #ifdef HAVE_BZLIB_H
-      int bzError = 0;
+  int bzError = 0;
 #endif
 
-      switch(h->format)
-        {
-        case format_plain:
-          bytes_read = fread(h->file_buffer.data
-                             + h->file_buffer.position,
-                             1,
-                             space,
-                             h->fp);
-          break;
+  switch(h->format)
+    {
+    case format_plain:
+      bytes_read = fread(h->file_buffer.data
+                         + h->file_buffer.position,
+                         1,
+                         space,
+                         h->fp);
+      break;
 
-        case format_gzip:
+    case format_gzip:
 #ifdef HAVE_ZLIB_H
-          bytes_read = (*gzread_p)(h->fp_gz,
+      bytes_read = (*gzread_p)(h->fp_gz,
+                               h->file_buffer.data
+                               + h->file_buffer.position,
+                               space);
+      if (bytes_read < 0)
+        {
+          fatal("Unable to read gzip compressed file");
+        }
+      break;
+#endif
+
+    case format_bzip:
+#ifdef HAVE_BZLIB_H
+      bytes_read = (*BZ2_bzRead_p)(& bzError,
+                                   h->fp_bz,
                                    h->file_buffer.data
                                    + h->file_buffer.position,
                                    space);
-          if (bytes_read < 0)
-            {
-              fatal("Unable to read gzip compressed file");
-            }
-          break;
-#endif
-
-        case format_bzip:
-#ifdef HAVE_BZLIB_H
-          bytes_read = (*BZ2_bzRead_p)(& bzError,
-                                       h->fp_bz,
-                                       h->file_buffer.data
-                                       + h->file_buffer.position,
-                                       space);
-          if ((bytes_read < 0) ||
-              ! ((bzError == BZ_OK) ||
-                 (bzError == BZ_STREAM_END) ||
-                 (bzError == BZ_SEQUENCE_ERROR)))
-            {
-              fatal("Unable to read from bzip2 compressed file");
-            }
-          break;
-#endif
-
-        default:
-          fatal("Internal error");
-        }
-
-      if (! h->is_pipe)
+      if ((bytes_read < 0) ||
+          ! ((bzError == BZ_OK) ||
+             (bzError == BZ_STREAM_END) ||
+             (bzError == BZ_SEQUENCE_ERROR)))
         {
-#ifdef HAVE_ZLIB_H
-          if (h->format == format_gzip)
-            {
-              /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
-              int const fd = dup(fileno(h->fp));
-              h->file_position = xlseek(fd, 0, SEEK_CUR);
-              close(fd);
-            }
-          else
-#endif
-            {
-              h->file_position = xftello(h->fp);
-            }
+          fatal("Unable to read from bzip2 compressed file");
         }
+      break;
+#endif
 
-      h->file_buffer.length += bytes_read;
-      return bytes_read;
+    default:
+      fatal("Internal error");
+    }
+
+  if (! h->is_pipe)
+    {
+#ifdef HAVE_ZLIB_H
+      if (h->format == format_gzip)
+        {
+          /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
+          int const fd = dup(fileno(h->fp));
+          h->file_position = xlseek(fd, 0, SEEK_CUR);
+          close(fd);
+        }
+      else
+#endif
+        {
+          h->file_position = xftello(h->fp);
+        }
+    }
+
+  h->file_buffer.length += bytes_read;
+  return bytes_read;
 }
 
 
