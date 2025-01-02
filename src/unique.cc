@@ -138,15 +138,11 @@ auto unique_compare(const void * a, const void * b) -> int
     {
       return -1;
     }
-  else
-    if (lhs > rhs)
-      {
-        return +1;
-      }
-    else
-      {
-        return 0;
-      }
+  if (lhs > rhs)
+    {
+      return +1;
+    }
+  return 0;
 }
 
 
