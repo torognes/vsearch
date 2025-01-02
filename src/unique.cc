@@ -96,7 +96,7 @@ struct uhandle_s
 
 auto unique_init() -> struct uhandle_s *
 {
-  auto * unique_handle = (struct uhandle_s *) xmalloc(sizeof(struct uhandle_s));
+  auto * unique_handle = static_cast<struct uhandle_s *>(xmalloc(sizeof(struct uhandle_s)));
 
   unique_handle->alloc = 2048;
   unique_handle->size = 0;
