@@ -109,7 +109,7 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
       return -1;
     }
 
-  int const result = std::strcmp(db_getheader(lhs->seqno_first),
+  auto const result = std::strcmp(db_getheader(lhs->seqno_first),
                                  db_getheader(rhs->seqno_first));
   if (result != 0)
     {
