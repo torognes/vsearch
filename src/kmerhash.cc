@@ -151,7 +151,7 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
 
   kh->maxpos = len;
 
-  memset(kh->hash, 0, kh->size * sizeof(struct kh_bucket_s));
+  std::memset(kh->hash, 0, kh->size * sizeof(struct kh_bucket_s));
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -264,7 +264,7 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
                        int len,
                        int * diags) -> void
 {
-  memset(diags, 0, (kh->maxpos+len) * sizeof(int));
+  std::memset(diags, 0, (kh->maxpos+len) * sizeof(int));
 
   int const kmers = 1U << (2U * k);
   unsigned int const kmer_mask = kmers - 1;
