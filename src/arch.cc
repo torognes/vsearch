@@ -239,7 +239,7 @@ auto xmalloc(size_t size) -> void *
 }
 
 
-auto xrealloc(void *ptr, size_t size) -> void *
+auto xrealloc(void * ptr, size_t size) -> void *
 {
   if (size == 0)
     {
