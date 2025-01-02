@@ -89,7 +89,7 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
   auto * lhs = (struct bucket *) a;
   auto * rhs = (struct bucket *) b;
 
-  /* highest abundance first, then by label, otherwise keep order */
+  /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
 
   if (lhs->deleted > rhs->deleted)
     {
