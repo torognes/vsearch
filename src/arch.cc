@@ -246,15 +246,15 @@ auto xrealloc(void * ptr, size_t size) -> void *
       size = 1;
     }
 #ifdef _WIN32
-  void * t = _aligned_realloc(ptr, size, memalignment);
+  void * new_ptr = _aligned_realloc(ptr, size, memalignment);
 #else
-  void * t = realloc(ptr, size);
+  void * new_ptr = realloc(ptr, size);
 #endif
-  if (not t)
+  if (not new_ptr)
     {
       fatal("Unable to reallocate enough memory.");
     }
-  return t;
+  return new_ptr;
 }
 
 
