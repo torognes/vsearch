@@ -169,7 +169,7 @@ auto parse_userfields_arg(char * arg) -> int
           return 0; // bad argument
         }
 
-      int const i = (int) (((const char **) valid_userfield) - userfields_names);
+      auto const i = static_cast<int>((((const char **) valid_userfield) - userfields_names));
       userfields_requested[nth_field] = i;
       ++nth_field;
 
