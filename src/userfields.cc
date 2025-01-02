@@ -153,23 +153,23 @@ auto parse_userfields_arg(char * arg) -> int
 
       auto const field_length = static_cast<uint64_t>(next_separator - ptr);
 
-      char ** u = (char **) userfields_names;
+      char ** valid_userfield = (char **) userfields_names;
 
-      while (*u != nullptr)
+      while (*valid_userfield != nullptr)
         {
-          if ((std::strncmp(ptr, *u, field_length) == 0) and (std::strlen(*u) == field_length))
+          if ((std::strncmp(ptr, *valid_userfield, field_length) == 0) and (std::strlen(*valid_userfield) == field_length))
             {
               break;
             }
-          ++u;
+          ++valid_userfield;
         }
 
-      if (*u == nullptr)
+      if (*valid_userfield == nullptr)
         {    // reached end of list -> unrecognized field
           return 0; // bad argument
         }
 
-      int const i = (int) (((const char **) u) - userfields_names);
+      int const i = (int) (((const char **) valid_userfield) - userfields_names);
       userfields_requested[fields++] = i;
 
       ptr = next_separator;
