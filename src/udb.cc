@@ -89,23 +89,23 @@ using wordfreq_t = struct wordfreq;
 
 auto wc_compare(const void * a, const void * b) -> int
 {
-  auto * x = (wordfreq_t *) a;
-  auto * y = (wordfreq_t *) b;
-  if (x->count < y->count)
+  auto * lhs = (wordfreq_t *) a;
+  auto * rhs = (wordfreq_t *) b;
+  if (lhs->count < rhs->count)
     {
       return -1;
     }
-  else if (x->count > y->count)
+  else if (lhs->count > rhs->count)
     {
       return +1;
     }
   else
     {
-      if (x->kmer < y->kmer)
+      if (lhs->kmer < rhs->kmer)
         {
           return +1;
         }
-      else if (x->kmer > y->kmer)
+      else if (lhs->kmer > rhs->kmer)
         {
           return -1;
         }
