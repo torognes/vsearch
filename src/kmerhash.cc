@@ -294,7 +294,7 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
                   int const diag = len + fpos - (pos - k + 1);
                   if (diag >= 0)
                     {
-                      diags[diag]++;
+                      ++diags[diag];
                     }
                 }
               j = (j + 1) & kh->hash_mask;
