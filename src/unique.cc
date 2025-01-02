@@ -296,7 +296,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       kmer |= chrmap_2bit[(int) (*s++)];
       kmer &= mask;
 
-      if (! bad)
+      if (not bad)
         {
           /* find free appropriate bucket in hash */
           j = HASH((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
@@ -305,7 +305,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
               j = (j + 1) & unique_handle->hash_mask;
             }
 
-          if (! (unique_handle->hash[j].count))
+          if (not (unique_handle->hash[j].count))
             {
               /* not seen before */
               unique_handle->list[unique++] = kmer;
