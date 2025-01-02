@@ -135,7 +135,7 @@ auto parse_userfields_arg(char * arg) -> int
 
   userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * (uint64_t) userfields_requested_count));
 
-  ptr = arg;  // reset to the begin of the string
+  ptr = arg;  // reset to the start of the string
 
   char * q = nullptr;
 
