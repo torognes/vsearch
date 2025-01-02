@@ -81,6 +81,7 @@ struct kh_handle_s
   int maxpos;
 };
 
+
 auto kh_init() -> struct kh_handle_s *
 {
   auto * kh =
@@ -96,6 +97,7 @@ auto kh_init() -> struct kh_handle_s *
   return kh;
 }
 
+
 auto kh_exit(struct kh_handle_s * kh) -> void
 {
   if (kh->hash)
@@ -104,6 +106,7 @@ auto kh_exit(struct kh_handle_s * kh) -> void
     }
   xfree(kh);
 }
+
 
 inline auto kh_insert_kmer(struct kh_handle_s * kh,
                            int k,
@@ -120,6 +123,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kh,
   kh->hash[j].kmer = kmer;
   kh->hash[j].pos = pos;
 }
+
 
 auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> void
 {
@@ -174,6 +178,7 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
         }
     }
 }
+
 
 auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) -> int
 {
@@ -251,6 +256,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
       return -1;
     }
 }
+
 
 auto kh_find_diagonals(struct kh_handle_s * kh,
                        int k,
