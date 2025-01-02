@@ -998,8 +998,8 @@ auto backtrack16(s16info_s * s,
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
       uint64_t const d = *((uint64_t *) (dirbuffer +
-                                         (offset + (16 * s->qlen * (j / 4)) +
-                                          (16 * i) + (4 * (j & 3))) % dirbuffersize));
+                                         ((offset + (16 * s->qlen * (j / 4)) +
+                                           (16 * i) + (4 * (j & 3))) % dirbuffersize)));
 
       if ((s->op == 'I') && (d & maskextleft))
         {
