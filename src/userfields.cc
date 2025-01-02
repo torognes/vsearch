@@ -141,7 +141,7 @@ auto parse_userfields_arg(char * arg) -> int
 
   char * next_separator = nullptr;
 
-  int nth_field = 0;
+  auto nth_field = 0;
 
   while (true)
     {
