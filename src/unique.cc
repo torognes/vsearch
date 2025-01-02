@@ -215,11 +215,11 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
       ++s;
       kmer &= mask;
 
-      if (not bad)
+      if (bad == 0u)
         {
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if (not (unique_handle->bitmap[x] & y))
+          if ((unique_handle->bitmap[x] & y) == 0u)
             {
               /* not seen before */
               unique_handle->list[unique] = kmer;
