@@ -250,7 +250,7 @@ auto xrealloc(void * ptr, size_t size) -> void *
 #else
   void * new_ptr = realloc(ptr, size);
 #endif
-  if (not new_ptr)
+  if (new_ptr == nullptr)
     {
       fatal("Unable to reallocate enough memory.");
     }
