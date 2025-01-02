@@ -251,10 +251,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
     {
       return best_diag;
     }
-  else
-    {
-      return -1;
-    }
+  return -1;
 }
 
 
