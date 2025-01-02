@@ -104,14 +104,11 @@ auto wc_compare(const void * a, const void * b) -> int
     {
       return +1;
     }
-  else if (lhs->kmer > rhs->kmer)
+  if (lhs->kmer > rhs->kmer)
     {
       return -1;
     }
-  else
-    {
-      return 0;
-    }
+  return 0;
 }
 
 
