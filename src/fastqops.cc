@@ -79,7 +79,7 @@ auto q2p(double quality_value) -> double
 
 auto fastq_stats() -> void
 {
-  auto input_handle = fastq_open(opt_fastq_stats);
+  auto * input_handle = fastq_open(opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
 
@@ -556,7 +556,7 @@ auto fastq_convert() -> void
     fatal("No output file specified with --fastqout");
   }
 
-  auto input_handle = fastq_open(opt_fastq_convert);
+  auto * input_handle = fastq_open(opt_fastq_convert);
 
   if (! input_handle)
     {
