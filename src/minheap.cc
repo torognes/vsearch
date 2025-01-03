@@ -86,30 +86,25 @@ auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
     {
       return 1;
     }
-  else
-    if (lhs->count > rhs->count)
-      {
-        return 0;
-      }
-    else
-      if (lhs->length > rhs->length)
-        {
-          return 1;
-        }
-      else
-        if (lhs->length < rhs->length)
-          {
-            return 0;
-          }
-        else
-          if (lhs->seqno > rhs->seqno)
-            {
-              return 1;
-            }
-          else
-            {
-              return 0;
-            }
+  if (lhs->count > rhs->count)
+    {
+      return 0;
+    }
+
+  if (lhs->length > rhs->length)
+    {
+      return 1;
+    }
+  if (lhs->length < rhs->length)
+    {
+      return 0;
+    }
+
+  if (lhs->seqno > rhs->seqno)
+    {
+      return 1;
+    }
+  return 0;
 }
 
 
