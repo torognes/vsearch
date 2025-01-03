@@ -221,7 +221,7 @@ auto db_read(const char * filename, int upcase) -> void
   progress_init(prompt, filesize);
 
   longest = 0;
-  shortest = std::numeric_limits<uint64_t>::max();
+  shortest = std::numeric_limits<uint64_t>::max();  // refactoring: direct initialization
   longestheader = 0;
   sequences = 0;
   nucleotides = 0;
