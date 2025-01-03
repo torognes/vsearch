@@ -516,10 +516,7 @@ auto fastq_get_abundance(fastx_handle input_handle) -> int64_t
     {
       return size;
     }
-  else
-    {
-      return 1;
-    }
+  return 1;
 }
 
 
