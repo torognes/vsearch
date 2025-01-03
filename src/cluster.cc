@@ -213,7 +213,7 @@ inline auto cluster_query_core(struct searchinfo_s * si) -> void
     }
   else
     {
-      strcpy(si->qsequence, db_getsequence(seqno));
+      std::strcpy(si->qsequence, db_getsequence(seqno));
     }
 
   /* perform search */
@@ -406,7 +406,7 @@ auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
   char * label = nullptr;
   if (opt_relabel)
     {
-      int const size = strlen(opt_relabel) + 21;
+      int const size = std::strlen(opt_relabel) + 21;
       label = (char *) xmalloc(size);
       snprintf(label, size, "%s%d", opt_relabel, clusterno + 1);
     }
@@ -524,7 +524,7 @@ auto cluster_core_results_hit(struct hit * best,
                           qsequence,
                           qseqlen,
                           query_head,
-                          strlen(query_head),
+                          std::strlen(query_head),
                           qsize,
                           count_matched,
                           -1.0,
@@ -561,7 +561,7 @@ auto cluster_core_results_nohit(int clusterno,
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
       header_fprint_strip(fp_uc,
                           query_head,
-                          strlen(query_head),
+                          std::strlen(query_head),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
@@ -590,7 +590,7 @@ auto cluster_core_results_nohit(int clusterno,
                           qsequence,
                           qseqlen,
                           query_head,
-                          strlen(query_head),
+                          std::strlen(query_head),
                           qsize,
                           count_notmatched,
                           -1.0,
@@ -1438,7 +1438,7 @@ auto cluster(char * dbname,
   int fn_clusters_size = 0;
   if (opt_clusters)
     {
-      fn_clusters_size += strlen(opt_clusters) + 25;
+      fn_clusters_size += std::strlen(opt_clusters) + 25;
       fn_clusters = (char *) xmalloc(fn_clusters_size);
     }
 
