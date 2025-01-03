@@ -166,6 +166,7 @@ inline auto compare_byclusterabundance(const void * a, const void * b) -> int
 {
   auto * lhs = (clusterinfo_t *) a;
   auto * rhs = (clusterinfo_t *) b;
+
   if (cluster_abundance[lhs->clusterno] > cluster_abundance[rhs->clusterno])
     {
       return -1;
@@ -174,6 +175,7 @@ inline auto compare_byclusterabundance(const void * a, const void * b) -> int
     {
       return +1;
     }
+
   if (lhs->clusterno < rhs->clusterno)
     {
       return -1;
@@ -182,6 +184,7 @@ inline auto compare_byclusterabundance(const void * a, const void * b) -> int
     {
       return +1;
     }
+
   if (lhs->seqno < rhs->seqno)
     {
       return -1;
