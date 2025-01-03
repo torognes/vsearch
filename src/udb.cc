@@ -847,10 +847,7 @@ auto udb_stats() -> void
             {
               size_hi = 1;
             }
-          if (size_hi > seqcount)
-            {
-              size_hi = seqcount;
-            }
+          size_hi = std::min(size_hi, seqcount);
         }
 
       fprintf(fp_log, "----------  ----------  ----------  ----------\n");
