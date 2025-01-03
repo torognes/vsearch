@@ -300,7 +300,7 @@ auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 #ifdef _WIN32
   return _lseeki64(file_descriptor, offset, whence);
 #else
-  return lseek(file_descriptor, offset, whence);
+  return lseek(file_descriptor, offset, whence);  // libC or linuxism: replace with std::fseek()?
 #endif
 }
 
