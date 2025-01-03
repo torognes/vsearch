@@ -157,11 +157,13 @@ inline auto hit_compare_bysize_typed(struct hit * lhs, struct hit * rhs) -> int
       return 0;
     }
 
-  if (db_getabundance(lhs->target) > db_getabundance(rhs->target))
+  auto const lhs_abundance = db_getabundance(lhs->target);
+  auto const rhs_abundance = db_getabundance(rhs->target);
+  if (lhs_abundance > rhs_abundance)
     {
       return -1;
     }
-  if (db_getabundance(lhs->target) < db_getabundance(rhs->target))
+  if (lhs_abundance < rhs_abundance)
     {
       return +1;
     }
