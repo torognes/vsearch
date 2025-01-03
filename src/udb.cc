@@ -425,7 +425,7 @@ auto udb_read(const char * filename,
   pos += largeread(fd_udb, datap, udb_headerchars, pos);
 
   uint64_t longestheader = 0;
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       longestheader = std::max<uint64_t>(seqindex[i].headerlen, longestheader);
     }
