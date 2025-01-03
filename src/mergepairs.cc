@@ -766,14 +766,12 @@ auto optimize(merge_data_t * ip,
           double score_high = 0.0;
           double dropmax = 0.0;
 
-          for (int64_t j=0; j < overlap; j++)
+          for (int64_t j = 0; j < overlap; j++)
             {
               /* for each pair of bases in the overlap */
 
-              char const fwd_sym
-                = ip->fwd_sequence[fwd_pos];
-              char const rev_sym
-                = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
+              char const fwd_sym = ip->fwd_sequence[fwd_pos];
+              char const rev_sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
 
               unsigned int const fwd_qual = ip->fwd_quality[fwd_pos];
               unsigned int const rev_qual = ip->rev_quality[rev_pos];
