@@ -880,7 +880,7 @@ auto udb_make() -> void
     fatal("UDB output file must be specified with --output");
   }
 
-  int fd_output = 0;
+  auto fd_output = 0;
 
   fd_output = xopen_write(opt_output);
   if (not fd_output)
@@ -903,10 +903,10 @@ auto udb_make() -> void
   dbindex_addallsequences(opt_dbmask);
 
   unsigned int const seqcount = db_getsequencecount();
-  uint64_t const ntcount = db_getnucleotidecount();
+  auto const ntcount = db_getnucleotidecount();
 
   uint64_t header_characters = 0;
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       header_characters += db_getheaderlen(i) + 1;
     }
@@ -962,8 +962,8 @@ auto udb_make() -> void
       if (kmerbitmap[i])
         {
           memset(buffer.data(), 0, 4 * kmercount[i]);
-          unsigned int elements = 0;
-          for (unsigned int j = 0; j < seqcount; j++)
+          auto elements = 0U;
+          for (auto j = 0U; j < seqcount; j++)
             {
               if (bitmap_get(kmerbitmap[i], j))
                 {
@@ -1001,8 +1001,8 @@ auto udb_make() -> void
   pos += largewrite(fd_output, buffer.data(), 4 * 8, pos);
 
   /* indices to headers (uint32) */
-  unsigned int sum = 0;
-  for (unsigned int i = 0; i < seqcount; i++)
+  auto sum = 0U;
+  for (auto i = 0U; i < seqcount; i++)
     {
       buffer[i] = sum;
       sum += db_getheaderlen(i) + 1;
@@ -1010,21 +1010,21 @@ auto udb_make() -> void
   pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
 
   /* headers (ascii, zero terminated, not padded) */
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const len = db_getheaderlen(i);
       pos += largewrite(fd_output, db_getheader(i), len + 1, pos);
     }
 
   /* sequence lengths (uint32) */
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       buffer[i] = db_getsequencelen(i);
     }
   pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
 
   /* sequences (ascii, no term, no pad) */
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const len = db_getsequencelen(i);
       pos += largewrite(fd_output, db_getsequence(i), len, pos);
