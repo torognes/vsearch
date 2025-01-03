@@ -61,11 +61,11 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // LONG_MAX
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memcpy, std::strcmp
+#include <limits>
 
 
 constexpr uint64_t memchunk = 16777216;  // 2^24
@@ -221,7 +221,7 @@ auto db_read(const char * filename, int upcase) -> void
   progress_init(prompt, filesize);
 
   longest = 0;
-  shortest = LONG_MAX;
+  shortest = std::numeric_limits<long unsigned int>::max();
   longestheader = 0;
   sequences = 0;
   nucleotides = 0;
