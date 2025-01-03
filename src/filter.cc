@@ -128,7 +128,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
 {
   struct analysis_res res;
   res.length = fastx_get_sequence_length(h);
-  int64_t const old_length = res.length;
+  auto const old_length = res.length;
 
   /* strip left (5') end */
   if (opt_fastq_stripleft < res.length)
