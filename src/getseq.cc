@@ -194,10 +194,7 @@ auto test_label_match(fastx_handle h) -> bool
         {
           return xstrcasestr(header, needle);
         }
-      else
-        {
-          return (hlen == wlen) && ! strcasecmp(header, needle); // strcasecmp is a linuxism
-        }
+      return (hlen == wlen) && ! strcasecmp(header, needle); // strcasecmp is a linuxism
     }
   else if (opt_labels)
     {
