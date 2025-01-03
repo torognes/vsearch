@@ -64,6 +64,7 @@
 #include "dbindex.h"
 #include "mask.h"
 #include "unique.h"
+#include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // UINT_MAX
 #include <cmath>
@@ -74,7 +75,7 @@
 #include <vector>
 
 
-constexpr auto blocksize = 4096U * 4096U;
+constexpr auto blocksize = 4096UL * 4096UL;
 
 static unsigned int udb_dbaccel = 0;
 
@@ -125,7 +126,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 const rem = MIN(blocksize, nbyte - i);
+      uint64 const rem = std::min(blocksize, nbyte - i);
       uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
@@ -152,7 +153,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 const rem = MIN(blocksize, nbyte - i);
+      uint64 const rem = std::min(blocksize, nbyte - i);
       uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
@@ -722,7 +723,7 @@ auto udb_stats() -> void
                   freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
-                  "%.*s", MAX(12 - (int)(opt_wordlength), 0), "            ");
+                  "%.*s", std::max(12 - (int)(opt_wordlength), 0), "            ");
 
           fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
 
@@ -946,7 +947,7 @@ auto udb_make() -> void
 
   progress_init("Writing UDB file", progress_all);
 
-  uint64_t const buffersize = MAX(50, seqcount);
+  uint64_t const buffersize = std::max(50U, seqcount);
   std::vector<unsigned int> buffer(buffersize);
 
   /* Header */
