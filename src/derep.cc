@@ -553,7 +553,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
                   // fastq_qout_min
                   /* max error prob, lowest quality */
-                  // p3 = MAX(p1, p2);
+                  // p3 = std::max(p1, p2);
 
                   // fastq_qout_first
                   /* keep first */
