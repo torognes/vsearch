@@ -192,7 +192,7 @@ auto udb_detect_isudb(const char * filename) -> bool
 
   int fd = 0;
   fd = xopen_read(filename);
-  if (! fd)
+  if (not fd)
     {
       fatal("Unable to open input file for reading (%s)", filename);
     }
@@ -201,7 +201,7 @@ auto udb_detect_isudb(const char * filename) -> bool
   uint64_t const bytesread = read(fd, & magic, expected_n_bytes);
   close(fd);
 
-  if ((bytesread == expected_n_bytes) && (magic == udb_file_signature))
+  if ((bytesread == expected_n_bytes) and (magic == udb_file_signature))
     {
       return true;
     }
@@ -219,7 +219,7 @@ auto udb_info() -> void
   int fd_udbinfo = 0;
 
   fd_udbinfo = xopen_read(opt_udbinfo);
-  if (! fd_udbinfo)
+  if (not fd_udbinfo)
     {
       fatal("Unable to open UDB file for reading");
     }
@@ -230,18 +230,18 @@ auto udb_info() -> void
       fatal("Unable to read from UDB file or invalid UDB file");
     }
 
-  if ((buffer[0]  != 0x55444246) ||
-      (buffer[2] != 32) ||
-      (buffer[4] < 3) ||
-      (buffer[4] > 15) ||
-      (buffer[13] == 0) ||
-      (buffer[17] != 0x0000746e) ||
+  if ((buffer[0]  != 0x55444246) or
+      (buffer[2] != 32) or
+      (buffer[4] < 3) or
+      (buffer[4] > 15) or
+      (buffer[13] == 0) or
+      (buffer[17] != 0x0000746e) or
       (buffer[49] != 0x55444266))
     {
       fatal("Invalid UDB file");
     }
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "           Seqs  %u\n", buffer[13]);
       fprintf(stderr, "     SeqIx bits  %u\n", buffer[2]);
@@ -304,7 +304,7 @@ auto udb_read(const char * filename,
   int fd_udb = 0;
 
   fd_udb = xopen_read(filename);
-  if (! fd_udb)
+  if (not fd_udb)
     {
       fatal("Unable to open UDB file for reading");
     }
@@ -324,12 +324,12 @@ auto udb_read(const char * filename,
 
   pos += largeread(fd_udb, buffer, 4 * 50, pos);
 
-  if ((buffer[0]  != 0x55444246) ||
-      (buffer[2] != 32) ||
-      (buffer[4] < 3) ||
-      (buffer[4] > 15) ||
-      (buffer[13] == 0) ||
-      (buffer[17] != 0x0000746e) ||
+  if ((buffer[0]  != 0x55444246) or
+      (buffer[2] != 32) or
+      (buffer[4] < 3) or
+      (buffer[4] > 15) or
+      (buffer[13] == 0) or
+      (buffer[17] != 0x0000746e) or
       (buffer[49] != 0x55444266))
     {
       fatal("Invalid UDB file");
@@ -382,9 +382,9 @@ auto udb_read(const char * filename,
 
   pos += largeread(fd_udb, buffer, 4 * 8, pos);
 
-  if ((buffer[0] != 0x55444234) ||
-      (buffer[1] != 0x005e0db3) ||
-      (buffer[2] != seqcount) ||
+  if ((buffer[0] != 0x55444234) or
+      (buffer[1] != 0x005e0db3) or
+      (buffer[2] != seqcount) or
       (buffer[7] != 0x005e0db4))
     {
       fatal("Invalid UDB file");
@@ -407,7 +407,7 @@ auto udb_read(const char * filename,
   for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const current_index = header_index[i];
-      if ((current_index < last) || (current_index >= udb_headerchars))
+      if ((current_index < last) or (current_index >= udb_headerchars))
         {
           fatal("Invalid UDB file");
         }
@@ -566,7 +566,7 @@ auto udb_read(const char * filename,
 
   /* some stats */
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (seqcount > 0)
         {
@@ -612,14 +612,14 @@ auto udb_read(const char * filename,
 
 auto udb_fasta() -> void
 {
-  if (! opt_output) {
+  if (not opt_output) {
     fatal("FASTA output file must be specified with --output");
   }
 
   /* open FASTA file for writing */
 
   FILE * fp_output = fopen_output(opt_output);
-  if (! fp_output)
+  if (not fp_output)
     {
       fatal("Unable to open FASTA output file for writing");
     }
@@ -772,7 +772,7 @@ auto udb_stats() -> void
 
           int count = 0;
           int size = 0;
-          while ((x < kmerhashsize) && (freqtable[x].count <= size_hi))
+          while ((x < kmerhashsize) and (freqtable[x].count <= size_hi))
             {
               count++;
               size += freqtable[x].count;
@@ -876,14 +876,14 @@ auto udb_stats() -> void
 
 auto udb_make() -> void
 {
-  if (! opt_output) {
+  if (not opt_output) {
     fatal("UDB output file must be specified with --output");
   }
 
   int fd_output = 0;
 
   fd_output = xopen_write(opt_output);
-  if (! fd_output)
+  if (not fd_output)
     {
       fatal("Unable to open output file for writing");
     }
@@ -894,7 +894,7 @@ auto udb_make() -> void
     {
       dust_all();
     }
-  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
     {
       hardmask_all();
     }
