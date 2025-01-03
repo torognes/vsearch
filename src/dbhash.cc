@@ -183,10 +183,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
     {
       return bp->seqno;
     }
-  else
-    {
-      return -1;
-    }
+  return -1;
 }
 
 
