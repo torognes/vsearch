@@ -267,10 +267,7 @@ auto fasta_get_abundance(fastx_handle h) -> int64_t
     {
       return size;
     }
-  else
-    {
-      return 1;
-    }
+  return 1;
 }
 
 
