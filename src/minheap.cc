@@ -120,35 +120,29 @@ auto minheap_compare(const void * lhs_a, const void * rhs_b) -> int
     {
       return -1;
     }
-  else
-    if (lhs->count > rhs->count)
-      {
-        return +1;
-      }
-    else
-      if (lhs->length > rhs->length)
-        {
-          return -1;
-        }
-      else
-        if (lhs->length < rhs->length)
-          {
-            return +1;
-          }
-        else
-          if (lhs->seqno > rhs->seqno)
-            {
-              return -1;
-            }
-          else
-            if (lhs->seqno < rhs->seqno)
-              {
-                return +1;
-              }
-            else
-              {
-                return 0;
-              }
+  if (lhs->count > rhs->count)
+    {
+      return +1;
+    }
+
+  if (lhs->length > rhs->length)
+    {
+      return -1;
+    }
+  if (lhs->length < rhs->length)
+    {
+      return +1;
+    }
+
+  if (lhs->seqno > rhs->seqno)
+    {
+      return -1;
+    }
+  if (lhs->seqno < rhs->seqno)
+    {
+      return +1;
+    }
+  return 0;
 }
 
 
