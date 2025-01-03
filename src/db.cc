@@ -148,25 +148,25 @@ auto db_add(bool is_fastq,
 
   /* store the header */
   size_t const header_p = datalen;
-  memcpy(datap + header_p,
-         header,
-         headerlength + 1);
+  std::memcpy(datap + header_p,
+              header,
+              headerlength + 1);
   datalen += headerlength + 1;
 
   /* store sequence */
   size_t const sequence_p = datalen;
-  memcpy(datap + sequence_p,
-         sequence,
-         sequencelength + 1);
+  std::memcpy(datap + sequence_p,
+              sequence,
+              sequencelength + 1);
   datalen += sequencelength + 1;
 
   size_t const quality_p = datalen;
   if (is_fastq)
     {
       /* store quality */
-      memcpy(datap + quality_p,
-             quality,
-             sequencelength + 1);
+      std::memcpy(datap + quality_p,
+                  quality,
+                  sequencelength + 1);
       datalen += sequencelength + 1;
     }
 
