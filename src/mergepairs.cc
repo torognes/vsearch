@@ -367,7 +367,7 @@ auto precompute_qual() -> void
 
           // Use a minimum mismatch penalty
 
-          mism_score[x][y] = MIN(log2((1.0 - p) / 0.75), merge_mismatchmax);
+          mism_score[x][y] = std::min(log2((1.0 - p) / 0.75), merge_mismatchmax);
         }
     }
 }
