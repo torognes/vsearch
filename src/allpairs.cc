@@ -97,6 +97,7 @@ static FILE * fp_tsegout = nullptr;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
+
 inline auto allpairs_hit_compare_typed(struct hit * x, struct hit * y) -> int
 {
   // high id, then low id
@@ -124,10 +125,12 @@ inline auto allpairs_hit_compare_typed(struct hit * x, struct hit * y) -> int
     }
 }
 
+
 auto allpairs_hit_compare(const void * a, const void * b) -> int
 {
   return allpairs_hit_compare_typed((struct hit *) a, (struct hit *) b);
 }
+
 
 auto allpairs_output_results(int hit_count,
                              struct hit * hits,
@@ -296,6 +299,7 @@ auto allpairs_output_results(int hit_count,
         }
     }
 }
+
 
 auto allpairs_thread_run(int64_t t) -> void
 {
@@ -539,12 +543,14 @@ auto allpairs_thread_run(int64_t t) -> void
   xfree(scorematrix);
 }
 
+
 auto allpairs_thread_worker(void * void_ptr) -> void *
 {
   auto const nth_thread = reinterpret_cast<int64_t>(void_ptr);
   allpairs_thread_run(nth_thread);
   return nullptr;
 }
+
 
 auto allpairs_thread_worker_run() -> void
 {
