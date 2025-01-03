@@ -148,7 +148,7 @@ auto find_median() -> double
                 {
                   return (cand + above) / 2.0;
                 }
-              else if (above_count + cand_count == below_count)
+              if (above_count + cand_count == below_count)
                 // mid == below_count
                 // same as:
                 // (below_count + cand_count + above_count) / 2 == below_count
@@ -157,10 +157,7 @@ auto find_median() -> double
                 {
                   return (below + cand) / 2.0;  // cannot reach?
                 }
-              else
-                {
-                  return cand;
-                }
+              return cand;
             }
           else
             {
