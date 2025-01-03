@@ -140,26 +140,25 @@ inline auto compare_byclusterno(const void * a, const void * b) -> int
 {
   auto * lhs = (clusterinfo_t *) a;
   auto * rhs = (clusterinfo_t *) b;
+
   if (lhs->clusterno < rhs->clusterno)
     {
       return -1;
     }
-  else if (lhs->clusterno > rhs->clusterno)
+  if (lhs->clusterno > rhs->clusterno)
     {
       return +1;
     }
-  else if (lhs->seqno < rhs->seqno)
+
+  if (lhs->seqno < rhs->seqno)
     {
       return -1;
     }
-  else if (lhs->seqno > rhs->seqno)
+  if (lhs->seqno > rhs->seqno)
     {
       return +1;
     }
-  else
-    {
-      return 0;
-    }
+  return 0;
 }
 
 
