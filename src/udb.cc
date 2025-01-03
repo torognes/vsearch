@@ -406,15 +406,15 @@ auto udb_read(const char * filename,
   auto last = 0U;
   for (auto i = 0U; i < seqcount; i++)
     {
-      unsigned int const x = header_index[i];
-      if ((x < last) || (x >= udb_headerchars))
+      unsigned int const current_index = header_index[i];
+      if ((current_index < last) || (current_index >= udb_headerchars))
         {
           fatal("Invalid UDB file");
         }
-      seqindex[i].header_p = x;
-      seqindex[i].headerlen = header_index[i + 1] - x - 1;
+      seqindex[i].header_p = current_index;
+      seqindex[i].headerlen = header_index[i + 1] - current_index - 1;
       seqindex[i].size = 1;
-      last = x;
+      last = current_index;
     }
 
 
