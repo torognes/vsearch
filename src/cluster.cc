@@ -170,30 +170,27 @@ inline auto compare_byclusterabundance(const void * a, const void * b) -> int
     {
       return -1;
     }
-  else if (cluster_abundance[lhs->clusterno] < cluster_abundance[rhs->clusterno])
+  if (cluster_abundance[lhs->clusterno] < cluster_abundance[rhs->clusterno])
     {
       return +1;
     }
-  else if (lhs->clusterno < rhs->clusterno)
+  if (lhs->clusterno < rhs->clusterno)
     {
       return -1;
     }
-  else if (lhs->clusterno > rhs->clusterno)
+  if (lhs->clusterno > rhs->clusterno)
     {
       return +1;
     }
-  else if (lhs->seqno < rhs->seqno)
+  if (lhs->seqno < rhs->seqno)
     {
       return -1;
     }
-  else if (lhs->seqno > rhs->seqno)
+  if (lhs->seqno > rhs->seqno)
     {
       return +1;
     }
-  else
-    {
-      return 0;
-    }
+  return 0;
 }
 
 
