@@ -123,9 +123,9 @@ inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> in
 }
 
 
-auto allpairs_hit_compare(const void * a, const void * b) -> int
+auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 {
-  return allpairs_hit_compare_typed((struct hit *) a, (struct hit *) b);
+  return allpairs_hit_compare_typed((struct hit *) lhs, (struct hit *) rhs);
 }
 
 
