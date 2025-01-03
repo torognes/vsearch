@@ -182,7 +182,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
           auto const e = std::pow(base, -qual / base);
           res.ee += e;
 
-          if ((qual <= opt_fastq_truncqual) ||
+          if ((qual <= opt_fastq_truncqual) or
               (res.ee > opt_fastq_truncee))
             {
               res.ee -= e;
@@ -196,14 +196,14 @@ auto analyse(fastx_handle h) -> struct analysis_res
         {
           res.discarded = true;
         }
-      if ((res.length > 0) && (res.ee / res.length > opt_fastq_maxee_rate))
+      if ((res.length > 0) and (res.ee / res.length > opt_fastq_maxee_rate))
         {
           res.discarded = true;
         }
     }
 
   /* filter by length */
-  if ((opt_fastq_trunclen >= 0) && (res.length < opt_fastq_trunclen))
+  if ((opt_fastq_trunclen >= 0) and (res.length < opt_fastq_trunclen))
     {
       res.discarded = true;
     }
@@ -222,7 +222,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
   for (auto i = 0; i < res.length; i++)
     {
       auto const pc = p[i];
-      if ((pc == 'N') || (pc == 'n'))
+      if ((pc == 'N') or (pc == 'n'))
         {
           ++ncount;
         }
@@ -254,10 +254,10 @@ auto filter(bool fastq_only, char * filename) -> void
   static constexpr auto dbl_max = std::numeric_limits<double>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
-  if ((! opt_fastqout) && (! opt_fastaout) &&
-      (! opt_fastqout_discarded) && (! opt_fastaout_discarded) &&
-      (! opt_fastqout_rev) && (! opt_fastaout_rev) &&
-      (! opt_fastqout_discarded_rev) && (! opt_fastaout_discarded_rev))
+  if ((not opt_fastqout) and (not opt_fastaout) and
+      (not opt_fastqout_discarded) and (not opt_fastaout_discarded) and
+      (not opt_fastqout_rev) and (not opt_fastaout_rev) and
+      (not opt_fastqout_discarded_rev) and (not opt_fastaout_discarded_rev))
     {
       fatal("No output files specified");
     }
@@ -267,29 +267,29 @@ auto filter(bool fastq_only, char * filename) -> void
 
   h1 = fastx_open(filename);
 
-  if (! h1)
+  if (not h1)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
 
-  if (! (h1->is_fastq || h1->is_empty))
+  if (not (h1->is_fastq or h1->is_empty))
     {
       if (fastq_only)
         {
           fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
         }
-      else if (opt_eeout ||
-               (opt_fastq_ascii != 33) ||
-               opt_fastq_eeout ||
-               (opt_fastq_maxee < dbl_max) ||
-               (opt_fastq_maxee_rate < dbl_max) ||
-               opt_fastqout ||
-               (opt_fastq_qmax < 41) ||
-               (opt_fastq_qmin > 0) ||
-               (opt_fastq_truncee < dbl_max) ||
-               (opt_fastq_truncqual < long_min) ||
-               opt_fastqout_discarded ||
-               opt_fastqout_discarded_rev ||
+      else if (opt_eeout or
+               (opt_fastq_ascii != 33) or
+               opt_fastq_eeout or
+               (opt_fastq_maxee < dbl_max) or
+               (opt_fastq_maxee_rate < dbl_max) or
+               opt_fastqout or
+               (opt_fastq_qmax < 41) or
+               (opt_fastq_qmin > 0) or
+               (opt_fastq_truncee < dbl_max) or
+               (opt_fastq_truncqual < long_min) or
+               opt_fastqout_discarded or
+               opt_fastqout_discarded_rev or
                opt_fastqout_rev)
         {
           fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
@@ -302,7 +302,7 @@ auto filter(bool fastq_only, char * filename) -> void
     {
       h2 = fastx_open(opt_reverse);
 
-      if (! h2)
+      if (not h2)
         {
           fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
         }
@@ -312,24 +312,24 @@ auto filter(bool fastq_only, char * filename) -> void
           fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
         }
 
-      if (! (h2->is_fastq || h2->is_empty))
+      if (not (h2->is_fastq or h2->is_empty))
         {
           if (fastq_only)
             {
               fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
             }
-          else if (opt_eeout ||
-                   (opt_fastq_ascii != 33) ||
-                   opt_fastq_eeout ||
-                   (opt_fastq_maxee < dbl_max) ||
-                   (opt_fastq_maxee_rate < dbl_max) ||
-                   opt_fastqout ||
-                   (opt_fastq_qmax < 41) ||
-                   (opt_fastq_qmin > 0) ||
-                   (opt_fastq_truncee < dbl_max) ||
-                   (opt_fastq_truncqual < long_min) ||
-                   opt_fastqout_discarded ||
-                   opt_fastqout_discarded_rev ||
+          else if (opt_eeout or
+                   (opt_fastq_ascii != 33) or
+                   opt_fastq_eeout or
+                   (opt_fastq_maxee < dbl_max) or
+                   (opt_fastq_maxee_rate < dbl_max) or
+                   opt_fastqout or
+                   (opt_fastq_qmax < 41) or
+                   (opt_fastq_qmin > 0) or
+                   (opt_fastq_truncee < dbl_max) or
+                   (opt_fastq_truncqual < long_min) or
+                   opt_fastqout_discarded or
+                   opt_fastqout_discarded_rev or
                    opt_fastqout_rev)
             {
               fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
@@ -350,7 +350,7 @@ auto filter(bool fastq_only, char * filename) -> void
   if (opt_fastaout)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (not fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -359,7 +359,7 @@ auto filter(bool fastq_only, char * filename) -> void
   if (opt_fastqout)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (not fp_fastqout)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -368,7 +368,7 @@ auto filter(bool fastq_only, char * filename) -> void
   if (opt_fastaout_discarded)
     {
       fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (! fp_fastaout_discarded)
+      if (not fp_fastaout_discarded)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -377,7 +377,7 @@ auto filter(bool fastq_only, char * filename) -> void
   if (opt_fastqout_discarded)
     {
       fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (! fp_fastqout_discarded)
+      if (not fp_fastqout_discarded)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -388,7 +388,7 @@ auto filter(bool fastq_only, char * filename) -> void
       if (opt_fastaout_rev)
         {
           fp_fastaout_rev = fopen_output(opt_fastaout_rev);
-          if (! fp_fastaout_rev)
+          if (not fp_fastaout_rev)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -397,7 +397,7 @@ auto filter(bool fastq_only, char * filename) -> void
       if (opt_fastqout_rev)
         {
           fp_fastqout_rev = fopen_output(opt_fastqout_rev);
-          if (! fp_fastqout_rev)
+          if (not fp_fastqout_rev)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
@@ -406,7 +406,7 @@ auto filter(bool fastq_only, char * filename) -> void
       if (opt_fastaout_discarded_rev)
         {
           fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
-          if (! fp_fastaout_discarded_rev)
+          if (not fp_fastaout_discarded_rev)
             {
               fatal("Unable to open FASTA output file for writing");
             }
@@ -415,7 +415,7 @@ auto filter(bool fastq_only, char * filename) -> void
       if (opt_fastqout_discarded_rev)
         {
           fp_fastqout_discarded_rev = fopen_output(opt_fastqout_discarded_rev);
-          if (! fp_fastqout_discarded_rev)
+          if (not fp_fastqout_discarded_rev)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
@@ -430,7 +430,7 @@ auto filter(bool fastq_only, char * filename) -> void
 
   while (fastx_next(h1, false, chrmap_no_change))
     {
-      if (h2 && ! fastx_next(h2, false, chrmap_no_change))
+      if (h2 and not fastx_next(h2, false, chrmap_no_change))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -445,7 +445,7 @@ auto filter(bool fastq_only, char * filename) -> void
           res2 = analyse(h2);
         }
 
-      if (res1.discarded || res2.discarded)
+      if (res1.discarded or res2.discarded)
         {
           /* discard the sequence(s) */
 
@@ -520,7 +520,7 @@ auto filter(bool fastq_only, char * filename) -> void
 
           ++kept;
 
-          if (res1.truncated || res2.truncated)
+          if (res1.truncated or res2.truncated)
             {
               ++truncated;
             }
@@ -594,12 +594,12 @@ auto filter(bool fastq_only, char * filename) -> void
 
   progress_done();
 
-  if (h2 && fastx_next(h2, false, chrmap_no_change))
+  if (h2 and fastx_next(h2, false, chrmap_no_change))
     {
       fatal("More reverse reads than forward reads");
     }
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr,
               "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
