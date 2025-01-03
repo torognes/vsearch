@@ -66,12 +66,12 @@
 #include "unique.h"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // UINT_MAX
 #include <cmath>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memset, std::memmove
+#include <limits>
 #include <vector>
 
 
@@ -440,7 +440,7 @@ auto udb_read(const char * filename,
   pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos);
 
   uint64_t sum = 0;
-  unsigned int shortest = UINT_MAX;
+  auto shortest = std::numeric_limits<unsigned int>::max();
   auto longest = 0U;
 
   for (auto i = 0U; i < seqcount; i++)
