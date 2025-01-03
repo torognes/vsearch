@@ -451,15 +451,8 @@ auto udb_read(const char * filename,
       seqindex[i].seqlen = x;
       seqindex[i].qual_p = 0;
 
-      if (x < shortest)
-        {
-          shortest = x;
-        }
-
-      if (x > longest)
-        {
-          longest = x;
-        }
+      shortest = std::min(x, shortest);
+      longest = std::max(x, longest);
 
       sum += x;
 
