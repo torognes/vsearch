@@ -363,11 +363,11 @@ auto precompute_qual() -> void
           // what is the probability of observing a match (or a mismatch)?
 
           p = 1.0 - px - py + px * py * 4.0 / 3.0;
-          match_score[x][y] = log2(p/0.25);
+          match_score[x][y] = log2(p / 0.25);
 
           // Use a minimum mismatch penalty
 
-          mism_score[x][y] = MIN(log2((1.0-p)/0.75), merge_mismatchmax);
+          mism_score[x][y] = MIN(log2((1.0 - p) / 0.75), merge_mismatchmax);
         }
     }
 }
