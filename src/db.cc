@@ -519,33 +519,33 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 
 inline auto compare_byabundance(const void * a, const void * b) -> int
 {
-  auto * x = (seqinfo_t *) a;
-  auto * y = (seqinfo_t *) b;
+  auto * lhs = (seqinfo_t *) a;
+  auto * rhs = (seqinfo_t *) b;
 
   /* most abundant first, then by label, otherwise keep order */
 
-  if (x->size > y->size)
+  if (lhs->size > rhs->size)
     {
       return -1;
     }
-  else if (x->size < y->size)
+  else if (lhs->size < rhs->size)
     {
       return +1;
     }
   else
     {
-      int const r = strcmp(datap + x->header_p, datap + y->header_p);
+      int const r = strcmp(datap + lhs->header_p, datap + rhs->header_p);
       if (r != 0)
         {
           return r;
         }
       else
         {
-          if (x < y)
+          if (lhs < rhs)
             {
               return -1;
             }
-          else if (x > y)
+          else if (lhs > rhs)
             {
               return +1;
             }
