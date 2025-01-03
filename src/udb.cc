@@ -120,7 +120,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
   uint64_t progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
+      auto const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
