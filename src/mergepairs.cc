@@ -1142,7 +1142,7 @@ auto free_merge_data(merge_data_t * ip) -> void
 
 inline auto chunk_perform_read() -> void
 {
-  while((!finished_reading) && (chunks[chunk_read_next].state == empty))
+  while((! finished_reading) && (chunks[chunk_read_next].state == empty))
     {
       xpthread_mutex_unlock(&mutex_chunks);
       progress_update(fastq_get_position(fastq_fwd));
