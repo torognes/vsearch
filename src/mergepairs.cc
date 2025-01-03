@@ -323,6 +323,8 @@ inline auto q_to_p(int quality_symbol) -> double
 auto precompute_qual() -> void
 {
   /* Precompute tables of scores etc */
+  auto const qmaxout = static_cast<double>(opt_fastq_qmaxout);
+  auto const qminout = static_cast<double>(opt_fastq_qminout);
 
   for (int x = 33; x <= 126; x++)
     {
@@ -341,15 +343,15 @@ auto precompute_qual() -> void
           /* Match */
           p = px * py / 3.0 / (1.0 - px - py + 4.0 * px * py / 3.0);
           q = round(-10.0 * log10(p));
-          q = MIN(q, opt_fastq_qmaxout);
-          q = MAX(q, opt_fastq_qminout);
+          q = MIN(q, qmaxout);
+          q = MAX(q, qminout);
           merge_qual_same[x][y] = opt_fastq_ascii + q;
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
           q = round(-10.0 * log10(p));
-          q = MIN(q, opt_fastq_qmaxout);
-          q = MAX(q, opt_fastq_qminout);
+          q = MIN(q, qmaxout);
+          q = MAX(q, qminout);
           merge_qual_diff[x][y] = opt_fastq_ascii + q;
 
           /*
