@@ -127,7 +127,7 @@ struct analysis_res
 auto analyse(fastx_handle h) -> struct analysis_res
 {
   struct analysis_res res;
-  res.length = fastx_get_sequence_length(h);
+  res.length = static_cast<int>(fastx_get_sequence_length(h));
   auto const old_length = res.length;
 
   /* strip left (5') end */
