@@ -172,6 +172,7 @@ auto output_median_length(std::vector<struct sortinfo_length_s> const & deck,
 }
 
 
+// refactoring: extract as a template
 auto truncate_deck(std::vector<struct sortinfo_length_s> &deck,
                    long int const n_first_sequences) -> void {
   if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
