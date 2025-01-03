@@ -441,9 +441,9 @@ auto udb_read(const char * filename,
 
   uint64_t sum = 0;
   unsigned int shortest = UINT_MAX;
-  unsigned int longest = 0;
+  auto longest = 0U;
 
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const sequence_length = sequence_lengths[i];
 
