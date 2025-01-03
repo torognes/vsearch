@@ -135,6 +135,7 @@ using thread_info_t = struct thread_info_s;
 
 static thread_info_t * ti;
 
+
 inline auto compare_byclusterno(const void * a, const void * b) -> int
 {
   auto * x = (clusterinfo_t *) a;
@@ -160,6 +161,7 @@ inline auto compare_byclusterno(const void * a, const void * b) -> int
       return 0;
     }
 }
+
 
 inline auto compare_byclusterabundance(const void * a, const void * b) -> int
 {
@@ -219,6 +221,7 @@ inline auto cluster_query_core(struct searchinfo_s * si) -> void
   search_onequery(si, opt_qmask);
 }
 
+
 inline auto cluster_worker(int64_t t) -> void
 {
   /* wrapper for the main threaded core function for clustering */
@@ -231,6 +234,7 @@ inline auto cluster_worker(int64_t t) -> void
         }
     }
 }
+
 
 auto threads_worker(void * vp) -> void *
 {
@@ -255,6 +259,7 @@ auto threads_worker(void * vp) -> void *
   xpthread_mutex_unlock(&tip->mutex);
   return nullptr;
 }
+
 
 auto threads_wakeup(int queries) -> void
 {
@@ -293,6 +298,7 @@ auto threads_wakeup(int queries) -> void
     }
 }
 
+
 auto threads_init() -> void
 {
   xpthread_attr_init(&attr);
@@ -311,6 +317,7 @@ auto threads_init() -> void
       xpthread_create(&tip->thread, &attr, threads_worker, (void *) (int64_t) t);
     }
 }
+
 
 auto threads_exit() -> void
 {
@@ -334,6 +341,7 @@ auto threads_exit() -> void
   xfree(ti);
   xpthread_attr_destroy(&attr);
 }
+
 
 auto cluster_query_init(struct searchinfo_s * si) -> void
 {
