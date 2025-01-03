@@ -174,8 +174,9 @@ auto output_median_length(std::vector<struct sortinfo_length_s> const & deck,
 
 auto truncate_deck(std::vector<struct sortinfo_length_s> &deck,
                    long int const n_first_sequences) -> void {
-  if (deck.size() > static_cast<unsigned long>(n_first_sequences))
+  if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
     deck.resize(n_first_sequences);
+  }
 }
 
 
