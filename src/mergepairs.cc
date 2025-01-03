@@ -251,6 +251,7 @@ auto fileopenw(char * filename) -> std::FILE *
   return fp;
 }
 
+
 inline auto get_qual(char q) -> int
 {
   int const qual = q - opt_fastq_ascii;
@@ -370,6 +371,7 @@ auto precompute_qual() -> void
     }
 }
 
+
 auto merge_sym(char * sym,       char * qual,
                char fwd_sym,     char rev_sym,
                char fwd_qual,    char rev_qual) -> void
@@ -405,6 +407,7 @@ auto merge_sym(char * sym,       char * qual,
         }
     }
 }
+
 
 auto keep(merge_data_t * ip) -> void
 {
@@ -455,6 +458,7 @@ auto keep(merge_data_t * ip) -> void
               ip->ee_fwd, ip->ee_rev, ip->fwd_errors, ip->rev_errors);
     }
 }
+
 
 auto discard(merge_data_t * ip) -> void
 {
@@ -583,6 +587,7 @@ auto discard(merge_data_t * ip) -> void
     }
 }
 
+
 auto merge(merge_data_t * ip) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
@@ -705,6 +710,7 @@ auto merge(merge_data_t * ip) -> void
       ip->reason = maxee;
     }
 }
+
 
 auto optimize(merge_data_t * ip,
                  kh_handle_s * kmerhash) -> int64_t
@@ -869,6 +875,7 @@ auto optimize(merge_data_t * ip,
   return best_i;
 }
 
+
 auto process(merge_data_t * ip,
              struct kh_handle_s * kmerhash) -> void
 {
@@ -991,6 +998,7 @@ auto process(merge_data_t * ip,
   ip->state = processed;
 }
 
+
 auto read_pair(merge_data_t * ip) -> bool
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
@@ -1062,6 +1070,7 @@ auto read_pair(merge_data_t * ip) -> bool
     }
 }
 
+
 auto keep_or_discard(merge_data_t * ip) -> void
 {
   if (ip->merged)
@@ -1073,6 +1082,7 @@ auto keep_or_discard(merge_data_t * ip) -> void
       discard(ip);
     }
 }
+
 
 auto init_merge_data(merge_data_t * ip) -> void
 {
@@ -1095,6 +1105,7 @@ auto init_merge_data(merge_data_t * ip) -> void
   ip->merged_quality = nullptr;
   ip->merged_length = 0;
 }
+
 
 auto free_merge_data(merge_data_t * ip) -> void
 {
@@ -1133,6 +1144,7 @@ auto free_merge_data(merge_data_t * ip) -> void
     }
 }
 
+
 inline auto chunk_perform_read() -> void
 {
   while((!finished_reading) && (chunks[chunk_read_next].state == empty))
@@ -1165,6 +1177,7 @@ inline auto chunk_perform_read() -> void
     }
 }
 
+
 inline auto chunk_perform_write() -> void
 {
   while (chunks[chunk_write_next].state == processed)
@@ -1186,6 +1199,7 @@ inline auto chunk_perform_write() -> void
     }
 }
 
+
 inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
 {
   int const chunk_current = chunk_process_next;
@@ -1204,6 +1218,7 @@ inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
       xpthread_cond_broadcast(&cond_chunks);
     }
 }
+
 
 auto pair_worker(void * vp) -> void *
 {
@@ -1398,6 +1413,7 @@ auto pair_all() -> void
   xfree(chunks);
   chunks = nullptr;
 }
+
 
 auto print_stats(std::FILE * fp) -> void
 {
@@ -1596,6 +1612,7 @@ auto print_stats(std::FILE * fp) -> void
               1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
     }
 }
+
 
 auto fastq_mergepairs() -> void
 {
