@@ -291,7 +291,7 @@ auto seqncmp(char * a, char * b, uint64_t n) -> int
         {
           return -1;
         }
-      else if (x > y)
+      if (x > y)
         {
           return +1;
         }
