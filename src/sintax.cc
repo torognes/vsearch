@@ -149,8 +149,9 @@ auto sintax_analyse(char * query_head,
         }
 
       bool cand_included[bootstrap_count];
-      for (int i = 0; i < count; i++)
+      for (int i = 0; i < count; i++) {
         cand_included[i] = true;
+      }
 
       /* Count matching names among candidates */
 
@@ -167,9 +168,9 @@ auto sintax_analyse(char * query_head,
               cand_matchcount[i] = 0;
             }
 
-          for (int i = 0; i < count ; i++)
-            if (cand_included[i])
-              for (int j = 0; j <= i ; j++)
+          for (int i = 0; i < count ; i++) {
+            if (cand_included[i]) {
+              for (int j = 0; j <= i ; j++) {
                 if (cand_included[j])
                   {
                     /* check match at current level */
@@ -183,17 +184,23 @@ auto sintax_analyse(char * query_head,
                         break; /* stop at first match */
                       }
                   }
+              }
+            }
+          }
 
-          for (int i = 0; i < count ; i++)
+          for (int i = 0; i < count ; i++) {
             if (cand_matchcount[i] > level_matchcount[k])
               {
                 level_best[k] = i;
                 level_matchcount[k] = cand_matchcount[i];
               }
+          }
 
-          for (int i = 0; i < count; i++)
-            if (cand_match[i] != level_best[k])
+          for (int i = 0; i < count; i++) {
+            if (cand_match[i] != level_best[k]) {
               cand_included[i] = false;
+            }
+          }
         }
     }
 
