@@ -456,7 +456,7 @@ auto compare_bylength(const void * a, const void * b) -> int
       return -1;
     }
 
-  int const r = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  auto const r = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
   if (r != 0)
     {
       return r;
