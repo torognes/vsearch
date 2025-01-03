@@ -218,10 +218,10 @@ auto analyse(fastx_handle h) -> struct analysis_res
 
   /* filter by n's */
   int64_t ncount = 0;
-  char * p = fastx_get_sequence(h) + res.start;
-  for (int64_t i = 0; i < res.length; i++)
+  auto * p = fastx_get_sequence(h) + res.start;
+  for (auto i = 0; i < res.length; i++)
     {
-      int const pc = p[i];
+      auto const pc = p[i];
       if ((pc == 'N') || (pc == 'n'))
         {
           ++ncount;
@@ -233,7 +233,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
     }
 
   /* filter by abundance */
-  int64_t const abundance = fastx_get_abundance(h);
+  auto const abundance = fastx_get_abundance(h);
   if (abundance < opt_minsize)
     {
       res.discarded = true;
