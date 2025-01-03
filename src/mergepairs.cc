@@ -342,14 +342,14 @@ auto precompute_qual() -> void
 
           /* Match */
           p = px * py / 3.0 / (1.0 - px - py + 4.0 * px * py / 3.0);
-          q = round(-10.0 * log10(p));
+          q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
           merge_qual_same[x][y] = opt_fastq_ascii + q;
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
-          q = round(-10.0 * log10(p));
+          q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
           merge_qual_diff[x][y] = opt_fastq_ascii + q;
@@ -365,11 +365,11 @@ auto precompute_qual() -> void
           // what is the probability of observing a match (or a mismatch)?
 
           p = 1.0 - px - py + px * py * 4.0 / 3.0;
-          match_score[x][y] = log2(p / 0.25);
+          match_score[x][y] = std::log2(p / 0.25);
 
           // Use a minimum mismatch penalty
 
-          mism_score[x][y] = std::min(log2((1.0 - p) / 0.75), merge_mismatchmax);
+          mism_score[x][y] = std::min(std::log2((1.0 - p) / 0.75), merge_mismatchmax);
         }
     }
 }
