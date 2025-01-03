@@ -419,14 +419,8 @@ auto sff_convert() -> void
       xfree(qual);
 
       totallength += length;
-      if (length < minimum)
-        {
-          minimum = length;
-        }
-      if (length > maximum)
-        {
-          maximum = length;
-        }
+      minimum = std::min(length, minimum);
+      maximum = std::max(length, maximum);
 
       progress_update(read_no + 1);
     }
