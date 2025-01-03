@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
@@ -126,6 +127,8 @@ struct analysis_res
 
 auto analyse(fastx_handle h) -> struct analysis_res
 {
+  auto const fastq_trunclen = static_cast<int>(opt_fastq_trunclen);
+  auto const fastq_trunclen_keep = static_cast<int>(opt_fastq_trunclen_keep);
   struct analysis_res res;
   res.length = static_cast<int>(fastx_get_sequence_length(h));
   auto const old_length = res.length;
@@ -155,19 +158,13 @@ auto analyse(fastx_handle h) -> struct analysis_res
   /* truncate trailing (3') part */
   if (opt_fastq_trunclen >= 0)
     {
-      if (res.length > opt_fastq_trunclen)
-        {
-          res.length = opt_fastq_trunclen;
-        }
+      res.length = std::min(res.length, fastq_trunclen);
     }
 
   /* truncate trailing (3') part, but keep if short */
   if (opt_fastq_trunclen_keep >= 0)
     {
-      if (res.length > opt_fastq_trunclen_keep)
-        {
-          res.length = opt_fastq_trunclen_keep;
-        }
+      res.length = std::min(res.length, fastq_trunclen_keep);
     }
 
   if (h->is_fastq)
