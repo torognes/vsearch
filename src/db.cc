@@ -114,10 +114,7 @@ auto db_getquality(uint64_t seqno) -> char *
     {
       return datap + seqindex[seqno].qual_p;
     }
-  else
-    {
-      return nullptr;
-    }
+  return nullptr;
 }
 
 
