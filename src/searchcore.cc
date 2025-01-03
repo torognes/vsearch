@@ -125,68 +125,68 @@ inline auto hit_compare_byid_typed(struct hit * lhs, struct hit * rhs) -> int
 }
 
 
-inline auto hit_compare_bysize_typed(struct hit * x, struct hit * y) -> int
+inline auto hit_compare_bysize_typed(struct hit * lhs, struct hit * rhs) -> int
 {
   // high abundance, then low abundance
   // high id, then low id
   // early target, then late target
 
-  if (x->rejected < y->rejected)
+  if (lhs->rejected < rhs->rejected)
     {
       return -1;
     }
   else
-    if (x->rejected > y->rejected)
+    if (lhs->rejected > rhs->rejected)
       {
         return +1;
       }
     else
-      if (x->rejected == 1)
+      if (lhs->rejected == 1)
         {
           return 0;
         }
       else
-        if (x->aligned > y->aligned)
+        if (lhs->aligned > rhs->aligned)
           {
             return -1;
           }
         else
-          if (x->aligned < y->aligned)
+          if (lhs->aligned < rhs->aligned)
             {
               return +1;
             }
           else
-            if (x->aligned == 0)
+            if (lhs->aligned == 0)
               {
                 return 0;
               }
             else
-              if (db_getabundance(x->target) > db_getabundance(y->target))
+              if (db_getabundance(lhs->target) > db_getabundance(rhs->target))
                 {
                   return -1;
                 }
               else
-                if (db_getabundance(x->target) < db_getabundance(y->target))
+                if (db_getabundance(lhs->target) < db_getabundance(rhs->target))
                   {
                     return +1;
                   }
                 else
-                  if (x->id > y->id)
+                  if (lhs->id > rhs->id)
                     {
                       return -1;
                     }
                   else
-                    if (x->id < y->id)
+                    if (lhs->id < rhs->id)
                       {
                         return +1;
                       }
                     else
-                      if (x->target < y->target)
+                      if (lhs->target < rhs->target)
                         {
                           return -1;
                         }
                       else
-                        if (x->target > y->target)
+                        if (lhs->target > rhs->target)
                           {
                             return +1;
                           }
