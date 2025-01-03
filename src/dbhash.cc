@@ -71,6 +71,7 @@ static unsigned int dbhash_shift;
 static uint64_t dbhash_mask;
 static struct dbhash_bucket_s * dbhash_table;
 
+
 auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
 {
   char * p = a;
@@ -94,6 +95,7 @@ auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
   return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
 }
 
+
 auto dbhash_open(uint64_t maxelements) -> void
 {
   /* adjust size of hash table for 2/3 fill rate */
@@ -116,6 +118,7 @@ auto dbhash_open(uint64_t maxelements) -> void
   bitmap_reset_all(dbhash_bitmap);
 }
 
+
 auto dbhash_close() -> void
 {
   bitmap_free(dbhash_bitmap);
@@ -123,6 +126,7 @@ auto dbhash_close() -> void
   xfree(dbhash_table);
   dbhash_table = nullptr;
 }
+
 
 auto dbhash_search_first(char * seq,
                          uint64_t seqlen,
@@ -158,6 +162,7 @@ auto dbhash_search_first(char * seq,
     }
 }
 
+
 auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 {
   uint64_t const hash = info->hash;
@@ -188,6 +193,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
     }
 }
 
+
 auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 {
   struct dbhash_search_info_s info;
@@ -203,6 +209,7 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
   bp->hash = info.hash;
   bp->seqno = seqno;
 }
+
 
 auto dbhash_add_one(uint64_t seqno) -> void
 {
