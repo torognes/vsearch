@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
@@ -1284,10 +1285,7 @@ auto search16(s16info_s * s,
       /* skip the very long sequences */
       if ((int64_t) (s->qlen) * dlen <= MAXSEQLENPRODUCT)
         {
-          if (dlen > maxdlen)
-            {
-              maxdlen = dlen;
-            }
+          maxdlen = std::max(dlen, maxdlen);
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
