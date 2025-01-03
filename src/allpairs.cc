@@ -107,22 +107,19 @@ inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> in
     {
       return -1;
     }
-  else if (lhs->id < rhs->id)
+  if (lhs->id < rhs->id)
     {
       return +1;
     }
-  else if (lhs->target < rhs->target)
+  if (lhs->target < rhs->target)
     {
       return -1;
     }
-  else if (lhs->target > rhs->target)
+  if (lhs->target > rhs->target)
     {
       return +1;
     }
-  else
-    {
-      return 0;
-    }
+  return 0;
 }
 
 
