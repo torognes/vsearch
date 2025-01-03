@@ -215,11 +215,11 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
       ++s;
       kmer &= mask;
 
-      if (bad == 0u)
+      if (bad == 0U)
         {
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if ((unique_handle->bitmap[x] & y) == 0u)
+          if ((unique_handle->bitmap[x] & y) == 0U)
             {
               /* not seen before */
               unique_handle->list[unique] = kmer;
@@ -302,16 +302,16 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       ++s;
       kmer &= mask;
 
-      if (bad == 0u)
+      if (bad == 0U)
         {
           /* find free appropriate bucket in hash */
           j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while((unique_handle->hash[j].count != 0u) && (unique_handle->hash[j].kmer != kmer))
+          while((unique_handle->hash[j].count != 0U) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
             }
 
-          if (unique_handle->hash[j].count == 0u)
+          if (unique_handle->hash[j].count == 0U)
             {
               /* not seen before */
               unique_handle->list[unique] = kmer;
@@ -362,7 +362,7 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
           auto const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if ((unique_handle->bitmap[x] & y) != 0u)
+          if ((unique_handle->bitmap[x] & y) != 0U)
             {
               ++count;
             }
@@ -374,11 +374,11 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
         {
           auto kmer = list[i];
           uint64_t j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while ((unique_handle->hash[j].count != 0u) && (unique_handle->hash[j].kmer != kmer))
+          while ((unique_handle->hash[j].count != 0U) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
             }
-          if (unique_handle->hash[j].count != 0u)
+          if (unique_handle->hash[j].count != 0U)
             {
               ++count;
             }
