@@ -488,11 +488,9 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
       /* needs further consideration */
       return true;
     }
-  else
-    {
-      /* reject */
-      return false;
-    }
+
+  /* reject */
+  return false;
 }
 
 
