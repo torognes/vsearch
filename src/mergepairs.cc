@@ -784,10 +784,7 @@ auto optimize(merge_data_t * ip,
               if (fwd_sym == rev_sym)
                 {
                   score += match_score[fwd_qual][rev_qual];
-                  if (score > score_high)
-                    {
-                      score_high = score;
-                    }
+                  score_high = std::max(score, score_high);
                 }
               else
                 {
