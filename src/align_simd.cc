@@ -96,7 +96,7 @@ constexpr auto CDEPTH = 4;
 #include "align_simd.h"
 
 
-constexpr auto MAXSEQLENPRODUCT = 25000000LL;
+constexpr auto maxseqlenproduct = 25000000LL;
 
 static int64_t scorematrix[16][16];
 
@@ -1283,7 +1283,7 @@ auto search16(s16info_s * s,
     {
       uint64_t const dlen = db_getsequencelen(seqnos[i]);
       /* skip the very long sequences */
-      if ((int64_t) (s->qlen) * dlen <= MAXSEQLENPRODUCT)
+      if ((int64_t) (s->qlen) * dlen <= maxseqlenproduct)
         {
           maxdlen = std::max(dlen, maxdlen);
         }
@@ -1620,7 +1620,7 @@ auto search16(s16info_s * s,
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
-                      if ((length == 0) or (s->qlen * length > MAXSEQLENPRODUCT))
+                      if ((length == 0) or (s->qlen * length > maxseqlenproduct))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
