@@ -98,24 +98,24 @@ static int count_matched = 0;
 static int count_notmatched = 0;
 
 
-inline auto allpairs_hit_compare_typed(struct hit * x, struct hit * y) -> int
+inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> int
 {
   // high id, then low id
   // early target, then late target
 
-  if (x->id > y->id)
+  if (lhs->id > rhs->id)
     {
       return -1;
     }
-  else if (x->id < y->id)
+  else if (lhs->id < rhs->id)
     {
       return +1;
     }
-  else if (x->target < y->target)
+  else if (lhs->target < rhs->target)
     {
       return -1;
     }
-  else if (x->target > y->target)
+  else if (lhs->target > rhs->target)
     {
       return +1;
     }
