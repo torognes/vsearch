@@ -164,29 +164,29 @@ inline auto compare_byclusterno(const void * a, const void * b) -> int
 
 inline auto compare_byclusterabundance(const void * a, const void * b) -> int
 {
-  auto * x = (clusterinfo_t *) a;
-  auto * y = (clusterinfo_t *) b;
-  if (cluster_abundance[x->clusterno] > cluster_abundance[y->clusterno])
+  auto * lhs = (clusterinfo_t *) a;
+  auto * rhs = (clusterinfo_t *) b;
+  if (cluster_abundance[lhs->clusterno] > cluster_abundance[rhs->clusterno])
     {
       return -1;
     }
-  else if (cluster_abundance[x->clusterno] < cluster_abundance[y->clusterno])
+  else if (cluster_abundance[lhs->clusterno] < cluster_abundance[rhs->clusterno])
     {
       return +1;
     }
-  else if (x->clusterno < y->clusterno)
+  else if (lhs->clusterno < rhs->clusterno)
     {
       return -1;
     }
-  else if (x->clusterno > y->clusterno)
+  else if (lhs->clusterno > rhs->clusterno)
     {
       return +1;
     }
-  else if (x->seqno < y->seqno)
+  else if (lhs->seqno < rhs->seqno)
     {
       return -1;
     }
-  else if (x->seqno > y->seqno)
+  else if (lhs->seqno > rhs->seqno)
     {
       return +1;
     }
