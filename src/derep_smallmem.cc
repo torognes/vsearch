@@ -159,10 +159,7 @@ auto find_median() -> double
                 }
               return cand;
             }
-          else
-            {
-              cand = above;
-            }
+          cand = above;
         }
       else
         {
