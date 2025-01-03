@@ -61,10 +61,10 @@
 #include "vsearch.h"
 #include <array>
 #include <cctype>  // std::tolower, std::toupper
-#include <climits>  // UINT_MAX
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread
 #include <cstring>  // std::strlen
+#include <limits>
 #include <vector>
 
 
@@ -212,7 +212,7 @@ auto sff_convert() -> void
   filepos += padding_length;
 
   double totallength = 0.0;
-  uint32_t minimum = UINT_MAX;
+  uint32_t minimum = std::numeric_limits<uint32_t>::max();
   uint32_t maximum = 0;
 
   bool index_done = (sff_header.index_offset == 0) || (sff_header.index_length == 0);
