@@ -499,10 +499,10 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
       return -1;
     }
 
-  auto const r = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
-  if (r != 0)
+  auto const result = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  if (result != 0)
     {
-      return r;
+      return result;
     }
 
   if (lhs < rhs)
