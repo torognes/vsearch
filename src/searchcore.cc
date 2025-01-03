@@ -536,39 +536,29 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
               hit->weak = false;
               return true;
             }
-          else
-            {
-              /* rejected, but weak hit */
-              hit->rejected = true;
-              hit->weak = true;
-              return false;
-            }
+          /* rejected, but weak hit */
+          hit->rejected = true;
+          hit->weak = true;
+          return false;
         }
-      else
+
+      if (hit->id >= 100.0 * opt_id)
         {
-          if (hit->id >= 100.0 * opt_id)
-            {
-              /* accepted */
-              hit->accepted = true;
-              hit->weak = false;
-              return true;
-            }
-          else
-            {
-              /* rejected, but weak hit */
-              hit->rejected = true;
-              hit->weak = true;
-              return false;
-            }
+          /* accepted */
+          hit->accepted = true;
+          hit->weak = false;
+          return true;
         }
-    }
-  else
-    {
-      /* rejected */
+      /* rejected, but weak hit */
       hit->rejected = true;
-      hit->weak = false;
+      hit->weak = true;
       return false;
     }
+
+  /* rejected */
+  hit->rejected = true;
+  hit->weak = false;
+  return false;
 }
 
 
