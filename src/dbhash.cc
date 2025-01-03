@@ -156,10 +156,7 @@ auto dbhash_search_first(char * seq,
     {
       return bp->seqno;
     }
-  else
-    {
-      return -1;
-    }
+  return -1;
 }
 
 
