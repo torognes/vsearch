@@ -601,14 +601,14 @@ auto cluster_core_results_nohit(int clusterno,
 
 auto compare_kmersample(const void * a, const void * b) -> int
 {
-  unsigned int const x = * (unsigned int *) a;
-  unsigned int const y = * (unsigned int *) b;
+  unsigned int const lhs = * (unsigned int *) a;
+  unsigned int const rhs = * (unsigned int *) b;
 
-  if (x < y)
+  if (lhs < rhs)
     {
       return -1;
     }
-  else if (x > y)
+  else if (lhs > rhs)
     {
       return +1;
     }
