@@ -442,44 +442,35 @@ auto compare_bylength(const void * a, const void * b) -> int
     {
       return +1;
     }
-  else if (lhs->seqlen > rhs->seqlen)
+  if (lhs->seqlen > rhs->seqlen)
     {
       return -1;
     }
-  else
+
+  if (lhs->size < rhs->size)
     {
-      if (lhs->size < rhs->size)
-        {
-          return +1;
-        }
-      else if (lhs->size > rhs->size)
-        {
-          return -1;
-        }
-      else
-        {
-          int const r = strcmp(datap + lhs->header_p, datap + rhs->header_p);
-          if (r != 0)
-            {
-              return r;
-            }
-          else
-            {
-              if (lhs < rhs)
-                {
-                  return -1;
-                }
-              else if (lhs > rhs)
-                {
-                  return +1;
-                }
-              else
-                {
-                  return 0;
-                }
-            }
-        }
+      return +1;
     }
+  if (lhs->size > rhs->size)
+    {
+      return -1;
+    }
+
+  int const r = strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  if (r != 0)
+    {
+      return r;
+    }
+
+  if (lhs < rhs)
+    {
+      return -1;
+    }
+  if (lhs > rhs)
+    {
+      return +1;
+    }
+  return 0;
 }
 
 
