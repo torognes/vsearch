@@ -176,7 +176,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
       res.ee = 0.0;
       static constexpr auto base = 10.0;
       char * q = fastx_get_quality(h) + res.start;
-      for (int64_t i = 0; i < res.length; i++)
+      for (auto i = 0; i < res.length; i++)
         {
           int const qual = fastq_get_qual(q[i]);
           auto const e = std::pow(base, -qual / base);
