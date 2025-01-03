@@ -89,42 +89,39 @@ inline auto hit_compare_byid_typed(struct hit * lhs, struct hit * rhs) -> int
     {
       return -1;
     }
-  else if (lhs->rejected > rhs->rejected)
+  if (lhs->rejected > rhs->rejected)
     {
       return +1;
     }
-  else if (lhs->aligned > rhs->aligned)
+  if (lhs->aligned > rhs->aligned)
     {
       return -1;
     }
-  else if (lhs->aligned < rhs->aligned)
+  if (lhs->aligned < rhs->aligned)
     {
       return +1;
     }
-  else if (lhs->aligned == 0)
+  if (lhs->aligned == 0)
     {
       return 0;
     }
-  else if (lhs->id > rhs->id)
+  if (lhs->id > rhs->id)
     {
       return -1;
     }
-  else if (lhs->id < rhs->id)
+  if (lhs->id < rhs->id)
     {
       return +1;
     }
-  else if (lhs->target < rhs->target)
+  if (lhs->target < rhs->target)
     {
       return -1;
     }
-  else if (lhs->target > rhs->target)
+  if (lhs->target > rhs->target)
     {
       return +1;
     }
-  else
-    {
-      return 0;
-    }
+  return 0;
 }
 
 
