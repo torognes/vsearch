@@ -332,13 +332,13 @@ struct parents_info_s
 
 auto compare_positions(const void * a, const void * b) -> int
 {
-  const int x = ((const parents_info_s *) a)->start;
-  const int y = ((const parents_info_s *) b)->start;
+  const int lhs = ((const parents_info_s *) a)->start;
+  const int rhs = ((const parents_info_s *) b)->start;
 
-  if (x < y) {
+  if (lhs < rhs) {
     return -1;
   }
-  else if (x > y) {
+  else if (lhs > rhs) {
     return +1;
   }
   else {
