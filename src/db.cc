@@ -85,6 +85,7 @@ static size_t seqindex_alloc = 0;
 seqinfo_t * seqindex = nullptr;
 char * datap = nullptr;
 
+
 auto db_setinfo(bool new_is_fastq,
                 uint64_t new_sequences,
                 uint64_t new_nucleotides,
@@ -100,10 +101,12 @@ auto db_setinfo(bool new_is_fastq,
   longestheader = new_longestheader;
 }
 
+
 auto db_is_fastq() -> bool
 {
   return is_fastq;
 }
+
 
 auto db_getquality(uint64_t seqno) -> char *
 {
@@ -116,6 +119,7 @@ auto db_getquality(uint64_t seqno) -> char *
       return nullptr;
     }
 }
+
 
 auto db_add(bool is_fastq,
             char * header,
@@ -386,30 +390,36 @@ auto db_read(const char * filename, int upcase) -> void
   show_rusage();
 }
 
+
 auto db_getsequencecount() -> uint64_t
 {
   return sequences;
 }
+
 
 auto db_getnucleotidecount() -> uint64_t
 {
   return nucleotides;
 }
 
+
 auto db_getlongestheader() -> uint64_t
 {
   return longestheader;
 }
+
 
 auto db_getlongestsequence() -> uint64_t
 {
   return longest;
 }
 
+
 auto db_getshortestsequence() -> uint64_t
 {
   return shortest;
 }
+
 
 auto db_free() -> void
 {
@@ -422,6 +432,7 @@ auto db_free() -> void
       xfree(seqindex);
     }
 }
+
 
 auto compare_bylength(const void * a, const void * b) -> int
 {
@@ -474,6 +485,7 @@ auto compare_bylength(const void * a, const void * b) -> int
     }
 }
 
+
 auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 {
   auto * x = (seqinfo_t *) a;
@@ -525,6 +537,7 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
     }
 }
 
+
 inline auto compare_byabundance(const void * a, const void * b) -> int
 {
   auto * x = (seqinfo_t *) a;
@@ -565,6 +578,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
     }
 }
 
+
 auto db_sortbylength() -> void
 {
   progress_init("Sorting by length", 100);
@@ -575,6 +589,7 @@ auto db_sortbylength() -> void
   progress_done();
 }
 
+
 auto db_sortbylength_shortest_first() -> void
 {
   progress_init("Sorting by length", 100);
@@ -584,6 +599,7 @@ auto db_sortbylength_shortest_first() -> void
         compare_bylength_shortest_first);
   progress_done();
 }
+
 
 auto db_sortbyabundance() -> void
 {
