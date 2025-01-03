@@ -407,9 +407,7 @@ auto scan_matches(struct chimera_info_s * ci,
       * best_len = best_d;
       return true;
     }
-  else {
-    return false;
-  }
+  return false;
 }
 
 
