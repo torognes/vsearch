@@ -445,16 +445,16 @@ auto udb_read(const char * filename,
 
   for (unsigned int i = 0; i < seqcount; i++)
     {
-      unsigned int const x = sequence_lengths[i];
+      unsigned int const sequence_length = sequence_lengths[i];
 
       seqindex[i].seq_p = udb_headerchars + sum;
-      seqindex[i].seqlen = x;
+      seqindex[i].seqlen = sequence_length;
       seqindex[i].qual_p = 0;
 
-      shortest = std::min(x, shortest);
-      longest = std::max(x, longest);
+      shortest = std::min(sequence_length, shortest);
+      longest = std::max(sequence_length, longest);
 
-      sum += x;
+      sum += sequence_length;
 
       if (sum > nucleotides)
         {
