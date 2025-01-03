@@ -343,15 +343,15 @@ auto precompute_qual() -> void
           /* Match */
           p = px * py / 3.0 / (1.0 - px - py + 4.0 * px * py / 3.0);
           q = round(-10.0 * log10(p));
-          q = MIN(q, qmaxout);
-          q = MAX(q, qminout);
+          q = std::min(q, qmaxout);
+          q = std::max(q, qminout);
           merge_qual_same[x][y] = opt_fastq_ascii + q;
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
           q = round(-10.0 * log10(p));
-          q = MIN(q, qmaxout);
-          q = MAX(q, qminout);
+          q = std::min(q, qmaxout);
+          q = std::max(q, qminout);
           merge_qual_diff[x][y] = opt_fastq_ascii + q;
 
           /*
