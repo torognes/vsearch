@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::min, std::max
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
@@ -1012,7 +1013,7 @@ auto read_pair(merge_data_t * ip) -> bool
 
       int64_t const fwd_header_len = fastq_get_header_length(fastq_fwd);
       int64_t const rev_header_len = fastq_get_header_length(fastq_rev);
-      int64_t const header_needed = MAX(fwd_header_len, rev_header_len) + 1;
+      int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > ip->header_alloc)
         {
@@ -1023,7 +1024,7 @@ auto read_pair(merge_data_t * ip) -> bool
 
       ip->fwd_length = fastq_get_sequence_length(fastq_fwd);
       ip->rev_length = fastq_get_sequence_length(fastq_rev);
-      int64_t const seq_needed = MAX(ip->fwd_length, ip->rev_length) + 1;
+      int64_t const seq_needed = std::max(ip->fwd_length, ip->rev_length) + 1;
 
       sum_read_length += ip->fwd_length + ip->rev_length;
 
