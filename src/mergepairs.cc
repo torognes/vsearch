@@ -1064,10 +1064,7 @@ auto read_pair(merge_data_t * ip) -> bool
 
       return true;
     }
-  else
-    {
-      return false;
-    }
+  return false;
 }
 
 
