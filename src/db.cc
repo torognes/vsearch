@@ -533,7 +533,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
       return +1;
     }
 
-  int const r = strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  int const r = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
   if (r != 0)
     {
       return r;
