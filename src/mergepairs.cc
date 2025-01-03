@@ -723,13 +723,13 @@ auto optimize(merge_data_t * ip,
   int64_t const i1 = 1;
   int64_t const i2 = ip->fwd_trunc + ip->rev_trunc - 1;
 
-  double best_score = 0.0;
+  auto best_score = 0.0;
   int64_t best_i = 0;
   int64_t best_diffs = 0;
 
-  int hits = 0;
+  auto hits = 0;
 
-  int kmers = 0;
+  auto kmers = 0;
 
   std::vector<int> diags(ip->fwd_trunc + ip->rev_trunc, 0);
 
@@ -739,7 +739,7 @@ auto optimize(merge_data_t * ip,
   for (int64_t i = i1; i <= i2; i++)
     {
       int const diag = ip->rev_trunc + ip->fwd_trunc - i;
-      int const diagcount = diags[diag];
+      auto const diagcount = diags[diag];
 
       if (diagcount >= merge_mindiagcount)
         {
@@ -747,31 +747,31 @@ auto optimize(merge_data_t * ip,
 
           /* for each interesting diagonal */
 
-          int64_t const fwd_3prime_overhang
+          auto const fwd_3prime_overhang
             = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
-          int64_t const rev_3prime_overhang
+          auto const rev_3prime_overhang
             = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
-          int64_t const overlap
+          auto const overlap
             = i - fwd_3prime_overhang - rev_3prime_overhang;
-          int64_t const fwd_pos_start
+          auto const fwd_pos_start
             = ip->fwd_trunc - fwd_3prime_overhang - 1;
-          int64_t const rev_pos_start
+          auto const rev_pos_start
             = ip->rev_trunc - rev_3prime_overhang - overlap;
 
-          int64_t fwd_pos = fwd_pos_start;
-          int64_t rev_pos = rev_pos_start;
-          double score = 0.0;
+          auto fwd_pos = fwd_pos_start;
+          auto rev_pos = rev_pos_start;
+          auto score = 0.0;
 
           int64_t diffs = 0;
-          double score_high = 0.0;
-          double dropmax = 0.0;
+          auto score_high = 0.0;
+          auto dropmax = 0.0;
 
           for (int64_t j = 0; j < overlap; j++)
             {
               /* for each pair of bases in the overlap */
 
-              char const fwd_sym = ip->fwd_sequence[fwd_pos];
-              char const rev_sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
+              auto const fwd_sym = ip->fwd_sequence[fwd_pos];
+              auto const rev_sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
 
               unsigned int const fwd_qual = ip->fwd_quality[fwd_pos];
               unsigned int const rev_qual = ip->rev_quality[rev_pos];
