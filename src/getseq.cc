@@ -196,7 +196,7 @@ auto test_label_match(fastx_handle h) -> bool
         }
       return (hlen == wlen) && ! strcasecmp(header, needle); // strcasecmp is a linuxism
     }
-  else if (opt_labels)
+  if (opt_labels)
     {
       if (opt_label_substr_match)
         {
