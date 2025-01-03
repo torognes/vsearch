@@ -138,21 +138,21 @@ static thread_info_t * ti;
 
 inline auto compare_byclusterno(const void * a, const void * b) -> int
 {
-  auto * x = (clusterinfo_t *) a;
-  auto * y = (clusterinfo_t *) b;
-  if (x->clusterno < y->clusterno)
+  auto * lhs = (clusterinfo_t *) a;
+  auto * rhs = (clusterinfo_t *) b;
+  if (lhs->clusterno < rhs->clusterno)
     {
       return -1;
     }
-  else if (x->clusterno > y->clusterno)
+  else if (lhs->clusterno > rhs->clusterno)
     {
       return +1;
     }
-  else if (x->seqno < y->seqno)
+  else if (lhs->seqno < rhs->seqno)
     {
       return -1;
     }
-  else if (x->seqno > y->seqno)
+  else if (lhs->seqno > rhs->seqno)
     {
       return +1;
     }
