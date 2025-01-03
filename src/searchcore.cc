@@ -189,15 +189,15 @@ inline auto hit_compare_bysize_typed(struct hit * lhs, struct hit * rhs) -> int
 }
 
 
-auto hit_compare_byid(const void * a, const void * b) -> int
+auto hit_compare_byid(const void * lhs, const void * rhs) -> int
 {
-  return hit_compare_byid_typed((struct hit *) a, (struct hit *) b);
+  return hit_compare_byid_typed((struct hit *) lhs, (struct hit *) rhs);
 }
 
 
-auto hit_compare_bysize(const void * a, const void * b) -> int
+auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 {
-  return hit_compare_bysize_typed((struct hit *) a, (struct hit *) b);
+  return hit_compare_bysize_typed((struct hit *) lhs, (struct hit *) rhs);
 }
 
 
