@@ -403,8 +403,8 @@ auto udb_read(const char * filename,
 
   header_index[seqcount] = udb_headerchars;
 
-  unsigned last = 0;
-  for (unsigned int i = 0; i < seqcount; i++)
+  auto last = 0U;
+  for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const x = header_index[i];
       if ((x < last) || (x >= udb_headerchars))
