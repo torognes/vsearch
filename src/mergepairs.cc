@@ -414,7 +414,7 @@ auto merge_sym(char * sym,       char * qual,
 
 auto keep(merge_data_t * ip) -> void
 {
-  merged++;
+  ++merged;
 
   sum_fragment_length += ip->merged_length;
   sum_squared_fragment_length += ip->merged_length * ip->merged_length;
@@ -468,70 +468,70 @@ auto discard(merge_data_t * ip) -> void
   switch(ip->reason)
     {
     case undefined:
-      failed_undefined++;
+      ++failed_undefined;
       break;
 
     case ok:
       break;
 
     case minlen:
-      failed_minlen++;
+      ++failed_minlen;
       break;
 
     case maxlen:
-      failed_maxlen++;
+      ++failed_maxlen;
       break;
 
     case maxns:
-      failed_maxns++;
+      ++failed_maxns;
       break;
 
     case minovlen:
-      failed_minovlen++;
+      ++failed_minovlen;
       break;
 
     case maxdiffs:
-      failed_maxdiffs++;
+      ++failed_maxdiffs;
       break;
 
     case maxdiffpct:
-      failed_maxdiffpct++;
+      ++failed_maxdiffpct;
       break;
 
     case staggered:
-      failed_staggered++;
+      ++failed_staggered;
       break;
 
     case indel:
-      failed_indel++;
+      ++failed_indel;
       break;
 
     case repeat:
-      failed_repeat++;
+      ++failed_repeat;
       break;
 
     case minmergelen:
-      failed_minmergelen++;
+      ++failed_minmergelen;
       break;
 
     case maxmergelen:
-      failed_maxmergelen++;
+      ++failed_maxmergelen;
       break;
 
     case maxee:
-      failed_maxee++;
+      ++failed_maxee;
       break;
 
     case minscore:
-      failed_minscore++;
+      ++failed_minscore;
       break;
 
     case nokmers:
-      failed_nokmers++;
+      ++failed_nokmers;
       break;
     }
 
-  notmerged++;
+  ++notmerged;
 
   if (opt_fastqout_notmerged_fwd)
     {
@@ -634,8 +634,8 @@ auto merge(merge_data_t * ip) -> void
       ip->ee_merged += ee;
       ip->ee_fwd += ee;
 
-      fwd_pos++;
-      merged_pos++;
+      ++fwd_pos;
+      ++merged_pos;
     }
 
   // Merged region
@@ -661,11 +661,11 @@ auto merge(merge_data_t * ip) -> void
 
       if (sym != fwd_sym)
         {
-          ip->fwd_errors++;
+          ++ip->fwd_errors;
         }
       if (sym != rev_sym)
         {
-          ip->rev_errors++;
+          ++ip->rev_errors;
         }
 
       ip->merged_sequence[merged_pos] = sym;
@@ -674,9 +674,9 @@ auto merge(merge_data_t * ip) -> void
       ip->ee_fwd += q2p[(unsigned) fwd_qual];
       ip->ee_rev += q2p[(unsigned) rev_qual];
 
-      fwd_pos++;
-      rev_pos--;
-      merged_pos++;
+      ++fwd_pos;
+      --rev_pos;
+      ++merged_pos;
     }
 
   // 5' overhang in reverse sequence
@@ -688,13 +688,13 @@ auto merge(merge_data_t * ip) -> void
 
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
-      merged_pos++;
+      ++merged_pos;
 
       ee = q2p[(unsigned) qual];
       ip->ee_merged += ee;
       ip->ee_rev += ee;
 
-      rev_pos--;
+      --rev_pos;
     }
 
   int64_t const mergelen = merged_pos;
@@ -776,8 +776,8 @@ auto optimize(merge_data_t * ip,
               unsigned int const fwd_qual = ip->fwd_quality[fwd_pos];
               unsigned int const rev_qual = ip->rev_quality[rev_pos];
 
-              fwd_pos--;
-              rev_pos++;
+              --fwd_pos;
+              ++rev_pos;
 
               if (fwd_sym == rev_sym)
                 {
@@ -787,7 +787,7 @@ auto optimize(merge_data_t * ip,
               else
                 {
                   score += mism_score[fwd_qual][rev_qual];
-                  diffs++;
+                  ++diffs;
                   if (score < score_high - dropmax)
                     {
                       dropmax = score_high - score;
@@ -802,7 +802,7 @@ auto optimize(merge_data_t * ip,
 
           if (score >= merge_minscore)
             {
-              hits++;
+              ++hits;
             }
 
           if (score > best_score)
@@ -953,7 +953,7 @@ auto process(merge_data_t * ip,
           if (ip->fwd_sequence[i] == 'N')
             {
               ip->fwd_quality[i] = opt_fastq_ascii;
-              fwd_ncount++;
+              ++fwd_ncount;
             }
         }
       if (fwd_ncount > opt_fastq_maxns)
@@ -971,7 +971,7 @@ auto process(merge_data_t * ip,
           if (ip->rev_sequence[i] == 'N')
             {
               ip->rev_quality[i] = opt_fastq_ascii;
-              rev_ncount++;
+              ++rev_ncount;
             }
         }
       if (rev_ncount > opt_fastq_maxns)
@@ -1150,7 +1150,7 @@ inline auto chunk_perform_read() -> void
       while ((r < chunk_size) &&
              read_pair(chunks[chunk_read_next].merge_data + r))
         {
-          r++;
+          ++r;
         }
       chunks[chunk_read_next].size = r;
       xpthread_mutex_lock(&mutex_chunks);
