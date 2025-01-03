@@ -127,6 +127,7 @@ inline auto hit_compare_byid_typed(struct hit * x, struct hit * y) -> int
     }
 }
 
+
 inline auto hit_compare_bysize_typed(struct hit * x, struct hit * y) -> int
 {
   // high abundance, then low abundance
@@ -198,21 +199,25 @@ inline auto hit_compare_bysize_typed(struct hit * x, struct hit * y) -> int
                           }
 }
 
+
 auto hit_compare_byid(const void * a, const void * b) -> int
 {
   return hit_compare_byid_typed((struct hit *) a, (struct hit *) b);
 }
+
 
 auto hit_compare_bysize(const void * a, const void * b) -> int
 {
   return hit_compare_bysize_typed((struct hit *) a, (struct hit *) b);
 }
 
+
 auto search_enough_kmers(struct searchinfo_s * si,
                          unsigned int count) -> bool
 {
   return (count >= opt_minwordmatches) or (count >= si->kmersamplecount);
 }
+
 
 auto search_topscores(struct searchinfo_s * si) -> void
 {
@@ -285,6 +290,7 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   minheap_sort(si->m);
 }
+
 
 auto seqncmp(char * a, char * b, uint64_t n) -> int
 {
@@ -428,6 +434,7 @@ auto align_trim(struct hit * hit) -> void
     }
 }
 
+
 auto search_acceptable_unaligned(struct searchinfo_s * si,
                                  int target) -> bool
 {
@@ -498,6 +505,7 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
       return false;
     }
 }
+
 
 auto search_acceptable_aligned(struct searchinfo_s * si,
                                struct hit * hit) -> bool
@@ -575,6 +583,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       return false;
     }
 }
+
 
 auto align_delayed(struct searchinfo_s * si) -> void
 {
@@ -715,6 +724,7 @@ auto align_delayed(struct searchinfo_s * si) -> void
   si->finalized = si->hit_count;
 }
 
+
 auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
 {
   si->hit_count = 0;
@@ -799,6 +809,7 @@ auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
   xfree(scorematrix);
 }
 
+
 auto search_findbest2_byid(struct searchinfo_s * si_p,
                            struct searchinfo_s * si_m) -> struct hit *
 {
@@ -831,6 +842,7 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
   return best;
 }
 
+
 auto search_findbest2_bysize(struct searchinfo_s * si_p,
                              struct searchinfo_s * si_m) -> struct hit *
 {
@@ -862,6 +874,7 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 
   return best;
 }
+
 
 auto search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
