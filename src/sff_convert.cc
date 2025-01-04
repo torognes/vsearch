@@ -102,7 +102,7 @@ auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
   static constexpr auto blocksize = uint64_t{4096};
-  std::array<char, blocksize> buffer;
+  std::array<char, blocksize> buffer {{}};
 
   uint64_t skipped = 0;
   uint64_t rest = length;
