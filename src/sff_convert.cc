@@ -241,6 +241,9 @@ auto sff_convert() -> void
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
 
+  auto const fastq_qminout = static_cast<int>(opt_fastq_qminout);
+  auto const fastq_qmaxout = static_cast<int>(opt_fastq_qmaxout);
+
   for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
     {
       /* check if the index block is here */
@@ -353,14 +356,8 @@ auto sff_convert() -> void
       for (uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
         {
           int quality_score = qual[base_no];
-          if (quality_score < opt_fastq_qminout)
-            {
-              quality_score = opt_fastq_qminout;
-            }
-          if (quality_score > opt_fastq_qmaxout)
-            {
-              quality_score = opt_fastq_qmaxout;
-            }
+          quality_score = std::max(quality_score, fastq_qminout);
+          quality_score = std::min(quality_score, fastq_qmaxout);
           qual[base_no] = opt_fastq_asciiout + quality_score;
         }
       qual[read_header.number_of_bases] = 0;
