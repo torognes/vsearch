@@ -345,8 +345,8 @@ auto sff_convert() -> void
       bases[read_header.number_of_bases] = 0;
       filepos += read_header.number_of_bases;
 
-      std::vector<char> qual(read_header.number_of_bases + 1);
-      if (fread(qual.data(), 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      std::vector<char> quality_scores(read_header.number_of_bases + 1);
+      if (fread(quality_scores.data(), 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
         {
           fatal("Invalid SFF file. Unable to read quality scores. File may be truncated.");
         }
@@ -355,12 +355,12 @@ auto sff_convert() -> void
       /* convert quality scores to ascii characters */
       for (uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
         {
-          int quality_score = qual[base_no];
+          int quality_score = quality_scores[base_no];
           quality_score = std::max(quality_score, fastq_qminout);
           quality_score = std::min(quality_score, fastq_qmaxout);
-          qual[base_no] = opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
+          quality_scores[base_no] = opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
         }
-      qual[read_header.number_of_bases] = 0;
+      quality_scores[read_header.number_of_bases] = 0;
 
       uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
       uint32_t const read_data_padded_length = 8 * ((read_data_length + 7) / 8);
@@ -394,7 +394,7 @@ auto sff_convert() -> void
       if (opt_sff_clip)
         {
           bases[clip_end] = 0;
-          qual[clip_end] = 0;
+          quality_scores[clip_end] = 0;
         }
       else
         {
@@ -409,7 +409,7 @@ auto sff_convert() -> void
                           length,
                           read_name.data(),
                           strlen(read_name.data()),
-                          qual.data() + clip_start,
+                          quality_scores.data() + clip_start,
                           1, read_no + 1, -1.0);
 
 
