@@ -384,11 +384,11 @@ auto sff_convert() -> void
         {
           if ((i < clip_start) || (i >= clip_end))
             {
-              bases[i] = tolower(bases[i]);
+              bases[i] = std::tolower(bases[i]);
             }
           else
             {
-              bases[i] = toupper(bases[i]);
+              bases[i] = std::toupper(bases[i]);
             }
         }
 
