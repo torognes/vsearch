@@ -395,8 +395,8 @@ auto sff_convert() -> void
 
       if (opt_sff_clip)
         {
-          bases[clip_end] = 0;
-          quality_scores[clip_end] = 0;
+          bases[clip_end] = '\0';
+          quality_scores[clip_end] = '\0';
         }
       else
         {
