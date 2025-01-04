@@ -375,6 +375,7 @@ auto sff_convert() -> void
 
       uint32_t clip_start = 0;
       clip_start = std::max(uint16_t{1}, std::max(read_header.clip_qual_left, read_header.clip_adapter_left)) - 1;
+      // refactoring C++11: std::max( {uint16_t{1}, read_header.clip_qual_left, read_header.clip_adapter_left} )
 
       uint32_t clip_end = read_header.number_of_bases;
       clip_end = MIN((read_header.clip_qual_right == 0 ? read_header.number_of_bases : read_header.clip_qual_right), (read_header.clip_adapter_right == 0 ? read_header.number_of_bases : read_header.clip_adapter_right));
