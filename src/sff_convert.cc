@@ -63,13 +63,14 @@
 #include <array>
 #include <cctype>  // std::tolower, std::toupper
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
-#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t
 #include <cstring>  // std::strlen
 #include <limits>
 #include <vector>
 
 
 constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
+constexpr std::size_t common_header_start = 31;
 
 struct sff_header_s
 {
@@ -144,11 +145,11 @@ auto sff_convert() -> void
 
   uint64_t filepos = 0;
 
-  if (std::fread(&sff_header, 1, 31, fp_sff) < 31)
+  if (std::fread(&sff_header, 1, common_header_start, fp_sff) < common_header_start)
     {
       fatal("Unable to read from SFF file. File may be truncated.");
     }
-  filepos += 31;
+  filepos += common_header_start;
 
   sff_header.magic_number    = bswap_32(sff_header.magic_number);
   sff_header.version         = bswap_32(sff_header.version);
@@ -174,7 +175,7 @@ auto sff_convert() -> void
       fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
     }
 
-  if (sff_header.header_length != 8 * ((31 + sff_header.flows_per_read + sff_header.key_length + 7) / 8))
+  if (sff_header.header_length != 8 * ((common_header_start + sff_header.flows_per_read + sff_header.key_length + 7) / 8))
     {
       fatal("Invalid SFF file. Incorrect header length.");
     }
