@@ -83,7 +83,7 @@ struct sff_header_s
   uint16_t key_length;
   uint16_t flows_per_read;
   uint8_t  flowgram_format_code;
-} sff_header;
+};
 
 struct sff_read_header_s
 {
@@ -142,6 +142,8 @@ auto sff_convert() -> void
     }
 
   /* read and check header */
+
+  struct sff_header_s sff_header;
 
   uint64_t filepos = 0;
 
