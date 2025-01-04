@@ -97,8 +97,11 @@ auto shuffle_deck(std::vector<int> & deck, long int const user_seed) -> void {
 }
 
 
+// refactoring: turn into template, remove conditional
 auto truncate_deck(std::vector<int> & deck,
                    long int const n_first_sequences) -> void {
+  // auto const new_size = std::min(deck.size(), n_first_sequences)
+  // deck.resize(new_size);
   if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
     deck.resize(n_first_sequences);
   }
