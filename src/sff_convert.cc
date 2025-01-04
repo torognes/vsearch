@@ -218,7 +218,7 @@ auto sff_convert() -> void
 
   bool index_done = (sff_header.index_offset == 0) || (sff_header.index_length == 0);
   bool index_odd = false;
-  char index_kind[9];
+  std::array<char, 9> index_kind;
 
   uint32_t index_padding = 0;
   if ((sff_header.index_length & 7U) > 0)
@@ -253,7 +253,7 @@ auto sff_convert() -> void
         {
           if (filepos == sff_header.index_offset)
             {
-              if (std::fread(index_kind, 1, 8, fp_sff) < 8)
+              if (std::fread(index_kind.data(), 1, 8, fp_sff) < 8)
                 {
                   fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
                 }
@@ -429,7 +429,7 @@ auto sff_convert() -> void
     {
       if (filepos == sff_header.index_offset)
         {
-          if (std::fread(index_kind, 1, 8, fp_sff) < 8)
+          if (std::fread(index_kind.data(), 1, 8, fp_sff) < 8)
             {
               fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
             }
@@ -498,7 +498,7 @@ auto sff_convert() -> void
     {
       if (sff_header.index_length > 0)
         {
-          fprintf(stderr, "Index type:      %s\n", index_kind);
+          fprintf(stderr, "Index type:      %s\n", index_kind.data());
         }
       fprintf(stderr, "\nSFF file read successfully.\n");
       if (sff_header.number_of_reads > 0)
@@ -514,7 +514,7 @@ auto sff_convert() -> void
     {
       if (sff_header.index_length > 0)
         {
-          fprintf(fp_log, "Index type:      %s\n", index_kind);
+          fprintf(fp_log, "Index type:      %s\n", index_kind.data());
         }
       fprintf(fp_log, "\nSFF file read successfully.\n");
       if (sff_header.number_of_reads > 0)
