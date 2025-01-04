@@ -337,8 +337,8 @@ auto sff_convert() -> void
         }
       filepos += read_header.number_of_bases;
 
-      char * bases = (char *) xmalloc(read_header.number_of_bases + 1);
-      if (fread(bases, 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      std::vector<char> bases(read_header.number_of_bases + 1);
+      if (fread(bases.data(), 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
         {
           fatal("Invalid SFF file. Unable to read read length. File may be truncated.");
         }
@@ -405,14 +405,13 @@ auto sff_convert() -> void
       uint32_t const length = clip_end - clip_start;
 
       fastq_print_general(fp_fastqout,
-                          bases + clip_start,
+                          bases.data() + clip_start,
                           length,
                           read_name.data(),
                           strlen(read_name.data()),
                           qual + clip_start,
                           1, read_no + 1, -1.0);
 
-      xfree(bases);
       xfree(qual);
 
       totallength += length;
