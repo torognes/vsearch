@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::min, std::max
 #include <array>
 #include <cctype>  // std::tolower, std::toupper
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
