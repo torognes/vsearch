@@ -69,7 +69,7 @@
 #include <vector>
 
 
-constexpr uint32_t sff_magic = 0x2e736666;
+constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
 
 struct sff_header_s
 {
