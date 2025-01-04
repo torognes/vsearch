@@ -109,7 +109,7 @@ auto fskip(std::FILE * fp, uint64_t length) -> uint64_t
 
   while (rest > 0)
     {
-      uint64_t const want = (rest > blocksize) ? blocksize : rest;
+      auto const want = (rest > blocksize) ? blocksize : rest;
       uint64_t const got = std::fread(buffer.data(), 1, want, fp);
       skipped += got;
       rest -= got;
@@ -129,13 +129,13 @@ auto sff_convert() -> void
       fatal("No output file for sff_convert specified with --fastqout.");
     }
 
-  std::FILE * fp_fastqout = fopen_output(opt_fastqout);
+  auto * fp_fastqout = fopen_output(opt_fastqout);
   if (fp_fastqout == nullptr)
     {
       fatal("Unable to open FASTQ output file for writing.");
     }
 
-  std::FILE * fp_sff = fopen_input(opt_sff_convert);
+  auto * fp_sff = fopen_input(opt_sff_convert);
   if (fp_sff == nullptr)
     {
       fatal("Unable to open SFF input file for reading.");
