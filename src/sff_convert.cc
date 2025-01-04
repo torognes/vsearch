@@ -94,7 +94,7 @@ struct sff_read_header_s
   uint16_t clip_qual_right;
   uint16_t clip_adapter_left;
   uint16_t clip_adapter_right;
-} read_header;
+};
 
 
 auto fskip(std::FILE * fp, uint64_t length) -> uint64_t
@@ -276,6 +276,8 @@ auto sff_convert() -> void
         }
 
       /* read and check each read header */
+
+      struct sff_read_header_s read_header;
 
       if (std::fread(&read_header, 1, 16, fp_sff) < 16)
         {
