@@ -345,8 +345,8 @@ auto sff_convert() -> void
       bases[read_header.number_of_bases] = 0;
       filepos += read_header.number_of_bases;
 
-      char * qual = (char *) xmalloc(read_header.number_of_bases + 1);
-      if (fread(qual, 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      std::vector<char> qual(read_header.number_of_bases + 1);
+      if (fread(qual.data(), 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
         {
           fatal("Invalid SFF file. Unable to read quality scores. File may be truncated.");
         }
@@ -409,10 +409,9 @@ auto sff_convert() -> void
                           length,
                           read_name.data(),
                           strlen(read_name.data()),
-                          qual + clip_start,
+                          qual.data() + clip_start,
                           1, read_no + 1, -1.0);
 
-      xfree(qual);
 
       totallength += length;
       minimum = std::min(length, minimum);
