@@ -201,7 +201,7 @@ auto sff_convert() -> void
     {
       fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
     }
-  key_sequence[sff_header.key_length] = 0;
+  key_sequence[sff_header.key_length] = '\0';
   filepos += sff_header.key_length;
 
   uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - 31;
@@ -314,7 +314,7 @@ auto sff_convert() -> void
           fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
         }
       filepos += read_header.name_length;
-      read_name[read_header.name_length] = 0;
+      read_name[read_header.name_length] = '\0';
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - 16;
       if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length)
@@ -342,7 +342,7 @@ auto sff_convert() -> void
         {
           fatal("Invalid SFF file. Unable to read read length. File may be truncated.");
         }
-      bases[read_header.number_of_bases] = 0;
+      bases[read_header.number_of_bases] = '\0';
       filepos += read_header.number_of_bases;
 
       std::vector<char> quality_scores(read_header.number_of_bases + 1);
@@ -360,7 +360,7 @@ auto sff_convert() -> void
           quality_score = std::min(quality_score, fastq_qmaxout);
           quality_scores[base_no] = opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
         }
-      quality_scores[read_header.number_of_bases] = 0;
+      quality_scores[read_header.number_of_bases] = '\0';
 
       uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
       uint32_t const read_data_padded_length = 8 * ((read_data_length + 7) / 8);
