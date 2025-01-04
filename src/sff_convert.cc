@@ -124,19 +124,19 @@ auto fskip(std::FILE * fp, uint64_t length) -> uint64_t
 
 auto sff_convert() -> void
 {
-  if (! opt_fastqout)
+  if (opt_fastqout == nullptr)
     {
       fatal("No output file for sff_convert specified with --fastqout.");
     }
 
   std::FILE * fp_fastqout = fopen_output(opt_fastqout);
-  if (! fp_fastqout)
+  if (fp_fastqout == nullptr)
     {
       fatal("Unable to open FASTQ output file for writing.");
     }
 
   std::FILE * fp_sff = fopen_input(opt_sff_convert);
-  if (! fp_sff)
+  if (fp_sff == nullptr)
     {
       fatal("Unable to open SFF input file for reading.");
     }
