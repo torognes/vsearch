@@ -196,8 +196,8 @@ auto sff_convert() -> void
     }
   filepos += sff_header.flows_per_read;
 
-  char * key_sequence = (char *) xmalloc(sff_header.key_length + 1);
-  if (fread(key_sequence, 1, sff_header.key_length, fp_sff) < sff_header.key_length)
+  std::vector<char> key_sequence(sff_header.key_length + 1);
+  if (fread(key_sequence.data(), 1, sff_header.key_length, fp_sff) < sff_header.key_length)
     {
       fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
     }
@@ -229,14 +229,14 @@ auto sff_convert() -> void
     {
       fprintf(stderr, "Number of reads: %d\n", sff_header.number_of_reads);
       fprintf(stderr, "Flows per read:  %d\n", sff_header.flows_per_read);
-      fprintf(stderr, "Key sequence:    %s\n", key_sequence);
+      fprintf(stderr, "Key sequence:    %s\n", key_sequence.data());
     }
 
   if (opt_log)
     {
       fprintf(fp_log, "Number of reads: %d\n", sff_header.number_of_reads);
       fprintf(fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
-      fprintf(fp_log, "Key sequence:    %s\n", key_sequence);
+      fprintf(fp_log, "Key sequence:    %s\n", key_sequence.data());
     }
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
@@ -525,5 +525,4 @@ auto sff_convert() -> void
         }
     }
 
-  xfree(key_sequence);
 }
