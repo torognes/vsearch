@@ -236,7 +236,7 @@ auto sff_convert() -> void
       fprintf(stderr, "Key sequence:    %s\n", key_sequence.data());
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Number of reads: %d\n", sff_header.number_of_reads);
       fprintf(fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
