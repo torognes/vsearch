@@ -352,16 +352,16 @@ auto sff_convert() -> void
       /* convert quality scores to ascii characters */
       for (uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
         {
-          int q = qual[base_no];
-          if (q < opt_fastq_qminout)
+          int quality_score = qual[base_no];
+          if (quality_score < opt_fastq_qminout)
             {
-              q = opt_fastq_qminout;
+              quality_score = opt_fastq_qminout;
             }
-          if (q > opt_fastq_qmaxout)
+          if (quality_score > opt_fastq_qmaxout)
             {
-              q = opt_fastq_qmaxout;
+              quality_score = opt_fastq_qmaxout;
             }
-          qual[base_no] = opt_fastq_asciiout + q;
+          qual[base_no] = opt_fastq_asciiout + quality_score;
         }
       qual[read_header.number_of_bases] = 0;
 
