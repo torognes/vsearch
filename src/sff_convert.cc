@@ -358,7 +358,7 @@ auto sff_convert() -> void
           int quality_score = qual[base_no];
           quality_score = std::max(quality_score, fastq_qminout);
           quality_score = std::min(quality_score, fastq_qmaxout);
-          qual[base_no] = opt_fastq_asciiout + quality_score;
+          qual[base_no] = opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
         }
       qual[read_header.number_of_bases] = 0;
 
