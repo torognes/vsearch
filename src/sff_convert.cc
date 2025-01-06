@@ -328,10 +328,8 @@ auto sff_convert() -> void
     {
       /* check if the index block is here */
 
-      if (not index_done)
+      if ((not index_done) and (filepos == sff_header.index_offset))
         {
-          if (filepos == sff_header.index_offset)
-            {
               if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff) < index_header_length)
                 {
                   fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
@@ -348,7 +346,6 @@ auto sff_convert() -> void
               filepos += index_size;
               index_done = true;
               index_odd = true;
-            }
         }
 
       /* read and check each read header */
