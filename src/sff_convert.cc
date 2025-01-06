@@ -519,7 +519,7 @@ auto sff_convert() -> void
   if (not index_done)
     {
       fprintf(stderr, "WARNING: SFF index missing\n");
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log, "WARNING: SFF index missing\n");
         }
@@ -528,7 +528,7 @@ auto sff_convert() -> void
   if (index_odd)
     {
       fprintf(stderr, "WARNING: Index at unusual position in file\n");
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log, "WARNING: Index at unusual position in file\n");
         }
