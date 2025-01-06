@@ -212,6 +212,7 @@ auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std:
   if (n_bytes_read < n_bytes_to_read) {
     fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
   }
+  assert(key_sequence.back() == '\0');  // C-string should be null-terminated
   return key_sequence;
 }
 
