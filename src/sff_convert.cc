@@ -151,31 +151,7 @@ auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> st
 };
 
 
-auto sff_convert() -> void
-{
-  if (opt_fastqout == nullptr)
-    {
-      fatal("No output file for sff_convert specified with --fastqout.");
-    }
-
-  auto * fp_fastqout = fopen_output(opt_fastqout);
-  if (fp_fastqout == nullptr)
-    {
-      fatal("Unable to open FASTQ output file for writing.");
-    }
-
-  auto * fp_sff = fopen_input(opt_sff_convert);
-  if (fp_sff == nullptr)
-    {
-      fatal("Unable to open SFF input file for reading.");
-    }
-
-  /* read and check header */
-
-  uint64_t filepos = 0;
-
-  auto const sff_header = read_sff_header(fp_sff, filepos);
-
+auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   if (sff_header.magic_number != sff_magic)
     {
       fatal("Invalid SFF file. Incorrect magic number. Must be 0x2e736666 (.sff).");
@@ -205,6 +181,35 @@ auto sff_convert() -> void
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
+};
+
+
+auto sff_convert() -> void
+{
+  if (opt_fastqout == nullptr)
+    {
+      fatal("No output file for sff_convert specified with --fastqout.");
+    }
+
+  auto * fp_fastqout = fopen_output(opt_fastqout);
+  if (fp_fastqout == nullptr)
+    {
+      fatal("Unable to open FASTQ output file for writing.");
+    }
+
+  auto * fp_sff = fopen_input(opt_sff_convert);
+  if (fp_sff == nullptr)
+    {
+      fatal("Unable to open SFF input file for reading.");
+    }
+
+  /* read and check header */
+
+  uint64_t filepos = 0;
+
+  auto const sff_header = read_sff_header(fp_sff, filepos);
+  check_sff_header(sff_header);
+
 
   /* read and check flow chars, key and padding */
 
