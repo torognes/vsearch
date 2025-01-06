@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include <algorithm>  // std::min, std::max
 #include <array>
+#include <cassert>
 #include <cctype>  // std::tolower, std::toupper
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t
@@ -147,6 +148,7 @@ auto sff_convert() -> void
 
   uint64_t filepos = 0;
 
+  assert(fp_sff != nullptr);
   if (std::fread(&sff_header, 1, common_header_start, fp_sff) < common_header_start)
     {
       fatal("Unable to read from SFF file. File may be truncated.");
