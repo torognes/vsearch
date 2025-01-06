@@ -70,7 +70,7 @@
 
 
 constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
-constexpr std::size_t common_header_start = 31;
+constexpr std::size_t common_header_start = 31;  // first part of the header is 31 bytes in total
 
 struct sff_header_s
 {
