@@ -157,20 +157,6 @@ auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> st
 };
 
 
-auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
-  // try to read another byte
-  auto const n_bytes_read = fskip(sff_handle, byte_size);
-  if (n_bytes_read == 0) {
-    return;  // no trailing data
-  }
-  auto const * const message = "WARNING: Additional data at end of SFF file ignored\n";
-  std::fprintf(stderr, message);
-  if (opt_log != nullptr) {
-    std::fprintf(fp_log, message);
-  }
-};
-
-
 auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   if (sff_header.magic_number != sff_magic)
     {
@@ -201,6 +187,20 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
+};
+
+
+auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
+  // try to read another byte
+  auto const n_bytes_read = fskip(sff_handle, byte_size);
+  if (n_bytes_read == 0) {
+    return;  // no trailing data
+  }
+  auto const * const message = "WARNING: Additional data at end of SFF file ignored\n";
+  std::fprintf(stderr, message);
+  if (opt_log != nullptr) {
+    std::fprintf(fp_log, message);
+  }
 };
 
 
