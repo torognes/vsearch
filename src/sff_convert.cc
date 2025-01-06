@@ -232,6 +232,12 @@ auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std:
 }
 
 
+auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
+  auto const rest = sff_header.index_length & max_padding_length;
+  return rest == 0 ? 0U : memory_alignment - rest;
+};
+
+
 auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
@@ -294,11 +300,7 @@ auto sff_convert() -> void
   bool index_odd = false;
   std::array<char, index_header_length + 1> index_kind;
 
-  uint32_t index_padding = 0;
-  if ((sff_header.index_length & max_padding_length) > 0)
-    {
-      index_padding = memory_alignment - (sff_header.index_length & max_padding_length);
-    }
+  auto const index_padding = compute_index_padding(sff_header);
 
   if (not opt_quiet)
     {
