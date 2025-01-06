@@ -155,6 +155,9 @@ auto sff_convert() -> void
     }
   filepos += common_header_start;
 
+  // SFF multi-byte numeric values are stored using a big-endian byte order
+  // vsearch expects little-endian, so we need to swap bytes
+  // refactoring: C++23 std::byteswap()
   sff_header.magic_number    = bswap_32(sff_header.magic_number);
   sff_header.version         = bswap_32(sff_header.version);
   sff_header.index_offset    = bswap_64(sff_header.index_offset);
