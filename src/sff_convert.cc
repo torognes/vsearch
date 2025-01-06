@@ -71,7 +71,7 @@
 
 
 constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
-constexpr std::size_t common_header_start = 31;  // first part of the header is 31 bytes in total
+constexpr std::size_t n_bytes_in_header = 31;  // first part of the header is 31 bytes in total
 constexpr auto byte_size = sizeof(uint8_t);
 
 struct sff_header_s
@@ -128,12 +128,12 @@ auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> st
   assert(sff_handle != nullptr);
 
   struct sff_header_s sff_header;
-  auto const n_bytes_read = std::fread(&sff_header, byte_size, common_header_start, sff_handle);
-  if (n_bytes_read < common_header_start)
+  auto const n_bytes_read = std::fread(&sff_header, byte_size, n_bytes_in_header, sff_handle);
+  if (n_bytes_read < n_bytes_in_header)
     {
       fatal("Unable to read from SFF file. File may be truncated.");
     }
-  position_in_stream += common_header_start;
+  position_in_stream += n_bytes_in_header;
 
   // SFF multi-byte numeric values are stored using a big-endian byte order
   // vsearch expects little-endian, so we need to swap bytes
@@ -191,7 +191,7 @@ auto sff_convert() -> void
       fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
     }
 
-  if (sff_header.header_length != 8 * ((common_header_start + sff_header.flows_per_read + sff_header.key_length + 7) / 8))
+  if (sff_header.header_length != 8 * ((n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length + 7) / 8))
     {
       fatal("Invalid SFF file. Incorrect header length.");
     }
