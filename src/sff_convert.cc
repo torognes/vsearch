@@ -193,7 +193,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect key length. Must be 4.");
     }
 
-  if ((sff_header.index_length > 0) and (sff_header.index_length < minimal_index_length))
+  if ((sff_header.index_length != 0) and (sff_header.index_length < minimal_index_length))
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
