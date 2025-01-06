@@ -135,10 +135,9 @@ auto read_sff_header(std::FILE * sff_handle) -> struct sff_header_s {
 
   struct sff_header_s sff_header;
   auto const n_bytes_read = std::fread(&sff_header, byte_size, n_bytes_in_header, sff_handle);
-  if (n_bytes_read < n_bytes_in_header)
-    {
-      fatal("Unable to read from SFF file. File may be truncated.");
-    }
+  if (n_bytes_read < n_bytes_in_header) {
+    fatal("Unable to read from SFF file. File may be truncated.");
+  }
 
   // SFF multi-byte numeric values are stored using a big-endian byte order
   // vsearch expects little-endian, so we need to swap bytes
