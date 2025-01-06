@@ -155,7 +155,7 @@ auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
   if (n_bytes_read == 0) {
-    return;
+    return;  // no trailing data
   }
   auto const * const message = "WARNING: Additional data at end of SFF file ignored\n";
   std::fprintf(stderr, message);
