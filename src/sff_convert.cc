@@ -181,7 +181,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect key length. Must be 4.");
     }
 
-  if ((sff_header.index_length > 0) && (sff_header.index_length < 8))
+  if ((sff_header.index_length > 0) and (sff_header.index_length < 8))
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
@@ -272,7 +272,7 @@ auto sff_convert() -> void
   uint32_t minimum = std::numeric_limits<uint32_t>::max();
   uint32_t maximum = 0;
 
-  bool index_done = (sff_header.index_offset == 0) || (sff_header.index_length == 0);
+  bool index_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
   bool index_odd = false;
   std::array<char, 9> index_kind;
 
@@ -282,7 +282,7 @@ auto sff_convert() -> void
       index_padding = 8 - (sff_header.index_length & 7U);
     }
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       fprintf(stderr, "Number of reads: %d\n", sff_header.number_of_reads);
       fprintf(stderr, "Flows per read:  %d\n", sff_header.flows_per_read);
@@ -305,7 +305,7 @@ auto sff_convert() -> void
     {
       /* check if the index block is here */
 
-      if (! index_done)
+      if (not index_done)
         {
           if (filepos == sff_header.index_offset)
             {
@@ -438,7 +438,7 @@ auto sff_convert() -> void
       /* make the clipped bases lowercase and the rest uppercase */
       for (uint32_t i = 0; i < read_header.number_of_bases; i++)
         {
-          if ((i < clip_start) || (i >= clip_end))
+          if ((i < clip_start) or (i >= clip_end))
             {
               bases[i] = std::tolower(bases[i]);
             }
@@ -480,7 +480,7 @@ auto sff_convert() -> void
 
   /* check if the index block is here */
 
-  if (! index_done)
+  if (not index_done)
     {
       if (filepos == sff_header.index_offset)
         {
@@ -505,7 +505,7 @@ auto sff_convert() -> void
           if (index_padding > 0)
             {
               uint64_t const got = fskip(fp_sff, index_padding);
-              if ((got < index_padding) && (got != 0))
+              if ((got < index_padding) and (got != 0))
                 {
                   fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n");
                 }
@@ -513,7 +513,7 @@ auto sff_convert() -> void
         }
     }
 
-  if (! index_done)
+  if (not index_done)
     {
       fprintf(stderr, "WARNING: SFF index missing\n");
       if (opt_log)
@@ -540,7 +540,7 @@ auto sff_convert() -> void
 
   double const average = totallength / sff_header.number_of_reads;
 
-  if (! opt_quiet)
+  if (not opt_quiet)
     {
       if (sff_header.index_length > 0)
         {
