@@ -233,8 +233,8 @@ auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std:
 
 
 auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
-  auto const rest = sff_header.index_length & max_padding_length;
-  return rest == 0 ? 0U : memory_alignment - rest;
+  auto const remainder = sff_header.index_length & max_padding_length;
+  return remainder == 0 ? 0U : memory_alignment - remainder;
 };
 
 
