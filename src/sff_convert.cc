@@ -84,7 +84,7 @@ constexpr auto max_padding_length = 7U;
 constexpr auto expected_version_number = 1U;
 constexpr auto expected_flowgram_format_code = 1U;
 constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
-constexpr auto minimal_index_length = 8U;
+constexpr auto index_header_length = 8U;  // index_magic_number (uint32_t) + index_version (char[4])
 
 // SFF format expects the following to be true:
 static_assert(sizeof(uint8_t) == 1, "sff expects a uint8_t of size 1");
@@ -193,7 +193,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect key length. Must be 4.");
     }
 
-  if ((sff_header.index_length != 0) and (sff_header.index_length < minimal_index_length))
+  if ((sff_header.index_length != 0) and (sff_header.index_length < index_header_length))
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
@@ -292,12 +292,12 @@ auto sff_convert() -> void
 
   bool index_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
   bool index_odd = false;
-  std::array<char, 9> index_kind;
+  std::array<char, index_header_length + 1> index_kind;
 
   uint32_t index_padding = 0;
   if ((sff_header.index_length & max_padding_length) > 0)
     {
-      index_padding = 8 - (sff_header.index_length & max_padding_length);
+      index_padding = memory_alignment - (sff_header.index_length & max_padding_length);
     }
 
   if (not opt_quiet)
@@ -334,7 +334,7 @@ auto sff_convert() -> void
               filepos += 8;
               index_kind[8] = 0;
 
-              uint64 const index_size = sff_header.index_length - 8 + index_padding;
+              uint64 const index_size = sff_header.index_length - index_header_length + index_padding;
               if (fskip(fp_sff, index_size) != index_size)
                 {
                   fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
