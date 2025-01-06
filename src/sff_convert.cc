@@ -69,12 +69,20 @@
 #include <limits>
 #include <vector>
 
+// sff file map:
+// - common header
+// - index (optional, skipped when present)
+// - reads
+// - index (optional, can be at the end) (index_offset tells us where it is)
+
 
 constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
 constexpr std::size_t n_bytes_in_header = 31;  // first part of the header is 31 bytes in total
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
 constexpr auto max_padding_length = 7U;
+constexpr auto expected_version_number = 1U;
+constexpr auto expected_flowgram_format_code = 1U;
 constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
 
 // SFF format expects the following to be true:
@@ -164,12 +172,12 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect magic number. Must be 0x2e736666 (.sff).");
     }
 
-  if (sff_header.version != 1)
+  if (sff_header.version != expected_version_number)
     {
       fatal("Invalid SFF file. Incorrect version. Must be 1.");
     }
 
-  if (sff_header.flowgram_format_code != 1)
+  if (sff_header.flowgram_format_code != expected_flowgram_format_code)
     {
       fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
     }
