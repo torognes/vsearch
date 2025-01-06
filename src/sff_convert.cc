@@ -247,7 +247,7 @@ auto sff_convert() -> void
   key_sequence[sff_header.key_length] = '\0';
   filepos += sff_header.key_length;
 
-  uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - 31;
+  uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - n_bytes_in_header;
   if (fskip(fp_sff, padding_length) < padding_length)
     {
       fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
