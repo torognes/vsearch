@@ -157,7 +157,7 @@ auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
   if (n_bytes_read == 0) {
     return;
   }
-  auto const message = "WARNING: Additional data at end of SFF file ignored\n";
+  auto const * const message = "WARNING: Additional data at end of SFF file ignored\n";
   std::fprintf(stderr, message);
   if (opt_log != nullptr)
     {
