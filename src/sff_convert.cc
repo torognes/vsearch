@@ -123,6 +123,34 @@ auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
 }
 
 
+auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> struct sff_header_s {
+  assert(sff_handle != nullptr);
+
+  struct sff_header_s sff_header;
+  constexpr auto byte_size = sizeof(uint8_t);
+  auto const n_bytes_read = std::fread(&sff_header, byte_size, common_header_start, sff_handle);
+  if (n_bytes_read < common_header_start)
+    {
+      fatal("Unable to read from SFF file. File may be truncated.");
+    }
+  position_in_stream += common_header_start;
+
+  // SFF multi-byte numeric values are stored using a big-endian byte order
+  // vsearch expects little-endian, so we need to swap bytes
+  // refactoring: C++23 std::byteswap()
+  sff_header.magic_number    = bswap_32(sff_header.magic_number);
+  sff_header.version         = bswap_32(sff_header.version);
+  sff_header.index_offset    = bswap_64(sff_header.index_offset);
+  sff_header.index_length    = bswap_32(sff_header.index_length);
+  sff_header.number_of_reads = bswap_32(sff_header.number_of_reads);
+  sff_header.header_length   = bswap_16(sff_header.header_length);
+  sff_header.key_length      = bswap_16(sff_header.key_length);
+  sff_header.flows_per_read  = bswap_16(sff_header.flows_per_read);
+
+  return sff_header;
+};
+
+
 auto sff_convert() -> void
 {
   if (opt_fastqout == nullptr)
@@ -144,28 +172,9 @@ auto sff_convert() -> void
 
   /* read and check header */
 
-  struct sff_header_s sff_header;
-
   uint64_t filepos = 0;
 
-  assert(fp_sff != nullptr);
-  if (std::fread(&sff_header, 1, common_header_start, fp_sff) < common_header_start)
-    {
-      fatal("Unable to read from SFF file. File may be truncated.");
-    }
-  filepos += common_header_start;
-
-  // SFF multi-byte numeric values are stored using a big-endian byte order
-  // vsearch expects little-endian, so we need to swap bytes
-  // refactoring: C++23 std::byteswap()
-  sff_header.magic_number    = bswap_32(sff_header.magic_number);
-  sff_header.version         = bswap_32(sff_header.version);
-  sff_header.index_offset    = bswap_64(sff_header.index_offset);
-  sff_header.index_length    = bswap_32(sff_header.index_length);
-  sff_header.number_of_reads = bswap_32(sff_header.number_of_reads);
-  sff_header.header_length   = bswap_16(sff_header.header_length);
-  sff_header.key_length      = bswap_16(sff_header.key_length);
-  sff_header.flows_per_read  = bswap_16(sff_header.flows_per_read);
+  auto const sff_header = read_sff_header(fp_sff, filepos);
 
   if (sff_header.magic_number != sff_magic)
     {
