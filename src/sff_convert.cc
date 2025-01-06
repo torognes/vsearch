@@ -560,12 +560,12 @@ auto sff_convert() -> void
 
   if (not opt_quiet)
     {
-      if (sff_header.index_length > 0)
+      if (sff_header.index_length != 0)
         {
           fprintf(stderr, "Index type:      %s\n", index_kind.data());
         }
       fprintf(stderr, "\nSFF file read successfully.\n");
-      if (sff_header.number_of_reads > 0)
+      if (sff_header.number_of_reads != 0)
         {
           fprintf(stderr, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                   minimum,
@@ -576,12 +576,12 @@ auto sff_convert() -> void
 
   if (opt_log != nullptr)
     {
-      if (sff_header.index_length > 0)
+      if (sff_header.index_length != 0)
         {
           fprintf(fp_log, "Index type:      %s\n", index_kind.data());
         }
       fprintf(fp_log, "\nSFF file read successfully.\n");
-      if (sff_header.number_of_reads > 0)
+      if (sff_header.number_of_reads != 0)
         {
           fprintf(fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                   minimum,
