@@ -77,7 +77,6 @@
 
 
 constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
-constexpr std::size_t n_bytes_in_header = 31;  // first part of the header is 31 bytes in total
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
 constexpr auto max_padding_length = 7U;
@@ -105,6 +104,8 @@ struct sff_header_s
   uint8_t  flowgram_format_code;
 };
 
+constexpr std::size_t n_bytes_in_header = sizeof(struct sff_header_s);  // first part of the header is 31 bytes in total
+
 struct sff_read_header_s
 {
   uint16_t read_header_length;
@@ -115,6 +116,8 @@ struct sff_read_header_s
   uint16_t clip_adapter_left;
   uint16_t clip_adapter_right;
 };
+
+constexpr std::size_t n_bytes_in_read_header = sizeof(struct sff_read_header_s);  // 16 bytes
 
 
 auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
@@ -352,11 +355,11 @@ auto sff_convert() -> void
 
       struct sff_read_header_s read_header;
 
-      if (std::fread(&read_header, byte_size, 16, fp_sff) < 16)
+      if (std::fread(&read_header, byte_size, n_bytes_in_read_header, fp_sff) < n_bytes_in_read_header)
         {
           fatal("Invalid SFF file. Unable to read read header. File may be truncated.");
         }
-      filepos += 16;
+      filepos += n_bytes_in_read_header;
 
       read_header.read_header_length = bswap_16(read_header.read_header_length);
       read_header.name_length = bswap_16(read_header.name_length);
@@ -366,7 +369,7 @@ auto sff_convert() -> void
       read_header.clip_adapter_left = bswap_16(read_header.clip_adapter_left);
       read_header.clip_adapter_right = bswap_16(read_header.clip_adapter_right);
 
-      if (read_header.read_header_length != 8 * ((16 + read_header.name_length + max_padding_length) / 8))
+      if (read_header.read_header_length != 8 * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / 8))
         {
           fatal("Invalid SFF file. Incorrect read header length.");
         }
@@ -395,7 +398,7 @@ auto sff_convert() -> void
       filepos += read_header.name_length;
       read_name[read_header.name_length] = '\0';
 
-      uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - 16;
+      uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
       if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length)
         {
           fatal("Invalid SFF file. Unable to read read header padding. File may be truncated.");
