@@ -72,6 +72,7 @@
 
 constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
 constexpr std::size_t common_header_start = 31;  // first part of the header is 31 bytes in total
+constexpr auto byte_size = sizeof(uint8_t);
 
 struct sff_header_s
 {
@@ -111,7 +112,7 @@ auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
   while (rest > 0)
     {
       auto const want = (rest > blocksize) ? blocksize : rest;
-      uint64_t const got = std::fread(buffer.data(), 1, want, file_handle);
+      uint64_t const got = std::fread(buffer.data(), byte_size, want, file_handle);
       skipped += got;
       rest -= got;
       if (got < want)
@@ -127,7 +128,6 @@ auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> st
   assert(sff_handle != nullptr);
 
   struct sff_header_s sff_header;
-  constexpr auto byte_size = sizeof(uint8_t);
   auto const n_bytes_read = std::fread(&sff_header, byte_size, common_header_start, sff_handle);
   if (n_bytes_read < common_header_start)
     {
@@ -215,7 +215,7 @@ auto sff_convert() -> void
   filepos += sff_header.flows_per_read;
 
   std::vector<char> key_sequence(sff_header.key_length + 1);
-  if (std::fread(key_sequence.data(), 1, sff_header.key_length, fp_sff) < sff_header.key_length)
+  if (std::fread(key_sequence.data(), byte_size, sff_header.key_length, fp_sff) < sff_header.key_length)
     {
       fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
     }
@@ -270,7 +270,7 @@ auto sff_convert() -> void
         {
           if (filepos == sff_header.index_offset)
             {
-              if (std::fread(index_kind.data(), 1, 8, fp_sff) < 8)
+              if (std::fread(index_kind.data(), byte_size, 8, fp_sff) < 8)
                 {
                   fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
                 }
@@ -293,7 +293,7 @@ auto sff_convert() -> void
 
       struct sff_read_header_s read_header;
 
-      if (std::fread(&read_header, 1, 16, fp_sff) < 16)
+      if (std::fread(&read_header, byte_size, 16, fp_sff) < 16)
         {
           fatal("Invalid SFF file. Unable to read read header. File may be truncated.");
         }
@@ -329,7 +329,7 @@ auto sff_convert() -> void
         }
 
       std::vector<char> read_name(read_header.name_length + 1);
-      if (std::fread(read_name.data(), 1, read_header.name_length, fp_sff) < read_header.name_length)
+      if (std::fread(read_name.data(), byte_size, read_header.name_length, fp_sff) < read_header.name_length)
         {
           fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
         }
@@ -358,7 +358,7 @@ auto sff_convert() -> void
       filepos += read_header.number_of_bases;
 
       std::vector<char> bases(read_header.number_of_bases + 1);
-      if (std::fread(bases.data(), 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      if (std::fread(bases.data(), byte_size, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
         {
           fatal("Invalid SFF file. Unable to read read length. File may be truncated.");
         }
@@ -366,7 +366,7 @@ auto sff_convert() -> void
       filepos += read_header.number_of_bases;
 
       std::vector<char> quality_scores(read_header.number_of_bases + 1);
-      if (std::fread(quality_scores.data(), 1, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
+      if (std::fread(quality_scores.data(), byte_size, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
         {
           fatal("Invalid SFF file. Unable to read quality scores. File may be truncated.");
         }
@@ -445,7 +445,7 @@ auto sff_convert() -> void
     {
       if (filepos == sff_header.index_offset)
         {
-          if (std::fread(index_kind.data(), 1, 8, fp_sff) < 8)
+          if (std::fread(index_kind.data(), byte_size, 8, fp_sff) < 8)
             {
               fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
             }
