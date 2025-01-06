@@ -151,6 +151,21 @@ auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> st
 };
 
 
+auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
+  // try to read another byte
+  auto const n_bytes_read = fskip(sff_handle, byte_size);
+  if (n_bytes_read == 0) {
+    return;
+  }
+  auto const message = "WARNING: Additional data at end of SFF file ignored\n";
+  std::fprintf(stderr, message);
+  if (opt_log)
+    {
+      std::fprintf(fp_log, message);
+    }
+};
+
+
 auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   if (sff_header.magic_number != sff_magic)
     {
@@ -499,16 +514,7 @@ auto sff_convert() -> void
 
   /* ignore the rest of file */
 
-  /* try reading just another byte */
-
-  if (fskip(fp_sff, 1) > 0)
-    {
-      fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n");
-      if (opt_log)
-        {
-          fprintf(fp_log, "WARNING: Additional data at end of SFF file ignored\n");
-        }
-    }
+  check_for_additional_tail_data(fp_sff);
 
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
