@@ -329,12 +329,12 @@ auto sff_convert() -> void
         {
           if (filepos == sff_header.index_offset)
             {
-              if (std::fread(index_kind.data(), byte_size, 8, fp_sff) < 8)
+              if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff) < index_header_length)
                 {
                   fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
                 }
-              filepos += 8;
-              index_kind[8] = 0;
+              filepos += index_header_length;
+              index_kind[index_header_length] = 0;
 
               uint64 const index_size = sff_header.index_length - index_header_length + index_padding;
               if (fskip(fp_sff, index_size) != index_size)
