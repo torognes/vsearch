@@ -75,6 +75,7 @@ constexpr std::size_t n_bytes_in_header = 31;  // first part of the header is 31
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
 constexpr auto max_padding_length = 7U;
+constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
 
 // SFF format expects the following to be true:
 static_assert(sizeof(uint8_t) == 1, "sff expects a uint8_t of size 1");
@@ -178,7 +179,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect header length.");
     }
 
-  if (sff_header.key_length != 4)
+  if (sff_header.key_length != expected_key_length)
     {
       fatal("Invalid SFF file. Incorrect key length. Must be 4.");
     }
