@@ -130,7 +130,7 @@ auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
 }
 
 
-auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> struct sff_header_s {
+auto read_sff_header(std::FILE * sff_handle) -> struct sff_header_s {
   assert(sff_handle != nullptr);
 
   struct sff_header_s sff_header;
@@ -139,7 +139,6 @@ auto read_sff_header(std::FILE * sff_handle, uint64_t &position_in_stream) -> st
     {
       fatal("Unable to read from SFF file. File may be truncated.");
     }
-  position_in_stream += n_bytes_in_header;
 
   // SFF multi-byte numeric values are stored using a big-endian byte order
   // vsearch expects little-endian, so we need to swap bytes
@@ -235,7 +234,8 @@ auto sff_convert() -> void
 
   uint64_t filepos = 0;
 
-  auto const sff_header = read_sff_header(fp_sff, filepos);
+  auto const sff_header = read_sff_header(fp_sff);
+  filepos += n_bytes_in_header;
   check_sff_header(sff_header);
 
 
