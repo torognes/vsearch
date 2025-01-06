@@ -84,6 +84,7 @@ constexpr auto max_padding_length = 7U;
 constexpr auto expected_version_number = 1U;
 constexpr auto expected_flowgram_format_code = 1U;
 constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
+constexpr auto minimal_index_length = 8U;
 
 // SFF format expects the following to be true:
 static_assert(sizeof(uint8_t) == 1, "sff expects a uint8_t of size 1");
@@ -192,7 +193,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect key length. Must be 4.");
     }
 
-  if ((sff_header.index_length > 0) and (sff_header.index_length < 8))
+  if ((sff_header.index_length > 0) and (sff_header.index_length < minimal_index_length))
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
