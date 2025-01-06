@@ -559,7 +559,7 @@ auto sff_convert() -> void
         }
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       if (sff_header.index_length > 0)
         {
