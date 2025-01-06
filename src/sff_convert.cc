@@ -196,6 +196,11 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
     {
       fatal("Invalid SFF file. Incorrect index size. Must be at least 8.");
     }
+  // index_length includes the bytes of index_magic_number (uint32_t),
+  // index_version (char[4]), the 8n bytes for the indexing method,
+  // and padding bytes. And the length of the index section is
+  // divisible by 8. So, index_length modulo 8 must be null
+  assert((sff_header.index_length & memory_alignment) == 0);
 };
 
 
