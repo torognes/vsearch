@@ -196,6 +196,14 @@ auto skip_sff_flow_chars(std::FILE * sff_handle, struct sff_header_s const &sff_
 };
 
 
+auto skip_sff_padding_length(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
+  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
+  if (n_bytes_skipped < n_bytes_to_skip) {
+    fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
+  }
+};
+
+
 auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
@@ -252,10 +260,7 @@ auto sff_convert() -> void
   filepos += sff_header.key_length;
 
   uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - n_bytes_in_header;
-  if (fskip(fp_sff, padding_length) < padding_length)
-    {
-      fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
-    }
+  skip_sff_padding_length(fp_sff, padding_length);
   filepos += padding_length;
 
   double totallength = 0.0;
