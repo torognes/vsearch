@@ -72,7 +72,7 @@
 // sff file map:
 // - common header
 // - index (optional, skipped when present)
-// - reads
+// - reads (or index)
 // - index (optional, can be at the end) (index_offset tells us where it is)
 
 
