@@ -74,6 +74,7 @@ constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
 constexpr std::size_t n_bytes_in_header = 31;  // first part of the header is 31 bytes in total
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
+constexpr auto max_padding_length = 7U;
 
 // SFF format expects the following to be true:
 static_assert(sizeof(uint8_t) == 1, "sff expects a uint8_t of size 1");
@@ -172,7 +173,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
     }
 
-  if (sff_header.header_length != 8 * ((n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length + 7) / 8))
+  if (sff_header.header_length != 8 * ((n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length + max_padding_length) / 8))
     {
       fatal("Invalid SFF file. Incorrect header length.");
     }
@@ -278,9 +279,9 @@ auto sff_convert() -> void
   std::array<char, 9> index_kind;
 
   uint32_t index_padding = 0;
-  if ((sff_header.index_length & 7U) > 0)
+  if ((sff_header.index_length & max_padding_length) > 0)
     {
-      index_padding = 8 - (sff_header.index_length & 7U);
+      index_padding = 8 - (sff_header.index_length & max_padding_length);
     }
 
   if (not opt_quiet)
@@ -347,7 +348,7 @@ auto sff_convert() -> void
       read_header.clip_adapter_left = bswap_16(read_header.clip_adapter_left);
       read_header.clip_adapter_right = bswap_16(read_header.clip_adapter_right);
 
-      if (read_header.read_header_length != 8 * ((16 + read_header.name_length + 7) / 8))
+      if (read_header.read_header_length != 8 * ((16 + read_header.name_length + max_padding_length) / 8))
         {
           fatal("Invalid SFF file. Incorrect read header length.");
         }
@@ -423,7 +424,7 @@ auto sff_convert() -> void
       quality_scores[read_header.number_of_bases] = '\0';
 
       uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
-      uint32_t const read_data_padded_length = 8 * ((read_data_length + 7) / 8);
+      uint32_t const read_data_padded_length = 8 * ((read_data_length + max_padding_length) / 8);
       uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;
 
       if (fskip(fp_sff, read_data_padding_length) < read_data_padding_length)
