@@ -188,9 +188,9 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
 };
 
 
-auto skip_sff_flow_chars(std::FILE * sff_handle, struct sff_header_s const &sff_header) -> void {
-  auto const n_bytes_skipped = fskip(sff_handle, sff_header.flows_per_read);
-  if (n_bytes_skipped < sff_header.flows_per_read) {
+auto skip_sff_flow_chars(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
+  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
+  if (n_bytes_skipped < n_bytes_to_skip) {
     fatal("Invalid SFF file. Unable to read flow characters. File may be truncated.");
   }
 };
@@ -202,6 +202,16 @@ auto skip_sff_padding_length(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -
     fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
   }
 };
+
+
+auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std::vector<char> {
+  std::vector<char> key_sequence(n_bytes_to_read + 1);
+  auto const n_bytes_read = std::fread(key_sequence.data(), byte_size, n_bytes_to_read, sff_handle);
+  if (n_bytes_read < n_bytes_to_read) {
+    fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
+  }
+  return key_sequence;
+}
 
 
 auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
@@ -248,15 +258,10 @@ auto sff_convert() -> void
 
   /* read and check flow chars, key and padding */
 
-  skip_sff_flow_chars(fp_sff, sff_header);
+  skip_sff_flow_chars(fp_sff, sff_header.flows_per_read);
   filepos += sff_header.flows_per_read;
 
-  std::vector<char> key_sequence(sff_header.key_length + 1);
-  if (std::fread(key_sequence.data(), byte_size, sff_header.key_length, fp_sff) < sff_header.key_length)
-    {
-      fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
-    }
-  key_sequence[sff_header.key_length] = '\0';
+  auto const key_sequence = read_key_sequence(fp_sff, sff_header.key_length);
   filepos += sff_header.key_length;
 
   uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - n_bytes_in_header;
