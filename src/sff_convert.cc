@@ -384,11 +384,11 @@ auto sff_convert() -> void
 
       /* read and check the flowgram and sequence */
 
-      if (fskip(fp_sff, 2 * sff_header.flows_per_read) < sff_header.flows_per_read)
+      if (fskip(fp_sff, 2UL * sff_header.flows_per_read) < sff_header.flows_per_read)
         {
           fatal("Invalid SFF file. Unable to read flowgram values. File may be truncated.");
         }
-      filepos += 2 * sff_header.flows_per_read;
+      filepos += 2UL * sff_header.flows_per_read;
 
       if (fskip(fp_sff, read_header.number_of_bases) < read_header.number_of_bases)
         {
