@@ -170,6 +170,30 @@ auto read_sff_header(std::FILE * sff_handle) -> struct sff_header_s {
 };
 
 
+auto read_sff_read_header(std::FILE * sff_handle) -> struct sff_read_header_s {
+  assert(sff_handle != nullptr);
+
+  struct sff_read_header_s read_header;
+  auto const n_bytes_read = std::fread(&read_header, byte_size, n_bytes_in_read_header, sff_handle);
+  if (n_bytes_read < n_bytes_in_read_header) {
+    fatal("Invalid SFF file. Unable to read read header. File may be truncated.");
+  }
+
+  // SFF multi-byte numeric values are stored using a big-endian byte order
+  // vsearch expects little-endian, so we need to swap bytes
+  // refactoring: C++23 std::byteswap()
+  read_header.read_header_length = bswap_16(read_header.read_header_length);
+  read_header.name_length = bswap_16(read_header.name_length);
+  read_header.number_of_bases = bswap_32(read_header.number_of_bases);
+  read_header.clip_qual_left = bswap_16(read_header.clip_qual_left);
+  read_header.clip_qual_right = bswap_16(read_header.clip_qual_right);
+  read_header.clip_adapter_left = bswap_16(read_header.clip_adapter_left);
+  read_header.clip_adapter_right = bswap_16(read_header.clip_adapter_right);
+
+  return read_header;
+};
+
+
 auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   if (sff_header.magic_number != sff_magic)
     {
@@ -350,21 +374,9 @@ auto sff_convert() -> void
 
       /* read and check each read header */
 
-      struct sff_read_header_s read_header;
+      auto const read_header = read_sff_read_header(fp_sff);
 
-      if (std::fread(&read_header, byte_size, n_bytes_in_read_header, fp_sff) < n_bytes_in_read_header)
-        {
-          fatal("Invalid SFF file. Unable to read read header. File may be truncated.");
-        }
       filepos += n_bytes_in_read_header;
-
-      read_header.read_header_length = bswap_16(read_header.read_header_length);
-      read_header.name_length = bswap_16(read_header.name_length);
-      read_header.number_of_bases = bswap_32(read_header.number_of_bases);
-      read_header.clip_qual_left = bswap_16(read_header.clip_qual_left);
-      read_header.clip_qual_right = bswap_16(read_header.clip_qual_right);
-      read_header.clip_adapter_left = bswap_16(read_header.clip_adapter_left);
-      read_header.clip_adapter_right = bswap_16(read_header.clip_adapter_right);
 
       if (read_header.read_header_length != 8 * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / 8))
         {
