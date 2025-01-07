@@ -232,6 +232,30 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
 };
 
 
+auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void {
+  if (read_header.read_header_length != 8 * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / 8))
+    {
+      fatal("Invalid SFF file. Incorrect read header length.");
+    }
+  if (read_header.clip_qual_left > read_header.number_of_bases)
+    {
+      fatal("Invalid SFF file. Incorrect clip_qual_left value.");
+    }
+  if (read_header.clip_adapter_left > read_header.number_of_bases)
+    {
+      fatal("Invalid SFF file. Incorrect clip_adapter_left value.");
+    }
+  if (read_header.clip_qual_right > read_header.number_of_bases)
+    {
+      fatal("Invalid SFF file. Incorrect clip_qual_right value.");
+    }
+  if (read_header.clip_adapter_right > read_header.number_of_bases)
+    {
+      fatal("Invalid SFF file. Incorrect clip_adapter_right value.");
+    }
+};
+
+
 auto skip_sff_flow_chars(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
   auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
   if (n_bytes_skipped < n_bytes_to_skip) {
@@ -256,6 +280,18 @@ auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std:
   }
   assert(key_sequence.back() == '\0');  // C-string should be null-terminated
   return key_sequence;
+}
+
+
+auto read_header_name(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std::vector<char> {
+  std::vector<char> read_name(n_bytes_to_read + 1);
+  auto const n_bytes_read = std::fread(read_name.data(), byte_size, n_bytes_to_read, sff_handle);
+  if (n_bytes_read < n_bytes_to_read) {
+    fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
+  }
+  assert(read_name.back() == '\0');  // C-string should be null-terminated
+
+  return read_name;
 }
 
 
@@ -378,34 +414,10 @@ auto sff_convert() -> void
 
       filepos += n_bytes_in_read_header;
 
-      if (read_header.read_header_length != 8 * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / 8))
-        {
-          fatal("Invalid SFF file. Incorrect read header length.");
-        }
-      if (read_header.clip_qual_left > read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Incorrect clip_qual_left value.");
-        }
-      if (read_header.clip_adapter_left > read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Incorrect clip_adapter_left value.");
-        }
-      if (read_header.clip_qual_right > read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Incorrect clip_qual_right value.");
-        }
-      if (read_header.clip_adapter_right > read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Incorrect clip_adapter_right value.");
-        }
+      check_sff_read_header(read_header);
 
-      std::vector<char> read_name(read_header.name_length + 1);
-      if (std::fread(read_name.data(), byte_size, read_header.name_length, fp_sff) < read_header.name_length)
-        {
-          fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
-        }
+      auto read_name = read_header_name(fp_sff, read_header.name_length);  // fastq_print_general() does not accept const char*
       filepos += read_header.name_length;
-      read_name[read_header.name_length] = '\0';
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
       if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length)
