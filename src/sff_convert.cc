@@ -272,6 +272,14 @@ auto skip_sff_padding_length(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -
 };
 
 
+auto skip_sff_read_padding_length(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
+  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
+  if (n_bytes_skipped < n_bytes_to_skip) {
+    fatal("Invalid SFF file. Unable to read read header padding. File may be truncated.");
+  }
+};
+
+
 auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std::vector<char> {
   std::vector<char> key_sequence(n_bytes_to_read + 1);
   auto const n_bytes_read = std::fread(key_sequence.data(), byte_size, n_bytes_to_read, sff_handle);
@@ -420,10 +428,7 @@ auto sff_convert() -> void
       filepos += read_header.name_length;
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
-      if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length)
-        {
-          fatal("Invalid SFF file. Unable to read read header padding. File may be truncated.");
-        }
+      skip_sff_read_padding_length(fp_sff, read_header_padding_length);
       filepos += read_header_padding_length;
 
       /* read and check the flowgram and sequence */
