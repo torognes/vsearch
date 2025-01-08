@@ -374,9 +374,9 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      fprintf(fp_log, "Number of reads: %d\n", sff_header.number_of_reads);
-      fprintf(fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
-      fprintf(fp_log, "Key sequence:    %s\n", key_sequence.data());
+      fprintf(parameters.fp_log, "Number of reads: %d\n", sff_header.number_of_reads);
+      fprintf(parameters.fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
+      fprintf(parameters.fp_log, "Key sequence:    %s\n", key_sequence.data());
     }
 
 
@@ -595,12 +595,12 @@ auto sff_convert(struct Parameters const & parameters) -> void
     {
       if (sff_header.index_length != 0)
         {
-          fprintf(fp_log, "Index type:      %s\n", index_kind.data());
+          fprintf(parameters.fp_log, "Index type:      %s\n", index_kind.data());
         }
-      fprintf(fp_log, "\nSFF file read successfully.\n");
+      fprintf(parameters.fp_log, "\nSFF file read successfully.\n");
       if (sff_header.number_of_reads != 0)
         {
-          fprintf(fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
+          fprintf(parameters.fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                   minimum,
                   average,
                   maximum);
