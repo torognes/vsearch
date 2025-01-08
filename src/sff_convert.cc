@@ -278,6 +278,14 @@ auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void 
 };
 
 
+auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char const * const message) -> void {
+  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
+  if (n_bytes_skipped < n_bytes_to_skip) {
+    fatal("Invalid SFF file. Unable to read %s. File may be truncated.", message);
+  }
+};
+
+
 auto skip_sff_flow_chars(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
   auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
   if (n_bytes_skipped < n_bytes_to_skip) {
@@ -375,7 +383,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* skip flow chars, read and check key, and skip padding */
 
-  skip_sff_flow_chars(fp_sff, sff_header.flows_per_read);
+  skip_sff_section(fp_sff, sff_header.flows_per_read, "flow characters");
   filepos += sff_header.flows_per_read;
 
   auto const key_sequence = read_key_sequence(fp_sff, sff_header.key_length);
