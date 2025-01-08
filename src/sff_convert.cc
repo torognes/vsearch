@@ -452,10 +452,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         }
       filepos += 2UL * sff_header.flows_per_read;
 
-      if (fskip(fp_sff, read_header.number_of_bases) < read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Unable to read flow indices. File may be truncated.");
-        }
+      skip_sff_section(fp_sff, read_header.number_of_bases, "flow indices");
       filepos += read_header.number_of_bases;
 
       std::vector<char> bases(read_header.number_of_bases + 1);
@@ -487,10 +484,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       uint32_t const read_data_padded_length = 8 * ((read_data_length + max_padding_length) / 8);
       uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;
 
-      if (fskip(fp_sff, read_data_padding_length) < read_data_padding_length)
-        {
-          fatal("Invalid SFF file. Unable to read read data padding. File may be truncated.");
-        }
+      skip_sff_section(fp_sff, read_data_padding_length, "read data padding");
       filepos += read_data_padding_length;
 
       uint32_t clip_start = std::max({uint16_t{1}, read_header.clip_qual_left, read_header.clip_adapter_left}) - 1 ;
