@@ -422,7 +422,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   uint32_t minimum = std::numeric_limits<uint32_t>::max();
   uint32_t maximum = 0;
 
-  bool index_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
+  bool index_is_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
   bool index_odd = false;
   std::array<char, index_header_length + 1> index_kind;
 
@@ -438,7 +438,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
     {
       /* check if the index block is here */
 
-      if ((not index_done) and (filepos == sff_header.index_offset))
+      if ((not index_is_done) and (filepos == sff_header.index_offset))
         {
           if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff) < index_header_length)
             {
@@ -454,7 +454,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
             }
 
           filepos += index_size;
-          index_done = true;
+          index_is_done = true;
           index_odd = true;
         }
 
@@ -571,7 +571,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* check if the index block is here */
 
-  if (not index_done)
+  if (not index_is_done)
     {
       if (filepos == sff_header.index_offset)
         {
@@ -589,7 +589,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
             }
 
           filepos += index_size;
-          index_done = true;
+          index_is_done = true;
 
           /* try to skip padding, if any */
 
@@ -604,7 +604,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         }
     }
 
-  warn_if_index_is_missing(parameters, index_done);
+  warn_if_index_is_missing(parameters, index_is_done);
   warn_if_index_is_misaligned(parameters, index_odd);
 
 
