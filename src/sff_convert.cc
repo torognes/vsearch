@@ -373,6 +373,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   auto const index_padding = compute_index_padding(sff_header);
 
+  // refactoring: see fastq_join.cc
   if (not opt_quiet)
     {
       fprintf(stderr, "Number of reads: %d\n", sff_header.number_of_reads);
