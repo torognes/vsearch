@@ -119,6 +119,12 @@ struct sff_read_header_s
 
 constexpr std::size_t n_bytes_in_read_header = sizeof(struct sff_read_header_s);  // 16 bytes
 
+struct sff_read_stats {
+  std::size_t totallength = 0;
+  uint32_t minimum = std::numeric_limits<uint32_t>::max();
+  uint32_t maximum = 0;
+};
+
 
 auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
 {
@@ -382,9 +388,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* prepare to parse reads or index */
 
-  double totallength = 0.0;
-  uint32_t minimum = std::numeric_limits<uint32_t>::max();
-  uint32_t maximum = 0;
+  struct sff_read_stats sff_stats;
 
   bool index_is_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);  // refactoring: need a variable has_index?
   bool index_is_odd = false;
@@ -519,9 +523,9 @@ auto sff_convert(struct Parameters const & parameters) -> void
                           1, read_no + 1, -1.0);
 
 
-      totallength += length;
-      minimum = std::min(length, minimum);
-      maximum = std::max(length, maximum);
+      sff_stats.totallength += length;
+      sff_stats.minimum = std::min(length, sff_stats.minimum);
+      sff_stats.maximum = std::max(length, sff_stats.maximum);
 
       progress_update(read_no + 1);
     }
@@ -573,7 +577,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
 
-  double const average = totallength / sff_header.number_of_reads;
+  auto const average = static_cast<double>(sff_stats.totallength) / sff_header.number_of_reads;
 
   if (not parameters.opt_quiet)
     {
@@ -585,9 +589,9 @@ auto sff_convert(struct Parameters const & parameters) -> void
       if (sff_header.number_of_reads != 0)
         {
           fprintf(stderr, "Sequence length: minimum %d, average %.1f, maximum %d\n",
-                  minimum,
+                  sff_stats.minimum,
                   average,
-                  maximum);
+                  sff_stats.maximum);
         }
     }
 
@@ -601,9 +605,9 @@ auto sff_convert(struct Parameters const & parameters) -> void
       if (sff_header.number_of_reads != 0)
         {
           fprintf(parameters.fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
-                  minimum,
+                  sff_stats.minimum,
                   average,
-                  maximum);
+                  sff_stats.maximum);
         }
     }
 
