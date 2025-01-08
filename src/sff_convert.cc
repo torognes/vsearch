@@ -145,6 +145,18 @@ auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
 }
 
 
+auto open_fastq_output(char const * filename) -> std::FILE * {
+  if (filename == nullptr) {
+    fatal("No output file for sff_convert specified with --fastqout.");
+  }
+  auto * fastq_handle = fopen_output(filename);
+  if (fastq_handle == nullptr) {
+    fatal("Unable to open FASTQ output file for writing.");
+  }
+  return fastq_handle;
+};
+
+
 auto read_sff_header(std::FILE * sff_handle) -> struct sff_header_s {
   assert(sff_handle != nullptr);
 
@@ -325,16 +337,7 @@ auto check_for_additional_tail_data(std::FILE * sff_handle, std::FILE * log_hand
 
 auto sff_convert(struct Parameters const & parameters) -> void
 {
-  if (parameters.opt_fastqout == nullptr)
-    {
-      fatal("No output file for sff_convert specified with --fastqout.");
-    }
-
-  auto * fp_fastqout = fopen_output(opt_fastqout);
-  if (fp_fastqout == nullptr)
-    {
-      fatal("Unable to open FASTQ output file for writing.");
-    }
+  auto * fp_fastqout = open_fastq_output(parameters.opt_fastqout);
 
   auto * fp_sff = fopen_input(parameters.opt_sff_convert);
   if (fp_sff == nullptr)
