@@ -344,7 +344,7 @@ auto warn_if_index_is_missing(struct Parameters const & parameters, bool const c
 
 
 auto warn_if_index_is_misplaced(struct Parameters const & parameters, bool const condition) -> void {
-  if (not condition) {
+  if (condition) {
     return;
   }
   auto const * const message = "WARNING: Index at unusual position in file\n";
@@ -605,7 +605,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
     }
 
   warn_if_index_is_missing(parameters, index_is_done);
-  warn_if_index_is_misplaced(parameters, index_is_odd);
+  warn_if_index_is_misplaced(parameters, not index_is_odd);
 
 
   /* ignore the rest of file */
