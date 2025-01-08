@@ -331,6 +331,18 @@ auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
 };
 
 
+auto warn_if_index_is_missing(struct Parameters const & parameters, bool const index_is_done) -> void {
+  if (index_is_done) {
+    return;
+  }
+  auto const * const message = "WARNING: SFF index missing\n";
+  std::fprintf(stderr, message);
+  if (parameters.opt_log != nullptr) {
+    std::fprintf(parameters.fp_log, message);
+  }
+};
+
+
 auto check_for_additional_tail_data(std::FILE * sff_handle, std::FILE * log_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
@@ -580,14 +592,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         }
     }
 
-  if (not index_done)
-    {
-      fprintf(stderr, "WARNING: SFF index missing\n");
-      if (parameters.opt_log != nullptr)
-        {
-          fprintf(fp_log, "WARNING: SFF index missing\n");
-        }
-    }
+  warn_if_index_is_missing(parameters, index_done);
 
   if (index_odd)
     {
