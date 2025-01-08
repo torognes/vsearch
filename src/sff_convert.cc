@@ -362,7 +362,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   check_sff_header(sff_header);
 
 
-  /* read and check flow chars, key and padding */
+  /* skip flow chars, read and check key, and skip padding */
 
   skip_sff_flow_chars(fp_sff, sff_header.flows_per_read);
   filepos += sff_header.flows_per_read;
@@ -374,16 +374,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
   skip_sff_padding_length(fp_sff, padding_length);
   filepos += padding_length;
 
-  double totallength = 0.0;
-  uint32_t minimum = std::numeric_limits<uint32_t>::max();
-  uint32_t maximum = 0;
 
-  bool index_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
-  bool index_odd = false;
-  std::array<char, index_header_length + 1> index_kind;
-
-  auto const index_padding = compute_index_padding(sff_header);
-
+  /* output common header stats */
   // refactoring: see fastq_join.cc
   if (not parameters.opt_quiet)
     {
@@ -398,6 +390,20 @@ auto sff_convert(struct Parameters const & parameters) -> void
       fprintf(fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
       fprintf(fp_log, "Key sequence:    %s\n", key_sequence.data());
     }
+
+
+  /* prepare to parse reads or index */
+
+  double totallength = 0.0;
+  uint32_t minimum = std::numeric_limits<uint32_t>::max();
+  uint32_t maximum = 0;
+
+  bool index_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
+  bool index_odd = false;
+  std::array<char, index_header_length + 1> index_kind;
+
+  auto const index_padding = compute_index_padding(sff_header);
+
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
 
