@@ -331,8 +331,8 @@ auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
 };
 
 
-auto warn_if_index_is_missing(struct Parameters const & parameters, bool const index_is_done) -> void {
-  if (index_is_done) {
+auto warn_if_index_is_missing(struct Parameters const & parameters, bool const condition) -> void {
+  if (condition) {
     return;
   }
   auto const * const message = "WARNING: SFF index missing\n";
