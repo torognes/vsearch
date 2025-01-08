@@ -323,9 +323,9 @@ auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
 };
 
 
-auto sff_convert() -> void
+auto sff_convert(struct Parameters const & parameters) -> void
 {
-  if (opt_fastqout == nullptr)
+  if (parameters.opt_fastqout == nullptr)
     {
       fatal("No output file for sff_convert specified with --fastqout.");
     }

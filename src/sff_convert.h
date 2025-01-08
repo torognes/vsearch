@@ -58,4 +58,4 @@
 
 */
 
-auto sff_convert() -> void;
+auto sff_convert(struct Parameters const & parameters) -> void;

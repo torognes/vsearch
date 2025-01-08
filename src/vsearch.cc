@@ -6001,7 +6001,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_sff_convert != nullptr)
     {
-      sff_convert();
+      sff_convert(parameters);
     }
   else if (opt_fastx_getseq)
     {
