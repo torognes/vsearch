@@ -554,7 +554,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* ignore the rest of file */
 
-  check_for_additional_tail_data(fp_sff, parameters);
+  check_for_additional_tail_data(fp_sff, parameters);  // rename to warn_if_additional_tail_data()?
 
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
