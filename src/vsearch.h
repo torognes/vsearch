@@ -505,6 +505,7 @@ struct Parameters {
   char * opt_relabel = nullptr;
   char * opt_rereplicate = nullptr;
   char * opt_reverse = nullptr;
+  char * opt_sff_convert = nullptr;
   char * opt_shuffle = nullptr;
   char * opt_sortbylength = nullptr;
   char * opt_sortbysize = nullptr;
