@@ -343,7 +343,7 @@ auto warn_if_index_is_missing(struct Parameters const & parameters, bool const c
 };
 
 
-auto warn_if_index_is_misaligned(struct Parameters const & parameters, bool const condition) -> void {
+auto warn_if_index_is_misplaced(struct Parameters const & parameters, bool const condition) -> void {
   if (not condition) {
     return;
   }
@@ -605,7 +605,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
     }
 
   warn_if_index_is_missing(parameters, index_is_done);
-  warn_if_index_is_misaligned(parameters, index_odd);
+  warn_if_index_is_misplaced(parameters, index_odd);
 
 
   /* ignore the rest of file */
