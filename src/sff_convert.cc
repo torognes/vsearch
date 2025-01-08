@@ -326,17 +326,10 @@ auto warn_if(struct Parameters const & parameters, bool const condition, char co
 };
 
 
-auto check_for_additional_tail_data(std::FILE * sff_handle, std::FILE * log_handle) -> void {
+auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters const & parameters) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
-  if (n_bytes_read == 0) {
-    return;  // no trailing data
-  }
-  auto const * const message = "WARNING: Additional data at end of SFF file ignored\n";
-  std::fprintf(stderr, message);
-  if (log_handle != nullptr) {
-    std::fprintf(log_handle, message);
-  }
+  warn_if(parameters, n_bytes_read == 0, "Additional data at end of SFF file ignored");
 };
 
 
@@ -575,7 +568,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* ignore the rest of file */
 
-  check_for_additional_tail_data(fp_sff, parameters.fp_log);
+  check_for_additional_tail_data(fp_sff, parameters);
 
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
