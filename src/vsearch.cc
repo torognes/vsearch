@@ -2434,6 +2434,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_sff_clip:
           opt_sff_clip = true;
+          parameters.opt_sff_clip = true;
           break;
 
         case option_fastaout_rev:
