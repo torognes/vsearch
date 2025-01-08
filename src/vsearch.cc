@@ -5998,7 +5998,7 @@ auto main(int argc, char** argv) -> int
     {
       sintax();
     }
-  else if (parameters.opt_sff_convert)
+  else if (parameters.opt_sff_convert != nullptr)
     {
       sff_convert();
     }
