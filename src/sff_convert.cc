@@ -423,7 +423,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   uint32_t maximum = 0;
 
   bool index_is_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
-  bool index_odd = false;
+  bool index_is_odd = false;
   std::array<char, index_header_length + 1> index_kind;
 
   auto const index_padding = compute_index_padding(sff_header);
@@ -455,7 +455,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
           filepos += index_size;
           index_is_done = true;
-          index_odd = true;
+          index_is_odd = true;
         }
 
       /* read and check each read header */
@@ -605,7 +605,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
     }
 
   warn_if_index_is_missing(parameters, index_is_done);
-  warn_if_index_is_misplaced(parameters, index_odd);
+  warn_if_index_is_misplaced(parameters, index_is_odd);
 
 
   /* ignore the rest of file */
