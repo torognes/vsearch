@@ -393,7 +393,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   uint32_t minimum = std::numeric_limits<uint32_t>::max();
   uint32_t maximum = 0;
 
-  bool index_is_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);
+  bool index_is_done = (sff_header.index_offset == 0) or (sff_header.index_length == 0);  // refactoring: need a variable has_index?
   bool index_is_odd = false;
   std::array<char, index_header_length + 1> index_kind;
 
