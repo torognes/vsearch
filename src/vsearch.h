@@ -534,6 +534,7 @@ struct Parameters {
   bool opt_join_padgapq_set_by_user = false;
   bool opt_notrunclabels = false;
   bool opt_quiet = false;
+  bool opt_sff_clip = false;
   bool opt_sizein = false;
   bool opt_strand = false;
   bool opt_version = false;
