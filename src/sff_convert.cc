@@ -336,7 +336,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       fatal("Unable to open FASTQ output file for writing.");
     }
 
-  auto * fp_sff = fopen_input(opt_sff_convert);
+  auto * fp_sff = fopen_input(parameters.opt_sff_convert);
   if (fp_sff == nullptr)
     {
       fatal("Unable to open SFF input file for reading.");
