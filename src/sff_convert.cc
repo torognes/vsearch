@@ -352,6 +352,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto * fp_sff = open_sff_input(parameters.opt_sff_convert);
   auto * fp_fastqout = open_fastq_output(parameters.opt_fastqout);
 
+
   /* read and check header */
 
   uint64_t filepos = 0;
