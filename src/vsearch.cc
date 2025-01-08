@@ -201,7 +201,6 @@ char * opt_reverse;
 char * opt_samout;
 char * opt_sample;
 char * opt_search_exact;
-char * opt_sff_convert;
 char * opt_sintax;
 char * opt_tabbedout;
 char * opt_tsegout;
@@ -965,7 +964,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_self = 0;
   opt_selfid = 0;
   opt_sff_clip = false;
-  opt_sff_convert = nullptr;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
   opt_sintax_random = false;
@@ -2428,7 +2426,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_sff_convert:
-          opt_sff_convert = optarg;
           parameters.opt_sff_convert = optarg;
           break;
 
