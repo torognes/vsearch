@@ -343,6 +343,18 @@ auto warn_if_index_is_missing(struct Parameters const & parameters, bool const i
 };
 
 
+auto warn_if_index_is_misplaced(struct Parameters const & parameters, bool const condition) -> void {
+  if (not condition) {
+    return;
+  }
+  auto const * const message = "WARNING: Index at unusual position in file\n";
+  std::fprintf(stderr, message);
+  if (parameters.opt_log != nullptr) {
+    std::fprintf(parameters.fp_log, message);
+  }
+};
+
+
 auto check_for_additional_tail_data(std::FILE * sff_handle, std::FILE * log_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
@@ -593,15 +605,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
     }
 
   warn_if_index_is_missing(parameters, index_done);
+  warn_if_index_is_misplaced(parameters, index_odd);
 
-  if (index_odd)
-    {
-      fprintf(stderr, "WARNING: Index at unusual position in file\n");
-      if (parameters.opt_log != nullptr)
-        {
-          fprintf(fp_log, "WARNING: Index at unusual position in file\n");
-        }
-    }
 
   /* ignore the rest of file */
 
