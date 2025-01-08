@@ -384,14 +384,14 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto const index_padding = compute_index_padding(sff_header);
 
   // refactoring: see fastq_join.cc
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       fprintf(stderr, "Number of reads: %d\n", sff_header.number_of_reads);
       fprintf(stderr, "Flows per read:  %d\n", sff_header.flows_per_read);
       fprintf(stderr, "Key sequence:    %s\n", key_sequence.data());
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       fprintf(fp_log, "Number of reads: %d\n", sff_header.number_of_reads);
       fprintf(fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
@@ -400,8 +400,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
 
-  auto const fastq_qminout = static_cast<int>(opt_fastq_qminout);
-  auto const fastq_qmaxout = static_cast<int>(opt_fastq_qmaxout);
+  auto const fastq_qminout = static_cast<int>(parameters.opt_fastq_qminout);
+  auto const fastq_qmaxout = static_cast<int>(parameters.opt_fastq_qmaxout);
 
   for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
     {
@@ -477,7 +477,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           int quality_score = quality_scores[base_no];
           quality_score = std::max(quality_score, fastq_qminout);
           quality_score = std::min(quality_score, fastq_qmaxout);
-          quality_scores[base_no] = opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
+          quality_scores[base_no] = parameters.opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
         }
       quality_scores[read_header.number_of_bases] = '\0';
 
@@ -576,7 +576,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   if (not index_done)
     {
       fprintf(stderr, "WARNING: SFF index missing\n");
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log, "WARNING: SFF index missing\n");
         }
@@ -585,7 +585,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   if (index_odd)
     {
       fprintf(stderr, "WARNING: Index at unusual position in file\n");
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log, "WARNING: Index at unusual position in file\n");
         }
@@ -600,7 +600,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   double const average = totallength / sff_header.number_of_reads;
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (sff_header.index_length != 0)
         {
@@ -616,7 +616,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         }
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       if (sff_header.index_length != 0)
         {
