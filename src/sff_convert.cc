@@ -497,7 +497,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
             }
         }
 
-      if (opt_sff_clip)
+      if (parameters.opt_sff_clip)
         {
           bases[clip_end] = '\0';
           quality_scores[clip_end] = '\0';
