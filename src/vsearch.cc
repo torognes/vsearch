@@ -2429,6 +2429,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_sff_convert:
           opt_sff_convert = optarg;
+          parameters.opt_sff_convert = optarg;
           break;
 
         case option_sff_clip:
@@ -5997,7 +5998,7 @@ auto main(int argc, char** argv) -> int
     {
       sintax();
     }
-  else if (opt_sff_convert)
+  else if (parameters.opt_sff_convert)
     {
       sff_convert();
     }
