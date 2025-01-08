@@ -309,7 +309,7 @@ auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
 };
 
 
-auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
+auto check_for_additional_tail_data(std::FILE * sff_handle, std::FILE * log_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
   if (n_bytes_read == 0) {
@@ -317,8 +317,8 @@ auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
   }
   auto const * const message = "WARNING: Additional data at end of SFF file ignored\n";
   std::fprintf(stderr, message);
-  if (opt_log != nullptr) {
-    std::fprintf(fp_log, message);
+  if (log_handle != nullptr) {
+    std::fprintf(log_handle, message);
   }
 };
 
@@ -582,7 +582,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* ignore the rest of file */
 
-  check_for_additional_tail_data(fp_sff);
+  check_for_additional_tail_data(fp_sff, parameters.fp_log);
 
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
