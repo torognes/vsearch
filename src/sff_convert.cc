@@ -331,26 +331,13 @@ auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
 };
 
 
-auto warn_if_index_is_missing(struct Parameters const & parameters, bool const condition) -> void {
+auto warn_if(struct Parameters const & parameters, bool const condition, char const * const message) -> void {
   if (condition) {
     return;
-  }
-  auto const * const message = "WARNING: SFF index missing\n";
-  std::fprintf(stderr, message);
+  };
+  std::fprintf(stderr, "WARNING: %s\n", message);
   if (parameters.opt_log != nullptr) {
-    std::fprintf(parameters.fp_log, message);
-  }
-};
-
-
-auto warn_if_index_is_misplaced(struct Parameters const & parameters, bool const condition) -> void {
-  if (condition) {
-    return;
-  }
-  auto const * const message = "WARNING: Index at unusual position in file\n";
-  std::fprintf(stderr, message);
-  if (parameters.opt_log != nullptr) {
-    std::fprintf(parameters.fp_log, message);
+    std::fprintf(parameters.fp_log, "WARNING: %s\n", message);
   }
 };
 
@@ -604,8 +591,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
         }
     }
 
-  warn_if_index_is_missing(parameters, index_is_done);
-  warn_if_index_is_misplaced(parameters, not index_is_odd);
+  warn_if(parameters, index_is_done, "SFF index missing");
+  warn_if(parameters, not index_is_odd, "Index at unusual position in file");
 
 
   /* ignore the rest of file */
