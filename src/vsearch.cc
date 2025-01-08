@@ -122,7 +122,6 @@ bool opt_relabel_md5;
 bool opt_relabel_self;
 bool opt_relabel_sha1;
 bool opt_samheader;
-bool opt_sff_clip;
 bool opt_sintax_random;
 bool opt_sizein;
 bool opt_sizeorder;
@@ -963,7 +962,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_search_exact = nullptr;
   opt_self = 0;
   opt_selfid = 0;
-  opt_sff_clip = false;
   opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
   opt_sintax_random = false;
@@ -2430,7 +2428,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_sff_clip:
-          opt_sff_clip = true;
           parameters.opt_sff_clip = true;
           break;
 
