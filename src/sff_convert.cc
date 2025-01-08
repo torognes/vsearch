@@ -120,7 +120,7 @@ struct sff_read_header_s
 constexpr std::size_t n_bytes_in_read_header = sizeof(struct sff_read_header_s);  // 16 bytes
 
 struct sff_read_stats {
-  std::size_t totallength = 0;
+  std::size_t total_length = 0;
   uint32_t minimum = std::numeric_limits<uint32_t>::max();
   uint32_t maximum = 0;
 };
@@ -505,7 +505,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
                           1, read_no + 1, -1.0);
 
 
-      sff_stats.totallength += length;
+      sff_stats.total_length += length;
       sff_stats.minimum = std::min(length, sff_stats.minimum);
       sff_stats.maximum = std::max(length, sff_stats.maximum);
 
@@ -559,7 +559,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
 
-  auto const average = static_cast<double>(sff_stats.totallength) / sff_header.number_of_reads;
+  auto const average = static_cast<double>(sff_stats.total_length) / sff_header.number_of_reads;
 
   if (not parameters.opt_quiet)
     {
