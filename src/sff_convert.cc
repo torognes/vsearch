@@ -292,26 +292,17 @@ auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char con
 };
 
 
-auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std::vector<char> {
-  std::vector<char> key_sequence(n_bytes_to_read + 1);
-  auto const n_bytes_read = std::fread(key_sequence.data(), byte_size, n_bytes_to_read, sff_handle);
+auto read_a_string(std::FILE * sff_handle, std::size_t n_bytes_to_read, char const * const message) -> std::vector<char> {
+  assert(sff_handle != nullptr);
+  assert(n_bytes_to_read < std::numeric_limits<std::size_t>::max());
+  assert(message != nullptr);
+  std::vector<char> a_string(n_bytes_to_read + 1);
+  auto const n_bytes_read = std::fread(a_string.data(), byte_size, n_bytes_to_read, sff_handle);
   if (n_bytes_read < n_bytes_to_read) {
-    fatal("Invalid SFF file. Unable to read key sequence. File may be truncated.");
+    fatal("Invalid SFF file. Unable to read %s. File may be truncated.", message);
   }
-  assert(key_sequence.back() == '\0');  // C-string should be null-terminated
-  return key_sequence;
-}
-
-
-auto read_header_name(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std::vector<char> {
-  std::vector<char> read_name(n_bytes_to_read + 1);
-  auto const n_bytes_read = std::fread(read_name.data(), byte_size, n_bytes_to_read, sff_handle);
-  if (n_bytes_read < n_bytes_to_read) {
-    fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
-  }
-  assert(read_name.back() == '\0');  // C-string should be null-terminated
-
-  return read_name;
+  assert(a_string.back() == '\0');  // C-string should be null-terminated
+  return a_string;
 }
 
 
@@ -361,7 +352,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   skip_sff_section(fp_sff, sff_header.flows_per_read, "flow characters");
   filepos += sff_header.flows_per_read;
 
-  auto const key_sequence = read_key_sequence(fp_sff, sff_header.key_length);
+  auto const key_sequence = read_a_string(fp_sff, sff_header.key_length, "key sequence");
   filepos += sff_header.key_length;
 
   uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - n_bytes_in_header;
@@ -434,7 +425,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
       check_sff_read_header(read_header);
 
-      auto read_name = read_header_name(fp_sff, read_header.name_length);  // fastq_print_general() does not accept const char*
+      auto read_name = read_a_string(fp_sff, read_header.name_length, "read name");
       filepos += read_header.name_length;
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
