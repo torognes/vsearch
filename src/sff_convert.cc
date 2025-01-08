@@ -390,7 +390,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   filepos += sff_header.key_length;
 
   uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - n_bytes_in_header;
-  skip_sff_padding_length(fp_sff, padding_length);
+  skip_sff_section(fp_sff, padding_length, "read padding");
   filepos += padding_length;
 
 
@@ -465,7 +465,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       filepos += read_header.name_length;
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
-      skip_sff_read_padding_length(fp_sff, read_header_padding_length);
+      skip_sff_section(fp_sff, read_header_padding_length, "read header padding");
       filepos += read_header_padding_length;
 
       /* read and check the flowgram and sequence */
