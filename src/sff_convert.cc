@@ -443,19 +443,10 @@ auto sff_convert(struct Parameters const & parameters) -> void
       skip_sff_section(fp_sff, read_header.number_of_bases, "flow indices");
       filepos += read_header.number_of_bases;
 
-      std::vector<char> bases(read_header.number_of_bases + 1);
-      if (std::fread(bases.data(), byte_size, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Unable to read read length. File may be truncated.");
-        }
-      bases[read_header.number_of_bases] = '\0';
+      auto bases = read_a_string(fp_sff, read_header.number_of_bases, "read length");
       filepos += read_header.number_of_bases;
 
-      std::vector<char> quality_scores(read_header.number_of_bases + 1);
-      if (std::fread(quality_scores.data(), byte_size, read_header.number_of_bases, fp_sff) < read_header.number_of_bases)
-        {
-          fatal("Invalid SFF file. Unable to read quality scores. File may be truncated.");
-        }
+      auto quality_scores = read_a_string(fp_sff, read_header.number_of_bases, "quality scores");
       filepos += read_header.number_of_bases;
 
       /* convert quality scores to ascii characters */
