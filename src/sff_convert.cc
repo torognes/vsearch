@@ -286,30 +286,6 @@ auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char con
 };
 
 
-auto skip_sff_flow_chars(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
-  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
-  if (n_bytes_skipped < n_bytes_to_skip) {
-    fatal("Invalid SFF file. Unable to read flow characters. File may be truncated.");
-  }
-};
-
-
-auto skip_sff_padding_length(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
-  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
-  if (n_bytes_skipped < n_bytes_to_skip) {
-    fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
-  }
-};
-
-
-auto skip_sff_read_padding_length(std::FILE * sff_handle, uint64_t n_bytes_to_skip) -> void {
-  auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
-  if (n_bytes_skipped < n_bytes_to_skip) {
-    fatal("Invalid SFF file. Unable to read read header padding. File may be truncated.");
-  }
-};
-
-
 auto read_key_sequence(std::FILE * sff_handle, uint16_t n_bytes_to_read) -> std::vector<char> {
   std::vector<char> key_sequence(n_bytes_to_read + 1);
   auto const n_bytes_read = std::fread(key_sequence.data(), byte_size, n_bytes_to_read, sff_handle);
