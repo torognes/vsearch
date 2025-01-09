@@ -567,7 +567,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
 
-  auto const average = static_cast<double>(sff_stats.total_length) / sff_header.number_of_reads;
+  auto const average_read_length = static_cast<double>(sff_stats.total_length) / sff_header.number_of_reads;
 
   if (not parameters.opt_quiet)
     {
@@ -580,7 +580,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         {
           fprintf(stderr, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                   sff_stats.minimum,
-                  average,
+                  average_read_length,
                   sff_stats.maximum);
         }
     }
@@ -596,7 +596,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         {
           fprintf(parameters.fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
                   sff_stats.minimum,
-                  average,
+                  average_read_length,
                   sff_stats.maximum);
         }
     }
