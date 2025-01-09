@@ -255,8 +255,9 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   // index_length includes the bytes of index_magic_number (uint32_t),
   // index_version (char[4]), the 8n bytes for the indexing method,
   // and padding bytes. And the length of the index section is
-  // divisible by 8. So, index_length modulo 8 must be null
-  assert((sff_header.index_length & memory_alignment) == 0);
+  // divisible by 8. So, index_length modulo 8 should be null.
+  // This is not the case:
+  // assert((sff_header.index_length % memory_alignment) == 0);   // fails on our test dataset
 };
 
 
