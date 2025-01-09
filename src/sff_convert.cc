@@ -360,7 +360,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto const key_sequence = read_a_string(fp_sff, sff_header.key_length, "key sequence");
   filepos += sff_header.key_length;
 
-  uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - n_bytes_in_header;
+  uint32_t const padding_length = sff_header.header_length - n_bytes_in_header - sff_header.flows_per_read - sff_header.key_length;
   skip_sff_section(fp_sff, padding_length, "read padding");
   filepos += padding_length;
 
