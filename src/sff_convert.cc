@@ -65,7 +65,6 @@
 #include <cctype>  // std::tolower, std::toupper
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t
-#include <cstring>  // std::strlen
 #include <iterator>
 #include <limits>
 #include <vector>
@@ -540,7 +539,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
                           bases.data() + clip_start,
                           length,
                           read_name.data(),
-                          std::strlen(read_name.data()),
+                          read_name.size() - 1,
                           quality_scores.data() + clip_start,
                           1, read_no + 1, -1.0);
 
