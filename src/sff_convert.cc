@@ -238,6 +238,10 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
     }
 
+  // The header_length field should be the total number of bytes
+  // required by this set of header fields, and should be equal to "31
+  // + number_of_flows_per_read + key_length" rounded up to the next
+  // value divisible by 8
   if (sff_header.header_length != 8 * ((n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length + max_padding_length) / 8))
     {
       fatal("Invalid SFF file. Incorrect header length.");
