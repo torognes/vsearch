@@ -414,7 +414,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           filepos += index_header_length;
           index_kind[index_header_length] = 0;
 
-          uint64 const index_size = sff_header.index_length - index_header_length + index_padding;
+          uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;
           if (fskip(fp_sff, index_size) != index_size)
             {
               fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
