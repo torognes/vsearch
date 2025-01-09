@@ -324,9 +324,9 @@ auto warn_if(struct Parameters const & parameters, bool const condition, char co
   if (condition) {
     return;
   };
-  std::fprintf(stderr, "WARNING: %s\n", message);
+  static_cast<void>(std::fprintf(stderr, "WARNING: %s\n", message));
   if (parameters.opt_log != nullptr) {
-    std::fprintf(parameters.fp_log, "WARNING: %s\n", message);
+    static_cast<void>(std::fprintf(parameters.fp_log, "WARNING: %s\n", message));
   }
 };
 
