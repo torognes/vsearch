@@ -504,11 +504,13 @@ auto sff_convert(struct Parameters const & parameters) -> void
       skip_sff_section(fp_sff, read_data_padding_length, "read data padding");
       filepos += read_data_padding_length;
 
+      // refactoring; mask_start, mask_end_5prime, mask_end_3prime, left_mask_end, right_mask_start
       uint32_t clip_start = std::max({uint16_t{1}, read_header.clip_qual_left, read_header.clip_adapter_left}) - 1 ;
 
       uint32_t clip_end = std::min((read_header.clip_qual_right == 0 ? read_header.number_of_bases : read_header.clip_qual_right), (read_header.clip_adapter_right == 0 ? read_header.number_of_bases : read_header.clip_adapter_right));
 
       /* make the clipped bases lowercase and the rest uppercase */
+      // refactoring: soft_mask_read(transform(begin(), left_mask_end); transform(right_mask_start, end()))
       for (uint32_t i = 0; i < read_header.number_of_bases; i++)
         {
           if ((i < clip_start) or (i >= clip_end))
