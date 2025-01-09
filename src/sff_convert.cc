@@ -338,6 +338,26 @@ auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters co
 };
 
 
+auto write_report(std::FILE * output_stream,
+                  struct sff_header_s const & sff_header,
+                  struct sff_read_stats const & sff_stats,
+                  char * index_kind) -> void {
+  if (sff_header.index_length != 0) {
+    std::fprintf(output_stream, "Index type:      %s\n", index_kind);
+  }
+  std::fprintf(output_stream, "\nSFF file read successfully.\n");
+  if (sff_header.number_of_reads == 0) {
+    return;
+  }
+  auto const average_read_length = static_cast<double>(sff_stats.total_length) / sff_header.number_of_reads;
+  std::fprintf(output_stream,
+               "Sequence length: minimum %d, average %.1f, maximum %d\n",
+               sff_stats.minimum,
+               average_read_length,
+               sff_stats.maximum);
+};
+
+
 auto sff_convert(struct Parameters const & parameters) -> void
 {
   /* open input and output files */
@@ -567,38 +587,14 @@ auto sff_convert(struct Parameters const & parameters) -> void
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
 
-  auto const average_read_length = static_cast<double>(sff_stats.total_length) / sff_header.number_of_reads;
-
   if (not parameters.opt_quiet)
     {
-      if (sff_header.index_length != 0)
-        {
-          fprintf(stderr, "Index type:      %s\n", index_kind.data());
-        }
-      fprintf(stderr, "\nSFF file read successfully.\n");
-      if (sff_header.number_of_reads != 0)
-        {
-          fprintf(stderr, "Sequence length: minimum %d, average %.1f, maximum %d\n",
-                  sff_stats.minimum,
-                  average_read_length,
-                  sff_stats.maximum);
-        }
+      write_report(stderr, sff_header, sff_stats, index_kind.data());
     }
 
   if (parameters.opt_log != nullptr)
     {
-      if (sff_header.index_length != 0)
-        {
-          fprintf(parameters.fp_log, "Index type:      %s\n", index_kind.data());
-        }
-      fprintf(parameters.fp_log, "\nSFF file read successfully.\n");
-      if (sff_header.number_of_reads != 0)
-        {
-          fprintf(parameters.fp_log, "Sequence length: minimum %d, average %.1f, maximum %d\n",
-                  sff_stats.minimum,
-                  average_read_length,
-                  sff_stats.maximum);
-        }
+      write_report(parameters.fp_log, sff_header, sff_stats, index_kind.data());
     }
 
 }
