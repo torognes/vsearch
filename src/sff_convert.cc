@@ -325,7 +325,7 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
     return static_cast<char>(quality_score + offset);
   };
   // note: quality_scores has room for an extra null terminator at the
-  // end, be careful to stop the conversion one position before
+  // end, be careful to stop the conversion one position before.
   std::transform(quality_scores.begin(), std::prev(quality_scores.end()),
                  quality_scores.begin(), clamp_and_offset);
   assert(quality_scores.back() == '\0');
