@@ -587,14 +587,12 @@ auto sff_convert(struct Parameters const & parameters) -> void
   std::fclose(fp_sff);
   std::fclose(fp_fastqout);
 
-  if (not parameters.opt_quiet)
-    {
-      write_report(stderr, sff_header, sff_stats, index_kind.data());
-    }
+  if (not parameters.opt_quiet) {
+    write_report(stderr, sff_header, sff_stats, index_kind.data());
+  }
 
-  if (parameters.opt_log != nullptr)
-    {
-      write_report(parameters.fp_log, sff_header, sff_stats, index_kind.data());
-    }
+  if (parameters.opt_log != nullptr) {
+    write_report(parameters.fp_log, sff_header, sff_stats, index_kind.data());
+  }
 
 }
