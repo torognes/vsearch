@@ -66,6 +66,7 @@
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t
 #include <cstring>  // std::strlen
+#include <iterator>
 #include <limits>
 #include <vector>
 
@@ -313,6 +314,24 @@ auto read_a_string(std::FILE * sff_handle, std::size_t n_bytes_to_read, char con
   return a_string;
 }
 
+auto convert_quality_scores(std::vector<char> & quality_scores,
+                            struct Parameters const & parameters) -> void {
+  auto const qmin = static_cast<char>(parameters.opt_fastq_qminout);
+  auto const qmax = static_cast<char>(parameters.opt_fastq_qmaxout);
+  auto const offset = static_cast<char>(parameters.opt_fastq_asciiout);
+  auto clamp_and_offset = [&](char & quality_score) -> char {
+    // refactoring C++17: return std::clamp(quality_score, qmin, qmax) + offset;
+    quality_score = std::max(quality_score, qmin);
+    quality_score = std::min(quality_score, qmax);
+    return static_cast<char>(quality_score + offset);
+  };
+  // note: quality_scores has room for an extra null terminator at the
+  // end, be careful to stop the conversion one position before
+  std::transform(quality_scores.begin(), std::prev(quality_scores.end()),
+                 quality_scores.begin(), clamp_and_offset);
+  assert(quality_scores.back() == '\0');
+};
+
 
 auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
   auto const remainder = sff_header.index_length & max_padding_length;
@@ -418,9 +437,6 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
 
-  auto const fastq_qminout = static_cast<int>(parameters.opt_fastq_qminout);
-  auto const fastq_qmaxout = static_cast<int>(parameters.opt_fastq_qmaxout);
-
   for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
     {
       /* check if the index block is here */
@@ -478,14 +494,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
       filepos += read_header.number_of_bases;
 
       /* convert quality scores to ascii characters */
-      for (uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
-        {
-          int quality_score = quality_scores[base_no];
-          quality_score = std::max(quality_score, fastq_qminout);
-          quality_score = std::min(quality_score, fastq_qmaxout);
-          quality_scores[base_no] = parameters.opt_fastq_asciiout + quality_score;  // refactoring C++17: std::clamp(q, min, max) + offset
-        }
-      quality_scores[read_header.number_of_bases] = '\0';
+
+      convert_quality_scores(quality_scores, parameters);
 
       uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
       uint32_t const read_data_padded_length = 8 * ((read_data_length + max_padding_length) / 8);
