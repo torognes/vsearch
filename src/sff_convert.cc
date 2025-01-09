@@ -497,7 +497,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       convert_quality_scores(quality_scores, parameters);
 
       uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
-      uint32_t const read_data_padded_length = 8 * ((read_data_length + max_padding_length) / 8);
+      uint32_t const read_data_padded_length = memory_alignment * ((read_data_length + max_padding_length) / memory_alignment);
       uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;
 
       skip_sff_section(fp_sff, read_data_padding_length, "read data padding");
