@@ -266,7 +266,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
 
 
 auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void {
-  if (read_header.read_header_length != 8 * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / 8))
+  if (read_header.read_header_length != memory_alignment * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / memory_alignment))
     {
       fatal("Invalid SFF file. Incorrect read header length.");
     }
