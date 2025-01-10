@@ -332,9 +332,9 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
 };
 
 
-// refactoring: pass 'index_length' directly, make constexpr?, test with static_assert(), add description comment
-auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
-  auto const remainder = sff_header.index_length & max_padding_length;
+// refactoring: constexpr?, test with static_assert(), add description comment
+auto compute_index_padding(uint32_t const index_length) -> uint32_t {
+  auto const remainder = index_length & max_padding_length;
   return remainder == 0 ? 0U : memory_alignment - remainder;
 };
 
@@ -432,7 +432,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   bool index_is_odd = false;
   std::array<char, index_header_length + 1> index_kind {{}};
 
-  auto const index_padding = compute_index_padding(sff_header);
+  auto const index_padding = compute_index_padding(sff_header.index_length);
 
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
