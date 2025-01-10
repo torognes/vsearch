@@ -64,7 +64,7 @@
 #include <cassert>
 #include <cctype>  // std::tolower, std::toupper
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
-#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t, stderr
 #include <iterator>  // std::prev
 #include <limits>
 #include <vector>
