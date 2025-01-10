@@ -332,11 +332,23 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
 }
 
 
-// refactoring: constexpr?, test with static_assert(), add description comment
 auto compute_index_padding(uint32_t const index_length) -> uint32_t {
+  // padding_length = index_length rounded up to the next value divisible by 8.
   auto const remainder = index_length & max_padding_length;
   return remainder == 0 ? 0U : memory_alignment - remainder;
 }
+// refactoring: C++14 tests
+// static_assert(compute_index_padding(0) == 0U, "error: wrong padding value (expect 0)");
+// static_assert(compute_index_padding(7) == 1U, "error: wrong padding value (expect 1)");
+// static_assert(compute_index_padding(8) == 0U, "error: wrong padding value (expect 0)");
+// static_assert(compute_index_padding(9) == 7U, "error: wrong padding value (expect 7)");
+// static_assert(compute_index_padding(87) == 1U, "error: wrong padding value (expect 1)");
+// static_assert(compute_index_padding(88) == 0U, "error: wrong padding value (expect 0)");
+// static_assert(compute_index_padding(89) == 7U, "error: wrong padding value (expect 7)");
+// static_assert(compute_index_padding(111) == 1U, "error: wrong padding value (expect 1)");
+// static_assert(compute_index_padding(112) == 0U, "error: wrong padding value (expect 0)");
+// static_assert(compute_index_padding(113) == 7U, "error: wrong padding value (expect 7)");
+// static_assert(compute_index_padding(std::numeric_limits<uint32_t>::max()) == 1U, "error: wrong padding value (expect 1)");
 
 
 auto warn_if(struct Parameters const & parameters, bool const condition, char const * const message) -> void {
