@@ -332,9 +332,9 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
 }
 
 
-auto compute_index_padding(uint32_t const index_length) -> uint32_t {
-  // padding_length = index_length rounded up to the next value divisible by 8.
-  auto const remainder = index_length & max_padding_length;
+auto compute_padding_length(uint32_t const section_length) -> uint32_t {
+  // padding_length = section_length rounded up to the next value divisible by 8.
+  auto const remainder = section_length & max_padding_length;
   return remainder == 0 ? 0U : memory_alignment - remainder;
 }
 // refactoring: C++14 tests
@@ -444,7 +444,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   bool index_is_odd = false;
   std::array<char, index_header_length + 1> index_kind {{}};
 
-  auto const index_padding = compute_index_padding(sff_header.index_length);
+  auto const index_padding = compute_padding_length(sff_header.index_length);
 
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
