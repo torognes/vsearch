@@ -158,7 +158,7 @@ auto open_sff_input(char const * filename) -> std::FILE * {
     fatal("Unable to open SFF input file for reading.");
   }
   return sff_handle;
-};
+}
 
 
 auto open_fastq_output(char const * filename) -> std::FILE * {
@@ -170,7 +170,7 @@ auto open_fastq_output(char const * filename) -> std::FILE * {
     fatal("Unable to open FASTQ output file for writing.");
   }
   return fastq_handle;
-};
+}
 
 
 auto read_sff_header(std::FILE * sff_handle) -> struct sff_header_s {
@@ -195,7 +195,7 @@ auto read_sff_header(std::FILE * sff_handle) -> struct sff_header_s {
   sff_header.flows_per_read  = bswap_16(sff_header.flows_per_read);
 
   return sff_header;
-};
+}
 
 
 auto read_sff_read_header(std::FILE * sff_handle) -> struct sff_read_header_s {
@@ -219,7 +219,7 @@ auto read_sff_read_header(std::FILE * sff_handle) -> struct sff_read_header_s {
   read_header.clip_adapter_right = bswap_16(read_header.clip_adapter_right);
 
   return read_header;
-};
+}
 
 
 auto check_sff_header(struct sff_header_s const &sff_header) -> void {
@@ -262,7 +262,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   // divisible by 8. So, index_length modulo 8 should be null.
   // This is not the case:
   // assert((sff_header.index_length % memory_alignment) == 0);   // fails on our test dataset
-};
+}
 
 
 auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void {
@@ -289,7 +289,7 @@ auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void 
     {
       fatal("Invalid SFF file. Incorrect clip_adapter_right value.");
     }
-};
+}
 
 
 auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char const * const message) -> void {
@@ -297,7 +297,7 @@ auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char con
   if (n_bytes_skipped < n_bytes_to_skip) {
     fatal("Invalid SFF file. Unable to read %s. File may be truncated.", message);
   }
-};
+}
 
 
 auto read_a_string(std::FILE * sff_handle, std::size_t n_bytes_to_read, char const * const message) -> std::vector<char> {
@@ -329,14 +329,14 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
   std::transform(quality_scores.begin(), std::prev(quality_scores.end()),
                  quality_scores.begin(), clamp_and_offset);
   assert(quality_scores.back() == '\0');
-};
+}
 
 
 // refactoring: constexpr?, test with static_assert(), add description comment
 auto compute_index_padding(uint32_t const index_length) -> uint32_t {
   auto const remainder = index_length & max_padding_length;
   return remainder == 0 ? 0U : memory_alignment - remainder;
-};
+}
 
 
 auto warn_if(struct Parameters const & parameters, bool const condition, char const * const message) -> void {
@@ -347,14 +347,14 @@ auto warn_if(struct Parameters const & parameters, bool const condition, char co
   if (parameters.opt_log != nullptr) {
     static_cast<void>(std::fprintf(parameters.fp_log, "WARNING: %s\n", message));
   }
-};
+}
 
 
 auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters const & parameters) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
   warn_if(parameters, n_bytes_read == 0, "Additional data at end of SFF file ignored");
-};
+}
 
 
 auto write_report(std::FILE * output_stream,
@@ -374,7 +374,7 @@ auto write_report(std::FILE * output_stream,
                sff_stats.minimum,
                average_read_length,
                sff_stats.maximum);
-};
+}
 
 
 auto sff_convert(struct Parameters const & parameters) -> void
