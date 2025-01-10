@@ -332,6 +332,7 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
 };
 
 
+// refactoring: pass 'index_length' directly, make constexpr?, test with static_assert(), add description comment
 auto compute_index_padding(struct sff_header_s const &sff_header) -> uint32_t {
   auto const remainder = sff_header.index_length & max_padding_length;
   return remainder == 0 ? 0U : memory_alignment - remainder;
