@@ -477,7 +477,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
     {
       if (arg[i] == ',')
         {
-          commas++;
+          ++commas;
         }
     }
 
@@ -501,7 +501,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
 
       if (*s == ',')
         {
-          s++;
+          ++s;
         }
       else if (*s == 0)
         {
@@ -591,7 +591,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
       else if (*p == '*')
         {
           pen = 1000;
-          p++;
+          ++p;
         }
       else
         {
@@ -633,12 +633,12 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
               fatal("Invalid char '%.1s' in gap penalty string", p);
               break;
             }
-          p++;
+          ++p;
         }
 
       if (*p == '/')
         {
-          p++;
+          ++p;
         }
 
       if (set_E and (set_L or set_R))
@@ -4527,7 +4527,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (options_selected[command_options[i]])
         {
-          commands++;
+          ++commands;
           k = i;
         }
     }
@@ -4570,11 +4570,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
                       ok = true;
                       break;
                     }
-                  j++;
+                  ++j;
                 }
               if (not ok)
                 {
-                  invalid_options++;
+                  ++invalid_options;
 
                   if (invalid_options == 1)
                     {
@@ -4598,7 +4598,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           for(int j = 1; valid_options[k][j] >= 0; j++)
             {
               fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
-              count++;
+              ++count;
             }
           if (not count)
             {
