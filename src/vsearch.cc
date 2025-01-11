@@ -473,7 +473,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
   /* save in ee_cutoffs_count and ee_cutoffs_values */
 
   int commas = 0;
-  for (size_t i = 0; i < strlen(arg); i++)
+  for (size_t i = 0; i < std::strlen(arg); i++)
     {
       if (arg[i] == ',')
         {
@@ -525,14 +525,14 @@ auto args_get_length_cutoffs(char * arg) -> void
   int skip = 0;
   if (sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
     {
-      if ((size_t) skip < strlen(arg))
+      if ((size_t) skip < std::strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
     }
   else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
     {
-      if ((size_t) skip < strlen(arg))
+      if ((size_t) skip < std::strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
@@ -744,7 +744,7 @@ auto args_getlong(char * arg) -> int64_t
   int len = 0;
   int64_t temp = 0;
   const int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
-  if ((ret == 0) or (((unsigned int) (len)) < strlen(arg)))
+  if ((ret == 0) or (((unsigned int) (len)) < std::strlen(arg)))
     {
       fatal("Illegal option argument");
     }
@@ -757,7 +757,7 @@ auto args_getdouble(char * arg) -> double
   int len = 0;
   double temp = 0;
   const int ret = sscanf(arg, "%lf%n", &temp, &len);
-  if ((ret == 0) or (((unsigned int)(len)) < strlen(arg)))
+  if ((ret == 0) or (((unsigned int)(len)) < std::strlen(arg)))
     {
       fatal("Illegal option argument");
     }
@@ -5789,7 +5789,7 @@ auto getentirecommandline(int argc, char** argv) -> void
   int len = 0;
   for (int i = 0; i < argc; i++)
     {
-      len += strlen(argv[i]);
+      len += std::strlen(argv[i]);
     }
 
   cmdline = (char *) xmalloc(len + argc);
