@@ -501,7 +501,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
         {
           ++cursor;
         }
-      else if (*cursor == 0)
+      else if (*cursor == '\0')
         {
           break;
         }
