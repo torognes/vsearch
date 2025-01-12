@@ -493,7 +493,8 @@ auto args_get_ee_cutoffs(char * arg) -> void
           fatal("Invalid arguments to ee_cutoffs");
         }
 
-      opt_ee_cutoffs_values[opt_ee_cutoffs_count++] = val;
+      opt_ee_cutoffs_values[opt_ee_cutoffs_count] = val;
+      ++opt_ee_cutoffs_count;
 
       cursor += skip;
 
