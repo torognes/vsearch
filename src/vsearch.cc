@@ -522,7 +522,7 @@ auto args_get_length_cutoffs(char * arg) -> void
   /* save in length_cutoffs_{smallest,largest,increment} */
 
   static constexpr auto n_of_expected_assignments= 3;
-  int skip = 0;
+  int skip = 0;  // receives the number of characters read so far ('%n')
   if (std::sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == n_of_expected_assignments)
     {
       if ((size_t) skip < std::strlen(arg))
