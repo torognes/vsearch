@@ -521,8 +521,9 @@ auto args_get_length_cutoffs(char * arg) -> void
   /* second value may be * indicating no limit */
   /* save in length_cutoffs_{smallest,largest,increment} */
 
+  static constexpr auto n_of_expected_assignments= 3;
   int skip = 0;
-  if (std::sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
+  if (std::sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == n_of_expected_assignments)
     {
       if ((size_t) skip < std::strlen(arg))
         {
