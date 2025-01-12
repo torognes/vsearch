@@ -482,26 +482,26 @@ auto args_get_ee_cutoffs(char * arg) -> void
   opt_ee_cutoffs_count = 0;
   opt_ee_cutoffs_values = (double *) xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double));
 
-  char * s = arg;
+  char * cursor = arg;
   while (true)
     {
       double val = 0;
       int skip = 0;
 
-      if ((std::sscanf(s, "%lf%n", &val, &skip) != 1) or (val <= 0.0))
+      if ((std::sscanf(cursor, "%lf%n", &val, &skip) != 1) or (val <= 0.0))
         {
           fatal("Invalid arguments to ee_cutoffs");
         }
 
       opt_ee_cutoffs_values[opt_ee_cutoffs_count++] = val;
 
-      s += skip;
+      cursor += skip;
 
-      if (*s == ',')
+      if (*cursor == ',')
         {
-          ++s;
+          ++cursor;
         }
-      else if (*s == 0)
+      else if (*cursor == 0)
         {
           break;
         }
