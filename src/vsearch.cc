@@ -490,7 +490,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
       double val = 0;
       int skip = 0;
 
-      if ((sscanf(s, "%lf%n", &val, &skip) != 1) or (val <= 0.0))
+      if ((std::sscanf(s, "%lf%n", &val, &skip) != 1) or (val <= 0.0))
         {
           fatal("Invalid arguments to ee_cutoffs");
         }
@@ -523,14 +523,14 @@ auto args_get_length_cutoffs(char * arg) -> void
   /* save in length_cutoffs_{smallest,largest,increment} */
 
   int skip = 0;
-  if (sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
+  if (std::sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == 3)
     {
       if ((size_t) skip < std::strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
     }
-  else if (sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
+  else if (std::sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
     {
       if ((size_t) skip < std::strlen(arg))
         {
@@ -584,7 +584,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
       int skip = 0;
       int pen = 0;
 
-      if (sscanf(p, "%d%n", &pen, &skip) == 1)
+      if (std::sscanf(p, "%d%n", &pen, &skip) == 1)
         {
           p += skip;
         }
@@ -743,7 +743,7 @@ auto args_getlong(char * arg) -> int64_t
 {
   int len = 0;
   int64_t temp = 0;
-  const int ret = sscanf(arg, "%" PRId64 "%n", &temp, &len);
+  const int ret = std::sscanf(arg, "%" PRId64 "%n", &temp, &len);
   if ((ret == 0) or (((unsigned int) (len)) < std::strlen(arg)))
     {
       fatal("Illegal option argument");
@@ -756,7 +756,7 @@ auto args_getdouble(char * arg) -> double
 {
   int len = 0;
   double temp = 0;
-  const int ret = sscanf(arg, "%lf%n", &temp, &len);
+  const int ret = std::sscanf(arg, "%lf%n", &temp, &len);
   if ((ret == 0) or (((unsigned int)(len)) < std::strlen(arg)))
     {
       fatal("Illegal option argument");
