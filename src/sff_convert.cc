@@ -463,7 +463,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           filepos += index_header_length;
           index_kind[index_header_length] = 0;
 
-          uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;
+          uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;  // refactoring: skip index data and padding in one go?
           if (fskip(fp_sff, index_size) != index_size)
             {
               fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
@@ -589,13 +589,13 @@ auto sff_convert(struct Parameters const & parameters) -> void
           index_is_done = true;
 
           /* try to skip padding, if any */
-
+          // refactoring: should skip index_data + index padding in one go? or do not reject SFF files just because index padding is missing?
           if (index_padding > 0)
             {
               uint64_t const got = fskip(fp_sff, index_padding);
               if ((got < index_padding) and (got != 0))
                 {
-                  fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n");
+                  fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
                 }
             }
         }
