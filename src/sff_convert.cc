@@ -481,7 +481,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
       check_sff_read_header(read_header);
 
-      auto read_name = read_a_string(fp_sff, read_header.name_length, "read name");
+      auto read_name = read_a_string(fp_sff, read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
       filepos += read_header.name_length;
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
@@ -620,3 +620,13 @@ auto sff_convert(struct Parameters const & parameters) -> void
   }
 
 }
+
+// refactoring:
+// struct Read {std::vector<char> identifier ; std::vector<char> nucleotides ;
+// std::vector<char> quality_scores } a_read;
+// initialize all vectors to large values (256 for name, 4096 for nucleotides
+// and quality_scores)
+// auto resize_if(std::vector<char> & a_string, std::size_t needed_length) -> void {
+//   if (a_string.size() >= needed_length) { return; }
+//   a_string.resize(needed_length, '\0');
+// }
