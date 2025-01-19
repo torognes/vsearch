@@ -93,10 +93,11 @@ auto fasta_filter_sequence(fastx_handle h,
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
 
+  static constexpr std::size_t buffer_size = 200;
   char * p = h->sequence_buffer.data;
   char * q = p;
   char c = '\0';
-  char msg[200];
+  char msg[buffer_size];
 
   while ((c = *p++) != 0)
     {
@@ -121,7 +122,7 @@ auto fasta_filter_sequence(fastx_handle h,
           if ((c >= 32) && (c < 127))
             {
               std::snprintf(msg,
-                       200,
+                       buffer_size,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) c,
                        h->lineno);
@@ -129,7 +130,7 @@ auto fasta_filter_sequence(fastx_handle h,
           else
             {
               std::snprintf(msg,
-                       200,
+                       buffer_size,
                        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) c,
                        h->lineno);
