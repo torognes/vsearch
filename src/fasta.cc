@@ -112,7 +112,8 @@ auto fasta_filter_sequence(fastx_handle h,
 
         case 1:
           /* legal character */
-          *q++ = char_mapping[(unsigned char) (c)];
+          *q = char_mapping[(unsigned char) (c)];
+          ++q;
           break;
 
         case 2:
