@@ -120,7 +120,7 @@ auto fasta_filter_sequence(fastx_handle h,
           /* fatal character */
           if ((c >= 32) && (c < 127))
             {
-              snprintf(msg,
+              std::snprintf(msg,
                        200,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) c,
@@ -128,7 +128,7 @@ auto fasta_filter_sequence(fastx_handle h,
             }
           else
             {
-              snprintf(msg,
+              std::snprintf(msg,
                        200,
                        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) c,
@@ -195,7 +195,7 @@ auto fasta_next(fastx_handle h,
         }
 
       /* find LF */
-      lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
+      lf = (char *) std::memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n',
                            rest);
 
@@ -234,7 +234,7 @@ auto fasta_next(fastx_handle h,
         }
 
       /* find LF */
-      lf = (char *) memchr(h->file_buffer.data + h->file_buffer.position,
+      lf = (char *) std::memchr(h->file_buffer.data + h->file_buffer.position,
                            '\n', rest);
 
       uint64_t len = rest;
@@ -340,14 +340,14 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
 
   if (width < 1)
     {
-      fprintf(fp, "%.*s\n", (int) (len), seq);
+      std::fprintf(fp, "%.*s\n", (int) (len), seq);
     }
   else
     {
       int64_t rest = len;
       for (uint64_t i = 0; i < len; i += width)
         {
-          fprintf(fp, "%.*s\n", (int) (MIN(rest, width)), seq + i);
+          std::fprintf(fp, "%.*s\n", (int) (MIN(rest, width)), seq + i);
           rest -= width;
         }
     }
@@ -357,7 +357,7 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
 auto fasta_print(std::FILE * fp, const char * hdr,
                  char * seq, uint64_t len) -> void
 {
-  fprintf(fp, ">%s\n", hdr);
+  std::fprintf(fp, ">%s\n", hdr);
   fasta_print_sequence(fp, seq, len, opt_fasta_width);
 }
 
@@ -365,7 +365,7 @@ auto fasta_print(std::FILE * fp, const char * hdr,
 inline auto fprint_seq_label(std::FILE * fp, char * seq, int len) -> void
 {
   /* normalize first? */
-  fprintf(fp, "%.*s", len, seq);
+  std::fprintf(fp, "%.*s", len, seq);
 }
 
 
@@ -383,11 +383,11 @@ auto fasta_print_general(std::FILE * output_handle,
                          const char * score_name,
                          double score) -> void
 {
-  fprintf(output_handle, ">");
+  std::fprintf(output_handle, ">");
 
   if (prefix != nullptr)
     {
-      fprintf(output_handle, "%s", prefix);
+      std::fprintf(output_handle, "%s", prefix);
     }
 
   if (opt_relabel_self)
@@ -404,7 +404,7 @@ auto fasta_print_general(std::FILE * output_handle,
     }
   else if ((opt_relabel != nullptr) && (ordinal > 0))
     {
-      fprintf(output_handle, "%s%d", opt_relabel, ordinal);
+      std::fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
   else
     {
@@ -421,71 +421,71 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (opt_label_suffix != nullptr)
     {
-      fprintf(output_handle, "%s", opt_label_suffix);
+      std::fprintf(output_handle, "%s", opt_label_suffix);
     }
 
   if (opt_sample != nullptr)
     {
-      fprintf(output_handle, ";sample=%s", opt_sample);
+      std::fprintf(output_handle, ";sample=%s", opt_sample);
     }
 
   if (clustersize > 0)
     {
-      fprintf(output_handle, ";seqs=%d", clustersize);
+      std::fprintf(output_handle, ";seqs=%d", clustersize);
     }
 
   if (clusterid >= 0)
     {
-      fprintf(output_handle, ";clusterid=%d", clusterid);
+      std::fprintf(output_handle, ";clusterid=%d", clusterid);
     }
 
   if (opt_sizeout && (abundance > 0))
     {
-      fprintf(output_handle, ";size=%u", abundance);
+      std::fprintf(output_handle, ";size=%u", abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
     {
       if (ee < 0.000000001) {
-        fprintf(output_handle, ";ee=%.13lf", ee);
+        std::fprintf(output_handle, ";ee=%.13lf", ee);
       } else if (ee < 0.00000001) {
-        fprintf(output_handle, ";ee=%.12lf", ee);
+        std::fprintf(output_handle, ";ee=%.12lf", ee);
       } else if (ee < 0.0000001) {
-        fprintf(output_handle, ";ee=%.11lf", ee);
+        std::fprintf(output_handle, ";ee=%.11lf", ee);
       } else if (ee < 0.000001) {
-        fprintf(output_handle, ";ee=%.10lf", ee);
+        std::fprintf(output_handle, ";ee=%.10lf", ee);
       } else if (ee < 0.00001) {
-        fprintf(output_handle, ";ee=%.9lf", ee);
+        std::fprintf(output_handle, ";ee=%.9lf", ee);
       } else if (ee < 0.0001) {
-        fprintf(output_handle, ";ee=%.8lf", ee);
+        std::fprintf(output_handle, ";ee=%.8lf", ee);
       } else if (ee < 0.001) {
-        fprintf(output_handle, ";ee=%.7lf", ee);
+        std::fprintf(output_handle, ";ee=%.7lf", ee);
       } else if (ee < 0.01) {
-        fprintf(output_handle, ";ee=%.6lf", ee);
+        std::fprintf(output_handle, ";ee=%.6lf", ee);
       } else if (ee < 0.1) {
-        fprintf(output_handle, ";ee=%.5lf", ee);
+        std::fprintf(output_handle, ";ee=%.5lf", ee);
       } else {
-        fprintf(output_handle, ";ee=%.4lf", ee);
+        std::fprintf(output_handle, ";ee=%.4lf", ee);
       }
     }
 
   if (opt_lengthout)
     {
-      fprintf(output_handle, ";length=%d", len);
+      std::fprintf(output_handle, ";length=%d", len);
     }
 
   if (score_name != nullptr)
     {
-      fprintf(output_handle, ";%s=%.4lf", score_name, score);
+      std::fprintf(output_handle, ";%s=%.4lf", score_name, score);
     }
 
   if (opt_relabel_keep &&
       (((opt_relabel != nullptr) && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     {
-      fprintf(output_handle, " %s", header);
+      std::fprintf(output_handle, " %s", header);
     }
 
-  fprintf(output_handle, "\n");
+  std::fprintf(output_handle, "\n");
 
   if (seq != nullptr)
     {
