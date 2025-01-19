@@ -69,7 +69,7 @@
 
 auto fasta_open(const char * filename) -> fastx_handle
 {
-  fastx_handle h = fastx_open(filename);
+  auto h = fastx_open(filename);
 
   if (fastx_is_fastq(h) and not h->is_empty)
     {
