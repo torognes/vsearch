@@ -98,7 +98,7 @@ auto fasta_filter_sequence(fastx_handle h,
   char c = '\0';
   char msg[200];
 
-  while ((c = *p++))
+  while ((c = *p++) != 0)
     {
       char const m = char_action[(unsigned char) c];
 
