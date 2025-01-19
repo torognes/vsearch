@@ -98,7 +98,7 @@ auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int const seed_value) -> vo
 
 auto bitmap_free(struct bitmap_s * a_bitmap) -> void
 {
-  if (a_bitmap->bitmap)
+  if (a_bitmap->bitmap != nullptr)
     {
       xfree(a_bitmap->bitmap);
     }
