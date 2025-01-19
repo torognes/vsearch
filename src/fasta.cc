@@ -119,7 +119,7 @@ auto fasta_filter_sequence(fastx_handle h,
 
         case 2:
           /* fatal character */
-          if ((c >= 32) && (c < 127))
+          if ((c >= 32) and (c < 127))
             {
               std::snprintf(msg,
                        buffer_size,
@@ -229,7 +229,7 @@ auto fasta_next(fastx_handle h,
         }
 
       /* end if new sequence starts */
-      if ((lf != nullptr) && (h->file_buffer.data[h->file_buffer.position] == '>'))
+      if ((lf != nullptr) and (h->file_buffer.data[h->file_buffer.position] == '>'))
         {
           break;
         }
@@ -403,15 +403,15 @@ auto fasta_print_general(std::FILE * output_handle,
     {
       fprint_seq_digest_md5(output_handle, seq, len);
     }
-  else if ((opt_relabel != nullptr) && (ordinal > 0))
+  else if ((opt_relabel != nullptr) and (ordinal > 0))
     {
       std::fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
   else
     {
-      bool const strip_size = opt_xsize || (opt_sizeout && (abundance > 0));
-      bool const strip_ee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
-      bool const strip_length = opt_xlength || opt_lengthout;
+      bool const strip_size = opt_xsize or (opt_sizeout and (abundance > 0));
+      bool const strip_ee = opt_xee or ((opt_eeout or opt_fastq_eeout) and (ee >= 0.0));
+      bool const strip_length = opt_xlength or opt_lengthout;
       header_fprint_strip(output_handle,
                           header,
                           header_length,
@@ -440,12 +440,12 @@ auto fasta_print_general(std::FILE * output_handle,
       std::fprintf(output_handle, ";clusterid=%d", clusterid);
     }
 
-  if (opt_sizeout && (abundance > 0))
+  if (opt_sizeout and (abundance > 0))
     {
       std::fprintf(output_handle, ";size=%u", abundance);
     }
 
-  if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
+  if ((opt_eeout or opt_fastq_eeout) and (ee >= 0.0))
     {
       if (ee < 0.000000001) {
         std::fprintf(output_handle, ";ee=%.13lf", ee);
@@ -480,8 +480,8 @@ auto fasta_print_general(std::FILE * output_handle,
       std::fprintf(output_handle, ";%s=%.4lf", score_name, score);
     }
 
-  if (opt_relabel_keep &&
-      (((opt_relabel != nullptr) && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
+  if (opt_relabel_keep and
+      (((opt_relabel != nullptr) and (ordinal > 0)) or opt_relabel_sha1 or opt_relabel_md5 or opt_relabel_self))
     {
       std::fprintf(output_handle, " %s", header);
     }
