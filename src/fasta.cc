@@ -106,8 +106,8 @@ auto fasta_filter_sequence(fastx_handle h,
         {
         case 0:
           /* stripped */
-          h->stripped_all++;
-          h->stripped[(unsigned char) c]++;
+          ++h->stripped_all;
+          ++h->stripped[(unsigned char) c];
           break;
 
         case 1:
@@ -142,7 +142,7 @@ auto fasta_filter_sequence(fastx_handle h,
 
         case 4:
           /* newline (silently stripped) */
-          h->lineno++;
+          ++h->lineno;
           break;
         }
     }
@@ -180,7 +180,7 @@ auto fasta_next(fastx_handle h,
       fprintf(stderr, "Found character %02x\n", (unsigned char)(h->file_buffer.data[h->file_buffer.position]));
       fatal("Invalid FASTA - header must start with > character");
     }
-  h->file_buffer.position++;
+  ++h->file_buffer.position;
   --rest;
 
   char * lf = nullptr;
@@ -204,7 +204,7 @@ auto fasta_next(fastx_handle h,
         {
           /* LF found, copy up to and including LF */
           len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
-          h->lineno++;
+          ++h->lineno;
         }
       buffer_extend(& h->header_buffer,
                     h->file_buffer.data + h->file_buffer.position,
