@@ -127,17 +127,17 @@ auto fasta_filter_sequence(fastx_handle input_handle,
           if ((current_char >= first_printable) and (current_char <= last_printable))
             {
               static_cast<void>(std::snprintf(msg.data(),
-                       buffer_size,
-                       "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-                       current_char,
+                                              buffer_size,
+                                              "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
+                                              current_char,
                                               input_handle->lineno));
             }
           else
             {
               static_cast<void>(std::snprintf(msg.data(),
-                       buffer_size,
-                       "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
-                       current_char,
+                                              buffer_size,
+                                              "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
+                                              current_char,
                                               input_handle->lineno));
             }
           fatal(msg.data());
