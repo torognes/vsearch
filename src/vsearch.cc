@@ -102,6 +102,8 @@
 #include <vector>
 
 
+constexpr int64_t n_threads_max = 1024;
+
 /* options */
 
 bool opt_bzip2_decompress = false;
@@ -4613,7 +4615,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* multi-threaded commands */
 
-  if ((opt_threads < 0) or (opt_threads > 1024))
+  if ((opt_threads < 0) or (opt_threads > n_threads_max))
     {
       fatal("The argument to --threads must be in the range 0 (default) to 1024");
     }
