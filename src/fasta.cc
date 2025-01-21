@@ -119,7 +119,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
         case 1:
           /* legal character */
           *dest = static_cast<char>(char_mapping[current_char]);
-          ++dest;
+          dest = std::next(dest);
           break;
 
         case 2:
