@@ -249,10 +249,10 @@ auto fasta_next(fastx_handle input_handle,
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - current_position + 1;
         }
       buffer_extend(& input_handle->sequence_buffer,
-                    input_handle->file_buffer.data + input_handle->file_buffer.position,
+                    current_position,
                     len);
       input_handle->file_buffer.position += len;
       rest -= len;
