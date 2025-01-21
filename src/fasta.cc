@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "attributes.h"
 #include "maps.h"
+#include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
@@ -350,7 +351,7 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
       auto rest = sequence_length;
       for (auto i = 0; i < sequence_length; i += width)
         {
-          std::fprintf(fp, "%.*s\n", (int) (MIN(rest, width)), seq + i);
+          std::fprintf(fp, "%.*s\n", std::min(rest, width), seq + i);
           rest -= width;
         }
     }
