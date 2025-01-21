@@ -202,7 +202,7 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* find new line char ('LF') */
-      auto * const current_position = std::next(input_handle->file_buffer.data, input_handle->file_buffer.position);
+      auto * const current_position = std::next(input_handle->file_buffer.data, static_cast<long>(input_handle->file_buffer.position));
       line_end = static_cast<char *>(std::memchr(current_position,
                                                  '\n',
                                                  rest));
