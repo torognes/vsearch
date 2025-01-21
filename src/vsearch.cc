@@ -2247,7 +2247,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_nostagger:
-          opt_fastq_nostagger = optarg;
+          opt_fastq_nostagger = true;
           break;
 
         case option_fastq_allowmergestagger:
