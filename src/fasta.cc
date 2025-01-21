@@ -122,7 +122,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
           dest = std::next(dest);
           break;
 
-        case 2:
+        case 2:  // refactoring: add new modes 'fatal printable character' and 'fatal unprintable character'
           /* fatal character */
           if ((current_char >= first_printable) and (current_char <= last_printable))
             {
