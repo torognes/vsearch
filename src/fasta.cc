@@ -118,7 +118,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
         case 1:
           /* legal character */
-          *dest = char_mapping[current_char];
+          *dest = static_cast<char>(char_mapping[current_char]);
           ++dest;
           break;
 
