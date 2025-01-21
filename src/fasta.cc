@@ -96,28 +96,28 @@ auto fasta_filter_sequence(fastx_handle input_handle,
      errors on certain characters. */
 
   static constexpr std::size_t buffer_size = 200;
-  static constexpr auto first_printable = ' '; // SPACE = 32
-  static constexpr auto last_printable = '~';  // 126
+  static constexpr unsigned char first_printable = ' '; // SPACE = 32
+  static constexpr unsigned char last_printable = '~';  // 126
   auto * source = input_handle->sequence_buffer.data;
   auto * dest = source;
-  auto current_char = '\0';
   static std::array<char, buffer_size> msg {{}};
 
-  while ((current_char = *source++) != 0)
+  while (*source != '\0')
     {
-      char const mode = char_action[(unsigned char) current_char];
+      auto const current_char = static_cast<unsigned char>(*source);
+      char const mode = char_action[current_char];
 
       switch (mode)
         {
         case 0:
           /* stripped */
           ++input_handle->stripped_all;
-          ++input_handle->stripped[(unsigned char) current_char];
+          ++input_handle->stripped[current_char];
           break;
 
         case 1:
           /* legal character */
-          *dest = char_mapping[(unsigned char) (current_char)];
+          *dest = char_mapping[current_char];
           ++dest;
           break;
 
@@ -128,7 +128,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
               std::snprintf(msg.data(),
                        buffer_size,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-                       (unsigned char) current_char,
+                       current_char,
                        input_handle->lineno);
             }
           else
@@ -136,7 +136,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
               std::snprintf(msg.data(),
                        buffer_size,
                        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
-                       (unsigned char) current_char,
+                       current_char,
                        input_handle->lineno);
             }
           fatal(msg.data());
@@ -151,6 +151,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
           ++input_handle->lineno;
           break;
         }
+      ++source;
     }
 
   /* add zero after sequence */
