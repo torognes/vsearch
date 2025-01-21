@@ -97,12 +97,12 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   static constexpr std::size_t buffer_size = 200;
   static constexpr auto first_printable = ' '; // SPACE = 32
   static constexpr auto last_printable = '~';  // 126
-  char * p = input_handle->sequence_buffer.data;
-  char * q = p;
+  char * source = input_handle->sequence_buffer.data;
+  char * dest = source;
   char current_char = '\0';
   char msg[buffer_size];
 
-  while ((current_char = *p++) != 0)
+  while ((current_char = *source++) != 0)
     {
       char const mode = char_action[(unsigned char) current_char];
 
@@ -116,8 +116,8 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
         case 1:
           /* legal character */
-          *q = char_mapping[(unsigned char) (current_char)];
-          ++q;
+          *dest = char_mapping[(unsigned char) (current_char)];
+          ++dest;
           break;
 
         case 2:
@@ -153,8 +153,8 @@ auto fasta_filter_sequence(fastx_handle input_handle,
     }
 
   /* add zero after sequence */
-  *q = '\0';
-  input_handle->sequence_buffer.length = q - input_handle->sequence_buffer.data;
+  *dest = '\0';
+  input_handle->sequence_buffer.length = dest - input_handle->sequence_buffer.data;
 }
 
 
