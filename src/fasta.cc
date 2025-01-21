@@ -99,35 +99,35 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   static constexpr auto last_printable = '~';  // 126
   char * p = input_handle->sequence_buffer.data;
   char * q = p;
-  char c = '\0';
+  char current_char = '\0';
   char msg[buffer_size];
 
-  while ((c = *p++) != 0)
+  while ((current_char = *p++) != 0)
     {
-      char const mode = char_action[(unsigned char) c];
+      char const mode = char_action[(unsigned char) current_char];
 
       switch (mode)
         {
         case 0:
           /* stripped */
           ++input_handle->stripped_all;
-          ++input_handle->stripped[(unsigned char) c];
+          ++input_handle->stripped[(unsigned char) current_char];
           break;
 
         case 1:
           /* legal character */
-          *q = char_mapping[(unsigned char) (c)];
+          *q = char_mapping[(unsigned char) (current_char)];
           ++q;
           break;
 
         case 2:
           /* fatal character */
-          if ((c >= first_printable) and (c <= last_printable))
+          if ((current_char >= first_printable) and (current_char <= last_printable))
             {
               std::snprintf(msg,
                        buffer_size,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-                       (unsigned char) c,
+                       (unsigned char) current_char,
                        input_handle->lineno);
             }
           else
@@ -135,7 +135,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
               std::snprintf(msg,
                        buffer_size,
                        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
-                       (unsigned char) c,
+                       (unsigned char) current_char,
                        input_handle->lineno);
             }
           fatal(msg);
