@@ -97,9 +97,9 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   static constexpr std::size_t buffer_size = 200;
   static constexpr auto first_printable = ' '; // SPACE = 32
   static constexpr auto last_printable = '~';  // 126
-  char * source = input_handle->sequence_buffer.data;
-  char * dest = source;
-  char current_char = '\0';
+  auto * source = input_handle->sequence_buffer.data;
+  auto * dest = source;
+  auto current_char = '\0';
   char msg[buffer_size];
 
   while ((current_char = *source++) != 0)
