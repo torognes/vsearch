@@ -95,6 +95,8 @@ auto fasta_filter_sequence(fastx_handle input_handle,
      errors on certain characters. */
 
   static constexpr std::size_t buffer_size = 200;
+  static constexpr auto first_printable = ' '; // SPACE = 32
+  static constexpr auto last_printable = '~';  // 126
   char * p = input_handle->sequence_buffer.data;
   char * q = p;
   char c = '\0';
@@ -120,7 +122,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
         case 2:
           /* fatal character */
-          if ((c >= 32) and (c < 127))
+          if ((c >= first_printable) and (c <= last_printable))
             {
               std::snprintf(msg,
                        buffer_size,
