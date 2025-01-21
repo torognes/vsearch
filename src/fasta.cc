@@ -242,8 +242,8 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                                                 '\n', rest));
+      auto * const current_position = std::next(input_handle->file_buffer.data, input_handle->file_buffer.position);
+      line_end = static_cast<char *>(std::memchr(current_position, '\n', rest));
 
       uint64_t len = rest;
       if (line_end != nullptr)
