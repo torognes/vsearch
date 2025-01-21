@@ -89,7 +89,7 @@ auto fasta_close(fastx_handle input_handle) -> void
 
 auto fasta_filter_sequence(fastx_handle input_handle,
                            unsigned int const * char_action,
-                           const unsigned char * char_mapping) -> void
+                           unsigned char const * char_mapping) -> void
 {
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
