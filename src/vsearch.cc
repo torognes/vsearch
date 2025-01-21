@@ -757,7 +757,7 @@ auto args_getdouble(char * arg) -> double
 {
   int len = 0;
   double temp = 0;
-  const int ret = std::sscanf(arg, "%lf%n", &temp, &len);
+  auto const ret = std::sscanf(arg, "%lf%n", &temp, &len);
   if ((ret == 0) or (((unsigned int)(len)) < std::strlen(arg)))
     {
       fatal("Illegal option argument");
