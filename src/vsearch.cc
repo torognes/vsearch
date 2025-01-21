@@ -4640,7 +4640,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       opt_threads = 1;
       parameters.opt_threads = 1;
     }
-  if (opt_sintax and parameters.opt_randseed and (parameters.opt_threads > 1))
+  if ((opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
     {
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
