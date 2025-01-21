@@ -4618,10 +4618,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --threads must be in the range 0 (default) to 1024");
     }
 
-  if (opt_allpairs_global or opt_cluster_fast or opt_cluster_size or
-      opt_cluster_smallmem or opt_cluster_unoise or opt_fastq_mergepairs or
-      opt_fastx_mask or opt_maskfasta or opt_search_exact or opt_sintax or
-      opt_uchime_ref or opt_usearch_global)
+  if ((opt_allpairs_global != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or
+      (opt_cluster_smallmem != nullptr) or (opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
+      (opt_fastx_mask != nullptr) or (opt_maskfasta != nullptr) or (opt_search_exact != nullptr) or (opt_sintax != nullptr) or
+      (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
     {
       if (parameters.opt_threads == 0)
         {
