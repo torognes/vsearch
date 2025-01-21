@@ -62,6 +62,7 @@
 #include "attributes.h"
 #include "maps.h"
 #include <algorithm>  // std::min
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
@@ -100,7 +101,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   auto * source = input_handle->sequence_buffer.data;
   auto * dest = source;
   auto current_char = '\0';
-  char msg[buffer_size];
+  static std::array<char, buffer_size> msg {{}};
 
   while ((current_char = *source++) != 0)
     {
@@ -124,7 +125,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
           /* fatal character */
           if ((current_char >= first_printable) and (current_char <= last_printable))
             {
-              std::snprintf(msg,
+              std::snprintf(msg.data(),
                        buffer_size,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) current_char,
@@ -132,13 +133,13 @@ auto fasta_filter_sequence(fastx_handle input_handle,
             }
           else
             {
-              std::snprintf(msg,
+              std::snprintf(msg.data(),
                        buffer_size,
                        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) current_char,
                        input_handle->lineno);
             }
-          fatal(msg);
+          fatal(msg.data());
           break;
 
         case 3:
