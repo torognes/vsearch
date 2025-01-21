@@ -152,7 +152,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
           ++input_handle->lineno;
           break;
         }
-      ++source;
+      source = std::next(source);
     }
 
   /* add zero after sequence */
