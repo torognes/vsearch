@@ -106,7 +106,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   while (*source != '\0')
     {
       auto const current_char = static_cast<unsigned char>(*source);
-      char const mode = char_action[current_char];
+      auto const mode = static_cast<char>(char_action[current_char]);
 
       switch (mode)
         {
