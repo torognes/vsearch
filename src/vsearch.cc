@@ -580,7 +580,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
   char * p = arg;
 
-  while (*p)
+  while (*p != '\0')
     {
       int skip = 0;
       int pen = 0;
@@ -608,7 +608,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
       int set_Q = 0;
       int set_T = 0;
 
-      while ((*p) and (*p != '/'))
+      while ((*p != '\0') and (*p != '/'))
         {
           switch(*p)
             {
@@ -642,12 +642,12 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
           ++p;
         }
 
-      if (set_E and (set_L or set_R))
+      if ((set_E != 0) and ((set_L != 0) or (set_R != 0)))
         {
           fatal("Invalid gap penalty string (E and L or R) '%s'", q);
         }
 
-      if (set_E)
+      if (set_E != 0)
         {
           set_L = 1;
           set_R = 1;
@@ -655,7 +655,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
       /* if neither L, I, R nor E is specified, it applies to all */
 
-      if ((not set_L) and (not set_I) and (not set_R))
+      if ((set_L == 0) and (set_I == 0) and (set_R == 0))
         {
           set_L = 1;
           set_I = 1;
@@ -664,40 +664,40 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
 
       /* if neither Q nor T is specified, it applies to both */
 
-      if ((not set_Q) and (not set_T))
+      if ((set_Q == 0) and (set_T == 0))
         {
           set_Q = 1;
           set_T = 1;
         }
 
-      if (is_open)
+      if (is_open != 0)
         {
-          if (set_Q)
+          if (set_Q != 0)
             {
-              if (set_L)
+              if (set_L != 0)
                 {
                   opt_gap_open_query_left = pen;
                 }
-              if (set_I)
+              if (set_I != 0)
                 {
                   opt_gap_open_query_interior = pen;
                 }
-              if (set_R)
+              if (set_R != 0)
                 {
                   opt_gap_open_query_right = pen;
                 }
             }
-          if (set_T)
+          if (set_T != 0)
             {
-              if (set_L)
+              if (set_L != 0)
                 {
                   opt_gap_open_target_left = pen;
                 }
-              if (set_I)
+              if (set_I != 0)
                 {
                   opt_gap_open_target_interior = pen;
                 }
-              if (set_R)
+              if (set_R != 0)
                 {
                   opt_gap_open_target_right = pen;
                 }
@@ -705,32 +705,32 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
         }
       else
         {
-          if (set_Q)
+          if (set_Q != 0)
             {
-              if (set_L)
+              if (set_L != 0)
                 {
                   opt_gap_extension_query_left = pen;
                 }
-              if (set_I)
+              if (set_I != 0)
                 {
                   opt_gap_extension_query_interior = pen;
                 }
-              if (set_R)
+              if (set_R != 0)
                 {
                   opt_gap_extension_query_right = pen;
                 }
             }
-          if (set_T)
+          if (set_T != 0)
             {
-              if (set_L)
+              if (set_L != 0)
                 {
                   opt_gap_extension_target_left = pen;
                 }
-              if (set_I)
+              if (set_I != 0)
                 {
                   opt_gap_extension_target_interior = pen;
                 }
-              if (set_R)
+              if (set_R != 0)
                 {
                   opt_gap_extension_target_right = pen;
                 }
