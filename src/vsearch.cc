@@ -4602,7 +4602,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
               fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
               ++count;
             }
-          if (not count)
+          if (count == 0)
             {
               fprintf(stderr, " (none)");
             }
