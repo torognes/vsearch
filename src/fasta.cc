@@ -67,6 +67,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
 #include <cstring>  // std::memchr
+#include <iterator>  // std::next
 
 
 auto fasta_open(const char * filename) -> fastx_handle
@@ -201,7 +202,8 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* find new line char ('LF') */
-      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      auto * const current_position = std::next(input_handle->file_buffer.data, input_handle->file_buffer.position);
+      line_end = (char *) std::memchr(current_position,
                            '\n',
                            rest);
 
