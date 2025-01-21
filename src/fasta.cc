@@ -339,14 +339,16 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
     Specify width of lines - zero (or <1) means linearize (all on one line).
   */
 
+  auto const sequence_length = static_cast<int>(len);
+
   if (width < 1)  // no sequence folding
     {
-      std::fprintf(fp, "%.*s\n", (int) (len), seq);
+      std::fprintf(fp, "%.*s\n", sequence_length, seq);
     }
   else  // sequence folding every 'width'
     {
-      int64_t rest = len;
-      for (uint64_t i = 0; i < len; i += width)
+      auto rest = sequence_length;
+      for (auto i = 0; i < sequence_length; i += width)
         {
           std::fprintf(fp, "%.*s\n", (int) (MIN(rest, width)), seq + i);
           rest -= width;
