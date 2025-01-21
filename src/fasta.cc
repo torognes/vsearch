@@ -190,8 +190,8 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->file_buffer.position;
   --rest;
 
-  char * lf = nullptr;
-  while (lf == nullptr)
+  char * line_end = nullptr;
+  while (line_end == nullptr)
     {
       /* get more data if buffer empty*/
       rest = fastx_file_fill_buffer(input_handle);
@@ -200,17 +200,17 @@ auto fasta_next(fastx_handle input_handle,
           fatal("Invalid FASTA - header must be terminated with newline");
         }
 
-      /* find LF */
-      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      /* find new line char ('LF') */
+      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
                            rest);
 
       /* copy to header buffer */
       uint64_t len = rest;
-      if (lf != nullptr)
+      if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           ++input_handle->lineno;
         }
       buffer_extend(& input_handle->header_buffer,
@@ -234,20 +234,20 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* end if new sequence starts */
-      if ((lf != nullptr) and (input_handle->file_buffer.data[input_handle->file_buffer.position] == '>'))
+      if ((line_end != nullptr) and (input_handle->file_buffer.data[input_handle->file_buffer.position] == '>'))
         {
           break;
         }
 
       /* find LF */
-      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n', rest);
 
       uint64_t len = rest;
-      if (lf != nullptr)
+      if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
         }
       buffer_extend(& input_handle->sequence_buffer,
                     input_handle->file_buffer.data + input_handle->file_buffer.position,
