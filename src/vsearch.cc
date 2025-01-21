@@ -4865,7 +4865,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
     }
 
-  if (opt_chimeras_denovo)
+  if (opt_chimeras_denovo != nullptr)
     {
       if (not options_selected[option_alignwidth])
         {
@@ -4916,7 +4916,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* set default opt_minsize depending on command */
   if (parameters.opt_minsize == 0)
     {
-      if (opt_cluster_unoise)
+      if (opt_cluster_unoise != nullptr)
         {
           opt_minsize = 8;
           parameters.opt_minsize = 8;
@@ -4931,11 +4931,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* set default opt_abskew depending on command */
   if (not options_selected[option_abskew])
     {
-      if (opt_chimeras_denovo)
+      if (opt_chimeras_denovo != nullptr)
         {
           opt_abskew = 1.0;
         }
-      else if (opt_uchime3_denovo)
+      else if (opt_uchime3_denovo != nullptr)
         {
           opt_abskew = 16.0;
         }
@@ -4949,16 +4949,16 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (parameters.opt_minseqlength < 0)
     {
-      if (opt_cluster_fast or
-          opt_cluster_size or
-          opt_cluster_smallmem or
-          opt_cluster_unoise or
-          parameters.opt_derep_fulllength or
-          parameters.opt_derep_id or
-          parameters.opt_derep_prefix or
-          opt_makeudb_usearch or
-          opt_sintax or
-          opt_usearch_global)
+      if ((opt_cluster_fast != nullptr) or
+          (opt_cluster_size != nullptr) or
+          (opt_cluster_smallmem != nullptr) or
+          (opt_cluster_unoise != nullptr) or
+          (parameters.opt_derep_fulllength != nullptr) or
+          (parameters.opt_derep_id != nullptr) or
+          (parameters.opt_derep_prefix != nullptr) or
+          (opt_makeudb_usearch != nullptr) or
+          (opt_sintax != nullptr) or
+          (opt_usearch_global != nullptr))
         {
           opt_minseqlength = 32;
           parameters.opt_minseqlength = 32;
@@ -4970,7 +4970,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         }
     }
 
-  if (opt_sintax)
+  if (opt_sintax != nullptr)
     {
     opt_notrunclabels = 1;
     parameters.opt_notrunclabels = true;
