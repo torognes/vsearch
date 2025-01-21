@@ -4680,7 +4680,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   if (opt_wordlength == 0)
     {
       /* set default word length */
-      if (opt_orient)
+      if (opt_orient != nullptr)
         {
           opt_wordlength = 12;
         }
@@ -4741,7 +4741,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --sample_size must not be negative");
     }
 
-  if (((parameters.opt_relabel ? 1 : 0) +
+  if ((((parameters.opt_relabel != nullptr) ? 1 : 0) +
        opt_relabel_md5 + opt_relabel_self + opt_relabel_sha1) > 1)
     {
       fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
