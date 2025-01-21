@@ -1601,7 +1601,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_userfields:
-          if (not parse_userfields_arg(optarg))
+          if (parse_userfields_arg(optarg) == 0)
             {
               fatal("Unrecognized userfield argument");
             }
