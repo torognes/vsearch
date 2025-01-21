@@ -70,24 +70,24 @@
 
 auto fasta_open(const char * filename) -> fastx_handle
 {
-  auto h = fastx_open(filename);
+  auto input_handle = fastx_open(filename);
 
-  if (fastx_is_fastq(h) and not h->is_empty)
+  if (fastx_is_fastq(input_handle) and not input_handle->is_empty)
     {
       fatal("FASTA file expected, FASTQ file found (%s)", filename);
     }
 
-  return h;
+  return input_handle;
 }
 
 
-auto fasta_close(fastx_handle h) -> void
+auto fasta_close(fastx_handle input_handle) -> void
 {
-  fastx_close(h);
+  fastx_close(input_handle);
 }
 
 
-auto fasta_filter_sequence(fastx_handle h,
+auto fasta_filter_sequence(fastx_handle input_handle,
                            unsigned int * char_action,
                            const unsigned char * char_mapping) -> void
 {
@@ -95,7 +95,7 @@ auto fasta_filter_sequence(fastx_handle h,
      errors on certain characters. */
 
   static constexpr std::size_t buffer_size = 200;
-  char * p = h->sequence_buffer.data;
+  char * p = input_handle->sequence_buffer.data;
   char * q = p;
   char c = '\0';
   char msg[buffer_size];
@@ -108,8 +108,8 @@ auto fasta_filter_sequence(fastx_handle h,
         {
         case 0:
           /* stripped */
-          ++h->stripped_all;
-          ++h->stripped[(unsigned char) c];
+          ++input_handle->stripped_all;
+          ++input_handle->stripped[(unsigned char) c];
           break;
 
         case 1:
@@ -126,7 +126,7 @@ auto fasta_filter_sequence(fastx_handle h,
                        buffer_size,
                        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) c,
-                       h->lineno);
+                       input_handle->lineno);
             }
           else
             {
@@ -134,7 +134,7 @@ auto fasta_filter_sequence(fastx_handle h,
                        buffer_size,
                        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
                        (unsigned char) c,
-                       h->lineno);
+                       input_handle->lineno);
             }
           fatal(msg);
           break;
@@ -145,29 +145,29 @@ auto fasta_filter_sequence(fastx_handle h,
 
         case 4:
           /* newline (silently stripped) */
-          ++h->lineno;
+          ++input_handle->lineno;
           break;
         }
     }
 
   /* add zero after sequence */
   *q = 0;
-  h->sequence_buffer.length = q - h->sequence_buffer.data;
+  input_handle->sequence_buffer.length = q - input_handle->sequence_buffer.data;
 }
 
 
-auto fasta_next(fastx_handle h,
+auto fasta_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool
 {
-  h->lineno_start = h->lineno;
+  input_handle->lineno_start = input_handle->lineno;
 
-  h->header_buffer.length = 0;
-  h->header_buffer.data[0] = 0;
-  h->sequence_buffer.length = 0;
-  h->sequence_buffer.data[0] = 0;
+  input_handle->header_buffer.length = 0;
+  input_handle->header_buffer.data[0] = 0;
+  input_handle->sequence_buffer.length = 0;
+  input_handle->sequence_buffer.data[0] = 0;
 
-  uint64_t rest = fastx_file_fill_buffer(h);
+  uint64_t rest = fastx_file_fill_buffer(input_handle);
 
   if (rest == 0)
     {
@@ -178,26 +178,26 @@ auto fasta_next(fastx_handle h,
 
   /* check initial > character */
 
-  if (h->file_buffer.data[h->file_buffer.position] != '>')
+  if (input_handle->file_buffer.data[input_handle->file_buffer.position] != '>')
     {
-      fprintf(stderr, "Found character %02x\n", (unsigned char)(h->file_buffer.data[h->file_buffer.position]));
+      fprintf(stderr, "Found character %02x\n", (unsigned char)(input_handle->file_buffer.data[input_handle->file_buffer.position]));
       fatal("Invalid FASTA - header must start with > character");
     }
-  ++h->file_buffer.position;
+  ++input_handle->file_buffer.position;
   --rest;
 
   char * lf = nullptr;
   while (lf == nullptr)
     {
       /* get more data if buffer empty*/
-      rest = fastx_file_fill_buffer(h);
+      rest = fastx_file_fill_buffer(input_handle);
       if (rest == 0)
         {
           fatal("Invalid FASTA - header must be terminated with newline");
         }
 
       /* find LF */
-      lf = (char *) std::memchr(h->file_buffer.data + h->file_buffer.position,
+      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
                            rest);
 
@@ -206,13 +206,13 @@ auto fasta_next(fastx_handle h,
       if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
-          ++h->lineno;
+          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          ++input_handle->lineno;
         }
-      buffer_extend(& h->header_buffer,
-                    h->file_buffer.data + h->file_buffer.position,
+      buffer_extend(& input_handle->header_buffer,
+                    input_handle->file_buffer.data + input_handle->file_buffer.position,
                     len);
-      h->file_buffer.position += len;
+      input_handle->file_buffer.position += len;
       rest -= len;
     }
 
@@ -221,7 +221,7 @@ auto fasta_next(fastx_handle h,
   while (true)
     {
       /* get more data, if necessary */
-      rest = fastx_file_fill_buffer(h);
+      rest = fastx_file_fill_buffer(input_handle);
 
       /* end if no more data */
       if (rest == 0)
@@ -230,42 +230,42 @@ auto fasta_next(fastx_handle h,
         }
 
       /* end if new sequence starts */
-      if ((lf != nullptr) and (h->file_buffer.data[h->file_buffer.position] == '>'))
+      if ((lf != nullptr) and (input_handle->file_buffer.data[input_handle->file_buffer.position] == '>'))
         {
           break;
         }
 
       /* find LF */
-      lf = (char *) std::memchr(h->file_buffer.data + h->file_buffer.position,
+      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n', rest);
 
       uint64_t len = rest;
       if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (h->file_buffer.data + h->file_buffer.position) + 1;
+          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
         }
-      buffer_extend(& h->sequence_buffer,
-                    h->file_buffer.data + h->file_buffer.position,
+      buffer_extend(& input_handle->sequence_buffer,
+                    input_handle->file_buffer.data + input_handle->file_buffer.position,
                     len);
-      h->file_buffer.position += len;
+      input_handle->file_buffer.position += len;
       rest -= len;
     }
 
-  ++h->seqno;
+  ++input_handle->seqno;
 
-  fastx_filter_header(h, truncateatspace);
-  fasta_filter_sequence(h, char_fasta_action, char_mapping);
+  fastx_filter_header(input_handle, truncateatspace);
+  fasta_filter_sequence(input_handle, char_fasta_action, char_mapping);
 
   return true;
 }
 
 
-auto fasta_get_abundance(fastx_handle h) -> int64_t
+auto fasta_get_abundance(fastx_handle input_handle) -> int64_t
 {
   // return 1 if not present
-  auto const size = header_get_size(h->header_buffer.data,
-                                 h->header_buffer.length);
+  auto const size = header_get_size(input_handle->header_buffer.data,
+                                 input_handle->header_buffer.length);
   if (size > 0)
     {
       return size;
@@ -274,58 +274,58 @@ auto fasta_get_abundance(fastx_handle h) -> int64_t
 }
 
 
-auto fasta_get_abundance_and_presence(fastx_handle h) -> int64_t
+auto fasta_get_abundance_and_presence(fastx_handle input_handle) -> int64_t
 {
   // return 0 if not present
-  return header_get_size(h->header_buffer.data, h->header_buffer.length);
+  return header_get_size(input_handle->header_buffer.data, input_handle->header_buffer.length);
 }
 
 
-auto fasta_get_position(fastx_handle h) -> uint64_t
+auto fasta_get_position(fastx_handle input_handle) -> uint64_t
 {
-  return h->file_position;
+  return input_handle->file_position;
 }
 
 
-auto fasta_get_size(fastx_handle h) -> uint64_t
+auto fasta_get_size(fastx_handle input_handle) -> uint64_t
 {
-  return h->file_size;
+  return input_handle->file_size;
 }
 
 
-auto fasta_get_lineno(fastx_handle h) -> uint64_t
+auto fasta_get_lineno(fastx_handle input_handle) -> uint64_t
 {
-  return h->lineno_start;
+  return input_handle->lineno_start;
 }
 
 
-auto fasta_get_seqno(fastx_handle h) -> uint64_t
+auto fasta_get_seqno(fastx_handle input_handle) -> uint64_t
 {
-  return h->seqno;
+  return input_handle->seqno;
 }
 
 
-auto fasta_get_header_length(fastx_handle h) -> uint64_t
+auto fasta_get_header_length(fastx_handle input_handle) -> uint64_t
 {
-  return h->header_buffer.length;
+  return input_handle->header_buffer.length;
 }
 
 
-auto fasta_get_sequence_length(fastx_handle h) -> uint64_t
+auto fasta_get_sequence_length(fastx_handle input_handle) -> uint64_t
 {
-  return h->sequence_buffer.length;
+  return input_handle->sequence_buffer.length;
 }
 
 
-auto fasta_get_header(fastx_handle h) -> char *
+auto fasta_get_header(fastx_handle input_handle) -> char *
 {
-  return h->header_buffer.data;
+  return input_handle->header_buffer.data;
 }
 
 
-auto fasta_get_sequence(fastx_handle h) -> char *
+auto fasta_get_sequence(fastx_handle input_handle) -> char *
 {
-  return h->sequence_buffer.data;
+  return input_handle->sequence_buffer.data;
 }
 
 

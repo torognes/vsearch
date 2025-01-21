@@ -64,22 +64,22 @@
 
 /* fasta input */
 
-auto fasta_open_rest(fastx_handle h) -> void;
+auto fasta_open_rest(fastx_handle input_handle) -> void;
 auto fasta_open(const char * filename) -> fastx_handle;
-auto fasta_close(fastx_handle h) -> void;
-auto fasta_next(fastx_handle h,
+auto fasta_close(fastx_handle input_handle) -> void;
+auto fasta_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;
-auto fasta_get_position(fastx_handle h) -> uint64_t;
-auto fasta_get_size(fastx_handle h) -> uint64_t;
-auto fasta_get_lineno(fastx_handle h) -> uint64_t;
-auto fasta_get_seqno(fastx_handle h) -> uint64_t;
-auto fasta_get_header(fastx_handle h) -> char *;
-auto fasta_get_sequence(fastx_handle h) -> char *;
-auto fasta_get_header_length(fastx_handle h) -> uint64_t;
-auto fasta_get_sequence_length(fastx_handle h) -> uint64_t;
-auto fasta_get_abundance(fastx_handle h) -> int64_t;
-auto fasta_get_abundance_and_presence(fastx_handle h) -> int64_t;
+auto fasta_get_position(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_size(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_lineno(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_seqno(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_header(fastx_handle input_handle) -> char *;
+auto fasta_get_sequence(fastx_handle input_handle) -> char *;
+auto fasta_get_header_length(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_sequence_length(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_abundance(fastx_handle input_handle) -> int64_t;
+auto fasta_get_abundance_and_presence(fastx_handle input_handle) -> int64_t;
 
 /* fasta output */
 
