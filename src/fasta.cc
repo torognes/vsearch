@@ -151,7 +151,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
     }
 
   /* add zero after sequence */
-  *q = 0;
+  *q = '\0';
   input_handle->sequence_buffer.length = q - input_handle->sequence_buffer.data;
 }
 
