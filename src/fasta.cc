@@ -102,9 +102,9 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
   while ((c = *p++) != 0)
     {
-      char const m = char_action[(unsigned char) c];
+      char const mode = char_action[(unsigned char) c];
 
-      switch (m)
+      switch (mode)
         {
         case 0:
           /* stripped */
