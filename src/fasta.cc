@@ -172,7 +172,7 @@ auto fasta_next(fastx_handle input_handle,
   input_handle->sequence_buffer.length = 0;
   input_handle->sequence_buffer.data[0] = 0;
 
-  uint64_t rest = fastx_file_fill_buffer(input_handle);
+  std::size_t rest = fastx_file_fill_buffer(input_handle);
 
   if (rest == 0)
     {
