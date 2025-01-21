@@ -264,7 +264,7 @@ auto fasta_next(fastx_handle h,
 auto fasta_get_abundance(fastx_handle h) -> int64_t
 {
   // return 1 if not present
-  int64_t const size = header_get_size(h->header_buffer.data,
+  auto const size = header_get_size(h->header_buffer.data,
                                  h->header_buffer.length);
   if (size > 0)
     {
