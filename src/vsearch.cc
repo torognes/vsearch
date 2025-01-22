@@ -5027,7 +5027,7 @@ auto cmd_version(struct Parameters const & parameters) -> void
 
 #ifdef HAVE_BZLIB_H
   printf("Compiled with support for bzip2-compressed files,");
-  if (bz2_lib)
+  if (bz2_lib != nullptr)
     {
       printf(" and the library is loaded.\n");
     }
@@ -5532,15 +5532,15 @@ auto cmd_allpairs_global() -> void
 {
   /* check options */
 
-  if ((not opt_alnout) and (not opt_userout) and
-      (not opt_uc) and (not opt_blast6out) and
-      (not opt_matched) and (not opt_notmatched) and
-      (not opt_samout) and (not opt_fastapairs))
+  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
+      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
+      (opt_samout == nullptr) and (opt_fastapairs == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (not (opt_acceptall or ((opt_id >= 0.0) and (opt_id <= 1.0))))
+  if (not ((opt_acceptall != 0) or ((opt_id >= 0.0) and (opt_id <= 1.0))))
     {
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
@@ -5553,18 +5553,18 @@ auto cmd_usearch_global() -> void
 {
   /* check options */
 
-  if ((not opt_alnout) and (not opt_userout) and
-      (not opt_uc) and (not opt_blast6out) and
-      (not opt_matched) and (not opt_notmatched) and
-      (not opt_dbmatched) and (not opt_dbnotmatched) and
-      (not opt_samout) and (not opt_otutabout) and
-      (not opt_biomout) and (not opt_mothur_shared_out) and
-      (not opt_fastapairs) and (not opt_lcaout))
+  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
+      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
+      (opt_dbmatched == nullptr) and (opt_dbnotmatched == nullptr) and
+      (opt_samout == nullptr) and (opt_otutabout == nullptr) and
+      (opt_biomout == nullptr) and (opt_mothur_shared_out == nullptr) and
+      (opt_fastapairs == nullptr) and (opt_lcaout == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (not opt_db)
+  if (opt_db == nullptr)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5582,18 +5582,18 @@ auto cmd_search_exact() -> void
 {
   /* check options */
 
-  if ((not opt_alnout) and (not opt_userout) and
-      (not opt_uc) and (not opt_blast6out) and
-      (not opt_matched) and (not opt_notmatched) and
-      (not opt_dbmatched) and (not opt_dbnotmatched) and
-      (not opt_samout) and (not opt_otutabout) and
-      (not opt_biomout) and (not opt_mothur_shared_out) and
-      (not opt_fastapairs) and (not opt_lcaout))
+  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
+      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
+      (opt_dbmatched == nullptr) and (opt_dbnotmatched == nullptr) and
+      (opt_samout == nullptr) and (opt_otutabout == nullptr) and
+      (opt_biomout == nullptr) and (opt_mothur_shared_out == nullptr) and
+      (opt_fastapairs == nullptr) and (opt_lcaout == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (not opt_db)
+  if (opt_db == nullptr)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5604,7 +5604,7 @@ auto cmd_search_exact() -> void
 
 auto cmd_subsample(struct Parameters const & parameters) -> void
 {
-  if ((not opt_fastaout) and (not opt_fastqout))
+  if ((opt_fastaout == nullptr) and (opt_fastqout == nullptr))
     {
       fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
     }
