@@ -166,6 +166,28 @@ auto header_get_size(char * header, int header_length) -> int64_t
 }
 
 
+auto look_for_attribute(char const *header, int const header_length,
+                        int &nth_attribute, std::array<int, 3> &attribute_start,
+                        std::array<int, 3> &attribute_end,
+                        char const* attribute_text,
+                        bool strip_attribute) -> void {
+  auto start = 0;
+  auto end = 0;
+  if (not strip_attribute) { return; }
+
+  auto const attribute_is_present = header_find_attribute(header,
+                                                          header_length,
+                                                          attribute_text,
+                                                          & start,
+                                                          & end,
+                                                          false);
+  if (not attribute_is_present) { return; }
+  attribute_start[nth_attribute] = start;
+  attribute_end[nth_attribute] = end;
+  ++nth_attribute;
+}
+
+
 auto header_fprint_strip(FILE * output_handle,
                          char * header,
                          int header_length,
@@ -179,67 +201,22 @@ auto header_fprint_strip(FILE * output_handle,
   std::array<int, n_expected_attributes> attribute_end {{}};
 
   /* look for size attribute */
-
-  auto size_start = 0;
-  auto size_end = 0;
-  auto size_found = false;
-  if (strip_size)
-    {
-      size_found = header_find_attribute(header,
-                                         header_length,
-                                         "size=",
-                                         & size_start,
-                                         & size_end,
-                                         false);
-    }
-  if (size_found)
-    {
-      attribute_start[nth_attribute] = size_start;
-      attribute_end[nth_attribute] = size_end;
-      ++nth_attribute;
-    }
+  look_for_attribute(header, header_length,
+                     nth_attribute, attribute_start,
+                     attribute_end,
+                     "size=", strip_size);
 
   /* look for ee attribute */
-
-  auto ee_start = 0;
-  auto ee_end = 0;
-  auto ee_found = false;
-  if (strip_ee)
-    {
-      ee_found = header_find_attribute(header,
-                                       header_length,
-                                       "ee=",
-                                       & ee_start,
-                                       & ee_end,
-                                       true);
-    }
-  if (ee_found)
-    {
-      attribute_start[nth_attribute] = ee_start;
-      attribute_end[nth_attribute] = ee_end;
-      ++nth_attribute;
-    }
+  look_for_attribute(header, header_length,
+                     nth_attribute, attribute_start,
+                     attribute_end,
+                     "ee=", strip_ee);
 
   /* look for length attribute */
-
-  auto length_start = 0;
-  auto length_end = 0;
-  auto length_found = false;
-  if (strip_length)
-    {
-      length_found = header_find_attribute(header,
-                                           header_length,
-                                           "length=",
-                                           &length_start,
-                                           &length_end,
-                                           true);
-    }
-  if (length_found)
-    {
-      attribute_start[nth_attribute] = length_start;
-      attribute_end[nth_attribute] = length_end;
-      ++nth_attribute;
-    }
+  look_for_attribute(header, header_length,
+                     nth_attribute, attribute_start,
+                     attribute_end,
+                     "length=", strip_length);
 
   /* sort */
 
