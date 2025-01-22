@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <algorithm>  // std::swap
+#include <array>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::atol
@@ -171,9 +172,10 @@ auto header_fprint_strip(FILE * output_handle,
                          bool strip_ee,
                          bool strip_length) -> void
 {
+  static constexpr auto n_expected_attributes = std::size_t{3};
   auto attributes = 0;
-  int attribute_start[3];
-  int attribute_end[3];
+  std::array<int, n_expected_attributes> attribute_start {{}};
+  std::array<int, n_expected_attributes> attribute_end {{}};
 
   /* look for size attribute */
 
