@@ -174,7 +174,7 @@ auto header_fprint_strip(FILE * output_handle,
                          bool strip_length) -> void
 {
   static constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
-  auto attributes = 0;
+  auto nth_attribute = 0;
   std::array<int, n_expected_attributes> attribute_start {{}};
   std::array<int, n_expected_attributes> attribute_end {{}};
 
@@ -194,9 +194,9 @@ auto header_fprint_strip(FILE * output_handle,
     }
   if (size_found)
     {
-      attribute_start[attributes] = size_start;
-      attribute_end[attributes] = size_end;
-      ++attributes;
+      attribute_start[nth_attribute] = size_start;
+      attribute_end[nth_attribute] = size_end;
+      ++nth_attribute;
     }
 
   /* look for ee attribute */
@@ -215,9 +215,9 @@ auto header_fprint_strip(FILE * output_handle,
     }
   if (ee_found)
     {
-      attribute_start[attributes] = ee_start;
-      attribute_end[attributes] = ee_end;
-      ++attributes;
+      attribute_start[nth_attribute] = ee_start;
+      attribute_end[nth_attribute] = ee_end;
+      ++nth_attribute;
     }
 
   /* look for length attribute */
@@ -236,15 +236,15 @@ auto header_fprint_strip(FILE * output_handle,
     }
   if (length_found)
     {
-      attribute_start[attributes] = length_start;
-      attribute_end[attributes] = length_end;
-      ++attributes;
+      attribute_start[nth_attribute] = length_start;
+      attribute_end[nth_attribute] = length_end;
+      ++nth_attribute;
     }
 
   /* sort */
 
   auto last_swap = 0;
-  auto limit = attributes - 1;
+  auto limit = nth_attribute - 1;
   while (limit > 0)
     {
       for(auto i = 0; i < limit; i++)
@@ -261,14 +261,14 @@ auto header_fprint_strip(FILE * output_handle,
 
   /* print */
 
-  if (attributes == 0)
+  if (nth_attribute == 0)
     {
       std::fprintf(output_handle, "%.*s", header_length, header);
     }
   else
     {
       auto prev_end = 0;
-      for (auto i = 0; i < attributes; i++)
+      for (auto i = 0; i < nth_attribute; i++)
         {
           /* print part of header in front of this attribute */
           if (attribute_start[i] > prev_end + 1)
