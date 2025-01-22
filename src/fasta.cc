@@ -337,7 +337,7 @@ auto fasta_get_sequence(fastx_handle input_handle) -> char *
 
 /* fasta output */
 
-auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -> void
+auto fasta_print_sequence(std::FILE * output_handle, char * seq, uint64_t len, int width) -> void
 {
   /*
     The actual length of the sequence may be longer than "len", but only
@@ -350,14 +350,14 @@ auto fasta_print_sequence(std::FILE * fp, char * seq, uint64_t len, int width) -
 
   if (width < 1)  // no sequence folding
     {
-      std::fprintf(fp, "%.*s\n", sequence_length, seq);
+      std::fprintf(output_handle, "%.*s\n", sequence_length, seq);
     }
   else  // sequence folding every 'width'
     {
       auto rest = sequence_length;
       for (auto i = 0; i < sequence_length; i += width)
         {
-          std::fprintf(fp, "%.*s\n", std::min(rest, width), seq + i);
+          std::fprintf(output_handle, "%.*s\n", std::min(rest, width), seq + i);
           rest -= width;
         }
     }
