@@ -5803,9 +5803,9 @@ auto getentirecommandline(int argc, char** argv) -> void
     {
       if (i > 0)
         {
-          strcat(cmdline, " ");
+          std::strcat(cmdline, " ");
         }
-      strcat(cmdline, argv[i]);
+      std::strcat(cmdline, argv[i]);
     }
 }
 
