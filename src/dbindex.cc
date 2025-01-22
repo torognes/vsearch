@@ -149,7 +149,8 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
         }
       else
         {
-          kmerindex[kmerhash[kmer] + (kmercount[kmer]++)] = dbindex_count;
+          kmerindex[kmerhash[kmer] + kmercount[kmer]] = dbindex_count;
+          ++kmercount[kmer];
         }
     }
   ++dbindex_count;
