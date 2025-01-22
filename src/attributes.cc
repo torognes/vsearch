@@ -173,7 +173,7 @@ auto header_fprint_strip(FILE * output_handle,
                          bool strip_ee,
                          bool strip_length) -> void
 {
-  static constexpr auto n_expected_attributes = std::size_t{3};
+  static constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
   auto attributes = 0;
   std::array<int, n_expected_attributes> attribute_start {{}};
   std::array<int, n_expected_attributes> attribute_end {{}};
