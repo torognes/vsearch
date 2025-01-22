@@ -88,13 +88,13 @@ auto header_find_attribute(const char * header,
     }
 
   int const hlen = header_length;
-  int const alen = strlen(attribute);
+  int const alen = std::strlen(attribute);
 
   int i = 0;
 
   while (i < hlen - alen)
     {
-      char * r = (char *) strstr(header + i, attribute);
+      char * r = (char *) std::strstr(header + i, attribute);
 
       /* no match */
       if (r == nullptr)
@@ -112,7 +112,7 @@ auto header_find_attribute(const char * header,
         }
 
       int const digits
-        = (int) strspn(header + i + alen,
+        = (int) std::strspn(header + i + alen,
                        (allow_decimal ? digit_chars_decimal : digit_chars));
 
       /* check for at least one digit */
@@ -150,7 +150,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
                             &end,
                             false))
     {
-      int64_t const number = atol(header + start + 5);
+      int64_t const number = std::atol(header + start + 5);
       if (number > 0)
         {
           abundance = number;
@@ -260,7 +260,7 @@ auto header_fprint_strip(FILE * output_handle,
 
   if (attributes == 0)
     {
-      fprintf(output_handle, "%.*s", header_length, header);
+      std::fprintf(output_handle, "%.*s", header_length, header);
     }
   else
     {
@@ -270,7 +270,7 @@ auto header_fprint_strip(FILE * output_handle,
           /* print part of header in front of this attribute */
           if (attribute_start[i] > prev_end + 1)
             {
-              fprintf(output_handle, "%.*s",
+              std::fprintf(output_handle, "%.*s",
                       attribute_start[i] - prev_end - 1,
                       header + prev_end);
             }
@@ -280,7 +280,7 @@ auto header_fprint_strip(FILE * output_handle,
       /* print the rest, if any */
       if (header_length > prev_end + 1)
         {
-          fprintf(output_handle, "%.*s",
+          std::fprintf(output_handle, "%.*s",
                   header_length - prev_end,
                   header + prev_end);
         }
