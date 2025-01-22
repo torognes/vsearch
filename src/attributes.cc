@@ -82,7 +82,7 @@ auto header_find_attribute(const char * header,
   const char * digit_chars = "0123456789";
   const char * digit_chars_decimal = "0123456789.";
 
-  if ((not header) or (not attribute))
+  if ((header == nullptr) or (attribute == nullptr))
     {
       return false;
     }
