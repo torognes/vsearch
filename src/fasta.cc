@@ -364,18 +364,18 @@ auto fasta_print_sequence(std::FILE * output_handle, char * seq, uint64_t len, i
 }
 
 
-auto fasta_print(std::FILE * fp, const char * hdr,
+auto fasta_print(std::FILE * output_handle, const char * header,
                  char * seq, uint64_t len) -> void
 {
-  std::fprintf(fp, ">%s\n", hdr);
-  fasta_print_sequence(fp, seq, len, opt_fasta_width);
+  std::fprintf(output_handle, ">%s\n", header);
+  fasta_print_sequence(output_handle, seq, len, opt_fasta_width);
 }
 
 
-inline auto fprint_seq_label(std::FILE * fp, char * seq, int len) -> void
+inline auto fprint_seq_label(std::FILE * output_handle, char * seq, int len) -> void
 {
   /* normalize first? */
-  std::fprintf(fp, "%.*s", len, seq);
+  std::fprintf(output_handle, "%.*s", len, seq);
 }
 
 
@@ -504,11 +504,11 @@ auto fasta_print_general(std::FILE * output_handle,
 }
 
 
-auto fasta_print_db_relabel(std::FILE * fp,
+auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
                             int ordinal) -> void
 {
-  fasta_print_general(fp,
+  fasta_print_general(output_handle,
                       nullptr,
                       db_getsequence(seqno),
                       db_getsequencelen(seqno),
@@ -522,11 +522,11 @@ auto fasta_print_db_relabel(std::FILE * fp,
 }
 
 
-auto fasta_print_db_relabel(std::FILE * fp,
+auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
                             std::size_t ordinal) -> void
 {
-  fasta_print_general(fp,
+  fasta_print_general(output_handle,
                       nullptr,
                       db_getsequence(seqno),
                       db_getsequencelen(seqno),
@@ -540,9 +540,9 @@ auto fasta_print_db_relabel(std::FILE * fp,
 }
 
 
-auto fasta_print_db(std::FILE * fp, uint64_t seqno) -> void
+auto fasta_print_db(std::FILE * output_handle, uint64_t seqno) -> void
 {
-  fasta_print_general(fp,
+  fasta_print_general(output_handle,
                       nullptr,
                       db_getsequence(seqno),
                       db_getsequencelen(seqno),

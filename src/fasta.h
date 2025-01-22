@@ -83,8 +83,8 @@ auto fasta_get_abundance_and_presence(fastx_handle input_handle) -> int64_t;
 
 /* fasta output */
 
-auto fasta_print(std::FILE * fp,
-                 const char * hdr,
+auto fasta_print(std::FILE * output_handle,
+                 const char * header,
                  char * seq,
                  uint64_t len) -> void;
 
@@ -102,13 +102,13 @@ auto fasta_print_general(std::FILE * output_handle,
                          const char * score_name,
                          double score) -> void;
 
-auto fasta_print_db(std::FILE * fp,
+auto fasta_print_db(std::FILE * output_handle,
                     uint64_t seqno) -> void;
 
-auto fasta_print_db_relabel(std::FILE * fp,
+auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
                             int ordinal) -> void;
 
-auto fasta_print_db_relabel(std::FILE * fp,
+auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
                             std::size_t ordinal) -> void;
