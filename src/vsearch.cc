@@ -4657,7 +4657,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (opt_maxrejects == -1)
     {
-      if (opt_cluster_fast)
+      if (opt_cluster_fast != nullptr)
         {
           opt_maxrejects = 8;
         }
