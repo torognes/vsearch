@@ -144,7 +144,7 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
       unsigned int const kmer = uniquelist[i];
       if (kmerbitmap[kmer] != nullptr)
         {
-          kmercount[kmer]++;
+          ++kmercount[kmer];
           bitmap_set(kmerbitmap[kmer], dbindex_count);
         }
       else
@@ -191,7 +191,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
                    &uniquecount, &uniquelist, seqmask);
       for (unsigned int i = 0; i < uniquecount; i++)
         {
-          kmercount[uniquelist[i]]++;
+          ++kmercount[uniquelist[i]];
         }
       progress_update(seqno);
     }
