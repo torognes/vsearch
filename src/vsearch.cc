@@ -5664,19 +5664,19 @@ auto cmd_none(struct Parameters const & parameters) -> void {
 
 auto cmd_cluster() -> void
 {
-  if ((not opt_alnout) and (not opt_userout) and
-      (not opt_uc) and (not opt_blast6out) and
-      (not opt_matched) and (not opt_notmatched) and
-      (not opt_centroids) and (not opt_clusters) and
-      (not opt_consout) and (not opt_msaout) and
-      (not opt_samout) and (not opt_profile) and
-      (not opt_otutabout) and (not opt_biomout) and
-      (not opt_mothur_shared_out))
+  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
+      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
+      (opt_centroids == nullptr) and (opt_clusters == nullptr) and
+      (opt_consout == nullptr) and (opt_msaout == nullptr) and
+      (opt_samout == nullptr) and (opt_profile == nullptr) and
+      (opt_otutabout == nullptr) and (opt_biomout == nullptr) and
+      (opt_mothur_shared_out == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (not opt_cluster_unoise)
+  if (opt_cluster_unoise == nullptr)
     {
       if ((opt_id < 0.0) or (opt_id > 1.0))
         {
@@ -5684,19 +5684,19 @@ auto cmd_cluster() -> void
         }
     }
 
-  if (opt_cluster_fast)
+  if (opt_cluster_fast != nullptr)
     {
       cluster_fast(cmdline, progheader);
     }
-  else if (opt_cluster_smallmem)
+  else if (opt_cluster_smallmem != nullptr)
     {
       cluster_smallmem(cmdline, progheader);
     }
-  else if (opt_cluster_size)
+  else if (opt_cluster_size != nullptr)
     {
       cluster_size(cmdline, progheader);
     }
-  else if (opt_cluster_unoise)
+  else if (opt_cluster_unoise != nullptr)
     {
       cluster_unoise(cmdline, progheader);
     }
@@ -5705,13 +5705,13 @@ auto cmd_cluster() -> void
 
 auto cmd_chimera() -> void
 {
-  if ((not opt_chimeras)  and (not opt_nonchimeras) and
-      (not opt_uchimeout) and (not opt_uchimealns))
+  if ((opt_chimeras == nullptr)  and (opt_nonchimeras == nullptr) and
+      (opt_uchimeout == nullptr) and (opt_uchimealns == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (opt_uchime_ref and not opt_db)
+  if ((opt_uchime_ref != nullptr) and (opt_db == nullptr))
     {
       fatal("Database filename not specified with --db");
     }
@@ -5731,7 +5731,7 @@ auto cmd_chimera() -> void
       fatal("Argument to --dn must be > 0");
     }
 
-  if ((not opt_uchime2_denovo) and (not opt_uchime3_denovo))
+  if ((opt_uchime2_denovo == nullptr) and (opt_uchime3_denovo == nullptr))
     {
       if (opt_mindiffs <= 0)
         {
