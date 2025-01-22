@@ -5755,17 +5755,17 @@ auto cmd_chimera() -> void
 
 auto cmd_fastq_mergepairs() -> void
 {
-  if (not opt_reverse)
+  if (opt_reverse == nullptr)
     {
       fatal("No reverse reads file specified with --reverse");
     }
-  if ((not opt_fastqout) and
-      (not opt_fastaout) and
-      (not opt_fastqout_notmerged_fwd) and
-      (not opt_fastqout_notmerged_rev) and
-      (not opt_fastaout_notmerged_fwd) and
-      (not opt_fastaout_notmerged_rev) and
-      (not opt_eetabbedout))
+  if ((opt_fastqout == nullptr) and
+      (opt_fastaout == nullptr) and
+      (opt_fastqout_notmerged_fwd == nullptr) and
+      (opt_fastqout_notmerged_rev == nullptr) and
+      (opt_fastaout_notmerged_fwd == nullptr) and
+      (opt_fastaout_notmerged_rev == nullptr) and
+      (opt_eetabbedout == nullptr))
     {
       fatal("No output files specified");
     }
@@ -5834,7 +5834,7 @@ auto main(int argc, char** argv) -> int
     {
       fp_log = fopen_output(opt_log);
       parameters.fp_log = fp_log;
-      if (not fp_log)
+      if (fp_log == nullptr)
         {
           fatal("Unable to open log file for writing");
         }
@@ -5855,7 +5855,7 @@ auto main(int argc, char** argv) -> int
   dynlibs_open();
 
 #ifdef __x86_64__
-  if (not sse2_present)
+  if (sse2_present == 0)
     {
       fatal("Sorry, this program requires a cpu with SSE2.");
     }
@@ -5865,103 +5865,103 @@ auto main(int argc, char** argv) -> int
     {
       cmd_help(parameters);
     }
-  else if (opt_allpairs_global)
+  else if (opt_allpairs_global != nullptr)
     {
       cmd_allpairs_global();
     }
-  else if (opt_usearch_global)
+  else if (opt_usearch_global != nullptr)
     {
       cmd_usearch_global();
     }
-  else if (parameters.opt_sortbysize)
+  else if (parameters.opt_sortbysize != nullptr)
     {
       sortbysize(parameters);
     }
-  else if (parameters.opt_sortbylength)
+  else if (parameters.opt_sortbylength != nullptr)
     {
       sortbylength(parameters);
     }
-  else if (parameters.opt_derep_fulllength)
+  else if (parameters.opt_derep_fulllength != nullptr)
     {
       derep(parameters, parameters.opt_derep_fulllength, false);
     }
-  else if (parameters.opt_derep_prefix)
+  else if (parameters.opt_derep_prefix != nullptr)
     {
       derep_prefix(parameters);
     }
-  else if (parameters.opt_derep_smallmem)
+  else if (parameters.opt_derep_smallmem != nullptr)
     {
       derep_smallmem(parameters);
     }
-  else if (parameters.opt_derep_id)
+  else if (parameters.opt_derep_id != nullptr)
     {
       derep(parameters, parameters.opt_derep_id, true);
     }
-  else if (parameters.opt_shuffle)
+  else if (parameters.opt_shuffle != nullptr)
     {
       shuffle(parameters);
     }
-  else if (parameters.opt_fastx_subsample)
+  else if (parameters.opt_fastx_subsample != nullptr)
     {
       cmd_subsample(parameters);
     }
-  else if (opt_maskfasta)
+  else if (opt_maskfasta != nullptr)
     {
       maskfasta();
     }
-  else if (opt_cluster_smallmem or opt_cluster_fast or opt_cluster_size or opt_cluster_unoise)
+  else if ((opt_cluster_smallmem != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
     {
       cmd_cluster();
     }
-  else if (opt_uchime_denovo or opt_uchime_ref or opt_uchime2_denovo or opt_uchime3_denovo or opt_chimeras_denovo)
+  else if ((opt_uchime_denovo != nullptr) or (opt_uchime_ref != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
     {
       cmd_chimera();
     }
-  else if (parameters.opt_fastq_chars)
+  else if (parameters.opt_fastq_chars != nullptr)
     {
       fastq_chars(parameters);
     }
-  else if (opt_fastq_stats)
+  else if (opt_fastq_stats != nullptr)
     {
       fastq_stats();
     }
-  else if (opt_fastq_filter)
+  else if (opt_fastq_filter != nullptr)
     {
       fastq_filter();
     }
-  else if (opt_fastx_filter)
+  else if (opt_fastx_filter != nullptr)
     {
       fastx_filter();
     }
-  else if (opt_fastx_revcomp)
+  else if (opt_fastx_revcomp != nullptr)
     {
       fastx_revcomp();
     }
-  else if (opt_search_exact)
+  else if (opt_search_exact != nullptr)
     {
       cmd_search_exact();
     }
-  else if (opt_fastx_mask)
+  else if (opt_fastx_mask != nullptr)
     {
       fastx_mask();
     }
-  else if (opt_fastq_convert)
+  else if (opt_fastq_convert != nullptr)
     {
       fastq_convert();
     }
-  else if (opt_fastq_mergepairs)
+  else if (opt_fastq_mergepairs != nullptr)
     {
       cmd_fastq_mergepairs();
     }
-  else if (opt_fastq_eestats)
+  else if (opt_fastq_eestats != nullptr)
     {
       fastq_eestats();
     }
-  else if (opt_fastq_eestats2)
+  else if (opt_fastq_eestats2 != nullptr)
     {
       fastq_eestats2();
     }
-  else if (parameters.opt_fastq_join)
+  else if (parameters.opt_fastq_join != nullptr)
     {
       if ((not parameters.opt_join_padgapq_set_by_user) and
           (parameters.opt_fastq_ascii != default_ascii_offset)) {
@@ -5969,7 +5969,7 @@ auto main(int argc, char** argv) -> int
       }
       fastq_join(parameters);
     }
-  else if (parameters.opt_rereplicate)
+  else if (parameters.opt_rereplicate != nullptr)
     {
       rereplicate(parameters);
     }
@@ -5977,23 +5977,23 @@ auto main(int argc, char** argv) -> int
     {
       cmd_version(parameters);
     }
-  else if (opt_makeudb_usearch)
+  else if (opt_makeudb_usearch != nullptr)
     {
       udb_make();
     }
-  else if (opt_udb2fasta)
+  else if (opt_udb2fasta != nullptr)
     {
       udb_fasta();
     }
-  else if (opt_udbinfo)
+  else if (opt_udbinfo != nullptr)
     {
       udb_info();
     }
-  else if (opt_udbstats)
+  else if (opt_udbstats != nullptr)
     {
       udb_stats();
     }
-  else if (opt_sintax)
+  else if (opt_sintax != nullptr)
     {
       sintax();
     }
@@ -6001,31 +6001,31 @@ auto main(int argc, char** argv) -> int
     {
       sff_convert(parameters);
     }
-  else if (opt_fastx_getseq)
+  else if (opt_fastx_getseq != nullptr)
     {
       fastx_getseq();
     }
-  else if (opt_fastx_getseqs)
+  else if (opt_fastx_getseqs != nullptr)
     {
       fastx_getseqs();
     }
-  else if (opt_fastx_getsubseq)
+  else if (opt_fastx_getsubseq != nullptr)
     {
       fastx_getsubseq();
     }
-  else if (parameters.opt_cut)
+  else if (parameters.opt_cut != nullptr)
     {
       cut(parameters);
     }
-  else if (opt_orient)
+  else if (opt_orient != nullptr)
     {
       orient();
     }
-  else if (parameters.opt_fasta2fastq)
+  else if (parameters.opt_fasta2fastq != nullptr)
     {
       fasta2fastq(parameters);
     }
-  else if (parameters.opt_fastx_uniques)
+  else if (parameters.opt_fastx_uniques != nullptr)
     {
       derep(parameters, parameters.opt_fastx_uniques, false);
     }
@@ -6034,7 +6034,7 @@ auto main(int argc, char** argv) -> int
       cmd_none(parameters);
     }
 
-  if (parameters.opt_log)
+  if (parameters.opt_log != nullptr)
     {
       time_finish = time(nullptr);
       struct tm * tm_finish = localtime(& time_finish);
@@ -6060,7 +6060,7 @@ auto main(int argc, char** argv) -> int
       fclose(fp_log);
     }
 
-  if (opt_ee_cutoffs_values)
+  if (opt_ee_cutoffs_values != nullptr)
     {
       xfree(opt_ee_cutoffs_values);
     }
