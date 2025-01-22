@@ -142,7 +142,7 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
   for (unsigned int i = 0; i < uniquecount; i++)
     {
       unsigned int const kmer = uniquelist[i];
-      if (kmerbitmap[kmer])
+      if (kmerbitmap[kmer] != nullptr)
         {
           kmercount[kmer]++;
           bitmap_set(kmerbitmap[kmer], dbindex_count);
@@ -209,7 +209,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 #endif
 
   /* determine minimum kmer count for bitmap usage */
-  if (use_bitmap)
+  if (use_bitmap != 0)
     {
       bitmap_mincount = seqcount / bitmap_threshold;
     }
