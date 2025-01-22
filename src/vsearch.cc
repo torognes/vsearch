@@ -4645,7 +4645,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
 
-  if (opt_cluster_unoise)
+  if (opt_cluster_unoise != nullptr)
     {
       opt_weak_id = 0.90;
     }
