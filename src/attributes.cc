@@ -87,14 +87,14 @@ auto header_find_attribute(const char * header,
       return false;
     }
 
-  int const hlen = header_length;
-  int const alen = std::strlen(attribute);
+  auto const hlen = header_length;
+  auto const alen = static_cast<int>(std::strlen(attribute));
 
-  int i = 0;
+  auto i = 0;
 
   while (i < hlen - alen)
     {
-      char * r = (char *) std::strstr(header + i, attribute);
+      auto * r = (char *) std::strstr(header + i, attribute);
 
       /* no match */
       if (r == nullptr)
@@ -111,7 +111,7 @@ auto header_find_attribute(const char * header,
           continue;
         }
 
-      int const digits
+      auto const digits
         = (int) std::strspn(header + i + alen,
                        (allow_decimal ? digit_chars_decimal : digit_chars));
 
@@ -141,8 +141,8 @@ auto header_get_size(char * header, int header_length) -> int64_t
 {
   /* read size/abundance annotation */
   int64_t abundance = 0;
-  int start = 0;
-  int end = 0;
+  auto start = 0;
+  auto end = 0;
   if (header_find_attribute(header,
                             header_length,
                             "size=",
@@ -150,7 +150,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
                             &end,
                             false))
     {
-      int64_t const number = std::atol(header + start + 5);
+      auto const number = std::atol(header + start + 5);
       if (number > 0)
         {
           abundance = number;
@@ -171,15 +171,15 @@ auto header_fprint_strip(FILE * output_handle,
                          bool strip_ee,
                          bool strip_length) -> void
 {
-  int attributes = 0;
+  auto attributes = 0;
   int attribute_start[3];
   int attribute_end[3];
 
   /* look for size attribute */
 
-  int size_start = 0;
-  int size_end = 0;
-  bool size_found = false;
+  auto size_start = 0;
+  auto size_end = 0;
+  auto size_found = false;
   if (strip_size)
     {
       size_found = header_find_attribute(header,
@@ -198,9 +198,9 @@ auto header_fprint_strip(FILE * output_handle,
 
   /* look for ee attribute */
 
-  int ee_start = 0;
-  int ee_end = 0;
-  bool ee_found = false;
+  auto ee_start = 0;
+  auto ee_end = 0;
+  auto ee_found = false;
   if (strip_ee)
     {
       ee_found = header_find_attribute(header,
@@ -219,9 +219,9 @@ auto header_fprint_strip(FILE * output_handle,
 
   /* look for length attribute */
 
-  int length_start = 0;
-  int length_end = 0;
-  bool length_found = false;
+  auto length_start = 0;
+  auto length_end = 0;
+  auto length_found = false;
   if (strip_length)
     {
       length_found = header_find_attribute(header,
@@ -240,11 +240,11 @@ auto header_fprint_strip(FILE * output_handle,
 
   /* sort */
 
-  int last_swap = 0;
-  int limit = attributes - 1;
+  auto last_swap = 0;
+  auto limit = attributes - 1;
   while (limit > 0)
     {
-      for(int i = 0; i < limit; i++)
+      for(auto i = 0; i < limit; i++)
         {
           if (attribute_start[i] > attribute_start[i + 1])
             {
@@ -264,8 +264,8 @@ auto header_fprint_strip(FILE * output_handle,
     }
   else
     {
-      int prev_end = 0;
-      for (int i = 0; i < attributes; i++)
+      auto prev_end = 0;
+      for (auto i = 0; i < attributes; i++)
         {
           /* print part of header in front of this attribute */
           if (attribute_start[i] > prev_end + 1)
