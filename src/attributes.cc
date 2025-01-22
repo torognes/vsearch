@@ -131,8 +131,8 @@ auto header_find_attribute(const char * header,
         }
 
       /* ok */
-      * start = i;
-      * end = i + alen + digits;
+      *start = i;
+      *end = i + alen + digits;
       return true;
     }
   return false;
