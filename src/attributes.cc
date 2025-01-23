@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include <algorithm>  // std::swap
 #include <array>
+#include <cerrno>  // errno
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::strtol
