@@ -143,7 +143,6 @@ auto header_find_attribute(const char * header,
 auto header_get_size(char * header, int header_length) -> int64_t
 {
   /* read size/abundance annotation */
-  int64_t abundance = 0;
   auto start = 0;
   auto end = 0;
   auto const attribute_is_present = header_find_attribute(header,
@@ -158,10 +157,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
   if (number == 0) {
     fatal("Invalid (zero) abundance annotation in FASTA file header");
   }
-  if (number > 0)
-    {
-      abundance = number;
-    }
+  int64_t abundance = number;
   return abundance;
 }
 
