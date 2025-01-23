@@ -152,7 +152,7 @@ auto header_get_size(char * header, int header_length) -> int64_t
                                                           &start,
                                                           &end,
                                                           false);
-  if (not attribute_is_present) { return abundance; }
+  if (not attribute_is_present) { return int64_t{0}; }
 
   auto const number = std::atol(header + start + 5);
   if (number == 0) {
