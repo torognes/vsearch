@@ -146,12 +146,13 @@ auto header_get_size(char * header, int header_length) -> int64_t
   int64_t abundance = 0;
   auto start = 0;
   auto end = 0;
-  if (header_find_attribute(header,
-                            header_length,
-                            "size=",
-                            &start,
-                            &end,
-                            false))
+  auto const attribute_is_present = header_find_attribute(header,
+                                                          header_length,
+                                                          "size=",
+                                                          &start,
+                                                          &end,
+                                                          false);
+  if (attribute_is_present)
     {
       auto const number = std::atol(header + start + 5);
       if (number > 0)
