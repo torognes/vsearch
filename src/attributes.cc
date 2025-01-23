@@ -155,15 +155,13 @@ auto header_get_size(char * header, int header_length) -> int64_t
   if (not attribute_is_present) { return abundance; }
 
   auto const number = std::atol(header + start + 5);
+  if (number == 0) {
+    fatal("Invalid (zero) abundance annotation in FASTA file header");
+  }
   if (number > 0)
     {
       abundance = number;
     }
-  else
-    {
-      fatal("Invalid (zero) abundance annotation in FASTA file header");
-    }
-
   return abundance;
 }
 
