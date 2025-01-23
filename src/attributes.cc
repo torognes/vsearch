@@ -66,6 +66,7 @@
 #include <cstdlib>  // std::atol
 #include <cstring>  // std::strlen, std::strstr, std::strspn
 
+constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 auto header_find_attribute(const char * header,
                            int header_length,
@@ -167,10 +168,10 @@ auto header_get_size(char * header, int header_length) -> int64_t
 
 
 auto look_for_attribute(char const *header, int const header_length,
-                        int &nth_attribute, std::array<int, 3> &attribute_start,
-                        std::array<int, 3> &attribute_end,
+                        int &nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
+                        std::array<int, n_expected_attributes> &attribute_end,
                         char const* attribute_text,
-                        bool strip_attribute) -> void {
+                        bool const strip_attribute) -> void {
   auto start = 0;
   auto end = 0;
   if (not strip_attribute) { return; }
@@ -195,7 +196,6 @@ auto header_fprint_strip(FILE * output_handle,
                          bool strip_ee,
                          bool strip_length) -> void
 {
-  static constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
   auto nth_attribute = 0;
   std::array<int, n_expected_attributes> attribute_start {{}};
   std::array<int, n_expected_attributes> attribute_end {{}};
