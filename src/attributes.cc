@@ -142,6 +142,7 @@ auto header_find_attribute(const char * header,
 
 auto header_get_size(char * header, int header_length) -> int64_t {
   /* read size/abundance annotation */
+  static constexpr auto length_of_attribute_name = 5;  // "size=" -> 5 letters
   auto start = 0;
   auto end = 0;
   auto const attribute_is_present = header_find_attribute(header,
@@ -154,7 +155,7 @@ auto header_get_size(char * header, int header_length) -> int64_t {
     return 0;
   }
 
-  auto const abundance = std::atol(header + start + 5);
+  auto const abundance = std::atol(header + start + length_of_attribute_name);
 
   if (abundance == 0) {
     fatal("Invalid (zero) abundance annotation in FASTA file header");
