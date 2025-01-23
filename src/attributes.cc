@@ -140,8 +140,7 @@ auto header_find_attribute(const char * header,
 }
 
 
-auto header_get_size(char * header, int header_length) -> int64_t
-{
+auto header_get_size(char * header, int header_length) -> int64_t {
   /* read size/abundance annotation */
   auto start = 0;
   auto end = 0;
