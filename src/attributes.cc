@@ -63,7 +63,7 @@
 #include <array>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstdlib>  // std::atol
+#include <cstdlib>  // std::strtol
 #include <cstring>  // std::strlen, std::strstr, std::strspn
 
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
@@ -143,6 +143,7 @@ auto header_find_attribute(const char * header,
 auto header_get_size(char * header, int header_length) -> int64_t {
   /* read size/abundance annotation */
   static constexpr auto length_of_attribute_name = 5;  // "size=" -> 5 letters
+  static constexpr auto decimal_base = 10;
   auto start = 0;
   auto end = 0;
   auto const attribute_is_present = header_find_attribute(header,
@@ -155,7 +156,13 @@ auto header_get_size(char * header, int header_length) -> int64_t {
     return 0;
   }
 
-  auto const abundance = std::atol(header + start + length_of_attribute_name);
+  char * next_character = nullptr;
+  auto const abundance = std::strtol(header + start + length_of_attribute_name, &next_character, decimal_base);
+  auto const range_error = (errno == ERANGE);
+
+  if (range_error) {
+    fatal("Invalid (range error) abundance annotation in FASTA file header");
+  }
 
   if (abundance == 0) {
     fatal("Invalid (zero) abundance annotation in FASTA file header");
