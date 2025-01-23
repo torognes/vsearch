@@ -222,7 +222,7 @@ auto header_fprint_strip(FILE * output_handle,
   auto limit = nth_attribute - 1;
   while (limit > 0)
     {
-      for(auto i = 0; i < limit; i++)
+      for(auto i = 0; i < limit; ++i)
         {
           if (attribute_start[i] > attribute_start[i + 1])
             {
@@ -243,7 +243,7 @@ auto header_fprint_strip(FILE * output_handle,
   else
     {
       auto prev_end = 0;
-      for (auto i = 0; i < nth_attribute; i++)
+      for (auto i = 0; i < nth_attribute; ++i)
         {
           /* print part of header in front of this attribute */
           if (attribute_start[i] > prev_end + 1)
