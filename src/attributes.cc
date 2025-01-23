@@ -68,12 +68,12 @@
 
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
-auto header_find_attribute(const char * header,
+auto header_find_attribute(char const * header,
                            int header_length,
-                           const char * attribute,
+                           char const * attribute,
                            int * start,
                            int * end,
-                           bool allow_decimal) -> bool
+                           bool const allow_decimal) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
