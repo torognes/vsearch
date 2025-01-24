@@ -90,12 +90,11 @@ auto header_find_attribute(char const * header,
       return false;
     }
 
-  auto const hlen = header_length;
   auto const alen = static_cast<int>(std::strlen(attribute));
 
   auto i = 0;
 
-  while (i < hlen - alen)
+  while (i < header_length - alen)
     {
       auto * r = (char *) std::strstr(header + i, attribute);
 
@@ -126,7 +125,7 @@ auto header_find_attribute(char const * header,
         }
 
       /* check for ';' after */
-      if ((i + alen + digits < hlen) and (header[i + alen + digits] != ';'))
+      if ((i + alen + digits < header_length) and (header[i + alen + digits] != ';'))
         {
           i += alen + digits + 2;
           continue;
