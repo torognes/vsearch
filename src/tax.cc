@@ -156,10 +156,10 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       while (t < tax_end)
         {
           /* Is the next char a recognized tax level letter? */
-          auto const * r = std::strchr(tax_letters, std::tolower(header[t]));
-          if (r != nullptr)
+          auto const * first_occurence = std::strchr(tax_letters, std::tolower(header[t]));
+          if (first_occurence != nullptr)
             {
-              int const level = r - tax_letters;
+              int const level = first_occurence - tax_letters;
 
               /* Is there a colon after it? */
               if (header[t + 1] == ':')
