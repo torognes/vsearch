@@ -139,7 +139,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
      t strain
   */
 
-  for (auto i = 0; i < tax_levels; i++)
+  for (auto i = 0; i < tax_levels; ++i)
     {
       level_start[i] = 0;
       level_len[i] = 0;
