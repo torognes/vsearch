@@ -148,8 +148,8 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   auto tax_start = 0;
   auto tax_end = 0;
   auto * h = db_getheader(seqno);
-  int const hlen = db_getheaderlen(seqno);
-  if (tax_parse(h, hlen, & tax_start, & tax_end))
+  int const header_length = db_getheaderlen(seqno);
+  if (tax_parse(h, header_length, & tax_start, & tax_end))
     {
       auto t = tax_start + 4;
 
