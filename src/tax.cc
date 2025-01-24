@@ -98,7 +98,7 @@ auto tax_parse(const char * header,
       i = r - header;
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i - 1] != ';'))
+      if ((i > 0) and (header[i - 1] != ';'))
         {
           i += attribute_length + 1;
           continue;
