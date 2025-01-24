@@ -81,11 +81,11 @@ auto tax_parse(char const * header,
       return false;
     }
 
-  const char * attribute = "tax=";
+  auto const * attribute = "tax=";
 
   int const attribute_length = std::strlen(attribute);
 
-  int offset = 0;
+  auto offset = 0;
 
   while (offset < header_length - attribute_length)
     {
@@ -109,7 +109,7 @@ auto tax_parse(char const * header,
       * tax_start = offset;
 
       /* find end (semicolon or end of header) */
-      const char * s = std::strchr(header + offset + attribute_length, ';');
+      auto const * s = std::strchr(header + offset + attribute_length, ';');
       if (s == nullptr)
         {
           * tax_end = header_length;
@@ -139,24 +139,24 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
      t strain
   */
 
-  for (int i = 0; i < tax_levels; i++)
+  for (auto i = 0; i < tax_levels; i++)
     {
       level_start[i] = 0;
       level_len[i] = 0;
     }
 
-  int tax_start = 0;
-  int tax_end = 0;
-  char * h = db_getheader(seqno);
+  auto tax_start = 0;
+  auto tax_end = 0;
+  auto * h = db_getheader(seqno);
   int const hlen = db_getheaderlen(seqno);
   if (tax_parse(h, hlen, & tax_start, & tax_end))
     {
-      int t = tax_start + 4;
+      auto t = tax_start + 4;
 
       while (t < tax_end)
         {
           /* Is the next char a recogized tax level letter? */
-          const char * r = std::strchr(tax_letters, tolower(h[t]));
+          auto const * r = std::strchr(tax_letters, tolower(h[t]));
           if (r != nullptr)
             {
               int const level = r - tax_letters;
@@ -166,7 +166,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
                 {
                   level_start[level] = t + 2;
 
-                  char * z = std::strchr(h + t + 2, ',');
+                  auto const * z = std::strchr(h + t + 2, ',');
                   if (z != nullptr)
                     {
                       level_len[level] = z - h - t - 2;
@@ -179,7 +179,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
             }
 
           /* skip past next comma */
-          char * x = std::strchr(h + t, ',');
+          auto const * x = std::strchr(h + t, ',');
           if (x != nullptr)
             {
               t = x - h + 1;
