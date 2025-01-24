@@ -65,6 +65,8 @@
 
 const char * tax_letters = "dkpcofgst";
 
+
+// very similar to header_find_attribute() in attributes.cc
 auto tax_parse(const char * header,
                int const header_length,
                int * tax_start,
