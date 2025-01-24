@@ -66,7 +66,7 @@
 const char * tax_letters = "dkpcofgst";
 
 auto tax_parse(const char * header,
-               int header_length,
+               int const header_length,
                int * tax_start,
                int * tax_end) -> bool
 {
@@ -81,12 +81,11 @@ auto tax_parse(const char * header,
 
   const char * attribute = "tax=";
 
-  int const hlen = header_length;
   int const alen = std::strlen(attribute);
 
   int i = 0;
 
-  while (i < hlen - alen)
+  while (i < header_length - alen)
     {
       char * r = (char *) std::strstr(header + i, attribute);
 
@@ -111,7 +110,7 @@ auto tax_parse(const char * header,
       const char * s = std::strchr(header + i + alen, ';');
       if (s == nullptr)
         {
-          * tax_end = hlen;
+          * tax_end = header_length;
         }
       else
         {
