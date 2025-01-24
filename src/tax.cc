@@ -151,42 +151,42 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   int const header_length = db_getheaderlen(seqno);
   if (tax_parse(header, header_length, & tax_start, & tax_end))
     {
-      auto t = tax_start + 4;
+      auto offset = tax_start + 4;
 
-      while (t < tax_end)
+      while (offset < tax_end)
         {
           /* Is the next char a recognized tax level letter? */
-          auto const * first_occurence = std::strchr(tax_letters, std::tolower(header[t]));
+          auto const * first_occurence = std::strchr(tax_letters, std::tolower(header[offset]));
           if (first_occurence != nullptr)
             {
               int const level = first_occurence - tax_letters;
 
               /* Is there a colon after it? */
-              if (header[t + 1] == ':')
+              if (header[offset + 1] == ':')
                 {
-                  level_start[level] = t + 2;
+                  level_start[level] = offset + 2;
 
-                  auto const * z = std::strchr(header + t + 2, ',');
+                  auto const * z = std::strchr(header + offset + 2, ',');
                   if (z != nullptr)
                     {
-                      level_len[level] = z - header - t - 2;
+                      level_len[level] = z - header - offset - 2;
                     }
                   else
                     {
-                      level_len[level] = tax_end - t - 2;
+                      level_len[level] = tax_end - offset - 2;
                     }
                 }
             }
 
           /* skip past next comma */
-          auto const * x = std::strchr(header + t, ',');
+          auto const * x = std::strchr(header + offset, ',');
           if (x != nullptr)
             {
-              t = x - header + 1;
+              offset = x - header + 1;
             }
           else
             {
-              t = tax_end;
+              offset = tax_end;
             }
         }
     }
