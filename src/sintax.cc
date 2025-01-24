@@ -86,6 +86,7 @@
 #include "tax.h"
 #include "udb.h"
 #include "unique.h"
+#include "utils/taxonomic_fields.h"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t

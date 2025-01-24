@@ -64,6 +64,7 @@
 #include "showalign.h"
 #include "tax.h"
 #include "userfields.h"
+#include "utils/taxonomic_fields.h"
 #include <algorithm>  // std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/taxonomic_fields.h"
 #include <cctype>  // std::tolower
 #include <cstring>  // std::strlen, std::strstr, std::strchr
 
