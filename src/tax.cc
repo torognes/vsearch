@@ -83,7 +83,7 @@ auto tax_parse(char const * header,
 
   auto const * attribute = "tax=";
 
-  int const attribute_length = std::strlen(attribute);
+  auto const attribute_length = static_cast<int>(std::strlen(attribute));
 
   auto offset = 0;
 
