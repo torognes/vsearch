@@ -90,11 +90,11 @@ auto header_find_attribute(char const * header,
       return false;
     }
 
-  auto const alen = static_cast<int>(std::strlen(attribute));
+  auto const attribute_length = static_cast<int>(std::strlen(attribute));
 
   auto i = 0;
 
-  while (i < header_length - alen)
+  while (i < header_length - attribute_length)
     {
       auto const * first_occurence = std::strstr(header + i, attribute);
 
@@ -109,31 +109,31 @@ auto header_find_attribute(char const * header,
       /* check for ';' in front */
       if ((i > 0) and (header[i - 1] != ';'))
         {
-          i += alen + 1;
+          i += attribute_length + 1;
           continue;
         }
 
       auto const digits
-        = (int) std::strspn(header + i + alen,
+        = (int) std::strspn(header + i + attribute_length,
                        (allow_decimal ? digit_chars_decimal : digit_chars));
 
       /* check for at least one digit */
       if (digits == 0)
         {
-          i += alen + 1;
+          i += attribute_length + 1;
           continue;
         }
 
       /* check for ';' after */
-      if ((i + alen + digits < header_length) and (header[i + alen + digits] != ';'))
+      if ((i + attribute_length + digits < header_length) and (header[i + attribute_length + digits] != ';'))
         {
-          i += alen + digits + 2;
+          i += attribute_length + digits + 2;
           continue;
         }
 
       /* ok */
       *start = i;
-      *end = i + alen + digits;
+      *end = i + attribute_length + digits;
       return true;
     }
   return false;
