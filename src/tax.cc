@@ -156,7 +156,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       while (t < tax_end)
         {
           /* Is the next char a recogized tax level letter? */
-          auto const * r = std::strchr(tax_letters, tolower(h[t]));
+          auto const * r = std::strchr(tax_letters, std::tolower(h[t]));
           if (r != nullptr)
             {
               int const level = r - tax_letters;
