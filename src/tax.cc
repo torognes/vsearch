@@ -109,14 +109,14 @@ auto tax_parse(char const * header,
       * tax_start = offset;
 
       /* find end (semicolon or end of header) */
-      auto const * s = std::strchr(header + offset + attribute_length, ';');
-      if (s == nullptr)
+      auto const * terminus = std::strchr(header + offset + attribute_length, ';');
+      if (terminus == nullptr)
         {
           * tax_end = header_length;
         }
       else
         {
-          * tax_end = s - header;
+          * tax_end = terminus - header;
         }
 
       return true;
