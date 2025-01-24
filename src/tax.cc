@@ -63,7 +63,7 @@
 #include <cstring>  // std::strlen, std::strstr, std::strchr
 
 
-const char * tax_letters = "dkpcofgst";
+auto const * tax_letters = "dkpcofgst";
 
 
 // very similar to header_find_attribute() in attributes.cc
