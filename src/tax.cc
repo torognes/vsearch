@@ -87,15 +87,15 @@ auto tax_parse(const char * header,
 
   while (i < header_length - attribute_length)
     {
-      char * r = (char *) std::strstr(header + i, attribute);
+      char * first_occurence = (char *) std::strstr(header + i, attribute);
 
       /* no match */
-      if (r == nullptr)
+      if (first_occurence == nullptr)
         {
           break;
         }
 
-      i = r - header;
+      i = first_occurence - header;
 
       /* check for ';' in front */
       if ((i > 0) and (header[i - 1] != ';'))
