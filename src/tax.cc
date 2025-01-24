@@ -138,6 +138,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
      s species
      t strain
   */
+  static constexpr auto length_of_attribute_name = 4;  // "tax=" -> 4 letters
 
   for (auto i = 0; i < tax_levels; ++i)
     {
@@ -151,7 +152,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   int const header_length = db_getheaderlen(seqno);
   auto const attribute_is_present = tax_parse(header, header_length, & tax_start, & tax_end);
   if (not attribute_is_present) { return; }
-  auto offset = tax_start + 4;
+  auto offset = tax_start + length_of_attribute_name;
 
   while (offset < tax_end)
     {
