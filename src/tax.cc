@@ -155,7 +155,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
 
       while (t < tax_end)
         {
-          /* Is the next char a recogized tax level letter? */
+          /* Is the next char a recognized tax level letter? */
           auto const * r = std::strchr(tax_letters, std::tolower(header[t]));
           if (r != nullptr)
             {
