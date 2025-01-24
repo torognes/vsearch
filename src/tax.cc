@@ -82,13 +82,13 @@ auto tax_parse(const char * header,
   const char * attribute = "tax=";
 
   int const hlen = header_length;
-  int const alen = strlen(attribute);
+  int const alen = std::strlen(attribute);
 
   int i = 0;
 
   while (i < hlen - alen)
     {
-      char * r = (char *) strstr(header + i, attribute);
+      char * r = (char *) std::strstr(header + i, attribute);
 
       /* no match */
       if (r == nullptr)
@@ -108,7 +108,7 @@ auto tax_parse(const char * header,
       * tax_start = i;
 
       /* find end (semicolon or end of header) */
-      const char * s = strchr(header + i + alen, ';');
+      const char * s = std::strchr(header + i + alen, ';');
       if (s == nullptr)
         {
           * tax_end = hlen;
@@ -154,7 +154,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       while (t < tax_end)
         {
           /* Is the next char a recogized tax level letter? */
-          const char * r = strchr(tax_letters, tolower(h[t]));
+          const char * r = std::strchr(tax_letters, tolower(h[t]));
           if (r != nullptr)
             {
               int const level = r - tax_letters;
@@ -164,7 +164,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
                 {
                   level_start[level] = t + 2;
 
-                  char * z = strchr(h + t + 2, ',');
+                  char * z = std::strchr(h + t + 2, ',');
                   if (z != nullptr)
                     {
                       level_len[level] = z - h - t - 2;
@@ -177,7 +177,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
             }
 
           /* skip past next comma */
-          char * x = strchr(h + t, ',');
+          char * x = std::strchr(h + t, ',');
           if (x != nullptr)
             {
               t = x - h + 1;
