@@ -87,7 +87,7 @@ auto tax_parse(const char * header,
 
   while (i < header_length - attribute_length)
     {
-      char * first_occurence = (char *) std::strstr(header + i, attribute);
+      auto const * first_occurence = std::strstr(header + i, attribute);
 
       /* no match */
       if (first_occurence == nullptr)
