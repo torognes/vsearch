@@ -85,11 +85,11 @@ auto tax_parse(const char * header,
 
   int const attribute_length = std::strlen(attribute);
 
-  int i = 0;
+  int offset = 0;
 
-  while (i < header_length - attribute_length)
+  while (offset < header_length - attribute_length)
     {
-      auto const * first_occurence = std::strstr(header + i, attribute);
+      auto const * first_occurence = std::strstr(header + offset, attribute);
 
       /* no match */
       if (first_occurence == nullptr)
@@ -97,19 +97,19 @@ auto tax_parse(const char * header,
           break;
         }
 
-      i = first_occurence - header;
+      offset = first_occurence - header;
 
       /* check for ';' in front */
-      if ((i > 0) and (header[i - 1] != ';'))
+      if ((offset > 0) and (header[offset - 1] != ';'))
         {
-          i += attribute_length + 1;
+          offset += attribute_length + 1;
           continue;
         }
 
-      * tax_start = i;
+      * tax_start = offset;
 
       /* find end (semicolon or end of header) */
-      const char * s = std::strchr(header + i + attribute_length, ';');
+      const char * s = std::strchr(header + offset + attribute_length, ';');
       if (s == nullptr)
         {
           * tax_end = header_length;
