@@ -81,11 +81,11 @@ auto tax_parse(const char * header,
 
   const char * attribute = "tax=";
 
-  int const alen = std::strlen(attribute);
+  int const attribute_length = std::strlen(attribute);
 
   int i = 0;
 
-  while (i < header_length - alen)
+  while (i < header_length - attribute_length)
     {
       char * r = (char *) std::strstr(header + i, attribute);
 
@@ -100,14 +100,14 @@ auto tax_parse(const char * header,
       /* check for ';' in front */
       if ((i > 0) && (header[i - 1] != ';'))
         {
-          i += alen + 1;
+          i += attribute_length + 1;
           continue;
         }
 
       * tax_start = i;
 
       /* find end (semicolon or end of header) */
-      const char * s = std::strchr(header + i + alen, ';');
+      const char * s = std::strchr(header + i + attribute_length, ';');
       if (s == nullptr)
         {
           * tax_end = header_length;
