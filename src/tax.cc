@@ -147,29 +147,29 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
 
   auto tax_start = 0;
   auto tax_end = 0;
-  auto * h = db_getheader(seqno);
+  auto * header = db_getheader(seqno);
   int const header_length = db_getheaderlen(seqno);
-  if (tax_parse(h, header_length, & tax_start, & tax_end))
+  if (tax_parse(header, header_length, & tax_start, & tax_end))
     {
       auto t = tax_start + 4;
 
       while (t < tax_end)
         {
           /* Is the next char a recogized tax level letter? */
-          auto const * r = std::strchr(tax_letters, std::tolower(h[t]));
+          auto const * r = std::strchr(tax_letters, std::tolower(header[t]));
           if (r != nullptr)
             {
               int const level = r - tax_letters;
 
               /* Is there a colon after it? */
-              if (h[t + 1] == ':')
+              if (header[t + 1] == ':')
                 {
                   level_start[level] = t + 2;
 
-                  auto const * z = std::strchr(h + t + 2, ',');
+                  auto const * z = std::strchr(header + t + 2, ',');
                   if (z != nullptr)
                     {
-                      level_len[level] = z - h - t - 2;
+                      level_len[level] = z - header - t - 2;
                     }
                   else
                     {
@@ -179,10 +179,10 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
             }
 
           /* skip past next comma */
-          auto const * x = std::strchr(h + t, ',');
+          auto const * x = std::strchr(header + t, ',');
           if (x != nullptr)
             {
-              t = x - h + 1;
+              t = x - header + 1;
             }
           else
             {
