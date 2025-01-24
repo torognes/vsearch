@@ -74,7 +74,7 @@ auto tax_parse(const char * header,
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
   */
 
-  if (! header)
+  if (header == nullptr)
     {
       return false;
     }
@@ -155,7 +155,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
         {
           /* Is the next char a recogized tax level letter? */
           const char * r = strchr(tax_letters, tolower(h[t]));
-          if (r)
+          if (r != nullptr)
             {
               int const level = r - tax_letters;
 
@@ -165,7 +165,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
                   level_start[level] = t + 2;
 
                   char * z = strchr(h + t + 2, ',');
-                  if (z)
+                  if (z != nullptr)
                     {
                       level_len[level] = z - h - t - 2;
                     }
@@ -178,7 +178,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
 
           /* skip past next comma */
           char * x = strchr(h + t, ',');
-          if (x)
+          if (x != nullptr)
             {
               t = x - h + 1;
             }
