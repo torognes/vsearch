@@ -70,7 +70,7 @@
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 auto header_find_attribute(char const * header,
-                           int header_length,
+                           int const header_length,
                            char const * attribute,
                            int * start,
                            int * end,
