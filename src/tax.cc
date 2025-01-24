@@ -122,6 +122,7 @@ auto tax_parse(const char * header,
   return false;
 }
 
+
 auto tax_split(int seqno, int * level_start, int * level_len) -> void
 {
   /* Parse taxonomy string into the following 9 parts
