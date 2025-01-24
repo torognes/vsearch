@@ -114,8 +114,8 @@ auto header_find_attribute(char const * header,
         }
 
       auto const digits
-        = (int) std::strspn(header + offset + attribute_length,
-                       (allow_decimal ? digit_chars_decimal : digit_chars));
+        = static_cast<int>(std::strspn(header + offset + attribute_length,
+                                       (allow_decimal ? digit_chars_decimal : digit_chars)));
 
       /* check for at least one digit */
       if (digits == 0)
