@@ -150,45 +150,43 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   auto * header = db_getheader(seqno);
   int const header_length = db_getheaderlen(seqno);
   auto const attribute_is_present = tax_parse(header, header_length, & tax_start, & tax_end);
-  if (attribute_is_present)
+  if (not attribute_is_present) { return; }
+  auto offset = tax_start + 4;
+
+  while (offset < tax_end)
     {
-      auto offset = tax_start + 4;
-
-      while (offset < tax_end)
+      /* Is the next char a recognized tax level letter? */
+      auto const * first_occurence = std::strchr(tax_letters, std::tolower(header[offset]));
+      if (first_occurence != nullptr)
         {
-          /* Is the next char a recognized tax level letter? */
-          auto const * first_occurence = std::strchr(tax_letters, std::tolower(header[offset]));
-          if (first_occurence != nullptr)
+          int const level = first_occurence - tax_letters;
+
+          /* Is there a colon after it? */
+          if (header[offset + 1] == ':')
             {
-              int const level = first_occurence - tax_letters;
+              level_start[level] = offset + 2;
 
-              /* Is there a colon after it? */
-              if (header[offset + 1] == ':')
+              auto const * z = std::strchr(header + offset + 2, ',');
+              if (z != nullptr)
                 {
-                  level_start[level] = offset + 2;
-
-                  auto const * z = std::strchr(header + offset + 2, ',');
-                  if (z != nullptr)
-                    {
-                      level_len[level] = z - header - offset - 2;
-                    }
-                  else
-                    {
-                      level_len[level] = tax_end - offset - 2;
-                    }
+                  level_len[level] = z - header - offset - 2;
+                }
+              else
+                {
+                  level_len[level] = tax_end - offset - 2;
                 }
             }
+        }
 
-          /* skip past next comma */
-          auto const * x = std::strchr(header + offset, ',');
-          if (x != nullptr)
-            {
-              offset = x - header + 1;
-            }
-          else
-            {
-              offset = tax_end;
-            }
+      /* skip past next comma */
+      auto const * x = std::strchr(header + offset, ',');
+      if (x != nullptr)
+        {
+          offset = x - header + 1;
+        }
+      else
+        {
+          offset = tax_end;
         }
     }
 }
