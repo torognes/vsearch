@@ -111,7 +111,7 @@ constexpr auto bootstrap_count = 100;
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
-static FILE * fp_tabbedout;
+static std::FILE * fp_tabbedout;
 static int queries = 0;
 static int classified = 0;
 
@@ -173,7 +173,7 @@ auto sintax_analyse(char * query_head,
                   {
                     /* check match at current level */
                     if ((cand_level_name_len[i][k] == cand_level_name_len[j][k]) &&
-                                  (strncmp(cand_level_name_start[i][k],
+                        (std::strncmp(cand_level_name_start[i][k],
                                            cand_level_name_start[j][k],
                                            cand_level_name_len[i][k]) == 0))
                       {
@@ -204,7 +204,7 @@ auto sintax_analyse(char * query_head,
 
   /* write to tabbedout file */
   xpthread_mutex_lock(&mutex_output);
-  fprintf(fp_tabbedout, "%s\t", query_head);
+  std::fprintf(fp_tabbedout, "%s\t", query_head);
 
   queries++;
 
@@ -218,7 +218,7 @@ auto sintax_analyse(char * query_head,
           int const best = level_best[j];
           if (cand_level_name_len[best][j] > 0)
             {
-              fprintf(fp_tabbedout,
+              std::fprintf(fp_tabbedout,
                       "%s%c:%.*s(%.2f)",
                       (comma ? "," : ""),
                       taxonomic_fields[j],
@@ -229,11 +229,11 @@ auto sintax_analyse(char * query_head,
             }
         }
 
-      fprintf(fp_tabbedout, "\t%c", strand ? '-' : '+');
+      std::fprintf(fp_tabbedout, "\t%c", strand ? '-' : '+');
 
       if (opt_sintax_cutoff > 0.0)
         {
-          fprintf(fp_tabbedout, "\t");
+          std::fprintf(fp_tabbedout, "\t");
           bool comma = false;
           for (int j = 0; j < tax_levels; j++)
             {
@@ -241,7 +241,7 @@ auto sintax_analyse(char * query_head,
               if ((cand_level_name_len[best][j] > 0) &&
                   (1.0 * level_matchcount[j] / count >= opt_sintax_cutoff))
                 {
-                  fprintf(fp_tabbedout,
+                  std::fprintf(fp_tabbedout,
                           "%s%c:%.*s",
                           (comma ? "," : ""),
                           taxonomic_fields[j],
@@ -256,15 +256,15 @@ auto sintax_analyse(char * query_head,
     {
       if (opt_sintax_cutoff > 0.0)
         {
-          fprintf(fp_tabbedout, "\t\t");
+          std::fprintf(fp_tabbedout, "\t\t");
         }
       else
         {
-          fprintf(fp_tabbedout, "\t");
+          std::fprintf(fp_tabbedout, "\t");
         }
     }
 
-  fprintf(fp_tabbedout, "\n");
+  std::fprintf(fp_tabbedout, "\n");
   xpthread_mutex_unlock(&mutex_output);
 }
 
@@ -284,7 +284,7 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
   const int indexed_count = dbindex_getcount();
 
   /* zero counts */
-  memset(si->kmers, 0, indexed_count * sizeof(count_t));
+  std::memset(si->kmers, 0, indexed_count * sizeof(count_t));
 
   for (unsigned int i = 0; i < si->kmersamplecount; i++)
     {
@@ -514,8 +514,8 @@ auto sintax_thread_run(int64_t t) -> void
             }
 
           /* plus strand: copy header and sequence */
-          strcpy(si_plus[t].query_head, qhead);
-          strcpy(si_plus[t].qsequence, qseq);
+          std::strcpy(si_plus[t].query_head, qhead);
+          std::strcpy(si_plus[t].qsequence, qseq);
 
           /* get progress as amount of input file read */
           uint64_t const progress = fastx_get_position(query_fastx_h);
@@ -526,7 +526,7 @@ auto sintax_thread_run(int64_t t) -> void
           /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
             {
-              strcpy(si_minus[t].query_head, si_plus[t].query_head);
+              std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
               reverse_complement(si_minus[t].qsequence,
                                  si_plus[t].qsequence,
                                  si_plus[t].qseqlen);
@@ -701,22 +701,22 @@ auto sintax() -> void
 
   if (! opt_quiet)
     {
-      fprintf(stderr, "Classified %d of %d sequences", classified, queries);
+      std::fprintf(stderr, "Classified %d of %d sequences", classified, queries);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
         }
-      fprintf(stderr, "\n");
+      std::fprintf(stderr, "\n");
     }
 
   if (opt_log)
     {
-      fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
+      std::fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * classified / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * classified / queries);
         }
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n");
     }
 
   /* clean up */
@@ -732,7 +732,7 @@ auto sintax() -> void
     }
 
   fastx_close(query_fastx_h);
-  fclose(fp_tabbedout);
+  std::fclose(fp_tabbedout);
 
   dbindex_free();
   db_free();
