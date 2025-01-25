@@ -128,9 +128,9 @@ auto sintax_analyse(char * query_head,
 
   /* Check number of successful bootstraps, must be at least half */
 
-  bool const enough = count >= (bootstrap_count + 1) / 2;
+  bool const is_enough = count >= (bootstrap_count + 1) / 2;
 
-  if (enough)
+  if (is_enough)
     {
       /* Find the most common name at each taxonomic rank,
          but with the same names at higher ranks. */
@@ -208,7 +208,7 @@ auto sintax_analyse(char * query_head,
 
   queries++;
 
-  if (enough)
+  if (is_enough)
     {
       classified++;
 
