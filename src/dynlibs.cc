@@ -102,7 +102,7 @@ int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 #endif
 
 
-void dynlibs_open()
+auto dynlibs_open() -> void
 {
 #ifdef HAVE_ZLIB_H
 #ifdef _WIN32
@@ -110,7 +110,7 @@ void dynlibs_open()
 #else
   gz_lib = dlopen(gz_libname, RTLD_LAZY);
 #endif
-  if (gz_lib)
+  if (gz_lib != nullptr)
     {
       gzdopen_p = (gzFile (*)(int, const char*))
         arch_dlsym(gz_lib, "gzdopen");
@@ -118,7 +118,7 @@ void dynlibs_open()
         arch_dlsym(gz_lib, "gzclose");
       gzread_p = (int (*)(gzFile, void*, unsigned))
         arch_dlsym(gz_lib, "gzread");
-      if (not (gzdopen_p && gzclose_p && gzread_p))
+      if (not ((gzdopen_p != nullptr) && (gzclose_p != nullptr) && (gzread_p != nullptr)))
         {
           fatal("Invalid compression library (zlib)");
         }
@@ -131,7 +131,7 @@ void dynlibs_open()
 #else
   bz2_lib = dlopen(bz2_libname, RTLD_LAZY);
 #endif
-  if (bz2_lib)
+  if (bz2_lib != nullptr)
     {
       BZ2_bzReadOpen_p = (BZFILE* (*)(int*, FILE*, int, int, void*, int))
         arch_dlsym(bz2_lib, "BZ2_bzReadOpen");
@@ -139,7 +139,7 @@ void dynlibs_open()
         arch_dlsym(bz2_lib, "BZ2_bzReadClose");
       BZ2_bzRead_p = (int (*)(int*, BZFILE*, void*, int))
         arch_dlsym(bz2_lib, "BZ2_bzRead");
-      if (not (BZ2_bzReadOpen_p && BZ2_bzReadClose_p && BZ2_bzRead_p))
+      if (not ((BZ2_bzReadOpen_p != nullptr) && (BZ2_bzReadClose_p != nullptr) && (BZ2_bzRead_p != nullptr)))
         {
           fatal("Invalid compression library (bz2)");
         }
@@ -148,7 +148,7 @@ void dynlibs_open()
 }
 
 
-void dynlibs_close()
+auto dynlibs_close() -> void
 {
 #ifdef HAVE_ZLIB_H
   if (gz_lib != nullptr)
