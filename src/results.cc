@@ -545,7 +545,7 @@ auto results_show_lcaout(std::FILE * output_handle,
       ++tophitcount;
 
       int const seqno = hp->target;
-      int new_level_start[tax_levels];
+      int new_level_start[tax_levels];  // refactoring: std::array<struct a_level{.start, .length}, tax_levels>
       int new_level_len[tax_levels];
       tax_split(seqno, new_level_start, new_level_len);
 
