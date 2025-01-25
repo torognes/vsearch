@@ -99,7 +99,7 @@ auto tax_parse(char const * header,
           break;
         }
 
-      offset = first_occurence - header;
+      offset = std::distance(header, first_occurence);
 
       /* check for ';' in front */
       if ((offset > 0) and (header[offset - 1] != ';'))
@@ -118,7 +118,7 @@ auto tax_parse(char const * header,
         }
       else
         {
-          * tax_end = terminus - header;
+          * tax_end = std::distance(header, terminus);
         }
 
       return true;
