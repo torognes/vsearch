@@ -189,7 +189,7 @@ auto sintax_analyse(char * query_head,
             }
           }
 
-          for (int i = 0; i < count ; i++) {
+          for (auto i = 0; i < count ; i++) {
             if (cand_matchcount[i] > level_matchcount[k])
               {
                 level_best[k] = i;
@@ -197,7 +197,7 @@ auto sintax_analyse(char * query_head,
               }
           }
 
-          for (int i = 0; i < count; i++) {
+          for (auto i = 0; i < count; i++) {
             if (cand_match[i] != level_best[k]) {
               cand_included[i] = false;
             }
