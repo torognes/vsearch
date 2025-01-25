@@ -107,23 +107,23 @@ LinearMemoryAligner::LinearMemoryAligner()
 
 LinearMemoryAligner::~LinearMemoryAligner()
 {
-  if (cigar_string)
+  if (cigar_string != nullptr)
     {
       xfree(cigar_string);
     }
-  if (HH)
+  if (HH != nullptr)
     {
       xfree(HH);
     }
-  if (EE)
+  if (EE != nullptr)
     {
       xfree(EE);
     }
-  if (XX)
+  if (XX != nullptr)
     {
       xfree(XX);
     }
-  if (YY)
+  if (YY != nullptr)
     {
       xfree(YY);
     }
@@ -139,7 +139,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
       for (int j = 0; j < 16; j++)
         {
           int64_t value = 0;
-          if (ambiguous_4bit[i] || ambiguous_4bit[j])
+          if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
             {
               value = 0;
             }
@@ -164,19 +164,19 @@ auto LinearMemoryAligner::alloc_vectors(size_t x) -> void
     {
       vector_alloc = x;
 
-      if (HH)
+      if (HH != nullptr)
         {
           xfree(HH);
         }
-      if (EE)
+      if (EE != nullptr)
         {
           xfree(EE);
         }
-      if (XX)
+      if (XX != nullptr)
         {
           xfree(XX);
         }
-      if (YY)
+      if (YY != nullptr)
         {
           xfree(YY);
         }
@@ -729,7 +729,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
 
   int64_t g = 0;
 
-  while (*p)
+  while (*p != '\0')
     {
       int64_t run = 1;
       int scanlength = 0;
