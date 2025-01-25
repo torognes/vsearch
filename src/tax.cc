@@ -62,6 +62,7 @@
 #include "utils/taxonomic_fields.h"
 #include <cctype>  // std::tolower
 #include <cstring>  // std::strlen, std::strstr, std::strchr
+#include <iterator>  // std::distance
 
 
 auto const * tax_letters = "dkpcofgst";
@@ -161,7 +162,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       auto const * first_occurence = std::strchr(tax_letters, std::tolower(header[offset]));
       if (first_occurence != nullptr)
         {
-          int const level = first_occurence - tax_letters;
+          int const level = std::distance(tax_letters, first_occurence);
 
           /* Is there a colon after it? */
           if (header[offset + 1] == ':')
