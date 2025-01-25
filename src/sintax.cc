@@ -140,9 +140,9 @@ auto sintax_analyse(char * query_head,
           /* Split headers of all candidates by taxonomy ranks */
 
           auto const seqno = all_seqno[i];
-          int new_level_name_start[tax_levels];
-          int new_level_name_len[tax_levels];
-          tax_split(seqno, new_level_name_start, new_level_name_len);
+          std::array<int, tax_levels> new_level_name_start {{}};
+          std::array<int, tax_levels> new_level_name_len {{}};
+          tax_split(seqno, new_level_name_start.data(), new_level_name_len.data());
           for (auto k = 0; k < tax_levels; k++)
             {
               cand_level_name_start[i][k] = db_getheader(seqno) + new_level_name_start[k];
@@ -150,10 +150,8 @@ auto sintax_analyse(char * query_head,
             }
         }
 
-      bool cand_included[bootstrap_count];
-      for (auto i = 0; i < count; i++) {
-        cand_included[i] = true;
-      }
+      std::array<bool, bootstrap_count> cand_included;
+      cand_included.fill(true);
 
       /* Count matching names among candidates */
 
