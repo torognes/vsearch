@@ -150,28 +150,28 @@ auto sintax_analyse(char * query_head,
         }
 
       bool cand_included[bootstrap_count];
-      for (int i = 0; i < count; i++) {
+      for (auto i = 0; i < count; i++) {
         cand_included[i] = true;
       }
 
       /* Count matching names among candidates */
 
-      for (int k = 0; k < tax_levels; k++)
+      for (auto k = 0; k < tax_levels; k++)
         {
           level_best[k] = -1;
           level_matchcount[k] = 0;
 
           int cand_match[bootstrap_count];
           int cand_matchcount[bootstrap_count];
-          for (int i = 0; i < count ; i++)
+          for (auto i = 0; i < count ; i++)
             {
               cand_match[i] = -1;
               cand_matchcount[i] = 0;
             }
 
-          for (int i = 0; i < count ; i++) {
+          for (auto i = 0; i < count ; i++) {
             if (cand_included[i]) {
-              for (int j = 0; j <= i ; j++) {
+              for (auto j = 0; j <= i ; j++) {
                 if (cand_included[j])
                   {
                     /* check match at current level */
