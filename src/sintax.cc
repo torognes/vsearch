@@ -88,6 +88,7 @@
 #include "unique.h"
 #include "utils/taxonomic_fields.h"
 #include <algorithm>  // std::min, std::max
+#include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::memset, std::strncmp, std::strcpy
@@ -161,13 +162,9 @@ auto sintax_analyse(char * query_head,
           level_best[k] = -1;
           level_matchcount[k] = 0;
 
-          int cand_match[bootstrap_count];
-          int cand_matchcount[bootstrap_count];
-          for (auto i = 0; i < count ; i++)
-            {
-              cand_match[i] = -1;
-              cand_matchcount[i] = 0;
-            }
+          std::array<int, bootstrap_count> cand_match;
+          cand_match.fill(-1);
+          std::array<int, bootstrap_count> cand_matchcount {{}};
 
           for (auto i = 0; i < count ; i++) {
             if (cand_included[i]) {
