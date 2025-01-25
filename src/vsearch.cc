@@ -4998,7 +4998,7 @@ auto cmd_version(struct Parameters const & parameters) -> void
 
 #ifdef HAVE_ZLIB_H
   printf("Compiled with support for gzip-compressed files,");
-  if (gz_lib)
+  if (gz_lib != nullptr)
     {
       printf(" and the library is loaded.\n");
 
@@ -5013,7 +5013,7 @@ auto cmd_version(struct Parameters const & parameters) -> void
 
       printf("zlib version %s, compile flags %lx", gz_version, flags);
       static constexpr auto check_10th_bit = 1024U; // 0x0400
-      if (flags & check_10th_bit)
+      if ((flags & check_10th_bit) != 0U)
         {
           printf(" (ZLIB_WINAPI)");
         }
