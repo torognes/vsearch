@@ -104,8 +104,8 @@ static int seqcount; /* number of database sequences */
 static pthread_attr_t attr;
 static fastx_handle query_fastx_h;
 
-const int subset_size = 32;
-const int bootstrap_count = 100;
+constexpr auto subset_size = 32;
+constexpr auto bootstrap_count = 100;
 
 /* global data protected by mutex */
 static pthread_mutex_t mutex_input;
