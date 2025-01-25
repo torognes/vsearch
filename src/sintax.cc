@@ -229,7 +229,7 @@ auto sintax_analyse(char * query_head,
             }
         }
 
-      std::fprintf(fp_tabbedout, "\t%c", strand ? '-' : '+');
+      std::fprintf(fp_tabbedout, "\t%c", (strand != 0) ? '-' : '+');
 
       if (opt_sintax_cutoff > 0.0)
         {
@@ -291,10 +291,10 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
       unsigned int const kmer = si->kmersample[i];
       auto * bitmap = dbindex_getbitmap(kmer);
 
-      if (bitmap)
+      if (bitmap != nullptr)
         {
 #ifdef __x86_64__
-          if (ssse3_present)
+          if (ssse3_present != 0)
             {
               increment_counters_from_bitmap_ssse3(si->kmers,
                                                    bitmap, indexed_count);
@@ -383,7 +383,7 @@ auto sintax_query(int64_t t) -> void
 
   for (auto s = 0; s < opt_strand; s++)
     {
-      struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
+      struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
       /* perform search */
 
@@ -408,7 +408,7 @@ auto sintax_query(int64_t t) -> void
               for (auto j = 0; j < subset_size ; j++)
                 {
                   int64_t const x = random_int(kmersamplecount);
-                  if (! bitmap_get(b, x))
+                  if (bitmap_get(b, x) == 0U)
                     {
                       kmersample_subset[subsamples++] = kmersample[x];
                       bitmap_set(b, x);
@@ -476,7 +476,7 @@ auto sintax_thread_run(int64_t t) -> void
       xpthread_mutex_lock(&mutex_input);
 
       if (fastx_next(query_fastx_h,
-                     ! opt_notrunclabels,
+                     opt_notrunclabels == 0,
                      chrmap_no_change))
         {
           auto * qhead = fastx_get_header(query_fastx_h);
@@ -488,7 +488,7 @@ auto sintax_thread_run(int64_t t) -> void
 
           for (auto s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
+              struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
               si->query_head_len = query_head_len;
               si->qseqlen = qseqlen;
@@ -572,11 +572,11 @@ auto sintax_thread_exit(struct searchinfo_s * si) -> void
   unique_exit(si->uh);
   minheap_exit(si->m);
   xfree(si->kmers);
-  if (si->query_head)
+  if (si->query_head != nullptr)
     {
       xfree(si->query_head);
     }
-  if (si->qsequence)
+  if (si->qsequence != nullptr)
     {
       xfree(si->qsequence);
     }
@@ -600,7 +600,7 @@ auto sintax_thread_worker_run() -> void
   for (auto t = 0; t < opt_threads; t++)
     {
       sintax_thread_init(si_plus + t);
-      if (si_minus)
+      if (si_minus != nullptr)
         {
           sintax_thread_init(si_minus + t);
         }
@@ -613,7 +613,7 @@ auto sintax_thread_worker_run() -> void
     {
       xpthread_join(pthread[t], nullptr);
       sintax_thread_exit(si_plus + t);
-      if (si_minus)
+      if (si_minus != nullptr)
         {
           sintax_thread_exit(si_minus + t);
         }
@@ -630,15 +630,15 @@ auto sintax() -> void
 
   /* open output files */
 
-  if (! opt_db)
+  if (opt_db == nullptr)
     {
       fatal("No database file specified with --db");
     }
 
-  if (opt_tabbedout)
+  if (opt_tabbedout != nullptr)
     {
       fp_tabbedout = fopen_output(opt_tabbedout);
-      if (! fp_tabbedout)
+      if (fp_tabbedout == nullptr)
         {
           fatal("Unable to open tabbedout output file for writing");
         }
@@ -709,7 +709,7 @@ auto sintax() -> void
       std::fprintf(stderr, "\n");
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       std::fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
       if (queries > 0)
@@ -726,7 +726,7 @@ auto sintax() -> void
 
   xfree(pthread);
   xfree(si_plus);
-  if (si_minus)
+  if (si_minus != nullptr)
     {
       xfree(si_minus);
     }
