@@ -169,10 +169,10 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
             {
               level_start[level] = offset + 2;
 
-              auto const * z = std::strchr(header + offset + 2, ',');
-              if (z != nullptr)
+              auto const * next_comma = std::strchr(header + offset + 2, ',');
+              if (next_comma != nullptr)
                 {
-                  level_len[level] = z - header - offset - 2;
+                  level_len[level] = next_comma - header - offset - 2;
                 }
               else
                 {
