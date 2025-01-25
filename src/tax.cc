@@ -150,7 +150,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
 
   auto tax_start = 0;
   auto tax_end = 0;
-  auto * header = db_getheader(seqno);
+  auto const * header = db_getheader(seqno);
   int const header_length = db_getheaderlen(seqno);
   auto const attribute_is_present = tax_parse(header, header_length, & tax_start, & tax_end);
   if (not attribute_is_present) { return; }
