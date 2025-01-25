@@ -149,7 +149,7 @@ void dynlibs_open()
 void dynlibs_close()
 {
 #ifdef HAVE_ZLIB_H
-  if (gz_lib)
+  if (gz_lib != nullptr)
     {
 #ifdef _WIN32
       FreeLibrary(gz_lib);
@@ -161,7 +161,7 @@ void dynlibs_close()
 #endif
 
 #ifdef HAVE_BZLIB_H
-  if (bz2_lib)
+  if (bz2_lib != nullptr)
     {
 #ifdef _WIN32
       FreeLibrary(bz2_lib);
