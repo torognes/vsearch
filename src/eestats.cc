@@ -81,7 +81,7 @@ inline auto fastq_get_qual_eestats(char q) -> int
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               qual, opt_fastq_qmin);
-      if (fp_log)
+      if (fp_log != nullptr)
         {
           fprintf(stderr,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
@@ -100,7 +100,7 @@ inline auto fastq_get_qual_eestats(char q) -> int
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", qual);
-      if (fp_log)
+      if (fp_log != nullptr)
         {
           fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
@@ -131,7 +131,7 @@ auto ee_start(int pos, int resolution) -> int64_t
 
 auto fastq_eestats() -> void
 {
-  if (not opt_output) {
+  if (opt_output == nullptr) {
     fatal("Output file for fastq_eestats must be specified with --output");
   }
 
@@ -141,10 +141,10 @@ auto fastq_eestats() -> void
 
   std::FILE * fp_output = nullptr;
 
-  if (opt_output)
+  if (opt_output != nullptr)
     {
       fp_output = fopen_output(opt_output);
-      if (not fp_output)
+      if (fp_output == nullptr)
         {
           fatal("Unable to open output file for writing");
         }
@@ -407,7 +407,7 @@ auto fastq_eestats() -> void
 
 auto fastq_eestats2() -> void
 {
-  if (! opt_output) {
+  if (opt_output == nullptr) {
     fatal("Output file for fastq_eestats2 must be specified with --output");
   }
 
@@ -417,10 +417,10 @@ auto fastq_eestats2() -> void
 
   std::FILE * fp_output = nullptr;
 
-  if (opt_output)
+  if (opt_output != nullptr)
     {
       fp_output = fopen_output(opt_output);
-      if (! fp_output)
+      if (fp_output == nullptr)
         {
           fatal("Unable to open output file for writing");
         }
@@ -542,7 +542,7 @@ auto fastq_eestats2() -> void
       fprintf(fp_output, "\n");
     }
 
-  if (fp_log)
+  if (fp_log != nullptr)
     {
       fprintf(fp_log,
               "%" PRIu64 " reads, max len %" PRIu64 ", avg %.1f\n\n",
