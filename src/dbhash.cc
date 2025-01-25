@@ -139,11 +139,11 @@ auto dbhash_search_first(char * seq,
   uint64_t index = hash & dbhash_mask;
   struct dbhash_bucket_s * bp = dbhash_table + index;
 
-  while (bitmap_get(dbhash_bitmap, index)
+  while ((bitmap_get(dbhash_bitmap, index) != 0u)
          and
          ((bp->hash != hash) or
           (seqlen != db_getsequencelen(bp->seqno)) or
-          (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen))))
+          (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
       bp = dbhash_table + index;
@@ -151,7 +151,7 @@ auto dbhash_search_first(char * seq,
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, index))
+  if (bitmap_get(dbhash_bitmap, index) != 0u)
     {
       return bp->seqno;
     }
@@ -167,11 +167,11 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
   uint64_t index = (info->index + 1) & dbhash_mask;
   struct dbhash_bucket_s * bp = dbhash_table + index;
 
-  while (bitmap_get(dbhash_bitmap, index)
+  while ((bitmap_get(dbhash_bitmap, index) != 0u)
          and
          ((bp->hash != hash) or
           (seqlen != db_getsequencelen(bp->seqno)) or
-          (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen))))
+          (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
       bp = dbhash_table + index;
@@ -179,7 +179,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, index))
+  if (bitmap_get(dbhash_bitmap, index) != 0u)
     {
       return bp->seqno;
     }
