@@ -138,13 +138,6 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
      t strain
   */
   static constexpr auto length_of_attribute_name = 4;  // "tax=" -> 4 letters
-
-  for (auto i = 0; i < tax_levels; ++i)
-    {
-      level_start[i] = 0;
-      level_len[i] = 0;
-    }
-
   auto tax_start = 0;
   auto tax_end = 0;
   auto const * const header = db_getheader(seqno);
