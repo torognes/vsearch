@@ -567,7 +567,7 @@ auto results_show_lcaout(std::FILE * output_handle,
               for (auto j = 0; j <= k; j++)
                 {
                   if ((new_level_len[j] != cand_level_len[k][j]) or
-                      (strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
+                      (std::strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
                                db_getheader(seqno) + new_level_start[j],
                                new_level_len[j]) != 0))
                     {
@@ -602,7 +602,7 @@ auto results_show_lcaout(std::FILE * output_handle,
           for (auto j = 0; j <= k; j++)
             {
               if ((new_level_len[j] != cand_level_len[k][j]) or
-                  (strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
+                  (std::strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
                            db_getheader(seqno) + new_level_start[j],
                            new_level_len[j]) != 0))
                 {
