@@ -100,7 +100,7 @@ auto kh_init() -> struct kh_handle_s *
 
 auto kh_exit(struct kh_handle_s * kh) -> void
 {
-  if (kh->hash)
+  if (kh->hash != nullptr)
     {
       xfree(kh->hash);
     }
@@ -115,7 +115,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kh,
 {
   /* find free bucket in hash */
   unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-  while(kh->hash[j].pos)
+  while (kh->hash[j].pos != 0U)
     {
       j = (j + 1) & kh->hash_mask;
     }
@@ -171,7 +171,7 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
       kmer |= chrmap_2bit[c];
       kmer &= kmer_mask;
 
-      if (! bad)
+      if (bad == 0U)
         {
           /* 1-based pos of start of kmer */
           kh_insert_kmer(kh, k, kmer, pos - k + 1 + 1);
@@ -205,11 +205,11 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
 
-      if (! bad)
+      if (bad == 0U)
         {
           /* find matching buckets in hash */
           unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-          while(kh->hash[j].pos)
+          while (kh->hash[j].pos != 0U)
             {
               if (kh->hash[j].kmer == kmer)
                 {
@@ -282,11 +282,11 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
       kmer |= chrmap_2bit[chrmap_complement[c]];
       kmer &= kmer_mask;
 
-      if (! bad)
+      if (bad == 0U)
         {
           /* find matching buckets in hash */
           unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-          while(kh->hash[j].pos)
+          while(kh->hash[j].pos != 0U)
             {
               if (kh->hash[j].kmer == kmer)
                 {
