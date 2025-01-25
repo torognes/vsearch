@@ -1046,7 +1046,7 @@ auto backtrack16(s16info_s * s,
         }
     }
 
-  while(i >= 0)
+  while (i >= 0)
     {
       ++aligned;
       if (s->op != 'D')
@@ -1057,7 +1057,7 @@ auto backtrack16(s16info_s * s,
       pushop(s, 'D');
     }
 
-  while(j >= 0)
+  while (j >= 0)
     {
       ++aligned;
       if (s->op != 'I')

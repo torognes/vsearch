@@ -286,7 +286,7 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
         {
           /* find matching buckets in hash */
           unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-          while(kh->hash[j].pos != 0U)
+          while (kh->hash[j].pos != 0U)
             {
               if (kh->hash[j].kmer == kmer)
                 {

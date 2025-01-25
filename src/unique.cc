@@ -306,7 +306,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
         {
           /* find free appropriate bucket in hash */
           j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while((unique_handle->hash[j].count != 0U) && (unique_handle->hash[j].kmer != kmer))
+          while ((unique_handle->hash[j].count != 0U) && (unique_handle->hash[j].kmer != kmer))
             {
               j = (j + 1) & unique_handle->hash_mask;
             }

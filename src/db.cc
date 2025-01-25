@@ -239,7 +239,7 @@ auto db_read(const char * filename, int upcase) -> void
   seqindex_alloc = 0;
   seqindex = nullptr;
 
-  while(fastx_next(h,
+  while (fastx_next(h,
                    not opt_notrunclabels,
                    upcase ? chrmap_upcase : chrmap_no_change))
     {

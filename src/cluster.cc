@@ -670,7 +670,7 @@ auto cluster_core_parallel() -> void
 
   progress_init("Clustering", db_getnucleotidecount());
 
-  while(seqno < seqcount)
+  while (seqno < seqcount)
     {
       /* prepare work for the threads in sia[i] */
       /* read query sequences into the search info (si) for each thread */
