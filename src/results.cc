@@ -703,7 +703,7 @@ auto results_show_alnout(std::FILE * output_handle,
           fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
                   dseqlen, db_getheader(hp->target));
 
-          int const rowlen = opt_rowlen == 0 ? qseqlen + dseqlen : opt_rowlen;
+          int const rowlen = (opt_rowlen == 0) ? qseqlen + dseqlen : opt_rowlen;
 
           align_show(output_handle,
                      qsequence,
