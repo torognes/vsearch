@@ -101,6 +101,7 @@ int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 
 #endif
 
+
 void dynlibs_open()
 {
 #ifdef HAVE_ZLIB_H
@@ -145,6 +146,7 @@ void dynlibs_open()
     }
 #endif
 }
+
 
 void dynlibs_close()
 {
