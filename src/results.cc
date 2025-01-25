@@ -545,9 +545,9 @@ auto results_show_lcaout(std::FILE * output_handle,
       ++tophitcount;
 
       int const seqno = hp->target;
-      int new_level_start[tax_levels];  // refactoring: std::array<struct a_level{.start, .length}, tax_levels>
-      int new_level_len[tax_levels];
-      tax_split(seqno, new_level_start, new_level_len);
+      std::array<int, tax_levels> new_level_start {{}};  // refactoring: std::array<struct a_level{.start, .length}, tax_levels>
+      std::array<int, tax_levels> new_level_len {{}};
+      tax_split(seqno, new_level_start.data(), new_level_len.data());
 
       for (auto k = 0; k < tax_levels; k++)
         {
@@ -592,9 +592,9 @@ auto results_show_lcaout(std::FILE * output_handle,
   for (auto t = 0; t < tophitcount; t++)
     {
       auto const seqno = hits[t].target;
-      int new_level_start[tax_levels];
-      int new_level_len[tax_levels];
-      tax_split(seqno, new_level_start, new_level_len);
+      std::array<int, tax_levels> new_level_start {{}};
+      std::array<int, tax_levels> new_level_len {{}};
+      tax_split(seqno, new_level_start.data(), new_level_len.data());
 
       for (auto k = 0; k < tax_levels; k++)
         {
