@@ -121,10 +121,10 @@ auto sintax_analyse(char * query_head,
                     int * all_seqno,
                     int count) -> void
 {
-  int level_matchcount[tax_levels];
-  int level_best[tax_levels];
-  char * cand_level_name_start[bootstrap_count][tax_levels];
-  int cand_level_name_len[bootstrap_count][tax_levels];
+  std::array<int, tax_levels> level_matchcount {{}};
+  std::array<int, tax_levels> level_best {{}};
+  std::array<std::array<char *, tax_levels>, bootstrap_count> cand_level_name_start {{}};
+  std::array<std::array<int, tax_levels>, bootstrap_count> cand_level_name_len {{}};
 
   /* Check number of successful bootstraps, must be at least half */
 
