@@ -224,7 +224,7 @@ auto sintax_analyse(char * query_head,
               fprintf(fp_tabbedout,
                       "%s%c:%.*s(%.2f)",
                       (comma ? "," : ""),
-                      tax_letters[j],
+                      taxonomic_fields[j],
                       cand_level_name_len[best][j],
                       cand_level_name_start[best][j],
                       1.0 * level_matchcount[j] / count);
@@ -247,7 +247,7 @@ auto sintax_analyse(char * query_head,
                   fprintf(fp_tabbedout,
                           "%s%c:%.*s",
                           (comma ? "," : ""),
-                          tax_letters[j],
+                          taxonomic_fields[j],
                           cand_level_name_len[best][j],
                           cand_level_name_start[best][j]);
                   comma = true;

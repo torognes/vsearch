@@ -634,7 +634,7 @@ auto results_show_lcaout(std::FILE * output_handle,
               fprintf(output_handle,
                       "%s%c:%.*s",
                       (comma ? "," : ""),
-                      tax_letters[j],
+                      taxonomic_fields[j],
                       cand_level_len[j][j],
                       db_getheader(cand[j]) + cand_level_start[j][j]);
               comma = true;
