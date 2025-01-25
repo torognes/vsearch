@@ -143,10 +143,10 @@ auto sintax_analyse(char * query_head,
           std::array<int, tax_levels> new_level_name_start {{}};
           std::array<int, tax_levels> new_level_name_len {{}};
           tax_split(seqno, new_level_name_start.data(), new_level_name_len.data());
+          cand_level_name_len[i] = new_level_name_len;
           for (auto k = 0; k < tax_levels; k++)
             {
               cand_level_name_start[i][k] = db_getheader(seqno) + new_level_name_start[k];
-              cand_level_name_len[i][k] = new_level_name_len[k];
             }
         }
 
