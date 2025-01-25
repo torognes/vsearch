@@ -58,6 +58,5 @@
 
 */
 
-extern const char * tax_letters;
 
 auto tax_split(int seqno, int * level_start, int * level_len) -> void;

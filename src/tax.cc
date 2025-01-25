@@ -65,9 +65,6 @@
 #include <iterator>  // std::distance
 
 
-auto const * tax_letters = "dkpcofgst";
-
-
 // very similar to header_find_attribute() in attributes.cc
 auto tax_parse(char const * header,
                int const header_length,
