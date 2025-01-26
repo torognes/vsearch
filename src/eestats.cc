@@ -440,8 +440,8 @@ auto fastq_eestats2() -> void
     {
       ++seq_count;
 
-      uint64_t const len = fastq_get_sequence_length(h);
-      char * q = fastq_get_quality(h);
+      auto const len = fastq_get_sequence_length(h);
+      auto * q = fastq_get_quality(h);
 
       /* update length statistics */
 
@@ -450,7 +450,7 @@ auto fastq_eestats2() -> void
           longest = len;
           // opt_length_cutoffs_longest is an int between 1 and INT_MAX
           int const high = std::min(longest, (uint64_t) (opt_length_cutoffs_longest));
-          int const new_len_steps = 1 + std::max(0, ((high - opt_length_cutoffs_shortest)
+          auto const new_len_steps = 1 + std::max(0, ((high - opt_length_cutoffs_shortest)
                                           / opt_length_cutoffs_increment));
 
           if (new_len_steps > len_steps)
@@ -464,7 +464,7 @@ auto fastq_eestats2() -> void
 
       symbols += len;
 
-      double ee = 0.0;
+      auto ee = 0.0;
 
       for (uint64_t i = 0; i < len; i++)
         {
