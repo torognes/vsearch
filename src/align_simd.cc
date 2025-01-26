@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "align_simd.h"
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t, uint64_t
