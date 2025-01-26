@@ -134,9 +134,9 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 {
   auto * newscorematrix = (int64_t *) xmalloc(16 * 16 * sizeof(int64_t));
 
-  for (int i = 0; i < 16; i++)
+  for (auto i = 0; i < 16; i++)
     {
-      for (int j = 0; j < 16; j++)
+      for (auto j = 0; j < 16; j++)
         {
           int64_t value = 0;
           if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
@@ -210,8 +210,8 @@ auto LinearMemoryAligner::cigar_flush() -> void
     {
       /* try writing string until enough memory has been allocated */
 
-      int64_t const rest = cigar_alloc - cigar_length;
-      int n = 0;
+      auto const rest = cigar_alloc - cigar_length;
+      auto n = 0;
       if (op_run > 1)
         {
           n = snprintf(cigar_string + cigar_length,
@@ -259,10 +259,10 @@ auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 
 auto LinearMemoryAligner::show_matrix() -> void
 {
-  for (int i = 0; i < 16; i++)
+  for (auto i = 0; i < 16; i++)
     {
       printf("%2d:", i);
-      for (int j = 0; j < 16; j++)
+      for (auto j = 0; j < 16; j++)
         {
           printf(" %2" PRId64, scorematrix[(16 * i) + j]);
         }
@@ -447,14 +447,14 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 1; i <= I; i++)
         {
-          int64_t p = HH[0];
+          auto p = HH[0];
 
           int64_t h = - (b_left ?
                          (gap_b_left ? 0 : go_t_l) + (i * ge_t_l) :
                          (gap_b_left ? 0 : go_t_i) + (i * ge_t_i));
 
           HH[0] = h;
-          int64_t f = long_min;
+          auto f = long_min;
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -497,13 +497,13 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 1; i <= a_len - I; i++)
         {
-          int64_t p = XX[0];
+          auto p = XX[0];
 
           int64_t h = - (b_right ?
                          (gap_b_right ? 0 : go_t_r) + (i * ge_t_r) :
                          (gap_b_right ? 0 : go_t_i) + (i * ge_t_i));
           XX[0] = h;
-          int64_t f = long_min;
+          auto f = long_min;
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -531,14 +531,14 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* find maximum score along division line */
 
-      int64_t MaxScore0 = long_min;
+      auto MaxScore0 = long_min;
       int64_t best0 = -1;
 
       /* solutions with diagonal at break */
 
       for (int64_t j = 0; j <= b_len; j++)
         {
-          int64_t const Score = HH[j] + XX[b_len - j];
+          auto const Score = HH[j] + XX[b_len - j];
 
           if (Score > MaxScore0)
             {
@@ -547,7 +547,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
             }
         }
 
-      int64_t MaxScore1 = long_min;
+      auto MaxScore1 = long_min;
       int64_t best1 = -1;
 
       /* solutions that end with a gap in b from both ends at break */
@@ -568,7 +568,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               g = go_t_i;
             }
 
-          int64_t const Score = EE[j] + YY[b_len - j] + g;
+          auto const Score = EE[j] + YY[b_len - j] + g;
 
           if (Score > MaxScore1)
             {
@@ -723,14 +723,14 @@ auto LinearMemoryAligner::alignstats(char * cigar,
   int64_t a_pos = 0;
   int64_t b_pos = 0;
 
-  char * p = cigar;
+  auto * p = cigar;
 
   int64_t g = 0;
 
   while (*p != '\0')
     {
       int64_t run = 1;
-      int scanlength = 0;
+      auto scanlength = 0;
       sscanf(p, "%" PRId64 "%n", &run, &scanlength);
       p += scanlength;
       switch (*p++)
