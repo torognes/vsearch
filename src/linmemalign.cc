@@ -91,6 +91,7 @@
 */
 
 constexpr auto matrix_size = 16;
+constexpr auto minimal_length = 64L;
 
 
 LinearMemoryAligner::LinearMemoryAligner()
@@ -196,7 +197,7 @@ auto LinearMemoryAligner::cigar_reset() -> void
 {
   if (cigar_alloc < 1)
     {
-      cigar_alloc = 64;
+      cigar_alloc = minimal_length;
       cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
     }
   cigar_string[0] = 0;
@@ -233,7 +234,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
         }
       else if (n >= rest)
         {
-          cigar_alloc += std::max(n - rest + 1, 64L);
+          cigar_alloc += std::max(n - rest + 1, minimal_length);
           cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
         }
       else
