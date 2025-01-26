@@ -1233,6 +1233,21 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
 }
 
 
+auto compute_score_min(struct s16info_s const & alignment) -> short {
+  auto const gap_penalty_max = std::max({
+      0,
+      alignment.penalty_gap_open_query_left + alignment.penalty_gap_extension_query_left,
+      alignment.penalty_gap_open_query_interior + alignment.penalty_gap_extension_query_interior,
+      alignment.penalty_gap_open_query_right + alignment.penalty_gap_extension_query_right,
+      alignment.penalty_gap_open_target_left + alignment.penalty_gap_extension_target_left,
+      alignment.penalty_gap_open_target_interior + alignment.penalty_gap_extension_target_interior,
+      alignment.penalty_gap_open_target_right + alignment.penalty_gap_extension_target_right
+    });
+
+  return static_cast<short>(std::numeric_limits<short>::min() + gap_penalty_max);
+}
+
+
 auto search16(s16info_s * s,
               unsigned int sequences,
               unsigned int * seqnos,
@@ -1410,29 +1425,8 @@ auto search16(s16info_s * s,
       overflow[c] = false;
     }
 
-  short gap_penalty_max = 0;
-
-  gap_penalty_max = MAX(gap_penalty_max,
-                        s->penalty_gap_open_query_left +
-                        s->penalty_gap_extension_query_left);
-  gap_penalty_max = MAX(gap_penalty_max,
-                        s->penalty_gap_open_query_interior +
-                        s->penalty_gap_extension_query_interior);
-  gap_penalty_max = MAX(gap_penalty_max,
-                        s->penalty_gap_open_query_right +
-                        s->penalty_gap_extension_query_right);
-  gap_penalty_max = MAX(gap_penalty_max,
-                        s->penalty_gap_open_target_left +
-                        s->penalty_gap_extension_target_left);
-  gap_penalty_max = MAX(gap_penalty_max,
-                        s->penalty_gap_open_target_interior +
-                        s->penalty_gap_extension_target_interior);
-  gap_penalty_max = MAX(gap_penalty_max,
-                        s->penalty_gap_open_target_right +
-                        s->penalty_gap_extension_target_right);
-
-  short const score_min = std::numeric_limits<short>::min() + gap_penalty_max;
-  short const score_max = std::numeric_limits<short>::max();
+  auto const score_min = compute_score_min(*s);
+  auto const score_max = std::numeric_limits<short>::max();
 
   for (int i = 0; i < 4; i++)
     {
