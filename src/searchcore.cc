@@ -398,7 +398,7 @@ auto align_trim(struct hit * hit) -> void
   hit->id2 = hit->internal_alignmentlength > 0 ?
     100.0 * hit->matches / hit->internal_alignmentlength : 0.0;
   /* Marine Biology Lab */
-  hit->id3 = MAX(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
+  hit->id3 = std::max(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
                                       hit->longest)));
   /* BLAST */
   hit->id4 = hit->nwalignmentlength > 0 ?
