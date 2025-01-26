@@ -226,10 +226,10 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   minheap_empty(si->m);
 
-  for(unsigned int i = 0; i < si->kmersamplecount; i++)
+  for(auto i = 0U; i < si->kmersamplecount; i++)
     {
-      unsigned int const kmer = si->kmersample[i];
-      unsigned char * bitmap = dbindex_getbitmap(kmer);
+      auto const kmer = si->kmersample[i];
+      auto * bitmap = dbindex_getbitmap(kmer);
 
       if (bitmap)
         {
@@ -250,9 +250,9 @@ auto search_topscores(struct searchinfo_s * si) -> void
         }
       else
         {
-          unsigned int * list = dbindex_getmatchlist(kmer);
-          unsigned int const count = dbindex_getmatchcount(kmer);
-          for(unsigned int j = 0; j < count; j++)
+          auto * list = dbindex_getmatchlist(kmer);
+          auto const count = dbindex_getmatchcount(kmer);
+          for (auto j = 0U; j < count; j++)
             {
               si->kmers[list[j]]++;
             }
@@ -261,12 +261,12 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), si->kmersamplecount);
 
-  for(int i = 0; i < indexed_count; i++)
+  for(auto i = 0; i < indexed_count; i++)
     {
-      count_t const count = si->kmers[i];
+      auto const count = si->kmers[i];
       if (count >= minmatches)
         {
-          unsigned int const seqno = dbindex_getmapping(i);
+          auto const seqno = dbindex_getmapping(i);
           unsigned int const length = db_getsequencelen(seqno);
 
           elem_t novel;
@@ -284,10 +284,10 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
 auto seqncmp(char * a, char * b, uint64_t n) -> int
 {
-  for(unsigned int i = 0; i < n; i++)
+  for (auto i = 0U; i < n; i++)
     {
-      const int x = chrmap_4bit[(int)(a[i])];
-      const int y = chrmap_4bit[(int)(b[i])];
+      auto const x = chrmap_4bit[(int)(a[i])];
+      auto const y = chrmap_4bit[(int)(b[i])];
       if (x < y)
         {
           return -1;
@@ -317,15 +317,15 @@ auto align_trim(struct hit * hit) -> void
 
   /* left trim alignment */
 
-  char * p = hit->nwalignment;
-  char op = '\0';
+  auto * p = hit->nwalignment;
+  auto op = '\0';
   int64_t run = 0;
   if (*p)
     {
       run = 1;
-      int scanlength = 0;
+      auto scanlength = 0;
       sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-      op = *(p+scanlength);
+      op = *(p + scanlength);
       if (op != 'M')
         {
           hit->trim_aln_left = 1 + scanlength;
@@ -342,7 +342,7 @@ auto align_trim(struct hit * hit) -> void
 
   /* right trim alignment */
 
-  char * e = hit->nwalignment + strlen(hit->nwalignment);
+  auto * e = hit->nwalignment + strlen(hit->nwalignment);
   if (e > hit->nwalignment)
     {
       p = e - 1;
@@ -430,9 +430,9 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
 {
   /* consider whether a hit satisfies accept criteria before alignment */
 
-  char * qseq = si->qsequence;
-  char * dlabel = db_getheader(target);
-  char * dseq = db_getsequence(target);
+  auto * qseq = si->qsequence;
+  auto * dlabel = db_getheader(target);
+  auto * dseq = db_getsequence(target);
   const int64_t dseqlen = db_getsequencelen(target);
   const int64_t tsize = db_getabundance(target);
 
@@ -527,8 +527,8 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       if (opt_cluster_unoise)
         {
           const auto mismatches = hit->mismatches;
-          const double skew = 1.0 * si->qsize / db_getabundance(hit->target);
-          const double beta = 1.0 / std::pow(2, (1.0 * opt_unoise_alpha * mismatches) + 1);
+          auto const skew = 1.0 * si->qsize / db_getabundance(hit->target);
+          auto const beta = 1.0 / std::pow(2, (1.0 * opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
             {
