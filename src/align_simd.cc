@@ -272,7 +272,7 @@ auto dprofile_dump16(CELL * dprofile) -> void
 }
 
 
-auto dumpscorematrix(CELL * score_matrix) -> void
+auto dumpscorematrix(CELL const * score_matrix) -> void
 {
   for (auto i = 0; i < matrix_size; ++i)
     {
