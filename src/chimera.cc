@@ -1410,7 +1410,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       int match_QM = 0;
       int cols = 0;
 
-      for (int i = 0; i < alnlen; i++)
+      for (auto i = 0; i < alnlen; i++)
         {
           if (not ci->ignore[i])
             {
@@ -1515,23 +1515,23 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                               opt_xlength);
           fprintf(fp_uchimealns, "\n\n");
 
-          int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
+          auto const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
           qpos = 0;
-          int p1pos = 0;
-          int p2pos = 0;
-          int rest = alnlen;
+          auto p1pos = 0;
+          auto p2pos = 0;
+          auto rest = alnlen;
 
-          for (int i = 0; i < alnlen; i += width)
+          for (auto i = 0; i < alnlen; i += width)
             {
               /* count non-gap symbols on current line */
 
-              int qnt = 0;
-              int p1nt = 0;
-              int p2nt = 0;
+              auto qnt = 0;
+              auto p1nt = 0;
+              auto p2nt = 0;
 
-              int const w = std::min(rest, width);
+              auto const w = std::min(rest, width);
 
-              for (int j = 0; j < w; j++)
+              for (auto j = 0; j < w; j++)
                 {
                   if (ci->qaln[i + j] != '-')
                     {
