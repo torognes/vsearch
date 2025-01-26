@@ -746,7 +746,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
               nwscore += subst_score(a_pos, b_pos);
 
               if ((chrmap_4bit[(int)(a_seq[a_pos])] &
-                   chrmap_4bit[(int)(b_seq[b_pos])]) != 0u)
+                   chrmap_4bit[(int)(b_seq[b_pos])]) != 0U)
                 {
                   ++nwmatches;
                 }
