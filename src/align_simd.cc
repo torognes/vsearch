@@ -1265,9 +1265,9 @@ auto search16(s16info_s * s,
 
   if (qlen == 0)
     {
-      for (unsigned int cand_id = 0; cand_id < sequences; cand_id++)
+      for (auto cand_id = 0U; cand_id < sequences; cand_id++)
         {
-          unsigned int const seqno = seqnos[cand_id];
+          auto const seqno = seqnos[cand_id];
           int64_t const length = db_getsequencelen(seqno);
 
           paligned[cand_id] = length;
@@ -1282,7 +1282,7 @@ auto search16(s16info_s * s,
           else
             {
               pscores[cand_id] =
-                MAX(- s->penalty_gap_open_target_left -
+                std::max(- s->penalty_gap_open_target_left -
                     (length * s->penalty_gap_extension_target_left),
                     - s->penalty_gap_open_target_right -
                     (length * s->penalty_gap_extension_target_right));
@@ -1291,7 +1291,7 @@ auto search16(s16info_s * s,
           char * cigar = nullptr;
           if (length > 0)
             {
-              int const ret = xsprintf(&cigar, "%ldI", length);
+              auto const ret = xsprintf(&cigar, "%ldI", length);
               if ((ret < 2) or not cigar)
                 {
                   fatal("Unable to allocate enough memory.");
