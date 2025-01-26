@@ -676,7 +676,6 @@ auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
 }
 
 
-
 auto LinearMemoryAligner::align(char * _a_seq,
                                   char * _b_seq,
                                   int64_t a_len,
@@ -701,6 +700,7 @@ auto LinearMemoryAligner::align(char * _a_seq,
   /* return cigar */
   return cigar_string;
 }
+
 
 auto LinearMemoryAligner::alignstats(char * cigar,
                                      char * _a_seq,
