@@ -78,8 +78,10 @@
   maximize score
 */
 
+constexpr auto matrix_size = 16;
 constexpr auto CHANNELS = 8;
 constexpr auto CDEPTH = 4;
+constexpr auto maxseqlenproduct = 25000000LL;
 
 /*
   Due to memory usage, limit the product of the length of the sequences.
@@ -95,10 +97,6 @@ constexpr auto CDEPTH = 4;
   the linear memory aligner.
 */
 
-
-
-constexpr auto matrix_size = 16;
-constexpr auto maxseqlenproduct = 25000000LL;
 
 static int64_t scorematrix[matrix_size][matrix_size];
 
