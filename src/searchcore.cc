@@ -662,8 +662,8 @@ auto align_delayed(struct searchinfo_s * si) -> void
                 }
 
               hit->aligned = true;
-              hit->shortest = MIN(si->qseqlen, dseqlen);
-              hit->longest = MAX(si->qseqlen, dseqlen);
+              hit->shortest = std::min(si->qseqlen, static_cast<int>(dseqlen));
+              hit->longest = std::max(si->qseqlen, static_cast<int>(dseqlen));
               hit->nwalignment = nwcigar;
               hit->nwscore = nwscore;
               hit->nwdiff = nwalignmentlength - nwmatches;
