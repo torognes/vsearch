@@ -98,7 +98,7 @@ constexpr auto maxseqlenproduct = 25000000LL;
 */
 
 
-static int64_t scorematrix[matrix_size][matrix_size];
+static std::array<std::array<int64_t, matrix_size>, matrix_size> scorematrix {{}};
 
 /*
   The macros below usually operate on 128-bit vectors of 8 signed
