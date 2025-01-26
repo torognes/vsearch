@@ -158,7 +158,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 }
 
 
-auto LinearMemoryAligner::alloc_vectors(size_t x) -> void
+auto LinearMemoryAligner::alloc_vectors(std::size_t x) -> void
 {
   if (vector_alloc < x)
     {
@@ -214,13 +214,13 @@ auto LinearMemoryAligner::cigar_flush() -> void
       auto n = 0;
       if (op_run > 1)
         {
-          n = snprintf(cigar_string + cigar_length,
+          n = std::snprintf(cigar_string + cigar_length,
                        rest,
                        "%" PRId64 "%c", op_run, op);
         }
       else
         {
-          n = snprintf(cigar_string + cigar_length,
+          n = std::snprintf(cigar_string + cigar_length,
                        rest,
                        "%c", op);
         }
@@ -731,7 +731,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
     {
       int64_t run = 1;
       auto scanlength = 0;
-      sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+      std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
       p += scanlength;
       switch (*p++)
         {
