@@ -96,9 +96,10 @@ constexpr auto CDEPTH = 4;
 #include "align_simd.h"
 
 
+constexpr auto matrix_size = 16;
 constexpr auto maxseqlenproduct = 25000000LL;
 
-static int64_t scorematrix[16][16];
+static int64_t scorematrix[matrix_size][matrix_size];
 
 /*
   The macros below usually operate on 128-bit vectors of 8 signed
