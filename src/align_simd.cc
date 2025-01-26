@@ -231,6 +231,7 @@ struct s16info_s
   CELL penalty_gap_extension_target_right;
 };
 
+
 auto _mm_print(VECTOR_SHORT x) -> void
 {
   auto * y = (unsigned short *) &x;
@@ -240,6 +241,7 @@ auto _mm_print(VECTOR_SHORT x) -> void
     }
 }
 
+
 auto _mm_print2(VECTOR_SHORT x) -> void
 {
   auto * y = (signed short *) &x;
@@ -248,6 +250,7 @@ auto _mm_print2(VECTOR_SHORT x) -> void
       printf("%s%2d", (i > 0 ? " " : ""), y[7 - i]);
     }
 }
+
 
 auto dprofile_dump16(CELL * dprofile) -> void
 {
@@ -269,6 +272,7 @@ auto dprofile_dump16(CELL * dprofile) -> void
     }
 }
 
+
 auto dumpscorematrix(CELL * m) -> void
 {
   for (int i = 0; i < 16; i++)
@@ -281,6 +285,7 @@ auto dumpscorematrix(CELL * m) -> void
       printf("\n");
     }
 }
+
 
 auto dprofile_fill16(CELL * dprofile_word,
                      CELL * score_matrix_word,
@@ -466,6 +471,7 @@ auto dprofile_fill16(CELL * dprofile_word,
   dprofile_dump16(dprofile_word);
 #endif
 }
+
 
 /*
   The direction bits are set as follows:
@@ -719,6 +725,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   *_h_max = h_max;
 }
 
+
 auto aligncolumns_rest(VECTOR_SHORT * Sm,
                        VECTOR_SHORT * hep,
                        VECTOR_SHORT ** qp,
@@ -856,6 +863,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   *_h_max = h_max;
 }
 
+
 inline auto pushop(s16info_s * s, char newop) -> void
 {
   if (newop == s->op)
@@ -878,6 +886,7 @@ inline auto pushop(s16info_s * s, char newop) -> void
     }
 }
 
+
 inline auto finishop(s16info_s * s) -> void
 {
   if (s->op && s->opcount)
@@ -895,6 +904,7 @@ inline auto finishop(s16info_s * s) -> void
       s->opcount = 0;
     }
 }
+
 
 auto backtrack16(s16info_s * s,
                  char * dseq,
@@ -1081,6 +1091,7 @@ auto backtrack16(s16info_s * s,
   * pgaps = gaps;
 }
 
+
 auto search16_init(CELL score_match,
                    CELL score_mismatch,
                    CELL penalty_gap_open_query_left,
@@ -1169,6 +1180,7 @@ auto search16_init(CELL score_match,
   return s;
 }
 
+
 auto search16_exit(s16info_s * s) -> void
 {
   /* free mem for dprofile, hearray, dir, qtable */
@@ -1195,6 +1207,7 @@ auto search16_exit(s16info_s * s) -> void
   xfree(s);
 }
 
+
 auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
 {
   s->qlen = qlen;
@@ -1218,6 +1231,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
       s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int) (qseq[i])];
     }
 }
+
 
 auto search16(s16info_s * s,
               unsigned int sequences,
