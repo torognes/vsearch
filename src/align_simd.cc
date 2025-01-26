@@ -303,7 +303,7 @@ auto dprofile_fill16(CELL * dprofile_word,
 
   for (int j = 0; j < CDEPTH; j++)
     {
-      int d[CHANNELS];
+      std::array<int, CHANNELS> d {{}};
       for (int z = 0; z < CHANNELS; z++)
         {
           d[z] = dseq[(j * CHANNELS) + z] << 4U;
