@@ -912,8 +912,8 @@ auto cluster_core_parallel() -> void
                                 (nwalignmentlength - hit->nwdiff) /
                                 nwalignmentlength;
 
-                              hit->shortest = MIN(si->qseqlen, tseqlen);
-                              hit->longest = MAX(si->qseqlen, tseqlen);
+                              hit->shortest = std::min(si->qseqlen, static_cast<int>(tseqlen));
+                              hit->longest = std::max(si->qseqlen, static_cast<int>(tseqlen));
 
                               /* trim alignment and compute numbers
                                  excluding terminal gaps */
