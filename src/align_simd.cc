@@ -255,7 +255,7 @@ auto dprofile_dump16(CELL * dprofile) -> void
 {
   char * s = sym_nt_4bit;
   printf("\ndprofile:\n");
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < matrix_size; i++)
     {
       printf("%c: ", s[i]);
       for (int k = 0; k < CDEPTH; k++)
@@ -274,12 +274,12 @@ auto dprofile_dump16(CELL * dprofile) -> void
 
 auto dumpscorematrix(CELL * m) -> void
 {
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < matrix_size; i++)
     {
       printf("%2d %c", i, sym_nt_4bit[i]);
-      for (int j = 0; j < 16; j++)
+      for (int j = 0; j < matrix_size; j++)
         {
-          printf(" %2d", m[(16 * i) + j]);
+          printf(" %2d", m[(matrix_size * i) + j]);
         }
       printf("\n");
     }
@@ -309,7 +309,7 @@ auto dprofile_fill16(CELL * dprofile_word,
           d[z] = dseq[(j * CHANNELS) + z] << 4U;
         }
 
-      for (int i = 0; i < 16; i += 8)
+      for (int i = 0; i < matrix_size; i += 8)
         {
 
 #ifdef __PPC__
@@ -934,8 +934,8 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + 16 * s->qlen * (j / 4) +
-                                        16 * i + 4 * (j & 3)) % dirbuffersize));
+                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                        matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskup)
             {
               if (d & maskleft)
@@ -962,8 +962,8 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + 16 * s->qlen * (j / 4) +
-                                        16 * i + 4 * (j & 3)) % dirbuffersize));
+                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                        matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskextup)
             {
               if (d & maskextleft)
@@ -1009,8 +1009,8 @@ auto backtrack16(s16info_s * s,
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
       uint64_t const d = *((uint64_t *) (dirbuffer +
-                                         ((offset + (16 * s->qlen * (j / 4)) +
-                                           (16 * i) + (4 * (j & 3))) % dirbuffersize)));
+                                         ((offset + (matrix_size * s->qlen * (j / 4)) +
+                                           (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
 
       if ((s->op == 'I') && (d & maskextleft))
         {
@@ -1125,9 +1125,9 @@ auto search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < matrix_size; i++)
     {
-      for (int j = 0; j < 16; j++)
+      for (int j = 0; j < matrix_size; j++)
         {
           CELL value = 0;
           if (ambiguous_4bit[i] or ambiguous_4bit[j])
@@ -1142,7 +1142,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL *) (&s->matrix))[(16 * i) + j] = value;
+          ((CELL *) (&s->matrix))[(matrix_size * i) + j] = value;
           scorematrix[i][j] = value;
         }
     }
