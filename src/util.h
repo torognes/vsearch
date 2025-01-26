@@ -62,15 +62,6 @@
 #include <cstdio>  // std::FILE, std::size_t
 
 
-#ifndef MIN
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#endif
-
-#ifndef MAX
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#endif
-
-
 constexpr auto md5_digest_length = 16;
 constexpr auto sha1_digest_length = 20;
 
