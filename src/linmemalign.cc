@@ -63,7 +63,7 @@
 #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::FILE, std::printf, std::size_t, std::snprintf, std::sscanf
+#include <cstdio>  // std::printf, std::size_t, std::snprintf, std::sscanf
 #include <limits>
 
 
