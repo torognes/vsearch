@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
+#include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
@@ -1370,13 +1371,13 @@ auto search16(s16info_s * s,
   VECTOR_SHORT * hep = nullptr;
   VECTOR_SHORT ** qp = nullptr;
 
-  BYTE * d_begin[CHANNELS];
-  BYTE * d_end[CHANNELS];
-  uint64_t d_offset[CHANNELS];
-  BYTE * d_address[CHANNELS];
-  uint64_t d_length[CHANNELS];
-  int64_t seq_id[CHANNELS];
-  bool overflow[CHANNELS];
+  std::array<BYTE *, CHANNELS> d_begin {{}};
+  std::array<BYTE *, CHANNELS> d_end {{}};
+  std::array<uint64_t, CHANNELS> d_offset {{}};
+  std::array<BYTE *, CHANNELS> d_address {{}};
+  std::array<uint64_t, CHANNELS> d_length {{}};
+  std::array<int64_t, CHANNELS> seq_id {{}};
+  std::array<bool, CHANNELS> overflow {{}};
 
   VECTOR_SHORT dseqalloc[CDEPTH];
   VECTOR_SHORT S[4];
