@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include <algorithm>  // std::max
 #include <cstring>  // std::memset
 #include <vector>
 
@@ -232,7 +233,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
   for (int d = 0; d < kh->maxpos - k + 1; d++)
     {
       int const diag_len = kh->maxpos - d;
-      int const minmatch = MAX(1, diag_len - k + 1 - (k * MAX(diag_len / 20, 0)));
+      int const minmatch = std::max(1, diag_len - k + 1 - (k * std::max(diag_len / 20, 0)));
       int const c = diag_counts[d];
 
       if (c >= minmatch)
