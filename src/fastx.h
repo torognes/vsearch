@@ -58,6 +58,7 @@
 
 */
 
+#include <array>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 
@@ -110,7 +111,7 @@ struct fastx_s
   int64_t seqno;
 
   uint64_t stripped_all;
-  uint64_t stripped[byte_range];
+  std::array<uint64_t, byte_range> stripped {{}};
 
   int format;
 };
