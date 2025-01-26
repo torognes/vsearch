@@ -274,10 +274,10 @@ auto dprofile_dump16(CELL * dprofile) -> void
 
 auto dumpscorematrix(CELL * score_matrix) -> void
 {
-  for (int i = 0; i < matrix_size; i++)
+  for (auto i = 0; i < matrix_size; i++)
     {
       printf("%2d %c", i, sym_nt_4bit[i]);
-      for (int j = 0; j < matrix_size; j++)
+      for (auto j = 0; j < matrix_size; j++)
         {
           printf(" %2d", score_matrix[(matrix_size * i) + j]);
         }
