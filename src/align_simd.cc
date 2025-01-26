@@ -85,9 +85,9 @@ constexpr auto CDEPTH = 4;
   Due to memory usage, limit the product of the length of the sequences.
   If the product of the query length and any target sequence length
   is above the limit, the alignment will not be computed and a score
-  of SHORT_MAX will be returned as the score.
+  of SHORT_MAX (+32,767) will be returned as the score.
   If an overflow occurs during alignment computation, a score of
-  SHRT_MAX will also be returned.
+  SHORT_MAX (+32,767) will also be returned.
 
   The limit is set to 5 000 * 5 000 = 25 000 000. This will allocate up to
   200 MB per thread. It will align pairs of sequences less than 5000 nt long
