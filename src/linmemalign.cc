@@ -90,6 +90,9 @@
 
 */
 
+constexpr auto matrix_size = std::size_t{16};
+
+
 LinearMemoryAligner::LinearMemoryAligner()
 {
   scorematrix = nullptr;
@@ -132,11 +135,11 @@ LinearMemoryAligner::~LinearMemoryAligner()
 
 auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
-  auto * newscorematrix = (int64_t *) xmalloc(16 * 16 * sizeof(int64_t));
+  auto * newscorematrix = (int64_t *) xmalloc(matrix_size * matrix_size * sizeof(int64_t));
 
-  for (auto i = 0; i < 16; i++)
+  for (auto i = 0; i < matrix_size; i++)
     {
-      for (auto j = 0; j < 16; j++)
+      for (auto j = 0; j < matrix_size; j++)
         {
           int64_t value = 0;
           if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
@@ -151,7 +154,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             {
               value = mismatch;
             }
-          newscorematrix[(16 * i) + j] = value;
+          newscorematrix[(matrix_size * i) + j] = value;
         }
     }
   return newscorematrix;
@@ -259,12 +262,12 @@ auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 
 auto LinearMemoryAligner::show_matrix() -> void
 {
-  for (auto i = 0; i < 16; i++)
+  for (auto i = 0; i < matrix_size; i++)
     {
       std::printf("%2d:", i);
-      for (auto j = 0; j < 16; j++)
+      for (auto j = 0; j < matrix_size; j++)
         {
-          std::printf(" %2" PRId64, scorematrix[(16 * i) + j]);
+          std::printf(" %2" PRId64, scorematrix[(matrix_size * i) + j]);
         }
       std::printf("\n");
     }
