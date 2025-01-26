@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <array>
+#include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
@@ -366,7 +367,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
       fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
-      for (int64_t i = len_max; i >= MAX(1, len_max / 2); i--)
+      for (int64_t i = len_max; i >= std::max(1L, len_max / 2); i--)
         {
           double read_percentage[4];
 
