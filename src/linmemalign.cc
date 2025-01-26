@@ -462,14 +462,14 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
           for (int64_t j = 1; j <= b_len; j++)
             {
-              f = MAX(f, h - go_q_i) - ge_q_i;
+              f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_right && (j == b_len))
                 {
-                  EE[j] = MAX(EE[j], HH[j] - go_t_r) - ge_t_r;
+                  EE[j] = std::max(EE[j], HH[j] - go_t_r) - ge_t_r;
                 }
               else
                 {
-                  EE[j] = MAX(EE[j], HH[j] - go_t_i) - ge_t_i;
+                  EE[j] = std::max(EE[j], HH[j] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_start + i - 1, b_start + j - 1);
@@ -511,14 +511,14 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
           for (int64_t j = 1; j <= b_len; j++)
             {
-              f = MAX(f, h - go_q_i) - ge_q_i;
+              f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_left && (j==b_len))
                 {
-                  YY[j] = MAX(YY[j], XX[j] - go_t_l) - ge_t_l;
+                  YY[j] = std::max(YY[j], XX[j] - go_t_l) - ge_t_l;
                 }
               else
                 {
-                  YY[j] = MAX(YY[j], XX[j] - go_t_i) - ge_t_i;
+                  YY[j] = std::max(YY[j], XX[j] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
