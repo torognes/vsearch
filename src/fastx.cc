@@ -381,11 +381,11 @@ auto fastx_open(const char * filename) -> fastx_handle
 
   /* start filling up file buffer */
 
-  uint64_t const rest = fastx_file_fill_buffer(h);
+  auto const rest = fastx_file_fill_buffer(h);
 
   /* examine first char and see if it starts with > or @ */
 
-  int filetype = 0;
+  auto filetype = 0;
   h->is_empty = true;
   h->is_fastq = false;
 
@@ -393,7 +393,7 @@ auto fastx_open(const char * filename) -> fastx_handle
     {
       h->is_empty = false;
 
-      char * first = h->file_buffer.data;
+      auto * first = h->file_buffer.data;
 
       if (*first == '>')
         {
