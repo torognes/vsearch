@@ -463,11 +463,6 @@ auto fastx_open(const char * filename) -> fastx_handle
 
   h->stripped_all = 0;
 
-  for (uint64_t & i : h->stripped)
-    {
-      i = 0;
-    }
-
   h->lineno = 1;
   h->lineno_start = 1;
   h->seqno = -1;
