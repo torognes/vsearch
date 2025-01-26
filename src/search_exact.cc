@@ -62,6 +62,7 @@
 #include "maps.h"
 #include "mask.h"
 #include "otutable.h"
+#include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
@@ -194,7 +195,7 @@ auto search_exact_output_results(int hit_count,
   xpthread_mutex_lock(&mutex_output);
 
   /* show results */
-  int64_t const toreport = MIN(opt_maxhits, hit_count);
+  auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
 
   if (fp_alnout)
     {
