@@ -369,7 +369,7 @@ auto fastq_stats() -> void
 
       for (int64_t i = len_max; i >= std::max(1L, len_max / 2); i--)
         {
-          double read_percentage[4];
+          std::array<double, 4> read_percentage {{}};
 
           for (int z = 0; z < 4; z++)
             {
