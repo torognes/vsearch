@@ -981,7 +981,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
             pnt[f] = 0;
           }
 
-          int const w = MIN(rest, width);
+          int const w = std::min(rest, width);
 
           for (int j = 0; j < w; j++)
             {
@@ -1529,7 +1529,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
               int p1nt = 0;
               int p2nt = 0;
 
-              int const w = MIN(rest,width);
+              int const w = std::min(rest, width);
 
               for (int j = 0; j < w; j++)
                 {
