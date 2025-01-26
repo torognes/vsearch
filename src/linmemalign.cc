@@ -744,15 +744,15 @@ auto LinearMemoryAligner::alignstats(char * cigar,
               if (chrmap_4bit[(int)(a_seq[a_pos])] &
                   chrmap_4bit[(int)(b_seq[b_pos])])
                 {
-                  nwmatches++;
+                  ++nwmatches;
                 }
               else
                 {
-                  nwmismatches++;
+                  ++nwmismatches;
                 }
 
-              a_pos++;
-              b_pos++;
+              ++a_pos;
+              ++b_pos;
             }
           break;
 
@@ -770,7 +770,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
               g = go_q_i + run * ge_q_i;
             }
           nwscore -= g;
-          nwgaps++;
+          ++nwgaps;
           nwalignmentlength += run;
           b_pos += run;
           break;
@@ -789,7 +789,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
               g = go_t_i + run * ge_t_i;
             }
           nwscore -= g;
-          nwgaps++;
+          ++nwgaps;
           nwalignmentlength += run;
           a_pos += run;
           break;
