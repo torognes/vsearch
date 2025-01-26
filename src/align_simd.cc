@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "align_simd.h"
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
 #include <array>
@@ -94,7 +95,6 @@ constexpr auto CDEPTH = 4;
   the linear memory aligner.
 */
 
-#include "align_simd.h"
 
 
 constexpr auto matrix_size = 16;
