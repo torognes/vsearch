@@ -65,6 +65,7 @@
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
+#include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
@@ -258,7 +259,7 @@ auto search_topscores(struct searchinfo_s * si) -> void
         }
     }
 
-  const int minmatches = MIN(opt_minwordmatches, si->kmersamplecount);
+  auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), si->kmersamplecount);
 
   for(int i = 0; i < indexed_count; i++)
     {
