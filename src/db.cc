@@ -203,7 +203,7 @@ auto db_read(const char * filename, int upcase) -> void
 {
   h = fastx_open(filename);
 
-  if (not h)
+  if (h == nullptr)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
@@ -240,8 +240,8 @@ auto db_read(const char * filename, int upcase) -> void
   seqindex = nullptr;
 
   while (fastx_next(h,
-                   not opt_notrunclabels,
-                   upcase ? chrmap_upcase : chrmap_no_change))
+                   opt_notrunclabels == 0,
+                    (upcase != 0) ? chrmap_upcase : chrmap_no_change))
     {
       size_t const sequencelength = fastx_get_sequence_length(h);
       int64_t const abundance = fastx_get_abundance(h);
@@ -254,7 +254,7 @@ auto db_read(const char * filename, int upcase) -> void
         {
           ++discarded_long;
         }
-      else if (opt_cluster_unoise && (abundance < opt_minsize))
+      else if ((opt_cluster_unoise != nullptr) && (abundance < opt_minsize))
         {
           ++discarded_unoise;
         }
@@ -297,7 +297,7 @@ auto db_read(const char * filename, int upcase) -> void
         }
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       if (sequences > 0)
         {
@@ -321,7 +321,7 @@ auto db_read(const char * filename, int upcase) -> void
 
   /* Warn about discarded sequences */
 
-  if (discarded_short)
+  if (discarded_short != 0)
     {
       fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -329,7 +329,7 @@ auto db_read(const char * filename, int upcase) -> void
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
@@ -339,7 +339,7 @@ auto db_read(const char * filename, int upcase) -> void
         }
     }
 
-  if (discarded_long)
+  if (discarded_long != 0)
     {
       fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -347,7 +347,7 @@ auto db_read(const char * filename, int upcase) -> void
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
@@ -357,7 +357,7 @@ auto db_read(const char * filename, int upcase) -> void
         }
     }
 
-    if (discarded_unoise)
+    if (discarded_unoise != 0)
     {
       fprintf(stderr,
               "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -365,7 +365,7 @@ auto db_read(const char * filename, int upcase) -> void
               discarded_unoise,
               (discarded_unoise == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log,
                   "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -411,11 +411,11 @@ auto db_getshortestsequence() -> uint64_t
 
 auto db_free() -> void
 {
-  if (datap)
+  if (datap != nullptr)
     {
       xfree(datap);
     }
-  if (seqindex)
+  if (seqindex != nullptr)
     {
       xfree(seqindex);
     }
