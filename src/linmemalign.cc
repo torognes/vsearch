@@ -205,40 +205,38 @@ auto LinearMemoryAligner::cigar_reset() -> void
 
 auto LinearMemoryAligner::cigar_flush() -> void
 {
-  if (op_run > 0)
+  if (op_run <= 0) { return; }
+  while (true)
     {
-      while (true)
-        {
-          /* try writing string until enough memory has been allocated */
+      /* try writing string until enough memory has been allocated */
 
-          int64_t const rest = cigar_alloc - cigar_length;
-          int n = 0;
-          if (op_run > 1)
-            {
-              n = snprintf(cigar_string + cigar_length,
-                           rest,
-                           "%" PRId64 "%c", op_run, op);
-            }
-          else
-            {
-              n = snprintf(cigar_string + cigar_length,
-                           rest,
-                           "%c", op);
-            }
-          if (n < 0)
-            {
-              fatal("snprintf returned a negative number.\n");
-            }
-          else if (n >= rest)
-            {
-              cigar_alloc += MAX(n - rest + 1, 64);
-              cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
-            }
-          else
-            {
-              cigar_length += n;
-              break;
-            }
+      int64_t const rest = cigar_alloc - cigar_length;
+      int n = 0;
+      if (op_run > 1)
+        {
+          n = snprintf(cigar_string + cigar_length,
+                       rest,
+                       "%" PRId64 "%c", op_run, op);
+        }
+      else
+        {
+          n = snprintf(cigar_string + cigar_length,
+                       rest,
+                       "%c", op);
+        }
+      if (n < 0)
+        {
+          fatal("snprintf returned a negative number.\n");
+        }
+      else if (n >= rest)
+        {
+          cigar_alloc += MAX(n - rest + 1, 64);
+          cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
+        }
+      else
+        {
+          cigar_length += n;
+          break;
         }
     }
 }
