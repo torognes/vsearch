@@ -209,7 +209,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       parts = 4;
     }
 
-  const int maxhlen = MAX(ci->query_head_len, 1);
+  const int maxhlen = std::max(ci->query_head_len, 1);
   if (maxhlen > ci->head_alloc)
     {
       ci->head_alloc = maxhlen;
@@ -218,7 +218,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
   /* realloc arrays based on query length */
 
-  const int maxqlen = MAX(ci->query_len, 1);
+  const int maxqlen = std::max(ci->query_len, 1);
   const int maxpartlen = (maxqlen + parts - 1) / parts;
 
   if (maxqlen > ci->query_alloc)
@@ -373,7 +373,7 @@ auto scan_matches(struct chimera_info_s * ci,
 
   q[len] = p[len];
   for (int i = len - 1; i >= 0; i--) {
-    q[i] = MAX(q[i + 1], p[i]);
+    q[i] = std::max(q[i + 1], p[i]);
   }
 
   int best_i = 0;
@@ -1449,7 +1449,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       double const QA = 100.0 * match_QA / cols;
       double const QB = 100.0 * match_QB / cols;
       double const AB = 100.0 * match_AB / cols;
-      double const QT = MAX(QA, QB);
+      double const QT = std::max(QA, QB);
       double const QM = 100.0 * match_QM / cols;
       double const divdiff = QM - QT;
       double const divfrac = 100.0 * divdiff / QT;
