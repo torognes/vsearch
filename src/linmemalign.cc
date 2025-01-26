@@ -233,7 +233,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
         }
       else if (n >= rest)
         {
-          cigar_alloc += MAX(n - rest + 1, 64);
+          cigar_alloc += std::max(n - rest + 1, 64L);
           cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
         }
       else
