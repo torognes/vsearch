@@ -276,12 +276,12 @@ auto dumpscorematrix(CELL * score_matrix) -> void
 {
   for (auto i = 0; i < matrix_size; i++)
     {
-      printf("%2d %c", i, sym_nt_4bit[i]);
+      std::printf("%2d %c", i, sym_nt_4bit[i]);
       for (auto j = 0; j < matrix_size; j++)
         {
-          printf(" %2d", score_matrix[(matrix_size * i) + j]);
+          std::printf(" %2d", score_matrix[(matrix_size * i) + j]);
         }
-      printf("\n");
+      std::printf("\n");
     }
 }
 
@@ -296,8 +296,8 @@ auto dprofile_fill16(CELL * dprofile_word,
   for (int j = 0; j < CDEPTH; j++)
     {
       for (int z = 0; z < CHANNELS; z++)
-        fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j * CHANNELS + z]]);
-      fprintf(stderr, "\n");
+        std::fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j * CHANNELS + z]]);
+      std::fprintf(stderr, "\n");
     }
 #endif
 
