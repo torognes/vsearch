@@ -90,7 +90,7 @@
 
 */
 
-constexpr auto matrix_size = std::size_t{16};
+constexpr auto matrix_size = 16;
 
 
 LinearMemoryAligner::LinearMemoryAligner()
