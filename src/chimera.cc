@@ -967,9 +967,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
       qpos = 0;
       std::array<int, maxparents> ppos {{}};
-      for (int f = 0; f < ci->parents_found; f++) {
-        ppos[f] = 0;
-      }
       int rest = alnlen;
 
       for (int i = 0; i < alnlen; i += width)
