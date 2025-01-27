@@ -307,7 +307,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       h->format = format_plain;
 
-      size_t const bytes_read = fread(magic.data(), 1, 2, h->fp);
+      auto const bytes_read = fread(magic.data(), 1, 2, h->fp);
 
       if (bytes_read >= 2)
         {
