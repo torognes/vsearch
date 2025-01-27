@@ -1398,7 +1398,7 @@ auto pair_all() -> void
 
   for (int i = 0; i < chunk_count; i++)
     {
-      for (int j=0; j < chunk_size; j++)
+      for (int j = 0; j < chunk_size; j++)
         {
           free_merge_data(chunks[i].merge_data + j);
         }

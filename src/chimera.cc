@@ -1103,7 +1103,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   int qpos = 0;
   for (int i = 0; i < ci->query_len; i++)
     {
-      for (int j=0; j < ci->maxi[i]; j++)
+      for (int j = 0; j < ci->maxi[i]; j++)
         {
           *q++ = '-';
         }

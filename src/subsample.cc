@@ -119,12 +119,12 @@ struct file_types {
 
 //   std::vector<int> v2(v1.size());
 
-//   for (auto i=0ULL; i<nreads; ++i) {
+//   for (auto i = 0ULL; i < nreads; ++i) {
 //     int const number = distribution(generator);
 //     ++v2[number];
 //   }
 
-//   for (auto i=0UL; i<v2.size(); ++i)
+//   for (auto i = 0UL; i < v2.size(); ++i)
 //     std::cout << i << ": " << v1[i] << " " << v2[i] << "\n";
 
 //   return 0;

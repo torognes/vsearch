@@ -217,7 +217,7 @@ auto dbhash_add_all() -> void
 {
   progress_init("Hashing database sequences", db_getsequencecount());
   char * normalized = (char *) xmalloc(db_getlongestsequence() + 1);
-  for (uint64_t seqno=0; seqno < db_getsequencecount(); seqno++)
+  for (uint64_t seqno = 0; seqno < db_getsequencecount(); seqno++)
     {
       char * seq = db_getsequence(seqno);
       uint64_t const seqlen = db_getsequencelen(seqno);

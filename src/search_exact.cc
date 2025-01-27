@@ -369,7 +369,7 @@ auto search_exact_output_results(int hit_count,
     }
 
   /* update matching db sequences */
-  for (int i=0; i < hit_count; i++)
+  for (int i = 0; i < hit_count; i++)
     {
       if (hits[i].accepted)
         {

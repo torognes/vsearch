@@ -1083,7 +1083,7 @@ auto cluster_core_serial() -> void
   int lastlength = INT_MAX;
 
   progress_init("Clustering", seqcount);
-  for (int seqno=0; seqno<seqcount; seqno++)
+  for (int seqno = 0; seqno < seqcount; seqno++)
     {
       int const length = db_getsequencelen(seqno);
 
