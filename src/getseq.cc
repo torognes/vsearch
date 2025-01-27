@@ -110,7 +110,7 @@ auto read_labels_file(char * filename) -> void
       if (return_value == nullptr) { break; }
 
       auto length = std::strlen(buffer.data());
-      if ((length > 0) && (buffer[length - 1] == '\n'))
+      if ((length != 0) && (buffer[length - 1] == '\n'))
         {
           buffer[length - 1] = 0;
           --length;
