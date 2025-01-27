@@ -106,17 +106,17 @@ auto read_labels_file(char * filename) -> void
     {
       static constexpr auto buffer_size = 1024;
       std::array<char, buffer_size> buffer {{}};
-      char * return_value = std::fgets(buffer.data(), buffer_size, fp_labels);
+      auto * return_value = std::fgets(buffer.data(), buffer_size, fp_labels);
       if (return_value == nullptr) { break; }
 
-      int len = std::strlen(buffer.data());
-      if ((len > 0) && (buffer[len - 1] == '\n'))
+      int length = std::strlen(buffer.data());
+      if ((length > 0) && (buffer[length - 1] == '\n'))
         {
-          buffer[len - 1] = 0;
-          --len;
+          buffer[length - 1] = 0;
+          --length;
         }
 
-      labels_longest = std::max(len, labels_longest);
+      labels_longest = std::max(length, labels_longest);
 
       if (labels_count + 1 > labels_alloc)
         {
