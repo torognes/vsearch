@@ -890,11 +890,11 @@ inline auto finishop(s16info_s * s) -> void
       *--s->cigarend = s->op;
       if (s->opcount > 1)
         {
-          const int size = 11;
-          char buf[size];
-          int const len = snprintf(buf, size, "%d", s->opcount);
-          s->cigarend -= len;
-          memcpy(s->cigarend, buf, len);
+          static constexpr auto size = 11;
+          std::array<char, size> buffer {{}};
+          const auto length = std::snprintf(buffer.data(), size, "%d", s->opcount);
+          s->cigarend -= length;
+          std::memcpy(s->cigarend, buffer.data(), length);
         }
       s->op = 0;
       s->opcount = 0;
