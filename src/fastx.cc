@@ -104,7 +104,7 @@ auto buffer_init(struct fastx_buffer_s * buffer) -> void
 
 auto buffer_free(struct fastx_buffer_s * buffer) -> void
 {
-  if (buffer->data)
+  if (buffer->data != nullptr)
     {
       xfree(buffer->data);
     }
@@ -173,7 +173,7 @@ auto fastx_filter_header(fastx_handle h, bool truncateatspace) -> void
                   c,
                   h->lineno);
 
-          if (fp_log)
+          if (fp_log != nullptr)
             {
               fprintf(fp_log,
                       "\n\n"
@@ -196,7 +196,7 @@ auto fastx_filter_header(fastx_handle h, bool truncateatspace) -> void
                   c, c,
                   h->lineno);
 
-          if (fp_log)
+          if (fp_log != nullptr)
             {
               fprintf(fp_log,
                       "\n"
@@ -260,7 +260,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 #endif
 
   h->fp = fopen_input(filename);
-  if (! h->fp)
+  if (h->fp == nullptr)
     {
       fatal("Unable to open file for reading (%s)", filename);
     }
@@ -268,7 +268,7 @@ auto fastx_open(const char * filename) -> fastx_handle
   /* Get mode and size of original (uncompressed) file */
 
   xstat_t fs;
-  if (xfstat(fileno(h->fp), & fs))
+  if (xfstat(fileno(h->fp), & fs) != 0)
     {
       fatal("Unable to get status for input file (%s)", filename);
     }
@@ -329,7 +329,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       fclose(h->fp);
       h->fp = fopen_input(filename);
-      if (! h->fp)
+      if (h->fp == nullptr)
         {
           fatal("Unable to open file for reading (%s)", filename);
         }
@@ -339,12 +339,12 @@ auto fastx_open(const char * filename) -> fastx_handle
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
-      if (! gz_lib)
+      if (gz_lib == nullptr)
         {
           fatal("Files compressed with gzip are not supported");
         }
       h->fp_gz = (*gzdopen_p)(fileno(h->fp), "rb");
-      if (! h->fp_gz)
+      if (h->fp_gz == nullptr)
         { // dup?
           fatal("Unable to open gzip compressed file (%s)", filename);
         }
@@ -357,14 +357,14 @@ auto fastx_open(const char * filename) -> fastx_handle
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_BZLIB_H
-      if (! bz2_lib)
+      if (bz2_lib == nullptr)
         {
           fatal("Files compressed with bzip2 are not supported");
         }
       h->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, h->fp,
                                      BZ_VERBOSE_0, BZ_MORE_MEM,
                                      nullptr, 0);
-      if (! h->fp_bz)
+      if (h->fp_bz == nullptr)
         {
           fatal("Unable to open bzip2 compressed file (%s)", filename);
         }
@@ -493,12 +493,12 @@ auto fastx_close(fastx_handle h) -> void
 {
   /* Warn about stripped chars */
 
-  if (h->stripped_all)
+  if (h->stripped_all != 0U)
     {
       fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", h->stripped_all, (h->is_fastq ? "FASTQ" : "FASTA"));
       for (int i = 0; i < 256; i++)
         {
-          if (h->stripped[i])
+          if (h->stripped[i] != 0U)
             {
               fprintf(stderr, " %c(%" PRIu64 ")", i, h->stripped[i]);
             }
@@ -506,12 +506,12 @@ auto fastx_close(fastx_handle h) -> void
       fprintf(stderr, "\n");
       fprintf(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
 
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", h->stripped_all, (h->is_fastq ? "FASTQ" : "FASTA"));
           for (int i = 0; i < 256; i++)
             {
-              if (h->stripped[i])
+              if (h->stripped[i] != 0U)
                 {
                   fprintf(fp_log, " %c(%" PRIu64 ")", i, h->stripped[i]);
                 }
