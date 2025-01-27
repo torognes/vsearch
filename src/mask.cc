@@ -150,7 +150,7 @@ auto dust(char * seq, int len) -> void
   if (not opt_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
-      for(int i = 0; i < len; i++)
+      for (int i = 0; i < len; i++)
         {
           seq[i] = toupper(seq[i]);
         }

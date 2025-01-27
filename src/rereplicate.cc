@@ -97,7 +97,7 @@ auto rereplicate(struct Parameters & parameters) -> void
           abundance = 1;
         }
 
-      for(int64_t i = 0; i < abundance; ++i)
+      for (int64_t i = 0; i < abundance; ++i)
         {
           ++n_reads;
           if (parameters.opt_output != nullptr)

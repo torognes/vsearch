@@ -79,7 +79,7 @@ void increment_counters_from_bitmap(count_t * counters,
   int16x8_t * q = (int16x8_t *) (counters);
   const auto r = (totalbits + 15) / 16;
 
-  for(auto j = 0U; j < r; j++)
+  for (auto j = 0U; j < r; j++)
     {
       // load and duplicate short
       uint16x8_t r0 = vdupq_n_u16(*p);
@@ -132,7 +132,7 @@ void increment_counters_from_bitmap(count_t * counters,
   __vector signed short * q = (__vector signed short *) (counters);
   const auto r = (totalbits + 15) / 16;
 
-  for(auto j = 0U; j < r; j++)
+  for (auto j = 0U; j < r; j++)
     {
       __vector unsigned char r0;
 
@@ -208,7 +208,7 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   auto * q = (__m128i *) (counters);
   const auto r = (totalbits + 15) / 16;
 
-  for(auto j = 0U; j < r; j++)
+  for (auto j = 0U; j < r; j++)
     {
       const auto xmm0 = _mm_loadu_si128((__m128i *) p++);
 #if defined(SSSE3) || defined(SIMDE_VERSION)

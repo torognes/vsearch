@@ -4599,7 +4599,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           fprintf(stderr, "\nThe valid options for the %s command are:",
                   long_options[command_options[k]].name);
           int count = 0;
-          for(int j = 1; valid_options[k][j] >= 0; j++)
+          for (int j = 1; valid_options[k][j] >= 0; j++)
             {
               fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
               ++count;

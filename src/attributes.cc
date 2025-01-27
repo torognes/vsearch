@@ -229,7 +229,7 @@ auto header_fprint_strip(FILE * output_handle,
   auto limit = nth_attribute - 1;
   while (limit > 0)
     {
-      for(auto i = 0; i < limit; ++i)
+      for (auto i = 0; i < limit; ++i)
         {
           if (attribute_start[i] > attribute_start[i + 1])
             {

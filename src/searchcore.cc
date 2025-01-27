@@ -226,7 +226,7 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   minheap_empty(si->m);
 
-  for(auto i = 0U; i < si->kmersamplecount; i++)
+  for (auto i = 0U; i < si->kmersamplecount; i++)
     {
       auto const kmer = si->kmersample[i];
       auto * bitmap = dbindex_getbitmap(kmer);
@@ -261,7 +261,7 @@ auto search_topscores(struct searchinfo_s * si) -> void
 
   auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), si->kmersamplecount);
 
-  for(auto i = 0; i < indexed_count; i++)
+  for (auto i = 0; i < indexed_count; i++)
     {
       auto const count = si->kmers[i];
       if (count >= minmatches)
@@ -577,7 +577,7 @@ auto align_delayed(struct searchinfo_s * si) -> void
 
   int target_count = 0;
 
-  for(int x = si->finalized; x < si->hit_count; x++)
+  for (int x = si->finalized; x < si->hit_count; x++)
     {
       struct hit * hit = si->hits + x;
       if (not hit->rejected)
@@ -601,7 +601,7 @@ auto align_delayed(struct searchinfo_s * si) -> void
 
   int i = 0;
 
-  for(int x = si->finalized; x < si->hit_count; x++)
+  for (int x = si->finalized; x < si->hit_count; x++)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
       if ((si->rejects < opt_maxrejects) && (si->accepts < opt_maxaccepts))
@@ -793,7 +793,7 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 {
   struct hit * best = nullptr;
 
-  for(int i = 0; i < si_p->hit_count; i++)
+  for (int i = 0; i < si_p->hit_count; i++)
     {
       if ((not best) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
         {
@@ -803,7 +803,7 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 
   if (opt_strand>1)
     {
-      for(int i = 0; i < si_m->hit_count; i++)
+      for (int i = 0; i < si_m->hit_count; i++)
         {
           if ((not best) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
             {
@@ -826,7 +826,7 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 {
   struct hit * best = nullptr;
 
-  for(int i = 0; i < si_p->hit_count; i++)
+  for (int i = 0; i < si_p->hit_count; i++)
     {
       if ((not best) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
         {
@@ -836,7 +836,7 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 
   if (opt_strand>1)
     {
-      for(int i = 0; i < si_m->hit_count; i++)
+      for (int i = 0; i < si_m->hit_count; i++)
         {
           if ((not best) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
             {
@@ -867,7 +867,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = s ? si_m : si_p;
-      for(int i=0; i<si->hit_count; i++)
+      for (int i=0; i<si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
           if (h->accepted || h->weak)
@@ -885,7 +885,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = s ? si_m : si_p;
-      for(int i = 0; i<si->hit_count; i++)
+      for (int i = 0; i<si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
           if (h->accepted || h->weak)
