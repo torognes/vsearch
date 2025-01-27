@@ -89,8 +89,8 @@ constexpr auto format_plain = 1;
 constexpr auto format_bzip = 2;
 constexpr auto format_gzip = 3;
 
-constexpr std::array<unsigned char, 2> MAGIC_GZIP = {0x1f, 0x8b};
-constexpr std::array<unsigned char, 2> MAGIC_BZIP = {'B', 'Z'};
+constexpr std::array<unsigned char, 2> magic_gzip = {0x1f, 0x8b};
+constexpr std::array<unsigned char, 2> magic_bzip = {'B', 'Z'};
 
 
 auto buffer_init(struct fastx_buffer_s * buffer) -> void
@@ -311,11 +311,11 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       if (bytes_read >= 2)
         {
-          if (memcmp(magic.data(), MAGIC_GZIP.data(), 2) == 0)
+          if (memcmp(magic.data(), magic_gzip.data(), 2) == 0)
             {
               h->format = format_gzip;
             }
-          else if (memcmp(magic.data(), MAGIC_BZIP.data(), 2) == 0)
+          else if (memcmp(magic.data(), magic_bzip.data(), 2) == 0)
             {
               h->format = format_bzip;
             }
@@ -438,12 +438,12 @@ auto fastx_open(const char * filename) -> fastx_handle
 
           if (rest >= 2)
             {
-              if (memcmp(first, MAGIC_GZIP.data(), 2) == 0)
+              if (memcmp(first, magic_gzip.data(), 2) == 0)
                 {
                   fatal("File appears to be gzip compressed. Please use --gzip_decompress");
                 }
 
-              if (memcmp(first, MAGIC_BZIP.data(), 2) == 0)
+              if (memcmp(first, magic_bzip.data(), 2) == 0)
                 {
                   fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
                 }
