@@ -128,7 +128,8 @@ auto read_labels_file(char * filename) -> void
               fatal("Unable to allocate memory for labels");
             }
         }
-      labels_data[labels_count++] = strdup(buffer.data());
+      labels_data[labels_count] = strdup(buffer.data());
+      ++labels_count;
     }
 
   fclose(fp_labels);
