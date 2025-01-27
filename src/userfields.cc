@@ -63,6 +63,7 @@
 #include <cstring>  // std::strcmp, std::strchr, std::strlen
 
 
+// refactoring: C++11 std::array does not allow conversion from litteral string to char *
 static const char * userfields_names[] =
   {
     "query",  // 0
