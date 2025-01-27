@@ -978,9 +978,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
           int qnt = 0;
           std::array<int, maxparents> pnt {{}};
-          for (int f = 0; f < ci->parents_found; f++) {
-            pnt[f] = 0;
-          }
 
           int const w = std::min(rest, width);
 
