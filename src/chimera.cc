@@ -69,6 +69,7 @@
 #include "udb.h"
 #include "unique.h"
 #include <algorithm>  // std::max, std::min
+#include <array>
 #include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -976,7 +977,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
           /* count non-gap symbols on current line */
 
           int qnt = 0;
-          int pnt[maxparents];
+          std::array<int, maxparents> pnt {{}};
           for (int f = 0; f < ci->parents_found; f++) {
             pnt[f] = 0;
           }
