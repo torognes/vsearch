@@ -865,24 +865,21 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
 
 inline auto pushop(s16info_s * s, char const newop) -> void
 {
-  if (newop == s->op)
+  if (newop == s->op) {
+    ++s->opcount;
+    return;
+  }
+  *--s->cigarend = s->op;
+  if (s->opcount > 1)
     {
-      ++s->opcount;
+      static constexpr auto size = 11;
+      std::array<char, size> buffer {{}};
+      const auto length = std::snprintf(buffer.data(), size, "%d", s->opcount);
+      s->cigarend -= length;
+      std::memcpy(s->cigarend, buffer.data(), length);
     }
-  else
-    {
-      *--s->cigarend = s->op;
-      if (s->opcount > 1)
-        {
-          static constexpr auto size = 11;
-          std::array<char, size> buffer {{}};
-          const auto length = std::snprintf(buffer.data(), size, "%d", s->opcount);
-          s->cigarend -= length;
-          std::memcpy(s->cigarend, buffer.data(), length);
-        }
-      s->op = newop;
-      s->opcount = 1;
-    }
+  s->op = newop;
+  s->opcount = 1;
 }
 
 
