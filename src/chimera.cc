@@ -621,7 +621,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                       int const z = (i * ci->query_len) + qpos;
                       if (ci->smooth[z] == ci->maxsmooth[qpos])
                         {
-                          wins[i]++;
+                          ++wins[i];
                         }
                     }
                 }
@@ -899,7 +899,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
         {
           char const psym = chrmap_4bit[(int) (ci->paln[f][i])];
           if (qsym == psym) {
-            match_QP[f]++;
+            ++match_QP[f];
           }
         }
     }
@@ -991,7 +991,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
               for (int f = 0; f < ci->parents_found; f++) {
                 if (ci->paln[f][i + j] != '-')
                   {
-                    pnt[f]++;
+                    ++pnt[f];
                   }
               }
             }
