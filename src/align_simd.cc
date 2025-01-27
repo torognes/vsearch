@@ -863,7 +863,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
 }
 
 
-inline auto pushop(s16info_s * s, char newop) -> void
+inline auto pushop(s16info_s * s, char const newop) -> void
 {
   if (newop == s->op)
     {
