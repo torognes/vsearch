@@ -92,12 +92,12 @@
 
 /* global constants/data, no need for synchronization */
 static int parts = 0;
-const int maxparts = 100;
-const int window = 64;
-const int few = 4;
-const int maxcandidates = few * maxparts;
-const int rejects = 16;
-const double chimera_id = 0.55;
+constexpr auto maxparts = 100;
+constexpr auto window = 64;
+constexpr auto few = 4;
+constexpr auto maxcandidates = few * maxparts;
+constexpr auto rejects = 16;
+constexpr auto chimera_id = 0.55;
 static int tophits;
 static pthread_attr_t attr;
 static pthread_t * pthread;
