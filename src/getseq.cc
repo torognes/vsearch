@@ -104,7 +104,7 @@ auto read_labels_file(char * filename) -> void
 
   while (true)
     {
-      const int buffer_size = 1024;
+      static constexpr auto buffer_size = 1024;
       std::array<char, buffer_size> buffer {{}};
       char * ret = fgets(buffer.data(), buffer_size, fp_labels);
       if (ret)
