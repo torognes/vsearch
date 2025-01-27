@@ -280,7 +280,7 @@ auto xfstat(int file_descriptor, xstat_t * buf) -> int
 #ifdef _WIN32
   return _fstat64(file_descriptor, buf);
 #else
-  return fstat(file_descriptor, buf);
+  return fstat(file_descriptor, buf);  // return zero if success
 #endif
 }
 
