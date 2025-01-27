@@ -109,14 +109,14 @@ auto read_labels_file(char * filename) -> void
       auto * return_value = std::fgets(buffer.data(), buffer_size, fp_labels);
       if (return_value == nullptr) { break; }
 
-      int length = std::strlen(buffer.data());
+      auto length = std::strlen(buffer.data());
       if ((length > 0) && (buffer[length - 1] == '\n'))
         {
           buffer[length - 1] = 0;
           --length;
         }
 
-      labels_longest = std::max(length, labels_longest);
+      labels_longest = std::max(static_cast<int>(length), labels_longest);
 
       if (labels_count + 1 > labels_alloc)
         {
