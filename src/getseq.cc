@@ -64,6 +64,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <algorithm>  // std::max, std::min
+#include <array>
 #include <cctype>  // isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -104,11 +105,11 @@ auto read_labels_file(char * filename) -> void
   while (true)
     {
       const int buffer_size = 1024;
-      char buffer[buffer_size];
-      char * ret = fgets(buffer, buffer_size, fp_labels);
+      std::array<char, buffer_size> buffer {{}};
+      char * ret = fgets(buffer.data(), buffer_size, fp_labels);
       if (ret)
         {
-          int len = strlen(buffer);
+          int len = strlen(buffer.data());
           if ((len > 0) && (buffer[len - 1] == '\n'))
             {
               buffer[len - 1] = 0;
@@ -127,7 +128,7 @@ auto read_labels_file(char * filename) -> void
                   fatal("Unable to allocate memory for labels");
                 }
             }
-          labels_data[labels_count++] = strdup(buffer);
+          labels_data[labels_count++] = strdup(buffer.data());
         }
       else
         {
