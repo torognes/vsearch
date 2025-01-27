@@ -96,7 +96,7 @@ constexpr std::array<unsigned char, 2> magic_bzip = {'B', 'Z'};
 auto buffer_init(struct fastx_buffer_s * buffer) -> void
 {
   buffer->alloc = fastx_buffer_alloc;
-  buffer->data = (char *) xmalloc(buffer->alloc);
+  buffer->data = static_cast<char *>(xmalloc(buffer->alloc));
   buffer->data[0] = 0;
   buffer->length = 0;
   buffer->position = 0;
