@@ -65,6 +65,7 @@
 #include "mask.h"
 #include "unique.h"
 #include <algorithm>  // std::min, std::max
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>
 #include <cstdint>  // uint64_t
@@ -214,7 +215,7 @@ auto udb_info() -> void
 {
   /* Read UDB header and show basic info */
 
-  unsigned int buffer[50];
+  std::array<unsigned int, 50> buffer {{}};
 
   int fd_udbinfo = 0;
 
@@ -224,7 +225,7 @@ auto udb_info() -> void
       fatal("Unable to open UDB file for reading");
     }
 
-  uint64_t const bytesread = read(fd_udbinfo, buffer, 4 * 50);
+  uint64_t const bytesread = read(fd_udbinfo, buffer.data(), 4 * 50);
   if (bytesread != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");
@@ -319,10 +320,10 @@ auto udb_read(const char * filename,
 
   /* header */
 
-  unsigned int buffer[50];
+  std::array<unsigned int, 50> buffer {{}};
   uint64_t pos = 0;
 
-  pos += largeread(fd_udb, buffer, 4 * 50, pos);
+  pos += largeread(fd_udb, buffer.data(), 4 * 50, pos);
 
   if ((buffer[0]  != 0x55444246) or
       (buffer[2] != 32) or
@@ -365,7 +366,7 @@ auto udb_read(const char * filename,
 
   /* signature */
 
-  pos += largeread(fd_udb, buffer, 4, pos);
+  pos += largeread(fd_udb, buffer.data(), 4, pos);
 
   if (buffer[0] != 0x55444233)
     {
@@ -380,7 +381,7 @@ auto udb_read(const char * filename,
 
   /* new header */
 
-  pos += largeread(fd_udb, buffer, 4 * 8, pos);
+  pos += largeread(fd_udb, buffer.data(), 4 * 8, pos);
 
   if ((buffer[0] != 0x55444234) or
       (buffer[1] != 0x005e0db3) or
