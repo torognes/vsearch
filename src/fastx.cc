@@ -303,19 +303,19 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       /* read two characters and compare with magic */
 
-      unsigned char magic[2];
+      std::array<unsigned char, 2> magic {{}};
 
       h->format = format_plain;
 
-      size_t const bytes_read = fread(&magic, 1, 2, h->fp);
+      size_t const bytes_read = fread(magic.data(), 1, 2, h->fp);
 
       if (bytes_read >= 2)
         {
-          if (memcmp(magic, MAGIC_GZIP.data(), 2) == 0)
+          if (memcmp(magic.data(), MAGIC_GZIP.data(), 2) == 0)
             {
               h->format = format_gzip;
             }
-          else if (memcmp(magic, MAGIC_BZIP.data(), 2) == 0)
+          else if (memcmp(magic.data(), MAGIC_BZIP.data(), 2) == 0)
             {
               h->format = format_bzip;
             }
