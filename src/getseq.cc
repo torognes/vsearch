@@ -107,33 +107,28 @@ auto read_labels_file(char * filename) -> void
       static constexpr auto buffer_size = 1024;
       std::array<char, buffer_size> buffer {{}};
       char * ret = std::fgets(buffer.data(), buffer_size, fp_labels);
-      if (ret)
-        {
-          int len = std::strlen(buffer.data());
-          if ((len > 0) && (buffer[len - 1] == '\n'))
-            {
-              buffer[len - 1] = 0;
-              --len;
-            }
+      if (ret == nullptr) { break; }
 
-          labels_longest = std::max(len, labels_longest);
-
-          if (labels_count + 1 > labels_alloc)
-            {
-              labels_alloc += 1024;
-              labels_data = (char **) xrealloc(labels_data,
-                                               labels_alloc * sizeof (char *));
-              if (! labels_data)
-                {
-                  fatal("Unable to allocate memory for labels");
-                }
-            }
-          labels_data[labels_count++] = strdup(buffer.data());
-        }
-      else
+      int len = std::strlen(buffer.data());
+      if ((len > 0) && (buffer[len - 1] == '\n'))
         {
-          break;
+          buffer[len - 1] = 0;
+          --len;
         }
+
+      labels_longest = std::max(len, labels_longest);
+
+      if (labels_count + 1 > labels_alloc)
+        {
+          labels_alloc += 1024;
+          labels_data = (char **) xrealloc(labels_data,
+                                           labels_alloc * sizeof (char *));
+          if (! labels_data)
+            {
+              fatal("Unable to allocate memory for labels");
+            }
+        }
+      labels_data[labels_count++] = strdup(buffer.data());
     }
 
   fclose(fp_labels);
