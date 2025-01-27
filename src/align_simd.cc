@@ -874,9 +874,9 @@ inline auto pushop(s16info_s * s, char newop) -> void
       *--s->cigarend = s->op;
       if (s->opcount > 1)
         {
-          const int size = 11;
+          auto const size = 11;
           char buf[size];
-          int const len = snprintf(buf, size, "%d", s->opcount);
+          const auto len = snprintf(buf, size, "%d", s->opcount);
           s->cigarend -= len;
           memcpy(s->cigarend, buf, len);
         }
