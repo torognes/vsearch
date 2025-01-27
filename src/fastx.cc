@@ -84,9 +84,9 @@ constexpr uint64_t fastx_buffer_alloc = 8192;
 #define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
 #endif
 
-constexpr int format_plain = 1;
-constexpr int format_bzip = 2;
-constexpr int format_gzip = 3;
+constexpr auto format_plain = 1;
+constexpr auto format_bzip = 2;
+constexpr auto format_gzip = 3;
 
 static unsigned char MAGIC_GZIP[] = "\x1f\x8b";
 static unsigned char MAGIC_BZIP[] = "BZ";
