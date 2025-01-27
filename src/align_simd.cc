@@ -867,7 +867,7 @@ inline auto pushop(s16info_s * s, char const newop) -> void
 {
   if (newop == s->op)
     {
-      s->opcount++;
+      ++s->opcount;
     }
   else
     {
