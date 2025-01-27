@@ -106,10 +106,10 @@ auto read_labels_file(char * filename) -> void
     {
       static constexpr auto buffer_size = 1024;
       std::array<char, buffer_size> buffer {{}};
-      char * ret = fgets(buffer.data(), buffer_size, fp_labels);
+      char * ret = std::fgets(buffer.data(), buffer_size, fp_labels);
       if (ret)
         {
-          int len = strlen(buffer.data());
+          int len = std::strlen(buffer.data());
           if ((len > 0) && (buffer[len - 1] == '\n'))
             {
               buffer[len - 1] = 0;
