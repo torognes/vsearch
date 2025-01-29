@@ -91,11 +91,11 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
 
   /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
 
-  if (lhs->deleted > rhs->deleted)
+  if (static_cast<int>(lhs->deleted) > static_cast<int>(rhs->deleted))
     {
       return +1;
     }
-  if (lhs->deleted < rhs->deleted)
+  if (static_cast<int>(lhs->deleted) < static_cast<int>(rhs->deleted))
     {
       return -1;
     }
@@ -141,19 +141,19 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       fatal("Option '--strand both' not supported with --derep_prefix");
     }
 
-  if (parameters.opt_output)
+  if (parameters.opt_output != nullptr)
     {
       fp_output = fopen_output(parameters.opt_output);
-      if (not fp_output)
+      if (fp_output == nullptr)
         {
           fatal("Unable to open output file for writing");
         }
     }
 
-  if (parameters.opt_uc)
+  if (parameters.opt_uc != nullptr)
     {
       fp_uc = fopen_output(parameters.opt_uc);
-      if (not fp_uc)
+      if (fp_uc == nullptr)
         {
           fatal("Unable to open output (uc) file for writing");
         }
@@ -247,11 +247,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       uint64_t hash = prefix_hashes[prefix_len];
       struct bucket * bp = &hashtable[hash & hash_mask];
 
-      while ((bp->size) and
+      while ((bp->size != 0U) and
              ((bp->deleted) or
               (bp->hash != hash) or
               (prefix_len != db_getsequencelen(bp->seqno_first)) or
-              (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len))))
+              (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len) != 0)))
         {
           ++bp;
           if (bp >= &hashtable[hashtablesize])
@@ -266,7 +266,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       auto const orig_hash = hash;
       struct bucket * orig_bp = bp;
 
-      if (bp->size)
+      if (bp->size != 0U)
         {
           /* exact match */
           bp->size += ab;
@@ -280,13 +280,13 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         {
           /* look for prefix match */
 
-          while ((not bp->size) and (prefix_len > len_shortest))
+          while ((bp->size == 0U) and (prefix_len > len_shortest))
             {
               --prefix_len;
               hash = prefix_hashes[prefix_len];
               bp = &hashtable[hash & hash_mask];
 
-              while ((bp->size) and
+              while ((bp->size != 0U) and
                      ((bp->deleted) or
                       (bp->hash != hash) or
                       (prefix_len != db_getsequencelen(bp->seqno_first)) or
@@ -302,7 +302,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 }
             }
 
-          if (bp->size)
+          if (bp->size != 0U)
             {
               /* prefix match */
 
@@ -347,7 +347,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (clusters > 0)
     {
-      if (clusters % 2)
+      if ((clusters % 2) != 0)
         {
           median = hashtable[(clusters - 1) / 2].size;
         }
@@ -367,7 +367,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -383,7 +383,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -415,7 +415,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* write output */
 
-  if (parameters.opt_output)
+  if (parameters.opt_output != nullptr)
     {
       progress_init("Writing output file", clusters);
 
@@ -451,7 +451,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  if (parameters.opt_uc)
+  if (parameters.opt_uc != nullptr)
     {
       progress_init("Writing uc file, first part", clusters);
       for (int64_t i = 0; i < clusters; i++)
@@ -501,7 +501,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %" PRId64
