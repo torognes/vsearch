@@ -63,7 +63,7 @@
 #include "maps.h"
 #include <array>
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::snprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
 
 
@@ -186,7 +186,7 @@ auto fastq_next(fastx_handle input_handle,
 
   input_handle->lineno_start = input_handle->lineno;
 
-  static constexpr auto max_message_length = 200;
+  static constexpr auto max_message_length = std::size_t{200};
   std::array<char, max_message_length> message {{}};
   auto ok = true;
   char illegal_char = '\0';
