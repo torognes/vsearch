@@ -200,10 +200,10 @@ auto rehash_smallmem() -> void
   for (uint64_t i = 0; i < hashtablesize; i++)
     {
       struct sm_bucket * old_bp = hashtable + i;
-      if (old_bp->size)
+      if (old_bp->size != 0U)
         {
           uint64_t k = hash2bucket(old_bp->hash, new_hashtablesize);
-          while (new_hashtable[k].size)
+          while (new_hashtable[k].size != 0U)
             {
               k = next_bucket(k, new_hashtablesize);
             }
@@ -233,7 +233,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   auto * input_filename = parameters.opt_derep_smallmem;
   fastx_handle h = fastx_open(input_filename);
 
-  if (not h)
+  if (h == nullptr)
     {
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format).");
     }
@@ -245,10 +245,10 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   std::FILE * fp_fastaout = nullptr;
 
-  if (parameters.opt_fastaout)
+  if (parameters.opt_fastaout != nullptr)
     {
       fp_fastaout = fopen_output(parameters.opt_fastaout);
-      if (not fp_fastaout)
+      if (fp_fastaout == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
@@ -358,13 +358,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
-      while ((bp->size) and (hash != bp->hash))
+      while ((bp->size != 0U) and (hash != bp->hash))
         {
           j = next_bucket(j, hashtablesize);
           bp = hashtable + j;
         }
 
-      if (parameters.opt_strand and not bp->size)
+      if (parameters.opt_strand and (bp->size == 0U))
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -373,13 +373,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
-          while ((rc_bp->size) and (rc_hash != rc_bp->hash))
+          while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
             {
               k = next_bucket(k, hashtablesize);
               rc_bp = hashtable + k;
             }
 
-          if (rc_bp->size)
+          if (rc_bp->size != 0U)
             {
               bp = rc_bp;
               j = k;
@@ -390,7 +390,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 
-      if (bp->size)
+      if (bp->size != 0U)
         {
           /* at least one identical sequence already */
           bp->size += ab;
@@ -435,7 +435,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
     }
 
-  if (parameters.opt_log)
+  if (parameters.opt_log != nullptr)
     {
       if (sequencecount > 0)
         {
@@ -457,7 +457,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
     }
 
-  if (discarded_short)
+  if (discarded_short != 0U)
     {
       fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -465,7 +465,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
@@ -475,7 +475,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
     }
 
-  if (discarded_long)
+  if (discarded_long != 0U)
     {
       fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -483,7 +483,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
@@ -503,7 +503,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -521,7 +521,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -536,7 +536,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   /* second pass with output */
 
   fastx_handle h2 = fastx_open(input_filename);
-  if (not h2)
+  if (h2 == nullptr)
     {
       fatal("Cannot open and read from the input file.");
     }
@@ -569,13 +569,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
-      while ((bp->size) and (hash != bp->hash))
+      while ((bp->size != 0U) and (hash != bp->hash))
         {
           j = next_bucket(j, hashtablesize);
           bp = hashtable + j;
         }
 
-      if (parameters.opt_strand and not bp->size)
+      if (parameters.opt_strand and (bp->size == 0U))
         {
           /* no match on plus strand */
           /* check minus strand as well */
@@ -584,13 +584,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
-          while ((rc_bp->size) and (rc_hash != rc_bp->hash))
+          while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
             {
               k = next_bucket(k, hashtablesize);
               rc_bp = hashtable + k;
             }
 
-          if (rc_bp->size)
+          if (rc_bp->size != 0U)
             {
               bp = rc_bp;
               j = k;
@@ -642,7 +642,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
