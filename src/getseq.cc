@@ -82,13 +82,13 @@ static char * * labels_data = nullptr;
 auto read_labels_file(char * filename) -> void
 {
   FILE * fp_labels = fopen_input(filename);
-  if (not fp_labels)
+  if (fp_labels == nullptr)
     {
       fatal("Unable to open labels file (%s)", filename);
     }
 
   xstat_t fs;
-  if (xfstat(fileno(fp_labels), & fs))
+  if (xfstat(fileno(fp_labels), & fs) != 0)
     {
       fatal("Unable to get status for labels file (%s)", filename);
     }
@@ -142,7 +142,7 @@ auto read_labels_file(char * filename) -> void
           fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
 
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
@@ -167,11 +167,11 @@ auto test_label_match(fastx_handle h) -> bool
   int const hlen = fastx_get_header_length(h);
   char * field_buffer = nullptr;
   int field_len = 0;
-  if (opt_label_field)
+  if (opt_label_field != nullptr)
     {
       field_len = strlen(opt_label_field);
       int field_buffer_size = field_len + 2;
-      if (opt_label_word)
+      if (opt_label_word != nullptr)
         {
           field_buffer_size += strlen(opt_label_word);
         }
@@ -183,23 +183,23 @@ auto test_label_match(fastx_handle h) -> bool
       snprintf(field_buffer, field_buffer_size, "%s=", opt_label_field);
     }
 
-  if (opt_label)
+  if (opt_label != nullptr)
     {
       char * needle = opt_label;
       int const wlen = strlen(needle);
       if (opt_label_substr_match)
         {
-          return xstrcasestr(header, needle);
+          return (xstrcasestr(header, needle) != nullptr);
         }
-      return (hlen == wlen) and not strcasecmp(header, needle); // strcasecmp is a linuxism
+      return (hlen == wlen) and (strcasecmp(header, needle) == 0); // strcasecmp is a linuxism
     }
-  if (opt_labels)
+  if (opt_labels != nullptr)
     {
       if (opt_label_substr_match)
         {
           for (int i = 0; i < labels_count; i++)
             {
-              if (xstrcasestr(header, labels_data[i]))
+              if (xstrcasestr(header, labels_data[i]) != nullptr)
                 {
                   return true;
                 }
@@ -211,17 +211,17 @@ auto test_label_match(fastx_handle h) -> bool
             {
               char * needle = labels_data[i];
               int const wlen = strlen(needle);
-              if ((hlen == wlen) and not strcasecmp(header, needle)) // strcasecmp is a linuxism
+              if ((hlen == wlen) and (strcasecmp(header, needle) == 0)) // strcasecmp is a linuxism
                 {
                   return true;
                 }
             }
         }
     }
-  else if (opt_label_word)
+  else if (opt_label_word != nullptr)
     {
       char * needle = opt_label_word;
-      if (opt_label_field)
+      if (opt_label_field != nullptr)
         {
           strcpy(field_buffer + field_len + 1, needle);
           needle = field_buffer;
@@ -231,9 +231,9 @@ auto test_label_match(fastx_handle h) -> bool
       while (true)
         {
           hit = strstr(hit, needle);
-          if (hit)
+          if (hit != nullptr)
             {
-              if (opt_label_field)
+              if (opt_label_field != nullptr)
                 {
                   /* check of field */
                   if (((hit == header) or
@@ -248,9 +248,9 @@ auto test_label_match(fastx_handle h) -> bool
                 {
                   /* check of full word */
                   if (((hit == header) or
-                       (not isalnum(*(hit - 1)))) and
+                       (isalnum(*(hit - 1)) == 0)) and
                       ((hit + wlen == header + hlen) or
-                       (not isalnum(*(hit + wlen)))))
+                       (isalnum(*(hit + wlen)) == 0)))
                     {
                       return true;
                     }
@@ -263,12 +263,12 @@ auto test_label_match(fastx_handle h) -> bool
             }
         }
     }
-  else if (opt_label_words)
+  else if (opt_label_words != nullptr)
     {
       for (int i = 0; i < labels_count; i++)
         {
           char * needle = labels_data[i];
-          if (opt_label_field)
+          if (opt_label_field != nullptr)
             {
               strcpy(field_buffer + field_len + 1, needle);
               needle = field_buffer;
@@ -278,9 +278,9 @@ auto test_label_match(fastx_handle h) -> bool
           while (true)
             {
               hit = strstr(hit, needle);
-              if (hit)
+              if (hit != nullptr)
                 {
-                  if (opt_label_field)
+                  if (opt_label_field != nullptr)
                     {
                       /* check of field */
                       if (((hit == header) or
@@ -297,7 +297,7 @@ auto test_label_match(fastx_handle h) -> bool
                       if (((hit == header) or
                            (not isalnum(*(hit - 1)))) and
                           ((hit + wlen == header + hlen) or
-                           (not isalnum(*(hit + wlen)))))
+                           (isalnum(*(hit + wlen)) == 0)))
                         {
                           return true;
                         }
@@ -317,22 +317,22 @@ auto test_label_match(fastx_handle h) -> bool
 
 auto getseq(char * filename) -> void
 {
-  if ((not opt_fastqout) and (not opt_fastaout) and
-      (not opt_notmatched) and (not opt_notmatchedfq))
+  if ((opt_fastqout == nullptr) and (opt_fastaout == nullptr) and
+      (opt_notmatched == nullptr) and (opt_notmatchedfq == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (opt_fastx_getseq)
+  if (opt_fastx_getseq != nullptr)
     {
-      if (not opt_label)
+      if (opt_label == nullptr)
         {
           fatal("Missing label option");
         }
     }
-  else if (opt_fastx_getsubseq)
+  else if (opt_fastx_getsubseq != nullptr)
     {
-      if (not opt_label)
+      if (opt_label == nullptr)
         {
           fatal("Missing label option");
         }
@@ -347,22 +347,22 @@ auto getseq(char * filename) -> void
           fatal("The argument to option subseq_start must be equal or less than to subseq_end");
         }
     }
-  else if (opt_fastx_getseqs)
+  else if (opt_fastx_getseqs != nullptr)
     {
       int label_options = 0;
-      if (opt_label)
+      if (opt_label != nullptr)
         {
           ++label_options;
         }
-      if (opt_labels)
+      if (opt_labels != nullptr)
         {
           ++label_options;
         }
-      if (opt_label_word)
+      if (opt_label_word != nullptr)
         {
           ++label_options;
         }
-      if (opt_label_words)
+      if (opt_label_words != nullptr)
         {
           ++label_options;
         }
@@ -372,12 +372,12 @@ auto getseq(char * filename) -> void
           fatal("Specify one label option (label, labels, label_word or label_words)");
         }
 
-      if (opt_labels)
+      if (opt_labels != nullptr)
         {
           read_labels_file(opt_labels);
         }
 
-      if (opt_label_words)
+      if (opt_label_words != nullptr)
         {
           read_labels_file(opt_label_words);
         }
@@ -387,12 +387,12 @@ auto getseq(char * filename) -> void
 
   h1 = fastx_open(filename);
 
-  if (not h1)
+  if (h1 == nullptr)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
 
-  if ((opt_fastqout or opt_notmatchedfq) and not (h1->is_fastq or h1->is_empty))
+  if (((opt_fastqout != nullptr) or (opt_notmatchedfq != nullptr)) and not (h1->is_fastq or h1->is_empty))
     {
       fatal("Cannot write FASTQ output from FASTA input");
     }
@@ -404,37 +404,37 @@ auto getseq(char * filename) -> void
   FILE * fp_notmatched = nullptr;
   FILE * fp_notmatchedfq = nullptr;
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (not fp_fastaout)
+      if (fp_fastaout == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (not fp_fastqout)
+      if (fp_fastqout == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
     }
 
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (not fp_notmatched)
+      if (fp_notmatched == nullptr)
         {
           fatal("Unable to open FASTA output file (notmatched) for writing");
         }
     }
 
-  if (opt_notmatchedfq)
+  if (opt_notmatchedfq != nullptr)
     {
       fp_notmatchedfq = fopen_output(opt_notmatchedfq);
-      if (not fp_notmatchedfq)
+      if (fp_notmatchedfq == nullptr)
         {
           fatal("Unable to open FASTQ output file (notmatchedfq) for writing");
         }
@@ -445,13 +445,13 @@ auto getseq(char * filename) -> void
   int64_t kept = 0;
   int64_t discarded = 0;
 
-  while (fastx_next(h1, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h1, opt_notrunclabels == 0, chrmap_no_change))
     {
       bool const match = test_label_match(h1);
 
       int64_t start = 1;
       int64_t end = fastx_get_sequence_length(h1);
-      if (opt_fastx_getsubseq)
+      if (opt_fastx_getsubseq != nullptr)
         {
           start = std::max(opt_subseq_start, start);
           end = std::min(opt_subseq_end, end);
@@ -464,7 +464,7 @@ auto getseq(char * filename) -> void
 
           ++kept;
 
-          if (opt_fastaout)
+          if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -481,7 +481,7 @@ auto getseq(char * filename) -> void
                                   0.0);
             }
 
-          if (opt_fastqout)
+          if (opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   fastx_get_sequence(h1) + start - 1,
@@ -500,7 +500,7 @@ auto getseq(char * filename) -> void
 
           ++discarded;
 
-          if (opt_notmatched)
+          if (opt_notmatched != nullptr)
             {
               fasta_print_general(fp_notmatched,
                                   nullptr,
@@ -517,7 +517,7 @@ auto getseq(char * filename) -> void
                                   0.0);
             }
 
-          if (opt_notmatchedfq)
+          if (opt_notmatchedfq != nullptr)
             {
               fastq_print_general(fp_notmatchedfq,
                                   fastx_get_sequence(h1) + start - 1,
@@ -551,7 +551,7 @@ auto getseq(char * filename) -> void
       fprintf(stderr, "\n");
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log,
               "%" PRId64 " of %" PRId64 " sequences extracted",
@@ -566,29 +566,29 @@ auto getseq(char * filename) -> void
       fprintf(fp_log, "\n");
     }
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
 
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fclose(fp_notmatched);
     }
 
-  if (opt_notmatchedfq)
+  if (opt_notmatchedfq != nullptr)
     {
       fclose(fp_notmatchedfq);
     }
 
   fastx_close(h1);
 
-  if (opt_labels or opt_label_words)
+  if ((opt_labels != nullptr) or (opt_label_words != nullptr))
     {
       free_labels();
     }
