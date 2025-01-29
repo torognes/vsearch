@@ -114,11 +114,11 @@ static std::array<std::array<int64_t, matrix_size>, matrix_size> scorematrix {{}
 
 using VECTOR_SHORT = __vector signed short;
 
-const __vector unsigned char perm_merge_long_low =
+constexpr __vector unsigned char perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
 
-const __vector unsigned char perm_merge_long_high =
+constexpr __vector unsigned char perm_merge_long_high =
   {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
 
@@ -143,7 +143,7 @@ const __vector unsigned char perm_merge_long_high =
 
 using VECTOR_SHORT = int16x8_t;
 
-const uint16x8_t neon_mask =
+constexpr uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
 
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
@@ -499,7 +499,7 @@ auto dprofile_fill16(CELL * dprofile_word,
 /* The VSX vec_bperm instruction puts the 16 selected bits of the first
    source into bits 48-63 of the destination. */
 
-const __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
+constexpr __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
   56,  48,  40,  32,  24,  16,   8,   0 };
 
 #define ALIGNCORE(H, N, F, V, RES, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX)  \
