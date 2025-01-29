@@ -287,14 +287,14 @@ auto fastq_next(fastx_handle input_handle,
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
               snprintf(message.data(),
-                       200,
+                       max_message_length,
                        "Illegal sequence character '%c'",
                        illegal_char);
             }
           else
             {
               snprintf(message.data(),
-                       200,
+                       max_message_length,
                        "Illegal sequence character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
@@ -420,14 +420,14 @@ auto fastq_next(fastx_handle input_handle,
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
               snprintf(message.data(),
-                       200,
+                       max_message_length,
                        "Illegal quality character '%c'",
                        illegal_char);
             }
           else
             {
               snprintf(message.data(),
-                       200,
+                       max_message_length,
                        "Illegal quality character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
