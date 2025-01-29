@@ -470,7 +470,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       while ((bp->size) and
              ((hash != bp->hash) or
               (seqcmp(seq_up.data(), bp->seq, seqlen)) or
-              (use_header and strcmp(header, bp->header))))
+              (use_header and (strcmp(header, bp->header) != 0))))
         {
           j = (j + 1) & hash_mask;
           bp = hashtable + j;
@@ -489,7 +489,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                  and
                  ((rc_hash != rc_bp->hash) or
                   (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen)) or
-                  (use_header and strcmp(header, rc_bp->header))))
+                  (use_header and (strcmp(header, rc_bp->header) != 0))))
             {
               k = (k + 1) & hash_mask;
               rc_bp = hashtable + k;

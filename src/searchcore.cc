@@ -478,7 +478,7 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
                  opt_idsuffix)))
       &&
       /* self */
-      ((not opt_self) or (strcmp(si->query_head, dlabel)))
+      ((not opt_self) or (strcmp(si->query_head, dlabel) != 0))
       &&
       /* selfid */
       ((not opt_selfid) or
