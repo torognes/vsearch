@@ -295,7 +295,7 @@ auto test_label_match(fastx_handle h) -> bool
                     {
                       /* check of full word */
                       if (((hit == header) or
-                           (not isalnum(*(hit - 1)))) and
+                           (isalnum(*(hit - 1)) == 0)) and
                           ((hit + wlen == header + hlen) or
                            (isalnum(*(hit + wlen)) == 0)))
                         {
