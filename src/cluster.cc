@@ -69,7 +69,6 @@
 #include "unique.h"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // INT_MAX, LONG_MAX
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::qsort
