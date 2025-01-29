@@ -77,7 +77,7 @@ auto fastq_fatal(uint64_t lineno, const char * msg) -> void
       fatal("Out of memory");
     }
 
-  if (string)
+  if (string != nullptr)
     {
       fatal(string);
       xfree(string);
@@ -226,7 +226,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to header buffer */
       auto len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
@@ -253,7 +253,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end when new line starting with + is seen */
-      if (lf && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
+      if ((lf != nullptr) && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
         {
           break;
         }
@@ -264,7 +264,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to sequence buffer */
       auto len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
@@ -296,7 +296,7 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal sequence character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - (lf ? 1 : 0), msg);
+          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg);
         }
     }
 
@@ -324,7 +324,7 @@ auto fastq_next(fastx_handle input_handle,
                            rest);
       /* copy to plusline buffer */
       auto len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
@@ -342,9 +342,9 @@ auto fastq_next(fastx_handle input_handle,
   bool plusline_invalid = false;
   if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
     {
-      if (memcmp(input_handle->header_buffer.data,
+      if ((memcmp(input_handle->header_buffer.data,
                  input_handle->plusline_buffer.data,
-                 input_handle->header_buffer.length))
+                  input_handle->header_buffer.length) != 0))
         {
           plusline_invalid = true;
         }
@@ -359,7 +359,7 @@ auto fastq_next(fastx_handle input_handle,
     }
   if (plusline_invalid)
     {
-      fastq_fatal(input_handle->lineno - (lf ? 1 : 0),
+      fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0),
                   "'+' line must be empty or identical to header");
     }
 
@@ -378,7 +378,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end if next entry starts : LF + '@' + correct length */
-      if (lf &&
+      if ((lf != nullptr) &&
           (input_handle->file_buffer.data[input_handle->file_buffer.position] == '@') &&
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
@@ -391,7 +391,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to quality buffer */
       auto len = rest;
-      if (lf)
+      if (lf != nullptr)
         {
           /* LF found, copy up to and including LF */
           len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
@@ -429,13 +429,13 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal quality character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - (lf ? 1 : 0), msg);
+          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg);
         }
     }
 
   if (input_handle->sequence_buffer.length != input_handle->quality_buffer.length)
     {
-      fastq_fatal(input_handle->lineno - (lf ? 1 : 0),
+      fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0),
                   "Sequence and quality lines must be equally long");
     }
 
@@ -558,7 +558,7 @@ auto fastq_print_general(FILE * output_handle,
     {
       fprint_seq_digest_md5(output_handle, seq, len);
     }
-  else if (opt_relabel && (ordinal > 0))
+  else if ((opt_relabel != nullptr) && (ordinal > 0))
     {
       std::fprintf(output_handle, "%s%d", opt_relabel, ordinal);
     }
@@ -575,12 +575,12 @@ auto fastq_print_general(FILE * output_handle,
                           xlength);
     }
 
-  if (opt_label_suffix)
+  if (opt_label_suffix != nullptr)
     {
       std::fprintf(output_handle, "%s", opt_label_suffix);
     }
 
-  if (opt_sample)
+  if (opt_sample != nullptr)
     {
       std::fprintf(output_handle, ";sample=%s", opt_sample);
     }
@@ -621,7 +621,7 @@ auto fastq_print_general(FILE * output_handle,
     }
 
   if (opt_relabel_keep &&
-      ((opt_relabel && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
+      (((opt_relabel != nullptr) && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
     {
       std::fprintf(output_handle, " %.*s", header_len, header);
     }
