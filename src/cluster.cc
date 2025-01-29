@@ -662,7 +662,7 @@ auto cluster_core_parallel() -> void
                      opt_gap_extension_query_right,
                      opt_gap_extension_target_right);
 
-  int lastlength = INT_MAX;
+  auto lastlength = std::numeric_limits<int>::max();
 
   int seqno = 0;
 
@@ -1080,7 +1080,7 @@ auto cluster_core_serial() -> void
       cluster_query_init(si_m);
     }
 
-  int lastlength = INT_MAX;
+  auto lastlength = std::numeric_limits<int>::max();
 
   progress_init("Clustering", seqcount);
   for (int seqno = 0; seqno < seqcount; seqno++)
