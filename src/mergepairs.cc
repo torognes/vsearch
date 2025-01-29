@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
+#include <array>
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
@@ -110,11 +111,11 @@ static pthread_t * pthread;
 static pthread_attr_t attr;
 
 constexpr auto n_quality_symbols = 128U;
-static char merge_qual_same[n_quality_symbols][n_quality_symbols];
-static char merge_qual_diff[n_quality_symbols][n_quality_symbols];
-static double match_score[n_quality_symbols][n_quality_symbols];
-static double mism_score[n_quality_symbols][n_quality_symbols];
-static double q2p[n_quality_symbols];
+std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
+std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
+std::array<std::array<double, n_quality_symbols>, n_quality_symbols> match_score {{}};
+std::array<std::array<double, n_quality_symbols>, n_quality_symbols> mism_score {{}};
+std::array<double, n_quality_symbols> q2p {{}};
 
 static double sum_ee_fwd = 0.0;
 static double sum_ee_rev = 0.0;
