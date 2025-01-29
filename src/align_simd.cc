@@ -200,7 +200,7 @@ using VECTOR_SHORT = __m128i;
 
 struct s16info_s
 {
-  VECTOR_SHORT matrix[32];
+  std::array<VECTOR_SHORT, 32> matrix {{}};
   VECTOR_SHORT * hearray;
   VECTOR_SHORT * dprofile;
   VECTOR_SHORT ** qtable;
@@ -1139,7 +1139,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL *) (&s->matrix))[(matrix_size * i) + j] = value;
+          ((CELL *) (s->matrix.data()))[(matrix_size * i) + j] = value;
           scorematrix[i][j] = value;
         }
     }
@@ -1360,8 +1360,8 @@ auto search16(s16info_s * s,
   VECTOR_SHORT R_target_interior;
   VECTOR_SHORT QR_target_right;
   VECTOR_SHORT R_target_right;
-  VECTOR_SHORT QR_target[4];
-  VECTOR_SHORT R_target[4];
+  std::array<VECTOR_SHORT, 4> QR_target {{}};
+  std::array<VECTOR_SHORT, 4> R_target {{}};
 
   VECTOR_SHORT * hep = nullptr;
   VECTOR_SHORT ** qp = nullptr;
@@ -1374,10 +1374,10 @@ auto search16(s16info_s * s,
   std::array<int64_t, CHANNELS> seq_id {{}};
   std::array<bool, CHANNELS> overflow {{}};
 
-  VECTOR_SHORT dseqalloc[CDEPTH];
-  VECTOR_SHORT S[4];
+  std::array<VECTOR_SHORT, CDEPTH> dseqalloc {{}};
+  std::array<VECTOR_SHORT, 4> S {{}};
 
-  BYTE * dseq = (BYTE *) & dseqalloc;
+  BYTE * dseq = (BYTE *) dseqalloc.data();
   BYTE zero = 0;
 
   uint64_t next_id = 0;
@@ -1469,7 +1469,7 @@ auto search16(s16info_s * s,
                 }
             }
 
-          dprofile_fill16(dprofile, (CELL*) s->matrix, dseq);
+          dprofile_fill16(dprofile, (CELL*) s->matrix.data(), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
@@ -1513,7 +1513,7 @@ auto search16(s16info_s * s,
           VECTOR_SHORT h_min;
           VECTOR_SHORT h_max;
 
-          aligncolumns_rest(S, hep, qp,
+          aligncolumns_rest(S.data(), hep, qp,
                             QR_query_interior, R_query_interior,
                             QR_query_right, R_query_right,
                             QR_target[0], R_target[0],
@@ -1590,7 +1590,7 @@ auto search16(s16info_s * s,
                       char * dbseq = (char *) d_address[c];
                       int64_t const dbseqlen = d_length[c];
                       int64_t const z = (dbseqlen + 3) % 4;
-                      int64_t const score = ((CELL *) S)[(z * CHANNELS) + c];
+                      int64_t const score = ((CELL *) S.data())[(z * CHANNELS) + c];
 
                       if (overflow[c])
                         {
@@ -1719,7 +1719,7 @@ auto search16(s16info_s * s,
           M_QR_query_interior = v_and(M, QR_query_interior);
           M_QR_query_right = v_and(M, QR_query_right);
 
-          dprofile_fill16(dprofile, (CELL *) s->matrix, dseq);
+          dprofile_fill16(dprofile, (CELL *) s->matrix.data(), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
@@ -1763,7 +1763,7 @@ auto search16(s16info_s * s,
           VECTOR_SHORT h_min;
           VECTOR_SHORT h_max;
 
-          aligncolumns_first(S, hep, qp,
+          aligncolumns_first(S.data(), hep, qp,
                              QR_query_interior, R_query_interior,
                              QR_query_right, R_query_right,
                              QR_target[0], R_target[0],
