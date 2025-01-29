@@ -180,7 +180,7 @@ auto udb_detect_isudb(const char * filename) -> bool
 
   xstat_t fs;
 
-  if (xstat(filename, & fs))
+  if (xstat(filename, & fs) != 0)
     {
       fatal("Unable to get status for input file (%s)", filename);
     }
@@ -193,7 +193,7 @@ auto udb_detect_isudb(const char * filename) -> bool
 
   int fd = 0;
   fd = xopen_read(filename);
-  if (not fd)
+  if (fd == 0)
     {
       fatal("Unable to open input file for reading (%s)", filename);
     }
@@ -220,7 +220,7 @@ auto udb_info() -> void
   int fd_udbinfo = 0;
 
   fd_udbinfo = xopen_read(opt_udbinfo);
-  if (not fd_udbinfo)
+  if (fd_udbinfo == 0)
     {
       fatal("Unable to open UDB file for reading");
     }
@@ -256,7 +256,7 @@ auto udb_info() -> void
       fprintf(stderr, "        DBAccel  %u%%\n", buffer[6]);
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "           Seqs  %u\n", buffer[13]);
       fprintf(fp_log, "     SeqIx bits  %u\n", buffer[2]);
@@ -285,7 +285,7 @@ auto udb_read(const char * filename,
   uint64 nucleotides = 0;
 
   xstat_t fs;
-  if (xstat(filename, & fs))
+  if (xstat(filename, & fs) != 0)
     {
       fatal("Unable to get status for input file (%s)", filename);
     }
@@ -305,7 +305,7 @@ auto udb_read(const char * filename,
   int fd_udb = 0;
 
   fd_udb = xopen_read(filename);
-  if (not fd_udb)
+  if (fd_udb == 0)
     {
       fatal("Unable to open UDB file for reading");
     }
@@ -588,7 +588,7 @@ auto udb_read(const char * filename,
         }
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       if (seqcount > 0)
         {
@@ -613,14 +613,14 @@ auto udb_read(const char * filename,
 
 auto udb_fasta() -> void
 {
-  if (not opt_output) {
+  if (opt_output == nullptr) {
     fatal("FASTA output file must be specified with --output");
   }
 
   /* open FASTA file for writing */
 
   FILE * fp_output = fopen_output(opt_output);
-  if (not fp_output)
+  if (fp_output == nullptr)
     {
       fatal("Unable to open FASTA output file for writing");
     }
@@ -675,7 +675,7 @@ auto udb_stats() -> void
 
   /* show stats */
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "      Alphabet  nt\n");
       fprintf(fp_log, "    Word width  %" PRIu64 "\n", opt_wordlength);
@@ -877,14 +877,14 @@ auto udb_stats() -> void
 
 auto udb_make() -> void
 {
-  if (not opt_output) {
+  if (opt_output == nullptr) {
     fatal("UDB output file must be specified with --output");
   }
 
   auto fd_output = 0;
 
   fd_output = xopen_write(opt_output);
-  if (not fd_output)
+  if (fd_output == 0)
     {
       fatal("Unable to open output file for writing");
     }
@@ -895,7 +895,7 @@ auto udb_make() -> void
     {
       dust_all();
     }
-  else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
+  else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -960,7 +960,7 @@ auto udb_make() -> void
   /* lists of sequence no's with matches for all words */
   for (unsigned int i = 0; i < kmerhashsize; i++)
     {
-      if (kmerbitmap[i])
+      if (kmerbitmap[i] != nullptr)
         {
           memset(buffer.data(), 0, 4 * kmercount[i]);
           auto elements = 0U;
