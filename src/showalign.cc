@@ -87,10 +87,10 @@ static char * d_line;
 
 static std::FILE * out;
 
-constexpr int poswidth_default {3};
-static int poswidth = poswidth_default;
-constexpr int headwidth_default {5};
-static int headwidth = headwidth_default;
+constexpr auto poswidth_default = 3;
+static auto poswidth = poswidth_default;
+constexpr auto headwidth_default = 5;
+static auto headwidth = headwidth_default;
 
 static const char * q_name;
 static const char * d_name;
@@ -103,7 +103,7 @@ inline auto putop(char c, int64_t len) -> void
 {
   const int64_t delta = q_strand != 0 ? -1 : +1;
 
-  int64_t count = len;
+  auto count = len;
   while (count != 0)
     {
       if (line_pos == 0)
@@ -112,10 +112,10 @@ inline auto putop(char c, int64_t len) -> void
           d_start = d_pos;
         }
 
-      char qs = '\0';
-      char ds = '\0';
-      unsigned int qs4 = 0;
-      unsigned int ds4 = 0;
+      auto qs = '\0';
+      auto ds = '\0';
+      auto qs4 = 0U;
+      auto ds4 = 0U;
 
       switch(c)
         {
@@ -217,8 +217,8 @@ auto align_show(std::FILE * output_handle,
   d_len = seq2len;
   d_name = seq2name;
 
-  char * p = cigar;
-  char * e = p + cigarlen;
+  auto * p = cigar;
+  auto * e = p + cigarlen;
 
   poswidth = numwidth;
   headwidth = namewidth;
@@ -236,14 +236,14 @@ auto align_show(std::FILE * output_handle,
   while (p < e)
     {
       int64_t len = 0;
-      int n = 0;
+      auto n = 0;
       if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
           len = 1;
         }
       p += n;
-      const char op = *p++;
+      auto const op = *p++;
       putop(op, len);
     }
 
@@ -257,22 +257,22 @@ auto align_show(std::FILE * output_handle,
 
 auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 {
-  char * row = (char *) xmalloc(alignlen + 1);
-  char * r = row;
-  char * p = cigar;
-  char * s = seq;
+  auto * row = (char *) xmalloc(alignlen + 1);
+  auto * r = row;
+  auto * p = cigar;
+  auto * s = seq;
 
   while (*p != 0)
     {
       int64_t len = 0;
-      int n = 0;
+      auto n = 0;
       if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
           len = 1;
         }
       p += n;
-      const char op = *p++;
+      auto const op = *p++;
 
       if ((op == 'M') or
           ((op == 'D') and (origin == 0)) or
@@ -299,7 +299,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
 {
-  char * p = cigar;
+  auto * p = cigar;
   while (*p != 0)
     {
       if (*p > '9')
@@ -308,12 +308,12 @@ auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar
         }
       else
         {
-          int n = 0;
-          char c = 0;
-          int x = 0;
+          auto n = 0;
+          auto c = '\0';
+          auto x = 0;
           if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
             {
-              for (int i = 0; i < n; i++)
+              for (auto i = 0; i < n; i++)
                 {
                   fprintf(output_handle, "%c", c);
                 }
