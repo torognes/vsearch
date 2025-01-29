@@ -267,7 +267,7 @@ auto fastq_stats() -> void
       rate_dist[i] = avgee_dist[i] / (i + 1);
     }
 
-  if (fp_log)
+  if (fp_log != nullptr)
     {
       fprintf(fp_log, "\n");
       fprintf(fp_log, "Read length distribution\n");
@@ -413,18 +413,18 @@ auto fastx_revcomp() -> void
   char * seq_buffer = (char*) xmalloc(buffer_alloc);
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
-  if ((! opt_fastaout) && (! opt_fastqout)) {
+  if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
     fatal("No output files specified");
   }
 
   fastx_handle h = fastx_open(opt_fastx_revcomp);
 
-  if (! h)
+  if (h == nullptr)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
 
-  if (opt_fastqout && ! (h->is_fastq || h->is_empty))
+  if ((opt_fastqout != nullptr) && ! (h->is_fastq || h->is_empty))
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -434,19 +434,19 @@ auto fastx_revcomp() -> void
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (fp_fastaout == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (fp_fastqout == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
         }
@@ -503,7 +503,7 @@ auto fastx_revcomp() -> void
           qual_buffer[length] = 0;
         }
 
-      if (opt_fastaout)
+      if (opt_fastaout != nullptr)
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
@@ -517,7 +517,7 @@ auto fastx_revcomp() -> void
                               -1, -1, nullptr, 0.0);
         }
 
-      if (opt_fastqout)
+      if (opt_fastqout != nullptr)
         {
           fastq_print_general(fp_fastqout,
                               seq_buffer,
@@ -534,12 +534,12 @@ auto fastx_revcomp() -> void
     }
   progress_done();
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
@@ -553,13 +553,13 @@ auto fastx_revcomp() -> void
 
 auto fastq_convert() -> void
 {
-  if (! opt_fastqout) {
+  if (opt_fastqout == nullptr) {
     fatal("No output file specified with --fastqout");
   }
 
   auto * input_handle = fastq_open(opt_fastq_convert);
 
-  if (! input_handle)
+  if (input_handle == nullptr)
     {
       fatal("Unable to open FASTQ file");
     }
@@ -569,7 +569,7 @@ auto fastq_convert() -> void
   std::FILE * fp_fastqout = nullptr;
 
   fp_fastqout = fopen_output(opt_fastqout);
-  if (! fp_fastqout)
+  if (fp_fastqout == nullptr)
     {
       fatal("Unable to open FASTQ output file for writing");
     }
