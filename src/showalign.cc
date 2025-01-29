@@ -98,6 +98,7 @@ static const char * d_name;
 static int64_t q_len;
 static int64_t d_len;
 
+
 inline auto putop(char c, int64_t len) -> void
 {
   const int64_t delta = q_strand != 0 ? -1 : +1;
