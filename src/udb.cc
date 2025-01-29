@@ -966,7 +966,7 @@ auto udb_make() -> void
           auto elements = 0U;
           for (auto j = 0U; j < seqcount; j++)
             {
-              if (bitmap_get(kmerbitmap[i], j))
+              if (bitmap_get(kmerbitmap[i], j) != 0U)
                 {
                   buffer[elements++] = j;
                 }
