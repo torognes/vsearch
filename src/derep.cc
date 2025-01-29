@@ -362,7 +362,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
-  int64_t shortest = INT64_MAX;
+  int64_t shortest = std::numeric_limits<int64_t>::max();
   int64_t longest = 0;
   uint64_t discarded_short = 0;
   uint64_t discarded_long = 0;
