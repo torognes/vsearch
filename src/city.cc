@@ -109,13 +109,13 @@ static auto Fetch32(const char *p) -> uint32 {
 }
 
 // Some primes between 2^63 and 2^64 for various uses.
-static const uint64 k0 = 0xc3a5c85c97cb3127ULL;
-static const uint64 k1 = 0xb492b66fbe98f273ULL;
-static const uint64 k2 = 0x9ae16a3b2f90404fULL;
+constexpr uint64 k0 = 0xc3a5c85c97cb3127ULL;
+constexpr uint64 k1 = 0xb492b66fbe98f273ULL;
+constexpr uint64 k2 = 0x9ae16a3b2f90404fULL;
 
 // Magic numbers for 32-bit hashing.  Copied from Murmur3.
-static const uint32_t c1 = 0xcc9e2d51;
-static const uint32_t c2 = 0x1b873593;
+constexpr uint32_t c1 = 0xcc9e2d51;
+constexpr uint32_t c2 = 0x1b873593;
 
 // A 32-bit to 32-bit integer hash copied from Murmur3.
 static auto fmix(uint32 h) -> uint32
