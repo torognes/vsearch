@@ -80,11 +80,11 @@ constexpr auto chunk_factor = 2; /* chunks per thread */
 
 /* scores in bits */
 
-static const int k                        = 5;
+constexpr auto k                          = 5;
 static int merge_mindiagcount             = 4;
 static double merge_minscore              = 16.0;
-static const double merge_dropmax         = 16.0;
-static const double merge_mismatchmax     = -4.0;
+constexpr auto merge_dropmax         = 16.0;
+constexpr auto merge_mismatchmax     = -4.0;
 
 /* static variables */
 
