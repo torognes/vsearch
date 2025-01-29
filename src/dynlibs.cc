@@ -60,18 +60,19 @@
 
 #include "vsearch.h"
 #include "dynlibs.h"
+#include <array>
 #include <cstdio>  // std::FILE
 
 
 #ifdef HAVE_ZLIB_H
 # ifdef _WIN32
-const char gz_libname[] = "zlib1.dll";
+constexpr std::array<char, 9> gz_libname = {'z', 'l', 'i', 'b', '1', '.', 'd', 'l', 'l'};
 HMODULE gz_lib;
 # else
 #  ifdef __APPLE__
-const char gz_libname[] = "libz.dylib";
+constexpr std::array<char, 10> gz_libname = {'l', 'i', 'b', 'z', '.', 'd', 'y', 'l', 'i', 'b'};
 #  else
-const char gz_libname[] = "libz.so.1";
+constexpr std::array<char, 9> gz_libname = {'l', 'i', 'b', 'z', '.', 's', 'o', '.', '1'};
 #  endif
 void * gz_lib;
 # endif
@@ -84,13 +85,13 @@ int ZEXPORT (*gzread_p) OF((gzFile, void *, unsigned));
 
 #ifdef HAVE_BZLIB_H
 # ifdef _WIN32
-const char bz2_libname[] = "libbz2.dll";
+constexpr std::array<char, 10> bz2_libname = {'l', 'i', 'b', 'b', 'z', '2', '.', 'd', 'l', 'l'};
 HMODULE bz2_lib;
 # else
 #  ifdef __APPLE__
-const char bz2_libname[] = "libbz2.dylib";
+constexpr std::array<char, 12> bz2_libname = {'l', 'i', 'b', 'b', 'z', '2', '.', 'd', 'y', 'l', 'i', 'b'};
 #  else
-const char bz2_libname[] = "libbz2.so.1";
+constexpr std::array<char, 11> bz2_libname = {'l', 'i', 'b', 'b',  'z', '2', '.', 's', 'o', '.', '1'};
 #  endif
 void * bz2_lib;
 # endif
@@ -106,9 +107,9 @@ auto dynlibs_open() -> void
 {
 #ifdef HAVE_ZLIB_H
 #ifdef _WIN32
-  gz_lib = LoadLibraryA(gz_libname);
+  gz_lib = LoadLibraryA(gz_libname.data());
 #else
-  gz_lib = dlopen(gz_libname, RTLD_LAZY);
+  gz_lib = dlopen(gz_libname.data(), RTLD_LAZY);
 #endif
   if (gz_lib != nullptr)
     {
@@ -127,9 +128,9 @@ auto dynlibs_open() -> void
 
 #ifdef HAVE_BZLIB_H
 #ifdef _WIN32
-  bz2_lib = LoadLibraryA(bz2_libname);
+  bz2_lib = LoadLibraryA(bz2_libname.data());
 #else
-  bz2_lib = dlopen(bz2_libname, RTLD_LAZY);
+  bz2_lib = dlopen(bz2_libname.data(), RTLD_LAZY);
 #endif
   if (bz2_lib != nullptr)
     {
