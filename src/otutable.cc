@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm
 #include <cstdint> // int64_t, uint64_t
@@ -180,8 +181,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   if (query_header != nullptr)
     {
 #ifdef HAVE_REGEX_H
-      regmatch_t pmatch_sample[5];
-      if (regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0) == 0)
+      std::array<regmatch_t, 5> pmatch_sample {{}};
+      if (regexec(&otutable->regex_sample, query_header, 5, pmatch_sample.data(), 0) == 0)
         {
           /* match: use the matching sample name */
           len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
@@ -220,8 +221,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   if (target_header != nullptr)
     {
 #ifdef HAVE_REGEX_H
-      regmatch_t pmatch_otu[4];
-      if (regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0) == 0)
+      std::array<regmatch_t, 4> pmatch_otu {{}};
+      if (regexec(&otutable->regex_otu, target_header, 4, pmatch_otu.data(), 0) == 0)
         {
           /* match: use the matching otu name */
           len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
@@ -250,8 +251,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 #ifdef HAVE_REGEX_H
       char * start_tax = target_header;
 
-      regmatch_t pmatch_tax[4];
-      if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0) == 0)
+      std::array<regmatch_t, 4> pmatch_tax {{}};
+      if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax.data(), 0) == 0)
         {
           /* match: use the matching tax name */
           int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
@@ -406,8 +407,8 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
 
   static const time_t time_now = time(nullptr);
   struct tm * tm_now = localtime(& time_now);
-  char date[50];
-  strftime(date, 50, "%Y-%m-%dT%H:%M:%S", tm_now);
+  std::array<char, 50> date {{}};
+  strftime(date.data(), 50, "%Y-%m-%dT%H:%M:%S", tm_now);
 
   fprintf(output_handle,
           "{\n"
@@ -422,7 +423,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
           "\t\"shape\": [%" PRId64 ",%" PRId64 "],\n",
           opt_biomout,
           PROG_NAME, PROG_VERSION,
-          date,
+          date.data(),
           rows,
           columns);
 
