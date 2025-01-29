@@ -292,7 +292,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                       (prefix_len != db_getsequencelen(bp->seqno_first)) or
                       (seqcmp(seq_up.data(),
                               db_getsequence(bp->seqno_first),
-                              prefix_len))))
+                              prefix_len) != 0)))
                 {
                   ++bp;
                   if (bp >= &hashtable[hashtablesize])
