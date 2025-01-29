@@ -64,11 +64,10 @@
 #include "utils/maps.hpp"
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // ULONG_MAX, RAND_MAX
 #include <cstdarg>  // va_list
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::vsnprintf, std::fopen
-#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstdlib>  // std::exit, EXIT_FAILURE, RAND_MAX
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
