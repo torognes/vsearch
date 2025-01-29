@@ -885,7 +885,7 @@ inline auto pushop(s16info_s * s, char const newop) -> void
 
 inline auto finishop(s16info_s * s) -> void
 {
-  if (s->op && s->opcount)
+  if ((s->op != 0) && (s->opcount != 0))
     {
       *--s->cigarend = s->op;
       if (s->opcount > 1)
@@ -1009,17 +1009,17 @@ auto backtrack16(s16info_s * s,
                                          ((offset + (matrix_size * s->qlen * (j / 4)) +
                                            (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
 
-      if ((s->op == 'I') && (d & maskextleft))
+      if ((s->op == 'I') && ((d & maskextleft) != 0U))
         {
           --j;
           pushop(s, 'I');
         }
-      else if ((s->op == 'D') && (d & maskextup))
+      else if ((s->op == 'D') && ((d & maskextup) != 0U))
         {
           --i;
           pushop(s, 'D');
         }
-      else if (d & maskleft)
+      else if ((d & maskleft) != 0U)
         {
           if (s->op != 'I')
             {
@@ -1028,7 +1028,7 @@ auto backtrack16(s16info_s * s,
           --j;
           pushop(s, 'I');
         }
-      else if (d & maskup)
+      else if ((d & maskup) != 0U)
         {
           if (s->op != 'D')
             {
@@ -1039,7 +1039,7 @@ auto backtrack16(s16info_s * s,
         }
       else
         {
-          if (chrmap_4bit[(int) (qseq[i])] & chrmap_4bit[(int) (dseq[j])])
+          if ((chrmap_4bit[(int) (qseq[i])] & chrmap_4bit[(int) (dseq[j])]) != 0U)
             {
               ++matches;
             }
@@ -1127,7 +1127,7 @@ auto search16_init(CELL score_match,
       for (int j = 0; j < matrix_size; j++)
         {
           CELL value = 0;
-          if (ambiguous_4bit[i] or ambiguous_4bit[j])
+          if ((ambiguous_4bit[i] != 0U) or (ambiguous_4bit[j] != 0U))
             {
               value = 0;
             }
@@ -1180,23 +1180,23 @@ auto search16_init(CELL score_match,
 auto search16_exit(s16info_s * s) -> void
 {
   /* free mem for dprofile, hearray, dir, qtable */
-  if (s->dir)
+  if (s->dir != nullptr)
     {
       xfree(s->dir);
     }
-  if (s->hearray)
+  if (s->hearray != nullptr)
     {
       xfree(s->hearray);
     }
-  if (s->dprofile)
+  if (s->dprofile != nullptr)
     {
       xfree(s->dprofile);
     }
-  if (s->qtable)
+  if (s->qtable != nullptr)
     {
       xfree(s->qtable);
     }
-  if (s->cigar)
+  if (s->cigar != nullptr)
     {
       xfree(s->cigar);
     }
@@ -1209,14 +1209,14 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
   s->qlen = qlen;
   s->qseq = qseq;
 
-  if (s->hearray)
+  if (s->hearray != nullptr)
     {
       xfree(s->hearray);
     }
   s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
   memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
 
-  if (s->qtable)
+  if (s->qtable != nullptr)
     {
       xfree(s->qtable);
     }
@@ -1288,7 +1288,7 @@ auto search16(s16info_s * s,
           if (length > 0)
             {
               auto const ret = xsprintf(&cigar, "%ldI", length);
-              if ((ret < 2) or not cigar)
+              if ((ret < 2) or (cigar == nullptr))
                 {
                   fatal("Unable to allocate enough memory.");
                 }
@@ -1321,7 +1321,7 @@ auto search16(s16info_s * s,
   if (dirbuffersize > s->diralloc)
     {
       s->diralloc = dirbuffersize;
-      if (s->dir)
+      if (s->dir != nullptr)
         {
           xfree(s->dir);
         }
@@ -1334,7 +1334,7 @@ auto search16(s16info_s * s,
   if (s->qlen + s->maxdlen + 1 > s->cigaralloc)
     {
       s->cigaralloc = s->qlen + s->maxdlen + 1;
-      if (s->cigar)
+      if (s->cigar != nullptr)
         {
           xfree(s->cigar);
         }
