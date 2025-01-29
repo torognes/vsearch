@@ -25,7 +25,12 @@ AM_CFLAGS += -UNDEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
              -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
              -Woverloaded-virtual -Wuninitialized \
-             -Wunsafe-loop-optimizations -Wunused -Wvla
+             -Wunsafe-loop-optimizations -Wunused -Wvla \
+             -Wno-ignored-attributes
+             # -Wno-ignored-attributes: ignore warnings due to
+             # std::array<__m128i> (__m128i is declared with
+             # alignment attributes which are ignored by the
+             # std::array template
 else
 AM_CFLAGS += -DNDEBUG
 endif
