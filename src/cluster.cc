@@ -1071,7 +1071,7 @@ auto cluster_core_parallel() -> void
 
 auto cluster_core_serial() -> void
 {
-  struct searchinfo_s si_p[1];
+  struct searchinfo_s si_p[1];  // refactoring: std::array or direct initialization?
   struct searchinfo_s si_m[1];
 
   cluster_query_init(si_p);
