@@ -108,7 +108,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
         {
           word = words[i + j];
           const int c = counts[word];
-          if (c)
+          if (c != 0)
             {
               sum += c;
               const int v = 10 * sum / j;
@@ -147,7 +147,7 @@ auto dust(char * seq, int len) -> void
   // local_seq2.insert(0, m);
   // local_seq2.insert(len, 1, '\0');
 
-  if (not opt_hardmask)
+  if (opt_hardmask == 0)
     {
       /* convert sequence to upper case unless hardmask in effect */
       for (int i = 0; i < len; i++)
@@ -164,7 +164,7 @@ auto dust(char * seq, int len) -> void
 
       if (v > dust_level)
         {
-          if (opt_hardmask)
+          if (opt_hardmask != 0)
             {
               for (int j = a + i; j <= b + i; j++)
                 {
@@ -259,7 +259,7 @@ auto hardmask(char * seq, int len) -> void
   static constexpr auto hardmask_char = 'N';
   for (int j = 0; j < len; j++)
     {
-      if (seq[j] & check_5th_bit)
+      if ((seq[j] & check_5th_bit) != 0U)
         {
           seq[j] = hardmask_char;
         }
@@ -278,12 +278,12 @@ auto hardmask_all() -> void
 
 auto maskfasta() -> void
 {
-  if (! opt_output) {
+  if (opt_output == nullptr) {
     fatal("Output file for masking must be specified with --output");
   }
 
   std::FILE * fp_output = fopen_output(opt_output);
-  if (! fp_output)
+  if (fp_output == nullptr)
     {
       fatal("Unable to open mask output file for writing");
     }
@@ -297,7 +297,7 @@ auto maskfasta() -> void
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -322,23 +322,23 @@ auto fastx_mask() -> void
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if ((! opt_fastaout) && (! opt_fastqout)) {
+  if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
   }
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (! fp_fastaout)
+      if (fp_fastaout == nullptr)
         {
           fatal("Unable to open mask output FASTA file for writing");
         }
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fp_fastqout = fopen_output(opt_fastqout);
-      if (! fp_fastqout)
+      if (fp_fastqout == nullptr)
         {
           fatal("Unable to open mask output FASTQ file for writing");
         }
@@ -347,7 +347,7 @@ auto fastx_mask() -> void
   db_read(opt_fastx_mask, 0);
   show_rusage();
 
-  if (fp_fastqout && ! db_is_fastq())
+  if ((fp_fastqout != nullptr) && ! db_is_fastq())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -358,7 +358,7 @@ auto fastx_mask() -> void
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -377,7 +377,7 @@ auto fastx_mask() -> void
         {
           unmasked = len;
         }
-      else if (opt_hardmask)
+      else if (opt_hardmask != 0)
         {
           for (int j = 0; j < len; j++)
             {
@@ -391,7 +391,7 @@ auto fastx_mask() -> void
         {
           for (int j = 0; j < len; j++)
             {
-              if (isupper(seq[j]))
+              if (isupper(seq[j] != 0))
                 {
                   unmasked++;
                 }
@@ -411,7 +411,7 @@ auto fastx_mask() -> void
         {
           kept++;
 
-          if (opt_fastaout)
+          if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -425,7 +425,7 @@ auto fastx_mask() -> void
                                   -1, -1, nullptr, 0.0);
             }
 
-          if (opt_fastqout)
+          if (opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   seq,
@@ -456,7 +456,7 @@ auto fastx_mask() -> void
       fprintf(stderr, "%d sequences kept\n", kept);
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       if (opt_min_unmasked_pct > 0.0)
         {
@@ -472,11 +472,11 @@ auto fastx_mask() -> void
   show_rusage();
   db_free();
 
-  if (fp_fastaout)
+  if (fp_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
-  if (fp_fastqout)
+  if (fp_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
