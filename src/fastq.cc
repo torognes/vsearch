@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "attributes.h"
 #include "maps.h"
+#include <array>
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
@@ -185,7 +186,8 @@ auto fastq_next(fastx_handle input_handle,
 
   input_handle->lineno_start = input_handle->lineno;
 
-  char msg[200];
+  static constexpr auto max_message_length = 200;
+  std::array<char, max_message_length> msg {{}};
   auto ok = true;
   char illegal_char = '\0';
 
@@ -284,19 +286,19 @@ auto fastq_next(fastx_handle input_handle,
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
-              snprintf(msg,
+              snprintf(msg.data(),
                        200,
                        "Illegal sequence character '%c'",
                        illegal_char);
             }
           else
             {
-              snprintf(msg,
+              snprintf(msg.data(),
                        200,
                        "Illegal sequence character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg);
+          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg.data());
         }
     }
 
@@ -417,19 +419,19 @@ auto fastq_next(fastx_handle input_handle,
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
-              snprintf(msg,
+              snprintf(msg.data(),
                        200,
                        "Illegal quality character '%c'",
                        illegal_char);
             }
           else
             {
-              snprintf(msg,
+              snprintf(msg.data(),
                        200,
                        "Illegal quality character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg);
+          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg.data());
         }
     }
 
