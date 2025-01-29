@@ -391,7 +391,7 @@ auto fastx_mask() -> void
         {
           for (int j = 0; j < len; j++)
             {
-              if (isupper(seq[j] != 0))
+              if (isupper(seq[j]) != 0)
                 {
                   unmasked++;
                 }
