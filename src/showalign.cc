@@ -189,6 +189,7 @@ inline auto putop(char c, int64_t len) -> void
     }
 }
 
+
 auto align_show(std::FILE * output_handle,
                 char * seq1,
                 int64_t seq1len,
@@ -253,6 +254,7 @@ auto align_show(std::FILE * output_handle,
   xfree(d_line);
 }
 
+
 auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
 {
   char * row = (char *) xmalloc(alignlen + 1);
@@ -293,6 +295,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
   *r = 0;
   return row;
 }
+
 
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
 {
