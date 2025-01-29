@@ -131,21 +131,21 @@ auto otutable_init() -> void
   /* compile regular expression matchers */
   if (regcomp(&otutable->regex_sample,
               "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
-              REG_EXTENDED))
+              REG_EXTENDED) != 0)
     {
       fatal("Compilation of regular expression for sample annotation failed");
     }
 
   if (regcomp(&otutable->regex_otu,
               "(^|;)otu=([^;]*)($|;)",
-              REG_EXTENDED))
+              REG_EXTENDED) != 0)
     {
       fatal("Compilation of regular expression for otu annotation failed");
     }
 
   if (regcomp(&otutable->regex_tax,
               "(^|;)tax=([^;]*)($|;)",
-              REG_EXTENDED))
+              REG_EXTENDED) != 0)
     {
       fatal("Compilation of regular expression for taxonomy annotation failed");
     }
@@ -177,11 +177,11 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   char * start_sample = query_header;
   char * sample_name = nullptr;
 
-  if (query_header)
+  if (query_header != nullptr)
     {
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_sample[5];
-      if (! regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0))
+      if (regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0) == 0)
         {
           /* match: use the matching sample name */
           len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
@@ -217,11 +217,11 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   char * start_otu = target_header;
   char * otu_name = nullptr;
 
-  if (target_header)
+  if (target_header != nullptr)
     {
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_otu[4];
-      if (! regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0))
+      if (regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0) == 0)
         {
           /* match: use the matching otu name */
           len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
@@ -251,7 +251,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       char * start_tax = target_header;
 
       regmatch_t pmatch_tax[4];
-      if (! regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
+      if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0) == 0)
         {
           /* match: use the matching tax name */
           int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
@@ -273,25 +273,25 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   /* store data */
 
-  if (sample_name) {
+  if (sample_name != nullptr) {
     otutable->sample_set.insert(sample_name);
   }
 
-  if (otu_name) {
+  if (otu_name != nullptr) {
     otutable->otu_set.insert(otu_name);
   }
 
-  if (sample_name && otu_name && abundance)
+  if ((sample_name != nullptr) && (otu_name != nullptr) && (abundance != 0))
     {
       otutable->sample_otu_count[string_pair_t(sample_name,otu_name)] += abundance;
       otutable->otu_sample_count[string_pair_t(otu_name,sample_name)] += abundance;
     }
 
-  if (otu_name) {
+  if (otu_name != nullptr) {
     xfree(otu_name);
   }
 
-  if (sample_name) {
+  if (sample_name != nullptr) {
     xfree(sample_name);
   }
 }
