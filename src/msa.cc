@@ -66,12 +66,12 @@
 #include <cassert>
 #include <cctype>  // std::toupper
 #include <cinttypes>  // macro PRId64
-#include <climits>  // INT_MAX
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf, std::fprintf
 #include <cstdlib>  // str::strtoll
 #include <cstring>  // std::memset, std::strlen
 #include <iterator> // std::next
+#include <limits>
 #include <numeric> // std::accumulate
 #include <vector>
 
@@ -149,7 +149,7 @@ auto find_runlength_of_leftmost_operation(char * first_character, char ** first_
   // - if there is no valid integer: pointer is not advanced and function returns zero,
   static constexpr auto decimal_base = 10;
   auto runlength = std::strtoll(first_character, first_non_digit, decimal_base);
-  assert(runlength <= INT_MAX);
+  assert(runlength <= std::numeric_limits<int>::max());
 
   // in the context of cigar strings, runlength is at least 1
   if (runlength == 0) {
