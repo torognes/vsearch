@@ -187,7 +187,7 @@ auto fastq_next(fastx_handle input_handle,
   input_handle->lineno_start = input_handle->lineno;
 
   static constexpr auto max_message_length = 200;
-  std::array<char, max_message_length> msg {{}};
+  std::array<char, max_message_length> message {{}};
   auto ok = true;
   char illegal_char = '\0';
 
@@ -286,19 +286,19 @@ auto fastq_next(fastx_handle input_handle,
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
-              snprintf(msg.data(),
+              snprintf(message.data(),
                        200,
                        "Illegal sequence character '%c'",
                        illegal_char);
             }
           else
             {
-              snprintf(msg.data(),
+              snprintf(message.data(),
                        200,
                        "Illegal sequence character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg.data());
+          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), message.data());
         }
     }
 
@@ -419,19 +419,19 @@ auto fastq_next(fastx_handle input_handle,
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
-              snprintf(msg.data(),
+              snprintf(message.data(),
                        200,
                        "Illegal quality character '%c'",
                        illegal_char);
             }
           else
             {
-              snprintf(msg.data(),
+              snprintf(message.data(),
                        200,
                        "Illegal quality character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), msg.data());
+          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), message.data());
         }
     }
 
