@@ -136,13 +136,13 @@ struct chimera_info_s
   char * query_seq;
   int query_len;
 
-  struct searchinfo_s si[maxparts];
+  std::array<struct searchinfo_s, maxparts> si {{}};
 
-  unsigned int cand_list[maxcandidates];
+  std::array<unsigned int, maxcandidates> cand_list {{}};
   int cand_count;
 
   struct s16info_s * s;
-  CELL snwscore[maxcandidates];
+  std::array<CELL, maxcandidates> snwscore {{}};
   unsigned short snwalignmentlength[maxcandidates];
   unsigned short snwmatches[maxcandidates];
   unsigned short snwmismatches[maxcandidates];
@@ -1726,7 +1726,7 @@ auto partition_query(struct chimera_info_s * ci) -> void
     {
       int const len = (rest + (parts - i - 1)) / (parts - i);
 
-      struct searchinfo_s * si = ci->si + i;
+      struct searchinfo_s * si = &ci->si[i];
 
       si->query_no = ci->query_no;
       si->strand = 0;
@@ -1769,7 +1769,7 @@ auto chimera_thread_init(struct chimera_info_s * ci) -> void
 
   for (int i = 0; i < maxparts; i++)
     {
-      query_init(ci->si + i);
+      query_init(&ci->si[i]);
     }
 
   ci->s = search16_init(opt_match,
@@ -1795,7 +1795,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 
   for (int i = 0; i < maxparts; i++)
     {
-      query_exit(ci->si + i);
+      query_exit(&ci->si[i]);
     }
 
   if (ci->maxsmooth)
@@ -1957,8 +1957,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               struct hit * hits = nullptr;
               int hit_count = 0;
-              search_onequery(ci->si + i, opt_qmask);
-              search_joinhits(ci->si + i, nullptr, & hits, & hit_count);
+              search_onequery(&ci->si[i], opt_qmask);
+              search_joinhits(&ci->si[i], nullptr, & hits, & hit_count);
               for (int j = 0; j < hit_count; j++)
                 {
                   if (hits[j].accepted)
@@ -2004,8 +2004,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       search16(ci->s,
                ci->cand_count,
-               ci->cand_list,
-               ci->snwscore,
+               ci->cand_list.data(),
+               ci->snwscore.data(),
                ci->snwalignmentlength,
                ci->snwmatches,
                ci->snwmismatches,
