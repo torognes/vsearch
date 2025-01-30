@@ -144,16 +144,16 @@ struct chimera_info_s
 
   struct s16info_s * s;
   std::array<CELL, maxcandidates> snwscore {{}};
-  unsigned short snwalignmentlength[maxcandidates];
-  unsigned short snwmatches[maxcandidates];
-  unsigned short snwmismatches[maxcandidates];
-  unsigned short snwgaps[maxcandidates];
-  int64_t nwscore[maxcandidates];
-  int64_t nwalignmentlength[maxcandidates];
-  int64_t nwmatches[maxcandidates];
-  int64_t nwmismatches[maxcandidates];
-  int64_t nwgaps[maxcandidates];
-  char * nwcigar[maxcandidates];
+  std::array<unsigned short, maxcandidates> snwalignmentlength {{}};
+  std::array<unsigned short, maxcandidates> snwmatches {{}};
+  std::array<unsigned short, maxcandidates> snwmismatches {{}};
+  std::array<unsigned short, maxcandidates> snwgaps {{}};
+  std::array<int64_t, maxcandidates> nwscore {{}};
+  std::array<int64_t, maxcandidates> nwalignmentlength {{}};
+  std::array<int64_t, maxcandidates> nwmatches {{}};
+  std::array<int64_t, maxcandidates> nwmismatches {{}};
+  std::array<int64_t, maxcandidates> nwgaps {{}};
+  std::array<char *, maxcandidates> nwcigar {{}};
 
   int match_size;
   int * match;
@@ -165,15 +165,15 @@ struct chimera_info_s
   double * scan_q;
 
   int parents_found;
-  int best_parents[maxparents];
-  int best_start[maxparents];
-  int best_len[maxparents];
+  std::array<int, maxparents> best_parents {{}};
+  std::array<int, maxparents> best_start {{}};
+  std::array<int, maxparents> best_len {{}};
 
   int best_target;
   char * best_cigar;
 
   int * maxi;
-  char * paln[maxparents];
+  std::array<char *, maxparents> paln {{}};
   char * qaln;
   char * diffs;
   char * votes;
@@ -2007,11 +2007,11 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                ci->cand_count,
                ci->cand_list.data(),
                ci->snwscore.data(),
-               ci->snwalignmentlength,
-               ci->snwmatches,
-               ci->snwmismatches,
-               ci->snwgaps,
-               ci->nwcigar);
+               ci->snwalignmentlength.data(),
+               ci->snwmatches.data(),
+               ci->snwmismatches.data(),
+               ci->snwgaps.data(),
+               ci->nwcigar.data());
 
       for (int i = 0; i < ci->cand_count; i++)
         {
