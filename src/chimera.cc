@@ -906,7 +906,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     seqno_c = ci->cand_list[ci->best_parents[2]];
   }
 
-  double QP[maxparents];
+  std::array<double, maxparents> QP {{}};
   double QT = 0.0;
 
   for (int f = 0; f < maxparents; f++)
