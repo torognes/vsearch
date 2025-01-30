@@ -5782,7 +5782,7 @@ auto cmd_fastq_mergepairs() -> void
 
 auto fill_prog_header() -> void
 {
-  static constexpr double one_gigabyte {1024 * 1024 * 1024};
+  static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
   auto * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
   static_cast<void>(snprintf(
       prog_header.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
