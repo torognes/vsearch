@@ -5847,11 +5847,11 @@ auto main(int argc, char** argv) -> int
       fprintf(fp_log, "%s\n", prog_header.data());
       fprintf(fp_log, "%s\n", cmdline);
 
-      char time_string[26];
+      std::array<char, 26> time_string {{}};
       time_start = time(nullptr);
       struct tm * tm_start = localtime(& time_start);
-      strftime(time_string, 26, "%Y-%m-%dT%H:%M:%S", tm_start);
-      fprintf(fp_log, "Started  %s\n", time_string);
+      strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
+      fprintf(fp_log, "Started  %s\n", time_string.data());
     }
 
   random_init();
