@@ -6044,10 +6044,10 @@ auto main(int argc, char** argv) -> int
     {
       time_finish = time(nullptr);
       struct tm * tm_finish = localtime(& time_finish);
-      char time_string[26];
-      strftime(time_string, 26, "%Y-%m-%dT%H:%M:%S", tm_finish);
+      std::array<char, 26> time_string {{}};
+      strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
       fprintf(fp_log, "\n");
-      fprintf(fp_log, "Finished %s", time_string);
+      fprintf(fp_log, "Finished %s", time_string.data());
 
       double const time_diff = difftime(time_finish, time_start);
       fprintf(fp_log, "\n");
