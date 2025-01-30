@@ -5784,11 +5784,9 @@ auto fill_prog_header() -> void
 {
   static constexpr double one_gigabyte {1024 * 1024 * 1024};
   auto * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
-  snprintf(prog_header.data(), max_line_length,
-           format,
-           PROG_NAME, PROG_VERSION, PROG_ARCH,
-           arch_get_memtotal() / one_gigabyte,
-           arch_get_cores());
+  static_cast<void>(snprintf(
+      prog_header.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
+      PROG_ARCH, arch_get_memtotal() / one_gigabyte, arch_get_cores()));
 }
 
 
