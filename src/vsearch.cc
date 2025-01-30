@@ -4856,9 +4856,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if ((opt_chimeras_parents_max < 2) or (opt_chimeras_parents_max > maxparents))
     {
-      char maxparents_string[25];
-      snprintf(maxparents_string, 25, "%d", maxparents);
-      fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string);
+      std::array<char, 25> maxparents_string {{}};
+      snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
+      fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string.data());
     }
 
   if ((opt_chimeras_diff_pct < 0.0) or (opt_chimeras_diff_pct > 50.0))
