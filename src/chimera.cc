@@ -1736,7 +1736,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.query_head = chimera_info->query_head;
       search_info.qseqlen = length;
       std::strncpy(search_info.qsequence, cursor, length);
-      search_info.qsequence[length] = 0;
+      search_info.qsequence[length] = '\0';
 
       rest -= length;
       cursor = std::next(cursor, length);
