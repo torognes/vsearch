@@ -1718,24 +1718,24 @@ auto query_exit(struct searchinfo_s * si) -> void
 }
 
 
-auto partition_query(struct chimera_info_s * ci) -> void
+auto partition_query(struct chimera_info_s * chimera_info) -> void
 {
-  auto rest = ci->query_len;
-  auto * cursor = ci->query_seq;
+  auto rest = chimera_info->query_len;
+  auto * cursor = chimera_info->query_seq;
   for (auto i = 0; i < parts; ++i)
     {
       auto const length = (rest + (parts - i - 1)) / (parts - i);
 
-      auto & si = ci->si[i];
+      auto & search_info = chimera_info->si[i];
 
-      si.query_no = ci->query_no;
-      si.strand = 0;
-      si.qsize = ci->query_size;
-      si.query_head_len = ci->query_head_len;
-      si.query_head = ci->query_head;
-      si.qseqlen = length;
-      std::strncpy(si.qsequence, cursor, length);
-      si.qsequence[length] = 0;
+      search_info.query_no = chimera_info->query_no;
+      search_info.strand = 0;
+      search_info.qsize = chimera_info->query_size;
+      search_info.query_head_len = chimera_info->query_head_len;
+      search_info.query_head = chimera_info->query_head;
+      search_info.qseqlen = length;
+      std::strncpy(search_info.qsequence, cursor, length);
+      search_info.qsequence[length] = 0;
 
       rest -= length;
       cursor += length;
