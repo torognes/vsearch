@@ -421,7 +421,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
   find_matches(ci);
 
-  struct parents_info_s best_parents[maxparents];
+  std::array<struct parents_info_s, maxparents> best_parents {{}};
 
   for (int f = 0; f < maxparents; f++)
     {
@@ -513,7 +513,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
     }
 
   /* sort parents by position */
-  qsort(best_parents,
+  qsort(best_parents.data(),
         parents_found,
         sizeof(struct parents_info_s),
         compare_positions);
@@ -541,7 +541,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 {
   find_matches(ci);
 
-  int best_parent_cand[maxparents];
+  std::array<int, maxparents> best_parent_cand {{}};
 
   for (int f = 0; f < 2; f++)
     {
@@ -833,7 +833,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   for (int i = 0; i < alnlen; i++)
     {
       unsigned int const qsym = chrmap_4bit[(int) (ci->qaln[i])];
-      unsigned int psym[maxparents];
+      std::array<unsigned int, maxparents> psym {{}};
       for (int f = 0; f < maxparents; f++) {
         psym[f] = 0;
       }
