@@ -834,9 +834,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     {
       unsigned int const qsym = chrmap_4bit[(int) (ci->qaln[i])];
       std::array<unsigned int, maxparents> psym {{}};
-      for (int f = 0; f < maxparents; f++) {
-        psym[f] = 0;
-      }
       for (int f = 0; f < ci->parents_found; f++) {
         psym[f] = chrmap_4bit[(int) (ci->paln[f][i])];
       }
