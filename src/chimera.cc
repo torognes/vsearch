@@ -2125,7 +2125,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
           ++borderline_count;
           borderline_abundance += ci->query_size;
 
-          if (opt_borderline)
+          if (opt_borderline != nullptr)
             {
               fasta_print_general(fp_borderline,
                                   nullptr,
@@ -2300,7 +2300,7 @@ auto chimera() -> void
   open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
   open_chimera_file(&fp_borderline, opt_borderline);
 
-  if (opt_chimeras_denovo)
+  if (opt_chimeras_denovo != nullptr)
     {
       open_chimera_file(&fp_uchimealns, opt_alnout);
       open_chimera_file(&fp_uchimeout, opt_tabbedout);
@@ -2322,7 +2322,7 @@ auto chimera() -> void
       fatal("Only --strand plus is allowed with uchime_ref.");
     }
 
-  if (not opt_uchime_ref)
+  if (opt_uchime_ref == nullptr)
     {
       opt_self = 1;
       opt_selfid = 1;
