@@ -2139,7 +2139,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   -1,
                                   -1,
                                   opt_fasta_score ?
-                                  ( opt_uchime_ref ?
+                                  ( (opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h);
 
@@ -2152,7 +2152,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
           nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
-          if ((status < 2) and opt_uchimeout)
+          if ((status < 2) and (opt_uchimeout != nullptr))
             {
               fprintf(fp_uchimeout, "0.0000\t");
 
@@ -2163,7 +2163,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   opt_xee,
                                   opt_xlength);
 
-              if (opt_uchimeout5)
+              if (opt_uchimeout5 != 0)
                 {
                   fprintf(fp_uchimeout,
                           "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
@@ -2175,7 +2175,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                 }
             }
 
-          if (opt_nonchimeras)
+          if (opt_nonchimeras != nullptr)
             {
               fasta_print_general(fp_nonchimeras,
                                   nullptr,
@@ -2189,7 +2189,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   -1,
                                   -1,
                                   opt_fasta_score ?
-                                  ( opt_uchime_ref ?
+                                  ( (opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h);
             }
@@ -2198,7 +2198,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
       if (status < 3)
         {
           /* uchime_denovo: add non-chimeras to db */
-          if (opt_uchime_denovo or opt_uchime2_denovo or opt_uchime3_denovo or opt_chimeras_denovo)
+          if ((opt_uchime_denovo != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
             {
               dbindex_addsequence(seqno, opt_qmask);
             }
@@ -2206,13 +2206,13 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       for (int i = 0; i < ci->cand_count; i++)
         {
-          if (ci->nwcigar[i])
+          if (ci->nwcigar[i] != nullptr)
             {
               xfree(ci->nwcigar[i]);
             }
         }
 
-      if (opt_uchime_ref)
+      if (opt_uchime_ref != nullptr)
         {
           progress = fasta_get_position(query_fasta_h);
         }
@@ -2228,7 +2228,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
       xpthread_mutex_unlock(&mutex_output);
     }
 
-  if (allhits_list)
+  if (allhits_list != nullptr)
     {
       xfree(allhits_list);
     }
@@ -2270,10 +2270,10 @@ auto chimera_threads_run() -> void
 
 auto open_chimera_file(FILE ** f, char * name) -> void
 {
-  if (name)
+  if (name != nullptr)
     {
       *f = fopen_output(name);
-      if (not *f)
+      if (*f == nullptr)
         {
           fatal("Unable to open file %s for writing", name);
         }
@@ -2287,7 +2287,7 @@ auto open_chimera_file(FILE ** f, char * name) -> void
 
 auto close_chimera_file(FILE * f) -> void
 {
-  if (f)
+  if (f != nullptr)
     {
       fclose(f);
     }
@@ -2350,7 +2350,7 @@ auto chimera() -> void
   char * denovo_dbname = nullptr;
 
   /* prepare queries / database */
-  if (opt_uchime_ref)
+  if (opt_uchime_ref != nullptr)
     {
       /* check if the reference database may be an UDB file */
 
@@ -2367,7 +2367,7 @@ auto chimera() -> void
             {
               dust_all();
             }
-          else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
+          else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask != 0))
             {
               hardmask_all();
             }
@@ -2381,19 +2381,19 @@ auto chimera() -> void
   else
     {
 
-      if (opt_uchime_denovo)
+      if (opt_uchime_denovo != nullptr)
         {
           denovo_dbname = opt_uchime_denovo;
         }
-      else if (opt_uchime2_denovo)
+      else if (opt_uchime2_denovo != nullptr)
         {
           denovo_dbname = opt_uchime2_denovo;
         }
-      else if (opt_uchime3_denovo)
+      else if (opt_uchime3_denovo != nullptr)
         {
           denovo_dbname = opt_uchime3_denovo;
         }
-      else if (opt_chimeras_denovo)
+      else if (opt_chimeras_denovo != nullptr)
         {
           denovo_dbname = opt_chimeras_denovo;
         }
@@ -2407,7 +2407,7 @@ auto chimera() -> void
         {
           dust_all();
         }
-      else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
+      else if ((opt_qmask == MASK_SOFT) and (opt_hardmask != 0))
         {
           hardmask_all();
         }
@@ -2417,34 +2417,34 @@ auto chimera() -> void
       progress_total = db_getnucleotidecount();
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
-      if (opt_uchime_ref or opt_uchime_denovo)
+      if ((opt_uchime_ref != nullptr) or (opt_uchime_denovo != nullptr))
         {
           fprintf(fp_log, "%8.2f  minh\n", opt_minh);
         }
 
-      if (opt_uchime_ref or
-          opt_uchime_denovo or
-          opt_uchime2_denovo or
-          opt_uchime3_denovo)
+      if ((opt_uchime_ref != nullptr) or
+          (opt_uchime_denovo != nullptr) or
+          (opt_uchime2_denovo != nullptr) or
+          (opt_uchime3_denovo != nullptr))
         {
           fprintf(fp_log, "%8.2f  xn\n", opt_xn);
           fprintf(fp_log, "%8.2f  dn\n", opt_dn);
           fprintf(fp_log, "%8.2f  xa\n", 1.0);
         }
 
-      if (opt_uchime_ref or opt_uchime_denovo)
+      if ((opt_uchime_ref != nullptr) or (opt_uchime_denovo != nullptr))
         {
           fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
         }
 
       fprintf(fp_log, "%8.2f  id\n", opt_id);
 
-      if (opt_uchime_ref or
-          opt_uchime_denovo or
-          opt_uchime2_denovo or
-          opt_uchime3_denovo)
+      if ((opt_uchime_ref != nullptr) or
+          (opt_uchime_denovo != nullptr) or
+          (opt_uchime2_denovo != nullptr) or
+          (opt_uchime3_denovo != nullptr))
         {
           fprintf(fp_log, "%8d  maxp\n", 2);
         }
@@ -2463,7 +2463,7 @@ auto chimera() -> void
     {
       if (total_count > 0)
         {
-          if (opt_chimeras_denovo)
+          if (opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Found %d (%.1f%%) chimeras and "
@@ -2493,7 +2493,7 @@ auto chimera() -> void
         }
       else
         {
-          if (opt_chimeras_denovo)
+          if (opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Found %d chimeras and "
@@ -2519,7 +2519,7 @@ auto chimera() -> void
 
       if (total_abundance > 0)
         {
-          if (opt_chimeras_denovo)
+          if (opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Taking abundance information into account, "
@@ -2553,7 +2553,7 @@ auto chimera() -> void
         }
       else
         {
-          if (opt_chimeras_denovo)
+          if (opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Taking abundance information into account, "
@@ -2582,9 +2582,9 @@ auto chimera() -> void
         }
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
-      if (opt_uchime_ref)
+      if (opt_uchime_ref != nullptr)
         {
           fprintf(fp_log, "%s", opt_uchime_ref);
         }
@@ -2609,7 +2609,7 @@ auto chimera() -> void
     }
 
 
-  if (opt_uchime_ref)
+  if (opt_uchime_ref != nullptr)
     {
       fasta_close(query_fasta_h);
     }
