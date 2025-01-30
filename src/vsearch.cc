@@ -5786,7 +5786,8 @@ auto fill_prog_header() -> void
   auto * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
   static_cast<void>(snprintf(
       prog_header.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
-      PROG_ARCH, arch_get_memtotal() / one_gigabyte, arch_get_cores()));
+      PROG_ARCH, static_cast<double>(arch_get_memtotal()) / one_gigabyte,
+      arch_get_cores()));
 }
 
 
