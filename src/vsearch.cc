@@ -2682,8 +2682,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     The first line is the command and the lines below are the valid options.
   */
 
-  const int valid_options[number_of_commands][max_number_of_options] =
-    {
+  static constexpr std::array<std::array<int, max_number_of_options>, number_of_commands> valid_options =
+    {{
       {
         option_allpairs_global,
         option_acceptall,
@@ -4529,7 +4529,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_quiet,
         option_threads,
         -1 }
-    };
+      }};
 
   /* check that only one commmand is specified */
   int commands = 0;
