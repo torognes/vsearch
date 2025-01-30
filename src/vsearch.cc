@@ -5582,12 +5582,12 @@ auto cmd_usearch_global() -> void
 }
 
 
-auto cmd_search_exact() -> void
+auto cmd_search_exact(struct Parameters const & parameters) -> void
 {
   /* check options */
 
   if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
       (opt_matched == nullptr) and (opt_notmatched == nullptr) and
       (opt_dbmatched == nullptr) and (opt_dbnotmatched == nullptr) and
       (opt_samout == nullptr) and (opt_otutabout == nullptr) and
@@ -5942,7 +5942,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (opt_search_exact != nullptr)
     {
-      cmd_search_exact();
+      cmd_search_exact(parameters);
     }
   else if (opt_fastx_mask != nullptr)
     {
