@@ -66,6 +66,7 @@
 #include "otutable.h"
 #include "unique.h"
 #include <algorithm>  // std::min, std::max
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
@@ -567,13 +568,13 @@ auto align_delayed(struct searchinfo_s * si) -> void
 {
   /* compute global alignment */
 
-  unsigned int target_list[MAXDELAYED];
-  CELL  nwscore_list[MAXDELAYED];
-  unsigned short nwalignmentlength_list[MAXDELAYED];
-  unsigned short nwmatches_list[MAXDELAYED];
-  unsigned short nwmismatches_list[MAXDELAYED];
-  unsigned short nwgaps_list[MAXDELAYED];
-  char * nwcigar_list[MAXDELAYED];
+  std::array<unsigned int, MAXDELAYED> target_list {{}};
+  std::array<CELL, MAXDELAYED> nwscore_list {{}};
+  std::array<unsigned short, MAXDELAYED> nwalignmentlength_list {{}};
+  std::array<unsigned short, MAXDELAYED> nwmatches_list {{}};
+  std::array<unsigned short, MAXDELAYED> nwmismatches_list {{}};
+  std::array<unsigned short, MAXDELAYED> nwgaps_list {{}};
+  std::array<char *, MAXDELAYED> nwcigar_list {{}};
 
   int target_count = 0;
 
@@ -590,13 +591,13 @@ auto align_delayed(struct searchinfo_s * si) -> void
     {
       search16(si->s,
                target_count,
-               target_list,
-               nwscore_list,
-               nwalignmentlength_list,
-               nwmatches_list,
-               nwmismatches_list,
-               nwgaps_list,
-               nwcigar_list);
+               target_list.data(),
+               nwscore_list.data(),
+               nwalignmentlength_list.data(),
+               nwmatches_list.data(),
+               nwmismatches_list.data(),
+               nwgaps_list.data(),
+               nwcigar_list.data());
     }
 
   int i = 0;
