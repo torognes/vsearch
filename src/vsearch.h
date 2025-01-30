@@ -475,6 +475,8 @@ std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offs
 std::string const default_sequence_padding = "NNNNNNNN";
 
 struct Parameters {
+  std::string prog_header;
+  std::string command_line;
   char * opt_cut = nullptr;
   std::string opt_cut_pattern;
   char * opt_derep_fulllength = nullptr;
