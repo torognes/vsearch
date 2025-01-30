@@ -5813,8 +5813,8 @@ auto getentirecommandline(int argc, char** argv) -> void
 }
 
 
-auto show_header() -> void {
-  if (opt_quiet) { return ; }
+auto show_header(struct Parameters const & parameters) -> void {
+  if (parameters.opt_quiet) { return ; }
   fprintf(stderr, "%s\n", prog_header.data());
   fprintf(stderr, "https://github.com/torognes/vsearch\n");
   fprintf(stderr, "\n");
@@ -5853,7 +5853,7 @@ auto main(int argc, char** argv) -> int
 
   random_init();
 
-  show_header();
+  show_header(parameters);
 
   dynlibs_open();
 
