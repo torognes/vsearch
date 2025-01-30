@@ -1674,6 +1674,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_sizeout:
           opt_sizeout = true;
+          parameters.opt_sizeout = true;
           break;
 
         case option_derep_fulllength:
@@ -2062,10 +2063,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_clusterout_id:
           opt_clusterout_id = true;
+          parameters.opt_clusterout_id = true;
           break;
 
         case option_clusterout_sort:
           opt_clusterout_sort = true;
+          parameters.opt_clusterout_sort = true;
           break;
 
         case option_borderline:
@@ -2074,10 +2077,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_relabel_sha1:
           opt_relabel_sha1 = true;
+          parameters.opt_relabel_sha1 = true;
           break;
 
         case option_relabel_md5:
           opt_relabel_md5 = true;
+          parameters.opt_relabel_md5 = true;
           break;
 
         case option_derep_prefix:
@@ -2133,6 +2138,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_eeout:
           opt_eeout = true;
+          parameters.opt_eeout = true;
           break;
 
         case option_fastq_ascii:
@@ -2175,10 +2181,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_samheader:
           opt_samheader = true;
+          parameters.opt_samheader = true;
           break;
 
         case option_sizeorder:
           opt_sizeorder = true;
+          parameters.opt_sizeorder = true;
           break;
 
         case option_minwordmatches:
@@ -2195,6 +2203,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_relabel_keep:
           opt_relabel_keep = true;
+          parameters.opt_relabel_keep = true;
           break;
 
         case option_search_exact:
@@ -2233,6 +2242,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_eeout:
           opt_fastq_eeout = true;
+          parameters.opt_fastq_eeout = true;
           break;
 
         case option_fastqout_notmerged_fwd:
@@ -2257,10 +2267,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_nostagger:
           opt_fastq_nostagger = true;
+          parameters.opt_fastq_nostagger = true;
           break;
 
         case option_fastq_allowmergestagger:
           opt_fastq_allowmergestagger = true;
+          parameters.opt_fastq_allowmergestagger = true;
           break;
 
         case option_fastq_maxdiffs:
@@ -2286,6 +2298,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fasta_score:
           opt_fasta_score = true;
+          parameters.opt_fasta_score = true;
           break;
 
         case option_fastq_eestats:
@@ -2318,10 +2331,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_gzip_decompress:
           opt_gzip_decompress = true;
+          parameters.opt_gzip_decompress = true;
           break;
 
         case option_bzip2_decompress:
           opt_bzip2_decompress = true;
+          parameters.opt_bzip2_decompress = true;
           break;
 
         case option_fastq_maxlen:
@@ -2358,6 +2373,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_no_progress:
           opt_no_progress = true;
+          parameters.opt_no_progress = true;
           break;
 
         case option_fastq_eestats2:
@@ -2464,6 +2480,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_xee:
           opt_xee = true;
+          parameters.opt_xee = true;
           break;
 
         case option_fastx_getseq:
@@ -2480,6 +2497,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_label_substr_match:
           opt_label_substr_match = true;
+          parameters.opt_label_substr_match = true;
           break;
 
         case option_label:
@@ -2524,6 +2542,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_relabel_self:
           opt_relabel_self = true;
+          parameters.opt_relabel_self = true;
           break;
 
         case option_derep_id:
@@ -2572,10 +2591,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_lengthout:
           opt_lengthout = true;
+          parameters.opt_lengthout = true;
           break;
 
         case option_xlength:
           opt_xlength = true;
+          parameters.opt_xlength = true;
           break;
 
         case option_chimeras_denovo:
@@ -2600,6 +2621,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_sintax_random:
           opt_sintax_random = true;
+          parameters.opt_sintax_random = true;
           break;
 
         default:
@@ -4816,7 +4838,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
     }
 
-  if (opt_gzip_decompress and opt_bzip2_decompress)
+  if (parameters.opt_gzip_decompress and parameters.opt_bzip2_decompress)
     {
       fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
     }
