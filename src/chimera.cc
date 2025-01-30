@@ -883,10 +883,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   std::array<int, maxparents> match_QP {{}};
   int cols = 0;
 
-  for (int f = 0; f < ci->parents_found; f++) {
-    match_QP[f] = 0;
-  }
-
   for (int i = 0; i < alnlen; i++)
     {
       ++cols;
