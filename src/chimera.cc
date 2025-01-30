@@ -76,6 +76,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::sscanf
 #include <cstring>  // std::strlen, std::strncpy, std::strcpy
+#include <iterator>  // std::next
 #include <limits>
 #include <pthread.h>
 #include <vector>
@@ -1738,7 +1739,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.qsequence[length] = 0;
 
       rest -= length;
-      cursor += length;
+      cursor = std::next(cursor, length);
     }
 }
 
