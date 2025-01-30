@@ -353,7 +353,8 @@ int64_t popcnt_present = 0;
 int64_t avx_present = 0;
 int64_t avx2_present = 0;
 
-static char progheader[80];  //   static constexpr auto max_line_length = std::size_t{80};
+static std::array<char, max_line_length> prog_header {{}};
+static char * const progheader = prog_header.data();
 static char * cmdline;
 static time_t time_start;
 static time_t time_finish;
