@@ -5757,14 +5757,14 @@ auto cmd_chimera() -> void
 }
 
 
-auto cmd_fastq_mergepairs() -> void
+auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
 {
-  if (opt_reverse == nullptr)
+  if (parameters.opt_reverse == nullptr)
     {
       fatal("No reverse reads file specified with --reverse");
     }
-  if ((opt_fastqout == nullptr) and
-      (opt_fastaout == nullptr) and
+  if ((parameters.opt_fastqout == nullptr) and
+      (parameters.opt_fastaout == nullptr) and
       (opt_fastqout_notmerged_fwd == nullptr) and
       (opt_fastqout_notmerged_rev == nullptr) and
       (opt_fastaout_notmerged_fwd == nullptr) and
@@ -5954,7 +5954,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (opt_fastq_mergepairs != nullptr)
     {
-      cmd_fastq_mergepairs();
+      cmd_fastq_mergepairs(parameters);
     }
   else if (opt_fastq_eestats != nullptr)
     {
