@@ -5823,9 +5823,9 @@ auto show_header() -> void {
 
 auto main(int argc, char** argv) -> int
 {
-  fill_prog_header();
-
   struct Parameters parameters;
+
+  fill_prog_header();
 
   getentirecommandline(argc, argv);
 
