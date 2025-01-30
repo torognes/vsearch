@@ -88,6 +88,7 @@
 #include "subsample.h"
 #include "udb.h"
 #include "userfields.h"
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
@@ -1254,8 +1255,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_xsize
     };
 
-  static struct option long_options[] =
-    {
+  static constexpr std::array<struct option, 244> long_options =
+    {{
       {"abskew",                required_argument, nullptr, 0 },
       {"acceptall",             no_argument,       nullptr, 0 },
       {"alignwidth",            required_argument, nullptr, 0 },
@@ -1500,7 +1501,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"xn",                    required_argument, nullptr, 0 },
       {"xsize",                 no_argument,       nullptr, 0 },
       { nullptr,                0,                 nullptr, 0 }
-    };
+      }};
 
   constexpr int options_count = (sizeof(long_options) / sizeof(struct option)) - 1;
 
@@ -1509,7 +1510,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   int options_index = 0;
   int c = 0;
 
-  while ((c = getopt_long_only(argc, argv, "", long_options,
+  while ((c = getopt_long_only(argc, argv, "", long_options.data(),
                                &options_index)) == 0)
     {
       if (options_index < options_count)
