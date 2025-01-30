@@ -777,6 +777,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   static constexpr auto dbl_max = std::numeric_limits<double>::max();
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
+  static constexpr auto number_of_commands = std::size_t{50};
+  static constexpr auto max_number_of_options = std::size_t{98};
 
   parameters.progname = argv[0];
 
@@ -2619,7 +2621,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* Below is a list of all command names, in alphabetical order. */
 
-  int const command_options[] =
+  static constexpr std::array<int, number_of_commands> command_options =
     {
       option_allpairs_global,
       option_chimeras_denovo,
@@ -2680,7 +2682,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     The first line is the command and the lines below are the valid options.
   */
 
-  const int valid_options[][98] =
+  const int valid_options[number_of_commands][max_number_of_options] =
     {
       {
         option_allpairs_global,
