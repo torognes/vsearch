@@ -1725,10 +1725,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_dbmatched:
           opt_dbmatched = optarg;
+          parameters.opt_dbmatched = optarg;
           break;
 
         case option_dbnotmatched:
           opt_dbnotmatched = optarg;
+          parameters.opt_dbnotmatched = optarg;
           break;
 
         case option_fastapairs:
@@ -5590,7 +5592,7 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
   if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
       (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
       (opt_matched == nullptr) and (opt_notmatched == nullptr) and
-      (opt_dbmatched == nullptr) and (opt_dbnotmatched == nullptr) and
+      (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
       (opt_samout == nullptr) and (opt_otutabout == nullptr) and
       (opt_biomout == nullptr) and (opt_mothur_shared_out == nullptr) and
       (opt_fastapairs == nullptr) and (opt_lcaout == nullptr))
