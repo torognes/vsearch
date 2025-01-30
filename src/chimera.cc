@@ -1726,16 +1726,16 @@ auto partition_query(struct chimera_info_s * ci) -> void
     {
       auto const length = (rest + (parts - i - 1)) / (parts - i);
 
-      auto * si = &ci->si[i];
+      auto & si = ci->si[i];
 
-      si->query_no = ci->query_no;
-      si->strand = 0;
-      si->qsize = ci->query_size;
-      si->query_head_len = ci->query_head_len;
-      si->query_head = ci->query_head;
-      si->qseqlen = length;
-      std::strncpy(si->qsequence, cursor, length);
-      si->qsequence[length] = 0;
+      si.query_no = ci->query_no;
+      si.strand = 0;
+      si.qsize = ci->query_size;
+      si.query_head_len = ci->query_head_len;
+      si.query_head = ci->query_head;
+      si.qseqlen = length;
+      std::strncpy(si.qsequence, cursor, length);
+      si.qsequence[length] = 0;
 
       rest -= length;
       cursor += length;
