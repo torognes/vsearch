@@ -1720,13 +1720,13 @@ auto query_exit(struct searchinfo_s * si) -> void
 
 auto partition_query(struct chimera_info_s * ci) -> void
 {
-  int rest = ci->query_len;
-  char * cursor = ci->query_seq;
-  for (int i = 0; i < parts; i++)
+  auto rest = ci->query_len;
+  auto * cursor = ci->query_seq;
+  for (auto i = 0; i < parts; i++)
     {
-      int const length = (rest + (parts - i - 1)) / (parts - i);
+      auto const length = (rest + (parts - i - 1)) / (parts - i);
 
-      struct searchinfo_s * si = &ci->si[i];
+      auto * si = &ci->si[i];
 
       si->query_no = ci->query_no;
       si->strand = 0;
