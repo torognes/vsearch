@@ -1722,7 +1722,7 @@ auto partition_query(struct chimera_info_s * ci) -> void
 {
   auto rest = ci->query_len;
   auto * cursor = ci->query_seq;
-  for (auto i = 0; i < parts; i++)
+  for (auto i = 0; i < parts; ++i)
     {
       auto const length = (rest + (parts - i - 1)) / (parts - i);
 
