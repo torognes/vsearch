@@ -1724,7 +1724,7 @@ auto partition_query(struct chimera_info_s * ci) -> void
   char * p = ci->query_seq;
   for (int i = 0; i < parts; i++)
     {
-      int const len = (rest + (parts - i - 1)) / (parts - i);
+      int const length = (rest + (parts - i - 1)) / (parts - i);
 
       struct searchinfo_s * si = &ci->si[i];
 
@@ -1733,12 +1733,12 @@ auto partition_query(struct chimera_info_s * ci) -> void
       si->qsize = ci->query_size;
       si->query_head_len = ci->query_head_len;
       si->query_head = ci->query_head;
-      si->qseqlen = len;
-      strncpy(si->qsequence, p, len);
-      si->qsequence[len] = 0;
+      si->qseqlen = length;
+      strncpy(si->qsequence, p, length);
+      si->qsequence[length] = 0;
 
-      rest -= len;
-      p += len;
+      rest -= length;
+      p += length;
     }
 }
 
