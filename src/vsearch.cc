@@ -5810,7 +5810,7 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
 auto fill_prog_header() -> void
 {
   static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
-  auto * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
+  auto const * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
   static_cast<void>(snprintf(
       prog_header.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
       PROG_ARCH, static_cast<double>(arch_get_memtotal()) / one_gigabyte,
