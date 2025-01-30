@@ -371,9 +371,9 @@ auto sintax_search_topscores(struct searchinfo_s * si) -> void
 
 auto sintax_query(int64_t t) -> void
 {
-  int all_seqno[2][bootstrap_count];
-  int boot_count[2] = {0, 0};
-  unsigned int best_count[2] = {0, 0};
+  std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
+  std::array<int, 2> boot_count = {0, 0};
+  std::array<unsigned int, 2> best_count = {0, 0};
   int const qseqlen = si_plus[t].qseqlen;
   char * query_head = si_plus[t].query_head;
 
@@ -400,7 +400,7 @@ auto sintax_query(int64_t t) -> void
           for (auto i = 0; i < bootstrap_count ; i++)
             {
               /* subsample 32 kmers */
-              unsigned int kmersample_subset[subset_size];
+              std::array<unsigned int, subset_size> kmersample_subset {{}};
               auto subsamples = 0;
               bitmap_reset_all(b);
               for (auto j = 0; j < subset_size ; j++)
@@ -414,7 +414,7 @@ auto sintax_query(int64_t t) -> void
                 }
 
               si->kmersamplecount = subsamples;
-              si->kmersample = kmersample_subset;
+              si->kmersample = kmersample_subset.data();
 
               sintax_search_topscores(si);
 
@@ -461,7 +461,7 @@ auto sintax_query(int64_t t) -> void
 
   sintax_analyse(query_head,
                  best_strand,
-                 all_seqno[best_strand],
+                 all_seqno[best_strand].data(),
                  boot_count[best_strand]);
 
   bitmap_free(b);
