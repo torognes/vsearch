@@ -5781,7 +5781,7 @@ auto cmd_fastq_mergepairs() -> void
 }
 
 
-auto fillheader() -> void
+auto fill_prog_header() -> void
 {
   constexpr static double one_gigabyte {1024 * 1024 * 1024};
   snprintf(progheader, max_line_length,
@@ -5824,7 +5824,7 @@ auto show_header() -> void {
 
 auto main(int argc, char** argv) -> int
 {
-  fillheader();
+  fill_prog_header();
 
   struct Parameters parameters;
 
