@@ -5550,7 +5550,7 @@ auto cmd_allpairs_global() -> void
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
 
-  allpairs_global(cmdline, progheader);
+  allpairs_global(cmdline, prog_header.data());
 }
 
 
@@ -5579,7 +5579,7 @@ auto cmd_usearch_global() -> void
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
     }
 
-  usearch_global(cmdline, progheader);
+  usearch_global(cmdline, prog_header.data());
 }
 
 
@@ -5603,7 +5603,7 @@ auto cmd_search_exact() -> void
       fatal("Database filename not specified with --db");
     }
 
-  search_exact(cmdline, progheader);
+  search_exact(cmdline, prog_header.data());
 }
 
 
@@ -5691,19 +5691,19 @@ auto cmd_cluster() -> void
 
   if (opt_cluster_fast != nullptr)
     {
-      cluster_fast(cmdline, progheader);
+      cluster_fast(cmdline, prog_header.data());
     }
   else if (opt_cluster_smallmem != nullptr)
     {
-      cluster_smallmem(cmdline, progheader);
+      cluster_smallmem(cmdline, prog_header.data());
     }
   else if (opt_cluster_size != nullptr)
     {
-      cluster_size(cmdline, progheader);
+      cluster_size(cmdline, prog_header.data());
     }
   else if (opt_cluster_unoise != nullptr)
     {
-      cluster_unoise(cmdline, progheader);
+      cluster_unoise(cmdline, prog_header.data());
     }
 }
 
@@ -5784,7 +5784,7 @@ auto cmd_fastq_mergepairs() -> void
 auto fill_prog_header() -> void
 {
   constexpr static double one_gigabyte {1024 * 1024 * 1024};
-  snprintf(progheader, max_line_length,
+  snprintf(prog_header.data(), max_line_length,
            "%s v%s_%s, %.1fGB RAM, %ld cores",
            PROG_NAME, PROG_VERSION, PROG_ARCH,
            arch_get_memtotal() / one_gigabyte,
@@ -5816,7 +5816,7 @@ auto getentirecommandline(int argc, char** argv) -> void
 
 auto show_header() -> void {
   if (opt_quiet) { return ; }
-  fprintf(stderr, "%s\n", progheader);
+  fprintf(stderr, "%s\n", prog_header.data());
   fprintf(stderr, "https://github.com/torognes/vsearch\n");
   fprintf(stderr, "\n");
 }
@@ -5842,7 +5842,7 @@ auto main(int argc, char** argv) -> int
         {
           fatal("Unable to open log file for writing");
         }
-      fprintf(fp_log, "%s\n", progheader);
+      fprintf(fp_log, "%s\n", prog_header.data());
       fprintf(fp_log, "%s\n", cmdline);
 
       char time_string[26];
