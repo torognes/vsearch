@@ -68,6 +68,7 @@
 #include "otutable.h"
 #include "unique.h"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
+#include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
@@ -1070,13 +1071,13 @@ auto cluster_core_parallel() -> void
 
 auto cluster_core_serial() -> void
 {
-  struct searchinfo_s si_p[1];  // refactoring: std::array or direct initialization?
-  struct searchinfo_s si_m[1];
+  std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
+  std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p);
+  cluster_query_init(si_p.data());
   if (opt_strand > 1)
     {
-      cluster_query_init(si_m);
+      cluster_query_init(si_m.data());
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -1095,25 +1096,25 @@ auto cluster_core_serial() -> void
 
       lastlength = length;
 
-      si_p->query_no = seqno;
-      si_p->strand = 0;
-      cluster_query_core(si_p);
+      si_p[0].query_no = seqno;
+      si_p[0].strand = 0;
+      cluster_query_core(si_p.data());
 
       if (opt_strand > 1)
         {
-          si_m->query_no = seqno;
-          si_m->strand = 1;
-          cluster_query_core(si_m);
+          si_m[0].query_no = seqno;
+          si_m[0].strand = 1;
+          cluster_query_core(si_m.data());
         }
 
       struct hit * best = nullptr;
       if (opt_sizeorder)
         {
-          best = search_findbest2_bysize(si_p, si_m);
+          best = search_findbest2_bysize(si_p.data(), si_m.data());
         }
       else
         {
-          best = search_findbest2_byid(si_p, si_m);
+          best = search_findbest2_byid(si_p.data(), si_m.data());
         }
 
       if (best)
@@ -1121,11 +1122,11 @@ auto cluster_core_serial() -> void
           int const target = best->target;
           cluster_core_results_hit(best,
                                    clusterinfo[target].clusterno,
-                                   si_p->query_head,
-                                   si_p->qseqlen,
-                                   si_p->qsequence,
-                                   best->strand ? si_m->qsequence : nullptr,
-                                   si_p->qsize);
+                                   si_p[0].query_head,
+                                   si_p[0].qseqlen,
+                                   si_p[0].qsequence,
+                                   best->strand ? si_m[0].qsequence : nullptr,
+                                   si_p[0].qsize);
           clusterinfo[seqno].seqno = seqno;
           clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
           clusterinfo[seqno].cigar = best->nwalignment;
@@ -1140,18 +1141,18 @@ auto cluster_core_serial() -> void
           clusterinfo[seqno].strand = 0;
           dbindex_addsequence(seqno, opt_qmask);
           cluster_core_results_nohit(clusters,
-                                     si_p->query_head,
-                                     si_p->qseqlen,
-                                     si_p->qsequence,
+                                     si_p[0].query_head,
+                                     si_p[0].qseqlen,
+                                     si_p[0].qsequence,
                                      nullptr,
-                                     si_p->qsize);
+                                     si_p[0].qsize);
           ++clusters;
         }
 
       /* free alignments */
       for (int s = 0; s < opt_strand; s++)
         {
-          struct searchinfo_s * si = s ? si_m : si_p;
+          struct searchinfo_s * si = s ? si_m.data() : si_p.data();
           for (int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
@@ -1168,10 +1169,10 @@ auto cluster_core_serial() -> void
     }
   progress_done();
 
-  cluster_query_exit(si_p);
+  cluster_query_exit(si_p.data());
   if (opt_strand > 1)
     {
-      cluster_query_exit(si_m);
+      cluster_query_exit(si_m.data());
     }
 }
 
