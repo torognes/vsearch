@@ -5669,10 +5669,10 @@ auto cmd_none(struct Parameters const & parameters) -> void {
 }
 
 
-auto cmd_cluster() -> void
+auto cmd_cluster(struct Parameters const & parameters) -> void
 {
   if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
       (opt_matched == nullptr) and (opt_notmatched == nullptr) and
       (opt_centroids == nullptr) and (opt_clusters == nullptr) and
       (opt_consout == nullptr) and (opt_msaout == nullptr) and
@@ -5710,7 +5710,7 @@ auto cmd_cluster() -> void
 }
 
 
-auto cmd_chimera() -> void
+auto cmd_chimera(struct Parameters const & parameters) -> void
 {
   if ((opt_chimeras == nullptr)  and (opt_nonchimeras == nullptr) and
       (opt_uchimeout == nullptr) and (opt_uchimealns == nullptr))
@@ -5718,7 +5718,7 @@ auto cmd_chimera() -> void
       fatal("No output files specified");
     }
 
-  if ((opt_uchime_ref != nullptr) and (opt_db == nullptr))
+  if ((opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
     {
       fatal("Database filename not specified with --db");
     }
@@ -5917,11 +5917,11 @@ auto main(int argc, char** argv) -> int
     }
   else if ((opt_cluster_smallmem != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
     {
-      cmd_cluster();
+      cmd_cluster(parameters);
     }
   else if ((opt_uchime_denovo != nullptr) or (opt_uchime_ref != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
     {
-      cmd_chimera();
+      cmd_chimera(parameters);
     }
   else if (parameters.opt_fastq_chars != nullptr)
     {
