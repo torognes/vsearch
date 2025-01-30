@@ -1539,6 +1539,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_db:
           opt_db = optarg;
+          parameters.opt_db = optarg;
           break;
 
         case option_id:
@@ -5597,7 +5598,7 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  if (opt_db == nullptr)
+  if (parameters.opt_db == nullptr)
     {
       fatal("Database filename not specified with --db");
     }
