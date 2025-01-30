@@ -479,6 +479,9 @@ struct Parameters {
   std::string command_line;
   char * opt_cut = nullptr;
   std::string opt_cut_pattern;
+  char * opt_db = nullptr;
+  char * opt_dbmatched = nullptr;
+  char * opt_dbnotmatched = nullptr;
   char * opt_derep_fulllength = nullptr;
   char * opt_derep_id = nullptr;
   char * opt_derep_prefix = nullptr;
