@@ -5535,12 +5535,12 @@ auto cmd_help(struct Parameters const & parameters) -> void {
 }
 
 
-auto cmd_allpairs_global() -> void
+auto cmd_allpairs_global(struct Parameters const & parameters) -> void
 {
   /* check options */
 
   if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
       (opt_matched == nullptr) and (opt_notmatched == nullptr) and
       (opt_samout == nullptr) and (opt_fastapairs == nullptr))
     {
@@ -5556,14 +5556,14 @@ auto cmd_allpairs_global() -> void
 }
 
 
-auto cmd_usearch_global() -> void
+auto cmd_usearch_global(struct Parameters const & parameters) -> void
 {
   /* check options */
 
   if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (opt_uc == nullptr) and (opt_blast6out == nullptr) and
+      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
       (opt_matched == nullptr) and (opt_notmatched == nullptr) and
-      (opt_dbmatched == nullptr) and (opt_dbnotmatched == nullptr) and
+      (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
       (opt_samout == nullptr) and (opt_otutabout == nullptr) and
       (opt_biomout == nullptr) and (opt_mothur_shared_out == nullptr) and
       (opt_fastapairs == nullptr) and (opt_lcaout == nullptr))
@@ -5571,7 +5571,7 @@ auto cmd_usearch_global() -> void
       fatal("No output files specified");
     }
 
-  if (opt_db == nullptr)
+  if (parameters.opt_db == nullptr)
     {
       fatal("Database filename not specified with --db");
     }
@@ -5873,11 +5873,11 @@ auto main(int argc, char** argv) -> int
     }
   else if (opt_allpairs_global != nullptr)
     {
-      cmd_allpairs_global();
+      cmd_allpairs_global(parameters);
     }
   else if (opt_usearch_global != nullptr)
     {
-      cmd_usearch_global();
+      cmd_usearch_global(parameters);
     }
   else if (parameters.opt_sortbysize != nullptr)
     {
