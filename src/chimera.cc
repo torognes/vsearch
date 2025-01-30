@@ -228,9 +228,9 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
       ci->query_seq = (char *) xrealloc(ci->query_seq, maxqlen + 1);
 
-      for (auto & i: ci->si)
+      for (auto & query_info: ci->si)
         {
-          i.qsequence = (char *) xrealloc(i.qsequence, maxpartlen + 1);
+          query_info.qsequence = (char *) xrealloc(query_info.qsequence, maxpartlen + 1);
         }
 
       ci->maxi = (int *) xrealloc(ci->maxi, (maxqlen + 1) * sizeof(int));
