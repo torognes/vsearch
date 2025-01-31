@@ -469,9 +469,9 @@ auto keep(merge_data_t * a_read_pair) -> void
 }
 
 
-auto discard(merge_data_t * ip) -> void
+auto discard(merge_data_t * a_read_pair) -> void
 {
-  switch(ip->reason)
+  switch(a_read_pair->reason)
     {
     case undefined:
       ++failed_undefined;
@@ -542,11 +542,11 @@ auto discard(merge_data_t * ip) -> void
   if (opt_fastqout_notmerged_fwd != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_fwd,
-                          ip->fwd_sequence,
-                          ip->fwd_length,
-                          ip->fwd_header,
-                          strlen(ip->fwd_header),
-                          ip->fwd_quality,
+                          a_read_pair->fwd_sequence,
+                          a_read_pair->fwd_length,
+                          a_read_pair->fwd_header,
+                          strlen(a_read_pair->fwd_header),
+                          a_read_pair->fwd_quality,
                           0,
                           notmerged,
                           -1.0);
@@ -555,11 +555,11 @@ auto discard(merge_data_t * ip) -> void
   if (opt_fastqout_notmerged_rev != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_rev,
-                          ip->rev_sequence,
-                          ip->rev_length,
-                          ip->rev_header,
-                          strlen(ip->rev_header),
-                          ip->rev_quality,
+                          a_read_pair->rev_sequence,
+                          a_read_pair->rev_length,
+                          a_read_pair->rev_header,
+                          strlen(a_read_pair->rev_header),
+                          a_read_pair->rev_quality,
                           0,
                           notmerged,
                           -1.0);
@@ -569,10 +569,10 @@ auto discard(merge_data_t * ip) -> void
     {
       fasta_print_general(fp_fastaout_notmerged_fwd,
                           nullptr,
-                          ip->fwd_sequence,
-                          ip->fwd_length,
-                          ip->fwd_header,
-                          strlen(ip->fwd_header),
+                          a_read_pair->fwd_sequence,
+                          a_read_pair->fwd_length,
+                          a_read_pair->fwd_header,
+                          strlen(a_read_pair->fwd_header),
                           0,
                           notmerged,
                           -1.0,
@@ -584,10 +584,10 @@ auto discard(merge_data_t * ip) -> void
     {
       fasta_print_general(fp_fastaout_notmerged_rev,
                           nullptr,
-                          ip->rev_sequence,
-                          ip->rev_length,
-                          ip->rev_header,
-                          strlen(ip->rev_header),
+                          a_read_pair->rev_sequence,
+                          a_read_pair->rev_length,
+                          a_read_pair->rev_header,
+                          strlen(a_read_pair->rev_header),
                           0,
                           notmerged,
                           -1.0,
@@ -597,19 +597,19 @@ auto discard(merge_data_t * ip) -> void
 }
 
 
-auto merge(merge_data_t * ip) -> void
+auto merge(merge_data_t * a_read_pair) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
-  auto const fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
-    ip->fwd_trunc - ip->offset : 0;
+  auto const fwd_5prime_overhang = a_read_pair->fwd_trunc > a_read_pair->offset ?
+    a_read_pair->fwd_trunc - a_read_pair->offset : 0;
 
-  ip->ee_merged = 0.0;
-  ip->ee_fwd = 0.0;
-  ip->ee_rev = 0.0;
-  ip->fwd_errors = 0;
-  ip->rev_errors = 0;
+  a_read_pair->ee_merged = 0.0;
+  a_read_pair->ee_fwd = 0.0;
+  a_read_pair->ee_rev = 0.0;
+  a_read_pair->fwd_errors = 0;
+  a_read_pair->rev_errors = 0;
 
   auto sym = '\0';
   auto qual = '\0';
@@ -630,15 +630,15 @@ auto merge(merge_data_t * ip) -> void
 
   while (fwd_pos < fwd_5prime_overhang)
     {
-      sym = ip->fwd_sequence[fwd_pos];
-      qual = ip->fwd_quality[fwd_pos];
+      sym = a_read_pair->fwd_sequence[fwd_pos];
+      qual = a_read_pair->fwd_quality[fwd_pos];
 
-      ip->merged_sequence[merged_pos] = sym;
-      ip->merged_quality[merged_pos] = qual;
+      a_read_pair->merged_sequence[merged_pos] = sym;
+      a_read_pair->merged_quality[merged_pos] = qual;
 
       ee = q2p[(unsigned) qual];
-      ip->ee_merged += ee;
-      ip->ee_fwd += ee;
+      a_read_pair->ee_merged += ee;
+      a_read_pair->ee_fwd += ee;
 
       ++fwd_pos;
       ++merged_pos;
@@ -646,17 +646,17 @@ auto merge(merge_data_t * ip) -> void
 
   // Merged region
 
-  auto const rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
-    ip->offset - ip->fwd_trunc : 0;
+  auto const rev_3prime_overhang = a_read_pair->offset > a_read_pair->fwd_trunc ?
+    a_read_pair->offset - a_read_pair->fwd_trunc : 0;
 
-  rev_pos = ip->rev_trunc - 1 - rev_3prime_overhang;
+  rev_pos = a_read_pair->rev_trunc - 1 - rev_3prime_overhang;
 
-  while ((fwd_pos < ip->fwd_trunc) && (rev_pos >= 0))
+  while ((fwd_pos < a_read_pair->fwd_trunc) && (rev_pos >= 0))
     {
-      fwd_sym = ip->fwd_sequence[fwd_pos];
-      rev_sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
-      fwd_qual = ip->fwd_quality[fwd_pos];
-      rev_qual = ip->rev_quality[rev_pos];
+      fwd_sym = a_read_pair->fwd_sequence[fwd_pos];
+      rev_sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
+      fwd_qual = a_read_pair->fwd_quality[fwd_pos];
+      rev_qual = a_read_pair->rev_quality[rev_pos];
 
       merge_sym(& sym,
                 & qual,
@@ -667,18 +667,18 @@ auto merge(merge_data_t * ip) -> void
 
       if (sym != fwd_sym)
         {
-          ++ip->fwd_errors;
+          ++a_read_pair->fwd_errors;
         }
       if (sym != rev_sym)
         {
-          ++ip->rev_errors;
+          ++a_read_pair->rev_errors;
         }
 
-      ip->merged_sequence[merged_pos] = sym;
-      ip->merged_quality[merged_pos] = qual;
-      ip->ee_merged += q2p[(unsigned) qual];
-      ip->ee_fwd += q2p[(unsigned) fwd_qual];
-      ip->ee_rev += q2p[(unsigned) rev_qual];
+      a_read_pair->merged_sequence[merged_pos] = sym;
+      a_read_pair->merged_quality[merged_pos] = qual;
+      a_read_pair->ee_merged += q2p[(unsigned) qual];
+      a_read_pair->ee_fwd += q2p[(unsigned) fwd_qual];
+      a_read_pair->ee_rev += q2p[(unsigned) rev_qual];
 
       ++fwd_pos;
       --rev_pos;
@@ -689,45 +689,45 @@ auto merge(merge_data_t * ip) -> void
 
   while (rev_pos >= 0)
     {
-      sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
-      qual = ip->rev_quality[rev_pos];
+      sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
+      qual = a_read_pair->rev_quality[rev_pos];
 
-      ip->merged_sequence[merged_pos] = sym;
-      ip->merged_quality[merged_pos] = qual;
+      a_read_pair->merged_sequence[merged_pos] = sym;
+      a_read_pair->merged_quality[merged_pos] = qual;
       ++merged_pos;
 
       ee = q2p[(unsigned) qual];
-      ip->ee_merged += ee;
-      ip->ee_rev += ee;
+      a_read_pair->ee_merged += ee;
+      a_read_pair->ee_rev += ee;
 
       --rev_pos;
     }
 
   auto const mergelen = merged_pos;
-  ip->merged_length = mergelen;
+  a_read_pair->merged_length = mergelen;
 
-  ip->merged_sequence[mergelen] = 0;
-  ip->merged_quality[mergelen] = 0;
+  a_read_pair->merged_sequence[mergelen] = 0;
+  a_read_pair->merged_quality[mergelen] = 0;
 
-  if (ip->ee_merged <= opt_fastq_maxee)
+  if (a_read_pair->ee_merged <= opt_fastq_maxee)
     {
-      ip->reason = ok;
-      ip->merged = true;
+      a_read_pair->reason = ok;
+      a_read_pair->merged = true;
     }
   else
     {
-      ip->reason = maxee;
+      a_read_pair->reason = maxee;
     }
 }
 
 
-auto optimize(merge_data_t * ip,
+auto optimize(merge_data_t * a_read_pair,
                  kh_handle_s * kmerhash) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
   int64_t const i1 = 1;
-  auto const i2 = ip->fwd_trunc + ip->rev_trunc - 1;
+  auto const i2 = a_read_pair->fwd_trunc + a_read_pair->rev_trunc - 1;
 
   auto best_score = 0.0;
   int64_t best_i = 0;
@@ -737,14 +737,14 @@ auto optimize(merge_data_t * ip,
 
   auto kmers = 0;
 
-  std::vector<int> diags(ip->fwd_trunc + ip->rev_trunc, 0);
+  std::vector<int> diags(a_read_pair->fwd_trunc + a_read_pair->rev_trunc, 0);
 
-  kh_insert_kmers(kmerhash, k, ip->fwd_sequence, ip->fwd_trunc);
-  kh_find_diagonals(kmerhash, k, ip->rev_sequence, ip->rev_trunc, diags.data());
+  kh_insert_kmers(kmerhash, k, a_read_pair->fwd_sequence, a_read_pair->fwd_trunc);
+  kh_find_diagonals(kmerhash, k, a_read_pair->rev_sequence, a_read_pair->rev_trunc, diags.data());
 
   for (int64_t i = i1; i <= i2; i++)
     {
-      int const diag = ip->rev_trunc + ip->fwd_trunc - i;
+      int const diag = a_read_pair->rev_trunc + a_read_pair->fwd_trunc - i;
       auto const diagcount = diags[diag];
 
       if (diagcount >= merge_mindiagcount)
@@ -754,15 +754,15 @@ auto optimize(merge_data_t * ip,
           /* for each interesting diagonal */
 
           auto const fwd_3prime_overhang
-            = i > ip->rev_trunc ? i - ip->rev_trunc : 0;
+            = i > a_read_pair->rev_trunc ? i - a_read_pair->rev_trunc : 0;
           auto const rev_3prime_overhang
-            = i > ip->fwd_trunc ? i - ip->fwd_trunc : 0;
+            = i > a_read_pair->fwd_trunc ? i - a_read_pair->fwd_trunc : 0;
           auto const overlap
             = i - fwd_3prime_overhang - rev_3prime_overhang;
           auto const fwd_pos_start
-            = ip->fwd_trunc - fwd_3prime_overhang - 1;
+            = a_read_pair->fwd_trunc - fwd_3prime_overhang - 1;
           auto const rev_pos_start
-            = ip->rev_trunc - rev_3prime_overhang - overlap;
+            = a_read_pair->rev_trunc - rev_3prime_overhang - overlap;
 
           auto fwd_pos = fwd_pos_start;
           auto rev_pos = rev_pos_start;
@@ -776,11 +776,11 @@ auto optimize(merge_data_t * ip,
             {
               /* for each pair of bases in the overlap */
 
-              auto const fwd_sym = ip->fwd_sequence[fwd_pos];
-              auto const rev_sym = chrmap_complement[(int) (ip->rev_sequence[rev_pos])];
+              auto const fwd_sym = a_read_pair->fwd_sequence[fwd_pos];
+              auto const rev_sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
 
-              unsigned int const fwd_qual = ip->fwd_quality[fwd_pos];
-              unsigned int const rev_qual = ip->rev_quality[rev_pos];
+              unsigned int const fwd_qual = a_read_pair->fwd_quality[fwd_pos];
+              unsigned int const rev_qual = a_read_pair->rev_quality[rev_pos];
 
               --fwd_pos;
               ++rev_pos;
@@ -822,57 +822,57 @@ auto optimize(merge_data_t * ip,
 
   if (hits > 1)
     {
-      ip->reason = repeat;
+      a_read_pair->reason = repeat;
       return 0;
     }
 
-  if ((! opt_fastq_allowmergestagger) && (best_i > ip->fwd_trunc))
+  if ((! opt_fastq_allowmergestagger) && (best_i > a_read_pair->fwd_trunc))
     {
-      ip->reason = staggered;
+      a_read_pair->reason = staggered;
       return 0;
     }
 
   if (best_diffs > opt_fastq_maxdiffs)
     {
-      ip->reason = maxdiffs;
+      a_read_pair->reason = maxdiffs;
       return 0;
     }
 
   if ((100.0 * best_diffs / best_i) > opt_fastq_maxdiffpct)
     {
-      ip->reason = maxdiffpct;
+      a_read_pair->reason = maxdiffpct;
       return 0;
     }
 
   if (kmers == 0)
     {
-      ip->reason = nokmers;
+      a_read_pair->reason = nokmers;
       return 0;
     }
 
   if (best_score < merge_minscore)
     {
-      ip->reason = minscore;
+      a_read_pair->reason = minscore;
       return 0;
     }
 
   if (best_i < opt_fastq_minovlen)
     {
-      ip->reason = minovlen;
+      a_read_pair->reason = minovlen;
       return 0;
     }
 
-  int const mergelen = ip->fwd_trunc + ip->rev_trunc - best_i;
+  int const mergelen = a_read_pair->fwd_trunc + a_read_pair->rev_trunc - best_i;
 
   if (mergelen < opt_fastq_minmergelen)
     {
-      ip->reason = minmergelen;
+      a_read_pair->reason = minmergelen;
       return 0;
     }
 
   if (mergelen > opt_fastq_maxmergelen)
     {
-      ip->reason = maxmergelen;
+      a_read_pair->reason = maxmergelen;
       return 0;
     }
 
@@ -880,38 +880,38 @@ auto optimize(merge_data_t * ip,
 }
 
 
-auto process(merge_data_t * ip,
+auto process(merge_data_t * a_read_pair,
              struct kh_handle_s * kmerhash) -> void
 {
-  ip->merged = false;
+  a_read_pair->merged = false;
 
   auto skip = false;
 
   /* check length */
 
-  if ((ip->fwd_length < opt_fastq_minlen) ||
-      (ip->rev_length < opt_fastq_minlen))
+  if ((a_read_pair->fwd_length < opt_fastq_minlen) ||
+      (a_read_pair->rev_length < opt_fastq_minlen))
     {
-      ip->reason = minlen;
+      a_read_pair->reason = minlen;
       skip = true;
     }
 
-  if ((ip->fwd_length > opt_fastq_maxlen) ||
-      (ip->rev_length > opt_fastq_maxlen))
+  if ((a_read_pair->fwd_length > opt_fastq_maxlen) ||
+      (a_read_pair->rev_length > opt_fastq_maxlen))
     {
-      ip->reason = maxlen;
+      a_read_pair->reason = maxlen;
       skip = true;
     }
 
   /* truncate sequences by quality */
 
-  int64_t fwd_trunc = ip->fwd_length;
+  int64_t fwd_trunc = a_read_pair->fwd_length;
 
   if (! skip)
     {
-      for (int64_t i = 0; i < ip->fwd_length; i++)
+      for (int64_t i = 0; i < a_read_pair->fwd_length; i++)
         {
-          if (get_qual(ip->fwd_quality[i]) <= opt_fastq_truncqual)
+          if (get_qual(a_read_pair->fwd_quality[i]) <= opt_fastq_truncqual)
             {
               fwd_trunc = i;
               break;
@@ -919,20 +919,20 @@ auto process(merge_data_t * ip,
         }
       if (fwd_trunc < opt_fastq_minlen)
         {
-          ip->reason = minlen;
+          a_read_pair->reason = minlen;
           skip = true;
         }
     }
 
-  ip->fwd_trunc = fwd_trunc;
+  a_read_pair->fwd_trunc = fwd_trunc;
 
-  auto rev_trunc = ip->rev_length;
+  auto rev_trunc = a_read_pair->rev_length;
 
   if (! skip)
     {
-      for (int64_t i = 0; i < ip->rev_length; i++)
+      for (int64_t i = 0; i < a_read_pair->rev_length; i++)
         {
-          if (get_qual(ip->rev_quality[i]) <= opt_fastq_truncqual)
+          if (get_qual(a_read_pair->rev_quality[i]) <= opt_fastq_truncqual)
             {
               rev_trunc = i;
               break;
@@ -940,12 +940,12 @@ auto process(merge_data_t * ip,
         }
       if (rev_trunc < opt_fastq_minlen)
         {
-          ip->reason = minlen;
+          a_read_pair->reason = minlen;
           skip = true;
         }
     }
 
-  ip->rev_trunc = rev_trunc;
+  a_read_pair->rev_trunc = rev_trunc;
 
   /* count n's */
 
@@ -956,15 +956,15 @@ auto process(merge_data_t * ip,
       int64_t fwd_ncount = 0;
       for (int64_t i = 0; i < fwd_trunc; i++)
         {
-          if (ip->fwd_sequence[i] == 'N')
+          if (a_read_pair->fwd_sequence[i] == 'N')
             {
-              ip->fwd_quality[i] = opt_fastq_ascii;
+              a_read_pair->fwd_quality[i] = opt_fastq_ascii;
               ++fwd_ncount;
             }
         }
       if (fwd_ncount > opt_fastq_maxns)
         {
-          ip->reason = maxns;
+          a_read_pair->reason = maxns;
           skip = true;
         }
     }
@@ -974,36 +974,36 @@ auto process(merge_data_t * ip,
       int64_t rev_ncount = 0;
       for (int64_t i = 0; i < rev_trunc; i++)
         {
-          if (ip->rev_sequence[i] == 'N')
+          if (a_read_pair->rev_sequence[i] == 'N')
             {
-              ip->rev_quality[i] = opt_fastq_ascii;
+              a_read_pair->rev_quality[i] = opt_fastq_ascii;
               ++rev_ncount;
             }
         }
       if (rev_ncount > opt_fastq_maxns)
         {
-          ip->reason = maxns;
+          a_read_pair->reason = maxns;
           skip = true;
         }
     }
 
-  ip->offset = 0;
+  a_read_pair->offset = 0;
 
   if (! skip)
     {
-      ip->offset = optimize(ip, kmerhash);
+      a_read_pair->offset = optimize(a_read_pair, kmerhash);
     }
 
-  if (ip->offset > 0)
+  if (a_read_pair->offset > 0)
     {
-      merge(ip);
+      merge(a_read_pair);
     }
 
-  ip->state = processed;
+  a_read_pair->state = processed;
 }
 
 
-auto read_pair(merge_data_t * ip) -> bool
+auto read_pair(merge_data_t * a_read_pair) -> bool
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
@@ -1018,53 +1018,53 @@ auto read_pair(merge_data_t * ip) -> bool
       int64_t const rev_header_len = fastq_get_header_length(fastq_rev);
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
-      if (header_needed > ip->header_alloc)
+      if (header_needed > a_read_pair->header_alloc)
         {
-          ip->header_alloc = header_needed;
-          ip->fwd_header = (char *) xrealloc(ip->fwd_header, header_needed);
-          ip->rev_header = (char *) xrealloc(ip->rev_header, header_needed);
+          a_read_pair->header_alloc = header_needed;
+          a_read_pair->fwd_header = (char *) xrealloc(a_read_pair->fwd_header, header_needed);
+          a_read_pair->rev_header = (char *) xrealloc(a_read_pair->rev_header, header_needed);
         }
 
-      ip->fwd_length = fastq_get_sequence_length(fastq_fwd);
-      ip->rev_length = fastq_get_sequence_length(fastq_rev);
-      int64_t const seq_needed = std::max(ip->fwd_length, ip->rev_length) + 1;
+      a_read_pair->fwd_length = fastq_get_sequence_length(fastq_fwd);
+      a_read_pair->rev_length = fastq_get_sequence_length(fastq_rev);
+      int64_t const seq_needed = std::max(a_read_pair->fwd_length, a_read_pair->rev_length) + 1;
 
-      sum_read_length += ip->fwd_length + ip->rev_length;
+      sum_read_length += a_read_pair->fwd_length + a_read_pair->rev_length;
 
-      if (seq_needed > ip->seq_alloc)
+      if (seq_needed > a_read_pair->seq_alloc)
         {
-          ip->seq_alloc = seq_needed;
-          ip->fwd_sequence = (char *) xrealloc(ip->fwd_sequence, seq_needed);
-          ip->rev_sequence = (char *) xrealloc(ip->rev_sequence, seq_needed);
-          ip->fwd_quality  = (char *) xrealloc(ip->fwd_quality,  seq_needed);
-          ip->rev_quality  = (char *) xrealloc(ip->rev_quality,  seq_needed);
+          a_read_pair->seq_alloc = seq_needed;
+          a_read_pair->fwd_sequence = (char *) xrealloc(a_read_pair->fwd_sequence, seq_needed);
+          a_read_pair->rev_sequence = (char *) xrealloc(a_read_pair->rev_sequence, seq_needed);
+          a_read_pair->fwd_quality  = (char *) xrealloc(a_read_pair->fwd_quality,  seq_needed);
+          a_read_pair->rev_quality  = (char *) xrealloc(a_read_pair->rev_quality,  seq_needed);
         }
 
 
-      int64_t const merged_seq_needed = ip->fwd_length + ip->rev_length + 1;
+      int64_t const merged_seq_needed = a_read_pair->fwd_length + a_read_pair->rev_length + 1;
 
-      if (merged_seq_needed > ip->merged_seq_alloc)
+      if (merged_seq_needed > a_read_pair->merged_seq_alloc)
         {
-          ip->merged_seq_alloc = merged_seq_needed;
-          ip->merged_sequence = (char *) xrealloc(ip->merged_sequence,
+          a_read_pair->merged_seq_alloc = merged_seq_needed;
+          a_read_pair->merged_sequence = (char *) xrealloc(a_read_pair->merged_sequence,
                                                  merged_seq_needed);
-          ip->merged_quality = (char *) xrealloc(ip->merged_quality,
+          a_read_pair->merged_quality = (char *) xrealloc(a_read_pair->merged_quality,
                                                 merged_seq_needed);
         }
 
       /* make local copies of the seq, header and qual */
 
-      strcpy(ip->fwd_header,   fastq_get_header(fastq_fwd));
-      strcpy(ip->rev_header,   fastq_get_header(fastq_rev));
-      strcpy(ip->fwd_sequence, fastq_get_sequence(fastq_fwd));
-      strcpy(ip->rev_sequence, fastq_get_sequence(fastq_rev));
-      strcpy(ip->fwd_quality,  fastq_get_quality(fastq_fwd));
-      strcpy(ip->rev_quality,  fastq_get_quality(fastq_rev));
+      strcpy(a_read_pair->fwd_header,   fastq_get_header(fastq_fwd));
+      strcpy(a_read_pair->rev_header,   fastq_get_header(fastq_rev));
+      strcpy(a_read_pair->fwd_sequence, fastq_get_sequence(fastq_fwd));
+      strcpy(a_read_pair->rev_sequence, fastq_get_sequence(fastq_rev));
+      strcpy(a_read_pair->fwd_quality,  fastq_get_quality(fastq_fwd));
+      strcpy(a_read_pair->rev_quality,  fastq_get_quality(fastq_rev));
 
-      ip->merged_sequence[0] = 0;
-      ip->merged_quality[0] = 0;
-      ip->merged = false;
-      ip->pair_no = total++;
+      a_read_pair->merged_sequence[0] = 0;
+      a_read_pair->merged_quality[0] = 0;
+      a_read_pair->merged = false;
+      a_read_pair->pair_no = total++;
 
       return true;
     }
@@ -1072,15 +1072,15 @@ auto read_pair(merge_data_t * ip) -> bool
 }
 
 
-auto keep_or_discard(merge_data_t * ip) -> void
+auto keep_or_discard(merge_data_t * a_read_pair) -> void
 {
-  if (ip->merged)
+  if (a_read_pair->merged)
     {
-      keep(ip);
+      keep(a_read_pair);
     }
   else
     {
-      discard(ip);
+      discard(a_read_pair);
     }
 }
 
