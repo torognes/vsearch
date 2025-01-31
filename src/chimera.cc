@@ -842,7 +842,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       /* lower case parent symbols that differ from query */
 
       for (int f = 0; f < ci->parents_found; f++) {
-        if (psym[f] and (psym[f] != qsym)) {
+        if ((psym[f] != 0U) and (psym[f] != qsym)) {
           ci->paln[f][i] = tolower(ci->paln[f][i]);
         }
       }
@@ -851,9 +851,9 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
       char diff = ' ';
 
-      bool all_defined = qsym;
+      bool all_defined = (qsym != 0U);
       for (int f = 0; f < ci->parents_found; f++) {
-        if (not psym[f]) {
+        if (psym[f] == 0U) {
           all_defined = false;
         }
       }
@@ -928,7 +928,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   xpthread_mutex_lock(&mutex_output);
 
-  if (opt_alnout and (status == 4))
+  if ((opt_alnout != nullptr) and (status == 4))
     {
       fprintf(fp_uchimealns, "\n");
       fprintf(fp_uchimealns, "----------------------------------------"
@@ -1014,7 +1014,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
               QA, QB, QC, QT, QM, divfrac);
     }
 
-  if (opt_tabbedout)
+  if (opt_tabbedout != nullptr)
     {
       fprintf(fp_uchimeout, "%.4f\t", 99.9999);
 
@@ -1118,7 +1118,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       unsigned int const p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
 
       /* ignore gap positions and those next to the gap */
-      if ((not qsym) or (not p1sym) or (not p2sym))
+      if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
         {
           ci->ignore[i] = 1;
           if (i > 0)
@@ -1132,21 +1132,21 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         }
 
       /* ignore ambiguous symbols */
-      if ((ambiguous_4bit[qsym]) or
-          (ambiguous_4bit[p1sym]) or
-          (ambiguous_4bit[p2sym]))
+      if ((ambiguous_4bit[qsym] != 0U) or
+          (ambiguous_4bit[p1sym] != 0U) or
+          (ambiguous_4bit[p2sym] != 0U))
         {
           ci->ignore[i] = 1;
         }
 
       /* lower case parent symbols that differ from query */
 
-      if (p1sym and (p1sym != qsym))
+      if ((p1sym != 0U) and (p1sym != qsym))
         {
           ci->paln[0][i] = tolower(ci->paln[0][i]);
         }
 
-      if (p2sym and (p2sym != qsym))
+      if ((p2sym != 0U) and (p2sym != qsym))
         {
           ci->paln[1][i] = tolower(ci->paln[1][i]);
         }
@@ -1155,7 +1155,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       char diff = '\0';
 
-      if (qsym and p1sym and p2sym)
+      if ((qsym != 0U) and (p1sym != 0U) and (p2sym != 0U))
         {
           if (p1sym == p2sym)
             {
@@ -1202,7 +1202,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if (not ci->ignore[i])
+      if (ci->ignore[i] == 0)
         {
           char const diff = ci->diffs[i];
 
@@ -1242,7 +1242,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if (not ci->ignore[i])
+      if (ci->ignore[i] == 0)
         {
           char const diff = ci->diffs[i];
           if (diff != ' ')
