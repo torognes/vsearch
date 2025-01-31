@@ -1378,7 +1378,8 @@ auto pair_all() -> void
 
   xpthread_attr_init(&attr);
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  std::vector<pthread_t> pthread_v(opt_threads);
+  pthread = pthread_v.data();
 
   for (auto t = 0; t < opt_threads; t++)
     {
@@ -1394,7 +1395,6 @@ auto pair_all() -> void
 
   /* free threads */
 
-  xfree(pthread);
   xpthread_attr_destroy(&attr);
 
   /* free chunks */
