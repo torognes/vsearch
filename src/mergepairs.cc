@@ -1134,7 +1134,6 @@ auto free_merge_data(merge_data_t * ip) -> void
     {
       xfree(ip->rev_quality);
     }
-
   if (ip->merged_sequence != nullptr)
     {
       xfree(ip->merged_sequence);
