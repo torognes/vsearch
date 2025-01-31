@@ -418,43 +418,43 @@ auto merge_sym(char * sym,       char * qual,
 }
 
 
-auto keep(merge_data_t * ip) -> void
+auto keep(merge_data_t * a_read_pair) -> void
 {
   ++merged;
 
-  sum_fragment_length += ip->merged_length;
-  sum_squared_fragment_length += ip->merged_length * ip->merged_length;
+  sum_fragment_length += a_read_pair->merged_length;
+  sum_squared_fragment_length += a_read_pair->merged_length * a_read_pair->merged_length;
 
-  sum_ee_merged += ip->ee_merged;
-  sum_ee_fwd += ip->ee_fwd;
-  sum_ee_rev += ip->ee_rev;
-  sum_errors_fwd += ip->fwd_errors;
-  sum_errors_rev += ip->rev_errors;
+  sum_ee_merged += a_read_pair->ee_merged;
+  sum_ee_fwd += a_read_pair->ee_fwd;
+  sum_ee_rev += a_read_pair->ee_rev;
+  sum_errors_fwd += a_read_pair->fwd_errors;
+  sum_errors_rev += a_read_pair->rev_errors;
 
   if (opt_fastqout != nullptr)
     {
       fastq_print_general(fp_fastqout,
-                          ip->merged_sequence,
-                          ip->merged_length,
-                          ip->fwd_header,
-                          strlen(ip->fwd_header),
-                          ip->merged_quality,
+                          a_read_pair->merged_sequence,
+                          a_read_pair->merged_length,
+                          a_read_pair->fwd_header,
+                          strlen(a_read_pair->fwd_header),
+                          a_read_pair->merged_quality,
                           0,
                           merged,
-                          ip->ee_merged);
+                          a_read_pair->ee_merged);
     }
 
   if (opt_fastaout != nullptr)
     {
       fasta_print_general(fp_fastaout,
                           nullptr,
-                          ip->merged_sequence,
-                          ip->merged_length,
-                          ip->fwd_header,
-                          strlen(ip->fwd_header),
+                          a_read_pair->merged_sequence,
+                          a_read_pair->merged_length,
+                          a_read_pair->fwd_header,
+                          strlen(a_read_pair->fwd_header),
                           0,
                           merged,
-                          ip->ee_merged,
+                          a_read_pair->ee_merged,
                           -1,
                           -1,
                           nullptr,
@@ -464,7 +464,7 @@ auto keep(merge_data_t * ip) -> void
   if (opt_eetabbedout != nullptr)
     {
       fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
-              ip->ee_fwd, ip->ee_rev, ip->fwd_errors, ip->rev_errors);
+              a_read_pair->ee_fwd, a_read_pair->ee_rev, a_read_pair->fwd_errors, a_read_pair->rev_errors);
     }
 }
 
