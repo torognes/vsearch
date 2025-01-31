@@ -292,20 +292,20 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     }
   else
     {
-      if (parameters.opt_output)
+      if (parameters.opt_output != nullptr)
         {
           fp_fastaout = fopen_output(parameters.opt_output);
-          if (not fp_fastaout)
+          if (fp_fastaout == nullptr)
             {
               fatal("Unable to open FASTA output file for writing");
             }
         }
     }
 
-  if (parameters.opt_uc)
+  if (parameters.opt_uc != nullptr)
     {
       fp_uc = fopen_output(parameters.opt_uc);
-      if (not fp_uc)
+      if (fp_uc == nullptr)
         {
           fatal("Unable to open output (uc) file for writing");
         }
@@ -334,7 +334,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   std::vector<std::string> headertab;
   std::vector<char> match_strand;
 
-  auto const extra_info = parameters.opt_uc or parameters.opt_tabbedout;
+  auto const extra_info = (parameters.opt_uc != nullptr) or (parameters.opt_tabbedout != nullptr);
 
   if (extra_info)
     {
@@ -485,17 +485,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           uint64_t k = rc_hash & hash_mask;
           struct bucket * rc_bp = hashtable + k;
 
-          while ((rc_bp->size)
+          while ((rc_bp->size != 0U)
                  and
                  ((rc_hash != rc_bp->hash) or
-                  (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen)) or
+                  (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen) != 0U) or
                   (use_header and (strcmp(header, rc_bp->header) != 0))))
             {
               k = (k + 1) & hash_mask;
               rc_bp = hashtable + k;
             }
 
-          if (rc_bp->size)
+          if (rc_bp->size != 0U)
             {
               bp = rc_bp;
               j = k;
@@ -510,7 +510,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 
-      if (bp->size)
+      if (bp->size != 0U)
         {
           /* at least one identical sequence already */
           if (extra_info)
@@ -525,7 +525,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           int64_t const s2 = ab;
           int64_t const s3 = s1 + s2;
 
-          if (parameters.opt_fastqout)
+          if (parameters.opt_fastqout != nullptr)
             {
               /* update quality scores */
               for (int i = 0; i < seqlen; i++)
@@ -593,7 +593,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           bp->seq = xstrdup(seq);
           bp->header = xstrdup(header);
           bp->count = 1;
-          if (qual) {
+          if (qual != nullptr) {
             bp->qual = xstrdup(qual);
           } else {
             bp->qual = nullptr;
@@ -634,7 +634,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  if (parameters.opt_log)
+  if (parameters.opt_log != nullptr)
     {
       if (sequencecount > 0)
         {
@@ -656,7 +656,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  if (discarded_short)
+  if (discarded_short != 0U)
     {
       fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -664,7 +664,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
@@ -674,7 +674,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         }
     }
 
-  if (discarded_long)
+  if (discarded_long != 0U)
     {
       fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
@@ -682,7 +682,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
@@ -702,7 +702,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (clusters > 0)
     {
-      if (clusters % 2)
+      if ((clusters % 2) != 0U)
         {
           median = hashtable[(clusters - 1) / 2].size;
         }
@@ -722,7 +722,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -738,7 +738,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -769,7 +769,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* write output */
 
-  if (parameters.opt_output or parameters.opt_fastaout)
+  if ((parameters.opt_output != nullptr) or (parameters.opt_fastaout != nullptr))
     {
       progress_init("Writing FASTA output file", clusters);
 
@@ -803,7 +803,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       fclose(fp_fastaout);
     }
 
-  if (parameters.opt_fastqout)
+  if (parameters.opt_fastqout != nullptr)
     {
       progress_init("Writing FASTQ output file", clusters);
 
@@ -838,7 +838,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  if (parameters.opt_uc)
+  if (parameters.opt_uc != nullptr)
     {
       progress_init("Writing uc file, first part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
@@ -857,7 +857,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               fprintf(fp_uc,
                       "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                       i, len, 100.0,
-                      (match_strand[next] ? "-" : "+"),
+                      ((match_strand[next] != 0) ? "-" : "+"),
                       headertab[next].c_str(), hh);
             }
 
@@ -877,7 +877,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_done();
     }
 
-  if (parameters.opt_tabbedout)
+  if (parameters.opt_tabbedout != nullptr)
     {
       progress_init("Writing tab separated file", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
@@ -885,7 +885,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
 
-          if (parameters.opt_relabel) {
+          if (parameters.opt_relabel != nullptr) {
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                     hh, parameters.opt_relabel, i + 1, i, (uint64_t) 0, bp->count, hh);
@@ -899,7 +899,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                next != terminal;
                next = nextseqtab[next])
             {
-              if (parameters.opt_relabel) {
+              if (parameters.opt_relabel != nullptr) {
                 fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                         headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, bp->count, hh);
@@ -931,7 +931,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (parameters.opt_log)
+      if (parameters.opt_log != nullptr)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
@@ -948,11 +948,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   for (uint64_t i = 0; i < clusters; ++i)
     {
       struct bucket * bp = hashtable + i;
-      if (bp->size)
+      if (bp->size != 0U)
         {
           xfree(bp->seq);
           xfree(bp->header);
-          if (bp->qual) {
+          if (bp->qual != nullptr) {
             xfree(bp->qual);
           }
         }
