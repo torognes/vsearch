@@ -254,9 +254,9 @@ auto fileopenw(char * filename) -> std::FILE *
 }
 
 
-inline auto get_qual(char q) -> int
+inline auto get_qual(char const quality_symbol) -> int
 {
-  int const quality_value = q - opt_fastq_ascii;
+  int const quality_value = quality_symbol - opt_fastq_ascii;
 
   if (quality_value < opt_fastq_qmin)
     {
