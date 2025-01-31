@@ -245,7 +245,7 @@ static pthread_cond_t cond_chunks;
 // refactoring: make generic function (extract to utils/file_open_write.cpp)
 auto fileopenw(char * filename) -> std::FILE *
 {
-  std::FILE * output_handle = fopen_output(filename);
+  auto * output_handle = fopen_output(filename);
   if (output_handle == nullptr)
     {
       fatal("Unable to open file for writing (%s)", filename);
@@ -302,10 +302,10 @@ inline auto get_qual(char q) -> int
 
 inline auto q_to_p(int quality_symbol) -> double
 {
-  static constexpr int low_quality_threshold = 2;
-  static constexpr double max_probability = 0.75;
-  static constexpr double quality_divider = 10.0;
-  static constexpr double power_base = 10.0;
+  static constexpr auto low_quality_threshold = 2;
+  static constexpr auto max_probability = 0.75;
+  static constexpr auto quality_divider = 10.0;
+  static constexpr auto power_base = 10.0;
 
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
@@ -327,17 +327,17 @@ auto precompute_qual() -> void
   auto const qmaxout = static_cast<double>(opt_fastq_qmaxout);
   auto const qminout = static_cast<double>(opt_fastq_qminout);
 
-  for (int x = 33; x <= 126; x++)
+  for (auto x = 33; x <= 126; x++)
     {
-      double const px = q_to_p(x);
+      auto const px = q_to_p(x);
       q2p[x] = px;
 
-      for (int y = 33; y <= 126; y++)
+      for (auto y = 33; y <= 126; y++)
         {
-          double const py = q_to_p(y);
+          auto const py = q_to_p(y);
 
-          double p = 0.0;
-          double q = 0.0;
+          auto p = 0.0;
+          auto q = 0.0;
 
           /* Quality score equations from Edgar & Flyvbjerg (2015) */
 
@@ -394,7 +394,7 @@ auto merge_sym(char * sym,       char * qual,
     {
       /* agreement */
       * sym = fwd_sym;
-      * qual = merge_qual_same[(unsigned)fwd_qual][(unsigned)rev_qual];
+      * qual = merge_qual_same[(unsigned) fwd_qual][(unsigned) rev_qual];
     }
   else
     {
@@ -402,12 +402,12 @@ auto merge_sym(char * sym,       char * qual,
       if (fwd_qual > rev_qual)
         {
           * sym = fwd_sym;
-          * qual = merge_qual_diff[(unsigned)fwd_qual][(unsigned)rev_qual];
+          * qual = merge_qual_diff[(unsigned) fwd_qual][(unsigned) rev_qual];
         }
       else
         {
           * sym = rev_sym;
-          * qual = merge_qual_diff[(unsigned)rev_qual][(unsigned)fwd_qual];
+          * qual = merge_qual_diff[(unsigned) rev_qual][(unsigned) fwd_qual];
         }
     }
 }
@@ -597,7 +597,7 @@ auto merge(merge_data_t * ip) -> void
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
-  int64_t const fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
+  auto const fwd_5prime_overhang = ip->fwd_trunc > ip->offset ?
     ip->fwd_trunc - ip->offset : 0;
 
   ip->ee_merged = 0.0;
@@ -606,16 +606,16 @@ auto merge(merge_data_t * ip) -> void
   ip->fwd_errors = 0;
   ip->rev_errors = 0;
 
-  char sym = '\0';
-  char qual = '\0';
-  char fwd_sym = '\0';
-  char fwd_qual = '\0';
-  char rev_sym = '\0';
-  char rev_qual = '\0';
+  auto sym = '\0';
+  auto qual = '\0';
+  auto fwd_sym = '\0';
+  auto fwd_qual = '\0';
+  auto rev_sym = '\0';
+  auto rev_qual = '\0';
   int64_t fwd_pos = 0;
   int64_t rev_pos = 0;
   int64_t merged_pos = 0;
-  double ee = 0.0;
+  auto ee = 0.0;
 
   merged_pos = 0;
 
@@ -631,7 +631,7 @@ auto merge(merge_data_t * ip) -> void
       ip->merged_sequence[merged_pos] = sym;
       ip->merged_quality[merged_pos] = qual;
 
-      ee = q2p[(unsigned)qual];
+      ee = q2p[(unsigned) qual];
       ip->ee_merged += ee;
       ip->ee_fwd += ee;
 
@@ -641,7 +641,7 @@ auto merge(merge_data_t * ip) -> void
 
   // Merged region
 
-  int64_t const rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
+  auto const rev_3prime_overhang = ip->offset > ip->fwd_trunc ?
     ip->offset - ip->fwd_trunc : 0;
 
   rev_pos = ip->rev_trunc - 1 - rev_3prime_overhang;
@@ -698,7 +698,7 @@ auto merge(merge_data_t * ip) -> void
       --rev_pos;
     }
 
-  int64_t const mergelen = merged_pos;
+  auto const mergelen = merged_pos;
   ip->merged_length = mergelen;
 
   ip->merged_sequence[mergelen] = 0;
@@ -722,7 +722,7 @@ auto optimize(merge_data_t * ip,
   /* ungapped alignment in each diagonal */
 
   int64_t const i1 = 1;
-  int64_t const i2 = ip->fwd_trunc + ip->rev_trunc - 1;
+  auto const i2 = ip->fwd_trunc + ip->rev_trunc - 1;
 
   auto best_score = 0.0;
   int64_t best_i = 0;
@@ -880,7 +880,7 @@ auto process(merge_data_t * ip,
 {
   ip->merged = false;
 
-  bool skip = false;
+  auto skip = false;
 
   /* check length */
 
@@ -921,7 +921,7 @@ auto process(merge_data_t * ip,
 
   ip->fwd_trunc = fwd_trunc;
 
-  int64_t rev_trunc = ip->rev_length;
+  auto rev_trunc = ip->rev_length;
 
   if (! skip)
     {
@@ -1147,7 +1147,7 @@ inline auto chunk_perform_read() -> void
     {
       xpthread_mutex_unlock(&mutex_chunks);
       progress_update(fastq_get_position(fastq_fwd));
-      int r = 0;
+      auto r = 0;
       while ((r < chunk_size) &&
              read_pair(chunks[chunk_read_next].merge_data + r))
         {
@@ -1179,7 +1179,7 @@ inline auto chunk_perform_write() -> void
   while (chunks[chunk_write_next].state == processed)
     {
       xpthread_mutex_unlock(&mutex_chunks);
-      for (int i = 0; i < chunks[chunk_write_next].size; i++)
+      for (auto i = 0; i < chunks[chunk_write_next].size; i++)
         {
           keep_or_discard(chunks[chunk_write_next].merge_data + i);
         }
@@ -1198,14 +1198,14 @@ inline auto chunk_perform_write() -> void
 
 inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
 {
-  int const chunk_current = chunk_process_next;
+  auto const chunk_current = chunk_process_next;
   if (chunks[chunk_current].state == filled)
     {
       chunks[chunk_current].state = inprogress;
       chunk_process_next = (chunk_current + 1) % chunk_count;
       xpthread_cond_broadcast(&cond_chunks);
       xpthread_mutex_unlock(&mutex_chunks);
-      for (int i = 0; i < chunks[chunk_current].size; i++)
+      for (auto i = 0; i < chunks[chunk_current].size; i++)
         {
           process(chunks[chunk_current].merge_data + i, kmerhash);
         }
@@ -1222,7 +1222,7 @@ auto pair_worker(void * vp) -> void *
 
   auto t = (int64_t) vp;
 
-  struct kh_handle_s * kmerhash = kh_init();
+  auto * kmerhash = kh_init();
 
   xpthread_mutex_lock(&mutex_chunks);
 
@@ -1354,7 +1354,7 @@ auto pair_all() -> void
 
   chunks = (chunk_t *) xmalloc(chunk_count * sizeof(chunk_t));
 
-  for (int i = 0; i < chunk_count; i++)
+  for (auto i = 0; i < chunk_count; i++)
     {
       chunks[i].state = empty;
       chunks[i].size = 0;
@@ -1375,14 +1375,14 @@ auto pair_all() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
 
-  for (int t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread+t, &attr, pair_worker, (void *) (int64_t) t);
     }
 
   /* wait for threads to terminate */
 
-  for (int t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
@@ -1397,9 +1397,9 @@ auto pair_all() -> void
   xpthread_cond_destroy(&cond_chunks);
   xpthread_mutex_destroy(&mutex_chunks);
 
-  for (int i = 0; i < chunk_count; i++)
+  for (auto i = 0; i < chunk_count; i++)
     {
-      for (int j = 0; j < chunk_size; j++)
+      for (auto j = 0; j < chunk_size; j++)
         {
           free_merge_data(chunks[i].merge_data + j);
         }
@@ -1555,7 +1555,7 @@ auto print_stats(std::FILE * fp) -> void
     {
       fprintf(fp, "Statistics of all reads:\n");
 
-      double const mean_read_length = sum_read_length / (2.0 * pairs_read);
+      auto const mean_read_length = sum_read_length / (2.0 * pairs_read);
 
       fprintf(fp,
               "%10.2f  Mean read length\n",
@@ -1568,13 +1568,13 @@ auto print_stats(std::FILE * fp) -> void
 
       fprintf(fp, "Statistics of merged reads:\n");
 
-      double const mean = sum_fragment_length / merged;
+      auto const mean = sum_fragment_length / merged;
 
       fprintf(fp,
               "%10.2f  Mean fragment length\n",
               mean);
 
-      double const stdev = sqrt((sum_squared_fragment_length
+      auto const stdev = sqrt((sum_squared_fragment_length
                            - 2.0 * mean * sum_fragment_length
                            + mean * mean * merged)
                           / (merged + 0.0));
