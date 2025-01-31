@@ -1368,7 +1368,7 @@ auto pair_all() -> void
       chunks_v[i].merge_data = chunks_v[i].merge_data_v.data();
       for (int64_t j = 0; j < chunk_size; j++)
         {
-          init_merge_data(chunks_v[i].merge_data + j);
+          init_merge_data(&chunks_v[i].merge_data_v[j]);
         }
     }
 
@@ -1407,7 +1407,7 @@ auto pair_all() -> void
     {
       for (auto j = 0; j < chunk_size; j++)
         {
-          free_merge_data(chunks_v[i].merge_data + j);
+          free_merge_data(&chunks_v[i].merge_data_v[j]);
         }
       chunks_v[i].merge_data = nullptr;
     }
