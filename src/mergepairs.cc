@@ -246,7 +246,7 @@ auto fileopenw(char * filename) -> std::FILE *
 {
   std::FILE * fp = nullptr;
   fp = fopen_output(filename);
-  if (! fp)
+  if (fp == nullptr)
     {
       fatal("Unable to open file for writing (%s)", filename);
     }
@@ -264,7 +264,7 @@ inline auto get_qual(char q) -> int
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               qual, opt_fastq_qmin);
-      if (fp_log)
+      if (fp_log != nullptr)
         {
           fprintf(stderr,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
@@ -283,7 +283,7 @@ inline auto get_qual(char q) -> int
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", qual);
-      if (fp_log)
+      if (fp_log != nullptr)
         {
           fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
@@ -426,7 +426,7 @@ auto keep(merge_data_t * ip) -> void
   sum_errors_fwd += ip->fwd_errors;
   sum_errors_rev += ip->rev_errors;
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fastq_print_general(fp_fastqout,
                           ip->merged_sequence,
@@ -439,7 +439,7 @@ auto keep(merge_data_t * ip) -> void
                           ip->ee_merged);
     }
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fasta_print_general(fp_fastaout,
                           nullptr,
@@ -456,7 +456,7 @@ auto keep(merge_data_t * ip) -> void
                           0.0);
     }
 
-  if (opt_eetabbedout)
+  if (opt_eetabbedout != nullptr)
     {
       fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
               ip->ee_fwd, ip->ee_rev, ip->fwd_errors, ip->rev_errors);
@@ -534,7 +534,7 @@ auto discard(merge_data_t * ip) -> void
 
   ++notmerged;
 
-  if (opt_fastqout_notmerged_fwd)
+  if (opt_fastqout_notmerged_fwd != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_fwd,
                           ip->fwd_sequence,
@@ -547,7 +547,7 @@ auto discard(merge_data_t * ip) -> void
                           -1.0);
     }
 
-  if (opt_fastqout_notmerged_rev)
+  if (opt_fastqout_notmerged_rev != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_rev,
                           ip->rev_sequence,
@@ -560,7 +560,7 @@ auto discard(merge_data_t * ip) -> void
                           -1.0);
     }
 
-  if (opt_fastaout_notmerged_fwd)
+  if (opt_fastaout_notmerged_fwd != nullptr)
     {
       fasta_print_general(fp_fastaout_notmerged_fwd,
                           nullptr,
@@ -575,7 +575,7 @@ auto discard(merge_data_t * ip) -> void
                           nullptr, 0.0);
     }
 
-  if (opt_fastaout_notmerged_rev)
+  if (opt_fastaout_notmerged_rev != nullptr)
     {
       fasta_print_general(fp_fastaout_notmerged_rev,
                           nullptr,
@@ -1105,36 +1105,36 @@ auto init_merge_data(merge_data_t * ip) -> void
 
 auto free_merge_data(merge_data_t * ip) -> void
 {
-  if (ip->fwd_header)
+  if (ip->fwd_header != nullptr)
     {
       xfree(ip->fwd_header);
     }
-  if (ip->rev_header)
+  if (ip->rev_header != nullptr)
     {
       xfree(ip->rev_header);
     }
-  if (ip->fwd_sequence)
+  if (ip->fwd_sequence != nullptr)
     {
       xfree(ip->fwd_sequence);
     }
-  if (ip->rev_sequence)
+  if (ip->rev_sequence != nullptr)
     {
       xfree(ip->rev_sequence);
     }
-  if (ip->fwd_quality)
+  if (ip->fwd_quality != nullptr)
     {
       xfree(ip->fwd_quality);
     }
-  if (ip->rev_quality)
+  if (ip->rev_quality != nullptr)
     {
       xfree(ip->rev_quality);
     }
 
-  if (ip->merged_sequence)
+  if (ip->merged_sequence != nullptr)
     {
       xfree(ip->merged_sequence);
     }
-  if (ip->merged_quality)
+  if (ip->merged_quality != nullptr)
     {
       xfree(ip->merged_quality);
     }
@@ -1444,105 +1444,105 @@ auto print_stats(std::FILE * fp) -> void
       fprintf(fp, "\nPairs that failed merging due to various reasons:\n");
     }
 
-  if (failed_undefined)
+  if (failed_undefined != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  undefined reason\n",
               failed_undefined);
     }
 
-  if (failed_minlen)
+  if (failed_minlen != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  reads too short (after truncation)\n",
               failed_minlen);
     }
 
-  if (failed_maxlen)
+  if (failed_maxlen != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  reads too long (after truncation)\n",
               failed_maxlen);
     }
 
-  if (failed_maxns)
+  if (failed_maxns != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  too many N's\n",
               failed_maxns);
     }
 
-  if (failed_nokmers)
+  if (failed_nokmers != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  too few kmers found on same diagonal\n",
               failed_nokmers);
     }
 
-  if (failed_repeat)
+  if (failed_repeat != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  multiple potential alignments\n",
               failed_repeat);
     }
 
-  if (failed_maxdiffs)
+  if (failed_maxdiffs != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  too many differences\n",
               failed_maxdiffs);
     }
 
-  if (failed_maxdiffpct)
+  if (failed_maxdiffpct != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  too high percentage of differences\n",
               failed_maxdiffpct);
     }
 
-  if (failed_minscore)
+  if (failed_minscore != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  alignment score too low, or score drop too high\n",
               failed_minscore);
     }
 
-  if (failed_minovlen)
+  if (failed_minovlen != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  overlap too short\n",
               failed_minovlen);
     }
 
-  if (failed_maxee)
+  if (failed_maxee != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  expected error too high\n",
               failed_maxee);
     }
 
-  if (failed_minmergelen)
+  if (failed_minmergelen != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  merged fragment too short\n",
               failed_minmergelen);
     }
 
-  if (failed_maxmergelen)
+  if (failed_maxmergelen != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  merged fragment too long\n",
               failed_maxmergelen);
     }
 
-  if (failed_staggered)
+  if (failed_staggered != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  staggered read pairs\n",
               failed_staggered);
     }
 
-  if (failed_indel)
+  if (failed_indel != 0U)
     {
       fprintf(fp,
               "%10" PRIu64 "  indel errors\n",
@@ -1634,31 +1634,31 @@ auto fastq_mergepairs() -> void
 
   /* open output files */
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fp_fastqout = fileopenw(opt_fastqout);
     }
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fp_fastaout = fileopenw(opt_fastaout);
     }
-  if (opt_fastqout_notmerged_fwd)
+  if (opt_fastqout_notmerged_fwd != nullptr)
     {
       fp_fastqout_notmerged_fwd = fileopenw(opt_fastqout_notmerged_fwd);
     }
-  if (opt_fastqout_notmerged_rev)
+  if (opt_fastqout_notmerged_rev != nullptr)
     {
       fp_fastqout_notmerged_rev = fileopenw(opt_fastqout_notmerged_rev);
     }
-  if (opt_fastaout_notmerged_fwd)
+  if (opt_fastaout_notmerged_fwd != nullptr)
     {
       fp_fastaout_notmerged_fwd = fileopenw(opt_fastaout_notmerged_fwd);
     }
-  if (opt_fastaout_notmerged_rev)
+  if (opt_fastaout_notmerged_rev != nullptr)
     {
       fp_fastaout_notmerged_rev = fileopenw(opt_fastaout_notmerged_rev);
     }
-  if (opt_eetabbedout)
+  if (opt_eetabbedout != nullptr)
     {
       fp_eetabbedout = fileopenw(opt_eetabbedout);
     }
@@ -1684,7 +1684,7 @@ auto fastq_mergepairs() -> void
       fatal("More reverse reads than forward reads");
     }
 
-  if (fp_log) {
+  if (fp_log != nullptr) {
     print_stats(fp_log);
   }
   else {
@@ -1693,31 +1693,31 @@ auto fastq_mergepairs() -> void
 
   /* clean up */
 
-  if (opt_eetabbedout)
+  if (opt_eetabbedout != nullptr)
     {
       fclose(fp_eetabbedout);
     }
-  if (opt_fastaout_notmerged_rev)
+  if (opt_fastaout_notmerged_rev != nullptr)
     {
       fclose(fp_fastaout_notmerged_rev);
     }
-  if (opt_fastaout_notmerged_fwd)
+  if (opt_fastaout_notmerged_fwd != nullptr)
     {
       fclose(fp_fastaout_notmerged_fwd);
     }
-  if (opt_fastqout_notmerged_rev)
+  if (opt_fastqout_notmerged_rev != nullptr)
     {
       fclose(fp_fastqout_notmerged_rev);
     }
-  if (opt_fastqout_notmerged_fwd)
+  if (opt_fastqout_notmerged_fwd != nullptr)
     {
       fclose(fp_fastqout_notmerged_fwd);
     }
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
