@@ -1373,14 +1373,12 @@ auto pair_all() -> void
   xpthread_cond_destroy(&cond_chunks);
   xpthread_mutex_destroy(&mutex_chunks);
 
-  for (auto & a_chunk: chunks_v)
-    {
-      for (auto & a_read_pair: a_chunk.merge_data_v)
-        {
-          free_merge_data(a_read_pair);
-        }
+  for (auto & a_chunk: chunks_v) {
+      for (auto & a_read_pair: a_chunk.merge_data_v) {
+        free_merge_data(a_read_pair);
+      }
       a_chunk.merge_data = nullptr;
-    }
+  }
   chunks = nullptr;
 }
 
