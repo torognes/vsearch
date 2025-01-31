@@ -1383,14 +1383,14 @@ auto pair_all() -> void
 
   for (auto t = 0; t < opt_threads; t++)
     {
-      xpthread_create(pthread+t, &attr, pair_worker, (void *) (int64_t) t);
+      xpthread_create(&pthread_v[t], &attr, pair_worker, (void *) (int64_t) t);
     }
 
   /* wait for threads to terminate */
 
   for (auto t = 0; t < opt_threads; t++)
     {
-      xpthread_join(pthread[t], nullptr);
+      xpthread_join(pthread_v[t], nullptr);
     }
 
   /* free threads */
