@@ -1356,7 +1356,8 @@ auto pair_all() -> void
   chunk_process_next = 0;
   chunk_write_next = 0;
 
-  chunks = (chunk_t *) xmalloc(chunk_count * sizeof(chunk_t));
+  std::vector<chunk_t> chunks_v(chunk_count);
+  chunks = chunks_v.data();
 
   for (auto i = 0; i < chunk_count; i++)
     {
@@ -1410,7 +1411,6 @@ auto pair_all() -> void
       xfree(chunks[i].merge_data);
       chunks[i].merge_data = nullptr;
     }
-  xfree(chunks);
   chunks = nullptr;
 }
 
