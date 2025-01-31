@@ -660,7 +660,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
   /* Check if at least 2 candidates selected */
 
-  return (best_parent_cand[0] >= 0) and (best_parent_cand[1] >= 0);
+  return static_cast<int>((best_parent_cand[0] >= 0) and (best_parent_cand[1] >= 0));
 }
 
 
@@ -1343,7 +1343,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           ci->model[i] = m;
 
           char v = ' ';
-          if (not ci->ignore[i])
+          if (ci->ignore[i] == 0)
             {
               char const d = ci->diffs[i];
 
@@ -1402,7 +1402,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       for (auto i = 0; i < alnlen; i++)
         {
-          if (not ci->ignore[i])
+          if (ci->ignore[i] == 0)
             {
               ++cols;
 
@@ -1447,7 +1447,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       int const sumL = best_left_n + best_left_a + best_left_y;
       int const sumR = best_right_n + best_right_a + best_right_y;
 
-      if (opt_uchime2_denovo or opt_uchime3_denovo)
+      if ((opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr))
         {
           // fix -Wfloat-equal: if match_QM == cols, then QM == 100.0
           if ((match_QM == cols) and (QT < 100.0))
@@ -1471,7 +1471,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       xpthread_mutex_lock(&mutex_output);
 
-      if (opt_uchimealns and (status == 4))
+      if ((opt_uchimealns != nullptr) and (status == 4))
         {
           fprintf(fp_uchimealns, "\n");
           fprintf(fp_uchimealns, "----------------------------------------"
