@@ -188,32 +188,32 @@ enum state_enum
 
 struct merge_data_s
 {
-  char * fwd_header;
-  char * rev_header;
-  char * fwd_sequence;
-  char * rev_sequence;
-  char * fwd_quality;
-  char * rev_quality;
-  int64_t header_alloc;
-  int64_t seq_alloc;
-  int64_t fwd_length;
-  int64_t rev_length;
-  int64_t fwd_trunc;
-  int64_t rev_trunc;
-  int64_t pair_no;
-  char * merged_sequence;
-  char * merged_quality;
-  int64_t merged_length;
-  int64_t merged_seq_alloc;
-  double ee_merged;
-  double ee_fwd;
-  double ee_rev;
-  int64_t fwd_errors;
-  int64_t rev_errors;
-  int64_t offset;
-  bool merged;
-  reason_enum reason;
-  state_enum state;
+  char * fwd_header = nullptr;
+  char * rev_header = nullptr;
+  char * fwd_sequence = nullptr;
+  char * rev_sequence = nullptr;
+  char * fwd_quality = nullptr;
+  char * rev_quality = nullptr;
+  int64_t header_alloc = 0;
+  int64_t seq_alloc = 0;
+  int64_t fwd_length = 0;
+  int64_t rev_length = 0;
+  int64_t fwd_trunc = 0;
+  int64_t rev_trunc = 0;
+  int64_t pair_no = 0;
+  char * merged_sequence = nullptr;
+  char * merged_quality = nullptr;
+  int64_t merged_length = 0;
+  int64_t merged_seq_alloc = 0;
+  double ee_merged = 0;
+  double ee_fwd = 0;
+  double ee_rev = 0;
+  int64_t fwd_errors = 0;
+  int64_t rev_errors = 0;
+  int64_t offset = 0;
+  bool merged = false;
+  reason_enum reason = undefined;
+  state_enum state = empty;
 };
 
 using merge_data_t = struct merge_data_s;
@@ -1085,29 +1085,6 @@ auto keep_or_discard(merge_data_t * ip) -> void
 }
 
 
-auto init_merge_data(merge_data_t * ip) -> void
-{
-  ip->fwd_header = nullptr;
-  ip->rev_header = nullptr;
-  ip->fwd_sequence = nullptr;
-  ip->rev_sequence = nullptr;
-  ip->fwd_quality = nullptr;
-  ip->rev_quality = nullptr;
-  ip->header_alloc = 0;
-  ip->seq_alloc = 0;
-  ip->fwd_length = 0;
-  ip->rev_length = 0;
-  ip->fwd_trunc = 0;
-  ip->rev_trunc = 0;
-  ip->pair_no = 0;
-  ip->reason = undefined;
-  ip->merged_seq_alloc = 0;
-  ip->merged_sequence = nullptr;
-  ip->merged_quality = nullptr;
-  ip->merged_length = 0;
-}
-
-
 auto free_merge_data(merge_data_t * ip) -> void
 {
   if (ip->fwd_header != nullptr)
@@ -1363,10 +1340,6 @@ auto pair_all() -> void
     {
       chunks_v[i].merge_data_v.resize(chunk_size);
       chunks_v[i].merge_data = chunks_v[i].merge_data_v.data();
-      for (int64_t j = 0; j < chunk_size; j++)
-        {
-          init_merge_data(&chunks_v[i].merge_data_v[j]);
-        }
     }
 
   xpthread_mutex_init(&mutex_chunks, nullptr);
