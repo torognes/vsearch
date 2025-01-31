@@ -534,7 +534,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
     printf("Not covered completely (%d).\n", pos_remaining);
 #endif
 
-  return (parents_found > 1) and (pos_remaining == 0);
+  return static_cast<int>((parents_found > 1) and (pos_remaining == 0));
 }
 
 
