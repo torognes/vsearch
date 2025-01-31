@@ -1382,166 +1382,166 @@ auto pair_all() -> void
 }
 
 
-auto print_stats(std::FILE * fp) -> void
+auto print_stats(std::FILE * output_handle) -> void
 {
-  fprintf(fp,
+  fprintf(output_handle,
           "%10" PRIu64 "  Pairs\n",
           total);
 
-  fprintf(fp,
+  fprintf(output_handle,
           "%10" PRIu64 "  Merged",
           merged);
   if (total > 0)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               " (%.1lf%%)",
               100.0 * merged / total);
     }
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 
-  fprintf(fp,
+  fprintf(output_handle,
           "%10" PRIu64 "  Not merged",
           notmerged);
   if (total > 0)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               " (%.1lf%%)",
               100.0 * notmerged / total);
     }
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 
   if (notmerged > 0)
     {
-      fprintf(fp, "\nPairs that failed merging due to various reasons:\n");
+      fprintf(output_handle, "\nPairs that failed merging due to various reasons:\n");
     }
 
   if (failed_undefined != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  undefined reason\n",
               failed_undefined);
     }
 
   if (failed_minlen != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  reads too short (after truncation)\n",
               failed_minlen);
     }
 
   if (failed_maxlen != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  reads too long (after truncation)\n",
               failed_maxlen);
     }
 
   if (failed_maxns != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  too many N's\n",
               failed_maxns);
     }
 
   if (failed_nokmers != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  too few kmers found on same diagonal\n",
               failed_nokmers);
     }
 
   if (failed_repeat != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  multiple potential alignments\n",
               failed_repeat);
     }
 
   if (failed_maxdiffs != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  too many differences\n",
               failed_maxdiffs);
     }
 
   if (failed_maxdiffpct != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  too high percentage of differences\n",
               failed_maxdiffpct);
     }
 
   if (failed_minscore != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  alignment score too low, or score drop too high\n",
               failed_minscore);
     }
 
   if (failed_minovlen != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  overlap too short\n",
               failed_minovlen);
     }
 
   if (failed_maxee != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  expected error too high\n",
               failed_maxee);
     }
 
   if (failed_minmergelen != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  merged fragment too short\n",
               failed_minmergelen);
     }
 
   if (failed_maxmergelen != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  merged fragment too long\n",
               failed_maxmergelen);
     }
 
   if (failed_staggered != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  staggered read pairs\n",
               failed_staggered);
     }
 
   if (failed_indel != 0U)
     {
-      fprintf(fp,
+      fprintf(output_handle,
               "%10" PRIu64 "  indel errors\n",
               failed_indel);
     }
 
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 
   if (total > 0)
     {
-      fprintf(fp, "Statistics of all reads:\n");
+      fprintf(output_handle, "Statistics of all reads:\n");
 
       auto const mean_read_length = sum_read_length / (2.0 * pairs_read);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean read length\n",
               mean_read_length);
     }
 
   if (merged > 0)
     {
-      fprintf(fp, "\n");
+      fprintf(output_handle, "\n");
 
-      fprintf(fp, "Statistics of merged reads:\n");
+      fprintf(output_handle, "Statistics of merged reads:\n");
 
       auto const mean = sum_fragment_length / merged;
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean fragment length\n",
               mean);
 
@@ -1550,31 +1550,31 @@ auto print_stats(std::FILE * fp) -> void
                            + mean * mean * merged)
                           / (merged + 0.0));
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Standard deviation of fragment length\n",
               stdev);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean expected error in forward sequences\n",
               sum_ee_fwd / merged);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean expected error in reverse sequences\n",
               sum_ee_rev / merged);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean expected error in merged sequences\n",
               sum_ee_merged / merged);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of forward sequences\n",
               1.0 * sum_errors_fwd / merged);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of reverse sequences\n",
               1.0 * sum_errors_rev / merged);
 
-      fprintf(fp,
+      fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region\n",
               1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
     }
