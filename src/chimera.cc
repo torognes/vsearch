@@ -1231,7 +1231,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   double best_h = -1;
   int best_i = -1;
-  auto best_reverse = false;
+  auto best_is_reverse = false;
 
   int best_left_y = 0;
   int best_right_y = 0;
@@ -1275,7 +1275,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
                   if (h > best_h)
                     {
-                      best_reverse = false;
+                      best_is_reverse = false;
                       best_h = h;
                       best_i = i;
                       best_left_n = left_n;
@@ -1296,7 +1296,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
                   if (h > best_h)
                     {
-                      best_reverse = true;
+                      best_is_reverse = true;
                       best_h = h;
                       best_i = i;
                       best_left_n = left_y;
@@ -1319,7 +1319,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       /* flip A and B if necessary */
 
-      if (best_reverse)
+      if (best_is_reverse)
         {
           for (int i = 0; i < alnlen; i++)
             {
@@ -1391,8 +1391,8 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       /* count matches */
 
-      int const index_a = best_reverse ? 1 : 0;
-      int const index_b = best_reverse ? 0 : 1;
+      int const index_a = best_is_reverse ? 1 : 0;
+      int const index_b = best_is_reverse ? 0 : 1;
 
       int match_QA = 0;
       int match_QB = 0;
@@ -1537,7 +1537,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                     }
                 }
 
-              if (not best_reverse)
+              if (not best_is_reverse)
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
