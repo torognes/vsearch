@@ -314,7 +314,7 @@ inline auto q_to_p(int const quality_symbol) -> double
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
 
-  const auto quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
+  auto const quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
 
   // refactor: extract branch to a separate operation
   if (quality_value < low_quality_threshold) {
