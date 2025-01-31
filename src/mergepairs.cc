@@ -256,47 +256,47 @@ auto fileopenw(char * filename) -> std::FILE *
 
 inline auto get_qual(char q) -> int
 {
-  int const qual = q - opt_fastq_ascii;
+  int const quality_value = q - opt_fastq_ascii;
 
-  if (qual < opt_fastq_qmin)
+  if (quality_value < opt_fastq_qmin)
     {
       fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
-              qual, opt_fastq_qmin);
+              quality_value, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
           fprintf(stderr,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
-                  qual, opt_fastq_qmin);
+                  quality_value, opt_fastq_qmin);
         }
       exit(EXIT_FAILURE);
     }
-  else if (qual > opt_fastq_qmax)
+  else if (quality_value > opt_fastq_qmax)
     {
       fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
               PRId64 ")\n",
-              qual, opt_fastq_qmax);
+              quality_value, opt_fastq_qmax);
       fprintf(stderr,
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
-              "please use the option --fastq_qmax %d\n", qual);
+              "please use the option --fastq_qmax %d\n", quality_value);
       if (fp_log != nullptr)
         {
           fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
-                  qual, opt_fastq_qmax);
+                  quality_value, opt_fastq_qmax);
           fprintf(fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
-                  "please use the option --fastq_qmax %d\n", qual);
+                  "please use the option --fastq_qmax %d\n", quality_value);
         }
       exit(EXIT_FAILURE);
     }
-  return qual;
+  return quality_value;
 }
 
 
