@@ -1230,7 +1230,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   double best_h = -1;
   int best_i = -1;
-  int best_reverse = 0;
+  auto best_reverse = false;
 
   int best_left_y = 0;
   int best_right_y = 0;
@@ -1274,7 +1274,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
                   if (h > best_h)
                     {
-                      best_reverse = 0;
+                      best_reverse = false;
                       best_h = h;
                       best_i = i;
                       best_left_n = left_n;
@@ -1295,7 +1295,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
                   if (h > best_h)
                     {
-                      best_reverse = 1;
+                      best_reverse = true;
                       best_h = h;
                       best_i = i;
                       best_left_n = left_y;
@@ -1536,7 +1536,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                     }
                 }
 
-              if (best_reverse == 0)
+              if (not best_reverse)
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
