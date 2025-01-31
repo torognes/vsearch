@@ -120,12 +120,12 @@ auto orient() -> void
 
   /* check arguments */
 
-  if (not opt_db)
+  if (opt_db == nullptr)
     {
       fatal("Database not specified with --db");
     }
 
-  if (not (opt_fastaout or opt_fastqout or opt_notmatched or opt_tabbedout))
+  if (not ((opt_fastaout != nullptr) or (opt_fastqout != nullptr) or (opt_notmatched != nullptr) or (opt_tabbedout != nullptr)))
     {
       fatal("Output file not specified with --fastaout, --fastqout, --notmatched or --tabbedout");
     }
@@ -136,16 +136,16 @@ auto orient() -> void
 
   /* open output files */
 
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fp_fastaout = fopen_output(opt_fastaout);
-      if (not fp_fastaout)
+      if (fp_fastaout == nullptr)
         {
           fatal("Unable to open fasta output file for writing");
         }
     }
 
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       if (not fastx_is_fastq(query_h))
         {
@@ -153,25 +153,25 @@ auto orient() -> void
         }
 
       fp_fastqout = fopen_output(opt_fastqout);
-      if (not fp_fastqout)
+      if (fp_fastqout == nullptr)
         {
           fatal("Unable to open fastq output file for writing");
         }
     }
 
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (not fp_notmatched)
+      if (fp_notmatched == nullptr)
         {
           fatal("Unable to open notmatched output file for writing");
         }
     }
 
-  if (opt_tabbedout)
+  if (opt_tabbedout != nullptr)
     {
       fp_tabbedout = fopen_output(opt_tabbedout);
-      if (not fp_tabbedout)
+      if (fp_tabbedout == nullptr)
         {
           fatal("Unable to open tabbedout output file for writing");
         }
@@ -196,7 +196,7 @@ auto orient() -> void
         {
           dust_all();
         }
-      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
+      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask != 0))
         {
           hardmask_all();
         }
@@ -217,7 +217,7 @@ auto orient() -> void
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
   while (fastx_next(query_h,
-                    not opt_notrunclabels,
+                    (opt_notrunclabels == 0),
                     chrmap_no_change))
     {
       char * query_head = fastx_get_header(query_h);
@@ -281,7 +281,7 @@ auto orient() -> void
           ++matches_fwd;
           ++qmatches;
 
-          if (opt_fastaout)
+          if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -298,7 +298,7 @@ auto orient() -> void
                                   0.0);
             }
 
-          if (opt_fastqout)
+          if (opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   qseq_fwd,
@@ -338,7 +338,7 @@ auto orient() -> void
 
           reverse_complement(qseq_rev, qseq_fwd, qseqlen);
 
-          if (opt_fastaout)
+          if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -355,7 +355,7 @@ auto orient() -> void
                                   0.0);
             }
 
-          if (opt_fastqout)
+          if (opt_fastqout != nullptr)
             {
               /* reverse quality scores */
 
@@ -386,7 +386,7 @@ auto orient() -> void
           strand = 2;
           ++notmatched;
 
-          if (opt_notmatched)
+          if (opt_notmatched != nullptr)
             {
               if (fastx_is_fastq(query_h))
                 {
@@ -419,7 +419,7 @@ auto orient() -> void
             }
         }
 
-      if (opt_tabbedout)
+      if (opt_tabbedout != nullptr)
         {
           fprintf(fp_tabbedout,
                   "%s\t%c\t%d\t%d\n",
@@ -438,11 +438,11 @@ auto orient() -> void
 
   /* clean up */
 
-  if (qseq_rev)
+  if (qseq_rev != nullptr)
     {
       xfree(qseq_rev);
     }
-  if (query_qual_rev)
+  if (query_qual_rev != nullptr)
     {
       xfree(query_qual_rev);
     }
@@ -452,19 +452,19 @@ auto orient() -> void
   dbindex_free();
   db_free();
 
-  if (opt_tabbedout)
+  if (opt_tabbedout != nullptr)
     {
       fclose(fp_tabbedout);
     }
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fclose(fp_notmatched);
     }
-  if (opt_fastqout)
+  if (opt_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
-  if (opt_fastaout)
+  if (opt_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
@@ -500,7 +500,7 @@ auto orient() -> void
       fprintf(stderr, "Total number of sequences:  %d\n", queries);
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
