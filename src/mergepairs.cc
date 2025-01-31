@@ -1085,39 +1085,39 @@ auto keep_or_discard(merge_data_t * ip) -> void
 }
 
 
-auto free_merge_data(merge_data_t & ip) -> void
+auto free_merge_data(merge_data_t & a_read_pair) -> void
 {
-  if (ip.fwd_header != nullptr)
+  if (a_read_pair.fwd_header != nullptr)
     {
-      xfree(ip.fwd_header);
+      xfree(a_read_pair.fwd_header);
     }
-  if (ip.rev_header != nullptr)
+  if (a_read_pair.rev_header != nullptr)
     {
-      xfree(ip.rev_header);
+      xfree(a_read_pair.rev_header);
     }
-  if (ip.fwd_sequence != nullptr)
+  if (a_read_pair.fwd_sequence != nullptr)
     {
-      xfree(ip.fwd_sequence);
+      xfree(a_read_pair.fwd_sequence);
     }
-  if (ip.rev_sequence != nullptr)
+  if (a_read_pair.rev_sequence != nullptr)
     {
-      xfree(ip.rev_sequence);
+      xfree(a_read_pair.rev_sequence);
     }
-  if (ip.fwd_quality != nullptr)
+  if (a_read_pair.fwd_quality != nullptr)
     {
-      xfree(ip.fwd_quality);
+      xfree(a_read_pair.fwd_quality);
     }
-  if (ip.rev_quality != nullptr)
+  if (a_read_pair.rev_quality != nullptr)
     {
-      xfree(ip.rev_quality);
+      xfree(a_read_pair.rev_quality);
     }
-  if (ip.merged_sequence != nullptr)
+  if (a_read_pair.merged_sequence != nullptr)
     {
-      xfree(ip.merged_sequence);
+      xfree(a_read_pair.merged_sequence);
     }
-  if (ip.merged_quality != nullptr)
+  if (a_read_pair.merged_quality != nullptr)
     {
-      xfree(ip.merged_quality);
+      xfree(a_read_pair.merged_quality);
     }
 }
 
