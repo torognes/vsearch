@@ -244,8 +244,7 @@ static pthread_cond_t cond_chunks;
 
 auto fileopenw(char * filename) -> std::FILE *
 {
-  std::FILE * fp = nullptr;
-  fp = fopen_output(filename);
+  std::FILE * fp = fopen_output(filename);
   if (fp == nullptr)
     {
       fatal("Unable to open file for writing (%s)", filename);
