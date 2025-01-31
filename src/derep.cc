@@ -217,7 +217,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   fastx_handle input_handle = fastx_open(input_filename);
 
-  if (not input_handle)
+  if (input_handle == nullptr)
     {
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");  // unreachable? case already handled in fastx_open(), assert(h != nullptr) should always be true
     }
@@ -250,12 +250,12 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (parameters.opt_fastx_uniques != nullptr)
     {
-      if ((not parameters.opt_uc) and (not parameters.opt_fastaout) and (not parameters.opt_fastqout) and (not parameters.opt_tabbedout)) {
+      if ((parameters.opt_uc == nullptr) and (parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr) and (parameters.opt_tabbedout == nullptr)) {
         fatal("Output file for dereplication with fastx_uniques must be "
               "specified with --fastaout, --fastqout, --tabbedout, or --uc");
       }
     } else {
-    if ((not parameters.opt_output) and (not parameters.opt_uc)) {
+    if ((parameters.opt_output == nullptr) and (parameters.opt_uc == nullptr)) {
       fatal("Output file for dereplication must be specified with --output "
             "or --uc");
     }
@@ -263,28 +263,28 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   if (parameters.opt_fastx_uniques != nullptr)
     {
-      if (parameters.opt_fastaout)
+      if (parameters.opt_fastaout != nullptr)
         {
           fp_fastaout = fopen_output(parameters.opt_fastaout);
-          if (not fp_fastaout)
+          if (fp_fastaout == nullptr)
             {
               fatal("Unable to open FASTA output file for writing");
             }
         }
 
-      if (parameters.opt_fastqout)
+      if (parameters.opt_fastqout != nullptr)
         {
           fp_fastqout = fopen_output(parameters.opt_fastqout);
-          if (not fp_fastqout)
+          if (fp_fastqout == nullptr)
             {
               fatal("Unable to open FASTQ output file for writing");
             }
         }
 
-      if (parameters.opt_tabbedout)
+      if (parameters.opt_tabbedout != nullptr)
         {
           fp_tabbedout = fopen_output(parameters.opt_tabbedout);
-          if (not fp_tabbedout)
+          if (fp_tabbedout == nullptr)
             {
               fatal("Unable to open tab delimited output file for writing");
             }
