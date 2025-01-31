@@ -1336,11 +1336,10 @@ auto pair_all() -> void
   std::vector<chunk_t> chunks_v(chunk_count);
   chunks = chunks_v.data();
 
-  for (auto i = 0; i < chunk_count; i++)
-    {
-      chunks_v[i].merge_data_v.resize(chunk_size);
-      chunks_v[i].merge_data = chunks_v[i].merge_data_v.data();
-    }
+  for (auto & a_chunk: chunks_v) {
+    a_chunk.merge_data_v.resize(chunk_size);
+    a_chunk.merge_data = a_chunk.merge_data_v.data();
+  }
 
   xpthread_mutex_init(&mutex_chunks, nullptr);
   xpthread_cond_init(&cond_chunks, nullptr);
