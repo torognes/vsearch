@@ -220,10 +220,10 @@ using merge_data_t = struct merge_data_s;
 
 struct chunk_s
 {
-  int size; /* size of merge_data = number of pairs of reads */
-  state_enum state; /* state of chunk: empty, read, processed */
-  std::vector<merge_data_t> merge_data_v;
-  merge_data_t * merge_data; /* data for merging */
+  int size = 0; /* size of merge_data = number of pairs of reads */
+  state_enum state = empty; /* state of chunk: empty, read, processed */
+  std::vector<struct merge_data_s> merge_data_v;
+  merge_data_t * merge_data = nullptr; /* data for merging */
 };
 
 using chunk_t = struct chunk_s;
@@ -1362,8 +1362,6 @@ auto pair_all() -> void
 
   for (auto i = 0; i < chunk_count; i++)
     {
-      chunks_v[i].state = empty;
-      chunks_v[i].size = 0;
       chunks_v[i].merge_data_v.resize(chunk_size);
       chunks_v[i].merge_data = chunks_v[i].merge_data_v.data();
       for (int64_t j = 0; j < chunk_size; j++)
