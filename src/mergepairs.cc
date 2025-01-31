@@ -242,6 +242,7 @@ static pthread_mutex_t mutex_chunks;
 static pthread_cond_t cond_chunks;
 
 
+// refactoring: make generic function (extract to utils/file_open_write.cpp)
 auto fileopenw(char * filename) -> std::FILE *
 {
   std::FILE * fp = fopen_output(filename);
