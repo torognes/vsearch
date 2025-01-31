@@ -721,7 +721,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
       int const target_seqno = ci->cand_list[cand];
       char * target_seq = db_getsequence(target_seqno);
 
-      int inserted = 0;
+      int is_inserted = 0;
       int qpos = 0;
       int tpos = 0;
 
@@ -750,13 +750,13 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                       *t++ = '-';
                     }
                 }
-              inserted = 1;
+              is_inserted = 1;
             }
           else
             {
               for (int x = 0; x < run; x++)
                 {
-                  if (not inserted)
+                  if (not is_inserted)
                     {
                       for (int y = 0; y < ci->maxi[qpos]; y++)
                         {
@@ -774,14 +774,14 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                     }
 
                   ++qpos;
-                  inserted = 0;
+                  is_inserted = 0;
                 }
             }
         }
 
       /* add any gaps at the end */
 
-      if (not inserted)
+      if (not is_inserted)
         {
           for (int x = 0; x < ci->maxi[qpos]; x++)
             {
