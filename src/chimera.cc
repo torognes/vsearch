@@ -190,7 +190,7 @@ static struct chimera_info_s * cia;
 
 auto realloc_arrays(struct chimera_info_s * ci) -> void
 {
-  if (opt_chimeras_denovo)
+  if (opt_chimeras_denovo != nullptr)
     {
       if (opt_chimeras_parts == 0) {
         parts = (ci->query_len + maxparts - 1) / maxparts;
@@ -300,8 +300,8 @@ auto find_matches(struct chimera_info_s * ci) -> void
             case 'M':
               for (int k = 0; k < run; k++)
                 {
-                  if (chrmap_4bit[(int) (qseq[qpos])] &
-                      chrmap_4bit[(int) (tseq[tpos])])
+                  if ((chrmap_4bit[(int) (qseq[qpos])] &
+                       chrmap_4bit[(int) (tseq[tpos])]) != 0U)
                     {
                       ci->match[(i * ci->query_len) + qpos] = 1;
                     }
@@ -370,7 +370,7 @@ auto scan_matches(struct chimera_info_s * ci,
 
   p[0] = 0.0;
   for (int i = 0; i < len; i++) {
-    p[i + 1] = p[i] + (matches[i] ? score_match : score_mismatch);
+    p[i + 1] = p[i] + ((matches[i] != 0) ? score_match : score_mismatch);
   }
 
   q[len] = p[len];
