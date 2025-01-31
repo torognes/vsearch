@@ -1361,13 +1361,13 @@ auto pair_all() -> void
 
   for (auto i = 0; i < chunk_count; i++)
     {
-      chunks[i].state = empty;
-      chunks[i].size = 0;
-      chunks[i].merge_data =
+      chunks_v[i].state = empty;
+      chunks_v[i].size = 0;
+      chunks_v[i].merge_data =
         (merge_data_t *) xmalloc(chunk_size * sizeof(merge_data_t));
       for (int64_t j = 0; j < chunk_size; j++)
         {
-          init_merge_data(chunks[i].merge_data + j);
+          init_merge_data(chunks_v[i].merge_data + j);
         }
     }
 
@@ -1406,10 +1406,10 @@ auto pair_all() -> void
     {
       for (auto j = 0; j < chunk_size; j++)
         {
-          free_merge_data(chunks[i].merge_data + j);
+          free_merge_data(chunks_v[i].merge_data + j);
         }
-      xfree(chunks[i].merge_data);
-      chunks[i].merge_data = nullptr;
+      xfree(chunks_v[i].merge_data);
+      chunks_v[i].merge_data = nullptr;
     }
   chunks = nullptr;
 }
