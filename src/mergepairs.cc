@@ -602,7 +602,7 @@ auto merge(merge_data_t * a_read_pair) -> void
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
-  auto const fwd_5prime_overhang = a_read_pair->fwd_trunc > a_read_pair->offset ?
+  auto const fwd_5prime_overhang = (a_read_pair->fwd_trunc > a_read_pair->offset) ?
     a_read_pair->fwd_trunc - a_read_pair->offset : 0;
 
   a_read_pair->ee_merged = 0.0;
