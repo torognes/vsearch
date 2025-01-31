@@ -243,7 +243,7 @@ static pthread_cond_t cond_chunks;
 
 
 // refactoring: make generic function (extract to utils/file_open_write.cpp)
-auto fileopenw(char * filename) -> std::FILE *
+auto fileopenw(char const * filename) -> std::FILE *
 {
   assert(filename != nullptr);
   auto * output_handle = fopen_output(filename);
