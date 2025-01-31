@@ -304,7 +304,7 @@ inline auto get_qual(char const quality_symbol) -> int
 }
 
 
-inline auto q_to_p(int quality_symbol) -> double
+inline auto q_to_p(int const quality_symbol) -> double
 {
   static constexpr auto low_quality_threshold = 2;
   static constexpr auto max_probability = 0.75;
