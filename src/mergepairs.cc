@@ -222,6 +222,7 @@ struct chunk_s
 {
   int size; /* size of merge_data = number of pairs of reads */
   state_enum state; /* state of chunk: empty, read, processed */
+  std::vector<merge_data_t> merge_data_v;
   merge_data_t * merge_data; /* data for merging */
 };
 
@@ -1363,8 +1364,8 @@ auto pair_all() -> void
     {
       chunks_v[i].state = empty;
       chunks_v[i].size = 0;
-      chunks_v[i].merge_data =
-        (merge_data_t *) xmalloc(chunk_size * sizeof(merge_data_t));
+      chunks_v[i].merge_data_v.resize(chunk_size);
+      chunks_v[i].merge_data = chunks_v[i].merge_data_v.data();
       for (int64_t j = 0; j < chunk_size; j++)
         {
           init_merge_data(chunks_v[i].merge_data + j);
@@ -1408,7 +1409,6 @@ auto pair_all() -> void
         {
           free_merge_data(chunks_v[i].merge_data + j);
         }
-      xfree(chunks_v[i].merge_data);
       chunks_v[i].merge_data = nullptr;
     }
   chunks = nullptr;
