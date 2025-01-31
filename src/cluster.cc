@@ -207,7 +207,7 @@ inline auto cluster_query_core(struct searchinfo_s * si) -> void
   si->query_head = db_getheader(seqno);
   si->qsize = db_getabundance(seqno);
   si->qseqlen = db_getsequencelen(seqno);
-  if (si->strand)
+  if (si->strand != 0)
     {
       reverse_complement(si->qsequence, db_getsequence(seqno), si->qseqlen);
     }
@@ -386,15 +386,15 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
   unique_exit(si->uh);
   minheap_exit(si->m);
 
-  if (si->qsequence)
+  if (si->qsequence != nullptr)
     {
       xfree(si->qsequence);
     }
-  if (si->hits)
+  if (si->hits != nullptr)
     {
       xfree(si->hits);
     }
-  if (si->kmers)
+  if (si->kmers != nullptr)
     {
       xfree(si->kmers);
     }
@@ -404,7 +404,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
 auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
 {
   char * label = nullptr;
-  if (opt_relabel)
+  if (opt_relabel != nullptr)
     {
       int const size = std::strlen(opt_relabel) + 21;
       label = (char *) xmalloc(size);
@@ -440,9 +440,9 @@ auto cluster_core_results_hit(struct hit * best,
 {
   ++count_matched;
 
-  if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
+  if ((opt_otutabout != nullptr) or (opt_mothur_shared_out != nullptr) or (opt_biomout != nullptr))
     {
-      if (opt_relabel or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
+      if ((opt_relabel != nullptr) or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno,
                                      db_getsequence(best->target),
@@ -458,7 +458,7 @@ auto cluster_core_results_hit(struct hit * best,
         }
     }
 
-  if (fp_uc)
+  if (fp_uc != nullptr)
     {
       results_show_uc_one(fp_uc,
                           best, query_head,
@@ -466,21 +466,21 @@ auto cluster_core_results_hit(struct hit * best,
                           clusterno);
     }
 
-  if (fp_alnout)
+  if (fp_alnout != nullptr)
     {
       results_show_alnout(fp_alnout,
                           best, 1, query_head,
                           qsequence, qseqlen);
     }
 
-  if (fp_samout)
+  if (fp_samout != nullptr)
     {
       results_show_samout(fp_samout,
                           best, 1, query_head,
                           qsequence, qsequence_rc);
     }
 
-  if (fp_fastapairs)
+  if (fp_fastapairs != nullptr)
     {
       results_show_fastapairs_one(fp_fastapairs,
                                   best,
@@ -489,7 +489,7 @@ auto cluster_core_results_hit(struct hit * best,
                                   qsequence_rc);
     }
 
-  if (fp_qsegout)
+  if (fp_qsegout != nullptr)
     {
       results_show_qsegout_one(fp_qsegout,
                                best,
@@ -499,25 +499,25 @@ auto cluster_core_results_hit(struct hit * best,
                                qsequence_rc);
     }
 
-  if (fp_tsegout)
+  if (fp_tsegout != nullptr)
     {
       results_show_tsegout_one(fp_tsegout,
                                best);
     }
 
-  if (fp_userout)
+  if (fp_userout != nullptr)
     {
       results_show_userout_one(fp_userout, best, query_head,
                                qsequence, qseqlen, qsequence_rc);
     }
 
-  if (fp_blast6out)
+  if (fp_blast6out != nullptr)
     {
       results_show_blast6out_one(fp_blast6out, best, query_head,
                                  qseqlen);
     }
 
-  if (opt_matched)
+  if (opt_matched != nullptr)
     {
       fasta_print_general(fp_matched,
                           nullptr,
@@ -542,9 +542,9 @@ auto cluster_core_results_nohit(int clusterno,
 {
   ++count_notmatched;
 
-  if (opt_otutabout or opt_mothur_shared_out or opt_biomout)
+  if ((opt_otutabout != nullptr) or (opt_mothur_shared_out != nullptr) or (opt_biomout != nullptr))
     {
-      if (opt_relabel or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
+      if ((opt_relabel != nullptr) or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno, qsequence, qseqlen);
           otutable_add(query_head, label, qsize);
@@ -556,7 +556,7 @@ auto cluster_core_results_nohit(int clusterno,
         }
     }
 
-  if (opt_uc)
+  if (opt_uc != nullptr)
     {
       fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
       header_fprint_strip(fp_uc,
@@ -568,22 +568,22 @@ auto cluster_core_results_nohit(int clusterno,
       fprintf(fp_uc, "\t*\n");
     }
 
-  if (opt_output_no_hits)
+  if (opt_output_no_hits != 0)
     {
-      if (fp_userout)
+      if (fp_userout != nullptr)
         {
           results_show_userout_one(fp_userout, nullptr, query_head,
                                    qsequence, qseqlen, qsequence_rc);
         }
 
-      if (fp_blast6out)
+      if (fp_blast6out != nullptr)
         {
           results_show_blast6out_one(fp_blast6out, nullptr, query_head,
                                      qseqlen);
         }
     }
 
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fasta_print_general(fp_notmatched,
                           nullptr,
@@ -684,7 +684,7 @@ auto cluster_core_parallel() -> void
               int const length = db_getsequencelen(seqno);
 
 #if 1
-              if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
+              if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -719,11 +719,11 @@ auto cluster_core_parallel() -> void
 
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_m : si_p;
+              struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
               int added = 0;
 
-              if (extra_count)
+              if (extra_count != 0)
                 {
                   /* Check if there is a hit with one of the non-matching
                      extra sequences just analysed in this round */
@@ -800,7 +800,7 @@ auto cluster_core_parallel() -> void
 
               /* now go through the hits and determine final status of each */
 
-              if (added)
+              if (added != 0)
                 {
                   si->rejects = 0;
                   si->accepts = 0;
@@ -866,7 +866,7 @@ auto cluster_core_parallel() -> void
 
                                   char * tseq = db_getsequence(target);
 
-                                  if (nwcigar)
+                                  if (nwcigar != nullptr)
                                     {
                                       xfree(nwcigar);
                                     }
@@ -973,7 +973,7 @@ auto cluster_core_parallel() -> void
 
           int const myseqno = si_p->query_no;
 
-          if (best)
+          if (best != nullptr)
             {
               /* a hit was found, cluster current sequence with hit */
               int const target = best->target;
@@ -984,7 +984,7 @@ auto cluster_core_parallel() -> void
                                        si_p->query_head,
                                        si_p->qseqlen,
                                        si_p->qsequence,
-                                       best->strand ? si_m->qsequence : nullptr,
+                                       (best->strand != 0) ? si_m->qsequence : nullptr,
                                        si_p->qsize);
 
               /* update cluster info about this sequence */
@@ -1024,12 +1024,12 @@ auto cluster_core_parallel() -> void
           /* free alignments */
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_m : si_p;
+              struct searchinfo_s * si = (s != 0) ? si_m : si_p;
               for (int j = 0; j < si->hit_count; j++)
                 {
                   if (si->hits[j].aligned)
                     {
-                      if (si->hits[j].nwalignment)
+                      if (si->hits[j].nwalignment != nullptr)
                         {
                           xfree(si->hits[j].nwalignment);
                         }
@@ -1088,7 +1088,7 @@ auto cluster_core_serial() -> void
       int const length = db_getsequencelen(seqno);
 
 #if 1
-      if (opt_cluster_smallmem and (not opt_usersort) and (length > lastlength))
+      if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -1117,7 +1117,7 @@ auto cluster_core_serial() -> void
           best = search_findbest2_byid(si_p.data(), si_m.data());
         }
 
-      if (best)
+      if (best != nullptr)
         {
           int const target = best->target;
           cluster_core_results_hit(best,
@@ -1125,7 +1125,7 @@ auto cluster_core_serial() -> void
                                    si_p[0].query_head,
                                    si_p[0].qseqlen,
                                    si_p[0].qsequence,
-                                   best->strand ? si_m[0].qsequence : nullptr,
+                                   (best->strand != 0) ? si_m[0].qsequence : nullptr,
                                    si_p[0].qsize);
           clusterinfo[seqno].seqno = seqno;
           clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
@@ -1152,12 +1152,12 @@ auto cluster_core_serial() -> void
       /* free alignments */
       for (int s = 0; s < opt_strand; s++)
         {
-          struct searchinfo_s * si = s ? si_m.data() : si_p.data();
+          struct searchinfo_s * si = (s != 0) ? si_m.data() : si_p.data();
           for (int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
                 {
-                  if (si->hits[i].nwalignment)
+                  if (si->hits[i].nwalignment != nullptr)
                     {
                       xfree(si->hits[i].nwalignment);
                     }
@@ -1181,28 +1181,28 @@ auto cluster(char * dbname,
              char * cmdline,
              char * progheader) -> void
 {
-  if (opt_centroids)
+  if (opt_centroids != nullptr)
     {
       fp_centroids = fopen_output(opt_centroids);
-      if (not fp_centroids)
+      if (fp_centroids == nullptr)
         {
           fatal("Unable to open centroids file for writing");
         }
     }
 
-  if (opt_uc)
+  if (opt_uc != nullptr)
     {
       fp_uc = fopen_output(opt_uc);
-      if (not fp_uc)
+      if (fp_uc == nullptr)
         {
           fatal("Unable to open uc file for writing");
         }
     }
 
-  if (opt_alnout)
+  if (opt_alnout != nullptr)
     {
       fp_alnout = fopen_output(opt_alnout);
-      if (not fp_alnout)
+      if (fp_alnout == nullptr)
         {
           fatal("Unable to open alignment output file for writing");
         }
@@ -1211,100 +1211,100 @@ auto cluster(char * dbname,
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (opt_samout)
+  if (opt_samout != nullptr)
     {
       fp_samout = fopen_output(opt_samout);
-      if (not fp_samout)
+      if (fp_samout == nullptr)
         {
           fatal("Unable to open SAM output file for writing");
         }
     }
 
-  if (opt_userout)
+  if (opt_userout != nullptr)
     {
       fp_userout = fopen_output(opt_userout);
-      if (not fp_userout)
+      if (fp_userout == nullptr)
         {
           fatal("Unable to open user-defined output file for writing");
         }
     }
 
-  if (opt_blast6out)
+  if (opt_blast6out != nullptr)
     {
       fp_blast6out = fopen_output(opt_blast6out);
-      if (not fp_blast6out)
+      if (fp_blast6out == nullptr)
         {
           fatal("Unable to open blast6-like output file for writing");
         }
     }
 
-  if (opt_fastapairs)
+  if (opt_fastapairs != nullptr)
     {
       fp_fastapairs = fopen_output(opt_fastapairs);
-      if (not fp_fastapairs)
+      if (fp_fastapairs == nullptr)
         {
           fatal("Unable to open fastapairs output file for writing");
         }
     }
 
-  if (opt_qsegout)
+  if (opt_qsegout != nullptr)
     {
       fp_qsegout = fopen_output(opt_qsegout);
-      if (not fp_qsegout)
+      if (fp_qsegout == nullptr)
         {
           fatal("Unable to open qsegout output file for writing");
         }
     }
 
-  if (opt_tsegout)
+  if (opt_tsegout != nullptr)
     {
       fp_tsegout = fopen_output(opt_tsegout);
-      if (not fp_tsegout)
+      if (fp_tsegout == nullptr)
         {
           fatal("Unable to open tsegout output file for writing");
         }
     }
 
-  if (opt_matched)
+  if (opt_matched != nullptr)
     {
       fp_matched = fopen_output(opt_matched);
-      if (not fp_matched)
+      if (fp_matched == nullptr)
         {
           fatal("Unable to open matched output file for writing");
         }
     }
 
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (not fp_notmatched)
+      if (fp_notmatched == nullptr)
         {
           fatal("Unable to open notmatched output file for writing");
         }
     }
 
-  if (opt_otutabout)
+  if (opt_otutabout != nullptr)
     {
       fp_otutabout = fopen_output(opt_otutabout);
-      if (not fp_otutabout)
+      if (fp_otutabout == nullptr)
         {
           fatal("Unable to open OTU table (text format) output file for writing");
         }
     }
 
-  if (opt_mothur_shared_out)
+  if (opt_mothur_shared_out != nullptr)
     {
       fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
-      if (not fp_mothur_shared_out)
+      if (fp_mothur_shared_out == nullptr)
         {
           fatal("Unable to open OTU table (mothur format) output file for writing");
         }
     }
 
-  if (opt_biomout)
+  if (opt_biomout != nullptr)
     {
       fp_biomout = fopen_output(opt_biomout);
-      if (not fp_biomout)
+      if (fp_biomout == nullptr)
         {
           fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
         }
@@ -1320,7 +1320,7 @@ auto cluster(char * dbname,
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
+  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -1329,11 +1329,11 @@ auto cluster(char * dbname,
 
   seqcount = db_getsequencecount();
 
-  if (opt_cluster_fast)
+  if (opt_cluster_fast != nullptr)
     {
       db_sortbylength();
     }
-  else if (opt_cluster_size or opt_cluster_unoise)
+  else if ((opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
     {
       db_sortbyabundance();
     }
@@ -1358,7 +1358,7 @@ auto cluster(char * dbname,
   std::vector<clusterinfo_t> clusterinfo_v(seqcount);
   clusterinfo = clusterinfo_v.data();
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       uint64_t const slots = 1ULL << (static_cast<uint64_t>(opt_wordlength) << 1ULL);
       fprintf(fp_log, "\n");
@@ -1433,7 +1433,7 @@ auto cluster(char * dbname,
   std::FILE * fp_clusters = nullptr;
   char * fn_clusters = nullptr;
   int fn_clusters_size = 0;
-  if (opt_clusters)
+  if (opt_clusters != nullptr)
     {
       fn_clusters_size += std::strlen(opt_clusters) + 25;
       fn_clusters = (char *) xmalloc(fn_clusters_size);
@@ -1453,7 +1453,7 @@ auto cluster(char * dbname,
           /* performed with first sequence only in each cluster */
           /* the first sequence is always the centroid */
 
-          if (opt_centroids)
+          if (opt_centroids != nullptr)
             {
               fasta_print_general(fp_centroids,
                                   nullptr,
@@ -1469,7 +1469,7 @@ auto cluster(char * dbname,
                                   nullptr, 0.0);
             }
 
-          if (opt_uc)
+          if (opt_uc != nullptr)
             {
               fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
@@ -1483,7 +1483,7 @@ auto cluster(char * dbname,
               fprintf(fp_uc, "\t*\n");
             }
 
-          if (opt_clusters)
+          if (opt_clusters != nullptr)
             {
               /* close previous (except for first time) and open new file */
               if (lastcluster != -1)
@@ -1498,7 +1498,7 @@ auto cluster(char * dbname,
                        opt_clusters,
                        clusterno);
               fp_clusters = fopen_output(fn_clusters);
-              if (not fp_clusters)
+              if (fp_clusters == nullptr)
                 {
                   fatal("Unable to open clusters file for writing");
                 }
@@ -1509,7 +1509,7 @@ auto cluster(char * dbname,
 
       /* performed for all sequences */
 
-      if (opt_clusters)
+      if (opt_clusters != nullptr)
         {
           ++ordinal;
           fasta_print_db_relabel(fp_clusters, seqno, ordinal);
@@ -1521,10 +1521,10 @@ auto cluster(char * dbname,
   if (lastcluster != -1)
     {
       /* performed with the last sequence */
-      if (opt_clusters)
+      if (opt_clusters != nullptr)
         {
           fclose(fp_clusters);
-          if (fn_clusters)
+          if (fn_clusters != nullptr)
             {
               xfree(fn_clusters);
             }
@@ -1540,7 +1540,7 @@ auto cluster(char * dbname,
           fprintf(stderr, "Clusters: 0\n");
           fprintf(stderr, "Singletons: 0\n");
         }
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log, "Clusters: 0\n");
           fprintf(fp_log, "Singletons: 0\n");
@@ -1563,7 +1563,7 @@ auto cluster(char * dbname,
                   100.0 * singletons / clusters);
         }
 
-      if (opt_log)
+      if (opt_log != nullptr)
         {
           fprintf(fp_log,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
@@ -1580,7 +1580,7 @@ auto cluster(char * dbname,
         }
     }
 
-  if (opt_msaout or opt_consout or opt_profile)
+  if ((opt_msaout != nullptr) or (opt_consout != nullptr) or (opt_profile != nullptr))
     {
       int msa_target_count = 0;
       std::vector<struct msa_target_s> msa_target_list_v(size_max);
@@ -1590,28 +1590,28 @@ auto cluster(char * dbname,
       std::FILE * fp_consout = nullptr;
       std::FILE * fp_profile = nullptr;
 
-      if (opt_msaout)
+      if (opt_msaout != nullptr)
         {
           fp_msaout = fopen_output(opt_msaout);
-          if (not (fp_msaout))
+          if (fp_msaout == nullptr)
             {
               fatal("Unable to open msaout file");
             }
         }
 
-      if (opt_consout)
+      if (opt_consout != nullptr)
         {
           fp_consout = fopen_output(opt_consout);
-          if (not (fp_consout))
+          if (fp_consout == nullptr)
             {
               fatal("Unable to open consout file");
             }
         }
 
-      if (opt_profile)
+      if (opt_profile != nullptr)
         {
           fp_profile = fopen_output(opt_profile);
-          if (not (fp_profile))
+          if (fp_profile == nullptr)
             {
               fatal("Unable to open profile file");
             }
@@ -1662,17 +1662,17 @@ auto cluster(char * dbname,
 
       progress_done();
 
-      if (fp_profile)
+      if (fp_profile != nullptr)
         {
           fclose(fp_profile);
         }
 
-      if (fp_msaout)
+      if (fp_msaout != nullptr)
         {
           fclose(fp_msaout);
         }
 
-      if (fp_consout)
+      if (fp_consout != nullptr)
         {
           fclose(fp_consout);
         }
@@ -1692,19 +1692,19 @@ auto cluster(char * dbname,
 
   // clusterinfo not used after this point
 
-  if (fp_biomout)
+  if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout);
       fclose(fp_biomout);
     }
 
-  if (fp_otutabout)
+  if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout);
       fclose(fp_otutabout);
     }
 
-  if (fp_mothur_shared_out)
+  if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
       fclose(fp_mothur_shared_out);
@@ -1712,47 +1712,47 @@ auto cluster(char * dbname,
 
   otutable_done();
 
-  if (opt_matched)
+  if (opt_matched != nullptr)
     {
       fclose(fp_matched);
     }
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fclose(fp_notmatched);
     }
-  if (opt_fastapairs)
+  if (opt_fastapairs != nullptr)
     {
       fclose(fp_fastapairs);
     }
-  if (opt_qsegout)
+  if (opt_qsegout != nullptr)
     {
       fclose(fp_qsegout);
     }
-  if (opt_tsegout)
+  if (opt_tsegout != nullptr)
     {
       fclose(fp_tsegout);
     }
-  if (fp_blast6out)
+  if (fp_blast6out != nullptr)
     {
       fclose(fp_blast6out);
     }
-  if (fp_userout)
+  if (fp_userout != nullptr)
     {
       fclose(fp_userout);
     }
-  if (fp_alnout)
+  if (fp_alnout != nullptr)
     {
       fclose(fp_alnout);
     }
-  if (fp_samout)
+  if (fp_samout != nullptr)
     {
       fclose(fp_samout);
     }
-  if (fp_uc)
+  if (fp_uc != nullptr)
     {
       fclose(fp_uc);
     }
-  if (fp_centroids)
+  if (fp_centroids != nullptr)
     {
       fclose(fp_centroids);
     }
