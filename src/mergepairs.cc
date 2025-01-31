@@ -245,6 +245,7 @@ static pthread_cond_t cond_chunks;
 // refactoring: make generic function (extract to utils/file_open_write.cpp)
 auto fileopenw(char * filename) -> std::FILE *
 {
+  assert(filename != nullptr);
   auto * output_handle = fopen_output(filename);
   if (output_handle == nullptr)
     {
@@ -256,6 +257,9 @@ auto fileopenw(char * filename) -> std::FILE *
 
 inline auto get_qual(char const quality_symbol) -> int
 {
+  assert(quality_symbol >= 33);
+  assert(quality_symbol <= 126);
+
   auto const quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
 
   if (quality_value < opt_fastq_qmin)
