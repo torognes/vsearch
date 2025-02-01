@@ -378,7 +378,7 @@ auto fastq_stats() -> void
 auto fastx_revcomp() -> void
 {
   uint64_t buffer_alloc = initial_memory_allocation;
-  std::vector<char> seq_buffer_v(buffer_alloc);
+  std::vector<char> seq_buffer(buffer_alloc);
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
   if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
@@ -449,12 +449,12 @@ auto fastx_revcomp() -> void
       if (length + 1 > buffer_alloc)
         {
           buffer_alloc = length + 1;
-          seq_buffer_v.resize(buffer_alloc);
+          seq_buffer.resize(buffer_alloc);
           qual_buffer = (char *) xrealloc(qual_buffer, buffer_alloc);
         }
 
       char * p = fastx_get_sequence(h);
-      reverse_complement(seq_buffer_v.data(), p, length);
+      reverse_complement(seq_buffer.data(), p, length);
 
 
       /* quality values */
@@ -475,7 +475,7 @@ auto fastx_revcomp() -> void
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
-                              seq_buffer_v.data(),
+                              seq_buffer.data(),
                               length,
                               header,
                               hlen,
@@ -488,7 +488,7 @@ auto fastx_revcomp() -> void
       if (opt_fastqout != nullptr)
         {
           fastq_print_general(fp_fastqout,
-                              seq_buffer_v.data(),
+                              seq_buffer.data(),
                               length,
                               header,
                               hlen,
