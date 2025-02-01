@@ -70,7 +70,7 @@
 #include <vector>
 
 
-constexpr auto initial_memory_allocation = 512;
+constexpr auto initial_memory_allocation = std::size_t{512};
 
 
 auto q2p(double quality_value) -> double {
@@ -90,7 +90,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
-  std::size_t read_length_alloc = initial_memory_allocation;
+  auto read_length_alloc = initial_memory_allocation;
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
   std::vector<uint64_t> qual_length_table(read_length_alloc * n_eight_bit_values);
