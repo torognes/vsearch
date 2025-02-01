@@ -101,7 +101,6 @@ auto fastq_stats() -> void
   std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
 
   std::vector<uint64_t> q_length_table_v(read_length_alloc * 4);
-  auto * q_length_table = q_length_table_v.data();
 
   auto * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
   memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
@@ -132,7 +131,6 @@ auto fastq_stats() -> void
           ee_length_table.resize((len + 1) * 4);
 
           q_length_table_v.resize((len + 1) * 4);
-          q_length_table = q_length_table_v.data();
 
           sumee_length_table = (double *) xrealloc(sumee_length_table,
                                                    sizeof(double) * (len + 1));
