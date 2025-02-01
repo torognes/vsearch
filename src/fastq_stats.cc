@@ -141,7 +141,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto qmin_this = std::numeric_limits<int>::max();
       for (auto i = 0UL; i < length; i++)
         {
-          int const quality_symbol = quality_symbols[i];
+          auto const quality_symbol = static_cast<int>(quality_symbols[i]);
 
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           if ((quality_score < parameters.opt_fastq_qmin) or (quality_score > parameters.opt_fastq_qmax))
@@ -173,11 +173,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           sumee_length_table[i] += expected_error;
 
-          for (auto z = 0; z < 4; z++)
+          for (auto j = 0; j < 4; j++)
             {
-              if (expected_error <= ee_limits[z])
+              if (expected_error <= ee_limits[j])
                 {
-                  ++ee_length_table[(4 * i) + z];
+                  ++ee_length_table[(4 * i) + j];
                 }
               else
                 {
@@ -187,11 +187,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           qmin_this = std::min(quality_score, qmin_this);
 
-          for (auto z = 0; z < 4; z++)
+          for (auto j = 0; j < 4; j++)
             {
-              if (qmin_this > 5 * (z + 1))
+              if (qmin_this > 5 * (j + 1))
                 {
-                  ++q_length_table[(4 * i) + z];
+                  ++q_length_table[(4 * i) + j];
                 }
               else
                 {
