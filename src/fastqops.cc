@@ -385,19 +385,19 @@ auto fastx_revcomp() -> void
     fatal("No output files specified");
   }
 
-  fastx_handle h = fastx_open(opt_fastx_revcomp);
+  fastx_handle input_handle = fastx_open(opt_fastx_revcomp);
 
-  if (h == nullptr)
+  if (input_handle == nullptr)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
 
-  if ((opt_fastqout != nullptr) && ! (h->is_fastq || h->is_empty))
+  if ((opt_fastqout != nullptr) && ! (input_handle->is_fastq || input_handle->is_empty))
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  uint64_t const filesize = fastx_get_size(h);
+  uint64_t const filesize = fastx_get_size(input_handle);
 
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
@@ -420,7 +420,7 @@ auto fastx_revcomp() -> void
         }
     }
 
-  if (h->is_fastq)
+  if (input_handle->is_fastq)
     {
       progress_init("Reading FASTQ file", filesize);
     }
@@ -431,20 +431,20 @@ auto fastx_revcomp() -> void
 
   int count = 0;
 
-  while (fastx_next(h, false, chrmap_no_change))
+  while (fastx_next(input_handle, false, chrmap_no_change))
     {
       ++count;
 
       /* header */
 
-      uint64_t const hlen = fastx_get_header_length(h);
-      char * header = fastx_get_header(h);
-      int64_t const abundance = fastx_get_abundance(h);
+      uint64_t const hlen = fastx_get_header_length(input_handle);
+      char * header = fastx_get_header(input_handle);
+      int64_t const abundance = fastx_get_abundance(input_handle);
 
 
       /* sequence */
 
-      uint64_t const length = fastx_get_sequence_length(h);
+      uint64_t const length = fastx_get_sequence_length(input_handle);
 
       if (length + 1 > buffer_alloc)
         {
@@ -453,15 +453,15 @@ auto fastx_revcomp() -> void
           qual_buffer.resize(buffer_alloc);
         }
 
-      char * p = fastx_get_sequence(h);
+      char * p = fastx_get_sequence(input_handle);
       reverse_complement(seq_buffer.data(), p, length);
 
 
       /* quality values */
 
-      char * q = fastx_get_quality(h);
+      char * q = fastx_get_quality(input_handle);
 
-      if (fastx_is_fastq(h))
+      if (fastx_is_fastq(input_handle))
         {
           /* reverse quality values */
           for (uint64_t i = 0; i < length; i++)
@@ -498,7 +498,7 @@ auto fastx_revcomp() -> void
                               -1.0);
         }
 
-      progress_update(fastx_get_position(h));
+      progress_update(fastx_get_position(input_handle));
     }
   progress_done();
 
@@ -512,7 +512,7 @@ auto fastx_revcomp() -> void
       fclose(fp_fastqout);
     }
 
-  fastx_close(h);
+  fastx_close(input_handle);
 }
 
 
