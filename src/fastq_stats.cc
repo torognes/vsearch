@@ -146,21 +146,21 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           if ((quality_score < parameters.opt_fastq_qmin) or (quality_score > parameters.opt_fastq_qmax))
             {
-              char * msg = nullptr;
-              if (xsprintf(& msg,
+              char * message = nullptr;
+              if (xsprintf(& message,
                            "FASTQ quality value (%d) out of range (%" PRId64 "-%" PRId64 ").\n"
                            "Please adjust the FASTQ quality base character or range with the\n"
                            "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n"
                            "diagnosis with suggested values, please run vsearch --fastq_chars file.",
                            quality_score, parameters.opt_fastq_qmin, parameters.opt_fastq_qmax) > 0)
                 {
-                  fatal(msg);
+                  fatal(message);
                 }
               else
                 {
                   fatal("Out of memory");
                 }
-              xfree(msg);
+              xfree(message);
             }
 
           ++quality_chars[quality_symbol];
