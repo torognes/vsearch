@@ -118,12 +118,12 @@ auto fastq_stats() -> void
 
       if (len + 1 > read_length_alloc)
         {
-          read_length_table.resize(len + 1);
-          qual_length_table.resize((len + 1) * n_eight_bit_values);
-          ee_length_table.resize((len + 1) * 4);
-          q_length_table.resize((len + 1) * 4);
-          sumee_length_table.resize(len + 1);
           read_length_alloc = len + 1;
+          read_length_table.resize(read_length_alloc);
+          qual_length_table.resize(read_length_alloc * n_eight_bit_values);
+          ee_length_table.resize(read_length_alloc * 4);
+          q_length_table.resize(read_length_alloc * 4);
+          sumee_length_table.resize(read_length_alloc);
         }
 
       ++read_length_table[len];
