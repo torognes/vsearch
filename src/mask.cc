@@ -140,8 +140,8 @@ auto dust(char * seq, int len) -> void
   int b = 0;
 
   /* make a local copy of the original sequence */
-  std::vector<char> local_seq_v(len + 1);
-  strcpy(local_seq_v.data(), seq);
+  std::vector<char> local_seq(len + 1);
+  strcpy(local_seq.data(), seq);
   // refactoring: <string>
   // std::string local_seq2;
   // local_seq2.reserve(len + 1);
@@ -161,7 +161,7 @@ auto dust(char * seq, int len) -> void
   for (int i = 0; i < len; i += half_dust_window)
     {
       const int l = (len > i + dust_window) ? dust_window : len - i;
-      const int v = wo(l, &local_seq_v[i], &a, &b);
+      const int v = wo(l, &local_seq[i], &a, &b);
 
       if (v > dust_level)
         {
@@ -176,7 +176,7 @@ auto dust(char * seq, int len) -> void
             {
               for (int j = a + i; j <= b + i; j++)
                 {
-                  seq[j] = local_seq_v[j] | 32U;  // check_5th_bit (0x20)
+                  seq[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
                 }
             }
 
