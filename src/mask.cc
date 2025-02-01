@@ -141,7 +141,6 @@ auto dust(char * seq, int len) -> void
 
   /* make a local copy of the original sequence */
   std::vector<char> local_seq_v(len + 1);
-  auto * local_seq = local_seq_v.data();
   strcpy(local_seq_v.data(), seq);
   // refactoring: <string>
   // std::string local_seq2;
