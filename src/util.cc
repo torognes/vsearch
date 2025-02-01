@@ -192,6 +192,10 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
       fatal("Error with vsnprintf in xsprintf");
     }
   auto * buffer = (char *) xmalloc(len + 1);
+  if (buffer == nullptr)
+    {
+      fatal("Out of memory");
+    }
   va_start(args, format);
   len = std::vsnprintf(buffer, len + 1, format, args);
   va_end(args);
