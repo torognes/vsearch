@@ -94,8 +94,7 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
 
-  std::vector<uint64_t> qual_length_table_v(read_length_alloc * eight_bit_values);
-  auto * qual_length_table = qual_length_table_v.data();
+  std::vector<uint64_t> qual_length_table(read_length_alloc * eight_bit_values);
 
   auto * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
   memset(ee_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
@@ -127,8 +126,7 @@ auto fastq_stats() -> void
         {
           read_length_table.resize(len + 1);
 
-          qual_length_table_v.resize((len + 1) * eight_bit_values);
-          qual_length_table = qual_length_table_v.data();
+          qual_length_table.resize((len + 1) * eight_bit_values);
 
           ee_length_table = (uint64_t *) xrealloc(ee_length_table,
                                                  sizeof(uint64_t) * (len + 1) * 4);
@@ -189,7 +187,7 @@ auto fastq_stats() -> void
           qmin = std::min(qc, qmin);
           qmax = std::max(qc, qmax);
 
-          ++qual_length_table_v[(eight_bit_values * i) + qc];
+          ++qual_length_table[(eight_bit_values * i) + qc];
 
           ee += q2p(qual);
 
@@ -252,9 +250,9 @@ auto fastq_stats() -> void
       for (int c = qmin; c <= qmax; c++)
         {
           int const qual = c - opt_fastq_ascii;
-          x += qual_length_table_v[(eight_bit_values * i) + c];
-          q += qual_length_table_v[(eight_bit_values * i) + c] * qual;
-          e_sum += qual_length_table_v[(eight_bit_values * i) + c] * q2p(qual);
+          x += qual_length_table[(eight_bit_values * i) + c];
+          q += qual_length_table[(eight_bit_values * i) + c] * qual;
+          e_sum += qual_length_table[(eight_bit_values * i) + c] * q2p(qual);
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
