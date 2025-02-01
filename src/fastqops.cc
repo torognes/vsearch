@@ -468,9 +468,9 @@ auto fastx_revcomp() -> void
           /* reverse quality values */
           for (uint64_t i = 0; i < length; i++)
             {
-              qual_buffer[i] = q[length - 1 - i];
+              qual_buffer_v[i] = q[length - 1 - i];
             }
-          qual_buffer[length] = 0;
+          qual_buffer_v[length] = 0;
         }
 
       if (opt_fastaout != nullptr)
@@ -494,7 +494,7 @@ auto fastx_revcomp() -> void
                               length,
                               header,
                               hlen,
-                              qual_buffer,
+                              qual_buffer_v.data(),
                               abundance,
                               count,
                               -1.0);
