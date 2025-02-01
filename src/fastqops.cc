@@ -341,7 +341,8 @@ auto fastq_stats() -> void
       fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
       fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
-      for (auto i = len_max; i >= std::max(1UL, len_max / 2); i--)
+      auto const mid_length = std::max(1UL, len_max / 2);
+      for (auto i = len_max; i >= mid_length; i--)
         {
           std::array<double, 4> read_percentage {{}};
 
