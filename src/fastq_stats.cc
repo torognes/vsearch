@@ -67,6 +67,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
 #include <limits>
+#include <string>
 #include <vector>
 
 
@@ -76,6 +77,26 @@ constexpr auto initial_memory_allocation = std::size_t{512};
 auto q2p(double quality_value) -> double {
   static constexpr auto base = 10.0;
   return std::pow(base, -quality_value / base);
+}
+
+
+auto check_quality_score(struct Parameters const & parameters, int const quality_score) -> void {
+  auto const is_in_accepted_range =
+      (quality_score >= parameters.opt_fastq_qmin) and
+      (quality_score <= parameters.opt_fastq_qmax);
+
+  if (is_in_accepted_range) {
+    return;
+  }
+
+  std::string const message =
+    std::string("FASTQ quality value (") + std::to_string(quality_score) +
+    ") out of range (" + std::to_string(parameters.opt_fastq_qmin) + "-" +
+    std::to_string(parameters.opt_fastq_qmax) + ").\n" +
+    "Please adjust the FASTQ quality base character or range with the\n" +
+    "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
+    "diagnosis with suggested values, please run vsearch --fastq_chars file.";
+  fatal(message.c_str());
 }
 
 
@@ -144,24 +165,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           auto const quality_symbol = static_cast<int>(quality_symbols[i]);
 
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
-          if ((quality_score < parameters.opt_fastq_qmin) or (quality_score > parameters.opt_fastq_qmax))
-            {
-              char * message = nullptr;
-              if (xsprintf(& message,
-                           "FASTQ quality value (%d) out of range (%" PRId64 "-%" PRId64 ").\n"
-                           "Please adjust the FASTQ quality base character or range with the\n"
-                           "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n"
-                           "diagnosis with suggested values, please run vsearch --fastq_chars file.",
-                           quality_score, parameters.opt_fastq_qmin, parameters.opt_fastq_qmax) > 0)
-                {
-                  fatal(message);
-                }
-              else
-                {
-                  fatal("Out of memory");
-                }
-              xfree(message);
-            }
+          check_quality_score(parameters, quality_score);
 
           ++quality_chars[quality_symbol];
           qmin = std::min(quality_symbol, qmin);
