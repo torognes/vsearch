@@ -189,7 +189,7 @@ auto fastq_stats() -> void
           qmin = std::min(qc, qmin);
           qmax = std::max(qc, qmax);
 
-          ++qual_length_table[(eight_bit_values * i) + qc];
+          ++qual_length_table_v[(eight_bit_values * i) + qc];
 
           ee += q2p(qual);
 
@@ -252,9 +252,9 @@ auto fastq_stats() -> void
       for (int c = qmin; c <= qmax; c++)
         {
           int const qual = c - opt_fastq_ascii;
-          x += qual_length_table[(eight_bit_values * i) + c];
-          q += qual_length_table[(eight_bit_values * i) + c] * qual;
-          e_sum += qual_length_table[(eight_bit_values * i) + c] * q2p(qual);
+          x += qual_length_table_v[(eight_bit_values * i) + c];
+          q += qual_length_table_v[(eight_bit_values * i) + c] * qual;
+          e_sum += qual_length_table_v[(eight_bit_values * i) + c] * q2p(qual);
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
