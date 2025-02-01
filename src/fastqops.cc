@@ -71,6 +71,8 @@
 #include <vector>
 
 
+constexpr auto initial_memory_allocation = 512;
+
 auto q2p(double quality_value) -> double
 {
   static constexpr auto base = 10.0;
@@ -90,7 +92,7 @@ auto fastq_stats() -> void
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
 
-  int64_t read_length_alloc = 512;
+  int64_t read_length_alloc = initial_memory_allocation;
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
 
@@ -395,7 +397,7 @@ auto fastq_stats() -> void
 
 auto fastx_revcomp() -> void
 {
-  uint64_t buffer_alloc = 512;
+  uint64_t buffer_alloc = initial_memory_allocation;
   char * seq_buffer = (char*) xmalloc(buffer_alloc);
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
