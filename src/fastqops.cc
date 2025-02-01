@@ -96,7 +96,7 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> qual_length_table(read_length_alloc * eight_bit_values);
 
-  std::vector<uint64_t> ee_length_table_v(read_length_alloc * 4);
+  std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
 
   auto * q_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
   memset(q_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
@@ -127,7 +127,7 @@ auto fastq_stats() -> void
 
           qual_length_table.resize((len + 1) * eight_bit_values);
 
-          ee_length_table_v.resize((len + 1) * 4);
+          ee_length_table.resize((len + 1) * 4);
 
           q_length_table = (uint64_t *) xrealloc(q_length_table,
                                                 sizeof(uint64_t) * (len + 1) * 4);
@@ -193,7 +193,7 @@ auto fastq_stats() -> void
             {
               if (ee <= ee_limits[z])
                 {
-                  ++ee_length_table_v[(4 * i) + z];
+                  ++ee_length_table[(4 * i) + z];
                 }
               else
                 {
@@ -333,7 +333,7 @@ auto fastq_stats() -> void
 
           for (int z = 0; z < 4; z++)
             {
-              read_count[z] = ee_length_table_v[(4 * (i - 1)) + z];
+              read_count[z] = ee_length_table[(4 * (i - 1)) + z];
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
             }
 
