@@ -379,7 +379,6 @@ auto fastx_revcomp() -> void
 {
   uint64_t buffer_alloc = initial_memory_allocation;
   std::vector<char> seq_buffer_v(buffer_alloc);
-  auto * seq_buffer = seq_buffer_v.data();
   char * qual_buffer = (char*) xmalloc(buffer_alloc);
 
   if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
@@ -451,7 +450,6 @@ auto fastx_revcomp() -> void
         {
           buffer_alloc = length + 1;
           seq_buffer_v.resize(buffer_alloc);
-          seq_buffer = seq_buffer_v.data();
           qual_buffer = (char *) xrealloc(qual_buffer, buffer_alloc);
         }
 
