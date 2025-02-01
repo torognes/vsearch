@@ -227,12 +227,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       int64_t q = 0;
       int64_t x = 0;
       auto e_sum = 0.0;
-      for (auto c = qmin; c <= qmax; c++)
+      for (auto quality_symbol = qmin; quality_symbol <= qmax; quality_symbol++)
         {
-          int const qual = c - parameters.opt_fastq_ascii;
-          x += qual_length_table[(n_eight_bit_values * i) + c];
-          q += qual_length_table[(n_eight_bit_values * i) + c] * qual;
-          e_sum += qual_length_table[(n_eight_bit_values * i) + c] * q2p(qual);
+          int const qual = quality_symbol - parameters.opt_fastq_ascii;
+          x += qual_length_table[(n_eight_bit_values * i) + quality_symbol];
+          q += qual_length_table[(n_eight_bit_values * i) + quality_symbol] * qual;
+          e_sum += qual_length_table[(n_eight_bit_values * i) + quality_symbol] * q2p(qual);
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
