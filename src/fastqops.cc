@@ -207,7 +207,7 @@ auto fastq_stats() -> void
             {
               if (qmin_this > 5 * (z + 1))
                 {
-                  ++q_length_table[(4 * i) + z];
+                  ++q_length_table_v[(4 * i) + z];
                 }
               else
                 {
@@ -362,7 +362,7 @@ auto fastq_stats() -> void
 
           for (int z = 0; z < 4; z++)
             {
-              read_percentage[z] = 100.0 * q_length_table[(4 * (i - 1)) + z] / seq_count;
+              read_percentage[z] = 100.0 * q_length_table_v[(4 * (i - 1)) + z] / seq_count;
             }
 
           fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
