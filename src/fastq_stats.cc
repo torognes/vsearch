@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
+#include "utils/maps.hpp"
 #include <array>
 #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -107,7 +107,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
-  while (fastq_next(input_handle, false, chrmap_upcase))
+  while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
     {
       ++seq_count;
 
