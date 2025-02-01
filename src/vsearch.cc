@@ -71,6 +71,7 @@
 #include "fasta2fastq.h"
 #include "fastq_chars.h"
 #include "fastq_join.h"
+#include "fastq_stats.h"
 #include "fastqops.h"
 #include "filter.h"
 #include "getseq.h"
@@ -5956,7 +5957,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_stats != nullptr)
     {
-      fastq_stats();
+      fastq_stats(parameters);
     }
   else if (opt_fastq_filter != nullptr)
     {

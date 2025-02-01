@@ -58,5 +58,4 @@
 
 */
 
-auto fastq_convert() -> void;
-auto fastx_revcomp() -> void;
+auto fastq_stats(struct Parameters const & parameters) -> void;

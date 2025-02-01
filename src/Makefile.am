@@ -64,6 +64,7 @@ fasta.h \
 fastq.h \
 fastq_chars.h \
 fastq_join.h \
+fastq_stats.h \
 fastqops.h \
 fastx.h \
 filter.h \
@@ -155,6 +156,7 @@ fasta.cc \
 fastq.cc \
 fastq_chars.cc \
 fastq_join.cc \
+fastq_stats.cc \
 fastqops.cc \
 fastx.cc \
 filter.cc \
