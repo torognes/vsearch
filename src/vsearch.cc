@@ -165,7 +165,6 @@ char * opt_fastq_eestats2;
 char * opt_fastq_eestats;
 char * opt_fastq_filter;
 char * opt_fastq_mergepairs;
-char * opt_fastq_stats;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
 char * opt_fastqout_discarded_rev;
@@ -850,7 +849,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_qmaxout = 41;
   opt_fastq_qmin = 0;
   opt_fastq_qminout = 0;
-  opt_fastq_stats = nullptr;
   opt_fastq_stripleft = 0;
   opt_fastq_stripright = 0;
   opt_fastq_truncee = dbl_max;
@@ -2163,7 +2161,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_stats:
-          opt_fastq_stats = optarg;
           parameters.opt_fastq_stats = optarg;
           break;
 
