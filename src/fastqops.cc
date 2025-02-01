@@ -100,8 +100,8 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
 
-  auto * q_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
-  memset(q_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
+  std::vector<uint64_t> q_length_table_v(read_length_alloc * 4);
+  auto * q_length_table = q_length_table_v.data();
 
   auto * sumee_length_table = (double *) xmalloc(sizeof(double) * read_length_alloc);
   memset(sumee_length_table, 0, sizeof(double) * read_length_alloc);
@@ -131,10 +131,8 @@ auto fastq_stats() -> void
 
           ee_length_table.resize((len + 1) * 4);
 
-          q_length_table = (uint64_t *) xrealloc(q_length_table,
-                                                sizeof(uint64_t) * (len + 1) * 4);
-          memset(q_length_table + (4 * read_length_alloc), 0,
-                 sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
+          q_length_table_v.resize((len + 1) * 4);
+          q_length_table = q_length_table_v.data();
 
           sumee_length_table = (double *) xrealloc(sumee_length_table,
                                                    sizeof(double) * (len + 1));
@@ -383,7 +381,6 @@ auto fastq_stats() -> void
       fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);
     }
 
-  xfree(q_length_table);
   xfree(sumee_length_table);
 
   fastq_close(input_handle);
