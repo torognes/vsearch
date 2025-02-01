@@ -111,14 +111,14 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     {
       ++seq_count;
 
-      auto const len = fastq_get_sequence_length(input_handle);
+      auto const length = fastq_get_sequence_length(input_handle);
       auto * q = fastq_get_quality(input_handle);
 
       /* update length statistics */
 
-      if (len + 1 > read_length_alloc)
+      if (length + 1 > read_length_alloc)
         {
-          read_length_alloc = len + 1;
+          read_length_alloc = length + 1;
           read_length_table.resize(read_length_alloc);
           qual_length_table.resize(read_length_alloc * n_eight_bit_values);
           ee_length_table.resize(read_length_alloc * 4);
@@ -126,20 +126,20 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           sumee_length_table.resize(read_length_alloc);
         }
 
-      ++read_length_table[len];
+      ++read_length_table[length];
 
-      len_min = std::min(len, len_min);
-      len_max = std::max(len, len_max);
+      len_min = std::min(length, len_min);
+      len_max = std::max(length, len_max);
 
       /* update quality statistics */
 
-      symbols += len;
+      symbols += length;
 
       std::array<double, 4> const ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
       auto ee = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();
-      for (auto i = 0UL; i < len; i++)
+      for (auto i = 0UL; i < length; i++)
         {
           int const qc = q[i];
 
