@@ -2148,10 +2148,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_qmin:
           opt_fastq_qmin = args_getlong(optarg);
+          parameters.opt_fastq_qmin = args_getlong(optarg);
           break;
 
         case option_fastq_qmax:
           opt_fastq_qmax = args_getlong(optarg);
+          parameters.opt_fastq_qmax = args_getlong(optarg);
           break;
 
         case option_fastq_qmaxout:
@@ -2161,6 +2163,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_stats:
           opt_fastq_stats = optarg;
+          parameters.opt_fastq_stats = optarg;
           break;
 
         case option_fastq_tail:
@@ -5951,7 +5954,7 @@ auto main(int argc, char** argv) -> int
     {
       fastq_chars(parameters);
     }
-  else if (opt_fastq_stats != nullptr)
+  else if (parameters.opt_fastq_stats != nullptr)
     {
       fastq_stats();
     }
