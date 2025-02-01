@@ -224,20 +224,20 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       symb_accum += seq_count - length_accum;
       symb_dist[i] = symb_accum;
 
-      int64_t x = 0;
-      int64_t q = 0;
-      auto e_sum = 0.0;
+      int64_t sum_counts = 0;
+      int64_t sum_quality_scores = 0;
+      auto sum_error_probabilities = 0.0;
       for (auto quality_symbol = qmin; quality_symbol <= qmax; quality_symbol++)
         {
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           int const count = qual_length_table[(n_eight_bit_values * i) + quality_symbol]; 
-          x += count;
-          q += count * quality_score;
-          e_sum += count * q2p(quality_score);
+          sum_counts += count;
+          sum_quality_scores += count * quality_score;
+          sum_error_probabilities += count * q2p(quality_score);
         }
-      avgq_dist[i] = 1.0 * q / x;
-      avgp_dist[i] = e_sum / x;
-      avgee_dist[i] = sumee_length_table[i] / x;
+      avgq_dist[i] = 1.0 * sum_quality_scores / sum_counts;
+      avgp_dist[i] = sum_error_probabilities / sum_counts;
+      avgee_dist[i] = sumee_length_table[i] / sum_counts;
       rate_dist[i] = avgee_dist[i] / (i + 1);
     }
 
@@ -268,18 +268,18 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
 
       int64_t qual_accum = 0;
-      for (auto c = qmax ; c >= qmin ; c--)
+      for (auto quality_symbol = qmax ; quality_symbol >= qmin ; quality_symbol--)
         {
-          if (quality_chars[c] > 0)
+          if (quality_chars[quality_symbol] > 0)
             {
-              qual_accum += quality_chars[c];
+              qual_accum += quality_chars[quality_symbol];
               fprintf(fp_log,
                       "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
-                      c,
-                      c - parameters.opt_fastq_ascii,
-                      q2p(c - parameters.opt_fastq_ascii),
-                      quality_chars[c],
-                      100.0 * quality_chars[c] / symbols,
+                      quality_symbol,
+                      quality_symbol - parameters.opt_fastq_ascii,
+                      q2p(quality_symbol - parameters.opt_fastq_ascii),
+                      quality_chars[quality_symbol],
+                      100.0 * quality_chars[quality_symbol] / symbols,
                       100.0 * qual_accum / symbols);
             }
         }
@@ -317,10 +317,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           std::array<int64_t, 4> read_count {{}};
           std::array<double, 4> read_percentage {{}};
 
-          for (auto z = 0; z < 4; z++)
+          for (auto j = 0; j < 4; j++)
             {
-              read_count[z] = ee_length_table[(4 * (i - 1)) + z];
-              read_percentage[z] = 100.0 * read_count[z] / seq_count;
+              read_count[j] = ee_length_table[(4 * (i - 1)) + j];
+              read_percentage[j] = 100.0 * read_count[j] / seq_count;
             }
 
           if (read_count[0] > 0)
@@ -347,9 +347,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         {
           std::array<double, 4> read_percentage {{}};
 
-          for (auto z = 0; z < 4; z++)
+          for (auto j = 0; j < 4; j++)
             {
-              read_percentage[z] = 100.0 * q_length_table[(4 * (i - 1)) + z] / seq_count;
+              read_percentage[j] = 100.0 * q_length_table[(4 * (i - 1)) + j] / seq_count;
             }
 
           fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
