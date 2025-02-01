@@ -137,7 +137,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       std::array<double, 4> const ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
-      auto ee = 0.0;
+      auto expected_error = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();
       for (auto i = 0UL; i < length; i++)
         {
@@ -169,13 +169,13 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           ++qual_length_table[(n_eight_bit_values * i) + quality_symbol];
 
-          ee += q2p(quality_score);
+          expected_error += q2p(quality_score);
 
-          sumee_length_table[i] += ee;
+          sumee_length_table[i] += expected_error;
 
           for (auto z = 0; z < 4; z++)
             {
-              if (ee <= ee_limits[z])
+              if (expected_error <= ee_limits[z])
                 {
                   ++ee_length_table[(4 * i) + z];
                 }
