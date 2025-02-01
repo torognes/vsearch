@@ -65,7 +65,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::memset
 #include <limits>
 #include <vector>
@@ -82,7 +82,7 @@ auto q2p(double quality_value) -> double
 
 auto fastq_stats() -> void
 {
-  static constexpr auto n_eight_bit_values = 256;
+  static constexpr auto n_eight_bit_values = std::size_t{256};
   auto * input_handle = fastq_open(opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
@@ -91,7 +91,7 @@ auto fastq_stats() -> void
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
-  int64_t read_length_alloc = initial_memory_allocation;
+  std::size_t read_length_alloc = initial_memory_allocation;
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
   std::vector<uint64_t> qual_length_table(read_length_alloc * n_eight_bit_values);
@@ -99,8 +99,8 @@ auto fastq_stats() -> void
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
   std::vector<double> sumee_length_table(read_length_alloc);
 
-  int64_t len_min = std::numeric_limits<long>::max();
-  int64_t len_max = 0;
+  auto len_min = std::numeric_limits<unsigned long>::max();
+  auto len_max = 0UL;
 
   auto qmin = std::numeric_limits<int>::max();
   auto qmax = std::numeric_limits<int>::min();
@@ -111,7 +111,7 @@ auto fastq_stats() -> void
     {
       ++seq_count;
 
-      auto const len = static_cast<int64_t>(fastq_get_sequence_length(input_handle));
+      auto const len = fastq_get_sequence_length(input_handle);
       auto * q = fastq_get_quality(input_handle);
 
       /* update length statistics */
@@ -139,7 +139,7 @@ auto fastq_stats() -> void
 
       auto ee = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();
-      for (int64_t i = 0; i < len; i++)
+      for (auto i = 0UL; i < len; i++)
         {
           int const qc = q[i];
 
@@ -216,7 +216,7 @@ auto fastq_stats() -> void
   int64_t length_accum = 0;
   int64_t symb_accum = 0;
 
-  for (int64_t i = 0; i <= len_max; i++)
+  for (auto i = 0UL; i <= len_max; i++)
     {
       length_accum += read_length_table[i];
       length_dist[i] = length_accum;
@@ -246,8 +246,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "Read length distribution\n");
       fprintf(fp_log, "      L           N      Pct   AccPct\n");
       fprintf(fp_log, "-------  ----------  -------  -------\n");
-
-      for (int64_t i = len_max; i >= len_min; i--)
+      for (auto i = len_max; i >= len_min; i--)
         {
           if (read_length_table[i] > 0)
             {
@@ -258,6 +257,7 @@ auto fastq_stats() -> void
                       read_length_table[i] * 100.0 / seq_count,
                       100.0 * (seq_count - (i > 0 ? length_dist[i - 1] : 0)) / seq_count);
             }
+          if (i == 0UL) { break; }
         }
 
       fprintf(fp_log, "\n");
@@ -286,7 +286,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
       fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
-      for (int64_t i = 2; i <= len_max; i++)
+      for (auto i = 2UL; i <= len_max; i++)
         {
           auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
           auto const AvgQ = avgq_dist[i - 1];
@@ -310,7 +310,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
       fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
-      for (int64_t i = len_max; i >= 1; i--)
+      for (auto i = len_max; i >= 1UL; i--)
         {
           std::array<int64_t, 4> read_count {{}};
           std::array<double, 4> read_percentage {{}};
@@ -340,7 +340,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
       fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
-      for (int64_t i = len_max; i >= std::max(1L, len_max / 2); i--)
+      for (auto i = len_max; i >= std::max(1UL, len_max / 2); i--)
         {
           std::array<double, 4> read_percentage {{}};
 
