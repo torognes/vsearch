@@ -82,6 +82,7 @@ auto q2p(double quality_value) -> double {
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto n_eight_bit_values = std::size_t{256};
+  static constexpr auto a_million = double{1000000};
   auto * input_handle = fastq_open(parameters.opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
@@ -358,12 +359,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       fprintf(fp_log, "\n");
       fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
-              seq_count, seq_count / 1.0e6);
+              seq_count, seq_count / a_million);
       if (seq_count > 0)
         {
           fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
         }
-      fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);
+      fprintf(fp_log, "%9.1lfM  Bases\n", symbols / a_million);
     }
 
 
