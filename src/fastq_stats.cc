@@ -243,16 +243,16 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   if (fp_log != nullptr)
     {
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Read length distribution\n");
-      fprintf(fp_log, "      L           N      Pct   AccPct\n");
-      fprintf(fp_log, "-------  ----------  -------  -------\n");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Read length distribution\n");
+      std::fprintf(fp_log, "      L           N      Pct   AccPct\n");
+      std::fprintf(fp_log, "-------  ----------  -------  -------\n");
       // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
       for (auto i = len_max; i >= len_min; i--)
         {
           if (read_length_table[i] > 0)
             {
-              fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
+              std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                       (i == len_max ? ">=" : "  "),
                       i,
                       read_length_table[i],
@@ -262,10 +262,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           if (i == 0UL) { break; }
         }
 
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Q score distribution\n");
-      fprintf(fp_log, "ASCII    Q       Pe           N      Pct   AccPct\n");
-      fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Q score distribution\n");
+      std::fprintf(fp_log, "ASCII    Q       Pe           N      Pct   AccPct\n");
+      std::fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
 
       int64_t qual_accum = 0;
       for (auto quality_symbol = qmax ; quality_symbol >= qmin ; quality_symbol--)
@@ -273,7 +273,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           if (quality_chars[quality_symbol] > 0)
             {
               qual_accum += quality_chars[quality_symbol];
-              fprintf(fp_log,
+              std::fprintf(fp_log,
                       "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                       quality_symbol,
                       quality_symbol - parameters.opt_fastq_ascii,
@@ -284,9 +284,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
             }
         }
 
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
-      fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
+      std::fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
       for (auto i = 2UL; i <= len_max; i++)
         {
@@ -296,7 +296,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           auto const AvgEE = avgee_dist[i - 1];
           auto const Rate = rate_dist[i - 1];
 
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
                   i,
                   PctRecs,
@@ -308,9 +308,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                   100.0 * Rate);
         }
 
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
-      fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
+      std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
       for (auto i = len_max; i >= 1UL; i--)
         {
@@ -325,7 +325,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           if (read_count[0] > 0)
             {
-              fprintf(fp_log,
+              std::fprintf(fp_log,
                       "%5" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  "
                       "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
                       i,
@@ -337,10 +337,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         }
 
 
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Truncate at first Q\n");
-      fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
-      fprintf(fp_log, "-----  ------  ------  ------  ------\n");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Truncate at first Q\n");
+      std::fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
+      std::fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
       auto const mid_length = std::max(1UL, len_max / 2);
       for (auto i = len_max; i >= mid_length; i--)
@@ -352,20 +352,20 @@ auto fastq_stats(struct Parameters const & parameters) -> void
               read_percentage[j] = 100.0 * q_length_table[(4 * (i - 1)) + j] / seq_count;
             }
 
-          fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
+          std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
                   i,
                   read_percentage[0], read_percentage[1],
                   read_percentage[2], read_percentage[3]);
         }
 
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
               seq_count, seq_count / a_million);
       if (seq_count > 0)
         {
-          fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
+          std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
         }
-      fprintf(fp_log, "%9.1lfM  Bases\n", symbols / a_million);
+      std::fprintf(fp_log, "%9.1lfM  Bases\n", symbols / a_million);
     }
 
 
@@ -373,6 +373,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
+      std::fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
     }
 }
