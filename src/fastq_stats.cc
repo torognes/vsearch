@@ -144,7 +144,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           int const qc = q[i];
 
           int const qual = qc - parameters.opt_fastq_ascii;
-          if ((qual < parameters.opt_fastq_qmin) || (qual > parameters.opt_fastq_qmax))
+          if ((qual < parameters.opt_fastq_qmin) or (qual > parameters.opt_fastq_qmax))
             {
               char * msg = nullptr;
               if (xsprintf(& msg,
@@ -370,7 +370,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   fastq_close(input_handle);
 
-  if (! parameters.opt_quiet)
+  if (not parameters.opt_quiet)
     {
       fprintf(stderr, "Read %" PRIu64 " sequences.\n", seq_count);
     }
