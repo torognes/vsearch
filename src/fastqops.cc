@@ -380,7 +380,6 @@ auto fastx_revcomp() -> void
   uint64_t buffer_alloc = initial_memory_allocation;
   std::vector<char> seq_buffer(buffer_alloc);
   std::vector<char> qual_buffer_v(buffer_alloc);
-  auto * qual_buffer = qual_buffer_v.data();
 
   if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
     fatal("No output files specified");
@@ -452,7 +451,6 @@ auto fastx_revcomp() -> void
           buffer_alloc = length + 1;
           seq_buffer.resize(buffer_alloc);
           qual_buffer_v.resize(buffer_alloc);
-          qual_buffer = qual_buffer_v.data();
         }
 
       char * p = fastx_get_sequence(h);
