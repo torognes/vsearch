@@ -73,8 +73,7 @@
 constexpr auto initial_memory_allocation = 512;
 
 
-auto q2p(double quality_value) -> double
-{
+auto q2p(double quality_value) -> double {
   static constexpr auto base = 10.0;
   return std::pow(base, -quality_value / base);
 }
