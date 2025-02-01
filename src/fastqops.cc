@@ -246,6 +246,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "Read length distribution\n");
       fprintf(fp_log, "      L           N      Pct   AccPct\n");
       fprintf(fp_log, "-------  ----------  -------  -------\n");
+      // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
       for (auto i = len_max; i >= len_min; i--)
         {
           if (read_length_table[i] > 0)
