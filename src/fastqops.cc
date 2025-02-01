@@ -456,7 +456,7 @@ auto fastx_revcomp() -> void
         }
 
       char * p = fastx_get_sequence(h);
-      reverse_complement(seq_buffer, p, length);
+      reverse_complement(seq_buffer_v.data(), p, length);
 
 
       /* quality values */
@@ -477,7 +477,7 @@ auto fastx_revcomp() -> void
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
-                              seq_buffer,
+                              seq_buffer_v.data(),
                               length,
                               header,
                               hlen,
@@ -490,7 +490,7 @@ auto fastx_revcomp() -> void
       if (opt_fastqout != nullptr)
         {
           fastq_print_general(fp_fastqout,
-                              seq_buffer,
+                              seq_buffer_v.data(),
                               length,
                               header,
                               hlen,
