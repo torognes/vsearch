@@ -68,6 +68,7 @@
 #include <cstring>  // std::strcpy
 #include <pthread.h>
 // #include <string>
+#include <vector>
 
 
 constexpr int dust_window = 64;
@@ -139,7 +140,8 @@ auto dust(char * seq, int len) -> void
   int b = 0;
 
   /* make a local copy of the original sequence */
-  char * local_seq = (char*) xmalloc(len + 1);
+  std::vector<char> local_seq_v(len + 1);
+  auto * local_seq = local_seq_v.data();
   strcpy(local_seq, seq);
   // refactoring: <string>
   // std::string local_seq2;
@@ -185,8 +187,6 @@ auto dust(char * seq, int len) -> void
             }
         }
     }
-
-  xfree(local_seq);
 }
 
 static pthread_t * pthread;
