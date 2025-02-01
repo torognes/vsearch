@@ -137,8 +137,8 @@ auto fastq_stats() -> void
 
       std::array<double, 4> const ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
-      double ee = 0.0;
-      int qmin_this = std::numeric_limits<int>::max();
+      auto ee = 0.0;
+      auto qmin_this = std::numeric_limits<int>::max();
       for (int64_t i = 0; i < len; i++)
         {
           int const qc = q[i];
@@ -173,7 +173,7 @@ auto fastq_stats() -> void
 
           sumee_length_table[i] += ee;
 
-          for (int z = 0; z < 4; z++)
+          for (auto z = 0; z < 4; z++)
             {
               if (ee <= ee_limits[z])
                 {
@@ -187,7 +187,7 @@ auto fastq_stats() -> void
 
           qmin_this = std::min(qual, qmin_this);
 
-          for (int z = 0; z < 4; z++)
+          for (auto z = 0; z < 4; z++)
             {
               if (qmin_this > 5 * (z + 1))
                 {
@@ -226,8 +226,8 @@ auto fastq_stats() -> void
 
       int64_t q = 0;
       int64_t x = 0;
-      double e_sum = 0.0;
-      for (int c = qmin; c <= qmax; c++)
+      auto e_sum = 0.0;
+      for (auto c = qmin; c <= qmax; c++)
         {
           int const qual = c - opt_fastq_ascii;
           x += qual_length_table[(n_eight_bit_values * i) + c];
@@ -266,7 +266,7 @@ auto fastq_stats() -> void
       fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
 
       int64_t qual_accum = 0;
-      for (int c = qmax ; c >= qmin ; c--)
+      for (auto c = qmax ; c >= qmin ; c--)
         {
           if (quality_chars[c] > 0)
             {
@@ -288,11 +288,11 @@ auto fastq_stats() -> void
 
       for (int64_t i = 2; i <= len_max; i++)
         {
-          double const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
-          double const AvgQ = avgq_dist[i - 1];
-          double const AvgP = avgp_dist[i - 1];
-          double const AvgEE = avgee_dist[i - 1];
-          double const Rate = rate_dist[i - 1];
+          auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
+          auto const AvgQ = avgq_dist[i - 1];
+          auto const AvgP = avgp_dist[i - 1];
+          auto const AvgEE = avgee_dist[i - 1];
+          auto const Rate = rate_dist[i - 1];
 
           fprintf(fp_log,
                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
@@ -315,7 +315,7 @@ auto fastq_stats() -> void
           std::array<int64_t, 4> read_count {{}};
           std::array<double, 4> read_percentage {{}};
 
-          for (int z = 0; z < 4; z++)
+          for (auto z = 0; z < 4; z++)
             {
               read_count[z] = ee_length_table[(4 * (i - 1)) + z];
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
@@ -344,7 +344,7 @@ auto fastq_stats() -> void
         {
           std::array<double, 4> read_percentage {{}};
 
-          for (int z = 0; z < 4; z++)
+          for (auto z = 0; z < 4; z++)
             {
               read_percentage[z] = 100.0 * q_length_table[(4 * (i - 1)) + z] / seq_count;
             }
@@ -385,7 +385,7 @@ auto fastx_revcomp() -> void
     fatal("No output files specified");
   }
 
-  fastx_handle input_handle = fastx_open(opt_fastx_revcomp);
+  auto * input_handle = fastx_open(opt_fastx_revcomp);
 
   if (input_handle == nullptr)
     {
@@ -397,7 +397,7 @@ auto fastx_revcomp() -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  uint64_t const filesize = fastx_get_size(input_handle);
+  auto const filesize = fastx_get_size(input_handle);
 
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
@@ -429,7 +429,7 @@ auto fastx_revcomp() -> void
       progress_init("Reading FASTA file", filesize);
     }
 
-  int count = 0;
+  auto count = 0;
 
   while (fastx_next(input_handle, false, chrmap_no_change))
     {
@@ -437,14 +437,14 @@ auto fastx_revcomp() -> void
 
       /* header */
 
-      uint64_t const hlen = fastx_get_header_length(input_handle);
-      char * header = fastx_get_header(input_handle);
-      int64_t const abundance = fastx_get_abundance(input_handle);
+      auto const hlen = fastx_get_header_length(input_handle);
+      auto * header = fastx_get_header(input_handle);
+      auto const abundance = fastx_get_abundance(input_handle);
 
 
       /* sequence */
 
-      uint64_t const length = fastx_get_sequence_length(input_handle);
+      auto const length = fastx_get_sequence_length(input_handle);
 
       if (length + 1 > buffer_alloc)
         {
@@ -453,13 +453,13 @@ auto fastx_revcomp() -> void
           qual_buffer.resize(buffer_alloc);
         }
 
-      char * p = fastx_get_sequence(input_handle);
+      auto * p = fastx_get_sequence(input_handle);
       reverse_complement(seq_buffer.data(), p, length);
 
 
       /* quality values */
 
-      char * q = fastx_get_quality(input_handle);
+      auto * q = fastx_get_quality(input_handle);
 
       if (fastx_is_fastq(input_handle))
         {
@@ -542,7 +542,7 @@ auto fastq_convert() -> void
   progress_init("Reading FASTQ file", filesize);
 
   auto n_entries = 1;
-  static constexpr double default_expected_error = -1.0;  // refactoring: print no ee value?
+  static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
   while (fastq_next(input_handle, false, chrmap_no_change))
     {
       /* header */
