@@ -195,7 +195,7 @@ auto fastq_stats() -> void
             {
               if (ee <= ee_limits[z])
                 {
-                  ++ee_length_table[(4 * i) + z];
+                  ++ee_length_table_v[(4 * i) + z];
                 }
               else
                 {
@@ -335,7 +335,7 @@ auto fastq_stats() -> void
 
           for (int z = 0; z < 4; z++)
             {
-              read_count[z] = ee_length_table[(4 * (i - 1)) + z];
+              read_count[z] = ee_length_table_v[(4 * (i - 1)) + z];
               read_percentage[z] = 100.0 * read_count[z] / seq_count;
             }
 
