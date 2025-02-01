@@ -112,7 +112,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       ++seq_count;
 
       auto const length = fastq_get_sequence_length(input_handle);
-      auto * q = fastq_get_quality(input_handle);
+      auto * quality_symbols = fastq_get_quality(input_handle);
 
       /* update length statistics */
 
@@ -141,7 +141,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto qmin_this = std::numeric_limits<int>::max();
       for (auto i = 0UL; i < length; i++)
         {
-          int const qc = q[i];
+          int const qc = quality_symbols[i];
 
           int const qual = qc - parameters.opt_fastq_ascii;
           if ((qual < parameters.opt_fastq_qmin) or (qual > parameters.opt_fastq_qmax))
