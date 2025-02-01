@@ -91,17 +91,12 @@ auto fastq_stats() -> void
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
-
   int64_t read_length_alloc = initial_memory_allocation;
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
-
   std::vector<uint64_t> qual_length_table(read_length_alloc * n_eight_bit_values);
-
   std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
-
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
-
   std::vector<double> sumee_length_table(read_length_alloc);
 
   int64_t len_min = std::numeric_limits<long>::max();
@@ -124,15 +119,10 @@ auto fastq_stats() -> void
       if (len + 1 > read_length_alloc)
         {
           read_length_table.resize(len + 1);
-
           qual_length_table.resize((len + 1) * n_eight_bit_values);
-
           ee_length_table.resize((len + 1) * 4);
-
           q_length_table.resize((len + 1) * 4);
-
           sumee_length_table.resize(len + 1);
-
           read_length_alloc = len + 1;
         }
 
