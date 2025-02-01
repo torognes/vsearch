@@ -80,7 +80,7 @@ auto q2p(double quality_value) -> double
 
 auto fastq_stats() -> void
 {
-  static constexpr auto eight_bit_values = 256;
+  static constexpr auto n_eight_bit_values = 256;
   auto * input_handle = fastq_open(opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
@@ -94,7 +94,7 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
 
-  std::vector<uint64_t> qual_length_table(read_length_alloc * eight_bit_values);
+  std::vector<uint64_t> qual_length_table(read_length_alloc * n_eight_bit_values);
 
   std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
 
@@ -110,7 +110,7 @@ auto fastq_stats() -> void
   auto qmin = std::numeric_limits<int>::max();
   auto qmax = std::numeric_limits<int>::min();
 
-  std::vector<uint64_t> quality_chars(eight_bit_values);
+  std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
   while (fastq_next(input_handle, false, chrmap_upcase))
     {
@@ -125,7 +125,7 @@ auto fastq_stats() -> void
         {
           read_length_table.resize(len + 1);
 
-          qual_length_table.resize((len + 1) * eight_bit_values);
+          qual_length_table.resize((len + 1) * n_eight_bit_values);
 
           ee_length_table.resize((len + 1) * 4);
 
@@ -183,7 +183,7 @@ auto fastq_stats() -> void
           qmin = std::min(qc, qmin);
           qmax = std::max(qc, qmax);
 
-          ++qual_length_table[(eight_bit_values * i) + qc];
+          ++qual_length_table[(n_eight_bit_values * i) + qc];
 
           ee += q2p(qual);
 
@@ -246,9 +246,9 @@ auto fastq_stats() -> void
       for (int c = qmin; c <= qmax; c++)
         {
           int const qual = c - opt_fastq_ascii;
-          x += qual_length_table[(eight_bit_values * i) + c];
-          q += qual_length_table[(eight_bit_values * i) + c] * qual;
-          e_sum += qual_length_table[(eight_bit_values * i) + c] * q2p(qual);
+          x += qual_length_table[(n_eight_bit_values * i) + c];
+          q += qual_length_table[(n_eight_bit_values * i) + c] * qual;
+          e_sum += qual_length_table[(n_eight_bit_values * i) + c] * q2p(qual);
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
