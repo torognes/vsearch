@@ -102,7 +102,7 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
 
-  std::vector<double> sumee_length_table_v(read_length_alloc);
+  std::vector<double> sumee_length_table(read_length_alloc);
 
   int64_t len_min = std::numeric_limits<long>::max();
   int64_t len_max = 0;
@@ -131,7 +131,7 @@ auto fastq_stats() -> void
 
           q_length_table.resize((len + 1) * 4);
 
-          sumee_length_table_v.resize(len + 1);
+          sumee_length_table.resize(len + 1);
 
           read_length_alloc = len + 1;
         }
@@ -181,7 +181,7 @@ auto fastq_stats() -> void
 
           ee += q2p(qual);
 
-          sumee_length_table_v[i] += ee;
+          sumee_length_table[i] += ee;
 
           for (int z = 0; z < 4; z++)
             {
@@ -246,7 +246,7 @@ auto fastq_stats() -> void
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
-      avgee_dist[i] = sumee_length_table_v[i] / x;
+      avgee_dist[i] = sumee_length_table[i] / x;
       rate_dist[i] = avgee_dist[i] / (i + 1);
     }
 
