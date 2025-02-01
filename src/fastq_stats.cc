@@ -224,8 +224,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       symb_accum += seq_count - length_accum;
       symb_dist[i] = symb_accum;
 
-      int64_t q = 0;
       int64_t x = 0;
+      int64_t q = 0;
       auto e_sum = 0.0;
       for (auto quality_symbol = qmin; quality_symbol <= qmax; quality_symbol++)
         {
