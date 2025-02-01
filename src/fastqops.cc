@@ -183,7 +183,7 @@ auto fastq_stats() -> void
 
           ee += q2p(qual);
 
-          sumee_length_table[i] += ee;
+          sumee_length_table_v[i] += ee;
 
           for (int z = 0; z < 4; z++)
             {
@@ -248,7 +248,7 @@ auto fastq_stats() -> void
         }
       avgq_dist[i] = 1.0 * q / x;
       avgp_dist[i] = e_sum / x;
-      avgee_dist[i] = sumee_length_table[i] / x;
+      avgee_dist[i] = sumee_length_table_v[i] / x;
       rate_dist[i] = avgee_dist[i] / (i + 1);
     }
 
