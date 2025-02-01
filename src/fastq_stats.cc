@@ -141,9 +141,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto qmin_this = std::numeric_limits<int>::max();
       for (auto i = 0UL; i < length; i++)
         {
-          int const qc = quality_symbols[i];
+          int const quality_symbol = quality_symbols[i];
 
-          int const qual = qc - parameters.opt_fastq_ascii;
+          int const qual = quality_symbol - parameters.opt_fastq_ascii;
           if ((qual < parameters.opt_fastq_qmin) or (qual > parameters.opt_fastq_qmax))
             {
               char * msg = nullptr;
@@ -163,11 +163,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
               xfree(msg);
             }
 
-          ++quality_chars[qc];
-          qmin = std::min(qc, qmin);
-          qmax = std::max(qc, qmax);
+          ++quality_chars[quality_symbol];
+          qmin = std::min(quality_symbol, qmin);
+          qmax = std::max(quality_symbol, qmax);
 
-          ++qual_length_table[(n_eight_bit_values * i) + qc];
+          ++qual_length_table[(n_eight_bit_values * i) + quality_symbol];
 
           ee += q2p(qual);
 
