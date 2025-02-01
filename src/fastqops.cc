@@ -91,7 +91,7 @@ auto fastq_stats() -> void
 
   int64_t read_length_alloc = 512;
 
-  std::vector<uint64_t> read_length_table_v(read_length_alloc);
+  std::vector<uint64_t> read_length_table(read_length_alloc);
 
   auto * qual_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 256);
   memset(qual_length_table, 0, sizeof(uint64_t) * read_length_alloc * 256);
@@ -124,7 +124,7 @@ auto fastq_stats() -> void
 
       if (len + 1 > read_length_alloc)
         {
-          read_length_table_v.resize(len + 1);
+          read_length_table.resize(len + 1);
 
           qual_length_table = (uint64_t *) xrealloc(qual_length_table,
                                                    sizeof(uint64_t) * (len + 1) * 256);
@@ -149,7 +149,7 @@ auto fastq_stats() -> void
           read_length_alloc = len + 1;
         }
 
-      ++read_length_table_v[len];
+      ++read_length_table[len];
 
       len_min = std::min(len, len_min);
       len_max = std::max(len, len_max);
@@ -241,7 +241,7 @@ auto fastq_stats() -> void
 
   for (int64_t i = 0; i <= len_max; i++)
     {
-      length_accum += read_length_table_v[i];
+      length_accum += read_length_table[i];
       length_dist[i] = length_accum;
 
       symb_accum += seq_count - length_accum;
@@ -272,13 +272,13 @@ auto fastq_stats() -> void
 
       for (int64_t i = len_max; i >= len_min; i--)
         {
-          if (read_length_table_v[i] > 0)
+          if (read_length_table[i] > 0)
             {
               fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                       (i == len_max ? ">=" : "  "),
                       i,
-                      read_length_table_v[i],
-                      read_length_table_v[i] * 100.0 / seq_count,
+                      read_length_table[i],
+                      read_length_table[i] * 100.0 / seq_count,
                       100.0 * (seq_count - (i > 0 ? length_dist[i - 1] : 0)) / seq_count);
             }
         }
