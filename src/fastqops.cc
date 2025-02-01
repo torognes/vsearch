@@ -96,8 +96,8 @@ auto fastq_stats() -> void
 
   std::vector<uint64_t> qual_length_table(read_length_alloc * eight_bit_values);
 
-  auto * ee_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
-  memset(ee_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
+  std::vector<uint64_t> ee_length_table_v(read_length_alloc * 4);
+  auto * ee_length_table = ee_length_table_v.data();
 
   auto * q_length_table = (uint64_t *) xmalloc(sizeof(uint64_t) * read_length_alloc * 4);
   memset(q_length_table, 0, sizeof(uint64_t) * read_length_alloc * 4);
@@ -128,10 +128,8 @@ auto fastq_stats() -> void
 
           qual_length_table.resize((len + 1) * eight_bit_values);
 
-          ee_length_table = (uint64_t *) xrealloc(ee_length_table,
-                                                 sizeof(uint64_t) * (len + 1) * 4);
-          memset(ee_length_table + (4 * read_length_alloc), 0,
-                 sizeof(uint64_t) * (len + 1 - read_length_alloc) * 4);
+          ee_length_table_v.resize((len + 1) * 4);
+          ee_length_table = ee_length_table_v.data();
 
           q_length_table = (uint64_t *) xrealloc(q_length_table,
                                                 sizeof(uint64_t) * (len + 1) * 4);
@@ -385,7 +383,6 @@ auto fastq_stats() -> void
       fprintf(fp_log, "%9.1lfM  Bases\n", symbols / 1.0e6);
     }
 
-  xfree(ee_length_table);
   xfree(q_length_table);
   xfree(sumee_length_table);
 
