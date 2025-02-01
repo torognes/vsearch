@@ -83,6 +83,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto n_eight_bit_values = std::size_t{256};
   static constexpr auto a_million = double{1000000};
+  static constexpr std::array<double, 4> ee_limits = { 1.0, 0.5, 0.25, 0.1 };
   auto * input_handle = fastq_open(parameters.opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
@@ -135,7 +136,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       symbols += length;
 
-      std::array<double, 4> const ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
       auto expected_error = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();
