@@ -105,7 +105,7 @@ auto check_quality_score(struct Parameters const & parameters, int const quality
 auto is_observed = [](uint64_t const count) { return count != 0UL; };
 
 
-auto find_smallest_length(std::vector<uint64_t> const & observables) -> unsigned long {
+auto find_smallest(std::vector<uint64_t> const & observables) -> unsigned long {
   assert(observables.size() != 0U);
   auto const first_hit =
     std::find_if(observables.begin(), observables.end(),
@@ -243,7 +243,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   /* compute various distributions */
 
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
-  auto const len_min = find_smallest_length(read_length_table);
+  auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
   auto const qmax = static_cast<int>(find_largest(quality_chars));
   auto const length_dist = compute_cumulative_sum(read_length_table);
