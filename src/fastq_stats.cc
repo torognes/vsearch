@@ -101,11 +101,14 @@ auto check_quality_score(struct Parameters const & parameters, int const quality
 }
 
 
+auto is_observed = [](uint64_t const count) { return count != 0UL; };
+
+
 auto find_smallest_length(std::vector<uint64_t> const & read_length_table) -> unsigned long {
   assert(read_length_table.size() != 0U);
   auto const first_hit =
     std::find_if(read_length_table.begin(), read_length_table.end(),
-                 [](uint64_t const count) { return count != 0UL; });
+                 is_observed);
   if (first_hit == read_length_table.end()) {
     return 0UL;
   }
@@ -118,7 +121,7 @@ auto find_largest_length(std::vector<uint64_t> const & read_length_table) -> uns
   assert(read_length_table.size() != 0U);
   auto const last_hit =
     std::find_if(read_length_table.rbegin(), read_length_table.rend(),
-                 [](uint64_t const count) { return count != 0UL; });
+                 is_observed);
   if (last_hit == read_length_table.rend()) {
     return 0UL;
   }
