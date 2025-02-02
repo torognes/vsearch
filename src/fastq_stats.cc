@@ -105,29 +105,29 @@ auto check_quality_score(struct Parameters const & parameters, int const quality
 auto is_observed = [](uint64_t const count) { return count != 0UL; };
 
 
-auto find_smallest_length(std::vector<uint64_t> const & read_length_table) -> unsigned long {
-  assert(read_length_table.size() != 0U);
+auto find_smallest_length(std::vector<uint64_t> const & observables) -> unsigned long {
+  assert(observables.size() != 0U);
   auto const first_hit =
-    std::find_if(read_length_table.begin(), read_length_table.end(),
+    std::find_if(observables.begin(), observables.end(),
                  is_observed);
-  if (first_hit == read_length_table.end()) {
+  if (first_hit == observables.end()) {
     return 0UL;
   }
   return static_cast<unsigned long>(
-      std::distance(read_length_table.begin(), first_hit));
+      std::distance(observables.begin(), first_hit));
 }
 
 
-auto find_largest(std::vector<uint64_t> const & read_length_table) -> unsigned long {
-  assert(read_length_table.size() != 0U);
+auto find_largest(std::vector<uint64_t> const & observables) -> unsigned long {
+  assert(observables.size() != 0U);
   auto const last_hit =
-    std::find_if(read_length_table.rbegin(), read_length_table.rend(),
+    std::find_if(observables.rbegin(), observables.rend(),
                  is_observed);
-  if (last_hit == read_length_table.rend()) {
+  if (last_hit == observables.rend()) {
     return 0UL;
   }
   return static_cast<unsigned long>(
-      std::distance(last_hit, read_length_table.rend()) - 1);
+      std::distance(last_hit, observables.rend()) - 1);
 }
 
 
