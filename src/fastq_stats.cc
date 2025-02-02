@@ -118,7 +118,7 @@ auto find_smallest_length(std::vector<uint64_t> const & read_length_table) -> un
 }
 
 
-auto find_largest_length(std::vector<uint64_t> const & read_length_table) -> unsigned long {
+auto find_largest(std::vector<uint64_t> const & read_length_table) -> unsigned long {
   assert(read_length_table.size() != 0U);
   auto const last_hit =
     std::find_if(read_length_table.rbegin(), read_length_table.rend(),
@@ -162,7 +162,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
 
   auto qmin = std::numeric_limits<int>::max();
-  auto qmax = std::numeric_limits<int>::min();
 
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
@@ -203,7 +202,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           ++quality_chars[quality_symbol];
           qmin = std::min(quality_symbol, qmin);
-          qmax = std::max(quality_symbol, qmax);
 
           ++qual_length_table[(n_eight_bit_values * i) + quality_symbol];
 
@@ -246,7 +244,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest_length(read_length_table);
-  auto const len_max = find_largest_length(read_length_table);
+  auto const len_max = find_largest(read_length_table);
+  auto const qmax = static_cast<int>(find_largest(quality_chars));
   auto const length_dist = compute_cumulative_sum(read_length_table);
   std::vector<double> rate_dist(len_max + 1);
   std::vector<double> avgq_dist(len_max + 1);
