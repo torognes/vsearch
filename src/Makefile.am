@@ -1,6 +1,6 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-AM_CFLAGS = -Wall -Wextra -Wpedantic
+AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes
 
 # Conditionally set profiling based on ENABLE_PROFILING
 if ENABLE_PROFILING
