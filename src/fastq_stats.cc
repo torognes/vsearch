@@ -249,22 +249,13 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const len_min = find_smallest_length(read_length_table);
   auto const len_max = find_largest_length(read_length_table);
   auto const length_dist = compute_cumulative_sum(read_length_table);
-  std::vector<int64_t> symb_dist(len_max + 1);
   std::vector<double> rate_dist(len_max + 1);
   std::vector<double> avgq_dist(len_max + 1);
   std::vector<double> avgee_dist(len_max + 1);
   std::vector<double> avgp_dist(len_max + 1);
 
-  int64_t length_accum = 0;
-  int64_t symb_accum = 0;
-
   for (auto i = 0UL; i <= len_max; i++)
     {
-      length_accum += read_length_table[i];
-
-      symb_accum += seq_count - length_accum;
-      symb_dist[i] = symb_accum;
-
       int64_t sum_counts = 0;
       int64_t sum_quality_scores = 0;
       auto sum_error_probabilities = 0.0;
