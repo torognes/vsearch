@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::count
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::strcmp, std::strchr, std::strlen
 
@@ -124,17 +125,7 @@ auto parse_userfields_arg(char * arg) -> int
   char * ptr = arg;
   char * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
 
-  // refactoring:
-  // userfields_requested_count = std::count(ptr, end_of_string, separator);
-  userfields_requested_count = 1;
-  while (ptr < end_of_string)
-    {
-      if (*ptr == separator)
-        {
-          ++userfields_requested_count;
-        }
-      ++ptr;
-    }
+  userfields_requested_count = std::count(ptr, end_of_string, separator) + 1;
 
   userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * (uint64_t) userfields_requested_count));
 
