@@ -112,11 +112,11 @@ auto tax_parse(char const * header,
       auto const * terminus = std::strchr(header + offset + attribute_length, ';');
       if (terminus == nullptr)
         {
-          * tax_end = header_length;
+          *tax_end = header_length;
         }
       else
         {
-          * tax_end = std::distance(header, terminus);
+          *tax_end = std::distance(header, terminus);
         }
 
       return true;
