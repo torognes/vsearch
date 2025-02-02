@@ -151,7 +151,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  uint64_t seq_count = 0;
   uint64_t symbols = 0;
   auto read_length_alloc = initial_memory_allocation;
 
@@ -169,7 +168,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
     {
-      ++seq_count;
 
       auto const length = fastq_get_sequence_length(input_handle);
       auto * quality_symbols = fastq_get_quality(input_handle);
@@ -246,6 +244,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* compute various distributions */
 
+  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest_length(read_length_table);
   auto const len_max = find_largest_length(read_length_table);
   auto const length_dist = compute_cumulative_sum(read_length_table);
