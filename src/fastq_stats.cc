@@ -114,6 +114,19 @@ auto find_smallest_length(std::vector<uint64_t> const & read_length_table) -> un
 }
 
 
+auto find_largest_length(std::vector<uint64_t> const & read_length_table) -> unsigned long {
+  assert(read_length_table.size() != 0U);
+  auto const last_hit =
+    std::find_if(read_length_table.rbegin(), read_length_table.rend(),
+                 [](uint64_t const count) { return count != 0UL; });
+  if (last_hit == read_length_table.rend()) {
+    return 0UL;
+  }
+  return static_cast<unsigned long>(
+      std::distance(last_hit, read_length_table.rend()) - 1);
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto n_eight_bit_values = std::size_t{256};
@@ -135,7 +148,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
   std::vector<double> sumee_length_table(read_length_alloc);
 
-  auto len_max = 0UL;
 
   auto qmin = std::numeric_limits<int>::max();
   auto qmax = std::numeric_limits<int>::min();
@@ -163,7 +175,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       ++read_length_table[length];
 
-      len_max = std::max(length, len_max);
 
       /* update quality statistics */
 
@@ -223,6 +234,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   /* compute various distributions */
 
   auto const len_min = find_smallest_length(read_length_table);
+  auto const len_max = find_largest_length(read_length_table);
   std::vector<uint64_t> length_dist(len_max + 1);
   std::vector<int64_t> symb_dist(len_max + 1);
   std::vector<double> rate_dist(len_max + 1);
