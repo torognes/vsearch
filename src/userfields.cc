@@ -125,7 +125,7 @@ auto parse_userfields_arg(char * arg) -> int
   char * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
 
   // refactoring:
-  // auto const userfields_requested_count = std::count(ptr, end_of_string, separator);
+  // userfields_requested_count = std::count(ptr, end_of_string, separator);
   userfields_requested_count = 1;
   while (ptr < end_of_string)
     {
