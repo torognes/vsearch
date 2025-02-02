@@ -161,8 +161,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<double> sumee_length_table(read_length_alloc);
 
 
-  auto qmin = std::numeric_limits<int>::max();
-
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
@@ -201,7 +199,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           check_quality_score(parameters, quality_score);
 
           ++quality_chars[quality_symbol];
-          qmin = std::min(quality_symbol, qmin);
 
           ++qual_length_table[(n_eight_bit_values * i) + quality_symbol];
 
@@ -245,6 +242,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
+  auto const qmin = static_cast<int>(find_smallest(quality_chars));
   auto const qmax = static_cast<int>(find_largest(quality_chars));
   auto const length_dist = compute_cumulative_sum(read_length_table);
   std::vector<double> rate_dist(len_max + 1);
