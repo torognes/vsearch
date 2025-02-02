@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/taxonomic_fields.h"
+#include <algorithm>  // std::find
 #include <cctype>  // std::tolower
 #include <cstring>  // std::strlen, std::strstr, std::strchr
 #include <iterator>  // std::distance
@@ -149,8 +150,8 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   while (offset < tax_end)
     {
       /* Is the next char a recognized tax level letter? */
-      auto const * next_level = std::strchr(taxonomic_fields.data(), std::tolower(header[offset]));
-      if (next_level != nullptr)
+      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), std::tolower(header[offset]));
+      if (next_level != taxonomic_fields.end())
         {
           int const level = std::distance(taxonomic_fields.data(), next_level);
 
