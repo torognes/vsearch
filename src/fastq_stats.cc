@@ -61,7 +61,8 @@
 #include "vsearch.h"
 #include "utils/maps.hpp"
 #include <array>
-#include <algorithm>  // std::max
+#include <algorithm>  // std::max, std::find_if
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
@@ -100,6 +101,19 @@ auto check_quality_score(struct Parameters const & parameters, int const quality
 }
 
 
+auto find_smallest_length(std::vector<uint64_t> const & read_length_table) -> unsigned long {
+  assert(read_length_table.size() != 0U);
+  auto const first_hit =
+    std::find_if(read_length_table.begin(), read_length_table.end(),
+                 [](uint64_t const count) { return count != 0UL; });
+  if (first_hit == read_length_table.end()) {
+    return 0UL;
+  }
+  return static_cast<unsigned long>(
+      std::distance(read_length_table.begin(), first_hit));
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto n_eight_bit_values = std::size_t{256};
@@ -121,7 +135,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
   std::vector<double> sumee_length_table(read_length_alloc);
 
-  auto len_min = std::numeric_limits<unsigned long>::max();
   auto len_max = 0UL;
 
   auto qmin = std::numeric_limits<int>::max();
@@ -150,7 +163,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       ++read_length_table[length];
 
-      len_min = std::min(length, len_min);
       len_max = std::max(length, len_max);
 
       /* update quality statistics */
@@ -210,6 +222,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* compute various distributions */
 
+  auto const len_min = find_smallest_length(read_length_table);
   std::vector<uint64_t> length_dist(len_max + 1);
   std::vector<int64_t> symb_dist(len_max + 1);
   std::vector<double> rate_dist(len_max + 1);
