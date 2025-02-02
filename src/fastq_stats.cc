@@ -68,6 +68,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
 #include <limits>
+#include <numeric>  // std::partial_sum
 #include <string>
 #include <vector>
 
@@ -127,6 +128,15 @@ auto find_largest_length(std::vector<uint64_t> const & read_length_table) -> uns
   }
   return static_cast<unsigned long>(
       std::distance(last_hit, read_length_table.rend()) - 1);
+}
+
+
+auto compute_cumulative_sum(std::vector<uint64_t> const & read_length_table)
+  -> std::vector<uint64_t> {
+  std::vector<uint64_t> cumulative_sum_of_lengths(read_length_table.size());
+  std::partial_sum(read_length_table.cbegin(), read_length_table.cend(),
+                   cumulative_sum_of_lengths.begin());
+  return cumulative_sum_of_lengths;
 }
 
 
@@ -238,7 +248,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const len_min = find_smallest_length(read_length_table);
   auto const len_max = find_largest_length(read_length_table);
-  std::vector<uint64_t> length_dist(len_max + 1);
+  auto const length_dist = compute_cumulative_sum(read_length_table);
   std::vector<int64_t> symb_dist(len_max + 1);
   std::vector<double> rate_dist(len_max + 1);
   std::vector<double> avgq_dist(len_max + 1);
@@ -251,7 +261,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   for (auto i = 0UL; i <= len_max; i++)
     {
       length_accum += read_length_table[i];
-      length_dist[i] = length_accum;
 
       symb_accum += seq_count - length_accum;
       symb_dist[i] = symb_accum;
