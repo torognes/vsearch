@@ -106,7 +106,7 @@ auto tax_parse(char const * header,
           continue;
         }
 
-      * tax_start = offset;
+      *tax_start = offset;
 
       /* find end (semicolon or end of header) */
       auto const * terminus = std::strchr(header + offset + attribute_length, ';');
