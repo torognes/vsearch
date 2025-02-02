@@ -159,8 +159,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
   std::vector<double> sumee_length_table(read_length_alloc);
-
-
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
