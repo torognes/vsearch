@@ -244,6 +244,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<double> avgp_dist(len_max + 1);
   // std::vector<struct Stats> distributions(len_max + 1);  // refactoring above vectors
 
+  // sum_counts is the sum of observed valid symbols for each length (invalid symbols are guaranteed to be set to zero)
+  // std::vector<uint64_t> sum_counts_v(len_max + 1);
+  // std::transform(qual_length_table.begin(), qual_length_table.end(), sum_counts_v.begin(), [](auto cont & quality_symbols) -> std::uint64_t { return std::accumulate(quality_symbols.begin(), quality_symbols.end(), std::uint64_t{0}); });
+
   for (auto i = 0UL; i <= len_max; i++)
     {
       int64_t sum_counts = 0;
