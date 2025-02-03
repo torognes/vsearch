@@ -4998,6 +4998,16 @@ documentation.
 .BR v2.29.2\~ "released December 20th, 2024"
 Fix a segmentation fault during clustering when the set of clusters is empty.
 Initial documentation in markdown format available on GitHub Pages.
+.TP
+.BR v2.29.3\~ "released February 3rd, 2025"
+This version is released in order to mitigate a bug that occurs when
+compiling the `align_simd.cc` file on x86_64 systems with the GNU C++
+compiler version 9 or later with the `-O3` optimization option. It
+results in incorrect code that may cause bad alignments in some
+circumstances. We are investigating this issue further, but for now we
+recommend compiling with the `-O2` flag. The README.md file and the
+Dockerfiles have been updated to reflect this. The binaries released
+with this version will include this fix.
 .\" ============================================================================
 .\" TODO:
 .\"
