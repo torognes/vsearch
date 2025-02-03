@@ -140,12 +140,13 @@ auto compute_cumulative_sum(std::vector<uint64_t> const & read_length_table)
 }
 
 
-auto compute_number_of_symbols(std::vector<uint64_t> const & read_length_table)
+auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
   -> uint64_t {
-  std::vector<uint64_t> indices(read_length_table.size());
-  std::iota(indices.begin(), indices.end(), 0UL);
-  return std::inner_product(indices.begin(), indices.end(),
-                            read_length_table.begin(), std::uint64_t{0});
+  // total number of nucleotides = sum(read_length * n_reads_with_that_length)
+  std::vector<uint64_t> read_lengths(n_reads_per_length.size());
+  std::iota(read_lengths.begin(), read_lengths.end(), 0UL);
+  return std::inner_product(read_lengths.begin(), read_lengths.end(),
+                            n_reads_per_length.begin(), std::uint64_t{0});
 }
 
 
