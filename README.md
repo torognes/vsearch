@@ -39,7 +39,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in [online documentation](https://torognes.github.io/vsearch/), or in the [manpage](https://github.com/torognes/vsearch/releases/download/v2.29.2/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in [online documentation](https://torognes.github.io/vsearch/), or in the [manpage](https://github.com/torognes/vsearch/releases/download/v2.29.3/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
