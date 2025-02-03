@@ -108,7 +108,6 @@ auto is_observed = [](uint64_t const count) { return count != 0UL; };
 
 
 auto find_smallest(std::vector<uint64_t> const & observables) -> unsigned long {
-  assert(observables.size() != 0U);
   auto const first_hit =
     std::find_if(observables.begin(), observables.end(),
                  is_observed);
@@ -121,7 +120,6 @@ auto find_smallest(std::vector<uint64_t> const & observables) -> unsigned long {
 
 
 auto find_largest(std::vector<uint64_t> const & observables) -> unsigned long {
-  assert(observables.size() != 0U);
   auto const last_hit =
     std::find_if(observables.rbegin(), observables.rend(),
                  is_observed);
