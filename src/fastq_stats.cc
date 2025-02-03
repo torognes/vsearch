@@ -173,10 +173,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
     {
 
-      auto const length = fastq_get_sequence_length(input_handle);
-      auto * quality_symbols = fastq_get_quality(input_handle);
-
       /* update length statistics */
+
+      auto const length = fastq_get_sequence_length(input_handle);
 
       if (length + 1 > read_length_alloc)
         {
@@ -193,6 +192,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       /* update quality statistics */
 
+      auto * quality_symbols = fastq_get_quality(input_handle);
       auto expected_error = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();
       for (auto i = 0UL; i < length; i++)
