@@ -165,7 +165,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
   std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(read_length_alloc);
-  std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
+  std::vector<std::array<uint64_t, 4>> ee_length_table(read_length_alloc);
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
   std::vector<double> sumee_length_table(read_length_alloc);
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
@@ -182,7 +182,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           read_length_alloc = length + 1;
           read_length_table.resize(read_length_alloc);
           qual_length_table.resize(read_length_alloc);
-          ee_length_table.resize(read_length_alloc * 4);
+          ee_length_table.resize(read_length_alloc);
           q_length_table.resize(read_length_alloc * 4);
           sumee_length_table.resize(read_length_alloc);
         }
@@ -214,7 +214,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
             {
               if (expected_error <= ee_limits[j])
                 {
-                  ++ee_length_table[(4 * i) + j];
+                  ++ee_length_table[i][j];
                 }
               else
                 {
@@ -354,7 +354,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           for (auto j = 0; j < 4; j++)
             {
-              read_count[j] = ee_length_table[(4 * (i - 1)) + j];
+              read_count[j] = ee_length_table[i - 1][j];
               read_percentage[j] = 100.0 * read_count[j] / seq_count;
             }
 
