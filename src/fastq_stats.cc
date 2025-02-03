@@ -250,6 +250,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<double> avgq_dist(len_max + 1);
   std::vector<double> avgee_dist(len_max + 1);
   std::vector<double> avgp_dist(len_max + 1);
+  // std::vector<struct Stats> distributions(len_max + 1);  // refactoring above vectors
 
   for (auto i = 0UL; i <= len_max; i++)
     {
