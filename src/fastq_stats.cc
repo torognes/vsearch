@@ -75,7 +75,7 @@
 
 constexpr auto initial_memory_allocation = std::size_t{512};
 constexpr std::array<int, 4> quality_thresholds = {5, 10, 15, 20};
-constexpr std::array<double, 4> ee_limits = { 1.0, 0.5, 0.25, 0.1 };
+constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 
 
 auto q2p(double quality_value) -> double {
@@ -210,7 +210,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           for (auto j = 0; j < 4; j++)
             {
-              if (expected_error <= ee_limits[j])
+              if (expected_error <= ee_thresholds[j])
                 {
                   ++ee_length_table[i][j];
                 }
