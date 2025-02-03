@@ -12,7 +12,7 @@ RUN apt-get -y install \
 	make \
 	zlib1g-dev
 RUN ./autogen.sh
-RUN ./configure CFLAGS="-O3" CXXFLAGS="-O3"
+RUN ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 RUN make clean
 RUN make ARFLAGS="cr"
 RUN make install
