@@ -208,23 +208,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           sumee_length_table[i] += expected_error;
 
           // increment EE observations if the current EE <= 1.0, 0.5, 0.25, or 0.1
-          // std::transform(ee_thresholds.begin(), ee_thresholds.end(),
-          //                ee_length_table[i].begin(), ee_length_table[i].begin(),
-          //                [expected_error](int const threshold, uint64_t current_value) -> uint64_t {
-          //                  return current_value + (expected_error <= threshold ? 1UL : 0UL);
-          //                });
-
-          for (auto j = 0; j < 4; j++)
-            {
-              if (expected_error <= ee_thresholds[j])
-                {
-                  ++ee_length_table[i][j];
-                }
-              else
-                {
-                  break;
-                }
-            }
+          std::transform(ee_thresholds.begin(), ee_thresholds.end(),
+                         ee_length_table[i].begin(), ee_length_table[i].begin(),
+                         [expected_error](double const threshold, uint64_t current_value) -> uint64_t {
+                           return current_value + (expected_error <= threshold ? 1 : 0);
+                         });
 
           qmin_this = std::min(quality_score, qmin_this);
 
