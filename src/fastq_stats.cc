@@ -77,7 +77,7 @@
 constexpr auto initial_memory_allocation = std::size_t{512};
 constexpr std::array<int, 4> quality_thresholds = {5, 10, 15, 20};
 constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
-
+constexpr auto n_eight_bit_values = std::size_t{256};
 
 auto q2p(double quality_value) -> double {
   static constexpr auto base = 10.0;
@@ -151,9 +151,22 @@ auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
 }
 
 
+auto compute_n_symbols_per_length(std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table) -> std::vector<uint64_t> {
+  // sum_counts is the sum of observed valid symbols for each length
+  // (invalid symbols are guaranteed to be set to zero)
+  std::vector<uint64_t> sum_counts_v(qual_length_table.size());
+  std::transform(
+      qual_length_table.begin(), qual_length_table.end(), sum_counts_v.begin(),
+      [](std::array<uint64_t, n_eight_bit_values> const &quality_symbols) -> std::uint64_t {
+        return std::accumulate(quality_symbols.begin(), quality_symbols.end(),
+                               std::uint64_t{0});
+      });
+  return sum_counts_v;
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
-  static constexpr auto n_eight_bit_values = std::size_t{256};
   static constexpr auto a_million = double{1000000};
   auto * input_handle = fastq_open(parameters.opt_fastq_stats);
 
@@ -244,13 +257,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<double> avgp_dist(len_max + 1);
   // std::vector<struct Stats> distributions(len_max + 1);  // refactoring above vectors
 
-  // sum_counts is the sum of observed valid symbols for each length (invalid symbols are guaranteed to be set to zero)
-  // std::vector<uint64_t> sum_counts_v(len_max + 1);
-  // std::transform(qual_length_table.begin(), qual_length_table.end(), sum_counts_v.begin(), [](auto cont & quality_symbols) -> std::uint64_t { return std::accumulate(quality_symbols.begin(), quality_symbols.end(), std::uint64_t{0}); });
+  auto const sum_counts = compute_n_symbols_per_length(qual_length_table);
 
   for (auto i = 0UL; i <= len_max; i++)
     {
-      int64_t sum_counts = 0;
       int64_t sum_quality_scores = 0;
       auto sum_error_probabilities = 0.0;
       for (auto quality_symbol = qmin; quality_symbol <= qmax; quality_symbol++)
@@ -258,13 +268,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           int const count = qual_length_table[i][quality_symbol];
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           auto const probability_value = q2p(quality_score);
-          sum_counts += count;
           sum_quality_scores += count * quality_score;
           sum_error_probabilities += count * probability_value;
         }
-      avgq_dist[i] = 1.0 * sum_quality_scores / sum_counts;
-      avgp_dist[i] = sum_error_probabilities / sum_counts;
-      avgee_dist[i] = sumee_length_table[i] / sum_counts;
+      avgq_dist[i] = 1.0 * sum_quality_scores / sum_counts[i];
+      avgp_dist[i] = sum_error_probabilities / sum_counts[i];
+      avgee_dist[i] = sumee_length_table[i] / sum_counts[i];
       rate_dist[i] = avgee_dist[i] / (i + 1);
     }
 
