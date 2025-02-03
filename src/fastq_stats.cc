@@ -67,6 +67,7 @@
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
+#include <iterator>  // std::distance
 #include <limits>
 #include <numeric>  // std::partial_sum
 #include <string>
