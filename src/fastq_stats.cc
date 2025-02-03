@@ -75,6 +75,7 @@
 
 constexpr auto initial_memory_allocation = std::size_t{512};
 constexpr std::array<int, 4> quality_thresholds = {5, 10, 15, 20};
+constexpr std::array<double, 4> ee_limits = { 1.0, 0.5, 0.25, 0.1 };
 
 
 auto q2p(double quality_value) -> double {
@@ -155,7 +156,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto n_eight_bit_values = std::size_t{256};
   static constexpr auto a_million = double{1000000};
-  static constexpr std::array<double, 4> ee_limits = { 1.0, 0.5, 0.25, 0.1 };
   auto * input_handle = fastq_open(parameters.opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
