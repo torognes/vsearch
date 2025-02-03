@@ -154,14 +154,14 @@ auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
 auto compute_n_symbols_per_length(std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table) -> std::vector<uint64_t> {
   // sum_counts is the sum of observed valid symbols for each length
   // (invalid symbols are guaranteed to be set to zero)
-  std::vector<uint64_t> sum_counts_v(qual_length_table.size());
+  std::vector<uint64_t> sum_counts(qual_length_table.size());
   std::transform(
-      qual_length_table.begin(), qual_length_table.end(), sum_counts_v.begin(),
+      qual_length_table.begin(), qual_length_table.end(), sum_counts.begin(),
       [](std::array<uint64_t, n_eight_bit_values> const &quality_symbols) -> std::uint64_t {
         return std::accumulate(quality_symbols.begin(), quality_symbols.end(),
                                std::uint64_t{0});
       });
-  return sum_counts_v;
+  return sum_counts;
 }
 
 
