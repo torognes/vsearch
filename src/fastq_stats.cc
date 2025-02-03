@@ -253,9 +253,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         {
           int const count = qual_length_table[i][quality_symbol];
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
+          auto const probability_value = q2p(quality_score);
           sum_counts += count;
           sum_quality_scores += count * quality_score;
-          sum_error_probabilities += count * q2p(quality_score);
+          sum_error_probabilities += count * probability_value;
         }
       avgq_dist[i] = 1.0 * sum_quality_scores / sum_counts;
       avgp_dist[i] = sum_error_probabilities / sum_counts;
