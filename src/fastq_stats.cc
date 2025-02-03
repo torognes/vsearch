@@ -140,6 +140,15 @@ auto compute_cumulative_sum(std::vector<uint64_t> const & read_length_table)
 }
 
 
+auto compute_number_of_symbols(std::vector<uint64_t> const & read_length_table)
+  -> uint64_t {
+  std::vector<uint64_t> indices(read_length_table.size());
+  std::iota(indices.begin(), indices.end(), 0UL);
+  return std::inner_product(indices.begin(), indices.end(),
+                            read_length_table.begin(), std::uint64_t{0});
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto n_eight_bit_values = std::size_t{256};
@@ -151,7 +160,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  uint64_t symbols = 0;
   auto read_length_alloc = initial_memory_allocation;
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
@@ -183,9 +191,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
 
       /* update quality statistics */
-
-      symbols += length;
-
 
       auto expected_error = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();
@@ -238,8 +243,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* compute various distributions */
 
-  // std::vector<unsigned int> indices = std::iota(0U, read_length_table.size());
-  // auto const symbols = std::inner_product(indices.begin(), indices.end(), read_length_table.begin(), std::uint64_t{0});
+  auto const symbols = compute_number_of_symbols(read_length_table);
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
