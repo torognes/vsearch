@@ -234,9 +234,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       progress_update(fastq_get_position(input_handle));
     }
   progress_done();
+  fastq_close(input_handle);
 
   /* compute various distributions */
 
+  // std::vector<unsigned int> indices = std::iota(0U, read_length_table.size());
+  // auto const symbols = std::inner_product(indices.begin(), indices.end(), read_length_table.begin(), std::uint64_t{0});
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
@@ -393,9 +396,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         }
       std::fprintf(fp_log, "%9.1lfM  Bases\n", symbols / a_million);
     }
-
-
-  fastq_close(input_handle);
 
   if (not parameters.opt_quiet)
     {
