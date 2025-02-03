@@ -164,7 +164,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto read_length_alloc = initial_memory_allocation;
 
   std::vector<uint64_t> read_length_table(read_length_alloc);
-  std::vector<uint64_t> qual_length_table(read_length_alloc * n_eight_bit_values);
+  std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(read_length_alloc);
   std::vector<uint64_t> ee_length_table(read_length_alloc * 4);
   std::vector<uint64_t> q_length_table(read_length_alloc * 4);
   std::vector<double> sumee_length_table(read_length_alloc);
@@ -181,7 +181,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         {
           read_length_alloc = length + 1;
           read_length_table.resize(read_length_alloc);
-          qual_length_table.resize(read_length_alloc * n_eight_bit_values);
+          qual_length_table.resize(read_length_alloc);
           ee_length_table.resize(read_length_alloc * 4);
           q_length_table.resize(read_length_alloc * 4);
           sumee_length_table.resize(read_length_alloc);
@@ -204,7 +204,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           ++quality_chars[quality_symbol];
 
-          ++qual_length_table[(n_eight_bit_values * i) + quality_symbol];
+          ++qual_length_table[i][quality_symbol];
 
           expected_error += q2p(quality_score);
 
@@ -265,7 +265,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       for (auto quality_symbol = qmin; quality_symbol <= qmax; quality_symbol++)
         {
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
-          int const count = qual_length_table[(n_eight_bit_values * i) + quality_symbol]; 
+          int const count = qual_length_table[i][quality_symbol];
           sum_counts += count;
           sum_quality_scores += count * quality_score;
           sum_error_probabilities += count * q2p(quality_score);
