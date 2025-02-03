@@ -157,7 +157,7 @@ auto compute_n_symbols_per_length(std::vector<std::array<uint64_t, n_eight_bit_v
   std::vector<uint64_t> sum_counts(qual_length_table.size());
   std::transform(
       qual_length_table.begin(), qual_length_table.end(), sum_counts.begin(),
-      [](std::array<uint64_t, n_eight_bit_values> const &quality_symbols) -> std::uint64_t {
+      [](std::array<uint64_t, n_eight_bit_values> const & quality_symbols) -> std::uint64_t {
         return std::accumulate(quality_symbols.begin(), quality_symbols.end(),
                                std::uint64_t{0});
       });
