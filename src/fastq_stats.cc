@@ -251,8 +251,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto sum_error_probabilities = 0.0;
       for (auto quality_symbol = qmin; quality_symbol <= qmax; quality_symbol++)
         {
-          int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           int const count = qual_length_table[i][quality_symbol];
+          int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           sum_counts += count;
           sum_quality_scores += count * quality_score;
           sum_error_probabilities += count * q2p(quality_score);
