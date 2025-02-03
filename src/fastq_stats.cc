@@ -74,6 +74,7 @@
 
 
 constexpr auto initial_memory_allocation = std::size_t{512};
+constexpr std::array<int, 4> quality_thresholds = {5, 10, 15, 20};
 
 
 auto q2p(double quality_value) -> double {
@@ -223,7 +224,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           for (auto j = 0; j < 4; j++)
             {
-              if (qmin_this > 5 * (j + 1))  // Q > 5, 10, 15, 20
+              if (qmin_this > quality_thresholds[j])  // Q > 5, 10, 15, 20
                 {
                   ++q_length_table[i][j];
                 }
