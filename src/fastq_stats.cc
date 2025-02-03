@@ -223,7 +223,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           for (auto j = 0; j < 4; j++)
             {
-              if (qmin_this > 5 * (j + 1))
+              if (qmin_this > 5 * (j + 1))  // Q > 5, 10, 15, 20
                 {
                   ++q_length_table[i][j];
                 }
