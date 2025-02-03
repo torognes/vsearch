@@ -161,13 +161,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
-  auto read_length_alloc = initial_memory_allocation;
-
-  std::vector<uint64_t> read_length_table(read_length_alloc);
-  std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(read_length_alloc);
-  std::vector<std::array<uint64_t, 4>> ee_length_table(read_length_alloc);
-  std::vector<uint64_t> q_length_table(read_length_alloc * 4);
-  std::vector<double> sumee_length_table(read_length_alloc);
+  std::vector<uint64_t> read_length_table(initial_memory_allocation);
+  std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(initial_memory_allocation);
+  std::vector<std::array<uint64_t, 4>> ee_length_table(initial_memory_allocation);
+  std::vector<std::array<uint64_t, 4>> q_length_table(initial_memory_allocation);
+  std::vector<double> sumee_length_table(initial_memory_allocation);
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
@@ -177,14 +175,13 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       auto const length = fastq_get_sequence_length(input_handle);
 
-      if (length + 1 > read_length_alloc)
+      if (length + 1 > read_length_table.size())
         {
-          read_length_alloc = length + 1;
-          read_length_table.resize(read_length_alloc);
-          qual_length_table.resize(read_length_alloc);
-          ee_length_table.resize(read_length_alloc);
-          q_length_table.resize(read_length_alloc * 4);
-          sumee_length_table.resize(read_length_alloc);
+          read_length_table.resize(length + 1);
+          qual_length_table.resize(length + 1);
+          ee_length_table.resize(length + 1);
+          q_length_table.resize(length + 1);
+          sumee_length_table.resize(length + 1);
         }
 
       ++read_length_table[length];
@@ -228,7 +225,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
             {
               if (qmin_this > 5 * (j + 1))
                 {
-                  ++q_length_table[(4 * i) + j];
+                  ++q_length_table[i][j];
                 }
               else
                 {
@@ -384,7 +381,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           for (auto j = 0; j < 4; j++)
             {
-              read_percentage[j] = 100.0 * q_length_table[(4 * (i - 1)) + j] / seq_count;
+              read_percentage[j] = 100.0 * q_length_table[i - 1][j] / seq_count;
             }
 
           std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
