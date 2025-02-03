@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "utils/maps.hpp"
 #include <array>
-#include <algorithm>  // std::max, std::find_if
+#include <algorithm>  // std::max, std::find_if, std::transform
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
@@ -222,17 +222,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           qmin_this = std::min(quality_score, qmin_this);
 
-          for (auto j = 0; j < 4; j++)
-            {
-              if (qmin_this > quality_thresholds[j])  // Q > 5, 10, 15, 20
-                {
-                  ++q_length_table[i][j];
-                }
-              else
-                {
-                  break;
-                }
-            }
+          // increment quality observations if the current Q > 5, 10, 15, or 20
+          std::transform(quality_thresholds.begin(), quality_thresholds.end(),
+                         q_length_table[i].begin(), q_length_table[i].begin(),
+                         [qmin_this](int const threshold, uint64_t current_value) -> uint64_t {
+                           return current_value + (qmin_this > threshold ? 1 : 0);
+                         });
         }
 
       progress_update(fastq_get_position(input_handle));
