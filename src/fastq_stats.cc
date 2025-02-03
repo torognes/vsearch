@@ -105,7 +105,7 @@ auto check_quality_score(struct Parameters const & parameters, int const quality
 }
 
 
-auto is_observed = [](uint64_t const count) -> bool { return count != 0UL; };
+auto const is_observed = [](uint64_t const count) -> bool { return count != 0UL; };
 
 
 auto find_smallest(std::vector<uint64_t> const & observables) -> unsigned long {
