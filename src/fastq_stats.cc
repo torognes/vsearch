@@ -291,7 +291,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       for (auto i = 0UL; i < length; i++)
         {
           auto const quality_symbol = static_cast<int>(quality_symbols[i]);
-
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           check_quality_score(parameters, quality_score);
 
