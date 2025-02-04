@@ -1229,6 +1229,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
 }
 
 
+
 auto compute_score_min(struct s16info_s const & alignment) -> short {
   auto const gap_penalty_max = std::max({
       0,
@@ -1243,6 +1244,13 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
   return static_cast<short>(std::numeric_limits<short>::min() + gap_penalty_max);
 }
 
+
+/*
+  Turn off tree-partial-pre optimizations for the rest of the file.
+  GNU C++ 9 or later generates incorrect code on x86_64 if turned on.
+*/
+
+#pragma GCC optimize ("-fno-tree-partial-pre")
 
 auto search16(s16info_s * s,
               unsigned int sequences,
