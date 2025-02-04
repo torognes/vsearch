@@ -414,11 +414,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       for (auto i = 2UL; i <= len_max; i++)
         {
+          auto const & distribution = distributions[i - 1];
           auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
-          auto const AvgQ = distributions[i - 1].avgq;
-          auto const AvgP = distributions[i - 1].avgp;
-          auto const AvgEE = distributions[i - 1].avgee;
-          auto const Rate = distributions[i - 1].rate;
+          auto const AvgQ = distribution.avgq;
+          auto const AvgP = distribution.avgp;
+          auto const AvgEE = distribution.avgee;
+          auto const Rate = distribution.rate;
 
           std::fprintf(fp_log,
                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
