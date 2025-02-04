@@ -79,6 +79,14 @@ constexpr std::array<int, 4> quality_thresholds = {5, 10, 15, 20};
 constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
+struct Distributions {
+  double avgq = 0.0;
+  double avgp = 0.0;
+  double avgee = 0.0;
+  double rate = 0.0;
+};
+
+
 auto q2p(double quality_value) -> double {
   static constexpr auto base = 10.0;
   return std::pow(base, -quality_value / base);
@@ -248,6 +256,24 @@ auto compute_sum_error_probabilities_per_length(std::vector<std::array<uint64_t,
 }
 
 
+auto compute_distributions(unsigned int const len_max, std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table, std::vector<double> const & sumee_length_table, struct Parameters const & parameters) -> std::vector<struct Distributions> {
+  std::vector<struct Distributions> distributions(len_max + 1);
+
+  auto const sum_counts = compute_n_symbols_per_length(qual_length_table);
+  auto const sum_quality_scores = compute_sum_quality_scores_per_length(qual_length_table, parameters);
+  auto const sum_error_probabilities = compute_sum_error_probabilities_per_length(qual_length_table, parameters);
+
+  for (auto i = 0UL; i <= len_max; i++)
+    {
+      distributions[i].avgq = 1.0 * sum_quality_scores[i] / sum_counts[i];
+      distributions[i].avgp = sum_error_probabilities[i] / sum_counts[i];
+      distributions[i].avgee = sumee_length_table[i] / sum_counts[i];
+      distributions[i].rate = distributions[i].avgee / (i + 1);
+  }
+  return distributions;
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto a_million = double{1000000};
@@ -333,23 +359,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const qmin = static_cast<int>(find_smallest(quality_chars));
   auto const qmax = static_cast<int>(find_largest(quality_chars));
   auto const length_dist = compute_cumulative_sum(read_length_table);
-  std::vector<double> rate_dist(len_max + 1);
-  std::vector<double> avgq_dist(len_max + 1);
-  std::vector<double> avgee_dist(len_max + 1);
-  std::vector<double> avgp_dist(len_max + 1);
-  // std::vector<struct Stats> distributions(len_max + 1);  // refactoring above vectors
-
-  auto const sum_counts = compute_n_symbols_per_length(qual_length_table);
-  auto const sum_quality_scores = compute_sum_quality_scores_per_length(qual_length_table, parameters);
-  auto const sum_error_probabilities = compute_sum_error_probabilities_per_length(qual_length_table, parameters);
-
-  for (auto i = 0UL; i <= len_max; i++)
-    {
-      avgq_dist[i] = 1.0 * sum_quality_scores[i] / sum_counts[i];
-      avgp_dist[i] = sum_error_probabilities[i] / sum_counts[i];
-      avgee_dist[i] = sumee_length_table[i] / sum_counts[i];
-      rate_dist[i] = avgee_dist[i] / (i + 1);
-    }
+  auto const distributions = compute_distributions(len_max, qual_length_table, sumee_length_table, parameters);
 
 
   /* print report */
@@ -405,10 +415,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       for (auto i = 2UL; i <= len_max; i++)
         {
           auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
-          auto const AvgQ = avgq_dist[i - 1];
-          auto const AvgP = avgp_dist[i - 1];
-          auto const AvgEE = avgee_dist[i - 1];
-          auto const Rate = rate_dist[i - 1];
+          auto const AvgQ = distributions[i - 1].avgq;
+          auto const AvgP = distributions[i - 1].avgp;
+          auto const AvgEE = distributions[i - 1].avgee;
+          auto const Rate = distributions[i - 1].rate;
 
           std::fprintf(fp_log,
                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
