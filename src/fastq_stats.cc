@@ -336,6 +336,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       rate_dist[i] = avgee_dist[i] / (i + 1);
     }
 
+
+  /* print report */
+
+
   if (fp_log != nullptr)
     {
       std::fprintf(fp_log, "\n");
