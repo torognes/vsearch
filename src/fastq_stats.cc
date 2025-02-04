@@ -326,7 +326,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* compute various distributions */
 
-  auto const symbols = compute_number_of_symbols(read_length_table);
+  auto const n_symbols = compute_number_of_symbols(read_length_table);
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
@@ -393,8 +393,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                       quality_symbol - parameters.opt_fastq_ascii,
                       q2p(quality_symbol - parameters.opt_fastq_ascii),
                       quality_chars[quality_symbol],
-                      100.0 * quality_chars[quality_symbol] / symbols,
-                      100.0 * qual_accum / symbols);
+                      100.0 * quality_chars[quality_symbol] / n_symbols,
+                      100.0 * qual_accum / n_symbols);
             }
         }
 
@@ -477,9 +477,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
               seq_count, seq_count / a_million);
       if (seq_count > 0)
         {
-          std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * symbols / seq_count);
+          std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * n_symbols / seq_count);
         }
-      std::fprintf(fp_log, "%9.1lfM  Bases\n", symbols / a_million);
+      std::fprintf(fp_log, "%9.1lfM  Bases\n", n_symbols / a_million);
     }
 
   if (not parameters.opt_quiet)
