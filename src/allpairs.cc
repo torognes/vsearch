@@ -199,7 +199,7 @@ auto allpairs_output_results(int hit_count,
 
           if (fp_uc != nullptr)
             {
-              if ((t == 0) or opt_uc_allhits)
+              if ((t == 0) or (opt_uc_allhits != 0))
                 {
                   results_show_uc_one(fp_uc,
                                       hp,
