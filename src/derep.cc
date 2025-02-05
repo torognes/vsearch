@@ -467,16 +467,16 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
-      while ((bp->size) and
+      while ((bp->size != 0U) and
              ((hash != bp->hash) or
-              (seqcmp(seq_up.data(), bp->seq, seqlen)) or
+              (seqcmp(seq_up.data(), bp->seq, seqlen) != 0) or
               (use_header and (strcmp(header, bp->header) != 0))))
         {
           j = (j + 1) & hash_mask;
           bp = hashtable + j;
         }
 
-      if (parameters.opt_strand and not bp->size)
+      if (parameters.opt_strand and (bp->size == 0U))
         {
           /* no match on plus strand */
           /* check minus strand as well */
