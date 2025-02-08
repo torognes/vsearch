@@ -210,7 +210,7 @@ auto search_enough_kmers(struct searchinfo_s * si,
 }
 
 
-auto search_topscores(struct searchinfo_s * si) -> void
+auto search_topscores(struct searchinfo_s * searchinfo) -> void
 {
   /*
     Count the kmer hits in each database sequence and
@@ -223,13 +223,13 @@ auto search_topscores(struct searchinfo_s * si) -> void
   const int indexed_count = dbindex_getcount();
 
   /* zero counts */
-  memset(si->kmers, 0, indexed_count * sizeof(count_t));
+  memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
 
-  minheap_empty(si->m);
+  minheap_empty(searchinfo->m);
 
-  for (auto i = 0U; i < si->kmersamplecount; i++)
+  for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
-      auto const kmer = si->kmersample[i];
+      auto const kmer = searchinfo->kmersample[i];
       auto * bitmap = dbindex_getbitmap(kmer);
 
       if (bitmap)
@@ -237,12 +237,12 @@ auto search_topscores(struct searchinfo_s * si) -> void
 #ifdef __x86_64__
           if (ssse3_present)
             {
-              increment_counters_from_bitmap_ssse3(si->kmers,
+              increment_counters_from_bitmap_ssse3(searchinfo->kmers,
                                                    bitmap, indexed_count);
             }
           else
             {
-              increment_counters_from_bitmap_sse2(si->kmers,
+              increment_counters_from_bitmap_sse2(searchinfo->kmers,
                                                   bitmap, indexed_count);
             }
 #else
@@ -255,16 +255,16 @@ auto search_topscores(struct searchinfo_s * si) -> void
           auto const count = dbindex_getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
-              si->kmers[list[j]]++;
+              searchinfo->kmers[list[j]]++;
             }
         }
     }
 
-  auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), si->kmersamplecount);
+  auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), searchinfo->kmersamplecount);
 
   for (auto i = 0; i < indexed_count; i++)
     {
-      auto const count = si->kmers[i];
+      auto const count = searchinfo->kmers[i];
       if (count >= minmatches)
         {
           auto const seqno = dbindex_getmapping(i);
@@ -275,11 +275,11 @@ auto search_topscores(struct searchinfo_s * si) -> void
           novel.seqno = seqno;
           novel.length = length;
 
-          minheap_add(si->m, & novel);
+          minheap_add(searchinfo->m, & novel);
         }
     }
 
-  minheap_sort(si->m);
+  minheap_sort(searchinfo->m);
 }
 
 
