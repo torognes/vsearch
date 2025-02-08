@@ -91,4 +91,4 @@ auto fastq_print_general(std::FILE * output_handle,
                          char * quality,
                          int abundance,
                          int ordinal,
-                         double ee) -> void;
+                         double expected_error) -> void;

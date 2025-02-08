@@ -544,7 +544,7 @@ auto fastq_print_general(FILE * output_handle,
                          char * quality,
                          int abundance,
                          int ordinal,
-                         double ee) -> void
+                         double expected_error) -> void
 {
   std::fprintf(output_handle, "@");
 
@@ -567,7 +567,7 @@ auto fastq_print_general(FILE * output_handle,
   else
     {
       auto const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      auto const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0));
+      auto const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0));
       auto const xlength = opt_xlength || opt_lengthout;
       header_fprint_strip(output_handle,
                           header,
@@ -592,28 +592,28 @@ auto fastq_print_general(FILE * output_handle,
       std::fprintf(output_handle, ";size=%u", abundance);
     }
 
-  if ((opt_eeout || opt_fastq_eeout) && (ee >= 0.0))
+  if ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0))
     {
-      if (ee < 0.000000001) {
-        std::fprintf(output_handle, ";ee=%.13lf", ee);
-      } else if (ee < 0.00000001) {
-        std::fprintf(output_handle, ";ee=%.12lf", ee);
-      } else if (ee < 0.0000001) {
-        std::fprintf(output_handle, ";ee=%.11lf", ee);
-      } else if (ee < 0.000001) {
-        std::fprintf(output_handle, ";ee=%.10lf", ee);
-      } else if (ee < 0.00001) {
-        std::fprintf(output_handle, ";ee=%.9lf", ee);
-      } else if (ee < 0.0001) {
-        std::fprintf(output_handle, ";ee=%.8lf", ee);
-      } else if (ee < 0.001) {
-        std::fprintf(output_handle, ";ee=%.7lf", ee);
-      } else if (ee < 0.01) {
-        std::fprintf(output_handle, ";ee=%.6lf", ee);
-      } else if (ee < 0.1) {
-        std::fprintf(output_handle, ";ee=%.5lf", ee);
+      if (expected_error < 0.000000001) {
+        std::fprintf(output_handle, ";ee=%.13lf", expected_error);
+      } else if (expected_error < 0.00000001) {
+        std::fprintf(output_handle, ";ee=%.12lf", expected_error);
+      } else if (expected_error < 0.0000001) {
+        std::fprintf(output_handle, ";ee=%.11lf", expected_error);
+      } else if (expected_error < 0.000001) {
+        std::fprintf(output_handle, ";ee=%.10lf", expected_error);
+      } else if (expected_error < 0.00001) {
+        std::fprintf(output_handle, ";ee=%.9lf", expected_error);
+      } else if (expected_error < 0.0001) {
+        std::fprintf(output_handle, ";ee=%.8lf", expected_error);
+      } else if (expected_error < 0.001) {
+        std::fprintf(output_handle, ";ee=%.7lf", expected_error);
+      } else if (expected_error < 0.01) {
+        std::fprintf(output_handle, ";ee=%.6lf", expected_error);
+      } else if (expected_error < 0.1) {
+        std::fprintf(output_handle, ";ee=%.5lf", expected_error);
       } else {
-        std::fprintf(output_handle, ";ee=%.4lf", ee);
+        std::fprintf(output_handle, ";ee=%.4lf", expected_error);
       }
     }
 
