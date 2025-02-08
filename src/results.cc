@@ -85,7 +85,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
     return;
   }
 
-  auto * qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
+  auto * qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                              hits->nwalignment,
                              hits->nwalignmentlength,
                              0);
@@ -138,7 +138,7 @@ auto results_show_qsegout_one(std::FILE * output_handle,
     return;
   }
 
-  char * qseg = (hits->strand ? qsequence_rc : qsequence) + hits->trim_q_left;
+  char * qseg = ((hits->strand != 0) ? qsequence_rc : qsequence) + hits->trim_q_left;
   int const qseglen = qseqlen - hits->trim_q_left - hits->trim_q_right;
 
   fasta_print_general(output_handle,
@@ -213,8 +213,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
     return;
   }
   // if 'hp->strand' then 'minus strand' else 'plus strand'
-  const int qstart = hits->strand ? qseqlen : 1;
-  const int qend = hits->strand ? 1 : qseqlen;
+  const int qstart = (hits->strand != 0) ? qseqlen : 1;
+  const int qend = (hits->strand != 0) ? 1 : qseqlen;
 
   fprintf(output_handle,
           "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
@@ -259,7 +259,7 @@ auto results_show_uc_one(std::FILE * output_handle,
     {
       auto perfect = false;
 
-      if (opt_cluster_fast)
+      if (opt_cluster_fast != nullptr)
         {
           /* cluster_fast */
           /* use = for identical sequences ignoring terminal gaps */
@@ -278,7 +278,7 @@ auto results_show_uc_one(std::FILE * output_handle,
               clusterno,
               qseqlen,
               hits->id,
-              hits->strand ? '-' : '+',
+              (hits->strand != 0) ? '-' : '+',
               perfect ? "=" : hits->nwalignment);
       header_fprint_strip(output_handle,
                           query_head,
@@ -342,96 +342,96 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
           fprintf(output_handle, "%s", query_head);
           break;
         case 1: /* target */
-          fprintf(output_handle, "%s", hits ? t_head : "*");
+          fprintf(output_handle, "%s", (hits != nullptr) ? t_head : "*");
           break;
         case 2: /* evalue */
           fprintf(output_handle, "-1");
           break;
         case 3: /* id */
-          fprintf(output_handle, "%.1f", hits ? hits->id : 0.0);
+          fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id : 0.0);
           break;
         case 4: /* pctpv */
-          fprintf(output_handle, "%.1f", (hits and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->matches / hits->internal_alignmentlength : 0.0);
+          fprintf(output_handle, "%.1f", ((hits != nullptr) and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->matches / hits->internal_alignmentlength : 0.0);
           break;
         case 5: /* pctgaps */
-          fprintf(output_handle, "%.1f", (hits and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->internal_indels / hits->internal_alignmentlength : 0.0);
+          fprintf(output_handle, "%.1f", ((hits != nullptr) and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->internal_indels / hits->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
-          fprintf(output_handle, "%d", hits ? hits->matches + hits->mismatches : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->matches + hits->mismatches : 0);
           break;
         case 7: /* gaps */
-          fprintf(output_handle, "%d", hits ? hits->internal_indels : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_indels : 0);
           break;
         case 8: /* qlo */
-          fprintf(output_handle, "%" PRId64, hits ? (hits->strand ? qseqlen : 1) : 0);
+          fprintf(output_handle, "%" PRId64, (hits != nullptr) ? ((hits->strand != 0) ? qseqlen : 1) : 0);
           break;
         case 9: /* qhi */
-          fprintf(output_handle, "%" PRId64, hits ? (hits->strand ? 1 : qseqlen) : 0);
+          fprintf(output_handle, "%" PRId64, (hits != nullptr) ? ((hits->strand != 0) ? 1 : qseqlen) : 0);
           break;
         case 10: /* tlo */
-          fprintf(output_handle, "%d", hits ? 1 : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? 1 : 0);
           break;
         case 11: /* thi */
           fprintf(output_handle, "%" PRId64, tseqlen);
           break;
         case 12: /* pv */
-          fprintf(output_handle, "%d", hits ? hits->matches : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->matches : 0);
           break;
         case 13: /* ql */
           fprintf(output_handle, "%" PRId64, qseqlen);
           break;
         case 14: /* tl */
-          fprintf(output_handle, "%" PRId64, hits ? tseqlen : 0);
+          fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen : 0);
           break;
         case 15: /* qs */
           fprintf(output_handle, "%" PRId64, qseqlen);
           break;
         case 16: /* ts */
-          fprintf(output_handle, "%" PRId64, hits ? tseqlen : 0);
+          fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen : 0);
           break;
         case 17: /* alnlen */
-          fprintf(output_handle, "%d", hits ? hits->internal_alignmentlength : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_alignmentlength : 0);
           break;
         case 18: /* opens */
-          fprintf(output_handle, "%d", hits ? hits->internal_gaps : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_gaps : 0);
           break;
         case 19: /* exts */
-          fprintf(output_handle, "%d", hits ? hits->internal_indels - hits->internal_gaps : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_indels - hits->internal_gaps : 0);
           break;
         case 20: /* raw */
-          fprintf(output_handle, "%d", hits ? hits->nwscore : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->nwscore : 0);
           break;
         case 21: /* bits */
           fprintf(output_handle, "%d", 0);
           break;
         case 22: /* aln */
-          if (hits)
+          if (hits != nullptr)
             {
               align_fprint_uncompressed_alignment(output_handle, hits->nwalignment);
             }
           break;
         case 23: /* caln */
-          if (hits)
+          if (hits != nullptr)
             {
               fprintf(output_handle, "%s", hits->nwalignment);
             }
           break;
         case 24: /* qstrand */
-          if (hits)
+          if (hits != nullptr)
             {
               fprintf(output_handle, "%c", hits->strand ? '-' : '+');
             }
           break;
         case 25: /* tstrand */
-          if (hits)
+          if (hits != nullptr)
             {
               fprintf(output_handle, "%c", '+');
             }
           break;
         case 26: /* qrow */
-          if (hits)
+          if (hits != nullptr)
             {
-              qrow = align_getrow(hits->strand ? qsequence_rc : qsequence,
+              qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
                                   0);
@@ -442,7 +442,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
             }
           break;
         case 27: /* trow */
-          if (hits)
+          if (hits != nullptr)
             {
               trow = align_getrow(tsequence,
                                   hits->nwalignment,
@@ -461,48 +461,48 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
           fprintf(output_handle, "+0");
           break;
         case 30: /* mism */
-          fprintf(output_handle, "%d", hits ? hits->mismatches : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->mismatches : 0);
           break;
         case 31: /* ids */
-          fprintf(output_handle, "%d", hits ? hits->matches : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->matches : 0);
           break;
         case 32: /* qcov */
           fprintf(output_handle, "%.1f",
-                  hits ? 100.0 * (hits->matches + hits->mismatches) / qseqlen : 0.0);
+                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / qseqlen : 0.0);
           break;
         case 33: /* tcov */
           fprintf(output_handle, "%.1f",
-                  hits ? 100.0 * (hits->matches + hits->mismatches) / tseqlen : 0.0);
+                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / tseqlen : 0.0);
           break;
         case 34: /* id0 */
-          fprintf(output_handle, "%.1f", hits ? hits->id0 : 0.0);
+          fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id0 : 0.0);
           break;
         case 35: /* id1 */
-          fprintf(output_handle, "%.1f", hits ? hits->id1 : 0.0);
+          fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id1 : 0.0);
           break;
         case 36: /* id2 */
-          fprintf(output_handle, "%.1f", hits ? hits->id2 : 0.0);
+          fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id2 : 0.0);
           break;
         case 37: /* id3 */
-          fprintf(output_handle, "%.1f", hits ? hits->id3 : 0.0);
+          fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id3 : 0.0);
           break;
         case 38: /* id4 */
-          fprintf(output_handle, "%.1f", hits ? hits->id4 : 0.0);
+          fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id4 : 0.0);
           break;
 
           /* new internal alignment coordinates */
 
         case 39: /* qilo */
-          fprintf(output_handle, "%d", hits ? hits->trim_q_left + 1 : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->trim_q_left + 1 : 0);
           break;
         case 40: /* qihi */
-          fprintf(output_handle, "%" PRId64, hits ? qseqlen - hits->trim_q_right : 0);
+          fprintf(output_handle, "%" PRId64, (hits != nullptr) ? qseqlen - hits->trim_q_right : 0);
           break;
         case 41: /* tilo */
-          fprintf(output_handle, "%d", hits ? hits->trim_t_left + 1 : 0);
+          fprintf(output_handle, "%d", (hits != nullptr) ? hits->trim_t_left + 1 : 0);
           break;
         case 42: /* tihi */
-          fprintf(output_handle, "%" PRId64, hits ? tseqlen - hits->trim_t_right : 0);
+          fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen - hits->trim_t_right : 0);
           break;
         }
     }
@@ -537,7 +537,7 @@ auto results_show_lcaout(std::FILE * output_handle,
     {
       struct hit * hp = hits + t;
 
-      if (opt_top_hits_only and (hp->id < top_hit_id))
+      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
           break;
         }
@@ -668,7 +668,7 @@ auto results_show_alnout(std::FILE * output_handle,
         {
           auto * hp = hits + t;
 
-          if (opt_top_hits_only and (hp->id < top_hit_id))
+          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
             {
               break;
             }
@@ -683,7 +683,7 @@ auto results_show_alnout(std::FILE * output_handle,
         {
           auto * hp = hits + t;
 
-          if (opt_top_hits_only and (hp->id < top_hit_id))
+          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
             {
               break;
             }
@@ -742,7 +742,7 @@ auto results_show_alnout(std::FILE * output_handle,
 #endif
         }
     }
-  else if (opt_output_no_hits)
+  else if (opt_output_no_hits != 0)
     {
       fprintf(output_handle, "\n");
       fprintf(output_handle,"Query >%s\n", query_head);
@@ -862,7 +862,7 @@ auto results_show_samheader(std::FILE * output_handle,
                             char * cmdline,
                             char * dbname) -> void
 {
-  if (opt_samout and opt_samheader)
+  if ((opt_samout != nullptr) and opt_samheader)
     {
       fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
@@ -941,7 +941,7 @@ auto results_show_samout(std::FILE * output_handle,
         {
           auto * hp = hits + t;
 
-          if (opt_top_hits_only and (hp->id < top_hit_id))
+          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
             {
               break;
             }
@@ -954,7 +954,7 @@ auto results_show_samout(std::FILE * output_handle,
           xstring md;
 
           build_sam_strings(hp->nwalignment,
-                            hp->strand ? qsequence_rc : qsequence,
+                            (hp->strand != 0) ? qsequence_rc : qsequence,
                             db_getsequence(hp->target),
                             &cigar,
                             &md);
@@ -975,7 +975,7 @@ auto results_show_samout(std::FILE * output_handle,
                   "*",
                   (uint64_t) 0,
                   (uint64_t) 0,
-                  hp->strand ? qsequence_rc : qsequence,
+                  (hp->strand != 0) ? qsequence_rc : qsequence,
                   "*",
                   hp->id,
                   0,
@@ -987,7 +987,7 @@ auto results_show_samout(std::FILE * output_handle,
                   "UU");
         }
     }
-  else if (opt_output_no_hits)
+  else if (opt_output_no_hits != 0)
     {
       fprintf(output_handle,
               "%s\t%u\t%s\t%" PRIu64 "\t%u\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
