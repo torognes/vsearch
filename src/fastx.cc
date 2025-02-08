@@ -115,16 +115,16 @@ auto buffer_free(struct fastx_buffer_s * buffer) -> void
 }
 
 
-auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void
+auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void
 {
   /* make sure there is space for x more chars in buffer */
 
-  if (buffer->length + x > buffer->alloc)
+  if (buffer->length + size > buffer->alloc)
     {
       /* alloc space for x more characters,
          but round up to nearest block size */
       buffer->alloc =
-        ((buffer->length + x + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
+        ((buffer->length + size + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
         * fastx_buffer_alloc;
       buffer->data = (char *) xrealloc(buffer->data, buffer->alloc);
     }

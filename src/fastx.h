@@ -78,7 +78,7 @@ auto buffer_free(struct fastx_buffer_s * buffer) -> void;
 auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char * source_buf,
                    uint64_t len) -> void;
-auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t x) -> void;
+auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void;
 
 struct fastx_s
 {
