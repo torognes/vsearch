@@ -195,13 +195,13 @@ auto search_exact_output_results(int hit_count,
   xpthread_mutex_lock(&mutex_output);
 
   /* show results */
-  auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
+  auto const n_results_to_report = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
 
   if (fp_alnout != nullptr)
     {
       results_show_alnout(fp_alnout,
                           hits,
-                          toreport,
+                          n_results_to_report,
                           query_head,
                           qsequence,
                           qseqlen);
@@ -211,13 +211,13 @@ auto search_exact_output_results(int hit_count,
     {
       results_show_samout(fp_samout,
                           hits,
-                          toreport,
+                          n_results_to_report,
                           query_head,
                           qsequence,
                           qsequence_rc);
     }
 
-  if (toreport != 0)
+  if (n_results_to_report != 0)
     {
       double const top_hit_id = hits[0].id;
 
@@ -228,7 +228,7 @@ auto search_exact_output_results(int hit_count,
                        qsize);
         }
 
-      for (int t = 0; t < toreport; t++)
+      for (int t = 0; t < n_results_to_report; t++)
         {
           struct hit * hp = hits + t;
 
