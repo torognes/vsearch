@@ -290,9 +290,9 @@ static auto HashLen0to16(const char * seq, std::size_t len) -> uint64 {
     return HashLen16(len + (a << 3U), Fetch32(seq + len - 4), mul);
   }
   if (len > 0) {
-    const uint8 a = seq[0];
-    const uint8 b = seq[len >> 1U];
-    const uint8 c = seq[len - 1];
+    uint8_t const a = seq[0];
+    uint8_t const b = seq[len >> 1U];
+    uint8_t const c = seq[len - 1];
     const uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8U);
     const uint32 z = len + (static_cast<uint32>(c) << 2U);
     return ShiftMix((y * k2) ^ (z * k0)) * k2;

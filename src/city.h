@@ -62,12 +62,11 @@
 #ifndef CITY_HASH_H_
 #define CITY_HASH_H_
 
-#include <cstdint>  // uint8_t, uint32_t, uint64_t
+#include <cstdint>  // uint32_t, uint64_t
 #include <cstdlib>  // std::size_t
 #include <utility>  // std::pair
 
 
-using uint8 = uint8_t;
 using uint32 = uint32_t;
 using uint64 = uint64_t;
 using uint128 = std::pair<uint64, uint64>;
