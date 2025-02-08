@@ -162,11 +162,11 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 }
 
 
-auto LinearMemoryAligner::alloc_vectors(std::size_t x) -> void
+auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
 {
-  if (vector_alloc < x)
+  if (vector_alloc < size)
     {
-      vector_alloc = x;
+      vector_alloc = size;
 
       if (HH != nullptr)
         {

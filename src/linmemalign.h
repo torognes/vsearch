@@ -126,7 +126,7 @@ class LinearMemoryAligner
             bool b_left,      /* includes left end of b  */
             bool b_right) -> void;    /* includes right end of b */
 
-  auto alloc_vectors(std::size_t x) -> void;
+  auto alloc_vectors(std::size_t size) -> void;
 
   auto show_matrix() -> void;
 
