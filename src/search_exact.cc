@@ -131,7 +131,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
       hp->mismatches = 0;
 
       int const ret = xsprintf(&hp->nwalignment, "%dM", si->qseqlen);
-      if ((ret == -1) || (! hp->nwalignment))
+      if ((ret == -1) || (hp->nwalignment == nullptr))
         {
           fatal("Out of memory");
         }
@@ -197,7 +197,7 @@ auto search_exact_output_results(int hit_count,
   /* show results */
   auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
 
-  if (fp_alnout)
+  if (fp_alnout != nullptr)
     {
       results_show_alnout(fp_alnout,
                           hits,
@@ -207,7 +207,7 @@ auto search_exact_output_results(int hit_count,
                           qseqlen);
     }
 
-  if (fp_samout)
+  if (fp_samout != nullptr)
     {
       results_show_samout(fp_samout,
                           hits,
@@ -217,11 +217,11 @@ auto search_exact_output_results(int hit_count,
                           qsequence_rc);
     }
 
-  if (toreport)
+  if (toreport != 0)
     {
       double const top_hit_id = hits[0].id;
 
-      if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+      if ((opt_otutabout != nullptr) || (opt_mothur_shared_out != nullptr) || (opt_biomout != nullptr))
         {
           otutable_add(query_head,
                        db_getheader(hits[0].target),
@@ -232,12 +232,12 @@ auto search_exact_output_results(int hit_count,
         {
           struct hit * hp = hits + t;
 
-          if (opt_top_hits_only && (hp->id < top_hit_id))
+          if ((opt_top_hits_only != 0) && (hp->id < top_hit_id))
             {
               break;
             }
 
-          if (fp_fastapairs)
+          if (fp_fastapairs != nullptr)
             {
               results_show_fastapairs_one(fp_fastapairs,
                                           hp,
@@ -246,7 +246,7 @@ auto search_exact_output_results(int hit_count,
                                           qsequence_rc);
             }
 
-          if (fp_qsegout)
+          if (fp_qsegout != nullptr)
             {
               results_show_qsegout_one(fp_qsegout,
                                        hp,
@@ -256,15 +256,15 @@ auto search_exact_output_results(int hit_count,
                                        qsequence_rc);
             }
 
-          if (fp_tsegout)
+          if (fp_tsegout != nullptr)
             {
               results_show_tsegout_one(fp_tsegout,
                                        hp);
             }
 
-          if (fp_uc)
+          if (fp_uc != nullptr)
             {
-              if ((t == 0) || opt_uc_allhits)
+              if ((t == 0) || (opt_uc_allhits != 0))
                 {
                   results_show_uc_one(fp_uc,
                                       hp,
@@ -274,7 +274,7 @@ auto search_exact_output_results(int hit_count,
                 }
             }
 
-          if (fp_userout)
+          if (fp_userout != nullptr)
             {
               results_show_userout_one(fp_userout,
                                        hp,
@@ -284,7 +284,7 @@ auto search_exact_output_results(int hit_count,
                                        qsequence_rc);
             }
 
-          if (fp_blast6out)
+          if (fp_blast6out != nullptr)
             {
               results_show_blast6out_one(fp_blast6out,
                                          hp,
@@ -295,14 +295,14 @@ auto search_exact_output_results(int hit_count,
     }
   else
     {
-      if (opt_otutabout || opt_mothur_shared_out || opt_biomout)
+      if ((opt_otutabout != nullptr) || (opt_mothur_shared_out != nullptr) || (opt_biomout != nullptr))
         {
           otutable_add(query_head,
                        nullptr,
                        qsize);
         }
 
-      if (fp_uc)
+      if (fp_uc != nullptr)
         {
           results_show_uc_one(fp_uc,
                               nullptr,
@@ -311,9 +311,9 @@ auto search_exact_output_results(int hit_count,
                               0);
         }
 
-      if (opt_output_no_hits)
+      if (opt_output_no_hits != 0)
         {
-          if (fp_userout)
+          if (fp_userout != nullptr)
             {
               results_show_userout_one(fp_userout,
                                        nullptr,
@@ -323,7 +323,7 @@ auto search_exact_output_results(int hit_count,
                                        qsequence_rc);
             }
 
-          if (fp_blast6out)
+          if (fp_blast6out != nullptr)
             {
               results_show_blast6out_one(fp_blast6out,
                                          nullptr,
@@ -333,10 +333,10 @@ auto search_exact_output_results(int hit_count,
         }
     }
 
-  if (hit_count)
+  if (hit_count != 0)
     {
       ++count_matched;
-      if (opt_matched)
+      if (opt_matched != nullptr)
         {
           fasta_print_general(fp_matched,
                               nullptr,
@@ -353,7 +353,7 @@ auto search_exact_output_results(int hit_count,
   else
     {
       ++count_notmatched;
-      if (opt_notmatched)
+      if (opt_notmatched != nullptr)
         {
           fasta_print_general(fp_notmatched,
                               nullptr,
@@ -384,14 +384,14 @@ auto search_exact_query(int64_t t) -> int
 {
   for (int s = 0; s < opt_strand; s++)
     {
-      struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
+      struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
       /* mask query */
       if (opt_qmask == MASK_DUST)
         {
           dust(si->qsequence, si->qseqlen);
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
         {
           hardmask(si->qsequence, si->qseqlen);
         }
@@ -436,7 +436,7 @@ auto search_exact_thread_run(int64_t t) -> void
     {
       xpthread_mutex_lock(&mutex_input);
 
-      if (fastx_next(query_fastx_h, ! opt_notrunclabels, chrmap_no_change))
+      if (fastx_next(query_fastx_h, (opt_notrunclabels == 0), chrmap_no_change))
         {
           char * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = fastx_get_header_length(query_fastx_h);
@@ -447,7 +447,7 @@ auto search_exact_thread_run(int64_t t) -> void
 
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = s ? si_minus + t : si_plus + t;
+              struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
               si->query_head_len = query_head_len;
               si->qseqlen = qseqlen;
@@ -500,7 +500,7 @@ auto search_exact_thread_run(int64_t t) -> void
           queries++;
           queries_abundance += qsize;
 
-          if (match)
+          if (match != 0)
             {
               qmatches++;
               qmatches_abundance += qsize;
@@ -539,11 +539,11 @@ auto search_exact_thread_init(struct searchinfo_s * si) -> void
 auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
-  if (si->query_head)
+  if (si->query_head != nullptr)
     {
       xfree(si->query_head);
     }
-  if (si->qsequence)
+  if (si->qsequence != nullptr)
     {
       xfree(si->qsequence);
     }
@@ -567,7 +567,7 @@ auto search_exact_thread_worker_run() -> void
   for (int t = 0; t < opt_threads; t++)
     {
       search_exact_thread_init(si_plus + t);
-      if (si_minus)
+      if (si_minus != nullptr)
         {
           search_exact_thread_init(si_minus + t);
         }
@@ -580,7 +580,7 @@ auto search_exact_thread_worker_run() -> void
     {
       xpthread_join(pthread[t], nullptr);
       search_exact_thread_exit(si_plus + t);
-      if (si_minus)
+      if (si_minus != nullptr)
         {
           search_exact_thread_exit(si_minus + t);
         }
@@ -593,10 +593,10 @@ auto search_exact_prep(char * cmdline, char * progheader) -> void
 {
   /* open output files */
 
-  if (opt_alnout)
+  if (opt_alnout != nullptr)
     {
       fp_alnout = fopen_output(opt_alnout);
-      if (! fp_alnout)
+      if (fp_alnout == nullptr)
         {
           fatal("Unable to open alignment output file for writing");
         }
@@ -605,127 +605,127 @@ auto search_exact_prep(char * cmdline, char * progheader) -> void
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (opt_samout)
+  if (opt_samout != nullptr)
     {
       fp_samout = fopen_output(opt_samout);
-      if (! fp_samout)
+      if (fp_samout == nullptr)
         {
           fatal("Unable to open SAM output file for writing");
         }
     }
 
-  if (opt_userout)
+  if (opt_userout != nullptr)
     {
       fp_userout = fopen_output(opt_userout);
-      if (! fp_userout)
+      if (fp_userout == nullptr)
         {
           fatal("Unable to open user-defined output file for writing");
         }
     }
 
-  if (opt_blast6out)
+  if (opt_blast6out != nullptr)
     {
       fp_blast6out = fopen_output(opt_blast6out);
-      if (! fp_blast6out)
+      if (fp_blast6out == nullptr)
         {
           fatal("Unable to open blast6-like output file for writing");
         }
     }
 
-  if (opt_uc)
+  if (opt_uc != nullptr)
     {
       fp_uc = fopen_output(opt_uc);
-      if (! fp_uc)
+      if (fp_uc == nullptr)
         {
           fatal("Unable to open uc output file for writing");
         }
     }
 
-  if (opt_fastapairs)
+  if (opt_fastapairs != nullptr)
     {
       fp_fastapairs = fopen_output(opt_fastapairs);
-      if (! fp_fastapairs)
+      if (fp_fastapairs == nullptr)
         {
           fatal("Unable to open fastapairs output file for writing");
         }
     }
 
-  if (opt_qsegout)
+  if (opt_qsegout != nullptr)
     {
       fp_qsegout = fopen_output(opt_qsegout);
-      if (! fp_qsegout)
+      if (fp_qsegout == nullptr)
         {
           fatal("Unable to open qsegout output file for writing");
         }
     }
 
-  if (opt_tsegout)
+  if (opt_tsegout != nullptr)
     {
       fp_tsegout = fopen_output(opt_tsegout);
-      if (! fp_tsegout)
+      if (fp_tsegout == nullptr)
         {
           fatal("Unable to open tsegout output file for writing");
         }
     }
 
-  if (opt_matched)
+  if (opt_matched != nullptr)
     {
       fp_matched = fopen_output(opt_matched);
-      if (! fp_matched)
+      if (fp_matched == nullptr)
         {
           fatal("Unable to open matched output file for writing");
         }
     }
 
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fp_notmatched = fopen_output(opt_notmatched);
-      if (! fp_notmatched)
+      if (fp_notmatched == nullptr)
         {
           fatal("Unable to open notmatched output file for writing");
         }
     }
 
-  if (opt_dbmatched)
+  if (opt_dbmatched != nullptr)
     {
       fp_dbmatched = fopen_output(opt_dbmatched);
-      if (! fp_dbmatched)
+      if (fp_dbmatched == nullptr)
         {
           fatal("Unable to open dbmatched output file for writing");
         }
     }
 
-  if (opt_dbnotmatched)
+  if (opt_dbnotmatched != nullptr)
     {
       fp_dbnotmatched = fopen_output(opt_dbnotmatched);
-      if (! fp_dbnotmatched)
+      if (fp_dbnotmatched == nullptr)
         {
           fatal("Unable to open dbnotmatched output file for writing");
         }
     }
 
-  if (opt_otutabout)
+  if (opt_otutabout != nullptr)
     {
       fp_otutabout = fopen_output(opt_otutabout);
-      if (! fp_otutabout)
+      if (fp_otutabout == nullptr)
         {
           fatal("Unable to open OTU table (text format) output file for writing");
         }
     }
 
-  if (opt_mothur_shared_out)
+  if (opt_mothur_shared_out != nullptr)
     {
       fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
-      if (! fp_mothur_shared_out)
+      if (fp_mothur_shared_out == nullptr)
         {
           fatal("Unable to open OTU table (mothur format) output file for writing");
         }
     }
 
-  if (opt_biomout)
+  if (opt_biomout != nullptr)
     {
       fp_biomout = fopen_output(opt_biomout);
-      if (! fp_biomout)
+      if (fp_biomout == nullptr)
         {
           fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
         }
@@ -739,7 +739,7 @@ auto search_exact_prep(char * cmdline, char * progheader) -> void
     {
       dust_all();
     }
-  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -766,51 +766,51 @@ auto search_exact_done() -> void
   db_free();
   xfree(dbmatched);
 
-  if (opt_dbmatched)
+  if (opt_dbmatched != nullptr)
     {
       fclose(fp_dbmatched);
     }
-  if (opt_dbnotmatched)
+  if (opt_dbnotmatched != nullptr)
     {
       fclose(fp_dbnotmatched);
     }
-  if (opt_matched)
+  if (opt_matched != nullptr)
     {
       fclose(fp_matched);
     }
-  if (opt_notmatched)
+  if (opt_notmatched != nullptr)
     {
       fclose(fp_notmatched);
     }
-  if (opt_fastapairs)
+  if (opt_fastapairs != nullptr)
     {
       fclose(fp_fastapairs);
     }
-  if (opt_qsegout)
+  if (opt_qsegout != nullptr)
     {
       fclose(fp_qsegout);
     }
-  if (opt_tsegout)
+  if (opt_tsegout != nullptr)
     {
       fclose(fp_tsegout);
     }
-  if (fp_uc)
+  if (fp_uc != nullptr)
     {
       fclose(fp_uc);
     }
-  if (fp_blast6out)
+  if (fp_blast6out != nullptr)
     {
       fclose(fp_blast6out);
     }
-  if (fp_userout)
+  if (fp_userout != nullptr)
     {
       fclose(fp_userout);
     }
-  if (fp_alnout)
+  if (fp_alnout != nullptr)
     {
       fclose(fp_alnout);
     }
-  if (fp_samout)
+  if (fp_samout != nullptr)
     {
       fclose(fp_samout);
     }
@@ -885,7 +885,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
         }
     }
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       fprintf(fp_log, "Matching unique query sequences: %d of %d",
               qmatches, queries);
@@ -909,27 +909,27 @@ auto search_exact(char * cmdline, char * progheader) -> void
     }
 
   // Add OTUs with no matches to OTU table
-  if (opt_otutabout || opt_mothur_shared_out || opt_biomout) {
+  if ((opt_otutabout != nullptr) || (opt_mothur_shared_out != nullptr) || (opt_biomout != nullptr)) {
     for (int64_t i = 0; i < seqcount; i++) {
-      if (! dbmatched[i]) {
+      if (dbmatched[i] == 0U) {
         otutable_add(nullptr, db_getheader(i), 0);
       }
     }
   }
 
-  if (fp_biomout)
+  if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout);
       fclose(fp_biomout);
     }
 
-  if (fp_otutabout)
+  if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout);
       fclose(fp_otutabout);
     }
 
-  if (fp_mothur_shared_out)
+  if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
       fclose(fp_mothur_shared_out);
@@ -940,14 +940,14 @@ auto search_exact(char * cmdline, char * progheader) -> void
   int count_dbmatched = 0;
   int count_dbnotmatched = 0;
 
-  if (opt_dbmatched || opt_dbnotmatched)
+  if ((opt_dbmatched != nullptr) || (opt_dbnotmatched != nullptr))
     {
       for (int64_t i = 0; i < seqcount; i++)
         {
-          if (dbmatched[i])
+          if (dbmatched[i] != 0U)
             {
               ++count_dbmatched;
-              if (opt_dbmatched)
+              if (opt_dbmatched != nullptr)
                 {
                   fasta_print_general(fp_dbmatched,
                                       nullptr,
@@ -964,7 +964,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
           else
             {
               ++count_dbnotmatched;
-              if (opt_dbnotmatched)
+              if (opt_dbnotmatched != nullptr)
                 {
                   fasta_print_general(fp_dbnotmatched,
                                       nullptr,
