@@ -135,66 +135,66 @@ static auto Rotate32(uint32 val, int shift) -> uint32 {
 #undef PERMUTE3
 #define PERMUTE3(a, b, c) do { std::swap(a, b); std::swap(a, c); } while (0)
 
-static auto Mur(uint32 a, uint32 h) -> uint32 {
+static auto Mur(uint32 a_value, uint32 hash_value) -> uint32 {
   // Helper from Murmur3 for combining two 32-bit values.
-  a *= c1;
-  a = Rotate32(a, 17);
-  a *= c2;
-  h ^= a;
-  h = Rotate32(h, 19);
-  return (h * 5) + 0xe6546b64;
+  a_value *= c1;
+  a_value = Rotate32(a_value, 17);
+  a_value *= c2;
+  hash_value ^= a_value;
+  hash_value = Rotate32(hash_value, 19);
+  return (hash_value * 5) + 0xe6546b64;
 }
 
-static auto Hash32Len13to24(const char * s, std::size_t len) -> uint32 {
-  const uint32 a = Fetch32(s - 4 + (len >> 1U));
-  const uint32 b = Fetch32(s + 4);
-  const uint32 c = Fetch32(s + len - 8);
-  const uint32 d = Fetch32(s + (len >> 1U));
-  const uint32 e = Fetch32(s);
-  const uint32 f = Fetch32(s + len - 4);
+static auto Hash32Len13to24(const char * seq, std::size_t len) -> uint32 {
+  const uint32 a = Fetch32(seq - 4 + (len >> 1U));
+  const uint32 b = Fetch32(seq + 4);
+  const uint32 c = Fetch32(seq + len - 8);
+  const uint32 d = Fetch32(seq + (len >> 1U));
+  const uint32 e = Fetch32(seq);
+  const uint32 f = Fetch32(seq + len - 4);
   const uint32 h = len;
 
   return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
 }
 
-static auto Hash32Len0to4(const char * s, std::size_t len) -> uint32 {
+static auto Hash32Len0to4(const char * seq, std::size_t len) -> uint32 {
   uint32 b = 0;
   uint32 c = 9;
   for (int i = 0; i < len; i++) {
-    const signed char v = s[i];
+    const signed char v = seq[i];
     b = b * c1 + v;
     c ^= b;
   }
   return fmix(Mur(b, Mur(len, c)));
 }
 
-static auto Hash32Len5to12(const char * s, std::size_t len) -> uint32 {
+static auto Hash32Len5to12(const char * seq, std::size_t len) -> uint32 {
   uint32 a = len;
   uint32 b = len * 5;
   uint32 c = 9;
   uint32 const d = b;
-  a += Fetch32(s);
-  b += Fetch32(s + len - 4);
-  c += Fetch32(s + ((len >> 1U) & 4U));
+  a += Fetch32(seq);
+  b += Fetch32(seq + len - 4);
+  c += Fetch32(seq + ((len >> 1U) & 4U));
   return fmix(Mur(c, Mur(b, Mur(a, d))));
 }
 
-auto CityHash32(const char * s, std::size_t len) -> uint32 {
+auto CityHash32(const char * seq, std::size_t len) -> uint32 {
   if (len <= 24) {
     return len <= 12 ?
-        (len <= 4 ? Hash32Len0to4(s, len) : Hash32Len5to12(s, len)) :
-        Hash32Len13to24(s, len);
+        (len <= 4 ? Hash32Len0to4(seq, len) : Hash32Len5to12(seq, len)) :
+        Hash32Len13to24(seq, len);
   }
 
   // len > 24
   uint32 h = len;
   uint32 g = c1 * len;
   uint32 f = g;
-  const uint32 a0 = Rotate32(Fetch32(s + len - 4) * c1, 17) * c2;
-  const uint32 a1 = Rotate32(Fetch32(s + len - 8) * c1, 17) * c2;
-  const uint32 a2 = Rotate32(Fetch32(s + len - 16) * c1, 17) * c2;
-  const uint32 a3 = Rotate32(Fetch32(s + len - 12) * c1, 17) * c2;
-  const uint32 a4 = Rotate32(Fetch32(s + len - 20) * c1, 17) * c2;
+  const uint32 a0 = Rotate32(Fetch32(seq + len - 4) * c1, 17) * c2;
+  const uint32 a1 = Rotate32(Fetch32(seq + len - 8) * c1, 17) * c2;
+  const uint32 a2 = Rotate32(Fetch32(seq + len - 16) * c1, 17) * c2;
+  const uint32 a3 = Rotate32(Fetch32(seq + len - 12) * c1, 17) * c2;
+  const uint32 a4 = Rotate32(Fetch32(seq + len - 20) * c1, 17) * c2;
   h ^= a0;
   h = Rotate32(h, 19);
   h = h * 5 + 0xe6546b64;
@@ -212,11 +212,11 @@ auto CityHash32(const char * s, std::size_t len) -> uint32 {
   f = f * 5 + 0xe6546b64;
   std::size_t iters = (len - 1) / 20;
   do {
-    const uint32 a0 = Rotate32(Fetch32(s) * c1, 17) * c2;
-    const uint32 a1 = Fetch32(s + 4);
-    const uint32 a2 = Rotate32(Fetch32(s + 8) * c1, 17) * c2;
-    const uint32 a3 = Rotate32(Fetch32(s + 12) * c1, 17) * c2;
-    const uint32 a4 = Fetch32(s + 16);
+    const uint32 a0 = Rotate32(Fetch32(seq) * c1, 17) * c2;
+    const uint32 a1 = Fetch32(seq + 4);
+    const uint32 a2 = Rotate32(Fetch32(seq + 8) * c1, 17) * c2;
+    const uint32 a3 = Rotate32(Fetch32(seq + 12) * c1, 17) * c2;
+    const uint32 a4 = Fetch32(seq + 16);
     h ^= a0;
     h = Rotate32(h, 18);
     h = h * 5 + 0xe6546b64;
@@ -235,7 +235,7 @@ auto CityHash32(const char * s, std::size_t len) -> uint32 {
     h = bswap_32(h);
     f += a0;
     PERMUTE3(f, h, g);
-    s += 20;
+    seq += 20;
   } while (--iters != 0);
   g = Rotate32(g, 11) * c1;
   g = Rotate32(g, 17) * c1;
@@ -275,24 +275,24 @@ static auto HashLen16(uint64 u, uint64 v, uint64 mul) -> uint64 {
   return b;
 }
 
-static auto HashLen0to16(const char *s, std::size_t len) -> uint64 {
+static auto HashLen0to16(const char * seq, std::size_t len) -> uint64 {
   if (len >= 8) {
     const uint64 mul = k2 + (len * 2);
-    const uint64 a = Fetch64(s) + k2;
-    const uint64 b = Fetch64(s + len - 8);
+    const uint64 a = Fetch64(seq) + k2;
+    const uint64 b = Fetch64(seq + len - 8);
     const uint64 c = (Rotate(b, 37) * mul) + a;
     const uint64 d = (Rotate(a, 25) + b) * mul;
     return HashLen16(c, d, mul);
   }
   if (len >= 4) {
     const uint64 mul = k2 + (len * 2);
-    const uint64 a = Fetch32(s);
-    return HashLen16(len + (a << 3U), Fetch32(s + len - 4), mul);
+    const uint64 a = Fetch32(seq);
+    return HashLen16(len + (a << 3U), Fetch32(seq + len - 4), mul);
   }
   if (len > 0) {
-    const uint8 a = s[0];
-    const uint8 b = s[len >> 1U];
-    const uint8 c = s[len - 1];
+    const uint8 a = seq[0];
+    const uint8 b = seq[len >> 1U];
+    const uint8 c = seq[len - 1];
     const uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8U);
     const uint32 z = len + (static_cast<uint32>(c) << 2U);
     return ShiftMix((y * k2) ^ (z * k0)) * k2;
@@ -302,12 +302,12 @@ static auto HashLen0to16(const char *s, std::size_t len) -> uint64 {
 
 // This probably works well for 16-byte strings as well, but it may be overkill
 // in that case.
-static auto HashLen17to32(const char *s, std::size_t len) -> uint64 {
+static auto HashLen17to32(const char * seq, std::size_t len) -> uint64 {
   const uint64 mul = k2 + (len * 2);
-  const uint64 a = Fetch64(s) * k1;
-  const uint64 b = Fetch64(s + 8);
-  const uint64 c = Fetch64(s + len - 8) * mul;
-  const uint64 d = Fetch64(s + len - 16) * k2;
+  const uint64 a = Fetch64(seq) * k1;
+  const uint64 b = Fetch64(seq + 8);
+  const uint64 c = Fetch64(seq + len - 8) * mul;
+  const uint64 d = Fetch64(seq + len - 16) * k2;
   return HashLen16(Rotate(a + b, 43) + Rotate(c, 30) + d,
                    a + Rotate(b + k2, 18) + c, mul);
 }
@@ -327,27 +327,27 @@ static auto WeakHashLen32WithSeeds(uint64 w, uint64 x, uint64 y, uint64 z,
 }
 
 // Return a 16-byte hash for s[0] ... s[31], a, and b.  Quick and dirty.
-static auto WeakHashLen32WithSeeds(const char *s, uint64 a, uint64 b)
+static auto WeakHashLen32WithSeeds(const char * seq, uint64 a, uint64 b)
   -> std::pair<uint64, uint64> {
-  return WeakHashLen32WithSeeds(Fetch64(s),
-                                Fetch64(s + 8),
-                                Fetch64(s + 16),
-                                Fetch64(s + 24),
+  return WeakHashLen32WithSeeds(Fetch64(seq),
+                                Fetch64(seq + 8),
+                                Fetch64(seq + 16),
+                                Fetch64(seq + 24),
                                 a,
                                 b);
 }
 
 // Return an 8-byte hash for 33 to 64 bytes.
-static auto HashLen33to64(const char *s, std::size_t len) -> uint64 {
+static auto HashLen33to64(const char * seq, std::size_t len) -> uint64 {
   const uint64 mul = k2 + (len * 2);
-  uint64 a = Fetch64(s) * k2;
-  uint64 b = Fetch64(s + 8);
-  const uint64 c = Fetch64(s + len - 24);
-  const uint64 d = Fetch64(s + len - 32);
-  const uint64 e = Fetch64(s + 16) * k2;
-  const uint64 f = Fetch64(s + 24) * 9;
-  const uint64 g = Fetch64(s + len - 8);
-  const uint64 h = Fetch64(s + len - 16) * mul;
+  uint64 a = Fetch64(seq) * k2;
+  uint64 b = Fetch64(seq + 8);
+  const uint64 c = Fetch64(seq + len - 24);
+  const uint64 d = Fetch64(seq + len - 32);
+  const uint64 e = Fetch64(seq + 16) * k2;
+  const uint64 f = Fetch64(seq + 24) * 9;
+  const uint64 g = Fetch64(seq + len - 8);
+  const uint64 h = Fetch64(seq + len - 16) * mul;
   const uint64 u = Rotate(a + g, 43) + ((Rotate(b, 30) + c) * 9);
   const uint64 v = ((a + g) ^ d) + f + 1;
   const uint64 w = bswap_64((u + v) * mul) + h;
@@ -359,56 +359,56 @@ static auto HashLen33to64(const char *s, std::size_t len) -> uint64 {
   return b + x;
 }
 
-auto CityHash64(const char *s, std::size_t len) -> uint64 {
+auto CityHash64(const char * seq, std::size_t len) -> uint64 {
   if (len <= 16) {
-    return HashLen0to16(s, len);
+    return HashLen0to16(seq, len);
   }
   if (len <= 32) {
-    return HashLen17to32(s, len);
+    return HashLen17to32(seq, len);
   }
   if (len <= 64) {
-    return HashLen33to64(s, len);
+    return HashLen33to64(seq, len);
   }
 
   // For strings over 64 bytes we hash the end first, and then as we
   // loop we keep 56 bytes of state: v, w, x, y, and z.
-  uint64 x = Fetch64(s + len - 40);
-  uint64 y = Fetch64(s + len - 16) + Fetch64(s + len - 56);
-  uint64 z = HashLen16(Fetch64(s + len - 48) + len, Fetch64(s + len - 24));
-  auto v = WeakHashLen32WithSeeds(s + len - 64, len, z);
-  auto w = WeakHashLen32WithSeeds(s + len - 32, y + k1, x);
-  x = x * k1 + Fetch64(s);
+  uint64 x = Fetch64(seq + len - 40);
+  uint64 y = Fetch64(seq + len - 16) + Fetch64(seq + len - 56);
+  uint64 z = HashLen16(Fetch64(seq + len - 48) + len, Fetch64(seq + len - 24));
+  auto v = WeakHashLen32WithSeeds(seq + len - 64, len, z);
+  auto w = WeakHashLen32WithSeeds(seq + len - 32, y + k1, x);
+  x = x * k1 + Fetch64(seq);
 
   // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
   len = (len - 1) & ~static_cast<std::size_t>(63);
   do {
-    x = Rotate(x + y + v.first + Fetch64(s + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(s + 48), 42) * k1;
+    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
+    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
     x ^= w.second;
-    y += v.first + Fetch64(s + 40);
+    y += v.first + Fetch64(seq + 40);
     z = Rotate(z + w.first, 33) * k1;
-    v = WeakHashLen32WithSeeds(s, v.second * k1, x + w.first);
-    w = WeakHashLen32WithSeeds(s + 32, z + w.second, y + Fetch64(s + 16));
+    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
+    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
     std::swap(z, x);
-    s += 64;
+    seq += 64;
     len -= 64;
   } while (len != 0);
   return HashLen16(HashLen16(v.first, w.first) + (ShiftMix(y) * k1) + z,
                    HashLen16(v.second, w.second) + x);
 }
 
-auto CityHash64WithSeed(const char *s, std::size_t len, uint64 seed) -> uint64 {
-  return CityHash64WithSeeds(s, len, k2, seed);
+auto CityHash64WithSeed(const char * seq, std::size_t len, uint64 seed) -> uint64 {
+  return CityHash64WithSeeds(seq, len, k2, seed);
 }
 
-auto CityHash64WithSeeds(const char *s, std::size_t len,
+auto CityHash64WithSeeds(const char * seq, std::size_t len,
                          uint64 seed0, uint64 seed1) -> uint64 {
-  return HashLen16(CityHash64(s, len) - seed0, seed1);
+  return HashLen16(CityHash64(seq, len) - seed0, seed1);
 }
 
 // A subroutine for CityHash128().  Returns a decent 128-bit hash for strings
 // of any length representable in signed long.  Based on City and Murmur.
-static auto CityMurmur(const char *s, std::size_t len, uint128 seed) -> uint128 {
+static auto CityMurmur(const char * seq, std::size_t len, uint128 seed) -> uint128 {
   uint64 a = Uint128Low64(seed);
   uint64 b = Uint128High64(seed);
   uint64 c = 0;
@@ -416,20 +416,20 @@ static auto CityMurmur(const char *s, std::size_t len, uint128 seed) -> uint128 
   signed long l = len - 16;
   if (l <= 0) {  // len <= 16
     a = ShiftMix(a * k1) * k1;
-    c = b * k1 + HashLen0to16(s, len);
-    d = ShiftMix(a + (len >= 8 ? Fetch64(s) : c));
+    c = b * k1 + HashLen0to16(seq, len);
+    d = ShiftMix(a + (len >= 8 ? Fetch64(seq) : c));
   } else {  // len > 16
-    c = HashLen16(Fetch64(s + len - 8) + k1, a);
-    d = HashLen16(b + len, c + Fetch64(s + len - 16));
+    c = HashLen16(Fetch64(seq + len - 8) + k1, a);
+    d = HashLen16(b + len, c + Fetch64(seq + len - 16));
     a += d;
     do {
-      a ^= ShiftMix(Fetch64(s) * k1) * k1;
+      a ^= ShiftMix(Fetch64(seq) * k1) * k1;
       a *= k1;
       b ^= a;
-      c ^= ShiftMix(Fetch64(s + 8) * k1) * k1;
+      c ^= ShiftMix(Fetch64(seq + 8) * k1) * k1;
       c *= k1;
       d ^= c;
-      s += 16;
+      seq += 16;
       l -= 16;
     } while (l > 0);
   }
@@ -438,9 +438,9 @@ static auto CityMurmur(const char *s, std::size_t len, uint128 seed) -> uint128 
   return uint128(a ^ b, HashLen16(b, a));
 }
 
-auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128 {
+auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128 {
   if (len < 128) {
-    return CityMurmur(s, len, seed);
+    return CityMurmur(seq, len, seed);
   }
 
   // We expect len >= 128 to be the common case.  Keep 56 bytes of state:
@@ -450,31 +450,31 @@ auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint12
   uint64 x = Uint128Low64(seed);
   uint64 y = Uint128High64(seed);
   uint64 z = len * k1;
-  v.first = Rotate(y ^ k1, 49) * k1 + Fetch64(s);
-  v.second = Rotate(v.first, 42) * k1 + Fetch64(s + 8);
+  v.first = Rotate(y ^ k1, 49) * k1 + Fetch64(seq);
+  v.second = Rotate(v.first, 42) * k1 + Fetch64(seq + 8);
   w.first = Rotate(y + z, 35) * k1 + x;
-  w.second = Rotate(x + Fetch64(s + 88), 53) * k1;
+  w.second = Rotate(x + Fetch64(seq + 88), 53) * k1;
 
   // This is the same inner loop as CityHash64(), manually unrolled.
   do {
-    x = Rotate(x + y + v.first + Fetch64(s + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(s + 48), 42) * k1;
+    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
+    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
     x ^= w.second;
-    y += v.first + Fetch64(s + 40);
+    y += v.first + Fetch64(seq + 40);
     z = Rotate(z + w.first, 33) * k1;
-    v = WeakHashLen32WithSeeds(s, v.second * k1, x + w.first);
-    w = WeakHashLen32WithSeeds(s + 32, z + w.second, y + Fetch64(s + 16));
+    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
+    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
     std::swap(z, x);
-    s += 64;
-    x = Rotate(x + y + v.first + Fetch64(s + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(s + 48), 42) * k1;
+    seq += 64;
+    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
+    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
     x ^= w.second;
-    y += v.first + Fetch64(s + 40);
+    y += v.first + Fetch64(seq + 40);
     z = Rotate(z + w.first, 33) * k1;
-    v = WeakHashLen32WithSeeds(s, v.second * k1, x + w.first);
-    w = WeakHashLen32WithSeeds(s + 32, z + w.second, y + Fetch64(s + 16));
+    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
+    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
     std::swap(z, x);
-    s += 64;
+    seq += 64;
     len -= 128;
   } while (LIKELY(len >= 128));
   x += Rotate(v.first + z, 49) * k0;
@@ -486,11 +486,11 @@ auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint12
   for (std::size_t tail_done = 0; tail_done < len; ) {
     tail_done += 32;
     y = Rotate(x + y, 42) * k0 + v.second;
-    w.first += Fetch64(s + len - tail_done + 16);
+    w.first += Fetch64(seq + len - tail_done + 16);
     x = x * k0 + w.first;
-    z += w.second + Fetch64(s + len - tail_done);
+    z += w.second + Fetch64(seq + len - tail_done);
     w.second += v.first;
-    v = WeakHashLen32WithSeeds(s + len - tail_done, v.first + z, v.second);
+    v = WeakHashLen32WithSeeds(seq + len - tail_done, v.first + z, v.second);
     v.first *= k0;
   }
   // At this point our 56 bytes of state should contain more than
@@ -502,11 +502,11 @@ auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint12
                  HashLen16(x + w.second, y + v.second));
 }
 
-auto CityHash128(const char *s, std::size_t len) -> uint128 {
+auto CityHash128(const char * seq, std::size_t len) -> uint128 {
   return len >= 16 ?
-      CityHash128WithSeed(s + 16, len - 16,
-                          uint128(Fetch64(s), Fetch64(s + 8) + k0)) :
-      CityHash128WithSeed(s, len, uint128(k0, k1));
+      CityHash128WithSeed(seq + 16, len - 16,
+                          uint128(Fetch64(seq), Fetch64(seq + 8) + k0)) :
+      CityHash128WithSeed(seq, len, uint128(k0, k1));
 }
 
 #ifdef __SSE4_2__
