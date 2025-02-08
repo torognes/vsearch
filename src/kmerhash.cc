@@ -85,74 +85,74 @@ struct kh_handle_s
 
 auto kh_init() -> struct kh_handle_s *
 {
-  auto * kh =
+  auto * kmer_hash =
     (struct kh_handle_s *) xmalloc(sizeof(struct kh_handle_s));
 
-  kh->maxpos = 0;
-  kh->alloc = 256;
-  kh->size = 0;
-  kh->hash_mask = kh->alloc - 1;
-  kh->hash =
-    (struct kh_bucket_s *) xmalloc(kh->alloc * sizeof(struct kh_bucket_s));
+  kmer_hash->maxpos = 0;
+  kmer_hash->alloc = 256;
+  kmer_hash->size = 0;
+  kmer_hash->hash_mask = kmer_hash->alloc - 1;
+  kmer_hash->hash =
+    (struct kh_bucket_s *) xmalloc(kmer_hash->alloc * sizeof(struct kh_bucket_s));
 
-  return kh;
+  return kmer_hash;
 }
 
 
-auto kh_exit(struct kh_handle_s * kh) -> void
+auto kh_exit(struct kh_handle_s * kmer_hash) -> void
 {
-  if (kh->hash != nullptr)
+  if (kmer_hash->hash != nullptr)
     {
-      xfree(kh->hash);
+      xfree(kmer_hash->hash);
     }
-  xfree(kh);
+  xfree(kmer_hash);
 }
 
 
-inline auto kh_insert_kmer(struct kh_handle_s * kh,
-                           int k,
+inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
+                           int k_offset,
                            unsigned int kmer,
                            unsigned int pos) -> void
 {
   /* find free bucket in hash */
-  unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-  while (kh->hash[j].pos != 0U)
+  unsigned int j = HASH((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+  while (kmer_hash->hash[j].pos != 0U)
     {
-      j = (j + 1) & kh->hash_mask;
+      j = (j + 1) & kmer_hash->hash_mask;
     }
 
-  kh->hash[j].kmer = kmer;
-  kh->hash[j].pos = pos;
+  kmer_hash->hash[j].kmer = kmer;
+  kmer_hash->hash[j].pos = pos;
 }
 
 
-auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> void
+auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> void
 {
-  int const kmers = 1U << (2U * k);
+  int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
 
   /* reallocate hash table if necessary */
 
-  if (kh->alloc < 2 * len)
+  if (kmer_hash->alloc < 2 * len)
     {
-      while (kh->alloc < 2 * len)
+      while (kmer_hash->alloc < 2 * len)
         {
-          kh->alloc *= 2;
+          kmer_hash->alloc *= 2;
         }
-      kh->hash = (struct kh_bucket_s *)
-        xrealloc(kh->hash, kh->alloc * sizeof(struct kh_bucket_s));
+      kmer_hash->hash = (struct kh_bucket_s *)
+        xrealloc(kmer_hash->hash, kmer_hash->alloc * sizeof(struct kh_bucket_s));
     }
 
-  kh->size = 1;
-  while (kh->size < 2 * len)
+  kmer_hash->size = 1;
+  while (kmer_hash->size < 2 * len)
     {
-      kh->size *= 2;
+      kmer_hash->size *= 2;
     }
-  kh->hash_mask = kh->size - 1;
+  kmer_hash->hash_mask = kmer_hash->size - 1;
 
-  kh->maxpos = len;
+  kmer_hash->maxpos = len;
 
-  std::memset(kh->hash, 0, kh->size * sizeof(struct kh_bucket_s));
+  std::memset(kmer_hash->hash, 0, kmer_hash->size * sizeof(struct kh_bucket_s));
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -175,17 +175,17 @@ auto kh_insert_kmers(struct kh_handle_s * kh, int k, char * seq, int len) -> voi
       if (bad == 0U)
         {
           /* 1-based pos of start of kmer */
-          kh_insert_kmer(kh, k, kmer, pos - k + 1 + 1);
+          kh_insert_kmer(kmer_hash, k_offset, kmer, pos - k_offset + 1 + 1);
         }
     }
 }
 
 
-auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) -> int
+auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> int
 {
-  std::vector<int> diag_counts(kh->maxpos, 0);
+  std::vector<int> diag_counts(kmer_hash->maxpos, 0);
 
-  int const kmers = 1U << (2U * k);
+  int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
 
   unsigned int bad = kmer_mask;
@@ -209,19 +209,19 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-          while (kh->hash[j].pos != 0U)
+          unsigned int j = HASH((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+          while (kmer_hash->hash[j].pos != 0U)
             {
-              if (kh->hash[j].kmer == kmer)
+              if (kmer_hash->hash[j].kmer == kmer)
                 {
-                  int const fpos = kh->hash[j].pos - 1;
-                  int const diag = fpos - (pos - k + 1);
+                  int const fpos = kmer_hash->hash[j].pos - 1;
+                  int const diag = fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
                       ++diag_counts[diag];
                     }
                 }
-              j = (j + 1) & kh->hash_mask;
+              j = (j + 1) & kmer_hash->hash_mask;
             }
         }
     }
@@ -230,10 +230,10 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
   int best_diag = -1;
   int good_diags = 0;
 
-  for (int d = 0; d < kh->maxpos - k + 1; d++)
+  for (int d = 0; d < kmer_hash->maxpos - k_offset + 1; d++)
     {
-      int const diag_len = kh->maxpos - d;
-      int const minmatch = std::max(1, diag_len - k + 1 - (k * std::max(diag_len / 20, 0)));
+      int const diag_len = kmer_hash->maxpos - d;
+      int const minmatch = std::max(1, diag_len - k_offset + 1 - (k_offset * std::max(diag_len / 20, 0)));
       int const c = diag_counts[d];
 
       if (c >= minmatch)
@@ -256,15 +256,15 @@ auto kh_find_best_diagonal(struct kh_handle_s * kh, int k, char * seq, int len) 
 }
 
 
-auto kh_find_diagonals(struct kh_handle_s * kh,
-                       int k,
+auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
+                       int k_offset,
                        char * seq,
                        int len,
                        int * diags) -> void
 {
-  std::memset(diags, 0, (kh->maxpos+len) * sizeof(int));
+  std::memset(diags, 0, (kmer_hash->maxpos+len) * sizeof(int));
 
-  int const kmers = 1U << (2U * k);
+  int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
 
   unsigned int bad = kmer_mask;
@@ -286,19 +286,19 @@ auto kh_find_diagonals(struct kh_handle_s * kh,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = HASH((char *) &kmer, (k + 3) / 4) & kh->hash_mask;
-          while (kh->hash[j].pos != 0U)
+          unsigned int j = HASH((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+          while (kmer_hash->hash[j].pos != 0U)
             {
-              if (kh->hash[j].kmer == kmer)
+              if (kmer_hash->hash[j].kmer == kmer)
                 {
-                  int const fpos = kh->hash[j].pos - 1;
-                  int const diag = len + fpos - (pos - k + 1);
+                  int const fpos = kmer_hash->hash[j].pos - 1;
+                  int const diag = len + fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
                       ++diags[diag];
                     }
                 }
-              j = (j + 1) & kh->hash_mask;
+              j = (j + 1) & kmer_hash->hash_mask;
             }
         }
     }

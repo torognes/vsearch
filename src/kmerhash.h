@@ -63,12 +63,12 @@ struct kh_handle_s;
 auto kh_init() -> struct kh_handle_s *;
 auto kh_exit(struct kh_handle_s * kmer_hash) -> void;
 
-auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k, char * seq, int len) -> void;
+auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> void;
 
-auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k, char * seq, int len) -> int;
+auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> int;
 
 auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
-                       int k,
+                       int k_offset,
                        char * seq,
                        int len,
                        int * diags) -> void;
