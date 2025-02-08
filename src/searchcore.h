@@ -150,9 +150,9 @@ struct searchinfo_s
   int finalized = 0;
 };
 
-auto search_topscores(struct searchinfo_s * si) -> void;
+auto search_topscores(struct searchinfo_s * searchinfo) -> void;
 
-auto search_onequery(struct searchinfo_s * si, int seqmask) -> void;
+auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void;
 
 auto search_findbest2_byid(struct searchinfo_s * si_p,
                            struct searchinfo_s * si_m) -> struct hit *;
@@ -160,10 +160,10 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 auto search_findbest2_bysize(struct searchinfo_s * si_p,
                              struct searchinfo_s * si_m) -> struct hit *;
 
-auto search_acceptable_unaligned(struct searchinfo_s * si,
+auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
                                  int target) -> bool;
 
-auto search_acceptable_aligned(struct searchinfo_s * si,
+auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
                                struct hit * hit) -> bool;
 
 auto align_trim(struct hit * hit) -> void;
@@ -173,5 +173,5 @@ auto search_joinhits(struct searchinfo_s * si_p,
                      struct hit * * hits,
                      int * hit_count) -> void;
 
-auto search_enough_kmers(struct searchinfo_s * si,
+auto search_enough_kmers(struct searchinfo_s * searchinfo,
                          unsigned int count) -> bool;

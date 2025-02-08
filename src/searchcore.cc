@@ -203,10 +203,10 @@ auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 }
 
 
-auto search_enough_kmers(struct searchinfo_s * si,
+auto search_enough_kmers(struct searchinfo_s * searchinfo,
                          unsigned int count) -> bool
 {
-  return (count >= opt_minwordmatches) or (count >= si->kmersamplecount);
+  return (count >= opt_minwordmatches) or (count >= searchinfo->kmersamplecount);
 }
 
 
@@ -426,12 +426,12 @@ auto align_trim(struct hit * hit) -> void
 }
 
 
-auto search_acceptable_unaligned(struct searchinfo_s * si,
+auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
                                  int target) -> bool
 {
   /* consider whether a hit satisfies accept criteria before alignment */
 
-  auto * qseq = si->qsequence;
+  auto * qseq = searchinfo->qsequence;
   auto * dlabel = db_getheader(target);
   auto * dseq = db_getsequence(target);
   const int64_t dseqlen = db_getsequencelen(target);
@@ -439,52 +439,52 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
 
   if (
       /* maxqsize */
-      (si->qsize <= opt_maxqsize)
+      (searchinfo->qsize <= opt_maxqsize)
       &&
       /* mintsize */
       (tsize >= opt_mintsize)
       &&
       /* minsizeratio */
-      (si->qsize >= opt_minsizeratio * tsize)
+      (searchinfo->qsize >= opt_minsizeratio * tsize)
       &&
       /* maxsizeratio */
-      (si->qsize <= opt_maxsizeratio * tsize)
+      (searchinfo->qsize <= opt_maxsizeratio * tsize)
       &&
       /* minqt */
-      (si->qseqlen >= opt_minqt * dseqlen)
+      (searchinfo->qseqlen >= opt_minqt * dseqlen)
       &&
       /* maxqt */
-      (si->qseqlen <= opt_maxqt * dseqlen)
+      (searchinfo->qseqlen <= opt_maxqt * dseqlen)
       &&
       /* minsl */
-      (si->qseqlen < dseqlen ?
-       si->qseqlen >= opt_minsl * dseqlen :
-       dseqlen >= opt_minsl * si->qseqlen)
+      (searchinfo->qseqlen < dseqlen ?
+       searchinfo->qseqlen >= opt_minsl * dseqlen :
+       dseqlen >= opt_minsl * searchinfo->qseqlen)
       &&
       /* maxsl */
-      (si->qseqlen < dseqlen ?
-       si->qseqlen <= opt_maxsl * dseqlen :
-       dseqlen <= opt_maxsl * si->qseqlen)
+      (searchinfo->qseqlen < dseqlen ?
+       searchinfo->qseqlen <= opt_maxsl * dseqlen :
+       dseqlen <= opt_maxsl * searchinfo->qseqlen)
       &&
       /* idprefix */
-      ((si->qseqlen >= opt_idprefix) &&
+      ((searchinfo->qseqlen >= opt_idprefix) &&
        (dseqlen >= opt_idprefix) &&
        (not seqncmp(qseq, dseq, opt_idprefix)))
       &&
       /* idsuffix */
-      ((si->qseqlen >= opt_idsuffix) &&
+      ((searchinfo->qseqlen >= opt_idsuffix) &&
        (dseqlen >= opt_idsuffix) &&
-       (not seqncmp(qseq+si->qseqlen-opt_idsuffix,
+       (not seqncmp(qseq+searchinfo->qseqlen-opt_idsuffix,
                  dseq+dseqlen-opt_idsuffix,
                  opt_idsuffix)))
       &&
       /* self */
-      ((not opt_self) or (strcmp(si->query_head, dlabel) != 0))
+      ((not opt_self) or (strcmp(searchinfo->query_head, dlabel) != 0))
       &&
       /* selfid */
       ((not opt_selfid) or
-       (si->qseqlen != dseqlen) or
-       (seqncmp(qseq, dseq, si->qseqlen)))
+       (searchinfo->qseqlen != dseqlen) or
+       (seqncmp(qseq, dseq, searchinfo->qseqlen)))
       )
     {
       /* needs further consideration */
@@ -496,7 +496,7 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
 }
 
 
-auto search_acceptable_aligned(struct searchinfo_s * si,
+auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
                                struct hit * hit) -> bool
 {
   if (/* weak_id */
@@ -514,7 +514,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       ((not opt_rightjust) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) &&
       /* query_cov */
-      (hit->matches + hit->mismatches >= opt_query_cov * si->qseqlen) &&
+      (hit->matches + hit->mismatches >= opt_query_cov * searchinfo->qseqlen) &&
       /* target_cov */
       (hit->matches + hit->mismatches >=
        opt_target_cov * db_getsequencelen(hit->target)) &&
@@ -528,7 +528,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
       if (opt_cluster_unoise)
         {
           const auto mismatches = hit->mismatches;
-          auto const skew = 1.0 * si->qsize / db_getabundance(hit->target);
+          auto const skew = 1.0 * searchinfo->qsize / db_getabundance(hit->target);
           auto const beta = 1.0 / std::pow(2, (1.0 * opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
@@ -564,7 +564,7 @@ auto search_acceptable_aligned(struct searchinfo_s * si,
 }
 
 
-auto align_delayed(struct searchinfo_s * si) -> void
+auto align_delayed(struct searchinfo_s * searchinfo) -> void
 {
   /* compute global alignment */
 
@@ -578,9 +578,9 @@ auto align_delayed(struct searchinfo_s * si) -> void
 
   int target_count = 0;
 
-  for (int x = si->finalized; x < si->hit_count; x++)
+  for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
     {
-      struct hit * hit = si->hits + x;
+      struct hit * hit = searchinfo->hits + x;
       if (not hit->rejected)
         {
           target_list[target_count++] = hit->target;
@@ -589,7 +589,7 @@ auto align_delayed(struct searchinfo_s * si) -> void
 
   if (target_count)
     {
-      search16(si->s,
+      search16(searchinfo->s,
                target_count,
                target_list.data(),
                nwscore_list.data(),
@@ -602,16 +602,16 @@ auto align_delayed(struct searchinfo_s * si) -> void
 
   int i = 0;
 
-  for (int x = si->finalized; x < si->hit_count; x++)
+  for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
-      if ((si->rejects < opt_maxrejects) && (si->accepts < opt_maxaccepts))
+      if ((searchinfo->rejects < opt_maxrejects) && (searchinfo->accepts < opt_maxaccepts))
         {
-          struct hit * hit = si->hits + x;
+          struct hit * hit = searchinfo->hits + x;
 
           if (hit->rejected)
             {
-              si->rejects++;
+              searchinfo->rejects++;
             }
           else
             {
@@ -639,13 +639,13 @@ auto align_delayed(struct searchinfo_s * si) -> void
                       xfree(nwcigar_list[i]);
                     }
 
-                  nwcigar = xstrdup(si->lma->align(si->qsequence,
+                  nwcigar = xstrdup(searchinfo->lma->align(searchinfo->qsequence,
                                                    dseq,
-                                                   si->qseqlen,
+                                                   searchinfo->qseqlen,
                                                    dseqlen));
 
-                  si->lma->alignstats(nwcigar,
-                                      si->qsequence,
+                  searchinfo->lma->alignstats(nwcigar,
+                                      searchinfo->qsequence,
                                       dseq,
                                       & nwscore,
                                       & nwalignmentlength,
@@ -663,8 +663,8 @@ auto align_delayed(struct searchinfo_s * si) -> void
                 }
 
               hit->aligned = true;
-              hit->shortest = std::min(si->qseqlen, static_cast<int>(dseqlen));
-              hit->longest = std::max(si->qseqlen, static_cast<int>(dseqlen));
+              hit->shortest = std::min(searchinfo->qseqlen, static_cast<int>(dseqlen));
+              hit->longest = std::max(searchinfo->qseqlen, static_cast<int>(dseqlen));
               hit->nwalignment = nwcigar;
               hit->nwscore = nwscore;
               hit->nwdiff = nwalignmentlength - nwmatches;
@@ -680,13 +680,13 @@ auto align_delayed(struct searchinfo_s * si) -> void
               align_trim(hit);
 
               /* test accept/reject criteria after alignment */
-              if (search_acceptable_aligned(si, hit))
+              if (search_acceptable_aligned(searchinfo, hit))
                 {
-                  si->accepts++;
+                  searchinfo->accepts++;
                 }
               else
                 {
-                  si->rejects++;
+                  searchinfo->rejects++;
                 }
 
               ++i;
@@ -700,21 +700,21 @@ auto align_delayed(struct searchinfo_s * si) -> void
       xfree(nwcigar_list[i++]);
     }
 
-  si->finalized = si->hit_count;
+  searchinfo->finalized = searchinfo->hit_count;
 }
 
 
-auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
+auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 {
-  si->hit_count = 0;
+  searchinfo->hit_count = 0;
 
-  search16_qprep(si->s, si->qsequence, si->qseqlen);
+  search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
 
-  si->lma = new LinearMemoryAligner;
+  searchinfo->lma = new LinearMemoryAligner;
 
-  int64_t * scorematrix = si->lma->scorematrix_create(opt_match, opt_mismatch);
+  int64_t * scorematrix = searchinfo->lma->scorematrix_create(opt_match, opt_mismatch);
 
-  si->lma->set_parameters(scorematrix,
+  searchinfo->lma->set_parameters(scorematrix,
                           opt_gap_open_query_left,
                           opt_gap_open_target_left,
                           opt_gap_open_query_interior,
@@ -729,32 +729,32 @@ auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
                           opt_gap_extension_target_right);
 
   /* extract unique kmer samples from query*/
-  unique_count(si->uh, opt_wordlength,
-               si->qseqlen, si->qsequence,
-               &si->kmersamplecount, &si->kmersample, seqmask);
+  unique_count(searchinfo->uh, opt_wordlength,
+               searchinfo->qseqlen, searchinfo->qsequence,
+               &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 
   /* find database sequences with the most kmer hits */
-  search_topscores(si);
+  search_topscores(searchinfo);
 
   /* analyse targets with the highest number of kmer hits */
-  si->accepts = 0;
-  si->rejects = 0;
-  si->finalized = 0;
+  searchinfo->accepts = 0;
+  searchinfo->rejects = 0;
+  searchinfo->finalized = 0;
 
   int delayed = 0;
 
-  while ((si->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
-         (si->rejects < opt_maxrejects) &&
-         (si->accepts < opt_maxaccepts) &&
-         (not minheap_isempty(si->m)))
+  while ((searchinfo->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
+         (searchinfo->rejects < opt_maxrejects) &&
+         (searchinfo->accepts < opt_maxaccepts) &&
+         (not minheap_isempty(searchinfo->m)))
     {
-      elem_t const e = minheap_poplast(si->m);
+      elem_t const e = minheap_poplast(searchinfo->m);
 
-      struct hit * hit = si->hits + si->hit_count;
+      struct hit * hit = searchinfo->hits + searchinfo->hit_count;
 
       hit->target = e.seqno;
       hit->count = e.count;
-      hit->strand = si->strand;
+      hit->strand = searchinfo->strand;
       hit->rejected = false;
       hit->accepted = false;
       hit->aligned = false;
@@ -762,7 +762,7 @@ auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
       hit->nwalignment = nullptr;
 
       /* Test some accept/reject criteria before alignment */
-      if (search_acceptable_unaligned(si, e.seqno))
+      if (search_acceptable_unaligned(searchinfo, e.seqno))
         {
           ++delayed;
         }
@@ -771,20 +771,20 @@ auto search_onequery(struct searchinfo_s * si, int seqmask) -> void
           hit->rejected = true;
         }
 
-      si->hit_count++;
+      searchinfo->hit_count++;
 
       if (delayed == MAXDELAYED)
         {
-          align_delayed(si);
+          align_delayed(searchinfo);
           delayed = 0;
         }
     }
   if (delayed > 0)
     {
-      align_delayed(si);
+      align_delayed(searchinfo);
     }
 
-  delete si->lma;
+  delete searchinfo->lma;
   xfree(scorematrix);
 }
 
