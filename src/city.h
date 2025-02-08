@@ -67,7 +67,7 @@
 #include <utility>  // std::pair
 
 
-using uint64 = uint64_t;
+using uint64 = uint64_t; // refactoring: eliminate
 using uint128 = std::pair<uint64, uint64>;
 
 inline auto Uint128Low64(const uint128& x) -> uint64 { return x.first; }
