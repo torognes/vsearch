@@ -70,8 +70,8 @@
 using uint64 = uint64_t; // refactoring: eliminate
 using uint128 = std::pair<uint64, uint64>;
 
-inline auto Uint128Low64(const uint128& x) -> uint64 { return x.first; }
-inline auto Uint128High64(const uint128& x) -> uint64 { return x.second; }
+inline auto Uint128Low64(const uint128& a_pair) -> uint64 { return a_pair.first; }
+inline auto Uint128High64(const uint128& a_pair) -> uint64 { return a_pair.second; }
 
 // Hash function for a byte array.
 auto CityHash64(const char * seq, std::size_t len) -> uint64;
