@@ -514,7 +514,7 @@ auto CityHash128(const char * seq, std::size_t len) -> uint128 {
 #include <nmmintrin.h>
 
 // Requires len >= 240.
-static auto CityHashCrc256Long(const char *s, std::size_t len,
+static auto CityHashCrc256Long(const char * s, std::size_t len,
                                uint32 seed, uint64 *result) -> void {
   uint64 a = Fetch64(s + 56) + k0;
   uint64 b = Fetch64(s + 96) + k0;
@@ -602,14 +602,14 @@ static auto CityHashCrc256Long(const char *s, std::size_t len,
 }
 
 // Requires len < 240.
-static auto CityHashCrc256Short(const char *s, std::size_t len, uint64 *result) -> void {
+static auto CityHashCrc256Short(const char * s, std::size_t len, uint64 *result) -> void {
   char buf[240];
-  memcpy(buf, s, len);
-  memset(buf + len, 0, 240 - len);
+  std::memcpy(buf, s, len);
+  std::memset(buf + len, 0, 240 - len);
   CityHashCrc256Long(buf, 240, ~static_cast<uint32>(len), result);
 }
 
-auto CityHashCrc256(const char *s, std::size_t len, uint64 *result) -> void {
+auto CityHashCrc256(const char * s, std::size_t len, uint64 *result) -> void {
   if (LIKELY(len >= 240)) {
     CityHashCrc256Long(s, len, 0, result);
   } else {
