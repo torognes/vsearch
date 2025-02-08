@@ -37,8 +37,6 @@
 #include <utility> // std::pair, std::make_pair
 
 
-using namespace std;  // refactoring: bad practice
-
 static auto UNALIGNED_LOAD64(const char *p) -> uint64 {
   uint64 result = 0;
   std::memcpy(&result, p, sizeof(result));
