@@ -67,7 +67,6 @@
 #include <utility>  // std::pair
 
 
-using uint32 = uint32_t;
 using uint64 = uint64_t;
 using uint128 = std::pair<uint64, uint64>;
 
@@ -94,7 +93,7 @@ auto CityHash128(const char *s, std::size_t len) -> uint128;
 auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128;
 
 // Hash function for a byte array.  Most useful in 32-bit binaries.
-auto CityHash32(const char *s, std::size_t len) -> uint32;
+auto CityHash32(const char *s, std::size_t len) -> uint32_t;
 
 // Hash 128 input bits down to 64 bits of output.
 // This is intended to be a reasonably good hash function.

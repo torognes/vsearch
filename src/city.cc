@@ -43,8 +43,8 @@ static auto UNALIGNED_LOAD64(const char * p) -> uint64 {
   return result;
 }
 
-static auto UNALIGNED_LOAD32(const char * p) -> uint32 {
-  uint32 result = 0;
+static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
+  uint32_t result = 0;
   std::memcpy(&result, p, sizeof(result));
   return result;
 }
@@ -103,7 +103,7 @@ static auto Fetch64(const char *p) -> uint64 {
   return uint64_in_expected_order(UNALIGNED_LOAD64(p));
 }
 
-static auto Fetch32(const char *p) -> uint32 {
+static auto Fetch32(const char *p) -> uint32_t {
   return uint32_in_expected_order(UNALIGNED_LOAD32(p));
 }
 
@@ -117,7 +117,7 @@ constexpr uint32_t c1 = 0xcc9e2d51;
 constexpr uint32_t c2 = 0x1b873593;
 
 // A 32-bit to 32-bit integer hash copied from Murmur3.
-static auto fmix(uint32 hash_value) -> uint32
+static auto fmix(uint32_t hash_value) -> uint32_t
 {
   hash_value ^= hash_value >> 16U;
   hash_value *= 0x85ebca6b;
@@ -127,7 +127,7 @@ static auto fmix(uint32 hash_value) -> uint32
   return hash_value;
 }
 
-static auto Rotate32(uint32 val, int shift) -> uint32 {
+static auto Rotate32(uint32_t val, int shift) -> uint32_t {
   // Avoid shifting by 32: doing so yields an undefined result.
   return shift == 0 ? val : ((val >> shift) | (val << (32 - shift)));
 }
@@ -135,7 +135,7 @@ static auto Rotate32(uint32 val, int shift) -> uint32 {
 #undef PERMUTE3
 #define PERMUTE3(a, b, c) do { std::swap(a, b); std::swap(a, c); } while (0)
 
-static auto Mur(uint32 a_value, uint32 hash_value) -> uint32 {
+static auto Mur(uint32_t a_value, uint32_t hash_value) -> uint32_t {
   // Helper from Murmur3 for combining two 32-bit values.
   a_value *= c1;
   a_value = Rotate32(a_value, 17);
@@ -145,21 +145,21 @@ static auto Mur(uint32 a_value, uint32 hash_value) -> uint32 {
   return (hash_value * 5) + 0xe6546b64;
 }
 
-static auto Hash32Len13to24(const char * seq, std::size_t len) -> uint32 {
-  const uint32 a = Fetch32(seq - 4 + (len >> 1U));
-  const uint32 b = Fetch32(seq + 4);
-  const uint32 c = Fetch32(seq + len - 8);
-  const uint32 d = Fetch32(seq + (len >> 1U));
-  const uint32 e = Fetch32(seq);
-  const uint32 f = Fetch32(seq + len - 4);
-  const uint32 h = len;
+static auto Hash32Len13to24(const char * seq, std::size_t len) -> uint32_t {
+  const uint32_t a = Fetch32(seq - 4 + (len >> 1U));
+  const uint32_t b = Fetch32(seq + 4);
+  const uint32_t c = Fetch32(seq + len - 8);
+  const uint32_t d = Fetch32(seq + (len >> 1U));
+  const uint32_t e = Fetch32(seq);
+  const uint32_t f = Fetch32(seq + len - 4);
+  const uint32_t h = len;
 
   return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
 }
 
-static auto Hash32Len0to4(const char * seq, std::size_t len) -> uint32 {
-  uint32 b = 0;
-  uint32 c = 9;
+static auto Hash32Len0to4(const char * seq, std::size_t len) -> uint32_t {
+  uint32_t b = 0;
+  uint32_t c = 9;
   for (int i = 0; i < len; i++) {
     const signed char v = seq[i];
     b = b * c1 + v;
@@ -168,18 +168,18 @@ static auto Hash32Len0to4(const char * seq, std::size_t len) -> uint32 {
   return fmix(Mur(b, Mur(len, c)));
 }
 
-static auto Hash32Len5to12(const char * seq, std::size_t len) -> uint32 {
-  uint32 a = len;
-  uint32 b = len * 5;
-  uint32 c = 9;
-  uint32 const d = b;
+static auto Hash32Len5to12(const char * seq, std::size_t len) -> uint32_t {
+  uint32_t a = len;
+  uint32_t b = len * 5;
+  uint32_t c = 9;
+  uint32_t const d = b;
   a += Fetch32(seq);
   b += Fetch32(seq + len - 4);
   c += Fetch32(seq + ((len >> 1U) & 4U));
   return fmix(Mur(c, Mur(b, Mur(a, d))));
 }
 
-auto CityHash32(const char * seq, std::size_t len) -> uint32 {
+auto CityHash32(const char * seq, std::size_t len) -> uint32_t {
   if (len <= 24) {
     return len <= 12 ?
         (len <= 4 ? Hash32Len0to4(seq, len) : Hash32Len5to12(seq, len)) :
@@ -187,14 +187,14 @@ auto CityHash32(const char * seq, std::size_t len) -> uint32 {
   }
 
   // len > 24
-  uint32 h = len;
-  uint32 g = c1 * len;
-  uint32 f = g;
-  const uint32 a0 = Rotate32(Fetch32(seq + len - 4) * c1, 17) * c2;
-  const uint32 a1 = Rotate32(Fetch32(seq + len - 8) * c1, 17) * c2;
-  const uint32 a2 = Rotate32(Fetch32(seq + len - 16) * c1, 17) * c2;
-  const uint32 a3 = Rotate32(Fetch32(seq + len - 12) * c1, 17) * c2;
-  const uint32 a4 = Rotate32(Fetch32(seq + len - 20) * c1, 17) * c2;
+  uint32_t h = len;
+  uint32_t g = c1 * len;
+  uint32_t f = g;
+  const uint32_t a0 = Rotate32(Fetch32(seq + len - 4) * c1, 17) * c2;
+  const uint32_t a1 = Rotate32(Fetch32(seq + len - 8) * c1, 17) * c2;
+  const uint32_t a2 = Rotate32(Fetch32(seq + len - 16) * c1, 17) * c2;
+  const uint32_t a3 = Rotate32(Fetch32(seq + len - 12) * c1, 17) * c2;
+  const uint32_t a4 = Rotate32(Fetch32(seq + len - 20) * c1, 17) * c2;
   h ^= a0;
   h = Rotate32(h, 19);
   h = h * 5 + 0xe6546b64;
@@ -212,11 +212,11 @@ auto CityHash32(const char * seq, std::size_t len) -> uint32 {
   f = f * 5 + 0xe6546b64;
   std::size_t iters = (len - 1) / 20;
   do {
-    const uint32 a0 = Rotate32(Fetch32(seq) * c1, 17) * c2;
-    const uint32 a1 = Fetch32(seq + 4);
-    const uint32 a2 = Rotate32(Fetch32(seq + 8) * c1, 17) * c2;
-    const uint32 a3 = Rotate32(Fetch32(seq + 12) * c1, 17) * c2;
-    const uint32 a4 = Fetch32(seq + 16);
+    const uint32_t a0 = Rotate32(Fetch32(seq) * c1, 17) * c2;
+    const uint32_t a1 = Fetch32(seq + 4);
+    const uint32_t a2 = Rotate32(Fetch32(seq + 8) * c1, 17) * c2;
+    const uint32_t a3 = Rotate32(Fetch32(seq + 12) * c1, 17) * c2;
+    const uint32_t a4 = Fetch32(seq + 16);
     h ^= a0;
     h = Rotate32(h, 18);
     h = h * 5 + 0xe6546b64;
@@ -293,8 +293,8 @@ static auto HashLen0to16(const char * seq, std::size_t len) -> uint64 {
     uint8_t const a = seq[0];
     uint8_t const b = seq[len >> 1U];
     uint8_t const c = seq[len - 1];
-    const uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8U);
-    const uint32 z = len + (static_cast<uint32>(c) << 2U);
+    const uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8U);
+    const uint32_t z = len + (static_cast<uint32_t>(c) << 2U);
     return ShiftMix((y * k2) ^ (z * k0)) * k2;
   }
   return k2;
@@ -515,7 +515,7 @@ auto CityHash128(const char * seq, std::size_t len) -> uint128 {
 
 // Requires len >= 240.
 static auto CityHashCrc256Long(const char * s, std::size_t len,
-                               uint32 seed, uint64 *result) -> void {
+                               uint32_t seed, uint64 *result) -> void {
   uint64 a = Fetch64(s + 56) + k0;
   uint64 b = Fetch64(s + 96) + k0;
   uint64 c = result[0] = HashLen16(b, len);
@@ -606,7 +606,7 @@ static auto CityHashCrc256Short(const char * s, std::size_t len, uint64 *result)
   char buf[240];
   std::memcpy(buf, s, len);
   std::memset(buf + len, 0, 240 - len);
-  CityHashCrc256Long(buf, 240, ~static_cast<uint32>(len), result);
+  CityHashCrc256Long(buf, 240, ~static_cast<uint32_t>(len), result);
 }
 
 auto CityHashCrc256(const char * s, std::size_t len, uint64 *result) -> void {
