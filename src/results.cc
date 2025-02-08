@@ -419,7 +419,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         case 24: /* qstrand */
           if (hits != nullptr)
             {
-              fprintf(output_handle, "%c", hits->strand ? '-' : '+');
+              fprintf(output_handle, "%c", (hits->strand != 0) ? '-' : '+');
             }
           break;
         case 25: /* tstrand */
