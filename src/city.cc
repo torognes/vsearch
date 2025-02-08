@@ -31,7 +31,7 @@
 #include <city.h>
 
 #include <algorithm>  // std::swap
-#include <cstdint>  // int32_t
+#include <cstdint>  // int32_t, uint8_t, uint32_t, uint64_t
 #include <cstdio>  // std::size_t
 #include <cstring>  // std::memcpy, std::memset
 #include <utility> // std::pair, std::make_pair
