@@ -22,7 +22,7 @@ Source code and binaries are available at
 
 # COPYRIGHT
 
-Copyright (C) 2014-2024, Torbjørn Rognes, Frédéric Mahé and Tomás
+Copyright (C) 2014-2025, Torbjørn Rognes, Frédéric Mahé and Tomás
 Flouri
 
 All rights reserved.
