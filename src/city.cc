@@ -32,6 +32,7 @@
 
 #include <algorithm>  // std::swap
 #include <cstdint>  // int32_t
+#include <cstdio>  // std::size_t
 #include <cstring>  // std::memcpy, std::memset
 #include <utility> // std::pair, std::make_pair
 
@@ -146,7 +147,7 @@ static auto Mur(uint32 a, uint32 h) -> uint32 {
   return (h * 5) + 0xe6546b64;
 }
 
-static auto Hash32Len13to24(const char * s, size_t len) -> uint32 {
+static auto Hash32Len13to24(const char * s, std::size_t len) -> uint32 {
   const uint32 a = Fetch32(s - 4 + (len >> 1U));
   const uint32 b = Fetch32(s + 4);
   const uint32 c = Fetch32(s + len - 8);
@@ -158,7 +159,7 @@ static auto Hash32Len13to24(const char * s, size_t len) -> uint32 {
   return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
 }
 
-static auto Hash32Len0to4(const char * s, size_t len) -> uint32 {
+static auto Hash32Len0to4(const char * s, std::size_t len) -> uint32 {
   uint32 b = 0;
   uint32 c = 9;
   for (int i = 0; i < len; i++) {
@@ -169,7 +170,7 @@ static auto Hash32Len0to4(const char * s, size_t len) -> uint32 {
   return fmix(Mur(b, Mur(len, c)));
 }
 
-static auto Hash32Len5to12(const char * s, size_t len) -> uint32 {
+static auto Hash32Len5to12(const char * s, std::size_t len) -> uint32 {
   uint32 a = len;
   uint32 b = len * 5;
   uint32 c = 9;
@@ -180,7 +181,7 @@ static auto Hash32Len5to12(const char * s, size_t len) -> uint32 {
   return fmix(Mur(c, Mur(b, Mur(a, d))));
 }
 
-auto CityHash32(const char * s, size_t len) -> uint32 {
+auto CityHash32(const char * s, std::size_t len) -> uint32 {
   if (len <= 24) {
     return len <= 12 ?
         (len <= 4 ? Hash32Len0to4(s, len) : Hash32Len5to12(s, len)) :
@@ -211,7 +212,7 @@ auto CityHash32(const char * s, size_t len) -> uint32 {
   f += a4;
   f = Rotate32(f, 19);
   f = f * 5 + 0xe6546b64;
-  size_t iters = (len - 1) / 20;
+  std::size_t iters = (len - 1) / 20;
   do {
     const uint32 a0 = Rotate32(Fetch32(s) * c1, 17) * c2;
     const uint32 a1 = Fetch32(s + 4);
@@ -276,7 +277,7 @@ static auto HashLen16(uint64 u, uint64 v, uint64 mul) -> uint64 {
   return b;
 }
 
-static auto HashLen0to16(const char *s, size_t len) -> uint64 {
+static auto HashLen0to16(const char *s, std::size_t len) -> uint64 {
   if (len >= 8) {
     const uint64 mul = k2 + (len * 2);
     const uint64 a = Fetch64(s) + k2;
@@ -303,7 +304,7 @@ static auto HashLen0to16(const char *s, size_t len) -> uint64 {
 
 // This probably works well for 16-byte strings as well, but it may be overkill
 // in that case.
-static auto HashLen17to32(const char *s, size_t len) -> uint64 {
+static auto HashLen17to32(const char *s, std::size_t len) -> uint64 {
   const uint64 mul = k2 + (len * 2);
   const uint64 a = Fetch64(s) * k1;
   const uint64 b = Fetch64(s + 8);
@@ -339,7 +340,7 @@ static auto WeakHashLen32WithSeeds(const char *s, uint64 a, uint64 b)
 }
 
 // Return an 8-byte hash for 33 to 64 bytes.
-static auto HashLen33to64(const char *s, size_t len) -> uint64 {
+static auto HashLen33to64(const char *s, std::size_t len) -> uint64 {
   const uint64 mul = k2 + (len * 2);
   uint64 a = Fetch64(s) * k2;
   uint64 b = Fetch64(s + 8);
@@ -360,7 +361,7 @@ static auto HashLen33to64(const char *s, size_t len) -> uint64 {
   return b + x;
 }
 
-auto CityHash64(const char *s, size_t len) -> uint64 {
+auto CityHash64(const char *s, std::size_t len) -> uint64 {
   if (len <= 16) {
     return HashLen0to16(s, len);
   }
@@ -381,7 +382,7 @@ auto CityHash64(const char *s, size_t len) -> uint64 {
   x = x * k1 + Fetch64(s);
 
   // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
-  len = (len - 1) & ~static_cast<size_t>(63);
+  len = (len - 1) & ~static_cast<std::size_t>(63);
   do {
     x = Rotate(x + y + v.first + Fetch64(s + 8), 37) * k1;
     y = Rotate(y + v.second + Fetch64(s + 48), 42) * k1;
@@ -398,18 +399,18 @@ auto CityHash64(const char *s, size_t len) -> uint64 {
                    HashLen16(v.second, w.second) + x);
 }
 
-auto CityHash64WithSeed(const char *s, size_t len, uint64 seed) -> uint64 {
+auto CityHash64WithSeed(const char *s, std::size_t len, uint64 seed) -> uint64 {
   return CityHash64WithSeeds(s, len, k2, seed);
 }
 
-auto CityHash64WithSeeds(const char *s, size_t len,
+auto CityHash64WithSeeds(const char *s, std::size_t len,
                          uint64 seed0, uint64 seed1) -> uint64 {
   return HashLen16(CityHash64(s, len) - seed0, seed1);
 }
 
 // A subroutine for CityHash128().  Returns a decent 128-bit hash for strings
 // of any length representable in signed long.  Based on City and Murmur.
-static auto CityMurmur(const char *s, size_t len, uint128 seed) -> uint128 {
+static auto CityMurmur(const char *s, std::size_t len, uint128 seed) -> uint128 {
   uint64 a = Uint128Low64(seed);
   uint64 b = Uint128High64(seed);
   uint64 c = 0;
@@ -439,15 +440,15 @@ static auto CityMurmur(const char *s, size_t len, uint128 seed) -> uint128 {
   return uint128(a ^ b, HashLen16(b, a));
 }
 
-auto CityHash128WithSeed(const char *s, size_t len, uint128 seed) -> uint128 {
+auto CityHash128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128 {
   if (len < 128) {
     return CityMurmur(s, len, seed);
   }
 
   // We expect len >= 128 to be the common case.  Keep 56 bytes of state:
   // v, w, x, y, and z.
-  pair<uint64, uint64> v;
-  pair<uint64, uint64> w;
+  std::pair<uint64, uint64> v;
+  std::pair<uint64, uint64> w;
   uint64 x = Uint128Low64(seed);
   uint64 y = Uint128High64(seed);
   uint64 z = len * k1;
@@ -484,7 +485,7 @@ auto CityHash128WithSeed(const char *s, size_t len, uint128 seed) -> uint128 {
   w.first *= 9;
   v.first *= k0;
   // If 0 < len < 128, hash up to 4 chunks of 32 bytes each from the end of s.
-  for (size_t tail_done = 0; tail_done < len; ) {
+  for (std::size_t tail_done = 0; tail_done < len; ) {
     tail_done += 32;
     y = Rotate(x + y, 42) * k0 + v.second;
     w.first += Fetch64(s + len - tail_done + 16);
@@ -503,7 +504,7 @@ auto CityHash128WithSeed(const char *s, size_t len, uint128 seed) -> uint128 {
                  HashLen16(x + w.second, y + v.second));
 }
 
-auto CityHash128(const char *s, size_t len) -> uint128 {
+auto CityHash128(const char *s, std::size_t len) -> uint128 {
   return len >= 16 ?
       CityHash128WithSeed(s + 16, len - 16,
                           uint128(Fetch64(s), Fetch64(s + 8) + k0)) :
@@ -515,7 +516,7 @@ auto CityHash128(const char *s, size_t len) -> uint128 {
 #include <nmmintrin.h>
 
 // Requires len >= 240.
-static auto CityHashCrc256Long(const char *s, size_t len,
+static auto CityHashCrc256Long(const char *s, std::size_t len,
                                uint32 seed, uint64 *result) -> void {
   uint64 a = Fetch64(s + 56) + k0;
   uint64 b = Fetch64(s + 96) + k0;
@@ -530,7 +531,7 @@ static auto CityHashCrc256Long(const char *s, size_t len,
   uint64 z = 0;
 
   // 240 bytes of input per iter.
-  size_t iters = len / 240;
+  std::size_t iters = len / 240;
   len -= iters * 240;
   do {
 #undef CHUNK
@@ -603,14 +604,14 @@ static auto CityHashCrc256Long(const char *s, size_t len,
 }
 
 // Requires len < 240.
-static auto CityHashCrc256Short(const char *s, size_t len, uint64 *result) -> void {
+static auto CityHashCrc256Short(const char *s, std::size_t len, uint64 *result) -> void {
   char buf[240];
   memcpy(buf, s, len);
   memset(buf + len, 0, 240 - len);
   CityHashCrc256Long(buf, 240, ~static_cast<uint32>(len), result);
 }
 
-auto CityHashCrc256(const char *s, size_t len, uint64 *result) -> void {
+auto CityHashCrc256(const char *s, std::size_t len, uint64 *result) -> void {
   if (LIKELY(len >= 240)) {
     CityHashCrc256Long(s, len, 0, result);
   } else {
@@ -618,7 +619,7 @@ auto CityHashCrc256(const char *s, size_t len, uint64 *result) -> void {
   }
 }
 
-auto CityHashCrc128WithSeed(const char *s, size_t len, uint128 seed) -> uint128 {
+auto CityHashCrc128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128 {
   if (len <= 900) {
     return CityHash128WithSeed(s, len, seed);
   } else {
@@ -631,7 +632,7 @@ auto CityHashCrc128WithSeed(const char *s, size_t len, uint128 seed) -> uint128 
   }
 }
 
-auto CityHashCrc128(const char *s, size_t len) -> uint128 {
+auto CityHashCrc128(const char *s, std::size_t len) -> uint128 {
   if (len <= 900) {
     return CityHash128(s, len);
   } else {
