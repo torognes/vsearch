@@ -118,14 +118,14 @@ constexpr uint32_t c1 = 0xcc9e2d51;
 constexpr uint32_t c2 = 0x1b873593;
 
 // A 32-bit to 32-bit integer hash copied from Murmur3.
-static auto fmix(uint32 h) -> uint32
+static auto fmix(uint32 hash_value) -> uint32
 {
-  h ^= h >> 16U;
-  h *= 0x85ebca6b;
-  h ^= h >> 13U;
-  h *= 0xc2b2ae35;
-  h ^= h >> 16U;
-  return h;
+  hash_value ^= hash_value >> 16U;
+  hash_value *= 0x85ebca6b;
+  hash_value ^= hash_value >> 13U;
+  hash_value *= 0xc2b2ae35;
+  hash_value ^= hash_value >> 16U;
+  return hash_value;
 }
 
 static auto Rotate32(uint32 val, int shift) -> uint32 {
