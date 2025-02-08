@@ -75,13 +75,13 @@
 constexpr uint64_t fastx_buffer_alloc = 8192;
 
 #ifdef HAVE_BZLIB_H
-#define BZ_VERBOSE_0 0
-#define BZ_VERBOSE_1 1
-#define BZ_VERBOSE_2 2
-#define BZ_VERBOSE_3 3
-#define BZ_VERBOSE_4 4
-#define BZ_MORE_MEM 0  /* faster decompression using more memory */
-#define BZ_LESS_MEM 1  /* slower decompression but requires less memory */
+constexpr auto BZ_VERBOSE_0 = 0;
+// constexpr auto BZ_VERBOSE_1 = 1;
+// constexpr auto BZ_VERBOSE_2 = 2;
+// constexpr auto BZ_VERBOSE_3 = 3;
+// constexpr auto BZ_VERBOSE_4 = 4;
+constexpr auto BZ_MORE_MEM = 0;  /* faster decompression using more memory */
+// constexpr auto BZ_LESS_MEM = 1;  /* slower decompression but requires less memory */
 #endif
 
 constexpr auto format_plain = 1;
