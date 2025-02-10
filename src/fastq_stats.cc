@@ -306,7 +306,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           sumee_length_table.resize(length + 1);
         }
 
-      ++read_length_table[length];
+      ++read_length_table[length];  // refactoring: could be derived from qual_length_table with std::adjacent_difference(v.rbegin(), v.rend(), read_length_table.rbegin());
 
 
       /* update quality statistics */
