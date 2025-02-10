@@ -1510,7 +1510,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   std::vector<bool> options_selected(options_count);
 
   int options_index = 0;
-  int val = 0;  // long option: return 'val' if 'flag' is nullptr
+  int val = 0;  // recognized long option: return 'val' if 'flag' is nullptr
 
   while ((val = getopt_long_only(argc, argv, "", long_options.data(),
                                &options_index)) == 0)
