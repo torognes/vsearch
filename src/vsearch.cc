@@ -1510,9 +1510,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   std::vector<bool> options_selected(options_count);
 
   int options_index = 0;
-  int c = 0;
+  int val = 0;  // long option: return 'val' if 'flag' is nullptr
 
-  while ((c = getopt_long_only(argc, argv, "", long_options.data(),
+  while ((val = getopt_long_only(argc, argv, "", long_options.data(),
                                &options_index)) == 0)
     {
       if (options_index < options_count)
@@ -2631,7 +2631,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     }
 
   /* Terminate if ambiguous or illegal options have been detected */
-  if (c != -1)
+  if (val != -1)
     {
       exit(EXIT_FAILURE);
     }
