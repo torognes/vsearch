@@ -950,7 +950,7 @@ auto udb_make() -> void
   buffer[49] = 0x55444266; /* fBDU UDBf */
   pos += largewrite(fd_output, buffer.data(), 50 * 4, 0);
 
-  /* write 4^wordlength uint32's with word match counts */
+  /* write 4^wordlength uint32_t's with word match counts */
   pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos);
 
   /* 3BDU */
@@ -1017,7 +1017,7 @@ auto udb_make() -> void
       pos += largewrite(fd_output, db_getheader(i), len + 1, pos);
     }
 
-  /* sequence lengths (uint32) */
+  /* sequence lengths (uint32_t) */
   for (auto i = 0U; i < seqcount; i++)
     {
       buffer[i] = db_getsequencelen(i);
