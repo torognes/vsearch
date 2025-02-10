@@ -290,6 +290,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<double> sumee_length_table(initial_memory_allocation);
   std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
+  // note: fastq parsing represents 99% of total wallclock time
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
     {
 
@@ -349,6 +350,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     }
   progress_done();
   fastq_close(input_handle);
+
+  // note: operations below represent 1% of total wallclock time
 
   /* compute various distributions */
 
