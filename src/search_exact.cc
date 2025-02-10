@@ -85,10 +85,10 @@ static fastx_handle query_fastx_h;
 static pthread_mutex_t mutex_input;
 static pthread_mutex_t mutex_output;
 static int qmatches;
-static uint64 qmatches_abundance;
+static uint64_t qmatches_abundance;
 static int queries;
-static uint64 queries_abundance;
-static uint64 * dbmatched;
+static uint64_t queries_abundance;
+static uint64_t * dbmatched;
 static FILE * fp_samout = nullptr;
 static FILE * fp_alnout = nullptr;
 static FILE * fp_userout = nullptr;
@@ -751,8 +751,8 @@ auto search_exact_prep(char * cmdline, char * progheader) -> void
   /* tophits = the maximum number of hits we need to store */
   tophits = seqcount;
 
-  dbmatched = (uint64*) xmalloc(seqcount * sizeof(uint64*));
-  memset(dbmatched, 0, seqcount * sizeof(uint64*));
+  dbmatched = (uint64_t *) xmalloc(seqcount * sizeof(uint64_t *));
+  memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
 
   dbhash_open(seqcount);
   dbhash_add_all();
