@@ -80,13 +80,13 @@ auto search16_init(CELL score_match,
                    CELL penalty_gap_extension_target_right) -> struct s16info_s *;
 
 
-auto search16_exit(s16info_s * s) -> void;
+auto search16_exit(s16info_s * searchinfo) -> void;
 
 
-auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void;
+auto search16_qprep(s16info_s * searchinfo, char * qseq, int qlen) -> void;
 
 
-auto search16(s16info_s * s,
+auto search16(s16info_s * searchinfo,
               unsigned int sequences,
               unsigned int * seqnos,
               CELL * pscores,
