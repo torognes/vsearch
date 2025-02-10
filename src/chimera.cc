@@ -95,7 +95,7 @@
 /* global constants/data, no need for synchronization */
 static int parts = 0;
 constexpr auto maxparts = 100;
-constexpr auto window = 64;
+constexpr auto window = 32;
 constexpr auto few = 4;
 constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
