@@ -127,7 +127,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 const rem = std::min(blocksize, nbyte - i);
+      uint64_t const rem = std::min(blocksize, nbyte - i);
       uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
@@ -154,7 +154,7 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64 const rem = std::min(blocksize, nbyte - i);
+      uint64_t const rem = std::min(blocksize, nbyte - i);
       uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
@@ -282,7 +282,7 @@ auto udb_read(const char * filename,
 
   unsigned int seqcount = 0;
   unsigned int udb_wordlength = 0;
-  uint64 nucleotides = 0;
+  uint64_t nucleotides = 0;
 
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
@@ -989,19 +989,19 @@ auto udb_make() -> void
   buffer[0] = 0x55444234; /* 4BDU UDB4 */
   /* 0x005e0db3 */
   buffer[1] = 0x005e0db3;
-  /* number of sequences, uint32 */
+  /* number of sequences, uint32_t */
   buffer[2] = seqcount;
-  /* total number of nucleotides, uint64 */
+  /* total number of nucleotides, uint64_t */
   buffer[3] = (unsigned int) (ntcount & 0xffffffff);
   buffer[4] = (unsigned int) (ntcount >> 32U);
-  /* total number of header characters, incl zero-terminator, uint64 */
+  /* total number of header characters, incl zero-terminator, uint64_t */
   buffer[5] = (unsigned int) (header_characters & 0xffffffff);
   buffer[6] = (unsigned int) (header_characters >> 32U);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
   pos += largewrite(fd_output, buffer.data(), 4 * 8, pos);
 
-  /* indices to headers (uint32) */
+  /* indices to headers (uint32_t) */
   auto sum = 0U;
   for (auto i = 0U; i < seqcount; i++)
     {
