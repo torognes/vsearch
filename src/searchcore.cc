@@ -232,10 +232,10 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
       auto const kmer = searchinfo->kmersample[i];
       auto * bitmap = dbindex_getbitmap(kmer);
 
-      if (bitmap)
+      if (bitmap != nullptr)
         {
 #ifdef __x86_64__
-          if (ssse3_present)
+          if (ssse3_present != 0)
             {
               increment_counters_from_bitmap_ssse3(searchinfo->kmers,
                                                    bitmap, indexed_count);
@@ -321,7 +321,7 @@ auto align_trim(struct hit * hit) -> void
   auto * p = hit->nwalignment;
   auto op = '\0';
   int64_t run = 0;
-  if (*p)
+  if (*p != 0)
     {
       run = 1;
       auto scanlength = 0;
@@ -469,22 +469,22 @@ auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
       /* idprefix */
       ((searchinfo->qseqlen >= opt_idprefix) &&
        (dseqlen >= opt_idprefix) &&
-       (not seqncmp(qseq, dseq, opt_idprefix)))
+       (seqncmp(qseq, dseq, opt_idprefix) == 0))
       &&
       /* idsuffix */
       ((searchinfo->qseqlen >= opt_idsuffix) &&
        (dseqlen >= opt_idsuffix) &&
-       (not seqncmp(qseq+searchinfo->qseqlen-opt_idsuffix,
+       (seqncmp(qseq+searchinfo->qseqlen-opt_idsuffix,
                  dseq+dseqlen-opt_idsuffix,
-                 opt_idsuffix)))
+                 opt_idsuffix) == 0))
       &&
       /* self */
-      ((not opt_self) or (strcmp(searchinfo->query_head, dlabel) != 0))
+      ((opt_self == 0) or (strcmp(searchinfo->query_head, dlabel) != 0))
       &&
       /* selfid */
-      ((not opt_selfid) or
+      ((opt_selfid == 0) or
        (searchinfo->qseqlen != dseqlen) or
-       (seqncmp(qseq, dseq, searchinfo->qseqlen)))
+       (seqncmp(qseq, dseq, searchinfo->qseqlen) != 0))
       )
     {
       /* needs further consideration */
@@ -508,10 +508,10 @@ auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
       /* mincols */
       (hit->internal_alignmentlength >= opt_mincols) &&
       /* leftjust */
-      ((not opt_leftjust) or (hit->trim_q_left +
+      ((opt_leftjust == 0) or (hit->trim_q_left +
                            hit->trim_t_left == 0)) &&
       /* rightjust */
-      ((not opt_rightjust) or (hit->trim_q_right +
+      ((opt_rightjust == 0) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) &&
       /* query_cov */
       (hit->matches + hit->mismatches >= opt_query_cov * searchinfo->qseqlen) &&
@@ -525,7 +525,7 @@ auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
       /* maxdiffs */
       (hit->mismatches + hit->internal_indels <= opt_maxdiffs))
     {
-      if (opt_cluster_unoise)
+      if (opt_cluster_unoise != nullptr)
         {
           const auto mismatches = hit->mismatches;
           auto const skew = 1.0 * searchinfo->qsize / db_getabundance(hit->target);
@@ -587,7 +587,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
         }
     }
 
-  if (target_count)
+  if (target_count != 0)
     {
       search16(searchinfo->s,
                target_count,
@@ -634,7 +634,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
                   char * dseq = db_getsequence(target);
 
-                  if (nwcigar_list[i])
+                  if (nwcigar_list[i] != nullptr)
                     {
                       xfree(nwcigar_list[i]);
                     }
@@ -796,7 +796,7 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 
   for (int i = 0; i < si_p->hit_count; i++)
     {
-      if ((not best) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
+      if ((best == nullptr) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
         {
           best = si_p->hits + i;
         }
@@ -806,14 +806,14 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {
-          if ((not best) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
+          if ((best == nullptr) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
             {
               best = si_m->hits + i;
             }
         }
     }
 
-  if (best and not best->accepted)
+  if ((best != nullptr) and not best->accepted)
     {
       best = nullptr;
     }
@@ -829,7 +829,7 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 
   for (int i = 0; i < si_p->hit_count; i++)
     {
-      if ((not best) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
+      if ((best == nullptr) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
         {
           best = si_p->hits + i;
         }
@@ -839,14 +839,14 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {
-          if ((not best) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
+          if ((best == nullptr) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
             {
               best = si_m->hits + i;
             }
         }
     }
 
-  if (best and not best->accepted)
+  if ((best != nullptr) and not best->accepted)
     {
       best = nullptr;
     }
