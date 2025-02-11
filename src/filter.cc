@@ -259,10 +259,8 @@ auto filter(bool const fastq_only, char * filename) -> void
       fatal("No output files specified");
     }
 
-  fastx_handle forward_handle = nullptr;
+  auto * forward_handle = fastx_open(filename);
   fastx_handle reverse_handle = nullptr;
-
-  forward_handle = fastx_open(filename);
 
   if (forward_handle == nullptr)
     {
