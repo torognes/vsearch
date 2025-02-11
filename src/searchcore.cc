@@ -204,7 +204,7 @@ auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 
 
 auto search_enough_kmers(struct searchinfo_s * searchinfo,
-                         unsigned int count) -> bool
+                         unsigned int const count) -> bool
 {
   return (count >= opt_minwordmatches) or (count >= searchinfo->kmersamplecount);
 }
@@ -427,7 +427,7 @@ auto align_trim(struct hit * hit) -> void
 
 
 auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
-                                 int target) -> bool
+                                 int const target) -> bool
 {
   /* consider whether a hit satisfies accept criteria before alignment */
 
