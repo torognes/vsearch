@@ -71,47 +71,47 @@
 
 inline auto fastq_get_qual(char quality_symbol) -> int
 {
-  int const qual = quality_symbol - opt_fastq_ascii;
+  int const quality_score = quality_symbol - opt_fastq_ascii;
 
-  if (qual < opt_fastq_qmin)
+  if (quality_score < opt_fastq_qmin)
     {
       fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
-              qual, opt_fastq_qmin);
+              quality_score, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
           fprintf(stderr,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
-                  qual, opt_fastq_qmin);
+                  quality_score, opt_fastq_qmin);
         }
       exit(EXIT_FAILURE);
     }
-  else if (qual > opt_fastq_qmax)
+  else if (quality_score > opt_fastq_qmax)
     {
       fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
               PRId64 ")\n",
-              qual, opt_fastq_qmax);
+              quality_score, opt_fastq_qmax);
       fprintf(stderr,
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
-              "please use the option --fastq_qmax %d\n", qual);
+              "please use the option --fastq_qmax %d\n", quality_score);
       if (fp_log != nullptr)
         {
           fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
-                  qual, opt_fastq_qmax);
+                  quality_score, opt_fastq_qmax);
           fprintf(fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
-                  "please use the option --fastq_qmax %d\n", qual);
+                  "please use the option --fastq_qmax %d\n", quality_score);
         }
       exit(EXIT_FAILURE);
     }
-  return qual;
+  return quality_score;
 }
 
 
