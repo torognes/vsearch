@@ -69,7 +69,7 @@
 #include <limits>
 
 
-inline auto fastq_get_qual(char quality_symbol) -> int
+inline auto fastq_get_qual(char const quality_symbol) -> int
 {
   int const quality_score = quality_symbol - opt_fastq_ascii;
 
