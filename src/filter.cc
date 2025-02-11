@@ -175,11 +175,11 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
       auto * quality_symbols = fastx_get_quality(input_handle) + res.start;
       for (auto i = 0; i < res.length; i++)
         {
-          auto const qual = fastq_get_qual(quality_symbols[i]);
-          auto const e = std::pow(base, -qual / base);
+          auto const quality_score = fastq_get_qual(quality_symbols[i]);
+          auto const e = std::pow(base, -quality_score / base);
           res.ee += e;
 
-          if ((qual <= opt_fastq_truncqual) or
+          if ((quality_score <= opt_fastq_truncqual) or
               (res.ee > opt_fastq_truncee))
             {
               res.ee -= e;
