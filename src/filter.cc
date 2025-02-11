@@ -172,10 +172,10 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
       static constexpr auto base = 10.0;
-      auto * q = fastx_get_quality(input_handle) + res.start;
+      auto * quality_symbols = fastx_get_quality(input_handle) + res.start;
       for (auto i = 0; i < res.length; i++)
         {
-          auto const qual = fastq_get_qual(q[i]);
+          auto const qual = fastq_get_qual(quality_symbols[i]);
           auto const e = std::pow(base, -qual / base);
           res.ee += e;
 
