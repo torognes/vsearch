@@ -125,12 +125,12 @@ struct analysis_res
 };
 
 
-auto analyse(fastx_handle h) -> struct analysis_res
+auto analyse(fastx_handle input_handle) -> struct analysis_res
 {
   auto const fastq_trunclen = static_cast<int>(opt_fastq_trunclen);
   auto const fastq_trunclen_keep = static_cast<int>(opt_fastq_trunclen_keep);
   struct analysis_res res;
-  res.length = static_cast<int>(fastx_get_sequence_length(h));
+  res.length = static_cast<int>(fastx_get_sequence_length(input_handle));
   auto const old_length = res.length;
 
   /* strip left (5') end */
@@ -167,12 +167,12 @@ auto analyse(fastx_handle h) -> struct analysis_res
       res.length = std::min(res.length, fastq_trunclen_keep);
     }
 
-  if (h->is_fastq)
+  if (input_handle->is_fastq)
     {
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
       static constexpr auto base = 10.0;
-      auto * q = fastx_get_quality(h) + res.start;
+      auto * q = fastx_get_quality(input_handle) + res.start;
       for (auto i = 0; i < res.length; i++)
         {
           auto const qual = fastq_get_qual(q[i]);
@@ -215,7 +215,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
 
   /* filter by n's */
   int64_t ncount = 0;
-  auto * p = fastx_get_sequence(h) + res.start;
+  auto * p = fastx_get_sequence(input_handle) + res.start;
   for (auto i = 0; i < res.length; i++)
     {
       auto const pc = p[i];
@@ -230,7 +230,7 @@ auto analyse(fastx_handle h) -> struct analysis_res
     }
 
   /* filter by abundance */
-  auto const abundance = fastx_get_abundance(h);
+  auto const abundance = fastx_get_abundance(input_handle);
   if (abundance < opt_minsize)
     {
       res.discarded = true;
