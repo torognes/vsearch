@@ -293,7 +293,7 @@ auto filter(bool const fastq_only, char * filename) -> void
         }
     }
 
-  uint64_t const filesize = fastx_get_size(forward_handle);
+  auto const filesize = fastx_get_size(forward_handle);
 
   if (opt_reverse != nullptr)
     {
