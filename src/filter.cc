@@ -260,7 +260,7 @@ auto filter(bool const fastq_only, char * filename) -> void
     }
 
   auto * forward_handle = fastx_open(filename);
-  fastx_handle reverse_handle = nullptr;
+  fastx_handle reverse_handle = nullptr;  // refactoring: direct initialization
 
   if (forward_handle == nullptr)
     {
