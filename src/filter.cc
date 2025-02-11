@@ -75,41 +75,41 @@ inline auto fastq_get_qual(char const quality_symbol) -> int
 
   if (quality_score < opt_fastq_qmin)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               quality_score, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   quality_score, opt_fastq_qmin);
         }
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
     }
   else if (quality_score > opt_fastq_qmax)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
               PRId64 ")\n",
               quality_score, opt_fastq_qmax);
-      fprintf(stderr,
+      std::fprintf(stderr,
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", quality_score);
       if (fp_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
                   quality_score, opt_fastq_qmax);
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
                   "please use the option --fastq_qmax %d\n", quality_score);
         }
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
     }
   return quality_score;
 }
@@ -598,7 +598,7 @@ auto filter(bool fastq_only, char * filename) -> void
 
   if (not opt_quiet)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
               kept,
               truncated,
@@ -607,7 +607,7 @@ auto filter(bool fastq_only, char * filename) -> void
 
   if (opt_log != nullptr)
     {
-      fprintf(fp_log,
+      std::fprintf(fp_log,
               "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
               kept,
               truncated,
@@ -618,22 +618,22 @@ auto filter(bool fastq_only, char * filename) -> void
     {
       if (opt_fastaout_rev != nullptr)
         {
-          fclose(fp_fastaout_rev);
+          std::fclose(fp_fastaout_rev);
         }
 
       if (opt_fastqout_rev != nullptr)
         {
-          fclose(fp_fastqout_rev);
+          std::fclose(fp_fastqout_rev);
         }
 
       if (opt_fastaout_discarded_rev != nullptr)
         {
-          fclose(fp_fastaout_discarded_rev);
+          std::fclose(fp_fastaout_discarded_rev);
         }
 
       if (opt_fastqout_discarded_rev != nullptr)
         {
-          fclose(fp_fastqout_discarded_rev);
+          std::fclose(fp_fastqout_discarded_rev);
         }
 
       fastx_close(h2);
@@ -641,22 +641,22 @@ auto filter(bool fastq_only, char * filename) -> void
 
   if (opt_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
 
   if (opt_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   if (opt_fastaout_discarded != nullptr)
     {
-      fclose(fp_fastaout_discarded);
+      std::fclose(fp_fastaout_discarded);
     }
 
   if (opt_fastqout_discarded != nullptr)
     {
-      fclose(fp_fastqout_discarded);
+      std::fclose(fp_fastqout_discarded);
     }
 
   fastx_close(h1);
