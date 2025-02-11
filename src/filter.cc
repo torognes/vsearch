@@ -215,11 +215,11 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
 
   /* filter by n's */
   int64_t ncount = 0;
-  auto * p = fastx_get_sequence(input_handle) + res.start;
+  auto * nucleotides = fastx_get_sequence(input_handle) + res.start;
   for (auto i = 0; i < res.length; i++)
     {
-      auto const pc = p[i];
-      if ((pc == 'N') or (pc == 'n'))
+      auto const nucleotide = nucleotides[i];
+      if ((nucleotide == 'N') or (nucleotide == 'n'))
         {
           ++ncount;
         }
