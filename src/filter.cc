@@ -259,17 +259,17 @@ auto filter(bool fastq_only, char * filename) -> void
       fatal("No output files specified");
     }
 
-  fastx_handle h1 = nullptr;
-  fastx_handle h2 = nullptr;
+  fastx_handle forward_handle = nullptr;
+  fastx_handle reverse_handle = nullptr;
 
-  h1 = fastx_open(filename);
+  forward_handle = fastx_open(filename);
 
-  if (h1 == nullptr)
+  if (forward_handle == nullptr)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
 
-  if (not (h1->is_fastq or h1->is_empty))
+  if (not (forward_handle->is_fastq or forward_handle->is_empty))
     {
       if (fastq_only)
         {
@@ -293,23 +293,23 @@ auto filter(bool fastq_only, char * filename) -> void
         }
     }
 
-  uint64_t const filesize = fastx_get_size(h1);
+  uint64_t const filesize = fastx_get_size(forward_handle);
 
   if (opt_reverse != nullptr)
     {
-      h2 = fastx_open(opt_reverse);
+      reverse_handle = fastx_open(opt_reverse);
 
-      if (h2 == nullptr)
+      if (reverse_handle == nullptr)
         {
           fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
         }
 
-      if (h1->is_fastq != h2->is_fastq)
+      if (forward_handle->is_fastq != reverse_handle->is_fastq)
         {
           fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
         }
 
-      if (not (h2->is_fastq or h2->is_empty))
+      if (not (reverse_handle->is_fastq or reverse_handle->is_empty))
         {
           if (fastq_only)
             {
@@ -380,7 +380,7 @@ auto filter(bool fastq_only, char * filename) -> void
         }
     }
 
-  if (h2 != nullptr)
+  if (reverse_handle != nullptr)
     {
       if (opt_fastaout_rev != nullptr)
         {
@@ -425,9 +425,9 @@ auto filter(bool fastq_only, char * filename) -> void
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  while (fastx_next(h1, false, chrmap_no_change))
+  while (fastx_next(forward_handle, false, chrmap_no_change))
     {
-      if ((h2 != nullptr) and not fastx_next(h2, false, chrmap_no_change))
+      if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -436,10 +436,10 @@ auto filter(bool fastq_only, char * filename) -> void
       res1.ee = 0.0;
       struct analysis_res res2;
 
-      res1 = analyse(h1);
-      if (h2 != nullptr)
+      res1 = analyse(forward_handle);
+      if (reverse_handle != nullptr)
         {
-          res2 = analyse(h2);
+          res2 = analyse(reverse_handle);
         }
 
       if (res1.discarded or res2.discarded)
@@ -452,11 +452,11 @@ auto filter(bool fastq_only, char * filename) -> void
             {
               fasta_print_general(fp_fastaout_discarded,
                                   nullptr,
-                                  fastx_get_sequence(h1) + res1.start,
+                                  fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
-                                  fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
-                                  fastx_get_abundance(h1),
+                                  fastx_get_header(forward_handle),
+                                  fastx_get_header_length(forward_handle),
+                                  fastx_get_abundance(forward_handle),
                                   discarded,
                                   res1.ee,
                                   -1,
@@ -468,27 +468,27 @@ auto filter(bool fastq_only, char * filename) -> void
           if (opt_fastqout_discarded != nullptr)
             {
               fastq_print_general(fp_fastqout_discarded,
-                                  fastx_get_sequence(h1) + res1.start,
+                                  fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
-                                  fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
-                                  fastx_get_quality(h1) + res1.start,
-                                  fastx_get_abundance(h1),
+                                  fastx_get_header(forward_handle),
+                                  fastx_get_header_length(forward_handle),
+                                  fastx_get_quality(forward_handle) + res1.start,
+                                  fastx_get_abundance(forward_handle),
                                   discarded,
                                   res1.ee);
             }
 
-          if (h2 != nullptr)
+          if (reverse_handle != nullptr)
             {
               if (opt_fastaout_discarded_rev != nullptr)
                 {
                   fasta_print_general(fp_fastaout_discarded_rev,
                                       nullptr,
-                                      fastx_get_sequence(h2) + res2.start,
+                                      fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
-                                      fastx_get_header(h2),
-                                      fastx_get_header_length(h2),
-                                      fastx_get_abundance(h2),
+                                      fastx_get_header(reverse_handle),
+                                      fastx_get_header_length(reverse_handle),
+                                      fastx_get_abundance(reverse_handle),
                                       discarded,
                                       res2.ee,
                                       -1,
@@ -500,12 +500,12 @@ auto filter(bool fastq_only, char * filename) -> void
               if (opt_fastqout_discarded_rev != nullptr)
                 {
                   fastq_print_general(fp_fastqout_discarded_rev,
-                                      fastx_get_sequence(h2) + res2.start,
+                                      fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
-                                      fastx_get_header(h2),
-                                      fastx_get_header_length(h2),
-                                      fastx_get_quality(h2) + res2.start,
-                                      fastx_get_abundance(h2),
+                                      fastx_get_header(reverse_handle),
+                                      fastx_get_header_length(reverse_handle),
+                                      fastx_get_quality(reverse_handle) + res2.start,
+                                      fastx_get_abundance(reverse_handle),
                                       discarded,
                                       res2.ee);
                 }
@@ -526,11 +526,11 @@ auto filter(bool fastq_only, char * filename) -> void
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  fastx_get_sequence(h1) + res1.start,
+                                  fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
-                                  fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
-                                  fastx_get_abundance(h1),
+                                  fastx_get_header(forward_handle),
+                                  fastx_get_header_length(forward_handle),
+                                  fastx_get_abundance(forward_handle),
                                   kept,
                                   res1.ee,
                                   -1,
@@ -542,27 +542,27 @@ auto filter(bool fastq_only, char * filename) -> void
           if (opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
-                                  fastx_get_sequence(h1) + res1.start,
+                                  fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
-                                  fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
-                                  fastx_get_quality(h1) + res1.start,
-                                  fastx_get_abundance(h1),
+                                  fastx_get_header(forward_handle),
+                                  fastx_get_header_length(forward_handle),
+                                  fastx_get_quality(forward_handle) + res1.start,
+                                  fastx_get_abundance(forward_handle),
                                   kept,
                                   res1.ee);
             }
 
-          if (h2 != nullptr)
+          if (reverse_handle != nullptr)
             {
               if (opt_fastaout_rev != nullptr)
                 {
                   fasta_print_general(fp_fastaout_rev,
                                       nullptr,
-                                      fastx_get_sequence(h2) + res2.start,
+                                      fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
-                                      fastx_get_header(h2),
-                                      fastx_get_header_length(h2),
-                                      fastx_get_abundance(h2),
+                                      fastx_get_header(reverse_handle),
+                                      fastx_get_header_length(reverse_handle),
+                                      fastx_get_abundance(reverse_handle),
                                       kept,
                                       res2.ee,
                                       -1,
@@ -574,24 +574,24 @@ auto filter(bool fastq_only, char * filename) -> void
               if (opt_fastqout_rev != nullptr)
                 {
                   fastq_print_general(fp_fastqout_rev,
-                                      fastx_get_sequence(h2) + res2.start,
+                                      fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
-                                      fastx_get_header(h2),
-                                      fastx_get_header_length(h2),
-                                      fastx_get_quality(h2) + res2.start,
-                                      fastx_get_abundance(h2),
+                                      fastx_get_header(reverse_handle),
+                                      fastx_get_header_length(reverse_handle),
+                                      fastx_get_quality(reverse_handle) + res2.start,
+                                      fastx_get_abundance(reverse_handle),
                                       kept,
                                       res2.ee);
                 }
             }
         }
 
-      progress_update(fastx_get_position(h1));
+      progress_update(fastx_get_position(forward_handle));
     }
 
   progress_done();
 
-  if ((h2 != nullptr) and fastx_next(h2, false, chrmap_no_change))
+  if ((reverse_handle != nullptr) and fastx_next(reverse_handle, false, chrmap_no_change))
     {
       fatal("More reverse reads than forward reads");
     }
@@ -614,7 +614,7 @@ auto filter(bool fastq_only, char * filename) -> void
               discarded);
     }
 
-  if (h2 != nullptr)
+  if (reverse_handle != nullptr)
     {
       if (opt_fastaout_rev != nullptr)
         {
@@ -636,7 +636,7 @@ auto filter(bool fastq_only, char * filename) -> void
           std::fclose(fp_fastqout_discarded_rev);
         }
 
-      fastx_close(h2);
+      fastx_close(reverse_handle);
     }
 
   if (opt_fastaout != nullptr)
@@ -659,7 +659,7 @@ auto filter(bool fastq_only, char * filename) -> void
       std::fclose(fp_fastqout_discarded);
     }
 
-  fastx_close(h1);
+  fastx_close(forward_handle);
 }
 
 
