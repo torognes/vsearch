@@ -213,7 +213,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
       res.discarded = true;
     }
 
-  /* filter by n's */  // refactoring: std::count_if()
+  /* filter by n's */  // refactoring: std::count_if();
   int64_t ncount = 0;
   auto * nucleotides = fastx_get_sequence(input_handle) + res.start;
   for (auto i = 0; i < res.length; ++i)
