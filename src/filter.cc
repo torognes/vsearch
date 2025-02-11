@@ -193,7 +193,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
         {
           res.discarded = true;
         }
-      if ((res.length > 0) and (res.ee / res.length > opt_fastq_maxee_rate))
+      if ((res.length > 0) and ((res.ee / res.length) > opt_fastq_maxee_rate))
         {
           res.discarded = true;
         }
