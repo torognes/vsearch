@@ -334,15 +334,15 @@ auto filter(bool fastq_only, char * filename) -> void
         }
     }
 
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_fastaout_discarded = nullptr;
-  FILE * fp_fastqout_discarded = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastaout_discarded = nullptr;
+  std::FILE * fp_fastqout_discarded = nullptr;
 
-  FILE * fp_fastaout_rev = nullptr;
-  FILE * fp_fastqout_rev = nullptr;
-  FILE * fp_fastaout_discarded_rev = nullptr;
-  FILE * fp_fastqout_discarded_rev = nullptr;
+  std::FILE * fp_fastaout_rev = nullptr;
+  std::FILE * fp_fastqout_rev = nullptr;
+  std::FILE * fp_fastaout_discarded_rev = nullptr;
+  std::FILE * fp_fastqout_discarded_rev = nullptr;
 
   if (opt_fastaout != nullptr)
     {
