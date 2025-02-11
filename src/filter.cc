@@ -69,9 +69,9 @@
 #include <limits>
 
 
-inline auto fastq_get_qual(char q) -> int
+inline auto fastq_get_qual(char quality_symbol) -> int
 {
-  int const qual = q - opt_fastq_ascii;
+  int const qual = quality_symbol - opt_fastq_ascii;
 
   if (qual < opt_fastq_qmin)
     {
