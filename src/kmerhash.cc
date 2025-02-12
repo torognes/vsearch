@@ -66,7 +66,8 @@
 #include <vector>
 
 
-#define HASH CityHash64
+using HASH = decltype(&CityHash64);
+HASH hash_function = CityHash64;
 
 struct kh_bucket_s
 {
@@ -116,7 +117,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
                            unsigned int pos) -> void
 {
   /* find free bucket in hash */
-  unsigned int j = HASH((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+  unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
   while (kmer_hash->hash[j].pos != 0U)
     {
       j = (j + 1) & kmer_hash->hash_mask;
@@ -210,7 +211,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char * 
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = HASH((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
           while (kmer_hash->hash[j].pos != 0U)
             {
               if (kmer_hash->hash[j].kmer == kmer)
@@ -287,7 +288,7 @@ auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = HASH((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
           while (kmer_hash->hash[j].pos != 0U)
             {
               if (kmer_hash->hash[j].kmer == kmer)
