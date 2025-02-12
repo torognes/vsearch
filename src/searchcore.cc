@@ -474,8 +474,8 @@ auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
       /* idsuffix */
       ((searchinfo->qseqlen >= opt_idsuffix) &&
        (dseqlen >= opt_idsuffix) &&
-       (seqncmp(qseq+searchinfo->qseqlen-opt_idsuffix,
-                 dseq+dseqlen-opt_idsuffix,
+       (seqncmp(qseq + searchinfo->qseqlen - opt_idsuffix,
+                 dseq + dseqlen - opt_idsuffix,
                  opt_idsuffix) == 0))
       &&
       /* self */
