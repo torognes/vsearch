@@ -136,7 +136,7 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    uint64_t len) -> void
 {
   buffer_makespace(dest_buffer, len + 1);
-  memcpy(dest_buffer->data + dest_buffer->length,
+  std::memcpy(dest_buffer->data + dest_buffer->length,
          source_buf,
          len);
   dest_buffer->length += len;
