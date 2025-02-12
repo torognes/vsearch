@@ -117,14 +117,14 @@ inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
                            unsigned int pos) -> void
 {
   /* find free bucket in hash */
-  unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
-  while (kmer_hash->hash[j].pos != 0U)
+  unsigned int bucket = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
+  while (kmer_hash->hash[bucket].pos != 0U)
     {
-      j = (j + 1) & kmer_hash->hash_mask;
+      bucket = (bucket + 1) & kmer_hash->hash_mask;
     }
 
-  kmer_hash->hash[j].kmer = kmer;
-  kmer_hash->hash[j].pos = pos;
+  kmer_hash->hash[bucket].kmer = kmer;
+  kmer_hash->hash[bucket].pos = pos;
 }
 
 
