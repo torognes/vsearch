@@ -209,7 +209,7 @@ auto fastq_next(fastx_handle input_handle,
       fastq_fatal(input_handle->lineno, "Header line must start with '@' character");
     }
   input_handle->file_buffer.position++;
-  rest--;
+  --rest;
 
   char * line_end = nullptr;
   while (line_end == nullptr)
@@ -306,7 +306,7 @@ auto fastq_next(fastx_handle input_handle,
 
   /* skip + character */
   input_handle->file_buffer.position++;
-  rest--;
+  --rest;
 
   line_end = nullptr;
   while (line_end == nullptr)
