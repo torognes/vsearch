@@ -74,8 +74,8 @@
   that caused a problem when searching for sequences with many repeats.
 */
 
-using HASH = decltype(&CityHash64);
-HASH hash_function = CityHash64;
+using Hash = decltype(&CityHash64);
+Hash hash_function = CityHash64;
 
 constexpr auto initial_allocation = 2048;
 
