@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "city.h"
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
