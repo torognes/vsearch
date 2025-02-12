@@ -185,7 +185,7 @@ auto udb_detect_isudb(const char * filename) -> bool
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  bool const is_pipe = S_ISFIFO(fs.st_mode);
+  auto const is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
     {
       return false;
@@ -280,8 +280,8 @@ auto udb_read(const char * filename,
 {
   /* read UDB as indexed database */
 
-  unsigned int seqcount = 0;
-  unsigned int udb_wordlength = 0;
+  auto seqcount = 0U;
+  auto udb_wordlength = 0U;
   uint64_t nucleotides = 0;
 
   xstat_t fs;
@@ -290,7 +290,7 @@ auto udb_read(const char * filename,
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  bool const is_pipe = S_ISFIFO(fs.st_mode);
+  auto const is_pipe = S_ISFIFO(fs.st_mode);
   if (is_pipe)
     {
       fatal("Cannot read UDB file from a pipe");
@@ -302,7 +302,7 @@ auto udb_read(const char * filename,
 
   /* open UDB file */
 
-  int fd_udb = 0;
+  auto fd_udb = 0;
 
   fd_udb = xopen_read(filename);
   if (fd_udb == 0)
@@ -392,7 +392,7 @@ auto udb_read(const char * filename,
     }
 
   nucleotides = (((uint64_t) buffer[4]) << 32U) | buffer[3];
-  uint64_t const udb_headerchars = (((uint64_t) buffer[6]) << 32U) | buffer[5];
+  auto const udb_headerchars = (((uint64_t) buffer[6]) << 32U) | buffer[5];
 
   /* header index */
 
@@ -658,7 +658,7 @@ auto udb_stats() -> void
 
   std::vector<wordfreq_t> freqtable(kmerhashsize);
 
-  for (unsigned int i = 0; i < kmerhashsize; i++)
+  for (auto i = 0U; i < kmerhashsize; i++)
     {
       freqtable[i].kmer = i;
       freqtable[i].count = kmercount[i];
@@ -666,12 +666,12 @@ auto udb_stats() -> void
 
   qsort(freqtable.data(), kmerhashsize, sizeof(wordfreq_t), wc_compare);
 
-  unsigned int const wcmax = freqtable[kmerhashsize-1].count;
-  unsigned int const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
+  auto const wcmax = freqtable[kmerhashsize-1].count;
+  auto const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
                             freqtable[kmerhashsize / 2].count ) / 2;
 
   unsigned int const seqcount = db_getsequencecount();
-  uint64_t const nt = db_getnucleotidecount();
+  auto const nt = db_getnucleotidecount();
 
   /* show stats */
 
@@ -707,7 +707,7 @@ auto udb_stats() -> void
       fprintf(fp_log,
               "----------  ------------  ----------  ----------  ---\n");
 
-      for (unsigned int i = 0; i < kmerhashsize; i++)
+      for (auto i = 0U; i < kmerhashsize; i++)
         {
           fprintf(fp_log,
                   "%10u  ",
@@ -725,7 +725,7 @@ auto udb_stats() -> void
 
           fprintf(fp_log, " ");
 
-          for (unsigned j = 0; j < freqtable[kmerhashsize - 1 - i].count; j++)
+          for (auto j = 0U; j < freqtable[kmerhashsize - 1 - i].count; j++)
             {
               fprintf(fp_log,
                       " %u", kmerindex[kmerhash[freqtable[kmerhashsize - 1 - i].kmer] + j]);
@@ -763,16 +763,16 @@ auto udb_stats() -> void
       fprintf(fp_log, "----------  ----------  ----------  ----------  ------  ------\n");
 
 
-      unsigned int size_lo = 0;
-      unsigned int size_hi = 0;
-      unsigned int x = 0;
-      double totpct = 0.0;
+      auto size_lo = 0U;
+      auto size_hi = 0U;
+      auto x = 0U;
+      auto totpct = 0.0;
 
       while (size_lo < seqcount)
         {
 
-          int count = 0;
-          int size = 0;
+          auto count = 0;
+          auto size = 0;
           while ((x < kmerhashsize) and (freqtable[x].count <= size_hi))
             {
               count++;
@@ -780,7 +780,7 @@ auto udb_stats() -> void
               x++;
             }
 
-          double const pct = 100.0 * count / kmerhashsize;
+          auto const pct = 100.0 * count / kmerhashsize;
           totpct += pct;
 
           if (size_lo < size_hi)
@@ -814,7 +814,7 @@ auto udb_stats() -> void
 
           fprintf(fp_log, "  %5.1f%%  %5.1f%%", pct, totpct);
 
-          static constexpr double divider = 3.0;
+          static constexpr auto divider = 3.0;
           const auto dots = std::lround(pct / divider);
 
           if (dots > 0)
@@ -916,7 +916,7 @@ auto udb_make() -> void
 
   /* count word matches */
   uint64_t wordmatches = 0;
-  for (unsigned int i = 0; i < kmerhashsize; i++)
+  for (auto i = 0U; i < kmerhashsize; i++)
     {
       wordmatches += kmercount[i];
     }
@@ -958,7 +958,7 @@ auto udb_make() -> void
   pos += largewrite(fd_output, buffer.data(), 1 * 4, pos);
 
   /* lists of sequence no's with matches for all words */
-  for (unsigned int i = 0; i < kmerhashsize; i++)
+  for (auto i = 0U; i < kmerhashsize; i++)
     {
       if (kmerbitmap[i] != nullptr)
         {
