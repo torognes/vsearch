@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "city.h"
 #include "maps.h"
 #include <algorithm>  // std::max
 #include <cstring>  // std::memset
