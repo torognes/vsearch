@@ -89,6 +89,7 @@
 #include "subsample.h"
 #include "udb.h"
 #include "userfields.h"
+#include <algorithm>  // std::count
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
@@ -474,16 +475,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
   /* get comma-separated list of floating point numbers */
   /* save in ee_cutoffs_count and ee_cutoffs_values */
 
-  // refactoring:
-  // auto const commas = std::count(arg, arg + std::strlen(arg), ',');
-  int commas = 0;
-  for (size_t i = 0; i < std::strlen(arg); i++)
-    {
-      if (arg[i] == ',')
-        {
-          ++commas;
-        }
-    }
+  auto const commas = std::count(arg, arg + std::strlen(arg), ',');
 
   opt_ee_cutoffs_count = 0;
   opt_ee_cutoffs_values = (double *) xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double));
