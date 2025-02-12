@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "city.h"
 #include "maps.h"
+// #include "util.h"  // hash_cityhash128
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -72,7 +73,9 @@
 #include <vector>
 
 
-#define HASH hash_cityhash128
+using Hash = decltype(&hash_cityhash128);
+static Hash hash_function = hash_cityhash128;
+
 
 struct sm_bucket
 {
@@ -355,7 +358,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         collision when the number of sequences is about 5e9.
       */
 
-      uint128 const hash = HASH(seq_up.data(), seqlen);
+      uint128 const hash = hash_function(seq_up.data(), seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
@@ -370,7 +373,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 const rc_hash = HASH(rc_seq_up.data(), seqlen);
+          uint128 const rc_hash = hash_function(rc_seq_up.data(), seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
@@ -566,7 +569,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
-      uint128 const hash = HASH(seq_up.data(), seqlen);
+      uint128 const hash = hash_function(seq_up.data(), seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
@@ -581,7 +584,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 const rc_hash = HASH(rc_seq_up.data(), seqlen);
+          uint128 const rc_hash = hash_function(rc_seq_up.data(), seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
