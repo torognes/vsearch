@@ -487,9 +487,9 @@ auto udb_read(const char * filename,
   progress_init("Reorganizing data in memory", seqcount);
   for (unsigned int i = seqcount-1; i > 0; i--)
     {
-      size_t const old_p = seqindex[i].seq_p;
-      size_t const new_p = seqindex[i].seq_p + i;
-      size_t const len   = seqindex[i].seqlen;
+      auto const old_p = seqindex[i].seq_p;
+      auto const new_p = seqindex[i].seq_p + i;
+      auto const len   = seqindex[i].seqlen;
       std::memmove(datap + new_p, datap + old_p, len);
       *(datap + new_p + len) = 0;
       seqindex[i].seq_p = new_p;
