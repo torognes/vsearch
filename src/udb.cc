@@ -485,7 +485,7 @@ auto udb_read(const char * filename,
   /* move sequences and insert zero at end of each sequence */
 
   progress_init("Reorganizing data in memory", seqcount);
-  for (unsigned int i = seqcount-1; i > 0; i--)
+  for (unsigned int i = seqcount - 1; i > 0; i--)
     {
       auto const old_p = seqindex[i].seq_p;
       auto const new_p = seqindex[i].seq_p + i;
