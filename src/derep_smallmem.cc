@@ -66,7 +66,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::fclose
 #include <cstdlib>  // std::qsort
-#include <cstring>  // std::memcpy, std::strcmp
+#include <cstring>  // refactoring: unused?
 #include <limits>
 #include <string>
 #include <vector>
