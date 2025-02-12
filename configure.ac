@@ -23,7 +23,7 @@ AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([psapi], [GetProcessMemoryInfo])
 
 # Checks for header files.
-AC_CHECK_HEADERS([getopt.h fcntl.h float.h regex.h ctype.h locale.h limits.h string.h sys/time.h dlfcn.h pthread.h])
+AC_CHECK_HEADERS([getopt.h fcntl.h regex.h string.h sys/time.h dlfcn.h pthread.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
