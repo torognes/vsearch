@@ -786,9 +786,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               fasta_print_general(fp_fastaout,
                                   nullptr,
                                   bp->seq,
-                                  strlen(bp->seq),
+                                  std::strlen(bp->seq),
                                   bp->header,
-                                  strlen(bp->header),
+                                  std::strlen(bp->header),
                                   size,
                                   relabel_count,
                                   -1.0,
@@ -819,9 +819,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               ++relabel_count;
               fastq_print_general(fp_fastqout,
                                   bp->seq,
-                                  strlen(bp->seq),
+                                  std::strlen(bp->seq),
                                   bp->header,
-                                  strlen(bp->header),
+                                  std::strlen(bp->header),
                                   bp->qual,
                                   size,
                                   relabel_count,
@@ -847,7 +847,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           struct bucket * bp = hashtable + i;
           char * hh =  bp->header;
-          int64_t const len = strlen(bp->seq);
+          int64_t const len = std::strlen(bp->seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, hh);
