@@ -190,7 +190,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 #else
       std::cmatch cmatch_sample;
-      if (regex_search(query_header, cmatch_sample, regex_sample))
+      if (std::regex_search(query_header, cmatch_sample, regex_sample))
         {
           len_sample = cmatch_sample.length(3);
           start_sample += cmatch_sample.position(3);
@@ -230,7 +230,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 #else
       std::cmatch cmatch_otu;
-      if (regex_search(target_header, cmatch_otu, regex_otu))
+      if (std::regex_search(target_header, cmatch_otu, regex_otu))
         {
           len_otu = cmatch_otu.length(2);
           start_otu += cmatch_otu.position(2);
@@ -265,7 +265,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 #else
       std::cmatch cmatch_tax;
-      if (regex_search(target_header, cmatch_tax, regex_tax))
+      if (std::regex_search(target_header, cmatch_tax, regex_tax))
         {
           otutable->otu_tax_map[otu_name] = cmatch_tax.str(2);
         }
