@@ -67,7 +67,7 @@
 
 
 using Hash = decltype(&CityHash64);
-Hash hash_function = CityHash64;
+static Hash hash_function = CityHash64;
 
 struct kh_bucket_s
 {

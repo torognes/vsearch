@@ -75,7 +75,7 @@
 */
 
 using Hash = decltype(&CityHash64);
-Hash hash_function = CityHash64;
+static Hash hash_function = CityHash64;
 
 constexpr auto initial_allocation = 2048;
 
