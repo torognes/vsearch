@@ -203,15 +203,15 @@ auto rehash_smallmem() -> void
   /* rehash all from old to new */
   for (uint64_t i = 0; i < hashtablesize; i++)
     {
-      struct sm_bucket * old_bp = hashtable + i;
+      auto * old_bp = hashtable + i;
       if (old_bp->size != 0U)
         {
-          uint64_t k = hash2bucket(old_bp->hash, new_hashtablesize);
+          auto k = hash2bucket(old_bp->hash, new_hashtablesize);
           while (new_hashtable[k].size != 0U)
             {
               k = next_bucket(k, new_hashtablesize);
             }
-          struct sm_bucket * new_bp = new_hashtable + k;
+          auto * new_bp = new_hashtable + k;
           * new_bp = * old_bp;
         }
     }
@@ -235,7 +235,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   show_rusage();
 
   auto * input_filename = parameters.opt_derep_smallmem;
-  fastx_handle h = fastx_open(input_filename);
+  auto * h = fastx_open(input_filename);
 
   if (h == nullptr)
     {
@@ -339,7 +339,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           show_rusage();
         }
 
-      char * seq = fastx_get_sequence(h);
+      auto * seq = fastx_get_sequence(h);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -358,9 +358,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         collision when the number of sequences is about 5e9.
       */
 
-      uint128 const hash = hash_function(seq_up.data(), seqlen);
-      uint64_t j =  hash2bucket(hash, hashtablesize);
-      struct sm_bucket * bp = hashtable + j;
+      auto const hash = hash_function(seq_up.data(), seqlen);
+      auto j =  hash2bucket(hash, hashtablesize);
+      auto * bp = hashtable + j;
 
       while ((bp->size != 0U) and (hash != bp->hash))
         {
@@ -373,9 +373,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 const rc_hash = hash_function(rc_seq_up.data(), seqlen);
-          uint64_t k =  hash2bucket(rc_hash, hashtablesize);
-          struct sm_bucket * rc_bp = hashtable + k;
+          auto const rc_hash = hash_function(rc_seq_up.data(), seqlen);
+          auto k =  hash2bucket(rc_hash, hashtablesize);
+          auto * rc_bp = hashtable + k;
 
           while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
             {
@@ -515,7 +515,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
   else
     {
-      const double average = 1.0 * sumsize / clusters;
+      auto const average = 1.0 * sumsize / clusters;
       const auto median = find_median();
       if (not parameters.opt_quiet)
         {
@@ -539,7 +539,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* second pass with output */
 
-  fastx_handle h2 = fastx_open(input_filename);
+  auto * h2 = fastx_open(input_filename);
   if (h2 == nullptr)
     {
       fatal("Cannot open and read from the input file.");
@@ -558,7 +558,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           continue;
         }
 
-      char * seq = fastx_get_sequence(h2);
+      auto * seq = fastx_get_sequence(h2);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -569,9 +569,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
-      uint128 const hash = hash_function(seq_up.data(), seqlen);
-      uint64_t j =  hash2bucket(hash, hashtablesize);
-      struct sm_bucket * bp = hashtable + j;
+      auto const hash = hash_function(seq_up.data(), seqlen);
+      auto j =  hash2bucket(hash, hashtablesize);
+      auto * bp = hashtable + j;
 
       while ((bp->size != 0U) and (hash != bp->hash))
         {
@@ -584,9 +584,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 const rc_hash = hash_function(rc_seq_up.data(), seqlen);
-          uint64_t k =  hash2bucket(rc_hash, hashtablesize);
-          struct sm_bucket * rc_bp = hashtable + k;
+          auto const rc_hash = hash_function(rc_seq_up.data(), seqlen);
+          auto k =  hash2bucket(rc_hash, hashtablesize);
+          auto * rc_bp = hashtable + k;
 
           while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
             {
@@ -607,7 +607,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         {
           /* print sequence */
 
-          char * header = fastx_get_header(h2);
+          auto * header = fastx_get_header(h2);
           int const headerlen = fastx_get_header_length(h2);
 
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
