@@ -118,7 +118,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call pread multiple times and update progress */
 
-  uint64_t progress = offset;
+  auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
       auto const res = xlseek(fd, offset + i, SEEK_SET);
@@ -127,7 +127,7 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64_t const rem = std::min(blocksize, nbyte - i);
+      auto const rem = std::min(blocksize, nbyte - i);
       uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
@@ -145,16 +145,16 @@ auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call write multiple times and update progress */
 
-  uint64_t progress = offset;
+  auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      uint64_t const res = xlseek(fd, offset + i, SEEK_SET);
+      auto const res = xlseek(fd, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
-      uint64_t const rem = std::min(blocksize, nbyte - i);
+      auto const rem = std::min(blocksize, nbyte - i);
       uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
@@ -485,7 +485,7 @@ auto udb_read(const char * filename,
   /* move sequences and insert zero at end of each sequence */
 
   progress_init("Reorganizing data in memory", seqcount);
-  for (unsigned int i = seqcount - 1; i > 0; i--)
+  for (auto i = seqcount - 1; i > 0; i--)
     {
       auto const old_p = seqindex[i].seq_p;
       auto const new_p = seqindex[i].seq_p + i;
@@ -503,14 +503,14 @@ auto udb_read(const char * filename,
   if (create_bitmaps)
     {
       progress_init("Creating bitmaps", kmerhashsize);
-      unsigned int const bitmap_mincount = seqcount / 8;
-      for (unsigned int i = 0; i < kmerhashsize; i++)
+      auto const bitmap_mincount = seqcount / 8;
+      for (auto i = 0U; i < kmerhashsize; i++)
         {
           if (kmercount[i] >= bitmap_mincount)
             {
               kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
               bitmap_reset_all(kmerbitmap[i]);
-              for (unsigned j = 0; j < kmercount[i]; j++)
+              for (auto j = 0U; j < kmercount[i]; j++)
                 {
                   bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
                 }
@@ -525,9 +525,9 @@ auto udb_read(const char * filename,
   if (parse_abundances)
     {
       progress_init("Parsing abundances", seqcount);
-      for (unsigned int i = 0; i < seqcount; i++)
+      for (auto i = 0U; i < seqcount; i++)
         {
-          int64_t const size = header_get_size(datap + seqindex[i].header_p,
+          auto const size = header_get_size(datap + seqindex[i].header_p,
                                          seqindex[i].headerlen);
           if (size > 0)
             {
@@ -558,7 +558,7 @@ auto udb_read(const char * filename,
   dbindex_map = (unsigned int *) xmalloc(seqcount * sizeof(unsigned int));
   dbindex_count = seqcount;
 
-  for (unsigned int i = 0; i < seqcount; i++)
+  for (auto i = 0U; i < seqcount; i++)
     {
       dbindex_map[i] = i;
     }
@@ -619,7 +619,7 @@ auto udb_fasta() -> void
 
   /* open FASTA file for writing */
 
-  FILE * fp_output = fopen_output(opt_output);
+  auto * fp_output = fopen_output(opt_output);
   if (fp_output == nullptr)
     {
       fatal("Unable to open FASTA output file for writing");
@@ -631,7 +631,7 @@ auto udb_fasta() -> void
 
   /* dump fasta */
 
-  unsigned int const seqcount = db_getsequencecount();
+  auto const seqcount = db_getsequencecount();
   progress_init("Writing FASTA file", seqcount);
   for (std::size_t i = 0; i < seqcount; i++)
     {
