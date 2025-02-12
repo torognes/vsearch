@@ -266,6 +266,7 @@ auto sintax_analyse(char * query_head,
   xpthread_mutex_unlock(&mutex_output);
 }
 
+
 auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
 {
   /*
@@ -369,6 +370,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
   }
 }
 
+
 auto sintax_query(int64_t t) -> void
 {
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
@@ -467,6 +469,7 @@ auto sintax_query(int64_t t) -> void
   bitmap_free(b);
 }
 
+
 auto sintax_thread_run(int64_t t) -> void
 {
   while (true)
@@ -548,6 +551,7 @@ auto sintax_thread_run(int64_t t) -> void
     }
 }
 
+
 auto sintax_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
@@ -563,6 +567,7 @@ auto sintax_thread_init(struct searchinfo_s * si) -> void
   si->nw = nullptr;
   si->s = nullptr;
 }
+
 
 auto sintax_thread_exit(struct searchinfo_s * si) -> void
 {
@@ -580,12 +585,14 @@ auto sintax_thread_exit(struct searchinfo_s * si) -> void
     }
 }
 
+
 auto sintax_thread_worker(void * vp) -> void *
 {
   auto t = (int64_t) vp;
   sintax_thread_run(t);
   return nullptr;
 }
+
 
 auto sintax_thread_worker_run() -> void
 {
@@ -619,6 +626,7 @@ auto sintax_thread_worker_run() -> void
 
   xpthread_attr_destroy(&attr);
 }
+
 
 auto sintax() -> void
 {
