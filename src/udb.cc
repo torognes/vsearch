@@ -191,16 +191,16 @@ auto udb_detect_isudb(const char * filename) -> bool
       return false;
     }
 
-  int fd = 0;
-  fd = xopen_read(filename);
-  if (fd == 0)
+  int file_descriptor = 0;
+  file_descriptor = xopen_read(filename);
+  if (file_descriptor == 0)
     {
       fatal("Unable to open input file for reading (%s)", filename);
     }
 
   unsigned int magic = 0;
-  uint64_t const bytesread = read(fd, & magic, expected_n_bytes);
-  close(fd);
+  uint64_t const bytesread = read(file_descriptor, & magic, expected_n_bytes);
+  close(file_descriptor);
 
   if ((bytesread == expected_n_bytes) and (magic == udb_file_signature))
     {
