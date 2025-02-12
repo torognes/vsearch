@@ -551,7 +551,7 @@ auto args_get_length_cutoffs(char * arg) -> void
 }
 
 
-auto args_get_gap_penalty_string(char * arg, int is_open) -> void
+auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
 {
   /* See http://www.drive5.com/usearch/manual/aln_params.html
 
@@ -668,7 +668,7 @@ auto args_get_gap_penalty_string(char * arg, int is_open) -> void
           set_T = 1;
         }
 
-      if (is_open != 0)
+      if (is_open)
         {
           if (set_Q != 0)
             {
@@ -1589,11 +1589,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_gapopen:
-          args_get_gap_penalty_string(optarg, 1);
+          args_get_gap_penalty_string(optarg, true);
           break;
 
         case option_gapext:
-          args_get_gap_penalty_string(optarg, 0);
+          args_get_gap_penalty_string(optarg, false);
           break;
 
         case option_rowlen:
