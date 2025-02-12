@@ -341,7 +341,7 @@ auto fastq_next(fastx_handle input_handle,
 
   /* check that the plus line is empty or identical to @ line */
 
-  bool plusline_invalid = false;
+  auto plusline_invalid = false;
   if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
     {
       if ((memcmp(input_handle->header_buffer.data,
