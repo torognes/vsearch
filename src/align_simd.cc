@@ -1618,7 +1618,7 @@ auto search16(s16info_s * s,
                                       pmismatches + cand_id,
                                       pgaps + cand_id);
                           pcigar[cand_id] =
-                            (char *) xmalloc(strlen(s->cigar)+1);
+                            (char *) xmalloc(std::strlen(s->cigar)+1);
                           strcpy(pcigar[cand_id], s->cigar);
                         }
 
