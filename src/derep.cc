@@ -74,7 +74,9 @@
 #include <vector>
 
 
-#define HASH hash_cityhash64
+using Hash = decltype(&hash_cityhash64);
+static Hash hash_function = hash_cityhash64;
+
 
 struct bucket
 {
@@ -456,14 +458,14 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       uint64_t hash_header = 0;
       if (use_header)
         {
-          hash_header = HASH(header, headerlen);
+          hash_header = hash_function(header, headerlen);
         }
       else
         {
           hash_header = 0;
         }
 
-      uint64_t const hash = HASH(seq_up.data(), seqlen) ^ hash_header;
+      uint64_t const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
       uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
@@ -481,7 +483,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint64_t const rc_hash = HASH(rc_seq_up.data(), seqlen) ^ hash_header;
+          uint64_t const rc_hash = hash_function(rc_seq_up.data(), seqlen) ^ hash_header;
           uint64_t k = rc_hash & hash_mask;
           struct bucket * rc_bp = hashtable + k;
 
