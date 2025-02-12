@@ -72,7 +72,7 @@
 #include <vector>
 
 #ifdef HAVE_REGEX_H
-#include <regex.h>  // regcomp
+#include <regex.h>  // C: regcomp
 #else
 #include <regex>  // std::regex_search
 #endif
