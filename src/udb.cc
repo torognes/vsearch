@@ -114,21 +114,21 @@ auto wc_compare(const void * a, const void * b) -> int
 }
 
 
-auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
+auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call pread multiple times and update progress */
 
   auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      auto const res = xlseek(fd, offset + i, SEEK_SET);
+      auto const res = xlseek(file_descriptor, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const bytesread = read(fd, ((char *) buf) + i, rem);
+      uint64_t const bytesread = read(file_descriptor, ((char *) buf) + i, rem);
       if (bytesread != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
@@ -141,21 +141,21 @@ auto largeread(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 }
 
 
-auto largewrite(int fd, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
+auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
 {
   /* call write multiple times and update progress */
 
   auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      auto const res = xlseek(fd, offset + i, SEEK_SET);
+      auto const res = xlseek(file_descriptor, offset + i, SEEK_SET);
       if (res != offset + i)
         {
           fatal("Unable to seek in UDB file or invalid UDB file");
         }
 
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const byteswritten = write(fd, ((char *) buf) + i, rem);
+      uint64_t const byteswritten = write(file_descriptor, ((char *) buf) + i, rem);
       if (byteswritten != rem)
         {
           fatal("Unable to write to UDB file");
