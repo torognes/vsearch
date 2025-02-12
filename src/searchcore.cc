@@ -479,7 +479,7 @@ auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
                  opt_idsuffix) == 0))
       &&
       /* self */
-      ((opt_self == 0) or (strcmp(searchinfo->query_head, dlabel) != 0))
+      ((opt_self == 0) or (std::strcmp(searchinfo->query_head, dlabel) != 0))
       &&
       /* selfid */
       ((opt_selfid == 0) or
