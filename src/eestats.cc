@@ -66,7 +66,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::memset
+#include <cstring>  // refactoring: not used?
 #include <limits>
 #include <vector>
 
