@@ -211,8 +211,8 @@ auto fastq_next(fastx_handle input_handle,
   input_handle->file_buffer.position++;
   rest--;
 
-  char * lf = nullptr;
-  while (lf == nullptr)
+  char * line_end = nullptr;
+  while (line_end == nullptr)
     {
       /* get more data if buffer empty */
       rest = fastx_file_fill_buffer(input_handle);
@@ -222,16 +222,16 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
                            rest);
 
       /* copy to header buffer */
       auto len = rest;
-      if (lf != nullptr)
+      if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           input_handle->lineno++;
         }
       buffer_extend(&input_handle->header_buffer,
@@ -242,7 +242,7 @@ auto fastq_next(fastx_handle input_handle,
     }
 
   /* read sequence line(s) */
-  lf = nullptr;
+  line_end = nullptr;
   while (true)
     {
       /* get more data, if necessary */
@@ -255,21 +255,21 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end when new line starting with + is seen */
-      if ((lf != nullptr) && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
+      if ((line_end != nullptr) && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
         {
           break;
         }
 
       /* find LF */
-      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n', rest);
 
       /* copy to sequence buffer */
       auto len = rest;
-      if (lf != nullptr)
+      if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           input_handle->lineno++;
         }
 
@@ -298,7 +298,7 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal sequence character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), message.data());
+          fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
         }
     }
 
@@ -308,8 +308,8 @@ auto fastq_next(fastx_handle input_handle,
   input_handle->file_buffer.position++;
   rest--;
 
-  lf = nullptr;
-  while (lf == nullptr)
+  line_end = nullptr;
+  while (line_end == nullptr)
     {
       /* get more data if buffer empty */
       rest = fastx_file_fill_buffer(input_handle);
@@ -321,15 +321,15 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
                            rest);
       /* copy to plusline buffer */
       auto len = rest;
-      if (lf != nullptr)
+      if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           input_handle->lineno++;
         }
       buffer_extend(&input_handle->plusline_buffer,
@@ -361,13 +361,13 @@ auto fastq_next(fastx_handle input_handle,
     }
   if (plusline_invalid)
     {
-      fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0),
+      fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
                   "'+' line must be empty or identical to header");
     }
 
   /* read quality line(s) */
 
-  lf = nullptr;
+  line_end = nullptr;
   while (true)
     {
       /* get more data, if necessary */
@@ -380,7 +380,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end if next entry starts : LF + '@' + correct length */
-      if ((lf != nullptr) &&
+      if ((line_end != nullptr) &&
           (input_handle->file_buffer.data[input_handle->file_buffer.position] == '@') &&
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
@@ -388,15 +388,15 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n', rest);
 
       /* copy to quality buffer */
       auto len = rest;
-      if (lf != nullptr)
+      if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = lf - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
           input_handle->lineno++;
         }
 
@@ -431,13 +431,13 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal quality character (unprintable, no %d)",
                        (unsigned char) illegal_char);
             }
-          fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0), message.data());
+          fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
         }
     }
 
   if (input_handle->sequence_buffer.length != input_handle->quality_buffer.length)
     {
-      fastq_fatal(input_handle->lineno - ((lf != nullptr) ? 1 : 0),
+      fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
                   "Sequence and quality lines must be equally long");
     }
 
