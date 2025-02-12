@@ -85,14 +85,6 @@
 #include <cassert>
 #include <limits>
 
-/* include appropriate regex library */
-
-#ifdef HAVE_REGEX_H
-#include <regex.h>
-#else
-#include <regex>
-#endif
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>  // refactoring: redundant with <ctime>?
