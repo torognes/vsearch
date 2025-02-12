@@ -222,7 +222,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
                            rest);
 
@@ -261,7 +261,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n', rest);
 
       /* copy to sequence buffer */
@@ -321,7 +321,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
                            rest);
       /* copy to plusline buffer */
@@ -388,7 +388,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      lf = (char *) memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      lf = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n', rest);
 
       /* copy to quality buffer */
