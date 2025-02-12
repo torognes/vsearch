@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "city.h"
 #include "maps.h"
-// #include "util.h"  // hash_cityhash128
+// #include "util.h"  // hash_cityhash128, Uint128Low64
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -107,7 +107,7 @@ auto find_median() -> double
 
       for (uint64_t i = 0; i < hashtablesize; i++)
         {
-          uint64_t const v = hashtable[i].size;
+          auto const v = hashtable[i].size;
           if (v > 0)
             {
               if (v > cand)
@@ -188,7 +188,7 @@ inline auto next_bucket(uint64_t prev_bucket, uint64_t htsize) -> uint64_t
 auto rehash_smallmem() -> void
 {
   /* allocate new hash table, 50% larger */
-  uint64_t const new_hashtablesize = 3 * hashtablesize / 2;
+  auto const new_hashtablesize = 3 * hashtablesize / 2;
   auto * new_hashtable =
     (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * new_hashtablesize);
 
