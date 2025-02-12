@@ -199,7 +199,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       else
         {
           /* no match: use first name in header with A-Za-z0-9_ */
-          len_sample = strspn(query_header,
+          len_sample = std::strspn(query_header,
                               "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                               "abcdefghijklmnopqrstuvwxyz"
                               "_"
