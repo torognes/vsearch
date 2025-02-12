@@ -576,28 +576,28 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
 
   */
 
-  char * p = arg;
+  char * cursor = arg;
 
-  while (*p != '\0')
+  while (*cursor != '\0')
     {
       int skip = 0;
       int pen = 0;
 
-      if (std::sscanf(p, "%d%n", &pen, &skip) == 1)
+      if (std::sscanf(cursor, "%d%n", &pen, &skip) == 1)
         {
-          p += skip;
+          cursor += skip;
         }
-      else if (*p == '*')
+      else if (*cursor == '*')
         {
           pen = 1000;
-          ++p;
+          ++cursor;
         }
       else
         {
-          fatal("Invalid gap penalty argument (%s)", p);
+          fatal("Invalid gap penalty argument (%s)", cursor);
         }
 
-      char * q = p;
+      char * q = cursor;
 
       int set_E = 0;
       int set_I = 0;
@@ -606,9 +606,9 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
       int set_Q = 0;
       int set_T = 0;
 
-      while ((*p != '\0') and (*p != '/'))
+      while ((*cursor != '\0') and (*cursor != '/'))
         {
-          switch(*p)
+          switch(*cursor)
             {
             case 'E':
               set_E = 1;
@@ -629,15 +629,15 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
               set_T = 1;
               break;
             default:
-              fatal("Invalid char '%.1s' in gap penalty string", p);
+              fatal("Invalid char '%.1s' in gap penalty string", cursor);
               break;
             }
-          ++p;
+          ++cursor;
         }
 
-      if (*p == '/')
+      if (*cursor == '/')
         {
-          ++p;
+          ++cursor;
         }
 
       if ((set_E != 0) and ((set_L != 0) or (set_R != 0)))
