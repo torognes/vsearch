@@ -569,26 +569,26 @@ auto sintax_thread_init(struct searchinfo_s * si) -> void
 }
 
 
-auto sintax_thread_exit(struct searchinfo_s * si) -> void
+auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 {
   /* thread specific clean up */
-  unique_exit(si->uh);
-  minheap_exit(si->m);
-  xfree(si->kmers);
-  if (si->query_head != nullptr)
+  unique_exit(searchinfo->uh);
+  minheap_exit(searchinfo->m);
+  xfree(searchinfo->kmers);
+  if (searchinfo->query_head != nullptr)
     {
-      xfree(si->query_head);
+      xfree(searchinfo->query_head);
     }
-  if (si->qsequence != nullptr)
+  if (searchinfo->qsequence != nullptr)
     {
-      xfree(si->qsequence);
+      xfree(searchinfo->qsequence);
     }
 }
 
 
-auto sintax_thread_worker(void * vp) -> void *
+auto sintax_thread_worker(void * void_ptr) -> void *
 {
-  auto t = (int64_t) vp;
+  auto t = (int64_t) void_ptr;
   sintax_thread_run(t);
   return nullptr;
 }
