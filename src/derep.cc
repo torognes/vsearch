@@ -158,7 +158,7 @@ auto rehash(struct bucket ** hashtableref, int64_t alloc_clusters) -> void
 
   auto * new_hashtable =
     (struct bucket *) xmalloc(sizeof(struct bucket) * new_hashtablesize);
-  memset(new_hashtable, 0, sizeof(struct bucket) * new_hashtablesize);
+  std::memset(new_hashtable, 0, sizeof(struct bucket) * new_hashtablesize);
 
   /* rehash all */
   for (auto i = 0UL; i < old_hashtablesize; ++i)
@@ -327,7 +327,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   uint64_t hash_mask = hashtablesize - 1;
   auto * hashtable =
     (struct bucket *) xmalloc(sizeof(struct bucket) * hashtablesize);
-  memset(hashtable, 0, sizeof(struct bucket) * hashtablesize);
+  std::memset(hashtable, 0, sizeof(struct bucket) * hashtablesize);
 
   show_rusage();
 

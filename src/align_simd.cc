@@ -1214,7 +1214,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
       xfree(s->hearray);
     }
   s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
-  memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
+  std::memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
 
   if (s->qtable != nullptr)
     {

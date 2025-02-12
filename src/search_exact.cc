@@ -752,7 +752,7 @@ auto search_exact_prep(char * cmdline, char * progheader) -> void
   tophits = seqcount;
 
   dbmatched = (uint64_t *) xmalloc(seqcount * sizeof(uint64_t *));
-  memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
+  std::memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
 
   dbhash_open(seqcount);
   dbhash_add_all();

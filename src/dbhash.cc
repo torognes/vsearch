@@ -112,7 +112,7 @@ auto dbhash_open(uint64_t maxelements) -> void
 
   dbhash_table = (struct dbhash_bucket_s *)
     xmalloc(sizeof(dbhash_bucket_s) * dbhash_size);
-  memset(dbhash_table, 0, sizeof(dbhash_bucket_s) * dbhash_size);
+  std::memset(dbhash_table, 0, sizeof(dbhash_bucket_s) * dbhash_size);
 
   dbhash_bitmap = bitmap_init(dbhash_size);
   bitmap_reset_all(dbhash_bitmap);

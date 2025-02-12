@@ -70,7 +70,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets
 #include <cstdlib>  // std::realloc, std::free
-#include <cstring>  // std::strlen, std::memset, std::strcpy, std::strstr
+#include <cstring>  // std::strlen, std::strcpy, std::strstr
 #include <string.h>  // strdup, strcasecmp
 
 

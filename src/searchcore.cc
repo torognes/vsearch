@@ -223,7 +223,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   const int indexed_count = dbindex_getcount();
 
   /* zero counts */
-  memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
+  std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
 
   minheap_empty(searchinfo->m);
 

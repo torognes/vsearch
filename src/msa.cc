@@ -69,7 +69,7 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf, std::fprintf
 #include <cstdlib>  // str::strtoll
-#include <cstring>  // std::memset, std::strlen
+#include <cstring>  // std::strlen
 #include <iterator> // std::next
 #include <limits>
 #include <numeric> // std::accumulate

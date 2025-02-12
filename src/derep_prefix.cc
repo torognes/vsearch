@@ -65,7 +65,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstring>  // std::strcmp, std::memset
+#include <cstring>  // std::strcmp
 #include <limits>
 #include <vector>
 

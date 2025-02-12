@@ -811,7 +811,7 @@ auto usearch_global(char * cmdline, char * progheader) -> void
     }
 
   dbmatched = (uint64_t *) xmalloc(seqcount * sizeof(uint64_t *));
-  memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
+  std::memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
 
   otutable_init();
 

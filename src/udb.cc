@@ -353,7 +353,7 @@ auto udb_read(const char * filename,
   kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
   kmerbitmap = (struct bitmap_s * *) xmalloc(kmerhashsize * sizeof(struct bitmap_s **));
 
-  memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
+  std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
 
   pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos);
 
@@ -962,7 +962,7 @@ auto udb_make() -> void
     {
       if (kmerbitmap[i] != nullptr)
         {
-          memset(buffer.data(), 0, 4 * kmercount[i]);
+          std::memset(buffer.data(), 0, 4 * kmercount[i]);
           auto elements = 0U;
           for (auto j = 0U; j < seqcount; j++)
             {
