@@ -490,7 +490,7 @@ auto udb_read(const char * filename,
       size_t const old_p = seqindex[i].seq_p;
       size_t const new_p = seqindex[i].seq_p + i;
       size_t const len   = seqindex[i].seqlen;
-      memmove(datap + new_p, datap + old_p, len);
+      std::memmove(datap + new_p, datap + old_p, len);
       *(datap + new_p + len) = 0;
       seqindex[i].seq_p = new_p;
       progress_update(seqcount - i);

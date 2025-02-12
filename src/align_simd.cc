@@ -1079,7 +1079,7 @@ auto backtrack16(s16info_s * s,
 
   /* move cigar to beginning of allocated memory area */
   int const cigarlen = s->cigar + s->qlen + s->maxdlen - s->cigarend;
-  memmove(s->cigar, s->cigarend, cigarlen + 1);
+  std::memmove(s->cigar, s->cigarend, cigarlen + 1);
 
   * paligned = aligned;
   * pmatches = matches;
