@@ -74,7 +74,7 @@
 #ifdef HAVE_REGEX_H
 #include <regex.h>  // C: regcomp
 #else
-#include <regex>  // std::regex_search
+#include <regex>  // C++: std::regex_search
 #endif
 
 
