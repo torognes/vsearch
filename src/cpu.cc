@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include <cstdint>  // int32_t
+#include <cstring>  // std::memcpy
 
 
 /* This file contains code dependent on special cpu features. */
@@ -136,7 +137,7 @@ void increment_counters_from_bitmap(count_t * counters,
     {
       __vector unsigned char r0;
 
-      memcpy(&r0, p, 2);
+      std::memcpy(&r0, p, 2);
       ++p;
       __vector unsigned char r1 = vec_perm(r0, r0, c1);
       __vector unsigned char r2 = vec_or(r1, c2);
