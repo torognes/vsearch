@@ -319,7 +319,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         {
           auto const quality_symbol = static_cast<int>(quality_symbols[i]);
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
-          check_quality_score(parameters, quality_score);  // refactoring: perform after parsing the read
+          check_quality_score(parameters, quality_score);  // refactoring: perform after parsing the read, by reading quality_chars
 
           ++quality_chars[quality_symbol];  // refactoring: could be derived from qual_length_table
 
