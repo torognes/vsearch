@@ -159,7 +159,7 @@ Compiling VSEARCH requires either GCC (`g++`) or `clang`, `make` and the autotoo
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
-On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.29.4 and later.
+On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.27.0 and later.
 
 To create the PDF file with the manual the ps2pdf tool is required. It is part of the `ghostscript` package.
 
