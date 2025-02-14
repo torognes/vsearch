@@ -71,6 +71,7 @@
 #include <utility>  // std::pair
 #include <vector>
 
+// refactoring: is there a reason to prefer regex.h over <regex>?
 #ifdef HAVE_REGEX_H
 #include <regex.h>  // C: regcomp, regexec, regfree (POSIX functions)
 #else
