@@ -1026,7 +1026,11 @@ auto backtrack16(s16info_s * s,
         {
           if (chrmap_4bit[(int) (qseq[i])] & chrmap_4bit[(int) (dseq[j])])
             {
-              ++matches;
+              if (opt_n_mismatch && ((chrmap_4bit[(int) (qseq[i])] == 15) ||
+                                     (chrmap_4bit[(int) (dseq[j])] == 15)))
+                ++mismatches;
+              else
+                ++matches;
             }
           else
             {
@@ -1111,7 +1115,11 @@ auto search16_init(CELL score_match,
       for (int j = 0; j < 16; j++)
         {
           CELL value = 0;
-          if (ambiguous_4bit[i] or ambiguous_4bit[j])
+          if (opt_n_mismatch && ((i == 15) || (j == 15)))
+            {
+              value = opt_mismatch;
+            }
+          else if (ambiguous_4bit[i] or ambiguous_4bit[j])
             {
               value = 0;
             }
