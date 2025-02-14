@@ -306,6 +306,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
+  auto const symbol_to_probability = precompute_probability_values(parameters);
   std::vector<uint64_t> read_length_table(initial_memory_allocation);
   std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(initial_memory_allocation);
   std::vector<std::array<uint64_t, 4>> ee_length_table(initial_memory_allocation);
@@ -348,7 +349,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           ++qual_length_table[i][quality_symbol];
 
-          expected_error += q2p(quality_score);  // refactoring: replace with lookup
+          expected_error += symbol_to_probability[quality_symbol];
 
           sumee_length_table[i] += expected_error;
 
