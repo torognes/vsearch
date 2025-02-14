@@ -279,7 +279,11 @@ auto compute_sum_error_probabilities_per_length(std::vector<std::array<uint64_t,
 }
 
 
-auto compute_distributions(unsigned int const len_max, std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table, std::vector<double> const & sumee_length_table, struct Parameters const & parameters) -> std::vector<struct Distributions> {
+auto compute_distributions(
+    unsigned int const len_max,
+    std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
+    std::vector<double> const & sumee_length_table,
+    struct Parameters const & parameters) -> std::vector<struct Distributions> {
   std::vector<struct Distributions> distributions(len_max + 1);
 
   auto const sum_counts = compute_n_symbols_per_length(qual_length_table);
