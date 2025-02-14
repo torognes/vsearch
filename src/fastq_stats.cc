@@ -457,7 +457,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                       "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                       quality_symbol,
                       quality_symbol - parameters.opt_fastq_ascii,
-                      q2p(quality_symbol - parameters.opt_fastq_ascii),
+                      symbol_to_probability[quality_symbol],
                       quality_dist[quality_symbol],
                       100.0 * quality_dist[quality_symbol] / n_symbols,
                       100.0 * qual_accum / n_symbols);
