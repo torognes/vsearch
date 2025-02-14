@@ -411,9 +411,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
-  auto const quality_chars = compute_distribution_of_quality_symbols(qual_length_table);
-  auto const qmin = static_cast<int>(find_smallest(quality_chars));
-  auto const qmax = static_cast<int>(find_largest(quality_chars));
+  auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
+  auto const qmin = static_cast<int>(find_smallest(quality_dist));
+  auto const qmax = static_cast<int>(find_largest(quality_dist));
   auto const length_dist = compute_cumulative_sum(read_length_table);
   auto const distributions = compute_distributions(len_max, qual_length_table, sumee_length_table, parameters);
 
@@ -450,16 +450,16 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       int64_t qual_accum = 0;
       for (auto quality_symbol = qmax ; quality_symbol >= qmin ; quality_symbol--)
         {
-          if (quality_chars[quality_symbol] > 0)
+          if (quality_dist[quality_symbol] > 0)
             {
-              qual_accum += quality_chars[quality_symbol];
+              qual_accum += quality_dist[quality_symbol];
               std::fprintf(fp_log,
                       "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                       quality_symbol,
                       quality_symbol - parameters.opt_fastq_ascii,
                       q2p(quality_symbol - parameters.opt_fastq_ascii),
-                      quality_chars[quality_symbol],
-                      100.0 * quality_chars[quality_symbol] / n_symbols,
+                      quality_dist[quality_symbol],
+                      100.0 * quality_dist[quality_symbol] / n_symbols,
                       100.0 * qual_accum / n_symbols);
             }
         }
