@@ -279,15 +279,15 @@ auto compute_sum_error_probabilities_per_length(std::vector<std::array<uint64_t,
 }
 
 
-// refactoring: not possible(?), number of zero length sequences would be lost
-auto compute_length_distribution(
-    std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table) -> std::vector<uint64_t> {
-  auto results = compute_n_symbols_per_length(qual_length_table);
-  // ugly hack: qual_length_table[0] == length of 1, while read_table_length[0] == length of zero
-  std::adjacent_difference(results.rbegin(), results.rend(), results.rbegin());
-  std::rotate(results.rbegin(), results.rbegin() + 1, results.rend());
-  return results;
-}
+// // refactoring: not possible(?), number of zero length sequences would be lost
+// auto compute_length_distribution(
+//     std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table) -> std::vector<uint64_t> {
+//   auto results = compute_n_symbols_per_length(qual_length_table);
+//   // ugly hack: qual_length_table[0] == length of 1, while read_table_length[0] == length of zero
+//   std::adjacent_difference(results.rbegin(), results.rend(), results.rbegin());
+//   std::rotate(results.rbegin(), results.rbegin() + 1, results.rend());
+//   return results;
+// }
 
 
 auto compute_distributions(
