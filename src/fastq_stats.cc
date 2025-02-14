@@ -67,6 +67,7 @@
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
+#include <functional>  // std::plus
 #include <iterator>  // std::distance
 #include <limits>
 #include <numeric>  // std::partial_sum
@@ -279,6 +280,21 @@ auto compute_sum_error_probabilities_per_length(std::vector<std::array<uint64_t,
 }
 
 
+auto compute_distribution_of_quality_symbols(std::vector<std::array<uint64_t, n_eight_bit_values>> const & length_vs_quality) -> std::vector<uint64_t> {
+  // for each quality symbol: sum symbol observations for each position
+  std::vector<uint64_t> distribution(n_eight_bit_values);
+  std::for_each(length_vs_quality.begin(), length_vs_quality.end(),
+                [& distribution](std::array<uint64_t, n_eight_bit_values> const & observations) {
+                  std::transform(observations.begin(),
+                                 observations.end(),
+                                 distribution.begin(),
+                                 distribution.begin(),
+                                 std::plus<uint64_t>{});
+                });
+  return distribution;
+}
+
+
 // // refactoring: not possible(?), number of zero length sequences would be lost
 // auto compute_length_distribution(
 //     std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table) -> std::vector<uint64_t> {
@@ -327,7 +343,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<std::array<uint64_t, 4>> ee_length_table(initial_memory_allocation);
   std::vector<std::array<uint64_t, 4>> q_length_table(initial_memory_allocation);
   std::vector<double> sumee_length_table(initial_memory_allocation);
-  std::vector<uint64_t> quality_chars(n_eight_bit_values);
 
   // note: fastq parsing represents 99% of total wallclock time
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
@@ -359,8 +374,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           auto const quality_symbol = static_cast<int>(quality_symbols[i]);
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
           check_quality_score(parameters, quality_score);  // refactoring: perform after parsing the read, by reading quality_chars
-
-          ++quality_chars[quality_symbol];  // refactoring: could be derived from qual_length_table
 
           ++qual_length_table[i][quality_symbol];
 
@@ -398,6 +411,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
+  auto const quality_chars = compute_distribution_of_quality_symbols(qual_length_table);
   auto const qmin = static_cast<int>(find_smallest(quality_chars));
   auto const qmax = static_cast<int>(find_largest(quality_chars));
   auto const length_dist = compute_cumulative_sum(read_length_table);
