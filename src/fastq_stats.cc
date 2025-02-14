@@ -93,21 +93,11 @@ auto q2p(double quality_score) -> double {
   return std::pow(base, -quality_score / base);
 }
 
-// refactoring: overload, or template, or reduce types for quality values?
-// auto q2p(long int quality_score) -> double {
-//   static constexpr auto base = 10.0;
-//   return std::pow(base, -quality_score / base);
-// }
 
-// auto q2p(int quality_score) -> double {
-//   static constexpr auto base = 10.0;
-//   return std::pow(base, -quality_score / base);
-// }
-
-// auto q2p(uint64_t quality_score) -> double {
-//   static constexpr auto base = 10.0;
-//   return std::pow(base, -quality_score / base);
-// }
+auto q2p(uint64_t quality_score) -> double {
+  static constexpr auto base = 10.0;
+  return std::pow(base, -quality_score / base);
+}
 
 
 auto check_quality_score(struct Parameters const & parameters, int const quality_score) -> void {
