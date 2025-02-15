@@ -310,10 +310,13 @@ auto compute_distributions(
 
   for (auto i = 0UL; i <= len_max; i++)
     {
-      distributions[i].avgq = 1.0 * sum_quality_scores[i] / sum_counts[i];
-      distributions[i].avgp = sum_error_probabilities[i] / sum_counts[i];
-      distributions[i].avgee = sumee_length_table[i] / sum_counts[i];
-      distributions[i].rate = distributions[i].avgee / (i + 1);
+      auto const n_symbols = static_cast<double>(sum_counts[i]);
+      auto const length = static_cast<double>(i + 1);
+      auto const sum_quality_score = static_cast<double>(sum_quality_scores[i]);
+      distributions[i].avgq = sum_quality_score / n_symbols;
+      distributions[i].avgp = sum_error_probabilities[i] / n_symbols;
+      distributions[i].avgee = sumee_length_table[i] / n_symbols;
+      distributions[i].rate = distributions[i].avgee / length;
   }
   return distributions;
 }
