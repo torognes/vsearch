@@ -308,15 +308,16 @@ auto compute_distributions(
   auto const sum_quality_scores = compute_sum_quality_scores_per_length(qual_length_table, parameters);
   auto const sum_error_probabilities = compute_sum_error_probabilities_per_length(qual_length_table, parameters);
 
-  for (auto i = 0UL; i <= len_max; i++)
-    {
-      auto const n_symbols = static_cast<double>(sum_counts[i]);
-      auto const length = static_cast<double>(i + 1);
-      auto const sum_quality_score = static_cast<double>(sum_quality_scores[i]);
-      distributions[i].avgq = sum_quality_score / n_symbols;
-      distributions[i].avgp = sum_error_probabilities[i] / n_symbols;
-      distributions[i].avgee = sumee_length_table[i] / n_symbols;
-      distributions[i].rate = distributions[i].avgee / length;
+  auto position = std::size_t{0};
+  for (auto & distribution: distributions) {
+    auto const n_symbols = static_cast<double>(sum_counts[position]);
+    auto const length = static_cast<double>(position + 1);
+    auto const sum_quality_score = static_cast<double>(sum_quality_scores[position]);
+    distribution.avgq = sum_quality_score / n_symbols;
+    distribution.avgp = sum_error_probabilities[position] / n_symbols;
+    distribution.avgee = sumee_length_table[position] / n_symbols;
+    distribution.rate = distributions[position].avgee / length;
+    ++position;
   }
   return distributions;
 }
