@@ -96,8 +96,8 @@ auto q2p(double quality_score) -> double {
 
 // auto q2p(uint64_t quality_score) -> double {
 //   static constexpr auto base = 10.0;
-//   auto const q_score = static_cast<double>(quality_score);
-//   return std::pow(base, -q_score / base);
+//   auto const quality_score_double = static_cast<double>(quality_score);
+//   return std::pow(base, -quality_score_double / base);
 // }
 
 
