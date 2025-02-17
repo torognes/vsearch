@@ -368,8 +368,8 @@ auto report_read_length_distribution(std::FILE * log_handle,
                      (length == stats.len_max ? ">=" : "  "),
                      length,
                      read_length_table[length],
-                     static_cast<double>(read_length_table[length]) * 100.0 / stats.seq_count,
-                     100.0 * (stats.seq_count - previous_count) / stats.seq_count);
+                     static_cast<double>(read_length_table[length]) * 100.0 / stats.n_sequences,
+                     100.0 * (stats.n_sequences - previous_count) / stats.n_sequences);
       }
       if (length == 0UL) { break; }
     }
