@@ -389,8 +389,8 @@ auto report_q_score_distribution(
 }
 
 
-auto report_third_section(std::FILE * log_handle,
-                          struct Stats const & stats) -> void {
+auto report_length_vs_quality_distribution(std::FILE * log_handle,
+                                           struct Stats const & stats) -> void {
   assert(log_handle != nullptr);
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
@@ -420,9 +420,9 @@ auto report_third_section(std::FILE * log_handle,
 }
 
 
-auto report_fourth_section(std::FILE * log_handle,
-                           struct Stats const & stats,
-                           std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
+auto report_expected_error_and_length_filtering(std::FILE * log_handle,
+                                                struct Stats const & stats,
+                                                std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
   assert(log_handle != nullptr);
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
@@ -453,9 +453,9 @@ auto report_fourth_section(std::FILE * log_handle,
 }
 
 
-auto report_fifth_section(std::FILE * log_handle,
-                          struct Stats const & stats,
-                          std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
+auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
+                                                 struct Stats const & stats,
+                                                 std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
   assert(log_handle != nullptr);
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "Truncate at first Q\n");
@@ -479,7 +479,7 @@ auto report_fifth_section(std::FILE * log_handle,
 }
 
 
-auto report_closing_section(std::FILE * log_handle, struct Stats const & stats) -> void {
+auto report_sequence_stats(std::FILE * log_handle, struct Stats const & stats) -> void {
   assert(log_handle != nullptr);
   static constexpr auto a_million = double{1000000};
   auto const n_sequences = static_cast<double>(stats.seq_count);
