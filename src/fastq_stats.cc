@@ -437,7 +437,7 @@ auto report_fourth_section(std::FILE * fp_log,
     {
       auto const & read_count = ee_length_table[i - 1];
       for (auto const count : read_count) {
-        read_percentage.push_back(100.0 * static_cast<double>(count) / seq_count);
+        read_percentage.emplace_back(100.0 * static_cast<double>(count) / seq_count);
       }
 
       if (read_count[0] != 0)
@@ -473,7 +473,7 @@ auto report_fifth_section(std::FILE * fp_log,
   for (auto i = len_max; i >= mid_length; --i)
     {
       for (auto const count : q_length_table[i - 1]) {
-        read_percentage.push_back(100.0 * static_cast<double>(count) / n_sequences);
+        read_percentage.emplace_back(100.0 * static_cast<double>(count) / n_sequences);
       }
 
       std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
