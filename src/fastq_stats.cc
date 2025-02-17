@@ -384,6 +384,79 @@ auto report_q_score_distribution(
 }
 
 
+auto report_third_section(std::FILE * fp_log,
+                          std::vector<uint64_t> const & read_length_table,
+                          std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
+                          std::vector<double> const & sumee_length_table,
+                          struct Parameters const & parameters) -> void {
+  assert(fp_log != nullptr);
+  auto const len_max = find_largest(read_length_table);
+  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  auto const length_dist = compute_cumulative_sum(read_length_table);
+  auto const distributions = compute_distributions(len_max, qual_length_table, sumee_length_table, parameters);
+  std::fprintf(fp_log, "\n");
+  std::fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
+  std::fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
+
+  for (auto i = 2UL; i <= len_max; i++)
+    {
+      auto const & distribution = distributions[i - 1];
+      auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
+      auto const AvgQ = distribution.avgq;
+      auto const AvgP = distribution.avgp;
+      auto const AvgEE = distribution.avgee;
+      auto const Rate = distribution.rate;
+
+      std::fprintf(fp_log,
+                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
+                   i,
+                   PctRecs,
+                   AvgQ,
+                   q2p(AvgQ),
+                   AvgP,
+                   AvgEE,
+                   Rate,
+                   100.0 * Rate);
+    }
+}
+
+
+auto report_fourth_section(std::FILE * fp_log,
+                           std::vector<uint64_t> const & read_length_table,
+                           std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
+  assert(fp_log != nullptr);
+  auto const len_max = find_largest(read_length_table);
+  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  std::fprintf(fp_log, "\n");
+  std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
+  std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
+
+  for (auto i = len_max; i >= 1UL; i--)
+    {
+      std::array<int64_t, 4> read_count {{}};
+      std::array<double, 4> read_percentage {{}};
+
+      for (auto j = 0; j < 4; j++)
+        {
+          read_count[j] = ee_length_table[i - 1][j];
+          read_percentage[j] = 100.0 * read_count[j] / seq_count;
+        }
+
+      if (read_count[0] > 0)
+        {
+          std::fprintf(fp_log,
+                       "%5" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  "
+                       "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
+                       i,
+                       read_count[0], read_count[1],
+                       read_count[2], read_count[3],
+                       read_percentage[0], read_percentage[1],
+                       read_percentage[2], read_percentage[3]);
+        }
+    }
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto a_million = double{1000000};
@@ -468,7 +541,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const len_max = find_largest(read_length_table);
   auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
   auto const length_dist = compute_cumulative_sum(read_length_table);
-  auto const distributions = compute_distributions(len_max, qual_length_table, sumee_length_table, parameters);
 
 
   /* print report */
@@ -477,60 +549,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     {
       report_read_length_distribution(fp_log, read_length_table);  // first section
       report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, parameters, n_symbols);  // second section
-
-
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
-      std::fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
-
-      for (auto i = 2UL; i <= len_max; i++)
-        {
-          auto const & distribution = distributions[i - 1];
-          auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
-          auto const AvgQ = distribution.avgq;
-          auto const AvgP = distribution.avgp;
-          auto const AvgEE = distribution.avgee;
-          auto const Rate = distribution.rate;
-
-          std::fprintf(fp_log,
-                  "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
-                  i,
-                  PctRecs,
-                  AvgQ,
-                  q2p(AvgQ),
-                  AvgP,
-                  AvgEE,
-                  Rate,
-                  100.0 * Rate);
-        }
-
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
-      std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
-
-      for (auto i = len_max; i >= 1UL; i--)
-        {
-          std::array<int64_t, 4> read_count {{}};
-          std::array<double, 4> read_percentage {{}};
-
-          for (auto j = 0; j < 4; j++)
-            {
-              read_count[j] = ee_length_table[i - 1][j];
-              read_percentage[j] = 100.0 * read_count[j] / seq_count;
-            }
-
-          if (read_count[0] > 0)
-            {
-              std::fprintf(fp_log,
-                      "%5" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  "
-                      "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
-                      i,
-                      read_count[0], read_count[1],
-                      read_count[2], read_count[3],
-                      read_percentage[0], read_percentage[1],
-                      read_percentage[2], read_percentage[3]);
-            }
-        }
+      report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
+      report_fourth_section(fp_log, read_length_table, ee_length_table);
 
 
       std::fprintf(fp_log, "\n");
