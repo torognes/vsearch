@@ -457,6 +457,35 @@ auto report_fourth_section(std::FILE * fp_log,
 }
 
 
+auto report_fifth_section(std::FILE * fp_log,
+                           std::vector<uint64_t> const & read_length_table,
+                           std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
+  assert(fp_log != nullptr);
+  auto const len_max = find_largest(read_length_table);
+  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  std::fprintf(fp_log, "\n");
+  std::fprintf(fp_log, "Truncate at first Q\n");
+  std::fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
+  std::fprintf(fp_log, "-----  ------  ------  ------  ------\n");
+
+  auto const mid_length = std::max(1UL, len_max / 2);
+  for (auto i = len_max; i >= mid_length; i--)
+    {
+      std::array<double, 4> read_percentage {{}};
+
+      for (auto j = 0; j < 4; j++)
+        {
+          read_percentage[j] = 100.0 * q_length_table[i - 1][j] / seq_count;
+        }
+
+      std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
+                   i,
+                   read_percentage[0], read_percentage[1],
+                   read_percentage[2], read_percentage[3]);
+    }
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto a_million = double{1000000};
@@ -538,7 +567,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const n_symbols = compute_number_of_symbols(read_length_table);
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
-  auto const len_max = find_largest(read_length_table);
+  // auto const len_max = find_largest(read_length_table);
   auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
   auto const length_dist = compute_cumulative_sum(read_length_table);
 
@@ -551,28 +580,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, parameters, n_symbols);  // second section
       report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
       report_fourth_section(fp_log, read_length_table, ee_length_table);
+      report_fifth_section(fp_log, read_length_table, q_length_table);
 
-
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Truncate at first Q\n");
-      std::fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
-      std::fprintf(fp_log, "-----  ------  ------  ------  ------\n");
-
-      auto const mid_length = std::max(1UL, len_max / 2);
-      for (auto i = len_max; i >= mid_length; i--)
-        {
-          std::array<double, 4> read_percentage {{}};
-
-          for (auto j = 0; j < 4; j++)
-            {
-              read_percentage[j] = 100.0 * q_length_table[i - 1][j] / seq_count;
-            }
-
-          std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
-                  i,
-                  read_percentage[0], read_percentage[1],
-                  read_percentage[2], read_percentage[3]);
-        }
 
       std::fprintf(fp_log, "\n");
       std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
