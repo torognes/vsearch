@@ -106,10 +106,10 @@ auto q2p(uint64_t quality_score) -> double {
 }
 
 
-auto check_quality_score(struct Parameters const & parameters, int const quality_score) -> void {
+auto check_quality_score(struct Parameters const & parameters, unsigned int const quality_score) -> void {
   auto const is_in_accepted_range =
-      (quality_score >= parameters.opt_fastq_qmin) and
-      (quality_score <= parameters.opt_fastq_qmax);
+    (quality_score >= static_cast<unsigned int>(parameters.opt_fastq_qmin)) and
+    (quality_score <= static_cast<unsigned int>(parameters.opt_fastq_qmax));
 
   if (is_in_accepted_range) {
     return;
@@ -343,12 +343,13 @@ auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> c
     {
       if (read_length_table[length] != 0)
         {
+          auto const previous_count = (length != 0) ? static_cast<double>(length_dist[length - 1]) : 0;
           std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                        (length == len_max ? ">=" : "  "),
                        length,
                        read_length_table[length],
                        static_cast<double>(read_length_table[length]) * 100.0 / seq_count,
-                       100.0 * (seq_count - (length > 0 ? length_dist[length - 1] : 0)) / seq_count);
+                       100.0 * (seq_count - previous_count) / seq_count);
         }
       if (length == 0UL) { break; }
     }
@@ -548,7 +549,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto qmin_this = std::numeric_limits<uint64_t>::max();  // lowest Q value observed in this read
       for (auto i = 0UL; i < length; ++i)
         {
-          auto const quality_symbol = static_cast<int>(quality_symbols[i]);
+          auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
           auto const quality_score = symbol_to_score[quality_symbol];
           check_quality_score(parameters, quality_score);  // refactoring: perform after parsing the read, by reading quality_chars
 
