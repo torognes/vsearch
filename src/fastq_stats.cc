@@ -400,8 +400,9 @@ auto report_third_section(std::FILE * fp_log,
 
   for (auto i = 2UL; i <= len_max; ++i)
     {
+      auto const previous_count = static_cast<double>(length_dist[i - 1]);
       auto const & distribution = distributions[i - 1];
-      auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
+      auto const PctRecs = 100.0 * (seq_count - previous_count) / seq_count;
       auto const AvgQ = distribution.avgq;
       auto const AvgP = distribution.avgp;
       auto const AvgEE = distribution.avgee;
