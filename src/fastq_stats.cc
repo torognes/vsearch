@@ -365,7 +365,7 @@ auto report_q_score_distribution(
   std::fprintf(fp_log, "Q score distribution\n");
   std::fprintf(fp_log, "ASCII    Q       Pe           N      Pct   AccPct\n");
   std::fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
-  int64_t qual_accum = 0;
+  uint64_t qual_accum = 0;
   for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
     {
       if (quality_dist[quality_symbol] > 0)
@@ -377,8 +377,8 @@ auto report_q_score_distribution(
                        symbol_to_score[quality_symbol],
                        symbol_to_probability[quality_symbol],
                        quality_dist[quality_symbol],
-                       100.0 * quality_dist[quality_symbol] / n_symbols,
-                       100.0 * qual_accum / n_symbols);
+                       100.0 * static_cast<double>(quality_dist[quality_symbol]) / n_symbols,
+                       100.0 * static_cast<double>(qual_accum) / n_symbols);
         }
     }
 }
