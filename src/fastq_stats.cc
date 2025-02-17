@@ -342,16 +342,15 @@ auto report_read_length_distribution(std::FILE * log_handle,
   std::fprintf(log_handle, "-------  ----------  -------  -------\n");
   for (auto length = stats.len_max; length >= stats.len_min; --length)
     {
-      if (read_length_table[length] == 0) { continue; }
-
-      auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
-      std::fprintf(log_handle, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
-                   (length == stats.len_max ? ">=" : "  "),
-                   length,
-                   read_length_table[length],
-                   static_cast<double>(read_length_table[length]) * 100.0 / stats.seq_count,
-                   100.0 * (stats.seq_count - previous_count) / stats.seq_count);
-
+      if (read_length_table[length] != 0) {
+        auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
+        std::fprintf(log_handle, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
+                     (length == stats.len_max ? ">=" : "  "),
+                     length,
+                     read_length_table[length],
+                     static_cast<double>(read_length_table[length]) * 100.0 / stats.seq_count,
+                     100.0 * (stats.seq_count - previous_count) / stats.seq_count);
+      }
       if (length == 0UL) { break; }
     }
 }
