@@ -373,18 +373,17 @@ auto report_q_score_distribution(
   uint64_t qual_accum = 0;
   for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
     {
-      if (stats.quality_dist[quality_symbol] > 0)
-        {
-          qual_accum += stats.quality_dist[quality_symbol];
-          std::fprintf(log_handle,
-                       "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
-                       quality_symbol,
-                       symbol_to_score[quality_symbol],
-                       symbol_to_probability[quality_symbol],
-                       stats.quality_dist[quality_symbol],
-                       100.0 * static_cast<double>(stats.quality_dist[quality_symbol]) / stats.n_symbols,
-                       100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
-        }
+      if (stats.quality_dist[quality_symbol] == 0) { continue; }
+
+      qual_accum += stats.quality_dist[quality_symbol];
+      std::fprintf(log_handle,
+                   "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
+                   quality_symbol,
+                   symbol_to_score[quality_symbol],
+                   symbol_to_probability[quality_symbol],
+                   stats.quality_dist[quality_symbol],
+                   100.0 * static_cast<double>(stats.quality_dist[quality_symbol]) / stats.n_symbols,
+                   100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
     }
 }
 
