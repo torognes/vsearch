@@ -546,7 +546,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       auto * quality_symbols = fastq_get_quality(input_handle);
       auto expected_error = 0.0;
-      auto qmin_this = std::numeric_limits<uint64_t>::max();  // lowest Q value observed in this read
+      auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed in this read
       for (auto i = 0UL; i < length; ++i)
         {
           auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
@@ -566,13 +566,13 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                            return current_value + (expected_error <= threshold ? 1 : 0);
                          });
 
-          qmin_this = std::min(quality_score, qmin_this);
+          qmin = std::min(quality_score, qmin);
 
           // increment quality observations if the current Q > 5, 10, 15, or 20
           std::transform(quality_thresholds.begin(), quality_thresholds.end(),
                          q_length_table[i].begin(), q_length_table[i].begin(),
-                         [qmin_this](uint64_t const threshold, uint64_t current_value) -> uint64_t {
-                           return current_value + (qmin_this > threshold ? 1 : 0);
+                         [qmin](uint64_t const threshold, uint64_t current_value) -> uint64_t {
+                           return current_value + (qmin > threshold ? 1 : 0);
                          });
         }
 
