@@ -418,7 +418,7 @@ auto report_length_vs_quality_distribution(std::FILE * log_handle,
     {
       auto const previous_count = static_cast<double>(stats.length_dist[length - 1]);
       auto const & distribution = stats.distributions[length - 1];
-      auto const PctRecs = 100.0 * (stats.seq_count - previous_count) / stats.seq_count;
+      auto const PctRecs = 100.0 * (stats.n_sequences - previous_count) / stats.n_sequences;
       auto const AvgQ = distribution.avgq;
       auto const AvgP = distribution.avgp;
       auto const AvgEE = distribution.avgee;
@@ -452,7 +452,7 @@ auto report_expected_error_and_length_filtering(std::FILE * log_handle,
     {
       auto const & read_count = ee_length_table[length - 1];
       for (auto const count : read_count) {
-        read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.seq_count);
+        read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
       }
 
       if (read_count[0] != 0)
