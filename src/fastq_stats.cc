@@ -86,6 +86,7 @@ struct Stats {
   double n_symbols;
   uint64_t seq_count;
   double n_sequences;
+  std::vector<uint64_t> length_dist;
 };
 
 struct Distributions {
@@ -331,8 +332,9 @@ auto compute_distributions(
 }
 
 
-auto report_read_length_distribution(std::FILE * log_handle, struct Stats const & stats, std::vector<uint64_t> const & read_length_table) -> void {
-  auto const length_dist = compute_cumulative_sum(read_length_table);
+auto report_read_length_distribution(std::FILE * log_handle,
+                                     struct Stats const & stats,
+                                     std::vector<uint64_t> const & read_length_table) -> void {
   assert(log_handle != nullptr);
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "Read length distribution\n");
@@ -343,7 +345,7 @@ auto report_read_length_distribution(std::FILE * log_handle, struct Stats const 
     {
       if (read_length_table[length] != 0)
         {
-          auto const previous_count = (length != 0) ? static_cast<double>(length_dist[length - 1]) : 0;
+          auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
           std::fprintf(log_handle, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                        (length == stats.len_max ? ">=" : "  "),
                        length,
@@ -585,8 +587,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     find_smallest(read_length_table),
     find_largest(read_length_table),
     compute_number_of_symbols(read_length_table),
-    std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}),
-    static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}))
+    std::accumulate(read_length_table.begin(), read_length_table.end(),
+                    std::uint64_t{0}),
+    static_cast<double>(std::accumulate(read_length_table.begin(),
+                                        read_length_table.end(),
+                                        std::uint64_t{0})),
+    compute_cumulative_sum(read_length_table)
   };
 
 
