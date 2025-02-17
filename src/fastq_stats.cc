@@ -81,8 +81,11 @@ constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
 struct Stats {
+  uint64_t len_min;
+  uint64_t len_max;
   double n_symbols;
   uint64_t seq_count;
+  double n_sequences;
 };
 
 struct Distributions {
@@ -464,23 +467,21 @@ auto report_fourth_section(std::FILE * log_handle,
 
 
 auto report_fifth_section(std::FILE * log_handle,
-                           std::vector<uint64_t> const & read_length_table,
-                           std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
+                          struct Stats const & stats,
+                          std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
   assert(log_handle != nullptr);
-  auto const len_max = find_largest(read_length_table);
-  auto const n_sequences = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "Truncate at first Q\n");
   std::fprintf(log_handle, "  Len     Q=5    Q=10    Q=15    Q=20\n");
   std::fprintf(log_handle, "-----  ------  ------  ------  ------\n");
 
-  auto const mid_length = std::max(1UL, len_max / 2);
+  auto const mid_length = std::max(1UL, stats.len_max / 2);
   std::vector<double> read_percentage;
   read_percentage.reserve(q_length_table[0].size());
-  for (auto length = len_max; length >= mid_length; --length)
+  for (auto length = stats.len_max; length >= mid_length; --length)
     {
       for (auto const count : q_length_table[length - 1]) {
-        read_percentage.emplace_back(100.0 * static_cast<double>(count) / n_sequences);
+        read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
       }
 
       std::fprintf(log_handle, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
@@ -586,8 +587,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   /* compute various distributions */
 
   auto const stats = Stats{
+    find_smallest(read_length_table),
+    find_largest(read_length_table),
     compute_number_of_symbols(read_length_table),
-    std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0})
+    std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}),
+    static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}))
   };
 
 
@@ -599,7 +603,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, symbol_to_score, stats.n_symbols);  // second section
       report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
       report_fourth_section(fp_log, read_length_table, ee_length_table);
-      report_fifth_section(fp_log, read_length_table, q_length_table);
+      report_fifth_section(fp_log, stats, q_length_table);
       report_closing_section(fp_log, stats);
     }
 
