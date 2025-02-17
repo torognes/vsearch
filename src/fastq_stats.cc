@@ -556,6 +556,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       check_minmax_scores(Span{quality_symbols, length}, symbol_to_score, parameters);
 
+      // search for first Q <= 20, increment q_length_table[i][3] for i = 0 to
+      // position of first Q
+      // search for the 4 positions at once?
       for (auto i = 0UL; i < length; ++i)
         {
           auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
