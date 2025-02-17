@@ -334,7 +334,7 @@ auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> c
   std::fprintf(fp_log, "      L           N      Pct   AccPct\n");
   std::fprintf(fp_log, "-------  ----------  -------  -------\n");
   // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
-  for (auto i = len_max; i >= len_min; i--)
+  for (auto i = len_max; i >= len_min; --i)
     {
       if (read_length_table[i] > 0)
         {
@@ -366,7 +366,7 @@ auto report_q_score_distribution(
   std::fprintf(fp_log, "ASCII    Q       Pe           N      Pct   AccPct\n");
   std::fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
   int64_t qual_accum = 0;
-  for (auto quality_symbol = qmax ; quality_symbol >= qmin ; quality_symbol--)
+  for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
     {
       if (quality_dist[quality_symbol] > 0)
         {
@@ -398,7 +398,7 @@ auto report_third_section(std::FILE * fp_log,
   std::fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
   std::fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
-  for (auto i = 2UL; i <= len_max; i++)
+  for (auto i = 2UL; i <= len_max; ++i)
     {
       auto const & distribution = distributions[i - 1];
       auto const PctRecs = 100.0 * (seq_count - length_dist[i - 1]) / seq_count;
@@ -431,12 +431,12 @@ auto report_fourth_section(std::FILE * fp_log,
   std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
   std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
-  for (auto i = len_max; i >= 1UL; i--)
+  for (auto i = len_max; i >= 1UL; --i)
     {
       std::array<int64_t, 4> read_count {{}};
       std::array<double, 4> read_percentage {{}};
 
-      for (auto j = 0; j < 4; j++)
+      for (auto j = 0; j < 4; ++j)
         {
           read_count[j] = ee_length_table[i - 1][j];
           read_percentage[j] = 100.0 * read_count[j] / seq_count;
@@ -469,11 +469,11 @@ auto report_fifth_section(std::FILE * fp_log,
   std::fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
   auto const mid_length = std::max(1UL, len_max / 2);
-  for (auto i = len_max; i >= mid_length; i--)
+  for (auto i = len_max; i >= mid_length; --i)
     {
       std::array<double, 4> read_percentage {{}};
 
-      for (auto j = 0; j < 4; j++)
+      for (auto j = 0; j < 4; ++j)
         {
           read_percentage[j] = 100.0 * q_length_table[i - 1][j] / seq_count;
         }
@@ -542,7 +542,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto * quality_symbols = fastq_get_quality(input_handle);
       auto expected_error = 0.0;
       auto qmin_this = std::numeric_limits<int>::max();  // lowest Q value observed in this read
-      for (auto i = 0UL; i < length; i++)
+      for (auto i = 0UL; i < length; ++i)
         {
           auto const quality_symbol = static_cast<int>(quality_symbols[i]);
           int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
