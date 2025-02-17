@@ -331,10 +331,7 @@ auto compute_distributions(
 }
 
 
-auto report_read_length_distribution(std::FILE * log_handle, std::vector<uint64_t> const & read_length_table) -> void {
-  auto const len_min = find_smallest(read_length_table);
-  auto const len_max = find_largest(read_length_table);
-  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
+auto report_read_length_distribution(std::FILE * log_handle, struct Stats const & stats, std::vector<uint64_t> const & read_length_table) -> void {
   auto const length_dist = compute_cumulative_sum(read_length_table);
   assert(log_handle != nullptr);
   std::fprintf(log_handle, "\n");
@@ -342,17 +339,17 @@ auto report_read_length_distribution(std::FILE * log_handle, std::vector<uint64_
   std::fprintf(log_handle, "      L           N      Pct   AccPct\n");
   std::fprintf(log_handle, "-------  ----------  -------  -------\n");
   // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
-  for (auto length = len_max; length >= len_min; --length)
+  for (auto length = stats.len_max; length >= stats.len_min; --length)
     {
       if (read_length_table[length] != 0)
         {
           auto const previous_count = (length != 0) ? static_cast<double>(length_dist[length - 1]) : 0;
           std::fprintf(log_handle, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
-                       (length == len_max ? ">=" : "  "),
+                       (length == stats.len_max ? ">=" : "  "),
                        length,
                        read_length_table[length],
-                       static_cast<double>(read_length_table[length]) * 100.0 / seq_count,
-                       100.0 * (seq_count - previous_count) / seq_count);
+                       static_cast<double>(read_length_table[length]) * 100.0 / stats.seq_count,
+                       100.0 * (stats.seq_count - previous_count) / stats.seq_count);
         }
       if (length == 0UL) { break; }
     }
@@ -432,22 +429,20 @@ auto report_third_section(std::FILE * log_handle,
 
 
 auto report_fourth_section(std::FILE * log_handle,
-                           std::vector<uint64_t> const & read_length_table,
+                           struct Stats const & stats,
                            std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
   assert(log_handle != nullptr);
-  auto const len_max = find_largest(read_length_table);
-  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
   std::fprintf(log_handle, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
   std::vector<double> read_percentage;
   read_percentage.reserve(ee_length_table[0].size());
-  for (auto length = len_max; length >= 1UL; --length)
+  for (auto length = stats.len_max; length >= 1UL; --length)
     {
       auto const & read_count = ee_length_table[length - 1];
       for (auto const count : read_count) {
-        read_percentage.emplace_back(100.0 * static_cast<double>(count) / seq_count);
+        read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.seq_count);
       }
 
       if (read_count[0] != 0)
@@ -599,10 +594,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   if (fp_log != nullptr)
     {
-      report_read_length_distribution(fp_log, read_length_table);  // first section
+      report_read_length_distribution(fp_log, stats, read_length_table);  // first section
       report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, symbol_to_score, stats.n_symbols);  // second section
       report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
-      report_fourth_section(fp_log, read_length_table, ee_length_table);
+      report_fourth_section(fp_log, stats, ee_length_table);
       report_fifth_section(fp_log, stats, q_length_table);
       report_closing_section(fp_log, stats);
     }
