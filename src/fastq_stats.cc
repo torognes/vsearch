@@ -87,6 +87,7 @@ struct Stats {
   uint64_t seq_count;
   double n_sequences;
   std::vector<uint64_t> length_dist;
+  std::vector<uint64_t> quality_dist;
 };
 
 struct Distributions {
@@ -358,14 +359,12 @@ auto report_read_length_distribution(std::FILE * log_handle,
 
 auto report_q_score_distribution(
     std::FILE * log_handle,
-    std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
+    struct Stats const & stats,
     std::vector<double> const & symbol_to_probability,
-    std::vector<uint64_t> const & symbol_to_score,
-    double const n_symbols) -> void {
+    std::vector<uint64_t> const & symbol_to_score) -> void {
   assert(log_handle != nullptr);
-  auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
-  auto const qmin = static_cast<int>(find_smallest(quality_dist));
-  auto const qmax = static_cast<int>(find_largest(quality_dist));
+  auto const qmin = static_cast<int>(find_smallest(stats.quality_dist));
+  auto const qmax = static_cast<int>(find_largest(stats.quality_dist));
 
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "Q score distribution\n");
@@ -374,17 +373,17 @@ auto report_q_score_distribution(
   uint64_t qual_accum = 0;
   for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
     {
-      if (quality_dist[quality_symbol] > 0)
+      if (stats.quality_dist[quality_symbol] > 0)
         {
-          qual_accum += quality_dist[quality_symbol];
+          qual_accum += stats.quality_dist[quality_symbol];
           std::fprintf(log_handle,
                        "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                        quality_symbol,
                        symbol_to_score[quality_symbol],
                        symbol_to_probability[quality_symbol],
-                       quality_dist[quality_symbol],
-                       100.0 * static_cast<double>(quality_dist[quality_symbol]) / n_symbols,
-                       100.0 * static_cast<double>(qual_accum) / n_symbols);
+                       stats.quality_dist[quality_symbol],
+                       100.0 * static_cast<double>(stats.quality_dist[quality_symbol]) / stats.n_symbols,
+                       100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
         }
     }
 }
@@ -582,15 +581,15 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   /* compute various distributions */
 
   auto const stats = Stats{
-    find_smallest(read_length_table),
-    find_largest(read_length_table),
-    compute_number_of_symbols(read_length_table),
-    std::accumulate(read_length_table.begin(), read_length_table.end(),
-                    std::uint64_t{0}),
-    static_cast<double>(std::accumulate(read_length_table.begin(),
-                                        read_length_table.end(),
-                                        std::uint64_t{0})),
-    compute_cumulative_sum(read_length_table)
+    find_smallest(read_length_table), find_largest(read_length_table),
+        compute_number_of_symbols(read_length_table),
+        std::accumulate(read_length_table.begin(), read_length_table.end(),
+                        std::uint64_t{0}),
+        static_cast<double>(std::accumulate(read_length_table.begin(),
+                                            read_length_table.end(),
+                                            std::uint64_t{0})),
+        compute_cumulative_sum(read_length_table),
+        compute_distribution_of_quality_symbols(qual_length_table)
   };
 
 
@@ -599,7 +598,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   if (fp_log != nullptr)
     {
       report_read_length_distribution(fp_log, stats, read_length_table);  // first section
-      report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, symbol_to_score, stats.n_symbols);  // second section
+      report_q_score_distribution(fp_log, stats, symbol_to_probability, symbol_to_score);  // second section
       report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
       report_fourth_section(fp_log, stats, ee_length_table);
       report_fifth_section(fp_log, stats, q_length_table);
