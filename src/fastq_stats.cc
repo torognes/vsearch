@@ -490,12 +490,13 @@ auto report_closing_section(std::FILE * fp_log,
                             double const n_symbols) -> void {
   assert(fp_log != nullptr);
   static constexpr auto a_million = double{1000000};
+  auto const n_sequences = static_cast<double>(seq_count);
   std::fprintf(fp_log, "\n");
   std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
-               seq_count, seq_count / a_million);
+               seq_count, n_sequences / a_million);
   if (seq_count > 0)
     {
-      std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * n_symbols / seq_count);
+      std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * n_symbols / n_sequences);
     }
   std::fprintf(fp_log, "%9.1lfM  Bases\n", n_symbols / a_million);
 }
