@@ -468,19 +468,21 @@ auto report_fifth_section(std::FILE * fp_log,
   std::fprintf(fp_log, "-----  ------  ------  ------  ------\n");
 
   auto const mid_length = std::max(1UL, len_max / 2);
+  // std::vector<double> read_percentage; read_percentage.reserve(q_length_table[0].size());
   for (auto i = len_max; i >= mid_length; --i)
     {
       std::array<double, 4> read_percentage {{}};
 
+      // for (auto const count: q_length_table[i - 1]) { read_percentage.push_back( 100.0 * static_cast<double>(count) / n_sequences ); }
       for (auto j = 0; j < 4; ++j)
         {
           read_percentage[j] = 100.0 * q_length_table[i - 1][j] / n_sequences;
         }
 
       std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
-                   i,
-                   read_percentage[0], read_percentage[1],
+                   i, read_percentage[0], read_percentage[1],
                    read_percentage[2], read_percentage[3]);
+        // read_percentage.clear();
     }
 }
 
