@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "utils/maps.hpp"
 #include <array>
-#include <algorithm>  // std::max, std::find_if, std::transform
+#include <algorithm>  // std::max, std::find_if, std::transform, std::minmax_element
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
@@ -79,6 +79,11 @@ constexpr auto initial_memory_allocation = std::size_t{512};
 constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
 constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
+
+struct Span {
+  char * start;
+  std::size_t n_elements;
+};
 
 struct Distributions {
   double avgq = 0.0;
@@ -129,6 +134,19 @@ auto check_quality_score(struct Parameters const & parameters, unsigned int cons
     "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
     "diagnosis with suggested values, please run vsearch --fastq_chars file.";
   fatal(message.c_str());
+}
+
+
+auto check_minmax_scores(struct Span const a_span,
+                         std::vector<uint64_t> const & symbol_to_score,
+                         struct Parameters const & parameters) -> void {
+  if (a_span.n_elements == 0) { return; }
+  auto const minmax_scores =
+    std::minmax_element(a_span.start, a_span.start + a_span.n_elements);
+  auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
+  auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
+  check_quality_score(parameters, qmin);
+  check_quality_score(parameters, qmax);
 }
 
 
@@ -535,11 +553,13 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto * quality_symbols = fastq_get_quality(input_handle);
       auto expected_error = 0.0;
       auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed in this read
+
+      check_minmax_scores(Span{quality_symbols, length}, symbol_to_score, parameters);
+
       for (auto i = 0UL; i < length; ++i)
         {
           auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
           auto const quality_score = symbol_to_score[quality_symbol];
-          check_quality_score(parameters, quality_score);  // refactoring: perform after parsing the read, by reading quality_chars
 
           ++qual_length_table[i][quality_symbol];
 
