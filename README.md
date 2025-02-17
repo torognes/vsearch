@@ -39,7 +39,8 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in [online documentation](https://torognes.github.io/vsearch/), or in the [manpage](https://github.com/torognes/vsearch/releases/download/v2.29.3/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+
+If you can't find an answer in [online documentation](https://torognes.github.io/vsearch/), or in the [manpage](https://github.com/torognes/vsearch/releases/download/v2.29.4/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -52,9 +53,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.29.3.tar.gz
-tar xzf v2.29.3.tar.gz
-cd vsearch-2.29.3
+wget https://github.com/torognes/vsearch/archive/v2.29.4.tar.gz
+tar xzf v2.29.4.tar.gz
+cd vsearch-2.29.4
 ./autogen.sh
 ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 make ARFLAGS="cr"
@@ -63,7 +64,7 @@ sudo make install
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O2"` and `CXXFLAGS="-O2"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ (`g++`) compiler is required to build vsearch. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
-Warning: Compiling the `align_simd.cc` file on x86_64 systems with the GNU C++ compiler version 9 or later with the `-O3` optimization option results in incorrect code that may cause bad alignments in some circumstances. We are investigating this issue further, but for now we recommend compiling with the `-O2` flag.
+Warning: Compiling the `align_simd.cc` file on x86_64 systems using the GNU C++ compiler version 9 or later with the `-O3` optimization option on may result in incorrect code that may cause bad alignments in some circumstances. This was due to the `-ftree-partial-pre` optimization enabled by `-O3`. A compiler pragma has been inserted in the code to specifically turn off this optimization for the affected code. Using `-O3` should be safe.
 
 To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, ghostscript, groff, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
 
@@ -91,7 +92,7 @@ wget https://github.com/torognes/vsearch/releases/download/v{VERSION}/vsearch-{V
 tar xzf vsearch-{VERSION}-{OS}-{ARCH}.tar.gz
 ```
 
-Replace `{VERSION}` with the VSEARCH version number (e.g. `2.29.3`), `{OS}` with the target operating system (`linux` or `macos`), and `{ARCH}` with the architecture (`x86_64`, `aarch64`, `ppc64le`, `riscv64`, or `mips64el`). You could add `-static` after `{ARCH}` to get a statically compiled version for Linux (except x86_64). The name of the binary for the RHEL 7 and CentOS 7 Linux distributions ends in `-ubi7`.
+Replace `{VERSION}` with the VSEARCH version number (e.g. `2.29.4`), `{OS}` with the target operating system (`linux` or `macos`), and `{ARCH}` with the architecture (`x86_64`, `aarch64`, `ppc64le`, `riscv64`, or `mips64el`). You could add `-static` after `{ARCH}` to get a statically compiled version for Linux (except x86_64). The name of the binary for the RHEL 7 and CentOS 7 Linux distributions ends in `-ubi7`.
 
 Or, if you are using Windows, download and extract (unzip) the contents of this file:
 
@@ -115,7 +116,7 @@ and `zlib1.dll` files required for reading compressed input
 files. These DLL's have been obtained for mingw-w64 from the MSYS2
 platform.
 
-**Documentation:** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.29.3/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.29.3/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
+**Documentation:** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.29.4/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.29.4/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
 
 
 ## Packages, plugins, and wrappers
@@ -159,7 +160,7 @@ Compiling VSEARCH requires either GCC (`g++`) or `clang`, `make` and the autotoo
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
-On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.29.3 and later.
+On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.27.0 and later.
 
 To create the PDF file with the manual the ps2pdf tool is required. It is part of the `ghostscript` package.
 

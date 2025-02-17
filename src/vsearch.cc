@@ -121,6 +121,7 @@ bool opt_fastq_nostagger;
 bool opt_gzip_decompress;
 bool opt_label_substr_match;
 bool opt_lengthout;
+bool opt_n_mismatch;
 bool opt_no_progress;
 bool opt_quiet;
 bool opt_relabel_keep;
@@ -772,7 +773,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
   static constexpr auto number_of_commands = std::size_t{50};
-  static constexpr auto max_number_of_options = std::size_t{98};
+  static constexpr auto max_number_of_options = std::size_t{99};
 
   parameters.progname = argv[0];
 
@@ -931,6 +932,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_mismatch = -4;
   opt_mothur_shared_out = nullptr;
   opt_msaout = nullptr;
+  opt_n_mismatch = false;
   opt_no_progress = false;
   opt_nonchimeras = nullptr;
   opt_notmatched = nullptr;
@@ -1169,6 +1171,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_mismatch,
       option_mothur_shared_out,
       option_msaout,
+      option_n_mismatch,
       option_no_progress,
       option_nonchimeras,
       option_notmatched,
@@ -1251,7 +1254,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_xsize
     };
 
-  static constexpr std::array<struct option, 244> long_options =
+  static constexpr std::array<struct option, 245> long_options =
     {{
       {"abskew",                required_argument, nullptr, 0 },
       {"acceptall",             no_argument,       nullptr, 0 },
@@ -1416,6 +1419,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"mismatch",              required_argument, nullptr, 0 },
       {"mothur_shared_out",     required_argument, nullptr, 0 },
       {"msaout",                required_argument, nullptr, 0 },
+      {"n_mismatch",            no_argument,       nullptr, 0 },
       {"no_progress",           no_argument,       nullptr, 0 },
       {"nonchimeras",           required_argument, nullptr, 0 },
       {"notmatched",            required_argument, nullptr, 0 },
@@ -2619,6 +2623,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           parameters.opt_sintax_random = true;
           break;
 
+        case option_n_mismatch:
+          opt_n_mismatch = true;
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -2748,6 +2756,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_mintsize,
         option_minwordmatches,
         option_mismatch,
+        option_n_mismatch,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -2880,6 +2889,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_mismatch,
         option_mothur_shared_out,
         option_msaout,
+        option_n_mismatch,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -2977,6 +2987,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_mismatch,
         option_mothur_shared_out,
         option_msaout,
+        option_n_mismatch,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -3074,6 +3085,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_mismatch,
         option_mothur_shared_out,
         option_msaout,
+        option_n_mismatch,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -3173,6 +3185,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_mismatch,
         option_mothur_shared_out,
         option_msaout,
+        option_n_mismatch,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -4493,6 +4506,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_minwordmatches,
         option_mismatch,
         option_mothur_shared_out,
+        option_n_mismatch,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -5411,6 +5425,7 @@ auto cmd_help(struct Parameters const & parameters) -> void {
           "  --mintsize INT              reject if target abundance lower\n"
           "  --minwordmatches INT        minimum number of word matches required (12)\n"
           "  --mismatch INT              score for mismatch (-4)\n"
+          "  --n_mismatch                consider aligning with N's as mismatches\n"
           "  --pattern STRING            option is ignored\n"
           "  --qmask none|dust|soft      mask query with dust, soft or no method (dust)\n"
           "  --query_cov REAL            reject if fraction of query seq. aligned lower\n"

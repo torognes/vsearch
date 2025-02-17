@@ -227,6 +227,7 @@ extern bool opt_fastq_nostagger;
 extern bool opt_gzip_decompress;
 extern bool opt_label_substr_match;
 extern bool opt_lengthout;
+extern bool opt_n_mismatch;
 extern bool opt_no_progress;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;

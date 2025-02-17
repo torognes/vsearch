@@ -128,7 +128,11 @@ inline auto putop(char c, int64_t len) -> void
 
           qs4 = chrmap_4bit[static_cast<int>(qs)];
           ds4 = chrmap_4bit[static_cast<int>(ds)];
-          if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
+          if (opt_n_mismatch && ((qs4 == 15) || (ds4 == 15)))
+            {
+              a_line[line_pos] = ' ';
+            }
+          else if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
             {
               a_line[line_pos] = '|';
             }

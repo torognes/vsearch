@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "February 3, 2025" "version 2.29.3" "vsearch manual"
+.TH vsearch 1 "February 14, 2025" "version 2.29.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5008,6 +5008,13 @@ circumstances. We are investigating this issue further, but for now we
 recommend compiling with the `-O2` flag. The README.md file and the
 Dockerfiles have been updated to reflect this. The binaries released
 with this version will include this fix.
+.TP
+.BR v2.29.4\~ "released February 14th, 2025"
+Adjust the window size used for chimera detection down from 64 to
+32. The window size was by accident increased from 32 to 64 in version
+2.23.0, leading to somewhat fewer chimeras being predicted.
+In addition, a compiler pragma has been included in align_simd.cc to
+further protect the compiler from generating wrong code.
 .\" ============================================================================
 .\" TODO:
 .\"

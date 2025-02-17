@@ -143,7 +143,11 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
       for (auto j = 0; j < matrix_size; j++)
         {
           int64_t value = 0;
-          if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
+          if (opt_n_mismatch && ((i == 15) || (j == 15)))
+            {
+              value = mismatch;
+            }
+          else if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
             {
               value = 0;
             }
@@ -745,8 +749,13 @@ auto LinearMemoryAligner::alignstats(char * cigar,
             {
               nwscore += subst_score(a_pos, b_pos);
 
-              if ((chrmap_4bit[(int)(a_seq[a_pos])] &
-                   chrmap_4bit[(int)(b_seq[b_pos])]) != 0U)
+              if (opt_n_mismatch && ((chrmap_4bit[(int) (a_seq[a_pos])] == 15) ||
+                                     (chrmap_4bit[(int) (b_seq[b_pos])] == 15)))
+                {
+                  nwmismatches++;
+                }
+              else if ((chrmap_4bit[(int)(a_seq[a_pos])] &
+                        chrmap_4bit[(int)(b_seq[b_pos])]) != 0U)
                 {
                   ++nwmatches;
                 }
