@@ -336,7 +336,7 @@ auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> c
   // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
   for (auto i = len_max; i >= len_min; --i)
     {
-      if (read_length_table[i] > 0)
+      if (read_length_table[i] != 0)
         {
           std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                        (i == len_max ? ">=" : "  "),
@@ -493,7 +493,7 @@ auto report_closing_section(std::FILE * fp_log,
   std::fprintf(fp_log, "\n");
   std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
                seq_count, n_sequences / a_million);
-  if (seq_count > 0)
+  if (seq_count != 0)
     {
       std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * n_symbols / n_sequences);
     }
