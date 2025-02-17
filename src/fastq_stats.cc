@@ -426,26 +426,25 @@ auto report_fourth_section(std::FILE * fp_log,
                            std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
   assert(fp_log != nullptr);
   auto const len_max = find_largest(read_length_table);
-  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   std::fprintf(fp_log, "\n");
   std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
   std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
   for (auto i = len_max; i >= 1UL; --i)
     {
-      std::array<int64_t, 4> read_count {{}};
+      auto const & read_count = ee_length_table[i - 1];
       std::array<double, 4> read_percentage {{}};
 
       for (auto j = 0; j < 4; ++j)
         {
-          read_count[j] = ee_length_table[i - 1][j];
           read_percentage[j] = 100.0 * read_count[j] / seq_count;
         }
 
       if (read_count[0] > 0)
         {
           std::fprintf(fp_log,
-                       "%5" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  %7" PRId64 "  "
+                       "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
                        "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
                        i,
                        read_count[0], read_count[1],
