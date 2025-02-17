@@ -76,7 +76,7 @@
 
 
 constexpr auto initial_memory_allocation = std::size_t{512};
-constexpr std::array<int, 4> quality_thresholds = {5, 10, 15, 20};
+constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
 constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
@@ -354,7 +354,7 @@ auto report_q_score_distribution(
     std::FILE * fp_log,
     std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
     std::vector<double> const & symbol_to_probability,
-    struct Parameters const & parameters,
+    std::vector<uint64_t> const & symbol_to_score,
     double const n_symbols) -> void {
   assert(fp_log != nullptr);
   auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
@@ -374,7 +374,7 @@ auto report_q_score_distribution(
           std::fprintf(fp_log,
                        "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                        quality_symbol,
-                       quality_symbol - parameters.opt_fastq_ascii,
+                       symbol_to_score[quality_symbol],
                        symbol_to_probability[quality_symbol],
                        quality_dist[quality_symbol],
                        100.0 * quality_dist[quality_symbol] / n_symbols,
@@ -509,6 +509,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
+  auto const symbol_to_score = precompute_quality_scores(parameters);
   auto const symbol_to_probability = precompute_probability_values(parameters);
   std::vector<uint64_t> read_length_table(initial_memory_allocation);
   std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(initial_memory_allocation);
@@ -540,11 +541,11 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       auto * quality_symbols = fastq_get_quality(input_handle);
       auto expected_error = 0.0;
-      auto qmin_this = std::numeric_limits<int>::max();  // lowest Q value observed in this read
+      auto qmin_this = std::numeric_limits<uint64_t>::max();  // lowest Q value observed in this read
       for (auto i = 0UL; i < length; ++i)
         {
           auto const quality_symbol = static_cast<int>(quality_symbols[i]);
-          int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
+          auto const quality_score = symbol_to_score[quality_symbol];
           check_quality_score(parameters, quality_score);  // refactoring: perform after parsing the read, by reading quality_chars
 
           ++qual_length_table[i][quality_symbol];
@@ -565,7 +566,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
           // increment quality observations if the current Q > 5, 10, 15, or 20
           std::transform(quality_thresholds.begin(), quality_thresholds.end(),
                          q_length_table[i].begin(), q_length_table[i].begin(),
-                         [qmin_this](int const threshold, uint64_t current_value) -> uint64_t {
+                         [qmin_this](uint64_t const threshold, uint64_t current_value) -> uint64_t {
                            return current_value + (qmin_this > threshold ? 1 : 0);
                          });
         }
@@ -588,7 +589,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   if (fp_log != nullptr)
     {
       report_read_length_distribution(fp_log, read_length_table);  // first section
-      report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, parameters, n_symbols);  // second section
+      report_q_score_distribution(fp_log, qual_length_table, symbol_to_probability, symbol_to_score, n_symbols);  // second section
       report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
       report_fourth_section(fp_log, read_length_table, ee_length_table);
       report_fifth_section(fp_log, read_length_table, q_length_table);
