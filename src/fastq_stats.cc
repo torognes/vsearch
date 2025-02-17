@@ -328,23 +328,23 @@ auto compute_distributions(
 }
 
 
-auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> const & read_length_table) -> void {
+auto report_read_length_distribution(std::FILE * log_handle, std::vector<uint64_t> const & read_length_table) -> void {
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
   auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   auto const length_dist = compute_cumulative_sum(read_length_table);
-  assert(fp_log != nullptr);
-  std::fprintf(fp_log, "\n");
-  std::fprintf(fp_log, "Read length distribution\n");
-  std::fprintf(fp_log, "      L           N      Pct   AccPct\n");
-  std::fprintf(fp_log, "-------  ----------  -------  -------\n");
+  assert(log_handle != nullptr);
+  std::fprintf(log_handle, "\n");
+  std::fprintf(log_handle, "Read length distribution\n");
+  std::fprintf(log_handle, "      L           N      Pct   AccPct\n");
+  std::fprintf(log_handle, "-------  ----------  -------  -------\n");
   // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
   for (auto length = len_max; length >= len_min; --length)
     {
       if (read_length_table[length] != 0)
         {
           auto const previous_count = (length != 0) ? static_cast<double>(length_dist[length - 1]) : 0;
-          std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
+          std::fprintf(log_handle, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                        (length == len_max ? ">=" : "  "),
                        length,
                        read_length_table[length],
@@ -357,27 +357,27 @@ auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> c
 
 
 auto report_q_score_distribution(
-    std::FILE * fp_log,
+    std::FILE * log_handle,
     std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
     std::vector<double> const & symbol_to_probability,
     std::vector<uint64_t> const & symbol_to_score,
     double const n_symbols) -> void {
-  assert(fp_log != nullptr);
+  assert(log_handle != nullptr);
   auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
   auto const qmin = static_cast<int>(find_smallest(quality_dist));
   auto const qmax = static_cast<int>(find_largest(quality_dist));
 
-  std::fprintf(fp_log, "\n");
-  std::fprintf(fp_log, "Q score distribution\n");
-  std::fprintf(fp_log, "ASCII    Q       Pe           N      Pct   AccPct\n");
-  std::fprintf(fp_log, "-----  ---  -------  ----------  -------  -------\n");
+  std::fprintf(log_handle, "\n");
+  std::fprintf(log_handle, "Q score distribution\n");
+  std::fprintf(log_handle, "ASCII    Q       Pe           N      Pct   AccPct\n");
+  std::fprintf(log_handle, "-----  ---  -------  ----------  -------  -------\n");
   uint64_t qual_accum = 0;
   for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
     {
       if (quality_dist[quality_symbol] > 0)
         {
           qual_accum += quality_dist[quality_symbol];
-          std::fprintf(fp_log,
+          std::fprintf(log_handle,
                        "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                        quality_symbol,
                        symbol_to_score[quality_symbol],
@@ -390,19 +390,19 @@ auto report_q_score_distribution(
 }
 
 
-auto report_third_section(std::FILE * fp_log,
+auto report_third_section(std::FILE * log_handle,
                           std::vector<uint64_t> const & read_length_table,
                           std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
                           std::vector<double> const & sumee_length_table,
                           struct Parameters const & parameters) -> void {
-  assert(fp_log != nullptr);
+  assert(log_handle != nullptr);
   auto const len_max = find_largest(read_length_table);
   auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   auto const length_dist = compute_cumulative_sum(read_length_table);
   auto const distributions = compute_distributions(len_max, qual_length_table, sumee_length_table, parameters);
-  std::fprintf(fp_log, "\n");
-  std::fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
-  std::fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
+  std::fprintf(log_handle, "\n");
+  std::fprintf(log_handle, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
+  std::fprintf(log_handle, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
   for (auto length = 2UL; length <= len_max; ++length)
     {
@@ -414,7 +414,7 @@ auto report_third_section(std::FILE * fp_log,
       auto const AvgEE = distribution.avgee;
       auto const Rate = distribution.rate;
 
-      std::fprintf(fp_log,
+      std::fprintf(log_handle,
                    "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
                    length,
                    PctRecs,
@@ -428,15 +428,15 @@ auto report_third_section(std::FILE * fp_log,
 }
 
 
-auto report_fourth_section(std::FILE * fp_log,
+auto report_fourth_section(std::FILE * log_handle,
                            std::vector<uint64_t> const & read_length_table,
                            std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
-  assert(fp_log != nullptr);
+  assert(log_handle != nullptr);
   auto const len_max = find_largest(read_length_table);
   auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
-  std::fprintf(fp_log, "\n");
-  std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
-  std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
+  std::fprintf(log_handle, "\n");
+  std::fprintf(log_handle, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
+  std::fprintf(log_handle, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
   std::vector<double> read_percentage;
   read_percentage.reserve(ee_length_table[0].size());
@@ -449,7 +449,7 @@ auto report_fourth_section(std::FILE * fp_log,
 
       if (read_count[0] != 0)
         {
-          std::fprintf(fp_log,
+          std::fprintf(log_handle,
                        "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
                        "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
                        length,
@@ -463,16 +463,16 @@ auto report_fourth_section(std::FILE * fp_log,
 }
 
 
-auto report_fifth_section(std::FILE * fp_log,
+auto report_fifth_section(std::FILE * log_handle,
                            std::vector<uint64_t> const & read_length_table,
                            std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
-  assert(fp_log != nullptr);
+  assert(log_handle != nullptr);
   auto const len_max = find_largest(read_length_table);
   auto const n_sequences = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
-  std::fprintf(fp_log, "\n");
-  std::fprintf(fp_log, "Truncate at first Q\n");
-  std::fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
-  std::fprintf(fp_log, "-----  ------  ------  ------  ------\n");
+  std::fprintf(log_handle, "\n");
+  std::fprintf(log_handle, "Truncate at first Q\n");
+  std::fprintf(log_handle, "  Len     Q=5    Q=10    Q=15    Q=20\n");
+  std::fprintf(log_handle, "-----  ------  ------  ------  ------\n");
 
   auto const mid_length = std::max(1UL, len_max / 2);
   std::vector<double> read_percentage;
@@ -483,7 +483,7 @@ auto report_fifth_section(std::FILE * fp_log,
         read_percentage.emplace_back(100.0 * static_cast<double>(count) / n_sequences);
       }
 
-      std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
+      std::fprintf(log_handle, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
                    length, read_percentage[0], read_percentage[1],
                    read_percentage[2], read_percentage[3]);
       read_percentage.clear();
@@ -491,18 +491,18 @@ auto report_fifth_section(std::FILE * fp_log,
 }
 
 
-auto report_closing_section(std::FILE * fp_log, struct Stats const & stats) -> void {
-  assert(fp_log != nullptr);
+auto report_closing_section(std::FILE * log_handle, struct Stats const & stats) -> void {
+  assert(log_handle != nullptr);
   static constexpr auto a_million = double{1000000};
   auto const n_sequences = static_cast<double>(stats.seq_count);
-  std::fprintf(fp_log, "\n");
-  std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
+  std::fprintf(log_handle, "\n");
+  std::fprintf(log_handle, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
                stats.seq_count, n_sequences / a_million);
   if (stats.seq_count != 0)
     {
-      std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * stats.n_symbols / n_sequences);
+      std::fprintf(log_handle, "%10.1lf  Avg length\n", 1.0 * stats.n_symbols / n_sequences);
     }
-  std::fprintf(fp_log, "%9.1lfM  Bases\n", stats.n_symbols / a_million);
+  std::fprintf(log_handle, "%9.1lfM  Bases\n", stats.n_symbols / a_million);
 }
 
 
