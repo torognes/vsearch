@@ -334,18 +334,18 @@ auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> c
   std::fprintf(fp_log, "      L           N      Pct   AccPct\n");
   std::fprintf(fp_log, "-------  ----------  -------  -------\n");
   // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
-  for (auto i = len_max; i >= len_min; --i)
+  for (auto length = len_max; length >= len_min; --length)
     {
-      if (read_length_table[i] != 0)
+      if (read_length_table[length] != 0)
         {
           std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
-                       (i == len_max ? ">=" : "  "),
-                       i,
-                       read_length_table[i],
-                       static_cast<double>(read_length_table[i]) * 100.0 / seq_count,
-                       100.0 * (seq_count - (i > 0 ? length_dist[i - 1] : 0)) / seq_count);
+                       (length == len_max ? ">=" : "  "),
+                       length,
+                       read_length_table[length],
+                       static_cast<double>(read_length_table[length]) * 100.0 / seq_count,
+                       100.0 * (seq_count - (length > 0 ? length_dist[length - 1] : 0)) / seq_count);
         }
-      if (i == 0UL) { break; }
+      if (length == 0UL) { break; }
     }
 }
 
@@ -398,10 +398,10 @@ auto report_third_section(std::FILE * fp_log,
   std::fprintf(fp_log, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
   std::fprintf(fp_log, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
 
-  for (auto i = 2UL; i <= len_max; ++i)
+  for (auto length = 2UL; length <= len_max; ++length)
     {
-      auto const previous_count = static_cast<double>(length_dist[i - 1]);
-      auto const & distribution = distributions[i - 1];
+      auto const previous_count = static_cast<double>(length_dist[length - 1]);
+      auto const & distribution = distributions[length - 1];
       auto const PctRecs = 100.0 * (seq_count - previous_count) / seq_count;
       auto const AvgQ = distribution.avgq;
       auto const AvgP = distribution.avgp;
@@ -410,7 +410,7 @@ auto report_third_section(std::FILE * fp_log,
 
       std::fprintf(fp_log,
                    "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
-                   i,
+                   length,
                    PctRecs,
                    AvgQ,
                    q2p(AvgQ),
@@ -434,9 +434,9 @@ auto report_fourth_section(std::FILE * fp_log,
 
   std::vector<double> read_percentage;
   read_percentage.reserve(ee_length_table[0].size());
-  for (auto i = len_max; i >= 1UL; --i)
+  for (auto length = len_max; length >= 1UL; --length)
     {
-      auto const & read_count = ee_length_table[i - 1];
+      auto const & read_count = ee_length_table[length - 1];
       for (auto const count : read_count) {
         read_percentage.emplace_back(100.0 * static_cast<double>(count) / seq_count);
       }
@@ -446,7 +446,7 @@ auto report_fourth_section(std::FILE * fp_log,
           std::fprintf(fp_log,
                        "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
                        "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
-                       i,
+                       length,
                        read_count[0], read_count[1],
                        read_count[2], read_count[3],
                        read_percentage[0], read_percentage[1],
@@ -471,14 +471,14 @@ auto report_fifth_section(std::FILE * fp_log,
   auto const mid_length = std::max(1UL, len_max / 2);
   std::vector<double> read_percentage;
   read_percentage.reserve(q_length_table[0].size());
-  for (auto i = len_max; i >= mid_length; --i)
+  for (auto length = len_max; length >= mid_length; --length)
     {
-      for (auto const count : q_length_table[i - 1]) {
+      for (auto const count : q_length_table[length - 1]) {
         read_percentage.emplace_back(100.0 * static_cast<double>(count) / n_sequences);
       }
 
       std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
-                   i, read_percentage[0], read_percentage[1],
+                   length, read_percentage[0], read_percentage[1],
                    read_percentage[2], read_percentage[3]);
       read_percentage.clear();
     }
