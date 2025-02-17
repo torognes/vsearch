@@ -323,6 +323,33 @@ auto compute_distributions(
 }
 
 
+auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> const & read_length_table) -> void {
+  auto const len_min = find_smallest(read_length_table);
+  auto const len_max = find_largest(read_length_table);
+  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  auto const length_dist = compute_cumulative_sum(read_length_table);
+  assert(fp_log != nullptr);
+  std::fprintf(fp_log, "\n");
+  std::fprintf(fp_log, "Read length distribution\n");
+  std::fprintf(fp_log, "      L           N      Pct   AccPct\n");
+  std::fprintf(fp_log, "-------  ----------  -------  -------\n");
+  // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
+  for (auto i = len_max; i >= len_min; i--)
+    {
+      if (read_length_table[i] > 0)
+        {
+          std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
+                       (i == len_max ? ">=" : "  "),
+                       i,
+                       read_length_table[i],
+                       read_length_table[i] * 100.0 / seq_count,
+                       100.0 * (seq_count - (i > 0 ? length_dist[i - 1] : 0)) / seq_count);
+        }
+      if (i == 0UL) { break; }
+    }
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
   static constexpr auto a_million = double{1000000};
@@ -404,7 +431,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const n_symbols = compute_number_of_symbols(read_length_table);
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
-  auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
   auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
   auto const qmin = static_cast<int>(find_smallest(quality_dist));
@@ -415,27 +441,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* print report */
 
-
   if (fp_log != nullptr)
     {
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Read length distribution\n");
-      std::fprintf(fp_log, "      L           N      Pct   AccPct\n");
-      std::fprintf(fp_log, "-------  ----------  -------  -------\n");
-      // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
-      for (auto i = len_max; i >= len_min; i--)
-        {
-          if (read_length_table[i] > 0)
-            {
-              std::fprintf(fp_log, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
-                      (i == len_max ? ">=" : "  "),
-                      i,
-                      read_length_table[i],
-                      read_length_table[i] * 100.0 / seq_count,
-                      100.0 * (seq_count - (i > 0 ? length_dist[i - 1] : 0)) / seq_count);
-            }
-          if (i == 0UL) { break; }
-        }
+      report_read_length_distribution(fp_log, read_length_table);  // first section
 
       std::fprintf(fp_log, "\n");
       std::fprintf(fp_log, "Q score distribution\n");
