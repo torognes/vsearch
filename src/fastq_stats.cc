@@ -591,12 +591,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   if (fp_log != nullptr)
     {
-      report_read_length_distribution(fp_log, stats, read_length_table);  // first section
-      report_q_score_distribution(fp_log, stats, symbol_to_probability, symbol_to_score);  // second section
-      report_third_section(fp_log, stats);  // Length vs. quality distribution
-      report_fourth_section(fp_log, stats, ee_length_table);  // Effect of expected error and length filtering
-      report_fifth_section(fp_log, stats, q_length_table);  // Effect of minimum quality and length filtering
-      report_closing_section(fp_log, stats);  // report stats on sequences
+      report_read_length_distribution(fp_log, stats, read_length_table);  // section 1
+      report_q_score_distribution(fp_log, stats, symbol_to_probability, symbol_to_score);  // section 2
+      report_length_vs_quality_distribution(fp_log, stats);  // section 3
+      report_expected_error_and_length_filtering(fp_log, stats, ee_length_table);  // section 4
+      report_minimum_quality_and_length_filtering(fp_log, stats, q_length_table);  // section 5
+      report_sequence_stats(fp_log, stats);  // closing section
     }
 
   if (not parameters.opt_quiet)
