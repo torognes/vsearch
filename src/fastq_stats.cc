@@ -431,17 +431,16 @@ auto report_fourth_section(std::FILE * fp_log,
   std::fprintf(fp_log, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
   std::fprintf(fp_log, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
 
+  std::vector<double> read_percentage;
+  read_percentage.reserve(ee_length_table[0].size());
   for (auto i = len_max; i >= 1UL; --i)
     {
       auto const & read_count = ee_length_table[i - 1];
-      std::array<double, 4> read_percentage {{}};
+      for (auto const count : read_count) {
+        read_percentage.push_back(100.0 * static_cast<double>(count) / seq_count);
+      }
 
-      for (auto j = 0; j < 4; ++j)
-        {
-          read_percentage[j] = 100.0 * read_count[j] / seq_count;
-        }
-
-      if (read_count[0] > 0)
+      if (read_count[0] != 0)
         {
           std::fprintf(fp_log,
                        "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
@@ -452,6 +451,7 @@ auto report_fourth_section(std::FILE * fp_log,
                        read_percentage[0], read_percentage[1],
                        read_percentage[2], read_percentage[3]);
         }
+      read_percentage.clear();
     }
 }
 
