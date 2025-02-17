@@ -592,6 +592,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   progress_done();
   fastq_close(input_handle);
 
+
   // note: operations below represent 1% of total wallclock time
 
   /* compute various distributions */
