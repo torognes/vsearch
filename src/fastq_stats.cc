@@ -461,7 +461,7 @@ auto report_fifth_section(std::FILE * fp_log,
                            std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
   assert(fp_log != nullptr);
   auto const len_max = find_largest(read_length_table);
-  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
+  auto const n_sequences = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   std::fprintf(fp_log, "\n");
   std::fprintf(fp_log, "Truncate at first Q\n");
   std::fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
@@ -474,7 +474,7 @@ auto report_fifth_section(std::FILE * fp_log,
 
       for (auto j = 0; j < 4; ++j)
         {
-          read_percentage[j] = 100.0 * q_length_table[i - 1][j] / seq_count;
+          read_percentage[j] = 100.0 * q_length_table[i - 1][j] / n_sequences;
         }
 
       std::fprintf(fp_log, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
