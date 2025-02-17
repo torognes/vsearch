@@ -340,7 +340,6 @@ auto report_read_length_distribution(std::FILE * log_handle,
   std::fprintf(log_handle, "Read length distribution\n");
   std::fprintf(log_handle, "      L           N      Pct   AccPct\n");
   std::fprintf(log_handle, "-------  ----------  -------  -------\n");
-  // refactoring: std::for_each(read_length_table.rbegin(), read_length_table.rend(), [](uint64_t const read_count) { ... });
   for (auto length = stats.len_max; length >= stats.len_min; --length)
     {
       if (read_length_table[length] == 0) { continue; }
