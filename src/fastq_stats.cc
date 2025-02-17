@@ -391,7 +391,7 @@ auto report_third_section(std::FILE * fp_log,
                           struct Parameters const & parameters) -> void {
   assert(fp_log != nullptr);
   auto const len_max = find_largest(read_length_table);
-  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   auto const length_dist = compute_cumulative_sum(read_length_table);
   auto const distributions = compute_distributions(len_max, qual_length_table, sumee_length_table, parameters);
   std::fprintf(fp_log, "\n");
@@ -462,7 +462,7 @@ auto report_fifth_section(std::FILE * fp_log,
                            std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
   assert(fp_log != nullptr);
   auto const len_max = find_largest(read_length_table);
-  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   std::fprintf(fp_log, "\n");
   std::fprintf(fp_log, "Truncate at first Q\n");
   std::fprintf(fp_log, "  Len     Q=5    Q=10    Q=15    Q=20\n");
