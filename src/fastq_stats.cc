@@ -326,7 +326,7 @@ auto compute_distributions(
 auto report_read_length_distribution(std::FILE * fp_log, std::vector<uint64_t> const & read_length_table) -> void {
   auto const len_min = find_smallest(read_length_table);
   auto const len_max = find_largest(read_length_table);
-  auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
+  auto const seq_count = static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}));
   auto const length_dist = compute_cumulative_sum(read_length_table);
   assert(fp_log != nullptr);
   std::fprintf(fp_log, "\n");
