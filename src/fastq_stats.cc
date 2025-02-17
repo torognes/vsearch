@@ -68,7 +68,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
 #include <functional>  // std::plus
-#include <iterator>  // std::distance
+#include <iterator>  // std::distance, std::next
 #include <limits>
 #include <numeric>  // std::partial_sum
 #include <string>
@@ -142,7 +142,7 @@ auto check_minmax_scores(struct Span const a_span,
                          struct Parameters const & parameters) -> void {
   if (a_span.n_elements == 0) { return; }
   auto const minmax_scores =
-    std::minmax_element(a_span.start, a_span.start + a_span.n_elements);
+    std::minmax_element(a_span.start, std::next(a_span.start, a_span.n_elements));
   auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
   auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
   check_quality_score(parameters, qmin);
