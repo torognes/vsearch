@@ -181,12 +181,12 @@ auto compute_cumulative_sum(std::vector<uint64_t> const & read_length_table)
 
 
 auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
-  -> uint64_t {
+  -> double {
   // total number of nucleotides = sum(read_length * n_reads_with_that_length)
   std::vector<uint64_t> read_lengths(n_reads_per_length.size());
   std::iota(read_lengths.begin(), read_lengths.end(), 0UL);
   return std::inner_product(read_lengths.begin(), read_lengths.end(),
-                            n_reads_per_length.begin(), std::uint64_t{0});
+                            n_reads_per_length.begin(), double{0});
 }
 
 
@@ -355,7 +355,7 @@ auto report_q_score_distribution(
     std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
     std::vector<double> const & symbol_to_probability,
     struct Parameters const & parameters,
-    uint64_t const n_symbols) -> void {
+    double const n_symbols) -> void {
   assert(fp_log != nullptr);
   auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
   auto const qmin = static_cast<int>(find_smallest(quality_dist));
@@ -487,7 +487,7 @@ auto report_fifth_section(std::FILE * fp_log,
 
 auto report_closing_section(std::FILE * fp_log,
                             uint64_t const seq_count,
-                            uint64_t const n_symbols) -> void {
+                            double const n_symbols) -> void {
   assert(fp_log != nullptr);
   static constexpr auto a_million = double{1000000};
   std::fprintf(fp_log, "\n");
