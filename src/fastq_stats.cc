@@ -486,9 +486,24 @@ auto report_fifth_section(std::FILE * fp_log,
 }
 
 
+auto report_closing_section(std::FILE * fp_log,
+                            uint64_t const seq_count,
+                            uint64_t const n_symbols) -> void {
+  assert(fp_log != nullptr);
+  static constexpr auto a_million = double{1000000};
+  std::fprintf(fp_log, "\n");
+  std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
+               seq_count, seq_count / a_million);
+  if (seq_count > 0)
+    {
+      std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * n_symbols / seq_count);
+    }
+  std::fprintf(fp_log, "%9.1lfM  Bases\n", n_symbols / a_million);
+}
+
+
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
-  static constexpr auto a_million = double{1000000};
   auto * input_handle = fastq_open(parameters.opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
@@ -567,9 +582,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const n_symbols = compute_number_of_symbols(read_length_table);
   auto const seq_count = std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
-  // auto const len_max = find_largest(read_length_table);
-  auto const quality_dist = compute_distribution_of_quality_symbols(qual_length_table);
-  auto const length_dist = compute_cumulative_sum(read_length_table);
 
 
   /* print report */
@@ -581,16 +593,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       report_third_section(fp_log, read_length_table, qual_length_table, sumee_length_table, parameters);
       report_fourth_section(fp_log, read_length_table, ee_length_table);
       report_fifth_section(fp_log, read_length_table, q_length_table);
-
-
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
-              seq_count, seq_count / a_million);
-      if (seq_count > 0)
-        {
-          std::fprintf(fp_log, "%10.1lf  Avg length\n", 1.0 * n_symbols / seq_count);
-        }
-      std::fprintf(fp_log, "%9.1lfM  Bases\n", n_symbols / a_million);
+      report_closing_section(fp_log, seq_count, n_symbols);
     }
 
   if (not parameters.opt_quiet)
