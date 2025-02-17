@@ -80,6 +80,13 @@ constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
 constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
+struct Distributions {
+  double avgq = 0.0;
+  double avgp = 0.0;
+  double avgee = 0.0;
+  double rate = 0.0;
+};
+
 struct Stats {
   uint64_t len_min;
   uint64_t len_max;
@@ -88,13 +95,6 @@ struct Stats {
   double n_sequences;
   std::vector<uint64_t> length_dist;
   std::vector<uint64_t> quality_dist;
-};
-
-struct Distributions {
-  double avgq = 0.0;
-  double avgp = 0.0;
-  double avgee = 0.0;
-  double rate = 0.0;
 };
 
 
