@@ -95,6 +95,7 @@ struct Stats {
   double n_sequences;
   std::vector<uint64_t> length_dist;
   std::vector<uint64_t> quality_dist;
+  std::vector<struct Distributions> distributions;
 };
 
 
@@ -389,12 +390,8 @@ auto report_q_score_distribution(
 
 
 auto report_third_section(std::FILE * log_handle,
-                          struct Stats const & stats,
-                          std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
-                          std::vector<double> const & sumee_length_table,
-                          struct Parameters const & parameters) -> void {
+                          struct Stats const & stats) -> void {
   assert(log_handle != nullptr);
-  auto const distributions = compute_distributions(stats.len_max, qual_length_table, sumee_length_table, parameters);
   std::fprintf(log_handle, "\n");
   std::fprintf(log_handle, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
   std::fprintf(log_handle, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
@@ -402,7 +399,7 @@ auto report_third_section(std::FILE * log_handle,
   for (auto length = 2UL; length <= stats.len_max; ++length)
     {
       auto const previous_count = static_cast<double>(stats.length_dist[length - 1]);
-      auto const & distribution = distributions[length - 1];
+      auto const & distribution = stats.distributions[length - 1];
       auto const PctRecs = 100.0 * (stats.seq_count - previous_count) / stats.seq_count;
       auto const AvgQ = distribution.avgq;
       auto const AvgP = distribution.avgp;
@@ -585,7 +582,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                                             read_length_table.end(),
                                             std::uint64_t{0})),
         compute_cumulative_sum(read_length_table),
-        compute_distribution_of_quality_symbols(qual_length_table)
+        compute_distribution_of_quality_symbols(qual_length_table),
+        compute_distributions(find_largest(read_length_table), qual_length_table, sumee_length_table, parameters)
   };
 
 
@@ -595,10 +593,10 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     {
       report_read_length_distribution(fp_log, stats, read_length_table);  // first section
       report_q_score_distribution(fp_log, stats, symbol_to_probability, symbol_to_score);  // second section
-      report_third_section(fp_log, stats, qual_length_table, sumee_length_table, parameters);
-      report_fourth_section(fp_log, stats, ee_length_table);
-      report_fifth_section(fp_log, stats, q_length_table);
-      report_closing_section(fp_log, stats);
+      report_third_section(fp_log, stats);  // Length vs. quality distribution
+      report_fourth_section(fp_log, stats, ee_length_table);  // Effect of expected error and length filtering
+      report_fifth_section(fp_log, stats, q_length_table);  // Effect of minimum quality and length filtering
+      report_closing_section(fp_log, stats);  // report stats on sequences
     }
 
   if (not parameters.opt_quiet)
