@@ -63,7 +63,7 @@
 #include <array>
 #include <algorithm>  // std::max, std::find_if, std::transform, std::minmax_element
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cinttypes>  // macros PRIu64 (for uint64_t) and PRId64 (for int64_t)
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
@@ -333,7 +333,7 @@ auto report_read_length_distribution(std::FILE * log_handle,
     {
       if (read_length_table[length] != 0) {
         auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
-        std::fprintf(log_handle, "%2s%5" PRId64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
+        std::fprintf(log_handle, "%2s%5" PRIu64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
                      (length == stats.len_max ? ">=" : "  "),
                      length,
                      read_length_table[length],
@@ -366,7 +366,7 @@ auto report_q_score_distribution(
 
       qual_accum += stats.quality_dist[quality_symbol];
       std::fprintf(log_handle,
-                   "    %c  %3" PRId64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
+                   "    %c  %3" PRIu64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                    quality_symbol,
                    symbol_to_score[quality_symbol],
                    symbol_to_probability[quality_symbol],
@@ -396,7 +396,7 @@ auto report_length_vs_quality_distribution(std::FILE * log_handle,
       auto const Rate = distribution.rate;
 
       std::fprintf(log_handle,
-                   "%5" PRId64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
+                   "%5" PRIu64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
                    length,
                    PctRecs,
                    AvgQ,
@@ -461,7 +461,7 @@ auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
         read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
       }
 
-      std::fprintf(log_handle, "%5" PRId64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
+      std::fprintf(log_handle, "%5" PRIu64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
                    length, read_percentage[0], read_percentage[1],
                    read_percentage[2], read_percentage[3]);
       read_percentage.clear();
@@ -538,6 +538,15 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           ++qual_length_table[i][quality_symbol];
 
+          qmin = std::min(quality_score, qmin);
+
+          // increment quality observations if the current Q > 5, 10, 15, or 20
+          std::transform(quality_thresholds.begin(), quality_thresholds.end(),
+                         q_length_table[i].begin(), q_length_table[i].begin(),
+                         [qmin](uint64_t const threshold, uint64_t current_value) -> uint64_t {
+                           return current_value + (qmin > threshold ? 1 : 0);
+                         });
+
           expected_error += symbol_to_probability[quality_symbol];
 
           sumee_length_table[i] += expected_error;
@@ -547,15 +556,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                          ee_length_table[i].begin(), ee_length_table[i].begin(),
                          [expected_error](double const threshold, uint64_t current_value) -> uint64_t {
                            return current_value + (expected_error <= threshold ? 1 : 0);
-                         });
-
-          qmin = std::min(quality_score, qmin);
-
-          // increment quality observations if the current Q > 5, 10, 15, or 20
-          std::transform(quality_thresholds.begin(), quality_thresholds.end(),
-                         q_length_table[i].begin(), q_length_table[i].begin(),
-                         [qmin](uint64_t const threshold, uint64_t current_value) -> uint64_t {
-                           return current_value + (qmin > threshold ? 1 : 0);
                          });
         }
 
