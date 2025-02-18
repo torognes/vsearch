@@ -80,6 +80,7 @@ constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
 constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
+using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
 struct Span {
   char * start;
   std::size_t n_elements;
@@ -198,13 +199,13 @@ auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
 }
 
 
-auto compute_n_symbols_per_length(std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table) -> std::vector<uint64_t> {
+auto compute_n_symbols_per_length(Length_vs_Quality_counts const & qual_length_table) -> std::vector<uint64_t> {
   // sum_counts is the sum of observed valid symbols for each length
   // (invalid symbols are guaranteed to be set to zero)
   std::vector<uint64_t> sum_counts(qual_length_table.size());
   std::transform(
       qual_length_table.begin(), qual_length_table.end(), sum_counts.begin(),
-      [](std::array<uint64_t, n_eight_bit_values> const & quality_symbols) -> std::uint64_t {
+      [](std::vector<uint64_t> const & quality_symbols) -> std::uint64_t {
         return std::accumulate(quality_symbols.begin(), quality_symbols.end(),
                                std::uint64_t{0});
       });
@@ -225,14 +226,14 @@ auto precompute_quality_scores(struct Parameters const & parameters) -> std::vec
 }
 
 
-auto compute_sum_quality_scores_per_length(std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table, struct Parameters const & parameters) -> std::vector<uint64_t> {
+auto compute_sum_quality_scores_per_length(Length_vs_Quality_counts const & qual_length_table, struct Parameters const & parameters) -> std::vector<uint64_t> {
   // sum_quality_scores is the sum of observed scores for each length
   std::vector<uint64_t> sum_quality_scores(qual_length_table.size());
   auto const quality_scores = precompute_quality_scores(parameters);
   std::transform(
       qual_length_table.begin(), qual_length_table.end(),
       sum_quality_scores.begin(),
-      [&quality_scores](std::array<uint64_t, n_eight_bit_values> const & quality_symbols)
+      [&quality_scores](std::vector<uint64_t> const & quality_symbols)
           -> std::uint64_t {
         return std::inner_product(quality_symbols.begin(),
                                   quality_symbols.end(),
@@ -261,14 +262,14 @@ auto precompute_probability_values(struct Parameters const & parameters) -> std:
 }
 
 
-auto compute_sum_error_probabilities_per_length(std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table, struct Parameters const & parameters) -> std::vector<double> {
+auto compute_sum_error_probabilities_per_length(Length_vs_Quality_counts const & qual_length_table, struct Parameters const & parameters) -> std::vector<double> {
   // sum_error_probabilities is the sum of observed probabilities for each length
   std::vector<double> sum_error_probabilities(qual_length_table.size());
   auto const probability_values = precompute_probability_values(parameters);
   std::transform(
       qual_length_table.begin(), qual_length_table.end(),
       sum_error_probabilities.begin(),
-      [&probability_values](std::array<uint64_t, n_eight_bit_values> const & quality_symbols)
+      [&probability_values](std::vector<uint64_t> const & quality_symbols)
           -> double {
         return std::inner_product(quality_symbols.begin(),
                                   quality_symbols.end(),
@@ -279,11 +280,11 @@ auto compute_sum_error_probabilities_per_length(std::vector<std::array<uint64_t,
 }
 
 
-auto compute_distribution_of_quality_symbols(std::vector<std::array<uint64_t, n_eight_bit_values>> const & length_vs_quality) -> std::vector<uint64_t> {
+auto compute_distribution_of_quality_symbols(Length_vs_Quality_counts const & length_vs_quality) -> std::vector<uint64_t> {
   // for each quality symbol: sum symbol observations for each position
   std::vector<uint64_t> distribution(n_eight_bit_values);
   std::for_each(length_vs_quality.begin(), length_vs_quality.end(),
-                [& distribution](std::array<uint64_t, n_eight_bit_values> const & observations) {
+                [& distribution](std::vector<uint64_t> const & observations) {
                   std::transform(observations.begin(),
                                  observations.end(),
                                  distribution.begin(),
@@ -296,7 +297,7 @@ auto compute_distribution_of_quality_symbols(std::vector<std::array<uint64_t, n_
 
 auto compute_distributions(
     unsigned int const len_max,
-    std::vector<std::array<uint64_t, n_eight_bit_values>> const & qual_length_table,
+    Length_vs_Quality_counts const & qual_length_table,
     std::vector<double> const & sumee_length_table,
     struct Parameters const & parameters) -> std::vector<struct Distributions> {
   std::vector<struct Distributions> distributions(len_max + 1);
@@ -495,7 +496,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const symbol_to_score = precompute_quality_scores(parameters);
   auto const symbol_to_probability = precompute_probability_values(parameters);
   std::vector<uint64_t> read_length_table(initial_memory_allocation);
-  std::vector<std::array<uint64_t, n_eight_bit_values>> qual_length_table(initial_memory_allocation);
+  Length_vs_Quality_counts qual_length_table(initial_memory_allocation, std::vector<uint64_t>(n_eight_bit_values));
   std::vector<std::array<uint64_t, 4>> ee_length_table(initial_memory_allocation);
   std::vector<std::array<uint64_t, 4>> q_length_table(initial_memory_allocation);
   std::vector<double> sumee_length_table(initial_memory_allocation);
@@ -511,7 +512,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       if (length + 1 > read_length_table.size())
         {
           read_length_table.resize(length + 1);
-          qual_length_table.resize(length + 1);
+          qual_length_table.resize(length + 1, std::vector<uint64_t>(n_eight_bit_values));
           ee_length_table.resize(length + 1);
           q_length_table.resize(length + 1);
           sumee_length_table.resize(length + 1);
