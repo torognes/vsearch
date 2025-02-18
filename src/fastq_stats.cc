@@ -324,10 +324,10 @@ auto report_read_length_distribution(std::FILE * log_handle,
                                      struct Stats const & stats,
                                      std::vector<uint64_t> const & read_length_table) -> void {
   assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n");
-  std::fprintf(log_handle, "Read length distribution\n");
-  std::fprintf(log_handle, "      L           N      Pct   AccPct\n");
-  std::fprintf(log_handle, "-------  ----------  -------  -------\n");
+  std::fprintf(log_handle, "\n%s\n%s\n%s\n",
+               "Read length distribution",
+               "      L           N      Pct   AccPct",
+               "-------  ----------  -------  -------");
   for (auto length = stats.len_max; length >= stats.len_min; --length)
     {
       if (read_length_table[length] != 0) {
@@ -353,10 +353,10 @@ auto report_q_score_distribution(
   auto const qmin = static_cast<int>(find_smallest(stats.quality_dist));
   auto const qmax = static_cast<int>(find_largest(stats.quality_dist));
 
-  std::fprintf(log_handle, "\n");
-  std::fprintf(log_handle, "Q score distribution\n");
-  std::fprintf(log_handle, "ASCII    Q       Pe           N      Pct   AccPct\n");
-  std::fprintf(log_handle, "-----  ---  -------  ----------  -------  -------\n");
+  std::fprintf(log_handle, "\n%s\n%s\n%s\n",
+               "Q score distribution",
+               "ASCII    Q       Pe           N      Pct   AccPct",
+               "-----  ---  -------  ----------  -------  -------");
   uint64_t qual_accum = 0;
   for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
     {
@@ -378,9 +378,9 @@ auto report_q_score_distribution(
 auto report_length_vs_quality_distribution(std::FILE * log_handle,
                                            struct Stats const & stats) -> void {
   assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n");
-  std::fprintf(log_handle, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct\n");
-  std::fprintf(log_handle, "-----  -------  ----  -------  --------  -----  ---------  --------\n");
+  std::fprintf(log_handle, "\n%s\n%s\n",
+               "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct",
+               "-----  -------  ----  -------  --------  -----  ---------  --------");
 
   for (auto length = 2UL; length <= stats.len_max; ++length)
     {
@@ -411,9 +411,9 @@ auto report_expected_error_and_length_filtering(std::FILE * log_handle,
                                                 struct Stats const & stats,
                                                 std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
   assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n");
-  std::fprintf(log_handle, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000\n");
-  std::fprintf(log_handle, "-----  -------  -------  -------  -------  -------  -------  -------  -------\n");
+  std::fprintf(log_handle, "\n%s\n%s\n",
+               "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000",
+               "-----  -------  -------  -------  -------  -------  -------  -------  -------");
 
   std::vector<double> read_percentage;
   read_percentage.reserve(ee_length_table[0].size());
