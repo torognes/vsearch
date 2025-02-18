@@ -152,29 +152,6 @@ auto check_minmax_scores(struct Span const a_span,
 }
 
 
-// auto check_quality_symbols(struct Parameters const & parameters,
-//                            std::vector<uint64_t> const & quality_symbols) -> void {
-//   // offset = parameters.opt_fastq_ascii;
-//   // auto const first_accepted = std::next(quality_symbols.begin(), offset + parameters.opt_fastq_qmin);
-//   // auto const first_rejected = std::next(quality_symbols.begin(), offset + parameters.opt_fastq_qmax + 1);
-//   // auto is_positive = [](uint64_t const count) -> bool { return count != 0; }
-//   // check1: quality_symbols.begin(), first_accepted, [](auto const count) -> bool { return count != 0; }
-//   // if (std::any_of(quality_symbols.begin(), first_accepted, is_positive) or
-//   //     std::any_of(first_rejected, quality_symbols.end(), is_positive)) {
-//   //     fatal(message.c_str());
-//   // }  // no, the error message should give the quality score!!
-
-//   std::string const message =
-//     std::string("FASTQ quality value (") + std::to_string(quality_score) +
-//     ") out of range (" + std::to_string(parameters.opt_fastq_qmin) + "-" +
-//     std::to_string(parameters.opt_fastq_qmax) + ").\n" +
-//     "Please adjust the FASTQ quality base character or range with the\n" +
-//     "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
-//     "diagnosis with suggested values, please run vsearch --fastq_chars file.";
-//   fatal(message.c_str());
-// }
-
-
 auto const is_observed = [](uint64_t const count) -> bool { return count != 0UL; };
 
 
