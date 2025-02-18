@@ -549,7 +549,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
           expected_error += symbol_to_probability[quality_symbol];
 
-          sumee_length_table[i] += expected_error;
+          sumee_length_table[i] += expected_error;  // can NOT be derived from qual_length_table
 
           // increment EE observations if the current EE <= 1.0, 0.5, 0.25, or 0.1
           std::transform(ee_thresholds.begin(), ee_thresholds.end(),
