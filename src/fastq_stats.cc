@@ -445,11 +445,10 @@ auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
                                                  struct Stats const & stats,
                                                  std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
   assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n");
-  std::fprintf(log_handle, "Truncate at first Q\n");
-  std::fprintf(log_handle, "  Len     Q=5    Q=10    Q=15    Q=20\n");
-  std::fprintf(log_handle, "-----  ------  ------  ------  ------\n");
-
+  std::fprintf(log_handle, "\n%s\n%s\n%s\n",
+               "Truncate at first Q",
+               "  Len     Q=5    Q=10    Q=15    Q=20",
+               "-----  ------  ------  ------  ------");
   auto const mid_length = std::max(1UL, stats.len_max / 2);
   std::vector<double> read_percentage;
   read_percentage.reserve(q_length_table[0].size());
@@ -472,8 +471,7 @@ auto report_sequence_stats(std::FILE * log_handle, struct Stats const & stats) -
   assert(log_handle != nullptr);
   static constexpr auto a_million = double{1000000};
   auto const n_sequences = static_cast<double>(stats.seq_count);
-  std::fprintf(log_handle, "\n");
-  std::fprintf(log_handle, "%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
+  std::fprintf(log_handle, "\n%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
                stats.seq_count, n_sequences / a_million);
   if (stats.seq_count != 0)
     {
