@@ -141,8 +141,10 @@ auto check_minmax_scores(struct Span const a_span,
                          std::vector<uint64_t> const & symbol_to_score,
                          struct Parameters const & parameters) -> void {
   if (a_span.n_elements == 0) { return; }
+  assert(a_span.n_elements <= std::numeric_limits<int64_t>::max());
+  auto * const end = std::next(a_span.start, static_cast<int64_t>(a_span.n_elements));
   auto const minmax_scores =
-    std::minmax_element(a_span.start, std::next(a_span.start, a_span.n_elements));
+    std::minmax_element(a_span.start, end);
   auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
   auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
   check_quality_score(parameters, qmin);
