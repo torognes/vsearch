@@ -320,6 +320,7 @@ auto compute_distributions(
 }
 
 
+// section 1
 auto report_read_length_distribution(std::FILE * log_handle,
                                      struct Stats const & stats,
                                      std::vector<uint64_t> const & read_length_table) -> void {
@@ -344,6 +345,7 @@ auto report_read_length_distribution(std::FILE * log_handle,
 }
 
 
+// section 2
 auto report_q_score_distribution(
     std::FILE * log_handle,
     struct Stats const & stats,
@@ -375,6 +377,7 @@ auto report_q_score_distribution(
 }
 
 
+// section 3
 auto report_length_vs_quality_distribution(std::FILE * log_handle,
                                            struct Stats const & stats) -> void {
   assert(log_handle != nullptr);
