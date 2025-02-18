@@ -406,6 +406,7 @@ auto report_length_vs_quality_distribution(std::FILE * log_handle,
 }
 
 
+// section 4
 auto report_expected_error_and_length_filtering(std::FILE * log_handle,
                                                 struct Stats const & stats,
                                                 std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
@@ -439,6 +440,7 @@ auto report_expected_error_and_length_filtering(std::FILE * log_handle,
 }
 
 
+// section 5
 auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
                                                  struct Stats const & stats,
                                                  std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
@@ -465,6 +467,7 @@ auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
 }
 
 
+// closing section
 auto report_sequence_stats(std::FILE * log_handle, struct Stats const & stats) -> void {
   assert(log_handle != nullptr);
   static constexpr auto a_million = double{1000000};
