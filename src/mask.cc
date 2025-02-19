@@ -76,43 +76,43 @@ constexpr int dust_window = 64;
 
 auto wo(int len, const char *s, int *beg, int *end) -> int
 {
-  static constexpr int dust_word = 3;
-  static constexpr int word_count = 1U << (2U * dust_word);  // 64
-  static constexpr int bitmask = word_count - 1;
-  const int l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
+  static constexpr auto dust_word = 3;
+  static constexpr auto word_count = 1U << (2U * dust_word);  // 64
+  static constexpr auto bitmask = word_count - 1;
+  const auto l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
     {
       return 0;
     }
 
-  int bestv = 0;
-  int besti = 0;
-  int bestj = 0;
+  auto bestv = 0;
+  auto besti = 0;
+  auto bestj = 0;
   std::array<int, word_count> counts {{}};
   std::array<int, dust_window> words {{}};
-  int word = 0;
+  auto word = 0;
 
-  for (int j = 0; j < len; j++)
+  for (auto j = 0; j < len; j++)
     {
       word <<= 2U;
       word |= chrmap_2bit[(int) (s[j])];
       words[j] = word & bitmask;
     }
 
-  for (int i = 0; i < l1; i++)
+  for (auto i = 0; i < l1; i++)
     {
       counts.fill(0);  // reset counts to zero
 
-      int sum = 0;
+      auto sum = 0;
 
-      for (int j = dust_word - 1; j < len - i; j++)
+      for (auto j = dust_word - 1; j < len - i; j++)
         {
           word = words[i + j];
-          const int c = counts[word];
+          const auto c = counts[word];
           if (c != 0)
             {
               sum += c;
-              const int v = 10 * sum / j;
+              const auto v = 10 * sum / j;
 
               if (v > bestv)
                 {
@@ -134,10 +134,10 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
 
 auto dust(char * seq, int len) -> void
 {
-  static constexpr int dust_level = 20;
-  static constexpr int half_dust_window = dust_window / 2;
-  int a = 0;
-  int b = 0;
+  static constexpr auto dust_level = 20;
+  static constexpr auto half_dust_window = dust_window / 2;
+  auto a = 0;
+  auto b = 0;
 
   /* make a local copy of the original sequence */
   std::vector<char> local_seq(len + 1);
@@ -151,30 +151,30 @@ auto dust(char * seq, int len) -> void
   if (opt_hardmask == 0)
     {
       /* convert sequence to upper case unless hardmask in effect */
-      for (int i = 0; i < len; i++)
+      for (auto i = 0; i < len; i++)
         {
           seq[i] = toupper(seq[i]);
         }
       seq[len] = 0;
     }
 
-  for (int i = 0; i < len; i += half_dust_window)
+  for (auto i = 0; i < len; i += half_dust_window)
     {
-      const int l = (len > i + dust_window) ? dust_window : len - i;
-      const int v = wo(l, &local_seq[i], &a, &b);
+      const auto l = (len > i + dust_window) ? dust_window : len - i;
+      const auto v = wo(l, &local_seq[i], &a, &b);
 
       if (v > dust_level)
         {
           if (opt_hardmask != 0)
             {
-              for (int j = a + i; j <= b + i; j++)
+              for (auto j = a + i; j <= b + i; j++)
                 {
                   seq[j] = 'N';
                 }
             }
           else
             {
-              for (int j = a + i; j <= b + i; j++)
+              for (auto j = a + i; j <= b + i; j++)
                 {
                   seq[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
                 }
@@ -191,8 +191,8 @@ auto dust(char * seq, int len) -> void
 static pthread_t * pthread;
 static pthread_attr_t attr;
 static pthread_mutex_t mutex;
-static int nextseq = 0;
-static int seqcount = 0;
+static auto nextseq = 0;
+static auto seqcount = 0;
 
 auto dust_all_worker(void * vp) -> void *
 {
@@ -200,7 +200,7 @@ auto dust_all_worker(void * vp) -> void *
   while (true)
     {
       xpthread_mutex_lock(&mutex);
-      const int seqno = nextseq;
+      const auto seqno = nextseq;
       if (seqno < seqcount)
         {
           nextseq++;
@@ -232,12 +232,12 @@ auto dust_all() -> void
   std::vector<pthread_t> pthread_v(opt_threads);
   pthread = pthread_v.data();
 
-  for (int t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < opt_threads; t++)
     {
       xpthread_create(&pthread_v[t], &attr, dust_all_worker, (void *) (int64_t) t);
     }
 
-  for (int t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread_v[t], nullptr);
     }
@@ -256,7 +256,7 @@ auto hardmask(char * seq, int len) -> void
   /* convert all lower case letters in seq to N */
   static constexpr auto check_5th_bit = 32U; // 0x20
   static constexpr auto hardmask_char = 'N';
-  for (int i = 0; i < len; i++)
+  for (auto i = 0; i < len; i++)
     {
       if ((seq[i] & check_5th_bit) != 0U)
         {
@@ -281,7 +281,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
     fatal("Output file for masking must be specified with --output");
   }
 
-  std::FILE * fp_output = fopen_output(parameters.opt_output);
+  auto * fp_output = fopen_output(parameters.opt_output);
   if (fp_output == nullptr)
     {
       fatal("Unable to open mask output file for writing");
@@ -303,7 +303,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   show_rusage();
 
   progress_init("Writing output", seqcount);
-  for (int i = 0; i < seqcount; i++)
+  for (auto i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(fp_output, i, i + 1);
       progress_update(i);
@@ -363,14 +363,14 @@ auto fastx_mask() -> void
     }
   show_rusage();
 
-  int kept = 0;
-  int discarded_less = 0;
-  int discarded_more = 0;
+  auto kept = 0;
+  auto discarded_less = 0;
+  auto discarded_more = 0;
   progress_init("Writing output", seqcount);
-  for (int i = 0; i < seqcount; i++)
+  for (auto i = 0; i < seqcount; i++)
     {
-      int unmasked = 0;
-      char * seq = db_getsequence(i);
+      auto unmasked = 0;
+      auto * seq = db_getsequence(i);
       const int len = db_getsequencelen(i);
       if (opt_qmask == MASK_NONE)
         {
@@ -378,7 +378,7 @@ auto fastx_mask() -> void
         }
       else if (opt_hardmask != 0)
         {
-          for (int j = 0; j < len; j++)
+          for (auto j = 0; j < len; j++)
             {
               if (seq[j] != 'N')
                 {
@@ -388,7 +388,7 @@ auto fastx_mask() -> void
         }
       else
         {
-          for (int j = 0; j < len; j++)
+          for (auto j = 0; j < len; j++)
             {
               if (isupper(seq[j]) != 0)
                 {
@@ -396,7 +396,7 @@ auto fastx_mask() -> void
                 }
             }
         }
-      const double unmasked_pct = 100.0 * unmasked / len;
+      auto const unmasked_pct = 100.0 * unmasked / len;
 
       if (unmasked_pct < opt_min_unmasked_pct)
         {
