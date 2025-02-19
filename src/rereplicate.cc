@@ -88,7 +88,7 @@ auto rereplicate(struct Parameters & parameters) -> void
   auto * output_handle = open_output_file(parameters);
   opt_xsize = true;
   parameters.opt_xsize = true;
-  fastx_handle file_handle = fasta_open(parameters.opt_rereplicate);
+  auto * file_handle = fasta_open(parameters.opt_rereplicate);
   auto const filesize = static_cast<int64_t>(fasta_get_size(file_handle));
 
   progress_init("Rereplicating", filesize);
@@ -100,7 +100,7 @@ auto rereplicate(struct Parameters & parameters) -> void
   while (fasta_next(file_handle, truncateatspace, chrmap_no_change_vector.data()))
     {
       ++n_amplicons;
-      int64_t abundance = fasta_get_abundance_and_presence(file_handle);
+      auto abundance = fasta_get_abundance_and_presence(file_handle);
       if (abundance == 0)
         {
           ++missing;
