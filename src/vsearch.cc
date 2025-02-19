@@ -1858,18 +1858,22 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           if (strcasecmp(optarg, "none") == 0)
             {
               opt_qmask = MASK_NONE;
+              parameters.opt_qmask = MASK_NONE;
             }
           else if (strcasecmp(optarg, "dust") == 0)
             {
               opt_qmask = MASK_DUST;
+              parameters.opt_qmask = MASK_DUST;
             }
           else if (strcasecmp(optarg, "soft") == 0)
             {
               opt_qmask = MASK_SOFT;
+              parameters.opt_qmask = MASK_SOFT;
             }
           else
             {
               opt_qmask = MASK_ERROR;
+              parameters.opt_qmask = MASK_ERROR;
             }
           break;
 
@@ -4759,7 +4763,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --rowlen must not be negative");
     }
 
-  if (opt_qmask == MASK_ERROR)
+  if (parameters.opt_qmask == MASK_ERROR)
     {
       fatal("The argument to --qmask must be none, dust or soft");
     }

@@ -521,6 +521,7 @@ struct Parameters {
   int64_t opt_minseqlength = -1;
   int64_t opt_minsize = 0;
   int64_t opt_minuniquesize = 1;
+  int64_t opt_qmask = 1;  // MASK_DUST
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;
