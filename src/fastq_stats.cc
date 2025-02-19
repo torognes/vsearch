@@ -82,6 +82,9 @@ constexpr auto n_eight_bit_values = std::size_t{256};
 
 using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 struct Span {
   char * start;
   std::size_t n_elements;
@@ -485,6 +488,8 @@ auto report_sequence_stats(std::FILE * log_handle, struct Stats const & stats) -
     }
   std::fprintf(log_handle, "%9.1lfM  Bases\n", stats.n_symbols / a_million);
 }
+
+}  // end of anonymous namespace
 
 
 auto fastq_stats(struct Parameters const & parameters) -> void
