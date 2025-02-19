@@ -79,21 +79,21 @@ constexpr unsigned int n_characters = 256;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-struct statistics {
-  std::vector<uint64_t> sequence_chars;
-  std::vector<uint64_t> quality_chars;
-  std::vector<uint64_t> tail_chars;
-  std::vector<int> maxrun;
-  uint64_t total_chars = 0;
-  uint64_t seq_count = 0;
-  unsigned char qmin_n = 255;
-  unsigned char qmax_n = 0;
-  char qmin = '\0';
-  char qmax = '\0';
-  char fastq_ascii = '\0';
-  char fastq_qmin = '\0';
-  char fastq_qmax = '\0';
-};
+  struct statistics {
+    std::vector<uint64_t> sequence_chars;
+    std::vector<uint64_t> quality_chars;
+    std::vector<uint64_t> tail_chars;
+    std::vector<int> maxrun;
+    uint64_t total_chars = 0;
+    uint64_t seq_count = 0;
+    unsigned char qmin_n = 255;
+    unsigned char qmax_n = 0;
+    char qmin = '\0';
+    char qmax = '\0';
+    char fastq_ascii = '\0';
+    char fastq_qmin = '\0';
+    char fastq_qmax = '\0';
+  };
 
 
   auto guess_quality_offset(struct statistics & stats) -> void {
@@ -141,7 +141,7 @@ struct statistics {
     assert(index >= 0);
     assert(index <= char_max);
     stats.qmax = static_cast<char>(index);
-}
+  }
 
 
   auto stats_message(std::FILE * output_stream,
