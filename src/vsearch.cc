@@ -5947,7 +5947,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (opt_maskfasta != nullptr)
     {
-      maskfasta();
+      maskfasta(parameters);
     }
   else if ((opt_cluster_smallmem != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
     {

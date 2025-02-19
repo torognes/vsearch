@@ -275,13 +275,13 @@ auto hardmask_all() -> void
 }
 
 
-auto maskfasta() -> void
+auto maskfasta(struct Parameters const & parameters) -> void
 {
-  if (opt_output == nullptr) {
+  if (parameters.opt_output == nullptr) {
     fatal("Output file for masking must be specified with --output");
   }
 
-  std::FILE * fp_output = fopen_output(opt_output);
+  std::FILE * fp_output = fopen_output(parameters.opt_output);
   if (fp_output == nullptr)
     {
       fatal("Unable to open mask output file for writing");
