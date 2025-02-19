@@ -76,6 +76,9 @@ constexpr long int char_max = std::numeric_limits<char>::max();
 
 constexpr unsigned int n_characters = 256;
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 struct statistics {
   std::vector<uint64_t> sequence_chars;
   std::vector<uint64_t> quality_chars;
@@ -92,9 +95,6 @@ struct statistics {
   char fastq_qmax = '\0';
 };
 
-
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
 
   auto guess_quality_offset(struct statistics & stats) -> void {
     static constexpr auto lowerbound = ';';  // char 59 (-5 to offset +64)
