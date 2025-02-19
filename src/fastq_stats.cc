@@ -81,6 +81,7 @@ constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
 using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
+
 struct Span {
   char * start;
   std::size_t n_elements;
