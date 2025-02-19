@@ -75,11 +75,11 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-struct sortinfo_size_s
-{
-  unsigned int size = 0;
-  unsigned int seqno = 0;
-};
+  struct sortinfo_size_s
+  {
+    unsigned int size = 0;
+    unsigned int seqno = 0;
+  };
 
 
   auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
@@ -104,121 +104,122 @@ struct sortinfo_size_s
   }
 
 
-auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
-  auto compare_sequences = [](struct sortinfo_size_s const & lhs,
-                              struct sortinfo_size_s const & rhs) -> bool {
-    // highest abundance first...
-    if (lhs.size < rhs.size) {
-      return false;
-    }
-    if (lhs.size > rhs.size) {
-      return true;
-    }
-    // ...then ties are sorted by sequence labels (alpha-numerical ordering),
-    // preserve input order
-    auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
-    return result < 0;
-  };
+  auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
+    auto compare_sequences = [](struct sortinfo_size_s const & lhs,
+                                struct sortinfo_size_s const & rhs) -> bool {
+      // highest abundance first...
+      if (lhs.size < rhs.size) {
+        return false;
+      }
+      if (lhs.size > rhs.size) {
+        return true;
+      }
+      // ...then ties are sorted by sequence labels (alpha-numerical ordering),
+      // preserve input order
+      auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
+      return result < 0;
+    };
 
-  static constexpr auto one_hundred_percent = 100ULL;
-  progress_init("Sorting", one_hundred_percent);
-  std::stable_sort(deck.begin(), deck.end(), compare_sequences);
-  progress_done();
-}
-
-
-// refactoring C++17 [[nodiscard]]
-auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) -> double
-{
-  // function returns a round value or a value with a remainder of 0.5
-  static constexpr double half = 0.5;
-
-  if (deck.empty()) {
-    return 0.0;
+    static constexpr auto one_hundred_percent = 100ULL;
+    progress_init("Sorting", one_hundred_percent);
+    std::stable_sort(deck.begin(), deck.end(), compare_sequences);
+    progress_done();
   }
 
-  // refactoring C++11: use const& std::vector.size()
-  auto const midarray = std::ldiv(static_cast<long>(deck.size()), 2L);
 
-  // odd number of valid amplicons
-  if (deck.size() % 2 != 0)  {
-    return deck[midarray.quot].size * 1.0;  // a round value
+  // refactoring C++17 [[nodiscard]]
+  auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) -> double
+  {
+    // function returns a round value or a value with a remainder of 0.5
+    static constexpr double half = 0.5;
+
+    if (deck.empty()) {
+      return 0.0;
+    }
+
+    // refactoring C++11: use const& std::vector.size()
+    auto const midarray = std::ldiv(static_cast<long>(deck.size()), 2L);
+
+    // odd number of valid amplicons
+    if (deck.size() % 2 != 0)  {
+      return deck[midarray.quot].size * 1.0;  // a round value
+    }
+
+    // even number of valid amplicons
+    // (average of two ints is either round or has a remainder of .5)
+    // avoid risk of silent overflow for large abundance values:
+    // a >= b ; (a + b) / 2 == b + (a - b) / 2
+    return deck[midarray.quot].size +
+      ((deck[midarray.quot - 1].size - deck[midarray.quot].size) * half);
   }
 
-  // even number of valid amplicons
-  // (average of two ints is either round or has a remainder of .5)
-  // avoid risk of silent overflow for large abundance values:
-  // a >= b ; (a + b) / 2 == b + (a - b) / 2
-  return deck[midarray.quot].size +
-    ((deck[midarray.quot - 1].size - deck[midarray.quot].size) * half);
-}
 
-
-auto output_median_abundance(std::vector<sortinfo_size_s> const & deck,
-                             struct Parameters const & parameters) -> void {
-  // Banker's rounding (round half to even)
-  auto const median = find_median_abundance(deck);
-  if (not parameters.opt_quiet) {
+  auto output_median_abundance(std::vector<sortinfo_size_s> const & deck,
+                               struct Parameters const & parameters) -> void {
+    // Banker's rounding (round half to even)
+    auto const median = find_median_abundance(deck);
+    if (not parameters.opt_quiet) {
       static_cast<void>(fprintf(stderr, "Median abundance: %.0f\n", median));
+    }
+    if (parameters.opt_log != nullptr) {
+      static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));
+    }
   }
-  if (parameters.opt_log != nullptr) {
-    static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));
+
+
+  // auto trim_deck(std::vector<struct sortinfo_size_s> & deck)
+  //     -> std::vector<struct sortinfo_size_s> {
+  //   // assume deck is sorted by decreasing abundance
+  //   // - opt_minsize = 0 by default
+  //   // - opt_maxsize = LONG_MAX by default
+  //   // - size is unsigned int
+  //   auto begin = std::upper_bound(deck.begin(), deck.end(), opt_maxsize,
+  //                                 [](int64_t maxsize, struct sortinfo_size_s & seq) -> bool {
+  //                                   return seq.size > maxsize;
+  //                                 });
+  //   auto end = std::lower_bound(deck.begin(), deck.end(), opt_minsize,
+  //                               [](int64_t minsize, struct sortinfo_size_s & seq) -> bool {
+  //                                 return seq.size <= minsize;
+  //                               });
+  //   return std::vector<struct sortinfo_size_s>{begin, end};
+  // }
+
+
+  auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
+                     long int const n_first_sequences) -> void {
+    if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
+      deck.resize(n_first_sequences);
+    }
   }
-}
 
 
-// auto trim_deck(std::vector<struct sortinfo_size_s> & deck)
-//     -> std::vector<struct sortinfo_size_s> {
-//   // assume deck is sorted by decreasing abundance
-//   // - opt_minsize = 0 by default
-//   // - opt_maxsize = LONG_MAX by default
-//   // - size is unsigned int
-//   auto begin = std::upper_bound(deck.begin(), deck.end(), opt_maxsize,
-//                                 [](int64_t maxsize, struct sortinfo_size_s & seq) -> bool {
-//                                   return seq.size > maxsize;
-//                                 });
-//   auto end = std::lower_bound(deck.begin(), deck.end(), opt_minsize,
-//                               [](int64_t minsize, struct sortinfo_size_s & seq) -> bool {
-//                                 return seq.size <= minsize;
-//                               });
-//   return std::vector<struct sortinfo_size_s>{begin, end};
-// }
-
-
-auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
-                   long int const n_first_sequences) -> void {
-  if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
-    deck.resize(n_first_sequences);
-  }
-}
-
-
-// refactoring: extract as a template
-auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
+  // refactoring: extract as a template
+  auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
                            std::FILE * output_file) -> void {
-  progress_init("Writing output", deck.size());
-  auto counter = std::size_t{0};
-  for (auto const & sequence: deck) {
-    fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
-    progress_update(counter);
-    ++counter;
+    progress_init("Writing output", deck.size());
+    auto counter = std::size_t{0};
+    for (auto const & sequence: deck) {
+      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
+      progress_update(counter);
+      ++counter;
+    }
+    progress_done();
   }
-  progress_done();
-}
 
 
-// refactoring: trim misize and maxsize with a free function
-// https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
-// auto erase_high_abundances(std::vector<int> & vec, int value) -> void
-// {
-//     auto lb = std::lower_bound(std::begin(vec), std::end(vec), value);
-//     if (lb != std::end(vec) and *lb == value) {
-//         auto ub = std::upper_bound(lb, std::end(vec), value);
-//         vec.erase(lb, ub);
-//     }
-// }
+  // refactoring: trim misize and maxsize with a free function
+  // https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
+  // auto erase_high_abundances(std::vector<int> & vec, int value) -> void
+  // {
+  //     auto lb = std::lower_bound(std::begin(vec), std::end(vec), value);
+  //     if (lb != std::end(vec) and *lb == value) {
+  //         auto ub = std::upper_bound(lb, std::end(vec), value);
+  //         vec.erase(lb, ub);
+  //     }
+  // }
 
 }  // end of anonymous namespace
+
 
 // refactoring:
 // - create vector (no branch)
