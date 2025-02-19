@@ -79,9 +79,8 @@ struct sortinfo_length_s
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-  // anonymous namespace to avoid linker error (multiple definitions
-  // of function with identical names and parameters)
   auto create_deck() -> std::vector<struct sortinfo_length_s> {
     auto const dbsequencecount = db_getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
@@ -98,7 +97,7 @@ namespace {
     progress_done();
     return deck;
   }
-}
+}  // end of anonymous namespace
 
 
 auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
