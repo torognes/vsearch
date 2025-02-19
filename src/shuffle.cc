@@ -128,8 +128,8 @@ auto shuffle(struct Parameters const & parameters) -> void {
     fatal("Output file for shuffling must be specified with --output");
   }
 
-  auto * fp_output = fopen_output(parameters.opt_output);
-  if (fp_output == nullptr) {
+  auto * output_handle = fopen_output(parameters.opt_output);
+  if (output_handle == nullptr) {
     fatal("Unable to open shuffle output file for writing");
   }
 
@@ -141,11 +141,11 @@ auto shuffle(struct Parameters const & parameters) -> void {
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_shuffled_fasta(deck, fp_output);
+  output_shuffled_fasta(deck, output_handle);
   show_rusage();
 
   db_free();
-  if (fp_output != nullptr) {
-    static_cast<void>(std::fclose(fp_output));
+  if (output_handle != nullptr) {
+    static_cast<void>(std::fclose(output_handle));
   }
 }
