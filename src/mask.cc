@@ -316,27 +316,27 @@ auto maskfasta(struct Parameters const & parameters) -> void
 }
 
 
-auto fastx_mask() -> void
+auto fastx_mask(struct Parameters const & parameters) -> void
 {
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
+  if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
   }
 
-  if (opt_fastaout != nullptr)
+  if (parameters.opt_fastaout != nullptr)
     {
-      fp_fastaout = fopen_output(opt_fastaout);
+      fp_fastaout = fopen_output(parameters.opt_fastaout);
       if (fp_fastaout == nullptr)
         {
           fatal("Unable to open mask output FASTA file for writing");
         }
     }
 
-  if (opt_fastqout != nullptr)
+  if (parameters.opt_fastqout != nullptr)
     {
-      fp_fastqout = fopen_output(opt_fastqout);
+      fp_fastqout = fopen_output(parameters.opt_fastqout);
       if (fp_fastqout == nullptr)
         {
           fatal("Unable to open mask output FASTQ file for writing");
@@ -442,7 +442,7 @@ auto fastx_mask() -> void
     }
   progress_done();
 
-  if (! opt_quiet)
+  if (! parameters.opt_quiet)
     {
       if (opt_min_unmasked_pct > 0.0)
         {
@@ -455,7 +455,7 @@ auto fastx_mask() -> void
       fprintf(stderr, "%d sequences kept\n", kept);
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       if (opt_min_unmasked_pct > 0.0)
         {
