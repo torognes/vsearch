@@ -88,8 +88,8 @@ auto rereplicate(struct Parameters & parameters) -> void
   auto * output_handle = open_output_file(parameters);
   opt_xsize = true;
   parameters.opt_xsize = true;
-  auto * file_handle = fasta_open(parameters.opt_rereplicate);
-  auto const filesize = static_cast<int64_t>(fasta_get_size(file_handle));
+  auto * input_handle = fasta_open(parameters.opt_rereplicate);
+  auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
   progress_init("Rereplicating", filesize);
 
@@ -97,10 +97,10 @@ auto rereplicate(struct Parameters & parameters) -> void
   int64_t missing = 0;
   int64_t n_reads = 0;
   auto const truncateatspace = not parameters.opt_notrunclabels;
-  while (fasta_next(file_handle, truncateatspace, chrmap_no_change_vector.data()))
+  while (fasta_next(input_handle, truncateatspace, chrmap_no_change_vector.data()))
     {
       ++n_amplicons;
-      auto abundance = fasta_get_abundance_and_presence(file_handle);
+      auto abundance = fasta_get_abundance_and_presence(input_handle);
       if (abundance == 0)
         {
           ++missing;
@@ -114,10 +114,10 @@ auto rereplicate(struct Parameters & parameters) -> void
             {
               fasta_print_general(output_handle,
                                   nullptr,
-                                  fasta_get_sequence(file_handle),
-                                  static_cast<int>(fasta_get_sequence_length(file_handle)),
-                                  fasta_get_header(file_handle),
-                                  static_cast<int>(fasta_get_header_length(file_handle)),
+                                  fasta_get_sequence(input_handle),
+                                  static_cast<int>(fasta_get_sequence_length(input_handle)),
+                                  fasta_get_header(input_handle),
+                                  static_cast<int>(fasta_get_header_length(input_handle)),
                                   1,
                                   static_cast<int>(n_reads),
                                   -1.0,
@@ -125,7 +125,7 @@ auto rereplicate(struct Parameters & parameters) -> void
             }
         }
 
-      progress_update(fasta_get_position(file_handle));
+      progress_update(fasta_get_position(input_handle));
     }
   progress_done();
 
@@ -147,7 +147,7 @@ auto rereplicate(struct Parameters & parameters) -> void
       std::fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
-  fasta_close(file_handle);
+  fasta_close(input_handle);
   if (output_handle != nullptr) {
     static_cast<void>(std::fclose(output_handle));
   }
