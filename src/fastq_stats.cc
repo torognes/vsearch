@@ -74,9 +74,10 @@
 #include <string>
 #include <vector>
 
-constexpr auto n_eight_bit_values = std::size_t{256};
 
+constexpr auto n_eight_bit_values = std::size_t{256};
 using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
+
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
