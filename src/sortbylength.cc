@@ -208,9 +208,8 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto sortbylength(struct Parameters const & parameters) -> void
-{
-  auto * fp_output = open_output_file(parameters);
+auto sortbylength(struct Parameters const & parameters) -> void {
+  auto * output_handle = open_output_file(parameters);
   db_read(parameters.opt_sortbylength, 0);
   show_rusage();
 
@@ -223,11 +222,11 @@ auto sortbylength(struct Parameters const & parameters) -> void
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, fp_output);
+  output_sorted_fasta(deck, output_handle);
   show_rusage();
 
   db_free();
-  if (fp_output != nullptr) {
-    static_cast<void>(std::fclose(fp_output));
+  if (output_handle != nullptr) {
+    static_cast<void>(std::fclose(output_handle));
   }
 }
