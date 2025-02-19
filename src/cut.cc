@@ -71,6 +71,9 @@
 #include <vector>
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 struct statistics {
   int fragment_no = 0;
   int fragment_rev_no = 0;
@@ -104,8 +107,6 @@ struct restriction_pattern {
 };
 
 
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
   auto cut_a_sequence(fastx_handle input_handle,
                       struct restriction_pattern const & restriction,
                       struct file_purpose const & fastaout,
