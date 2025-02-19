@@ -67,6 +67,9 @@
 #include <string>
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 struct input_file {
   char * name = nullptr;
   fastx_handle handle = nullptr;
@@ -188,6 +191,8 @@ auto output_stats_message(struct Parameters const & parameters,
   }
   stats_message(stderr, total);
 }
+
+}  // end of anonymous namespace
 
 
 auto fastq_join(struct Parameters const & parameters) -> void
