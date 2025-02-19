@@ -93,6 +93,7 @@ struct statistics {
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
   auto guess_quality_offset(struct statistics & stats) -> void {
@@ -255,7 +256,7 @@ namespace {
     }
     stats_message(stderr, stats);
   }
-}
+}  // end of anonymous namespace
 
 
 auto fastq_chars(struct Parameters const & parameters) -> void
