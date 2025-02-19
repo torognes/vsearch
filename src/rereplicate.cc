@@ -65,17 +65,27 @@
 #include <cstdint>  // int64_t
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  // refactoring: factorize all versions of this function, extract to new header
+  auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
+    if (parameters.opt_output == nullptr) {
+      fatal("FASTA output file for rereplicate must be specified with --output");
+    }
+    auto * output_handle = fopen_output(parameters.opt_output);
+    if (output_handle == nullptr) {
+      fatal("Unable to open FASTA output file for writing");
+    }
+    return output_handle;
+  }
+  
+}  // end of anonymous namespace
+
+
 auto rereplicate(struct Parameters & parameters) -> void
 {
-  if (parameters.opt_output == nullptr) {
-    fatal("FASTA output file for rereplicate must be specified with --output");
-  }
-
-  auto * fp_output = fopen_output(parameters.opt_output);
-  if (fp_output == nullptr) {
-    fatal("Unable to open FASTA output file for writing");
-  }
-
+  auto * fp_output = open_output_file(parameters);
   opt_xsize = true;
   parameters.opt_xsize = true;
   fastx_handle file_handle = fasta_open(parameters.opt_rereplicate);
