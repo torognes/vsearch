@@ -227,7 +227,8 @@ auto precompute_quality_scores(struct Parameters const & parameters) -> std::vec
 }
 
 
-auto compute_sum_quality_scores_per_length(Length_vs_Quality_counts const & qual_length_table, struct Parameters const & parameters) -> std::vector<uint64_t> {
+auto compute_sum_quality_scores_per_length(Length_vs_Quality_counts const & qual_length_table,
+                                           struct Parameters const & parameters) -> std::vector<uint64_t> {
   // sum_quality_scores is the sum of observed scores for each length
   std::vector<uint64_t> sum_quality_scores(qual_length_table.size());
   auto const quality_scores = precompute_quality_scores(parameters);
