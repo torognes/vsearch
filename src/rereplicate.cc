@@ -85,7 +85,7 @@ namespace {
 
 auto rereplicate(struct Parameters & parameters) -> void
 {
-  auto * fp_output = open_output_file(parameters);
+  auto * output_handle = open_output_file(parameters);
   opt_xsize = true;
   parameters.opt_xsize = true;
   fastx_handle file_handle = fasta_open(parameters.opt_rereplicate);
@@ -112,7 +112,7 @@ auto rereplicate(struct Parameters & parameters) -> void
           ++n_reads;
           if (parameters.opt_output != nullptr)
             {
-              fasta_print_general(fp_output,
+              fasta_print_general(output_handle,
                                   nullptr,
                                   fasta_get_sequence(file_handle),
                                   static_cast<int>(fasta_get_sequence_length(file_handle)),
@@ -148,7 +148,7 @@ auto rereplicate(struct Parameters & parameters) -> void
     }
 
   fasta_close(file_handle);
-  if (fp_output != nullptr) {
-    static_cast<void>(std::fclose(fp_output));
+  if (output_handle != nullptr) {
+    static_cast<void>(std::fclose(output_handle));
   }
 }
