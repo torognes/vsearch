@@ -69,6 +69,19 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  // refactoring: factorize all versions of this function, extract to new header
+  auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
+    if (parameters.opt_output == nullptr) {
+      fatal("Output file for shuffling must be specified with --output");
+    }
+    auto * output_handle = fopen_output(parameters.opt_output);
+    if (output_handle == nullptr) {
+      fatal("Unable to open shuffle output file for writing");
+    }
+    return output_handle;
+  }
+
+
   auto create_deck() -> std::vector<int> {
     auto const dbsequencecount = db_getsequencecount();
     std::vector<int> deck(dbsequencecount);
@@ -123,16 +136,7 @@ namespace {
 
 
 auto shuffle(struct Parameters const & parameters) -> void {
-  // pre-conditions
-  if (parameters.opt_output == nullptr) {
-    fatal("Output file for shuffling must be specified with --output");
-  }
-
-  auto * output_handle = fopen_output(parameters.opt_output);
-  if (output_handle == nullptr) {
-    fatal("Unable to open shuffle output file for writing");
-  }
-
+  auto * output_handle = open_output_file(parameters);
   db_read(parameters.opt_shuffle, 0);
   show_rusage();
 
