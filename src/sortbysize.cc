@@ -249,7 +249,7 @@ namespace {
 
 auto sortbysize(struct Parameters const & parameters) -> void
 {
-  auto * fp_output = open_output_file(parameters);
+  auto * output_handle = open_output_file(parameters);
   db_read(parameters.opt_sortbysize, 0);
   show_rusage();
 
@@ -262,12 +262,12 @@ auto sortbysize(struct Parameters const & parameters) -> void
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, fp_output);
+  output_sorted_fasta(deck, output_handle);
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();
 
-  if (fp_output != nullptr) {
-    static_cast<void>(std::fclose(fp_output));
+  if (output_handle != nullptr) {
+    static_cast<void>(std::fclose(output_handle));
   }
 }
