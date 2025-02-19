@@ -74,10 +74,6 @@
 #include <string>
 #include <vector>
 
-
-constexpr auto initial_memory_allocation = std::size_t{512};
-constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
-constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
 constexpr auto n_eight_bit_values = std::size_t{256};
 
 using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
@@ -494,6 +490,9 @@ namespace {
 
 auto fastq_stats(struct Parameters const & parameters) -> void
 {
+  constexpr auto initial_memory_allocation = std::size_t{512};
+  constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
+  constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
   auto * input_handle = fastq_open(parameters.opt_fastq_stats);
 
   auto const filesize = fastq_get_size(input_handle);
