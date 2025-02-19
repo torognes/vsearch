@@ -74,37 +74,37 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-struct statistics {
-  int fragment_no = 0;
-  int fragment_rev_no = 0;
-  int fragment_discarded_no = 0;
-  int fragment_discarded_rev_no = 0;
-  int64_t cut = 0;
-  int64_t uncut = 0;
-  int64_t matches = 0;
-};
+  struct statistics {
+    int fragment_no = 0;
+    int fragment_rev_no = 0;
+    int fragment_discarded_no = 0;
+    int fragment_discarded_rev_no = 0;
+    int64_t cut = 0;
+    int64_t uncut = 0;
+    int64_t matches = 0;
+  };
 
-struct a_file {
-  char * name = nullptr;
-  std::FILE * handle = nullptr;
-};
+  struct a_file {
+    char * name = nullptr;
+    std::FILE * handle = nullptr;
+  };
 
-struct a_strand {
-  a_file forward;
-  a_file reverse;
-};
+  struct a_strand {
+    a_file forward;
+    a_file reverse;
+  };
 
-struct file_purpose {
-  a_strand cut;
-  a_strand discarded;
-};
+  struct file_purpose {
+    a_strand cut;
+    a_strand discarded;
+  };
 
-struct restriction_pattern {
-  std::string pattern;
-  std::string coded_pattern;
-  int cut_fwd;
-  int cut_rev;
-};
+  struct restriction_pattern {
+    std::string pattern;
+    std::string coded_pattern;
+    int cut_fwd;
+    int cut_rev;
+  };
 
 
   auto cut_a_sequence(fastx_handle input_handle,
