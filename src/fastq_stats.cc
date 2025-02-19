@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "utils/maps.hpp"
 #include <array>
-#include <algorithm>  // std::max, std::find_if, std::transform, std::minmax_element
+#include <algorithm>  // std::max, std::min, std::find_if, std::transform, std::minmax_element, std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 (for uint64_t) and PRId64 (for int64_t)
 #include <cmath>  // std::pow
@@ -70,7 +70,7 @@
 #include <functional>  // std::plus
 #include <iterator>  // std::distance, std::next
 #include <limits>
-#include <numeric>  // std::partial_sum
+#include <numeric>  // std::partial_sum, std::inner_product, std::iota, std::accumulate
 #include <string>
 #include <vector>
 
