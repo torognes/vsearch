@@ -104,6 +104,7 @@ struct restriction_pattern {
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
 namespace {
   auto cut_a_sequence(fastx_handle input_handle,
                       struct restriction_pattern const & restriction,
@@ -438,7 +439,7 @@ namespace {
       }
     }
   }
-}
+}  // end of anonymous namespace
 
 
 auto cut(struct Parameters const & parameters) -> void {
