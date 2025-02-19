@@ -85,409 +85,409 @@ using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-struct Span {
-  char * start;
-  std::size_t n_elements;
-};
+  struct Span {
+    char * start;
+    std::size_t n_elements;
+  };
 
-struct Distributions {
-  double avgq = 0.0;
-  double avgp = 0.0;
-  double avgee = 0.0;
-  double rate = 0.0;
-};
+  struct Distributions {
+    double avgq = 0.0;
+    double avgp = 0.0;
+    double avgee = 0.0;
+    double rate = 0.0;
+  };
 
-struct Stats {
-  uint64_t len_min;
-  uint64_t len_max;
-  double n_symbols;
-  uint64_t seq_count;
-  double n_sequences;
-  std::vector<uint64_t> length_dist;
-  std::vector<uint64_t> quality_dist;
-  std::vector<struct Distributions> distributions;
-};
-
-
-auto q2p(double quality_score) -> double {
-  static constexpr auto base = 10.0;
-  return std::pow(base, -quality_score / base);
-}
+  struct Stats {
+    uint64_t len_min;
+    uint64_t len_max;
+    double n_symbols;
+    uint64_t seq_count;
+    double n_sequences;
+    std::vector<uint64_t> length_dist;
+    std::vector<uint64_t> quality_dist;
+    std::vector<struct Distributions> distributions;
+  };
 
 
-auto q2p(uint64_t quality_score) -> double {
-  static constexpr auto base = 10.0;
-  auto const quality_score_double = static_cast<double>(quality_score);
-  return std::pow(base, -quality_score_double / base);
-}
-
-
-auto check_quality_score(struct Parameters const & parameters, unsigned int const quality_score) -> void {
-  auto const is_in_accepted_range =
-    (quality_score >= static_cast<unsigned int>(parameters.opt_fastq_qmin)) and
-    (quality_score <= static_cast<unsigned int>(parameters.opt_fastq_qmax));
-
-  if (is_in_accepted_range) {
-    return;
+  auto q2p(double quality_score) -> double {
+    static constexpr auto base = 10.0;
+    return std::pow(base, -quality_score / base);
   }
 
-  std::string const message =
-    std::string("FASTQ quality value (") + std::to_string(quality_score) +
-    ") out of range (" + std::to_string(parameters.opt_fastq_qmin) + "-" +
-    std::to_string(parameters.opt_fastq_qmax) + ").\n" +
-    "Please adjust the FASTQ quality base character or range with the\n" +
-    "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
-    "diagnosis with suggested values, please run vsearch --fastq_chars file.";
-  fatal(message.c_str());
-}
 
-
-auto check_minmax_scores(struct Span const a_span,
-                         std::vector<uint64_t> const & symbol_to_score,
-                         struct Parameters const & parameters) -> void {
-  if (a_span.n_elements == 0) { return; }
-  assert(a_span.n_elements <= std::numeric_limits<int64_t>::max());
-  auto * const end = std::next(a_span.start, static_cast<int64_t>(a_span.n_elements));
-  auto const minmax_scores =
-    std::minmax_element(a_span.start, end);
-  auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
-  auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
-  check_quality_score(parameters, qmin);
-  check_quality_score(parameters, qmax);
-}
-
-
-auto const is_observed = [](uint64_t const count) -> bool { return count != 0UL; };
-
-
-auto find_smallest(std::vector<uint64_t> const & observables) -> unsigned long {
-  auto const first_hit =
-    std::find_if(observables.begin(), observables.end(),
-                 is_observed);
-  if (first_hit == observables.end()) {
-    return 0UL;
+  auto q2p(uint64_t quality_score) -> double {
+    static constexpr auto base = 10.0;
+    auto const quality_score_double = static_cast<double>(quality_score);
+    return std::pow(base, -quality_score_double / base);
   }
-  return static_cast<unsigned long>(
-      std::distance(observables.begin(), first_hit));
-}
 
 
-auto find_largest(std::vector<uint64_t> const & observables) -> unsigned long {
-  auto const last_hit =
-    std::find_if(observables.rbegin(), observables.rend(),
-                 is_observed);
-  if (last_hit == observables.rend()) {
-    return 0UL;
-  }
-  return static_cast<unsigned long>(
-      std::distance(last_hit, observables.rend()) - 1);
-}
+  auto check_quality_score(struct Parameters const & parameters, unsigned int const quality_score) -> void {
+    auto const is_in_accepted_range =
+      (quality_score >= static_cast<unsigned int>(parameters.opt_fastq_qmin)) and
+      (quality_score <= static_cast<unsigned int>(parameters.opt_fastq_qmax));
 
-
-auto compute_cumulative_sum(std::vector<uint64_t> const & read_length_table)
-  -> std::vector<uint64_t> {
-  std::vector<uint64_t> cumulative_sum_of_lengths(read_length_table.size());
-  std::partial_sum(read_length_table.cbegin(), read_length_table.cend(),
-                   cumulative_sum_of_lengths.begin());
-  return cumulative_sum_of_lengths;
-}
-
-
-auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
-  -> double {
-  // total number of nucleotides = sum(read_length * n_reads_with_that_length)
-  std::vector<uint64_t> read_lengths(n_reads_per_length.size());
-  std::iota(read_lengths.begin(), read_lengths.end(), 0UL);
-  return std::inner_product(read_lengths.begin(), read_lengths.end(),
-                            n_reads_per_length.begin(), double{0});
-}
-
-
-auto compute_n_symbols_per_length(Length_vs_Quality_counts const & qual_length_table) -> std::vector<uint64_t> {
-  // sum_counts is the sum of observed valid symbols for each length
-  // (invalid symbols are guaranteed to be set to zero)
-  std::vector<uint64_t> sum_counts(qual_length_table.size());
-  std::transform(
-      qual_length_table.begin(), qual_length_table.end(), sum_counts.begin(),
-      [](std::vector<uint64_t> const & quality_symbols) -> std::uint64_t {
-        return std::accumulate(quality_symbols.begin(), quality_symbols.end(),
-                               std::uint64_t{0});
-      });
-  return sum_counts;
-}
-
-
-auto precompute_quality_scores(struct Parameters const & parameters) -> std::vector<uint64_t> {
-  // quality score = quality symbol - opt_fastq_ascii
-  //
-  // opt_fastq_ascii is a fix value and quality_symbol increases
-  // linearly, so a vector of quality_scores can be generated by
-  // std::iota
-  std::vector<uint64_t> quality_scores(n_eight_bit_values);
-  auto starting_position = std::next(quality_scores.begin(), parameters.opt_fastq_ascii);
-  std::iota(starting_position, quality_scores.end(), 0UL);
-  return quality_scores;
-}
-
-
-auto compute_sum_quality_scores_per_length(Length_vs_Quality_counts const & qual_length_table,
-                                           struct Parameters const & parameters) -> std::vector<uint64_t> {
-  // sum_quality_scores is the sum of observed scores for each length
-  std::vector<uint64_t> sum_quality_scores(qual_length_table.size());
-  auto const quality_scores = precompute_quality_scores(parameters);
-  std::transform(
-      qual_length_table.begin(), qual_length_table.end(),
-      sum_quality_scores.begin(),
-      [&quality_scores](std::vector<uint64_t> const & quality_symbols)
-          -> std::uint64_t {
-        return std::inner_product(quality_symbols.begin(),
-                                  quality_symbols.end(),
-                                  quality_scores.begin(),
-                                  std::uint64_t{0});
-      });
-  return sum_quality_scores;
-}
-
-
-auto precompute_probability_values(struct Parameters const & parameters) -> std::vector<double> {
-  // probability value = 10 ^ - (quality score / 10)
-  // quality score = quality symbol - opt_fastq_ascii
-  //
-  // opt_fastq_ascii is a fix value and quality_symbol increases
-  // linearly, so a vector of quality_scores can be generated by
-  // std::iota and then transformed into probability values
-  auto const quality_scores = precompute_quality_scores(parameters);
-  std::vector<double> probability_values(n_eight_bit_values);
-  std::transform(quality_scores.cbegin(), quality_scores.cend(),
-                 probability_values.begin(),
-                 [](uint64_t const quality_score) -> double {
-                   return q2p(quality_score);
-                 });
-  return probability_values;
-}
-
-
-auto compute_sum_error_probabilities_per_length(Length_vs_Quality_counts const & qual_length_table, struct Parameters const & parameters) -> std::vector<double> {
-  // sum_error_probabilities is the sum of observed probabilities for each length
-  std::vector<double> sum_error_probabilities(qual_length_table.size());
-  auto const probability_values = precompute_probability_values(parameters);
-  std::transform(
-      qual_length_table.begin(), qual_length_table.end(),
-      sum_error_probabilities.begin(),
-      [&probability_values](std::vector<uint64_t> const & quality_symbols)
-          -> double {
-        return std::inner_product(quality_symbols.begin(),
-                                  quality_symbols.end(),
-                                  probability_values.begin(),
-                                  double{0});
-      });
-  return sum_error_probabilities;
-}
-
-
-auto compute_distribution_of_quality_symbols(Length_vs_Quality_counts const & length_vs_quality) -> std::vector<uint64_t> {
-  // for each quality symbol: sum symbol observations for each position
-  std::vector<uint64_t> distribution(n_eight_bit_values);
-  std::for_each(length_vs_quality.begin(), length_vs_quality.end(),
-                [& distribution](std::vector<uint64_t> const & observations) {
-                  std::transform(observations.begin(),
-                                 observations.end(),
-                                 distribution.begin(),
-                                 distribution.begin(),
-                                 std::plus<uint64_t>{});
-                });
-  return distribution;
-}
-
-
-auto compute_distributions(
-    unsigned int const len_max,
-    Length_vs_Quality_counts const & qual_length_table,
-    std::vector<double> const & sumee_length_table,
-    struct Parameters const & parameters) -> std::vector<struct Distributions> {
-  std::vector<struct Distributions> distributions(len_max + 1);
-
-  auto const sum_counts = compute_n_symbols_per_length(qual_length_table);
-  auto const sum_quality_scores = compute_sum_quality_scores_per_length(qual_length_table, parameters);
-  auto const sum_error_probabilities = compute_sum_error_probabilities_per_length(qual_length_table, parameters);
-
-  auto position = std::size_t{0};
-  for (auto & distribution: distributions) {
-    auto const n_symbols = static_cast<double>(sum_counts[position]);
-    auto const length = static_cast<double>(position + 1);
-    auto const sum_quality_score = static_cast<double>(sum_quality_scores[position]);
-    distribution.avgq = sum_quality_score / n_symbols;
-    distribution.avgp = sum_error_probabilities[position] / n_symbols;
-    distribution.avgee = sumee_length_table[position] / n_symbols;
-    distribution.rate = distributions[position].avgee / length;
-    ++position;
-  }
-  return distributions;
-}
-
-
-// section 1
-auto report_read_length_distribution(std::FILE * log_handle,
-                                     struct Stats const & stats,
-                                     std::vector<uint64_t> const & read_length_table) -> void {
-  assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n%s\n%s\n%s\n",
-               "Read length distribution",
-               "      L           N      Pct   AccPct",
-               "-------  ----------  -------  -------");
-  for (auto length = stats.len_max; length >= stats.len_min; --length)
-    {
-      if (read_length_table[length] != 0) {
-        auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
-        std::fprintf(log_handle, "%2s%5" PRIu64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
-                     (length == stats.len_max ? ">=" : "  "),
-                     length,
-                     read_length_table[length],
-                     static_cast<double>(read_length_table[length]) * 100.0 / stats.n_sequences,
-                     100.0 * (stats.n_sequences - previous_count) / stats.n_sequences);
-      }
-      if (length == 0UL) { break; }
+    if (is_in_accepted_range) {
+      return;
     }
-}
+
+    std::string const message =
+      std::string("FASTQ quality value (") + std::to_string(quality_score) +
+      ") out of range (" + std::to_string(parameters.opt_fastq_qmin) + "-" +
+      std::to_string(parameters.opt_fastq_qmax) + ").\n" +
+      "Please adjust the FASTQ quality base character or range with the\n" +
+      "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
+      "diagnosis with suggested values, please run vsearch --fastq_chars file.";
+    fatal(message.c_str());
+  }
 
 
-// section 2
-auto report_q_score_distribution(
-    std::FILE * log_handle,
-    struct Stats const & stats,
-    std::vector<double> const & symbol_to_probability,
-    std::vector<uint64_t> const & symbol_to_score) -> void {
-  assert(log_handle != nullptr);
-  auto const qmin = static_cast<int>(find_smallest(stats.quality_dist));
-  auto const qmax = static_cast<int>(find_largest(stats.quality_dist));
+  auto check_minmax_scores(struct Span const a_span,
+                           std::vector<uint64_t> const & symbol_to_score,
+                           struct Parameters const & parameters) -> void {
+    if (a_span.n_elements == 0) { return; }
+    assert(a_span.n_elements <= std::numeric_limits<int64_t>::max());
+    auto * const end = std::next(a_span.start, static_cast<int64_t>(a_span.n_elements));
+    auto const minmax_scores =
+      std::minmax_element(a_span.start, end);
+    auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
+    auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
+    check_quality_score(parameters, qmin);
+    check_quality_score(parameters, qmax);
+  }
 
-  std::fprintf(log_handle, "\n%s\n%s\n%s\n",
-               "Q score distribution",
-               "ASCII    Q       Pe           N      Pct   AccPct",
-               "-----  ---  -------  ----------  -------  -------");
-  uint64_t qual_accum = 0;
-  for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
-    {
-      if (stats.quality_dist[quality_symbol] == 0) { continue; }
 
-      qual_accum += stats.quality_dist[quality_symbol];
-      std::fprintf(log_handle,
-                   "    %c  %3" PRIu64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
-                   quality_symbol,
-                   symbol_to_score[quality_symbol],
-                   symbol_to_probability[quality_symbol],
-                   stats.quality_dist[quality_symbol],
-                   100.0 * static_cast<double>(stats.quality_dist[quality_symbol]) / stats.n_symbols,
-                   100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
+  auto const is_observed = [](uint64_t const count) -> bool { return count != 0UL; };
+
+
+  auto find_smallest(std::vector<uint64_t> const & observables) -> unsigned long {
+    auto const first_hit =
+      std::find_if(observables.begin(), observables.end(),
+                   is_observed);
+    if (first_hit == observables.end()) {
+      return 0UL;
     }
-}
+    return static_cast<unsigned long>(
+                                      std::distance(observables.begin(), first_hit));
+  }
 
 
-// section 3
-auto report_length_vs_quality_distribution(std::FILE * log_handle,
-                                           struct Stats const & stats) -> void {
-  assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n%s\n%s\n",
-               "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct",
-               "-----  -------  ----  -------  --------  -----  ---------  --------");
-
-  for (auto length = 2UL; length <= stats.len_max; ++length)
-    {
-      auto const previous_count = static_cast<double>(stats.length_dist[length - 1]);
-      auto const & distribution = stats.distributions[length - 1];
-      auto const PctRecs = 100.0 * (stats.n_sequences - previous_count) / stats.n_sequences;
-      auto const AvgQ = distribution.avgq;
-      auto const AvgP = distribution.avgp;
-      auto const AvgEE = distribution.avgee;
-      auto const Rate = distribution.rate;
-
-      std::fprintf(log_handle,
-                   "%5" PRIu64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
-                   length,
-                   PctRecs,
-                   AvgQ,
-                   q2p(AvgQ),
-                   AvgP,
-                   AvgEE,
-                   Rate,
-                   100.0 * Rate);
+  auto find_largest(std::vector<uint64_t> const & observables) -> unsigned long {
+    auto const last_hit =
+      std::find_if(observables.rbegin(), observables.rend(),
+                   is_observed);
+    if (last_hit == observables.rend()) {
+      return 0UL;
     }
-}
+    return static_cast<unsigned long>(
+                                      std::distance(last_hit, observables.rend()) - 1);
+  }
 
 
-// section 4
-auto report_expected_error_and_length_filtering(std::FILE * log_handle,
-                                                struct Stats const & stats,
-                                                std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
-  assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n%s\n%s\n",
-               "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000",
-               "-----  -------  -------  -------  -------  -------  -------  -------  -------");
+  auto compute_cumulative_sum(std::vector<uint64_t> const & read_length_table)
+    -> std::vector<uint64_t> {
+    std::vector<uint64_t> cumulative_sum_of_lengths(read_length_table.size());
+    std::partial_sum(read_length_table.cbegin(), read_length_table.cend(),
+                     cumulative_sum_of_lengths.begin());
+    return cumulative_sum_of_lengths;
+  }
 
-  std::vector<double> read_percentage;
-  read_percentage.reserve(ee_length_table[0].size());
-  for (auto length = stats.len_max; length >= 1UL; --length)
-    {
-      auto const & read_count = ee_length_table[length - 1];
-      for (auto const count : read_count) {
-        read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
-      }
 
-      if (read_count[0] != 0)
-        {
-          std::fprintf(log_handle,
-                       "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
-                       "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
+  auto compute_number_of_symbols(std::vector<uint64_t> const & n_reads_per_length)
+    -> double {
+    // total number of nucleotides = sum(read_length * n_reads_with_that_length)
+    std::vector<uint64_t> read_lengths(n_reads_per_length.size());
+    std::iota(read_lengths.begin(), read_lengths.end(), 0UL);
+    return std::inner_product(read_lengths.begin(), read_lengths.end(),
+                              n_reads_per_length.begin(), double{0});
+  }
+
+
+  auto compute_n_symbols_per_length(Length_vs_Quality_counts const & qual_length_table) -> std::vector<uint64_t> {
+    // sum_counts is the sum of observed valid symbols for each length
+    // (invalid symbols are guaranteed to be set to zero)
+    std::vector<uint64_t> sum_counts(qual_length_table.size());
+    std::transform(
+                   qual_length_table.begin(), qual_length_table.end(), sum_counts.begin(),
+                   [](std::vector<uint64_t> const & quality_symbols) -> std::uint64_t {
+                     return std::accumulate(quality_symbols.begin(), quality_symbols.end(),
+                                            std::uint64_t{0});
+                   });
+    return sum_counts;
+  }
+
+
+  auto precompute_quality_scores(struct Parameters const & parameters) -> std::vector<uint64_t> {
+    // quality score = quality symbol - opt_fastq_ascii
+    //
+    // opt_fastq_ascii is a fix value and quality_symbol increases
+    // linearly, so a vector of quality_scores can be generated by
+    // std::iota
+    std::vector<uint64_t> quality_scores(n_eight_bit_values);
+    auto starting_position = std::next(quality_scores.begin(), parameters.opt_fastq_ascii);
+    std::iota(starting_position, quality_scores.end(), 0UL);
+    return quality_scores;
+  }
+
+
+  auto compute_sum_quality_scores_per_length(Length_vs_Quality_counts const & qual_length_table,
+                                             struct Parameters const & parameters) -> std::vector<uint64_t> {
+    // sum_quality_scores is the sum of observed scores for each length
+    std::vector<uint64_t> sum_quality_scores(qual_length_table.size());
+    auto const quality_scores = precompute_quality_scores(parameters);
+    std::transform(
+                   qual_length_table.begin(), qual_length_table.end(),
+                   sum_quality_scores.begin(),
+                   [&quality_scores](std::vector<uint64_t> const & quality_symbols)
+                   -> std::uint64_t {
+                     return std::inner_product(quality_symbols.begin(),
+                                               quality_symbols.end(),
+                                               quality_scores.begin(),
+                                               std::uint64_t{0});
+                   });
+    return sum_quality_scores;
+  }
+
+
+  auto precompute_probability_values(struct Parameters const & parameters) -> std::vector<double> {
+    // probability value = 10 ^ - (quality score / 10)
+    // quality score = quality symbol - opt_fastq_ascii
+    //
+    // opt_fastq_ascii is a fix value and quality_symbol increases
+    // linearly, so a vector of quality_scores can be generated by
+    // std::iota and then transformed into probability values
+    auto const quality_scores = precompute_quality_scores(parameters);
+    std::vector<double> probability_values(n_eight_bit_values);
+    std::transform(quality_scores.cbegin(), quality_scores.cend(),
+                   probability_values.begin(),
+                   [](uint64_t const quality_score) -> double {
+                     return q2p(quality_score);
+                   });
+    return probability_values;
+  }
+
+
+  auto compute_sum_error_probabilities_per_length(Length_vs_Quality_counts const & qual_length_table, struct Parameters const & parameters) -> std::vector<double> {
+    // sum_error_probabilities is the sum of observed probabilities for each length
+    std::vector<double> sum_error_probabilities(qual_length_table.size());
+    auto const probability_values = precompute_probability_values(parameters);
+    std::transform(
+                   qual_length_table.begin(), qual_length_table.end(),
+                   sum_error_probabilities.begin(),
+                   [&probability_values](std::vector<uint64_t> const & quality_symbols)
+                   -> double {
+                     return std::inner_product(quality_symbols.begin(),
+                                               quality_symbols.end(),
+                                               probability_values.begin(),
+                                               double{0});
+                   });
+    return sum_error_probabilities;
+  }
+
+
+  auto compute_distribution_of_quality_symbols(Length_vs_Quality_counts const & length_vs_quality) -> std::vector<uint64_t> {
+    // for each quality symbol: sum symbol observations for each position
+    std::vector<uint64_t> distribution(n_eight_bit_values);
+    std::for_each(length_vs_quality.begin(), length_vs_quality.end(),
+                  [& distribution](std::vector<uint64_t> const & observations) {
+                    std::transform(observations.begin(),
+                                   observations.end(),
+                                   distribution.begin(),
+                                   distribution.begin(),
+                                   std::plus<uint64_t>{});
+                  });
+    return distribution;
+  }
+
+
+  auto compute_distributions(
+                             unsigned int const len_max,
+                             Length_vs_Quality_counts const & qual_length_table,
+                             std::vector<double> const & sumee_length_table,
+                             struct Parameters const & parameters) -> std::vector<struct Distributions> {
+    std::vector<struct Distributions> distributions(len_max + 1);
+
+    auto const sum_counts = compute_n_symbols_per_length(qual_length_table);
+    auto const sum_quality_scores = compute_sum_quality_scores_per_length(qual_length_table, parameters);
+    auto const sum_error_probabilities = compute_sum_error_probabilities_per_length(qual_length_table, parameters);
+
+    auto position = std::size_t{0};
+    for (auto & distribution: distributions) {
+      auto const n_symbols = static_cast<double>(sum_counts[position]);
+      auto const length = static_cast<double>(position + 1);
+      auto const sum_quality_score = static_cast<double>(sum_quality_scores[position]);
+      distribution.avgq = sum_quality_score / n_symbols;
+      distribution.avgp = sum_error_probabilities[position] / n_symbols;
+      distribution.avgee = sumee_length_table[position] / n_symbols;
+      distribution.rate = distributions[position].avgee / length;
+      ++position;
+    }
+    return distributions;
+  }
+
+
+  // section 1
+  auto report_read_length_distribution(std::FILE * log_handle,
+                                       struct Stats const & stats,
+                                       std::vector<uint64_t> const & read_length_table) -> void {
+    assert(log_handle != nullptr);
+    std::fprintf(log_handle, "\n%s\n%s\n%s\n",
+                 "Read length distribution",
+                 "      L           N      Pct   AccPct",
+                 "-------  ----------  -------  -------");
+    for (auto length = stats.len_max; length >= stats.len_min; --length)
+      {
+        if (read_length_table[length] != 0) {
+          auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
+          std::fprintf(log_handle, "%2s%5" PRIu64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
+                       (length == stats.len_max ? ">=" : "  "),
                        length,
-                       read_count[0], read_count[1],
-                       read_count[2], read_count[3],
-                       read_percentage[0], read_percentage[1],
-                       read_percentage[2], read_percentage[3]);
+                       read_length_table[length],
+                       static_cast<double>(read_length_table[length]) * 100.0 / stats.n_sequences,
+                       100.0 * (stats.n_sequences - previous_count) / stats.n_sequences);
         }
-      read_percentage.clear();
-    }
-}
-
-
-// section 5
-auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
-                                                 struct Stats const & stats,
-                                                 std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
-  assert(log_handle != nullptr);
-  std::fprintf(log_handle, "\n%s\n%s\n%s\n",
-               "Truncate at first Q",
-               "  Len     Q=5    Q=10    Q=15    Q=20",
-               "-----  ------  ------  ------  ------");
-  auto const mid_length = std::max(1UL, stats.len_max / 2);
-  std::vector<double> read_percentage;
-  read_percentage.reserve(q_length_table[0].size());
-  for (auto length = stats.len_max; length >= mid_length; --length)
-    {
-      for (auto const count : q_length_table[length - 1]) {
-        read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
+        if (length == 0UL) { break; }
       }
-
-      std::fprintf(log_handle, "%5" PRIu64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
-                   length, read_percentage[0], read_percentage[1],
-                   read_percentage[2], read_percentage[3]);
-      read_percentage.clear();
-    }
-}
+  }
 
 
-// closing section
-auto report_sequence_stats(std::FILE * log_handle, struct Stats const & stats) -> void {
-  assert(log_handle != nullptr);
-  static constexpr auto a_million = double{1000000};
-  auto const n_sequences = static_cast<double>(stats.seq_count);
-  std::fprintf(log_handle, "\n%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
-               stats.seq_count, n_sequences / a_million);
-  if (stats.seq_count != 0)
-    {
-      std::fprintf(log_handle, "%10.1lf  Avg length\n", 1.0 * stats.n_symbols / n_sequences);
-    }
-  std::fprintf(log_handle, "%9.1lfM  Bases\n", stats.n_symbols / a_million);
-}
+  // section 2
+  auto report_q_score_distribution(
+                                   std::FILE * log_handle,
+                                   struct Stats const & stats,
+                                   std::vector<double> const & symbol_to_probability,
+                                   std::vector<uint64_t> const & symbol_to_score) -> void {
+    assert(log_handle != nullptr);
+    auto const qmin = static_cast<int>(find_smallest(stats.quality_dist));
+    auto const qmax = static_cast<int>(find_largest(stats.quality_dist));
+
+    std::fprintf(log_handle, "\n%s\n%s\n%s\n",
+                 "Q score distribution",
+                 "ASCII    Q       Pe           N      Pct   AccPct",
+                 "-----  ---  -------  ----------  -------  -------");
+    uint64_t qual_accum = 0;
+    for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
+      {
+        if (stats.quality_dist[quality_symbol] == 0) { continue; }
+
+        qual_accum += stats.quality_dist[quality_symbol];
+        std::fprintf(log_handle,
+                     "    %c  %3" PRIu64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
+                     quality_symbol,
+                     symbol_to_score[quality_symbol],
+                     symbol_to_probability[quality_symbol],
+                     stats.quality_dist[quality_symbol],
+                     100.0 * static_cast<double>(stats.quality_dist[quality_symbol]) / stats.n_symbols,
+                     100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
+      }
+  }
+
+
+  // section 3
+  auto report_length_vs_quality_distribution(std::FILE * log_handle,
+                                             struct Stats const & stats) -> void {
+    assert(log_handle != nullptr);
+    std::fprintf(log_handle, "\n%s\n%s\n",
+                 "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct",
+                 "-----  -------  ----  -------  --------  -----  ---------  --------");
+
+    for (auto length = 2UL; length <= stats.len_max; ++length)
+      {
+        auto const previous_count = static_cast<double>(stats.length_dist[length - 1]);
+        auto const & distribution = stats.distributions[length - 1];
+        auto const PctRecs = 100.0 * (stats.n_sequences - previous_count) / stats.n_sequences;
+        auto const AvgQ = distribution.avgq;
+        auto const AvgP = distribution.avgp;
+        auto const AvgEE = distribution.avgee;
+        auto const Rate = distribution.rate;
+
+        std::fprintf(log_handle,
+                     "%5" PRIu64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
+                     length,
+                     PctRecs,
+                     AvgQ,
+                     q2p(AvgQ),
+                     AvgP,
+                     AvgEE,
+                     Rate,
+                     100.0 * Rate);
+      }
+  }
+
+
+  // section 4
+  auto report_expected_error_and_length_filtering(std::FILE * log_handle,
+                                                  struct Stats const & stats,
+                                                  std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
+    assert(log_handle != nullptr);
+    std::fprintf(log_handle, "\n%s\n%s\n",
+                 "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000",
+                 "-----  -------  -------  -------  -------  -------  -------  -------  -------");
+
+    std::vector<double> read_percentage;
+    read_percentage.reserve(ee_length_table[0].size());
+    for (auto length = stats.len_max; length >= 1UL; --length)
+      {
+        auto const & read_count = ee_length_table[length - 1];
+        for (auto const count : read_count) {
+          read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
+        }
+
+        if (read_count[0] != 0)
+          {
+            std::fprintf(log_handle,
+                         "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
+                         "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
+                         length,
+                         read_count[0], read_count[1],
+                         read_count[2], read_count[3],
+                         read_percentage[0], read_percentage[1],
+                         read_percentage[2], read_percentage[3]);
+          }
+        read_percentage.clear();
+      }
+  }
+
+
+  // section 5
+  auto report_minimum_quality_and_length_filtering(std::FILE * log_handle,
+                                                   struct Stats const & stats,
+                                                   std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
+    assert(log_handle != nullptr);
+    std::fprintf(log_handle, "\n%s\n%s\n%s\n",
+                 "Truncate at first Q",
+                 "  Len     Q=5    Q=10    Q=15    Q=20",
+                 "-----  ------  ------  ------  ------");
+    auto const mid_length = std::max(1UL, stats.len_max / 2);
+    std::vector<double> read_percentage;
+    read_percentage.reserve(q_length_table[0].size());
+    for (auto length = stats.len_max; length >= mid_length; --length)
+      {
+        for (auto const count : q_length_table[length - 1]) {
+          read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
+        }
+
+        std::fprintf(log_handle, "%5" PRIu64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
+                     length, read_percentage[0], read_percentage[1],
+                     read_percentage[2], read_percentage[3]);
+        read_percentage.clear();
+      }
+  }
+
+
+  // closing section
+  auto report_sequence_stats(std::FILE * log_handle, struct Stats const & stats) -> void {
+    assert(log_handle != nullptr);
+    static constexpr auto a_million = double{1000000};
+    auto const n_sequences = static_cast<double>(stats.seq_count);
+    std::fprintf(log_handle, "\n%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
+                 stats.seq_count, n_sequences / a_million);
+    if (stats.seq_count != 0)
+      {
+        std::fprintf(log_handle, "%10.1lf  Avg length\n", 1.0 * stats.n_symbols / n_sequences);
+      }
+    std::fprintf(log_handle, "%9.1lfM  Bases\n", stats.n_symbols / a_million);
+  }
 
 }  // end of anonymous namespace
 
