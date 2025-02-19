@@ -3,7 +3,6 @@ language:
 
 arch:
 - arm64
-#- ppc64le
 
 os:
 - linux

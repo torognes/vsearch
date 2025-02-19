@@ -84,6 +84,7 @@
 #include <set>
 #include <string>
 #include <cassert>
+#include <limits>
 
 /* include appropriate regex library */
 
@@ -126,8 +127,9 @@
 
 #else
 
-#error Unknown architecture (not ppc64le, aarch64 or x86_64)
-
+#define PROG_CPU "simde"
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/x86/avx512.h>
 #endif
 
 
@@ -205,61 +207,21 @@
 #endif
 
 #include "city.h"
-#include "md5.h"
 #include "sha1.h"
 
 #include "arch.h"
-#include "dynlibs.h"
 #include "util.h"
 #include "xstring.h"
-#include "align_simd.h"
-#include "maps.h"
-#include "attributes.h"
 #include "db.h"
-#include "align.h"
-#include "unique.h"
-#include "bitmap.h"
-#include "dbindex.h"
-#include "minheap.h"
-#include "search.h"
 #include "linmemalign.h"
 #include "searchcore.h"
-#include "showalign.h"
-#include "userfields.h"
 #include "results.h"
-#include "sortbysize.h"
-#include "sortbylength.h"
-#include "derep.h"
-#include "shuffle.h"
-#include "mask.h"
-#include "cluster.h"
-#include "msa.h"
-#include "chimera.h"
 #include "cpu.h"
-#include "allpairs.h"
-#include "subsample.h"
 #include "fastx.h"
 #include "fasta.h"
 #include "fastq.h"
-#include "fastqops.h"
-#include "filter.h"
 #include "dbhash.h"
-#include "searchexact.h"
-#include "mergepairs.h"
-#include "eestats.h"
-#include "rerep.h"
-#include "otutable.h"
-#include "udb.h"
 #include "kmerhash.h"
-#include "tax.h"
-#include "sintax.h"
-#include "fastqjoin.h"
-#include "sffconvert.h"
-#include "getseq.h"
-#include "cut.h"
-#include "orient.h"
-#include "fa2fq.h"
-#include "derepsmallmem.h"
 #include "pcr.h"
 
 /* options */
@@ -272,10 +234,10 @@ extern bool opt_fasta_score;
 extern bool opt_fastq_allowmergestagger;
 extern bool opt_fastq_eeout;
 extern bool opt_fastq_nostagger;
-extern bool opt_fastq_qout_max;
 extern bool opt_gzip_decompress;
 extern bool opt_label_substr_match;
 extern bool opt_lengthout;
+extern bool opt_n_mismatch;
 extern bool opt_no_progress;
 extern bool opt_quiet;
 extern bool opt_relabel_keep;
@@ -284,6 +246,7 @@ extern bool opt_relabel_self;
 extern bool opt_relabel_sha1;
 extern bool opt_samheader;
 extern bool opt_sff_clip;
+extern bool opt_sintax_random;
 extern bool opt_sizein;
 extern bool opt_sizeorder;
 extern bool opt_sizeout;
@@ -304,16 +267,10 @@ extern char * opt_cluster_smallmem;
 extern char * opt_cluster_unoise;
 extern char * opt_clusters;
 extern char * opt_consout;
-extern char * opt_cut;
-extern char * opt_cut_pattern;
 extern char * opt_db;
 extern char * opt_dbmatched;
 extern char * opt_dbnotmatched;
-extern char * opt_derep_fulllength;
-extern char * opt_derep_id;
-extern char * opt_derep_prefix;
 extern char * opt_eetabbedout;
-extern char * opt_fasta2fastq;
 extern char * opt_fastaout;
 extern char * opt_fastaout_discarded;
 extern char * opt_fastaout_discarded_rev;
@@ -321,12 +278,10 @@ extern char * opt_fastaout_notmerged_fwd;
 extern char * opt_fastaout_notmerged_rev;
 extern char * opt_fastaout_rev;
 extern char * opt_fastapairs;
-extern char * opt_fastq_chars;
 extern char * opt_fastq_convert;
 extern char * opt_fastq_eestats2;
 extern char * opt_fastq_eestats;
 extern char * opt_fastq_filter;
-extern char * opt_fastq_join;
 extern char * opt_fastq_mergepairs;
 extern char * opt_fastq_stats;
 extern char * opt_fastqout;
@@ -341,10 +296,6 @@ extern char * opt_fastx_getseqs;
 extern char * opt_fastx_getsubseq;
 extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
-extern char * opt_fastx_subsample;
-extern char * opt_fastx_uniques;
-extern char * opt_join_padgap;
-extern char * opt_join_padgapq;
 extern char * opt_label;
 extern char * opt_label_field;
 extern char * opt_label_suffix;
@@ -369,16 +320,12 @@ extern char * opt_pcr_sim;
 extern char * opt_profile;
 extern char * opt_qsegout;
 extern char * opt_relabel;
-extern char * opt_rereplicate;
 extern char * opt_reverse;
 extern char * opt_samout;
 extern char * opt_sample;
 extern char * opt_search_exact;
 extern char * opt_sff_convert;
-extern char * opt_shuffle;
 extern char * opt_sintax;
-extern char * opt_sortbylength;
-extern char * opt_sortbysize;
 extern char * opt_tabbedout;
 extern char * opt_tsegout;
 extern char * opt_uc;
@@ -443,7 +390,6 @@ extern int opt_gap_open_query_right;
 extern int opt_gap_open_target_interior;
 extern int opt_gap_open_target_left;
 extern int opt_gap_open_target_right;
-extern int opt_help;
 extern int opt_length_cutoffs_increment;
 extern int opt_length_cutoffs_longest;
 extern int opt_length_cutoffs_shortest;
@@ -451,7 +397,6 @@ extern int opt_mindiffs;
 extern int opt_slots;
 extern int opt_uchimeout5;
 extern int opt_usersort;
-extern int opt_version;
 extern int64_t opt_dbmask;
 extern int64_t opt_fasta_width;
 extern int64_t opt_fastq_ascii;
@@ -469,7 +414,6 @@ extern int64_t opt_fastq_qmin;
 extern int64_t opt_fastq_qminout;
 extern int64_t opt_fastq_stripleft;
 extern int64_t opt_fastq_stripright;
-extern int64_t opt_fastq_tail;
 extern int64_t opt_fastq_trunclen;
 extern int64_t opt_fastq_trunclen_keep;
 extern int64_t opt_fastq_truncqual;
@@ -528,4 +472,75 @@ extern int64_t popcnt_present;
 extern int64_t avx_present;
 extern int64_t avx2_present;
 
-extern FILE * fp_log;
+extern std::FILE * fp_log;
+
+constexpr auto tax_levels = 9;
+constexpr int64_t default_maxseqlength = 50000;
+constexpr int64_t default_ascii_offset = 33;
+constexpr char alternative_ascii_offset = 64;
+constexpr int64_t default_max_quality = 41;
+constexpr auto int64_max = std::numeric_limits<int64_t>::max();
+std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
+std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
+std::string const default_sequence_padding = "NNNNNNNN";
+
+struct Parameters {
+  char * opt_cut = nullptr;
+  std::string opt_cut_pattern;
+  char * opt_derep_fulllength = nullptr;
+  char * opt_derep_id = nullptr;
+  char * opt_derep_prefix = nullptr;
+  char * opt_derep_smallmem = nullptr;
+  char * opt_fasta2fastq = nullptr;
+  char * opt_fastaout = nullptr;
+  char * opt_fastaout_rev = nullptr;
+  char * opt_fastaout_discarded = nullptr;
+  char * opt_fastaout_discarded_rev = nullptr;
+  char * opt_fastq_chars = nullptr;
+  char * opt_fastq_join = nullptr;
+  char * opt_fastqout = nullptr;
+  char * opt_fastqout_rev = nullptr;
+  char * opt_fastqout_discarded = nullptr;
+  char * opt_fastqout_discarded_rev = nullptr;
+  char * opt_fastx_subsample = nullptr;
+  char * opt_fastx_uniques = nullptr;
+  std::string opt_join_padgap = default_sequence_padding;
+  std::string opt_join_padgapq = default_quality_padding;
+  char * opt_log = nullptr;
+  char * opt_output = nullptr;
+  char * opt_relabel = nullptr;
+  char * opt_rereplicate = nullptr;
+  char * opt_reverse = nullptr;
+  char * opt_shuffle = nullptr;
+  char * opt_sortbylength = nullptr;
+  char * opt_sortbysize = nullptr;
+  char * opt_tabbedout = nullptr;
+  char * opt_uc = nullptr;
+  char * progname = nullptr;
+  std::FILE * fp_log = nullptr;
+  double opt_sample_pct = 0;
+  int64_t opt_fastq_ascii = default_ascii_offset;
+  int64_t opt_fastq_asciiout = default_ascii_offset;
+  int64_t opt_fastq_qmaxout = default_max_quality;
+  int64_t opt_fastq_qminout = 0;
+  int64_t opt_fastq_tail = 4;
+  int64_t opt_maxseqlength = default_maxseqlength;
+  int64_t opt_maxsize = int64_max;
+  int64_t opt_maxuniquesize = int64_max;
+  int64_t opt_minseqlength = -1;
+  int64_t opt_minsize = 0;
+  int64_t opt_minuniquesize = 1;
+  int64_t opt_randseed = 0;
+  int64_t opt_sample_size = 0;
+  int64_t opt_threads = 0;
+  int64_t opt_topn = int64_max;
+  bool opt_fastq_qout_max = false;
+  bool opt_help = false;
+  bool opt_join_padgapq_set_by_user = false;
+  bool opt_notrunclabels = false;
+  bool opt_quiet = false;
+  bool opt_sizein = false;
+  bool opt_strand = false;
+  bool opt_version = false;
+  bool opt_xsize = false;
+};

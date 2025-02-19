@@ -58,52 +58,40 @@
 
 */
 
+#include "bitmap.h"
+#include <cstdio>  // std::FILE
+#include <cstdint>  // uint64_t
+
+
+struct uhandle_s;
+
 extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
 extern uint64_t * kmerhash;  /* index into the list below for each kmer */
 extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
-extern bitmap_t * * kmerbitmap;
+extern struct bitmap_s * * kmerbitmap;
 extern unsigned int * dbindex_map;
 extern unsigned int dbindex_count;
 extern unsigned int kmerhashsize;
 extern uint64_t kmerindexsize;
 extern uhandle_s * dbindex_uh;
 
-void fprint_kmer(FILE * f, unsigned int k, uint64_t kmer);
 
-void dbindex_prepare(int use_bitmap, int seqmask);
-void dbindex_addallsequences(int seqmask);
-void dbindex_addsequence(unsigned int seqno, int seqmask);
-void dbindex_free();
-void dbindex_udb_write();
+auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
 
-inline unsigned char * dbindex_getbitmap(unsigned int kmer)
-{
-  if (kmerbitmap[kmer])
-    {
-      return kmerbitmap[kmer]->bitmap;
-    }
-  else
-    {
-      return nullptr;
-    }
-}
+auto dbindex_prepare(int use_bitmap, int seqmask) -> void;
 
-inline unsigned int dbindex_getmatchcount(unsigned int kmer)
-{
-  return kmercount[kmer];
-}
+auto dbindex_addallsequences(int seqmask) -> void;
 
-inline unsigned int * dbindex_getmatchlist(unsigned int kmer)
-{
-  return kmerindex + kmerhash[kmer];
-}
+auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void;
 
-inline unsigned int dbindex_getmapping(unsigned int index)
-{
-  return dbindex_map[index];
-}
+auto dbindex_free() -> void;
 
-inline unsigned int dbindex_getcount()
-{
-  return dbindex_count;
-}
+auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *;
+
+auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int;
+
+auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *;
+
+auto dbindex_getmapping(unsigned int index) -> unsigned int;
+
+auto dbindex_getcount() -> unsigned int;

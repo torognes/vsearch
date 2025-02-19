@@ -58,4 +58,4 @@
 
 */
 
-void fastq_join();
+auto rereplicate(struct Parameters & parameters) -> void;

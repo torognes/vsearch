@@ -58,5 +58,4 @@
 
 */
 
-void derep(char * input_filename, bool use_header);
-void derep_prefix();
+auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void;

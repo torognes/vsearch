@@ -59,6 +59,17 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
+#include <algorithm>  // std::min, std::max
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::fprintf, std::fclose
+#include <cstdlib>  // std::qsort
+#include <cstring>  // std::memcpy, std::strcmp
+#include <limits>
+#include <string>
+#include <vector>
+
 
 #define HASH hash_cityhash128
 
@@ -71,7 +82,8 @@ struct sm_bucket
 static struct sm_bucket * hashtable = nullptr;
 static uint64_t hashtablesize = 0;
 
-double find_median()
+
+auto find_median() -> double
 {
   /* find the median size, based on an iterative search starting at e.g. 1 */
 
@@ -79,9 +91,9 @@ double find_median()
   uint64_t below = 0;   /* closest value below the candidate */
   uint64_t above = 0;   /* closest value above the candidate */
 
-  uint64_t cand_count;  /* number of clusters with same size as cand */
-  uint64_t below_count; /* number of clusters with smaller size than cand */
-  uint64_t above_count; /* number of clusters with larger size than cand */
+  uint64_t cand_count = 0;  /* number of clusters with same size as cand */
+  uint64_t below_count = 0; /* number of clusters with smaller size than cand */
+  uint64_t above_count = 0; /* number of clusters with larger size than cand */
 
   while (true)
     {
@@ -89,36 +101,37 @@ double find_median()
       below_count = 0;
       above_count = 0;
 
-      for(uint64_t i = 0; i < hashtablesize; i++)
+      for (uint64_t i = 0; i < hashtablesize; i++)
         {
-          uint64_t v = hashtable[i].size;
+          uint64_t const v = hashtable[i].size;
           if (v > 0)
             {
               if (v > cand)
                 {
-                  if ((above_count == 0) || (v < above))
+                  if ((above_count == 0) or (v < above))
                     {
                       above = v;
                     }
-                  above_count++;
+                  ++above_count;
                 }
               else if (v < cand)
                 {
-                  if ((below_count == 0) || (v > below))
+                  if ((below_count == 0) or (v > below))
                     {
                       below = v;
                     }
-                  below_count++;
+                  ++below_count;
                 }
               else
                 {
-                  cand_count++;
+                  ++cand_count;
                 }
             }
         }
 
-      if (below_count + cand_count + above_count == 0U) // fix -Wfloat-equal
-        return 0;
+      if (below_count + cand_count + above_count == 0U) { // fix -Wfloat-equal
+        return 0;  // unreachable?
+      }
 
       if (above_count + cand_count >= below_count)
         // mid >= below_count
@@ -142,7 +155,7 @@ double find_median()
                 // which simplifies into:
                 // above_count + cand_count == below_count
                 {
-                  return (below + cand) / 2.0;
+                  return (below + cand) / 2.0;  // cannot reach?
                 }
               else
                 {
@@ -156,30 +169,33 @@ double find_median()
         }
       else
         {
-          cand = below;
+          cand = below;  // cannot reach?
         }
     }
 }
 
-uint64_t inline hash2bucket(uint128 hash, uint64_t htsize)
+
+inline auto hash2bucket(uint128 hash, uint64_t htsize) -> uint64_t
 {
   return Uint128Low64(hash) % htsize;
 }
 
-uint64_t inline next_bucket(uint64_t prev_bucket, uint64_t htsize)
+
+inline auto next_bucket(uint64_t prev_bucket, uint64_t htsize) -> uint64_t
 {
   return (prev_bucket + 1) % htsize;
 }
 
-void rehash_smallmem()
+
+auto rehash_smallmem() -> void
 {
   /* allocate new hash table, 50% larger */
-  uint64_t new_hashtablesize = 3 * hashtablesize / 2;
+  uint64_t const new_hashtablesize = 3 * hashtablesize / 2;
   auto * new_hashtable =
     (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * new_hashtablesize);
 
   /* zero new hash table */
-  for(uint64_t j = 0; j < new_hashtablesize; j++)
+  for (uint64_t j = 0; j < new_hashtablesize; j++)
     {
       new_hashtable[j].hash.first = 0;
       new_hashtable[j].hash.second = 0;
@@ -187,7 +203,7 @@ void rehash_smallmem()
     }
 
   /* rehash all from old to new */
-  for(uint64_t i = 0; i < hashtablesize; i++)
+  for (uint64_t i = 0; i < hashtablesize; i++)
     {
       struct sm_bucket * old_bp = hashtable + i;
       if (old_bp->size)
@@ -210,7 +226,8 @@ void rehash_smallmem()
   hashtablesize = new_hashtablesize;
 }
 
-void derep_smallmem(char * input_filename)
+
+auto derep_smallmem(struct Parameters const & parameters) -> void
 {
   /*
     dereplicate full length sequences using a small amount of memory
@@ -219,6 +236,7 @@ void derep_smallmem(char * input_filename)
 
   show_rusage();
 
+  auto * input_filename = parameters.opt_derep_smallmem;
   fastx_handle h = fastx_open(input_filename);
 
   if (not h)
@@ -231,11 +249,11 @@ void derep_smallmem(char * input_filename)
       fatal("The derep_smallmem command does not support input from a pipe.");
     }
 
-  FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
 
-  if (opt_fastaout)
+  if (parameters.opt_fastaout)
     {
-      fp_fastaout = fopen_output(opt_fastaout);
+      fp_fastaout = fopen_output(parameters.opt_fastaout);
       if (not fp_fastaout)
         {
           fatal("Unable to open FASTA output file for writing");
@@ -246,7 +264,7 @@ void derep_smallmem(char * input_filename)
       fatal("Output file for dereplication must be specified with --fastaout");
     }
 
-  uint64_t filesize = fastx_get_size(h);
+  auto const filesize = fastx_get_size(h);
 
   /* allocate initial memory for sequences of length up to 1023 chars */
   int64_t alloc_seqlen = 1024;
@@ -257,7 +275,7 @@ void derep_smallmem(char * input_filename)
   hashtable = (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * hashtablesize);
 
   /* zero hash table */
-  for(uint64_t j = 0; j < hashtablesize; j++)
+  for (uint64_t j = 0; j < hashtablesize; j++)
     {
       hashtable[j].hash.first = 0;
       hashtable[j].hash.second = 0;
@@ -266,20 +284,16 @@ void derep_smallmem(char * input_filename)
 
   show_rusage();
 
-  char * seq_up = (char*) xmalloc(alloc_seqlen + 1);
-  char * rc_seq_up = (char*) xmalloc(alloc_seqlen + 1);
+  std::vector<char> seq_up(alloc_seqlen + 1);
+  std::vector<char> rc_seq_up(alloc_seqlen + 1);
 
-  char * prompt = nullptr;
-  if (xsprintf(& prompt, "Dereplicating file %s", input_filename) == -1)
-    {
-      fatal("Out of memory");
-    }
+  std::string prompt = std::string("Dereplicating file ") + input_filename;
 
-  progress_init(prompt, filesize);
+  progress_init(prompt.c_str(), filesize);
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
-  int64_t shortest = INT64_MAX;
+  int64_t shortest = std::numeric_limits<long>::max();
   int64_t longest = 0;
   uint64_t discarded_short = 0;
   uint64_t discarded_long = 0;
@@ -289,39 +303,33 @@ void derep_smallmem(char * input_filename)
 
   /* first pass */
 
-  while(fastx_next(h, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change))
     {
-      int64_t seqlen = fastx_get_sequence_length(h);
+      int64_t const seqlen = fastx_get_sequence_length(h);
 
-      if (seqlen < opt_minseqlength)
+      if (seqlen < parameters.opt_minseqlength)
         {
-          discarded_short++;
+          ++discarded_short;
           continue;
         }
 
-      if (seqlen > opt_maxseqlength)
+      if (seqlen > parameters.opt_maxseqlength)
         {
-          discarded_long++;
+          ++discarded_long;
           continue;
         }
 
       nucleotidecount += seqlen;
-      if (seqlen > longest)
-        {
-          longest = seqlen;
-        }
-      if (seqlen < shortest)
-        {
-          shortest = seqlen;
-        }
+      longest = std::max(seqlen, longest);
+      shortest = std::min(seqlen, shortest);
 
       /* check allocations */
 
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up = (char*) xrealloc(seq_up, alloc_seqlen + 1);
-          rc_seq_up = (char*) xrealloc(rc_seq_up, alloc_seqlen + 1);
+          seq_up.resize(alloc_seqlen + 1);
+          rc_seq_up.resize(alloc_seqlen + 1);
 
           show_rusage();
         }
@@ -336,12 +344,12 @@ void derep_smallmem(char * input_filename)
       char * seq = fastx_get_sequence(h);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up, seq, seqlen);
+      string_normalize(seq_up.data(), seq, seqlen);
 
       /* reverse complement if necessary */
-      if (opt_strand > 1)
+      if (parameters.opt_strand)
         {
-          reverse_complement(rc_seq_up, seq_up, seqlen);
+          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
       /*
@@ -352,26 +360,26 @@ void derep_smallmem(char * input_filename)
         collision when the number of sequences is about 5e9.
       */
 
-      uint128 hash = HASH(seq_up, seqlen);
+      uint128 const hash = HASH(seq_up.data(), seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
-      while ((bp->size) && (hash != bp->hash))
+      while ((bp->size) and (hash != bp->hash))
         {
           j = next_bucket(j, hashtablesize);
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) && not bp->size)
+      if (parameters.opt_strand and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 rc_hash = HASH(rc_seq_up, seqlen);
+          uint128 const rc_hash = HASH(rc_seq_up.data(), seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
-          while ((rc_bp->size) && (rc_hash != rc_bp->hash))
+          while ((rc_bp->size) and (rc_hash != rc_bp->hash))
             {
               k = next_bucket(k, hashtablesize);
               rc_bp = hashtable + k;
@@ -384,8 +392,8 @@ void derep_smallmem(char * input_filename)
             }
         }
 
-      int abundance = fastx_get_abundance(h);
-      int64_t ab = opt_sizein ? abundance : 1;
+      int const abundance = fastx_get_abundance(h);
+      int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 
       if (bp->size)
@@ -398,24 +406,20 @@ void derep_smallmem(char * input_filename)
           /* no identical sequences yet */
           bp->size = ab;
           bp->hash = hash;
-          clusters++;
+          ++clusters;
         }
 
-      if (bp->size > maxsize)
-        {
-          maxsize = bp->size;
-        }
+      maxsize = std::max(bp->size, maxsize);
 
-      sequencecount++;
+      ++sequencecount;
       progress_update(fastx_get_position(h));
     }
   progress_done();
-  xfree(prompt);
   fastx_close(h);
 
   show_rusage();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (sequencecount > 0)
         {
@@ -437,7 +441,7 @@ void derep_smallmem(char * input_filename)
         }
     }
 
-  if (opt_log)
+  if (parameters.opt_log)
     {
       if (sequencecount > 0)
         {
@@ -463,15 +467,15 @@ void derep_smallmem(char * input_filename)
     {
       fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minseqlength,
+              parameters.opt_minseqlength,
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_minseqlength,
+                  parameters.opt_minseqlength,
                   discarded_short,
                   (discarded_short == 1 ? "sequence" : "sequences"));
         }
@@ -481,15 +485,15 @@ void derep_smallmem(char * input_filename)
     {
       fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_maxseqlength,
+              parameters.opt_maxseqlength,
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_maxseqlength,
+                  parameters.opt_maxseqlength,
                   discarded_long,
                   (discarded_long == 1 ? "sequence" : "sequences"));
         }
@@ -500,12 +504,12 @@ void derep_smallmem(char * input_filename)
 
   if (clusters < 1)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "0 unique sequences\n");
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "0 unique sequences\n\n");
@@ -515,7 +519,7 @@ void derep_smallmem(char * input_filename)
     {
       const double average = 1.0 * sumsize / clusters;
       const auto median = find_median();
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64
@@ -523,7 +527,7 @@ void derep_smallmem(char * input_filename)
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
         }
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64
@@ -547,11 +551,11 @@ void derep_smallmem(char * input_filename)
 
   uint64_t selected = 0;
 
-  while(fastx_next(h2, not opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change))
     {
-      int64_t seqlen = fastx_get_sequence_length(h2);
+      int64_t const seqlen = fastx_get_sequence_length(h2);
 
-      if ((seqlen < opt_minseqlength) || (seqlen > opt_maxseqlength))
+      if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
         {
           continue;
         }
@@ -559,34 +563,34 @@ void derep_smallmem(char * input_filename)
       char * seq = fastx_get_sequence(h2);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up, seq, seqlen);
+      string_normalize(seq_up.data(), seq, seqlen);
 
       /* reverse complement if necessary */
-      if (opt_strand > 1)
+      if (parameters.opt_strand)
         {
-          reverse_complement(rc_seq_up, seq_up, seqlen);
+          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
-      uint128 hash = HASH(seq_up, seqlen);
+      uint128 const hash = HASH(seq_up.data(), seqlen);
       uint64_t j =  hash2bucket(hash, hashtablesize);
       struct sm_bucket * bp = hashtable + j;
 
-      while ((bp->size) && (hash != bp->hash))
+      while ((bp->size) and (hash != bp->hash))
         {
           j = next_bucket(j, hashtablesize);
           bp = hashtable + j;
         }
 
-      if ((opt_strand > 1) && not bp->size)
+      if (parameters.opt_strand and not bp->size)
         {
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint128 rc_hash = HASH(rc_seq_up, seqlen);
+          uint128 const rc_hash = HASH(rc_seq_up.data(), seqlen);
           uint64_t k =  hash2bucket(rc_hash, hashtablesize);
           struct sm_bucket * rc_bp = hashtable + k;
 
-          while ((rc_bp->size) && (rc_hash != rc_bp->hash))
+          while ((rc_bp->size) and (rc_hash != rc_bp->hash))
             {
               k = next_bucket(k, hashtablesize);
               rc_bp = hashtable + k;
@@ -599,18 +603,18 @@ void derep_smallmem(char * input_filename)
             }
         }
 
-      int64_t size = bp->size;
+      int64_t const size = bp->size;
 
       if (size > 0)
         {
           /* print sequence */
 
           char * header = fastx_get_header(h2);
-          int headerlen = fastx_get_header_length(h2);
+          int const headerlen = fastx_get_header_length(h2);
 
-          if ((size >= opt_minuniquesize) && (size <= opt_maxuniquesize))
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
-              selected++;
+              ++selected;
               fasta_print_general(fp_fastaout,
                                   nullptr,
                                   seq,
@@ -635,7 +639,7 @@ void derep_smallmem(char * input_filename)
 
   if (selected < clusters)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           fprintf(stderr,
                   "%" PRId64 " uniques written, %"
@@ -644,7 +648,7 @@ void derep_smallmem(char * input_filename)
                   100.0 * (clusters - selected) / clusters);
         }
 
-      if (opt_log)
+      if (parameters.opt_log)
         {
           fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
@@ -656,8 +660,6 @@ void derep_smallmem(char * input_filename)
 
   show_rusage();
 
-  xfree(seq_up);
-  xfree(rc_seq_up);
   xfree(hashtable);
 
   show_rusage();

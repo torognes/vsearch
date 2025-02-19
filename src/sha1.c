@@ -1,6 +1,8 @@
-// refactoring: sha1.h headers are available in gcc and clang
-// alternatively, there are C++ implementations available. OpenSSH's
-// version is the fastest
+/*
+   refactoring: sha1.h headers are available in gcc and clang
+   alternatively, there are C++ implementations available. OpenSSH's
+   version is the fastest
+*/
 
 /* Slightly modified for vsearch by Torbjorn Rognes */
 
@@ -134,20 +136,20 @@ void SHAPrintContext(SHA1_CTX *context, char *msg){
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-    uint32_t e;
+    uint32_t a = 0;
+    uint32_t b = 0;
+    uint32_t c = 0;
+    uint32_t d = 0;
+    uint32_t e = 0;
     typedef union {
         uint8_t c[64];
         uint32_t l[16];
     } CHAR64LONG16;
-    CHAR64LONG16* block;
+    CHAR64LONG16 * block;
 
 #ifdef SHA1HANDSOFF
     static uint8_t workspace[64];
-    block = (CHAR64LONG16*)workspace;
+    block = (CHAR64LONG16 *) workspace;
     memcpy(block, buffer, 64);
 #else
     block = (CHAR64LONG16*)buffer;
@@ -210,8 +212,8 @@ void SHA1_Init(SHA1_CTX* context)
 /* Run your data through this. */
 void SHA1_Update(SHA1_CTX* context, const uint8_t* data, const size_t len)
 {
-    size_t i;
-    size_t j;
+    size_t i = 0;
+    size_t j = 0;
 
 #ifdef VERBOSE
     SHAPrintContext(context, "before");
@@ -230,10 +232,9 @@ void SHA1_Update(SHA1_CTX* context, const uint8_t* data, const size_t len)
             SHA1_Transform(context->state, data + i);
         }
         j = 0;
+    } else {
+      i = 0;
     }
-    else { i = 0;
-
-        }
     memcpy(&context->buffer[j], &data[i], len - i);
 
 #ifdef VERBOSE
@@ -245,7 +246,7 @@ void SHA1_Update(SHA1_CTX* context, const uint8_t* data, const size_t len)
 /* Add padding and return the message digest. */
 void SHA1_Final(SHA1_CTX* context, uint8_t digest[SHA1_DIGEST_SIZE])
 {
-    uint32_t i;
+    uint32_t i = 0;
     uint8_t  finalcount[8];
     uint8_t padding_buffer[64];
 

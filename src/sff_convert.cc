@@ -59,8 +59,16 @@
 */
 
 #include "vsearch.h"
+#include <array>
+#include <cctype>  // std::tolower, std::toupper
+#include <climits>  // UINT_MAX
+#include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread
+#include <cstring>  // std::strlen
+#include <vector>
 
-uint32_t sff_magic = 0x2e736666;
+
+constexpr uint32_t sff_magic = 0x2e736666;
 
 struct sff_header_s
 {
@@ -86,20 +94,21 @@ struct sff_read_header_s
   uint16_t clip_adapter_right;
 } read_header;
 
-uint64_t fskip(FILE * fp, uint64_t length)
+
+auto fskip(FILE * fp, uint64_t length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
-#define BLOCKSIZE 4096
-  char buffer[BLOCKSIZE];
+  static constexpr auto blocksize = uint64_t{4096};
+  std::array<char, blocksize> buffer;
 
   uint64_t skipped = 0;
   uint64_t rest = length;
 
   while (rest > 0)
     {
-      uint64_t want = ((rest > BLOCKSIZE) ? BLOCKSIZE : rest);
-      uint64_t got = fread(buffer, 1, want, fp);
+      uint64_t const want = (rest > blocksize) ? blocksize : rest;
+      uint64_t const got = fread(buffer.data(), 1, want, fp);
       skipped += got;
       rest -= got;
       if (got < want)
@@ -110,7 +119,8 @@ uint64_t fskip(FILE * fp, uint64_t length)
   return skipped;
 }
 
-void sff_convert()
+
+auto sff_convert() -> void
 {
   if (! opt_fastqout)
     {
@@ -118,13 +128,13 @@ void sff_convert()
     }
 
   FILE * fp_fastqout = fopen_output(opt_fastqout);
-  if (!fp_fastqout)
+  if (! fp_fastqout)
     {
       fatal("Unable to open FASTQ output file for writing.");
     }
 
   FILE * fp_sff = fopen_input(opt_sff_convert);
-  if (!fp_sff)
+  if (! fp_sff)
     {
       fatal("Unable to open SFF input file for reading.");
     }
@@ -194,7 +204,7 @@ void sff_convert()
   key_sequence[sff_header.key_length] = 0;
   filepos += sff_header.key_length;
 
-  uint32_t padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - 31;
+  uint32_t const padding_length = sff_header.header_length - sff_header.flows_per_read - sff_header.key_length - 31;
   if (fskip(fp_sff, padding_length) < padding_length)
     {
       fatal("Invalid SFF file. Unable to read padding. File may be truncated.");
@@ -210,9 +220,9 @@ void sff_convert()
   char index_kind[9];
 
   uint32_t index_padding = 0;
-  if ((sff_header.index_length & 7) > 0)
+  if ((sff_header.index_length & 7U) > 0)
     {
-      index_padding = 8 - (sff_header.index_length & 7);
+      index_padding = 8 - (sff_header.index_length & 7U);
     }
 
   if (! opt_quiet)
@@ -231,7 +241,7 @@ void sff_convert()
 
   progress_init("Converting SFF: ", sff_header.number_of_reads);
 
-  for(uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
+  for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
     {
       /* check if the index block is here */
 
@@ -246,7 +256,7 @@ void sff_convert()
               filepos += 8;
               index_kind[8] = 0;
 
-              uint64 index_size = sff_header.index_length - 8 + index_padding;
+              uint64 const index_size = sff_header.index_length - 8 + index_padding;
               if (fskip(fp_sff, index_size) != index_size)
                 {
                   fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
@@ -295,15 +305,15 @@ void sff_convert()
           fatal("Invalid SFF file. Incorrect clip_adapter_right value.");
         }
 
-      char * read_name = (char *) xmalloc(read_header.name_length + 1);
-      if (fread(read_name, 1, read_header.name_length, fp_sff) < read_header.name_length)
+      std::vector<char> read_name(read_header.name_length + 1);
+      if (fread(read_name.data(), 1, read_header.name_length, fp_sff) < read_header.name_length)
         {
           fatal("Invalid SFF file. Unable to read read name. File may be truncated.");
         }
       filepos += read_header.name_length;
       read_name[read_header.name_length] = 0;
 
-      uint32_t read_header_padding_length = read_header.read_header_length - read_header.name_length - 16;
+      uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - 16;
       if (fskip(fp_sff, read_header_padding_length) < read_header_padding_length)
         {
           fatal("Invalid SFF file. Unable to read read header padding. File may be truncated.");
@@ -340,7 +350,7 @@ void sff_convert()
       filepos += read_header.number_of_bases;
 
       /* convert quality scores to ascii characters */
-      for(uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
+      for (uint32_t base_no = 0; base_no < read_header.number_of_bases; base_no++)
         {
           int q = qual[base_no];
           if (q < opt_fastq_qminout)
@@ -355,9 +365,9 @@ void sff_convert()
         }
       qual[read_header.number_of_bases] = 0;
 
-      uint32_t read_data_length = (2 * sff_header.flows_per_read + 3 * read_header.number_of_bases);
-      uint32_t read_data_padded_length = 8 * ((read_data_length + 7) / 8);
-      uint32_t read_data_padding_length = read_data_padded_length - read_data_length;
+      uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
+      uint32_t const read_data_padded_length = 8 * ((read_data_length + 7) / 8);
+      uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;
 
       if (fskip(fp_sff, read_data_padding_length) < read_data_padding_length)
         {
@@ -395,17 +405,16 @@ void sff_convert()
           clip_end = read_header.number_of_bases;
         }
 
-      uint32_t length = clip_end - clip_start;
+      uint32_t const length = clip_end - clip_start;
 
       fastq_print_general(fp_fastqout,
                           bases + clip_start,
                           length,
-                          read_name,
-                          strlen(read_name),
+                          read_name.data(),
+                          strlen(read_name.data()),
                           qual + clip_start,
                           1, read_no + 1, -1.0);
 
-      xfree(read_name);
       xfree(bases);
       xfree(qual);
 
@@ -436,7 +445,7 @@ void sff_convert()
           filepos += 8;
           index_kind[8] = 0;
 
-          uint64 index_size = sff_header.index_length - 8;
+          uint64 const index_size = sff_header.index_length - 8;
           if (fskip(fp_sff, index_size) != index_size)
             {
               fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
@@ -449,7 +458,7 @@ void sff_convert()
 
           if (index_padding > 0)
             {
-              uint64_t got = fskip(fp_sff, index_padding);
+              uint64_t const got = fskip(fp_sff, index_padding);
               if ((got < index_padding) && (got != 0))
                 {
                   fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n");
@@ -492,7 +501,7 @@ void sff_convert()
   fclose(fp_sff);
   fclose(fp_fastqout);
 
-  double average = totallength / sff_header.number_of_reads;
+  double const average = totallength / sff_header.number_of_reads;
 
   if (! opt_quiet)
     {

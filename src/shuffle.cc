@@ -59,60 +59,88 @@
 */
 
 #include "vsearch.h"
+#include <algorithm>  // std::min, std::shuffle
+#include <cstdio>  // std::FILE, std::size_t
+#include <numeric>  // std::iota
+#include <random>
+#include <vector>
 
-void shuffle()
-{
-  if (!opt_output)
+
+namespace {
+  // anonymous namespace to avoid linker error (multiple definitions
+  // of function with identical names and parameters)
+  auto create_deck() -> std::vector<int> {
+    auto const dbsequencecount = db_getsequencecount();
+    std::vector<int> deck(dbsequencecount);
+    std::iota(deck.begin(), deck.end(), 0);
+    return deck;
+  }
+}
+
+
+auto generate_seed(long int const user_seed) -> unsigned int {
+  if (user_seed != 0) {
+    return static_cast<unsigned int>(user_seed);
+  }
+  std::random_device number_generator;
+  return number_generator();
+}
+
+
+auto shuffle_deck(std::vector<int> & deck, long int const user_seed) -> void {
+  static constexpr auto one_hundred_percent = 100ULL;
+  progress_init("Shuffling", one_hundred_percent);
+  auto const seed = generate_seed(user_seed);
+  std::mt19937_64 uniform_generator(seed);
+  std::shuffle(deck.begin(), deck.end(), uniform_generator);
+  progress_done();
+}
+
+
+auto truncate_deck(std::vector<int> & deck,
+                   long int const n_first_sequences) -> void {
+  if (deck.size() > static_cast<unsigned long>(n_first_sequences))
+    deck.resize(n_first_sequences);
+}
+
+
+auto output_shuffled_fasta(std::vector<int> const & deck,
+                           std::FILE * output_file) -> void {
+  progress_init("Writing output", deck.size());
+  auto counter = std::size_t{0};
+  for (auto const sequence_id: deck) {
+    fasta_print_db_relabel(output_file, sequence_id, counter + 1);
+    progress_update(counter);
+    ++counter;
+  }
+  progress_done();
+}
+
+
+auto shuffle(struct Parameters const & parameters) -> void {
+  // pre-conditions
+  if (parameters.opt_output == nullptr) {
     fatal("Output file for shuffling must be specified with --output");
+  }
 
-  FILE * fp_output = fopen_output(opt_output);
-  if (!fp_output)
-    {
-      fatal("Unable to open shuffle output file for writing");
-    }
+  auto * fp_output = fopen_output(parameters.opt_output);
+  if (fp_output == nullptr) {
+    fatal("Unable to open shuffle output file for writing");
+  }
 
-  db_read(opt_shuffle, 0);
+  db_read(parameters.opt_shuffle, 0);
   show_rusage();
 
-  int dbsequencecount = db_getsequencecount();
-  int * deck = (int*) xmalloc(dbsequencecount * sizeof(int));
-
-  for(int i=0; i<dbsequencecount; i++)
-    {
-      deck[i] = i;
-    }
-
-  int passed = 0;
-  progress_init("Shuffling", dbsequencecount-1);
-  for(int i=dbsequencecount-1; i>0; i--)
-    {
-      /* generate a random number j in the range 0 to i, inclusive */
-      int j = random_int(i+1);
-
-      /* exchange elements i and j */
-      int t = deck[i];
-      deck[i] = deck[j];
-      deck[j] = t;
-
-      passed++;
-      progress_update(passed);
-    }
-  progress_done();
+  auto deck = create_deck();
+  shuffle_deck(deck, parameters.opt_randseed);
   show_rusage();
 
-  passed = MIN(dbsequencecount, opt_topn);
-
-  progress_init("Writing output", passed);
-  for(int i=0; i<passed; i++)
-    {
-      fasta_print_db_relabel(fp_output, deck[i], i+1);
-      progress_update(i);
-    }
-  progress_done();
-
+  truncate_deck(deck, parameters.opt_topn);
+  output_shuffled_fasta(deck, fp_output);
   show_rusage();
 
-  xfree(deck);
   db_free();
-  fclose(fp_output);
+  if (fp_output != nullptr) {
+    static_cast<void>(std::fclose(fp_output));
+  }
 }

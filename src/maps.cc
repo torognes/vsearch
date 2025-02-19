@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 
+
 /*
   legal symbols: *abcdefghiklmnpqrstuvxyz (all except j and o), also upper case
   fatal symbols: .-
@@ -69,8 +70,15 @@
   includes both amino acid and nucleotide sequences, adapt to nt only
 */
 
+constexpr auto illegal = 2;
+constexpr auto tab = 5;
+constexpr auto space = 6;
+constexpr auto non_ascii = 7;
+
 char sym_nt_2bit[] = "ACGT";
 char sym_nt_4bit[] = "-ACMGRSVTWYHKDBN";
+//                    |    |    |    |
+//                    0....5...10...15
 
 unsigned int char_header_action[256] =
   {
@@ -90,22 +98,22 @@ unsigned int char_header_action[256] =
     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
     */
 
-    0,  2,  2,  2,  2,  2,  2,  2,  2,  5,  4,  2,  2,  3,  2,  2,
-    2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-    6,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+    0,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  tab,  4,  illegal,  illegal,  3,  illegal,  illegal,
+    illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,
+    space,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-    7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7
+    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  illegal,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
+    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii
   };
 
 unsigned int char_fasta_action[256] =

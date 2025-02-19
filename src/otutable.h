@@ -58,9 +58,13 @@
 
 */
 
-void otutable_init();
-void otutable_done();
-void otutable_add(char * query_header, char * target_header, int64_t abundance);
-void otutable_print_otutabout(FILE * fp);
-void otutable_print_mothur_shared_out(FILE * fp);
-void otutable_print_biomout(FILE * fp);
+#include <cstdio>  // std::FILE
+#include <cstdint>  // int64_t
+
+
+auto otutable_init() -> void;
+auto otutable_done() -> void;
+auto otutable_add(char * query_header, char * target_header, int64_t abundance) -> void;
+auto otutable_print_otutabout(std::FILE * output_handle) -> void;
+auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void;
+auto otutable_print_biomout(std::FILE * output_handle) -> void;

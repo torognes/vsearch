@@ -59,6 +59,22 @@
 */
 
 #include "vsearch.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm
+#include <cstdint> // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::strncpy, std::strcspn, std::strspn
+#include <map>
+#include <set>
+#include <string>
+#include <utility>  // std::pair
+#include <vector>
+
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#else
+#include <regex>
+#endif
 
 
 /*
@@ -83,11 +99,11 @@ const std::regex regex_tax("(^|;)tax=([^;]*)($|;)",
                            std::regex::extended);
 #endif
 
-typedef std::set<std::string> string_set_t;
-typedef std::pair<std::string, std::string> string_pair_t;
-typedef std::map<string_pair_t, uint64_t> string_pair_map_t;
-typedef std::map<std::string, std::string> otu_tax_map_t;
-typedef std::map<std::string, uint64_t> string_no_map_t;
+using string_set_t = std::set<std::string>;
+using string_pair_t = std::pair<std::string, std::string>;
+using string_pair_map_t = std::map<string_pair_t, uint64_t>;
+using otu_tax_map_t = std::map<std::string, std::string>;
+using string_no_map_t = std::map<std::string, uint64_t>;
 
 struct otutable_s
 {
@@ -106,7 +122,8 @@ struct otutable_s
 
 static otutable_s * otutable;
 
-void otutable_init()
+
+auto otutable_init() -> void
 {
   otutable = new otutable_s;
 
@@ -135,7 +152,8 @@ void otutable_init()
 #endif
 }
 
-void otutable_done()
+
+auto otutable_done() -> void
 {
 #ifdef HAVE_REGEX_H
   regfree(&otutable->regex_sample);
@@ -150,7 +168,8 @@ void otutable_done()
   delete otutable;
 }
 
-void otutable_add(char * query_header, char * target_header, int64_t abundance)
+
+auto otutable_add(char * query_header, char * target_header, int64_t abundance) -> void
 {
   /* read sample annotation in query */
 
@@ -162,7 +181,7 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
     {
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_sample[5];
-      if (!regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0))
+      if (! regexec(&otutable->regex_sample, query_header, 5, pmatch_sample, 0))
         {
           /* match: use the matching sample name */
           len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
@@ -186,9 +205,9 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
                               "0123456789");
         }
 
-      sample_name = (char *) xmalloc(len_sample+1);
-      strncpy(sample_name, start_sample, len_sample);
-      sample_name[len_sample] = 0;
+      sample_name = (char *) xmalloc(len_sample + 1);
+      std::strncpy(sample_name, start_sample, len_sample);
+      sample_name[len_sample] = '\0';
     }
 
 
@@ -202,7 +221,7 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
     {
 #ifdef HAVE_REGEX_H
       regmatch_t pmatch_otu[4];
-      if (!regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0))
+      if (! regexec(&otutable->regex_otu, target_header, 4, pmatch_otu, 0))
         {
           /* match: use the matching otu name */
           len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
@@ -222,8 +241,8 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
           len_otu = strcspn(target_header, ";");
         }
 
-      otu_name = (char *) xmalloc(len_otu+1);
-      strncpy(otu_name, start_otu, len_otu);
+      otu_name = (char *) xmalloc(len_otu + 1);
+      std::strncpy(otu_name, start_otu, len_otu);
       otu_name[len_otu] = 0;
 
       /* read tax annotation in target */
@@ -232,17 +251,16 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
       char * start_tax = target_header;
 
       regmatch_t pmatch_tax[4];
-      if (!regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
+      if (! regexec(&otutable->regex_tax, target_header, 4, pmatch_tax, 0))
         {
           /* match: use the matching tax name */
-          int len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
+          int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
           start_tax += pmatch_tax[2].rm_so;
 
-          char * tax_name = (char *) xmalloc(len_tax+1);
-          strncpy(tax_name, start_tax, len_tax);
-          tax_name[len_tax] = 0;
-          otutable->otu_tax_map[otu_name] = tax_name;
-          xfree(tax_name);
+          std::vector<char> tax_name(len_tax + 1);
+          std::strncpy(tax_name.data(), start_tax, len_tax);
+          tax_name[len_tax] = '\0';
+          otutable->otu_tax_map[otu_name] = tax_name.data();
         }
 #else
       std::cmatch cmatch_tax;
@@ -255,50 +273,52 @@ void otutable_add(char * query_header, char * target_header, int64_t abundance)
 
   /* store data */
 
-  if (sample_name)
+  if (sample_name) {
     otutable->sample_set.insert(sample_name);
+  }
 
-  if (otu_name)
+  if (otu_name) {
     otutable->otu_set.insert(otu_name);
+  }
 
   if (sample_name && otu_name && abundance)
     {
-      otutable->sample_otu_count[string_pair_t(sample_name,otu_name)]
-        += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name,sample_name)]
-        += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name,otu_name)] += abundance;
+      otutable->otu_sample_count[string_pair_t(otu_name,sample_name)] += abundance;
     }
 
-  if (otu_name)
+  if (otu_name) {
     xfree(otu_name);
+  }
 
-  if (sample_name)
+  if (sample_name) {
     xfree(sample_name);
+  }
 }
 
-void otutable_print_otutabout(FILE * fp)
+
+auto otutable_print_otutabout(std::FILE * output_handle) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (classic)", otutable->otu_set.size());
 
-  fprintf(fp, "#OTU ID");
-  for (const
-         auto & it_sample : otutable->sample_set)
+  fprintf(output_handle, "#OTU ID");
+  for (auto const & it_sample : otutable->sample_set)
     {
-      fprintf(fp, "\t%s", it_sample.c_str());
+      fprintf(output_handle, "\t%s", it_sample.c_str());
     }
   if (! otutable->otu_tax_map.empty())
     {
-      fprintf(fp, "\ttaxonomy");
+      fprintf(output_handle, "\ttaxonomy");
     }
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 
   auto it_map = otutable->otu_sample_count.begin();
   for (auto it_otu = otutable->otu_set.begin();
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
-      fprintf(fp, "%s", it_otu->c_str());
+      fprintf(output_handle, "%s", it_otu->c_str());
 
       for (auto it_sample = otutable->sample_set.begin();
            it_sample != otutable->sample_set.end();
@@ -312,39 +332,39 @@ void otutable_print_otutabout(FILE * fp)
               a = it_map->second;
               ++it_map;
             }
-          fprintf(fp, "\t%" PRIu64, a);
+          fprintf(output_handle, "\t%" PRIu64, a);
         }
       if (! otutable->otu_tax_map.empty())
         {
-          fprintf(fp, "\t");
+          fprintf(output_handle, "\t");
           auto it
             = otutable->otu_tax_map.find(*it_otu);
           if (it != otutable->otu_tax_map.end())
             {
-              fprintf(fp, "%s", it->second.c_str());
+              fprintf(output_handle, "%s", it->second.c_str());
             }
         }
-      fprintf(fp, "\n");
+      fprintf(output_handle, "\n");
       progress_update(++progress);
     }
   progress_done();
 }
 
-void otutable_print_mothur_shared_out(FILE * fp)
+
+auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (mothur)", otutable->sample_set.size());
 
-  fprintf(fp, "label\tGroup\tnumOtus");
+  fprintf(output_handle, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
-  for (const
-         auto & it_otu : otutable->otu_set)
+  for (const auto & it_otu : otutable->otu_set)
     {
       const char * otu_name = it_otu.c_str();
-      fprintf(fp, "\t%s", otu_name);
+      fprintf(output_handle, "\t%s", otu_name);
       ++numotus;
     }
-  fprintf(fp, "\n");
+  fprintf(output_handle, "\n");
 
   auto it_map = otutable->sample_otu_count.begin();
 
@@ -352,7 +372,7 @@ void otutable_print_mothur_shared_out(FILE * fp)
        it_sample != otutable->sample_set.end();
        ++it_sample)
     {
-      fprintf(fp, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
+      fprintf(output_handle, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
 
       for (auto it_otu = otutable->otu_set.begin();
            it_otu != otutable->otu_set.end();
@@ -366,29 +386,30 @@ void otutable_print_mothur_shared_out(FILE * fp)
               a = it_map->second;
               ++it_map;
             }
-          fprintf(fp, "\t%" PRIu64, a);
+          fprintf(output_handle, "\t%" PRIu64, a);
         }
 
-      fprintf(fp, "\n");
+      fprintf(output_handle, "\n");
       progress_update(++progress);
     }
   progress_done();
 }
 
-void otutable_print_biomout(FILE * fp)
+
+auto otutable_print_biomout(std::FILE * output_handle) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size());
 
-  int64_t rows = otutable->otu_set.size();
-  int64_t columns = otutable->sample_set.size();
+  int64_t const rows = otutable->otu_set.size();
+  int64_t const columns = otutable->sample_set.size();
 
-  static time_t time_now = time(nullptr);
+  static const time_t time_now = time(nullptr);
   struct tm * tm_now = localtime(& time_now);
   char date[50];
   strftime(date, 50, "%Y-%m-%dT%H:%M:%S", tm_now);
 
-  fprintf(fp,
+  fprintf(output_handle,
           "{\n"
           "\t\"id\":\"%s\",\n"
           "\t\"format\": \"Biological Observation Matrix 1.0\",\n"
@@ -408,75 +429,73 @@ void otutable_print_biomout(FILE * fp)
   string_no_map_t otu_no_map;
   uint64_t otu_no = 0;
 
-  fprintf(fp, "\t\"rows\":[");
+  fprintf(output_handle, "\t\"rows\":[");
   for (auto it_otu = otutable->otu_set.begin();
        it_otu != otutable->otu_set.end();
        ++it_otu)
     {
       if (it_otu != otutable->otu_set.begin())
         {
-          fprintf(fp, ",");
+          fprintf(output_handle, ",");
         }
       const char * otu_name = it_otu->c_str();
-      fprintf(fp, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
+      fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
       if (otutable->otu_tax_map.empty())
         {
-          fprintf(fp, "null");
+          fprintf(output_handle, "null");
         }
       else
         {
-          fprintf(fp, R"({"taxonomy":")");
-          auto it
-            = otutable->otu_tax_map.find(otu_name);
+          fprintf(output_handle, R"({"taxonomy":")");
+          auto it = otutable->otu_tax_map.find(otu_name);
           if (it != otutable->otu_tax_map.end())
             {
-              fprintf(fp, "%s", it->second.c_str());
+              fprintf(output_handle, "%s", it->second.c_str());
             }
-          fprintf(fp, "\"}");
+          fprintf(output_handle, "\"}");
         }
-      fprintf(fp, "}");
+      fprintf(output_handle, "}");
       otu_no_map[*it_otu] = otu_no++;
     }
-  fprintf(fp, "\n");
-  fprintf(fp, "\t],\n");
+  fprintf(output_handle, "\n");
+  fprintf(output_handle, "\t],\n");
 
   string_no_map_t sample_no_map;
   uint64_t sample_no = 0;
 
-  fprintf(fp, "\t\"columns\":[");
+  fprintf(output_handle, "\t\"columns\":[");
   for (auto it_sample = otutable->sample_set.begin();
        it_sample != otutable->sample_set.end();
        ++it_sample)
     {
       if (it_sample != otutable->sample_set.begin())
         {
-          fprintf(fp, ",");
+          fprintf(output_handle, ",");
         }
-      fprintf(fp, "\n\t\t{\"id\":\"%s\", \"metadata\":null}", it_sample->c_str());
+      fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":null}", it_sample->c_str());
       sample_no_map[*it_sample] = sample_no++;
     }
-  fprintf(fp, "\n\t],\n");
+  fprintf(output_handle, "\n\t],\n");
 
   bool first = true;
-  fprintf(fp, "\t\"data\": [");
+  fprintf(output_handle, "\t\"data\": [");
 
-  for (auto
-         & it_map : otutable->otu_sample_count)
+  for (auto & it_map : otutable->otu_sample_count)
     {
-      if (!first)
+      if (! first)
         {
-          fprintf(fp, ",");
+          fprintf(output_handle, ",");
         }
 
       otu_no = otu_no_map[it_map.first.first];
       sample_no = sample_no_map[it_map.first.second];
 
-      fprintf(fp, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
+      fprintf(output_handle, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
       first = false;
       progress_update(++progress);
     }
-  fprintf(fp, "\n\t]\n");
+  fprintf(output_handle, "\n\t]\n");
 
-  fprintf(fp, "}\n");
+  fprintf(output_handle, "}\n");
   progress_done();
 }

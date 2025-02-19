@@ -58,4 +58,69 @@
 
 */
 
-void sff_convert();
+#include "vsearch.h"
+#include "utils/maps.hpp"
+#include <cassert>
+#include <cstdio>  // std::FILE, std::size_t, std::fclose
+#include <vector>
+
+
+auto fasta2fastq(struct Parameters const & parameters) -> void
+{
+  auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
+
+  assert(parameters.opt_fastqout != nullptr);  // check performed in <getopt.h>
+
+  auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
+  assert(fp_input != nullptr);  // check performed in fasta_open(fastx_open())
+
+  auto * fp_fastqout = fopen_output(parameters.opt_fastqout);
+  if (fp_fastqout == nullptr)
+    {
+      fatal("Unable to open FASTQ output file for writing");
+    }
+
+  static constexpr auto initial_length = 1024U;
+  std::vector<char> quality(initial_length, max_ascii_value);
+
+  progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
+
+  auto counter = 0;
+  while (fasta_next(fp_input, false, chrmap_no_change_vector.data()))
+    {
+      /* get sequence length and allocate more mem if necessary */
+
+      auto const length = fastq_get_sequence_length(fp_input);
+
+      if (quality.size() < length + 1)
+        {
+          quality.resize(length + 1, max_ascii_value);
+        }
+
+      // note: adding '\0' and the end of the quality string is not necessary,
+      // fastq_print_general() uses 'length' for both sequence and quality
+
+      ++counter;
+
+      /* write to fastq file */
+      fastq_print_general(fp_fastqout,
+                          fastq_get_sequence(fp_input),
+                          static_cast<int>(length),
+                          fasta_get_header(fp_input),
+                          static_cast<int>(fasta_get_header_length(fp_input)),
+                          quality.data(),
+                          static_cast<int>(fastq_get_abundance(fp_input)),
+                          counter,
+                          -1.0);
+
+      progress_update(fasta_get_position(fp_input));
+    }
+
+  progress_done();
+
+  if (fp_fastqout != nullptr) {
+    static_cast<void>(std::fclose(fp_fastqout));
+  }
+
+  fasta_close(fp_input);
+}

@@ -58,42 +58,24 @@
 
 */
 
-typedef struct bitmap_s
+#ifndef BITMAP_H
+#define BITMAP_H
+
+struct bitmap_s
 {
   unsigned char * bitmap; /* the actual bitmap */
   unsigned int size;      /* size in bits */
-} bitmap_t;
+};
 
-bitmap_t * bitmap_init(unsigned int size);
 
-void bitmap_free(bitmap_t* b);
+auto bitmap_init(unsigned int size) -> struct bitmap_s *;
 
-inline unsigned char bitmap_get(bitmap_t * b, unsigned int x)
-{
-  return (b->bitmap[x >> 3] >> (x & 7)) & 1;
-}
+auto bitmap_get(struct bitmap_s * a_bitmap, unsigned int seed_value) -> unsigned char;
 
-inline void bitmap_reset_all(bitmap_t * b)
-{
-  memset(b->bitmap, 0, (b->size+7)/8);
-}
+auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void;
 
-inline void bitmap_set_all(bitmap_t * b)
-{
-  memset(b->bitmap, 255, (b->size+7)/8);
-}
+auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int seed_value) -> void;
 
-inline void bitmap_reset(bitmap_t * b, unsigned int x)
-{
-  b->bitmap[x >> 3] &= ~ (1 << (x & 7));
-}
+auto bitmap_free(struct bitmap_s * a_bitmap) -> void;
 
-inline void bitmap_set(bitmap_t * b, unsigned int x)
-{
-  b->bitmap[x >> 3] |= 1 << (x & 7);
-}
-
-inline void bitmap_flip(bitmap_t * b, unsigned int x)
-{
-  b->bitmap[x >> 3] ^= 1 << (x & 7);
-}
+#endif // BITMAP_H

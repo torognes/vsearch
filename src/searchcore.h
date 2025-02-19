@@ -59,6 +59,9 @@
 */
 
 #include <array>
+#include <vector>
+
+struct uhandle_s;
 
 /* the number of alignments that can be delayed */
 constexpr auto MAXDELAYED = 8U;
@@ -107,50 +110,55 @@ struct hit
   /* more info */
 
   double id;             /* identity used for ranking */
-  double id0, id1, id2, id3, id4;
+  double id0;
+  double id1;
+  double id2;
+  double id3;
+  double id4;
 
   int shortest;          /* length of shortest of query and target */
   int longest;           /* length of longest of query and target */
 };
 
 /* type of kmer hit counter element remember possibility of overflow */
-typedef unsigned short count_t;
+using count_t = unsigned short;
 
 struct searchinfo_s
 {
-  int query_no;                 /* query number, zero-based */
-  int strand;                   /* strand of query being analysed */
-  int qsize;                    /* query abundance */
-  int query_head_len;           /* query header length */
-  int query_head_alloc;         /* bytes allocated for the header */
-  char * query_head;            /* query header */
-  int qseqlen;                  /* query length */
-  int seq_alloc;                /* bytes allocated for the query sequence */
-  char * qsequence;             /* query sequence */
-  unsigned int kmersamplecount; /* number of kmer samples from query */
-  unsigned int * kmersample;    /* list of kmers sampled from query */
-  count_t * kmers;              /* list of kmer counts for each db seq */
-  struct hit * hits;            /* list of hits */
-  int hit_count;                /* number of hits in the above list */
-  struct uhandle_s * uh;        /* unique kmer finder instance */
-  struct s16info_s * s;         /* SIMD aligner instance */
-  struct nwinfo_s * nw;         /* NW aligner instance */
-  LinearMemoryAligner * lma;    /* Linear memory aligner instance pointer */
-  int accepts;                  /* number of accepts */
-  int rejects;                  /* number of rejects */
-  minheap_t * m;                /* min heap with the top kmer db seqs */
-  int finalized;
+  int query_no = 0;                 /* query number, zero-based */
+  int strand = 0;                   /* strand of query being analysed */
+  int qsize = 0;                    /* query abundance */
+  int query_head_len = 0;           /* query header length */
+  int query_head_alloc = 0;         /* bytes allocated for the header */
+  char * query_head = nullptr;            /* query header */
+  int qseqlen = 0;                  /* query length */
+  int seq_alloc = 0;                /* bytes allocated for the query sequence */
+  char * qsequence = nullptr;             /* query sequence */
+  unsigned int kmersamplecount = 0; /* number of kmer samples from query */
+  unsigned int * kmersample = nullptr;    /* list of kmers sampled from query */
+  count_t * kmers = nullptr;              /* list of kmer counts for each db seq */
+  std::vector<struct hit> hits_v; /* vector of hits */
+  struct hit * hits = nullptr;            /* list of hits */
+  int hit_count = 0;                /* number of hits in the above list */
+  struct uhandle_s * uh = nullptr;        /* unique kmer finder instance */
+  struct s16info_s * s = nullptr;         /* SIMD aligner instance */
+  struct nwinfo_s * nw = nullptr;         /* NW aligner instance */
+  LinearMemoryAligner * lma = nullptr;    /* Linear memory aligner instance pointer */
+  int accepts = 0;                  /* number of accepts */
+  int rejects = 0;                  /* number of rejects */
+  struct minheap_s * m = nullptr;   /* min heap with the top kmer db seqs */
+  int finalized = 0;
 };
 
-void search_topscores(struct searchinfo_s * si);
+auto search_topscores(struct searchinfo_s * si) -> void;
 
-void search_onequery(struct searchinfo_s * si, int seqmask);
+auto search_onequery(struct searchinfo_s * si, int seqmask) -> void;
 
-struct hit * search_findbest2_byid(struct searchinfo_s * si_p,
-                                   struct searchinfo_s * si_m);
+auto search_findbest2_byid(struct searchinfo_s * si_p,
+                           struct searchinfo_s * si_m) -> struct hit *;
 
-struct hit * search_findbest2_bysize(struct searchinfo_s * si_p,
-                                     struct searchinfo_s * si_m);
+auto search_findbest2_bysize(struct searchinfo_s * si_p,
+                             struct searchinfo_s * si_m) -> struct hit *;
 
 auto search_acceptable_unaligned(struct searchinfo_s * si,
                                  int target) -> bool;
@@ -158,12 +166,12 @@ auto search_acceptable_unaligned(struct searchinfo_s * si,
 auto search_acceptable_aligned(struct searchinfo_s * si,
                                struct hit * hit) -> bool;
 
-void align_trim(struct hit * hit);
+auto align_trim(struct hit * hit) -> void;
 
-void search_joinhits(struct searchinfo_s * si_p,
+auto search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
                      struct hit * * hits,
-                     int * hit_count);
+                     int * hit_count) -> void;
 
-bool search_enough_kmers(struct searchinfo_s * si,
-                         unsigned int count);
+auto search_enough_kmers(struct searchinfo_s * si,
+                         unsigned int count) -> bool;

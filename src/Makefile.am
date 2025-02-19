@@ -2,13 +2,20 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
 AM_CFLAGS = -Wall -Wextra -Wpedantic
 
+# Conditionally set profiling based on ENABLE_PROFILING
+if ENABLE_PROFILING
+AM_CFLAGS += -pg -O1
+endif
+
 if TARGET_PPC
 AM_CFLAGS += -mcpu=powerpc64le -maltivec
 else
 if TARGET_AARCH64
 AM_CFLAGS += -march=armv8-a+simd -mtune=generic
 else
+if TARGET_X86_64
 AM_CFLAGS += -march=x86-64 -mtune=generic
+endif
 endif
 endif
 
@@ -28,7 +35,6 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
 export MACOSX_DEPLOYMENT_TARGET=10.9
 
 VSEARCHHEADERS=\
-align.h \
 align_simd.h \
 allpairs.h \
 arch.h \
@@ -44,13 +50,15 @@ db.h \
 dbhash.h \
 dbindex.h \
 derep.h \
-derepsmallmem.h \
+derep_prefix.h \
+derep_smallmem.h \
 dynlibs.h \
 eestats.h \
-fa2fq.h \
+fasta2fastq.h \
 fasta.h \
 fastq.h \
-fastqjoin.h \
+fastq_chars.h \
+fastq_join.h \
 fastqops.h \
 fastx.h \
 filter.h \
@@ -66,12 +74,12 @@ msa.h \
 orient.h \
 otutable.h \
 pcr.h \
-rerep.h \
+rereplicate.h \
 results.h \
 search.h \
 searchcore.h \
-searchexact.h \
-sffconvert.h \
+search_exact.h \
+sff_convert.h \
 showalign.h \
 sha1.h \
 shuffle.h \
@@ -84,23 +92,20 @@ udb.h \
 unique.h \
 userfields.h \
 util.h \
+utils/maps.hpp \
+utils/seqcmp.h \
 vsearch.h \
 xstring.h
 
-if TARGET_PPC
-libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-noinst_LIBRARIES = libcpu.a libcityhash.a
-else
-if TARGET_AARCH64
-libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-noinst_LIBRARIES = libcpu.a libcityhash.a
-else
+if TARGET_X86_64
 libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
-endif
+else
+libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+noinst_LIBRARIES = libcpu.a libcityhash.a
 endif
 
 libcityhash_a_SOURCES = city.cc city.h
@@ -115,20 +120,15 @@ else
 
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
 
-if TARGET_PPC
-__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
-else
-if TARGET_AARCH64
-__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
-else
+if TARGET_X86_64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
-endif
+else
+__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
 endif
 
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
-align.cc \
 align_simd.cc \
 allpairs.cc \
 arch.cc \
@@ -141,13 +141,15 @@ db.cc \
 dbhash.cc \
 dbindex.cc \
 derep.cc \
-derepsmallmem.cc \
+derep_prefix.cc \
+derep_smallmem.cc \
 dynlibs.cc \
 eestats.cc \
-fa2fq.cc \
+fasta2fastq.cc \
 fasta.cc \
 fastq.cc \
-fastqjoin.cc \
+fastq_chars.cc \
+fastq_join.cc \
 fastqops.cc \
 fastx.cc \
 filter.cc \
@@ -163,12 +165,12 @@ msa.cc \
 orient.cc \
 otutable.cc \
 pcr.cc \
-rerep.cc \
+rereplicate.cc \
 results.cc \
 search.cc \
 searchcore.cc \
-searchexact.cc \
-sffconvert.cc \
+search_exact.cc \
+sff_convert.cc \
 sha1.c \
 showalign.cc \
 shuffle.cc \
@@ -181,4 +183,6 @@ udb.cc \
 unique.cc \
 userfields.cc \
 util.cc \
+utils/maps.cpp \
+utils/seqcmp.cc \
 vsearch.cc

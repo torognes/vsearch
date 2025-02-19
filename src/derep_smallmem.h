@@ -58,4 +58,4 @@
 
 */
 
-void search_exact(char * cmdline, char * progheader);
+auto derep_smallmem(struct Parameters const & parameters) -> void;

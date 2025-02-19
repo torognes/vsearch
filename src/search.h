@@ -58,4 +58,4 @@
 
 */
 
-void usearch_global(char * cmdline, char * progheader);
+auto usearch_global(char * cmdline, char * progheader) -> void;

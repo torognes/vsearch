@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [2.27.1], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
+AC_INIT([vsearch], [2.29.4], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_LANG([C++])
@@ -34,10 +34,6 @@ AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
-AC_FUNC_STRTOD
-AC_FUNC_ALLOCA
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove memcpy posix_memalign gettimeofday localtime memchr memset pow regcomp strcasecmp strchr strcspn sysinfo])
 
 have_bzip2=no
@@ -70,6 +66,16 @@ AS_IF([test "x$enable_pdfman" != "xno"], [
 ])
 
 
+# Check for --enable-profiling option
+AC_ARG_ENABLE([profiling],
+  [AS_HELP_STRING([--enable-profiling], [Enable profiling build])],
+  [enable_profiling=$enableval],
+  [enable_profiling=no])
+
+# Define AM_CONDITIONAL for profiling
+AM_CONDITIONAL([ENABLE_PROFILING], [test "x$enable_profiling" = "xyes"])
+
+
 # Check for --enable-debug option
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [Enable debug build])],
@@ -84,6 +90,7 @@ have_man_html=no
 case $target in
      aarch64*) target_aarch64="yes" ;;
      powerpc64*) target_ppc="yes" ;;
+     x86_64*) target_x86_64="yes" ;;
 esac
 
 AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
@@ -92,6 +99,7 @@ AM_CONDITIONAL(HAVE_PS2PDF, test "x${have_ps2pdf}" = "xyes")
 AM_CONDITIONAL(HAVE_MAN_HTML, test "x${have_man_html}" = "xyes")
 AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
+AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")
 AM_PROG_CC_C_O
 
 AC_CONFIG_FILES([Makefile

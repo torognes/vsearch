@@ -58,6 +58,6 @@
 
 */
 
-void fastx_getseq();
-void fastx_getseqs();
-void fastx_getsubseq();
+auto fastx_getseq() -> void;
+auto fastx_getseqs() -> void;
+auto fastx_getsubseq() -> void;

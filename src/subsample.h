@@ -58,4 +58,4 @@
 
 */
 
-void subsample();
+auto subsample(struct Parameters const & parameters) -> void;

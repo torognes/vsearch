@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "April 6, 2024" "version 2.27.1" "USER COMMANDS"
+.TH vsearch 1 "February 14, 2025" "version 2.29.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -210,14 +210,15 @@ Needleman-Wunsch algorithm, making use of the Streaming SIMD
 Extensions (SSE2) of post-2003 x86-64 CPUs.  If SSE2 instructions are
 not available, \fBvsearch\fR exits with an error message. On Power8
 CPUs it will use AltiVec/VSX/VMX instructions, and on ARMv8 CPUs it
-will use Neon instructions. Memory usage increases rapidly with
-sequence length: for example comparing two sequences of length 1 kb
-requires 8 MB of memory per thread, and comparing two 10 kb sequences
-requires 800 MB of memory per thread. For comparisons involving
-sequences with a length product greater than 25 million (for example
-two sequences of length 5 kb), \fBvsearch\fR uses a slower alignment
-method described by Hirschberg (1975) and Myers and Miller (1988),
-with much smaller memory requirements.
+will use Neon instructions. On other systems it can use the SIMD
+Everywhere (simde) library, if available. Memory usage increases
+rapidly with sequence length: for example comparing two sequences of
+length 1 kb requires 8 MB of memory per thread, and comparing two 10
+kb sequences requires 800 MB of memory per thread. For comparisons
+involving sequences with a length product greater than 25 million (for
+example two sequences of length 5 kb), \fBvsearch\fR uses a slower
+alignment method described by Hirschberg (1975) and Myers and Miller
+(1988), with much smaller memory requirements.
 .\" ----------------------------------------------------------------------------
 .SS Input
 \fBvsearch\fR accept as input fasta or fastq files containing one or
@@ -410,7 +411,10 @@ fatal error messages.
 .BI \-\-sample\~ string
 When writing FASTA or FASTQ files, add the the given sample identifier
 \fIstring\fR to sequence headers. For instance, if the given string is
-ABC, the text ";sample=ABC" will be added to the header.
+ABC, the text ";sample=ABC" will be added to the header. Note that
+\fIstring\fR will be truncated at the first ';' or blank
+character. Other characters (alphabetical, numerical and punctuations)
+are accepted.
 .TAG threads
 .TP
 .BI \-\-threads\~ "positive integer"
@@ -917,12 +921,13 @@ followed by a tab-separated list of all sample identifiers. The
 following lines, one for each OTU, starts with the OTU identifier and
 is followed by a tab-separated list of abundances for that OTU in each
 sample, in the order given on the first line. The OTU and sample
-identifiers are extracted from the FASTA headers of the sequences. The
-OTUs are represented by the cluster centroids. An extra column is
-added to the right of the table if taxonomy information is available
-for at least one of the OTUs. This column will be labelled 'taxonomy'
-and each row will then contain the taxonomy information extracted for
-that OTU. See the \-\-biomout option for further details.
+identifiers are extracted from the FASTA headers of the sequences (see
+the \-\-sample option). The OTUs are represented by the cluster
+centroids. An extra column is added to the right of the table if
+taxonomy information is available for at least one of the OTUs. This
+column will be labelled 'taxonomy' and each row will then contain the
+taxonomy information extracted for that OTU. See the \-\-biomout
+option for further details.
 .TAG profile
 .TP
 .BI \-\-profile \0filename
@@ -1080,7 +1085,7 @@ file.
 Most searching options as well as score filtering, gap penalties and
 masking also apply to clustering (see the Searching section for
 definitions): \-\-alnout, \-\-blast6out, \-\-fastapairs, \-\-matched,
-\-\-notmatched, \-\-maxaccept, \-\-maxreject, \-\-samout, \-\-userout,
+\-\-notmatched, \-\-maxaccepts, \-\-maxrejects, \-\-samout, \-\-userout,
 \-\-userfields
 .RE
 .PP
@@ -1148,8 +1153,8 @@ files. This command cannot read from a pipe, it must be a proper file,
 as it is read twice. Dereplication is performed with a 128 bit hash
 function and it is not verified that grouped sequences are identical,
 however the probability that two different sequences are grouped in a
-dataset of 1 000 000 000 unique sequences is approximately
-1e-21. Memory footprint is appr. 24 bytes times the number of unique
+dataset of one billion unique sequences is approximately 1e-21. Memory
+footprint is appr. 24 bytes times the number of unique
 sequence. Multithreading and the options \-\-topn, \-\-uc, or
 \-\-tabbedout are not supported.
 .TAG derep_prefix
@@ -1658,20 +1663,19 @@ quality score when writing FASTQ output files. The default is 33. Only
 .TP
 .BI \-\-fastq_chars \0filename
 Summarize the composition of sequence and quality strings contained in
-the input FASTQ file. For each of the four DNA letters,
-\-\-fastq_chars gives the number of occurrences of the letter, its
-relative frequency and the length of the longest run of that
-letter. For each character present in the quality strings,
-\-\-fastq_chars gives the ASCII value of the character, its relative
-frequency, and the number of times a \fIk\fR-mer of that character
-appears at the end of quality strings. The length of the \fIk\fR-mer
-can be set using \-\-fastq_tail (4 by default). The command
-\-\-fastq_chars tries to automatically detect the quality encoding
-(Solexa, Illumina 1.3+, Illumina 1.5+ or Illumina 1.8+/Sanger) by
-analyzing the range of observed quality score values. In case of
-success, \-\-fastq_chars suggests values for the \-\-fastq_ascii (33
-or 64), \-\-fastq_qmin and \-\-fastq_qmax options to be used with the
-other commands that require a FASTQ input file.
+the input FASTQ file. For each sequence symbol, \-\-fastq_chars gives
+the number of occurrences of the symbol, its relative frequency and
+the length of the longest run of that symbol. For each character
+present in the quality strings, \-\-fastq_chars gives the ASCII value
+of the character, its relative frequency, and the number of times a
+\fIk\fR-mer of that character appears at the end of quality
+strings. The length of the \fIk\fR-mer can be set using \-\-fastq_tail
+(4 by default). The command \-\-fastq_chars tries to automatically
+detect the quality encoding (Solexa, Illumina 1.3+, Illumina 1.5+ or
+Illumina 1.8+/Sanger) by analyzing the range of observed quality score
+values. In case of success, \-\-fastq_chars suggests values for the
+\-\-fastq_ascii (33 or 64), \-\-fastq_qmin and \-\-fastq_qmax options
+to be used with the other commands that require a FASTQ input file.
 .TAG fastq_convert
 .TP
 .BI \-\-fastq_convert \0filename
@@ -2548,7 +2552,7 @@ Specify the output file for the non-matching sequences.
 .TAG fastaout_discarded_rev
 .TP
 .BI \-\-fastaout_discarded_rev \0filename
-Specify the output file for the non-matching seqeunces, reverse
+Specify the output file for the non-matching sequences, reverse
 complemented.
 .RE
 .PP
@@ -2727,14 +2731,15 @@ Reject the sequence match if the pairwise identity is lower than
 process sorts target sequences by decreasing number of \fIk\fR-mers
 they have in common with the query sequence, using that information as
 a proxy for sequence similarity. That efficient pre-filtering also
-prevents pairwise alignments with weakly matching targets, as there
-needs to be at least 6 shared \fIk\fR-mers to start the pairwise
-alignment, and at least one out of every 16 \fIk\fR-mers from the
-query needs to match the target. Consequently, using values lower than
-\-\-id 0.5 is not likely to capture more weakly matching targets. The
-pairwise identity is by default defined as the number of (matching
-columns) / (alignment length - terminal gaps). That definition can be
-modified by \-\-iddef.
+prevents pairwise alignments with very short, or with weakly matching
+targets, as there needs to be by default at least 12 shared
+\fIk\fR-mers to start the pairwise alignment, and at least one out of
+every 16 \fIk\fR-mers from the query needs to match the target (see
+options \-\-wordlength and \-\-minwordmatches to change that
+behaviour). Consequently, using values lower than \-\-id 0.5 is not
+likely to capture more weakly matching targets. The pairwise identity
+is by default defined as the number of (matching columns) / (alignment
+length - terminal gaps). That definition can be modified by \-\-iddef.
 .TAG iddef
 .TP
 .BI \-\-iddef\~ "0|1|2|3|4"
@@ -2929,13 +2934,13 @@ Reject target sequences with an abundance lower than \fIinteger\fR.
 .TAG minwordmatches
 .TP
 .BI \-\-minwordmatches\~ "non-negative integer"
-Minimum number of word matches required for a sequence to be
-considered further. Default value is 12 for the default word length
-8. For word lengths 3-15, the default minimum word matches are 18, 17,
-16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the query
-sequence has fewer unique words than the number specified, all words
-in the query must match. If the argument is 0, no word matches are
-required.
+Minimum number of \fIk\fR-mers or word matches required for a sequence
+to be considered further. Default value is 12 for the default word
+length 8. For word lengths 3-15, the default minimum word matches are
+18, 17, 16, 15, 14, 12, 11, 10, 9, 8, 7, 5 and 3, respectively. If the
+query sequence has fewer unique words than the number specified, all
+words in the query must match. If the argument is 0, no word matches
+are required.
 .TAG mismatch
 .TP
 .BI \-\-mismatch\~ "integer"
@@ -2960,8 +2965,8 @@ Write query sequences not matching database target sequences to
 Write search results to an OTU table in the classic tab-separated
 plain text format. The query file contains the samples, while the
 database file contains the OTUs. Sample and OTU identifiers are
-extracted from the header of these sequences. See the
-\-\-mothur_shared_out option in the Clustering section for further
+extracted from the header of these sequences (\-\-sample option). See
+the \-\-mothur_shared_out option in the Clustering section for further
 details.
 .TAG output_no_hits
 .TP
@@ -3143,7 +3148,7 @@ command, the table layout is the same than with the
 \-\-allpairs_global. When using the \-\-usearch_global command, the
 table present two different type of entries: hit (H) or no hit
 (N). Each query sequence is compared to all other sequences, and the
-best hit (\-\-maxaccept 1) or several hits (\-\-maxaccept > 1) are
+best hit (\-\-maxaccepts 1) or several hits (\-\-maxaccepts > 1) are
 reported (H). Output order may vary when using multiple
 threads. Column content varies with the type of entry (H or N):
 .RS
@@ -3207,9 +3212,9 @@ Show hits with percentage of identity of at least \fIreal\fR, without
 terminating the search. A normal search stops as soon as enough hits
 are found (as defined by \-\-maxaccepts, \-\-maxrejects, and
 \-\-id). As \-\-weak_id reports weak hits that are not deduced from
-\-\-maxaccepts, high \-\-id values can be used, hence preserving both
-speed and sensitivity. Logically, \fIreal\fR must be smaller than the
-value indicated by \-\-id.
+\-\-maxaccepts (but count towards \-\-maxrejects), high \-\-id values
+can be used, hence preserving both speed and sensitivity. Logically,
+\fIreal\fR must be smaller than the value indicated by \-\-id.
 .TAG wordlength
 .TP
 .BI \-\-wordlength\~ "positive integer"
@@ -3327,13 +3332,13 @@ Sorting options:
 .RS
 Fasta entries are sorted by decreasing abundance (\-\-sortbysize) or
 sequence length (\-\-sortbylength). To obtain a stable sorting order,
-ties are sorted by decreasing abundance and label increasing
-alpha-numerical order (\-\-sortbylength), or just by label increasing
-alpha-numerical order (\-\-sortbysize). Label sorting assumes that all
-sequences have unique labels. The same applies to the automatic
-sorting performed during chimera checking (\-\-uchime_denovo),
-dereplication (\-\-derep_fulllength), and clustering (\-\-cluster_fast
-and \-\-cluster_size).
+ties are sorted by decreasing abundance (if present) and label
+increasing alpha-numerical order (\-\-sortbylength), or just by label
+increasing alpha-numerical order (\-\-sortbysize). Label sorting
+assumes that all sequences have unique labels. The same applies to the
+automatic sorting performed during chimera checking
+(\-\-uchime_denovo), dereplication (\-\-derep_fulllength), and
+clustering (\-\-cluster_fast and \-\-cluster_size).
 .PP
 .TAG lengthout
 .TP
@@ -3575,30 +3580,41 @@ reference sequence database is specified with the \-\-db option. The
 results are written in a tab delimited text file whose name is
 specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
 may be used to set a minimum level of bootstrap support for the
-taxonomic ranks to be reported. The `--randseed` option may be
+taxonomic ranks to be reported. The \-\-randseed option may be
 included to specify a seed for initialisation of the random number
 generator used by the algorithm. Please note that when using multiple
-threads, the `--randseed` option may not work as intended, because
+threads, the \-\-randseed option may not work as intended, because
 sequences may be processed in a random order by different threads. To
-ensure the same results each time, use a single thread (`--threads 1`)
-in combination with a fixed random seed specified with `--randseed`.
+ensure the same results each time, use a single thread \-\-threads 1)
+in combination with a fixed random seed specified with \-\-randseed.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
 .PP
 The reference database must contain taxonomic information in the
 header of each sequence in the form of a string starting with ";tax="
-and followed by a comma-separated list of up to eight taxonomic
+and followed by a comma-separated list of up to nine taxonomic
 identifiers. Each taxonomic identifier must start with an indication
 of the rank by one of the letters d (for domain) k (kingdom), p
-(phylum), c (class), o (order), f (family), g (genus), or s
-(species). The letter is followed by a colon (:) and the name of that
+(phylum), c (class), o (order), f (family), g (genus), s (species), or
+t (strain). The letter is followed by a colon (:) and the name of that
 rank. Commas and semicolons are not allowed in the name of the rank.
+Non-ascii characters should be avoided in the names.
 .PP
-Example: ">X80725_S000004313;\:tax=d:Bacteria,\:p:Proteobacteria,\:c:Gammaproteobacteria,\:o:Enterobacteriales,\:f:Enterobacteriaceae,\:g:Escherichia/Shigella,\:s:Escherichia_coli".
+Example:
+
+>X80725_S000004313;\:tax=d:Bacteria,\:p:Proteobacteria,\:c:Gammaproteobacteria,\:o:Enterobacteriales,\:f:Enterobacteriaceae,\:g:Escherichia/Shigella,\:s:Escherichia_coli,\:t:str._K-12_substr._MG1655
+
 .PP
 The option \-\-notrunclabels is turned on by default for this command,
 allowing spaces in the taxonomic identifiers.
+.PP
+If two sequences in the reference database has equally many kmer
+matches with the query, the shortest sequence will be chosen by
+default. If they are equally long, the sequence appearing first in the
+database will be chosen. If the recommended option \-\-sintax_random
+is specified, sequences with an equal number of kmer matches will
+instead be chosen by a random draw.
 .PP
 .TAG db
 .TP 9
@@ -3612,17 +3628,23 @@ Use \fIinteger\fR as seed for the random number generator used in the
 Sintax algorithm. A given seed always produces the same output order
 (useful for replicability). Set to 0 to use a pseudo-random seed
 (default behaviour). Does not work correctly with multiple threads;
-please use `--threads 1` to ensure correct behaviour.
+please use \-\-threads 1 to ensure correct behaviour.
+.TAG sintax
+.TP
+.BI \-\-sintax \0filename
+Read the input sequences from \fIfilename\fR, in FASTA or FASTQ format.
 .TAG sintax_cutoff
 .TP
 .BI \-\-sintax_cutoff\~ "real"
 Specify a minimum level of bootstrap support for the taxonomic ranks
 that will be included in column 4 of the output file. For instance
 0.9, corresponding to 90%.
-.TAG sintax
+.TAG sintax_random
 .TP
-.BI \-\-sintax \0filename
-Read the input sequences from \fIfilename\fR, in FASTA or FASTQ format.
+.B \-\-sintax_random
+Break ties between sequences with equally many kmer matches by a
+random draw. This option is recommended and may be made the default in
+the future.
 .TAG tabbedout
 .TP
 .BI \-\-tabbedout \0filename
@@ -4077,8 +4099,7 @@ greater than 2:
 .\"
 .\" ============================================================================
 .SH AUTHORS
-Implementation by Torbjørn Rognes and Tomás Flouri, documentation by
-Frédéric Mahé.
+Implementation and documentation by Torbjørn Rognes, Frédéric Mahé and Tomás Flouri.
 .PP
 .\" ============================================================================
 .SH CITATION
@@ -4880,7 +4901,120 @@ libraries to libz.so.1 and libbz2.so.1 on Linux to make them work on
 common Linux distributions without installing additional packages.
 README.md has been updated with information about compression
 libraries on Windows.
+.TP
+.BR v2.28.0\~ "released April 26th, 2024"
+The sintax command has been improved in several ways in this version
+of vsearch. Please note that several details of this algorithm is not
+clearly described in the preprint, and the implementation in vsearch
+differs from that in usearch. The former vsearch version did not
+always choose the most common taxonomic entity over the 100 bootstraps
+among the database sequences with the highest amount of word
+similarity to the query. Instead, if several sequences had an equal
+similarity with the query, the sequence encountered in the earliest
+bootstrap was chosen. The confidence level was calculated based on
+this sequence compared to the selected sequences from the other 99
+bootstraps. This could lead to a suboptimal choice with a low
+confidence. In the new version, the most common of the sequences with
+the highest amount of word similarity across the 100 bootstraps will
+be selected, and ties will be broken randomly. Another problem with
+the old implementation was that if several sequences had the same
+amount of word similarity, the shortest one in the reference database
+would be chosen, and if they were equally long, the earliest in the
+database file would be chosen. A new option called sintax_random has
+now been introduced. This option will randomly select one of the
+sequences with the highest number of shared words with the query,
+without considering their length or position. This avoids a bias
+towards shorter reference sequences. This option is strongly
+recommended and will probably soon be the default. Furthermore, a
+ninth taxonomic rank, strain (letter t), is now recognized. The speed
+of the sintax command has also been significantly improved at least in
+some cases. Run vsearch with the randseed option and 1 thread to
+ensure reproducibility of the random choices in the algorithm.
+.TP
+.BR v2.28.1\~ "released April 26th, 2024"
+Fix a segmentation fault that could occur with the blast6out and
+output_no_hits options.
+.TP
+.BR v2.29.0\~ "released September 26th, 2024"
+This version fixes seven bugs (see changelog below), adds
+initial support for RISC-V architectures, and improves code quality
+and code testing (1,210 new tests):
+.RS
+.IP - 2
+add: experimental support for RISCV64 and other 64-bit little-endian
+architectures, thanks to Michael R. Crusoe and his fellow Debian
+developers (issue #566),
+.IP -
+add: official support for clang-19 and gcc 14,
+.IP -
+add: beta support for clang-20,
+.IP -
+remove: unused \-\-output option for command \-\-fastq_stats (issue #572),
+.IP -
+fix: bug in \-\-sintax when selecting the best lineage (only low
+confidence values below 0.5 were affected) (issue #573),
+.IP -
+fix: out-of-bounds error in \-\-fastq_stats when processing empty
+reads (issue #571),
+.IP -
+fix: bug in \-\-cut, patterns with multiple cutting sites were not
+detected (commit 4c4f9fa70f14b28d50185dbf322cf5727087e86a),
+.IP -
+fix: memory error (segmentation fault) when using \-\-derep_id and
+\-\-strand (issue #565),
+.IP -
+fix: \-\-fastq_join now obeys to \-\-quiet and \-\-log options
+(commit 87f968b09f17c17ebf8db00aebe86e89b13a3948),
+.IP -
+fix: \-\-fastq_join quality padding is now also set to Q40 when
+quality offset is 64 (commit be0bf9b48d782286c4ce38f0bf1a4c82bd230250),
+.IP -
+fix: (partial) \-\-fastq_join's handling of abundance annotations
+(commit f2bbcb421dc2f4dfa6603b9f31ec3e4598c1b591),
+.IP -
+improve: additional safeguards to validate input values and to make
+sure that they are within acceptable limits. Changes concern options
+\-\-abskew (commit a530dd8990f8a05cb25fc0b6a5da5a14d28fbedd) and
+\-\-fastq_maxdiffs (commit 4b254db7f120bfd49e86185ef3cd9070c236f940),
+.IP -
+improve: code quality (1.3k+ commits, 6k+ clang-tidy warnings eliminated),
+.IP -
+improve: documentation and help messages (issue #568),
+.IP -
+improve: complete refactoring and modernization of a subset of
+commands (\-\-sortbylength, \-\-sortbysize, \-\-shuffle,
+\-\-rereplicate, \-\-cut, \-\-fastq_join, \-\-fasta2fastq,
+\-\-fastq_chars),
+.IP -
+improve: code-coverage of our test-suite for the above-mentioned commands (1,210 new tests, 4,753 in total)
+.RE
 .LP
+.TP
+.BR v2.29.1\~ "released October 24th, 2024"
+Fix a segmentation fault that could occur during alignment in version
+2.29.0, for example with \-\-uchime_ref. Some improvements to code and
+documentation.
+.TP
+.BR v2.29.2\~ "released December 20th, 2024"
+Fix a segmentation fault during clustering when the set of clusters is empty.
+Initial documentation in markdown format available on GitHub Pages.
+.TP
+.BR v2.29.3\~ "released February 3rd, 2025"
+This version is released in order to mitigate a bug that occurs when
+compiling the `align_simd.cc` file on x86_64 systems with the GNU C++
+compiler version 9 or later with the `-O3` optimization option. It
+results in incorrect code that may cause bad alignments in some
+circumstances. We are investigating this issue further, but for now we
+recommend compiling with the `-O2` flag. The README.md file and the
+Dockerfiles have been updated to reflect this. The binaries released
+with this version will include this fix.
+.TP
+.BR v2.29.4\~ "released February 14th, 2025"
+Adjust the window size used for chimera detection down from 64 to
+32. The window size was by accident increased from 32 to 64 in version
+2.23.0, leading to somewhat fewer chimeras being predicted.
+In addition, a compiler pragma has been included in align_simd.cc to
+further protect the compiler from generating wrong code.
 .\" ============================================================================
 .\" TODO:
 .\"

@@ -59,34 +59,57 @@
 */
 
 #include "vsearch.h"
+#include "maps.h"
+#include "msa.h"
+#include <array>
+#include <algorithm>  // std::max()
+#include <cassert>
+#include <cctype>  // std::toupper
+#include <cinttypes>  // macro PRId64
+#include <climits>  // INT_MAX
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::FILE, std::sscanf, std::fprintf
+#include <cstdlib>  // str::strtoll
+#include <cstring>  // std::memset, std::strlen
+#include <iterator> // std::next
+#include <numeric> // std::accumulate
+#include <vector>
 
-/* Compute consensus sequence and msa of clustered sequences */
 
-typedef uint64_t prof_type;
-#define PROFSIZE 6
+/* Compute multiple sequence alignment (msa), profile, and consensus
+   sequence of clustered sequences */
 
-static char * aln;
-static int alnpos;
-static prof_type * profile;
+using prof_type = std::uint64_t;
+constexpr auto profsize = 6;
 
-void msa_add(char c, prof_type abundance)
-{
-  prof_type * p = profile + PROFSIZE * alnpos;
 
-  switch(toupper(c))
+auto update_profile(char const nucleotide,
+                    int const position_in_alignment,
+                    prof_type const abundance,
+                    std::vector<prof_type>& profile) -> void {
+  static constexpr auto A_counter = 0;
+  static constexpr auto C_counter = 1;
+  static constexpr auto G_counter = 2;
+  static constexpr auto U_counter = 3;  // note: T converted to U?
+  static constexpr auto N_counter = 4;
+  static constexpr auto gap_counter = 5;
+  auto const offset = profsize * position_in_alignment;
+
+  // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
+  switch(std::toupper(nucleotide))
     {
     case 'A':
-      p[0] += abundance;
+      profile[offset + A_counter] += abundance;
       break;
     case 'C':
-      p[1] += abundance;
+      profile[offset + C_counter] += abundance;
       break;
     case 'G':
-      p[2] += abundance;
+      profile[offset + G_counter] += abundance;
       break;
     case 'T':
     case 'U':
-      p[3] += abundance;
+      profile[offset + U_counter] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -99,323 +122,470 @@ void msa_add(char c, prof_type abundance)
     case 'H':
     case 'V':
     case 'N':
-      p[4] += abundance;
+      profile[offset + N_counter] += abundance;
       break;
     case '-':
-      p[5] += abundance;
+      profile[offset + gap_counter] += abundance;
+      break;
+    default:
       break;
     }
-
-  aln[alnpos++] = c;
 }
 
-void msa(FILE * fp_msaout, FILE * fp_consout, FILE * fp_profile,
-         int cluster,
-         int target_count, struct msa_target_s * target_list,
-         int64_t totalabundance)
-{
-  int centroid_seqno = target_list[0].seqno;
-  int centroid_len = db_getsequencelen(centroid_seqno);
 
-  /* find max insertions in front of each position in the centroid sequence */
-  int * maxi = (int *) xmalloc((centroid_len + 1) * sizeof(int));
-  memset(maxi, 0, (centroid_len + 1) * sizeof(int));
+auto update_msa(char const nucleotide, int &position_in_alignment,
+                std::vector<char>& alignment) -> void {
+  alignment[position_in_alignment] = nucleotide;
+  ++position_in_alignment;
+}
 
-  for(int j=1; j<target_count; j++)
+
+auto find_runlength_of_leftmost_operation(char * first_character, char ** first_non_digit) -> long long {
+  // std::strtoll:
+  // - start from the 'first_character' pointed to,
+  // - consume as many characters as possible to form a valid integer,
+  // - advance pointer to the first non-digit character,
+  // - return the valid integer
+  // - if there is no valid integer: pointer is not advanced and function returns zero,
+  static constexpr auto decimal_base = 10;
+  auto runlength = std::strtoll(first_character, first_non_digit, decimal_base);
+  assert(runlength <= INT_MAX);
+
+  // in the context of cigar strings, runlength is at least 1
+  if (runlength == 0) {
+    runlength = 1;
+  }
+  return runlength;  // is in [1, LLONG_MAX]
+}
+
+
+auto find_max_insertions_per_position(int const target_count,
+                                      std::vector<struct msa_target_s> const & target_list_v,
+                                      int const centroid_len) -> std::vector<int> {
+  std::vector<int> max_insertions(centroid_len + 1);
+  for (auto i = 1; i < target_count; ++i)
     {
-      char * p = target_list[j].cigar;
-      char * e = p + strlen(p);
-      int pos = 0;
-      while (p < e)
+      char * cigar_start = target_list_v[i].cigar;
+      auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
+      char * cigar_end = std::next(cigar_start, cigar_length);
+      auto * position_in_cigar = cigar_start;
+      auto position_in_centroid = 0LL;
+      while (position_in_cigar < cigar_end)
         {
-          int64_t run = 1;
-          int scanlength = 0;
-          sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-          p += scanlength;
-          char op = *p++;
-          switch (op)
+          auto** next_operation = &position_in_cigar;  // operations: match (M), insertion (I), or deletion (D)
+          auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
+          auto const operation = **next_operation;
+          position_in_cigar = std::next(position_in_cigar);
+          switch (operation)
             {
             case 'M':
             case 'I':
-              pos += run;
+              position_in_centroid += runlength;
               break;
             case 'D':
-              if (run > maxi[pos])
-                {
-                  maxi[pos] = run;
-                }
+              max_insertions[position_in_centroid] = std::max(static_cast<int>(runlength), max_insertions[position_in_centroid]);
+              break;
+            default:
               break;
             }
         }
-    }
+  }
+  return max_insertions;
+}
 
-  /* find total alignment length */
-  int alnlen = 0;
-  for(int i=0; i < centroid_len+1; i++)
-    {
-      alnlen += maxi[i];
-    }
-  alnlen += centroid_len;
 
-  /* allocate memory for profile (for consensus) and aligned seq */
-  profile = (prof_type *) xmalloc(PROFSIZE * sizeof(prof_type) * alnlen);
-  for (int i=0; i < PROFSIZE * alnlen; i++)
-    profile[i] = 0;
-  aln = (char *) xmalloc(alnlen+1);
-  char * cons = (char *) xmalloc(alnlen+1);
+auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int {
+  auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
+  return std::accumulate(max_insertions.begin(), max_insertions.end(), centroid_len);
+}
 
-  /* Find longest target sequence on reverse strand and allocate buffer */
+
+auto find_longest_target_on_reverse_strand(int const target_count,
+                                           std::vector<struct msa_target_s> const & target_list_v) -> int64_t {
   int64_t longest_reversed = 0;
-  for(int i=0; i < target_count; i++)
+  for (auto i = 0; i < target_count; ++i)
     {
-      if (target_list[i].strand)
-        {
-          int64_t len = db_getsequencelen(target_list[i].seqno);
-          if (len > longest_reversed)
-            {
-              longest_reversed = len;
-            }
-        }
+      auto const & target = target_list_v[i];
+      if (target.strand == 0) { continue; }
+      auto const len = static_cast<int64_t>(db_getsequencelen(target.seqno));
+      longest_reversed = std::max(len, longest_reversed);
     }
-  char * rc_buffer = nullptr;
+  return longest_reversed;
+}
+
+
+auto allocate_buffer_for_reverse_strand_target(int const target_count,
+                                               std::vector<struct msa_target_s> const & target_list_v,
+                                               std::vector<char> & rc_buffer_v) -> char * {
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
   if (longest_reversed > 0)
     {
-      rc_buffer = (char*) xmalloc(longest_reversed + 1);
+      rc_buffer_v.resize(longest_reversed + 1);
+      return rc_buffer_v.data();
+    }
+  return nullptr;
+}
+
+
+auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
+  if (fp_msaout == nullptr) { return ; }
+  static_cast<void>(std::fprintf(fp_msaout, "\n"));
+}
+
+
+auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix,
+                               int const target_seqno,
+                               std::vector<char> & aln_v) -> void {
+  // header_prefix == "*" or "", resulting in ">*header" or ">header"
+  if (fp_msaout == nullptr) { return ; }
+
+  fasta_print_general(fp_msaout,
+                      header_prefix,
+                      aln_v.data(),
+                      static_cast<int>(aln_v.size() - 1),
+                      db_getheader(target_seqno),
+                      static_cast<int>(db_getheaderlen(target_seqno)),
+                      db_getabundance(target_seqno),
+                      0, -1.0, -1, -1, nullptr, 0.0);
+}
+
+
+auto reverse_complement_target_if_need_be(int const strand, int const target_seqno,
+                                          char * rc_buffer, char * target_seq) -> char * {
+  if (strand == 0) { return target_seq; }
+  reverse_complement(rc_buffer, target_seq,
+                     static_cast<int64_t>(db_getsequencelen(target_seqno)));
+  return rc_buffer;
+}
+
+
+auto process_and_print_centroid(char *rc_buffer,
+                                std::vector<struct msa_target_s> const &target_list_v,
+                                std::vector<int> const &max_insertions,
+                                std::vector<prof_type> &profile,
+                                std::vector<char> &aln_v,
+                                std::FILE * fp_msaout) -> void {
+  auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
+  auto const & target = target_list_v.front();
+  auto const target_seqno = target.seqno;
+  auto * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
+                                                                 db_getsequence(target_seqno));
+  prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+  auto position_in_alignment = 0;
+
+  for (auto i = 0; i < centroid_len; ++i)
+    {
+      for (auto j = 0; j < max_insertions[i]; ++j)
+        {
+          update_profile('-', position_in_alignment, target_abundance, profile);
+          update_msa('-', position_in_alignment, aln_v);
+        }
+      update_profile(*std::next(target_seq, i), position_in_alignment, target_abundance, profile);
+      update_msa(*std::next(target_seq, i), position_in_alignment, aln_v);
     }
 
-  /* blank line before each msa */
-  if (fp_msaout)
+  // insert
+  for (auto j = 0; j < max_insertions[centroid_len]; ++j)
     {
-      fprintf(fp_msaout, "\n");
+      update_profile('-', position_in_alignment, target_abundance, profile);
+      update_msa('-', position_in_alignment, aln_v);
     }
 
-  for(int j=0; j<target_count; j++)
+  /* end of sequence string */
+  aln_v[position_in_alignment] = '\0';
+
+  /* print header & sequence */
+  print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v);
+}
+
+
+auto insert_gaps_in_alignment_and_profile(bool const is_inserted,
+                                          int const max_insertions_at_position,
+                                          int & position_in_alignment,
+                                          prof_type const target_abundance,
+                                          std::vector<prof_type> & profile,
+                                          std::vector<char> & aln_v) -> void {
+  if (is_inserted) { return ; }
+  for (auto i = 0; i < max_insertions_at_position; ++i) {
+    update_profile('-', position_in_alignment, target_abundance, profile);
+    update_msa('-', position_in_alignment, aln_v);
+  }
+}
+
+
+auto compute_and_print_msa(int const target_count,
+                           std::vector<struct msa_target_s> const & target_list_v,
+                           std::vector<int> const &max_insertions,
+                           std::vector<prof_type> &profile,
+                           std::vector<char> &aln_v,
+                           std::FILE * fp_msaout) -> void {
+
+  blank_line_before_each_msa(fp_msaout);
+
+  /* Find longest target sequence on reverse strand and allocate buffer */
+  std::vector<char> rc_buffer_v;
+  char * rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v);
+
+  // ------------------------------------------------------- deal with centroid
+  process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
+                             profile, aln_v, fp_msaout);
+
+  // --------------------------------- deal with other sequences in the cluster
+  for (auto i = 1; i < target_count; ++i)
     {
-      int target_seqno = target_list[j].seqno;
-      char * target_seq = db_getsequence(target_seqno);
-      prof_type target_abundance = opt_sizein ?
-        db_getabundance(target_seqno) : 1;
+      auto const & target = target_list_v[i];
+      auto const target_seqno = target.seqno;
+      auto * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
+                                                                     rc_buffer, db_getsequence(target_seqno));
+      prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+      int position_in_alignment = 0;
 
-      if (target_list[j].strand)
+      auto is_inserted = false;
+      auto qpos = 0;
+      auto tpos = 0;
+
+      char * cigar_start = target.cigar;
+      auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
+      char * cigar_end = std::next(cigar_start, cigar_length);
+      auto * position_in_cigar = cigar_start;
+      while (position_in_cigar < cigar_end)
         {
-          reverse_complement(rc_buffer, target_seq,
-                             db_getsequencelen(target_seqno));
-          target_seq = rc_buffer;
+          // Consume digits (if any), return the position of the
+          // first char (M, D, or I), store it, move cursor to the next byte.
+          // Operations: match (M), insertion (I), or deletion (D)
+          auto** next_operation = &position_in_cigar;
+          auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
+          auto const operation = **next_operation;
+          position_in_cigar = std::next(position_in_cigar);
+
+          switch (operation) {
+          case 'D':
+            for (auto j = 0; j < runlength; ++j)
+              {
+                update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                ++tpos;
+              }
+            for (auto j = runlength; j < max_insertions[qpos]; ++j)
+              {
+                update_profile('-', position_in_alignment, target_abundance, profile);
+                update_msa('-', position_in_alignment, aln_v);
+              }
+            is_inserted = true;
+            break;
+          case 'M':
+            for (auto j = 0; j < runlength; ++j)
+              {
+                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
+                                                     position_in_alignment, target_abundance,
+                                                     profile, aln_v);
+                update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
+                update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                ++tpos;
+                ++qpos;
+                is_inserted = false;
+              }
+            break;
+          case 'I':
+            for (auto j = 0; j < runlength; ++j)
+              {
+                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
+                                                     position_in_alignment, target_abundance,
+                                                     profile, aln_v);
+                update_profile('-', position_in_alignment, target_abundance, profile);
+                update_msa('-', position_in_alignment, aln_v);
+                ++qpos;
+                is_inserted = false;
+              }
+              break;
+          default:
+            break;
+          }
         }
 
-      int inserted = 0;
-      int qpos = 0;
-      int tpos = 0;
-      alnpos = 0;
-
-      if (!j)
-        {
-          for(int x=0; x < centroid_len; x++)
-            {
-              for(int y=0; y < maxi[qpos]; y++)
-                {
-                  msa_add('-', target_abundance);
-                }
-              msa_add(target_seq[tpos++], target_abundance);
-              qpos++;
-            }
-        }
-      else
-        {
-          char * p = target_list[j].cigar;
-          char * e = p + strlen(p);
-          while (p < e)
-            {
-              int64_t run = 1;
-              int scanlength = 0;
-              sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-              p += scanlength;
-              char op = *p++;
-
-              if (op == 'D')
-                {
-                  for(int x=0; x < maxi[qpos]; x++)
-                    {
-                      if (x < run)
-                        {
-                          msa_add(target_seq[tpos++], target_abundance);
-                        }
-                      else
-                        {
-                          msa_add('-', target_abundance);
-                        }
-                    }
-                  inserted = 1;
-                }
-              else
-                {
-                  for(int x=0; x < run; x++)
-                    {
-                      if (!inserted)
-                        {
-                          for(int y=0; y < maxi[qpos]; y++)
-                            {
-                              msa_add('-', target_abundance);
-                            }
-                        }
-
-                      if (op == 'M')
-                        {
-                          msa_add(target_seq[tpos++], target_abundance);
-                        }
-                      else
-                        {
-                          msa_add('-', target_abundance);
-                        }
-
-                      qpos++;
-                      inserted = 0;
-                    }
-                }
-            }
-        }
-
-      if (!inserted)
-        {
-          for(int x=0; x < maxi[qpos]; x++)
-            {
-              msa_add('-', target_abundance);
-            }
-        }
+      insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
+                                           position_in_alignment, target_abundance,
+                                           profile, aln_v);
 
       /* end of sequence string */
-      aln[alnpos] = 0;
+      aln_v[position_in_alignment] = '\0';
 
       /* print header & sequence */
-      if (fp_msaout)
-        {
-          fasta_print_general(fp_msaout,
-                              j ? "" : "*",
-                              aln,
-                              alnlen,
-                              db_getheader(target_seqno),
-                              db_getheaderlen(target_seqno),
-                              db_getabundance(target_seqno),
-                              0, -1.0, -1, -1, nullptr, 0.0);
-        }
+      print_header_and_sequence(fp_msaout, "", target_seqno, aln_v);
     }
+}
 
-  if (rc_buffer)
-    {
-      xfree(rc_buffer);
-    }
 
-  /* consensus */
+auto compute_and_print_consensus(std::vector<int> const &max_insertions,
+                                 std::vector<char> &aln_v,
+                                 std::vector<char> &cons_v,
+                                 std::vector<prof_type> &profile,
+                                 std::FILE * fp_msaout) -> void {
+  static constexpr char index_of_N = 15;  // 15th char in sym_nt_4bit[] (=> 'N')
 
+  auto const alignment_length = static_cast<int>(aln_v.size() - 1);
   int conslen = 0;
 
   /* Censor part of the consensus sequence outside the centroid sequence */
-
-  int left_censored = maxi[0];
-  int right_censored = maxi[centroid_len];
-
-  for(int i=0; i<alnlen; i++)
+  auto const left_censored = max_insertions.front();
+  auto const right_censored = max_insertions.back();
+  for (auto i = 0; i < left_censored; ++i)
     {
-      if ((i < left_censored) || (i >= alnlen - right_censored))
+      aln_v[i] = '+';
+    }
+  for (auto i = alignment_length - right_censored; i < alignment_length; ++i)
+    {
+      aln_v[i] = '+';
+    }
+
+  for (auto i = left_censored; i < alignment_length - right_censored; ++i)
+    {
+      /* find most common symbol of A, C, G and T */
+      char best_sym = 0;
+      prof_type best_count = 0;
+      for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          aln[i] = '+';
+          auto const count = profile[(profsize * i) + nucleotide];
+          if (count > best_count)
+            {
+              best_count = count;
+              best_sym = static_cast<char>(1U << nucleotide);  // 1, 2, 4, or 8
+            }
+        }
+
+      /* if no A, C, G, or T, check if there are any N's */
+      auto const N_count = profile[(profsize * i) + 4];
+      if ((best_count == 0) and (N_count > 0))
+        {
+          best_count = N_count;
+          best_sym = index_of_N; // N
+        }
+
+      /* compare to the number of gap symbols */
+      auto const gap_count = profile[(profsize * i) + 5];
+      if (best_count >= gap_count)
+        {
+          auto const index = static_cast<unsigned char>(best_sym);
+          auto const sym = sym_nt_4bit[index];  // A, C, G, T, or N
+          aln_v[i] = sym;
+          cons_v[conslen] = sym;
+          ++conslen;
         }
       else
         {
-          /* find most common symbol of A, C, G and T */
-          char best_sym = 0;
-          prof_type best_count = 0;
-          for(int c=0; c<4; c++)
-            {
-              prof_type count = profile[PROFSIZE*i+c];
-              if (count > best_count)
-                {
-                  best_count = count;
-                  best_sym = 1 << c;
-                }
-            }
-
-          /* if no A, C, G, or T, check if there are any N's */
-          prof_type n_count = profile[PROFSIZE*i+4];
-          if ((best_count == 0) && (n_count > 0))
-            {
-              best_count = n_count;
-              best_sym = 15; // N
-            }
-
-          /* compare to the number of gap symbols */
-          prof_type gap_count = profile[PROFSIZE*i+5];
-          if (best_count >= gap_count)
-            {
-              char sym = sym_nt_4bit[(int)best_sym];
-              aln[i] = sym;
-              cons[conslen++] = sym;
-            }
-          else
-            {
-              aln[i] = '-';
-            }
+          aln_v[i] = '-';
         }
     }
 
-  aln[alnlen] = 0;
-  cons[conslen] = 0;
+  aln_v.back() = '\0';
+  cons_v[conslen] = '\0';
+  cons_v.resize(conslen + 1);
 
-  if (fp_msaout)
+  if (fp_msaout != nullptr)
     {
-      fasta_print(fp_msaout, "consensus", aln, alnlen);
+      fasta_print(fp_msaout, "consensus", aln_v.data(), alignment_length);
     }
+}
 
-  if (fp_consout)
-    {
-      fasta_print_general(fp_consout,
-                          "centroid=",
-                          cons,
-                          conslen,
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster+1,
-                          -1.0,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          nullptr, 0.0);
+
+auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
+                              int64_t const totalabundance, int const target_count,
+                              int const cluster,
+                              int const centroid_seqno) -> void {
+  if (fp_consout == nullptr) { return ; }
+  fasta_print_general(fp_consout,
+                      "centroid=",
+                      cons_v.data(),
+                      static_cast<int>(cons_v.size()),
+                      db_getheader(centroid_seqno),
+                      static_cast<int>(db_getheaderlen(centroid_seqno)),
+                      totalabundance,
+                      cluster + 1,
+                      -1.0,
+                      target_count,
+                      opt_clusterout_id ? cluster : -1,
+                      nullptr, 0.0);
+}
+
+
+auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
+                             std::vector<prof_type> const &profile,
+                             int64_t const totalabundance, int const target_count,
+                             int const cluster,
+                             int const centroid_seqno) -> void {
+  if (fp_profile == nullptr) { return ; }
+
+  // Note: gaps before Ns in profile output
+  // 0 = A, 1 = C, 2 = G, 3 = T, 4 = N, 5 = '-' (gap)
+  static const std::array<int, 6> symbol_indexes = {0, 1, 2, 3, 5, 4};
+  fasta_print_general(fp_profile,
+                      "centroid=",
+                      nullptr,
+                      0,
+                      db_getheader(centroid_seqno),
+                      static_cast<int>(db_getheaderlen(centroid_seqno)),
+                      totalabundance,
+                      cluster + 1,
+                      -1.0,
+                      target_count,
+                      opt_clusterout_id ? cluster : -1,
+                      nullptr, 0.0);
+
+  aln_v.pop_back(); // remove last element ('\0')
+  auto counter = 0;
+  for (auto const nucleotide: aln_v) {
+    static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
+      // A, C, G and T, then gap '-', then N
+      for (auto const symbol_index : symbol_indexes) {
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(profsize * counter) + symbol_index]));
+      }
+      static_cast<void>(std::fprintf(fp_profile, "\n"));
+      ++counter;
     }
+  static_cast<void>(std::fprintf(fp_profile, "\n"));
+}
 
-  if (fp_profile)
-    {
-      fasta_print_general(fp_profile,
-                          "centroid=",
-                          nullptr,
-                          0,
-                          db_getheader(centroid_seqno),
-                          db_getheaderlen(centroid_seqno),
-                          totalabundance,
-                          cluster+1,
-                          -1.0,
-                          target_count,
-                          opt_clusterout_id ? cluster : -1,
-                          nullptr, 0.0);
 
-      for (int i=0; i<alnlen; i++)
-        {
-          fprintf(fp_profile, "%d\t%c", i, aln[i]);
-          // A, C, G and T
-          for (int c=0; c<4; c++)
-            {
-              fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+c]);
-            }
-          // Gap symbol
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+5]);
-          // Ambiguous nucleotide (Ns and others)
-          fprintf(fp_profile, "\t%" PRId64, profile[PROFSIZE*i+4]);
-          fprintf(fp_profile, "\n");
-        }
-      fprintf(fp_profile, "\n");
-    }
+auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
+         int cluster,
+         int const target_count, std::vector<struct msa_target_s> const & target_list_v,
+         int64_t totalabundance) -> void
+{
+  int const centroid_seqno = target_list_v[0].seqno;
+  auto const centroid_length = static_cast<int>(db_getsequencelen(centroid_seqno));
 
-  xfree(maxi);
-  xfree(aln);
-  xfree(cons);
-  xfree(profile);
+  /* find max insertions in front of each position in the centroid sequence */
+  auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v, centroid_length);
+  auto const alignment_length = find_total_alignment_length(max_insertions);
+
+  /* allocate memory for profile (for consensus) and aligned seq */
+  std::vector<prof_type> profile(static_cast<unsigned long>(profsize) * alignment_length);  // C++20 refactoring: std::vector<std::array<prof_type, profsize>>(alnlen);
+  std::vector<char> aln_v(alignment_length + 1);
+  std::vector<char> cons_v(alignment_length + 1);
+
+  /* msaout: multiple sequence alignment ... */
+  compute_and_print_msa(target_count, target_list_v, max_insertions,
+                        profile, aln_v,
+                        fp_msaout);
+
+  /* msaout: ... and consensus sequence at the end */
+  compute_and_print_consensus(max_insertions,
+                              aln_v,
+                              cons_v,
+                              profile,
+                              fp_msaout);
+
+  /* consout: consensus sequence (dedicated input) */
+  print_consensus_sequence(fp_consout, cons_v,
+                           totalabundance, target_count,
+                           cluster,
+                           centroid_seqno);
+
+  /* profile: multiple sequence alignment profile (dedicated input) */
+  print_alignment_profile(fp_profile, aln_v,
+                          profile,
+                          totalabundance, target_count,
+                          cluster,
+                          centroid_seqno);
 }

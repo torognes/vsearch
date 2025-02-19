@@ -58,4 +58,4 @@
 
 */
 
-void derep_smallmem(char * input_filename);
+auto sff_convert() -> void;

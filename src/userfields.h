@@ -61,4 +61,4 @@
 extern int * userfields_requested;
 extern int userfields_requested_count;
 
-int parse_userfields_arg(char * arg);
+auto parse_userfields_arg(char * arg) -> int;

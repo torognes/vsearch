@@ -58,12 +58,6 @@
 
 */
 
-const int tax_levels = 8;
 extern const char * tax_letters;
 
-bool tax_parse(const char * header,
-               int header_length,
-               int * tax_start,
-               int * tax_end);
-
-void tax_split(int seqno, int * level_start, int * level_len);
+auto tax_split(int seqno, int * level_start, int * level_len) -> void;

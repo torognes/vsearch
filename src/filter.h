@@ -58,5 +58,5 @@
 
 */
 
-void fastq_filter();
-void fastx_filter();
+auto fastq_filter() -> void;
+auto fastx_filter() -> void;

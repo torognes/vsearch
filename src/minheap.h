@@ -58,34 +58,37 @@
 
 */
 
-typedef struct topscore
+struct topscore
 {
   unsigned int count;
   unsigned int seqno;
   unsigned int length;
-} elem_t;
+};
 
+using elem_t = struct topscore;
 
-typedef struct minheap_s
+struct minheap_s
 {
   int alloc;
   int count;
   elem_t * array;
-} minheap_t;
+};
 
-inline int minheap_isempty(minheap_t * a_minheap)
+using minheap_t = struct minheap_s;
+
+inline auto minheap_isempty(minheap_t * a_minheap) -> bool
 {
   return (a_minheap->count == 0);
 }
 
-inline void minheap_empty(minheap_t * a_minheap)
+inline auto minheap_empty(minheap_t * a_minheap) -> void
 {
   a_minheap->count = 0;
 }
 
-elem_t minheap_poplast(minheap_t * a_minheap);
-void minheap_sort(minheap_t * a_minheap);
-minheap_t * minheap_init(int size);
-void minheap_exit(minheap_t * a_minheap);
-void minheap_add(minheap_t * a_minheap, elem_t * n);
-elem_t minheap_pop(minheap_t * a_minheap);
+auto minheap_poplast(minheap_t * a_minheap) -> elem_t;
+auto minheap_sort(minheap_t * a_minheap) -> void;
+auto minheap_init(int size) -> minheap_t *;
+auto minheap_exit(minheap_t * a_minheap) -> void;
+auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void;
+auto minheap_pop(minheap_t * a_minheap) -> elem_t;

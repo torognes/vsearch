@@ -58,21 +58,30 @@
 
 */
 
-extern char sym_nt_2bit[5];
-extern char sym_nt_4bit[17];
+#ifndef MAPS_H
+#define MAPS_H
 
-extern unsigned int ambiguous_4bit[16];
+constexpr auto two_bit_capacity = 4U;
+constexpr auto four_bit_capacity = 16U;
+constexpr auto byte_capacity = 256U;
 
-extern unsigned int char_header_action[256];
-extern unsigned int char_fasta_action[256];
-extern unsigned int char_fq_action_seq[256];
-extern unsigned int char_fq_action_qual[256];
-extern unsigned int chrmap_2bit[256];
-extern unsigned int chrmap_4bit[256];
-extern unsigned int chrmap_mask_ambig[256];
-extern unsigned int chrmap_mask_lower[256];
-extern const unsigned char chrmap_complement[256];
-extern const unsigned char chrmap_normalize[256];
-extern const unsigned char chrmap_upcase[256];
-extern const unsigned char chrmap_no_change[256];
-extern const unsigned char chrmap_identity[256];
+extern char sym_nt_2bit[two_bit_capacity + 1];
+extern char sym_nt_4bit[four_bit_capacity + 1];
+
+extern unsigned int ambiguous_4bit[four_bit_capacity];
+
+extern unsigned int char_header_action[byte_capacity];
+extern unsigned int char_fasta_action[byte_capacity];
+extern unsigned int char_fq_action_seq[byte_capacity];
+extern unsigned int char_fq_action_qual[byte_capacity];
+extern unsigned int chrmap_2bit[byte_capacity];
+extern unsigned int chrmap_4bit[byte_capacity];
+extern unsigned int chrmap_mask_ambig[byte_capacity];
+extern unsigned int chrmap_mask_lower[byte_capacity];
+extern const unsigned char chrmap_complement[byte_capacity];
+extern const unsigned char chrmap_normalize[byte_capacity];
+extern const unsigned char chrmap_upcase[byte_capacity];
+extern const unsigned char chrmap_no_change[byte_capacity];
+extern const unsigned char chrmap_identity[byte_capacity];
+
+#endif // MAPS_H

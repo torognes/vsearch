@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include <cstdint>  // uint64_t
+#include <cstring>  // std::strcmp, std::strchr, std::strlen
+
 
 static const char * userfields_names[] =
   {
@@ -111,7 +114,7 @@ static const char * userfields_names[] =
 int * userfields_requested = nullptr;
 int userfields_requested_count = 0;
 
-int parse_userfields_arg(char * arg)
+auto parse_userfields_arg(char * arg) -> int
 {
   // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
   // and returns 1 if it is ok or 0 if not.
@@ -119,50 +122,52 @@ int parse_userfields_arg(char * arg)
   char * p = arg;
   char * e = p + strlen(p); // pointer to end of string
 
+  // refactoring:
+  // auto const userfields_requested_count = std::count(v.cbegin(), v.cend(), '+');
   userfields_requested_count = 1;
-  while(p<e)
+  while (p < e)
     {
       if (*p++ == '+')
         {
-          userfields_requested_count++;
+          ++userfields_requested_count;
         }
     }
 
-  userfields_requested = (int*) xmalloc(sizeof(int) * (uint64_t)userfields_requested_count);
+  userfields_requested = (int *) xmalloc(sizeof(int) * (uint64_t) userfields_requested_count);
 
   p = arg;
 
-  char * q;
+  char * q = nullptr;
 
   int fields = 0;
 
-  while(true)
+  while (true)
     {
       q = strchr(p, '+');
-      if (!q)
+      if (not q)
         {
           q = e;
         }
 
-      auto n = (uint64_t)(q - p);
+      auto n = (uint64_t) (q - p);
 
-      char ** u = (char**) userfields_names;
+      char ** u = (char **) userfields_names;
 
       while (*u)
         {
-          if ((strncmp(p, *u, n) == 0) && (strlen(*u) == n))
+          if ((strncmp(p, *u, n) == 0) and (strlen(*u) == n))
             {
               break;
             }
-          u++;
+          ++u;
         }
 
-      if (!*u)
+      if (not *u)
         {    // reached end of list -> unrecognized field
           return 0; // bad argument
         }
 
-      int i = (int)(((const char**)u) - userfields_names);
+      int const i = (int) (((const char **) u) - userfields_names);
       userfields_requested[fields++] = i;
 
       p = q;
@@ -172,6 +177,6 @@ int parse_userfields_arg(char * arg)
           return 1;
         }
 
-      p++;
+      ++p;
     }
 }
