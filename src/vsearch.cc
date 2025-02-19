@@ -5983,7 +5983,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (opt_fastx_mask != nullptr)
     {
-      fastx_mask();
+      fastx_mask(parameters);
     }
   else if (opt_fastq_convert != nullptr)
     {
