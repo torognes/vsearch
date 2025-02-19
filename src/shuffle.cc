@@ -74,7 +74,6 @@ namespace {
     std::iota(deck.begin(), deck.end(), 0);
     return deck;
   }
-}  // end of anonymous namespace
 
 
 auto generate_seed(long int const user_seed) -> unsigned int {
@@ -118,6 +117,8 @@ auto output_shuffled_fasta(std::vector<int> const & deck,
   }
   progress_done();
 }
+
+}  // end of anonymous namespace
 
 
 auto shuffle(struct Parameters const & parameters) -> void {
