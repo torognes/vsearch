@@ -72,6 +72,9 @@
 #endif
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 struct sortinfo_size_s
 {
   unsigned int size = 0;
@@ -79,8 +82,6 @@ struct sortinfo_size_s
 };
 
 
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
   auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
     auto const dbsequencecount = db_getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
@@ -101,7 +102,6 @@ namespace {
     deck.resize(counter);
     return deck;
   }
-}  // end of anonymous namespace
 
 
 auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
@@ -218,6 +218,7 @@ auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
 //     }
 // }
 
+}  // end of anonymous namespace
 
 // refactoring:
 // - create vector (no branch)
