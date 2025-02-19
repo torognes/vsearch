@@ -1041,11 +1041,15 @@ auto backtrack16(s16info_s * s,
         {
           if ((chrmap_4bit[(int) (qseq[i])] & chrmap_4bit[(int) (dseq[j])]) != 0U)
             {
-              if (opt_n_mismatch && ((chrmap_4bit[(int) (qseq[i])] == 15) ||
-                                     (chrmap_4bit[(int) (dseq[j])] == 15)))
-                ++mismatches;
+              if (opt_n_mismatch && ((chrmap_4bit[(int)(qseq[i])] == 15) ||
+                                     (chrmap_4bit[(int)(dseq[j])] == 15)))
+                {
+                  ++mismatches;
+                }
               else
-                ++matches;
+                {
+                  ++matches;
+                }
             }
           else
             {
