@@ -256,11 +256,11 @@ auto hardmask(char * seq, int len) -> void
   /* convert all lower case letters in seq to N */
   static constexpr auto check_5th_bit = 32U; // 0x20
   static constexpr auto hardmask_char = 'N';
-  for (int j = 0; j < len; j++)
+  for (int i = 0; i < len; i++)
     {
-      if ((seq[j] & check_5th_bit) != 0U)
+      if ((seq[i] & check_5th_bit) != 0U)
         {
-          seq[j] = hardmask_char;
+          seq[i] = hardmask_char;
         }
     }
 }
