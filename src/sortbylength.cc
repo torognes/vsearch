@@ -82,6 +82,7 @@ namespace {
   };
 
 
+  // refactoring: factorize all versions of this function, extract to new header
   auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
     if (parameters.opt_output == nullptr) {
       fatal("FASTA output file for sortbylength must be specified with --output");
