@@ -82,6 +82,18 @@ namespace {
   };
 
 
+  auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
+    if (parameters.opt_output == nullptr) {
+      fatal("FASTA output file for sortbysize must be specified with --output");
+    }
+    auto * output_handle = fopen_output(parameters.opt_output);
+    if (output_handle == nullptr) {
+      fatal("Unable to open sortbysize output file for writing");
+    }
+    return output_handle;
+  }
+
+
   auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
     auto const dbsequencecount = db_getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
@@ -237,15 +249,7 @@ namespace {
 
 auto sortbysize(struct Parameters const & parameters) -> void
 {
-  if (parameters.opt_output == nullptr) {
-    fatal("FASTA output file for sortbysize must be specified with --output");
-  }
-
-  auto * fp_output = fopen_output(parameters.opt_output);
-  if (fp_output == nullptr) {
-    fatal("Unable to open sortbysize output file for writing");
-  }
-
+  auto * fp_output = open_output_file(parameters);
   db_read(parameters.opt_sortbysize, 0);
   show_rusage();
 
