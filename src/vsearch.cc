@@ -137,7 +137,6 @@ bool opt_sizeout;
 bool opt_xee;
 bool opt_xlength;
 bool opt_xsize;
-char * opt_allpairs_global;
 char * opt_alnout;
 char * opt_biomout;
 char * opt_blast6out;
@@ -775,7 +774,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_abskew = 0.0;
   opt_acceptall = 0;
   opt_alignwidth = 80;
-  opt_allpairs_global = nullptr;
   opt_alnout = nullptr;
   opt_biomout = nullptr;
   opt_blast6out = nullptr;
@@ -1998,7 +1996,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_allpairs_global:
-          opt_allpairs_global = optarg;
           parameters.opt_allpairs_global = optarg;
           break;
 

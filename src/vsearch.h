@@ -242,7 +242,6 @@ extern bool opt_sizeout;
 extern bool opt_xee;
 extern bool opt_xlength;
 extern bool opt_xsize;
-extern char * opt_allpairs_global;
 extern char * opt_alnout;
 extern char * opt_biomout;
 extern char * opt_blast6out;
