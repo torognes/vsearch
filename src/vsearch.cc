@@ -4782,9 +4782,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     }
 
   if ((((parameters.opt_relabel != nullptr) ? 1 : 0) +
-       static_cast<int>(opt_relabel_md5) +
-       static_cast<int>(opt_relabel_self) +
-       static_cast<int>(opt_relabel_sha1)) > 1)
+       static_cast<int>(parameters.opt_relabel_md5) +
+       static_cast<int>(parameters.opt_relabel_self) +
+       static_cast<int>(parameters.opt_relabel_sha1)) > 1)
     {
       fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
     }
