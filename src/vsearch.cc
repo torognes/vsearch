@@ -5635,7 +5635,7 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
       fatal("Database filename not specified with --db");
     }
 
-  search_exact(cmdline, prog_header.data());
+  search_exact(parameters, cmdline, prog_header.data());
 }
 
 

@@ -819,7 +819,7 @@ auto search_exact_done() -> void
 }
 
 
-auto search_exact(char * cmdline, char * progheader) -> void
+auto search_exact(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
 {
   search_exact_prep(cmdline, progheader);
 
@@ -830,18 +830,18 @@ auto search_exact(char * cmdline, char * progheader) -> void
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  query_fastx_h = fastx_open(opt_search_exact);
+  query_fastx_h = fastx_open(parameters.opt_search_exact);
 
   /* allocate memory for thread info */
-  std::vector<struct searchinfo_s> si_plus_v(opt_threads);
+  std::vector<struct searchinfo_s> si_plus_v(parameters.opt_threads);
   si_plus = si_plus_v.data();
-  if (opt_strand > 1)
+  if (parameters.opt_strand)
     {
-      std::vector<struct searchinfo_s> si_minus_v(opt_threads);
+      std::vector<struct searchinfo_s> si_minus_v(parameters.opt_threads);
       si_minus = si_minus_v.data();
     }
 
-  std::vector<pthread_t> pthread_v(opt_threads);
+  std::vector<pthread_t> pthread_v(parameters.opt_threads);
   pthread = pthread_v.data();
 
   /* init mutexes for input and output */
@@ -861,7 +861,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
 
   fastx_close(query_fastx_h);
 
-  if (! opt_quiet)
+  if (! parameters.opt_quiet)
     {
       fprintf(stderr, "Matching unique query sequences: %d of %d",
               qmatches, queries);
@@ -870,7 +870,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
           fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
       fprintf(stderr, "\n");
-      if (opt_sizein)
+      if (parameters.opt_sizein)
         {
           fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
                   PRIu64,
@@ -884,7 +884,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
         }
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       fprintf(fp_log, "Matching unique query sequences: %d of %d",
               qmatches, queries);
@@ -893,7 +893,7 @@ auto search_exact(char * cmdline, char * progheader) -> void
           fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
       fprintf(fp_log, "\n");
-      if (opt_sizein)
+      if (parameters.opt_sizein)
         {
           fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
                   PRIu64,

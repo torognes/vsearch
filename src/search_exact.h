@@ -58,4 +58,4 @@
 
 */
 
-auto search_exact(char * cmdline, char * progheader) -> void;
+auto search_exact(struct Parameters const & parameters, char * cmdline, char * progheader) -> void;
