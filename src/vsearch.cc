@@ -6011,6 +6011,8 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_rereplicate != nullptr)
     {
+      opt_xsize = true;
+      parameters.opt_xsize = true;
       rereplicate(parameters);
     }
   else if (parameters.opt_version)

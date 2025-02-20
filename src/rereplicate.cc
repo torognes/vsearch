@@ -83,11 +83,9 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto rereplicate(struct Parameters & parameters) -> void
+auto rereplicate(struct Parameters const & parameters) -> void
 {
   auto * output_handle = open_output_file(parameters);
-  opt_xsize = true;
-  parameters.opt_xsize = true;
   auto * input_handle = fasta_open(parameters.opt_rereplicate);
   auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
