@@ -177,7 +177,6 @@ char * opt_fastx_filter;
 char * opt_fastx_getseq;
 char * opt_fastx_getseqs;
 char * opt_fastx_getsubseq;
-char * opt_fastx_mask;
 char * opt_fastx_revcomp;
 char * opt_label;
 char * opt_label_field;
@@ -859,7 +858,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastx_getseq = nullptr;
   opt_fastx_getseqs = nullptr;
   opt_fastx_getsubseq = nullptr;
-  opt_fastx_mask = nullptr;
   opt_fastx_revcomp = nullptr;
   opt_fulldp = 0;
   opt_gap_extension_query_interior = 2;
@@ -2213,7 +2211,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastx_mask:
-          opt_fastx_mask = optarg;
           parameters.opt_fastx_mask = optarg;
           break;
 

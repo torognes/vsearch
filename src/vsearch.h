@@ -282,7 +282,6 @@ extern char * opt_fastx_filter;
 extern char * opt_fastx_getseq;
 extern char * opt_fastx_getseqs;
 extern char * opt_fastx_getsubseq;
-extern char * opt_fastx_mask;
 extern char * opt_fastx_revcomp;
 extern char * opt_label;
 extern char * opt_label_suffix;
