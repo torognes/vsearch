@@ -102,6 +102,7 @@
                      // option (no_argument, required_argument)
 #include <limits>
 #include <string.h>  // strcasecmp
+#include <string>
 #include <vector>
 
 
@@ -5863,6 +5864,7 @@ auto main(int argc, char** argv) -> int
   fill_prog_header();
 
   getentirecommandline(argc, argv);
+  parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
 
   cpu_features_detect();
 

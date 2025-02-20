@@ -588,7 +588,7 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
           fatal("Unable to open alignment output file for writing");
         }
 
-      fprintf(fp_alnout, "%s\n", cmdline);
+      fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       fprintf(fp_alnout, "%s\n", progheader);
     }
 
