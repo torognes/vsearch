@@ -121,7 +121,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
                   bestj = j;
                 }
             }
-          counts[word]++;
+          ++counts[word];
         }
     }
 
@@ -203,7 +203,7 @@ auto dust_all_worker(void * vp) -> void *
       const auto seqno = nextseq;
       if (seqno < seqcount)
         {
-          nextseq++;
+          ++nextseq;
           progress_update(seqno);
           xpthread_mutex_unlock(&mutex);
           dust(db_getsequence(seqno), db_getsequencelen(seqno));
@@ -382,7 +382,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
             {
               if (seq[j] != 'N')
                 {
-                  unmasked++;
+                  ++unmasked;
                 }
             }
         }
@@ -392,7 +392,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
             {
               if (isupper(seq[j]) != 0)
                 {
-                  unmasked++;
+                  ++unmasked;
                 }
             }
         }
@@ -400,15 +400,15 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
       if (unmasked_pct < opt_min_unmasked_pct)
         {
-          discarded_less++;
+          ++discarded_less;
         }
       else if (unmasked_pct >  opt_max_unmasked_pct)
         {
-          discarded_more++;
+          ++discarded_more;
         }
       else
         {
-          kept++;
+          ++kept;
 
           if (opt_fastaout != nullptr)
             {
