@@ -400,7 +400,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         }
       auto const unmasked_pct = 100.0 * unmasked / len;
 
-      if (unmasked_pct < opt_min_unmasked_pct)
+      if (unmasked_pct < parameters.opt_min_unmasked_pct)
         {
           ++discarded_less;
         }
@@ -446,9 +446,9 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      if (opt_min_unmasked_pct > 0.0)
+      if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, opt_min_unmasked_pct);
+          fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
       if (opt_max_unmasked_pct < 100.0)
         {
@@ -459,9 +459,9 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      if (opt_min_unmasked_pct > 0.0)
+      if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, opt_min_unmasked_pct);
+          fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
       if (opt_max_unmasked_pct < 100.0)
         {
