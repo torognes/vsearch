@@ -2201,6 +2201,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_search_exact:
           opt_search_exact = optarg;
+          parameters.opt_search_exact = optarg;
           break;
 
         case option_fastx_mask:
@@ -4655,7 +4656,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
       (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
-      (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (opt_search_exact != nullptr) or (opt_sintax != nullptr) or
+      (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (opt_sintax != nullptr) or
       (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
     {
       if (parameters.opt_threads == 0)
@@ -5977,7 +5978,7 @@ auto main(int argc, char** argv) -> int
     {
       fastx_revcomp(parameters);
     }
-  else if (opt_search_exact != nullptr)
+  else if (parameters.opt_search_exact != nullptr)
     {
       opt_id = 1.0;
       cmd_search_exact(parameters);
