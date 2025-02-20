@@ -166,7 +166,6 @@ char * opt_fastapairs;
 char * opt_fastq_convert;
 char * opt_fastq_eestats2;
 char * opt_fastq_eestats;
-char * opt_fastq_filter;
 char * opt_fastq_mergepairs;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
@@ -174,7 +173,6 @@ char * opt_fastqout_discarded_rev;
 char * opt_fastqout_notmerged_fwd;
 char * opt_fastqout_notmerged_rev;
 char * opt_fastqout_rev;
-char * opt_fastx_filter;
 char * opt_fastx_getseq;
 char * opt_fastx_getseqs;
 char * opt_fastx_getsubseq;
@@ -824,7 +822,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_eeout = false;
   opt_fastq_eestats = nullptr;
   opt_fastq_eestats2 = nullptr;
-  opt_fastq_filter = nullptr;
   opt_fastq_maxdiffpct = 100.0;
   opt_fastq_maxdiffs = 10;
   opt_fastq_maxee = dbl_max;
@@ -853,7 +850,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastqout_notmerged_fwd = nullptr;
   opt_fastqout_notmerged_rev = nullptr;
   opt_fastqout_rev = nullptr;
-  opt_fastx_filter = nullptr;
   opt_fastx_getseq = nullptr;
   opt_fastx_getseqs = nullptr;
   opt_fastx_getsubseq = nullptr;
@@ -2089,7 +2085,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_filter:
-          opt_fastq_filter = optarg;
           parameters.opt_fastq_filter = optarg;
           break;
 
@@ -2350,7 +2345,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastx_filter:
-          opt_fastx_filter = optarg;
           parameters.opt_fastx_filter = optarg;
           break;
 
