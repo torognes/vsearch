@@ -2215,6 +2215,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_convert:
           opt_fastq_convert = optarg;
+          parameters.opt_fastq_convert = optarg;
           break;
 
         case option_fastq_asciiout:
@@ -5984,7 +5985,7 @@ auto main(int argc, char** argv) -> int
     {
       fastx_mask(parameters);
     }
-  else if (opt_fastq_convert != nullptr)
+  else if (parameters.opt_fastq_convert != nullptr)
     {
       fastq_convert();
     }
