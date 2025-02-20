@@ -4666,7 +4666,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if ((opt_allpairs_global != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or
       (opt_cluster_smallmem != nullptr) or (opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
-      (opt_fastx_mask != nullptr) or (opt_maskfasta != nullptr) or (opt_search_exact != nullptr) or (opt_sintax != nullptr) or
+      (opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (opt_search_exact != nullptr) or (opt_sintax != nullptr) or
       (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
     {
       if (parameters.opt_threads == 0)
@@ -5951,7 +5951,7 @@ auto main(int argc, char** argv) -> int
     {
       cmd_subsample(parameters);
     }
-  else if (opt_maskfasta != nullptr)
+  else if (parameters.opt_maskfasta != nullptr)
     {
       maskfasta(parameters);
     }

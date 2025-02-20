@@ -289,7 +289,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
       fatal("Unable to open mask output file for writing");
     }
 
-  db_read(opt_maskfasta, 0);
+  db_read(parameters.opt_maskfasta, 0);
   show_rusage();
 
   seqcount = db_getsequencecount();
