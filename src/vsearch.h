@@ -483,6 +483,7 @@ struct Parameters {
   char * opt_fastq_convert = nullptr;
   char * opt_fastq_filter = nullptr;
   char * opt_fastq_join = nullptr;
+  char * opt_fastq_mergepairs = nullptr;
   char * opt_fastq_stats = nullptr;
   char * opt_fastqout = nullptr;
   char * opt_fastqout_rev = nullptr;

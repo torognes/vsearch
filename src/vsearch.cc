@@ -2230,6 +2230,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_mergepairs:
           opt_fastq_mergepairs = optarg;
+          parameters.opt_fastq_mergepairs = optarg;
           break;
 
         case option_fastq_eeout:
@@ -4653,7 +4654,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     }
 
   if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
-      (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
+      (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
       (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (opt_sintax != nullptr) or
       (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
     {
@@ -5989,7 +5990,7 @@ auto main(int argc, char** argv) -> int
     {
       fastq_convert(parameters);
     }
-  else if (opt_fastq_mergepairs != nullptr)
+  else if (parameters.opt_fastq_mergepairs != nullptr)
     {
       cmd_fastq_mergepairs(parameters);
     }
