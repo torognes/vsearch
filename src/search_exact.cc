@@ -818,6 +818,7 @@ auto search_exact_done() -> void
   show_rusage();
 }
 
+
 auto search_exact(char * cmdline, char * progheader) -> void
 {
   search_exact_prep(cmdline, progheader);
