@@ -188,11 +188,13 @@ auto dust(char * seq, int len) -> void
     }
 }
 
+
 static pthread_t * pthread;
 static pthread_attr_t attr;
 static pthread_mutex_t mutex;
 static auto nextseq = 0;
 static auto seqcount = 0;
+
 
 auto dust_all_worker(void * vp) -> void *
 {
