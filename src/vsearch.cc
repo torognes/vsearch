@@ -1623,6 +1623,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_uc_allhits:
           opt_uc_allhits = 1;
+          parameters.opt_uc_allhits = true;
           break;
 
         case option_notrunclabels:
@@ -5910,6 +5911,7 @@ auto main(int argc, char** argv) -> int
       opt_strand = 1;
       parameters.opt_strand = false;
       opt_uc_allhits = 1;
+      parameters.opt_uc_allhits = true;
       cmd_allpairs_global(parameters);
     }
   else if (opt_usearch_global != nullptr)

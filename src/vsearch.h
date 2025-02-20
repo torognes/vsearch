@@ -560,6 +560,7 @@ struct Parameters {
   bool opt_sizeorder = false;
   bool opt_sizeout = false;
   bool opt_strand = false;
+  bool opt_uc_allhits = false;
   bool opt_version = false;
   bool opt_xee = false;
   bool opt_xlength = false;
