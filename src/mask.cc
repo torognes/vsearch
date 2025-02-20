@@ -292,11 +292,11 @@ auto maskfasta(struct Parameters const & parameters) -> void
 
   seqcount = db_getsequencecount();
 
-  if (opt_qmask == MASK_DUST)
+  if (parameters.opt_qmask == MASK_DUST)
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+  else if ((parameters.opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -353,11 +353,11 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   seqcount = db_getsequencecount();
 
-  if (opt_qmask == MASK_DUST)
+  if (parameters.opt_qmask == MASK_DUST)
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+  else if ((parameters.opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
     {
       hardmask_all();
     }
@@ -372,7 +372,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       auto unmasked = 0;
       auto * seq = db_getsequence(i);
       const int len = db_getsequencelen(i);
-      if (opt_qmask == MASK_NONE)
+      if (parameters.opt_qmask == MASK_NONE)
         {
           unmasked = len;
         }
