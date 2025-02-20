@@ -5987,7 +5987,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_convert != nullptr)
     {
-      fastq_convert();
+      fastq_convert(parameters);
     }
   else if (opt_fastq_mergepairs != nullptr)
     {

@@ -211,13 +211,13 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 }
 
 
-auto fastq_convert() -> void
+auto fastq_convert(struct Parameters const & parameters) -> void
 {
-  if (opt_fastqout == nullptr) {
+  if (parameters.opt_fastqout == nullptr) {
     fatal("No output file specified with --fastqout");
   }
 
-  auto * input_handle = fastq_open(opt_fastq_convert);
+  auto * input_handle = fastq_open(parameters.opt_fastq_convert);
 
   if (input_handle == nullptr)
     {
@@ -228,7 +228,7 @@ auto fastq_convert() -> void
 
   std::FILE * fp_fastqout = nullptr;
 
-  fp_fastqout = fopen_output(opt_fastqout);
+  fp_fastqout = fopen_output(parameters.opt_fastqout);
   if (fp_fastqout == nullptr)
     {
       fatal("Unable to open FASTQ output file for writing");
@@ -255,34 +255,34 @@ auto fastq_convert() -> void
       auto * quality = fastq_get_quality(input_handle);
       for (uint64_t i = 0; i < length; i++)
         {
-          int q = quality[i] - opt_fastq_ascii;
-          if (q < opt_fastq_qmin)
+          int q = quality[i] - parameters.opt_fastq_ascii;
+          if (q < parameters.opt_fastq_qmin)
             {
               fprintf(stderr,
                       "\nFASTQ quality score (%d) below minimum (%" PRId64
                       ") in entry no %" PRIu64
                       " starting on line %" PRIu64 "\n",
                       q,
-                      opt_fastq_qmin,
+                      parameters.opt_fastq_qmin,
                       fastq_get_seqno(input_handle) + 1,
                       fastq_get_lineno(input_handle));
               fatal("FASTQ quality score too low");
             }
-          if (q > opt_fastq_qmax)
+          if (q > parameters.opt_fastq_qmax)
             {
               fprintf(stderr,
                       "\nFASTQ quality score (%d) above maximum (%" PRId64
                       ") in entry no %" PRIu64
                       " starting on line %" PRIu64 "\n",
                       q,
-                      opt_fastq_qmax,
+                      parameters.opt_fastq_qmax,
                       fastq_get_seqno(input_handle) + 1,
                       fastq_get_lineno(input_handle));
               fatal("FASTQ quality score too high");
             }
-          q = std::max<int64_t>(q, opt_fastq_qminout);
-          q = std::min<int64_t>(q, opt_fastq_qmaxout);
-          q += opt_fastq_asciiout;
+          q = std::max<int64_t>(q, parameters.opt_fastq_qminout);
+          q = std::min<int64_t>(q, parameters.opt_fastq_qmaxout);
+          q += parameters.opt_fastq_asciiout;
           q = std::max(q, 33);
           q = std::min(q, 126);
           quality[i] = q;
