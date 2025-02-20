@@ -491,6 +491,7 @@ struct Parameters {
   char * opt_fastqout_discarded_rev = nullptr;
   char * opt_fastx_filter = nullptr;
   char * opt_fastx_mask = nullptr;
+  char * opt_fastx_revcomp = nullptr;
   char * opt_fastx_subsample = nullptr;
   char * opt_fastx_uniques = nullptr;
   std::string opt_join_padgap = default_sequence_padding;

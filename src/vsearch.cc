@@ -2164,6 +2164,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastx_revcomp:
           opt_fastx_revcomp = optarg;
+          parameters.opt_fastx_revcomp = optarg;
           break;
 
         case option_label_suffix:
@@ -5975,7 +5976,7 @@ auto main(int argc, char** argv) -> int
     {
       fastx_filter(parameters);
     }
-  else if (opt_fastx_revcomp != nullptr)
+  else if (parameters.opt_fastx_revcomp != nullptr)
     {
       fastx_revcomp();
     }
