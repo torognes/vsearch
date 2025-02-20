@@ -340,7 +340,6 @@ extern double opt_maxqt;
 extern double opt_maxsizeratio;
 extern double opt_maxsl;
 extern double opt_mid;
-extern double opt_min_unmasked_pct;
 extern double opt_mindiv;
 extern double opt_minh;
 extern double opt_minqt;

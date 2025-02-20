@@ -235,7 +235,6 @@ double opt_maxqt;
 double opt_maxsizeratio;
 double opt_maxsl;
 double opt_mid;
-double opt_min_unmasked_pct;
 double opt_mindiv;
 double opt_minh;
 double opt_minqt;
@@ -912,7 +911,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_maxsubs = int_max;
   opt_maxuniquesize = int64_max;
   opt_mid = 0.0;
-  opt_min_unmasked_pct = 0.0;
   opt_mincols = 0;
   opt_mindiffs = 3;
   opt_mindiv = 0.8;
@@ -2215,7 +2213,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_min_unmasked_pct:
-          opt_min_unmasked_pct = args_getdouble(optarg);
           parameters.opt_min_unmasked_pct = args_getdouble(optarg);
           break;
 
