@@ -293,7 +293,6 @@ extern char * opt_label_field;
 extern char * opt_lcaout;
 extern char * opt_log;
 extern char * opt_makeudb_usearch;
-extern char * opt_maskfasta;
 extern char * opt_matched;
 extern char * opt_mothur_shared_out;
 extern char * opt_msaout;
