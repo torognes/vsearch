@@ -466,6 +466,10 @@ struct Parameters {
   std::string prog_header;
   std::string command_line;
   char * opt_allpairs_global = nullptr;
+  char * opt_cluster_fast = nullptr;
+  char * opt_cluster_size = nullptr;
+  char * opt_cluster_smallmem = nullptr;
+  char * opt_cluster_unoise = nullptr;
   char * opt_cut = nullptr;
   std::string opt_cut_pattern;
   char * opt_db = nullptr;

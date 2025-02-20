@@ -1892,10 +1892,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_cluster_smallmem:
           opt_cluster_smallmem = optarg;
+          parameters.opt_cluster_smallmem = optarg;
           break;
 
         case option_cluster_fast:
           opt_cluster_fast = optarg;
+          parameters.opt_cluster_fast = optarg;
           break;
 
         case option_centroids:
@@ -2009,6 +2011,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_cluster_size:
           opt_cluster_size = optarg;
+          parameters.opt_cluster_size = optarg;
           break;
 
         case option_samout:
@@ -2404,6 +2407,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_cluster_unoise:
           opt_cluster_unoise = optarg;
+          parameters.opt_cluster_unoise = optarg;
           break;
 
         case option_unoise_alpha:
@@ -4657,8 +4661,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --threads must be in the range 0 (default) to 1024");
     }
 
-  if ((parameters.opt_allpairs_global != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or
-      (opt_cluster_smallmem != nullptr) or (opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
+  if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
+      (parameters.opt_cluster_smallmem != nullptr) or (opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
       (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (opt_search_exact != nullptr) or (opt_sintax != nullptr) or
       (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
     {
@@ -4694,7 +4698,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (opt_maxrejects == -1)
     {
-      if (opt_cluster_fast != nullptr)
+      if (parameters.opt_cluster_fast != nullptr)
         {
           opt_maxrejects = 8;
         }
@@ -4988,9 +4992,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (parameters.opt_minseqlength < 0)
     {
-      if ((opt_cluster_fast != nullptr) or
-          (opt_cluster_size != nullptr) or
-          (opt_cluster_smallmem != nullptr) or
+      if ((parameters.opt_cluster_fast != nullptr) or
+          (parameters.opt_cluster_size != nullptr) or
+          (parameters.opt_cluster_smallmem != nullptr) or
           (opt_cluster_unoise != nullptr) or
           (parameters.opt_derep_fulllength != nullptr) or
           (parameters.opt_derep_id != nullptr) or
@@ -5724,15 +5728,15 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
         }
     }
 
-  if (opt_cluster_fast != nullptr)
+  if (parameters.opt_cluster_fast != nullptr)
     {
       cluster_fast(cmdline, prog_header.data());
     }
-  else if (opt_cluster_smallmem != nullptr)
+  else if (parameters.opt_cluster_smallmem != nullptr)
     {
       cluster_smallmem(cmdline, prog_header.data());
     }
-  else if (opt_cluster_size != nullptr)
+  else if (parameters.opt_cluster_size != nullptr)
     {
       cluster_size(cmdline, prog_header.data());
     }
@@ -5949,7 +5953,7 @@ auto main(int argc, char** argv) -> int
     {
       maskfasta(parameters);
     }
-  else if ((opt_cluster_smallmem != nullptr) or (opt_cluster_fast != nullptr) or (opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
+  else if ((parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
     {
       cmd_cluster(parameters);
     }
