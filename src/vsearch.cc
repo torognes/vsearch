@@ -2218,6 +2218,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_max_unmasked_pct:
           opt_max_unmasked_pct = args_getdouble(optarg);
+          parameters.opt_max_unmasked_pct = args_getdouble(optarg);
           break;
 
         case option_fastq_convert:
@@ -4796,12 +4797,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
     }
 
-  if ((opt_max_unmasked_pct < 0.0) and (opt_max_unmasked_pct > 100.0))
+  if ((parameters.opt_max_unmasked_pct < 0.0) and (parameters.opt_max_unmasked_pct > 100.0))
     {
       fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
     }
 
-  if (parameters.opt_min_unmasked_pct > opt_max_unmasked_pct)
+  if (parameters.opt_min_unmasked_pct > parameters.opt_max_unmasked_pct)
     {
       fatal("The argument to --min_unmasked_pct cannot be larger than --max_unmasked_pct");
     }
