@@ -5907,6 +5907,8 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_allpairs_global != nullptr)
     {
+      opt_strand = 1;
+      parameters.opt_strand = false;
       cmd_allpairs_global(parameters);
     }
   else if (opt_usearch_global != nullptr)

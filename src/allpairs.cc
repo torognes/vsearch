@@ -575,7 +575,6 @@ auto allpairs_thread_worker_run() -> void
 
 auto allpairs_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
 {
-  opt_strand = 1;
   opt_uc_allhits = 1;
 
   /* open output files */
