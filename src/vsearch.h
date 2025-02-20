@@ -492,6 +492,7 @@ struct Parameters {
   char * opt_fastqout_rev = nullptr;
   char * opt_fastqout_discarded = nullptr;
   char * opt_fastqout_discarded_rev = nullptr;
+  char * opt_fastx_filter = nullptr;
   char * opt_fastx_mask = nullptr;
   char * opt_fastx_subsample = nullptr;
   char * opt_fastx_uniques = nullptr;

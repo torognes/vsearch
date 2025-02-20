@@ -2351,6 +2351,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastx_filter:
           opt_fastx_filter = optarg;
+          parameters.opt_fastx_filter = optarg;
           break;
 
         case option_otutabout:
@@ -5974,7 +5975,7 @@ auto main(int argc, char** argv) -> int
     {
       fastq_filter();
     }
-  else if (opt_fastx_filter != nullptr)
+  else if (parameters.opt_fastx_filter != nullptr)
     {
       fastx_filter();
     }
