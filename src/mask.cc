@@ -404,7 +404,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         {
           ++discarded_less;
         }
-      else if (unmasked_pct >  opt_max_unmasked_pct)
+      else if (unmasked_pct >  parameters.opt_max_unmasked_pct)
         {
           ++discarded_more;
         }
@@ -412,7 +412,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         {
           ++kept;
 
-          if (opt_fastaout != nullptr)
+          if (parameters.opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -426,7 +426,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                                   -1, -1, nullptr, 0.0);
             }
 
-          if (opt_fastqout != nullptr)
+          if (parameters.opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   seq,
@@ -450,9 +450,9 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         {
           fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
-      if (opt_max_unmasked_pct < 100.0)
+      if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          fprintf(stderr, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, opt_max_unmasked_pct);
+          fprintf(stderr, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
         }
       fprintf(stderr, "%d sequences kept\n", kept);
     }
@@ -463,9 +463,9 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         {
           fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
-      if (opt_max_unmasked_pct < 100.0)
+      if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, opt_max_unmasked_pct);
+          fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
         }
       fprintf(fp_log, "%d sequences kept\n", kept);
     }
