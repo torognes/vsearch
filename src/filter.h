@@ -58,5 +58,5 @@
 
 */
 
-auto fastq_filter() -> void;
-auto fastx_filter() -> void;
+auto fastq_filter(struct Parameters const & parameters) -> void;
+auto fastx_filter(struct Parameters const & parameters) -> void;

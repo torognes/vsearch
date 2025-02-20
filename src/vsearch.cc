@@ -5973,11 +5973,11 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_filter != nullptr)
     {
-      fastq_filter();
+      fastq_filter(parameters);
     }
   else if (parameters.opt_fastx_filter != nullptr)
     {
-      fastx_filter();
+      fastx_filter(parameters);
     }
   else if (opt_fastx_revcomp != nullptr)
     {

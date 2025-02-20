@@ -661,13 +661,13 @@ auto filter(bool const fastq_only, char * filename) -> void
 }
 
 
-auto fastq_filter() -> void
+auto fastq_filter(struct Parameters const & parameters) -> void
 {
-  filter(true, opt_fastq_filter);
+  filter(true, parameters.opt_fastq_filter);
 }
 
 
-auto fastx_filter() -> void
+auto fastx_filter(struct Parameters const & parameters) -> void
 {
-  filter(false, opt_fastx_filter);
+  filter(false, parameters.opt_fastx_filter);
 }
