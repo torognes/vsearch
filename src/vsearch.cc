@@ -1848,6 +1848,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_maskfasta:
           opt_maskfasta = optarg;
+          parameters.opt_maskfasta = optarg;
           break;
 
         case option_hardmask:
