@@ -5978,7 +5978,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastx_revcomp != nullptr)
     {
-      fastx_revcomp();
+      fastx_revcomp(parameters);
     }
   else if (opt_search_exact != nullptr)
     {

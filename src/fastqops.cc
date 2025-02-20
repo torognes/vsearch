@@ -70,24 +70,24 @@
 constexpr auto initial_memory_allocation = 512;
 
 
-auto fastx_revcomp() -> void
+auto fastx_revcomp(struct Parameters const & parameters) -> void
 {
   uint64_t buffer_alloc = initial_memory_allocation;
   std::vector<char> seq_buffer(buffer_alloc);
   std::vector<char> qual_buffer(buffer_alloc);
 
-  if ((opt_fastaout == nullptr) && (opt_fastqout == nullptr)) {
+  if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
     fatal("No output files specified");
   }
 
-  auto * input_handle = fastx_open(opt_fastx_revcomp);
+  auto * input_handle = fastx_open(parameters.opt_fastx_revcomp);
 
   if (input_handle == nullptr)
     {
       fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
     }
 
-  if ((opt_fastqout != nullptr) && ! (input_handle->is_fastq || input_handle->is_empty))
+  if ((parameters.opt_fastqout != nullptr) && ! (input_handle->is_fastq || input_handle->is_empty))
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -97,18 +97,18 @@ auto fastx_revcomp() -> void
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if (opt_fastaout != nullptr)
+  if (parameters.opt_fastaout != nullptr)
     {
-      fp_fastaout = fopen_output(opt_fastaout);
+      fp_fastaout = fopen_output(parameters.opt_fastaout);
       if (fp_fastaout == nullptr)
         {
           fatal("Unable to open FASTA output file for writing");
         }
     }
 
-  if (opt_fastqout != nullptr)
+  if (parameters.opt_fastqout != nullptr)
     {
-      fp_fastqout = fopen_output(opt_fastqout);
+      fp_fastqout = fopen_output(parameters.opt_fastqout);
       if (fp_fastqout == nullptr)
         {
           fatal("Unable to open FASTQ output file for writing");
@@ -166,7 +166,7 @@ auto fastx_revcomp() -> void
           qual_buffer[length] = 0;
         }
 
-      if (opt_fastaout != nullptr)
+      if (parameters.opt_fastaout != nullptr)
         {
           fasta_print_general(fp_fastaout,
                               nullptr,
@@ -180,7 +180,7 @@ auto fastx_revcomp() -> void
                               -1, -1, nullptr, 0.0);
         }
 
-      if (opt_fastqout != nullptr)
+      if (parameters.opt_fastqout != nullptr)
         {
           fastq_print_general(fp_fastqout,
                               seq_buffer.data(),
@@ -197,12 +197,12 @@ auto fastx_revcomp() -> void
     }
   progress_done();
 
-  if (opt_fastaout != nullptr)
+  if (parameters.opt_fastaout != nullptr)
     {
       fclose(fp_fastaout);
     }
 
-  if (opt_fastqout != nullptr)
+  if (parameters.opt_fastqout != nullptr)
     {
       fclose(fp_fastqout);
     }
