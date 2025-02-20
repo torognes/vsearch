@@ -5808,7 +5808,7 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
   if (opt_fastq_maxdiffs < 0) {
     fatal("Argument to --fastq_maxdiffs must be positive");
   }
-  fastq_mergepairs();
+  fastq_mergepairs(parameters);
 }
 
 

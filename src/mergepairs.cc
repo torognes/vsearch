@@ -1575,7 +1575,7 @@ auto print_stats(std::FILE * output_handle) -> void
 }
 
 
-auto fastq_mergepairs() -> void
+auto fastq_mergepairs(struct Parameters const & parameters) -> void
 {
   /* fatal error if specified overlap is too small */
 
@@ -1594,7 +1594,7 @@ auto fastq_mergepairs() -> void
 
   /* open input files */
 
-  fastq_fwd = fastq_open(opt_fastq_mergepairs);
+  fastq_fwd = fastq_open(parameters.opt_fastq_mergepairs);
   fastq_rev = fastq_open(opt_reverse);
 
   /* open output files */

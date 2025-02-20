@@ -58,4 +58,4 @@
 
 */
 
-auto fastq_mergepairs() -> void;
+auto fastq_mergepairs(struct Parameters const & parameters) -> void;
