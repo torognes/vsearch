@@ -2090,6 +2090,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_filter:
           opt_fastq_filter = optarg;
+          parameters.opt_fastq_filter = optarg;
           break;
 
         case option_fastqout:
@@ -5969,7 +5970,7 @@ auto main(int argc, char** argv) -> int
     {
       fastq_stats(parameters);
     }
-  else if (opt_fastq_filter != nullptr)
+  else if (parameters.opt_fastq_filter != nullptr)
     {
       fastq_filter();
     }
