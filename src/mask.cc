@@ -345,7 +345,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         }
     }
 
-  db_read(opt_fastx_mask, 0);
+  db_read(parameters.opt_fastx_mask, 0);
   show_rusage();
 
   if ((fp_fastqout != nullptr) && ! db_is_fastq())
