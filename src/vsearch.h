@@ -507,6 +507,7 @@ struct Parameters {
   char * opt_uc = nullptr;
   char * progname = nullptr;
   std::FILE * fp_log = nullptr;
+  double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
   int64_t opt_fastq_ascii = default_ascii_offset;
   int64_t opt_fastq_asciiout = default_ascii_offset;
