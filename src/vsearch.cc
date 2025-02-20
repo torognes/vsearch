@@ -4662,7 +4662,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     }
 
   if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
-      (parameters.opt_cluster_smallmem != nullptr) or (opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
+      (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (opt_fastq_mergepairs != nullptr) or
       (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (opt_search_exact != nullptr) or (opt_sintax != nullptr) or
       (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
     {
@@ -4686,7 +4686,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
 
-  if (opt_cluster_unoise != nullptr)
+  if (parameters.opt_cluster_unoise != nullptr)
     {
       opt_weak_id = 0.90;
     }
@@ -4959,7 +4959,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* set default opt_minsize depending on command */
   if (parameters.opt_minsize == 0)
     {
-      if (opt_cluster_unoise != nullptr)
+      if (parameters.opt_cluster_unoise != nullptr)
         {
           opt_minsize = 8;
           parameters.opt_minsize = 8;
@@ -4995,7 +4995,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       if ((parameters.opt_cluster_fast != nullptr) or
           (parameters.opt_cluster_size != nullptr) or
           (parameters.opt_cluster_smallmem != nullptr) or
-          (opt_cluster_unoise != nullptr) or
+          (parameters.opt_cluster_unoise != nullptr) or
           (parameters.opt_derep_fulllength != nullptr) or
           (parameters.opt_derep_id != nullptr) or
           (parameters.opt_derep_prefix != nullptr) or
@@ -5720,7 +5720,7 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  if (opt_cluster_unoise == nullptr)
+  if (parameters.opt_cluster_unoise == nullptr)
     {
       if ((opt_id < 0.0) or (opt_id > 1.0))
         {
@@ -5740,7 +5740,7 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
     {
       cluster_size(cmdline, prog_header.data());
     }
-  else if (opt_cluster_unoise != nullptr)
+  else if (parameters.opt_cluster_unoise != nullptr)
     {
       cluster_unoise(cmdline, prog_header.data());
     }
@@ -5953,7 +5953,7 @@ auto main(int argc, char** argv) -> int
     {
       maskfasta(parameters);
     }
-  else if ((parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
+  else if ((parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
     {
       cmd_cluster(parameters);
     }
