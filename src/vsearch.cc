@@ -229,7 +229,6 @@ double opt_fastq_maxee_rate;
 double opt_fastq_truncee;
 double opt_id;
 double opt_lca_cutoff;
-double opt_max_unmasked_pct;
 double opt_maxid;
 double opt_maxqt;
 double opt_maxsizeratio;
@@ -895,7 +894,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_makeudb_usearch = nullptr;
   opt_match = 2;
   opt_matched = nullptr;
-  opt_max_unmasked_pct = 100.0;
   opt_maxaccepts = 1;
   opt_maxdiffs = int_max;
   opt_maxgaps = int_max;
@@ -2217,7 +2215,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_max_unmasked_pct:
-          opt_max_unmasked_pct = args_getdouble(optarg);
           parameters.opt_max_unmasked_pct = args_getdouble(optarg);
           break;
 
