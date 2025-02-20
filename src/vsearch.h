@@ -304,7 +304,6 @@ extern char * opt_relabel;
 extern char * opt_reverse;
 extern char * opt_samout;
 extern char * opt_sample;
-extern char * opt_search_exact;
 extern char * opt_sintax;
 extern char * opt_tabbedout;
 extern char * opt_tsegout;

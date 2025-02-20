@@ -200,7 +200,6 @@ char * opt_relabel;
 char * opt_reverse;
 char * opt_samout;
 char * opt_sample;
-char * opt_search_exact;
 char * opt_sintax;
 char * opt_tabbedout;
 char * opt_tsegout;
@@ -947,7 +946,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_sample = nullptr;
   opt_sample_pct = 0;
   opt_sample_size = 0;
-  opt_search_exact = nullptr;
   opt_self = 0;
   opt_selfid = 0;
   opt_sintax = nullptr;
@@ -2200,7 +2198,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_search_exact:
-          opt_search_exact = optarg;
           parameters.opt_search_exact = optarg;
           break;
 
