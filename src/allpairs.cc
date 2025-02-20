@@ -670,15 +670,15 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
         }
     }
 
-  db_read(opt_allpairs_global, 0);
+  db_read(parameters.opt_allpairs_global, 0);
 
-  results_show_samheader(fp_samout, cmdline, opt_allpairs_global);
+  results_show_samheader(fp_samout, cmdline, parameters.opt_allpairs_global);
 
-  if (opt_qmask == MASK_DUST)
+  if (parameters.opt_qmask == MASK_DUST)
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) and parameters.opt_hardmask)
+  else if ((parameters.opt_qmask == MASK_SOFT) and parameters.opt_hardmask)
     {
       hardmask_all();
     }
@@ -691,7 +691,7 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
   qmatches = 0;
   queries = 0;
 
-  std::vector<pthread_t> pthread_v(opt_threads);
+  std::vector<pthread_t> pthread_v(parameters.opt_threads);
   pthread = pthread_v.data();
 
   /* init mutexes for input and output */
@@ -703,7 +703,7 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
   allpairs_thread_worker_run();
   progress_done();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       fprintf(stderr, "Matching query sequences: %d of %d",
               qmatches, queries);
@@ -714,7 +714,7 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
       fprintf(stderr, "\n");
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       fprintf(fp_log, "Matching query sequences: %d of %d",
               qmatches, queries);
