@@ -256,6 +256,8 @@ auto dust_all() -> void
 auto hardmask(char * seq, int len) -> void
 {
   /* convert all lower case letters in seq to N */
+  // auto const * const end = std::next(seq, len);
+  // refactoring: std::transform(seq, end, seq, [](unsigned char nuc){ if (std::islower(nuc) != 0) { return hardmask_char; } return nuc;});
   static constexpr auto check_5th_bit = 32U; // 0x20
   static constexpr auto hardmask_char = 'N';
   for (auto i = 0; i < len; i++)
