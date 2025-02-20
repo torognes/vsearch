@@ -1852,6 +1852,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_hardmask:
           opt_hardmask = 1;
+          parameters.opt_hardmask = true;
           break;
 
         case option_qmask:

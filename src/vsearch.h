@@ -536,6 +536,7 @@ struct Parameters {
   bool opt_fastq_nostagger = true;
   bool opt_fastq_qout_max = false;
   bool opt_gzip_decompress = false;
+  bool opt_hardmask = false;
   bool opt_label_substr_match = false;
   bool opt_lengthout = false;
   bool opt_no_progress = false;
