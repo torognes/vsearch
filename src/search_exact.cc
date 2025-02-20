@@ -820,8 +820,6 @@ auto search_exact_done() -> void
 
 auto search_exact(char * cmdline, char * progheader) -> void
 {
-  opt_id = 1.0;
-
   search_exact_prep(cmdline, progheader);
 
   otutable_init();

@@ -5979,6 +5979,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (opt_search_exact != nullptr)
     {
+      opt_id = 1.0;
       cmd_search_exact(parameters);
     }
   else if (parameters.opt_fastx_mask != nullptr)
