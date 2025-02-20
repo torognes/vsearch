@@ -465,6 +465,7 @@ std::string const default_sequence_padding = "NNNNNNNN";
 struct Parameters {
   std::string prog_header;
   std::string command_line;
+  char * opt_allpairs_global = nullptr;
   char * opt_cut = nullptr;
   std::string opt_cut_pattern;
   char * opt_db = nullptr;
