@@ -5909,6 +5909,7 @@ auto main(int argc, char** argv) -> int
     {
       opt_strand = 1;
       parameters.opt_strand = false;
+      opt_uc_allhits = 1;
       cmd_allpairs_global(parameters);
     }
   else if (opt_usearch_global != nullptr)
