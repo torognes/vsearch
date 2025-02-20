@@ -5584,7 +5584,7 @@ auto cmd_allpairs_global(struct Parameters const & parameters) -> void
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
 
-  allpairs_global(cmdline, prog_header.data());
+  allpairs_global(parameters, cmdline, prog_header.data());
 }
 
 

@@ -573,7 +573,7 @@ auto allpairs_thread_worker_run() -> void
 }
 
 
-auto allpairs_global(char * cmdline, char * progheader) -> void
+auto allpairs_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
 {
   opt_strand = 1;
   opt_uc_allhits = 1;
@@ -681,7 +681,7 @@ auto allpairs_global(char * cmdline, char * progheader) -> void
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask != 0))
+  else if ((opt_qmask == MASK_SOFT) and parameters.opt_hardmask)
     {
       hardmask_all();
     }
