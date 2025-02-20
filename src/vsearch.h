@@ -279,7 +279,6 @@ extern char * opt_fastqout_notmerged_rev;
 extern char * opt_fastx_getseq;
 extern char * opt_fastx_getseqs;
 extern char * opt_fastx_getsubseq;
-extern char * opt_fastx_revcomp;
 extern char * opt_label;
 extern char * opt_label_suffix;
 extern char * opt_labels;
