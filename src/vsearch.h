@@ -412,7 +412,7 @@ extern int64_t opt_rowlen;
 extern int64_t opt_sample_size;
 extern int64_t opt_self;
 extern int64_t opt_selfid;
-extern int64_t opt_strand;
+extern int64_t opt_strand;  // used in pthread functions
 extern int64_t opt_subseq_start;
 extern int64_t opt_subseq_end;
 extern int64_t opt_threads;
