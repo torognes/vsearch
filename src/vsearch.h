@@ -489,6 +489,7 @@ struct Parameters {
   char * opt_fastx_uniques = nullptr;
   std::string opt_join_padgap = default_sequence_padding;
   std::string opt_join_padgapq = default_quality_padding;
+  char * opt_label_suffix = nullptr;
   char * opt_log = nullptr;
   char * opt_makeudb_usearch = nullptr;
   char * opt_maskfasta = nullptr;
@@ -497,6 +498,7 @@ struct Parameters {
   char * opt_relabel = nullptr;
   char * opt_rereplicate = nullptr;
   char * opt_reverse = nullptr;
+  char * opt_sample = nullptr;
   char * opt_search_exact = nullptr;
   char * opt_sff_convert = nullptr;
   char * opt_shuffle = nullptr;

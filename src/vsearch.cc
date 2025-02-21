@@ -2140,6 +2140,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_label_suffix:
           opt_label_suffix = optarg;
+          parameters.opt_label_suffix = optarg;
           break;
 
         case option_h:
@@ -2546,6 +2547,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_sample:
           opt_sample = optarg;
+          parameters.opt_sample = optarg;
           break;
 
         case option_qsegout:
