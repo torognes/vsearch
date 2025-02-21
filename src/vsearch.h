@@ -494,6 +494,7 @@ struct Parameters {
   std::string opt_join_padgap = default_sequence_padding;
   std::string opt_join_padgapq = default_quality_padding;
   char * opt_log = nullptr;
+  char * opt_makeudb_usearch = nullptr;
   char * opt_maskfasta = nullptr;
   char * opt_orient = nullptr;
   char * opt_output = nullptr;
@@ -512,6 +513,9 @@ struct Parameters {
   char * opt_uchime3_denovo = nullptr;
   char * opt_uchime_denovo = nullptr;
   char * opt_uchime_ref = nullptr;
+  char * opt_udb2fasta = nullptr;
+  char * opt_udbinfo = nullptr;
+  char * opt_udbstats = nullptr;
   char * opt_usearch_global = nullptr;
   char * progname = nullptr;  // refactoring: unused?
   std::FILE * fp_log = nullptr;

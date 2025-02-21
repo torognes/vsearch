@@ -2366,18 +2366,22 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_makeudb_usearch:
           opt_makeudb_usearch = optarg;
+          parameters.opt_makeudb_usearch = optarg;
           break;
 
         case option_udb2fasta:
           opt_udb2fasta = optarg;
+          parameters.opt_udb2fasta = optarg;
           break;
 
         case option_udbinfo:
           opt_udbinfo = optarg;
+          parameters.opt_udbinfo = optarg;
           break;
 
         case option_udbstats:
           opt_udbstats = optarg;
+          parameters.opt_udbstats = optarg;
           break;
 
         case option_cluster_unoise:
@@ -4977,7 +4981,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           (parameters.opt_derep_fulllength != nullptr) or
           (parameters.opt_derep_id != nullptr) or
           (parameters.opt_derep_prefix != nullptr) or
-          (opt_makeudb_usearch != nullptr) or
+          (parameters.opt_makeudb_usearch != nullptr) or
           (parameters.opt_sintax != nullptr) or
           (parameters.opt_usearch_global != nullptr))
         {
@@ -6006,19 +6010,19 @@ auto main(int argc, char** argv) -> int
     {
       cmd_version(parameters);
     }
-  else if (opt_makeudb_usearch != nullptr)
+  else if (parameters.opt_makeudb_usearch != nullptr)
     {
       udb_make();
     }
-  else if (opt_udb2fasta != nullptr)
+  else if (parameters.opt_udb2fasta != nullptr)
     {
       udb_fasta();
     }
-  else if (opt_udbinfo != nullptr)
+  else if (parameters.opt_udbinfo != nullptr)
     {
       udb_info();
     }
-  else if (opt_udbstats != nullptr)
+  else if (parameters.opt_udbstats != nullptr)
     {
       udb_stats();
     }
