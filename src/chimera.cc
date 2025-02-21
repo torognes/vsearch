@@ -2318,7 +2318,7 @@ auto chimera(struct Parameters const & parameters) -> void
   opt_maxrejects = rejects;
   opt_id = chimera_id;
 
-  if (opt_strand != 1)
+  if (parameters.opt_strand)
     {
       fatal("Only --strand plus is allowed with uchime_ref.");
     }
