@@ -478,6 +478,8 @@ struct Parameters {
   char * opt_fastaout_discarded_rev = nullptr;
   char * opt_fastq_chars = nullptr;
   char * opt_fastq_convert = nullptr;
+  char * opt_fastq_eestats2 = nullptr;
+  char * opt_fastq_eestats = nullptr;
   char * opt_fastq_filter = nullptr;
   char * opt_fastq_join = nullptr;
   char * opt_fastq_mergepairs = nullptr;

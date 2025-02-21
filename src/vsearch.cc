@@ -2289,6 +2289,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_eestats:
           opt_fastq_eestats = optarg;
+          parameters.opt_fastq_eestats = optarg;
           break;
 
         case option_rereplicate:
@@ -2364,6 +2365,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_eestats2:
           opt_fastq_eestats2 = optarg;
+          parameters.opt_fastq_eestats2 = optarg;
           break;
 
         case option_ee_cutoffs:
@@ -5990,11 +5992,11 @@ auto main(int argc, char** argv) -> int
     {
       cmd_fastq_mergepairs(parameters);
     }
-  else if (opt_fastq_eestats != nullptr)
+  else if (parameters.opt_fastq_eestats != nullptr)
     {
       fastq_eestats();
     }
-  else if (opt_fastq_eestats2 != nullptr)
+  else if (parameters.opt_fastq_eestats2 != nullptr)
     {
       fastq_eestats2();
     }
