@@ -508,7 +508,8 @@ struct Parameters {
   char * opt_sortbysize = nullptr;
   char * opt_tabbedout = nullptr;
   char * opt_uc = nullptr;
-  char * progname = nullptr;
+  char * opt_usearch_global = nullptr;
+  char * progname = nullptr;  // refactoring: unused?
   std::FILE * fp_log = nullptr;
   double opt_max_unmasked_pct = 100.0;
   double opt_min_unmasked_pct = 0;

@@ -1515,6 +1515,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_usearch_global:
           opt_usearch_global = optarg;
+          parameters.opt_usearch_global = optarg;
           break;
 
         case option_db:
@@ -4653,7 +4654,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
       (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
       (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (opt_sintax != nullptr) or
-      (opt_uchime_ref != nullptr) or (opt_usearch_global != nullptr))
+      (opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
     {
       if (parameters.opt_threads == 0)
         {
@@ -4990,7 +4991,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           (parameters.opt_derep_prefix != nullptr) or
           (opt_makeudb_usearch != nullptr) or
           (opt_sintax != nullptr) or
-          (opt_usearch_global != nullptr))
+          (parameters.opt_usearch_global != nullptr))
         {
           opt_minseqlength = 32;
           parameters.opt_minseqlength = 32;
@@ -5906,7 +5907,7 @@ auto main(int argc, char** argv) -> int
       parameters.opt_uc_allhits = true;
       cmd_allpairs_global(parameters);
     }
-  else if (opt_usearch_global != nullptr)
+  else if (parameters.opt_usearch_global != nullptr)
     {
       cmd_usearch_global(parameters);
     }
