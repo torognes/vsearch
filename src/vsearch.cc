@@ -165,7 +165,6 @@ char * opt_fastapairs;
 char * opt_fastq_convert;
 char * opt_fastq_eestats2;
 char * opt_fastq_eestats;
-char * opt_fastq_mergepairs;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
 char * opt_fastqout_discarded_rev;
@@ -825,7 +824,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_maxlen = int64_max;
   opt_fastq_maxmergelen  = 1000000;
   opt_fastq_maxns = int64_max;
-  opt_fastq_mergepairs = nullptr;
   opt_fastq_minlen = 1;
   opt_fastq_minmergelen = 0;
   opt_fastq_minovlen = 10;
@@ -2229,7 +2227,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_mergepairs:
-          opt_fastq_mergepairs = optarg;
           parameters.opt_fastq_mergepairs = optarg;
           break;
 
