@@ -5784,7 +5784,7 @@ auto cmd_chimera(struct Parameters const & parameters) -> void
         }
     }
 
-  chimera();
+  chimera(parameters);
 }
 
 

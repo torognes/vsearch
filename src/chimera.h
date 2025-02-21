@@ -60,4 +60,4 @@
 
 constexpr auto maxparents = 20; /* max, could be fewer */
 
-auto chimera() -> void;
+auto chimera(struct Parameters const & parameters) -> void;
