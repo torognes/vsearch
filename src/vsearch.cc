@@ -189,7 +189,6 @@ char * opt_msaout;
 char * opt_nonchimeras;
 char * opt_notmatched;
 char * opt_notmatchedfq;
-char * opt_orient;
 char * opt_otutabout;
 char * opt_output;
 char * opt_pattern;
@@ -919,7 +918,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_notmatched = nullptr;
   opt_notmatched = nullptr;
   opt_notrunclabels = 0;
-  opt_orient = nullptr;
   opt_otutabout = nullptr;
   opt_output = nullptr;
   opt_output_no_hits = 0;
@@ -2543,7 +2541,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_orient:
-          opt_orient = optarg;
           parameters.opt_orient = optarg;
           break;
 
