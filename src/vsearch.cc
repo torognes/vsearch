@@ -177,7 +177,6 @@ char * opt_label_words;
 char * opt_labels;
 char * opt_lcaout;
 char * opt_log;
-char * opt_makeudb_usearch;
 char * opt_matched;
 char * opt_mothur_shared_out;
 char * opt_msaout;
@@ -202,9 +201,6 @@ char * opt_uchime_denovo;
 char * opt_uchime_ref;
 char * opt_uchimealns;
 char * opt_uchimeout;
-char * opt_udb2fasta;
-char * opt_udbinfo;
-char * opt_udbstats;
 char * opt_userout;
 double * opt_ee_cutoffs_values;
 double opt_abskew;
@@ -868,7 +864,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_length_cutoffs_shortest = 50;
   opt_lengthout = false;
   opt_log = nullptr;
-  opt_makeudb_usearch = nullptr;
   opt_match = 2;
   opt_matched = nullptr;
   opt_maxaccepts = 1;
@@ -956,9 +951,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_uchimealns = nullptr;
   opt_uchimeout = nullptr;
   opt_uchimeout5 = 0;
-  opt_udb2fasta = nullptr;
-  opt_udbinfo = nullptr;
-  opt_udbstats = nullptr;
   opt_unoise_alpha = 2.0;
   opt_userout = nullptr;
   opt_usersort = 0;
@@ -2365,22 +2357,18 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_makeudb_usearch:
-          opt_makeudb_usearch = optarg;
           parameters.opt_makeudb_usearch = optarg;
           break;
 
         case option_udb2fasta:
-          opt_udb2fasta = optarg;
           parameters.opt_udb2fasta = optarg;
           break;
 
         case option_udbinfo:
-          opt_udbinfo = optarg;
           parameters.opt_udbinfo = optarg;
           break;
 
         case option_udbstats:
-          opt_udbstats = optarg;
           parameters.opt_udbstats = optarg;
           break;
 
