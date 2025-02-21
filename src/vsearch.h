@@ -316,7 +316,6 @@ extern char * opt_uchimeout;
 extern char * opt_udb2fasta;
 extern char * opt_udbinfo;
 extern char * opt_udbstats;
-extern char * opt_usearch_global;
 extern char * opt_userout;
 extern double * opt_ee_cutoffs_values;
 extern double opt_abskew;

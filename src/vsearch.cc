@@ -212,7 +212,6 @@ char * opt_uchimeout;
 char * opt_udb2fasta;
 char * opt_udbinfo;
 char * opt_udbstats;
-char * opt_usearch_global;
 char * opt_userout;
 double * opt_ee_cutoffs_values;
 double opt_abskew;
@@ -975,7 +974,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_udbinfo = nullptr;
   opt_udbstats = nullptr;
   opt_unoise_alpha = 2.0;
-  opt_usearch_global = nullptr;
   opt_userout = nullptr;
   opt_usersort = 0;
   opt_weak_id = 10.0;
@@ -1514,7 +1512,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_usearch_global:
-          opt_usearch_global = optarg;
           parameters.opt_usearch_global = optarg;
           break;
 
