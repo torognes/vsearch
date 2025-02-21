@@ -6012,19 +6012,19 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_makeudb_usearch != nullptr)
     {
-      udb_make();
+      udb_make(parameters);
     }
   else if (parameters.opt_udb2fasta != nullptr)
     {
-      udb_fasta();
+      udb_fasta(parameters);
     }
   else if (parameters.opt_udbinfo != nullptr)
     {
-      udb_info();
+      udb_info(parameters);
     }
   else if (parameters.opt_udbstats != nullptr)
     {
-      udb_stats();
+      udb_stats(parameters);
     }
   else if (parameters.opt_sintax != nullptr)
     {

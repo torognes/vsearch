@@ -211,7 +211,7 @@ auto udb_detect_isudb(const char * filename) -> bool
 }
 
 
-auto udb_info() -> void
+auto udb_info(struct Parameters const & parameters) -> void
 {
   /* Read UDB header and show basic info */
 
@@ -219,7 +219,7 @@ auto udb_info() -> void
 
   int fd_udbinfo = 0;
 
-  fd_udbinfo = xopen_read(opt_udbinfo);
+  fd_udbinfo = xopen_read(parameters.opt_udbinfo);
   if (fd_udbinfo == 0)
     {
       fatal("Unable to open UDB file for reading");
@@ -611,7 +611,7 @@ auto udb_read(const char * filename,
 }
 
 
-auto udb_fasta() -> void
+auto udb_fasta(struct Parameters const & parameters) -> void
 {
   if (opt_output == nullptr) {
     fatal("FASTA output file must be specified with --output");
@@ -627,7 +627,7 @@ auto udb_fasta() -> void
 
   /* read UDB file */
 
-  udb_read(opt_udb2fasta, false, false);
+  udb_read(parameters.opt_udb2fasta, false, false);
 
   /* dump fasta */
 
@@ -646,13 +646,13 @@ auto udb_fasta() -> void
 }
 
 
-auto udb_stats() -> void
+auto udb_stats(struct Parameters const & parameters) -> void
 {
   /* show word statistics for an UDB file */
 
   /* read UDB file */
 
-  udb_read(opt_udbstats, false, false);
+  udb_read(parameters.opt_udbstats, false, false);
 
   /* analyze word counts */
 
@@ -875,7 +875,7 @@ auto udb_stats() -> void
 }
 
 
-auto udb_make() -> void
+auto udb_make(struct Parameters const & parameters) -> void
 {
   if (opt_output == nullptr) {
     fatal("UDB output file must be specified with --output");
@@ -889,7 +889,7 @@ auto udb_make() -> void
       fatal("Unable to open output file for writing");
     }
 
-  db_read(opt_makeudb_usearch, 1);
+  db_read(parameters.opt_makeudb_usearch, 1);
 
   if (opt_dbmask == MASK_DUST)
     {
