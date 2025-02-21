@@ -435,6 +435,7 @@ extern int64_t avx2_present;
 
 extern std::FILE * fp_log;
 
+constexpr int64_t default_fasta_width = 80;
 constexpr int64_t default_maxseqlength = 50000;
 constexpr int64_t default_ascii_offset = 33;
 constexpr char alternative_ascii_offset = 64;
@@ -520,6 +521,7 @@ struct Parameters {
   double opt_max_unmasked_pct = 100.0;
   double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
+  int64_t opt_fasta_width = default_fasta_width;
   int64_t opt_fastq_ascii = default_ascii_offset;
   int64_t opt_fastq_asciiout = default_ascii_offset;
   int64_t opt_fastq_qmax = default_max_quality;

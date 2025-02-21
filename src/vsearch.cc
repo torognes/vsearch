@@ -1709,6 +1709,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fasta_width:
           opt_fasta_width = args_getlong(optarg);
+          parameters.opt_fasta_width = args_getlong(optarg);
           break;
 
         case option_query_cov:
