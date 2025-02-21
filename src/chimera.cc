@@ -2301,7 +2301,7 @@ auto chimera(struct Parameters const & parameters) -> void
   open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
   open_chimera_file(&fp_borderline, opt_borderline);
 
-  if (opt_chimeras_denovo != nullptr)
+  if (parameters.opt_chimeras_denovo != nullptr)
     {
       open_chimera_file(&fp_uchimealns, opt_alnout);
       open_chimera_file(&fp_uchimeout, opt_tabbedout);
@@ -2394,9 +2394,9 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           denovo_dbname = parameters.opt_uchime3_denovo;
         }
-      else if (opt_chimeras_denovo != nullptr)
+      else if (parameters.opt_chimeras_denovo != nullptr)
         {
-          denovo_dbname = opt_chimeras_denovo;
+          denovo_dbname = parameters.opt_chimeras_denovo;
         }
       else {
         fatal("Internal error");
@@ -2464,7 +2464,7 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       if (total_count > 0)
         {
-          if (opt_chimeras_denovo != nullptr)
+          if (parameters.opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Found %d (%.1f%%) chimeras and "
@@ -2494,7 +2494,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
       else
         {
-          if (opt_chimeras_denovo != nullptr)
+          if (parameters.opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Found %d chimeras and "
@@ -2520,7 +2520,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (total_abundance > 0)
         {
-          if (opt_chimeras_denovo != nullptr)
+          if (parameters.opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Taking abundance information into account, "
@@ -2554,7 +2554,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
       else
         {
-          if (opt_chimeras_denovo != nullptr)
+          if (parameters.opt_chimeras_denovo != nullptr)
             {
               fprintf(stderr,
                       "Taking abundance information into account, "
