@@ -2594,6 +2594,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_chimeras_denovo:
           opt_chimeras_denovo = optarg;
+          parameters.opt_chimeras_denovo = optarg;
           break;
 
         case option_chimeras_length_min:
@@ -4899,7 +4900,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
     }
 
-  if (opt_chimeras_denovo != nullptr)
+  if (parameters.opt_chimeras_denovo != nullptr)
     {
       if (not options_selected[option_alignwidth])
         {
@@ -4965,7 +4966,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* set default opt_abskew depending on command */
   if (not options_selected[option_abskew])
     {
-      if (opt_chimeras_denovo != nullptr)
+      if (parameters.opt_chimeras_denovo != nullptr)
         {
           opt_abskew = 1.0;
         }
@@ -5952,7 +5953,7 @@ auto main(int argc, char** argv) -> int
     {
       cmd_cluster(parameters);
     }
-  else if ((parameters.opt_uchime_denovo != nullptr) or (parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime2_denovo != nullptr) or (parameters.opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
+  else if ((parameters.opt_uchime_denovo != nullptr) or (parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime2_denovo != nullptr) or (parameters.opt_uchime3_denovo != nullptr) or (parameters.opt_chimeras_denovo != nullptr))
     {
       cmd_chimera(parameters);
     }
