@@ -5994,11 +5994,11 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_eestats != nullptr)
     {
-      fastq_eestats();
+      fastq_eestats(parameters);
     }
   else if (parameters.opt_fastq_eestats2 != nullptr)
     {
-      fastq_eestats2();
+      fastq_eestats2(parameters);
     }
   else if (parameters.opt_fastq_join != nullptr)
     {

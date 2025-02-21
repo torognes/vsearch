@@ -58,5 +58,5 @@
 
 */
 
-auto fastq_eestats() -> void;
-auto fastq_eestats2() -> void;
+auto fastq_eestats(struct Parameters const & parameters) -> void;
+auto fastq_eestats2(struct Parameters const & parameters) -> void;

@@ -129,13 +129,13 @@ auto ee_start(int pos, int resolution) -> int64_t
 }
 
 
-auto fastq_eestats() -> void
+auto fastq_eestats(struct Parameters const & parameters) -> void
 {
   if (opt_output == nullptr) {
     fatal("Output file for fastq_eestats must be specified with --output");
   }
 
-  fastx_handle h = fastq_open(opt_fastq_eestats);
+  fastx_handle h = fastq_open(parameters.opt_fastq_eestats);
 
   uint64_t const filesize = fastq_get_size(h);
 
@@ -405,13 +405,13 @@ auto fastq_eestats() -> void
 }
 
 
-auto fastq_eestats2() -> void
+auto fastq_eestats2(struct Parameters const & parameters) -> void
 {
   if (opt_output == nullptr) {
     fatal("Output file for fastq_eestats2 must be specified with --output");
   }
 
-  fastx_handle h = fastq_open(opt_fastq_eestats2);
+  fastx_handle h = fastq_open(parameters.opt_fastq_eestats2);
 
   uint64_t const filesize = fastq_get_size(h);
 
