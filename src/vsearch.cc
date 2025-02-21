@@ -2413,6 +2413,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_sintax:
           opt_sintax = optarg;
+          parameters.opt_sintax = optarg;
           break;
 
         case option_sintax_cutoff:
@@ -4653,7 +4654,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
       (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
-      (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (opt_sintax != nullptr) or
+      (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (parameters.opt_sintax != nullptr) or
       (parameters.opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
     {
       if (parameters.opt_threads == 0)
@@ -4671,7 +4672,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       opt_threads = 1;
       parameters.opt_threads = 1;
     }
-  if ((opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
+  if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
     {
       fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
@@ -4990,7 +4991,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           (parameters.opt_derep_id != nullptr) or
           (parameters.opt_derep_prefix != nullptr) or
           (opt_makeudb_usearch != nullptr) or
-          (opt_sintax != nullptr) or
+          (parameters.opt_sintax != nullptr) or
           (parameters.opt_usearch_global != nullptr))
         {
           opt_minseqlength = 32;
@@ -5003,7 +5004,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         }
     }
 
-  if (opt_sintax != nullptr)
+  if (parameters.opt_sintax != nullptr)
     {
     opt_notrunclabels = 1;
     parameters.opt_notrunclabels = true;
@@ -6034,7 +6035,7 @@ auto main(int argc, char** argv) -> int
     {
       udb_stats();
     }
-  else if (opt_sintax != nullptr)
+  else if (parameters.opt_sintax != nullptr)
     {
       sintax();
     }

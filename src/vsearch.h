@@ -504,6 +504,7 @@ struct Parameters {
   char * opt_search_exact = nullptr;
   char * opt_sff_convert = nullptr;
   char * opt_shuffle = nullptr;
+  char * opt_sintax = nullptr;
   char * opt_sortbylength = nullptr;
   char * opt_sortbysize = nullptr;
   char * opt_tabbedout = nullptr;
