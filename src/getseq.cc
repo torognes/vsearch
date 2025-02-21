@@ -315,7 +315,7 @@ auto test_label_match(fastx_handle h) -> bool
 }
 
 
-auto getseq(char * filename) -> void
+auto getseq(struct Parameters const & parameters, char * filename) -> void
 {
   if ((opt_fastqout == nullptr) and (opt_fastaout == nullptr) and
       (opt_notmatched == nullptr) and (opt_notmatchedfq == nullptr))
@@ -323,14 +323,14 @@ auto getseq(char * filename) -> void
       fatal("No output files specified");
     }
 
-  if (opt_fastx_getseq != nullptr)
+  if (parameters.opt_fastx_getseq != nullptr)
     {
       if (opt_label == nullptr)
         {
           fatal("Missing label option");
         }
     }
-  else if (opt_fastx_getsubseq != nullptr)
+  else if (parameters.opt_fastx_getsubseq != nullptr)
     {
       if (opt_label == nullptr)
         {
@@ -347,7 +347,7 @@ auto getseq(char * filename) -> void
           fatal("The argument to option subseq_start must be equal or less than to subseq_end");
         }
     }
-  else if (opt_fastx_getseqs != nullptr)
+  else if (parameters.opt_fastx_getseqs != nullptr)
     {
       int label_options = 0;
       if (opt_label != nullptr)
@@ -451,7 +451,7 @@ auto getseq(char * filename) -> void
 
       int64_t start = 1;
       int64_t end = fastx_get_sequence_length(h1);
-      if (opt_fastx_getsubseq != nullptr)
+      if (parameters.opt_fastx_getsubseq != nullptr)
         {
           start = std::max(opt_subseq_start, start);
           end = std::min(opt_subseq_end, end);
@@ -597,17 +597,17 @@ auto getseq(char * filename) -> void
 
 auto fastx_getseq(struct Parameters const & parameters) -> void
 {
-  getseq(parameters.opt_fastx_getseq);
+  getseq(parameters, parameters.opt_fastx_getseq);
 }
 
 
 auto fastx_getseqs(struct Parameters const & parameters) -> void
 {
-  getseq(parameters.opt_fastx_getseqs);
+  getseq(parameters, parameters.opt_fastx_getseqs);
 }
 
 
 auto fastx_getsubseq(struct Parameters const & parameters) -> void
 {
-  getseq(parameters.opt_fastx_getsubseq);
+  getseq(parameters, parameters.opt_fastx_getsubseq);
 }
