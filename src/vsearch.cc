@@ -6063,7 +6063,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_orient != nullptr)
     {
-      orient();
+      orient(parameters);
     }
   else if (parameters.opt_fasta2fastq != nullptr)
     {

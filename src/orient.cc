@@ -103,7 +103,7 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
 }
 
 
-auto orient() -> void
+auto orient(struct Parameters const & parameters) -> void
 {
   fastx_handle query_h = nullptr;
   // refactoring: use struct, like in subsample
@@ -132,7 +132,7 @@ auto orient() -> void
 
   /* prepare reading of queries */
 
-  query_h = fastx_open(opt_orient);
+  query_h = fastx_open(parameters.opt_orient);
 
   /* open output files */
 

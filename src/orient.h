@@ -58,4 +58,4 @@
 
 */
 
-auto orient() -> void;
+auto orient(struct Parameters const & parameters) -> void;
