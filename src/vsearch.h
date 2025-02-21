@@ -507,6 +507,10 @@ struct Parameters {
   char * opt_sortbysize = nullptr;
   char * opt_tabbedout = nullptr;
   char * opt_uc = nullptr;
+  char * opt_uchime2_denovo = nullptr;
+  char * opt_uchime3_denovo = nullptr;
+  char * opt_uchime_denovo = nullptr;
+  char * opt_uchime_ref = nullptr;
   char * opt_usearch_global = nullptr;
   char * progname = nullptr;  // refactoring: unused?
   std::FILE * fp_log = nullptr;

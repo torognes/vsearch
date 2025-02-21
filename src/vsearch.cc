@@ -1965,10 +1965,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_uchime_denovo:
           opt_uchime_denovo = optarg;
+          parameters.opt_uchime_denovo = optarg;
           break;
 
         case option_uchime_ref:
           opt_uchime_ref = optarg;
+          parameters.opt_uchime_ref = optarg;
           break;
 
         case option_uchimealns:
@@ -2403,10 +2405,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_uchime2_denovo:
           opt_uchime2_denovo = optarg;
+          parameters.opt_uchime2_denovo = optarg;
           break;
 
         case option_uchime3_denovo:
           opt_uchime3_denovo = optarg;
+          parameters.opt_uchime3_denovo = optarg;
           break;
 
         case option_sintax:
@@ -4651,7 +4655,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
       (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
       (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (opt_sintax != nullptr) or
-      (opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
+      (parameters.opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
     {
       if (parameters.opt_threads == 0)
         {
@@ -5742,7 +5746,7 @@ auto cmd_chimera(struct Parameters const & parameters) -> void
       fatal("No output files specified");
     }
 
-  if ((opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
+  if ((parameters.opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
     {
       fatal("Database filename not specified with --db");
     }
@@ -5762,7 +5766,7 @@ auto cmd_chimera(struct Parameters const & parameters) -> void
       fatal("Argument to --dn must be > 0");
     }
 
-  if ((opt_uchime2_denovo == nullptr) and (opt_uchime3_denovo == nullptr))
+  if ((parameters.opt_uchime2_denovo == nullptr) and (parameters.opt_uchime3_denovo == nullptr))
     {
       if (opt_mindiffs <= 0)
         {
@@ -5948,7 +5952,7 @@ auto main(int argc, char** argv) -> int
     {
       cmd_cluster(parameters);
     }
-  else if ((opt_uchime_denovo != nullptr) or (opt_uchime_ref != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
+  else if ((parameters.opt_uchime_denovo != nullptr) or (parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime2_denovo != nullptr) or (parameters.opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
     {
       cmd_chimera(parameters);
     }
