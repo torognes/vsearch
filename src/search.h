@@ -58,4 +58,4 @@
 
 */
 
-auto usearch_global(char * cmdline, char * progheader) -> void;
+auto usearch_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void;

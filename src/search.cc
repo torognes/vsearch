@@ -788,7 +788,7 @@ auto search_done() -> void
 }
 
 
-auto usearch_global(char * cmdline, char * progheader) -> void
+auto usearch_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
 {
   search_prep(cmdline, progheader);
 
@@ -820,7 +820,7 @@ auto usearch_global(char * cmdline, char * progheader) -> void
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  query_fastx_h = fastx_open(opt_usearch_global);
+  query_fastx_h = fastx_open(parameters.opt_usearch_global);
 
   /* allocate memory for thread info */
   si_plus = (struct searchinfo_s *) xmalloc(opt_threads *

@@ -5608,7 +5608,7 @@ auto cmd_usearch_global(struct Parameters const & parameters) -> void
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
     }
 
-  usearch_global(cmdline, prog_header.data());
+  usearch_global(parameters, cmdline, prog_header.data());
 }
 
 
