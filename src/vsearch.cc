@@ -198,7 +198,6 @@ char * opt_relabel;
 char * opt_reverse;
 char * opt_samout;
 char * opt_sample;
-char * opt_sintax;
 char * opt_tabbedout;
 char * opt_tsegout;
 char * opt_uc;
@@ -943,7 +942,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_sample_size = 0;
   opt_self = 0;
   opt_selfid = 0;
-  opt_sintax = nullptr;
   opt_sintax_cutoff = 0.0;
   opt_sintax_random = false;
   opt_sizein = false;
@@ -2412,7 +2410,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_sintax:
-          opt_sintax = optarg;
           parameters.opt_sintax = optarg;
           break;
 
