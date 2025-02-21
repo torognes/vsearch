@@ -2544,6 +2544,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_orient:
           opt_orient = optarg;
+          parameters.opt_orient = optarg;
           break;
 
         case option_fasta2fastq:
@@ -4713,7 +4714,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   if (opt_wordlength == 0)
     {
       /* set default word length */
-      if (opt_orient != nullptr)
+      if (parameters.opt_orient != nullptr)
         {
           opt_wordlength = 12;
         }
@@ -6060,7 +6061,7 @@ auto main(int argc, char** argv) -> int
     {
       cut(parameters);
     }
-  else if (opt_orient != nullptr)
+  else if (parameters.opt_orient != nullptr)
     {
       orient();
     }

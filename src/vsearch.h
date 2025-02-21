@@ -497,6 +497,7 @@ struct Parameters {
   std::string opt_join_padgapq = default_quality_padding;
   char * opt_log = nullptr;
   char * opt_maskfasta = nullptr;
+  char * opt_orient = nullptr;
   char * opt_output = nullptr;
   char * opt_relabel = nullptr;
   char * opt_rereplicate = nullptr;
