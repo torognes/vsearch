@@ -2470,14 +2470,17 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastx_getseq:
           opt_fastx_getseq = optarg;
+          parameters.opt_fastx_getseq = optarg;
           break;
 
         case option_fastx_getseqs:
           opt_fastx_getseqs = optarg;
+          parameters.opt_fastx_getseqs = optarg;
           break;
 
         case option_fastx_getsubseq:
           opt_fastx_getsubseq = optarg;
+          parameters.opt_fastx_getsubseq = optarg;
           break;
 
         case option_label_substr_match:
@@ -6036,15 +6039,15 @@ auto main(int argc, char** argv) -> int
     {
       sff_convert(parameters);
     }
-  else if (opt_fastx_getseq != nullptr)
+  else if (parameters.opt_fastx_getseq != nullptr)
     {
       fastx_getseq();
     }
-  else if (opt_fastx_getseqs != nullptr)
+  else if (parameters.opt_fastx_getseqs != nullptr)
     {
       fastx_getseqs();
     }
-  else if (opt_fastx_getsubseq != nullptr)
+  else if (parameters.opt_fastx_getsubseq != nullptr)
     {
       fastx_getsubseq();
     }
