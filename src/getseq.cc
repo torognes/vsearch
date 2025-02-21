@@ -595,19 +595,19 @@ auto getseq(char * filename) -> void
 }
 
 
-auto fastx_getseq() -> void
+auto fastx_getseq(struct Parameters const & parameters) -> void
 {
-  getseq(opt_fastx_getseq);
+  getseq(parameters.opt_fastx_getseq);
 }
 
 
-auto fastx_getseqs() -> void
+auto fastx_getseqs(struct Parameters const & parameters) -> void
 {
-  getseq(opt_fastx_getseqs);
+  getseq(parameters.opt_fastx_getseqs);
 }
 
 
-auto fastx_getsubseq() -> void
+auto fastx_getsubseq(struct Parameters const & parameters) -> void
 {
-  getseq(opt_fastx_getsubseq);
+  getseq(parameters.opt_fastx_getsubseq);
 }

@@ -6041,15 +6041,15 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastx_getseq != nullptr)
     {
-      fastx_getseq();
+      fastx_getseq(parameters);
     }
   else if (parameters.opt_fastx_getseqs != nullptr)
     {
-      fastx_getseqs();
+      fastx_getseqs(parameters);
     }
   else if (parameters.opt_fastx_getsubseq != nullptr)
     {
-      fastx_getsubseq();
+      fastx_getsubseq(parameters);
     }
   else if (parameters.opt_cut != nullptr)
     {
