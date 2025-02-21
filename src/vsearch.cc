@@ -169,9 +169,6 @@ char * opt_fastqout_discarded_rev;
 char * opt_fastqout_notmerged_fwd;
 char * opt_fastqout_notmerged_rev;
 char * opt_fastqout_rev;
-char * opt_fastx_getseq;
-char * opt_fastx_getseqs;
-char * opt_fastx_getsubseq;
 char * opt_label;
 char * opt_label_field;
 char * opt_label_suffix;
@@ -837,9 +834,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastqout_notmerged_fwd = nullptr;
   opt_fastqout_notmerged_rev = nullptr;
   opt_fastqout_rev = nullptr;
-  opt_fastx_getseq = nullptr;
-  opt_fastx_getseqs = nullptr;
-  opt_fastx_getsubseq = nullptr;
   opt_fulldp = 0;
   opt_gap_extension_query_interior = 2;
   opt_gap_extension_query_left = 1;
@@ -2469,17 +2463,14 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastx_getseq:
-          opt_fastx_getseq = optarg;
           parameters.opt_fastx_getseq = optarg;
           break;
 
         case option_fastx_getseqs:
-          opt_fastx_getseqs = optarg;
           parameters.opt_fastx_getseqs = optarg;
           break;
 
         case option_fastx_getsubseq:
-          opt_fastx_getsubseq = optarg;
           parameters.opt_fastx_getsubseq = optarg;
           break;
 
