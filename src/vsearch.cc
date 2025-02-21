@@ -6037,7 +6037,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_sintax != nullptr)
     {
-      sintax();
+      sintax(parameters);
     }
   else if (parameters.opt_sff_convert != nullptr)
     {

@@ -628,7 +628,7 @@ auto sintax_thread_worker_run() -> void
 }
 
 
-auto sintax() -> void
+auto sintax(struct Parameters const & parameters) -> void
 {
   /* tophits = the maximum number of hits we need to store */
 
@@ -677,7 +677,7 @@ auto sintax() -> void
 
   /* prepare reading of queries */
 
-  query_fastx_h = fastx_open(opt_sintax);
+  query_fastx_h = fastx_open(parameters.opt_sintax);
 
   /* allocate memory for thread info */
 
