@@ -163,8 +163,6 @@ char * opt_fastaout_notmerged_rev;
 char * opt_fastaout_rev;
 char * opt_fastapairs;
 char * opt_fastq_convert;
-char * opt_fastq_eestats2;
-char * opt_fastq_eestats;
 char * opt_fastqout;
 char * opt_fastqout_discarded;
 char * opt_fastqout_discarded_rev;
@@ -812,8 +810,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_asciiout = 33;
   opt_fastq_convert = nullptr;
   opt_fastq_eeout = false;
-  opt_fastq_eestats = nullptr;
-  opt_fastq_eestats2 = nullptr;
   opt_fastq_maxdiffpct = 100.0;
   opt_fastq_maxdiffs = 10;
   opt_fastq_maxee = dbl_max;
@@ -2288,7 +2284,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_eestats:
-          opt_fastq_eestats = optarg;
           parameters.opt_fastq_eestats = optarg;
           break;
 
@@ -2364,7 +2359,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_fastq_eestats2:
-          opt_fastq_eestats2 = optarg;
           parameters.opt_fastq_eestats2 = optarg;
           break;
 

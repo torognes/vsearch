@@ -267,8 +267,6 @@ extern char * opt_fastaout_notmerged_rev;
 extern char * opt_fastaout_rev;
 extern char * opt_fastapairs;
 extern char * opt_fastq_convert;
-extern char * opt_fastq_eestats2;
-extern char * opt_fastq_eestats;
 extern char * opt_fastqout;
 extern char * opt_fastqout_discarded;
 extern char * opt_fastqout_discarded_rev;
