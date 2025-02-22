@@ -702,6 +702,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
+  // refactoring: write a midpoint() function, similar to find_median_length()
   if (clusters > 0)
     {
       if ((clusters % 2) != 0U)
