@@ -4580,17 +4580,17 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           if (options_selected[i])
             {
               int j = 0;
-              bool ok = false;
+              bool option_is_valid = false;
               while (valid_options[k][j] >= 0)
                 {
                   if (valid_options[k][j] == i)
                     {
-                      ok = true;
+                      option_is_valid = true;
                       break;
                     }
                   ++j;
                 }
-              if (not ok)
+              if (not option_is_valid)
                 {
                   ++invalid_options;
 
