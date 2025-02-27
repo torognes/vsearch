@@ -508,6 +508,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   std::vector<std::array<uint64_t, 4>> q_length_table(initial_memory_allocation);
   std::vector<double> sumee_length_table(initial_memory_allocation);
 
+  // refactoring: separate parse_fastq() and compute_distributions()
   // note: fastq parsing represents 99% of total wallclock time
   while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
     {
@@ -536,7 +537,20 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       check_minmax_scores(Span{quality_symbols, length}, symbol_to_score, parameters);
 
-      // refactoring: replace for-loop below with three functions
+      // refactoring: replace for-loop below with three functions:
+      // 0)
+      //  - transform(quality_symbols, qual_length_table, [](auto& position){ ++position[quality_symbol]; })
+      // 1)
+      //  - search first position with symbol <= 20 + offset
+      //  - increment counts from begin to position
+      //  - do the same for 15, 10 and 5
+      // 2)
+      //  - create a temporary vector
+      //  - populate with probability values
+      //  - std::partial_sum() to compte EE
+      //  - search first position with EE <= 1.0
+      //  - increment counts from begin to position
+      //  - do the same for EE <= 0.5, 0.25, and 0.1
       for (auto i = 0UL; i < length; ++i)
         {
           auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
