@@ -226,6 +226,7 @@ double opt_fastq_maxdiffpct;
 double opt_fastq_maxee;
 double opt_fastq_maxee_rate;
 double opt_fastq_truncee;
+double opt_fastq_truncee_rate;
 double opt_id;
 double opt_lca_cutoff;
 double opt_max_unmasked_pct;
@@ -284,6 +285,7 @@ int64_t opt_fastq_maxns;
 int64_t opt_fastq_minlen;
 int64_t opt_fastq_minmergelen;
 int64_t opt_fastq_minovlen;
+int64_t opt_fastq_minqual;
 int64_t opt_fastq_qmax;
 int64_t opt_fastq_qmaxout;
 int64_t opt_fastq_qmin;
@@ -839,6 +841,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_minlen = 1;
   opt_fastq_minmergelen = 0;
   opt_fastq_minovlen = 10;
+  opt_fastq_minqual = 0;
   opt_fastq_nostagger = true;
   opt_fastq_qmax = 41;
   opt_fastq_qmaxout = 41;
@@ -848,6 +851,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_fastq_stripleft = 0;
   opt_fastq_stripright = 0;
   opt_fastq_truncee = dbl_max;
+  opt_fastq_truncee_rate = dbl_max;
   opt_fastq_trunclen = -1;
   opt_fastq_trunclen_keep = -1;
   opt_fastq_truncqual = long_min;
@@ -1082,6 +1086,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_fastq_minlen,
       option_fastq_minmergelen,
       option_fastq_minovlen,
+      option_fastq_minqual,
       option_fastq_nostagger,
       option_fastq_qmax,
       option_fastq_qmaxout,
@@ -1093,6 +1098,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_fastq_stripright,
       option_fastq_tail,
       option_fastq_truncee,
+      option_fastq_truncee_rate,
       option_fastq_trunclen,
       option_fastq_trunclen_keep,
       option_fastq_truncqual,
@@ -1330,6 +1336,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"fastq_minlen",          required_argument, nullptr, 0 },
       {"fastq_minmergelen",     required_argument, nullptr, 0 },
       {"fastq_minovlen",        required_argument, nullptr, 0 },
+      {"fastq_minqual",         required_argument, nullptr, 0 },
       {"fastq_nostagger",       no_argument,       nullptr, 0 },
       {"fastq_qmax",            required_argument, nullptr, 0 },
       {"fastq_qmaxout",         required_argument, nullptr, 0 },
@@ -1341,6 +1348,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"fastq_stripright",      required_argument, nullptr, 0 },
       {"fastq_tail",            required_argument, nullptr, 0 },
       {"fastq_truncee",         required_argument, nullptr, 0 },
+      {"fastq_truncee_rate",    required_argument, nullptr, 0 },
       {"fastq_trunclen",        required_argument, nullptr, 0 },
       {"fastq_trunclen_keep",   required_argument, nullptr, 0 },
       {"fastq_truncqual",       required_argument, nullptr, 0 },
@@ -2603,6 +2611,14 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           opt_n_mismatch = true;
           break;
 
+        case option_fastq_minqual:
+          opt_fastq_minqual = args_getlong(optarg);
+          break;
+
+        case option_fastq_truncee_rate:
+          opt_fastq_truncee_rate = args_getdouble(optarg);
+          break;
+
         default:
           fatal("Internal error in option parsing");
         }
@@ -3469,11 +3485,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_fastq_maxlen,
         option_fastq_maxns,
         option_fastq_minlen,
+        option_fastq_minqual,
         option_fastq_qmax,
         option_fastq_qmin,
         option_fastq_stripleft,
         option_fastq_stripright,
         option_fastq_truncee,
+        option_fastq_truncee_rate,
         option_fastq_trunclen,
         option_fastq_trunclen_keep,
         option_fastq_truncqual,
@@ -3611,11 +3629,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_fastq_maxlen,
         option_fastq_maxns,
         option_fastq_minlen,
+        option_fastq_minqual,
         option_fastq_qmax,
         option_fastq_qmin,
         option_fastq_stripleft,
         option_fastq_stripright,
         option_fastq_truncee,
+        option_fastq_truncee_rate,
         option_fastq_trunclen,
         option_fastq_trunclen_keep,
         option_fastq_truncqual,
@@ -5498,11 +5518,13 @@ auto cmd_help(struct Parameters const & parameters) -> void {
           "  --fastq_maxlen INT          discard if length of sequence is longer\n"
           "  --fastq_maxns INT           discard if number of N's is higher\n"
           "  --fastq_minlen INT          discard if length of sequence is shorter\n"
+          "  --fastq_minqual INT         discard if any base quality value lower (0)\n"
           "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n"
           "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n"
           "  --fastq_stripleft INT       delete given number of bases from the 5' end\n"
           "  --fastq_stripright INT      delete given number of bases from the 3' end\n"
           "  --fastq_truncee REAL        truncate to given maximum expected error\n"
+          "  --fastq_truncee_rate REAL   truncate to given maximum expected error rate\n"
           "  --fastq_trunclen INT        truncate to given length (discard if shorter)\n"
           "  --fastq_trunclen_keep INT   truncate to given length (keep if shorter)\n"
           "  --fastq_truncqual INT       truncate to given minimum base quality\n"

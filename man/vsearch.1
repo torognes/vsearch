@@ -1886,6 +1886,12 @@ merged sequence. The default is 1.
 .BI \-\-fastq_minovlen\~ "positive integer"
 When using \-\-fastq_mergepairs, specify the minimum overlap between
 the merged reads. The default is 10. Must be at least 5.
+.TAG fastq_minqual
+.TP
+.BI \-\-fastq_minqual\~ "positive integer"
+When using \-\-fastq_filter or \-\-fastx_filter, discard reads having
+any base with a quality score below the given value. The default is 0,
+which discards none.
 .TAG fastq_nostagger
 .TP
 .B \-\-fastq_nostagger
@@ -2030,6 +2036,15 @@ default, \fIk\fR = 4.
 When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences so
 that their total expected error is not higher than the specified
 value.
+.TAG fastq_truncee_rate
+.TP
+.BI \-\-fastq_truncee_rate\~ real
+When using \-\-fastq_filter or \-\-fastx_filter, truncate sequences so
+that their average expected error per base is not higher than the
+specified value. The truncation will happen at the first
+occurence. The average expected error per base is calculated as the
+total expected number of errors divided by the length of the sequence
+after truncation.
 .TAG fastq_trunclen
 .TP
 .BI \-\-fastq_trunclen\~ "positive integer"
@@ -2095,26 +2110,27 @@ corresponding output will be written to the files specified with the
 files if the input is in FASTA format. The sequences are first trimmed
 and then filtered based on the remaining bases. Sequences may be
 trimmed using the options \-\-fastq_stripleft, \-\-fastq_stripright,
-\-\-fastq_truncee, \-\-fastq_trunclen, \-\-fastq_trunclen_keep and
-\-\-fastq_truncqual. The sequences may be filtered using the options
-\-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_maxlen,
-\-\-fastq_maxns, \-\-fastq_minlen (default 1), \-\-fastq_trunclen,
-\-\-maxsize, and \-\-minsize. Sequences not satisfying the
-requirements are discarded. For pairs of sequences, both sequences in
-a pair must satisfy the requirements, otherwise both are discarded. If
-no shortening or filtering options are given, all sequences are
-written to the output files, possibly after conversion from FASTQ to
-FASTA format. The \-\-relabel option may be used to relabel the output
+\-\-fastq_truncee, \-\-fastq_truncee_rate, \-\-fastq_trunclen,
+\-\-fastq_trunclen_keep and \-\-fastq_truncqual. The sequences may be
+filtered using the options \-\-fastq_maxee, \-\-fastq_maxee_rate,
+\-\-fastq_maxlen, \-\-fastq_maxns, \-\-fastq_minlen (default 1),
+\-\-fastq_minqual, \-\-fastq_trunclen, \-\-maxsize, and
+\-\-minsize. Sequences not satisfying the requirements are
+discarded. For pairs of sequences, both sequences in a pair must
+satisfy the requirements, otherwise both are discarded. If no
+shortening or filtering options are given, all sequences are written
+to the output files, possibly after conversion from FASTQ to FASTA
+format. The \-\-relabel option may be used to relabel the output
 sequences. The \-\-eeout option may be used to output the expected
 number of errors in each sequence. After all sequences have been
 processed, the number of kept and discarded sequences will be shown,
 as well as how many of the kept sequences were trimmed. When the input
 is in FASTA format, the following options are not accepted because
 quality scores are not available: \-\-eeout, \-\-fastq_ascii,
-\-\-fastq_eeout, \-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_out,
-\-\-fastq_qmax, \-\-fastq_qmin, \-\-fastq_truncee,
-\-\-fastq_truncqual, \-\-fastqout_discarded,
-\-\-fastqout_discarded_rev, \-\-fastqout_rev.
+\-\-fastq_eeout, \-\-fastq_maxee, \-\-fastq_maxee_rate,
+\-\-fastq_minqual, \-\-fastq_out, \-\-fastq_qmax, \-\-fastq_qmin,
+\-\-fastq_truncee, \-\-fastq_truncee_rate, \-\-fastq_truncqual,
+\-\-fastqout_discarded, \-\-fastqout_discarded_rev, \-\-fastqout_rev.
 .TAG fastx_revcomp
 .TP
 .BI \-\-fastx_revcomp \0filename
