@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "February 14, 2025" "version 2.29.4" "USER COMMANDS"
+.TH vsearch 1 "February 27, 2025" "version 2.30.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5031,6 +5031,19 @@ Adjust the window size used for chimera detection down from 64 to
 2.23.0, leading to somewhat fewer chimeras being predicted.
 In addition, a compiler pragma has been included in align_simd.cc to
 further protect the compiler from generating wrong code.
+.TP
+.BR v2.30.0\~ "released February 27th, 2025"
+Add options `\-\-n_mismatch`, `\-\-fastq_minqual`, and
+`\-\-fastq_truncee_rate`.  The `\-\-n_mismatch` option will count N's
+as mismatches in alignments, which may be useful to get sensible
+alignments for sequences with lots of N's. By default N's are counted
+as matches. Both the scoring and the counting of matches are
+affected. The new `\-\-fastq_minqual` option for the `fastq_filter`
+and `fastx_filter` commands will discard sequences with any bases with
+a quality scores below the given value. The new
+`\-\-fastq_truncee_rate` option for the same commands will truncate
+sequences at the first position where the number of expected errors
+per base is below the given value.
 .\" ============================================================================
 .\" TODO:
 .\"
