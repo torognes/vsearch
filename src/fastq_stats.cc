@@ -577,15 +577,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const stats = Stats{
     find_smallest(read_length_table), find_largest(read_length_table),
-        compute_number_of_symbols(read_length_table),
-        std::accumulate(read_length_table.begin(), read_length_table.end(),
-                        std::uint64_t{0}),
-        static_cast<double>(std::accumulate(read_length_table.begin(),
-                                            read_length_table.end(),
-                                            std::uint64_t{0})),
-        compute_cumulative_sum(read_length_table),
-        compute_distribution_of_quality_symbols(qual_length_table),
-        compute_distributions(find_largest(read_length_table), qual_length_table, sumee_length_table, parameters)
+    compute_number_of_symbols(read_length_table),
+    std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}),
+    static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0})),
+    compute_cumulative_sum(read_length_table),
+    compute_distribution_of_quality_symbols(qual_length_table),
+    compute_distributions(find_largest(read_length_table), qual_length_table, sumee_length_table, parameters)
   };
 
 
