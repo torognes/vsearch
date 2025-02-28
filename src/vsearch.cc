@@ -750,7 +750,6 @@ auto args_getdouble(char * arg) -> double
 auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 {
   /* Set defaults */
-  static constexpr auto dbl_max = std::numeric_limits<double>::max();
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
   static constexpr auto number_of_commands = std::size_t{50};
@@ -2614,10 +2613,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fastq_minqual:
           opt_fastq_minqual = args_getlong(optarg);
+          parameters.opt_fastq_minqual = args_getlong(optarg);
           break;
 
         case option_fastq_truncee_rate:
           opt_fastq_truncee_rate = args_getdouble(optarg);
+          parameters.opt_fastq_truncee_rate = args_getdouble(optarg);
           break;
 
         default:

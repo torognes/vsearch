@@ -441,6 +441,7 @@ constexpr int64_t default_fasta_width = 80;
 constexpr int64_t default_maxseqlength = 50000;
 constexpr int64_t default_ascii_offset = 33;
 constexpr char alternative_ascii_offset = 64;
+constexpr auto dbl_max = std::numeric_limits<double>::max();
 constexpr int64_t default_max_quality = 41;
 constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
@@ -520,6 +521,7 @@ struct Parameters {
   char * opt_usearch_global = nullptr;
   char * progname = nullptr;  // refactoring: unused?
   std::FILE * fp_log = nullptr;
+  double opt_fastq_truncee_rate = dbl_max;
   double opt_max_unmasked_pct = 100.0;
   double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
@@ -530,6 +532,7 @@ struct Parameters {
   int64_t opt_fastq_qmaxout = default_max_quality;
   int64_t opt_fastq_qmin = 0;
   int64_t opt_fastq_qminout = 0;
+  int64_t opt_fastq_minqual = 0;
   int64_t opt_fastq_tail = 4;
   int64_t opt_maxseqlength = default_maxseqlength;
   int64_t opt_maxsize = int64_max;
