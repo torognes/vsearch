@@ -254,7 +254,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
 
 auto filter(bool const fastq_only, char * filename) -> void
 {
-  static constexpr auto dbl_max = std::numeric_limits<double>::max();
+  static constexpr auto dbl_max = std::numeric_limits<double>::max();  // refactoring: redundant?
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
   if ((opt_fastqout == nullptr) and (opt_fastaout == nullptr) and
