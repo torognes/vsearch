@@ -62,7 +62,7 @@
 #include "maps.h"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <cmath>  // std::pow
+#include <cmath>  // std::pow, std::signbit
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
@@ -641,13 +641,28 @@ auto filter(bool const fastq_only, char * filename) -> void
 }
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  auto check_parameters(struct Parameters const & parameters) -> void {
+    auto const is_negative = std::signbit(parameters.opt_fastq_truncee_rate);
+    if (is_negative) {
+      fatal("--fastq_truncee_rate cannot be negative");
+    }
+  }
+
+}  // end of anonymous namespace
+
+
 auto fastq_filter(struct Parameters const & parameters) -> void
 {
+  check_parameters(parameters);
   filter(true, parameters.opt_fastq_filter);
 }
 
 
 auto fastx_filter(struct Parameters const & parameters) -> void
 {
+  check_parameters(parameters);
   filter(false, parameters.opt_fastx_filter);
 }
