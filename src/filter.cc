@@ -180,11 +180,17 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
           res.ee += expected_error;
 
           if ((quality_score <= opt_fastq_truncqual) or
-              (res.ee > opt_fastq_truncee))
+              (res.ee > opt_fastq_truncee) or
+              (res.ee > opt_fastq_truncee_rate * (i + 1)))
             {
               res.ee -= expected_error;
               res.length = i;
               break;
+            }
+
+          if (quality_score < opt_fastq_minqual)
+            {
+              res.discarded = true;
             }
         }
 
@@ -272,22 +278,20 @@ auto filter(bool const fastq_only, char * filename) -> void
       if (fastq_only)
         {
           fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
-        }
-      else if (opt_eeout or
-               (opt_fastq_ascii != 33) or
-               opt_fastq_eeout or
+      }
+      else if (opt_eeout or (opt_fastq_ascii != 33) or opt_fastq_eeout or
                (opt_fastq_maxee < dbl_max) or
-               (opt_fastq_maxee_rate < dbl_max) or
-               (opt_fastqout != nullptr) or
-               (opt_fastq_qmax < 41) or
-               (opt_fastq_qmin > 0) or
+               (opt_fastq_maxee_rate < dbl_max) or (opt_fastqout != nullptr) or
+               (opt_fastq_qmax < 41) or (opt_fastq_qmin > 0) or
                (opt_fastq_truncee < dbl_max) or
+               (opt_fastq_truncee_rate < dbl_max) or
                (opt_fastq_truncqual < long_min) or
+               (opt_fastq_minqual > 0) or
                (opt_fastqout_discarded != nullptr) or
                (opt_fastqout_discarded_rev != nullptr) or
                (opt_fastqout_rev != nullptr))
         {
-          fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
+          fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_minqual, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncee_rate, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
         }
     }
 
@@ -305,30 +309,6 @@ auto filter(bool const fastq_only, char * filename) -> void
       if (forward_handle->is_fastq != reverse_handle->is_fastq)
         {
           fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
-        }
-
-      if (not (reverse_handle->is_fastq or reverse_handle->is_empty))
-        {
-          if (fastq_only)
-            {
-              fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
-            }
-          else if (opt_eeout or
-                   (opt_fastq_ascii != 33) or
-                   opt_fastq_eeout or
-                   (opt_fastq_maxee < dbl_max) or
-                   (opt_fastq_maxee_rate < dbl_max) or
-                   (opt_fastqout != nullptr) or
-                   (opt_fastq_qmax < 41) or
-                   (opt_fastq_qmin > 0) or
-                   (opt_fastq_truncee < dbl_max) or
-                   (opt_fastq_truncqual < long_min) or
-                   (opt_fastqout_discarded != nullptr) or
-                   (opt_fastqout_discarded_rev != nullptr) or
-                   (opt_fastqout_rev != nullptr))
-            {
-              fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
-            }
         }
     }
 
