@@ -649,6 +649,10 @@ namespace {
     if (is_negative) {
       fatal("--fastq_truncee_rate cannot be negative");
     }
+
+    if (parameters.opt_fastq_minqual < 0) {
+      fatal("--fastq_minqual cannot be negative");
+    }
   }
 
 }  // end of anonymous namespace
