@@ -754,6 +754,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
   static constexpr auto number_of_commands = std::size_t{50};
+  static constexpr auto number_of_options = std::size_t{247};
   static constexpr auto max_number_of_options_per_command = std::size_t{99};
 
   parameters.progname = argv[0];
@@ -1217,7 +1218,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_xsize
     };
 
-  static constexpr std::array<struct option, 247> long_options =
+  static constexpr std::array<struct option, number_of_options> long_options =
     {{
       {"abskew",                required_argument, nullptr, 0 },
       {"acceptall",             no_argument,       nullptr, 0 },
