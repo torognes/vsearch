@@ -254,7 +254,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len) != 0)))
         {
           ++bp;
-          if (bp >= &hashtable[hashtablesize])
+          if (bp > &hashtable.back())
             {
               bp = hashtable.data();
             }
@@ -295,7 +295,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                               prefix_len) != 0)))
                 {
                   ++bp;
-                  if (bp >= &hashtable[hashtablesize])
+                  if (bp > &hashtable.back())
                     {
                       bp = hashtable.data();
                     }
