@@ -237,6 +237,13 @@ auto show_rusage() -> void
 }
 
 
+// refactoring: create reverse_complement.hpp, progressive migration
+// write overloads for span?
+// assert(destination.size() > source.size());
+// std::reverse_copy(source.begin(), source.end(), destination.begin());
+// auto complement = [](char nucleotide) -> char { ... };
+// std::transform(destination.begin(), destination.end(), destination.begin(), complement)
+// destination[length] = '\0';
 auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
 {
   /* Write the reverse complementary sequence to rc_seq.
