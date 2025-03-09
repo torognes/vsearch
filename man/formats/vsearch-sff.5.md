@@ -11,8 +11,9 @@ sff --- a binary file format used to encode pyrosequencing results
 
 The standard flowgram format (sff), was designed by 454 Life Sciences,
 the Whitehead Institute for Biomedical Research, and the Sanger
-Institute. It was used to store reads produced by the Roche 454 and
-Ion Torrent PGM sequencing platforms.
+Institute. It was used to store reads produced by the Roche 454
+sequencing platforms, and early versions of the Ion Torrent PGM
+sequencing platforms.
 
 Original NCBI documentation available at:
 
@@ -54,7 +55,7 @@ below. The sections adhere to the following rules:
 
 ## Common Header Section
 
-The common header section consists of the following fields:
+The *common header* section consists of the following fields:
 
 ```text
  magic_number               uint32_t
@@ -145,8 +146,15 @@ where these fields have the following properties:
   - The position values use 1-based indexing, so the first base is at
     position 1.
   - If a clipping value is not computed, the field should be set to 0.
-  - Thus, the first base of the insert is "max(1,
-    max(`clip_qual_left`, `clip_adapter_left`))".
+  - Thus, the first base of the insert is:
+
+```
+  max(
+   1,
+   max(`clip_qual_left`, `clip_adapter_left`)
+     )
+```
+
 - The `clip_qual_right` and `clip_adapter_right` fields should be set
   to the position of the last base before the clipping point, for
   quality and/or an adapter sequence, at the end of the read. If only
@@ -250,7 +258,7 @@ accessing each read's data:
   - Otherwise,
     - Read 16 bytes and extract the `read_header_length`,
       `name_length` and `number_of_bases` values.
-    - Read the next "`read_header_length` - 16" bytes to read the name.
+    - Read the next "`read_header_length - 16`" bytes to read the name.
     - At this point, a test of the `name` field can be perform, to
       determine whether to read or skip this entry.
     - Compute the `read_data_length` as: `number_of_flows *
@@ -258,11 +266,6 @@ accessing each read's data:
       the next value divisible by 8.
     - Either read or skip `read_data_length` bytes in the file,
       processing the read data if the section is read.
-
-
-# EXAMPLES
-
-(show how to build sff files?)
 
 
 # SEE ALSO
