@@ -716,7 +716,7 @@ auto merge(merge_data_t * a_read_pair) -> void
 
 
 auto optimize(merge_data_t * a_read_pair,
-                 kh_handle_s * kmerhash) -> int64_t
+              kh_handle_s * kmerhash) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
