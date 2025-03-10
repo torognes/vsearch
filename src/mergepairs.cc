@@ -605,6 +605,12 @@ auto merge(merge_data_t * a_read_pair) -> void
   auto const fwd_5prime_overhang = (a_read_pair->fwd_trunc > a_read_pair->offset) ?
     a_read_pair->fwd_trunc - a_read_pair->offset : 0;
 
+  // reset struct
+  a_read_pair->ee_merged = 0.0;
+  a_read_pair->ee_fwd = 0.0;
+  a_read_pair->ee_rev = 0.0;
+  a_read_pair->fwd_errors = 0;
+  a_read_pair->rev_errors = 0;
   auto sym = '\0';
   auto qual = '\0';
   auto fwd_sym = '\0';
