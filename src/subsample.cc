@@ -358,7 +358,7 @@ auto close_output_files(struct file_types const & ouput_files) -> void {
 
 
 auto subsample(struct Parameters const & parameters) -> void {
-  struct file_types ouput_files;
+  struct file_types ouput_files;  // refactoring: direct initialization {}; then struct can be const
   ouput_files.fasta.kept.name = parameters.opt_fastaout;
   ouput_files.fasta.lost.name = parameters.opt_fastaout_discarded;
   ouput_files.fastq.kept.name = parameters.opt_fastqout;
