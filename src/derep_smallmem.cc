@@ -237,7 +237,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   auto * input_filename = parameters.opt_derep_smallmem;
   auto * h = fastx_open(input_filename);
 
-  if (h == nullptr)
+  if (h == nullptr) // refactoring: already checked by fastx_open()?
     {
       fatal("Unrecognized input file type (not proper FASTA or FASTQ format).");
     }
