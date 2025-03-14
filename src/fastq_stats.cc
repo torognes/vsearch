@@ -323,6 +323,23 @@ namespace {
   }
 
 
+  auto find_first_complete_EE_filtering(struct Stats const & stats,
+                                        std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> uint64_t {
+    // - find the first position where no reads remain when filtering
+    //   with the threshold EE >= 1.0
+    // - by construction, more stringent filtering thresholds also have no reads,
+    // - downstream positions also contain no reads
+    auto read_count_is_null = [](std::array<uint64_t, 4> const & read_counts) -> bool {
+      return read_counts.front() == 0;
+    };
+    auto const iterator = std::find_if(ee_length_table.cbegin(), ee_length_table.cend(), read_count_is_null);
+    if (iterator == ee_length_table.end()) {
+      return stats.len_max;
+    }
+    return static_cast<uint64_t>(std::distance(ee_length_table.begin(), iterator));
+  }
+
+
   // section 1
   auto report_read_length_distribution(std::FILE * log_handle,
                                        struct Stats const & stats,
@@ -422,7 +439,8 @@ namespace {
                  "-----  -------  -------  -------  -------  -------  -------  -------  -------");
 
     std::vector<double> read_percentage(ee_length_table[0].size());
-    for (auto length = stats.len_max; length >= 1UL; --length)
+    auto const max_length = find_first_complete_EE_filtering(stats, ee_length_table);
+    for (auto length = max_length; length >= 1UL; --length)
       {
         auto const & read_count = ee_length_table[length - 1];
         std::transform(
@@ -431,17 +449,14 @@ namespace {
               return 100.0 * static_cast<double>(count) / stats.n_sequences;
             });
 
-        if (read_count[0] != 0)
-          {
-            std::fprintf(log_handle,
-                         "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
-                         "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
-                         length,
-                         read_count[0], read_count[1],
-                         read_count[2], read_count[3],
-                         read_percentage[0], read_percentage[1],
-                         read_percentage[2], read_percentage[3]);
-          }
+        std::fprintf(log_handle,
+                     "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
+                     "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
+                     length,
+                     read_count[0], read_count[1],
+                     read_count[2], read_count[3],
+                     read_percentage[0], read_percentage[1],
+                     read_percentage[2], read_percentage[3]);
       }
   }
 
