@@ -164,7 +164,7 @@ auto fatal(const char * format,
 auto xstrdup(char const * src) -> char *
 {
   auto const len = std::strlen(src);
-  auto * dest = (char *) xmalloc(len + 1);
+  auto * dest = static_cast<char *>(xmalloc(len + 1));
   return std::strcpy(dest, src);
 }
 
@@ -191,7 +191,7 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
     {
       fatal("Error with vsnprintf in xsprintf");
     }
-  auto * buffer = (char *) xmalloc(len + 1);
+  auto * buffer = static_cast<char *>(xmalloc(len + 1));
   if (buffer == nullptr)
     {
       fatal("Out of memory");
@@ -206,13 +206,13 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
 
 auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t
 {
-  return CityHash64((const char *) sequence, length);
+  return CityHash64(static_cast<const char *>(sequence), length);
 }
 
 
 auto hash_cityhash128(char * sequence, uint64_t length) -> uint128
 {
-  return CityHash128((const char *) sequence, length);
+  return CityHash128(static_cast<const char *>(sequence), length);
 }
 
 
