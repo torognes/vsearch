@@ -122,7 +122,7 @@ auto progress_done() -> void
     {
       std::fprintf(stderr, "  \r%s", progress_prompt);
     }
-  std::fprintf(stderr, " %ld%%\n", one_hundred_percent);
+  std::fprintf(stderr, " %lu%%\n", one_hundred_percent);
 }
 
 
