@@ -421,14 +421,15 @@ namespace {
                  "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000",
                  "-----  -------  -------  -------  -------  -------  -------  -------  -------");
 
-    std::vector<double> read_percentage;
-    read_percentage.reserve(ee_length_table[0].size());
+    std::vector<double> read_percentage(ee_length_table[0].size());
     for (auto length = stats.len_max; length >= 1UL; --length)
       {
         auto const & read_count = ee_length_table[length - 1];
-        for (auto const count : read_count) {
-          read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
-        }
+        std::transform(
+            read_count.begin(), read_count.end(), read_percentage.begin(),
+            [&stats](unsigned long const count) -> double {
+              return 100.0 * static_cast<double>(count) / stats.n_sequences;
+            });
 
         if (read_count[0] != 0)
           {
@@ -441,7 +442,6 @@ namespace {
                          read_percentage[0], read_percentage[1],
                          read_percentage[2], read_percentage[3]);
           }
-        read_percentage.clear();
       }
   }
 
