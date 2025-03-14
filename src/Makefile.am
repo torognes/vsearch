@@ -21,6 +21,15 @@ endif
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 if ENABLE_DEBUG
+# next warnings to activate:
+# -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
+# -Wconversion
+# -Wold-style-cast
+# -Wshadow
+# -Wsign-conversion
+# -Wunused-macros
+# -Wuseless-cast
+# GCC 14: -Wnrvo (Named Return Value Optimization)
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
              -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
