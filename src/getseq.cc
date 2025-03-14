@@ -77,7 +77,7 @@
 static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
-static char * * labels_data = nullptr;
+static char ** labels_data = nullptr;
 
 auto read_labels_file(char * filename) -> void
 {
