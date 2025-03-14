@@ -326,7 +326,7 @@ namespace {
   auto find_first_complete_EE_filtering(struct Stats const & stats,
                                         std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> uint64_t {
     // - find the first position where no reads remain when filtering
-    //   with the threshold EE >= 1.0
+    //   with the threshold EE > 1.0
     // - by construction, more stringent filtering thresholds also have no reads,
     // - downstream positions also contain no reads
     auto read_count_is_null = [](std::array<uint64_t, 4> const & read_counts) -> bool {
