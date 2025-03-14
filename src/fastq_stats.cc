@@ -456,18 +456,19 @@ namespace {
                  "  Len     Q=5    Q=10    Q=15    Q=20",
                  "-----  ------  ------  ------  ------");
     auto const mid_length = std::max(1UL, stats.len_max / 2);
-    std::vector<double> read_percentage;
-    read_percentage.reserve(q_length_table[0].size());
+    std::vector<double> read_percentage(q_length_table[0].size());
     for (auto length = stats.len_max; length >= mid_length; --length)
       {
-        for (auto const count : q_length_table[length - 1]) {
-          read_percentage.emplace_back(100.0 * static_cast<double>(count) / stats.n_sequences);
-        }
+        auto const & read_count = q_length_table[length - 1];
+        std::transform(
+            read_count.begin(), read_count.end(), read_percentage.begin(),
+            [&stats](unsigned long const count) -> double {
+              return 100.0 * static_cast<double>(count) / stats.n_sequences;
+            });
 
         std::fprintf(log_handle, "%5" PRIu64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
                      length, read_percentage[0], read_percentage[1],
                      read_percentage[2], read_percentage[3]);
-        read_percentage.clear();
       }
   }
 
