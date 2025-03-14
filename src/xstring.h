@@ -116,7 +116,7 @@ class xstring
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
-        string = (char *) xrealloc(string, alloc);
+        string = static_cast<char *>(xrealloc(string, alloc));
       }
     string[length] = a_char;
     length += 1;
@@ -134,7 +134,7 @@ class xstring
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
-        string = (char *) xrealloc(string, alloc);
+        string = static_cast<char *>(xrealloc(string, alloc));
       }
     std::snprintf(string + length, needed + 1, "%d", a_number);
     length += needed;
@@ -146,7 +146,7 @@ class xstring
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
-        string = (char *) xrealloc(string, alloc);
+        string = static_cast<char *>(xrealloc(string, alloc));
       }
     std::strcpy(string + length, a_string);
     length += needed;
