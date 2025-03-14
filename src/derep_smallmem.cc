@@ -386,7 +386,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           if (rc_bp->size != 0U)
             {
               bp = rc_bp;
-              j = k;
+              j = k;  // cppcheck: 'j' is assigned a value that is never used
             }
         }
 
@@ -597,7 +597,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           if (rc_bp->size != 0U)
             {
               bp = rc_bp;
-              j = k;
+              j = k;  // cppcheck: 'j' is assigned a value that is never used
             }
         }
 
