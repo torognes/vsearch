@@ -95,8 +95,14 @@ public:
   }
 
   // Element access
-  auto front() const -> char const & { return *m_start; }
-  auto back() const -> char const & { return *std::prev(end()); }
+  auto front() const -> char const & {
+    assert(not empty());
+    return *m_start;
+  }
+  auto back() const -> char const & {
+    assert(not empty());
+    return *std::prev(end());
+  }
   auto data() const -> char * { return m_start; }
   auto operator[](std::size_t index) -> char & {
     assert(index < m_length);
