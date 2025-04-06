@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
+#include "utils/span.hpp"
 #include <array>
 #include <algorithm>  // std::max, std::min, std::find_if, std::transform, std::minmax_element, std::for_each
 #include <cassert>
@@ -81,11 +82,6 @@ using Length_vs_Quality_counts = std::vector<std::vector<uint64_t>>;
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-
-  struct Span {
-    char * start;
-    std::size_t n_elements;
-  };
 
   struct Distributions {
     double avgq = 0.0;
@@ -139,14 +135,12 @@ namespace {
   }
 
 
-  auto check_minmax_scores(struct Span const a_span,
+  auto check_minmax_scores(Span const a_span,
                            std::vector<uint64_t> const & symbol_to_score,
                            struct Parameters const & parameters) -> void {
-    if (a_span.n_elements == 0) { return; }
-    assert(a_span.n_elements <= std::numeric_limits<int64_t>::max());
-    auto * const end = std::next(a_span.start, static_cast<int64_t>(a_span.n_elements));
+    if (a_span.empty()) { return; }
     auto const minmax_scores =
-      std::minmax_element(a_span.start, end);
+      std::minmax_element(a_span.begin(), a_span.end());
     auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
     auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
     check_quality_score(parameters, qmin);
