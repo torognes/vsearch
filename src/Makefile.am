@@ -108,6 +108,7 @@ userfields.h \
 util.h \
 utils/maps.hpp \
 utils/seqcmp.h \
+utils/span.hpp \
 utils/taxonomic_fields.h \
 vsearch.h \
 xstring.h
