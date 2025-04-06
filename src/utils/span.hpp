@@ -79,7 +79,6 @@ public:
     : m_start {start},
       m_length {length} {
     assert(start != nullptr);
-    assert(length != 0);
     assert(length <= max_ptrdiff);
   }
 
