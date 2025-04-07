@@ -83,21 +83,21 @@ public:
   }
 
   // Iterators
-  auto begin() const -> char * { return m_start; }
-  auto cbegin() const -> char const * { return m_start; }
+  auto begin() const -> char * { return data(); }
+  auto cbegin() const -> char const * { return data(); }
   auto end() const -> char * {
-    auto const distance = static_cast<std::ptrdiff_t>(m_length);
-    return std::next(m_start, distance);
+    auto const distance = static_cast<std::ptrdiff_t>(size());
+    return std::next(data(), distance);
   }
   auto cend() const -> char const * {
-    auto const distance = static_cast<std::ptrdiff_t>(m_length);
-    return std::next(m_start, distance);
+    auto const distance = static_cast<std::ptrdiff_t>(size());
+    return std::next(data(), distance);
   }
 
   // Element access
   auto front() const -> char const & {
     assert(not empty());
-    return *m_start;
+    return *data();
   }
   auto back() const -> char const & {
     assert(not empty());
@@ -105,15 +105,15 @@ public:
   }
   auto data() const -> char * { return m_start; }
   auto operator[](std::size_t index) -> char & {
-    assert(index < m_length);
+    assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
-    return *std::next(m_start, distance);
+    return *std::next(data(), distance);
   }
 
   // Observers
   auto size() const -> std::size_t { return m_length; }
-  auto size_bytes() const -> std::size_t { return m_length * sizeof(char); }
-  auto empty() const -> bool { return m_length == 0; }
+  auto size_bytes() const -> std::size_t { return size() * sizeof(char); }
+  auto empty() const -> bool { return size() == 0; }
 
   // Subviews
   auto first(std::size_t count) const -> Span {
