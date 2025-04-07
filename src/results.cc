@@ -771,8 +771,8 @@ auto build_sam_strings(char * alignment,
     build MD-string with substitutions
   */
 
-  cigar->empty();
-  md->empty();
+  cigar->clear();
+  md->clear();
 
   auto * p = alignment;
   auto * e = p + strlen(p);
