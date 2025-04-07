@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
-#include <algorithm>  // std::find_if
+#include <algorithm>  // std::any_of, std::find_if
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
