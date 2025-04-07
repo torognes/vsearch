@@ -128,7 +128,7 @@ private:
     length_ += needed;
   }
 
-  auto add_s(char * a_string) -> void
+  auto add_s(char * a_string) -> void  // unused?
   {
     auto const needed = std::strlen(a_string);
     if (length_ + needed + 1 > alloc_)
@@ -141,14 +141,14 @@ private:
   }
 
   // Element access
-  auto get_string() -> char *
-  {
-    if (length_ > 0)
-      {
-        return string_;
-      }
-    return empty_string.data();
+  auto data() const -> char * {
+    if (empty()) {
+      return empty_string.data();
+    }
+    return string_;
   }
+
+  auto get_string() -> char * { return data(); }
 
   // Capacity
   auto empty() const -> bool { return size() == 0; }
