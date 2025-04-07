@@ -76,8 +76,8 @@ constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 class Span {
 public:
   Span(char * start, std::size_t length)
-    : m_start {start},
-      m_length {length} {
+    : start_ {start},
+      length_ {length} {
     assert(start != nullptr);
     assert(length <= max_ptrdiff);
   }
@@ -103,7 +103,7 @@ public:
     assert(not empty());
     return *std::prev(end());
   }
-  auto data() const -> char * { return m_start; }
+  auto data() const -> char * { return start_; }
   auto operator[](std::size_t index) -> char & {
     assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
@@ -111,7 +111,7 @@ public:
   }
 
   // Observers
-  auto size() const -> std::size_t { return m_length; }
+  auto size() const -> std::size_t { return length_; }
   auto size_bytes() const -> std::size_t { return size() * sizeof(char); }
   auto empty() const -> bool { return size() == 0; }
 
@@ -135,8 +135,8 @@ public:
   }
 
 private:
-  char * m_start {};
-  std::size_t m_length {};
+  char * start_ {};
+  std::size_t length_ {};
 };
 
 
