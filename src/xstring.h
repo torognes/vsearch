@@ -129,7 +129,7 @@ private:
     if (new_capacity > capacity()) {
       reserve(new_capacity);
     }
-    std::snprintf(data() + size(), needed + 1, "%d", a_number);
+    static_cast<void>(std::snprintf(end(), needed + 1, "%d", a_number));
     length_ += needed;
   }
 
