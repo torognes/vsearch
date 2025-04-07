@@ -83,7 +83,7 @@ private:
 
   ~xstring()
   {
-    if (alloc_ > 0)
+    if (capacity() != 0)
       {
         xfree(string_);
       }
@@ -101,10 +101,10 @@ private:
   auto add_c(char a_char) -> void
   {
     static constexpr std::size_t needed = 1;
-    if (length_ + needed + 1 > alloc_)
+    if (length_ + needed + 1 > capacity())
       {
         alloc_ = length_ + needed + 1;
-        string_ = static_cast<char *>(xrealloc(string_, alloc_));
+        string_ = static_cast<char *>(xrealloc(string_, capacity()));
       }
     string_[length_] = a_char;
     length_ += 1;
@@ -119,7 +119,7 @@ private:
         fatal("snprintf failed");
       }
 
-    if (length_ + needed + 1 > alloc_)
+    if (length_ + needed + 1 > capacity())
       {
         alloc_ = length_ + needed + 1;
         string_ = static_cast<char *>(xrealloc(string_, alloc_));
