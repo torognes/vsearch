@@ -78,12 +78,10 @@ private:
  public:
   xstring() = default;
 
-  ~xstring()
-  {
-    if (capacity() != 0)
-      {
-        xfree(string_);
-      }
+  ~xstring() {
+    if (capacity() != 0) {
+      xfree(string_);
+    }
     alloc_ = 0;
     string_ = nullptr;
     length_ = 0;
@@ -96,13 +94,11 @@ private:
   }
 
   // Modifiers
-  auto clear() -> void
-  {
+  auto clear() -> void {
     length_ = 0;
   }
 
-  auto add_c(char a_char) -> void
-  {
+  auto add_c(char a_char) -> void {
     static constexpr std::size_t needed = 1;
     auto const new_capacity = size() + needed + 1;
     if (new_capacity > capacity()) {
@@ -113,13 +109,11 @@ private:
     back() = '\0';
   }
 
-  auto add_d(int a_number) -> void
-  {
+  auto add_d(int a_number) -> void {
     auto const needed = std::snprintf(nullptr, 0, "%d", a_number);
-    if (needed < 0)
-      {
-        fatal("snprintf failed");
-      }
+    if (needed < 0) {
+      fatal("snprintf failed");
+    }
 
     auto const new_capacity = size() + needed + 1;
     if (new_capacity > capacity()) {
