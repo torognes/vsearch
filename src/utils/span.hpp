@@ -61,7 +61,7 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
-#include <iterator> // std::next
+#include <iterator> // std::prev, std::next
 
 #ifndef NDEBUG
 #include <limits>
