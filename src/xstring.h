@@ -138,7 +138,7 @@ private:
   // Capacity
   auto capacity() const -> std::size_t { return alloc_; }
   auto empty() const -> bool { return size() == 0; }
-  auto reserve(std::size_t new_capacity) -> void {
+  auto reserve(std::size_t const new_capacity) -> void {
     assert(new_capacity > capacity());
     alloc_ = new_capacity;
     string_ = static_cast<char *>(xrealloc(string_, alloc_));
