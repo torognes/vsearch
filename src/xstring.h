@@ -122,7 +122,7 @@ private:
     if (length_ + needed + 1 > capacity())
       {
         alloc_ = length_ + needed + 1;
-        string_ = static_cast<char *>(xrealloc(string_, alloc_));
+        string_ = static_cast<char *>(xrealloc(string_, capacity()));
       }
     std::snprintf(string_ + length_, needed + 1, "%d", a_number);
     length_ += needed;
