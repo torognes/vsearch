@@ -68,9 +68,9 @@ static std::array<char, 1> empty_string = {""};
 class xstring
 {
 private:
-  char * string;
-  std::size_t length;
-  std::size_t alloc;
+  char * string {};
+  std::size_t length {};
+  std::size_t alloc {};
 
  public:
 
