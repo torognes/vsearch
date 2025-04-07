@@ -115,6 +115,25 @@ public:
   auto size_bytes() const -> std::size_t { return m_length * sizeof(char); }
   auto empty() const -> bool { return m_length == 0; }
 
+  // Subviews
+  auto first(std::size_t count) const -> Span {
+    assert(count <= size());
+    return Span{data(), count};
+  }
+  auto last(std::size_t count) const -> Span {
+    assert(count <= size());
+    auto distance = static_cast<std::ptrdiff_t>(size() - count);
+    auto * new_start = std::next(data(), distance);
+    return Span{new_start, count};
+  }
+  auto subspan(std::size_t offset, std::size_t count) const -> Span {
+    assert(offset <= size());
+    assert(count <= size() - offset);
+    auto distance = static_cast<std::ptrdiff_t>(offset);
+    auto * new_start = std::next(data(), distance);
+    return Span{new_start, count};
+  }
+
 private:
   char * m_start {};
   std::size_t m_length {};
@@ -138,7 +157,27 @@ private:
 //   for (auto c: s) {
 //     printf("%c\n", c);
 //   }
+//   printf("\n");
 //   std::for_each(s.begin(), s.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
+//   // assert(s[5] == 'f');
 //   auto s1 = Span{v.data(), 0};
-//   assert(s[5] == 'f');
+//   std::for_each(s1.begin(), s1.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
+//   auto s2 = Span{v.data(), 10};
+//   auto s3 = s2.first(2);
+//   std::for_each(s3.begin(), s3.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
+//   auto s4 = s2.first(10);
+//   std::for_each(s4.begin(), s4.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
+//   auto s5 = s2.first(0);
+//   std::for_each(s5.begin(), s5.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
+//   auto s6 = s2.last(0);
+//   std::for_each(s6.begin(), s6.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
+//   auto s7 = s2.last(2);
+//   std::for_each(s7.begin(), s7.end(), [](char &c) -> void { printf("%c\n", c); });
+//   printf("\n");
 // }
