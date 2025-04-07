@@ -76,11 +76,7 @@ private:
   std::size_t alloc_ {};
 
  public:
-  xstring()
-    : length_ = 0,
-    alloc_ = 0,
-    string_ = nullptr {
-    }
+  xstring() = default;
 
   ~xstring()
   {
