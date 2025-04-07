@@ -971,7 +971,7 @@ auto results_show_samout(std::FILE * output_handle,
                   db_getheader(hp->target),
                   (uint64_t) 1,
                   255,
-                  cigar.get_string(),
+                  cigar.data(),
                   "*",
                   (uint64_t) 0,
                   (uint64_t) 0,
@@ -983,7 +983,7 @@ auto results_show_samout(std::FILE * output_handle,
                   hp->internal_gaps,
                   hp->internal_indels,
                   hp->mismatches + hp->internal_indels,
-                  md.get_string(),
+                  md.data(),
                   "UU");
         }
     }
