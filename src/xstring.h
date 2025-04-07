@@ -114,9 +114,9 @@ private:
     if (new_capacity > capacity()) {
       reserve(new_capacity);
     }
-    string_[size()] = a_char;
+    back() = a_char;
     length_ += 1;
-    string_[size()] = '\0';
+    back() = '\0';
   }
 
   auto add_d(int a_number) -> void
