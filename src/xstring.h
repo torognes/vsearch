@@ -113,7 +113,7 @@ private:
 
   auto add_c(char a_char) -> void
   {
-    const std::size_t needed = 1;
+    static constexpr std::size_t needed = 1;
     if (length + needed + 1 > alloc)
       {
         alloc = length + needed + 1;
