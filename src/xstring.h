@@ -91,7 +91,7 @@ class xstring
     length = 0;
   }
 
-  auto empty() -> void
+  auto empty() -> void  // rename: clear()?
   {
     length = 0;
   }
