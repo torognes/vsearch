@@ -155,7 +155,7 @@ namespace {
     auto const tail = symbols.last(tail_length);
     if (std::all_of(
             tail.begin(), tail.end(),
-            [last_symbol](char symbol) { return symbol == last_symbol; })
+            [last_symbol](char symbol) -> bool { return symbol == last_symbol; })
         ) {
       return last_symbol;
     }
