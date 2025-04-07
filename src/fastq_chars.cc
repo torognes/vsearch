@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/maps.hpp"
+#include "utils/span.hpp"
 #include <algorithm>  // std::find_if
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -141,6 +142,24 @@ namespace {
     assert(index >= 0);
     assert(index <= char_max);
     stats.qmax = static_cast<char>(index);
+  }
+
+
+  auto search_trailing_homopolymers(Span symbols, int64_t tail_length_signed) -> char {
+    // search for trailing homopolymers of length >= 'tail_length'
+    auto const tail_length = static_cast<std::size_t>(tail_length_signed);
+    if (symbols.size() < tail_length) {
+      return '\0';
+    }
+    auto const last_symbol = symbols.back();
+    auto const tail = symbols.last(tail_length);
+    if (std::all_of(
+            tail.begin(), tail.end(),
+            [last_symbol](char symbol) { return symbol == last_symbol; })
+        ) {
+      return last_symbol;
+    }
+    return '\0';
   }
 
 
@@ -312,26 +331,13 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             }
         }
 
-      if (seq_length >= static_cast<uint64_t>(parameters.opt_fastq_tail))
-        {
-          qual_ptr = std::next(fastq_get_quality(fastq_handle), static_cast<long>(seq_length - 1));
-          auto const tail_char = *qual_ptr;
-          std::advance(qual_ptr, -1);
-          auto tail_len = 1;
-          while (*qual_ptr == tail_char)
-            {
-              std::advance(qual_ptr, -1);
-              ++tail_len;
-              if (tail_len >= parameters.opt_fastq_tail)
-                {
-                  break;
-                }
-            }
-          if (tail_len >= parameters.opt_fastq_tail)
-            {
-              ++stats.tail_chars[tail_char];
-            }
-        }
+      // search for trailing homopolymers in quality strings
+      auto const tail_char =
+        search_trailing_homopolymers(Span{fastq_get_quality(fastq_handle), seq_length},
+                                     parameters.opt_fastq_tail);
+      if (tail_char != '\0') {
+        ++stats.tail_chars[tail_char];
+      }
 
       progress_update(fastq_get_position(fastq_handle));
     }
