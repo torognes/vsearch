@@ -92,9 +92,14 @@ private:
     length_ = 0;
   }
 
-  auto empty() -> void  // rename: clear()?
+  auto clear() -> void
   {
     length_ = 0;
+  }
+
+  auto empty() -> void  // rename: clear()?
+  {
+    clear();
   }
 
   auto get_string() -> char *
