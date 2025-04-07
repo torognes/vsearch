@@ -108,7 +108,7 @@ private:
       }
     string_[size()] = a_char;
     length_ += 1;
-    string_[size()] = 0;
+    string_[size()] = '\0';
   }
 
   auto add_d(int a_number) -> void
