@@ -135,12 +135,12 @@ namespace {
   }
 
 
-  auto check_minmax_scores(Span const a_span,
+  auto check_minmax_scores(Span const qualities,
                            std::vector<uint64_t> const & symbol_to_score,
                            struct Parameters const & parameters) -> void {
-    if (a_span.empty()) { return; }
+    if (qualities.empty()) { return; }
     auto const minmax_scores =
-      std::minmax_element(a_span.begin(), a_span.end());
+      std::minmax_element(qualities.begin(), qualities.end());
     auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
     auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
     check_quality_score(parameters, qmin);
