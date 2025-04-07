@@ -151,7 +151,7 @@ private:
   }
 
   // Capacity
-  auto get_length() const -> std::size_t
+  auto size() const -> std::size_t
   {
     return length_;
   }
