@@ -128,18 +128,6 @@ private:
     length_ += needed;
   }
 
-  auto add_s(char * a_string) -> void  // unused?
-  {
-    auto const needed = std::strlen(a_string);
-    if (length_ + needed + 1 > alloc_)
-      {
-        alloc_ = length_ + needed + 1;
-        string_ = static_cast<char *>(xrealloc(string_, alloc_));
-      }
-    std::strcpy(string_ + length_, a_string);
-    length_ += needed;
-  }
-
   // Element access
   auto data() const -> char * {
     if (empty()) {
