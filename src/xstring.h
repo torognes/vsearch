@@ -92,28 +92,10 @@ private:
     length_ = 0;
   }
 
+  // Modifiers
   auto clear() -> void
   {
     length_ = 0;
-  }
-
-  auto empty() -> void  // rename: clear()?
-  {
-    clear();
-  }
-
-  auto get_string() -> char *
-  {
-    if (length_ > 0)
-      {
-        return string_;
-      }
-    return empty_string.data();
-  }
-
-  auto get_length() const -> std::size_t
-  {
-    return length_;
   }
 
   auto add_c(char a_char) -> void
@@ -156,5 +138,21 @@ private:
       }
     std::strcpy(string_ + length_, a_string);
     length_ += needed;
+  }
+
+  // Element access
+  auto get_string() -> char *
+  {
+    if (length_ > 0)
+      {
+        return string_;
+      }
+    return empty_string.data();
+  }
+
+  // Capacity
+  auto get_length() const -> std::size_t
+  {
+    return length_;
   }
 };
