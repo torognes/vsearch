@@ -59,6 +59,7 @@
 */
 
 #include <array>
+#include <cassert>
 #include <cstdio>  // std::size_t, std::snprintf
 #include <cstring>  // std::strlen, std::strcpy
 
@@ -139,5 +140,10 @@ private:
   // Capacity
   auto capacity() const -> std::size_t { return alloc_; }
   auto empty() const -> bool { return size() == 0; }
+  auto reserve(std::size_t new_capacity) -> void {
+    assert(new_capacity > capacity());
+    alloc_ = new_capacity;
+    string_ = static_cast<char *>(xrealloc(data(), capacity()));
+  }
   auto size() const -> std::size_t { return length_; }
 };
