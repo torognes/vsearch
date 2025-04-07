@@ -60,8 +60,10 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdio>  // std::size_t, std::snprintf
 #include <cstring>  // std::strlen, std::strcpy
+#include <iterator> // std::prev, std::next
 
 
 static std::array<char, 1> empty_string = {""};
@@ -91,6 +93,12 @@ private:
     alloc_ = 0;
     string_ = nullptr;
     length_ = 0;
+  }
+
+  // Iterators
+  auto end() const -> char * {
+    auto const distance = static_cast<std::ptrdiff_t>(size());
+    return std::next(data(), distance);
   }
 
   // Modifiers
@@ -133,6 +141,10 @@ private:
       return empty_string.data();
     }
     return string_;
+  }
+  auto back() const -> char & {
+    assert(not empty());
+    return *std::prev(end());
   }
 
   // Capacity
