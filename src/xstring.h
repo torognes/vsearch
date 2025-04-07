@@ -101,14 +101,14 @@ private:
   auto add_c(char a_char) -> void
   {
     static constexpr std::size_t needed = 1;
-    if (length_ + needed + 1 > capacity())
+    if (size() + needed + 1 > capacity())
       {
-        alloc_ = length_ + needed + 1;
-        string_ = static_cast<char *>(xrealloc(string_, capacity()));
+        alloc_ = size() + needed + 1;
+        string_ = static_cast<char *>(xrealloc(data(), capacity()));
       }
-    string_[length_] = a_char;
+    string_[size()] = a_char;
     length_ += 1;
-    string_[length_] = 0;
+    string_[size()] = 0;
   }
 
   auto add_d(int a_number) -> void
@@ -119,12 +119,12 @@ private:
         fatal("snprintf failed");
       }
 
-    if (length_ + needed + 1 > capacity())
+    if (size() + needed + 1 > capacity())
       {
-        alloc_ = length_ + needed + 1;
-        string_ = static_cast<char *>(xrealloc(string_, capacity()));
+        alloc_ = size() + needed + 1;
+        string_ = static_cast<char *>(xrealloc(data(), capacity()));
       }
-    std::snprintf(string_ + length_, needed + 1, "%d", a_number);
+    std::snprintf(data() + size(), needed + 1, "%d", a_number);
     length_ += needed;
   }
 
