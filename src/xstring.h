@@ -126,7 +126,7 @@ private:
 
   auto add_d(int a_number) -> void
   {
-    auto const needed = snprintf(nullptr, 0, "%d", a_number);
+    auto const needed = std::snprintf(nullptr, 0, "%d", a_number);
     if (needed < 0)
       {
         fatal("snprintf failed");
