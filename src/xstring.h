@@ -68,60 +68,60 @@ static std::array<char, 1> empty_string = {""};
 class xstring
 {
 private:
-  char * string {};
-  std::size_t length {};
-  std::size_t alloc {};
+  char * string_ {};
+  std::size_t length_ {};
+  std::size_t alloc_ {};
 
  public:
 
   xstring()
     {
-      length = 0;
-      alloc = 0;
-      string = nullptr;
+      length_ = 0;
+      alloc_ = 0;
+      string_ = nullptr;
     }
 
   ~xstring()
   {
-    if (alloc > 0)
+    if (alloc_ > 0)
       {
-        xfree(string);
+        xfree(string_);
       }
-    alloc = 0;
-    string = nullptr;
-    length = 0;
+    alloc_ = 0;
+    string_ = nullptr;
+    length_ = 0;
   }
 
   auto empty() -> void  // rename: clear()?
   {
-    length = 0;
+    length_ = 0;
   }
 
   auto get_string() -> char *
   {
-    if (length > 0)
+    if (length_ > 0)
       {
-        return string;
+        return string_;
       }
     return empty_string.data();
   }
 
   auto get_length() const -> std::size_t
   {
-    return length;
+    return length_;
   }
 
   auto add_c(char a_char) -> void
   {
     static constexpr std::size_t needed = 1;
-    if (length + needed + 1 > alloc)
+    if (length_ + needed + 1 > alloc_)
       {
-        alloc = length + needed + 1;
-        string = static_cast<char *>(xrealloc(string, alloc));
+        alloc_ = length_ + needed + 1;
+        string_ = static_cast<char *>(xrealloc(string_, alloc_));
       }
-    string[length] = a_char;
-    length += 1;
-    string[length] = 0;
+    string_[length_] = a_char;
+    length_ += 1;
+    string_[length_] = 0;
   }
 
   auto add_d(int a_number) -> void
@@ -132,24 +132,24 @@ private:
         fatal("snprintf failed");
       }
 
-    if (length + needed + 1 > alloc)
+    if (length_ + needed + 1 > alloc_)
       {
-        alloc = length + needed + 1;
-        string = static_cast<char *>(xrealloc(string, alloc));
+        alloc_ = length_ + needed + 1;
+        string_ = static_cast<char *>(xrealloc(string_, alloc_));
       }
-    std::snprintf(string + length, needed + 1, "%d", a_number);
-    length += needed;
+    std::snprintf(string_ + length_, needed + 1, "%d", a_number);
+    length_ += needed;
   }
 
   auto add_s(char * a_string) -> void
   {
     auto const needed = std::strlen(a_string);
-    if (length + needed + 1 > alloc)
+    if (length_ + needed + 1 > alloc_)
       {
-        alloc = length + needed + 1;
-        string = static_cast<char *>(xrealloc(string, alloc));
+        alloc_ = length_ + needed + 1;
+        string_ = static_cast<char *>(xrealloc(string_, alloc_));
       }
-    std::strcpy(string + length, a_string);
-    length += needed;
+    std::strcpy(string_ + length_, a_string);
+    length_ += needed;
   }
 };
