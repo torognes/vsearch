@@ -123,7 +123,7 @@ private:
     if (size() + needed + 1 > capacity())
       {
         alloc_ = size() + needed + 1;
-        string_ = static_cast<char *>(xrealloc(data(), capacity()));
+        string_ = static_cast<char *>(xrealloc(string_, alloc_));
       }
     std::snprintf(data() + size(), needed + 1, "%d", a_number);
     length_ += needed;
@@ -143,7 +143,7 @@ private:
   auto reserve(std::size_t new_capacity) -> void {
     assert(new_capacity > capacity());
     alloc_ = new_capacity;
-    string_ = static_cast<char *>(xrealloc(data(), capacity()));
+    string_ = static_cast<char *>(xrealloc(string_, alloc_));
   }
   auto size() const -> std::size_t { return length_; }
 };
