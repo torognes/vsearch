@@ -137,6 +137,7 @@ private:
   }
 
   // Capacity
+  auto capacity() const -> std::size_t { return alloc_; }
   auto empty() const -> bool { return size() == 0; }
   auto size() const -> std::size_t { return length_; }
 };
