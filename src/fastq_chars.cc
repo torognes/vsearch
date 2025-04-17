@@ -145,7 +145,7 @@ namespace {
   }
 
 
-  auto search_trailing_homopolymers(Span symbols, int64_t tail_length_signed) -> char {
+  auto search_trailing_homopolymers(Span const symbols, int64_t const tail_length_signed) -> char {
     // search for trailing homopolymers of length >= 'tail_length'
     auto const tail_length = static_cast<std::size_t>(tail_length_signed);
     if (symbols.size() < tail_length) {
