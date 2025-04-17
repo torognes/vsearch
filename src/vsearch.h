@@ -75,7 +75,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdint>
-#include <cstdio>
+#include <cstdio>  // std::size_t
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
