@@ -4787,7 +4787,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (parameters.opt_fastq_tail < 1)
     {
-      fatal("The argument to --fastq_tail must be positive");
+      fatal("The argument to --fastq_tail must be greater than zero");
     }
 
   if ((parameters.opt_min_unmasked_pct < 0.0) and (parameters.opt_min_unmasked_pct > 100.0))
