@@ -67,10 +67,10 @@ constexpr auto byte_range = 256U;
 
 struct fastx_buffer_s
 {
-  char * data;
-  uint64_t length;
-  uint64_t alloc;
-  uint64_t position;
+  char * data = nullptr;
+  uint64_t length = 0;
+  uint64_t alloc = 0;
+  uint64_t position = 0;
 };
 
 auto buffer_init(struct fastx_buffer_s * buffer) -> void;
@@ -82,18 +82,18 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void;
 
 struct fastx_s
 {
-  bool is_pipe;
-  bool is_fastq;
-  bool is_empty;
+  bool is_pipe = false;
+  bool is_fastq = false;
+  bool is_empty = false;
 
-  std::FILE * fp;
+  std::FILE * fp = nullptr;
 
 #ifdef HAVE_ZLIB_H
-  gzFile fp_gz;
+  gzFile fp_gz = nullptr;
 #endif
 
 #ifdef HAVE_BZLIB_H
-  BZFILE * fp_bz;
+  BZFILE * fp_bz = nullptr;
 #endif
 
   struct fastx_buffer_s file_buffer;
@@ -103,17 +103,17 @@ struct fastx_s
   struct fastx_buffer_s plusline_buffer;
   struct fastx_buffer_s quality_buffer;
 
-  uint64_t file_size;
-  uint64_t file_position;
+  uint64_t file_size = 0;
+  uint64_t file_position = 0;
 
-  uint64_t lineno;
-  uint64_t lineno_start;
-  int64_t seqno;
+  uint64_t lineno = 0;
+  uint64_t lineno_start = 0;
+  int64_t seqno = 0;
 
-  uint64_t stripped_all;
+  uint64_t stripped_all = 0;
   std::array<uint64_t, byte_range> stripped {{}};
 
-  int format;
+  int format = 0;
 };
 
 using fastx_handle = struct fastx_s *;
