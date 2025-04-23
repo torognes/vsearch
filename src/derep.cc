@@ -359,7 +359,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   std::vector<char> seq_up(alloc_seqlen + 1);
   std::vector<char> rc_seq_up(alloc_seqlen + 1);
-  std::string prompt = std::string("Dereplicating file ") + input_filename;
+  std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
   progress_init(prompt.c_str(), filesize);
 

@@ -285,7 +285,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   std::vector<char> seq_up(alloc_seqlen + 1);
   std::vector<char> rc_seq_up(alloc_seqlen + 1);
 
-  std::string prompt = std::string("Dereplicating file ") + input_filename;
+  std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
   progress_init(prompt.c_str(), filesize);
 
