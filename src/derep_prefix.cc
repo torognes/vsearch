@@ -421,17 +421,17 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       int64_t relabel_count = 0;
       for (int64_t i = 0; i < clusters; i++)
         {
-          auto * bp = &hashtable[i];
-          int64_t const size = bp->size;
+          auto const & bp = hashtable[i];
+          int64_t const size = bp.size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_output,
                                   nullptr,
-                                  db_getsequence(bp->seqno_first),
-                                  db_getsequencelen(bp->seqno_first),
-                                  db_getheader(bp->seqno_first),
-                                  db_getheaderlen(bp->seqno_first),
+                                  db_getsequence(bp.seqno_first),
+                                  db_getsequencelen(bp.seqno_first),
+                                  db_getheader(bp.seqno_first),
+                                  db_getheaderlen(bp.seqno_first),
                                   size,
                                   relabel_count,
                                   -1.0,
