@@ -400,7 +400,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   int64_t selected = 0;
   for (int64_t i = 0; i < clusters; i++)
     {
-      struct bucket * bp = &hashtable[i];
+      auto * bp = &hashtable[i];
       int64_t const size = bp->size;
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
@@ -422,7 +422,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       int64_t relabel_count = 0;
       for (int64_t i = 0; i < clusters; i++)
         {
-          struct bucket * bp = &hashtable[i];
+          auto * bp = &hashtable[i];
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -456,8 +456,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_init("Writing uc file, first part", clusters);
       for (int64_t i = 0; i < clusters; i++)
         {
-          struct bucket * bp = &hashtable[i];
-          char * h =  db_getheader(bp->seqno_first);
+          auto * bp = &hashtable[i];
+          auto * h =  db_getheader(bp->seqno_first);
           int64_t const len = db_getsequencelen(bp->seqno_first);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
