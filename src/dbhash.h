@@ -69,10 +69,10 @@ struct dbhash_bucket_s
 
 struct dbhash_search_info_s
 {
-  char * seq;
-  uint64_t seqlen;
-  uint64_t hash;
-  uint64_t index;
+  char * seq = nullptr;
+  uint64_t seqlen = 0;
+  uint64_t hash = 0;
+  uint64_t index = 0;
 };
 
 auto dbhash_open(uint64_t maxelements) -> void;
