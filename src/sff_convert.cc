@@ -93,15 +93,15 @@ static_assert(sizeof(uint64_t) == memory_alignment, "sff expects a uint64_t of s
 
 struct sff_header_s
 {
-  uint32_t magic_number; /* .sff */
-  uint32_t version;
-  uint64_t index_offset;
-  uint32_t index_length;
-  uint32_t number_of_reads;
-  uint16_t header_length;
-  uint16_t key_length;
-  uint16_t flows_per_read;
-  uint8_t  flowgram_format_code;
+  uint32_t magic_number = 0; /* .sff */
+  uint32_t version = 0;
+  uint64_t index_offset = 0;
+  uint32_t index_length = 0;
+  uint32_t number_of_reads = 0;
+  uint16_t header_length = 0;
+  uint16_t key_length = 0;
+  uint16_t flows_per_read = 0;
+  uint8_t  flowgram_format_code = 0;
   // automatic padding: +1 bytes
 };
 
@@ -109,13 +109,13 @@ constexpr std::size_t n_bytes_in_header = sizeof(struct sff_header_s);  // first
 
 struct sff_read_header_s
 {
-  uint16_t read_header_length;
-  uint16_t name_length;
-  uint32_t number_of_bases;
-  uint16_t clip_qual_left;
-  uint16_t clip_qual_right;
-  uint16_t clip_adapter_left;
-  uint16_t clip_adapter_right;
+  uint16_t read_header_length = 0;
+  uint16_t name_length = 0;
+  uint32_t number_of_bases = 0;
+  uint16_t clip_qual_left = 0;
+  uint16_t clip_qual_right = 0;
+  uint16_t clip_adapter_left = 0;
+  uint16_t clip_adapter_right = 0;
 };
 
 constexpr std::size_t n_bytes_in_read_header = sizeof(struct sff_read_header_s);  // 16 bytes
