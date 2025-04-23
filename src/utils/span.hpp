@@ -116,6 +116,13 @@ public:
   auto empty() const -> bool { return size() == 0; }
 
   // Subviews
+  auto subspan(std::size_t offset, std::size_t count) const -> Span {
+    assert(offset <= size());
+    assert(count <= size() - offset);
+    auto distance = static_cast<std::ptrdiff_t>(offset);
+    auto * new_start = std::next(data(), distance);
+    return Span{new_start, count};
+  }
   auto first(std::size_t count) const -> Span {
     assert(count <= size());
     return Span{data(), count};
@@ -123,13 +130,6 @@ public:
   auto last(std::size_t count) const -> Span {
     assert(count <= size());
     auto distance = static_cast<std::ptrdiff_t>(size() - count);
-    auto * new_start = std::next(data(), distance);
-    return Span{new_start, count};
-  }
-  auto subspan(std::size_t offset, std::size_t count) const -> Span {
-    assert(offset <= size());
-    assert(count <= size() - offset);
-    auto distance = static_cast<std::ptrdiff_t>(offset);
     auto * new_start = std::next(data(), distance);
     return Span{new_start, count};
   }
