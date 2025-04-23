@@ -67,6 +67,7 @@
 #include <limits>
 // C++17 refactoring: [[maybe_unused]]
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 #endif
 
 
@@ -112,7 +113,10 @@ public:
 
   // Observers
   auto size() const -> std::size_t { return length_; }
-  auto size_bytes() const -> std::size_t { return size() * sizeof(char); }
+  auto size_bytes() const -> std::size_t {
+    assert(size() <= (max_size / sizeof(char)));
+    return size() * sizeof(char);
+  }
   auto empty() const -> bool { return size() == 0; }
 
   // Subviews
