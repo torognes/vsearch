@@ -201,33 +201,33 @@ using VECTOR_SHORT = __m128i;
 struct s16info_s
 {
   std::array<VECTOR_SHORT, 32> matrix {{}};
-  VECTOR_SHORT * hearray;
-  VECTOR_SHORT * dprofile;
-  VECTOR_SHORT ** qtable;
-  unsigned short * dir;
-  char * qseq;
-  uint64_t diralloc;
+  VECTOR_SHORT * hearray = nullptr;
+  VECTOR_SHORT * dprofile = nullptr;
+  VECTOR_SHORT ** qtable = nullptr;
+  unsigned short * dir = nullptr;
+  char * qseq = nullptr;
+  uint64_t diralloc = 0;
 
-  char * cigar;
-  char * cigarend;
-  int64_t cigaralloc;
-  int opcount;
-  char op;
+  char * cigar = nullptr;
+  char * cigarend = nullptr;
+  int64_t cigaralloc = 0;
+  int opcount = 0;
+  char op = '\0';
 
-  int qlen;
-  int maxdlen;
-  CELL penalty_gap_open_query_left;
-  CELL penalty_gap_open_target_left;
-  CELL penalty_gap_open_query_interior;
-  CELL penalty_gap_open_target_interior;
-  CELL penalty_gap_open_query_right;
-  CELL penalty_gap_open_target_right;
-  CELL penalty_gap_extension_query_left;
-  CELL penalty_gap_extension_target_left;
-  CELL penalty_gap_extension_query_interior;
-  CELL penalty_gap_extension_target_interior;
-  CELL penalty_gap_extension_query_right;
-  CELL penalty_gap_extension_target_right;
+  int qlen = 0;
+  int maxdlen = 0;
+  CELL penalty_gap_open_query_left = 0;
+  CELL penalty_gap_open_target_left = 0;
+  CELL penalty_gap_open_query_interior = 0;
+  CELL penalty_gap_open_target_interior = 0;
+  CELL penalty_gap_open_query_right = 0;
+  CELL penalty_gap_open_target_right = 0;
+  CELL penalty_gap_extension_query_left = 0;
+  CELL penalty_gap_extension_target_left = 0;
+  CELL penalty_gap_extension_query_interior = 0;
+  CELL penalty_gap_extension_target_interior = 0;
+  CELL penalty_gap_extension_query_right = 0;
+  CELL penalty_gap_extension_target_right = 0;
 };
 
 
