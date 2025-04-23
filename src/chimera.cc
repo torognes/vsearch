@@ -127,22 +127,22 @@ static FILE * fp_borderline = nullptr;
 /* information for each query sequence to be checked */
 struct chimera_info_s
 {
-  int query_alloc; /* the longest query sequence allocated memory for */
-  int head_alloc; /* the longest header allocated memory for */
+  int query_alloc = 0; /* the longest query sequence allocated memory for */
+  int head_alloc = 0; /* the longest header allocated memory for */
 
-  int query_no;
-  char * query_head;
-  int query_head_len;
-  int query_size;
-  char * query_seq;
-  int query_len;
+  int query_no = 0;
+  char * query_head = nullptr;
+  int query_head_len = 0;
+  int query_size = 0;
+  char * query_seq = nullptr;
+  int query_len = 0;
 
   std::array<struct searchinfo_s, maxparts> si {{}};
 
   std::array<unsigned int, maxcandidates> cand_list {{}};
-  int cand_count;
+  int cand_count = 0;
 
-  struct s16info_s * s;
+  struct s16info_s * s = nullptr;
   std::array<CELL, maxcandidates> snwscore {{}};
   std::array<unsigned short, maxcandidates> snwalignmentlength {{}};
   std::array<unsigned short, maxcandidates> snwmatches {{}};
@@ -155,33 +155,33 @@ struct chimera_info_s
   std::array<int64_t, maxcandidates> nwgaps {{}};
   std::array<char *, maxcandidates> nwcigar {{}};
 
-  int match_size;
-  int * match;
-  int * insert;
-  int * smooth;
-  int * maxsmooth;
+  int match_size = 0;
+  int * match = nullptr;
+  int * insert = nullptr;
+  int * smooth = nullptr;
+  int * maxsmooth = nullptr;
 
-  double * scan_p;
-  double * scan_q;
+  double * scan_p = nullptr;
+  double * scan_q = nullptr;
 
-  int parents_found;
+  int parents_found = 0;
   std::array<int, maxparents> best_parents {{}};
   std::array<int, maxparents> best_start {{}};
   std::array<int, maxparents> best_len {{}};
 
-  int best_target;
-  char * best_cigar;
+  int best_target = 0;
+  char * best_cigar = nullptr;
 
-  int * maxi;
+  int * maxi = nullptr;
   std::array<char *, maxparents> paln {{}};
-  char * qaln;
-  char * diffs;
-  char * votes;
-  char * model;
-  char * ignore;
+  char * qaln = nullptr;
+  char * diffs = nullptr;
+  char * votes = nullptr;
+  char * model = nullptr;
+  char * ignore = nullptr;
 
-  struct hit * all_hits;
-  double best_h;
+  struct hit * all_hits = nullptr;
+  double best_h = 0;
 };
 
 
