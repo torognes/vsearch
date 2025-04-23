@@ -150,7 +150,7 @@ auto sintax_analyse(char * query_head,
             }
         }
 
-      std::array<bool, bootstrap_count> cand_included;
+      std::array<bool, bootstrap_count> cand_included {{}};
       cand_included.fill(true);
 
       /* Count matching names among candidates */
@@ -160,7 +160,7 @@ auto sintax_analyse(char * query_head,
           level_best[k] = -1;
           level_matchcount[k] = 0;
 
-          std::array<int, bootstrap_count> cand_match;
+          std::array<int, bootstrap_count> cand_match {{}};
           cand_match.fill(-1);
           std::array<int, bootstrap_count> cand_matchcount {{}};
 
