@@ -400,8 +400,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   int64_t selected = 0;
   for (int64_t i = 0; i < clusters; i++)
     {
-      auto * bp = &hashtable[i];
-      int64_t const size = bp->size;
+      int64_t const size = hashtable[i].size;
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
           ++selected;
