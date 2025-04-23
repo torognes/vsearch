@@ -124,14 +124,11 @@ public:
     return Span{new_start, count};
   }
   auto first(std::size_t count) const -> Span {
-    assert(count <= size());
-    return Span{data(), count};
+    return subspan(0, count);
   }
   auto last(std::size_t count) const -> Span {
     assert(count <= size());
-    auto distance = static_cast<std::ptrdiff_t>(size() - count);
-    auto * new_start = std::next(data(), distance);
-    return Span{new_start, count};
+    return subspan(size() - count, count);
   }
 
 private:
