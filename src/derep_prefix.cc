@@ -455,14 +455,14 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_init("Writing uc file, first part", clusters);
       for (int64_t i = 0; i < clusters; i++)
         {
-          auto * bp = &hashtable[i];
-          auto * h =  db_getheader(bp->seqno_first);
-          int64_t const len = db_getsequencelen(bp->seqno_first);
+          auto const & bp = hashtable[i];
+          auto * h =  db_getheader(bp.seqno_first);
+          int64_t const len = db_getsequencelen(bp.seqno_first);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
 
-          for (unsigned int next = nextseqtab[bp->seqno_first];
+          for (unsigned int next = nextseqtab[bp.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
@@ -479,9 +479,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       progress_init("Writing uc file, second part", clusters);
       for (int64_t i = 0; i < clusters; i++)
         {
-          struct bucket * bp = &hashtable[i];
+          auto const & bp = hashtable[i];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, bp->size, db_getheader(bp->seqno_first));
+                  i, bp.size, db_getheader(bp.seqno_first));
           progress_update(i);
         }
       fclose(fp_uc);
