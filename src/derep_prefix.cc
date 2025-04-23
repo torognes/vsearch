@@ -230,13 +230,14 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       */
 
       /* compute hashes of all prefixes */
-
-      uint64_t fnv1a_hash = 14695981039346656037ULL;
+      static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
+      static constexpr auto FNV_prime = uint64_t{1099511628211U};
+      auto fnv1a_hash = FNV_offset_basis;
       prefix_hashes[0] = fnv1a_hash;
-      for (unsigned int j = 0; j < seqlen; j++)
+      for (auto j = 0U; j < seqlen; j++)
         {
           fnv1a_hash ^= seq_up[j];
-          fnv1a_hash *= 1099511628211ULL;
+          fnv1a_hash *= FNV_prime;
           prefix_hashes[j + 1] = fnv1a_hash;
         }
 
