@@ -76,7 +76,7 @@
 #include <vector>
 
 
-constexpr auto blocksize = 4096UL * 4096UL;
+constexpr auto blocksize = uint64_t{4096UL * 4096UL};
 
 static unsigned int udb_dbaccel = 0;
 
