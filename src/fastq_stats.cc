@@ -399,7 +399,7 @@ namespace {
                  "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct",
                  "-----  -------  ----  -------  --------  -----  ---------  --------");
 
-    for (auto length = 2UL; length <= stats.len_max; ++length)
+    for (auto length = uint64_t{2}; length <= stats.len_max; ++length)
       {
         auto const previous_count = static_cast<double>(stats.length_dist[length - 1]);
         auto const & distribution = stats.distributions[length - 1];
