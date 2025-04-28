@@ -91,7 +91,7 @@
 */
 
 constexpr auto matrix_size = 16;
-constexpr auto minimal_length = 64L;
+constexpr auto minimal_length = int64_t{64};
 
 
 LinearMemoryAligner::LinearMemoryAligner()
