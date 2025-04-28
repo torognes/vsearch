@@ -699,7 +699,7 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
   xpthread_mutex_init(&mutex_output, nullptr);
 
   progress = 0;
-  progress_init("Aligning", std::max(0L, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);  // refactoring: issue with parenthesis?
+  progress_init("Aligning", std::max(int64_t{0}, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);  // refactoring: issue with parenthesis?
   allpairs_thread_worker_run();
   progress_done();
 
