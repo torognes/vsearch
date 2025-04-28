@@ -71,7 +71,7 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 #endif
 
 
-// simple version of std::span
+// simple version of std::span (C++20)
 // only valid for vectors or arrays of chars
 
 class Span {
@@ -96,6 +96,7 @@ public:
   }
 
   // Element access
+  // C++17 refactoring: [[nodiscard]]
   auto front() const -> char const & {
     assert(not empty());
     return *data();
