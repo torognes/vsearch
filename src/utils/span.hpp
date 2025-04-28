@@ -76,7 +76,7 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 
 class Span {
 public:
-  Span(char * start, std::size_t length)
+  explicit Span(char * start, std::size_t length)
     : start_ {start},
       length_ {length} {
     assert(start != nullptr);
