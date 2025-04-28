@@ -464,7 +464,7 @@ namespace {
                  "Truncate at first Q",
                  "  Len     Q=5    Q=10    Q=15    Q=20",
                  "-----  ------  ------  ------  ------");
-    auto const mid_length = std::max(1UL, stats.len_max / 2);
+    auto const mid_length = std::max(uint64_t{1}, stats.len_max / 2);
     std::vector<double> read_percentage(q_length_table[0].size());
     for (auto length = stats.len_max; length >= mid_length; --length)
       {
