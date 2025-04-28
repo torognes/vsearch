@@ -290,7 +290,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                                bool b_left,      /* includes left end of b  */
                                bool b_right) -> void  /* includes right end of b */
 {
-  static constexpr auto long_min = std::numeric_limits<int64_t>::min();
+  static constexpr auto int64_min = std::numeric_limits<int64_t>::min();
   if (b_len == 0)
     {
       /* B and possibly A is empty */
@@ -448,7 +448,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       for (int64_t j = 1; j <= b_len; j++)
         {
           HH[j] = - (a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i));
-          EE[j] = long_min;
+          EE[j] = int64_min;
         }
 
       /* compute matrix */
@@ -462,7 +462,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                          (gap_b_left ? 0 : go_t_i) + (i * ge_t_i));
 
           HH[0] = h;
-          auto f = long_min;
+          auto f = int64_min;
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -498,7 +498,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       for (int64_t j = 1; j <= b_len; j++)
         {
           XX[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
-          YY[j] = long_min;
+          YY[j] = int64_min;
         }
 
       /* compute matrix */
@@ -511,7 +511,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                          (gap_b_right ? 0 : go_t_r) + (i * ge_t_r) :
                          (gap_b_right ? 0 : go_t_i) + (i * ge_t_i));
           XX[0] = h;
-          auto f = long_min;
+          auto f = int64_min;
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -539,7 +539,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* find maximum score along division line */
 
-      auto MaxScore0 = long_min;
+      auto MaxScore0 = int64_min;
       int64_t best0 = -1;
 
       /* solutions with diagonal at break */
@@ -555,7 +555,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
             }
         }
 
-      auto MaxScore1 = long_min;
+      auto MaxScore1 = int64_min;
       int64_t best1 = -1;
 
       /* solutions that end with a gap in b from both ends at break */
