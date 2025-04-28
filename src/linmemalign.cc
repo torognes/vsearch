@@ -290,7 +290,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                                bool b_left,      /* includes left end of b  */
                                bool b_right) -> void  /* includes right end of b */
 {
-  static constexpr auto long_min = std::numeric_limits<long>::min();
+  static constexpr auto long_min = std::numeric_limits<int64_t>::min();
   if (b_len == 0)
     {
       /* B and possibly A is empty */
