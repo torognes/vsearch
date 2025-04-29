@@ -35,6 +35,10 @@
  * compile-time configuration.
  */
 
+
+// refactoring C++11: https://codereview.stackexchange.com/questions/163872/md5-implementation-in-c11
+
+
 #ifndef HAVE_OPENSSL
 
 #include <string.h>
