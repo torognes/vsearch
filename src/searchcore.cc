@@ -246,7 +246,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
                                                   bitmap, indexed_count);
             }
 #else
-          increment_counters_from_bitmap(si->kmers, bitmap, indexed_count);
+          increment_counters_from_bitmap(searchinfo->kmers, bitmap, indexed_count);
 #endif
         }
       else
