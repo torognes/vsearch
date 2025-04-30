@@ -194,9 +194,9 @@ auto db_add(bool is_fastq,
   /* update statistics */
   ++sequences;
   nucleotides += sequencelength;
-  longest = std::max(sequencelength, longest);
-  shortest = std::min(sequencelength, shortest);
-  longestheader = std::max(headerlength, longestheader);
+  longest = std::max((uint64_t)sequencelength, longest);
+  shortest = std::min((uint64_t)sequencelength, shortest);
+  longestheader = std::max((uint64_t)headerlength, longestheader);
 }
 
 
