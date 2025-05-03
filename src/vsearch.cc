@@ -5803,6 +5803,22 @@ auto cmd_chimera(struct Parameters const & parameters) -> void
 }
 
 
+auto cmd_fastq_join(struct Parameters & parameters) -> void
+{
+  if (is_not_ASCII(parameters.opt_join_padgap)) {
+    fatal("Option --join_padgap contains non-ASCII characters");
+  }
+  if (is_not_ASCII(parameters.opt_join_padgapq)) {
+    fatal("Option --join_padgapq contains non-ASCII characters");
+  }
+  if ((not parameters.opt_join_padgapq_set_by_user) and
+      (parameters.opt_fastq_ascii != default_ascii_offset)) {
+    parameters.opt_join_padgapq = alternative_quality_padding;
+  }
+  fastq_join(parameters);
+}
+
+
 auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
 {
   if (parameters.opt_reverse == nullptr)
@@ -6018,11 +6034,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_fastq_join != nullptr)
     {
-      if ((not parameters.opt_join_padgapq_set_by_user) and
-          (parameters.opt_fastq_ascii != default_ascii_offset)) {
-        parameters.opt_join_padgapq = alternative_quality_padding;
-      }
-      fastq_join(parameters);
+      cmd_fastq_join(parameters);
     }
   else if (parameters.opt_rereplicate != nullptr)
     {
