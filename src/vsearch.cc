@@ -346,10 +346,10 @@ std::FILE * fp_log = nullptr;
 
 auto is_not_ASCII(std::string const & user_string) -> bool {
   static constexpr auto ascii_max = std::numeric_limits<signed char>::max();
-  return std::any_of(user_string.begin(), user_string.end(),
-                     [](char const user_char) -> bool {
-                       return (user_char < 0) or (user_char > ascii_max);
-                     });
+  auto is_not_in_range = [](char const user_char) -> bool {
+    return (user_char < 0) or (user_char > ascii_max);
+  };
+  return std::any_of(user_string.begin(), user_string.end(), is_not_in_range);
 }
 
 
