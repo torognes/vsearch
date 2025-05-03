@@ -252,7 +252,7 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch-fastq_chars(1)`](./commands/vsearch-chars.1.md), 
+[`vsearch-fastq_chars(1)`](./commands/vsearch-fastq_chars.1.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
 
 
