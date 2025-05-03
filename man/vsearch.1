@@ -2142,14 +2142,17 @@ to a FASTQ file due to missing base quality scores.
 .TP
 .BI \-\-join_padgap\~ string
 When running \-\-fastq_join, use the \fIstring\fR as a sequence
-padding string. The default is NNNNNNNN (8 N's).
+padding string. The default is NNNNNNNN (8 N's). Option accepts an
+empty string, or any other combination of ASCII characters.
 .TAG join_padgapq
 .TP
 .BI \-\-join_padgapq\~ string
 When running \-\-fastq_join, use the \fIstring\fR as a quality padding
 string. The default is a string of I's equal in length to the sequence
 padding string. The letter I corresponds to a base quality score of 40
-indicating a very high quality base with error probability of 0.0001.
+indicating a very high quality base with error probability of
+0.0001. Option accepts an empty string, or any other combination of
+ASCII characters.
 .TAG lengthout
 .TP
 .B \-\-lengthout
