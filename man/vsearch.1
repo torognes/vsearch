@@ -254,15 +254,16 @@ of ASCII characters (offset 33 or 64), each one encoding the quality
 value of the corresponding position in the nucleotidic sequence.
 .PP
 \fBvsearch\fR operations are case insensitive, except when soft
-masking is activated. Masking is automatically applied during chimera
-detection, clustering, masking, pairwise alignment and searching. Soft
-masking is specified with the options '\-\-dbmask soft' (for searching
-and chimera detection with a reference) or '\-\-qmask soft' (for
-searching, \fIde novo\fR chimera detection, clustering and
-masking). When using soft masking, lower case letters indicate masked
-symbols, while upper case letters indicate regular symbols. Masked
-symbols are never included in the unique index words used for sequence
-comparisons, otherwise they are treated as normal symbols.
+masking is activated. DUST masking is automatically applied during
+chimera detection, clustering, masking, pairwise alignment and
+searching. Soft masking is specified with the options '\-\-dbmask
+soft' (for searching and chimera detection with a reference)
+or '\-\-qmask soft' (for searching, \fIde novo\fR chimera detection,
+clustering and masking). When using soft masking, lower case letters
+indicate masked symbols, while upper case letters indicate regular
+symbols. Masked symbols are never included in the unique index words
+used for sequence comparisons, otherwise they are treated as normal
+symbols.
 .PP
 When comparing sequences during chimera detection, dereplication,
 searching and clustering, T and U are considered identical, regardless
