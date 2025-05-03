@@ -89,7 +89,7 @@
 #include "subsample.h"
 #include "udb.h"
 #include "userfields.h"
-#include <algorithm>  // std::count
+#include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
@@ -342,6 +342,15 @@ static time_t time_start;
 static time_t time_finish;
 
 std::FILE * fp_log = nullptr;
+
+
+auto is_not_ASCII(std::string const & user_string) -> bool {
+  static constexpr auto ascii_max = std::numeric_limits<signed char>::max();
+  return std::any_of(user_string.begin(), user_string.end(),
+                     [](char const user_char) -> bool {
+                       return (user_char < 0) or (user_char > ascii_max);
+                     });
+}
 
 
 #ifdef __x86_64__
