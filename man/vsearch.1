@@ -2250,8 +2250,8 @@ soft masking is specified, lower case letters are treated as symbols
 that should be masked. Otherwise the case of the input sequences is
 ignored.
 .PP
-Masking is performed by the commands for chimera detection
-(uchime_denovo, uchime_ref), clustering (cluster_fast,
+DUST masking is performed automatically by the commands for chimera
+detection (uchime_denovo, uchime_ref), clustering (cluster_fast,
 cluster_smallmem, cluster_size), masking (maskfasta, fastx_mask),
 pairwise alignment (allpairs_global) and searching (search_exact,
 usearch_global).
@@ -2372,9 +2372,10 @@ only to the \-\-mask_fasta command.
 .BI \-\-qmask\~ "none|dust|soft"
 If the argument is dust, mask regions in sequences using the
 \fIDUST\fR algorithm that detects simple repeats and low-complexity
-regions. This is the default. If the argument is soft, mask the lower
-case letters in the input sequence. If the argument is none, do not
-mask.
+regions. This is the default for chimera detection, clustering,
+masking, pairwise alignment, and searching. If the argument is soft,
+mask the lower case letters in the input sequence. If the argument is
+none, do not mask.
 .RE
 .PP
 .\" ----------------------------------------------------------------------------
