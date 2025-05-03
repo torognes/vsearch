@@ -508,7 +508,7 @@ auto udb_read(const char * filename,
         {
           if (kmercount[i] >= bitmap_mincount)
             {
-              kmerbitmap[i] = bitmap_init(seqcount+127); // pad for xmm
+              kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
               bitmap_reset_all(kmerbitmap[i]);
               for (auto j = 0U; j < kmercount[i]; j++)
                 {
