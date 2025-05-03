@@ -153,9 +153,9 @@ Searching:
 \fIoutputfile\fR [\fIoptions\fR]
 .PP
 \fBvsearch\fR \-\-usearch_global \fIfastafile\fR \-\-db
-\fIfastafile\fR (\-\-alnout | \-\-biomout | \-\-blast6out |
-\-\-mothur_shared_out | \-\-otutabout | \-\-samout | \-\-uc |
-\-\-userout | \-\-lcaout) \fIoutputfile\fR \-\-id \fIreal\fR
+(\fIfastafile\fR | \fIudbfile\fR) (\-\-alnout | \-\-biomout |
+\-\-blast6out | \-\-mothur_shared_out | \-\-otutabout | \-\-samout |
+\-\-uc | \-\-userout | \-\-lcaout) \fIoutputfile\fR \-\-id \fIreal\fR
 [\fIoptions\fR]
 .PP
 .RE
@@ -174,9 +174,9 @@ Subsampling:
 .RE
 Taxonomic classification:
 .RS
-\fBvsearch\fR \-\-sintax \fIfastafile\fR \-\-db \fIfastafile\fR
-\-\-tabbedout \fIoutputfile\fR [\-\-sintax_cutoff \fIreal\fR]
-[\fIoptions\fR]
+\fBvsearch\fR \-\-sintax \fIfastafile\fR \-\-db (\fIfastafile\fR |
+\fIudbfile\fR) \-\-tabbedout \fIoutputfile\fR [\-\-sintax_cutoff
+\fIreal\fR] [\fIoptions\fR]
 .PP
 .RE
 UDB database handling:
@@ -3108,11 +3108,11 @@ YT:Z:UU string representing the alignment type.
 .TP
 .BI \-\-search_exact \0filename
 Search for exact full-length matches to the query sequences contained
-in \fIfilename\fR in the database of target sequences (\-\-db). Only
-100% exact matches are reported and this command is much faster than
-\-\-usearch_global. The \-\-id, \-\-maxaccepts and \-\-maxrejects
-options are ignored, but the rest of the searching options may be
-specified.
+in \fIfilename\fR in the fasta database of target sequences
+(\-\-db). Only 100% exact matches are reported and this command is
+much faster than \-\-usearch_global. The \-\-id, \-\-maxaccepts and
+\-\-maxrejects options are ignored, but the rest of the searching
+options may be specified.
 .TAG self
 .TP
 .B \-\-self
@@ -3684,14 +3684,13 @@ the threshold.
 .TAG udb-options
 UDB options:
 .RS
-Databases to be used with the \-\-usearch_global command may be
-prepared from FASTA files and stored to a binary UDB formatted file in
-order to speed up searching. This may be worthwhile when searching a
-large database repeatedly. The sequences are indexed and stored in a
-way that can be quickly loaded into memory. The commands and options
-below can be used to create and inspect UDB files. An UDB file may be
-specified with the \-\-db option instead of a FASTA formatted file
-with the \-\-usearch_global command.
+Databases to be used with the \-\-usearch_global or \-\-sintax
+commands may be prepared from FASTA files and stored to a binary UDB
+formatted file in order to speed up searching. This may be worthwhile
+when searching a large database repeatedly. The sequences are indexed
+and stored in a way that can be quickly loaded into memory. The
+commands and options below can be used to create and inspect UDB
+files.
 .PP
 .TAG dbmask
 .TP 9

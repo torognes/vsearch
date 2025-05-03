@@ -5399,7 +5399,7 @@ auto cmd_help(struct Parameters const & parameters) -> void {
           "  --search_exact FILENAME     filename of queries for exact match search\n"
           "  --usearch_global FILENAME   filename of queries for global alignment search\n"
           " Data\n"
-          "  --db FILENAME               name of UDB or FASTA database for search\n"
+          "  --db FILENAME               FASTA or UDB database (only FASTA for search_exact)\n"
           " Parameters\n"
           "  --dbmask none|dust|soft     mask db with dust, soft or no method (dust)\n"
           "  --fulldp                    full dynamic programming alignment (always on)\n"
