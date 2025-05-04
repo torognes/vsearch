@@ -201,12 +201,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   for (int64_t i = 0; i < dbsequencecount; i++)
     {
       unsigned int const seqlen = db_getsequencelen(i);
-      char * seq = db_getsequence(i);
+      auto * seq = db_getsequence(i);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
 
-      uint64_t const ab = parameters.opt_sizein ? db_getabundance(i) : 1;
+      auto const ab = parameters.opt_sizein ? db_getabundance(i) : 1;
       sumsize += ab;
 
       /*
@@ -244,10 +244,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       /* first, look for an identical match */
 
-      unsigned int prefix_len = seqlen;
+      auto prefix_len = seqlen;
 
       uint64_t hash = prefix_hashes[prefix_len];
-      struct bucket * bp = &hashtable[hash & hash_mask];
+      auto * bp = &hashtable[hash & hash_mask];
 
       while ((bp->size != 0U) and
              ((bp->deleted) or
@@ -266,7 +266,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
          (2) a bucket with an exact match. */
 
       auto const orig_hash = hash;
-      struct bucket * orig_bp = bp;
+      auto * orig_bp = bp;
 
       if (bp->size != 0U)
         {
@@ -309,9 +309,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               /* prefix match */
 
               /* get necessary info, then delete prefix from hash */
-              unsigned int const first = bp->seqno_first;
-              unsigned int const last = bp->seqno_last;
-              unsigned int const size = bp->size;
+              auto const first = bp->seqno_first;
+              auto const last = bp->seqno_last;
+              auto const size = bp->size;
               bp->deleted = true;
 
               /* create new hash entry */
@@ -464,7 +464,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
 
-          for (unsigned int next = nextseqtab[bp.seqno_first];
+          for (auto next = nextseqtab[bp.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
