@@ -230,7 +230,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       */
 
       /* compute hashes of all prefixes */
-      // Fowler-Noll-Vo hash function
+      // Fowler-Noll-Vo (FNV) hash function
       static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
       static constexpr auto FNV_prime = uint64_t{1099511628211U};
       auto fnv1a_hash = FNV_offset_basis;
