@@ -114,13 +114,13 @@ struct file_types {
 
 //   std::random_device r;
 //   std::default_random_engine generator(r());
-//   std::vector<int> v1 = {1000, 100, 10, 1};
-//   std::discrete_distribution<int> distribution(v1.begin(), v1.end());
+//   std::vector<int> weights = {1000, 100, 10, 1};
+//   std::discrete_distribution<unsigned long long> distribution(weights.begin(), weights.end());
 
-//   std::vector<int> v2(v1.size());
+//   std::vector<int> v2(weights.size());
 
 //   for (auto i = 0ULL; i < nreads; ++i) {
-//     int const number = distribution(generator);
+//     auto const number = distribution(generator);
 //     ++v2[number];
 //   }
 
@@ -129,6 +129,11 @@ struct file_types {
 
 //   return 0;
 // }
+
+
+// refactoring: "RTK: efficient rarefaction analysis of large datasets"
+//  a fast C++11 rarefaction tool https://github.com/hildebra/Rarefaction
+//  maybe they use a better approach than the std::discrete_distribution?
 
 
 auto open_output_files(struct file_types & ouput_files) -> void {
