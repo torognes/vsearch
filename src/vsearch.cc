@@ -566,7 +566,7 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
      all default score and penalties are multiplied by 2.
 
   */
-  static constexpr auto max_penality = 1000;
+  static constexpr auto max_penality = 1000;  // refactoring: manual says "infinite penalty value", set to limits<int>::max()? needs more tests first
 
   char * cursor = arg;
 
