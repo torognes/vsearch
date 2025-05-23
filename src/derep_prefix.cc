@@ -84,6 +84,23 @@ struct bucket
 };
 
 
+auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
+                                    std::vector<char> const & seq_up,
+                                    unsigned int const sequence_length) -> void {
+  // Fowler-Noll-Vo (FNV) hash function
+  static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
+  static constexpr auto FNV_prime = uint64_t{1099511628211U};
+  auto fnv1a_hash = FNV_offset_basis;
+  prefix_hashes[0] = fnv1a_hash;
+  for (auto j = 0U; j < sequence_length; ++j)
+    {
+      fnv1a_hash ^= seq_up[j];
+      fnv1a_hash *= FNV_prime;
+      prefix_hashes[j + 1] = fnv1a_hash;
+    }
+}
+
+
 auto derep_compare_prefix(const void * a, const void * b) -> int
 {
   auto * lhs = (struct bucket *) a;
@@ -229,18 +246,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       */
 
-      /* compute hashes of all prefixes */
-      // Fowler-Noll-Vo (FNV) hash function
-      static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
-      static constexpr auto FNV_prime = uint64_t{1099511628211U};
-      auto fnv1a_hash = FNV_offset_basis;
-      prefix_hashes[0] = fnv1a_hash;
-      for (auto j = 0U; j < seqlen; j++)
-        {
-          fnv1a_hash ^= seq_up[j];
-          fnv1a_hash *= FNV_prime;
-          prefix_hashes[j + 1] = fnv1a_hash;
-        }
+      compute_hashes_of_all_prefixes(prefix_hashes, seq_up, seqlen);
 
       /* first, look for an identical match */
 
