@@ -206,8 +206,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
 
-      auto const ab = parameters.opt_sizein ? db_getabundance(i) : 1;
-      sumsize += ab;
+      auto const abundance = parameters.opt_sizein ? db_getabundance(i) : 1;
+      sumsize += abundance;
 
       /*
         Look for matching identical or prefix sequences.
@@ -271,7 +271,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       if (bp->size != 0U)
         {
           /* exact match */
-          bp->size += ab;
+          bp->size += abundance;
           auto const last = bp->seqno_last;
           nextseqtab[last] = i;
           bp->seqno_last = i;
@@ -316,7 +316,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
               /* create new hash entry */
               bp = orig_bp;
-              bp->size = size + ab;
+              bp->size = size + abundance;
               bp->hash = orig_hash;
               bp->seqno_first = i;
               nextseqtab[i] = first;
@@ -327,12 +327,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           else
             {
               /* no match */
-              orig_bp->size = ab;
+              orig_bp->size = abundance;
               orig_bp->hash = orig_hash;
               orig_bp->seqno_first = i;
               orig_bp->seqno_last = i;
 
-              maxsize = std::max(ab, maxsize);
+              maxsize = std::max(abundance, maxsize);
               ++clusters;
             }
         }
