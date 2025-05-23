@@ -101,7 +101,7 @@ auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
   // refactoring:
   // (take seq_up as a Span?)
   // prefix_hashes[0] = fnv1a_hash;
-  // if (sequence_length == 0) { return; }
+  // if (sequence_length == 0) { return; }  // no needed?
   // auto incremental_hash = ...;
   // std::transform(seq_up.begin(), seq_up.begin() + sequence_length,
   //   prefix_hashes.begin() + 1, prefix_hashes.begin() + 1,
