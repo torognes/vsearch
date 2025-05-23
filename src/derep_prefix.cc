@@ -60,12 +60,14 @@
 
 #include "vsearch.h"
 #include "utils/seqcmp.h"
-#include <algorithm>  // std::max
+#include "utils/span.hpp"
+#include <algorithm>  // std::max, std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strcmp
+#include <iterator>  // std::next
 #include <limits>
 #include <vector>
 
@@ -85,30 +87,21 @@ struct bucket
 
 
 auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
-                                    std::vector<char> const & seq_up,
-                                    unsigned int const sequence_length) -> void {
+                                    Span const sequence) -> void {
   // Fowler-Noll-Vo (FNV) hash function
   static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
   static constexpr auto FNV_prime = uint64_t{1099511628211U};
-  auto fnv1a_hash = FNV_offset_basis;
-  prefix_hashes[0] = fnv1a_hash;
-  for (auto j = 0U; j < sequence_length; ++j)
-    {
-      fnv1a_hash ^= seq_up[j];
-      fnv1a_hash *= FNV_prime;
-      prefix_hashes[j + 1] = fnv1a_hash;
-    }
-  // refactoring:
-  // (take seq_up as a Span?)
-  // prefix_hashes[0] = FNV_offset_basis;
-  // if (sequence_length == 0) { return; }  // no needed?
-  // auto incremental_hash = ...;
-  // std::transform(seq_up.begin(), seq_up.begin() + sequence_length,
-  //   prefix_hashes.begin() + 1, prefix_hashes.begin() + 1,
-  //   [fnv1a_hash = FNV_offset_basis] (char const nucleotide) mutable -> uint64_t {
-  //       fnv1a_hash = (fnv1a_hash ^ nucleotide) * FNV_prime;
-  //       return fnv1a_hash;};
-  // );
+  auto FNV1a_hash = FNV_offset_basis;
+  prefix_hashes[0] = FNV_offset_basis;
+  auto incremental_hash = [&FNV1a_hash](char const nucleotide) -> uint64_t {
+    FNV1a_hash ^= static_cast<unsigned char>(nucleotide);
+    FNV1a_hash *= FNV_prime;
+    return FNV1a_hash;
+  };
+  std::transform(sequence.cbegin(),
+                 sequence.cend(),
+                 std::next(prefix_hashes.begin()),
+                 incremental_hash);
 }
 
 
@@ -257,7 +250,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       */
 
-      compute_hashes_of_all_prefixes(prefix_hashes, seq_up, seqlen);
+      compute_hashes_of_all_prefixes(prefix_hashes, Span{seq_up.data(), seqlen});
 
       /* first, look for an identical match */
 
