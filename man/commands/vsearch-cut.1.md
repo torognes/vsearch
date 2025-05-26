@@ -78,7 +78,7 @@ strand, it is necessary to run the `--cut` command on the
 reverse-complemented input sequences (see
 [`vsearch-fastx_revcomp(1)`](./vsearch-fastx_revcomp.1.md)).
 
-Finally, pattern occurrences can overlap. For example the pattern
+Finally, pattern occurrences can overlap. For example, the pattern
 "`G^_G`" will be detected *three* times in the sequence "`GGGG`".
 
 
