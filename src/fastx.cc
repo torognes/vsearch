@@ -205,7 +205,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
                       input_handle->lineno);
             }
 
-          *q++ = c;
+          *q = c;
+          ++q;
           break;
 
         case 5:
@@ -217,7 +218,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
               goto end_of_line;
             }
 
-          *q++ = c;
+          *q = c;
+          ++q;
           break;
 
         case 0:
