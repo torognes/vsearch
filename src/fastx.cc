@@ -151,9 +151,9 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     {
       unsigned char const symbol = *p;
       ++p;
-      unsigned int const m = char_header_action[symbol];
+      unsigned int const action_mode = char_header_action[symbol];
 
-      switch(m)
+      switch(action_mode)
         {
         case 1:
           /* legal, printable character */
