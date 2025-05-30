@@ -239,7 +239,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 
  end_of_line:
   /* add a null character at the end */
-  *writer = 0;
+  *writer = '\0';
   input_handle->header_buffer.length = writer - input_handle->header_buffer.data;
 }
 
