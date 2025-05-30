@@ -142,7 +142,7 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
 
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void
 {
-  /* filter and truncate header */
+  /* filter and truncate header (in-place) */
 
   char * p = input_handle->header_buffer.data;
   char * q = p;
