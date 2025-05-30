@@ -473,7 +473,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
 auto fastx_is_fastq(fastx_handle input_handle) -> bool
 {
-  return input_handle->is_fastq || input_handle->is_empty;
+  return input_handle->is_fastq or input_handle->is_empty;
 }
 
 
@@ -624,9 +624,9 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
                                    input_handle->file_buffer.data
                                    + input_handle->file_buffer.position,
                                    space);
-      if ((bytes_read < 0) ||
-          ! ((bzError == BZ_OK) ||
-             (bzError == BZ_STREAM_END) ||
+      if ((bytes_read < 0) or
+          not ((bzError == BZ_OK) or
+             (bzError == BZ_STREAM_END) or
              (bzError == BZ_SEQUENCE_ERROR)))
         {
           fatal("Unable to read from bzip2 compressed file");
@@ -638,7 +638,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       fatal("Internal error");
     }
 
-  if (! input_handle->is_pipe)
+  if (not input_handle->is_pipe)
     {
 #ifdef HAVE_ZLIB_H
       if (input_handle->format == Format::gzip)
