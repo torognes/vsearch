@@ -144,21 +144,21 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 {
   /* filter and truncate header (in-place) */
 
-  char * p = input_handle->header_buffer.data;
-  char * q = p;
+  char * reader = input_handle->header_buffer.data;
+  char * writer = reader;
 
   while (true)
     {
-      unsigned char const symbol = *p;
-      ++p;
+      unsigned char const symbol = *reader;
+      ++reader;
       unsigned int const action_mode = char_header_action[symbol];
 
       switch(action_mode)
         {
         case 1:
           /* legal, printable character */
-          *q = symbol;
-          ++q;
+          *writer = symbol;
+          ++writer;
           break;
 
         case 2:
@@ -205,8 +205,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
                       input_handle->lineno);
             }
 
-          *q = symbol;
-          ++q;
+          *writer = symbol;
+          ++writer;
           break;
 
         case 5:
@@ -218,8 +218,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
               goto end_of_line;
             }
 
-          *q = symbol;
-          ++q;
+          *writer = symbol;
+          ++writer;
           break;
 
         case 0:
@@ -239,8 +239,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 
  end_of_line:
   /* add a null character at the end */
-  *q = 0;
-  input_handle->header_buffer.length = q - input_handle->header_buffer.data;
+  *writer = 0;
+  input_handle->header_buffer.length = writer - input_handle->header_buffer.data;
 }
 
 
