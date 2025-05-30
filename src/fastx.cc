@@ -157,7 +157,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
         {
         case 1:
           /* legal, printable character */
-          *q++ = c;
+          *q = c;
+          ++q;
           break;
 
         case 2:
