@@ -84,10 +84,6 @@ constexpr auto BZ_MORE_MEM = 0;  /* faster decompression using more memory */
 // constexpr auto BZ_LESS_MEM = 1;  /* slower decompression but requires less memory */
 #endif
 
-constexpr auto format_plain = 1;
-constexpr auto format_bzip = 2;
-constexpr auto format_gzip = 3;
-
 constexpr std::array<unsigned char, 2> magic_gzip = {0x1f, 0x8b};
 constexpr std::array<unsigned char, 2> magic_bzip = {'B', 'Z'};
 
@@ -287,15 +283,15 @@ auto fastx_open(const char * filename) -> fastx_handle
 
   if (opt_gzip_decompress)
     {
-      input_handle->format = format_gzip;
+      input_handle->format = Format::gzip;
     }
   else if (opt_bzip2_decompress)
     {
-      input_handle->format = format_bzip;
+      input_handle->format = Format::bzip;
     }
   else if (input_handle->is_pipe)
     {
-      input_handle->format = format_plain;
+      input_handle->format = Format::plain;
     }
   else
     {
@@ -305,7 +301,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 
       std::array<unsigned char, 2> magic {{}};
 
-      input_handle->format = format_plain;
+      input_handle->format = Format::plain;
 
       auto const bytes_read = fread(magic.data(), 1, 2, input_handle->fp);
 
@@ -313,11 +309,11 @@ auto fastx_open(const char * filename) -> fastx_handle
         {
           if (memcmp(magic.data(), magic_gzip.data(), 2) == 0)
             {
-              input_handle->format = format_gzip;
+              input_handle->format = Format::gzip;
             }
           else if (memcmp(magic.data(), magic_bzip.data(), 2) == 0)
             {
-              input_handle->format = format_bzip;
+              input_handle->format = Format::bzip;
             }
         }
       else
@@ -336,7 +332,7 @@ auto fastx_open(const char * filename) -> fastx_handle
         }
     }
 
-  if (input_handle->format == format_gzip)
+  if (input_handle->format == Format::gzip)
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
@@ -354,7 +350,7 @@ auto fastx_open(const char * filename) -> fastx_handle
 #endif
     }
 
-  if (input_handle->format == format_bzip)
+  if (input_handle->format == Format::bzip)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_BZLIB_H
@@ -412,17 +408,17 @@ auto fastx_open(const char * filename) -> fastx_handle
 
           switch(input_handle->format)
             {
-            case format_plain:
+            case Format::plain:
               break;
 
-            case format_gzip:
+            case Format::gzip:
 #ifdef HAVE_ZLIB_H
               (*gzclose_p)(input_handle->fp_gz);
               input_handle->fp_gz = nullptr;
               break;
 #endif
 
-            case format_bzip:
+            case Format::bzip:
 #ifdef HAVE_BZLIB_H
               (*BZ2_bzReadClose_p)(&bzError, input_handle->fp_bz);
               input_handle->fp_bz = nullptr;
@@ -528,17 +524,17 @@ auto fastx_close(fastx_handle input_handle) -> void
 
   switch(input_handle->format)
     {
-    case format_plain:
+    case Format::plain:
       break;
 
-    case format_gzip:
+    case Format::gzip:
 #ifdef HAVE_ZLIB_H
       (*gzclose_p)(input_handle->fp_gz);
       input_handle->fp_gz = nullptr;
       break;
 #endif
 
-    case format_bzip:
+    case Format::bzip:
 #ifdef HAVE_BZLIB_H
       (*BZ2_bzReadClose_p)(&bz_error, input_handle->fp_bz);
       input_handle->fp_bz = nullptr;
@@ -597,7 +593,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 
   switch(input_handle->format)
     {
-    case format_plain:
+    case Format::plain:
       bytes_read = fread(input_handle->file_buffer.data
                          + input_handle->file_buffer.position,
                          1,
@@ -605,7 +601,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
                          input_handle->fp);
       break;
 
-    case format_gzip:
+    case Format::gzip:
 #ifdef HAVE_ZLIB_H
       bytes_read = (*gzread_p)(input_handle->fp_gz,
                                input_handle->file_buffer.data
@@ -618,7 +614,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       break;
 #endif
 
-    case format_bzip:
+    case Format::bzip:
 #ifdef HAVE_BZLIB_H
       bytes_read = (*BZ2_bzRead_p)(& bzError,
                                    input_handle->fp_bz,
@@ -642,7 +638,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
   if (! input_handle->is_pipe)
     {
 #ifdef HAVE_ZLIB_H
-      if (input_handle->format == format_gzip)
+      if (input_handle->format == Format::gzip)
         {
           /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
           int const fd = dup(fileno(input_handle->fp));

@@ -80,6 +80,8 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    uint64_t len) -> void;
 auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void;
 
+enum struct Format { undefined, plain, bzip, gzip };
+
 struct fastx_s
 {
   bool is_pipe = false;
@@ -113,7 +115,7 @@ struct fastx_s
   uint64_t stripped_all = 0;
   std::array<uint64_t, byte_range> stripped {{}};
 
-  int format = 0;
+  Format format = Format::undefined;
 };
 
 using fastx_handle = struct fastx_s *;
