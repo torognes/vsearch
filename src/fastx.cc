@@ -149,15 +149,15 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 
   while (true)
     {
-      unsigned char const c = *p;
+      unsigned char const symbol = *p;
       ++p;
-      unsigned int const m = char_header_action[c];
+      unsigned int const m = char_header_action[symbol];
 
       switch(m)
         {
         case 1:
           /* legal, printable character */
-          *q = c;
+          *q = symbol;
           ++q;
           break;
 
@@ -168,7 +168,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
                   "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
                   "Unprintable ASCII character no %d on or right before line %"
                   PRIu64 ".\n",
-                  c,
+                  symbol,
                   input_handle->lineno);
 
           if (fp_log != nullptr)
@@ -178,7 +178,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
                       "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
                       "Unprintable ASCII character no %d on or right before line %"
                       PRIu64 ".\n",
-                      c,
+                      symbol,
                       input_handle->lineno);
             }
 
@@ -191,7 +191,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
                   "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
                   "Character no %d (0x%2x) on or right before line %"
                   PRIu64 ".\n",
-                  c, c,
+                  symbol, symbol,
                   input_handle->lineno);
 
           if (fp_log != nullptr)
@@ -201,11 +201,11 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
                       "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
                       "Character no %d (0x%2x) on or right before line %"
                       PRIu64 ".\n",
-                      c, c,
+                      symbol, symbol,
                       input_handle->lineno);
             }
 
-          *q = c;
+          *q = symbol;
           ++q;
           break;
 
@@ -218,7 +218,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
               goto end_of_line;
             }
 
-          *q = c;
+          *q = symbol;
           ++q;
           break;
 
