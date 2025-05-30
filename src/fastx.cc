@@ -153,7 +153,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 
   while (true)
     {
-      unsigned char const c = *p++;
+      unsigned char const c = *p;
+      ++p;
       unsigned int const m = char_header_action[c];
 
       switch(m)
