@@ -209,7 +209,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 }
 
 
-auto fastx_open(const char * filename) -> fastx_handle
+auto fastx_open(char const * filename) -> fastx_handle
 {
   auto * input_handle = (fastx_handle) xmalloc(sizeof(struct fastx_s));
 
