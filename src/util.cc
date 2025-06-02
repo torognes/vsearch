@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "city.h"
 #include "md5.h"
+#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -123,41 +124,6 @@ auto progress_done() -> void
       std::fprintf(stderr, "  \r%s", progress_prompt);
     }
   std::fprintf(stderr, " %lu%%\n", one_hundred_percent);
-}
-
-
-__attribute__((noreturn))
-auto fatal(const char * message) -> void
-{
-  std::fprintf(stderr, "\n\n");
-  std::fprintf(stderr, "Fatal error: %s\n", message);
-
-  if (fp_log != nullptr)
-    {
-      std::fprintf(fp_log, "\n\n");
-      std::fprintf(fp_log, "Fatal error: %s\n", message);
-    }
-
-  std::exit(EXIT_FAILURE);
-}
-
-
-__attribute__((noreturn))
-auto fatal(const char * format,
-           const char * message) -> void
-{
-  std::fprintf(stderr, "\n\nFatal error: ");
-  std::fprintf(stderr, format, message);
-  std::fprintf(stderr, "\n");
-
-  if (fp_log != nullptr)
-    {
-      std::fprintf(fp_log, "\n\nFatal error: ");
-      std::fprintf(fp_log, format, message);
-      std::fprintf(fp_log, "\n");
-    }
-
-  std::exit(EXIT_FAILURE);
 }
 
 

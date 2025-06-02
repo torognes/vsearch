@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/fatal.hpp"
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 
@@ -67,8 +68,6 @@ constexpr auto sha1_digest_length = 20;
 constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
 constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
-auto fatal(const char * msg) -> void;
-auto fatal(const char * format, const char * message) -> void;
 auto xstrdup(const char * src) -> char *;
 auto xstrchrnul(char * str, int target) -> char *;
 auto xsprintf(char * * ret, const char * format, ...) -> int;

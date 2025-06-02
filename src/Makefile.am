@@ -106,6 +106,7 @@ udb.h \
 unique.h \
 userfields.h \
 util.h \
+utils/fatal.hpp \
 utils/maps.hpp \
 utils/seqcmp.h \
 utils/span.hpp \
@@ -199,6 +200,7 @@ udb.cc \
 unique.cc \
 userfields.cc \
 util.cc \
+utils/fatal.cpp \
 utils/maps.cpp \
 utils/seqcmp.cc \
 vsearch.cc
