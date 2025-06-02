@@ -80,7 +80,7 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    uint64_t len) -> void;
 auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void;
 
-enum struct Format { undefined, plain, bzip, gzip };
+enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
 struct fastx_s
 {
