@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include <array>

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::sort, std::min
 #include <cassert>
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t

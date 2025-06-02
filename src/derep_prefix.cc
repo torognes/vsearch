@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include "utils/seqcmp.h"
 #include "utils/span.hpp"
 #include <algorithm>  // std::max, std::transform

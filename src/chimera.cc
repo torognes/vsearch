@@ -68,6 +68,7 @@
 #include "minheap.h"
 #include "udb.h"
 #include "unique.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::max, std::min
 #include <array>
 #include <cctype>  // std::tolower

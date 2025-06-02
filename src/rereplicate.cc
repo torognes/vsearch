@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <cinttypes> // macros PRIu64 and PRId64
 #include <cstdio>  // std::FILE, std::fprintf

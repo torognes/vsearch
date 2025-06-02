@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::signbit

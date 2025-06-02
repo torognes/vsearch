@@ -89,6 +89,7 @@
 #include "subsample.h"
 #include "udb.h"
 #include "userfields.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

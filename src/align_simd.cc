@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "align_simd.h"
 #include "maps.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t

@@ -64,6 +64,7 @@
 #include "mask.h"
 #include "udb.h"
 #include "unique.h"
+#include "utils/fatal.hpp"
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose

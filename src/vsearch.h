@@ -212,7 +212,6 @@
 #include "fastq.h"
 #include "dbhash.h"
 #include "kmerhash.h"
-#include "utils/fatal.hpp"
 
 /* options */
 

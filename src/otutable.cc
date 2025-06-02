@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm

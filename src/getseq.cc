@@ -63,6 +63,7 @@
 
 #include "vsearch.h"
 #include "maps.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::max, std::min
 #include <array>
 #include <cctype>  // isalnum

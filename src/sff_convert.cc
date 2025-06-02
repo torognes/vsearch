@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::min, std::max, std::transform
 #include <array>
 #include <cassert>

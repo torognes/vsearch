@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "attributes.h"
 #include "maps.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::min
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

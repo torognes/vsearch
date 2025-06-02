@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::count, std::for_each, std::equal
 #include <cassert>

@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "dynlibs.h"
+#include "utils/fatal.hpp"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::realloc, std::free

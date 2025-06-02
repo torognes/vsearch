@@ -64,6 +64,7 @@
 #include "dbindex.h"
 #include "mask.h"
 #include "unique.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

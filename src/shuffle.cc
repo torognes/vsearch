@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::min, std::shuffle
 #include <cstdio>  // std::FILE, std::size_t
 #include <numeric>  // std::iota

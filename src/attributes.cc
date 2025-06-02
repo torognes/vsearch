@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::swap
 #include <array>
 #include <cerrno>  // errno

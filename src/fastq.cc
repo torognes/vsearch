@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "attributes.h"
 #include "maps.h"
+#include "utils/fatal.hpp"
 #include <array>
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t

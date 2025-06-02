@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include <algorithm>  // std::count_if
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64

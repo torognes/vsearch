@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/fatal.hpp"
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t

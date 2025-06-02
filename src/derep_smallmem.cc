@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "city.h"
 #include "maps.h"
+#include "utils/fatal.hpp"
 // #include "util.h"  // hash_cityhash128, Uint128Low64
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64

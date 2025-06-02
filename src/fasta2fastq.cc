@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose

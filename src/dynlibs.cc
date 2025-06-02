@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "dynlibs.h"
+#include "utils/fatal.hpp"
 #include <cstdio>  // std::FILE
 #include <string>
 
