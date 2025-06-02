@@ -211,6 +211,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 
 auto fastx_open(char const * filename) -> fastx_handle
 {
+  // refactoring: duplicate function to output a struct fastx_s input_handle_s;
   auto * input_handle = (fastx_handle) xmalloc(sizeof(struct fastx_s));
 
   input_handle->fp = nullptr;
