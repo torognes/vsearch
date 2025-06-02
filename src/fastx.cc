@@ -166,12 +166,13 @@ auto find_header_end(Span raw_header) -> std::size_t {
 
 
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void {
-  // truncate header (in-place) and scan for unusual symbols
+  // truncate header (in-place)
   auto raw_header = Span{input_handle->header_buffer.data, input_handle->header_buffer.length};
   auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
   input_handle->header_buffer.length = count;
-  auto const trimmed_header = raw_header.first(count);
 
+  // scan for unusual symbols
+  auto const trimmed_header = raw_header.first(count);
   for (auto const symbol: trimmed_header) {
     auto const is_illegal = ((symbol == 127) or
                              ((symbol > '\0') and (symbol < ' ') and (symbol != '\t')));
