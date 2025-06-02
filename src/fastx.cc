@@ -180,7 +180,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     if (is_illegal) {
       fatal("Illegal character encountered in FASTA/FASTQ header.\n"
             "Unprintable ASCII character no %d on or right before line %" PRIu64 ".",
-            symbol, input_handle->lineno);
+            symbol, input_handle->lineno_start);
     }
     auto const symbol_unsigned = static_cast<unsigned char>(symbol);
     auto const is_not_ascii = (symbol_unsigned > 127);
