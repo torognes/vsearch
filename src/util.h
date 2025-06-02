@@ -58,7 +58,6 @@
 
 */
 
-#include "utils/fatal.hpp"
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 
