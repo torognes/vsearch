@@ -60,13 +60,16 @@
 
 #include "vsearch.h"
 #include "dynlibs.h"
-#include "maps.h"
+#include "utils/span.hpp"
+#include <algorithm>  // std::find_first_of
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::memcpy, std::memcmp
+#include <iterator> // std::distance
+#include <vector>
 
 
 /* file compression and format detector */
@@ -140,107 +143,79 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
 }
 
 
-auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void
-{
-  /* filter and truncate header (in-place) */
+auto find_header_end_first_blank(Span raw_header) -> std::size_t {
+  static const std::vector<char> blanks {' ', '\t', '\0', '\r', '\n'};
+  auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
+                                     blanks.begin(), blanks.end());
+  if (result != raw_header.end()) {
+    *result = '\0';
+  }
+  return std::distance(raw_header.begin(), result);
+}
 
-  char * reader = input_handle->header_buffer.data;
-  char * writer = reader;
 
-  while (true)
-    {
-      unsigned char const symbol = *reader;
-      ++reader;
-      unsigned int const action_mode = char_header_action[symbol];
+auto find_header_end(Span raw_header) -> std::size_t {
+  static const std::vector<char> blanks {'\0', '\r', '\n'};
+  auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
+                                     blanks.begin(), blanks.end());
+  if (result != raw_header.end()) {
+    *result = '\0';
+  }
+  return std::distance(raw_header.begin(), result);
+}
 
-      switch(action_mode)
-        {
-        case 1:
-          /* legal, printable character */
-          *writer = symbol;
-          ++writer;
-          break;
 
-        case 2:
-          /* illegal, fatal */
-          fprintf(stderr,
-                  "\n\n"
-                  "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
-                  "Unprintable ASCII character no %d on or right before line %"
-                  PRIu64 ".\n",
-                  symbol,
-                  input_handle->lineno);
+auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void {
+  // truncate header (in-place) and scan for unusual symbols
+  auto raw_header = Span{input_handle->header_buffer.data, input_handle->header_buffer.length};
+  auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
+  input_handle->header_buffer.length = count;
+  auto const trimmed_header = raw_header.first(count);
 
-          if (fp_log != nullptr)
-            {
-              fprintf(fp_log,
-                      "\n\n"
-                      "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
-                      "Unprintable ASCII character no %d on or right before line %"
-                      PRIu64 ".\n",
-                      symbol,
-                      input_handle->lineno);
-            }
-
-          exit(EXIT_FAILURE);
-
-        case 7:
-          /* Non-ASCII but acceptable */
-          fprintf(stderr,
-                  "\n"
-                  "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
-                  "Character no %d (0x%2x) on or right before line %"
-                  PRIu64 ".\n",
-                  symbol, symbol,
-                  input_handle->lineno);
-
-          if (fp_log != nullptr)
-            {
-              fprintf(fp_log,
-                      "\n"
-                      "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
-                      "Character no %d (0x%2x) on or right before line %"
-                      PRIu64 ".\n",
-                      symbol, symbol,
-                      input_handle->lineno);
-            }
-
-          *writer = symbol;
-          ++writer;
-          break;
-
-        case 5:
-        case 6:
-          /* tab or space */
-          /* conditional end of line */
-          if (truncateatspace)
-            {
-              goto end_of_line;
-            }
-
-          *writer = symbol;
-          ++writer;
-          break;
-
-        case 0:
-          /* null */
-        case 3:
-          /* cr */
-        case 4:
-          /* lf */
-          /* end of line */
-          goto end_of_line;
-
-        default:
-          fatal("Internal error");
-          break;
-        }
+  for (auto const symbol: trimmed_header) {
+    auto const is_illegal = ((symbol == 127) or
+                             ((symbol > '\0') and (symbol < ' ') and (symbol != '\t')));
+    if (is_illegal) {
+      std::fprintf(stderr,
+                   "\n\n"
+                   "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
+                   "Unprintable ASCII character no %d on or right before line %"
+                   PRIu64 ".\n",
+                   symbol,
+                   input_handle->lineno);
+      if (fp_log != nullptr) {
+        std::fprintf(fp_log,
+                     "\n\n"
+                     "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
+                     "Unprintable ASCII character no %d on or right before line %"
+                     PRIu64 ".\n",
+                     symbol,
+                     input_handle->lineno);
+      }
+      std::exit(EXIT_FAILURE);
     }
+    auto const symbol_unsigned = static_cast<unsigned char>(symbol);
+    auto const is_not_ascii = (symbol_unsigned > 127);
+    if (is_not_ascii) {
+      std::fprintf(stderr,
+                   "\n"
+                   "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
+                   "Character no %d (0x%2x) on or right before line %"
+                   PRIu64 ".\n",
+                   symbol_unsigned, symbol_unsigned,
+                   input_handle->lineno);
 
- end_of_line:
-  /* add a null character at the end */
-  *writer = '\0';
-  input_handle->header_buffer.length = writer - input_handle->header_buffer.data;
+      if (fp_log != nullptr) {
+        std::fprintf(fp_log,
+                     "\n"
+                     "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
+                     "Character no %d (0x%2x) on or right before line %"
+                     PRIu64 ".\n",
+                     symbol_unsigned, symbol_unsigned,
+                     input_handle->lineno);
+      }
+    }
+  }
 }
 
 
