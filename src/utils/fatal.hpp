@@ -61,6 +61,9 @@
 #include <cstdint> // uint64_t
 
 
+// parameters must be marked as const!
+// ISO C++ forbids converting a string constant to 'char *'
+// error: invalid conversion from 'const char *' to 'char *'
 auto fatal(char const * message) -> void;
 auto fatal(char const * format, char const * message) -> void;
 auto fatal(char const * format, char const symbol, uint64_t const line_number) -> void;
