@@ -88,6 +88,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/taxonomic_fields.h"
+#include "utils/xpthread.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t

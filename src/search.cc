@@ -68,6 +68,7 @@
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/xpthread.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t, int64_t

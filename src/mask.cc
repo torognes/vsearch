@@ -62,6 +62,7 @@
 #include "maps.h"
 #include "mask.h"
 #include "utils/fatal.hpp"
+#include "utils/xpthread.hpp"
 #include <array>
 #include <cctype>  // std::toupper, std::isupper
 #include <cstdint>  // int64_t, uint64_t

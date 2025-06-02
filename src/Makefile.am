@@ -111,6 +111,7 @@ utils/maps.hpp \
 utils/seqcmp.h \
 utils/span.hpp \
 utils/taxonomic_fields.h \
+utils/xpthread.hpp \
 vsearch.h \
 xstring.h
 
@@ -202,5 +203,6 @@ userfields.cc \
 util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
+utils/xpthread.cpp \
 utils/seqcmp.cc \
 vsearch.cc

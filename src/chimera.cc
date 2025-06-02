@@ -69,6 +69,7 @@
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/xpthread.hpp"
 #include <algorithm>  // std::max, std::min
 #include <array>
 #include <cctype>  // std::tolower

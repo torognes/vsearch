@@ -59,41 +59,93 @@
 */
 
 #include "utils/fatal.hpp"
-#include <cstdint> // uint64_t
-#include <cstdio>  // std::FILE, std::size_t
+#include <pthread.h>
 
 
-constexpr auto md5_digest_length = 16;
-constexpr auto sha1_digest_length = 20;
-constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
-constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
+auto xpthread_attr_init(pthread_attr_t * attr) -> void {
+  if (pthread_attr_init(attr) != 0) {
+    fatal("Unable to init thread attributes");
+  }
+}
 
-auto xstrdup(const char * src) -> char *;
-auto xstrchrnul(char * str, int target) -> char *;
-auto xsprintf(char * * ret, const char * format, ...) -> int;
-auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t;
-auto hash_cityhash128(char * sequence, uint64_t length) -> uint128;
-auto show_rusage() -> void;
+auto xpthread_attr_destroy(pthread_attr_t * attr) -> void {
+  if (pthread_attr_destroy(attr) != 0) {
+      fatal("Unable to destroy thread attributes");
+  }
+}
 
-auto progress_init(const char * prompt, uint64_t size) -> void;
-auto progress_update(uint64_t progress) -> void;
-auto progress_done() -> void;
+auto xpthread_attr_setdetachstate(pthread_attr_t * attr, int detachstate) -> void {
+  if (pthread_attr_setdetachstate(attr, detachstate) != 0) {
+    fatal("Unable to set thread attributes detach state");
+  }
+}
 
-auto random_init() -> void;
-auto random_int(int64_t upper_limit) -> int64_t;
-auto random_ulong(uint64_t upper_limit) -> uint64_t;
+auto xpthread_create(pthread_t * thread, pthread_attr_t const * attr,
+                     void * (*start_routine)(void *), void * arg) -> void {
+  if (pthread_create(thread, attr, start_routine, arg) != 0) {
+    fatal("Unable to create thread");
+  }
+}
 
-auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void;
+auto xpthread_join(pthread_t thread, void ** value_ptr) -> void {
+  if (pthread_join(thread, value_ptr) != 0) {
+    fatal("Unable to join thread");
+  }
+}
 
-auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void;
+auto xpthread_mutex_init(pthread_mutex_t * mutex,
+                         pthread_mutexattr_t const * attr) -> void {
+  if (pthread_mutex_init(mutex, attr) != 0) {
+    fatal("Unable to init mutex");
+  }
+}
 
-auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> void;
+auto xpthread_mutex_destroy(pthread_mutex_t * mutex) -> void {
+  if (pthread_mutex_destroy(mutex) != 0) {
+    fatal("Unable to destroy mutex");
+  }
+}
 
-auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void;
-auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void;
+auto xpthread_mutex_lock(pthread_mutex_t * mutex) -> void {
+  if (pthread_mutex_lock(mutex) != 0) {
+    fatal("Unable to lock mutex");
+  }
+}
 
-auto fprint_seq_digest_sha1(std::FILE * output_handle, char * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) -> void;
+auto xpthread_mutex_unlock(pthread_mutex_t * mutex) -> void {
+  if (pthread_mutex_unlock(mutex) != 0) {
+    fatal("Unable to unlock mutex");
+  }
+}
 
-auto fopen_input(const char * filename) -> std::FILE *;
-auto fopen_output(const char * filename) -> std::FILE *;
+auto xpthread_cond_init(pthread_cond_t * cond,
+                        pthread_condattr_t const * attr) -> void {
+  if (pthread_cond_init(cond, attr) != 0) {
+    fatal("Unable to init condition variable");
+  }
+}
+
+auto xpthread_cond_destroy(pthread_cond_t * cond) -> void {
+  if (pthread_cond_destroy(cond) != 0) {
+    fatal("Unable to destroy condition variable");
+  }
+}
+
+auto xpthread_cond_wait(pthread_cond_t * cond,
+                        pthread_mutex_t * mutex) -> void {
+  if (pthread_cond_wait(cond, mutex) != 0) {
+    fatal("Unable to wait on condition variable");
+  }
+}
+
+auto xpthread_cond_signal(pthread_cond_t * cond) -> void {
+  if (pthread_cond_signal(cond) != 0) {
+    fatal("Unable to signal condition variable");
+  }
+}
+
+auto xpthread_cond_broadcast(pthread_cond_t * cond) -> void {
+  if (pthread_cond_broadcast(cond) != 0) {
+    fatal("Unable to broadcast condition variable");
+  }
+}

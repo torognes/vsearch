@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/xpthread.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cassert>

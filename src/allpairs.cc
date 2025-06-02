@@ -62,6 +62,7 @@
 #include "align_simd.h"
 #include "mask.h"
 #include "utils/fatal.hpp"
+#include "utils/xpthread.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t

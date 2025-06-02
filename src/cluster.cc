@@ -68,6 +68,7 @@
 #include "otutable.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/xpthread.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
