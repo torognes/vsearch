@@ -127,15 +127,15 @@ auto progress_done() -> void
 
 
 __attribute__((noreturn))
-auto fatal(const char * msg) -> void
+auto fatal(const char * message) -> void
 {
   std::fprintf(stderr, "\n\n");
-  std::fprintf(stderr, "Fatal error: %s\n", msg);
+  std::fprintf(stderr, "Fatal error: %s\n", message);
 
   if (fp_log != nullptr)
     {
       std::fprintf(fp_log, "\n\n");
-      std::fprintf(fp_log, "Fatal error: %s\n", msg);
+      std::fprintf(fp_log, "Fatal error: %s\n", message);
     }
 
   std::exit(EXIT_FAILURE);
