@@ -150,7 +150,7 @@ auto fatal(const char * format,
   std::fprintf(stderr, format, message);
   std::fprintf(stderr, "\n");
 
-  if (opt_log != nullptr)
+  if (fp_log != nullptr)
     {
       std::fprintf(fp_log, "\n\nFatal error: ");
       std::fprintf(fp_log, format, message);
