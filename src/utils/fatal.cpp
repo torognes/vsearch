@@ -65,7 +65,7 @@
 
 
 __attribute__((noreturn))
-auto fatal(const char * message) -> void
+auto fatal(char const * message) -> void
 {
   std::fprintf(stderr, "\n\n");
   std::fprintf(stderr, "Fatal error: %s\n", message);
@@ -80,8 +80,8 @@ auto fatal(const char * message) -> void
 
 
 __attribute__((noreturn))
-auto fatal(const char * format,
-           const char * message) -> void
+auto fatal(char const * format,
+           char const * message) -> void
 {
   std::fprintf(stderr, "\n\nFatal error: ");
   std::fprintf(stderr, format, message);
