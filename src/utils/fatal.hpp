@@ -61,6 +61,6 @@
 #include <cstdint> // uint64_t
 
 
-auto fatal(char * message) -> void;
-auto fatal(char * format, char * message) -> void;
-auto fatal(char * format, char symbol, uint64_t line_number) -> void;
+auto fatal(char const * message) -> void;
+auto fatal(char const * format, char const * message) -> void;
+auto fatal(char const * format, char const symbol, uint64_t const line_number) -> void;
