@@ -201,8 +201,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     auto const is_not_ascii = (symbol_unsigned > 127);
     if (is_not_ascii) {
       warn("Non-ASCII character encountered in FASTA/FASTQ header.\n"
-           "Character no %d (0x%2x) on or right before line %"
-           PRIu64 ".",
+           "Character no %d (0x%2x) on line %" PRIu64 ".",
            symbol_unsigned,
            input_handle->lineno_start);
     }
