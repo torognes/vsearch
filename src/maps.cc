@@ -70,51 +70,10 @@
   includes both amino acid and nucleotide sequences, adapt to nt only
 */
 
-constexpr auto illegal = 2;
-constexpr auto tab = 5;
-constexpr auto space = 6;
-constexpr auto non_ascii = 7;
-
 char sym_nt_2bit[] = "ACGT";
 char sym_nt_4bit[] = "-ACMGRSVTWYHKDBN";
 //                    |    |    |    |
 //                    0....5...10...15
-
-unsigned int char_header_action[256] =
-  {
-    /*
-      FASTA/FASTQ header characters
-
-      0 = null
-      1 = legal, printable ascii
-      2 = illegal, fatal
-      3 = cr
-      4 = lf
-      5 = tab
-      6 = space
-      7 = non-ascii, legal, but warn
-
-    @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-    P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
-
-    0,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  tab,  4,  illegal,  illegal,  3,  illegal,  illegal,
-    illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,  illegal,
-    space,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  illegal,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,
-    non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii,  non_ascii
-  };
 
 unsigned int char_fasta_action[256] =
   {
