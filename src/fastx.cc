@@ -204,7 +204,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
            "Character no %d (0x%2x) on or right before line %"
            PRIu64 ".",
            symbol_unsigned,
-           input_handle->lineno);
+           input_handle->lineno_start);
     }
   }
 }
