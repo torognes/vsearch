@@ -166,6 +166,21 @@ auto find_header_end(Span raw_header) -> std::size_t {
 }
 
 
+auto warn(char const * const format,
+          unsigned char const symbol,
+          uint64_t const line_number) -> void {
+  std::fprintf(stderr, "\nWARNING: ");
+  std::fprintf(stderr, format, symbol, symbol, line_number);
+  std::fprintf(stderr, "\n");
+
+  if (fp_log != nullptr) {
+    std::fprintf(fp_log, "\nWARNING: ");
+    std::fprintf(fp_log, format, symbol, symbol, line_number);
+    std::fprintf(fp_log, "\n");
+  }
+}
+
+
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void {
   // truncate header (in-place)
   auto raw_header = Span{input_handle->header_buffer.data, input_handle->header_buffer.length};
@@ -185,23 +200,11 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     auto const symbol_unsigned = static_cast<unsigned char>(symbol);
     auto const is_not_ascii = (symbol_unsigned > 127);
     if (is_not_ascii) {
-      std::fprintf(stderr,
-                   "\n"
-                   "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
-                   "Character no %d (0x%2x) on or right before line %"
-                   PRIu64 ".\n",
-                   symbol_unsigned, symbol_unsigned,
-                   input_handle->lineno);
-
-      if (fp_log != nullptr) {
-        std::fprintf(fp_log,
-                     "\n"
-                     "WARNING: Non-ASCII character encountered in FASTA/FASTQ header.\n"
-                     "Character no %d (0x%2x) on or right before line %"
-                     PRIu64 ".\n",
-                     symbol_unsigned, symbol_unsigned,
-                     input_handle->lineno);
-      }
+      warn("Non-ASCII character encountered in FASTA/FASTQ header.\n"
+           "Character no %d (0x%2x) on or right before line %"
+           PRIu64 ".",
+           symbol_unsigned,
+           input_handle->lineno);
     }
   }
 }
