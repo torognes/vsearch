@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "dynlibs.h"
+#include "utils/fatal.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::find_first_of
 #include <array>
@@ -177,23 +178,9 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     auto const is_illegal = ((symbol == 127) or
                              ((symbol > '\0') and (symbol < ' ') and (symbol != '\t')));
     if (is_illegal) {
-      std::fprintf(stderr,
-                   "\n\n"
-                   "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
-                   "Unprintable ASCII character no %d on or right before line %"
-                   PRIu64 ".\n",
-                   symbol,
-                   input_handle->lineno);
-      if (fp_log != nullptr) {
-        std::fprintf(fp_log,
-                     "\n\n"
-                     "Fatal error: Illegal character encountered in FASTA/FASTQ header.\n"
-                     "Unprintable ASCII character no %d on or right before line %"
-                     PRIu64 ".\n",
-                     symbol,
-                     input_handle->lineno);
-      }
-      std::exit(EXIT_FAILURE);
+      fatal("Illegal character encountered in FASTA/FASTQ header.\n"
+            "Unprintable ASCII character no %d on or right before line %" PRIu64 ".",
+            symbol, input_handle->lineno);
     }
     auto const symbol_unsigned = static_cast<unsigned char>(symbol);
     auto const is_not_ascii = (symbol_unsigned > 127);
