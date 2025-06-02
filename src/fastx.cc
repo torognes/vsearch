@@ -176,7 +176,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
   auto const trimmed_header = raw_header.first(count);
   for (auto const symbol: trimmed_header) {
     auto const is_illegal = ((symbol == 127) or
-                             ((symbol > '\0') and (symbol < ' ') and (symbol != '\t')));
+                             ((symbol > '\0') and (symbol < ' ') and not (symbol == '\t')));
     if (is_illegal) {
       fatal("Illegal character encountered in FASTA/FASTQ header.\n"
             "Unprintable ASCII character no %d on line %" PRIu64 ".",
