@@ -110,7 +110,7 @@ auto arch_get_memtotal() -> uint64_t
 
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
-  size_t length = sizeof(ram);
+  std::size_t length = sizeof(ram);
   if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
     fatal("Cannot determine amount of RAM");
   return ram;
@@ -217,7 +217,7 @@ auto arch_random() -> uint64_t
 }
 
 
-auto xmalloc(size_t size) -> void *
+auto xmalloc(std::size_t size) -> void *
 {
   if (size == 0)
     {
@@ -240,7 +240,7 @@ auto xmalloc(size_t size) -> void *
 }
 
 
-auto xrealloc(void * ptr, size_t size) -> void *
+auto xrealloc(void * ptr, std::size_t size) -> void *
 {
   if (size == 0)
     {
