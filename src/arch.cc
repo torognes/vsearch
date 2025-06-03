@@ -183,7 +183,7 @@ auto arch_srandom() -> void
 #ifdef _WIN32
       srand(GetTickCount());
 #else
-      int const fd = open("/dev/urandom", O_RDONLY);
+      auto const fd = open("/dev/urandom", O_RDONLY);
       if (fd < 0)
         {
           fatal("Unable to open /dev/urandom");
