@@ -628,8 +628,8 @@ auto cluster_core_parallel() -> void
 
   /* allocate memory for the search information for each query;
      and initialize it */
-  si_plus  = (struct searchinfo_s *) xmalloc(max_queries *
-                                             sizeof(struct searchinfo_s));
+  si_plus = (struct searchinfo_s *) xmalloc(max_queries *
+                                            sizeof(struct searchinfo_s));
   if (opt_strand > 1)
     {
       si_minus = (struct searchinfo_s *) xmalloc(max_queries *
