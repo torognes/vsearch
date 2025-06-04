@@ -1433,13 +1433,11 @@ auto cluster(char * dbname,
 
   /* allocate memory for full file name of the clusters files */
   std::FILE * fp_clusters = nullptr;
-  char * fn_clusters = nullptr;
-  int fn_clusters_size = 0;
-  if (opt_clusters != nullptr)
-    {
-      fn_clusters_size += std::strlen(opt_clusters) + 25;
-      fn_clusters = (char *) xmalloc(fn_clusters_size);
-    }
+  static constexpr auto space_for_cluster_id = 25;  // up to 25 digits
+  std::vector<char> fn_clusters;
+  if (opt_clusters != nullptr) {
+    fn_clusters.reserve(std::strlen(opt_clusters) + space_for_cluster_id);
+  }
 
   int lastcluster = -1;
   int ordinal = 0;
@@ -1494,12 +1492,12 @@ auto cluster(char * dbname,
                 }
 
               ordinal = 0;
-              snprintf(fn_clusters,
-                       fn_clusters_size,
+              snprintf(fn_clusters.data(),
+                       fn_clusters.size(),
                        "%s%d",
                        opt_clusters,
                        clusterno);
-              fp_clusters = fopen_output(fn_clusters);
+              fp_clusters = fopen_output(fn_clusters.data());
               if (fp_clusters == nullptr)
                 {
                   fatal("Unable to open clusters file for writing");
@@ -1526,10 +1524,6 @@ auto cluster(char * dbname,
       if (opt_clusters != nullptr)
         {
           fclose(fp_clusters);
-          if (fn_clusters != nullptr)
-            {
-              xfree(fn_clusters);
-            }
         }
     }
 
