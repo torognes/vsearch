@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include "utils/progress.hpp"
 #include <algorithm>  // std::sort, std::min
 #include <cassert>
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
@@ -96,25 +97,25 @@ namespace {
   }
 
 
-  auto create_deck() -> std::vector<struct sortinfo_length_s> {
+  auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_length_s> {
     auto const dbsequencecount = db_getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
     std::vector<struct sortinfo_length_s> deck(dbsequencecount);
-    progress_init("Getting lengths", deck.size());
+    Progress progress("Getting lengths", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto & sequence: deck) {
       sequence.seqno = counter;
       sequence.length = db_getsequencelen(counter);
       sequence.size = db_getabundance(counter);
-      progress_update(counter);
+      progress.update(counter);
       ++counter;
     }
-    progress_done();
     return deck;
   }
 
 
-  auto sort_deck(std::vector<sortinfo_length_s> & deck) -> void {
+  auto sort_deck(std::vector<sortinfo_length_s> & deck,
+                 struct Parameters const & parameters) -> void {
     auto compare_sequences = [](struct sortinfo_length_s const & lhs,
                                 struct sortinfo_length_s const & rhs) -> bool {
       // longest first...
@@ -138,14 +139,13 @@ namespace {
     };
 
     static constexpr auto one_hundred_percent = 100ULL;
-    progress_init("Sorting", one_hundred_percent);
+    Progress const progress("Sorting", one_hundred_percent, parameters);
     std::stable_sort(deck.begin(), deck.end(), compare_sequences);
-    progress_done();
   }
 
 
   // refactoring C++17 [[nodiscard]]
-  auto find_median_length(std::vector<sortinfo_length_s> const &deck) -> double {
+  auto find_median_length(std::vector<sortinfo_length_s> const & deck) -> double {
     // function returns a round value or a value with a remainder of 0.5
     static constexpr double half = 0.5;
 
@@ -196,15 +196,15 @@ namespace {
 
   // refactoring: extract as a template
   auto output_sorted_fasta(std::vector<struct sortinfo_length_s> const & deck,
-                           std::FILE * output_file) -> void {
-    progress_init("Writing output", deck.size());
+                           std::FILE * output_file,
+                           struct Parameters const & parameters) -> void {
+    Progress progress("Writing output", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto const & sequence: deck) {
       fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
-      progress_update(counter);
+      progress.update(counter);
       ++counter;
     }
-    progress_done();
   }
 
 }  // end of anonymous namespace
@@ -215,16 +215,16 @@ auto sortbylength(struct Parameters const & parameters) -> void {
   db_read(parameters.opt_sortbylength, 0);
   show_rusage();
 
-  auto deck = create_deck();
+  auto deck = create_deck(parameters);
   show_rusage();
 
-  sort_deck(deck);
+  sort_deck(deck, parameters);
 
   output_median_length(deck, parameters);
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, output_handle);
+  output_sorted_fasta(deck, output_handle, parameters);
   show_rusage();
 
   db_free();
