@@ -108,6 +108,7 @@ userfields.h \
 util.h \
 utils/fatal.hpp \
 utils/maps.hpp \
+utils/progress.hpp \
 utils/seqcmp.h \
 utils/span.hpp \
 utils/taxonomic_fields.h \
