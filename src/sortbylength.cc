@@ -186,7 +186,7 @@ namespace {
 
 
   // refactoring: extract as a template
-  auto truncate_deck(std::vector<struct sortinfo_length_s> &deck,
+  auto truncate_deck(std::vector<struct sortinfo_length_s> & deck,
                      long int const n_first_sequences) -> void {
     if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
       deck.resize(n_first_sequences);
