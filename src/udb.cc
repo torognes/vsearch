@@ -516,7 +516,7 @@ auto udb_read(const char * filename,
                   bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
                 }
             }
-          progress_update(i+1);
+          progress_update(i + 1);
         }
       progress_done();
     }
@@ -538,7 +538,7 @@ auto udb_read(const char * filename,
             {
               seqindex[i].size = 1;
             }
-          progress_update(i+1);
+          progress_update(i + 1);
         }
       progress_done();
     }
@@ -636,8 +636,8 @@ auto udb_fasta(struct Parameters const & parameters) -> void
   progress_init("Writing FASTA file", seqcount);
   for (std::size_t i = 0; i < seqcount; i++)
     {
-      fasta_print_db_relabel(fp_output, i, i+1);
-      progress_update(i+1);
+      fasta_print_db_relabel(fp_output, i, i + 1);
+      progress_update(i + 1);
     }
   progress_done();
   fclose(fp_output);
