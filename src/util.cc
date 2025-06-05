@@ -85,6 +85,7 @@ static uint64_t progress_pct;
 static bool progress_show;
 
 
+// refactoring: make a progress object, with an .update() method and automatic closure?
 auto progress_init(const char * prompt, uint64_t size) -> void
 {
   progress_show = (isatty(fileno(stderr)) != 0) and (not opt_quiet) and (not opt_no_progress);
