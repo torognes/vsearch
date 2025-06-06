@@ -58,11 +58,10 @@
 
 */
 
-#include <unistd.h>  // isatty
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::fprintf, fileno?
+#include <cstdio>  // std::fprintf
 
 
 constexpr auto one_hundred_percent = 100UL;
@@ -125,8 +124,9 @@ private:
   
   // Helpers
   auto check_if_visible() const -> bool {
-    return (isatty(fileno(stderr)) != 0) and (not parameters_.opt_quiet) and
-      (not parameters_.opt_no_progress);
+    return (parameters_.opt_stderr_is_tty)
+      and (not parameters_.opt_quiet)
+      and (not parameters_.opt_no_progress);
   };
 
   auto calculate_percentage() const -> std::uint64_t {
@@ -148,7 +148,3 @@ private:
     static_cast<void>(std::fprintf(stderr, " %lu%%\n", one_hundred_percent));
   }
 };
-
-
-// TODO
-// - move isatty(fileno(stderr)) to parameters?

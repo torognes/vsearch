@@ -5024,6 +5024,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     opt_notrunclabels = 1;
     parameters.opt_notrunclabels = true;
     }
+
+  // check if stderr is referring to a terminal
+  //  - fileno() returns a file descriptor (fd)
+  //  - isatty() returns 1 if a file descriptor refers to a terminal
+  parameters.opt_stderr_is_tty = (isatty(fileno(stderr)) == 1);
 }
 
 
