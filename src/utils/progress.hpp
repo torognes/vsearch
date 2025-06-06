@@ -99,7 +99,7 @@ public:
                                    "  \r%s %" PRIu64 "%%",
                                    prompt_,
                                    current_percentage_));
-    next_threshold_ = calculate_next_threshold();    
+    next_threshold_ = calculate_next_threshold();
   };
 
   auto update() -> void {
