@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/progress.hpp"
 #include <algorithm>  // std::count, std::for_each, std::equal
 #include <cassert>
 #include <cinttypes>  // macros PRId64
@@ -470,7 +471,7 @@ auto cut(struct Parameters const & parameters) -> void {
   search_illegal_characters(restriction.pattern);
 
   auto const filesize = fasta_get_size(input_handle);
-  progress_init("Cutting sequences", filesize);
+  Progress progress("Cutting sequences", filesize, parameters);
 
   struct statistics counters;
   std::vector<char> rc_buffer;
@@ -478,10 +479,8 @@ auto cut(struct Parameters const & parameters) -> void {
     {
       cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer);
 
-      progress_update(fasta_get_position(input_handle));
+      progress.update(fasta_get_position(input_handle));
     }
-
-  progress_done();
 
   output_stats_message(parameters, counters);
   output_stats_message(parameters, counters, parameters.opt_log);
