@@ -1493,7 +1493,7 @@ auto cluster(char * dbname,
 
               ordinal = 0;
               snprintf(fn_clusters.data(),
-                       fn_clusters.size(),
+                       fn_clusters.capacity(),
                        "%s%d",
                        opt_clusters,
                        clusterno);
