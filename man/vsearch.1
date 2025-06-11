@@ -841,6 +841,47 @@ This command is ignored. A warning is issued.
 .\" do not ignore terminal gaps. That option skips terminal columns
 .\" if they contain a majority of gaps, yielding shorter consensus
 .\" sequences than when using \-\-consout alone.
+.TP
+.BI \-\-gapext \0string
+Set penalties for a gap extension. See \-\-gapopen for a complete
+description of the penalty declaration system. The default is to
+initialize the six gap extending penalties using a penalty of 2 for
+extending internal gaps and a penalty of 1 for extending terminal
+gaps, in both query and target sequences (i.e. 2I/1E).
+.TP
+.BI \-\-gapopen \0string
+Set penalties for a gap opening. A gap opening can occur in six
+different contexts: in the query (Q) or in the target (T) sequence, at
+the left (L) or right (R) extremity of the sequence, or inside the
+sequence (I). Sequence symbols (Q and T) can be combined with location
+symbols (L, I, and R), and numerical values to declare penalties for
+all possible contexts: aQL/bQI/cQR/dTL/eTI/fTR, where abcdef are zero
+or positive integers, and '/' is used as a separator.
+.br
+To simplify declarations, the location symbols (L, I, and R) can be
+combined, the symbol (E) can be used to treat both extremities (L and
+R) equally, and the symbols Q and T can be omitted to treat query and
+target sequences equally. For instance, the default is to declare a
+penalty of 20 for opening internal gaps and a penalty of 2 for opening
+terminal gaps (left or right), in both query and target sequences
+(i.e. 20I/2E). If only a numerical value is given, without any
+sequence or location symbol, then the penalty applies to all gap
+openings. To forbid gap-opening, an infinite penalty value can be
+declared with the symbol '*'. To use \fBvsearch\fR as a semi-global
+aligner, a null-penalty can be applied to the left (L) or right (R)
+gaps.
+.br
+\fBvsearch\fR always initializes the six gap opening
+penalties using the default parameters (20I/2E). The user is then free
+to declare only the values he/she wants to modify. The \fIstring\fR is
+scanned from left to right, accepted symbols are (0123456789/LIREQT*),
+and later values override previous values.
+.br
+Please note that \fBvsearch\fR, in contrast to usearch, only allows
+integer gap penalties. Because the lowest gap penalties are 0.5 by
+default in usearch, all default scores and gap penalties in
+\fBvsearch\fR have been doubled to maintain equivalent penalties and
+to produce identical alignments.
 .TAG id
 .TP
 .BI \-\-id \0real
@@ -878,11 +919,19 @@ pairwise alignment.
 .B \-\-lengthout
 Write sequence length information to the output files in FASTA format
 by adding a ";length=\fIinteger\fR" attribute in the header.
+.TP
+.BI \-\-match\~ "integer"
+Score assigned to a match (i.e. identical nucleotides) in the pairwise
+alignment. The default value is 2.
 .TAG minsize
 .TP
 .BI \-\-minsize\~ "positive integer"
 Specify the minimum abundance of sequences for denoising using
 \-\-cluster_unoise. The default is 8.
+.TP
+.BI \-\-mismatch\~ "integer"
+Score assigned to a mismatch (i.e. different nucleotides) in the
+pairwise alignment. The default value is -4.
 .TAG msaout
 .TP
 .BI \-\-msaout \0filename
