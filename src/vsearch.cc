@@ -5025,6 +5025,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     parameters.opt_notrunclabels = true;
     }
 
+  // refactoring: C++17 <filesystem> std::filesystem::is_regular_file
   // check if stderr is referring to a terminal
   //  - fileno() returns a file descriptor (fd)
   //  - isatty() returns 1 if a file descriptor refers to a terminal
