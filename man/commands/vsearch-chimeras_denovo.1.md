@@ -15,7 +15,9 @@ vsearch \-\-chimeras_denovo --- detect chimeras *de novo* in long exact sequence
 # DESCRIPTION
 
 The vsearch command `--chimeras_denovo` detect chimeras *de novo*
-(i.e. without external references) in long exact sequences.
+(i.e. without external references) in long exact sequences. It uses a
+modified uchime algorithm that can automatically adapt to a wide range
+of sequence lengths.
 
 
 # OPTIONS
@@ -36,8 +38,27 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 #(./fragments/option_nonchimeras.md)
 
 `--tabbedout` *filename*
-: Write chimera info to *filename*, using a tab-separated format with
-  n columns. The columns are...
+: Write the results to a eighteen-column tab-delimited file with the
+  specified *filename*. Columns are:
+
+    1.  dummy value, always set to 99.9999
+    2.  query header
+    3.  parent A header
+    4.  parent B header
+    5.  parent C header ("*" if there are only two parents)
+    6.  QModel: max similarity percentage (always 100.0%)
+    7.  QA: similarity percentage with parent A
+    8.  QB: similarity percentage with parent B
+    9.  QC: similarity percentage with parent C (0.00 if there are only two parents)
+    10.  QT: highest similarity percentage with a parent
+    11.  left yes: ignored, always set to zero
+    12.  left no: ignored, always set to zero
+    13.  left abstain: ignored, always set to zero
+    14.  right yes: ignored, always set to zero
+    15.  right no: ignored, always set to zero
+    16.  right abstain: ignored, always set to zero
+    17.  dummy value, always set to 0.00
+    18.  chimeric status (Y: chimera, N: not a chimera)
 
 
 ## core options
@@ -93,8 +114,6 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 #(./fragments/option_sample.md)
 
-#(./fragments/option_sizein.md)
-
 #(./fragments/option_sizeout.md)
 
 #(./fragments/option_xee.md)
@@ -123,7 +142,10 @@ for a complete description. Modify with caution.
 #(./fragments/option_threads_not_multithreaded.md)
 
 
-## unsupported options?
+## unsupported options
+
+The following options are not yet supported by the `--chimeras_denovo`
+command:
 
 #(./fragments/option_bzip2_decompress.md)
 
