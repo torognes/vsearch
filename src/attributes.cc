@@ -65,7 +65,7 @@
 #include <cerrno>  // errno
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstdlib>  // std::strtol
+#include <cstdlib>  // std::strtoll
 #include <cstring>  // std::strlen, std::strstr, std::strspn
 
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
@@ -158,7 +158,7 @@ auto header_get_size(char * header, int header_length) -> int64_t {
   }
 
   char * next_character = nullptr;
-  auto const abundance = std::strtol(header + start + length_of_attribute_name, &next_character, decimal_base);
+  auto const abundance = std::strtoll(header + start + length_of_attribute_name, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 
   if (range_error) {
