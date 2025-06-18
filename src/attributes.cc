@@ -154,7 +154,7 @@ auto header_get_size(char * header, int header_length) -> int64_t {
                                                           &end,
                                                           false);
   if (not attribute_is_present) {
-    return 0;
+    return 0;  // refactoring: return 1 by default?
   }
 
   char * next_character = nullptr;
