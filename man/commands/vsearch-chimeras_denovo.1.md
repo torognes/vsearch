@@ -63,7 +63,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 ## core options
 
-#(./fragments/option_abskew.md)
+#(./fragments/option_abskew_1.md)
 
 #(./fragments/option_chimeras_diff_pct.md)
 
