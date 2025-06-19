@@ -41,7 +41,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 : Write the results to a eighteen-column tab-delimited file with the
   specified *filename*. Columns are:
 
-    1.  dummy value, always set to 99.9999
+    1.  score: dummy value, always set to 99.9999
     2.  query header
     3.  parent A header
     4.  parent B header
