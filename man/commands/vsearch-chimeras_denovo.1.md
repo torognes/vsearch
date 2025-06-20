@@ -28,7 +28,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 `--tabbedout` must be specified.
 
 `--alnout` *filename*
-: Write three-way alignments to *filename* using a human-readable
+: Write multi-way alignments to *filename* using a human-readable
   format. Use `--alignwidth` to set the alignment width (60
   nucleotides by default). Output order may vary when using multiple
   threads.
