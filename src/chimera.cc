@@ -1675,19 +1675,19 @@ auto query_init(struct searchinfo_s * search_info) -> void
   search_info->hit_count = 0;
   search_info->uh = unique_init();
   search_info->s = search16_init(opt_match,
-                        opt_mismatch,
-                        opt_gap_open_query_left,
-                        opt_gap_open_target_left,
-                        opt_gap_open_query_interior,
-                        opt_gap_open_target_interior,
-                        opt_gap_open_query_right,
-                        opt_gap_open_target_right,
-                        opt_gap_extension_query_left,
-                        opt_gap_extension_target_left,
-                        opt_gap_extension_query_interior,
-                        opt_gap_extension_target_interior,
-                        opt_gap_extension_query_right,
-                        opt_gap_extension_target_right);
+                                 opt_mismatch,
+                                 opt_gap_open_query_left,
+                                 opt_gap_open_target_left,
+                                 opt_gap_open_query_interior,
+                                 opt_gap_open_target_interior,
+                                 opt_gap_open_query_right,
+                                 opt_gap_open_target_right,
+                                 opt_gap_extension_query_left,
+                                 opt_gap_extension_target_left,
+                                 opt_gap_extension_query_interior,
+                                 opt_gap_extension_target_interior,
+                                 opt_gap_extension_query_right,
+                                 opt_gap_extension_target_right);
   search_info->m = minheap_init(tophits);
 }
 
