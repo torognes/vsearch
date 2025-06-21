@@ -181,7 +181,6 @@ struct chimera_info_s
   char * votes = nullptr;
   char * model = nullptr;
   std::vector<char> ignore_v;
-  char * ignore = nullptr;
 
   struct hit * all_hits = nullptr;
   double best_h = 0;
@@ -257,7 +256,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->votes = (char *) xrealloc(ci->votes, maxalnlen + 1);
       ci->model = (char *) xrealloc(ci->model, maxalnlen + 1);
       ci->ignore_v.resize(maxalnlen + 1);
-      ci->ignore = ci->ignore_v.data();
     }
 }
 
