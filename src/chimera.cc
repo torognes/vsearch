@@ -180,6 +180,7 @@ struct chimera_info_s
   char * diffs = nullptr;
   char * votes = nullptr;
   char * model = nullptr;
+  std::vector<char> model_v;
   std::vector<char> ignore;
 
   struct hit * all_hits = nullptr;
@@ -254,7 +255,8 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->qaln = (char *) xrealloc(ci->qaln, maxalnlen + 1);
       ci->diffs = (char *) xrealloc(ci->diffs, maxalnlen + 1);
       ci->votes = (char *) xrealloc(ci->votes, maxalnlen + 1);
-      ci->model = (char *) xrealloc(ci->model, maxalnlen + 1);
+      ci->model_v.resize(maxalnlen + 1);
+      ci->model = ci->model_v.data();
       ci->ignore.resize(maxalnlen + 1);
     }
 }
@@ -1778,10 +1780,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   if (ci->votes != nullptr)
     {
       xfree(ci->votes);
-    }
-  if (ci->model != nullptr)
-    {
-      xfree(ci->model);
     }
   if (ci->qaln != nullptr)
     {
