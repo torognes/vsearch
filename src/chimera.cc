@@ -1340,7 +1340,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       for (int i = 0; i < alnlen; i++)
         {
           char const m = i <= best_i ? 'A' : 'B';
-          ci->model[i] = m;
+          ci->model_v[i] = m;
 
           char v = ' ';
           if (ci->ignore[i] == 0)
@@ -1378,7 +1378,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         {
           if ((ci->diffs[i] == ' ') or (ci->diffs[i] == 'A'))
             {
-              ci->model[i] = 'x';
+              ci->model_v[i] = 'x';
             }
           else
             {
@@ -1387,7 +1387,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         }
 
       ci->votes[alnlen] = 0;
-      ci->model[alnlen] = 0;
+      ci->model_v[alnlen] = 0;
 
       /* count matches */
 
