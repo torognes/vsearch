@@ -161,7 +161,6 @@ struct chimera_info_s
   std::vector<int> match;
   std::vector<int> insert;
   std::vector<int> smooth_v;
-  int * smooth = nullptr;
   std::vector<int> maxsmooth;
 
   double * scan_p = nullptr;
@@ -242,7 +241,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->match.resize(maxcandidates * maxqlen);
       ci->insert.resize(maxcandidates * maxqlen);
       ci->smooth_v.resize(maxcandidates * maxqlen);
-      ci->smooth = ci->smooth_v.data();
 
       ci->scan_p = (double *) xrealloc(ci->scan_p,
                                        (maxqlen + 1) * sizeof(double));
