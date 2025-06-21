@@ -239,11 +239,11 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->maxi = (int *) xrealloc(ci->maxi, (maxqlen + 1) * sizeof(int));
       ci->maxsmooth = (int *) xrealloc(ci->maxsmooth, maxqlen * sizeof(int));
       ci->match = (int *) xrealloc(ci->match,
-                                  maxcandidates * maxqlen * sizeof(int));
+                                   maxcandidates * maxqlen * sizeof(int));
       ci->insert = (int *) xrealloc(ci->insert,
-                                   maxcandidates * maxqlen * sizeof(int));
+                                    maxcandidates * maxqlen * sizeof(int));
       ci->smooth = (int *) xrealloc(ci->smooth,
-                                   maxcandidates * maxqlen * sizeof(int));
+                                    maxcandidates * maxqlen * sizeof(int));
 
       ci->scan_p = (double *) xrealloc(ci->scan_p,
                                        (maxqlen + 1) * sizeof(double));
@@ -516,9 +516,9 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
   /* sort parents by position */
   std::qsort(best_parents.data(),
-        parents_found,
-        sizeof(struct parents_info_s),
-        compare_positions);
+             parents_found,
+             sizeof(struct parents_info_s),
+             compare_positions);
 
   ci->parents_found = parents_found;
 
@@ -934,9 +934,9 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     {
       std::fprintf(fp_uchimealns, "\n");
       std::fprintf(fp_uchimealns, "----------------------------------------"
-              "--------------------------------\n");
+                   "--------------------------------\n");
       std::fprintf(fp_uchimealns, "Query   (%5d nt) ",
-              ci->query_len);
+                   ci->query_len);
       header_fprint_strip(fp_uchimealns,
                           ci->query_head,
                           ci->query_head_len,
@@ -948,8 +948,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
         {
           int const seqno = ci->cand_list[ci->best_parents[f]];
           std::fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
-                  'A' + f,
-                  db_getsequencelen(seqno));
+                       'A' + f,
+                       db_getsequencelen(seqno));
           header_fprint_strip(fp_uchimealns,
                               db_getheader(seqno),
                               db_getheaderlen(seqno),
