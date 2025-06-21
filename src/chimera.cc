@@ -1828,10 +1828,10 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
       xfree(ci->scan_q);
     }
 
-  for (int f = 0; f < maxparents; f++) {
-    if (ci->paln[f] != nullptr)
+  for (int i = 0; i < maxparents; i++) {
+    if (ci->paln[i] != nullptr)
       {
-        xfree(ci->paln[f]);
+        xfree(ci->paln[i]);
       }
   }
 }
