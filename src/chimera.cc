@@ -179,7 +179,7 @@ struct chimera_info_s
   char * qaln = nullptr;
   char * diffs = nullptr;
   char * votes = nullptr;
-  std::vector<char> model_v;
+  std::vector<char> model;
   std::vector<char> ignore;
 
   struct hit * all_hits = nullptr;
@@ -254,7 +254,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->qaln = (char *) xrealloc(ci->qaln, maxalnlen + 1);
       ci->diffs = (char *) xrealloc(ci->diffs, maxalnlen + 1);
       ci->votes = (char *) xrealloc(ci->votes, maxalnlen + 1);
-      ci->model_v.resize(maxalnlen + 1);
+      ci->model.resize(maxalnlen + 1);
       ci->ignore.resize(maxalnlen + 1);
     }
 }
@@ -804,7 +804,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   /* fill in alignment string for query */
 
-  char * pm = ci->model_v.data();
+  char * pm = ci->model.data();
   int m = 0;
   char * q = ci->qaln;
   int qpos = 0;
@@ -997,7 +997,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
             }
 
           fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
-          fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model_v[i]);
+          fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
           fprintf(fp_uchimealns, "\n");
 
           rest -= width;
@@ -1338,7 +1338,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       for (int i = 0; i < alnlen; i++)
         {
           char const m = i <= best_i ? 'A' : 'B';
-          ci->model_v[i] = m;
+          ci->model[i] = m;
 
           char v = ' ';
           if (ci->ignore[i] == 0)
@@ -1376,7 +1376,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         {
           if ((ci->diffs[i] == ' ') or (ci->diffs[i] == 'A'))
             {
-              ci->model_v[i] = 'x';
+              ci->model[i] = 'x';
             }
           else
             {
@@ -1385,7 +1385,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         }
 
       ci->votes[alnlen] = 0;
-      ci->model_v[alnlen] = 0;
+      ci->model[alnlen] = 0;
 
       /* count matches */
 
@@ -1556,7 +1556,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
               fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
               fprintf(fp_uchimealns, "Votes   %.*s\n", w, ci->votes + i);
-              fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model_v[i]);
+              fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
               fprintf(fp_uchimealns, "\n");
 
               qpos += qnt;
