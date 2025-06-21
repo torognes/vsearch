@@ -276,7 +276,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
       {
         int const x = (i * ci->query_len) + j;
         ci->match[x] = 0;
-        ci->insert[x] = 0;
+        ci->insert_v[x] = 0;
       }
   }
 
@@ -313,7 +313,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
               break;
 
             case 'I':
-              ci->insert[(i * ci->query_len) + qpos] = run;
+              ci->insert_v[(i * ci->query_len) + qpos] = run;
               tpos += run;
               break;
 
@@ -455,7 +455,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
               len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[j]) &&
-                     ((len == 0) or (ci->insert[(i * ci->query_len) + j] == 0)))
+                     ((len == 0) or (ci->insert_v[(i * ci->query_len) + j] == 0)))
                 {
                   ++len;
                   ++j;
