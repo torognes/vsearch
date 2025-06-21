@@ -1669,7 +1669,8 @@ auto query_init(struct searchinfo_s * si) -> void
 {
   si->qsequence = nullptr;
   si->kmers = nullptr;
-  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
+  si->hits_v.resize(tophits);
+  si->hits = si->hits_v.data();
   si->kmers = (count_t *) xmalloc((db_getsequencecount() * sizeof(count_t)) + 32);
   si->hit_count = 0;
   si->uh = unique_init();
@@ -1704,7 +1705,6 @@ auto query_exit(struct searchinfo_s * search_info) -> void
     }
   if (search_info->hits != nullptr)
     {
-      xfree(search_info->hits);
       search_info->hits = nullptr;
     }
   if (search_info->kmers != nullptr)
