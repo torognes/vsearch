@@ -806,7 +806,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   /* fill in alignment string for query */
 
-  char * pm = ci->model;
+  char * pm = ci->model_v.data();
   int m = 0;
   char * q = ci->qaln;
   int qpos = 0;
@@ -999,7 +999,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
             }
 
           fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
-          fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model + i);
+          fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model_v[i]);
           fprintf(fp_uchimealns, "\n");
 
           rest -= width;
@@ -1558,7 +1558,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
               fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
               fprintf(fp_uchimealns, "Votes   %.*s\n", w, ci->votes + i);
-              fprintf(fp_uchimealns, "Model   %.*s\n", w, ci->model + i);
+              fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model_v[i]);
               fprintf(fp_uchimealns, "\n");
 
               qpos += qnt;
