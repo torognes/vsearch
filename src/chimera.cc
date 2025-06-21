@@ -180,7 +180,7 @@ struct chimera_info_s
   char * diffs = nullptr;
   char * votes = nullptr;
   char * model = nullptr;
-  std::vector<char> ignore_v;
+  std::vector<char> ignore;
 
   struct hit * all_hits = nullptr;
   double best_h = 0;
@@ -255,7 +255,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->diffs = (char *) xrealloc(ci->diffs, maxalnlen + 1);
       ci->votes = (char *) xrealloc(ci->votes, maxalnlen + 1);
       ci->model = (char *) xrealloc(ci->model, maxalnlen + 1);
-      ci->ignore_v.resize(maxalnlen + 1);
+      ci->ignore.resize(maxalnlen + 1);
     }
 }
 
@@ -1106,7 +1106,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   /* mark positions to ignore in voting */
 
   for (int i = 0; i < alnlen; i++) {
-    ci->ignore_v[i] = 0;
+    ci->ignore[i] = 0;
   }
 
   for (int i = 0; i < alnlen; i++)
@@ -1118,14 +1118,14 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       /* ignore gap positions and those next to the gap */
       if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
         {
-          ci->ignore_v[i] = 1;
+          ci->ignore[i] = 1;
           if (i > 0)
             {
-              ci->ignore_v[i - 1] = 1;
+              ci->ignore[i - 1] = 1;
             }
           if (i < alnlen - 1)
             {
-              ci->ignore_v[i + 1] = 1;
+              ci->ignore[i + 1] = 1;
             }
         }
 
@@ -1134,7 +1134,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           (ambiguous_4bit[p1sym] != 0U) or
           (ambiguous_4bit[p2sym] != 0U))
         {
-          ci->ignore_v[i] = 1;
+          ci->ignore[i] = 1;
         }
 
       /* lower case parent symbols that differ from query */
@@ -1200,7 +1200,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if (ci->ignore_v[i] == 0)
+      if (ci->ignore[i] == 0)
         {
           char const diff = ci->diffs[i];
 
@@ -1240,7 +1240,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if (ci->ignore_v[i] == 0)
+      if (ci->ignore[i] == 0)
         {
           char const diff = ci->diffs[i];
           if (diff != ' ')
@@ -1341,7 +1341,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           ci->model[i] = m;
 
           char v = ' ';
-          if (ci->ignore_v[i] == 0)
+          if (ci->ignore[i] == 0)
             {
               char const d = ci->diffs[i];
 
@@ -1400,7 +1400,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       for (auto i = 0; i < alnlen; i++)
         {
-          if (ci->ignore_v[i] == 0)
+          if (ci->ignore[i] == 0)
             {
               ++cols;
 
