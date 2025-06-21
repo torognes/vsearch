@@ -1691,26 +1691,26 @@ auto query_init(struct searchinfo_s * si) -> void
 }
 
 
-auto query_exit(struct searchinfo_s * si) -> void
+auto query_exit(struct searchinfo_s * search_info) -> void
 {
-  search16_exit(si->s);
-  unique_exit(si->uh);
-  minheap_exit(si->m);
+  search16_exit(search_info->s);
+  unique_exit(search_info->uh);
+  minheap_exit(search_info->m);
 
-  if (si->qsequence != nullptr)
+  if (search_info->qsequence != nullptr)
     {
-      xfree(si->qsequence);
-      si->qsequence = nullptr;
+      xfree(search_info->qsequence);
+      search_info->qsequence = nullptr;
     }
-  if (si->hits != nullptr)
+  if (search_info->hits != nullptr)
     {
-      xfree(si->hits);
-      si->hits = nullptr;
+      xfree(search_info->hits);
+      search_info->hits = nullptr;
     }
-  if (si->kmers != nullptr)
+  if (search_info->kmers != nullptr)
     {
-      xfree(si->kmers);
-      si->kmers = nullptr;
+      xfree(search_info->kmers);
+      search_info->kmers = nullptr;
     }
 }
 
