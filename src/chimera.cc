@@ -175,7 +175,6 @@ struct chimera_info_s
   char * best_cigar = nullptr;
 
   std::vector<int> maxi_v;
-  int * maxi = nullptr;
   std::array<char *, maxparents> paln {{}};
   char * qaln = nullptr;
   char * diffs = nullptr;
@@ -238,7 +237,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
         }
 
       ci->maxi_v.resize(maxqlen + 1);
-      ci->maxi = ci->maxi_v.data();
       ci->maxsmooth = (int *) xrealloc(ci->maxsmooth, maxqlen * sizeof(int));
       ci->match = (int *) xrealloc(ci->match,
                                    maxcandidates * maxqlen * sizeof(int));
@@ -1744,7 +1742,6 @@ auto chimera_thread_init(struct chimera_info_s * ci) -> void
   ci->head_alloc = 0;
   ci->query_head = nullptr;
   ci->query_seq = nullptr;
-  ci->maxi = nullptr;
   ci->maxsmooth = nullptr;
   ci->match = nullptr;
   ci->insert = nullptr;
