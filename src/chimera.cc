@@ -1770,7 +1770,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
   search16_exit(ci->s);
 
-  for (int i = 0; i < maxparts; i++)
+  for (auto i = 0; i < maxparts; i++)
     {
       query_exit(&ci->si[i]);
     }
@@ -1828,7 +1828,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
       xfree(ci->scan_q);
     }
 
-  for (int i = 0; i < maxparents; i++) {
+  for (auto i = 0; i < maxparents; i++) {
     if (ci->paln[i] != nullptr)
       {
         xfree(ci->paln[i]);
@@ -1914,24 +1914,24 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       xpthread_mutex_unlock(&mutex_input);
 
-      int status = 0;
+      auto status = 0;
 
       /* partition query */
       partition_query(ci);
 
       /* perform searches and collect candidate parents */
       ci->cand_count = 0;
-      int allhits_count = 0;
+      auto allhits_count = 0;
 
       if (ci->query_len >= parts)
         {
-          for (int i = 0; i < parts; i++)
+          for (auto i = 0; i < parts; i++)
             {
               struct hit * hits = nullptr;
-              int hit_count = 0;
+              auto hit_count = 0;
               search_onequery(&ci->si[i], opt_qmask);
               search_joinhits(&ci->si[i], nullptr, & hits, & hit_count);
-              for (int j = 0; j < hit_count; j++)
+              for (auto j = 0; j < hit_count; j++)
                 {
                   if (hits[j].accepted)
                     {
@@ -1947,7 +1947,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
           unsigned int const target = allhits_list[i].target;
 
           /* skip duplicates */
-          int k {0};
+          auto k = 0;
           for (k = 0; k < ci->cand_count; k++)
             {
               if (ci->cand_list[k] == target)
@@ -1984,7 +1984,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                ci->snwgaps.data(),
                ci->nwcigar.data());
 
-      for (int i = 0; i < ci->cand_count; i++)
+      for (auto i = 0; i < ci->cand_count; i++)
         {
           int64_t const target = ci->cand_list[i];
           int64_t nwscore = ci->snwscore[i];
@@ -2000,7 +2000,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                  perform a new alignment with the
                  linear memory aligner */
 
-              char * tseq = db_getsequence(target);
+              auto * tseq = db_getsequence(target);
               int64_t const tseqlen = db_getsequencelen(target);
 
               if (ci->nwcigar[i] != nullptr)
@@ -2182,7 +2182,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
         }
 
-      for (int i = 0; i < ci->cand_count; i++)
+      for (auto i = 0; i < ci->cand_count; i++)
         {
           if (ci->nwcigar[i] != nullptr)
             {
@@ -2233,7 +2233,7 @@ auto chimera_threads_run() -> void
     }
 
   /* finish worker threads */
-  for (int t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
