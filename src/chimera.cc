@@ -2282,11 +2282,11 @@ auto open_chimera_file(std::FILE ** f, char * name) -> void
 }
 
 
-auto close_chimera_file(std::FILE * f) -> void
+auto close_chimera_file(std::FILE * output_stream) -> void
 {
-  if (f != nullptr)
+  if (output_stream != nullptr)
     {
-      std::fclose(f);
+      std::fclose(output_stream);
     }
 }
 
