@@ -2336,7 +2336,8 @@ auto chimera(struct Parameters const & parameters) -> void
   seqno = 0;
 
   /* prepare threads */
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  std::vector<pthread_t> pthread_v(opt_threads);
+  pthread = pthread_v.data();
   cia = (struct chimera_info_s *) xmalloc(opt_threads *
                                           sizeof(struct chimera_info_s));
 
@@ -2618,7 +2619,6 @@ auto chimera(struct Parameters const & parameters) -> void
   xpthread_mutex_destroy(&mutex_input);
 
   xfree(cia);
-  xfree(pthread);
 
   close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);
