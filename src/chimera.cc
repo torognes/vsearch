@@ -673,7 +673,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
   /* find max insertions in front of each position in the query sequence */
 
   for (int i = 0; i <= ci->query_len; i++) {
-    ci->maxi[i] = 0;
+    ci->maxi_v[i] = 0;
   }
 
   for (int f = 0; f < ci->parents_found; f++)
@@ -697,7 +697,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
               break;
 
             case 'I':
-              ci->maxi[pos] = std::max(run, ci->maxi[pos]);
+              ci->maxi_v[pos] = std::max(run, ci->maxi_v[pos]);
               break;
             }
         }
@@ -707,7 +707,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
   int alnlen = 0;
   for (int i = 0; i < ci->query_len + 1; i++)
     {
-      alnlen += ci->maxi[i];
+      alnlen += ci->maxi_v[i];
     }
   alnlen += ci->query_len;
 
@@ -743,7 +743,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
           if (op == 'I')
             {
-              for (int x = 0; x < ci->maxi[qpos]; x++)
+              for (int x = 0; x < ci->maxi_v[qpos]; x++)
                 {
                   if (x < run)
                     {
@@ -762,7 +762,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                 {
                   if (not is_inserted)
                     {
-                      for (int y = 0; y < ci->maxi[qpos]; y++)
+                      for (int y = 0; y < ci->maxi_v[qpos]; y++)
                         {
                           *t++ = '-';
                         }
@@ -787,7 +787,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
       if (not is_inserted)
         {
-          for (int x = 0; x < ci->maxi[qpos]; x++)
+          for (int x = 0; x < ci->maxi_v[qpos]; x++)
             {
               *t++ = '-';
             }
@@ -819,7 +819,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       if (qpos >= (ci->best_start[m] + ci->best_len[m])) {
         ++m;
       }
-      for (int j = 0; j < ci->maxi[i]; j++)
+      for (int j = 0; j < ci->maxi_v[i]; j++)
         {
           *q++ = '-';
           *pm++ = 'A' + m;
@@ -827,7 +827,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
       *pm++ = 'A' + m;
     }
-  for (int j = 0; j < ci->maxi[ci->query_len]; j++)
+  for (int j = 0; j < ci->maxi_v[ci->query_len]; j++)
     {
       *q++ = '-';
       *pm++ = 'A' + m;
@@ -1097,13 +1097,13 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   int qpos = 0;
   for (int i = 0; i < ci->query_len; i++)
     {
-      for (int j = 0; j < ci->maxi[i]; j++)
+      for (int j = 0; j < ci->maxi_v[i]; j++)
         {
           *q++ = '-';
         }
       *q++ = chrmap_upcase[(int) (ci->query_seq[qpos++])];
     }
-  for (int j = 0; j < ci->maxi[ci->query_len]; j++)
+  for (int j = 0; j < ci->maxi_v[ci->query_len]; j++)
     {
       *q++ = '-';
     }
