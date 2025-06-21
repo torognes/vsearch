@@ -179,7 +179,6 @@ struct chimera_info_s
   char * qaln = nullptr;
   char * diffs = nullptr;
   char * votes = nullptr;
-  char * model = nullptr;
   std::vector<char> model_v;
   std::vector<char> ignore;
 
@@ -256,7 +255,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->diffs = (char *) xrealloc(ci->diffs, maxalnlen + 1);
       ci->votes = (char *) xrealloc(ci->votes, maxalnlen + 1);
       ci->model_v.resize(maxalnlen + 1);
-      ci->model = ci->model_v.data();
       ci->ignore.resize(maxalnlen + 1);
     }
 }
