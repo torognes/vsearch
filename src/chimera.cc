@@ -158,6 +158,7 @@ struct chimera_info_s
   std::array<char *, maxcandidates> nwcigar {{}};
 
   int match_size = 0;
+  std::vector<int> match_v;
   int * match = nullptr;
   int * insert = nullptr;
   int * smooth = nullptr;
@@ -238,8 +239,8 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
       ci->maxi.resize(maxqlen + 1);
       ci->maxsmooth.resize(maxqlen);
-      ci->match = (int *) xrealloc(ci->match,
-                                   maxcandidates * maxqlen * sizeof(int));
+      ci->match_v.resize(maxcandidates * maxqlen);
+      ci->match = ci->match_v.data();
       ci->insert = (int *) xrealloc(ci->insert,
                                     maxcandidates * maxqlen * sizeof(int));
       ci->smooth = (int *) xrealloc(ci->smooth,
@@ -1775,10 +1776,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
       query_exit(&ci->si[i]);
     }
 
-  if (ci->match != nullptr)
-    {
-      xfree(ci->match);
-    }
   if (ci->insert != nullptr)
     {
       xfree(ci->insert);
