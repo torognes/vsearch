@@ -1665,16 +1665,16 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   4: score >= minh && (divdiff >= opt_mindiv) && ..., chimeric
 */
 
-auto query_init(struct searchinfo_s * si) -> void
+auto query_init(struct searchinfo_s * search_info) -> void
 {
-  si->qsequence = nullptr;
-  si->kmers = nullptr;
-  si->hits_v.resize(tophits);
-  si->hits = si->hits_v.data();
-  si->kmers = (count_t *) xmalloc((db_getsequencecount() * sizeof(count_t)) + 32);
-  si->hit_count = 0;
-  si->uh = unique_init();
-  si->s = search16_init(opt_match,
+  search_info->qsequence = nullptr;
+  search_info->kmers = nullptr;
+  search_info->hits_v.resize(tophits);
+  search_info->hits = search_info->hits_v.data();
+  search_info->kmers = (count_t *) xmalloc((db_getsequencecount() * sizeof(count_t)) + 32);
+  search_info->hit_count = 0;
+  search_info->uh = unique_init();
+  search_info->s = search16_init(opt_match,
                         opt_mismatch,
                         opt_gap_open_query_left,
                         opt_gap_open_target_left,
@@ -1688,7 +1688,7 @@ auto query_init(struct searchinfo_s * si) -> void
                         opt_gap_extension_target_interior,
                         opt_gap_extension_query_right,
                         opt_gap_extension_target_right);
-  si->m = minheap_init(tophits);
+  search_info->m = minheap_init(tophits);
 }
 
 
