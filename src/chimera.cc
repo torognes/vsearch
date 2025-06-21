@@ -276,7 +276,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
     for (int j = 0; j < ci->query_len; j++)
       {
         int const x = (i * ci->query_len) + j;
-        ci->match[x] = 0;
+        ci->match_v[x] = 0;
         ci->insert[x] = 0;
       }
   }
@@ -306,7 +306,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
                   if ((chrmap_4bit[(int) (qseq[qpos])] &
                        chrmap_4bit[(int) (tseq[tpos])]) != 0U)
                     {
-                      ci->match[(i * ci->query_len) + qpos] = 1;
+                      ci->match_v[(i * ci->query_len) + qpos] = 1;
                     }
                   ++qpos;
                   ++tpos;
@@ -573,7 +573,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                     {
                       for (int j = 0; j < ci->cand_count; j++)
                         {
-                          ci->match[(j * ci->query_len) + i] = 0;
+                          ci->match_v[(j * ci->query_len) + i] = 0;
                         }
                     }
                 }
@@ -596,10 +596,10 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
               for (int qpos = 0; qpos < ci->query_len; qpos++)
                 {
                   int const z = (i * ci->query_len) + qpos;
-                  sum += ci->match[z];
+                  sum += ci->match_v[z];
                   if (qpos >= window)
                     {
-                      sum -= ci->match[z - window];
+                      sum -= ci->match_v[z - window];
                     }
                   if (qpos >= window - 1)
                     {
