@@ -2286,7 +2286,7 @@ auto close_chimera_file(std::FILE * f) -> void
 {
   if (f != nullptr)
     {
-      fclose(f);
+      std::fclose(f);
     }
 }
 
