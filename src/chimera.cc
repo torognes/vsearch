@@ -159,7 +159,7 @@ struct chimera_info_s
 
   int match_size = 0;
   std::vector<int> match;
-  std::vector<int> insert_v;
+  std::vector<int> insert;
   int * smooth = nullptr;
   std::vector<int> maxsmooth;
 
@@ -239,7 +239,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->maxi.resize(maxqlen + 1);
       ci->maxsmooth.resize(maxqlen);
       ci->match.resize(maxcandidates * maxqlen);
-      ci->insert_v.resize(maxcandidates * maxqlen);
+      ci->insert.resize(maxcandidates * maxqlen);
       ci->smooth = (int *) xrealloc(ci->smooth,
                                     maxcandidates * maxqlen * sizeof(int));
 
@@ -274,7 +274,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
       {
         int const x = (i * ci->query_len) + j;
         ci->match[x] = 0;
-        ci->insert_v[x] = 0;
+        ci->insert[x] = 0;
       }
   }
 
@@ -311,7 +311,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
               break;
 
             case 'I':
-              ci->insert_v[(i * ci->query_len) + qpos] = run;
+              ci->insert[(i * ci->query_len) + qpos] = run;
               tpos += run;
               break;
 
@@ -453,7 +453,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
               len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[j]) &&
-                     ((len == 0) or (ci->insert_v[(i * ci->query_len) + j] == 0)))
+                     ((len == 0) or (ci->insert[(i * ci->query_len) + j] == 0)))
                 {
                   ++len;
                   ++j;
