@@ -466,7 +466,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                   int scan_best_start = 0;
                   int scan_best_len = 0;
                   if (scan_matches(ci,
-                                   ci->match + (i * ci->query_len) + start,
+                                   &ci->match_v[(i * ci->query_len) + start],
                                    len,
                                    opt_chimeras_diff_pct,
                                    & scan_best_start,
