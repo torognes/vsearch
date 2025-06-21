@@ -160,7 +160,7 @@ struct chimera_info_s
   int match_size = 0;
   std::vector<int> match;
   std::vector<int> insert;
-  std::vector<int> smooth_v;
+  std::vector<int> smooth;
   std::vector<int> maxsmooth;
 
   double * scan_p = nullptr;
@@ -240,7 +240,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->maxsmooth.resize(maxqlen);
       ci->match.resize(maxcandidates * maxqlen);
       ci->insert.resize(maxcandidates * maxqlen);
-      ci->smooth_v.resize(maxcandidates * maxqlen);
+      ci->smooth.resize(maxcandidates * maxqlen);
 
       ci->scan_p = (double *) xrealloc(ci->scan_p,
                                        (maxqlen + 1) * sizeof(double));
@@ -563,7 +563,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           for (int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
               int const z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
-              if (ci->smooth_v[z] == ci->maxsmooth[qpos])
+              if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
                   for (int i = qpos + 1 - window; i <= qpos; i++)
                     {
@@ -599,8 +599,8 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                     }
                   if (qpos >= window - 1)
                     {
-                      ci->smooth_v[z] = sum;
-                      ci->maxsmooth[qpos] = std::max(ci->smooth_v[z], ci->maxsmooth[qpos]);
+                      ci->smooth[z] = sum;
+                      ci->maxsmooth[qpos] = std::max(ci->smooth[z], ci->maxsmooth[qpos]);
                     }
                 }
             }
@@ -620,7 +620,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                   if (not cand_selected[i])
                     {
                       int const z = (i * ci->query_len) + qpos;
-                      if (ci->smooth_v[z] == ci->maxsmooth[qpos])
+                      if (ci->smooth[z] == ci->maxsmooth[qpos])
                         {
                           ++wins[i];
                         }
