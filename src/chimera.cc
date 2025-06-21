@@ -1738,21 +1738,6 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 
 auto chimera_thread_init(struct chimera_info_s * ci) -> void
 {
-  ci->query_alloc = 0;
-  ci->head_alloc = 0;
-  ci->query_head = nullptr;
-  ci->query_seq = nullptr;
-  ci->maxsmooth = nullptr;
-  ci->match = nullptr;
-  ci->insert = nullptr;
-  ci->smooth = nullptr;
-  ci->qaln = nullptr;
-  ci->diffs = nullptr;
-  ci->votes = nullptr;
-  ci->model = nullptr;
-  ci->ignore = nullptr;
-  ci->scan_p = nullptr;
-  ci->scan_q = nullptr;
 
   for (int f = 0; f < maxparents; f++)
     {
