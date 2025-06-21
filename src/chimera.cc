@@ -2338,8 +2338,8 @@ auto chimera(struct Parameters const & parameters) -> void
   /* prepare threads */
   std::vector<pthread_t> pthread_v(opt_threads);
   pthread = pthread_v.data();
-  cia = (struct chimera_info_s *) xmalloc(opt_threads *
-                                          sizeof(struct chimera_info_s));
+  std::vector<struct chimera_info_s> cia_v(opt_threads);
+  cia = cia_v.data();
 
   /* init mutexes for input and output */
   xpthread_mutex_init(&mutex_input, nullptr);
@@ -2617,8 +2617,6 @@ auto chimera(struct Parameters const & parameters) -> void
 
   xpthread_mutex_destroy(&mutex_output);
   xpthread_mutex_destroy(&mutex_input);
-
-  xfree(cia);
 
   close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);
