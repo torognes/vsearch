@@ -120,11 +120,11 @@ static int64_t chimera_abundance = 0;
 static int64_t nonchimera_abundance = 0;
 static int64_t borderline_abundance = 0;
 static int64_t total_abundance = 0;
-static FILE * fp_chimeras = nullptr;
-static FILE * fp_nonchimeras = nullptr;
-static FILE * fp_uchimealns = nullptr;
-static FILE * fp_uchimeout = nullptr;
-static FILE * fp_borderline = nullptr;
+static std::FILE * fp_chimeras = nullptr;
+static std::FILE * fp_nonchimeras = nullptr;
+static std::FILE * fp_uchimealns = nullptr;
+static std::FILE * fp_uchimeout = nullptr;
+static std::FILE * fp_borderline = nullptr;
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -288,13 +288,13 @@ auto find_matches(struct chimera_info_s * ci) -> void
       int tpos = 0;
 
       char * p = ci->nwcigar[i];
-      char * e = p + strlen(p);
+      char * e = p + std::strlen(p);
 
       while (p < e)
         {
           int run = 1;
           int scanlength = 0;
-          sscanf(p, "%d%n", &run, &scanlength);
+          std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
           char const op = *p++;
           switch (op)
@@ -515,7 +515,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
     }
 
   /* sort parents by position */
-  qsort(best_parents.data(),
+  std::qsort(best_parents.data(),
         parents_found,
         sizeof(struct parents_info_s),
         compare_positions);
@@ -678,13 +678,13 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
     {
       int const best_parent = ci->best_parents[f];
       char * p = ci->nwcigar[best_parent];
-      char * e = p + strlen(p);
+      char * e = p + std::strlen(p);
       int pos = 0;
       while (p < e)
         {
           int run = 1;
           int scanlength = 0;
-          sscanf(p, "%d%n", &run, &scanlength);
+          std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
           char const op = *p++;
           switch (op)
@@ -729,13 +729,13 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
       char * t = ci->paln[j];
       char * p = ci->nwcigar[cand];
-      char * e = p + strlen(p);
+      char * e = p + std::strlen(p);
 
       while (p < e)
         {
           int run = 1;
           int scanlength = 0;
-          sscanf(p, "%d%n", &run, &scanlength);
+          std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
           char const op = *p++;
 
@@ -845,7 +845,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
       for (int f = 0; f < ci->parents_found; f++) {
         if ((psym[f] != 0U) and (psym[f] != qsym)) {
-          ci->paln[f][i] = tolower(ci->paln[f][i]);
+          ci->paln[f][i] = std::tolower(ci->paln[f][i]);
         }
       }
 
@@ -932,10 +932,10 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   if ((opt_alnout != nullptr) and (status == 4))
     {
-      fprintf(fp_uchimealns, "\n");
-      fprintf(fp_uchimealns, "----------------------------------------"
+      std::fprintf(fp_uchimealns, "\n");
+      std::fprintf(fp_uchimealns, "----------------------------------------"
               "--------------------------------\n");
-      fprintf(fp_uchimealns, "Query   (%5d nt) ",
+      std::fprintf(fp_uchimealns, "Query   (%5d nt) ",
               ci->query_len);
       header_fprint_strip(fp_uchimealns,
                           ci->query_head,
@@ -947,7 +947,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       for (int f = 0; f < ci->parents_found; f++)
         {
           int const seqno = ci->cand_list[ci->best_parents[f]];
-          fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
+          std::fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                   'A' + f,
                   db_getsequencelen(seqno));
           header_fprint_strip(fp_uchimealns,
@@ -958,7 +958,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
                               opt_xlength);
         }
 
-      fprintf(fp_uchimealns, "\n\n");
+      std::fprintf(fp_uchimealns, "\n\n");
 
 
       int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
@@ -1145,12 +1145,12 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       if ((p1sym != 0U) and (p1sym != qsym))
         {
-          ci->paln[0][i] = tolower(ci->paln[0][i]);
+          ci->paln[0][i] = std::tolower(ci->paln[0][i]);
         }
 
       if ((p2sym != 0U) and (p2sym != qsym))
         {
-          ci->paln[1][i] = tolower(ci->paln[1][i]);
+          ci->paln[1][i] = std::tolower(ci->paln[1][i]);
         }
 
       /* compute diffs */
@@ -1370,7 +1370,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           /* lower case diffs for no votes */
           if (v == '!')
             {
-              ci->diffs[i] = tolower(ci->diffs[i]);
+              ci->diffs[i] = std::tolower(ci->diffs[i]);
             }
         }
 
@@ -1905,8 +1905,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               realloc_arrays(ci);
 
               /* copy the data locally (query seq, head) */
-              strcpy(ci->query_head, fasta_get_header(query_fasta_h));
-              strcpy(ci->query_seq, fasta_get_sequence(query_fasta_h));
+              std::strcpy(ci->query_head, fasta_get_header(query_fasta_h));
+              std::strcpy(ci->query_seq, fasta_get_sequence(query_fasta_h));
             }
           else
             {
@@ -1926,8 +1926,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
 
-              strcpy(ci->query_head, db_getheader(seqno));
-              strcpy(ci->query_seq, db_getsequence(seqno));
+              std::strcpy(ci->query_head, db_getheader(seqno));
+              std::strcpy(ci->query_seq, db_getsequence(seqno));
             }
           else
             {
@@ -2265,7 +2265,7 @@ auto chimera_threads_run() -> void
   xpthread_attr_destroy(&attr);
 }
 
-auto open_chimera_file(FILE ** f, char * name) -> void
+auto open_chimera_file(std::FILE ** f, char * name) -> void
 {
   if (name != nullptr)
     {
@@ -2282,7 +2282,7 @@ auto open_chimera_file(FILE ** f, char * name) -> void
 }
 
 
-auto close_chimera_file(FILE * f) -> void
+auto close_chimera_file(std::FILE * f) -> void
 {
   if (f != nullptr)
     {
