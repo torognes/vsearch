@@ -1108,7 +1108,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   /* mark positions to ignore in voting */
 
   for (int i = 0; i < alnlen; i++) {
-    ci->ignore[i] = 0;
+    ci->ignore_v[i] = 0;
   }
 
   for (int i = 0; i < alnlen; i++)
@@ -1120,14 +1120,14 @@ auto eval_parents(struct chimera_info_s * ci) -> int
       /* ignore gap positions and those next to the gap */
       if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
         {
-          ci->ignore[i] = 1;
+          ci->ignore_v[i] = 1;
           if (i > 0)
             {
-              ci->ignore[i - 1] = 1;
+              ci->ignore_v[i - 1] = 1;
             }
           if (i < alnlen - 1)
             {
-              ci->ignore[i + 1] = 1;
+              ci->ignore_v[i + 1] = 1;
             }
         }
 
@@ -1136,7 +1136,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           (ambiguous_4bit[p1sym] != 0U) or
           (ambiguous_4bit[p2sym] != 0U))
         {
-          ci->ignore[i] = 1;
+          ci->ignore_v[i] = 1;
         }
 
       /* lower case parent symbols that differ from query */
@@ -1202,7 +1202,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if (ci->ignore[i] == 0)
+      if (ci->ignore_v[i] == 0)
         {
           char const diff = ci->diffs[i];
 
@@ -1242,7 +1242,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      if (ci->ignore[i] == 0)
+      if (ci->ignore_v[i] == 0)
         {
           char const diff = ci->diffs[i];
           if (diff != ' ')
@@ -1343,7 +1343,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           ci->model[i] = m;
 
           char v = ' ';
-          if (ci->ignore[i] == 0)
+          if (ci->ignore_v[i] == 0)
             {
               char const d = ci->diffs[i];
 
@@ -1402,7 +1402,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       for (auto i = 0; i < alnlen; i++)
         {
-          if (ci->ignore[i] == 0)
+          if (ci->ignore_v[i] == 0)
             {
               ++cols;
 
