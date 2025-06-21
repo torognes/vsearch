@@ -1865,8 +1865,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 {
   chimera_thread_init(ci);
 
-  std::vector<struct hit> allhits_list_v(maxcandidates);
-  auto * allhits_list = allhits_list_v.data();
+  std::vector<struct hit> allhits_list(maxcandidates);
 
   LinearMemoryAligner lma;
 
