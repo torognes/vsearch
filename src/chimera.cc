@@ -2265,19 +2265,19 @@ auto chimera_threads_run() -> void
   xpthread_attr_destroy(&attr);
 }
 
-auto open_chimera_file(std::FILE ** f, char * name) -> void
+auto open_chimera_file(std::FILE ** output_stream, char * name) -> void
 {
   if (name != nullptr)
     {
-      *f = fopen_output(name);
-      if (*f == nullptr)
+      *output_stream = fopen_output(name);
+      if (*output_stream == nullptr)
         {
           fatal("Unable to open file %s for writing", name);
         }
     }
   else
     {
-      *f = nullptr;
+      *output_stream = nullptr;
     }
 }
 
