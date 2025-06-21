@@ -161,7 +161,7 @@ struct chimera_info_s
   int * match = nullptr;
   int * insert = nullptr;
   int * smooth = nullptr;
-  std::vector<int> maxsmooth_v;
+  std::vector<int> maxsmooth;
 
   double * scan_p = nullptr;
   double * scan_q = nullptr;
@@ -237,7 +237,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
         }
 
       ci->maxi.resize(maxqlen + 1);
-      ci->maxsmooth_v.resize(maxqlen);
+      ci->maxsmooth.resize(maxqlen);
       ci->match = (int *) xrealloc(ci->match,
                                    maxcandidates * maxqlen * sizeof(int));
       ci->insert = (int *) xrealloc(ci->insert,
@@ -566,7 +566,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           for (int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
               int const z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
-              if (ci->smooth[z] == ci->maxsmooth_v[qpos])
+              if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
                   for (int i = qpos + 1 - window; i <= qpos; i++)
                     {
@@ -584,7 +584,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       /* Record max smoothed score for each position among candidates left. */
 
       for (int j = 0; j < ci->query_len; j++) {
-        ci->maxsmooth_v[j] = 0;
+        ci->maxsmooth[j] = 0;
       }
 
       for (int i = 0; i < ci->cand_count; i++)
@@ -603,7 +603,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                   if (qpos >= window - 1)
                     {
                       ci->smooth[z] = sum;
-                      ci->maxsmooth_v[qpos] = std::max(ci->smooth[z], ci->maxsmooth_v[qpos]);
+                      ci->maxsmooth[qpos] = std::max(ci->smooth[z], ci->maxsmooth[qpos]);
                     }
                 }
             }
@@ -616,14 +616,14 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
       for (int qpos = window - 1; qpos < ci->query_len; qpos++)
         {
-          if (ci->maxsmooth_v[qpos] != 0)
+          if (ci->maxsmooth[qpos] != 0)
             {
               for (int i = 0; i < ci->cand_count; i++)
                 {
                   if (not cand_selected[i])
                     {
                       int const z = (i * ci->query_len) + qpos;
-                      if (ci->smooth[z] == ci->maxsmooth_v[qpos])
+                      if (ci->smooth[z] == ci->maxsmooth[qpos])
                         {
                           ++wins[i];
                         }
