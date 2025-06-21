@@ -568,7 +568,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           for (int qpos = window - 1; qpos < ci->query_len; qpos++)
             {
               int const z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
-              if (ci->smooth[z] == ci->maxsmooth[qpos])
+              if (ci->smooth[z] == ci->maxsmooth_v[qpos])
                 {
                   for (int i = qpos + 1 - window; i <= qpos; i++)
                     {
@@ -586,7 +586,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       /* Record max smoothed score for each position among candidates left. */
 
       for (int j = 0; j < ci->query_len; j++) {
-        ci->maxsmooth[j] = 0;
+        ci->maxsmooth_v[j] = 0;
       }
 
       for (int i = 0; i < ci->cand_count; i++)
@@ -605,7 +605,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                   if (qpos >= window - 1)
                     {
                       ci->smooth[z] = sum;
-                      ci->maxsmooth[qpos] = std::max(ci->smooth[z], ci->maxsmooth[qpos]);
+                      ci->maxsmooth_v[qpos] = std::max(ci->smooth[z], ci->maxsmooth_v[qpos]);
                     }
                 }
             }
@@ -618,14 +618,14 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
       for (int qpos = window - 1; qpos < ci->query_len; qpos++)
         {
-          if (ci->maxsmooth[qpos] != 0)
+          if (ci->maxsmooth_v[qpos] != 0)
             {
               for (int i = 0; i < ci->cand_count; i++)
                 {
                   if (not cand_selected[i])
                     {
                       int const z = (i * ci->query_len) + qpos;
-                      if (ci->smooth[z] == ci->maxsmooth[qpos])
+                      if (ci->smooth[z] == ci->maxsmooth_v[qpos])
                         {
                           ++wins[i];
                         }
