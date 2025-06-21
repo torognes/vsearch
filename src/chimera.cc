@@ -1667,11 +1667,14 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
 auto query_init(struct searchinfo_s * search_info) -> void
 {
+  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->qsequence = nullptr;
   search_info->kmers = nullptr;
   search_info->hits_v.resize(tophits);
   search_info->hits = search_info->hits_v.data();
-  search_info->kmers = (count_t *) xmalloc((db_getsequencecount() * sizeof(count_t)) + 32);
+  search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
+  search_info->kmers_v.resize(db_getsequencecount());
+  search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
   search_info->uh = unique_init();
   search_info->s = search16_init(opt_match,
@@ -1709,7 +1712,6 @@ auto query_exit(struct searchinfo_s * search_info) -> void
     }
   if (search_info->kmers != nullptr)
     {
-      xfree(search_info->kmers);
       search_info->kmers = nullptr;
     }
 }
