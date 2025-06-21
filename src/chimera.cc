@@ -1706,14 +1706,8 @@ auto query_exit(struct searchinfo_s * search_info) -> void
       xfree(search_info->qsequence);
       search_info->qsequence = nullptr;
     }
-  if (search_info->hits != nullptr)
-    {
-      search_info->hits = nullptr;
-    }
-  if (search_info->kmers != nullptr)
-    {
-      search_info->kmers = nullptr;
-    }
+  search_info->hits = nullptr;
+  search_info->kmers = nullptr;
 }
 
 
