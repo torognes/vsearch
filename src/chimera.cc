@@ -1865,8 +1865,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 {
   chimera_thread_init(ci);
 
-  auto * allhits_list = (struct hit *) xmalloc(maxcandidates *
-                                               sizeof(struct hit));
+  std::vector<struct hit> allhits_list_v(maxcandidates);
+  auto * allhits_list = allhits_list_v.data();
 
   LinearMemoryAligner lma;
 
@@ -2229,11 +2229,6 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
       ++seqno;
 
       xpthread_mutex_unlock(&mutex_output);
-    }
-
-  if (allhits_list != nullptr)
-    {
-      xfree(allhits_list);
     }
 
   chimera_thread_exit(ci);
