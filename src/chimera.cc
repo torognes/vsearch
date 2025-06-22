@@ -137,7 +137,6 @@ struct chimera_info_s
   int query_head_len = 0;
   int query_size = 0;
   std::vector<char> query_seq_v;
-  char * query_seq = nullptr;
   int query_len = 0;
 
   std::array<struct searchinfo_s, maxparts> si {{}};
@@ -231,7 +230,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->query_alloc = maxqlen;
 
       ci->query_seq_v.resize(maxqlen + 1);
-      ci->query_seq = ci->query_seq_v.data();
 
       for (auto & query_info: ci->si)
         {
