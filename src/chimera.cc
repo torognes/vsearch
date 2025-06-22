@@ -136,6 +136,7 @@ struct chimera_info_s
   std::vector<char> query_head;
   int query_head_len = 0;
   int query_size = 0;
+  std::vector<char> query_seq_v;
   char * query_seq = nullptr;
   int query_len = 0;
 
@@ -229,7 +230,8 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
     {
       ci->query_alloc = maxqlen;
 
-      ci->query_seq = (char *) xrealloc(ci->query_seq, maxqlen + 1);
+      ci->query_seq_v.resize(maxqlen + 1);
+      ci->query_seq = ci->query_seq_v.data();
 
       for (auto & query_info: ci->si)
         {
@@ -1763,11 +1765,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   for (auto i = 0; i < maxparts; i++)
     {
       query_exit(&ci->si[i]);
-    }
-
-  if (ci->query_seq != nullptr)
-    {
-      xfree(ci->query_seq);
     }
 }
 
