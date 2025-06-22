@@ -1664,8 +1664,6 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 auto query_init(struct searchinfo_s * search_info) -> void
 {
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
-  search_info->qsequence = nullptr;
-  search_info->kmers = nullptr;
   search_info->hits_v.resize(tophits);
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
