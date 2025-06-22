@@ -95,7 +95,7 @@
 */
 
 /* global constants/data, no need for synchronization */
-static int parts = 0;
+static auto parts = 0;
 constexpr auto maxparts = 100;
 constexpr auto window = 32;
 constexpr auto few = 4;
