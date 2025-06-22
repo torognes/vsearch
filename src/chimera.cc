@@ -164,7 +164,7 @@ struct chimera_info_s
   std::vector<int> maxsmooth;
 
   std::vector<double> scan_p;
-  std::vector<double> scan_q_v;
+  std::vector<double> scan_q;
 
   int parents_found = 0;
   std::array<int, maxparents> best_parents {{}};
@@ -243,7 +243,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->smooth.resize(maxcandidates * maxqlen);
 
       ci->scan_p.resize(maxqlen + 1);
-      ci->scan_q_v.resize(maxqlen + 1);
+      ci->scan_q.resize(maxqlen + 1);
 
       const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
       for (int f = 0; f < maxparents ; f++)
@@ -363,7 +363,7 @@ auto scan_matches(struct chimera_info_s * ci,
   double const score_mismatch = percentage - 100.0;
 
   double * p = ci->scan_p.data();
-  double * q = ci->scan_q_v.data();
+  double * q = ci->scan_q.data();
 
   p[0] = 0.0;
   for (int i = 0; i < len; i++) {
