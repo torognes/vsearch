@@ -365,7 +365,7 @@ auto scan_matches(struct chimera_info_s * ci,
   double const score_mismatch = percentage - 100.0;
 
   double * p = ci->scan_p.data();
-  double * q = ci->scan_q;
+  double * q = ci->scan_q_v.data();
 
   p[0] = 0.0;
   for (int i = 0; i < len; i++) {
