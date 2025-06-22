@@ -176,7 +176,6 @@ struct chimera_info_s
 
   std::vector<int> maxi;
   std::array<char *, maxparents> paln {{}};
-  char * qaln = nullptr;
   std::vector<char> qaln_v;
   std::vector<char> diffs;
   std::vector<char> votes;
@@ -253,7 +252,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
           ci->paln[f] = (char *) xrealloc(ci->paln[f], maxalnlen + 1);
         }
       ci->qaln_v.resize(maxalnlen + 1);
-      ci->qaln = ci->qaln_v.data();
       ci->diffs.resize(maxalnlen + 1);
       ci->votes.resize(maxalnlen + 1);
       ci->model.resize(maxalnlen + 1);
