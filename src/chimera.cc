@@ -175,7 +175,7 @@ struct chimera_info_s
   char * best_cigar = nullptr;
 
   std::vector<int> maxi;
-  std::array<char *, maxparents> paln {{}};
+  std::vector<std::vector<char>> paln;
   std::vector<char> qaln;
   std::vector<char> diffs;
   std::vector<char> votes;
@@ -246,9 +246,10 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->scan_q.resize(maxqlen + 1);
 
       const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
+      ci->paln.resize(maxparents);
       for (int f = 0; f < maxparents ; f++)
         {
-          ci->paln[f] = (char *) xrealloc(ci->paln[f], maxalnlen + 1);
+          ci->paln[f].resize(maxalnlen + 1);
         }
       ci->qaln.resize(maxalnlen + 1);
       ci->diffs.resize(maxalnlen + 1);
@@ -722,7 +723,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
       int qpos = 0;
       int tpos = 0;
 
-      char * t = ci->paln[j];
+      char * t = ci->paln[j].data();
       char * p = ci->nwcigar[cand];
       char * e = p + std::strlen(p);
 
@@ -992,7 +993,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
             {
               fprintf(fp_uchimealns, "%c %5d %.*s %d\n",
                       'A' + f,
-                      ppos[f] + 1, w, ci->paln[f] + i, ppos[f] + pnt[f]);
+                      ppos[f] + 1, w, &ci->paln[f][i], ppos[f] + pnt[f]);
             }
 
           fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[i]);
@@ -1537,20 +1538,20 @@ auto eval_parents(struct chimera_info_s * ci) -> int
               if (not best_is_reverse)
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
-                          p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
+                          p1pos + 1, w, &ci->paln[0][i], p1pos + p1nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
                           qpos + 1, w, &ci->qaln[i], qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
-                          p2pos + 1, w, ci->paln[1] + i, p2pos + p2nt);
+                          p2pos + 1, w, &ci->paln[1][i], p2pos + p2nt);
                 }
               else
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
-                          p2pos + 1, w, ci->paln[1] + i, p2pos + p2nt);
+                          p2pos + 1, w, &ci->paln[1][i], p2pos + p2nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
                           qpos + 1, w, &ci->qaln[i], qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
-                          p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
+                          p1pos + 1, w, &ci->paln[0][i], p1pos + p1nt);
                 }
 
               fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[i]);
@@ -1734,11 +1735,6 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 auto chimera_thread_init(struct chimera_info_s * ci) -> void
 {
 
-  for (int f = 0; f < maxparents; f++)
-    {
-      ci->paln[f] = nullptr;
-    }
-
   for (int i = 0; i < maxparts; i++)
     {
       query_init(&ci->si[i]);
@@ -1778,13 +1774,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
     {
       xfree(ci->query_head);
     }
-
-  for (auto i = 0; i < maxparents; i++) {
-    if (ci->paln[i] != nullptr)
-      {
-        xfree(ci->paln[i]);
-      }
-  }
 }
 
 
