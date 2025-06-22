@@ -178,8 +178,7 @@ struct chimera_info_s
   std::array<char *, maxparents> paln {{}};
   char * qaln = nullptr;
   char * diffs = nullptr;
-  char * votes = nullptr;
-  std::vector<char> votes_v;
+  std::vector<char> votes;
   std::vector<char> model;
   std::vector<char> ignore;
 
@@ -254,8 +253,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
         }
       ci->qaln = (char *) xrealloc(ci->qaln, maxalnlen + 1);
       ci->diffs = (char *) xrealloc(ci->diffs, maxalnlen + 1);
-      ci->votes_v.resize(maxalnlen + 1);
-      ci->votes = ci->votes_v.data();
+      ci->votes.resize(maxalnlen + 1);
       ci->model.resize(maxalnlen + 1);
       ci->ignore.resize(maxalnlen + 1);
     }
@@ -1363,7 +1361,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                   v = '0';
                 }
             }
-          ci->votes_v[i] = v;
+          ci->votes[i] = v;
 
           /* lower case diffs for no votes */
           if (v == '!')
@@ -1386,7 +1384,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
             }
         }
 
-      ci->votes_v[alnlen] = 0;
+      ci->votes[alnlen] = 0;
       ci->model[alnlen] = 0;
 
       /* count matches */
@@ -1557,7 +1555,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                 }
 
               fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
-              fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes_v[i]);
+              fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[i]);
               fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
               fprintf(fp_uchimealns, "\n");
 
