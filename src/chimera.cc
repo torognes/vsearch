@@ -136,7 +136,7 @@ struct chimera_info_s
   std::vector<char> query_head;
   int query_head_len = 0;
   int query_size = 0;
-  std::vector<char> query_seq_v;
+  std::vector<char> query_seq;
   int query_len = 0;
 
   std::array<struct searchinfo_s, maxparts> si {{}};
@@ -229,7 +229,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
     {
       ci->query_alloc = maxqlen;
 
-      ci->query_seq_v.resize(maxqlen + 1);
+      ci->query_seq.resize(maxqlen + 1);
 
       for (auto & query_info: ci->si)
         {
@@ -264,7 +264,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
-  char * qseq = ci->query_seq_v.data();
+  char * qseq = ci->query_seq.data();
 
   for (int i = 0; i < ci->cand_count; i++) {
     for (int j = 0; j < ci->query_len; j++)
@@ -817,7 +817,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
           *q++ = '-';
           *pm++ = 'A' + m;
         }
-      *q++ = chrmap_upcase[(int)(ci->query_seq_v[qpos++])];
+      *q++ = chrmap_upcase[(int)(ci->query_seq[qpos++])];
       *pm++ = 'A' + m;
     }
   for (int j = 0; j < ci->maxi[ci->query_len]; j++)
@@ -1094,7 +1094,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         {
           *q++ = '-';
         }
-      *q++ = chrmap_upcase[(int) (ci->query_seq_v[qpos++])];
+      *q++ = chrmap_upcase[(int) (ci->query_seq[qpos++])];
     }
   for (int j = 0; j < ci->maxi[ci->query_len]; j++)
     {
@@ -1709,7 +1709,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
 auto partition_query(struct chimera_info_s * chimera_info) -> void
 {
   auto rest = chimera_info->query_len;
-  auto * cursor = chimera_info->query_seq_v.data();
+  auto * cursor = chimera_info->query_seq.data();
   for (auto i = 0; i < parts; ++i)
     {
       auto const length = (rest + (parts - i - 1)) / (parts - i);
@@ -1812,7 +1812,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
               /* copy the data locally (query seq, head) */
               std::strcpy(ci->query_head.data(), fasta_get_header(query_fasta_h));
-              std::strcpy(ci->query_seq_v.data(), fasta_get_sequence(query_fasta_h));
+              std::strcpy(ci->query_seq.data(), fasta_get_sequence(query_fasta_h));
             }
           else
             {
@@ -1833,7 +1833,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               realloc_arrays(ci);
 
               std::strcpy(ci->query_head.data(), db_getheader(seqno));
-              std::strcpy(ci->query_seq_v.data(), db_getsequence(seqno));
+              std::strcpy(ci->query_seq.data(), db_getsequence(seqno));
             }
           else
             {
@@ -1902,7 +1902,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       /* align full query to each candidate */
 
-      search16_qprep(ci->s, ci->query_seq_v.data(), ci->query_len);
+      search16_qprep(ci->s, ci->query_seq.data(), ci->query_len);
 
       search16(ci->s,
                ci->cand_count,
@@ -1938,12 +1938,12 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                   xfree(ci->nwcigar[i]);
                 }
 
-              nwcigar = xstrdup(lma.align(ci->query_seq_v.data(),
+              nwcigar = xstrdup(lma.align(ci->query_seq.data(),
                                           tseq,
                                           ci->query_len,
                                           tseqlen));
               lma.alignstats(nwcigar,
-                             ci->query_seq_v.data(),
+                             ci->query_seq.data(),
                              tseq,
                              & nwscore,
                              & nwalignmentlength,
@@ -2011,7 +2011,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               fasta_print_general(fp_chimeras,
                                   nullptr,
-                                  ci->query_seq_v.data(),
+                                  ci->query_seq.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
@@ -2037,7 +2037,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               fasta_print_general(fp_borderline,
                                   nullptr,
-                                  ci->query_seq_v.data(),
+                                  ci->query_seq.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
@@ -2087,7 +2087,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               fasta_print_general(fp_nonchimeras,
                                   nullptr,
-                                  ci->query_seq_v.data(),
+                                  ci->query_seq.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
