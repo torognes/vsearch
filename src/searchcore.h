@@ -133,6 +133,7 @@ struct searchinfo_s
   char * query_head = nullptr;            /* query header */
   int qseqlen = 0;                  /* query length */
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
+  std::vector<char> qsequence_v;  /* vector of query sequence chars */
   char * qsequence = nullptr;             /* query sequence */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
   unsigned int * kmersample = nullptr;    /* list of kmers sampled from query */

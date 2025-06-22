@@ -233,7 +233,8 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
       for (auto & query_info: ci->si)
         {
-          query_info.qsequence = (char *) xrealloc(query_info.qsequence, maxpartlen + 1);
+          query_info.qsequence_v.resize(maxpartlen + 1);
+          query_info.qsequence = query_info.qsequence_v.data();
         }
 
       ci->maxi.resize(maxqlen + 1);
@@ -1698,7 +1699,6 @@ auto query_exit(struct searchinfo_s * search_info) -> void
 
   if (search_info->qsequence != nullptr)
     {
-      xfree(search_info->qsequence);
       search_info->qsequence = nullptr;
     }
   search_info->hits = nullptr;
