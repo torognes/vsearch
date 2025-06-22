@@ -165,7 +165,6 @@ struct chimera_info_s
 
   std::vector<double> scan_p;
   std::vector<double> scan_q_v;
-  double * scan_q = nullptr;
 
   int parents_found = 0;
   std::array<int, maxparents> best_parents {{}};
@@ -245,7 +244,6 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
       ci->scan_p.resize(maxqlen + 1);
       ci->scan_q_v.resize(maxqlen + 1);
-      ci->scan_q = ci->scan_q_v.data();
 
       const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
       for (int f = 0; f < maxparents ; f++)
