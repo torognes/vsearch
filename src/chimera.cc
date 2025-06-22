@@ -1755,10 +1755,9 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
   search16_exit(ci->s);
 
-  for (auto i = 0; i < maxparts; i++)
-    {
-      query_exit(&ci->si[i]);
-    }
+  for (auto & a_search_info : ci->si) {
+    query_exit(&a_search_info);
+  }
 }
 
 
