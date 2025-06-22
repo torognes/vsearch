@@ -177,7 +177,7 @@ struct chimera_info_s
   std::vector<int> maxi;
   std::array<char *, maxparents> paln {{}};
   char * qaln = nullptr;
-  std::vector<char> diffs_v;
+  std::vector<char> diffs;
   std::vector<char> votes;
   std::vector<char> model;
   std::vector<char> ignore;
@@ -252,7 +252,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
           ci->paln[f] = (char *) xrealloc(ci->paln[f], maxalnlen + 1);
         }
       ci->qaln = (char *) xrealloc(ci->qaln, maxalnlen + 1);
-      ci->diffs_v.resize(maxalnlen + 1);
+      ci->diffs.resize(maxalnlen + 1);
       ci->votes.resize(maxalnlen + 1);
       ci->model.resize(maxalnlen + 1);
       ci->ignore.resize(maxalnlen + 1);
@@ -871,10 +871,10 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
           }
         }
 
-      ci->diffs_v[i] = diff;
+      ci->diffs[i] = diff;
     }
 
-  ci->diffs_v[alnlen] = 0;
+  ci->diffs[alnlen] = 0;
 
 
   /* count matches */
@@ -996,7 +996,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
                       ppos[f] + 1, w, ci->paln[f] + i, ppos[f] + pnt[f]);
             }
 
-          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs_v[i]);
+          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[i]);
           fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
           fprintf(fp_uchimealns, "\n");
 
@@ -1187,10 +1187,10 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           diff = ' ';
         }
 
-      ci->diffs_v[i] = diff;
+      ci->diffs[i] = diff;
     }
 
-  ci->diffs_v[alnlen] = 0;
+  ci->diffs[alnlen] = 0;
 
   /* compute score */
 
@@ -1202,7 +1202,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
     {
       if (ci->ignore[i] == 0)
         {
-          char const diff = ci->diffs_v[i];
+          char const diff = ci->diffs[i];
 
           if (diff == 'A')
             {
@@ -1242,7 +1242,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
     {
       if (ci->ignore[i] == 0)
         {
-          char const diff = ci->diffs_v[i];
+          char const diff = ci->diffs[i];
           if (diff != ' ')
             {
               if (diff == 'A')
@@ -1321,14 +1321,14 @@ auto eval_parents(struct chimera_info_s * ci) -> int
         {
           for (int i = 0; i < alnlen; i++)
             {
-              char const diff = ci->diffs_v[i];
+              char const diff = ci->diffs[i];
               if (diff == 'A')
                 {
-                  ci->diffs_v[i] = 'B';
+                  ci->diffs[i] = 'B';
                 }
               else if (diff == 'B')
                 {
-                  ci->diffs_v[i] = 'A';
+                  ci->diffs[i] = 'A';
                 }
             }
         }
@@ -1343,7 +1343,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           char v = ' ';
           if (ci->ignore[i] == 0)
             {
-              char const d = ci->diffs_v[i];
+              char const d = ci->diffs[i];
 
               if ((d == 'A') or (d == 'B'))
                 {
@@ -1366,7 +1366,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           /* lower case diffs for no votes */
           if (v == '!')
             {
-              ci->diffs_v[i] = std::tolower(ci->diffs_v[i]);
+              ci->diffs[i] = std::tolower(ci->diffs[i]);
             }
         }
 
@@ -1374,7 +1374,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       for (int i = best_i + 1; i < alnlen; i++)
         {
-          if ((ci->diffs_v[i] == ' ') or (ci->diffs_v[i] == 'A'))
+          if ((ci->diffs[i] == ' ') or (ci->diffs[i] == 'A'))
             {
               ci->model[i] = 'x';
             }
@@ -1554,7 +1554,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                           p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
                 }
 
-              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs_v[i]);
+              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[i]);
               fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[i]);
               fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
               fprintf(fp_uchimealns, "\n");
