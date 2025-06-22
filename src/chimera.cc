@@ -164,6 +164,7 @@ struct chimera_info_s
   std::vector<int> maxsmooth;
 
   std::vector<double> scan_p;
+  std::vector<double> scan_q_v;
   double * scan_q = nullptr;
 
   int parents_found = 0;
@@ -243,8 +244,8 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       ci->smooth.resize(maxcandidates * maxqlen);
 
       ci->scan_p.resize(maxqlen + 1);
-      ci->scan_q = (double *) xrealloc(ci->scan_q,
-                                       (maxqlen + 1) * sizeof(double));
+      ci->scan_q_v.resize(maxqlen + 1);
+      ci->scan_q = ci->scan_q_v.data();
 
       const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
       for (int f = 0; f < maxparents ; f++)
@@ -1778,10 +1779,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   if (ci->query_head != nullptr)
     {
       xfree(ci->query_head);
-    }
-  if (ci->scan_q != nullptr)
-    {
-      xfree(ci->scan_q);
     }
 
   for (auto i = 0; i < maxparents; i++) {
