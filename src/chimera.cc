@@ -70,7 +70,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/xpthread.hpp"
-#include <algorithm>  // std::max, std::min
+#include <algorithm>  // std::fill, std::max, std::min
 #include <array>
 #include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -261,14 +261,9 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
 
 auto reset_matches(struct chimera_info_s * a_chimera_info) -> void {
-  // refactoring: initialization to zero, or reset to zero??
-  for (auto i = 0; i < a_chimera_info->cand_count; ++i) {
-    for (auto j = 0; j < a_chimera_info->query_len; ++j) {
-      auto const x = (i * a_chimera_info->query_len) + j;
-      a_chimera_info->match[x] = 0;
-      a_chimera_info->insert[x] = 0;
-    }
-  }
+  // refactoring: initialization to zero? (useless), or reset to zero??
+  std::fill(a_chimera_info->match.begin(), a_chimera_info->match.end(), 0);
+  std::fill(a_chimera_info->insert.begin(), a_chimera_info->insert.end(), 0);
 }
 
 
