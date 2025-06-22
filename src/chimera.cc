@@ -322,9 +322,9 @@ auto find_matches(struct chimera_info_s * ci) -> void
 
 struct parents_info_s
 {
-  int cand;
-  int start;
-  int len;
+  int cand = 0;
+  int start = 0;
+  int len = 0;
 };
 
 
