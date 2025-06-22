@@ -247,10 +247,9 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 
       const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
       ci->paln.resize(maxparents);
-      for (int f = 0; f < maxparents ; f++)
-        {
-          ci->paln[f].resize(maxalnlen + 1);
-        }
+      for (auto & a_parent_alignment : ci->paln) {
+        a_parent_alignment.resize(maxalnlen + 1);
+      }
       ci->qaln.resize(maxalnlen + 1);
       ci->diffs.resize(maxalnlen + 1);
       ci->votes.resize(maxalnlen + 1);
