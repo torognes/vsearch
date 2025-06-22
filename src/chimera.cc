@@ -133,7 +133,7 @@ struct chimera_info_s
   int head_alloc = 0; /* the longest header allocated memory for */
 
   int query_no = 0;
-  std::vector<char> query_head_v;
+  std::vector<char> query_head;
   int query_head_len = 0;
   int query_size = 0;
   char * query_seq = nullptr;
@@ -217,7 +217,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
   if (maxhlen > ci->head_alloc)
     {
       ci->head_alloc = maxhlen;
-      ci->query_head_v.resize(maxhlen + 1);
+      ci->query_head.resize(maxhlen + 1);
     }
 
   /* realloc arrays based on query length */
@@ -493,7 +493,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                  best_cand,
                  best_start,
                  best_len,
-                 ci->query_head_v.data(),
+                 ci->query_head.data(),
                  db_getheader(ci->cand_list[best_cand]));
 #endif
 
@@ -933,7 +933,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       std::fprintf(fp_uchimealns, "Query   (%5d nt) ",
                    ci->query_len);
       header_fprint_strip(fp_uchimealns,
-                          ci->query_head_v.data(),
+                          ci->query_head.data(),
                           ci->query_head_len,
                           opt_xsize,
                           opt_xee,
@@ -1016,7 +1016,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       fprintf(fp_uchimeout, "%.4f\t", 99.9999);
 
       header_fprint_strip(fp_uchimeout,
-                          ci->query_head_v.data(),
+                          ci->query_head.data(),
                           ci->query_head_len,
                           opt_xsize,
                           opt_xee,
@@ -1477,7 +1477,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                   ci->query_len);
 
           header_fprint_strip(fp_uchimealns,
-                              ci->query_head_v.data(),
+                              ci->query_head.data(),
                               ci->query_head_len,
                               opt_xsize,
                               opt_xee,
@@ -1582,7 +1582,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           fprintf(fp_uchimeout, "%.4f\t", best_h);
 
           header_fprint_strip(fp_uchimeout,
-                              ci->query_head_v.data(),
+                              ci->query_head.data(),
                               ci->query_head_len,
                               opt_xsize,
                               opt_xee,
@@ -1720,7 +1720,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.strand = 0;
       search_info.qsize = chimera_info->query_size;
       search_info.query_head_len = chimera_info->query_head_len;
-      search_info.query_head = chimera_info->query_head;
+      search_info.query_head = chimera_info->query_head.data();
       search_info.qseqlen = length;
       std::strncpy(search_info.qsequence, cursor, length);
       search_info.qsequence[length] = '\0';
@@ -1816,7 +1816,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               realloc_arrays(ci);
 
               /* copy the data locally (query seq, head) */
-              std::strcpy(ci->query_head_v.data(), fasta_get_header(query_fasta_h));
+              std::strcpy(ci->query_head.data(), fasta_get_header(query_fasta_h));
               std::strcpy(ci->query_seq, fasta_get_sequence(query_fasta_h));
             }
           else
@@ -1837,7 +1837,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
 
-              std::strcpy(ci->query_head_v.data(), db_getheader(seqno));
+              std::strcpy(ci->query_head.data(), db_getheader(seqno));
               std::strcpy(ci->query_seq, db_getsequence(seqno));
             }
           else
@@ -2018,7 +2018,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   nullptr,
                                   ci->query_seq,
                                   ci->query_len,
-                                  ci->query_head_v.data(),
+                                  ci->query_head.data(),
                                   ci->query_head_len,
                                   ci->query_size,
                                   chimera_count,
@@ -2044,7 +2044,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   nullptr,
                                   ci->query_seq,
                                   ci->query_len,
-                                  ci->query_head_v.data(),
+                                  ci->query_head.data(),
                                   ci->query_head_len,
                                   ci->query_size,
                                   borderline_count,
@@ -2070,7 +2070,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               fprintf(fp_uchimeout, "0.0000\t");
 
               header_fprint_strip(fp_uchimeout,
-                                  ci->query_head_v.data(),
+                                  ci->query_head.data(),
                                   ci->query_head_len,
                                   opt_xsize,
                                   opt_xee,
@@ -2094,7 +2094,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   nullptr,
                                   ci->query_seq,
                                   ci->query_len,
-                                  ci->query_head_v.data(),
+                                  ci->query_head.data(),
                                   ci->query_head_len,
                                   ci->query_size,
                                   nonchimera_count,
