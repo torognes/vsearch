@@ -808,7 +808,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   char * pm = ci->model.data();
   int m = 0;
-  char * q = ci->qaln;
+  char * q = ci->qaln_v.data();
   int qpos = 0;
   for (int i = 0; i < ci->query_len; i++)
     {
@@ -833,7 +833,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      unsigned int const qsym = chrmap_4bit[(int) (ci->qaln[i])];
+      unsigned int const qsym = chrmap_4bit[(int) (ci->qaln_v[i])];
       std::array<unsigned int, maxparents> psym {{}};
       for (int f = 0; f < ci->parents_found; f++) {
         psym[f] = chrmap_4bit[(int) (ci->paln[f][i])];
@@ -888,7 +888,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     {
       ++cols;
 
-      char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
+      char const qsym = chrmap_4bit[(int) (ci->qaln_v[i])];
 
       for (int f = 0; f < ci->parents_found; f++)
         {
@@ -975,7 +975,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
           for (int j = 0; j < w; j++)
             {
-              if (ci->qaln[i + j] != '-')
+              if (ci->qaln_v[i + j] != '-')
                 {
                   ++qnt;
                 }
@@ -989,7 +989,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
             }
 
           fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                  qpos + 1, w, ci->qaln + i, qpos + qnt);
+                  qpos + 1, w, &ci->qaln_v[i], qpos + qnt);
 
           for (int f = 0; f < ci->parents_found; f++)
             {
@@ -1089,7 +1089,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   /* fill in alignment string for query */
 
-  char * q = ci->qaln;
+  char * q = ci->qaln_v.data();
   int qpos = 0;
   for (int i = 0; i < ci->query_len; i++)
     {
@@ -1406,7 +1406,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
             {
               ++cols;
 
-              char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
+              char const qsym = chrmap_4bit[(int) (ci->qaln_v[i])];
               char const asym = chrmap_4bit[(int) (ci->paln[index_a][i])];
               char const bsym = chrmap_4bit[(int) (ci->paln[index_b][i])];
               char const msym = (i <= best_i) ? asym : bsym;
@@ -1523,7 +1523,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
               for (auto j = 0; j < w; j++)
                 {
-                  if (ci->qaln[i + j] != '-')
+                  if (ci->qaln_v[i + j] != '-')
                     {
                       ++qnt;
                     }
@@ -1542,7 +1542,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos + 1, w, ci->qaln + i, qpos + qnt);
+                          qpos + 1, w, &ci->qaln_v[i], qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
                           p2pos + 1, w, ci->paln[1] + i, p2pos + p2nt);
                 }
@@ -1551,7 +1551,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p2pos + 1, w, ci->paln[1] + i, p2pos + p2nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos + 1, w, ci->qaln + i, qpos + qnt);
+                          qpos + 1, w, &ci->qaln_v[i], qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
                           p1pos + 1, w, ci->paln[0] + i, p1pos + p1nt);
                 }
