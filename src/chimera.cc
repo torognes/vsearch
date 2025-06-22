@@ -266,7 +266,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
-  char * qseq = ci->query_seq;
+  char * qseq = ci->query_seq_v.data();
 
   for (int i = 0; i < ci->cand_count; i++) {
     for (int j = 0; j < ci->query_len; j++)
@@ -1711,7 +1711,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
 auto partition_query(struct chimera_info_s * chimera_info) -> void
 {
   auto rest = chimera_info->query_len;
-  auto * cursor = chimera_info->query_seq;
+  auto * cursor = chimera_info->query_seq_v.data();
   for (auto i = 0; i < parts; ++i)
     {
       auto const length = (rest + (parts - i - 1)) / (parts - i);
@@ -1814,7 +1814,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
               /* copy the data locally (query seq, head) */
               std::strcpy(ci->query_head.data(), fasta_get_header(query_fasta_h));
-              std::strcpy(ci->query_seq, fasta_get_sequence(query_fasta_h));
+              std::strcpy(ci->query_seq_v.data(), fasta_get_sequence(query_fasta_h));
             }
           else
             {
@@ -1835,7 +1835,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               realloc_arrays(ci);
 
               std::strcpy(ci->query_head.data(), db_getheader(seqno));
-              std::strcpy(ci->query_seq, db_getsequence(seqno));
+              std::strcpy(ci->query_seq_v.data(), db_getsequence(seqno));
             }
           else
             {
@@ -1904,7 +1904,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       /* align full query to each candidate */
 
-      search16_qprep(ci->s, ci->query_seq, ci->query_len);
+      search16_qprep(ci->s, ci->query_seq_v.data(), ci->query_len);
 
       search16(ci->s,
                ci->cand_count,
@@ -1940,12 +1940,12 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                   xfree(ci->nwcigar[i]);
                 }
 
-              nwcigar = xstrdup(lma.align(ci->query_seq,
+              nwcigar = xstrdup(lma.align(ci->query_seq_v.data(),
                                           tseq,
                                           ci->query_len,
                                           tseqlen));
               lma.alignstats(nwcigar,
-                             ci->query_seq,
+                             ci->query_seq_v.data(),
                              tseq,
                              & nwscore,
                              & nwalignmentlength,
@@ -2013,7 +2013,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               fasta_print_general(fp_chimeras,
                                   nullptr,
-                                  ci->query_seq,
+                                  ci->query_seq_v.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
@@ -2039,7 +2039,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               fasta_print_general(fp_borderline,
                                   nullptr,
-                                  ci->query_seq,
+                                  ci->query_seq_v.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
@@ -2089,7 +2089,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               fasta_print_general(fp_nonchimeras,
                                   nullptr,
-                                  ci->query_seq,
+                                  ci->query_seq_v.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
