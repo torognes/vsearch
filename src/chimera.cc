@@ -1695,10 +1695,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
   unique_exit(search_info->uh);
   minheap_exit(search_info->m);
 
-  if (search_info->qsequence != nullptr)
-    {
-      search_info->qsequence = nullptr;
-    }
+  search_info->qsequence = nullptr;
   search_info->hits = nullptr;
   search_info->kmers = nullptr;
 }
