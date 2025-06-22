@@ -871,7 +871,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
       for (int i = 0; i < si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
-          if (h->accepted || h->weak)
+          if (h->accepted or h->weak)
             {
               ++a;
             }
@@ -889,7 +889,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
       for (int i = 0; i < si->hit_count; i++)
         {
           struct hit * h = si->hits + i;
-          if (h->accepted || h->weak)
+          if (h->accepted or h->weak)
             {
               hits[a++] = *h;
             }
