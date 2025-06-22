@@ -182,7 +182,7 @@ struct chimera_info_s
   std::vector<char> model;
   std::vector<char> ignore;
 
-  struct hit * all_hits = nullptr;
+  struct hit * all_hits = nullptr;  // unused?
   double best_h = 0;
 };
 
