@@ -579,9 +579,8 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       /* Compute smoothed score in a 32bp window for each candidate. */
       /* Record max smoothed score for each position among candidates left. */
 
-      for (int j = 0; j < ci->query_len; j++) {
-        ci->maxsmooth[j] = 0;
-      }
+      // refactoring: reset or initialize?
+      std::fill(ci->maxsmooth.begin(), ci->maxsmooth.end(), 0);
 
       for (int i = 0; i < ci->cand_count; i++)
         {
