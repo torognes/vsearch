@@ -267,6 +267,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
 
   char * qseq = ci->query_seq.data();
 
+  // refactoring: initialization to zero, or reset to zero??
   for (int i = 0; i < ci->cand_count; i++) {
     for (int j = 0; j < ci->query_len; j++)
       {
