@@ -1363,7 +1363,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                   v = '0';
                 }
             }
-          ci->votes[i] = v;
+          ci->votes_v[i] = v;
 
           /* lower case diffs for no votes */
           if (v == '!')
@@ -1386,7 +1386,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
             }
         }
 
-      ci->votes[alnlen] = 0;
+      ci->votes_v[alnlen] = 0;
       ci->model[alnlen] = 0;
 
       /* count matches */
@@ -1557,7 +1557,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                 }
 
               fprintf(fp_uchimealns, "Diffs   %.*s\n", w, ci->diffs + i);
-              fprintf(fp_uchimealns, "Votes   %.*s\n", w, ci->votes + i);
+              fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes_v[i]);
               fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
               fprintf(fp_uchimealns, "\n");
 
