@@ -665,9 +665,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
 {
   /* find max insertions in front of each position in the query sequence */
 
-  for (int i = 0; i <= ci->query_len; i++) {
-    ci->maxi[i] = 0;
-  }
+  std::fill(ci->maxi.begin(), ci->maxi.end(), 0);
 
   for (int f = 0; f < ci->parents_found; f++)
     {
