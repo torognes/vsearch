@@ -260,22 +260,24 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
 }
 
 
+auto reset_matches(struct chimera_info_s * a_chimera_info) -> void {
+  // refactoring: initialization to zero, or reset to zero??
+  for (auto i = 0; i < a_chimera_info->cand_count; ++i) {
+    for (auto j = 0; j < a_chimera_info->query_len; ++j) {
+      auto const x = (i * a_chimera_info->query_len) + j;
+      a_chimera_info->match[x] = 0;
+      a_chimera_info->insert[x] = 0;
+    }
+  }
+}
+
+
 auto find_matches(struct chimera_info_s * ci) -> void
 {
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
   char * qseq = ci->query_seq.data();
-
-  // refactoring: initialization to zero, or reset to zero??
-  for (int i = 0; i < ci->cand_count; i++) {
-    for (int j = 0; j < ci->query_len; j++)
-      {
-        int const x = (i * ci->query_len) + j;
-        ci->match[x] = 0;
-        ci->insert[x] = 0;
-      }
-  }
 
   for (int i = 0; i < ci->cand_count; i++)
     {
@@ -418,6 +420,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
      a given percentage of mismatches (specified with --chimeras_diff_pct),
      and excluding regions matched by previously identified parents. */
 
+  reset_matches(ci);
   find_matches(ci);
 
   std::array<struct parents_info_s, maxparents> best_parents {{}};
@@ -539,6 +542,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
 auto find_best_parents(struct chimera_info_s * ci) -> int
 {
+  reset_matches(ci);
   find_matches(ci);
 
   std::array<int, maxparents> best_parent_cand {{}};
