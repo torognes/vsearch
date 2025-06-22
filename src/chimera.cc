@@ -1113,7 +1113,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   for (int i = 0; i < alnlen; i++)
     {
-      unsigned int const qsym  = chrmap_4bit[(int) (ci->qaln   [i])];
+      unsigned int const qsym  = chrmap_4bit[(int) (ci->qaln_v[i])];
       unsigned int const p1sym = chrmap_4bit[(int) (ci->paln[0][i])];
       unsigned int const p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
 
