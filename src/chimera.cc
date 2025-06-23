@@ -796,7 +796,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
         }
 
       /* end of sequence string */
-      *t = 0;
+      *t = '\0';
     }
 }
 
