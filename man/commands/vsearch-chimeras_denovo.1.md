@@ -157,6 +157,25 @@ command:
 
 # EXAMPLES
 
+Example of `--alnout` output (multi-way alignment):
+
+```text
+------------------------------------------------------------------------
+Query   (   58 nt) Q;size=1
+ParentA (   58 nt) A;size=9
+ParentB (   58 nt) B;size=9
+ParentC (   58 nt) C;size=9
+
+Q     1 ACAAAAAAAAAAACAAAAGAAAAAAAAAAAGAAAAAAAAAAATAAAAAAAAAATAAAA 58
+A     1 ACAAAAAAAAAAACAAAAaAAAAAAAAAAAaAAAAAAAAAAAaAAAAAAAAAAaAAAA 58
+B     1 AaAAAAAAAAAAAaAAAAGAAAAAAAAAAAGAAAAAAAAAAAaAAAAAAAAAAaAAAA 58
+C     1 AaAAAAAAAAAAAaAAAAaAAAAAAAAAAAaAAAAAAAAAAATAAAAAAAAAATAAAA 58
+Diffs    A           A    B           B           C          C
+Model   AAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCC
+
+Ids.  QA 93.10%, QB 93.10%, QC 93.10%, QT 93.10%, QModel 100.00%, Div. +7.41%
+```
+
 
 # SEE ALSO
 
