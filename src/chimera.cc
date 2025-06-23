@@ -2150,7 +2150,7 @@ auto chimera_threads_run() -> void
   for (int64_t t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread + t, & attr,
-                      chimera_thread_worker, (void*)t);
+                      chimera_thread_worker, (void *) t);
     }
 
   /* finish worker threads */
