@@ -57,7 +57,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
     15.  right no: ignored, always set to zero
     16.  right abstain: ignored, always set to zero
     17.  dummy value, always set to 0.00
-    18.  chimeric status (Y: chimera, N: not a chimera)
+    18.  chimeric status, always set to Y (only chimeras are reported)
 
 
 ## core options
