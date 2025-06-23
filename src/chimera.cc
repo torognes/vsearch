@@ -274,7 +274,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
 
   char * qseq = ci->query_seq.data();
 
-  for (int i = 0; i < ci->cand_count; i++)
+  for (int i = 0; i < ci->cand_count; ++i)
     {
       char * tseq = db_getsequence(ci->cand_list[i]);
 
@@ -290,11 +290,12 @@ auto find_matches(struct chimera_info_s * ci) -> void
           int scanlength = 0;
           std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char const op = *p++;
+          char const op = *p;
+          ++p;
           switch (op)
             {
             case 'M':
-              for (int k = 0; k < run; k++)
+              for (int k = 0; k < run; ++k)
                 {
                   if ((chrmap_4bit[(int) (qseq[qpos])] &
                        chrmap_4bit[(int) (tseq[tpos])]) != 0U)
@@ -365,12 +366,12 @@ auto scan_matches(struct chimera_info_s * ci,
   double * q = ci->scan_q.data();
 
   p[0] = 0.0;
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < len; ++i) {
     p[i + 1] = p[i] + ((matches[i] != 0) ? score_match : score_mismatch);
   }
 
   q[len] = p[len];
-  for (int i = len - 1; i >= 0; i--) {
+  for (int i = len - 1; i >= 0; --i) {
     q[i] = std::max(q[i + 1], p[i]);
   }
 
@@ -420,7 +421,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
   std::array<struct parents_info_s, maxparents> best_parents {{}};
 
-  for (int f = 0; f < maxparents; f++)
+  for (int f = 0; f < maxparents; ++f)
     {
       best_parents[f].cand = -1;
       best_parents[f].start = -1;
@@ -431,7 +432,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
   int pos_remaining = ci->query_len;
   int parents_found = 0;
 
-  for (int f = 0; f < opt_chimeras_parents_max; f++)
+  for (int f = 0; f < opt_chimeras_parents_max; ++f)
     {
       /* scan each candidate and find longest matching region */
 
@@ -439,7 +440,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
       int best_len = 0;
       int best_cand = -1;
 
-      for (int i = 0; i < ci->cand_count; i++)
+      for (int i = 0; i < ci->cand_count; ++i)
         {
           int start = 0;
           int len = 0;
@@ -498,7 +499,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 #endif
 
           /* mark positions used */
-          for (int j = best_start; j < best_start + best_len; j++)
+          for (int j = best_start; j < best_start + best_len; ++j)
             {
               position_used[j] = true;
             }
@@ -517,7 +518,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
   ci->parents_found = parents_found;
 
-  for (int f = 0; f < parents_found; f++)
+  for (int f = 0; f < parents_found; ++f)
     {
       ci->best_parents[f] = best_parents[f].cand;
       ci->best_start[f] = best_parents[f].start;
@@ -542,7 +543,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
   std::array<int, maxparents> best_parent_cand {{}};
 
-  for (int f = 0; f < 2; f++)
+  for (int f = 0; f < 2; ++f)
     {
       best_parent_cand[f] = -1;
       ci->best_parents[f] = -1;
@@ -550,7 +551,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
   std::vector<bool> cand_selected(ci->cand_count, false);
 
-  for (int f = 0; f < 2; f++)
+  for (int f = 0; f < 2; ++f)
     {
       if (f > 0)
         {
@@ -559,14 +560,14 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           /* wipe out matches for all candidates in positions
              covered by the previous parent */
 
-          for (int qpos = window - 1; qpos < ci->query_len; qpos++)
+          for (int qpos = window - 1; qpos < ci->query_len; ++qpos)
             {
               int const z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
               if (ci->smooth[z] == ci->maxsmooth[qpos])
                 {
-                  for (int i = qpos + 1 - window; i <= qpos; i++)
+                  for (int i = qpos + 1 - window; i <= qpos; ++i)
                     {
-                      for (int j = 0; j < ci->cand_count; j++)
+                      for (int j = 0; j < ci->cand_count; ++j)
                         {
                           ci->match[(j * ci->query_len) + i] = 0;
                         }
@@ -582,12 +583,12 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       // refactoring: reset or initialize?
       std::fill(ci->maxsmooth.begin(), ci->maxsmooth.end(), 0);
 
-      for (int i = 0; i < ci->cand_count; i++)
+      for (int i = 0; i < ci->cand_count; ++i)
         {
           if (not cand_selected[i])
             {
               int sum = 0;
-              for (int qpos = 0; qpos < ci->query_len; qpos++)
+              for (int qpos = 0; qpos < ci->query_len; ++qpos)
                 {
                   int const z = (i * ci->query_len) + qpos;
                   sum += ci->match[z];
@@ -609,11 +610,11 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
       std::vector<int> wins(ci->cand_count, 0);
 
-      for (int qpos = window - 1; qpos < ci->query_len; qpos++)
+      for (int qpos = window - 1; qpos < ci->query_len; ++qpos)
         {
           if (ci->maxsmooth[qpos] != 0)
             {
-              for (int i = 0; i < ci->cand_count; i++)
+              for (int i = 0; i < ci->cand_count; ++i)
                 {
                   if (not cand_selected[i])
                     {
@@ -630,7 +631,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       /* select best parent based on most wins */
 
       int maxwins = 0;
-      for (int i = 0; i < ci->cand_count; i++)
+      for (int i = 0; i < ci->cand_count; ++i)
         {
           int const w = wins[i];
           if (w > maxwins)
@@ -667,7 +668,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
 
   std::fill(ci->maxi.begin(), ci->maxi.end(), 0);
 
-  for (int f = 0; f < ci->parents_found; f++)
+  for (int f = 0; f < ci->parents_found; ++f)
     {
       int const best_parent = ci->best_parents[f];
       char * p = ci->nwcigar[best_parent];
@@ -679,7 +680,8 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
           int scanlength = 0;
           std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char const op = *p++;
+          char const op = *p;
+          ++p;
           switch (op)
             {
             case 'M':
@@ -696,7 +698,7 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
 
   /* find total alignment length */
   int alnlen = 0;
-  for (int i = 0; i < ci->query_len + 1; i++)
+  for (int i = 0; i < ci->query_len + 1; ++i)
     {
       alnlen += ci->maxi[i];
     }
@@ -710,7 +712,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 {
   /* fill in alignment strings for the parents */
 
-  for (int j = 0; j < ci->parents_found; j++)
+  for (int j = 0; j < ci->parents_found; ++j)
     {
       int const cand = ci->best_parents[j];
       int const target_seqno = ci->cand_list[cand];
@@ -730,42 +732,50 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
           int scanlength = 0;
           std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char const op = *p++;
+          char const op = *p;
+          ++p;
 
           if (op == 'I')
             {
-              for (int x = 0; x < ci->maxi[qpos]; x++)
+              for (int x = 0; x < ci->maxi[qpos]; ++x)
                 {
                   if (x < run)
                     {
-                      *t++ = chrmap_upcase[(int) (target_seq[tpos++])];
+                      *t = chrmap_upcase[(int) (target_seq[tpos])];
+                      ++tpos;
+                      ++t;
                     }
                   else
                     {
-                      *t++ = '-';
+                      *t = '-';
+                      ++t;
                     }
                 }
               is_inserted = true;
             }
           else
             {
-              for (int x = 0; x < run; x++)
+              for (int x = 0; x < run; ++x)
                 {
                   if (not is_inserted)
                     {
-                      for (int y = 0; y < ci->maxi[qpos]; y++)
+                      for (int y = 0; y < ci->maxi[qpos]; ++y)
                         {
-                          *t++ = '-';
+                          *t = '-';
+                          ++t;
                         }
                     }
 
                   if (op == 'M')
                     {
-                      *t++ = chrmap_upcase[(int) (target_seq[tpos++])];
+                      *t = chrmap_upcase[(int) (target_seq[tpos])];
+                      ++tpos;
+                      ++t;
                     }
                   else
                     {
-                      *t++ = '-';
+                      *t = '-';
+                      ++t;
                     }
 
                   ++qpos;
@@ -778,9 +788,10 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
       if (not is_inserted)
         {
-          for (int x = 0; x < ci->maxi[qpos]; x++)
+          for (int x = 0; x < ci->maxi[qpos]; ++x)
             {
-              *t++ = '-';
+              *t = '-';
+              ++t;
             }
         }
 
@@ -2147,14 +2158,14 @@ auto chimera_threads_run() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* create worker threads */
-  for (int64_t t = 0; t < opt_threads; t++)
+  for (int64_t t = 0; t < opt_threads; ++t)
     {
       xpthread_create(pthread + t, & attr,
                       chimera_thread_worker, (void *) t);
     }
 
   /* finish worker threads */
-  for (int64_t t = 0; t < opt_threads; t++)
+  for (int64_t t = 0; t < opt_threads; ++t)
     {
       xpthread_join(pthread[t], nullptr);
     }
