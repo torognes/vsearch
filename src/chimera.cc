@@ -828,7 +828,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
           *pm = 'A' + m;
           ++pm;
         }
-      *q = chrmap_upcase[(int)(ci->query_seq[qpos])];
+      *q = chrmap_upcase[(int) (ci->query_seq[qpos])];
       ++qpos;
       ++q;
       *pm = 'A' + m;
