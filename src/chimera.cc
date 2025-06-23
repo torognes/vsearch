@@ -2154,7 +2154,7 @@ auto chimera_threads_run() -> void
     }
 
   /* finish worker threads */
-  for (auto t = 0; t < opt_threads; t++)
+  for (int64_t t = 0; t < opt_threads; t++)
     {
       xpthread_join(pthread[t], nullptr);
     }
