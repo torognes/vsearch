@@ -45,10 +45,10 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
     3.  parent A header
     4.  parent B header
     5.  parent C header ("*" if there are only two parents)
-    6.  QModel: max similarity percentage (always 100.0%)
-    7.  QA: similarity percentage with parent A
-    8.  QB: similarity percentage with parent B
-    9.  QC: similarity percentage with parent C (0.00 if there are only two parents)
+    6.  QModel: max global similarity percentage (always 100.0%)
+    7.  QA: global similarity percentage with parent A
+    8.  QB: global similarity percentage with parent B
+    9.  QC: global similarity percentage with parent C (0.00 if there are only two parents)
     10.  QT: highest similarity percentage with a parent
     11.  left yes: ignored, always set to zero
     12.  left no: ignored, always set to zero
