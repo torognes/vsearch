@@ -33,23 +33,21 @@ collected with the output options `--tabbedout` and `--alnout`. The
 latter outputs for each chimera (i.e. 'Query') a multi-way alignment
 and a model showing the most likely parent sequence of each section of
 the chimera. Here is an example of a short chimeric sequence (Q), with
-three parents (A, B, and C):
+two parents (A and B):
 
 ```text
 ------------------------------------------------------------------------
-Query   (   58 nt) Q;size=1
-ParentA (   58 nt) A;size=9
-ParentB (   58 nt) B;size=9
-ParentC (   58 nt) C;size=9
+Query   (   20 nt) Q
+ParentA (   20 nt) A
+ParentB (   20 nt) B
 
-Q     1 ACAAAAAAAAAAACAAAAGAAAAAAAAAAAGAAAAAAAAAAATAAAAAAAAAATAAAA 58
-A     1 ACAAAAAAAAAAACAAAAaAAAAAAAAAAAaAAAAAAAAAAAaAAAAAAAAAAaAAAA 58
-B     1 AaAAAAAAAAAAAaAAAAGAAAAAAAAAAAGAAAAAAAAAAAaAAAAAAAAAAaAAAA 58
-C     1 AaAAAAAAAAAAAaAAAAaAAAAAAAAAAAaAAAAAAAAAAATAAAAAAAAAATAAAA 58
-Diffs    A           A    B           B           C          C
-Model   AAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCC
+Q     1 GTAGGCCGTGCTGAGCCGTA 20
+A     1 GTAGGCCGTGgTagGCCGTg 20
+B     1 cTgaGCCGTaCTGAGCCGTA 20
+Diffs   A AA     AB BB     B
+Model   AAAAAAAAAABBBBBBBBBB
 
-Ids.  QA 93.10%, QB 93.10%, QC 93.10%, QT 93.10%, QModel 100.00%, Div. +7.41%
+Ids.  QA 80.00%, QB 80.00%, QC 0.00%, QT 80.00%, QModel 100.00%, Div. +25.00%
 ```
 
 
@@ -105,7 +103,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 #(./fragments/option_chimeras_parts.md)
 
-#(./fragments/option_sizein.md)
+#(./fragments/option_sizein_implied.md)
 
 #(./fragments/option_xn.md)
 
