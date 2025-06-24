@@ -9,15 +9,48 @@ vsearch \-\-chimeras_denovo --- detect chimeras *de novo* in long exact sequence
 
 # SYNOPSIS
 
-| **vsearch** **\-\-chimeras_denovo** _fastafile_ \[_options_]
+| **vsearch** **\-\-chimeras_denovo** _inputfile_ (\-\-chimeras | \-\-nonchimeras | \-\-alnout | \-\-tabbedout) _outputfile_ \[_options_]
 
 
 # DESCRIPTION
 
 The vsearch command `--chimeras_denovo` detect chimeras *de novo*
-(i.e. without external references) in long exact sequences. It uses a
-modified uchime algorithm that can automatically adapt to a wide range
-of sequence lengths.
+(i.e. without external references) in long exact sequences
+(*inputfile*, in fasta or fastq format).
+
+Abundance annotations (pattern '[>@;]size=integer[;]') present in
+sequence headers are taken into account by default. This means that
+option `--sizein` is always implied, and does not need to be
+specified.
+
+The command `--chimeras_denovo` uses a modified uchime algorithm that
+can automatically adapt to a wide range of sequence lengths.
+
+Sequences are sorted into chimeras and non-chimeras, and can be
+written to fasta files (see output options `--chimeras`,
+`--nonchimeras`). Additional information on each chimera can be
+collected with the output options `--tabbedout` and `--alnout`. The
+latter outputs for each chimera (i.e. 'Query') a multi-way alignment
+and a model showing the most likely parent sequence of each section of
+the chimera. Here is an example of a short chimeric sequence (Q), with
+three parents (A, B, and C):
+
+```text
+------------------------------------------------------------------------
+Query   (   58 nt) Q;size=1
+ParentA (   58 nt) A;size=9
+ParentB (   58 nt) B;size=9
+ParentC (   58 nt) C;size=9
+
+Q     1 ACAAAAAAAAAAACAAAAGAAAAAAAAAAAGAAAAAAAAAAATAAAAAAAAAATAAAA 58
+A     1 ACAAAAAAAAAAACAAAAaAAAAAAAAAAAaAAAAAAAAAAAaAAAAAAAAAAaAAAA 58
+B     1 AaAAAAAAAAAAAaAAAAGAAAAAAAAAAAGAAAAAAAAAAAaAAAAAAAAAAaAAAA 58
+C     1 AaAAAAAAAAAAAaAAAAaAAAAAAAAAAAaAAAAAAAAAAATAAAAAAAAAATAAAA 58
+Diffs    A           A    B           B           C          C
+Model   AAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCC
+
+Ids.  QA 93.10%, QB 93.10%, QC 93.10%, QT 93.10%, QModel 100.00%, Div. +7.41%
+```
 
 
 # OPTIONS
