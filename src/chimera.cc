@@ -72,6 +72,7 @@
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::fill, std::max, std::min
 #include <array>
+#include <cassert>
 #include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -1736,6 +1737,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.query_head_len = chimera_info->query_head_len;
       search_info.query_head = chimera_info->query_head.data();
       search_info.qseqlen = length;
+      assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::strncpy(search_info.qsequence_v.data(), cursor, length);
       search_info.qsequence_v[length] = '\0';
 
