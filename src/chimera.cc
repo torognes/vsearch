@@ -196,7 +196,7 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
   if (opt_chimeras_denovo != nullptr)
     {
       if (opt_chimeras_parts == 0) {
-        parts = (ci->query_len + maxparts - 1) / maxparts;  // should be std::max(expr, parts);
+        parts = (ci->query_len + maxparts - 1) / maxparts;  // bug fix: std::max(expr, parts);?
       }
       else {
         parts = opt_chimeras_parts;
