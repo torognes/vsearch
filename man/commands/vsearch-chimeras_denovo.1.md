@@ -197,9 +197,17 @@ vsearch \
     --nonchimeras clean.fasta
 ```
 
-Option `--tabbedout` can be used to log the name of the sequences
-identified as chimeras.
+Add option `--tabbedout` to log the name of the sequences identified
+as chimeras, and option `--log` to record run parameters:
 
+```sh
+vsearch \
+    --chimeras_denovo input.fasta \
+    --quiet \
+    --nonchimeras clean.fasta \
+    --tabbedout chimeras.tsv \
+    --log chimera_filtering.log
+```
 
 # SEE ALSO
 
