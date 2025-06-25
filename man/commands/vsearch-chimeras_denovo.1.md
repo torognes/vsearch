@@ -156,9 +156,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 ## pairwise alignment options
 
 These options modify the parameters of the pairwise alignment
-model. See
-[`vsearch-pairwise_alignment_parameters(7)`](./misc/vsearch-pairwise_alignment_parameters.7.md)
-for a complete description. Modify with caution.
+model. Modify with caution.
 
 #(./fragments/option_gapext.md)
 
