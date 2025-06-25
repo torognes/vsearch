@@ -150,6 +150,8 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 #(./fragments/option_xee.md)
 
+#(./fragments/option_xlength.md)
+
 #(./fragments/option_xsize.md)
 
 
@@ -180,8 +182,6 @@ command:
 #(./fragments/option_bzip2_decompress.md)
 
 #(./fragments/option_gzip_decompress.md)
-
-#(./fragments/option_xlength.md)
 
 
 # EXAMPLES
