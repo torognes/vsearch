@@ -5747,7 +5747,8 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
 auto cmd_chimera(struct Parameters const & parameters) -> void
 {
   if ((opt_chimeras == nullptr)  and (opt_nonchimeras == nullptr) and
-      (opt_uchimeout == nullptr) and (opt_uchimealns == nullptr))
+      (opt_uchimeout == nullptr) and (opt_uchimealns == nullptr) and
+      (opt_tabbedout == nullptr) and (opt_alnout == nullptr))
     {
       fatal("No output files specified");
     }
