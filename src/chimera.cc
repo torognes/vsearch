@@ -2345,11 +2345,11 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           fprintf(fp_log, "%8.2f  minh\n", opt_minh);
         }
-
-      if ((parameters.opt_uchime_ref != nullptr) or
-          (parameters.opt_uchime_denovo != nullptr) or
-          (parameters.opt_uchime2_denovo != nullptr) or
-          (parameters.opt_uchime3_denovo != nullptr))
+      auto const is_a_uchime_command = (parameters.opt_uchime_ref != nullptr) or
+        (parameters.opt_uchime_denovo != nullptr) or
+        (parameters.opt_uchime2_denovo != nullptr) or
+        (parameters.opt_uchime3_denovo != nullptr);
+      if (is_a_uchime_command)
         {
           fprintf(fp_log, "%8.2f  xn\n", opt_xn);
           fprintf(fp_log, "%8.2f  dn\n", opt_dn);
@@ -2363,10 +2363,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       fprintf(fp_log, "%8.2f  id\n", opt_id);
 
-      if ((parameters.opt_uchime_ref != nullptr) or
-          (parameters.opt_uchime_denovo != nullptr) or
-          (parameters.opt_uchime2_denovo != nullptr) or
-          (parameters.opt_uchime3_denovo != nullptr))
+      if (is_a_uchime_command)
         {
           fprintf(fp_log, "%8d  maxp\n", 2);
         }
