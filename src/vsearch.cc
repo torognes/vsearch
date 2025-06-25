@@ -2826,6 +2826,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_tabbedout,
         option_threads,
         option_xee,
+	option_xlength,
         option_xn,
         option_xsize,
         -1 },
