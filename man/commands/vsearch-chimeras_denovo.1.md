@@ -118,6 +118,8 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 #(./fragments/option_label_suffix.md)
 
+#(./fragments/option_lengthout.md)
+
 #(./fragments/option_log.md)
 
 #(./fragments/option_maxseqlength.md)
@@ -180,8 +182,6 @@ command:
 #(./fragments/option_bzip2_decompress.md)
 
 #(./fragments/option_gzip_decompress.md)
-
-#(./fragments/option_lengthout.md)
 
 #(./fragments/option_xlength.md)
 
