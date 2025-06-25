@@ -2804,6 +2804,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_gapopen,
         option_hardmask,
         option_label_suffix,
+	option_lengthout,
         option_log,
         option_match,
         option_maxseqlength,
