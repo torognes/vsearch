@@ -70,7 +70,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/xpthread.hpp"
-#include <algorithm>  // std::fill, std::max, std::min
+#include <algorithm>  // std::fill, std::max, std::max_element, std::min
 #include <array>
 #include <cassert>
 #include <cctype>  // std::tolower
@@ -922,7 +922,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   }
 
   std::array<double, maxparents> QP {{}};
-  double QT = 0.0;
 
   for (int f = 0; f < maxparents; ++f)
     {
@@ -931,8 +930,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       } else {
         QP[f] = 0.0;
       }
-      QT = std::max(QP[f], QT);
     }
+  auto const QT = *std::max_element(QP.begin(), QP.end());
 
   double const QA = QP[0];
   double const QB = QP[1];
