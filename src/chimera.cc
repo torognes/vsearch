@@ -925,10 +925,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   int const seqno_a = ci->cand_list[ci->best_parents[0]];
   int const seqno_b = ci->cand_list[ci->best_parents[1]];
-  int seqno_c = -1;
-  if (ci->parents_found > 2) {
-    seqno_c = ci->cand_list[ci->best_parents[2]];
-  }
+  int const seqno_c = ci->parents_found > 2 ? ci->cand_list[ci->best_parents[2]] : -1;
 
   auto const QP = compute_global_similarities_with_parents(match_QP, alnlen);
   auto const QT = *std::max_element(QP.begin(), QP.end());
