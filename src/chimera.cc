@@ -70,7 +70,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/xpthread.hpp"
-#include <algorithm>  // std::fill, std::max, std::max_element, std::min
+#include <algorithm>  // std::fill, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>
 #include <cctype>  // std::tolower
@@ -806,9 +806,11 @@ auto compute_global_similarities_with_parents(
     std::array<int, maxparents> const & match_counts,
     int const alignment_length) -> std::array<double, maxparents> {
   std::array<double, maxparents> similarities {{}};
-  for (auto f = 0U; f < match_counts.size(); ++f) {
-    similarities[f] = 100.0 * match_counts[f] / alignment_length;
-  }
+  auto compute_percentage = [alignment_length](int const match_count) -> double {
+    return 100.0 * match_count / alignment_length;
+  };
+  std::transform(match_counts.begin(), match_counts.end(),
+                 similarities.begin(), compute_percentage);
   return similarities;
 }
 
