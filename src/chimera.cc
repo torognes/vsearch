@@ -802,6 +802,26 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 }
 
 
+auto count_matches_with_parents(struct chimera_info_s const * chimera_info,
+                                int const alignment_length) -> std::array<int, maxparents> {
+  std::array<int, maxparents> matches {{}};
+
+  for (int i = 0; i < alignment_length; ++i)
+    {
+      char const qsym = chrmap_4bit[(int) (chimera_info->qaln[i])];
+
+      for (int f = 0; f < chimera_info->parents_found; ++f)
+        {
+          char const psym = chrmap_4bit[(int) (chimera_info->paln[f][i])];
+          if (qsym == psym) {
+            ++matches[f];
+          }
+        }
+    }
+  return matches;
+}
+
+
 auto compute_global_similarities_with_parents(
     std::array<int, maxparents> const & match_counts,
     int const alignment_length) -> std::array<double, maxparents> {
@@ -906,22 +926,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   ci->diffs[alnlen] = 0;
 
 
-  /* count matches */
-
-  std::array<int, maxparents> match_QP {{}};
-
-  for (int i = 0; i < alnlen; ++i)
-    {
-      char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
-
-      for (int f = 0; f < ci->parents_found; ++f)
-        {
-          char const psym = chrmap_4bit[(int) (ci->paln[f][i])];
-          if (qsym == psym) {
-            ++match_QP[f];
-          }
-        }
-    }
+  auto const match_QP = count_matches_with_parents(ci, alnlen);
 
   int const seqno_a = ci->cand_list[ci->best_parents[0]];
   int const seqno_b = ci->cand_list[ci->best_parents[1]];
