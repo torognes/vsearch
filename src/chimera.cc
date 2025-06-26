@@ -802,6 +802,17 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 }
 
 
+auto compute_global_similarities_with_parents(
+    std::array<int, maxparents> const & match_counts,
+    int const alignment_length) -> std::array<double, maxparents> {
+  std::array<double, maxparents> similarities {{}};
+  for (auto f = 0U; f < match_counts.size(); ++f) {
+    similarities[f] = 100.0 * match_counts[f] / alignment_length;
+  }
+  return similarities;
+}
+
+
 auto eval_parents_long(struct chimera_info_s * ci) -> int
 {
   /* always chimeric if called */
@@ -922,12 +933,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     seqno_c = ci->cand_list[ci->best_parents[2]];
   }
 
-  std::array<double, maxparents> QP {{}};
-
-  for (int f = 0; f < ci->parents_found; ++f)
-    {
-      QP[f] = 100.0 * match_QP[f] / cols;
-    }
+  auto const QP = compute_global_similarities_with_parents(match_QP, alnlen);
   auto const QT = *std::max_element(QP.begin(), QP.end());
 
   double const QA = QP[0];
