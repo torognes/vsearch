@@ -956,6 +956,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
                           opt_xee,
                           opt_xlength);
 
+      assert(ci->parents_found <= 20);  // 20 parents max ('A' to 'U')
       for (int f = 0; f < ci->parents_found; ++f)
         {
           int const seqno = ci->cand_list[ci->best_parents[f]];
