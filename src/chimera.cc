@@ -913,6 +913,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
         }
     }
 
+  assert(cols == alnlen);  // refactoring: eliminate cols, keep alnlen
 
   int const seqno_a = ci->cand_list[ci->best_parents[0]];
   int const seqno_b = ci->cand_list[ci->best_parents[1]];
