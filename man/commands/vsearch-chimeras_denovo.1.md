@@ -60,8 +60,8 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 `--alnout` *filename*
 : Write multi-way alignments to *filename* using a human-readable
-  format. Use `--alignwidth` to set the alignment width (60
-  nucleotides by default).
+  format (see example above). Use `--alignwidth` to set the alignment
+  width (60 nucleotides by default).
 
 #(./fragments/option_chimeras.md)
 
