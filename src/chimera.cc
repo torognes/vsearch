@@ -938,7 +938,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   double const QB = QP[1];
   double const QC = ci->parents_found > 2 ? QP[2] : 0.00;
   double const QM = 100.00;
-  double const divfrac = 100.00 * (QM - QT) / QT;
+  double const divfrac = 100.00 * (QM - QT) / QT;  // divergence of the model with the closest parent
 
   xpthread_mutex_lock(&mutex_output);
 
