@@ -927,8 +927,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
     {
       if (f < ci->parents_found) {
         QP[f] = 100.0 * match_QP[f] / cols;
-      } else {
-        QP[f] = 0.0;
       }
     }
   auto const QT = *std::max_element(QP.begin(), QP.end());
