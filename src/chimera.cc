@@ -1677,7 +1677,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   new chimeric status:
   0: no parents, non-chimeric
   1: score < 0 (no alignment), non-chimeric
-  2: score < minh, non-chimeric
+  2: score < minh (low score), non-chimeric
   3: score >= minh, suspicious -> not available with uchime2_denovo and uchime3_denovo
   4: score >= minh && (divdiff >= opt_mindiv) && ..., chimeric
 */
