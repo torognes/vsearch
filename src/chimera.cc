@@ -909,12 +909,9 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   /* count matches */
 
   std::array<int, maxparents> match_QP {{}};
-  int cols = 0;
 
   for (int i = 0; i < alnlen; ++i)
     {
-      ++cols;
-
       char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
 
       for (int f = 0; f < ci->parents_found; ++f)
@@ -925,8 +922,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
           }
         }
     }
-
-  assert(cols == alnlen);  // refactoring: eliminate cols, keep alnlen
 
   int const seqno_a = ci->cand_list[ci->best_parents[0]];
   int const seqno_b = ci->cand_list[ci->best_parents[1]];
