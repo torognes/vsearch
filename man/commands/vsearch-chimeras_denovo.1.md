@@ -16,15 +16,14 @@ vsearch \-\-chimeras_denovo --- detect chimeras *de novo* in long exact sequence
 
 The vsearch command `--chimeras_denovo` detect chimeras *de novo*
 (i.e. without external references) in long exact sequences
-(*inputfile*, in fasta or fastq format).
+(*inputfile*, in fasta or fastq format). It uses a modified uchime
+algorithm that can automatically adapt to a wide range of sequence
+lengths.
 
 Abundance annotations (pattern '[>@;]size=integer[;]') present in
 sequence headers are taken into account by default. This means that
 option `--sizein` is always implied, and does not need to be
 specified.
-
-The command `--chimeras_denovo` uses a modified uchime algorithm that
-can automatically adapt to a wide range of sequence lengths.
 
 Sequences are sorted into chimeras and non-chimeras, and can be
 written to fasta files (see output options `--chimeras`,
@@ -49,6 +48,15 @@ Model   AAAAAAAAAABBBBBBBBBB
 
 Ids.  QA 80.00%, QB 80.00%, QC 0.00%, QT 80.00%, QModel 100.00%, Div. +25.00%
 ```
+
+Lowercase positions indicate a mismatch between the parent and the
+query. The line Diffs indicates the positions that favor a particular
+parent when modeling the chimera. The line Ids gives global similarity
+percentages with the different parents (QA, QB, and QC), the closest
+parent (QT), the model (QModel, always 100.00%), and the divergence of
+the model with the closest parent (Div). If there are only two parents
+(A and B), QC is set to 0.00%. If there are more than three parents,
+only QA, QB and QC are reported.
 
 
 # OPTIONS
