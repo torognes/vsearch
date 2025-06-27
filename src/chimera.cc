@@ -816,21 +816,21 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
       for (int j = 0; j < ci->maxi[i]; ++j)
         {
           ci->qaln[alnpos] = '-';
-          ++alnpos;
           *pm = 'A' + m;
+          ++alnpos;
           ++pm;
         }
       ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
+      *pm = 'A' + m;
       ++qpos;
       ++alnpos;
-      *pm = 'A' + m;
       ++pm;
     }
   for (int j = 0; j < ci->maxi[ci->query_len]; ++j)
     {
       ci->qaln[alnpos] = '-';
-      ++alnpos;
       *pm = 'A' + m;
+      ++alnpos;
       ++pm;
     }
   ci->qaln[alnpos] = '\0';
