@@ -806,13 +806,13 @@ auto count_matches_with_parents(struct chimera_info_s const * chimera_info,
                                 int const alignment_length) -> std::array<int, maxparents> {
   std::array<int, maxparents> matches {{}};
 
-  for (int i = 0; i < alignment_length; ++i)
+  for (auto i = 0; i < alignment_length; ++i)
     {
-      char const qsym = chrmap_4bit[(int) (chimera_info->qaln[i])];
+      auto const qsym = chrmap_4bit[(int) (chimera_info->qaln[i])];
 
-      for (int f = 0; f < chimera_info->parents_found; ++f)
+      for (auto f = 0; f < chimera_info->parents_found; ++f)
         {
-          char const psym = chrmap_4bit[(int) (chimera_info->paln[f][i])];
+          auto const psym = chrmap_4bit[(int) (chimera_info->paln[f][i])];
           if (qsym == psym) {
             ++matches[f];
           }
