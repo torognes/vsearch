@@ -806,8 +806,8 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
   // fill in both query alignment and model
   char * pm = ci->model.data();
   int m = 0;
-  char * q = ci->qaln.data();
   int qpos = 0;
+  auto alnpos = 0;
   for (int i = 0; i < ci->query_len; ++i)
     {
       if (qpos >= (ci->best_start[m] + ci->best_len[m])) {
@@ -815,25 +815,25 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
       }
       for (int j = 0; j < ci->maxi[i]; ++j)
         {
-          *q = '-';
-          ++q;
+          ci->qaln[alnpos] = '-';
+          ++alnpos;
           *pm = 'A' + m;
           ++pm;
         }
-      *q = chrmap_upcase[(int) (ci->query_seq[qpos])];
+      ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
       ++qpos;
-      ++q;
+      ++alnpos;
       *pm = 'A' + m;
       ++pm;
     }
   for (int j = 0; j < ci->maxi[ci->query_len]; ++j)
     {
-      *q = '-';
-      ++q;
+      ci->qaln[alnpos] = '-';
+      ++alnpos;
       *pm = 'A' + m;
       ++pm;
     }
-  *q = '\0';
+  ci->qaln[alnpos] = '\0';
   *pm = '\0';
 }
 
