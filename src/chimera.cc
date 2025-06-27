@@ -803,6 +803,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
 
 auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
+  // fill in both query and model
   char * pm = ci->model.data();
   int m = 0;
   char * q = ci->qaln.data();
