@@ -761,11 +761,8 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                 {
                   if (not is_inserted)
                     {
-                      for (int y = 0; y < ci->maxi[qpos]; ++y)
-                        {
-                          alignment[alnpos] = '-';
-                          ++alnpos;
-                        }
+                      std::fill_n(&alignment[alnpos], ci->maxi[qpos], '-');
+                      alnpos += ci->maxi[qpos];
                     }
 
                   if (op == 'M')
