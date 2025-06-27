@@ -175,7 +175,7 @@ struct chimera_info_s
   int best_target = 0;
   char * best_cigar = nullptr;
 
-  std::vector<int> maxi;
+  std::vector<int> maxi;  // ??
   std::vector<std::vector<char>> paln;
   std::vector<char> qaln;
   std::vector<char> diffs;
