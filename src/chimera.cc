@@ -875,8 +875,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       *pm = 'A' + m;
       ++pm;
     }
-  *q = 0;
-  *pm = 0;
+  *q = '\0';
+  *pm = '\0';
 
   for (int i = 0; i < alnlen; ++i)
     {
