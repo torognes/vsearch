@@ -928,7 +928,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
       ci->diffs[i] = diff;
     }
 
-  ci->diffs[alnlen] = 0;
+  ci->diffs[alnlen] = '\0';
 
 
   auto const match_QP = count_matches_with_parents(ci, alnlen);
