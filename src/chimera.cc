@@ -802,6 +802,41 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 }
 
 
+auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
+  char * pm = ci->model.data();
+  int m = 0;
+  char * q = ci->qaln.data();
+  int qpos = 0;
+  for (int i = 0; i < ci->query_len; ++i)
+    {
+      if (qpos >= (ci->best_start[m] + ci->best_len[m])) {
+        ++m;
+      }
+      for (int j = 0; j < ci->maxi[i]; ++j)
+        {
+          *q = '-';
+          ++q;
+          *pm = 'A' + m;
+          ++pm;
+        }
+      *q = chrmap_upcase[(int) (ci->query_seq[qpos])];
+      ++qpos;
+      ++q;
+      *pm = 'A' + m;
+      ++pm;
+    }
+  for (int j = 0; j < ci->maxi[ci->query_len]; ++j)
+    {
+      *q = '-';
+      ++q;
+      *pm = 'A' + m;
+      ++pm;
+    }
+  *q = '\0';
+  *pm = '\0';
+}
+
+
 auto count_matches_with_parents(struct chimera_info_s const * chimera_info,
                                 int const alignment_length) -> std::array<int, maxparents> {
   std::array<int, maxparents> matches {{}};
@@ -844,39 +879,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   fill_alignment_parents(ci);
 
-  /* fill in alignment string for query */
+  fill_in_alignment_string_for_query(ci);
 
-  char * pm = ci->model.data();
-  int m = 0;
-  char * q = ci->qaln.data();
-  int qpos = 0;
-  for (int i = 0; i < ci->query_len; ++i)
-    {
-      if (qpos >= (ci->best_start[m] + ci->best_len[m])) {
-        ++m;
-      }
-      for (int j = 0; j < ci->maxi[i]; ++j)
-        {
-          *q = '-';
-          ++q;
-          *pm = 'A' + m;
-          ++pm;
-        }
-      *q = chrmap_upcase[(int) (ci->query_seq[qpos])];
-      ++qpos;
-      ++q;
-      *pm = 'A' + m;
-      ++pm;
-    }
-  for (int j = 0; j < ci->maxi[ci->query_len]; ++j)
-    {
-      *q = '-';
-      ++q;
-      *pm = 'A' + m;
-      ++pm;
-    }
-  *q = '\0';
-  *pm = '\0';
 
   for (int i = 0; i < alnlen; ++i)
     {
@@ -976,7 +980,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
 
       int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
-      qpos = 0;
+      int qpos = 0;
       std::array<int, maxparents> ppos {{}};
       int rest = alnlen;
 
