@@ -70,7 +70,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/xpthread.hpp"
-#include <algorithm>  // std::fill, std::max, std::max_element, std::min, std::transform
+#include <algorithm>  // std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>
 #include <cctype>  // std::tolower
@@ -790,11 +790,8 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
       if (not is_inserted)
         {
-          for (int x = 0; x < ci->maxi[qpos]; ++x)
-            {
-              alignment[alnpos] = '-';
-              ++alnpos;
-            }
+          std::fill_n(&alignment[alnpos], ci->maxi[qpos], '-');
+          alnpos += ci->maxi[qpos];
         }
 
       /* end of sequence string */
