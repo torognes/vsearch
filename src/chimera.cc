@@ -715,6 +715,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
   for (int j = 0; j < ci->parents_found; ++j)
     {
+      auto & alignment = ci->paln[j];
       int const cand = ci->best_parents[j];
       int const target_seqno = ci->cand_list[cand];
       char * target_seq = db_getsequence(target_seqno);
@@ -742,13 +743,13 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                 {
                   if (x < run)
                     {
-                      ci->paln[j][alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
+                      alignment[alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
                       ++tpos;
                       ++alnpos;
                     }
                   else
                     {
-                      ci->paln[j][alnpos] = '-';
+                      alignment[alnpos] = '-';
                       ++alnpos;
                     }
                 }
@@ -762,20 +763,20 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                     {
                       for (int y = 0; y < ci->maxi[qpos]; ++y)
                         {
-                          ci->paln[j][alnpos] = '-';
+                          alignment[alnpos] = '-';
                           ++alnpos;
                         }
                     }
 
                   if (op == 'M')
                     {
-                      ci->paln[j][alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
+                      alignment[alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
                       ++tpos;
                       ++alnpos;
                     }
                   else
                     {
-                      ci->paln[j][alnpos] = '-';
+                      alignment[alnpos] = '-';
                       ++alnpos;
                     }
 
@@ -791,13 +792,13 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
         {
           for (int x = 0; x < ci->maxi[qpos]; ++x)
             {
-              ci->paln[j][alnpos] = '-';
+              alignment[alnpos] = '-';
               ++alnpos;
             }
         }
 
       /* end of sequence string */
-      ci->paln[j][alnpos] = '\0';
+      alignment[alnpos] = '\0';
     }
 }
 
