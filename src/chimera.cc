@@ -722,8 +722,8 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
       auto is_inserted = false;
       int qpos = 0;
       int tpos = 0;
+      int alnpos = 0;
 
-      char * t = ci->paln[j].data();
       char * p = ci->nwcigar[cand];
       char * e = p + std::strlen(p);
 
@@ -742,14 +742,14 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                 {
                   if (x < run)
                     {
-                      *t = chrmap_upcase[(int) (target_seq[tpos])];
+                      ci->paln[j][alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
                       ++tpos;
-                      ++t;
+                      ++alnpos;
                     }
                   else
                     {
-                      *t = '-';
-                      ++t;
+                      ci->paln[j][alnpos] = '-';
+                      ++alnpos;
                     }
                 }
               is_inserted = true;
@@ -762,21 +762,21 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                     {
                       for (int y = 0; y < ci->maxi[qpos]; ++y)
                         {
-                          *t = '-';
-                          ++t;
+                          ci->paln[j][alnpos] = '-';
+                          ++alnpos;
                         }
                     }
 
                   if (op == 'M')
                     {
-                      *t = chrmap_upcase[(int) (target_seq[tpos])];
+                      ci->paln[j][alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
                       ++tpos;
-                      ++t;
+                      ++alnpos;
                     }
                   else
                     {
-                      *t = '-';
-                      ++t;
+                      ci->paln[j][alnpos] = '-';
+                      ++alnpos;
                     }
 
                   ++qpos;
@@ -791,13 +791,13 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
         {
           for (int x = 0; x < ci->maxi[qpos]; ++x)
             {
-              *t = '-';
-              ++t;
+              ci->paln[j][alnpos] = '-';
+              ++alnpos;
             }
         }
 
       /* end of sequence string */
-      *t = '\0';
+      ci->paln[j][alnpos] = '\0';
     }
 }
 
