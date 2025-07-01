@@ -69,6 +69,7 @@
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
@@ -199,6 +200,12 @@ enum struct Status {
   suspicious = 3,   // score >= minh, not available with uchime2_denovo and uchime3_denovo
   chimeric = 4      // score >= minh && divdiff >= opt_mindiv && ...
 };
+
+
+auto sanitize_nucleotide(char const nucleotide) -> char {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);
+}
 
 
 auto realloc_arrays(struct chimera_info_s * ci) -> void
@@ -815,7 +822,7 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * chimera_info) ->
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      chimera_info->qaln[alnpos] = chrmap_upcase[(int) (chimera_info->query_seq[qpos])];
+      chimera_info->qaln[alnpos] = sanitize_nucleotide(chimera_info->query_seq[qpos]);
       ++alnpos;
     }
   // add terminal gap (if any):
