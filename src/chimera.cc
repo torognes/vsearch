@@ -202,7 +202,7 @@ enum struct Status {
 };
 
 
-auto sanitize_nucleotide(char const nucleotide) -> char {
+auto map_uppercase(char const nucleotide) -> char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);
 }
@@ -758,7 +758,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                 {
                   if (x < run)
                     {
-                      alignment[alnpos] = sanitize_nucleotide(target_seq[tpos]);
+                      alignment[alnpos] = map_uppercase(target_seq[tpos]);
                       ++tpos;
                       ++alnpos;
                     }
@@ -782,7 +782,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
                   if (op == 'M')
                     {
-                      alignment[alnpos] = sanitize_nucleotide(target_seq[tpos]);
+                      alignment[alnpos] = map_uppercase(target_seq[tpos]);
                       ++tpos;
                       ++alnpos;
                     }
@@ -822,7 +822,7 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * chimera_info) ->
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      chimera_info->qaln[alnpos] = sanitize_nucleotide(chimera_info->query_seq[qpos]);
+      chimera_info->qaln[alnpos] = map_uppercase(chimera_info->query_seq[qpos]);
       ++alnpos;
     }
   // add terminal gap (if any):
@@ -1142,7 +1142,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           *q = '-';
           ++q;
         }
-      *q = sanitize_nucleotide(ci->query_seq[qpos]);
+      *q = map_uppercase(ci->query_seq[qpos]);
       ++qpos;
       ++q;
     }
