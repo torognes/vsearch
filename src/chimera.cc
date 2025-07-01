@@ -758,7 +758,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                 {
                   if (x < run)
                     {
-                      alignment[alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
+                      alignment[alnpos] = sanitize_nucleotide(target_seq[tpos]);
                       ++tpos;
                       ++alnpos;
                     }
@@ -782,7 +782,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
                   if (op == 'M')
                     {
-                      alignment[alnpos] = chrmap_upcase[(int) (target_seq[tpos])];
+                      alignment[alnpos] = sanitize_nucleotide(target_seq[tpos]);
                       ++tpos;
                       ++alnpos;
                     }
@@ -1142,7 +1142,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           *q = '-';
           ++q;
         }
-      *q = chrmap_upcase[(int) (ci->query_seq[qpos])];
+      *q = sanitize_nucleotide(ci->query_seq[qpos]);
       ++qpos;
       ++q;
     }
