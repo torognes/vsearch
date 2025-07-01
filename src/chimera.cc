@@ -1835,7 +1835,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
       if (opt_uchime_ref != nullptr)
         {
           if (fasta_next(query_fasta_h, (opt_notrunclabels == 0),
-                         chrmap_no_change))
+                         chrmap_no_change_vector.data()))
             {
               ci->query_head_len = fasta_get_header_length(query_fasta_h);
               ci->query_len = fasta_get_sequence_length(query_fasta_h);
