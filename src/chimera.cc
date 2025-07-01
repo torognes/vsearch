@@ -202,18 +202,6 @@ enum struct Status {
 };
 
 
-auto map_uppercase(char const nucleotide) -> char {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);
-}
-
-
-auto map_4bit(char const nucleotide) -> char {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return static_cast<char>(chrmap_4bit_vector[unsigned_nucleotide]);
-}
-
-
 auto realloc_arrays(struct chimera_info_s * ci) -> void
 {
   if (opt_chimeras_denovo != nullptr)
