@@ -901,16 +901,16 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 
   for (int i = 0; i < alnlen; ++i)
     {
-      unsigned int const qsym = map_4bit(ci->qaln[i]);
-      std::vector<unsigned int> psym(maxparents);
+      auto const qsym = map_4bit(ci->qaln[i]);
+      std::vector<char> psym(maxparents);
       for (int f = 0; f < ci->parents_found; ++f) {
-        psym[f] = chrmap_4bit[(int) (ci->paln[f][i])];
+        psym[f] = map_4bit(ci->paln[f][i]);
       }
 
       /* lower case parent symbols that differ from query */
 
       for (int f = 0; f < ci->parents_found; ++f) {
-        if ((psym[f] != 0U) and (psym[f] != qsym)) {
+        if ((psym[f] != '\0') and (psym[f] != qsym)) {
           ci->paln[f][i] = std::tolower(ci->paln[f][i]);
         }
       }
@@ -919,10 +919,10 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 
       char diff = ' ';
 
-      auto const all_defined = (qsym != 0U) and
+      auto const all_defined = (qsym != '\0') and
         std::all_of(psym.begin(),
                     std::next(psym.begin(), ci->parents_found),
-                    [](unsigned int const symbol) { return symbol != 0U; });
+                    [](char const symbol) { return symbol != '\0'; });
 
 
       if (all_defined)
