@@ -902,7 +902,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
   for (int i = 0; i < alnlen; ++i)
     {
       unsigned int const qsym = map_4bit(ci->qaln[i]);
-      std::array<unsigned int, maxparents> psym {{}};
+      std::vector<unsigned int> psym(maxparents);
       for (int f = 0; f < ci->parents_found; ++f) {
         psym[f] = chrmap_4bit[(int) (ci->paln[f][i])];
       }
