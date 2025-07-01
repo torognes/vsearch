@@ -192,6 +192,15 @@ struct chimera_info_s
 static struct chimera_info_s * cia;
 
 
+enum struct Status {
+  no_parents = 0,   // non-chimeric
+  no_alignment = 1, // score < 0, non-chimeric
+  low_score = 2,    // score < minh, non-chimeric
+  suspicious = 3,   // score >= minh, not available with uchime2_denovo and uchime3_denovo
+  chimeric = 4      // score >= minh && divdiff >= opt_mindiv && ...
+};
+
+
 auto realloc_arrays(struct chimera_info_s * ci) -> void
 {
   if (opt_chimeras_denovo != nullptr)
@@ -861,10 +870,10 @@ auto compute_global_similarities_with_parents(
 }
 
 
-auto eval_parents_long(struct chimera_info_s * ci) -> int
+auto eval_parents_long(struct chimera_info_s * ci) -> Status
 {
   /* always chimeric if called */
-  int const status = 4;
+  auto const status = Status::chimeric;
 
   fill_max_alignment_length(ci);
   auto const alnlen = find_total_alignment_length(ci);
@@ -939,7 +948,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 
   xpthread_mutex_lock(&mutex_output);
 
-  if ((opt_alnout != nullptr) and (status == 4))
+  if ((opt_alnout != nullptr) and (status == Status::chimeric))
     {
       std::fprintf(fp_uchimealns, "\n");
       std::fprintf(fp_uchimealns, "----------------------------------------"
@@ -1081,7 +1090,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
               0, /* ignore, right no */
               0, /* ignore, right abstain */
               0.00,
-              status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
+              status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
     }
 
   xpthread_mutex_unlock(&mutex_output);
@@ -1090,9 +1099,9 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
 }
 
 
-auto eval_parents(struct chimera_info_s * ci) -> int
+auto eval_parents(struct chimera_info_s * ci) -> Status
 {
-  int status = 1;
+  auto status = Status::no_alignment;
   ci->parents_found = 2;
 
   fill_max_alignment_length(ci);
@@ -1332,7 +1341,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
   if (best_h >= 0.0)
     {
-      status = 2;
+      status = Status::low_score;
 
       /* flip A and B if necessary */
 
@@ -1469,18 +1478,18 @@ auto eval_parents(struct chimera_info_s * ci) -> int
           // fix -Wfloat-equal: if match_QM == cols, then QM == 100.0
           if ((match_QM == cols) and (QT < 100.0))
             {
-              status = 4;
+              status = Status::chimeric;
             }
         }
       else
         if (best_h >= opt_minh)
           {
-            status = 3;
+            status = Status::suspicious;
             if ((divdiff >= opt_mindiv) and
                 (sumL >= opt_mindiffs) and
                 (sumR >= opt_mindiffs))
               {
-                status = 4;
+                status = Status::chimeric;
               }
           }
 
@@ -1488,7 +1497,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
 
       xpthread_mutex_lock(&mutex_output);
 
-      if ((opt_uchimealns != nullptr) and (status == 4))
+      if ((opt_uchimealns != nullptr) and (status == Status::chimeric))
         {
           fprintf(fp_uchimealns, "\n");
           fprintf(fp_uchimealns, "----------------------------------------"
@@ -1661,7 +1670,7 @@ auto eval_parents(struct chimera_info_s * ci) -> int
                   best_right_n,
                   best_right_a,
                   divdiff,
-                  status == 4 ? 'Y' : (status == 2 ? 'N' : '?'));
+                  status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
         }
       xpthread_mutex_unlock(&mutex_output);
     }
@@ -1669,16 +1678,6 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   return status;
 }
 
-
-// refactoring: enum struct status {};
-/*
-  new chimeric status:
-  0: no parents, non-chimeric
-  1: score < 0 (no alignment), non-chimeric
-  2: score < minh (low score), non-chimeric
-  3: score >= minh, suspicious -> not available with uchime2_denovo and uchime3_denovo
-  4: score >= minh && (divdiff >= opt_mindiv) && ..., chimeric
-*/
 
 auto query_init(struct searchinfo_s * search_info) -> void
 {
@@ -1858,7 +1857,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       xpthread_mutex_unlock(&mutex_input);
 
-      auto status = 0;
+      auto status = Status::no_parents;
 
       /* partition query */
       partition_query(ci);
@@ -1996,7 +1995,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
           else
             {
-              status = 0;
+              status = Status::no_parents;
             }
         }
       else
@@ -2007,7 +2006,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
           else
             {
-              status = 0;
+              status = Status::no_parents;
             }
         }
 
@@ -2018,7 +2017,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
       ++total_count;
       total_abundance += ci->query_size;
 
-      if (status == 4)
+      if (status == Status::chimeric)
         {
           ++chimera_count;
           chimera_abundance += ci->query_size;
@@ -2044,7 +2043,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
         }
 
-      if (status == 3)
+      if (status == Status::suspicious)
         {
           ++borderline_count;
           borderline_abundance += ci->query_size;
@@ -2070,13 +2069,13 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
         }
 
-      if (status < 3)
+      if (status < Status::suspicious)
         {
           ++nonchimera_count;
           nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
-          if ((status < 2) and (opt_uchimeout != nullptr))
+          if ((status < Status::low_score) and (opt_uchimeout != nullptr))
             {
               fprintf(fp_uchimeout, "0.0000\t");
 
@@ -2119,7 +2118,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
         }
 
-      if (status < 3)
+      if (status < Status::suspicious)
         {
           /* uchime_denovo: add non-chimeras to db */
           if ((opt_uchime_denovo != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
