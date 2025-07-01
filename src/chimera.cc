@@ -799,29 +799,29 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
 auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
   // fill in both query alignment and model
-  int m = 0;
+  int nth_parent = 0;
   int qpos = 0;
   auto alnpos = 0;
   for (int i = 0; i < ci->query_len; ++i)
     {
-      if (qpos >= (ci->best_start[m] + ci->best_len[m])) {
-        ++m;
+      if (qpos >= (ci->best_start[nth_parent] + ci->best_len[nth_parent])) {
+        ++nth_parent;
       }
       for (int j = 0; j < ci->maxi[i]; ++j)
         {
           ci->qaln[alnpos] = '-';
-          ci->model[alnpos] = 'A' + m;
+          ci->model[alnpos] = 'A' + nth_parent;
           ++alnpos;
         }
       ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
-      ci->model[alnpos] = 'A' + m;
+      ci->model[alnpos] = 'A' + nth_parent;
       ++qpos;
       ++alnpos;
     }
   for (int j = 0; j < ci->maxi[ci->query_len]; ++j)
     {
       ci->qaln[alnpos] = '-';
-      ci->model[alnpos] = 'A' + m;
+      ci->model[alnpos] = 'A' + nth_parent;
       ++alnpos;
     }
   ci->qaln[alnpos] = '\0';
