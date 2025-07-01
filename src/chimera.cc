@@ -919,12 +919,11 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 
       char diff = ' ';
 
-      bool all_defined = (qsym != 0U);
-      for (int f = 0; f < ci->parents_found; ++f) {
-        if (psym[f] == 0U) {
-          all_defined = false;
-        }
-      }
+      auto const all_defined = (qsym != 0U) and
+        std::all_of(psym.begin(),
+                    std::next(psym.begin(), ci->parents_found),
+                    [](unsigned int const symbol) { return symbol != 0U; });
+
 
       if (all_defined)
         {
