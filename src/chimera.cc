@@ -176,7 +176,7 @@ struct chimera_info_s
   int best_target = 0;
   char * best_cigar = nullptr;
 
-  std::vector<int> maxi;  // ??
+  std::vector<int> maxi;  // longest insertion per position
   std::vector<std::vector<char>> paln;
   std::vector<char> qaln;
   std::vector<char> diffs;
@@ -665,7 +665,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
 
 auto find_total_alignment_length(struct chimera_info_s const * chimera_info) -> int {
-  // query_len, plus the sum of the longest CIGAR runs (I or D) for each position
+  // query_len, plus the sum of the longest insertion runs (I) for each position
   return std::accumulate(chimera_info->maxi.begin(),
                          chimera_info->maxi.end(),
                          chimera_info->query_len);
