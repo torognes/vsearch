@@ -805,49 +805,49 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 }
 
 
-auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
+auto fill_in_alignment_string_for_query(struct chimera_info_s * chimera_info) -> void {
   auto alnpos = 0;
-  for (int qpos = 0; qpos < ci->query_len; ++qpos)
+  for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
     {
       // add insertion (if any):
-      auto const insert_length = ci->maxi[qpos];
-      std::fill_n(&ci->qaln[alnpos], insert_length, '-');
+      auto const insert_length = chimera_info->maxi[qpos];
+      std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
+      chimera_info->qaln[alnpos] = chrmap_upcase[(int) (chimera_info->query_seq[qpos])];
       ++alnpos;
     }
   // add terminal gap (if any):
-  auto const insert_length = ci->maxi[ci->query_len];
-  std::fill_n(&ci->qaln[alnpos], insert_length, '-');
+  auto const insert_length = chimera_info->maxi[chimera_info->query_len];
+  std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
   alnpos += insert_length;
-  ci->qaln[alnpos] = '\0';
+  chimera_info->qaln[alnpos] = '\0';
 }
 
 
-auto fill_in_model_string_for_query(struct chimera_info_s * ci) -> void {
+auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> void {
   int nth_parent = 0;
   auto alnpos = 0;
-  for (int qpos = 0; qpos < ci->query_len; ++qpos)
+  for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
     {
-      if (qpos >= (ci->best_start[nth_parent] + ci->best_len[nth_parent])) {
+      if (qpos >= (chimera_info->best_start[nth_parent] + chimera_info->best_len[nth_parent])) {
         ++nth_parent;
       }
       // add insertion (if any):
-      auto const insert_length = ci->maxi[qpos];
-      std::fill_n(&ci->model[alnpos], insert_length, 'A' + nth_parent);
+      auto const insert_length = chimera_info->maxi[qpos];
+      std::fill_n(&chimera_info->model[alnpos], insert_length, 'A' + nth_parent);
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      ci->model[alnpos] = 'A' + nth_parent;
+      chimera_info->model[alnpos] = 'A' + nth_parent;
       ++alnpos;
     }
   // add terminal gap (if any):
-  auto const insert_length = ci->maxi[ci->query_len];
-  std::fill_n(&ci->model[alnpos], insert_length, 'A' + nth_parent);
+  auto const insert_length = chimera_info->maxi[chimera_info->query_len];
+  std::fill_n(&chimera_info->model[alnpos], insert_length, 'A' + nth_parent);
   alnpos += insert_length;
-  ci->model[alnpos] = '\0';
+  chimera_info->model[alnpos] = '\0';
 }
 
 
