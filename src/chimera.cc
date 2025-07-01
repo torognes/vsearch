@@ -898,13 +898,15 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
   fill_in_alignment_string_for_query(ci);
   fill_in_model_string_for_query(ci);
 
+  std::vector<char> psym;
+  psym.reserve(maxparents);
 
   for (int i = 0; i < alnlen; ++i)
     {
       auto const qsym = map_4bit(ci->qaln[i]);
-      std::vector<char> psym(maxparents);
       for (int f = 0; f < ci->parents_found; ++f) {
-        psym[f] = map_4bit(ci->paln[f][i]);
+
+        psym.emplace_back(map_4bit(ci->paln[f][i]));
       }
 
       /* lower case parent symbols that differ from query */
@@ -941,6 +943,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
         }
 
       ci->diffs[i] = diff;
+      psym.clear();
     }
 
   ci->diffs[alnlen] = '\0';
