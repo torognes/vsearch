@@ -931,7 +931,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
     {
       auto const qsym = map_4bit(ci->qaln[i]);
       for (int f = 0; f < ci->parents_found; ++f) {
-
         psym.emplace_back(map_4bit(ci->paln[f][i]));
       }
 
