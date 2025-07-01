@@ -81,6 +81,7 @@
 #include <cstring>  // std::strlen, std::strncpy, std::strcpy
 #include <iterator>  // std::next
 #include <limits>
+#include <numeric>  // std::accumulate
 #include <pthread.h>
 #include <vector>
 
@@ -663,7 +664,15 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 }
 
 
-auto find_max_alignment_length(struct chimera_info_s * ci) -> int
+auto find_total_alignment_length(struct chimera_info_s const * chimera_info) -> int {
+  // query_len, plus the sum of the longest CIGAR runs (I or D) for each position
+  return std::accumulate(chimera_info->maxi.begin(),
+                         chimera_info->maxi.end(),
+                         chimera_info->query_len);
+}
+
+
+auto fill_max_alignment_length(struct chimera_info_s * ci) -> void
 {
   /* find max insertions in front of each position in the query sequence */
 
@@ -696,16 +705,6 @@ auto find_max_alignment_length(struct chimera_info_s * ci) -> int
             }
         }
     }
-
-  /* find total alignment length */
-  int alnlen = 0;
-  for (int i = 0; i < ci->query_len + 1; ++i)
-    {
-      alnlen += ci->maxi[i];
-    }
-  alnlen += ci->query_len;
-
-  return alnlen;
 }
 
 
@@ -867,7 +866,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> int
   /* always chimeric if called */
   int const status = 4;
 
-  int const alnlen = find_max_alignment_length(ci);
+  fill_max_alignment_length(ci);
+  auto const alnlen = find_total_alignment_length(ci);
 
   fill_alignment_parents(ci);
 
@@ -1095,7 +1095,8 @@ auto eval_parents(struct chimera_info_s * ci) -> int
   int status = 1;
   ci->parents_found = 2;
 
-  int const alnlen = find_max_alignment_length(ci);
+  fill_max_alignment_length(ci);
+  auto const alnlen = find_total_alignment_length(ci);
 
   fill_alignment_parents(ci);
 
