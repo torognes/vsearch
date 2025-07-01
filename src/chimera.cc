@@ -808,15 +808,14 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
   // fill in both query alignment and model
   int nth_parent = 0;
-  int qpos = 0;
   auto alnpos = 0;
-  for (int i = 0; i < ci->query_len; ++i)
+  for (int qpos = 0; qpos < ci->query_len; ++qpos)
     {
       if (qpos >= (ci->best_start[nth_parent] + ci->best_len[nth_parent])) {
         ++nth_parent;
       }
       // add insertion (if any):
-      auto const insert_length = ci->maxi[i];
+      auto const insert_length = ci->maxi[qpos];
       std::fill_n(&ci->qaln[alnpos], insert_length, '-');
       std::fill_n(&ci->model[alnpos], insert_length, 'A' + nth_parent);
       alnpos += insert_length;
@@ -824,7 +823,6 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
       // add (mis-)matching position:
       ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
       ci->model[alnpos] = 'A' + nth_parent;
-      ++qpos;
       ++alnpos;
     }
   // add terminal gap (if any):
