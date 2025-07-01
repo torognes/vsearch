@@ -858,11 +858,11 @@ auto count_matches_with_parents(struct chimera_info_s const * chimera_info,
 
   for (auto i = 0; i < alignment_length; ++i)
     {
-      auto const qsym = chrmap_4bit[(int) (chimera_info->qaln[i])];
+      auto const qsym = map_4bit(chimera_info->qaln[i]);
 
       for (auto f = 0; f < chimera_info->parents_found; ++f)
         {
-          auto const psym = chrmap_4bit[(int) (chimera_info->paln[f][i])];
+          auto const psym = map_4bit(chimera_info->paln[f][i]);
           if (qsym == psym) {
             ++matches[f];
           }
