@@ -806,7 +806,27 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
 
 auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
-  // fill in both query alignment and model
+  auto alnpos = 0;
+  for (int qpos = 0; qpos < ci->query_len; ++qpos)
+    {
+      // add insertion (if any):
+      auto const insert_length = ci->maxi[qpos];
+      std::fill_n(&ci->qaln[alnpos], insert_length, '-');
+      alnpos += insert_length;
+
+      // add (mis-)matching position:
+      ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
+      ++alnpos;
+    }
+  // add terminal gap (if any):
+  auto const insert_length = ci->maxi[ci->query_len];
+  std::fill_n(&ci->qaln[alnpos], insert_length, '-');
+  alnpos += insert_length;
+  ci->qaln[alnpos] = '\0';
+}
+
+
+auto fill_in_model_string_for_query(struct chimera_info_s * ci) -> void {
   int nth_parent = 0;
   auto alnpos = 0;
   for (int qpos = 0; qpos < ci->query_len; ++qpos)
@@ -816,21 +836,17 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * ci) -> void {
       }
       // add insertion (if any):
       auto const insert_length = ci->maxi[qpos];
-      std::fill_n(&ci->qaln[alnpos], insert_length, '-');
       std::fill_n(&ci->model[alnpos], insert_length, 'A' + nth_parent);
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      ci->qaln[alnpos] = chrmap_upcase[(int) (ci->query_seq[qpos])];
       ci->model[alnpos] = 'A' + nth_parent;
       ++alnpos;
     }
   // add terminal gap (if any):
   auto const insert_length = ci->maxi[ci->query_len];
-  std::fill_n(&ci->qaln[alnpos], insert_length, '-');
   std::fill_n(&ci->model[alnpos], insert_length, 'A' + nth_parent);
   alnpos += insert_length;
-  ci->qaln[alnpos] = '\0';
   ci->model[alnpos] = '\0';
 }
 
@@ -879,6 +895,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
   fill_alignment_parents(ci);
 
   fill_in_alignment_string_for_query(ci);
+  fill_in_model_string_for_query(ci);
 
 
   for (int i = 0; i < alnlen; ++i)
