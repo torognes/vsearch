@@ -208,6 +208,12 @@ auto map_uppercase(char const nucleotide) -> char {
 }
 
 
+auto map_4bit(char const nucleotide) -> char {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return static_cast<char>(chrmap_4bit_vector[unsigned_nucleotide]);
+}
+
+
 auto realloc_arrays(struct chimera_info_s * ci) -> void
 {
   if (opt_chimeras_denovo != nullptr)
@@ -907,7 +913,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 
   for (int i = 0; i < alnlen; ++i)
     {
-      unsigned int const qsym = chrmap_4bit[(int) (ci->qaln[i])];
+      unsigned int const qsym = map_4bit(ci->qaln[i]);
       std::array<unsigned int, maxparents> psym {{}};
       for (int f = 0; f < ci->parents_found; ++f) {
         psym[f] = chrmap_4bit[(int) (ci->paln[f][i])];
