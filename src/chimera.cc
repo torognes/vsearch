@@ -885,6 +885,32 @@ auto compute_global_similarities_with_parents(
 }
 
 
+auto compute_diffs(struct chimera_info_s const * ci,
+                   std::vector<char> const & psym,
+                   char const qsym) -> char {
+  auto const all_defined = (qsym != '\0') and
+    std::all_of(psym.begin(),
+                psym.end(),
+                [](char const symbol) { return symbol != '\0'; });
+
+  char diff = ' ';
+
+  if (not all_defined) { return diff; }
+
+  auto z = 0;
+  for (auto f = 0; f < ci->parents_found; ++f) {
+    if (psym[f] == qsym) {
+      diff = 'A' + f;
+      ++z;
+    }
+  }
+  if (z > 1) {
+    diff = ' ';
+  }
+  return diff;
+}
+
+
 auto eval_parents_long(struct chimera_info_s * ci) -> Status
 {
   /* always chimeric if called */
@@ -918,31 +944,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       }
 
       /* compute diffs */
-
-      char diff = ' ';
-
-      auto const all_defined = (qsym != '\0') and
-        std::all_of(psym.begin(),
-                    std::next(psym.begin(), ci->parents_found),
-                    [](char const symbol) { return symbol != '\0'; });
-
-
-      if (all_defined)
-        {
-          int z = 0;
-          for (int f = 0; f < ci->parents_found; ++f) {
-            if (psym[f] == qsym)
-              {
-                diff = 'A' + f;
-                ++z;
-              }
-          }
-          if (z > 1) {
-            diff = ' ';
-          }
-        }
-
-      ci->diffs[i] = diff;
+      ci->diffs[i] = compute_diffs(ci, psym, qsym);
       psym.clear();
     }
 
