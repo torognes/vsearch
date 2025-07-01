@@ -309,8 +309,8 @@ auto find_matches(struct chimera_info_s * ci) -> void
             case 'M':
               for (int k = 0; k < run; ++k)
                 {
-                  if ((chrmap_4bit[(int) (qseq[qpos])] &
-                       chrmap_4bit[(int) (tseq[tpos])]) != 0U)
+                  if ((map_4bit(qseq[qpos]) &
+                       map_4bit(tseq[tpos])) != 0U)
                     {
                       ci->match[(i * ci->query_len) + qpos] = 1;
                     }
