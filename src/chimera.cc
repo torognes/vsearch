@@ -887,12 +887,12 @@ auto compute_global_similarities_with_parents(
 
 
 auto compute_diffs(struct chimera_info_s const * ci,
-                   std::vector<char> const & psym,
-                   char const qsym) -> char {
-  auto const all_defined = (qsym != '\0') and
+                   std::vector<unsigned char> const & psym,
+                   unsigned char const qsym) -> char {
+  auto const all_defined = (qsym != 0U) and
     std::all_of(psym.begin(),
                 psym.end(),
-                [](char const symbol) { return symbol != '\0'; });
+                [](unsigned char const symbol) { return symbol != 0U; });
 
   char diff = ' ';
 
@@ -925,7 +925,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
   fill_in_alignment_string_for_query(ci);
   fill_in_model_string_for_query(ci);
 
-  std::vector<char> psym;
+  std::vector<unsigned char> psym;
   psym.reserve(maxparents);
 
   for (int i = 0; i < alnlen; ++i)
@@ -938,7 +938,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       /* lower case parent symbols that differ from query */
 
       for (int f = 0; f < ci->parents_found; ++f) {
-        if ((psym[f] != '\0') and (psym[f] != qsym)) {
+        if ((psym[f] != 0U) and (psym[f] != qsym)) {
           ci->paln[f][i] = std::tolower(ci->paln[f][i]);
         }
       }
@@ -1164,7 +1164,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
       auto const p2sym = map_4bit(ci->paln[1][i]);
 
       /* ignore gap positions and those next to the gap */
-      if ((qsym == '\0') or (p1sym == '\0') or (p2sym == '\0'))
+      if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
         {
           ci->ignore[i] = 1;
           if (i > 0)
@@ -1178,21 +1178,21 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
         }
 
       /* ignore ambiguous symbols */
-      if ((ambiguous_4bit[static_cast<unsigned int>(qsym)] != 0U) or
-          (ambiguous_4bit[static_cast<unsigned int>(p1sym)] != 0U) or
-          (ambiguous_4bit[static_cast<unsigned int>(p2sym)] != 0U))
+      if ((ambiguous_4bit[qsym] != 0U) or
+          (ambiguous_4bit[p1sym] != 0U) or
+          (ambiguous_4bit[p2sym] != 0U))
         {
           ci->ignore[i] = 1;
         }
 
       /* lower case parent symbols that differ from query */
 
-      if ((p1sym != '\0') and (p1sym != qsym))
+      if ((p1sym != 0U) and (p1sym != qsym))
         {
           ci->paln[0][i] = std::tolower(ci->paln[0][i]);
         }
 
-      if ((p2sym != '\0') and (p2sym != qsym))
+      if ((p2sym != 0U) and (p2sym != qsym))
         {
           ci->paln[1][i] = std::tolower(ci->paln[1][i]);
         }
@@ -1201,7 +1201,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       char diff = '\0';
 
-      if ((qsym != '\0') and (p1sym != '\0') and (p2sym != '\0'))
+      if ((qsym != 0U) and (p1sym != 0U) and (p2sym != 0U))
         {
           if (p1sym == p2sym)
             {
