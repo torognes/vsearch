@@ -1242,6 +1242,25 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
   int sumB = 0;
   int sumN = 0;
 
+  // refactoring: extract to function, use a struct to pass results
+  // std::transform(ci->diffs.begin(),
+  //                std::next(ci->diffs.begin(), alnlen),
+  //                ci->ignore.begin(),
+  //                [&sumA, &sumB, &sumN](char const diff, bool const is_ignored) -> void {
+  //                         if (is_ignored) { return; }
+  //                         if (diff == 'A') {
+  //                             ++sumA;
+  //                            }
+  //                         else if (diff == 'B') {
+  //                             ++sumB;
+  //                            }
+  //                         else if (diff != ' ') {
+  //                             ++sumN;
+  //                         }
+  //                         return;
+  //                 }
+  //                );
+
   for (int i = 0; i < alnlen; ++i)
     {
       if (ci->ignore[i]) { continue; }
