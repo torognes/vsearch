@@ -132,6 +132,8 @@ LinearMemoryAligner::~LinearMemoryAligner()
 // refactoring: scorematrix_create should be private, called at construction time
 auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
+  static constexpr auto last_row = matrix_size - 1;  // 'N'
+  static constexpr auto last_column = matrix_size - 1;  // 'N'
   auto * newscorematrix = (int64_t *) xmalloc(matrix_size * matrix_size * sizeof(int64_t));
 
   for (auto i = 0; i < matrix_size; i++)
@@ -139,7 +141,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
       for (auto j = 0; j < matrix_size; j++)
         {
           int64_t value = 0;
-          if (opt_n_mismatch && ((i == 15) || (j == 15)))
+          if (opt_n_mismatch && ((i == last_row) || (j == last_column)))
             {
               value = mismatch;
             }
@@ -715,6 +717,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
                                      int64_t * _nwmismatches,
                                      int64_t * _nwgaps) -> void
 {
+  static constexpr auto is_N = 15;  // 4-bit code for 'N' or 'n'
   a_seq = _a_seq;
   b_seq = _b_seq;
 
@@ -745,8 +748,8 @@ auto LinearMemoryAligner::alignstats(char * cigar,
             {
               nwscore += subst_score(a_pos, b_pos);
 
-              if (opt_n_mismatch && ((chrmap_4bit[(int) (a_seq[a_pos])] == 15) ||
-                                     (chrmap_4bit[(int) (b_seq[b_pos])] == 15)))
+              if (opt_n_mismatch && ((chrmap_4bit[(int) (a_seq[a_pos])] == is_N) ||
+                                     (chrmap_4bit[(int) (b_seq[b_pos])] == is_N)))
                 {
                   nwmismatches++;
                 }
