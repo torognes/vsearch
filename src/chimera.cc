@@ -1245,21 +1245,20 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
   for (int i = 0; i < alnlen; ++i)
     {
       if (ci->ignore[i]) { continue; }
-          char const diff = ci->diffs[i];
+      char const diff = ci->diffs[i];
 
-          if (diff == 'A')
-            {
-              ++sumA;
-            }
-          else if (diff == 'B')
-            {
-              ++sumB;
-            }
-          else if (diff != ' ')
-            {
-              ++sumN;
-            }
-
+      if (diff == 'A')
+        {
+          ++sumA;
+        }
+      else if (diff == 'B')
+        {
+          ++sumB;
+        }
+      else if (diff != ' ')
+        {
+          ++sumN;
+        }
     }
 
   int left_n = 0;
