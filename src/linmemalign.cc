@@ -129,6 +129,7 @@ LinearMemoryAligner::~LinearMemoryAligner()
 }
 
 
+// refactoring: scorematrix_create should be private, called at construction time
 auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
   auto * newscorematrix = (int64_t *) xmalloc(matrix_size * matrix_size * sizeof(int64_t));
@@ -159,38 +160,6 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
     }
   return newscorematrix;
 }
-
-// refactoring: scorematrix_create should be private, called at construction time
-// auto LinearMemoryAligner::scorematrix_create_v(int64_t match, int64_t mismatch) -> std::vector<int64_t>
-// {
-//   std::vector<int64_t> newscorematrix(matrix_size * matrix_size);
-
-//   for (auto i = 0U; i < matrix_size; i++)
-//     {
-//       for (auto j = 0U; j < matrix_size; j++)
-//         {
-//           int64_t value = 0;
-//           if (opt_n_mismatch && ((i == 15) || (j == 15)))
-//             {
-//               value = mismatch;
-//             }
-//           else if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
-//             {
-//               value = 0;
-//             }
-//           else if (i == j)
-//             {
-//               value = match;
-//             }
-//           else
-//             {
-//               value = mismatch;
-//             }
-//           newscorematrix[(matrix_size * i) + j] = value;
-//         }
-//     }
-//   return newscorematrix;
-// }
 
 
 auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
