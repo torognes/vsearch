@@ -1448,7 +1448,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       for (auto i = 0; i < alnlen; i++)
         {
-          if (ci->ignore[i] == '\0')
+          if (ci->ignore[i] == 0)
             {
               ++cols;
 
