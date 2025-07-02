@@ -808,17 +808,18 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
 auto fill_in_alignment_string_for_query(struct chimera_info_s * chimera_info) -> void {
   auto alnpos = 0;
-  for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
-    {
-      // add insertion (if any):
-      auto const insert_length = chimera_info->maxi[qpos];
-      std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
-      alnpos += insert_length;
+  auto qpos = 0;
+  for (auto const nucleotide: chimera_info->query_seq) {
+    // add insertion (if any):
+    auto const insert_length = chimera_info->maxi[qpos];
+    std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
+    alnpos += insert_length;
 
-      // add (mis-)matching position:
-      chimera_info->qaln[alnpos] = map_uppercase(chimera_info->query_seq[qpos]);
-      ++alnpos;
-    }
+    // add (mis-)matching position:
+    chimera_info->qaln[alnpos] = map_uppercase(nucleotide);
+    ++alnpos;
+    ++qpos;
+  }
   // add terminal gap (if any):
   auto const insert_length = chimera_info->maxi[chimera_info->query_len];
   std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
