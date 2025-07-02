@@ -76,6 +76,6 @@ extern const std::vector<unsigned char> chrmap_upcase_vector;
 
 auto map_uppercase(char const nucleotide) -> char;
 
-auto map_4bit(char const nucleotide) -> char;
+auto map_4bit(char const nucleotide) -> unsigned char;
 
 #endif // MAPS_HPP

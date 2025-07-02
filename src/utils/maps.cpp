@@ -246,9 +246,9 @@ auto map_uppercase(char const nucleotide) -> char {
 }
 
 
-auto map_4bit(char const nucleotide) -> char {
+auto map_4bit(char const nucleotide) -> unsigned char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return static_cast<char>(chrmap_4bit_vector[unsigned_nucleotide]);
+  return chrmap_4bit_vector[unsigned_nucleotide];
 }
 
 
