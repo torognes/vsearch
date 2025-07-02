@@ -1261,10 +1261,10 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
   //                 }
   //                );
 
-  for (int i = 0; i < alnlen; ++i)
+  for (auto i = 0; i < alnlen; ++i)
     {
       if (ci->ignore[i]) { continue; }
-      char const diff = ci->diffs[i];
+      auto const diff = ci->diffs[i];
 
       if (diff == 'A')
         {
@@ -1918,7 +1918,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
         }
 
-      for (int i = 0; i < allhits_count; ++i)
+      for (auto i = 0; i < allhits_count; ++i)
         {
           unsigned int const target = allhits_list[i].target;
 
