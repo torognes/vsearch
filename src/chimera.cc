@@ -63,7 +63,6 @@
 #include "attributes.h"
 #include "chimera.h"
 #include "dbindex.h"
-#include "maps.h"
 #include "mask.h"
 #include "minheap.h"
 #include "udb.h"
