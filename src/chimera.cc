@@ -371,33 +371,33 @@ auto scan_matches(struct chimera_info_s * ci,
     If the percentage is 2%, matches are given a score of 2 and mismatches -98.
   */
 
-  double const score_match = percentage;
-  double const score_mismatch = percentage - 100.0;
+  auto const score_match = percentage;
+  auto const score_mismatch = percentage - 100.0;
 
   auto & p = ci->scan_p;
   auto & q = ci->scan_q;
 
   p[0] = 0.0;
-  for (int i = 0; i < len; ++i) {
+  for (auto i = 0; i < len; ++i) {
     p[i + 1] = p[i] + ((matches[i] != 0) ? score_match : score_mismatch);
   }
 
   q[len] = p[len];
-  for (int i = len - 1; i >= 0; --i) {
+  for (auto i = len - 1; i >= 0; --i) {
     q[i] = std::max(q[i + 1], p[i]);
   }
 
-  int best_i = 0;
-  int best_d = -1;
-  double best_c = -1.0;
-  int i = 1;
-  int j = 1;
+  auto best_i = 0;
+  auto best_d = -1;
+  auto best_c = -1.0;
+  auto i = 1;
+  auto j = 1;
   while (j <= len)
     {
-      double const c = q[j] - p[i - 1];
+      auto const c = q[j] - p[i - 1];
       if (c >= 0.0)
         {
-          int const d = j - i + 1;
+          auto const d = j - i + 1;
           if (d > best_d)
             {
               best_i = i;
