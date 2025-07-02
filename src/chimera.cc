@@ -414,8 +414,8 @@ auto scan_matches(struct chimera_info_s * ci,
 
   if (best_c >= 0.0)
     {
-      * best_start = best_i - 1;
-      * best_len = best_d;
+      *best_start = best_i - 1;
+      *best_len = best_d;
       return true;
     }
   return false;
