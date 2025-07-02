@@ -359,7 +359,7 @@ auto compare_positions(const void * a, const void * b) -> int
 auto scan_matches(struct chimera_info_s * ci,
                   int * matches,
                   int len,
-                  double percentage,
+                  double const percentage,
                   int * best_start,
                   int * best_len) -> bool
 {
