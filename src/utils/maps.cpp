@@ -240,6 +240,26 @@ const std::vector<unsigned char> chrmap_upcase_vector =
   };
 
 
+const std::vector<bool> is_ambiguous_4bit = {
+  true,
+  false,  // Aa
+  false,  // Cc
+  true,
+  false,  // Gg
+  true,
+  true,
+  true,
+  false,  // TtUu
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+};
+
+
 auto map_uppercase(char const nucleotide) -> char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);

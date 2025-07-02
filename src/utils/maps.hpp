@@ -74,6 +74,8 @@ extern const std::vector<unsigned char> chrmap_normalize_vector;
 
 extern const std::vector<unsigned char> chrmap_upcase_vector;
 
+extern const std::vector<bool> is_ambiguous_4bit;
+
 auto map_uppercase(char const nucleotide) -> char;
 
 auto map_4bit(char const nucleotide) -> unsigned char;
