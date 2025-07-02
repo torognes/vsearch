@@ -1151,10 +1151,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
   *q = 0;
 
   /* mark positions to ignore in voting */
-
-  for (int i = 0; i < alnlen; ++i) {
-    ci->ignore[i] = false;
-  }
+  std::fill(ci->ignore.begin(), ci->ignore.end(), false);
 
   for (int i = 0; i < alnlen; ++i)
     {
