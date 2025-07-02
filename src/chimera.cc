@@ -1238,7 +1238,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
       ci->diffs[i] = diff;
     }
 
-  ci->diffs[alnlen] = 0;
+  ci->diffs[alnlen] = '\0';
 
   /* compute score */
 
