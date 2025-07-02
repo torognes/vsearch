@@ -1452,10 +1452,10 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
             {
               ++cols;
 
-              char const qsym = chrmap_4bit[(int) (ci->qaln[i])];
-              char const asym = chrmap_4bit[(int) (ci->paln[index_a][i])];
-              char const bsym = chrmap_4bit[(int) (ci->paln[index_b][i])];
-              char const msym = (i <= best_i) ? asym : bsym;
+              auto const qsym = map_4bit(ci->qaln[i]);
+              auto const asym = map_4bit(ci->paln[index_a][i]);
+              auto const bsym = map_4bit(ci->paln[index_b][i]);
+              auto const msym = (i <= best_i) ? asym : bsym;
 
               if (qsym == asym)
                 {
