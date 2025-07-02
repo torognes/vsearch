@@ -1159,9 +1159,9 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
   for (int i = 0; i < alnlen; ++i)
     {
-      unsigned int const qsym  = chrmap_4bit[(int) (ci->qaln[i])];
-      unsigned int const p1sym = chrmap_4bit[(int) (ci->paln[0][i])];
-      unsigned int const p2sym = chrmap_4bit[(int) (ci->paln[1][i])];
+      unsigned int const qsym  = map_4bit(ci->qaln[i]);
+      unsigned int const p1sym = map_4bit(ci->paln[0][i]);
+      unsigned int const p2sym = map_4bit(ci->paln[1][i]);
 
       /* ignore gap positions and those next to the gap */
       if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
