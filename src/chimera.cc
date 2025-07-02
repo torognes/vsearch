@@ -1433,8 +1433,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       /* count matches */
 
-      int const index_a = best_is_reverse ? 1 : 0;
-      int const index_b = best_is_reverse ? 0 : 1;
+      auto const index_a = best_is_reverse ? 1U : 0U;
+      auto const index_b = best_is_reverse ? 0U : 1U;
 
       int match_QA = 0;
       int match_QB = 0;
