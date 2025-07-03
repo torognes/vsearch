@@ -62,6 +62,7 @@
 #include "linmemalign.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
@@ -119,7 +120,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             {
               value = mismatch;
             }
-          else if ((ambiguous_4bit[i] != 0U) || (ambiguous_4bit[j] != 0U))
+          else if (is_ambiguous_4bit[i] || is_ambiguous_4bit[j])
             {
               value = 0;
             }
