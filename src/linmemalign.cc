@@ -110,10 +110,6 @@ LinearMemoryAligner::~LinearMemoryAligner()
     {
       xfree(cigar_string);
     }
-  if (YY != nullptr)
-    {
-      xfree(YY);
-    }
 }
 
 
@@ -158,15 +154,12 @@ auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
     {
       vector_alloc = size;
 
-      if (YY != nullptr)
-        {
-          xfree(YY);
-        }
 
       HH.resize(vector_alloc);
       EE.resize(vector_alloc);
       XX.resize(vector_alloc);
-      YY = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
+      YY_v.resize(vector_alloc);
+      YY = YY_v.data();
     }
 }
 
