@@ -683,9 +683,9 @@ auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
 
 
 auto LinearMemoryAligner::align(char * _a_seq,
-                                  char * _b_seq,
-                                  int64_t a_len,
-                                  int64_t b_len) -> char *
+                                char * _b_seq,
+                                int64_t a_len,
+                                int64_t b_len) -> char *
 {
   /* copy parameters */
   a_seq = _a_seq;
