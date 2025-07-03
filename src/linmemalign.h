@@ -124,8 +124,6 @@ class LinearMemoryAligner
 
   auto alloc_vectors(std::size_t size) -> void;
 
-  auto show_matrix() -> void;
-
 public:
 
   LinearMemoryAligner();

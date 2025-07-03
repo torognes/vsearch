@@ -225,20 +225,6 @@ auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 }
 
 
-auto LinearMemoryAligner::show_matrix() -> void
-{
-  for (auto i = 0; i < matrix_size; i++)
-    {
-      std::printf("%2d:", i);
-      for (auto j = 0; j < matrix_size; j++)
-        {
-          std::printf(" %2" PRId64, scorematrix[(matrix_size * i) + j]);
-        }
-      std::printf("\n");
-    }
-}
-
-
 auto LinearMemoryAligner::diff(int64_t a_start,
                                int64_t b_start,
                                int64_t a_len,
