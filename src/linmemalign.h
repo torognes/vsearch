@@ -77,7 +77,7 @@ class LinearMemoryAligner
   char * a_seq = nullptr;
   char * b_seq = nullptr;
 
-  std::vector<int64_t> scorematrix_v;
+  std::vector<int64_t> scorematrix;
 
   int64_t q = 0;
   int64_t r = 0;

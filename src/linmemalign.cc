@@ -108,7 +108,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 {
   static constexpr auto last_row = matrix_size - 1;  // 'N'
   static constexpr auto last_column = matrix_size - 1;  // 'N'
-  scorematrix_v.resize(matrix_size * matrix_size);
+  scorematrix.resize(matrix_size * matrix_size);
 
   for (auto i = 0; i < matrix_size; i++)
     {
@@ -131,7 +131,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             {
               value = mismatch;
             }
-          scorematrix_v[(matrix_size * i) + j] = value;
+          scorematrix[(matrix_size * i) + j] = value;
         }
     }
 }
@@ -205,7 +205,7 @@ auto LinearMemoryAligner::subst_score(int64_t lhs_pos, int64_t rhs_pos) -> int64
   /* return substitution score for replacing symbol at position lhs_pos in a
      with symbol at position rhs_pos in b */
   static constexpr auto offset = 16;
-  return scorematrix_v[(map_4bit(b_seq[rhs_pos]) * offset) +
+  return scorematrix[(map_4bit(b_seq[rhs_pos]) * offset) +
                      map_4bit(a_seq[lhs_pos])];
 }
 
@@ -232,7 +232,7 @@ auto LinearMemoryAligner::show_matrix() -> void
       std::printf("%2d:", i);
       for (auto j = 0; j < matrix_size; j++)
         {
-          std::printf(" %2" PRId64, scorematrix_v[(matrix_size * i) + j]);
+          std::printf(" %2" PRId64, scorematrix[(matrix_size * i) + j]);
         }
       std::printf("\n");
     }
