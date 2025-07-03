@@ -179,7 +179,7 @@ auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
           xfree(YY);
         }
 
-      HH_v.resize(vector_alloc);
+      HH.resize(vector_alloc);
       EE = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
       XX = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
       YY = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
@@ -432,12 +432,12 @@ auto LinearMemoryAligner::diff(int64_t a_start,
          empty seq A vs B of j symbols,
          i.e. a gap of length j in A                 */
 
-      HH_v[0] = 0;
+      HH[0] = 0;
       EE[0] = 0;
 
       for (int64_t j = 1; j <= b_len; j++)
         {
-          HH_v[j] = - (a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i));
+          HH[j] = - (a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i));
           EE[j] = int64_min;
         }
 
@@ -445,13 +445,13 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 1; i <= I; i++)
         {
-          auto p = HH_v[0];
+          auto p = HH[0];
 
           int64_t h = - (b_left ?
                          (gap_b_left ? 0 : go_t_l) + (i * ge_t_l) :
                          (gap_b_left ? 0 : go_t_i) + (i * ge_t_i));
 
-          HH_v[0] = h;
+          HH[0] = h;
           auto f = int64_min;
 
           for (int64_t j = 1; j <= b_len; j++)
@@ -459,23 +459,23 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_right && (j == b_len))
                 {
-                  EE[j] = std::max(EE[j], HH_v[j] - go_t_r) - ge_t_r;
+                  EE[j] = std::max(EE[j], HH[j] - go_t_r) - ge_t_r;
                 }
               else
                 {
-                  EE[j] = std::max(EE[j], HH_v[j] - go_t_i) - ge_t_i;
+                  EE[j] = std::max(EE[j], HH[j] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_start + i - 1, b_start + j - 1);
 
               h = std::max(f, h);
               h = std::max(EE[j], h);
-              p = HH_v[j];
-              HH_v[j] = h;
+              p = HH[j];
+              HH[j] = h;
             }
         }
 
-      EE[0] = HH_v[0];
+      EE[0] = HH[0];
 
       // Compute XX & YY in reverse phase
       // Lower part
@@ -536,7 +536,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t j = 0; j <= b_len; j++)
         {
-          auto const Score = HH_v[j] + XX[b_len - j];
+          auto const Score = HH[j] + XX[b_len - j];
 
           if (Score > MaxScore0)
             {

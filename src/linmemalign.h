@@ -96,7 +96,7 @@ class LinearMemoryAligner
 
   std::size_t vector_alloc;
 
-  std::vector<int64_t> HH_v;
+  std::vector<int64_t> HH;
   int64_t * EE;
   int64_t * XX;
   int64_t * YY;
