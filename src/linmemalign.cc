@@ -467,12 +467,12 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* initialize XX and YY */
 
-      XX[0] = 0;
+      XX_v[0] = 0;
       YY[0] = 0;
 
       for (int64_t j = 1; j <= b_len; j++)
         {
-          XX[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
+          XX_v[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
           YY[j] = int64_min;
         }
 
@@ -480,12 +480,12 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 1; i <= a_len - I; i++)
         {
-          auto p = XX[0];
+          auto p = XX_v[0];
 
           int64_t h = - (b_right ?
                          (gap_b_right ? 0 : go_t_r) + (i * ge_t_r) :
                          (gap_b_right ? 0 : go_t_i) + (i * ge_t_i));
-          XX[0] = h;
+          XX_v[0] = h;
           auto f = int64_min;
 
           for (int64_t j = 1; j <= b_len; j++)
@@ -493,23 +493,23 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_left && (j==b_len))
                 {
-                  YY[j] = std::max(YY[j], XX[j] - go_t_l) - ge_t_l;
+                  YY[j] = std::max(YY[j], XX_v[j] - go_t_l) - ge_t_l;
                 }
               else
                 {
-                  YY[j] = std::max(YY[j], XX[j] - go_t_i) - ge_t_i;
+                  YY[j] = std::max(YY[j], XX_v[j] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
 
               h = std::max(f, h);
               h = std::max(YY[j], h);
-              p = XX[j];
-              XX[j] = h;
+              p = XX_v[j];
+              XX_v[j] = h;
             }
         }
 
-      YY[0] = XX[0];
+      YY[0] = XX_v[0];
 
 
       /* find maximum score along division line */
@@ -521,7 +521,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t j = 0; j <= b_len; j++)
         {
-          auto const Score = HH[j] + XX[b_len - j];
+          auto const Score = HH[j] + XX_v[b_len - j];
 
           if (Score > MaxScore0)
             {
