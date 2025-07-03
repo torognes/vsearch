@@ -728,15 +728,15 @@ auto LinearMemoryAligner::alignstats(char * cigar,
         case 'I':
           if ((a_pos == 0) && (b_pos == 0))
             {
-              g = go_q_l + run * ge_q_l;
+              g = go_q_l + (run * ge_q_l);
             }
           else if (*p == 0)
             {
-              g = go_q_r + run * ge_q_r;
+              g = go_q_r + (run * ge_q_r);
             }
           else
             {
-              g = go_q_i + run * ge_q_i;
+              g = go_q_i + (run * ge_q_i);
             }
           nwscore -= g;
           ++nwgaps;
@@ -747,15 +747,15 @@ auto LinearMemoryAligner::alignstats(char * cigar,
         case 'D':
           if ((a_pos == 0) && (b_pos == 0))
             {
-              g = go_t_l + run * ge_t_l;
+              g = go_t_l + (run * ge_t_l);
             }
           else if (*p == 0)
             {
-              g = go_t_r + run * ge_t_r;
+              g = go_t_r + (run * ge_t_r);
             }
           else
             {
-              g = go_t_i + run * ge_t_i;
+              g = go_t_i + (run * ge_t_i);
             }
           nwscore -= g;
           ++nwgaps;
