@@ -172,7 +172,7 @@ auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
         }
 
       HH.resize(vector_alloc);
-      EE_v.resize(vector_alloc);
+      EE.resize(vector_alloc);
       XX = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
       YY = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
     }
@@ -425,12 +425,12 @@ auto LinearMemoryAligner::diff(int64_t a_start,
          i.e. a gap of length j in A                 */
 
       HH[0] = 0;
-      EE_v[0] = 0;
+      EE[0] = 0;
 
       for (int64_t j = 1; j <= b_len; j++)
         {
           HH[j] = - (a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i));
-          EE_v[j] = int64_min;
+          EE[j] = int64_min;
         }
 
       /* compute matrix */
@@ -451,23 +451,23 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_right && (j == b_len))
                 {
-                  EE_v[j] = std::max(EE_v[j], HH[j] - go_t_r) - ge_t_r;
+                  EE[j] = std::max(EE[j], HH[j] - go_t_r) - ge_t_r;
                 }
               else
                 {
-                  EE_v[j] = std::max(EE_v[j], HH[j] - go_t_i) - ge_t_i;
+                  EE[j] = std::max(EE[j], HH[j] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_start + i - 1, b_start + j - 1);
 
               h = std::max(f, h);
-              h = std::max(EE_v[j], h);
+              h = std::max(EE[j], h);
               p = HH[j];
               HH[j] = h;
             }
         }
 
-      EE_v[0] = HH[0];
+      EE[0] = HH[0];
 
       // Compute XX & YY in reverse phase
       // Lower part
@@ -558,7 +558,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               g = go_t_i;
             }
 
-          auto const Score = EE_v[j] + YY[b_len - j] + g;
+          auto const Score = EE[j] + YY[b_len - j] + g;
 
           if (Score > MaxScore1)
             {
