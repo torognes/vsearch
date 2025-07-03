@@ -105,10 +105,6 @@ LinearMemoryAligner::LinearMemoryAligner()
 
 LinearMemoryAligner::~LinearMemoryAligner()
 {
-  if (cigar_string != nullptr)
-    {
-      xfree(cigar_string);
-    }
 }
 
 
@@ -162,7 +158,8 @@ auto LinearMemoryAligner::cigar_reset() -> void
   if (cigar_alloc < 1)
     {
       cigar_alloc = minimal_length;
-      cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
+      cigar_string_v.resize(cigar_alloc);
+      cigar_string = cigar_string_v.data();
     }
   cigar_string[0] = 0;
   cigar_length = 0;
@@ -199,7 +196,8 @@ auto LinearMemoryAligner::cigar_flush() -> void
       else if (n >= rest)
         {
           cigar_alloc += std::max(n - rest + 1, minimal_length);
-          cigar_string = (char *) xrealloc(cigar_string, cigar_alloc);
+          cigar_string_v.resize(cigar_alloc);
+          cigar_string = cigar_string_v.data();
         }
       else
         {
