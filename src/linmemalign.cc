@@ -109,7 +109,6 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
   static constexpr auto last_row = matrix_size - 1;  // 'N'
   static constexpr auto last_column = matrix_size - 1;  // 'N'
   scorematrix_v.resize(matrix_size * matrix_size);
-  auto * newscorematrix = scorematrix_v.data();
 
   for (auto i = 0; i < matrix_size; i++)
     {
@@ -132,10 +131,10 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             {
               value = mismatch;
             }
-          newscorematrix[(matrix_size * i) + j] = value;
+          scorematrix_v[(matrix_size * i) + j] = value;
         }
     }
-  return newscorematrix;
+  return scorematrix_v.data();
 }
 
 
