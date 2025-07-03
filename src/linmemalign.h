@@ -68,35 +68,35 @@
 
 class LinearMemoryAligner
 {
-  char op;
-  int64_t op_run;
-  int64_t cigar_alloc;
-  int64_t cigar_length;
+  char op = '\0';
+  int64_t op_run = 0;
+  int64_t cigar_alloc = 0;
+  int64_t cigar_length = 0;
   std::vector<char> cigar_string;
 
-  char * a_seq;
-  char * b_seq;
+  char * a_seq = nullptr;
+  char * b_seq = nullptr;
 
-  int64_t * scorematrix;
+  int64_t * scorematrix = nullptr;
 
-  int64_t q;
-  int64_t r;
+  int64_t q = 0;
+  int64_t r = 0;
 
   /* gap penalties for open/extension query/target left/interior/right */
-  int64_t go_q_l;
-  int64_t go_t_l;
-  int64_t go_q_i;
-  int64_t go_t_i;
-  int64_t go_q_r;
-  int64_t go_t_r;
-  int64_t ge_q_l;
-  int64_t ge_t_l;
-  int64_t ge_q_i;
-  int64_t ge_t_i;
-  int64_t ge_q_r;
-  int64_t ge_t_r;
+  int64_t go_q_l = 0;
+  int64_t go_t_l = 0;
+  int64_t go_q_i = 0;
+  int64_t go_t_i = 0;
+  int64_t go_q_r = 0;
+  int64_t go_t_r = 0;
+  int64_t ge_q_l = 0;
+  int64_t ge_t_l = 0;
+  int64_t ge_q_i = 0;
+  int64_t ge_t_i = 0;
+  int64_t ge_q_r = 0;
+  int64_t ge_t_r = 0;
 
-  std::size_t vector_alloc;
+  std::size_t vector_alloc = 0;
 
   std::vector<int64_t> HH;
   std::vector<int64_t> EE;

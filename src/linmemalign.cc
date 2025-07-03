@@ -97,8 +97,6 @@ constexpr auto minimal_length = int64_t{64};
 
 
 LinearMemoryAligner::LinearMemoryAligner()
-    : cigar_alloc(0), scorematrix(nullptr),
-      vector_alloc(0)
 {
 }
 
