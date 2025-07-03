@@ -703,13 +703,13 @@ auto LinearMemoryAligner::alignstats(char * cigar,
             {
               nwscore += subst_score(a_pos, b_pos);
 
-              if (opt_n_mismatch && ((chrmap_4bit[(int) (a_seq[a_pos])] == is_N) ||
-                                     (chrmap_4bit[(int) (b_seq[b_pos])] == is_N)))
+              if (opt_n_mismatch && ((map_4bit(a_seq[a_pos]) == is_N) ||
+                                     (map_4bit(b_seq[b_pos]) == is_N)))
                 {
                   ++nwmismatches;
                 }
-              else if ((chrmap_4bit[(int)(a_seq[a_pos])] &
-                        chrmap_4bit[(int)(b_seq[b_pos])]) != 0U)
+              else if ((map_4bit(a_seq[a_pos]) &
+                        map_4bit(b_seq[b_pos])) != 0U)
                 {
                   ++nwmatches;
                 }
