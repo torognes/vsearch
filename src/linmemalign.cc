@@ -97,14 +97,10 @@ constexpr auto matrix_size = 16;
 constexpr auto minimal_length = int64_t{64};
 
 
-LinearMemoryAligner::LinearMemoryAligner()
-{
-}
+LinearMemoryAligner::LinearMemoryAligner() = default;
 
 
-LinearMemoryAligner::~LinearMemoryAligner()
-{
-}
+LinearMemoryAligner::~LinearMemoryAligner() = default;
 
 
 // refactoring: scorematrix_create should be private, called at construction time
