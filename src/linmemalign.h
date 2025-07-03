@@ -61,6 +61,7 @@
 #include "maps.h"
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
+#include <vector>
 
 
 class LinearMemoryAligner
@@ -95,7 +96,7 @@ class LinearMemoryAligner
 
   std::size_t vector_alloc;
 
-  int64_t * HH;
+  std::vector<int64_t> HH_v;
   int64_t * EE;
   int64_t * XX;
   int64_t * YY;
