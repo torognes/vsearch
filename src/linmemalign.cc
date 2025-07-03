@@ -223,7 +223,7 @@ auto LinearMemoryAligner::show_matrix() -> void
       std::printf("%2d:", i);
       for (auto j = 0; j < matrix_size; j++)
         {
-          std::printf(" %2" PRId64, scorematrix[(matrix_size * i) + j]);
+          std::printf(" %2" PRId64, scorematrix_v[(matrix_size * i) + j]);
         }
       std::printf("\n");
     }
