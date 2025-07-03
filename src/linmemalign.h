@@ -101,7 +101,7 @@ class LinearMemoryAligner
   std::vector<int64_t> HH;
   std::vector<int64_t> EE;
   std::vector<int64_t> XX;
-  std::vector<int64_t> YY_v;
+  std::vector<int64_t> YY;
 
   auto cigar_reset() -> void;
 
