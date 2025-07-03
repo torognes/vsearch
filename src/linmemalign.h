@@ -140,7 +140,7 @@ public:
 
   ~LinearMemoryAligner();
 
-  auto scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *;
+  auto scorematrix_create(int64_t match, int64_t mismatch) -> void;
 
   auto set_parameters(int64_t _gap_open_query_left,
                       int64_t _gap_open_target_left,

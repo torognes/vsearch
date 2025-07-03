@@ -104,7 +104,7 @@ LinearMemoryAligner::~LinearMemoryAligner() = default;
 
 
 // refactoring: scorematrix_create should be private, called at construction time
-auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
+auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> void
 {
   static constexpr auto last_row = matrix_size - 1;  // 'N'
   static constexpr auto last_column = matrix_size - 1;  // 'N'
@@ -134,7 +134,6 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
           scorematrix_v[(matrix_size * i) + j] = value;
         }
     }
-  return scorematrix_v.data();
 }
 
 

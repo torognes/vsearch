@@ -329,7 +329,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
   LinearMemoryAligner lma;
 
-  int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
+  lma.scorematrix_create(opt_match, opt_mismatch);
 
   lma.set_parameters(opt_gap_open_query_left,
                      opt_gap_open_target_left,
