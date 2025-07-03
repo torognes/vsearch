@@ -147,18 +147,13 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 }
 
 
-auto LinearMemoryAligner::alloc_vectors(std::size_t const size) -> void
-{
-  if (vector_alloc < size)
-    {
-      vector_alloc = size;
-
-
-      HH.resize(vector_alloc);
-      EE.resize(vector_alloc);
-      XX.resize(vector_alloc);
-      YY.resize(vector_alloc);
-    }
+auto LinearMemoryAligner::alloc_vectors(std::size_t const size) -> void {
+  if (vector_alloc >= size) { return; }
+  vector_alloc = size;
+  HH.resize(vector_alloc);
+  EE.resize(vector_alloc);
+  XX.resize(vector_alloc);
+  YY.resize(vector_alloc);
 }
 
 
