@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "linmemalign.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::max
