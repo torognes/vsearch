@@ -60,9 +60,16 @@
 
 #pragma once
 
+#include "maps.h"
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
 #include <vector>
+
+
+struct Scoring {
+  int64_t match = 0;
+  int64_t mismatch = 0;
+};
 
 
 class LinearMemoryAligner
