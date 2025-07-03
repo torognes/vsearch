@@ -123,7 +123,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             {
               value = 0;
             }
-          else if (i == j)
+          else if (i == j)  // diagonal
             {
               value = match;
             }
