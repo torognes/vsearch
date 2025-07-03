@@ -540,7 +540,6 @@ auto allpairs_thread_run(int64_t t) -> void
 
   search16_exit(searchinfo.s);
 
-  xfree(scorematrix);
 }
 
 

@@ -2186,7 +2186,6 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
   chimera_thread_exit(ci);
 
-  xfree(scorematrix);
 
   return 0;
 }

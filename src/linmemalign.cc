@@ -108,7 +108,8 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
 {
   static constexpr auto last_row = matrix_size - 1;  // 'N'
   static constexpr auto last_column = matrix_size - 1;  // 'N'
-  auto * newscorematrix = (int64_t *) xmalloc(matrix_size * matrix_size * sizeof(int64_t));
+  scorematrix_v.resize(matrix_size * matrix_size);
+  auto * newscorematrix = scorematrix_v.data();
 
   for (auto i = 0; i < matrix_size; i++)
     {

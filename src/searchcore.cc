@@ -786,7 +786,6 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
     }
 
   delete searchinfo->lma;
-  xfree(scorematrix);
 }
 
 

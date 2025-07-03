@@ -1068,7 +1068,6 @@ auto cluster_core_parallel() -> void
   /* terminate threads and clean up */
   threads_exit();
 
-  xfree(scorematrix);
 }
 
 
