@@ -58,8 +58,10 @@
 
 */
 
+#include "linmemalign.h"
 #include <array>
 #include <vector>
+
 
 struct uhandle_s;
 

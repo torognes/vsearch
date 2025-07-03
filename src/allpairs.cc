@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "align_simd.h"
+#include "linmemalign.h"
 #include "mask.h"
 #include "utils/fatal.hpp"
 #include "utils/xpthread.hpp"

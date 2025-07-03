@@ -203,7 +203,6 @@
 #include "arch.h"  // TODO: rename to operating_systems.h
 #include "util.h"
 #include "db.h"
-#include "linmemalign.h"
 #include "searchcore.h"
 #include "results.h"
 #include "cpu.h"

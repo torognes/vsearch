@@ -62,6 +62,7 @@
 #include "align_simd.h"
 #include "attributes.h"
 #include "dbindex.h"
+#include "linmemalign.h"
 #include "mask.h"
 #include "minheap.h"
 #include "msa.h"
