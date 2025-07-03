@@ -115,11 +115,11 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
       for (auto j = 0; j < matrix_size; j++)
         {
           int64_t value = 0;
-          if (opt_n_mismatch && ((i == last_row) || (j == last_column)))
+          if (opt_n_mismatch and ((i == last_row) or (j == last_column)))
             {
               value = mismatch;
             }
-          else if (is_ambiguous_4bit[i] || is_ambiguous_4bit[j])
+          else if (is_ambiguous_4bit[i] or is_ambiguous_4bit[j])
             {
               value = 0;
             }
@@ -418,7 +418,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
           for (int64_t j = 1; j <= b_len; j++)
             {
               f = std::max(f, h - go_q_i) - ge_q_i;
-              if (b_right && (j == b_len))
+              if (b_right and (j == b_len))
                 {
                   EE[j] = std::max(EE[j], HH[j] - go_t_r) - ge_t_r;
                 }
@@ -467,7 +467,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
           for (int64_t j = 1; j <= b_len; j++)
             {
               f = std::max(f, h - go_q_i) - ge_q_i;
-              if (b_left && (j==b_len))
+              if (b_left and (j==b_len))
                 {
                   YY[j] = std::max(YY[j], XX[j] - go_t_l) - ge_t_l;
                 }
@@ -514,11 +514,11 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       for (int64_t j = 0; j <= b_len; j++)
         {
           int64_t g = 0;
-          if (b_left && (j == 0))
+          if (b_left and (j == 0))
             {
               g = go_t_l;
             }
-          else if (b_right && (j == b_len))
+          else if (b_right and (j == b_len))
             {
               g = go_t_r;
             }
@@ -571,13 +571,13 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                I,                     best,
                gap_b_left,            false,
                a_left,                false,
-               b_left,                b_right && (best == b_len));
+               b_left,                b_right and (best == b_len));
 
           diff(a_start + I,           b_start + best,
                a_len - I,             b_len - best,
                false,                 gap_b_right,
                false,                 a_right,
-               b_left && (best == 0), b_right);
+               b_left and (best == 0), b_right);
         }
       else if (P == 1)
         {
@@ -585,7 +585,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                I - 1,                 best,
                gap_b_left,            true,
                a_left,                false,
-               b_left,                b_right && (best == b_len));
+               b_left,                b_right and (best == b_len));
 
           cigar_add('D', 2);
 
@@ -593,7 +593,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                a_len - I - 1,         b_len - best,
                true,                  gap_b_right,
                false,                 a_right,
-               b_left && (best == 0), b_right);
+               b_left and (best == 0), b_right);
         }
     }
 }
@@ -702,7 +702,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
             {
               nwscore += subst_score(a_pos, b_pos);
 
-              if (opt_n_mismatch && ((map_4bit(a_seq[a_pos]) == is_N) ||
+              if (opt_n_mismatch and ((map_4bit(a_seq[a_pos]) == is_N) or
                                      (map_4bit(b_seq[b_pos]) == is_N)))
                 {
                   ++nwmismatches;
@@ -723,7 +723,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
           break;
 
         case 'I':
-          if ((a_pos == 0) && (b_pos == 0))
+          if ((a_pos == 0) and (b_pos == 0))
             {
               g = go_q_l + (run * ge_q_l);
             }
@@ -742,7 +742,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
           break;
 
         case 'D':
-          if ((a_pos == 0) && (b_pos == 0))
+          if ((a_pos == 0) and (b_pos == 0))
             {
               g = go_t_l + (run * ge_t_l);
             }
