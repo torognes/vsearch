@@ -69,7 +69,7 @@ class LinearMemoryAligner
   int64_t op_run;
   int64_t cigar_alloc;
   int64_t cigar_length;
-  char * cigar_string;
+  char * cigar_string;  // refactoring: std::vector<char>
 
   char * a_seq;
   char * b_seq;
