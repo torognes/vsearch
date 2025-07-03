@@ -99,7 +99,7 @@ constexpr auto minimal_length = int64_t{64};
 LinearMemoryAligner::LinearMemoryAligner()
     : cigar_alloc(0), cigar_string(nullptr), scorematrix(nullptr),
       vector_alloc(0),
-      EE(nullptr), XX(nullptr), YY(nullptr)
+      XX(nullptr), YY(nullptr)
 {
 }
 
@@ -173,7 +173,6 @@ auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
 
       HH.resize(vector_alloc);
       EE_v.resize(vector_alloc);
-      EE = EE_v.data();
       XX = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
       YY = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
     }
