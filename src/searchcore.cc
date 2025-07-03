@@ -715,8 +715,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
   int64_t * scorematrix = searchinfo->lma->scorematrix_create(opt_match, opt_mismatch);
 
-  searchinfo->lma->set_parameters(scorematrix,
-                          opt_gap_open_query_left,
+  searchinfo->lma->set_parameters(opt_gap_open_query_left,
                           opt_gap_open_target_left,
                           opt_gap_open_query_interior,
                           opt_gap_open_target_interior,

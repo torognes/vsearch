@@ -600,8 +600,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
 
 // refactoring: set_parameters should be private, called at construction time
-auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
-                                         int64_t _gap_open_query_left,
+auto LinearMemoryAligner::set_parameters(int64_t _gap_open_query_left,
                                          int64_t _gap_open_target_left,
                                          int64_t _gap_open_query_interior,
                                          int64_t _gap_open_target_interior,
@@ -614,8 +613,6 @@ auto LinearMemoryAligner::set_parameters(int64_t * _scorematrix,
                                          int64_t _gap_extension_query_right,
                                          int64_t _gap_extension_target_right) -> void
 {
-  scorematrix = _scorematrix;
-
   /* a = query/q   b = t/target */
 
   go_q_l = _gap_open_query_left;

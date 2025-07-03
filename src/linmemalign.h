@@ -142,8 +142,7 @@ public:
 
   auto scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *;
 
-  auto set_parameters(int64_t * _scorematrix,
-                      int64_t _gap_open_query_left,
+  auto set_parameters(int64_t _gap_open_query_left,
                       int64_t _gap_open_target_left,
                       int64_t _gap_open_query_interior,
                       int64_t _gap_open_target_interior,

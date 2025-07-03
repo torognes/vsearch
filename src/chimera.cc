@@ -1823,8 +1823,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
   int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
 
-  lma.set_parameters(scorematrix,
-                     opt_gap_open_query_left,
+  lma.set_parameters(opt_gap_open_query_left,
                      opt_gap_open_target_left,
                      opt_gap_open_query_interior,
                      opt_gap_open_target_interior,

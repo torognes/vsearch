@@ -651,8 +651,7 @@ auto cluster_core_parallel() -> void
 
   LinearMemoryAligner lma;
   int64_t * scorematrix = lma.scorematrix_create(opt_match, opt_mismatch);
-  lma.set_parameters(scorematrix,
-                     opt_gap_open_query_left,
+  lma.set_parameters(opt_gap_open_query_left,
                      opt_gap_open_target_left,
                      opt_gap_open_query_interior,
                      opt_gap_open_target_interior,
