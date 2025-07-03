@@ -86,8 +86,6 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
 
 auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void;
 
-auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> void;
-
 auto get_hex_seq_digest_sha1(char * hex, char * seq, int seqlen) -> void;
 auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void;
 

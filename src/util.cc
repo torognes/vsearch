@@ -293,15 +293,6 @@ auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> vo
 }
 
 
-auto fprint_hex(std::FILE * output_handle, unsigned char * data, int len) -> void
-{
-  for (auto i = 0; i < len; ++i)
-    {
-      std::fprintf(output_handle, "%02x", *std::next(data, i));
-    }
-}
-
-
 auto SHA1(const unsigned char * data, unsigned long len, unsigned char * digest) -> void
 {
   if (digest == nullptr)
