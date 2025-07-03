@@ -100,6 +100,11 @@ constexpr auto minimal_length = int64_t{64};
 LinearMemoryAligner::LinearMemoryAligner() = default;
 
 
+LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring) {
+  scorematrix_create(scoring.match, scoring.mismatch);
+}
+
+
 LinearMemoryAligner::~LinearMemoryAligner() = default;
 
 

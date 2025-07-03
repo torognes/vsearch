@@ -134,6 +134,8 @@ public:
 
   LinearMemoryAligner();
 
+  LinearMemoryAligner(struct Scoring const & scoring);
+
   ~LinearMemoryAligner();
 
   auto scorematrix_create(int64_t match, int64_t mismatch) -> void;
