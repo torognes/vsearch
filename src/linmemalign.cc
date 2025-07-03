@@ -180,7 +180,6 @@ auto LinearMemoryAligner::alloc_vectors(std::size_t size) -> void
         }
 
       HH_v.resize(vector_alloc);
-      HH = HH_v.data();
       EE = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
       XX = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
       YY = (int64_t *) xmalloc(vector_alloc * (sizeof(int64_t)));
