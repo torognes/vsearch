@@ -460,12 +460,12 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       /* initialize XX and YY */
 
       XX[0] = 0;
-      YY[0] = 0;
+      YY_v[0] = 0;
 
       for (int64_t j = 1; j <= b_len; j++)
         {
           XX[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
-          YY[j] = int64_min;
+          YY_v[j] = int64_min;
         }
 
       /* compute matrix */
@@ -485,23 +485,23 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_left && (j==b_len))
                 {
-                  YY[j] = std::max(YY[j], XX[j] - go_t_l) - ge_t_l;
+                  YY_v[j] = std::max(YY_v[j], XX[j] - go_t_l) - ge_t_l;
                 }
               else
                 {
-                  YY[j] = std::max(YY[j], XX[j] - go_t_i) - ge_t_i;
+                  YY_v[j] = std::max(YY_v[j], XX[j] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_start + a_len - i, b_start + b_len - j);
 
               h = std::max(f, h);
-              h = std::max(YY[j], h);
+              h = std::max(YY_v[j], h);
               p = XX[j];
               XX[j] = h;
             }
         }
 
-      YY[0] = XX[0];
+      YY_v[0] = XX[0];
 
 
       /* find maximum score along division line */
@@ -543,7 +543,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               g = go_t_i;
             }
 
-          auto const Score = EE[j] + YY[b_len - j] + g;
+          auto const Score = EE[j] + YY_v[b_len - j] + g;
 
           if (Score > MaxScore1)
             {
