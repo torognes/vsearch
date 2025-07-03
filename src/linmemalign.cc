@@ -101,11 +101,6 @@ LinearMemoryAligner::LinearMemoryAligner()
 }
 
 
-LinearMemoryAligner::~LinearMemoryAligner()
-{
-}
-
-
 // refactoring: scorematrix_create should be private, called at construction time
 auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> int64_t *
 {
