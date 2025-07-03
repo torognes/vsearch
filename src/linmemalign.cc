@@ -158,9 +158,9 @@ auto LinearMemoryAligner::cigar_reset() -> void
   if (cigar_alloc < 1)
     {
       cigar_alloc = minimal_length;
-      cigar_string_v.resize(cigar_alloc);
+      cigar_string.resize(cigar_alloc);
     }
-  cigar_string_v[0] = 0;
+  cigar_string[0] = 0;
   cigar_length = 0;
   op = 0;
   op_run = 0;
@@ -178,13 +178,13 @@ auto LinearMemoryAligner::cigar_flush() -> void
       auto n = 0;
       if (op_run > 1)
         {
-          n = std::snprintf(&cigar_string_v[cigar_length],
+          n = std::snprintf(&cigar_string[cigar_length],
                        rest,
                        "%" PRId64 "%c", op_run, op);
         }
       else
         {
-          n = std::snprintf(&cigar_string_v[cigar_length],
+          n = std::snprintf(&cigar_string[cigar_length],
                        rest,
                        "%c", op);
         }
@@ -195,7 +195,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
       else if (n >= rest)
         {
           cigar_alloc += std::max(n - rest + 1, minimal_length);
-          cigar_string_v.resize(cigar_alloc);
+          cigar_string.resize(cigar_alloc);
         }
       else
         {
@@ -663,7 +663,7 @@ auto LinearMemoryAligner::align(char * _a_seq,
   cigar_flush();
 
   /* return cigar */
-  return cigar_string_v.data();
+  return cigar_string.data();
 }
 
 

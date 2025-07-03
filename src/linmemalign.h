@@ -72,7 +72,7 @@ class LinearMemoryAligner
   int64_t op_run;
   int64_t cigar_alloc;
   int64_t cigar_length;
-  std::vector<char> cigar_string_v;
+  std::vector<char> cigar_string;
 
   char * a_seq;
   char * b_seq;
