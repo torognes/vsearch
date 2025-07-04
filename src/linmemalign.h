@@ -110,6 +110,9 @@ private:
   std::vector<int64_t> XX;
   std::vector<int64_t> YY;
 
+  // initializers
+  auto scorematrix_create(int64_t match, int64_t mismatch) -> void;
+
   auto cigar_reset() -> void;
 
   auto cigar_flush() -> void;
@@ -136,8 +139,6 @@ public:
   LinearMemoryAligner(struct Scoring const & scoring);
 
   ~LinearMemoryAligner();
-
-  auto scorematrix_create(int64_t match, int64_t mismatch) -> void;
 
   auto set_parameters(int64_t _gap_open_query_left,
                       int64_t _gap_open_target_left,
