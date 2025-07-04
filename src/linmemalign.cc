@@ -215,8 +215,8 @@ auto LinearMemoryAligner::cigar_flush() -> void
 
 auto LinearMemoryAligner::subst_score(int64_t lhs_pos, int64_t rhs_pos) -> int64_t
 {
-  /* return substitution score for replacing symbol at position lhs_pos in a
-     with symbol at position rhs_pos in b */
+  /* return substitution score for replacing symbol at position
+     lhs_pos in a, with symbol at position rhs_pos in b */
   static constexpr auto offset = 16;
   return scorematrix[(map_4bit(b_seq[rhs_pos]) * offset) +
                      map_4bit(a_seq[lhs_pos])];
