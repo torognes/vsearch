@@ -330,6 +330,7 @@ auto allpairs_thread_run(int64_t t) -> void
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
 
   LinearMemoryAligner lma(scoring);
 

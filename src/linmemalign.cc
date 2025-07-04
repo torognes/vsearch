@@ -97,7 +97,8 @@ constexpr auto matrix_size = 16;
 constexpr auto minimal_length = int64_t{64};
 
 
-LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring) {
+LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
+  : q(scoring.gap_open_query_interior) {
   scorematrix_create(scoring);
 }
 

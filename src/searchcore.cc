@@ -714,6 +714,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
 
   searchinfo->lma = new LinearMemoryAligner(scoring);
 
