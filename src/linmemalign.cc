@@ -167,9 +167,9 @@ auto LinearMemoryAligner::cigar_reset() -> void
       cigar_alloc = minimal_length;
       cigar_string.resize(cigar_alloc);
     }
-  cigar_string[0] = 0;
+  cigar_string[0] = '\0';
   cigar_length = 0;
-  op = 0;
+  op = '\0';
   op_run = 0;
 }
 
