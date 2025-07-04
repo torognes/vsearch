@@ -711,9 +711,11 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
   search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
 
-  searchinfo->lma = new LinearMemoryAligner;
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
 
-  searchinfo->lma->scorematrix_create(opt_match, opt_mismatch);
+  searchinfo->lma = new LinearMemoryAligner(scoring);
 
   searchinfo->lma->set_parameters(opt_gap_open_query_left,
                           opt_gap_open_target_left,
