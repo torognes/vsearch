@@ -117,9 +117,6 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
 }
 
 
-LinearMemoryAligner::~LinearMemoryAligner() = default;
-
-
 auto LinearMemoryAligner::scorematrix_create(struct Scoring const & scoring) -> void
 {
   static constexpr auto last_row = matrix_size - 1;  // 'N'

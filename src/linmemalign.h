@@ -157,8 +157,6 @@ public:
 
   LinearMemoryAligner(struct Scoring const & scoring);
 
-  ~LinearMemoryAligner();
-
   auto align(char * _a_seq,
              char * _b_seq,
              int64_t a_len,
