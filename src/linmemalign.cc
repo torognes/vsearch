@@ -98,7 +98,21 @@ constexpr auto minimal_length = int64_t{64};
 
 
 LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
-  : q(scoring.gap_open_query_interior) {
+    : q(scoring.gap_open_query_interior),
+      r(scoring.gap_extension_query_interior),
+      go_q_l(scoring.gap_open_query_left),
+      go_t_l(scoring.gap_open_target_left),
+      go_q_i(scoring.gap_open_query_interior),
+      go_t_i(scoring.gap_open_target_interior),
+      go_q_r(scoring.gap_open_query_right),
+      go_t_r(scoring.gap_open_target_right),
+      ge_q_l(scoring.gap_extension_query_left),
+      ge_t_l(scoring.gap_extension_target_left),
+      ge_q_i(scoring.gap_extension_query_interior),
+      ge_t_i(scoring.gap_extension_target_interior),
+      ge_q_r(scoring.gap_extension_query_right),
+      ge_t_r(scoring.gap_extension_target_right)
+{
   scorematrix_create(scoring);
 }
 
