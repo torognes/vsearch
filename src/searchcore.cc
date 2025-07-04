@@ -715,21 +715,23 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
   scoring.gap_open_query_interior = opt_gap_open_query_interior;
+  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
+  scoring.gap_open_query_left = opt_gap_open_query_left;
+  scoring.gap_open_target_left = opt_gap_open_target_left;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
+  scoring.gap_open_target_interior = opt_gap_open_target_interior;
+  scoring.gap_open_query_right = opt_gap_open_query_right;
+  scoring.gap_open_target_right = opt_gap_open_target_right;
+  scoring.gap_extension_query_left = opt_gap_extension_query_left;
+  scoring.gap_extension_target_left = opt_gap_extension_target_left;
+  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
+  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
+  scoring.gap_extension_query_right = opt_gap_extension_query_right;
+  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+
 
   searchinfo->lma = new LinearMemoryAligner(scoring);
 
-  searchinfo->lma->set_parameters(opt_gap_open_query_left,
-                          opt_gap_open_target_left,
-                          opt_gap_open_query_interior,
-                          opt_gap_open_target_interior,
-                          opt_gap_open_query_right,
-                          opt_gap_open_target_right,
-                          opt_gap_extension_query_left,
-                          opt_gap_extension_target_left,
-                          opt_gap_extension_query_interior,
-                          opt_gap_extension_target_interior,
-                          opt_gap_extension_query_right,
-                          opt_gap_extension_target_right);
 
   /* extract unique kmer samples from query*/
   unique_count(searchinfo->uh, opt_wordlength,
