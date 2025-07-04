@@ -69,6 +69,7 @@
 struct Scoring {
   int64_t match = 0;
   int64_t mismatch = 0;
+  int64_t gap_open_query_interior = 0;
 };
 
 
