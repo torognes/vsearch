@@ -1819,9 +1819,11 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
-  LinearMemoryAligner lma;
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
 
-  lma.scorematrix_create(opt_match, opt_mismatch);
+  LinearMemoryAligner lma(scoring);
 
   lma.set_parameters(opt_gap_open_query_left,
                      opt_gap_open_target_left,
