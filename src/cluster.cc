@@ -649,8 +649,12 @@ auto cluster_core_parallel() -> void
 
   std::vector<int> extra_list(max_queries);
 
-  LinearMemoryAligner lma;
-  lma.scorematrix_create(opt_match, opt_mismatch);
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
+
+  LinearMemoryAligner lma(scoring);
+
   lma.set_parameters(opt_gap_open_query_left,
                      opt_gap_open_target_left,
                      opt_gap_open_query_interior,
