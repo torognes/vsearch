@@ -132,8 +132,6 @@ class LinearMemoryAligner
 
 public:
 
-  LinearMemoryAligner();
-
   LinearMemoryAligner(struct Scoring const & scoring);
 
   ~LinearMemoryAligner();
