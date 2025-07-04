@@ -67,9 +67,27 @@
 
 
 struct Scoring {
+  // aligned nucleotides
   int64_t match = 0;
   int64_t mismatch = 0;
-  int64_t gap_open_query_interior = 0;
+
+  // general gap penalties
+  int64_t gap_open_query_interior = 0;  // q
+  int64_t gap_extension_query_interior = 0; // r
+
+  // specific gap penalties
+  int64_t gap_open_query_left = 0;           // go_q_l
+  int64_t gap_open_target_left = 0;          // go_t_l
+  //      gap_open_query_interior            // go_q_i
+  int64_t gap_open_target_interior = 0;      // go_t_i
+  int64_t gap_open_query_right = 0;          // go_q_r
+  int64_t gap_open_target_right = 0;         // go_t_r
+  int64_t gap_extension_query_left = 0;      // ge_q_l
+  int64_t gap_extension_target_left = 0;     // ge_t_l
+  //      gap_extension_query_interior       // ge_q_i
+  int64_t gap_extension_target_interior = 0; // ge_t_i
+  int64_t gap_extension_query_right = 0;     // ge_q_r
+  int64_t gap_extension_target_right = 0;    // ge_t_r
 };
 
 
