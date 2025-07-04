@@ -153,6 +153,7 @@ private:
 
   auto alloc_vectors(std::size_t size) -> void;
 
+
 public:
 
   explicit LinearMemoryAligner(struct Scoring const & scoring);
@@ -170,5 +171,4 @@ public:
                   int64_t * nwmatches,
                   int64_t * nwmismatches,
                   int64_t * nwgaps) -> void;
-
 };
