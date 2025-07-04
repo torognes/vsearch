@@ -327,9 +327,11 @@ auto allpairs_thread_run(int64_t t) -> void
                         opt_gap_extension_target_right);
 
 
-  LinearMemoryAligner lma;
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
 
-  lma.scorematrix_create(opt_match, opt_mismatch);
+  LinearMemoryAligner lma(scoring);
 
   lma.set_parameters(opt_gap_open_query_left,
                      opt_gap_open_target_left,
