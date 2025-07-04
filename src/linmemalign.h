@@ -87,8 +87,8 @@ private:
 
   std::vector<int64_t> scorematrix;
 
-  int64_t q = 0;  // gap open query interior
-  int64_t r = 0;  // gap extension query interior
+  int64_t q = 0;  // general gap opening penalty (same as gap open query interior)
+  int64_t r = 0;  // general gap extension penalty (same as gap extension query interior)
 
   /* gap penalties for open/extension query/target left/interior/right */
   int64_t go_q_l = 0;
