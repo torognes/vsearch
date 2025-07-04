@@ -74,6 +74,7 @@ struct Scoring {
 
 class LinearMemoryAligner
 {
+private:
   char op = '\0';
   int64_t op_run = 0;
   int64_t cigar_alloc = 0;
