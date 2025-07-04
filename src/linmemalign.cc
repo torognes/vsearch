@@ -610,40 +610,6 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 }
 
 
-// refactoring: set_parameters should be private, called at construction time
-auto LinearMemoryAligner::set_parameters(int64_t _gap_open_query_left,
-                                         int64_t _gap_open_target_left,
-                                         int64_t _gap_open_query_interior,
-                                         int64_t _gap_open_target_interior,
-                                         int64_t _gap_open_query_right,
-                                         int64_t _gap_open_target_right,
-                                         int64_t _gap_extension_query_left,
-                                         int64_t _gap_extension_target_left,
-                                         int64_t _gap_extension_query_interior,
-                                         int64_t _gap_extension_target_interior,
-                                         int64_t _gap_extension_query_right,
-                                         int64_t _gap_extension_target_right) -> void
-{
-  /* a = query/q   b = t/target */
-
-  go_q_l = _gap_open_query_left;
-  go_t_l = _gap_open_target_left;
-  go_q_i = _gap_open_query_interior;
-  go_t_i = _gap_open_target_interior;
-  go_q_r = _gap_open_query_right;
-  go_t_r = _gap_open_target_right;
-  ge_q_l = _gap_extension_query_left;
-  ge_t_l = _gap_extension_target_left;
-  ge_q_i = _gap_extension_query_interior;
-  ge_t_i = _gap_extension_target_interior;
-  ge_q_r = _gap_extension_query_right;
-  ge_t_r = _gap_extension_target_right;
-
-  q = _gap_open_query_interior;
-  r = _gap_extension_query_interior;
-}
-
-
 auto LinearMemoryAligner::align(char * _a_seq,
                                 char * _b_seq,
                                 int64_t a_len,

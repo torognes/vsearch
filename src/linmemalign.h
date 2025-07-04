@@ -159,19 +159,6 @@ public:
 
   ~LinearMemoryAligner();
 
-  auto set_parameters(int64_t _gap_open_query_left,
-                      int64_t _gap_open_target_left,
-                      int64_t _gap_open_query_interior,
-                      int64_t _gap_open_target_interior,
-                      int64_t _gap_open_query_right,
-                      int64_t _gap_open_target_right,
-                      int64_t _gap_extension_query_left,
-                      int64_t _gap_extension_target_left,
-                      int64_t _gap_extension_query_interior,
-                      int64_t _gap_extension_target_interior,
-                      int64_t _gap_extension_query_right,
-                      int64_t _gap_extension_target_right) -> void;
-
   auto align(char * _a_seq,
              char * _b_seq,
              int64_t a_len,
