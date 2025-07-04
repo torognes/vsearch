@@ -98,7 +98,7 @@ constexpr auto minimal_length = int64_t{64};
 
 
 LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring) {
-  scorematrix_create(scoring.match, scoring.mismatch);
+  scorematrix_create(scoring);
 }
 
 
@@ -106,7 +106,7 @@ LinearMemoryAligner::~LinearMemoryAligner() = default;
 
 
 // refactoring: scorematrix_create should be private, called at construction time
-auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) -> void
+auto LinearMemoryAligner::scorematrix_create(struct Scoring const & scoring) -> void
 {
   static constexpr auto last_row = matrix_size - 1;  // 'N'
   static constexpr auto last_column = matrix_size - 1;  // 'N'
@@ -119,7 +119,7 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
           int64_t value = 0;
           if (opt_n_mismatch and ((i == last_row) or (j == last_column)))
             {
-              value = mismatch;
+              value = scoring.mismatch;
             }
           else if (is_ambiguous_4bit[i] or is_ambiguous_4bit[j])
             {
@@ -127,11 +127,11 @@ auto LinearMemoryAligner::scorematrix_create(int64_t match, int64_t mismatch) ->
             }
           else if (i == j)  // diagonal
             {
-              value = match;
+              value = scoring.match;
             }
           else
             {
-              value = mismatch;
+              value = scoring.mismatch;
             }
           scorematrix[(matrix_size * i) + j] = value;
         }

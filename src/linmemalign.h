@@ -111,7 +111,7 @@ private:
   std::vector<int64_t> YY;
 
   // initializers
-  auto scorematrix_create(int64_t match, int64_t mismatch) -> void;
+  auto scorematrix_create(struct Scoring const & scoring) -> void;
 
   auto cigar_reset() -> void;
 
