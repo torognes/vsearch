@@ -149,6 +149,31 @@ auto LinearMemoryAligner::scorematrix_create(struct Scoring const & scoring) -> 
     }
 }
 
+/*
+  Expected score matrix (if option N is mismatch):
+
+     0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+     -  A  C  M  G  R  S  V  T  W  Y  H  K  D  B  N
+0  - M  X  X  0  X  0  0  0  X  0  0  0  0  0  0  X
+1  A X  M  X  0  X  0  0  0  X  0  0  0  0  0  0  X
+2  C X  X  M  0  X  0  0  0  X  0  0  0  0  0  0  X
+3  M 0  0  0  M  0  0  0  0  0  0  0  0  0  0  0  X
+4  G X  X  X  0  M  0  0  0  X  0  0  0  0  0  0  X
+5  R 0  0  0  0  0  M  0  0  0  0  0  0  0  0  0  X
+6  S 0  0  0  0  0  0  M  0  0  0  0  0  0  0  0  X
+7  V 0  0  0  0  0  0  0  M  0  0  0  0  0  0  0  X
+8  T X  X  X  0  X  0  0  0  M  0  0  0  0  0  0  X
+9  W 0  0  0  0  0  0  0  0  0  M  0  0  0  0  0  X
+10 Y 0  0  0  0  0  0  0  0  0  0  M  0  0  0  0  X
+11 H 0  0  0  0  0  0  0  0  0  0  0  M  0  0  0  X
+12 K 0  0  0  0  0  0  0  0  0  0  0  0  M  0  0  X
+13 D 0  0  0  0  0  0  0  0  0  0  0  0  0  M  0  X
+14 B 0  0  0  0  0  0  0  0  0  0  0  0  0  0  M  X
+15 N X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  M
+
+  M = match, X = mismatch
+*/
+
 
 auto LinearMemoryAligner::alloc_vectors(std::size_t const size) -> void {
   if (vector_alloc >= size) { return; }
