@@ -58,7 +58,8 @@
 
 */
 
-#pragma once
+#ifndef LINMEMALIGN_HPP
+#define LINMEMALIGN_HPP
 
 #include "maps.h"
 #include <cstdio>  // std::FILE, std::size_t
@@ -172,3 +173,5 @@ public:
                   int64_t * nwmismatches,
                   int64_t * nwgaps) -> void;
 };
+
+#endif // LINMEMALIGN_HPP
