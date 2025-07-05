@@ -671,15 +671,17 @@ auto LinearMemoryAligner::alignstats(char * cigar,
           nwalignmentlength += run;
           for (int64_t k = 0; k < run; k++)
             {
+              auto const a_nuc = a_seq[a_pos];
+              auto const b_nuc = b_seq[b_pos];
               nwscore += subst_score(a_pos, b_pos);
 
-              if (opt_n_mismatch and ((map_4bit(a_seq[a_pos]) == is_N) or
-                                     (map_4bit(b_seq[b_pos]) == is_N)))
+              if (opt_n_mismatch and ((map_4bit(a_nuc) == is_N) or
+                                     (map_4bit(b_nuc) == is_N)))
                 {
                   ++nwmismatches;
                 }
-              else if ((map_4bit(a_seq[a_pos]) &
-                        map_4bit(b_seq[b_pos])) != 0U)
+              else if ((map_4bit(a_nuc) &
+                        map_4bit(b_nuc)) != 0U)
                 {
                   ++nwmatches;
                 }
