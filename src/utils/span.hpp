@@ -58,6 +58,10 @@
 
 */
 
+#ifndef SPAN_HPP
+#define SPAN_HPP
+
+
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
@@ -183,3 +187,5 @@ private:
 //   std::for_each(s7.begin(), s7.end(), [](char &c) -> void { printf("%c\n", c); });
 //   printf("\n");
 // }
+
+#endif // SPAN_HPP
