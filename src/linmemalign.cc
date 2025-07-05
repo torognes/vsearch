@@ -223,6 +223,16 @@ auto LinearMemoryAligner::subst_score(int64_t lhs_pos, int64_t rhs_pos) -> int64
 }
 
 
+auto LinearMemoryAligner::subst_score(char const lhs, char const rhs) -> int64_t
+{
+  /* return substitution score for replacing char lhs (sequence a),
+     with char rhs (sequence b) */
+  static constexpr auto offset = 16;
+  return scorematrix[(map_4bit(rhs) * offset) +
+                     map_4bit(lhs)];
+}
+
+
 auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
 {
   if (op == _op)
