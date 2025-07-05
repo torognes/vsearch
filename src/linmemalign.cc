@@ -93,7 +93,6 @@
 
 */
 
-constexpr auto matrix_size = 16;
 constexpr auto minimal_length = int64_t{64};
 
 
@@ -119,13 +118,14 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
 
 auto LinearMemoryAligner::scorematrix_create(struct Scoring const & scoring) -> void
 {
+  static constexpr auto matrix_size = 16U;
   static constexpr auto last_row = matrix_size - 1;  // 'N'
   static constexpr auto last_column = matrix_size - 1;  // 'N'
   scorematrix.resize(matrix_size * matrix_size);
 
-  for (auto i = 0; i < matrix_size; i++)
+  for (auto i = 0U; i < matrix_size; i++)
     {
-      for (auto j = 0; j < matrix_size; j++)
+      for (auto j = 0U; j < matrix_size; j++)
         {
           int64_t value = 0;
           if (opt_n_mismatch and ((i == last_row) or (j == last_column)))
