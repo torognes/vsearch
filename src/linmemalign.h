@@ -95,6 +95,7 @@ struct Scoring {
 class LinearMemoryAligner
 {
 private:
+  static constexpr auto matrix_size = 16U;
   char op = '\0';
   int64_t op_run = 0;
   int64_t cigar_alloc = 0;
@@ -104,7 +105,8 @@ private:
   char * a_seq = nullptr;
   char * b_seq = nullptr;
 
-  std::vector<int64_t> scorematrix;
+  // initialize a 16x16 matrix
+  std::vector<std::vector<int64_t>> scorematrix = std::vector<std::vector<int64_t>>(matrix_size, std::vector<int64_t>(matrix_size));
 
   int64_t q = 0;  // general gap opening penalty (same as gap open query interior)
   int64_t r = 0;  // general gap extension penalty (same as gap extension query interior)
@@ -131,7 +133,7 @@ private:
   std::vector<int64_t> YY;
 
   // initializers
-  auto scorematrix_create(struct Scoring const & scoring) -> void;
+  auto scorematrix_fill(struct Scoring const & scoring) -> void;
 
   auto cigar_reset() -> void;
 

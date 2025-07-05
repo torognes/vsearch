@@ -112,42 +112,9 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
       ge_q_r(scoring.gap_extension_query_right),
       ge_t_r(scoring.gap_extension_target_right)
 {
-  scorematrix_create(scoring);
+  scorematrix_fill(scoring);
 }
 
-
-auto LinearMemoryAligner::scorematrix_create(struct Scoring const & scoring) -> void
-{
-  static constexpr auto matrix_size = 16U;
-  static constexpr auto last_row = matrix_size - 1;  // 'N'
-  static constexpr auto last_column = matrix_size - 1;  // 'N'
-  scorematrix.resize(matrix_size * matrix_size);
-
-  for (auto i = 0U; i < matrix_size; i++)
-    {
-      for (auto j = 0U; j < matrix_size; j++)
-        {
-          int64_t value = 0;
-          if (opt_n_mismatch and ((i == last_row) or (j == last_column)))
-            {
-              value = scoring.mismatch;
-            }
-          else if (is_ambiguous_4bit[i] or is_ambiguous_4bit[j])
-            {
-              value = 0;
-            }
-          else if (i == j)  // diagonal
-            {
-              value = scoring.match;
-            }
-          else
-            {
-              value = scoring.mismatch;
-            }
-          scorematrix[(matrix_size * i) + j] = value;
-        }
-    }
-}
 
 /*
   Expected score matrix (if option N is mismatch):
@@ -172,7 +139,57 @@ auto LinearMemoryAligner::scorematrix_create(struct Scoring const & scoring) -> 
 15 N X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  M
 
   M = match, X = mismatch
+
+  Map from ascii to 4-bit nucleotide code
+  -:  0
+  A:  1
+  C:  2
+  M:  3
+  G:  4
+  R:  5
+  S:  6
+  V:  7
+  T:  8
+  W:  9
+  Y: 10
+  H: 11
+  K: 12
+  D: 13
+  B: 14
+  N: 15
 */
+
+auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> void {
+ std::vector<char> const nucleotides = {'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'};
+
+  // fill-in the score matrix
+  for (auto const row_nuc : nucleotides) {
+    auto const row = map_4bit(row_nuc);
+    for (auto const column_nuc : nucleotides) {
+      auto const column = map_4bit(column_nuc);
+      if (is_ambiguous_4bit[row] or is_ambiguous_4bit[column]) {
+        continue;  // then score is 0; already zero-initialized
+      }
+      else if (row == column) { // diagonal
+        scorematrix[row][column] = scoring.match;
+      }
+      else {
+        scorematrix[row][column] = scoring.mismatch;
+      }
+    }
+  }
+
+  // if alignment with N is set to be a mismatch
+  if (opt_n_mismatch) {
+    // last column
+    for (auto & row : scorematrix) {
+      row.back() = scoring.mismatch;
+    }
+    // last row
+    auto & last_row = scorematrix.back();
+    std::fill(last_row.begin(), last_row.end(), scoring.mismatch);
+  }
+}
 
 
 auto LinearMemoryAligner::alloc_vectors(std::size_t const size) -> void {
@@ -242,9 +259,7 @@ auto LinearMemoryAligner::subst_score(char const lhs, char const rhs) -> int64_t
 {
   /* return substitution score for replacing char lhs (sequence a),
      with char rhs (sequence b) */
-  static constexpr auto offset = 16;
-  return scorematrix[(map_4bit(rhs) * offset) +
-                     map_4bit(lhs)];
+  return scorematrix[map_4bit(rhs)][map_4bit(lhs)];
 }
 
 
