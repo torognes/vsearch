@@ -515,7 +515,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
           for (int64_t j = 1; j <= b_len; j++)
             {
               f = std::max(f, h - go_q_i) - ge_q_i;
-              if (b_left and (j==b_len))
+              if (b_left and (j == b_len))
                 {
                   YY[j] = std::max(YY[j], XX[j] - go_t_l) - ge_t_l;
                 }
