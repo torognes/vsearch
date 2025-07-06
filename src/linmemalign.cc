@@ -170,7 +170,7 @@ auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> vo
       if (is_ambiguous_4bit[row] or is_ambiguous_4bit[column]) {
         continue;  // then score is 0; already zero-initialized
       }
-      else if (row == column) { // diagonal
+      if (row == column) { // diagonal
         scorematrix[row][column] = scoring.match;
       }
       else {
