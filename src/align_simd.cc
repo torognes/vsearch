@@ -1237,7 +1237,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
 
   for (int i = 0; i < qlen; i++)
     {
-      s->qtable[i] = s->dprofile + 4 * chrmap_4bit[(int) (qseq[i])];
+      s->qtable[i] = s->dprofile + (4 * chrmap_4bit[(int) (qseq[i])]);
     }
 }
 
@@ -1676,20 +1676,20 @@ auto search16(s16info_s * s,
 
                       ((CELL *) &H0)[c] = 0;
                       ((CELL *) &H1)[c] = - s->penalty_gap_open_query_left
-                        - 1 * s->penalty_gap_extension_query_left;
+                        - (1 * s->penalty_gap_extension_query_left);
                       ((CELL *) &H2)[c] = - s->penalty_gap_open_query_left
-                        - 2 * s->penalty_gap_extension_query_left;
+                        - (2 * s->penalty_gap_extension_query_left);
                       ((CELL *) &H3)[c] = - s->penalty_gap_open_query_left
-                        - 3 * s->penalty_gap_extension_query_left;
+                        - (3 * s->penalty_gap_extension_query_left);
 
                       ((CELL *) &F0)[c] = - s->penalty_gap_open_query_left
-                        - 1 * s->penalty_gap_extension_query_left;
+                        - (1 * s->penalty_gap_extension_query_left);
                       ((CELL *) &F1)[c] = - s->penalty_gap_open_query_left
-                        - 2 * s->penalty_gap_extension_query_left;
+                        - (2 * s->penalty_gap_extension_query_left);
                       ((CELL *) &F2)[c] = - s->penalty_gap_open_query_left
-                        - 3 * s->penalty_gap_extension_query_left;
+                        - (3 * s->penalty_gap_extension_query_left);
                       ((CELL *) &F3)[c] = - s->penalty_gap_open_query_left
-                        - 4 * s->penalty_gap_extension_query_left;
+                        - (4 * s->penalty_gap_extension_query_left);
 
                       /* fill channel */
 
