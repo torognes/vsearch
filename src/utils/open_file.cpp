@@ -79,42 +79,41 @@ struct ModeString {
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-
-// Safely wrapping fopen()
-auto open_file(char const * filename,
-               ModeString const & mode) -> FileHandle {
-  assert(filename != nullptr);
-  assert(mode.mode != nullptr);
-  return FileHandle{std::fopen(filename, mode.mode)};
-}
-
-
-auto open_file_descriptor(int const file_descriptor,
-                          ModeString const & mode) -> FileHandle {
-  assert(file_descriptor >= 0);
-  assert(mode.mode != nullptr);
-  return FileHandle{fdopen(file_descriptor, mode.mode)};
-}
-
-
-// delete all implicit conversions (heavy-handed!)
-auto open_file(char const * ...) -> FileHandle = delete;
-auto open_file_descriptor(char const * ...) -> FileHandle = delete;
-
-
-auto check_file_descriptor(int const file_descriptor) -> void {
-  assert(file_descriptor >= -1);
-  if (file_descriptor != -1) {
-    return;
+  // Safely wrapping fopen()
+  auto open_file(char const * filename,
+                 ModeString const & mode) -> FileHandle {
+    assert(filename != nullptr);
+    assert(mode.mode != nullptr);
+    return FileHandle{std::fopen(filename, mode.mode)};
   }
-  if (errno == EBADF) {
-    fatal("original fd is not an open file descriptor.");
+
+
+  auto open_file_descriptor(int const file_descriptor,
+                            ModeString const & mode) -> FileHandle {
+    assert(file_descriptor >= 0);
+    assert(mode.mode != nullptr);
+    return FileHandle{fdopen(file_descriptor, mode.mode)};
   }
-  if (errno == EMFILE) {
-    fatal("too many open file descriptors.");
+
+
+  // delete all implicit conversions (heavy-handed!)
+  auto open_file(char const * ...) -> FileHandle = delete;
+  auto open_file_descriptor(char const * ...) -> FileHandle = delete;
+
+
+  auto check_file_descriptor(int const file_descriptor) -> void {
+    assert(file_descriptor >= -1);
+    if (file_descriptor != -1) {
+      return;
+    }
+    if (errno == EBADF) {
+      fatal("original fd is not an open file descriptor.");
+    }
+    if (errno == EMFILE) {
+      fatal("too many open file descriptors.");
+    }
+    fatal("cannot duplicate input or output stream.");
   }
-  fatal("cannot duplicate input or output stream.");
-}
 
 }  // end of anonymous namespace
 
