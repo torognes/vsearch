@@ -64,6 +64,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min
 #include <array>
 #include <cctype>  // isalnum
@@ -82,14 +83,14 @@ static char ** labels_data = nullptr;
 
 auto read_labels_file(char * filename) -> void
 {
-  FILE * fp_labels = fopen_input(filename);
-  if (fp_labels == nullptr)
+  auto fp_labels = read_file(filename);
+  if (fp_labels.get() == nullptr)
     {
       fatal("Unable to open labels file (%s)", filename);
     }
 
   xstat_t fs;
-  if (xfstat(fileno(fp_labels), & fs) != 0)
+  if (xfstat(fileno(fp_labels.get()), & fs) != 0)
     {
       fatal("Unable to get status for labels file (%s)", filename);
     }
@@ -107,7 +108,7 @@ auto read_labels_file(char * filename) -> void
     {
       static constexpr auto buffer_size = 1024;
       std::array<char, buffer_size> buffer {{}};
-      auto * return_value = std::fgets(buffer.data(), buffer_size, fp_labels);
+      auto * return_value = std::fgets(buffer.data(), buffer_size, fp_labels.get());
       if (return_value == nullptr) { break; }
 
       auto length = std::strlen(buffer.data());
@@ -133,7 +134,6 @@ auto read_labels_file(char * filename) -> void
       ++labels_count;
     }
 
-  fclose(fp_labels);
   progress_done();
 
   if (labels_longest >= 1023)

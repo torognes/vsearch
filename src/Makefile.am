@@ -108,6 +108,7 @@ userfields.h \
 util.h \
 utils/fatal.hpp \
 utils/maps.hpp \
+utils/open_file.hpp \
 utils/progress.hpp \
 utils/seqcmp.h \
 utils/span.hpp \
@@ -204,6 +205,7 @@ userfields.cc \
 util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
+utils/open_file.cpp \
 utils/xpthread.cpp \
 utils/seqcmp.cc \
 vsearch.cc
