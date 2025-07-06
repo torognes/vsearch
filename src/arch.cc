@@ -166,10 +166,10 @@ auto arch_get_user_system_time(double * user_time, double * system_time) -> void
 #else
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, & r_usage);
-  * user_time = r_usage.ru_utime.tv_sec * 1.0
-    + r_usage.ru_utime.tv_usec * 1.0e-6;
-  * system_time = r_usage.ru_stime.tv_sec * 1.0
-    + r_usage.ru_stime.tv_usec * 1.0e-6;
+  * user_time = (r_usage.ru_utime.tv_sec * 1.0)
+    + (r_usage.ru_utime.tv_usec * 1.0e-6);
+  * system_time = (r_usage.ru_stime.tv_sec * 1.0)
+    + (r_usage.ru_stime.tv_usec * 1.0e-6);
 #endif
 }
 
