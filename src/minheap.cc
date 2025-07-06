@@ -194,7 +194,7 @@ auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
 
       /* step down */
       parent = nth_child;
-      nth_child = 2 * parent + 1;
+      nth_child = (2 * parent) + 1;
     }
 
   a_minheap->array[parent] = tmp;
