@@ -60,10 +60,10 @@
 
 #include "fatal.hpp"
 #include "open_file.hpp"
-#include <errno.h>  // errno
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 #include <stdio.h>  // fdopen
 #include <cassert>
+#include <cerrno>  // errno
 #include <cstdio>  // std::fopen
 #include <cstring>  // std::strcmp
 
