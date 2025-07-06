@@ -76,6 +76,9 @@ struct ModeString {
   char const * mode;
 };
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 
 // Safely wrapping fopen()
 auto open_file(char const * filename,
@@ -112,6 +115,8 @@ auto check_file_descriptor(int const file_descriptor) -> void {
   }
   fatal("cannot duplicate input or output stream.");
 }
+
+}  // end of anonymous namespace
 
 
 auto read_file(const char * filename) -> FileHandle {
