@@ -396,7 +396,7 @@ namespace {
 
 
   auto search_illegal_characters(std::string const & pattern) -> void {
-    auto character_is_illegal = [](char const & character) {
+    auto character_is_illegal = [](char const & character) -> void {
       auto const unsigned_character = static_cast<unsigned char>(character);
       if (chrmap_4bit_vector[unsigned_character] == 0) {
         fatal("Illegal character in cut pattern");
