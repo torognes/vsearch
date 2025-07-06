@@ -117,6 +117,7 @@ namespace {
 }  // end of anonymous namespace
 
 
+// file to read
 auto read_file(const char * filename) -> FileHandle {
   assert(filename != nullptr);
   auto const mode = ModeString{"rb"};  // r: reading, b: non-UNIX environments
@@ -131,6 +132,7 @@ auto read_file(const char * filename) -> FileHandle {
 }
 
 
+// file to write
 auto write_file(const char * filename) -> FileHandle {
   assert(filename != nullptr);
   auto const mode = ModeString{"w"};  // w: writing, no b?
