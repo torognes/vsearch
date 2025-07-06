@@ -162,7 +162,7 @@ static auto Hash32Len0to4(const char * seq, std::size_t len) -> uint32_t {
   uint32_t c = 9;
   for (int i = 0; i < len; i++) {
     const signed char v = seq[i];
-    b = b * c1 + v;
+    b = (b * c1) + v;
     c ^= b;
   }
   return fmix(Mur(b, Mur(len, c)));
@@ -197,19 +197,19 @@ auto CityHash32(const char * seq, std::size_t len) -> uint32_t {
   const uint32_t a4 = Rotate32(Fetch32(seq + len - 20) * c1, 17) * c2;
   h ^= a0;
   h = Rotate32(h, 19);
-  h = h * 5 + 0xe6546b64;
+  h = (h * 5) + 0xe6546b64;
   h ^= a2;
   h = Rotate32(h, 19);
-  h = h * 5 + 0xe6546b64;
+  h = (h * 5) + 0xe6546b64;
   g ^= a1;
   g = Rotate32(g, 19);
-  g = g * 5 + 0xe6546b64;
+  g = (g * 5) + 0xe6546b64;
   g ^= a3;
   g = Rotate32(g, 19);
-  g = g * 5 + 0xe6546b64;
+  g = (g * 5) + 0xe6546b64;
   f += a4;
   f = Rotate32(f, 19);
-  f = f * 5 + 0xe6546b64;
+  f = (f * 5) + 0xe6546b64;
   std::size_t iters = (len - 1) / 20;
   do {
     const uint32_t a0 = Rotate32(Fetch32(seq) * c1, 17) * c2;
@@ -219,16 +219,16 @@ auto CityHash32(const char * seq, std::size_t len) -> uint32_t {
     const uint32_t a4 = Fetch32(seq + 16);
     h ^= a0;
     h = Rotate32(h, 18);
-    h = h * 5 + 0xe6546b64;
+    h = (h * 5) + 0xe6546b64;
     f += a1;
     f = Rotate32(f, 19);
     f = f * c1;
     g += a2;
     g = Rotate32(g, 18);
-    g = g * 5 + 0xe6546b64;
+    g = (g * 5) + 0xe6546b64;
     h ^= a3 + a1;
     h = Rotate32(h, 19);
-    h = h * 5 + 0xe6546b64;
+    h = (h * 5) + 0xe6546b64;
     g ^= a4;
     g = bswap_32(g) * 5;
     h += a4 * 5;
@@ -242,10 +242,10 @@ auto CityHash32(const char * seq, std::size_t len) -> uint32_t {
   f = Rotate32(f, 11) * c1;
   f = Rotate32(f, 17) * c1;
   h = Rotate32(h + g, 19);
-  h = h * 5 + 0xe6546b64;
+  h = (h * 5) + 0xe6546b64;
   h = Rotate32(h, 17) * c1;
   h = Rotate32(h + f, 19);
-  h = h * 5 + 0xe6546b64;
+  h = (h * 5) + 0xe6546b64;
   h = Rotate32(h, 17) * c1;
   return h;
 }
@@ -377,7 +377,7 @@ auto CityHash64(const char * seq, std::size_t len) -> uint64_t {
   uint64_t z = HashLen16(Fetch64(seq + len - 48) + len, Fetch64(seq + len - 24));
   auto v = WeakHashLen32WithSeeds(seq + len - 64, len, z);
   auto w = WeakHashLen32WithSeeds(seq + len - 32, y + k1, x);
-  x = x * k1 + Fetch64(seq);
+  x = (x * k1) + Fetch64(seq);
 
   // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
   len = (len - 1) & ~static_cast<std::size_t>(63);
@@ -416,7 +416,7 @@ static auto CityMurmur(const char * seq, std::size_t len, uint128 seed) -> uint1
   signed long l = len - 16;
   if (l <= 0) {  // len <= 16
     a = ShiftMix(a * k1) * k1;
-    c = b * k1 + HashLen0to16(seq, len);
+    c = (b * k1) + HashLen0to16(seq, len);
     d = ShiftMix(a + (len >= 8 ? Fetch64(seq) : c));
   } else {  // len > 16
     c = HashLen16(Fetch64(seq + len - 8) + k1, a);
@@ -450,9 +450,9 @@ auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uin
   uint64_t x = Uint128Low64(seed);
   uint64_t y = Uint128High64(seed);
   uint64_t z = len * k1;
-  v.first = Rotate(y ^ k1, 49) * k1 + Fetch64(seq);
-  v.second = Rotate(v.first, 42) * k1 + Fetch64(seq + 8);
-  w.first = Rotate(y + z, 35) * k1 + x;
+  v.first = (Rotate(y ^ k1, 49) * k1) + Fetch64(seq);
+  v.second = (Rotate(v.first, 42) * k1) + Fetch64(seq + 8);
+  w.first = (Rotate(y + z, 35) * k1) + x;
   w.second = Rotate(x + Fetch64(seq + 88), 53) * k1;
 
   // This is the same inner loop as CityHash64(), manually unrolled.
@@ -478,16 +478,16 @@ auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uin
     len -= 128;
   } while (LIKELY(len >= 128));
   x += Rotate(v.first + z, 49) * k0;
-  y = y * k0 + Rotate(w.second, 37);
-  z = z * k0 + Rotate(w.first, 27);
+  y = (y * k0) + Rotate(w.second, 37);
+  z = (z * k0) + Rotate(w.first, 27);
   w.first *= 9;
   v.first *= k0;
   // If 0 < len < 128, hash up to 4 chunks of 32 bytes each from the end of s.
   for (std::size_t tail_done = 0; tail_done < len; ) {
     tail_done += 32;
-    y = Rotate(x + y, 42) * k0 + v.second;
+    y = (Rotate(x + y, 42) * k0) + v.second;
     w.first += Fetch64(seq + len - tail_done + 16);
-    x = x * k0 + w.first;
+    x = (x * k0) + w.first;
     z += w.second + Fetch64(seq + len - tail_done);
     w.second += v.first;
     v = WeakHashLen32WithSeeds(seq + len - tail_done, v.first + z, v.second);
