@@ -170,11 +170,11 @@ auto test_label_match(fastx_handle h) -> bool
   int field_len = 0;
   if (opt_label_field != nullptr)
     {
-      field_len = strlen(opt_label_field);
+      field_len = std::strlen(opt_label_field);
       int field_buffer_size = field_len + 2;
       if (opt_label_word != nullptr)
         {
-          field_buffer_size += strlen(opt_label_word);
+          field_buffer_size += std::strlen(opt_label_word);
         }
       else
         {
@@ -187,7 +187,7 @@ auto test_label_match(fastx_handle h) -> bool
   if (opt_label != nullptr)
     {
       char * needle = opt_label;
-      int const wlen = strlen(needle);
+      int const wlen = std::strlen(needle);
       if (opt_label_substr_match)
         {
           return (xstrcasestr(header, needle) != nullptr);
@@ -211,7 +211,7 @@ auto test_label_match(fastx_handle h) -> bool
           for (int i = 0; i < labels_count; i++)
             {
               char * needle = labels_data[i];
-              int const wlen = strlen(needle);
+              int const wlen = std::strlen(needle);
               if ((hlen == wlen) and (strcasecmp(header, needle) == 0)) // strcasecmp is a linuxism
                 {
                   return true;
@@ -224,14 +224,14 @@ auto test_label_match(fastx_handle h) -> bool
       char * needle = opt_label_word;
       if (opt_label_field != nullptr)
         {
-          strcpy(field_buffer + field_len + 1, needle);
+          std::strcpy(field_buffer + field_len + 1, needle);
           needle = field_buffer;
         }
-      int const wlen = strlen(needle);
+      int const wlen = std::strlen(needle);
       char * hit = header;
       while (true)
         {
-          hit = strstr(hit, needle);
+          hit = std::strstr(hit, needle);
           if (hit != nullptr)
             {
               if (opt_label_field != nullptr)
@@ -271,14 +271,14 @@ auto test_label_match(fastx_handle h) -> bool
           char * needle = labels_data[i];
           if (opt_label_field != nullptr)
             {
-              strcpy(field_buffer + field_len + 1, needle);
+              std::strcpy(field_buffer + field_len + 1, needle);
               needle = field_buffer;
             }
-          int const wlen = strlen(needle);
+          int const wlen = std::strlen(needle);
           char * hit = header;
           while (true)
             {
-              hit = strstr(hit, needle);
+              hit = std::strstr(hit, needle);
               if (hit != nullptr)
                 {
                   if (opt_label_field != nullptr)
