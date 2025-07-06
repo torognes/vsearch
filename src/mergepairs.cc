@@ -372,7 +372,7 @@ auto precompute_qual() -> void
           // the error probabilities px and py,
           // what is the probability of observing a match (or a mismatch)?
 
-          p = 1.0 - px - py + px * py * 4.0 / 3.0;
+          p = 1.0 - px - py + (px * py * 4.0 / 3.0);
           match_score[x][y] = std::log2(p / 0.25);
 
           // Use a minimum mismatch penalty
