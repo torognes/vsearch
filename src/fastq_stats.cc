@@ -281,7 +281,7 @@ namespace {
     // for each quality symbol: sum symbol observations for each position
     std::vector<uint64_t> distribution(n_eight_bit_values);
     std::for_each(length_vs_quality.begin(), length_vs_quality.end(),
-                  [& distribution](std::vector<uint64_t> const & observations) {
+                  [& distribution](std::vector<uint64_t> const & observations) -> void {
                     std::transform(observations.begin(),
                                    observations.end(),
                                    distribution.begin(),
