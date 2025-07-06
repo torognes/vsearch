@@ -400,10 +400,10 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
 
   uint64_t const filesize = fastx_get_size(h1);
 
-  FILE * fp_fastaout = nullptr;
-  FILE * fp_fastqout = nullptr;
-  FILE * fp_notmatched = nullptr;
-  FILE * fp_notmatchedfq = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_notmatched = nullptr;
+  std::FILE * fp_notmatchedfq = nullptr;
 
   if (opt_fastaout != nullptr)
     {
