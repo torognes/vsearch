@@ -892,7 +892,7 @@ auto compute_diffs(struct chimera_info_s const * ci,
   auto const all_defined = (qsym != 0U) and
     std::all_of(psym.begin(),
                 psym.end(),
-                [](unsigned char const symbol) { return symbol != 0U; });
+                [](unsigned char const symbol) -> bool{ return symbol != 0U; });
 
   char diff = ' ';
 
