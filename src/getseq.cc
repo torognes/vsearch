@@ -83,7 +83,7 @@ static char ** labels_data = nullptr;
 
 auto read_labels_file(char * filename) -> void
 {
-  auto fp_labels = read_file(filename);
+  auto fp_labels = open_input_file(filename);
   if (fp_labels.get() == nullptr)
     {
       fatal("Unable to open labels file (%s)", filename);
