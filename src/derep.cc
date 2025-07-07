@@ -467,7 +467,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
       uint64_t const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
       uint64_t j = hash & hash_mask;
-      auto * bp = hashtable + j;
+      auto * bp = &hashtable_v[j];
 
       while ((bp->size != 0U) and
              ((hash != bp->hash) or
@@ -475,7 +475,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               (use_header and (std::strcmp(header, bp->header) != 0))))
         {
           j = (j + 1) & hash_mask;
-          bp = hashtable + j;
+          bp = &hashtable_v[j];
         }
 
       if (parameters.opt_strand and (bp->size == 0U))
@@ -485,7 +485,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
           uint64_t const rc_hash = hash_function(rc_seq_up.data(), seqlen) ^ hash_header;
           uint64_t k = rc_hash & hash_mask;
-          auto * rc_bp = hashtable + k;
+          auto * rc_bp = &hashtable_v[k];
 
           while ((rc_bp->size != 0U)
                  and
@@ -494,7 +494,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   (use_header and (std::strcmp(header, rc_bp->header) != 0))))
             {
               k = (k + 1) & hash_mask;
-              rc_bp = hashtable + k;
+              rc_bp = &hashtable_v[k];
             }
 
           if (rc_bp->size != 0U)
@@ -756,7 +756,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   uint64_t selected = 0;
   for (uint64_t i = 0; i < clusters; ++i)
     {
-      auto * bp = hashtable + i;
+      auto * bp = &hashtable_v[i];
       int64_t const size = bp->size;
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
@@ -779,7 +779,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = hashtable + i;
+          auto * bp = &hashtable_v[i];
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -813,7 +813,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = hashtable + i;
+          auto * bp = &hashtable_v[i];
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -846,7 +846,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing uc file, first part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = hashtable + i;
+          auto * bp = &hashtable_v[i];
           auto * hh =  bp->header;
           int64_t const len = std::strlen(bp->seq);
 
@@ -871,7 +871,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing uc file, second part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = hashtable + i;
+          auto * bp = &hashtable_v[i];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, bp->header);
           progress_update(i);
@@ -885,7 +885,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing tab separated file", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = hashtable + i;
+          auto * bp = &hashtable_v[i];
           auto * hh =  bp->header;
 
           if (parameters.opt_relabel != nullptr) {
