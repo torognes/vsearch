@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "mask.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/xpthread.hpp"
@@ -284,14 +285,8 @@ auto hardmask_all() -> void
 
 auto maskfasta(struct Parameters const & parameters) -> void
 {
-  if (parameters.opt_output == nullptr) {
-    fatal("Output file for masking must be specified with --output");
-  }
-
   auto const fp_output = open_output_file(parameters.opt_output);
-  if (not fp_output) {
-    fatal("Unable to open mask output file for writing");
-  }
+  check_mandatory_output_handle(parameters.opt_output, (not fp_output));
 
   db_read(parameters.opt_maskfasta, 0);
   show_rusage();
