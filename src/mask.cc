@@ -288,7 +288,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
     fatal("Output file for masking must be specified with --output");
   }
 
-  auto fp_output = open_output_file(parameters.opt_output);
+  auto const fp_output = open_output_file(parameters.opt_output);
   if (not fp_output) {
     fatal("Unable to open mask output file for writing");
   }
