@@ -948,18 +948,14 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* Free all seqs and headers */
 
-  for (uint64_t i = 0; i < clusters; ++i)
-    {
-      auto * bp = &hashtable_v[i];
-      if (bp->size != 0U)
-        {
-          xfree(bp->seq);
-          xfree(bp->header);
-          if (bp->qual != nullptr) {
-            xfree(bp->qual);
-          }
-        }
+  for (auto & bucket : hashtable_v) {
+    if (bucket.size == 0U) { continue; }
+    xfree(bucket.seq);
+    xfree(bucket.header);
+    if (bucket.qual != nullptr) {
+      xfree(bucket.qual);
     }
+  }
 
   show_rusage();
 
