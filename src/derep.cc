@@ -69,7 +69,6 @@
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcmp
-#include <iterator>  // std::next
 #include <limits>
 #include <string>
 #include <vector>
