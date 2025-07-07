@@ -707,12 +707,12 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       if ((clusters % 2) != 0U)
         {
-          median = hashtable[(clusters - 1) / 2].size;
+          median = hashtable_v[(clusters - 1) / 2].size;
         }
       else
         {
-          median = (hashtable[(clusters / 2) - 1].size +
-                    hashtable[clusters / 2].size) / 2.0;
+          median = (hashtable_v[(clusters / 2) - 1].size +
+                    hashtable_v[clusters / 2].size) / 2.0;
         }
     }
 
