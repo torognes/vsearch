@@ -134,6 +134,52 @@ namespace {
     return rhs_size + ((lhs_size - rhs_size) * half);
   }
 
+
+  auto rehash(std::vector<struct bucket> & hashtable) -> void
+  {
+    // new double-size hash table
+    uint64_t const new_hashtable_size = 2 * hashtable.size();
+    uint64_t const new_hash_mask = new_hashtable_size - 1;
+    std::vector<struct bucket> new_hashtable(new_hashtable_size);
+
+    // rehash all entries from the old to the new table
+    for (auto const & old_bucket : hashtable) {
+      if (old_bucket.size != 0U) {
+        auto new_index = old_bucket.hash & new_hash_mask;
+        while (new_hashtable[new_index].size != 0U) {
+          new_index = (new_index + 1) & new_hash_mask;
+        }
+        new_hashtable[new_index] = old_bucket;
+      }
+    }
+    hashtable.swap(new_hashtable);
+  }
+
+
+  // refactorig: duplicate of q2p()?
+  inline auto convert_quality_symbol_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
+  {
+    static constexpr auto minimal_quality_value = 2;
+    static constexpr auto maximal_probability = 0.75;
+    auto const quality_value = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
+    if (quality_value < minimal_quality_value)
+      {
+        return maximal_probability;
+      }
+    static constexpr auto base = 10.0;
+    return std::pow(base, -quality_value / base);
+  }
+
+
+  inline auto convert_probability_to_quality_symbol(double const probability, struct Parameters const & parameters) -> int
+  {
+    static constexpr auto base = 10.0;
+    auto quality_value = static_cast<int64_t>(std::trunc(-base * std::log10(probability)));
+    quality_value = std::min(quality_value, parameters.opt_fastq_qmaxout);
+    quality_value = std::max(quality_value, parameters.opt_fastq_qminout);
+    return static_cast<int>(quality_value + parameters.opt_fastq_asciiout);
+  }
+  
 }  // end of anonymous namespace
 
 
@@ -182,52 +228,6 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
     }
   // same ordinal value (impossible)
   return 0;  // unreachable
-}
-
-
-auto rehash(std::vector<struct bucket> & hashtable) -> void
-{
-  // new double-size hash table
-  uint64_t const new_hashtable_size = 2 * hashtable.size();
-  uint64_t const new_hash_mask = new_hashtable_size - 1;
-  std::vector<struct bucket> new_hashtable(new_hashtable_size);
-
-  // rehash all entries from the old to the new table
-  for (auto const & old_bucket : hashtable) {
-    if (old_bucket.size != 0U) {
-      auto new_index = old_bucket.hash & new_hash_mask;
-      while (new_hashtable[new_index].size != 0U) {
-        new_index = (new_index + 1) & new_hash_mask;
-      }
-      new_hashtable[new_index] = old_bucket;
-    }
-  }
-  hashtable.swap(new_hashtable);
-}
-
-
-// refactorig: duplicate of q2p()?
-inline auto convert_quality_symbol_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
-{
-  static constexpr auto minimal_quality_value = 2;
-  static constexpr auto maximal_probability = 0.75;
-  auto const quality_value = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
-  if (quality_value < minimal_quality_value)
-    {
-      return maximal_probability;
-    }
-  static constexpr auto base = 10.0;
-  return std::pow(base, -quality_value / base);
-}
-
-
-inline auto convert_probability_to_quality_symbol(double const probability, struct Parameters const & parameters) -> int
-{
-  static constexpr auto base = 10.0;
-  auto quality_value = static_cast<int64_t>(std::trunc(-base * std::log10(probability)));
-  quality_value = std::min(quality_value, parameters.opt_fastq_qmaxout);
-  quality_value = std::max(quality_value, parameters.opt_fastq_qminout);
-  return static_cast<int>(quality_value + parameters.opt_fastq_asciiout);
 }
 
 
