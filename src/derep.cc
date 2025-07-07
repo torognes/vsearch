@@ -950,7 +950,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   for (uint64_t i = 0; i < clusters; ++i)
     {
-      auto * bp = hashtable + i;
+      auto * bp = &hashtable_v[i];
       if (bp->size != 0U)
         {
           xfree(bp->seq);
