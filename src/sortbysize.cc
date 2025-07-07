@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::sort
 #include <cassert>
 #include <cstdint>  // int64_t
@@ -83,18 +84,14 @@ namespace {
   };
 
 
-  // refactoring: factorize all versions of this function, extract to new header
-  auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
-    if (parameters.opt_output == nullptr) {
+  auto check_output_file(char const * filename, bool const filehandle_is_empty) -> void {
+    if (filename == nullptr) {
       fatal("FASTA output file for sortbysize must be specified with --output");
     }
-    auto * output_handle = fopen_output(parameters.opt_output);
-    if (output_handle == nullptr) {
+    if (filehandle_is_empty) {
       fatal("Unable to open sortbysize output file for writing");
     }
-    return output_handle;
   }
-
 
   auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
     auto const dbsequencecount = db_getsequencecount();
@@ -251,7 +248,8 @@ namespace {
 
 auto sortbysize(struct Parameters const & parameters) -> void
 {
-  auto * output_handle = open_output_file(parameters);
+  auto const output_handle = open_output_file(parameters.opt_output);
+  check_output_file(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_sortbysize, 0);
   show_rusage();
 
@@ -264,12 +262,8 @@ auto sortbysize(struct Parameters const & parameters) -> void
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, output_handle);
+  output_sorted_fasta(deck, output_handle.get());
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();
-
-  if (output_handle != nullptr) {
-    static_cast<void>(std::fclose(output_handle));
-  }
 }
