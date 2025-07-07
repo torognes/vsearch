@@ -158,7 +158,7 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 }
 
 
-auto rehash(std::vector<struct bucket> & hashtable_v, int64_t alloc_clusters) -> void
+auto rehash(std::vector<struct bucket> & hashtable_v) -> void
 {
   /*
     double the size of the hash table:
@@ -170,7 +170,7 @@ auto rehash(std::vector<struct bucket> & hashtable_v, int64_t alloc_clusters) ->
   */
 
   auto * old_hashtable = hashtable_v.data();
-  uint64_t const old_hashtablesize = 2 * alloc_clusters;
+  uint64_t const old_hashtablesize = hashtable_v.size();
   uint64_t const new_hashtablesize = 2 * old_hashtablesize;
   uint64_t const new_hash_mask = new_hashtablesize - 1;
 
@@ -439,7 +439,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           uint64_t const new_alloc_clusters = 2 * alloc_clusters;
 
-          rehash(hashtable_v, alloc_clusters);
+          rehash(hashtable_v);
 
           alloc_clusters = new_alloc_clusters;
           hashtablesize = 2 * alloc_clusters;
