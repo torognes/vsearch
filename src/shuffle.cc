@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::shuffle
@@ -70,16 +71,6 @@
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-
-  auto check_output_file(char const * filename, bool const filehandle_is_empty) -> void {
-    if (filename == nullptr) {
-      fatal("Output file for shuffling must be specified with --output");
-    }
-    if (filehandle_is_empty) {
-      fatal("Unable to open shuffle output file for writing");
-    }
-  }
-
 
   auto create_deck() -> std::vector<int> {
     auto const dbsequencecount = db_getsequencecount();
@@ -136,7 +127,7 @@ namespace {
 
 auto shuffle(struct Parameters const & parameters) -> void {
   auto const output_handle = open_output_file(parameters.opt_output);
-  check_output_file(parameters.opt_output, (not output_handle));
+  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_shuffle, 0);
   show_rusage();
 
