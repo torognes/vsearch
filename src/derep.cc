@@ -324,7 +324,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   uint64_t hashtablesize = 2 * alloc_clusters;
   uint64_t hash_mask = hashtablesize - 1;
-  std::vector<struct bucket> hashtable_v(hashtablesize);
+  std::vector<struct bucket> hashtable(hashtablesize);
 
   show_rusage();
 
@@ -421,7 +421,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
         {
           uint64_t const new_alloc_clusters = 2 * alloc_clusters;
 
-          rehash(hashtable_v);
+          rehash(hashtable);
 
           alloc_clusters = new_alloc_clusters;
           hashtablesize = 2 * alloc_clusters;
@@ -464,7 +464,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
       uint64_t const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
       uint64_t j = hash & hash_mask;
-      auto * bp = &hashtable_v[j];
+      auto * bp = &hashtable[j];
 
       while ((bp->size != 0U) and
              ((hash != bp->hash) or
@@ -472,7 +472,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
               (use_header and (std::strcmp(header, bp->header) != 0))))
         {
           j = (j + 1) & hash_mask;
-          bp = &hashtable_v[j];
+          bp = &hashtable[j];
         }
 
       if (parameters.opt_strand and (bp->size == 0U))
@@ -482,7 +482,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
           uint64_t const rc_hash = hash_function(rc_seq_up.data(), seqlen) ^ hash_header;
           uint64_t k = rc_hash & hash_mask;
-          auto * rc_bp = &hashtable_v[k];
+          auto * rc_bp = &hashtable[k];
 
           while ((rc_bp->size != 0U)
                  and
@@ -491,7 +491,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
                   (use_header and (std::strcmp(header, rc_bp->header) != 0))))
             {
               k = (k + 1) & hash_mask;
-              rc_bp = &hashtable_v[k];
+              rc_bp = &hashtable[k];
             }
 
           if (rc_bp->size != 0U)
@@ -694,7 +694,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable_v.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
+  qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
   progress_done();
 
   show_rusage();
@@ -704,12 +704,12 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
     {
       if ((clusters % 2) != 0U)
         {
-          median = hashtable_v[(clusters - 1) / 2].size;
+          median = hashtable[(clusters - 1) / 2].size;
         }
       else
         {
-          median = (hashtable_v[(clusters / 2) - 1].size +
-                    hashtable_v[clusters / 2].size) / 2.0;
+          median = (hashtable[(clusters / 2) - 1].size +
+                    hashtable[clusters / 2].size) / 2.0;
         }
     }
 
@@ -750,7 +750,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* count selected */
 
-  auto const selected = count_selected(hashtable_v, parameters);
+  auto const selected = count_selected(hashtable, parameters);
 
   show_rusage();
 
@@ -763,7 +763,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable_v[i];
+          auto * bp = &hashtable[i];
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -797,7 +797,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable_v[i];
+          auto * bp = &hashtable[i];
           int64_t const size = bp->size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -830,7 +830,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing uc file, first part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable_v[i];
+          auto * bp = &hashtable[i];
           auto * hh =  bp->header;
           int64_t const len = std::strlen(bp->seq);
 
@@ -855,7 +855,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing uc file, second part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable_v[i];
+          auto * bp = &hashtable[i];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp->size, bp->header);
           progress_update(i);
@@ -869,7 +869,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing tab separated file", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable_v[i];
+          auto * bp = &hashtable[i];
           auto * hh =  bp->header;
 
           if (parameters.opt_relabel != nullptr) {
@@ -932,7 +932,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* Free all seqs and headers */
 
-  for (auto & bucket : hashtable_v) {
+  for (auto & bucket : hashtable) {
     if (bucket.size == 0U) { continue; }
     xfree(bucket.seq);
     xfree(bucket.header);
