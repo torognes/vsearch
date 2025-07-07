@@ -112,7 +112,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-// file to read, open_input_file, open_istream
+// read_file, file to read, open_input_file, open_istream
 auto read_file(const char * filename) -> FileHandle {
   if (filename == nullptr) {
     std::FILE * empty = nullptr;
@@ -130,7 +130,7 @@ auto read_file(const char * filename) -> FileHandle {
 }
 
 
-// file to write, open_output_file, open_ostream
+// write_file, file to write, open_output_file, open_ostream
 auto write_file(const char * filename) -> FileHandle {
   if (filename == nullptr) {
     std::FILE * empty = nullptr;
