@@ -68,7 +68,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstring>  // std::strlen, std::strcmp, std::memset
+#include <cstring>  // std::strlen, std::strcmp
 #include <iterator>  // std::next
 #include <limits>
 #include <string>
@@ -81,15 +81,15 @@ static Hash hash_function = hash_cityhash64;
 
 struct bucket
 {
-  uint64_t hash;
-  unsigned int seqno_first;
-  unsigned int seqno_last;
-  unsigned int size;
-  unsigned int count;
-  bool deleted;
-  char * header;
-  char * seq;
-  char * qual;
+  uint64_t hash = 0;
+  unsigned int seqno_first = 0;
+  unsigned int seqno_last = 0;
+  unsigned int size = 0;
+  unsigned int count = 0;
+  bool deleted = false;
+  char * header = nullptr;
+  char * seq = nullptr;
+  char * qual = nullptr;
 };
 
 
@@ -159,7 +159,6 @@ auto rehash(std::vector<struct bucket> & hashtable_v, int64_t alloc_clusters) ->
 
   std::vector<struct bucket> new_hashtable_v(new_hashtablesize);
   auto * new_hashtable = new_hashtable_v.data();
-  std::memset(new_hashtable, 0, sizeof(struct bucket) * new_hashtablesize);
 
   /* rehash all */
   for (auto i = 0UL; i < old_hashtablesize; ++i)
@@ -328,7 +327,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   uint64_t hash_mask = hashtablesize - 1;
   std::vector<struct bucket> hashtable_v(hashtablesize);
   auto * hashtable = hashtable_v.data();
-  std::memset(hashtable, 0, sizeof(struct bucket) * hashtablesize);
 
   show_rusage();
 
