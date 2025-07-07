@@ -93,6 +93,28 @@ struct bucket
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  // refactoring: std::count_if
+  auto count_selected(std::vector<struct bucket> const & hashtable,
+                      struct Parameters const & parameters) -> uint64_t {
+    uint64_t selected = 0;
+    for (auto const & bucket : hashtable) {
+      int64_t const size = bucket.size;
+      if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize)) {
+        ++selected;
+        if (selected == static_cast<uint64_t>(parameters.opt_topn)) {
+          break;
+        }
+      }
+    }
+    return selected;
+  }
+
+}  // end of anonymous namespace
+
+
 auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 {
   auto * lhs = (struct bucket *) void_lhs;
@@ -751,16 +773,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   /* count selected */
 
-  uint64_t selected = 0;
-  for (auto const & bucket : hashtable_v) {
-    int64_t const size = bucket.size;
-    if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize)) {
-      ++selected;
-      if (selected == static_cast<uint64_t>(parameters.opt_topn)) {
-        break;
-      }
-    }
-  }
+  auto const selected = count_selected(hashtable_v, parameters);
 
   show_rusage();
 
