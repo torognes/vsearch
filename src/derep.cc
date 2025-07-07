@@ -326,7 +326,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   uint64_t hashtablesize = 2 * alloc_clusters;
   uint64_t hash_mask = hashtablesize - 1;
   std::vector<struct bucket> hashtable_v(hashtablesize);
-  auto * hashtable = hashtable_v.data();
 
   show_rusage();
 
@@ -424,7 +423,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
           uint64_t const new_alloc_clusters = 2 * alloc_clusters;
 
           rehash(hashtable_v, alloc_clusters);
-          hashtable = hashtable_v.data();
 
           alloc_clusters = new_alloc_clusters;
           hashtablesize = 2 * alloc_clusters;
@@ -697,7 +695,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable, hashtablesize, sizeof(struct bucket), derep_compare_full);
+  qsort(hashtable_v.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
   progress_done();
 
   show_rusage();
