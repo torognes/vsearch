@@ -95,11 +95,6 @@ namespace {
   }
 
 
-  // delete all implicit conversions (heavy-handed!)
-  auto open_file(char const * ...) -> FileHandle = delete;
-  auto open_file_descriptor(char const * ...) -> FileHandle = delete;
-
-
   auto check_file_descriptor(int const file_descriptor) -> void {
     assert(file_descriptor >= -1);
     if (file_descriptor != -1) {
