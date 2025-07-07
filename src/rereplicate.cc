@@ -59,8 +59,10 @@
 */
 
 #include "vsearch.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include <cinttypes> // macros PRIu64 and PRId64
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdint>  // int64_t
@@ -68,25 +70,14 @@
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-
-  // refactoring: factorize all versions of this function, extract to new header
-  auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
-    if (parameters.opt_output == nullptr) {
-      fatal("FASTA output file for rereplicate must be specified with --output");
-    }
-    auto * output_handle = fopen_output(parameters.opt_output);
-    if (output_handle == nullptr) {
-      fatal("Unable to open FASTA output file for writing");
-    }
-    return output_handle;
-  }
   
 }  // end of anonymous namespace
 
 
 auto rereplicate(struct Parameters const & parameters) -> void
 {
-  auto * output_handle = open_output_file(parameters);
+  auto const output_handle = open_output_file(parameters.opt_output);
+  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
   auto * input_handle = fasta_open(parameters.opt_rereplicate);
   auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
@@ -111,7 +102,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
           ++n_reads;
           if (parameters.opt_output != nullptr)
             {
-              fasta_print_general(output_handle,
+              fasta_print_general(output_handle.get(),
                                   nullptr,
                                   fasta_get_sequence(input_handle),
                                   static_cast<int>(fasta_get_sequence_length(input_handle)),
@@ -147,7 +138,4 @@ auto rereplicate(struct Parameters const & parameters) -> void
     }
 
   fasta_close(input_handle);
-  if (output_handle != nullptr) {
-    static_cast<void>(std::fclose(output_handle));
-  }
 }
