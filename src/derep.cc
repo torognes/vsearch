@@ -160,21 +160,12 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 
 auto rehash(std::vector<struct bucket> & hashtable) -> void
 {
-  /*
-    double the size of the hash table:
-
-    - allocate the new hash table
-    - rehash all entries from the old to the new table
-    - free the old table
-    - update variables
-  */
-
+  // new double-size hash table
   uint64_t const new_hashtablesize = 2 * hashtable.size();
   uint64_t const new_hash_mask = new_hashtablesize - 1;
-
   std::vector<struct bucket> new_hashtable(new_hashtablesize);
 
-  /* rehash all */
+  // rehash all entries from the old to the new table
   for (auto const & old_bucket : hashtable) {
     if (old_bucket.size != 0U) {
       auto new_index = old_bucket.hash & new_hash_mask;
