@@ -752,19 +752,15 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   /* count selected */
 
   uint64_t selected = 0;
-  for (uint64_t i = 0; i < clusters; ++i)
-    {
-      auto * bp = &hashtable_v[i];
-      int64_t const size = bp->size;
-      if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-        {
-          ++selected;
-          if (selected == (uint64_t) parameters.opt_topn)
-            {
-              break;
-            }
-        }
+  for (auto const & bucket : hashtable_v) {
+    int64_t const size = bucket.size;
+    if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize)) {
+      ++selected;
+      if (selected == static_cast<uint64_t>(parameters.opt_topn)) {
+        break;
+      }
     }
+  }
 
   show_rusage();
 
