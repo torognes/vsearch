@@ -112,9 +112,12 @@ namespace {
 }  // end of anonymous namespace
 
 
-// file to read
+// file to read, open_input_file, open_istream
 auto read_file(const char * filename) -> FileHandle {
-  assert(filename != nullptr);
+  if (filename == nullptr) {
+    std::FILE * empty = nullptr;
+    return FileHandle{empty};
+  }
   auto const mode = ModeString{"rb"};  // r: reading, b: non-UNIX environments
   /* open the input stream given by filename, but if name is '-' then
      use a duplicate of stdin (fd = STDIN_FILENO = 0) */
@@ -127,9 +130,12 @@ auto read_file(const char * filename) -> FileHandle {
 }
 
 
-// file to write
+// file to write, open_output_file, open_ostream
 auto write_file(const char * filename) -> FileHandle {
-  assert(filename != nullptr);
+  if (filename == nullptr) {
+    std::FILE * empty = nullptr;
+    return FileHandle{empty};
+  }
   auto const mode = ModeString{"w"};  // w: writing, no b?
   /* open the output stream given by filename, but if name is '-' then
      use a duplicate of stdout (fd = STDOUT_FILENO = 1) */
