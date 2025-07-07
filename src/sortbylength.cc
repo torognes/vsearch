@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
@@ -83,16 +84,6 @@ namespace {
     unsigned int size = 0;
     unsigned int seqno = 0;
   };
-
-
-  auto check_output_file(char const * filename, bool const filehandle_is_empty) -> void {
-    if (filename == nullptr) {
-      fatal("FASTA output file for sortbylength must be specified with --output");
-    }
-    if (filehandle_is_empty) {
-      fatal("Unable to open sortbylength output file for writing");
-    }
-  }
 
 
   auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_length_s> {
@@ -210,7 +201,7 @@ namespace {
 
 auto sortbylength(struct Parameters const & parameters) -> void {
   auto const output_handle = open_output_file(parameters.opt_output);
-  check_output_file(parameters.opt_output, (not output_handle));
+  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_sortbylength, 0);
   show_rusage();
 
