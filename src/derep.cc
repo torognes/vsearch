@@ -174,7 +174,6 @@ auto rehash(std::vector<struct bucket> & hashtable_v) -> void
   uint64_t const new_hash_mask = new_hashtablesize - 1;
 
   std::vector<struct bucket> new_hashtable_v(new_hashtablesize);
-  auto * new_hashtable = new_hashtable_v.data();
 
   /* rehash all */
   for (auto const & old_bucket : hashtable_v) {
