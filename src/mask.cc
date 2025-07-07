@@ -62,6 +62,7 @@
 #include "maps.h"
 #include "mask.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include "utils/xpthread.hpp"
 #include <array>
 #include <cctype>  // std::toupper, std::isupper
@@ -287,11 +288,10 @@ auto maskfasta(struct Parameters const & parameters) -> void
     fatal("Output file for masking must be specified with --output");
   }
 
-  auto * fp_output = fopen_output(parameters.opt_output);
-  if (fp_output == nullptr)
-    {
-      fatal("Unable to open mask output file for writing");
-    }
+  auto fp_output = open_output_file(parameters.opt_output);
+  if (not fp_output) {
+    fatal("Unable to open mask output file for writing");
+  }
 
   db_read(parameters.opt_maskfasta, 0);
   show_rusage();
@@ -311,14 +311,13 @@ auto maskfasta(struct Parameters const & parameters) -> void
   progress_init("Writing output", seqcount);
   for (auto i = 0; i < seqcount; i++)
     {
-      fasta_print_db_relabel(fp_output, i, i + 1);
+      fasta_print_db_relabel(fp_output.get(), i, i + 1);
       progress_update(i);
     }
   progress_done();
   show_rusage();
 
   db_free();
-  fclose(fp_output);
 }
 
 
