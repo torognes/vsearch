@@ -169,7 +169,6 @@ auto rehash(std::vector<struct bucket> & hashtable_v) -> void
     - update variables
   */
 
-  auto * old_hashtable = hashtable_v.data();
   uint64_t const old_hashtablesize = hashtable_v.size();
   uint64_t const new_hashtablesize = 2 * old_hashtablesize;
   uint64_t const new_hash_mask = new_hashtablesize - 1;
