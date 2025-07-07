@@ -106,6 +106,7 @@ udb.h \
 unique.h \
 userfields.h \
 util.h \
+utils/check_output_filehandle.hpp \
 utils/fatal.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
@@ -205,6 +206,7 @@ userfields.cc \
 util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
+utils/check_output_filehandle.cpp \
 utils/open_file.cpp \
 utils/xpthread.cpp \
 utils/seqcmp.cc \
